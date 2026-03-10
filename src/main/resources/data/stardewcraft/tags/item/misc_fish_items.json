@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:seaweed",
+    "stardewcraft:green_algae",
+    "stardewcraft:white_algae",
+    "stardewcraft:sea_jelly",
+    "stardewcraft:river_jelly",
+    "stardewcraft:cave_jelly"
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:carrot_on_a_stick",
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": 1
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 9601,
+                "minecraft:custom_name": "{\"text\":\"[Debug] 草放置器\",\"color\":\"green\",\"italic\":false}",
+                "minecraft:lore": [
+                  "{\"text\":\"右键: 在5x5范围内生成草\",\"color\":\"gray\",\"italic\":false}",
+                  "{\"text\":\"Shift+右键: 生成单个草\",\"color\":\"gray\",\"italic\":false}"
+                ],
+                "minecraft:custom_data": {
+                  "stardew_item": 1,
+                  "debug_tool": "place_grass"
+                },
+                "minecraft:max_stack_size": 1
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

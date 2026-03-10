@@ -1,0 +1,58 @@
+{
+    "pools": [
+        {
+            "rolls": 1, 
+            "entries": [
+                {
+                    "functions": [
+                        {
+                            "function": "minecraft:set_count", 
+                            "count": 1
+                        }, 
+                        {
+                            "function": "minecraft:set_components", 
+                            "components": {
+                                "minecraft:custom_model_data": 4606, 
+                                "minecraft:custom_name": "[{\"text\": \"金星 \", \"color\": \"yellow\", \"bold\": true, \"italic\": false}, {\"text\": \"远古水果\", \"color\": \"white\", \"bold\": false, \"italic\": false}]", 
+                                "minecraft:custom_data": {
+                                    "food_energy": 90, 
+                                    "is_food": 1, 
+                                    "item_type": "crop", 
+                                    "stardew_item": 1, 
+                                    "food_health": 37, 
+                                    "quality": "gold", 
+                                    "crop_id": "ancient_fruit", 
+                                    "sd_price": 825
+                                }, 
+                                "minecraft:lore": [
+                                    "{\"text\": \"售价：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"825G\", \"color\": \"gold\", \"bold\": true}]}", 
+                                    "{\"text\": \"物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"作物\", \"color\": \"green\", \"bold\": true}]}", 
+                                    "{\"text\": \"生长于\", \"color\": \"gray\", \"italic\": false, \"bold\": false, \"extra\": [{\"text\": \"春夏秋三季\", \"color\": \"white\", \"bold\": true}, {\"text\": \"，需要\", \"color\": \"gray\", \"bold\": false}, {\"text\": \"28\", \"color\": \"white\", \"bold\": true}, {\"text\": \"天成熟\", \"color\": \"gray\", \"bold\": false}, {\"text\": \"，\", \"color\": \"gray\", \"bold\": false}, {\"text\": \"之后\", \"color\": \"gray\", \"bold\": false}, {\"text\": \"7\", \"color\": \"white\", \"bold\": true}, {\"text\": \"天一收\", \"color\": \"gray\", \"bold\": false}]}", 
+                                    "{\"text\": \"在远古时代人工栽培的甜味水果。\", \"color\": \"dark_gray\", \"italic\": false}", 
+                                    "{\"color\": \"white\", \"text\": \"\", \"bold\": true, \"italic\": false, \"extra\": [{\"color\": \"red\", \"text\": \"❤ 37\", \"bold\": true}, {\"color\": \"white\", \"text\": \"  \", \"bold\": true}, {\"color\": \"green\", \"text\": \"⚡ 90\", \"bold\": true}]}"
+                                ], 
+                                "minecraft:food": {
+                                    "nutrition": 0, 
+                                    "saturation": 0, 
+                                    "can_always_eat": true
+                                }, 
+                                "minecraft:max_stack_size": 99, 
+                                "minecraft:consumable": {
+                                    "sound": {
+                                        "sound_id": "minecraft:entity.generic.eat"
+                                    }, 
+                                    "has_consume_particles": true, 
+                                    "animation": "eat", 
+                                    "consume_seconds": 0.8
+                                }
+                            }
+                        }
+                    ], 
+                    "type": "minecraft:item", 
+                    "name": "minecraft:paper"
+                }
+            ]
+        }
+    ], 
+    "type": "minecraft:command"
+}

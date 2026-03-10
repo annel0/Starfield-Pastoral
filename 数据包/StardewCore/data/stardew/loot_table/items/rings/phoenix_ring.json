@@ -1,0 +1,47 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:carrot_on_a_stick",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 5074,
+                "minecraft:custom_name": "[{\"text\":\"凤凰戒指\",\"color\":\"#FF6B35\",\"bold\":false,\"italic\":false}]",
+                "minecraft:lore": [
+                  "{\"text\":\"⚒ 被动效果: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"浴火重生\",\"color\":\"#FF6B35\",\"bold\":true}]}",
+                  "{\"text\": \"💰 售价：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"无法出售\", \"color\": \"red\", \"bold\": true}]}",
+                  "{\"text\": \"🔧 物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"装备\", \"color\": \"light_purple\", \"bold\": true}]}",
+                  "{\"text\": \"死亡时有概率复活。\", \"color\": \"gray\", \"italic\": false}",
+                  "{\"text\": \"\"}",
+                  "{\"text\": \"被动效果 - \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"浴火重生\", \"color\": \"#FF6B35\", \"bold\": true}]}",
+                  "{\"text\": \"▪ 效果: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"死亡时50%几率原地复活并恢复50%生命\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 触发: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"受到致命伤害时触发\", \"color\": \"white\", \"bold\": false}]}"
+                ],
+                "minecraft:max_stack_size": 1,
+                "minecraft:custom_data": {
+                  "stardew": {
+                    "type": "ring",
+                    "id": "phoenix_ring",
+                    "name": "凤凰戒指",
+                    "rarity": "legendary",
+                    "effects": {
+                      "revive": true,
+                      "revive_chance": 0.5,
+                      "revive_health": 0.5
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

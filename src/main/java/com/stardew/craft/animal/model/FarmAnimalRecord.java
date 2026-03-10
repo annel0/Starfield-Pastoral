@@ -1,0 +1,331 @@
+package com.stardew.craft.animal.model;
+
+import net.minecraft.nbt.CompoundTag;
+
+public class FarmAnimalRecord {
+    private final long animalId;
+    private final String animalTypeId;
+    private String customName;
+    private final String buildingId;
+    private final AnimalAcquisitionSource acquisitionSource;
+    private final int createdDay;
+    private final int createdSeason;
+    private final int createdYear;
+    private int ageDays;
+    private final int daysToMature;
+    private boolean wasPetToday;
+    private boolean wasAutoPetToday;
+    private int friendship;
+    private boolean allowReproduction;
+    private int daysOwned;
+    private int fullness;
+    private int happiness;
+    private int moodMessage;
+    private int daysSinceLastProduce;
+    private String currentProduceId;
+    private int produceQuality;
+    private boolean hasEatenAnimalCracker;
+
+    public FarmAnimalRecord(long animalId,
+                            String animalTypeId,
+                            String customName,
+                            String buildingId,
+                            AnimalAcquisitionSource acquisitionSource,
+                            int createdDay,
+                            int createdSeason,
+                            int createdYear,
+                            int ageDays,
+                            int daysToMature) {
+        this(
+            animalId,
+            animalTypeId,
+            customName,
+            buildingId,
+            acquisitionSource,
+            createdDay,
+            createdSeason,
+            createdYear,
+            ageDays,
+            daysToMature,
+            false,
+            false,
+            0,
+            false,
+            0,
+            255,
+            255,
+            0,
+            0,
+            "",
+            0,
+            false
+        );
+    }
+
+    public FarmAnimalRecord(long animalId,
+                            String animalTypeId,
+                            String customName,
+                            String buildingId,
+                            AnimalAcquisitionSource acquisitionSource,
+                            int createdDay,
+                            int createdSeason,
+                            int createdYear,
+                            int ageDays,
+                            int daysToMature,
+                            boolean wasPetToday,
+                            boolean wasAutoPetToday,
+                            int friendship,
+                            boolean allowReproduction,
+                            int daysOwned,
+                            int fullness,
+                            int happiness,
+                            int moodMessage,
+                            int daysSinceLastProduce,
+                            String currentProduceId,
+                            int produceQuality,
+                            boolean hasEatenAnimalCracker) {
+        this.animalId = animalId;
+        this.animalTypeId = animalTypeId;
+        this.customName = customName;
+        this.buildingId = buildingId;
+        this.acquisitionSource = acquisitionSource;
+        this.createdDay = createdDay;
+        this.createdSeason = createdSeason;
+        this.createdYear = createdYear;
+        this.ageDays = ageDays;
+        this.daysToMature = daysToMature;
+        this.wasPetToday = wasPetToday;
+        this.wasAutoPetToday = wasAutoPetToday;
+        this.friendship = Math.max(0, friendship);
+        this.allowReproduction = allowReproduction;
+        this.daysOwned = Math.max(0, daysOwned);
+        this.fullness = Math.max(0, Math.min(255, fullness));
+        this.happiness = Math.max(0, Math.min(255, happiness));
+        this.moodMessage = Math.max(0, moodMessage);
+        this.daysSinceLastProduce = Math.max(0, daysSinceLastProduce);
+        this.currentProduceId = currentProduceId == null ? "" : currentProduceId;
+        this.produceQuality = Math.max(0, produceQuality);
+        this.hasEatenAnimalCracker = hasEatenAnimalCracker;
+    }
+
+    public long animalId() {
+        return animalId;
+    }
+
+    public String animalTypeId() {
+        return animalTypeId;
+    }
+
+    public String customName() {
+        return customName;
+    }
+
+
+    public int ageDays() {
+        return ageDays;
+    }
+
+    public int daysToMature() {
+        return daysToMature;
+    }
+
+    public boolean isBaby() {
+        return ageDays < daysToMature;
+    }
+
+    public void incrementAgeDays(int delta) {
+        if (delta <= 0) {
+            return;
+        }
+        this.ageDays = Math.max(0, this.ageDays + delta);
+    }
+
+    public boolean wasPetToday() {
+        return wasPetToday;
+    }
+
+    public void setWasPetToday(boolean wasPetToday) {
+        this.wasPetToday = wasPetToday;
+    }
+
+    public boolean wasAutoPetToday() {
+        return wasAutoPetToday;
+    }
+
+    public void setWasAutoPetToday(boolean wasAutoPetToday) {
+        this.wasAutoPetToday = wasAutoPetToday;
+    }
+
+    public void setCustomName(String customName) {
+        this.customName = customName;
+    }
+
+    public int friendship() {
+        return friendship;
+    }
+
+    public void addFriendship(int amount) {
+        if (amount == 0) {
+            return;
+        }
+        this.friendship = Math.max(0, Math.min(1000, this.friendship + amount));
+    }
+
+    public boolean allowReproduction() {
+        return allowReproduction;
+    }
+
+    public void setAllowReproduction(boolean allowReproduction) {
+        this.allowReproduction = allowReproduction;
+    }
+
+    public int daysOwned() {
+        return daysOwned;
+    }
+
+    public void incrementDaysOwned() {
+        this.daysOwned = Math.max(0, this.daysOwned + 1);
+    }
+
+    public int fullness() {
+        return fullness;
+    }
+
+    public void setFullness(int fullness) {
+        this.fullness = Math.max(0, Math.min(255, fullness));
+    }
+
+    public int happiness() {
+        return happiness;
+    }
+
+    public void addHappiness(int delta) {
+        if (delta == 0) {
+            return;
+        }
+        this.happiness = Math.max(0, Math.min(255, this.happiness + delta));
+    }
+
+    public void setHappiness(int happiness) {
+        this.happiness = Math.max(0, Math.min(255, happiness));
+    }
+
+    public int moodMessage() {
+        return moodMessage;
+    }
+
+    public void setMoodMessage(int moodMessage) {
+        this.moodMessage = Math.max(0, moodMessage);
+    }
+
+    public int daysSinceLastProduce() {
+        return daysSinceLastProduce;
+    }
+
+    public void incrementDaysSinceLastProduce() {
+        this.daysSinceLastProduce = Math.max(0, this.daysSinceLastProduce + 1);
+    }
+
+    public void resetDaysSinceLastProduce() {
+        this.daysSinceLastProduce = 0;
+    }
+
+    public String currentProduceId() {
+        return currentProduceId;
+    }
+
+    public void setCurrentProduceId(String currentProduceId) {
+        this.currentProduceId = currentProduceId == null ? "" : currentProduceId;
+    }
+
+    public int produceQuality() {
+        return produceQuality;
+    }
+
+    public void setProduceQuality(int produceQuality) {
+        this.produceQuality = Math.max(0, produceQuality);
+    }
+
+    public boolean hasEatenAnimalCracker() {
+        return hasEatenAnimalCracker;
+    }
+
+    public void setHasEatenAnimalCracker(boolean hasEatenAnimalCracker) {
+        this.hasEatenAnimalCracker = hasEatenAnimalCracker;
+    }
+
+    public String buildingId() {
+        return buildingId;
+    }
+
+    public AnimalAcquisitionSource acquisitionSource() {
+        return acquisitionSource;
+    }
+
+    public int createdDay() {
+        return createdDay;
+    }
+
+    public int createdSeason() {
+        return createdSeason;
+    }
+
+    public int createdYear() {
+        return createdYear;
+    }
+
+    @SuppressWarnings("null")
+    public CompoundTag save() {
+        CompoundTag tag = new CompoundTag();
+        tag.putLong("animalId", animalId);
+        tag.putString("animalTypeId", animalTypeId);
+        tag.putString("customName", customName);
+        tag.putString("buildingId", buildingId);
+        tag.putString("acquisitionSource", acquisitionSource.name());
+        tag.putInt("createdDay", createdDay);
+        tag.putInt("createdSeason", createdSeason);
+        tag.putInt("createdYear", createdYear);
+        tag.putInt("ageDays", ageDays);
+        tag.putInt("daysToMature", daysToMature);
+        tag.putBoolean("wasPetToday", wasPetToday);
+        tag.putBoolean("wasAutoPetToday", wasAutoPetToday);
+        tag.putInt("friendship", friendship);
+        tag.putBoolean("allowReproduction", allowReproduction);
+        tag.putInt("daysOwned", daysOwned);
+        tag.putInt("fullness", fullness);
+        tag.putInt("happiness", happiness);
+        tag.putInt("moodMessage", moodMessage);
+        tag.putInt("daysSinceLastProduce", daysSinceLastProduce);
+        tag.putString("currentProduceId", currentProduceId);
+        tag.putInt("produceQuality", produceQuality);
+        tag.putBoolean("hasEatenAnimalCracker", hasEatenAnimalCracker);
+        return tag;
+    }
+
+    public static FarmAnimalRecord load(CompoundTag tag) {
+        return new FarmAnimalRecord(
+            tag.getLong("animalId"),
+            tag.getString("animalTypeId"),
+            tag.getString("customName"),
+            tag.getString("buildingId"),
+            AnimalAcquisitionSource.fromId(tag.getString("acquisitionSource")),
+            tag.getInt("createdDay"),
+            tag.getInt("createdSeason"),
+            tag.getInt("createdYear"),
+            tag.contains("ageDays") ? tag.getInt("ageDays") : 0,
+            tag.contains("daysToMature") ? tag.getInt("daysToMature") : 5,
+            tag.getBoolean("wasPetToday"),
+            tag.getBoolean("wasAutoPetToday"),
+            tag.contains("friendship") ? tag.getInt("friendship") : 0,
+            tag.getBoolean("allowReproduction"),
+            tag.contains("daysOwned") ? tag.getInt("daysOwned") : 0,
+            tag.contains("fullness") ? tag.getInt("fullness") : 255,
+            tag.contains("happiness") ? tag.getInt("happiness") : 255,
+            tag.contains("moodMessage") ? tag.getInt("moodMessage") : 0,
+            tag.contains("daysSinceLastProduce") ? tag.getInt("daysSinceLastProduce") : 0,
+            tag.contains("currentProduceId") ? tag.getString("currentProduceId") : "",
+            tag.contains("produceQuality") ? tag.getInt("produceQuality") : 0,
+            tag.contains("hasEatenAnimalCracker") && tag.getBoolean("hasEatenAnimalCracker")
+        );
+    }
+}

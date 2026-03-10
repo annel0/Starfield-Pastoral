@@ -1,0 +1,28 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.stardew.craft.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "FarmBlockMixin",
+    "DataComponentsMixin",
+    "ContainerMixin",
+    "ItemStackCodecCountRangeMixin",
+    "FishingHookDisableVanillaBiteMixin",
+    "PlayerSweepAttackMixin"
+  ],
+  "client": [
+    "GuiGraphicsStackCountScaleMixin",
+    "FishingHookRendererLineOriginMixin",
+    "FishingHookRendererBiteDipMixin",
+    "ItemInHandRendererScytheSwingMixin",
+    "CameraShakeMixin",
+    "GameRendererFovMixin",
+    "LivingEntitySwingAccessor",
+    "PlayerRendererHoePoseMixin",
+    "PlayerRendererWateringCanPoseMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "machine": "oil_maker",
+  "recipes": [
+    { "input": "stardewcraft:corn", "output": "stardewcraft:oil", "minutes": 1000 },
+    { "input": "stardewcraft:sunflower", "output": "stardewcraft:oil", "minutes": 60 },
+    { "input": "stardewcraft:sunflower_seeds", "output": "stardewcraft:oil", "minutes": 3200 },
+    { "input": "stardewcraft:truffle", "output": "stardewcraft:truffle_oil", "minutes": 360 }
+  ]
+}

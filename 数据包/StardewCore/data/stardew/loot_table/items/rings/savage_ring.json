@@ -1,0 +1,45 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:carrot_on_a_stick",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 5053,
+                "minecraft:custom_name": "[{\"text\":\"野蛮戒指\",\"color\":\"blue\",\"bold\":false,\"italic\":false}]",
+                "minecraft:lore": [
+                  "{\"text\":\"⚒ 被动效果: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"战斗狂热\",\"color\":\"red\",\"bold\":true}]}",
+                  "{\"text\": \"💰 售价：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"无法出售\", \"color\": \"red\", \"bold\": true}]}",
+                  "{\"text\": \"🔧 物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"装备\", \"color\": \"light_purple\", \"bold\": true}]}",
+                  "{\"text\": \"战斗时提升移动速度。\", \"color\": \"gray\", \"italic\": false}",
+                  "{\"text\": \"\"}",
+                  "{\"text\": \"被动效果 - \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"战斗狂热\", \"color\": \"red\", \"bold\": true}]}",
+                  "{\"text\": \"▪ 效果: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"战斗中移动速度+2\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 触发: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"进入战斗状态时\", \"color\": \"white\", \"bold\": false}]}"
+                ],
+                "minecraft:max_stack_size": 1,
+                "minecraft:custom_data": {
+                  "stardew": {
+                    "type": "ring",
+                    "id": "savage_ring",
+                    "name": "野蛮戒指",
+                    "rarity": "rare",
+                    "effects": {
+                      "speed_combat": 2
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "stardewcraft:item/artisan/wine/melon",
+    "layer1": "stardewcraft:item/quality/iridium_star"
+  }
+}

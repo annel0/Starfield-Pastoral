@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:watering_can",
+    "stardewcraft:copper_watering_can",
+    "stardewcraft:steel_watering_can",
+    "stardewcraft:gold_watering_can",
+    "stardewcraft:iridium_watering_can"
+  ]
+}

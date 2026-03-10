@@ -1,0 +1,43 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:carrot_on_a_stick",
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": 1
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 4009,
+                "minecraft:max_stack_size": 99,
+                "!minecraft:max_damage": {},
+                "minecraft:custom_name": "{\"text\": \"顶级保湿土壤\", \"color\": \"white\", \"italic\": false}",
+                "minecraft:lore": [
+                  "{\"text\": \"售价：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"30G\", \"color\": \"gold\", \"bold\": true}]}",
+                  "{\"text\": \"物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"肥料\", \"color\": \"dark_green\", \"bold\": true}]}",
+                  "{\"text\": \"这种土壤能够隔夜依然\", \"color\": \"gray\", \"italic\": false}",
+                  "{\"text\": \"百分百保持湿润。\", \"color\": \"gray\", \"italic\": false}",
+                  "{\"text\": \"使用时加到犁过的土地中。\", \"color\": \"gray\", \"italic\": false}"
+                ],
+                "minecraft:custom_data": {
+                  "stardew_item": 1,
+                  "item_type": "fertilizer",
+                  "fertilizer_type": "retaining",
+                  "fertilizer_level": 3,
+                  "sd_price": 30
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

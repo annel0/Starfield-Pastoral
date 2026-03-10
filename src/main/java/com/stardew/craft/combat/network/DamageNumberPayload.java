@@ -1,0 +1,50 @@
+package com.stardew.craft.combat.network;
+
+import com.stardew.craft.StardewCraft;
+import com.stardew.craft.client.combat.DamageNumberClient;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.jetbrains.annotations.NotNull;
+
+public record DamageNumberPayload(float x, float y, float z, int damage, boolean crit, String skillId) implements CustomPacketPayload {
+    @SuppressWarnings("null")
+    public static final Type<DamageNumberPayload> TYPE = new Type<>(
+            ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "damage_number")
+    );
+
+        @SuppressWarnings("null")
+        public static final StreamCodec<ByteBuf, DamageNumberPayload> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.FLOAT,
+            DamageNumberPayload::x,
+            ByteBufCodecs.FLOAT,
+            DamageNumberPayload::y,
+            ByteBufCodecs.FLOAT,
+            DamageNumberPayload::z,
+            ByteBufCodecs.VAR_INT,
+            DamageNumberPayload::damage,
+            ByteBufCodecs.BOOL,
+            DamageNumberPayload::crit,
+            ByteBufCodecs.STRING_UTF8,
+            payload -> payload.skillId() == null ? "" : payload.skillId(),
+            DamageNumberPayload::new
+        );
+
+    @Override
+    public @NotNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    public static void handle(DamageNumberPayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            String skill = payload.skillId();
+            if (skill != null && skill.isEmpty()) {
+                skill = null;
+            }
+            DamageNumberClient.add(payload.x(), payload.y(), payload.z(), payload.damage(), payload.crit(), skill);
+        });
+    }
+}

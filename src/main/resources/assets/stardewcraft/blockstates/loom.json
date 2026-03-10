@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "facing=north,ready=false": { "model": "stardewcraft:block/utility/loom" },
+    "facing=east,ready=false": { "model": "stardewcraft:block/utility/loom", "y": 90 },
+    "facing=south,ready=false": { "model": "stardewcraft:block/utility/loom", "y": 180 },
+    "facing=west,ready=false": { "model": "stardewcraft:block/utility/loom", "y": 270 },
+
+    "facing=north,ready=true": { "model": "stardewcraft:block/utility/loom_full" },
+    "facing=east,ready=true": { "model": "stardewcraft:block/utility/loom_full", "y": 90 },
+    "facing=south,ready=true": { "model": "stardewcraft:block/utility/loom_full", "y": 180 },
+    "facing=west,ready=true": { "model": "stardewcraft:block/utility/loom_full", "y": 270 }
+  }
+}

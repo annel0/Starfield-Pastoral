@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:mountain_lake",
+    "#minecraft:is_mountain"
+  ]
+}

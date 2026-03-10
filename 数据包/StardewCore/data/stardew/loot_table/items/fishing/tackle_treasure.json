@@ -1,0 +1,40 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 5006,
+                "minecraft:max_stack_size": 1,
+                "minecraft:custom_name": "{\"text\": \"寻宝者\", \"color\": \"white\", \"bold\": false, \"italic\": false}",
+                "minecraft:lore": [
+                  "{\"text\": \"等级要求: Lv.\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"7\", \"color\": \"yellow\", \"bold\": true}]}",
+                  "{\"text\": \"功能: \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"增加宝藏概率\", \"color\": \"yellow\", \"bold\": true}]}",
+                  "{\"text\": \"售价：无法出售\", \"color\": \"red\", \"italic\": false}",
+                  "{\"text\": \"发现宝藏的概率增加 15%。\", \"color\": \"gray\", \"italic\": false}",
+                  "{\"text\": \"\", \"color\": \"white\"}",
+                  "{\"text\": \"使用方法：\", \"color\": \"white\", \"bold\": false, \"italic\": false}",
+                  "{\"text\": \"\", \"color\": \"gray\", \"italic\": false, \"bold\": false, \"extra\": [{\"text\": \"主手\", \"color\": \"green\", \"bold\": true}, {\"text\": \"拿\"}, {\"text\": \"钓竿\", \"color\": \"green\", \"bold\": true}, {\"text\": \"、\"}, {\"text\": \"副手\", \"color\": \"green\", \"bold\": true}, {\"text\": \"拿\"}, {\"text\": \"渔具\", \"color\": \"green\", \"bold\": true}, {\"text\": \"，\"}, {\"text\": \"潜行\", \"color\": \"green\", \"bold\": true}, {\"text\": \"加\"}, {\"text\": \"右键\", \"color\": \"green\", \"bold\": true}, {\"text\": \"即可装上渔具。\"}]}",
+                  "{\"text\": \"\", \"color\": \"gray\", \"italic\": false, \"bold\": false, \"extra\": [{\"text\": \"主手\", \"color\": \"green\", \"bold\": true}, {\"text\": \"拿装有渔具的\"}, {\"text\": \"钓竿\", \"color\": \"green\", \"bold\": true}, {\"text\": \"、\"}, {\"text\": \"副手\", \"color\": \"green\", \"bold\": true}, {\"text\": \"空出\", \"color\": \"green\", \"bold\": true}, {\"text\": \"，\"}, {\"text\": \"潜行\", \"color\": \"green\", \"bold\": true}, {\"text\": \"加\"}, {\"text\": \"右键\", \"color\": \"green\", \"bold\": true}, {\"text\": \"即可取出渔具。\"}]}"
+                ],
+                "minecraft:custom_data": {
+                  "stardew_item": 1,
+                  "item_type": "tackle",
+                  "tackle_id": 5006,
+                  "min_level": 7
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

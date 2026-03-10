@@ -1,0 +1,301 @@
+package com.stardew.craft.blockentity;
+
+import com.stardew.craft.item.ModItems;
+import com.stardew.craft.time.StardewTimeManager;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.neoforged.neoforge.items.IItemHandler;
+
+import javax.annotation.Nullable;
+
+public class SolarPanelBlockEntity extends BlockEntity implements UtilityAutomationAccess {
+    private static final int EFFECTIVE_MINUTES_PER_DAY = 1260;
+    private static final int DAYS_TO_CHARGE = 1;
+
+    private static final String TAG_PRODUCT = "product";
+    private static final String TAG_REMAINING = "remainingAbsMinutes";
+    private static final String TAG_READY = "ready";
+    private static final String TAG_LAST_DAY = "lastDayIndex";
+    private static final String TAG_PAUSED = "paused";
+
+    private ItemStack product = ItemStack.EMPTY;
+    private long remainingAbsMinutes = -1;
+    private boolean ready = false;
+    private long lastDayIndex = -1;
+    private boolean paused = false;
+    private final UtilityItemHandler automationItemHandler = new UtilityItemHandler(this);
+
+    public record RemainingTime(int days, int hours, int minutes) {}
+
+    public SolarPanelBlockEntity(BlockPos pos, BlockState state) {
+        super(ModBlockEntities.SOLAR_PANEL.get(), pos, state);
+    }
+
+    public static void serverTick(Level level, BlockPos pos, BlockState state, SolarPanelBlockEntity be) {
+        if (level.isClientSide) {
+            return;
+        }
+        be.tickServer(level, pos, state);
+    }
+
+    private void tickServer(Level level, BlockPos pos, BlockState state) {
+        if (product.isEmpty()) {
+            startCycle(level);
+        }
+
+        boolean newPaused = computePaused(level, pos);
+        if (newPaused != paused) {
+            paused = newPaused;
+            setChanged();
+            syncToClient();
+        }
+
+        long currentDayIndex = getCurrentDayIndex();
+        if (lastDayIndex < 0) {
+            lastDayIndex = currentDayIndex;
+        }
+
+        if (currentDayIndex != lastDayIndex) {
+            long deltaDays = Math.max(0, currentDayIndex - lastDayIndex);
+            lastDayIndex = currentDayIndex;
+
+            if (!paused && !product.isEmpty() && !ready && remainingAbsMinutes > 0) {
+                remainingAbsMinutes = Math.max(0, remainingAbsMinutes - deltaDays * (long) EFFECTIVE_MINUTES_PER_DAY);
+                boolean newReady = remainingAbsMinutes == 0;
+                if (newReady != ready) {
+                    ready = newReady;
+                    setChanged();
+                    syncToClient();
+                }
+            }
+        }
+
+        updateWorkingState(level, pos, state);
+    }
+
+    @SuppressWarnings("null")
+    private void startCycle(Level level) {
+        product = new ItemStack((net.minecraft.world.level.ItemLike) ModItems.BATTERY_PACK.get());
+        remainingAbsMinutes = (long) DAYS_TO_CHARGE * (long) EFFECTIVE_MINUTES_PER_DAY;
+        ready = false;
+        lastDayIndex = getCurrentDayIndex();
+        paused = computePaused(level, worldPosition);
+        setChanged();
+        syncToClient();
+    }
+
+    @SuppressWarnings("null")
+    private boolean computePaused(Level level, BlockPos pos) {
+        BlockState state = getBlockState();
+        if (!state.hasProperty(com.stardew.craft.block.utility.SolarPanelBlock.FACING)) {
+            BlockPos above = pos.above();
+            boolean openSky = level.canSeeSky(above);
+            boolean raining = level.isRainingAt(above);
+            return !openSky || raining;
+        }
+
+        BlockPos mainPos = com.stardew.craft.block.utility.SolarPanelBlock.getMainPos(pos, state);
+        BlockPos extPos = com.stardew.craft.block.utility.SolarPanelBlock.getExtensionPos(mainPos, state);
+        BlockPos mainAbove = mainPos.above();
+        BlockPos extAbove = extPos.above();
+
+        boolean openSky = level.canSeeSky(mainAbove) && level.canSeeSky(extAbove);
+        boolean raining = level.isRainingAt(mainAbove) || level.isRainingAt(extAbove);
+        return !openSky || raining;
+    }
+
+    public boolean isReady() {
+        return ready;
+    }
+
+    public boolean isWorking() {
+        return !product.isEmpty() && !ready && remainingAbsMinutes > 0 && !paused;
+    }
+
+    public boolean isPaused() {
+        return paused;
+    }
+
+    public ItemStack getProduct() {
+        return product;
+    }
+
+    public IItemHandler getAutomationItemHandler() {
+        return automationItemHandler;
+    }
+
+    public RemainingTime getRemainingTime() {
+        long remaining = getRemainingAbsMinutes();
+        int days = (int) (remaining / EFFECTIVE_MINUTES_PER_DAY);
+        int minutesRemainder = (int) (remaining % EFFECTIVE_MINUTES_PER_DAY);
+        int hours = minutesRemainder / StardewTimeManager.MINUTES_PER_HOUR;
+        int minutes = minutesRemainder % StardewTimeManager.MINUTES_PER_HOUR;
+        return new RemainingTime(days, hours, minutes);
+    }
+
+    public long getRemainingAbsMinutes() {
+        if (product.isEmpty() || ready || remainingAbsMinutes < 0) {
+            return 0;
+        }
+        return Math.max(0, remainingAbsMinutes);
+    }
+
+    public ItemStack harvestOne() {
+        if (!ready) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack out = product.copy();
+        product = ItemStack.EMPTY;
+        remainingAbsMinutes = -1;
+        ready = false;
+        setChanged();
+        syncToClient();
+        return out;
+    }
+
+    @Override
+    public ItemStack getAutomationInput() {
+        return ItemStack.EMPTY;
+    }
+
+    @Override
+    public ItemStack getAutomationOutput() {
+        return ready ? product : ItemStack.EMPTY;
+    }
+
+    @Override
+    public ItemStack insertAutomation(ItemStack stack, boolean simulate) {
+        return stack;
+    }
+
+    @Override
+    public ItemStack extractAutomation(int amount, boolean simulate) {
+        if (!ready || product.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack out = AutomationStackHelper.extractUpTo(product, amount);
+        if (simulate) {
+            return out;
+        }
+        if (out.getCount() >= product.getCount()) {
+            return harvestOne();
+        }
+        product.shrink(out.getCount());
+        setChanged();
+        syncToClient();
+        return out;
+    }
+
+    public boolean canApplyFairyDust() {
+        return !product.isEmpty() && !ready;
+    }
+
+    public boolean applyFairyDust() {
+        if (!canApplyFairyDust()) {
+            return false;
+        }
+        remainingAbsMinutes = 0;
+        ready = true;
+        setChanged();
+        syncToClient();
+        return true;
+    }
+
+    public void advanceDays(int days) {
+        if (days <= 0) {
+            return;
+        }
+        Level currentLevel = level;
+        if (currentLevel == null || currentLevel.isClientSide) {
+            return;
+        }
+        if (product.isEmpty() || remainingAbsMinutes < 0) {
+            return;
+        }
+        long delta = (long) days * (long) EFFECTIVE_MINUTES_PER_DAY;
+        remainingAbsMinutes = Math.max(0, remainingAbsMinutes - delta);
+        ready = remainingAbsMinutes == 0;
+        setChanged();
+        syncToClient();
+    }
+
+    @SuppressWarnings("null")
+    private void updateWorkingState(Level level, BlockPos pos, BlockState state) {
+        BooleanProperty workingProp = com.stardew.craft.block.utility.SolarPanelBlock.WORKING;
+        boolean workingNow = isWorking();
+        if (state.hasProperty(workingProp) && state.getValue(workingProp) != workingNow) {
+            level.setBlock(pos, state.setValue(workingProp, workingNow), 3);
+        }
+    }
+
+    @SuppressWarnings("null")
+    private void syncToClient() {
+        Level currentLevel = level;
+        if (currentLevel == null || currentLevel.isClientSide) {
+            return;
+        }
+        currentLevel.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
+    }
+
+    private static long getCurrentDayIndex() {
+        StardewTimeManager tm = StardewTimeManager.get();
+        int year = tm.getCurrentYear();
+        int season = tm.getCurrentSeason();
+        int day = tm.getCurrentDay();
+        return (long) (year - 1) * 112L + (long) season * 28L + (long) day;
+    }
+
+    @Nullable
+    @Override
+    public Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @SuppressWarnings("null")
+    @Override
+    public CompoundTag getUpdateTag(@SuppressWarnings("null") net.minecraft.core.HolderLookup.Provider registries) {
+        CompoundTag tag = super.getUpdateTag(registries);
+        saveAdditional(tag, registries);
+        return tag;
+    }
+
+    @SuppressWarnings("null")
+    @Override
+    protected void saveAdditional(@SuppressWarnings("null") CompoundTag tag, @SuppressWarnings("null") net.minecraft.core.HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        if (!product.isEmpty()) {
+            tag.put(TAG_PRODUCT, product.save(registries));
+        }
+        tag.putLong(TAG_REMAINING, remainingAbsMinutes);
+        tag.putBoolean(TAG_READY, ready);
+        tag.putLong(TAG_LAST_DAY, lastDayIndex);
+        tag.putBoolean(TAG_PAUSED, paused);
+    }
+
+    @SuppressWarnings("null")
+    @Override
+    protected void loadAdditional(@SuppressWarnings("null") CompoundTag tag, @SuppressWarnings("null") net.minecraft.core.HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        if (tag.contains(TAG_PRODUCT)) {
+            product = ItemStack.parse(registries, tag.getCompound(TAG_PRODUCT)).orElse(ItemStack.EMPTY);
+        } else {
+            product = ItemStack.EMPTY;
+        }
+        remainingAbsMinutes = tag.getLong(TAG_REMAINING);
+        ready = tag.getBoolean(TAG_READY);
+        if (tag.contains(TAG_LAST_DAY)) {
+            lastDayIndex = tag.getLong(TAG_LAST_DAY);
+        } else {
+            lastDayIndex = -1;
+        }
+        paused = tag.getBoolean(TAG_PAUSED);
+    }
+}

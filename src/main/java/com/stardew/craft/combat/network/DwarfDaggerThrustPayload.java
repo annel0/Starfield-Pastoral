@@ -1,0 +1,55 @@
+package com.stardew.craft.combat.network;
+
+import com.stardew.craft.StardewCraft;
+import com.stardew.craft.client.weapon.DwarfDaggerThrustClientState;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.jetbrains.annotations.NotNull;
+
+public record DwarfDaggerThrustPayload(boolean active, int durationTicks, double endX, double endY, double endZ)
+    implements CustomPacketPayload {
+
+    @SuppressWarnings("null")
+    public static final Type<DwarfDaggerThrustPayload> TYPE = new Type<>(
+        ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "dwarf_dagger_thrust_state")
+    );
+
+    @SuppressWarnings("null")
+    public static final StreamCodec<ByteBuf, DwarfDaggerThrustPayload> STREAM_CODEC = StreamCodec.composite(
+        ByteBufCodecs.BOOL,
+        DwarfDaggerThrustPayload::active,
+        ByteBufCodecs.VAR_INT,
+        DwarfDaggerThrustPayload::durationTicks,
+        ByteBufCodecs.DOUBLE,
+        DwarfDaggerThrustPayload::endX,
+        ByteBufCodecs.DOUBLE,
+        DwarfDaggerThrustPayload::endY,
+        ByteBufCodecs.DOUBLE,
+        DwarfDaggerThrustPayload::endZ,
+        DwarfDaggerThrustPayload::new
+    );
+
+    @Override
+    public @NotNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    public static void handle(DwarfDaggerThrustPayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (payload.active()) {
+                Minecraft mc = Minecraft.getInstance();
+                long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
+                Vec3 end = new Vec3(payload.endX(), payload.endY(), payload.endZ());
+                DwarfDaggerThrustClientState.start(nowTick, payload.durationTicks(), end);
+            } else {
+                DwarfDaggerThrustClientState.clear();
+            }
+        });
+    }
+}

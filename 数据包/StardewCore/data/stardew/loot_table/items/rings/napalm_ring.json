@@ -1,0 +1,45 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:carrot_on_a_stick",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 5058,
+                "minecraft:custom_name": "[{\"text\":\"凝固汽油戒指\",\"color\":\"blue\",\"bold\":false,\"italic\":false}]",
+                "minecraft:lore": [
+                  "{\"text\":\"⚒ 被动效果: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"燃烧爆炸\",\"color\":\"#FF6347\",\"bold\":true}]}",
+                  "{\"text\": \"💰 售价：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"无法出售\", \"color\": \"red\", \"bold\": true}]}",
+                  "{\"text\": \"🔧 物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"装备\", \"color\": \"light_purple\", \"bold\": true}]}",
+                  "{\"text\": \"击败的敌人会爆炸。\", \"color\": \"gray\", \"italic\": false}",
+                  "{\"text\": \"\"}",
+                  "{\"text\": \"被动效果 - \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"燃烧爆炸\", \"color\": \"#FF6347\", \"bold\": true}]}",
+                  "{\"text\": \"▪ 效果: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"击败敌人时产生爆炸\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 触发: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"击杀怪物时\", \"color\": \"white\", \"bold\": false}]}"
+                ],
+                "minecraft:max_stack_size": 1,
+                "minecraft:custom_data": {
+                  "stardew": {
+                    "type": "ring",
+                    "id": "napalm_ring",
+                    "name": "凝固汽油戒指",
+                    "rarity": "rare",
+                    "effects": {
+                      "explode_on_kill": true
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

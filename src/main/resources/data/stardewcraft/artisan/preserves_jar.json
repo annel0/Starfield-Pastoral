@@ -1,0 +1,9 @@
+{
+  "machine": "preserves_jar",
+  "recipes": [
+    { "tag": "stardewcraft:fruit_crops", "output": "stardewcraft:jelly", "minutes": 4000, "preserveType": "JELLY" },
+    { "tag": "stardewcraft:vegetable_crops", "output": "stardewcraft:pickles", "minutes": 4000, "preserveType": "PICKLES" },
+    { "input": "stardewcraft:roe", "output": "stardewcraft:aged_roe", "minutes": 4000, "preserveType": "AGED_ROE" },
+    { "input": "stardewcraft:roe", "output": "stardewcraft:caviar", "minutes": 6000, "preserveType": "CAVIAR" }
+  ]
+}

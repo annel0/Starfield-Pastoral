@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=south": { "model": "stardewcraft:block/utility/tapper" },
+    "facing=west": { "model": "stardewcraft:block/utility/tapper", "y": 90 },
+    "facing=north": { "model": "stardewcraft:block/utility/tapper", "y": 180 },
+    "facing=east": { "model": "stardewcraft:block/utility/tapper", "y": 270 }
+  }
+}

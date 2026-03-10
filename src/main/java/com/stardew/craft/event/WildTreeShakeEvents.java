@@ -1,0 +1,120 @@
+package com.stardew.craft.event;
+
+import com.stardew.craft.StardewCraft;
+import com.stardew.craft.manager.WildTreeSeedManager;
+import com.stardew.craft.tree.WildTrees;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.BlockParticleOption;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+
+@SuppressWarnings("removal")
+@EventBusSubscriber(modid = StardewCraft.MODID, bus = EventBusSubscriber.Bus.GAME)
+public final class WildTreeShakeEvents {
+	private WildTreeShakeEvents() {
+	}
+
+	@SuppressWarnings("null")
+	@SubscribeEvent
+	public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
+		if (!(event.getEntity() instanceof ServerPlayer player)) {
+			return;
+		}
+		// Avoid double-firing from offhand.
+		if (event.getHand() != InteractionHand.MAIN_HAND) {
+			return;
+		}
+		ServerLevel level = player.serverLevel();
+		BlockPos clickedPos = event.getPos();
+		@SuppressWarnings("null")
+		BlockState state = level.getBlockState(clickedPos);
+		WildTrees.Def def = WildTrees.findByAnyPart(state);
+		if (def == null) {
+			return;
+		}
+
+		// 避免影响 Tapper / 其它方块物品的右键放置：仅空手可摇树。
+		@SuppressWarnings("null")
+		ItemStack hand = player.getItemInHand(event.getHand());
+		if (!hand.isEmpty()) {
+			return;
+		}
+
+		BlockPos trunk0Pos = findBaseTrunk0(level, clickedPos, def);
+		if (trunk0Pos == null) {
+			return;
+		}
+
+		// 记录/确保跟踪
+		WildTreeSeedManager mgr = WildTreeSeedManager.get(level);
+		mgr.trackTree(level, trunk0Pos, def);
+
+		mgr.shake(level, trunk0Pos, def, player);
+
+		// No UI: just a small physical feedback so the player can tell it worked.
+		player.swing(event.getHand(), true);
+		level.playSound(null, trunk0Pos, SoundEvents.AZALEA_LEAVES_HIT, SoundSource.BLOCKS, 0.6F, 1.0F);
+		BlockState leafState = def.leaves().get().defaultBlockState();
+		level.sendParticles(
+				new BlockParticleOption(ParticleTypes.BLOCK, leafState),
+				trunk0Pos.getX() + 0.5,
+				trunk0Pos.getY() + 1.6,
+				trunk0Pos.getZ() + 0.5,
+				10,
+				0.25,
+				0.35,
+				0.25,
+				0.03
+		);
+		event.setCanceled(true);
+		event.setCancellationResult(InteractionResult.SUCCESS);
+	}
+
+	@SuppressWarnings("null")
+	private static BlockPos findBaseTrunk0(ServerLevel level, BlockPos clickedPos, WildTrees.Def def) {
+		@SuppressWarnings("null")
+		BlockState state = level.getBlockState(clickedPos);
+		if (state.getBlock() == def.trunk0().get()) {
+			return clickedPos;
+		}
+		if (state.getBlock() == def.trunk1().get()) {
+			BlockPos below = clickedPos.below();
+			if (level.getBlockState(below).getBlock() == def.trunk0().get()) {
+				return below;
+			}
+		}
+
+		// 宽松兜底：在附近找最近的 trunk0（用于点到树枝/叶子）
+		BlockPos best = null;
+		int bestDist = Integer.MAX_VALUE;
+		for (int dx = -2; dx <= 2; dx++) {
+			for (int dy = -2; dy <= 2; dy++) {
+				for (int dz = -2; dz <= 2; dz++) {
+					BlockPos p = clickedPos.offset(dx, dy, dz);
+					if (!level.isLoaded(p)) {
+						continue;
+					}
+					if (level.getBlockState(p).getBlock() != def.trunk0().get()) {
+						continue;
+					}
+					int dist = Math.abs(dx) + Math.abs(dy) + Math.abs(dz);
+					if (dist < bestDist) {
+						bestDist = dist;
+						best = p;
+					}
+				}
+			}
+		}
+		return best;
+	}
+}

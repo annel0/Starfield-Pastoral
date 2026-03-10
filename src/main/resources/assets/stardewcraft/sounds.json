@@ -1,0 +1,253 @@
+{
+  "money_dial": {
+    "subtitle": "subtitles.stardewcraft.money_dial",
+    "sounds": [
+      {
+        "name": "stardewcraft:money_dial",
+        "stream": false
+      }
+    ]
+  },
+  "sin_wave": {
+    "sounds": [
+      { "name": "stardewcraft:fishing/sin_wave", "stream": false }
+    ]
+  },
+  "cast": {
+    "sounds": [
+      { "name": "stardewcraft:fishing/cast", "stream": false }
+    ]
+  },
+  "fish_bite": {
+    "sounds": [
+      { "name": "stardewcraft:fishing/fish_bite", "stream": false }
+    ]
+  },
+  "fish_bite_alternate_0": {
+    "sounds": [
+      { "name": "stardewcraft:fishing/fish_bite", "stream": false }
+    ]
+  },
+  "fish_bite_alternate_1": {
+    "sounds": [
+      { "name": "stardewcraft:fishing/fish_bite", "stream": false }
+    ]
+  },
+  "fish_bite_alternate_2": {
+    "sounds": [
+      { "name": "stardewcraft:fishing/fish_bite", "stream": false }
+    ]
+  },
+  "fish_hit": {
+    "sounds": [
+      { "name": "stardewcraft:fishing/fish_hit", "stream": false }
+    ]
+  },
+  "fishing_rod_bend": {
+    "sounds": [
+      { "name": "stardewcraft:fishing/fishing_rod_bend1", "stream": false },
+      { "name": "stardewcraft:fishing/fishing_rod_bend2", "stream": false },
+      { "name": "stardewcraft:fishing/fishing_rod_bend3", "stream": false }
+    ]
+  },
+  "shiny4": {
+    "sounds": [
+      { "name": "stardewcraft:fishing/shiny4", "stream": false }
+    ]
+  },
+  "fast_reel": {
+    "sounds": [
+      { "name": "stardewcraft:fishing/fast_reel", "stream": false }
+    ]
+  },
+  "slow_reel": {
+    "sounds": [
+      { "name": "stardewcraft:fishing/slow_reel", "stream": false }
+    ]
+  },
+  "jingle1": {
+    "sounds": [
+      { "name": "stardewcraft:fishing/jingle1", "stream": false }
+    ]
+  },
+  "fish_escape": {
+    "sounds": [
+      { "name": "stardewcraft:fishing/fish_escape", "stream": false }
+    ]
+  },
+  "tiny_whip": {
+    "sounds": [
+      { "name": "stardewcraft:fishing/tiny_whip", "stream": false }
+    ]
+  },
+  "water_slosh": {
+    "sounds": [
+      { "name": "stardewcraft:fishing/water_slosh1", "stream": false },
+      { "name": "stardewcraft:fishing/water_slosh2", "stream": false },
+      { "name": "stardewcraft:fishing/water_slosh3", "stream": false }
+    ]
+  },
+  "dwop": {
+    "sounds": [
+      { "name": "stardewcraft:fishing/dwop", "stream": false }
+    ]
+  },
+  "pull_item_from_water": {
+    "sounds": [
+      { "name": "stardewcraft:fishing/pull_item_from_water", "stream": false }
+    ]
+  },
+  "drop_item_in_water": {
+    "sounds": [
+      { "name": "stardewcraft:fishing/drop_item_in_water", "stream": false }
+    ]
+  },
+  "open_chest": {
+    "sounds": [
+      { "name": "stardewcraft:utility/open_chest", "stream": false }
+    ]
+  },
+  "door_creak_reverse": {
+    "sounds": [
+      { "name": "stardewcraft:utility/door_creak_reverse", "stream": false }
+    ]
+  },
+  "weapon.meow": {
+    "sounds": [
+      { "name": "stardewcraft:weapon/meow_1", "stream": false },
+      { "name": "stardewcraft:weapon/meow_2", "stream": false },
+      { "name": "stardewcraft:weapon/meow_3", "stream": false }
+    ]
+  },
+  "tree_crack": {
+    "subtitle": "subtitles.stardewcraft.tree_crack",
+    "sounds": [
+      { "name": "stardewcraft:tree/tree_crack", "stream": false }
+    ]
+  },
+  "tree_thud": {
+    "subtitle": "subtitles.stardewcraft.tree_thud",
+    "sounds": [
+      { "name": "stardewcraft:tree/tree_thud", "stream": false }
+    ]
+  },
+  "cancel": {
+    "subtitle": "subtitles.stardewcraft.cancel",
+    "sounds": [
+      { "name": "stardewcraft:ui/cancel", "stream": false }
+    ]
+  },
+  "ship": {
+    "sounds": [
+      { "name": "stardewcraft:utility/ship1", "stream": false },
+      { "name": "stardewcraft:utility/ship2", "stream": false }
+    ]
+  },
+  "bubbles": {
+    "sounds": [
+      { "name": "stardewcraft:utility/bubbles1", "stream": false },
+      { "name": "stardewcraft:utility/bubbles2", "stream": false }
+    ]
+  },
+  "siptea": {
+    "sounds": [
+      { "name": "stardewcraft:utility/siptea", "stream": false }
+    ]
+  },
+  "yoba": {
+    "sounds": [
+      { "name": "stardewcraft:utility/yoba", "stream": false }
+    ]
+  },
+  "fishslap": {
+    "sounds": [
+      { "name": "stardewcraft:utility/fishslap", "stream": false }
+    ]
+  },
+  "furnace": {
+    "sounds": [
+      { "name": "stardewcraft:utility/furnace", "stream": false }
+    ]
+  },
+  "openbox": {
+    "sounds": [
+      { "name": "stardewcraft:utility/openbox", "stream": false }
+    ]
+  },
+  "fireball": {
+    "sounds": [
+      { "name": "stardewcraft:utility/fireball", "stream": false }
+    ]
+  },
+  "select": {
+    "sounds": [
+      { "name": "stardewcraft:utility/select", "stream": false }
+    ]
+  },
+  "small_select": {
+    "sounds": [
+      { "name": "stardewcraft:ui/small_select", "stream": false }
+    ]
+  },
+  "drumkit6": {
+    "sounds": [
+      { "name": "stardewcraft:ui/drumkit6", "stream": false }
+    ]
+  },
+  "new_recipe": {
+    "sounds": [
+      { "name": "stardewcraft:ui/new_recipe", "stream": false }
+    ]
+  },
+  "money": {
+    "sounds": [
+      { "name": "stardewcraft:ui/money", "stream": false }
+    ]
+  },
+  "cluck": {
+    "sounds": [
+      { "name": "stardewcraft:animals/cluck_1", "stream": false },
+      { "name": "stardewcraft:animals/cluck_2", "stream": false },
+      { "name": "stardewcraft:animals/cluck_3", "stream": false }
+    ]
+  },
+  "duck": {
+    "sounds": [
+      { "name": "stardewcraft:animals/duck", "stream": false }
+    ]
+  },
+  "rabbit": {
+    "sounds": [
+      { "name": "stardewcraft:animals/rabbit", "stream": false }
+    ]
+  },
+  "ostrich": {
+    "sounds": [
+      { "name": "stardewcraft:animals/ostrich", "stream": false }
+    ]
+  },
+  "cow": {
+    "sounds": [
+      { "name": "stardewcraft:animals/cow_1", "stream": false },
+      { "name": "stardewcraft:animals/cow_2", "stream": false },
+      { "name": "stardewcraft:animals/cow_3", "stream": false }
+    ]
+  },
+  "goat": {
+    "sounds": [
+      { "name": "stardewcraft:animals/goat_1", "stream": false },
+      { "name": "stardewcraft:animals/goat_2", "stream": false }
+    ]
+  },
+  "sheep": {
+    "sounds": [
+      { "name": "stardewcraft:animals/sheep", "stream": false }
+    ]
+  },
+  "pig": {
+    "sounds": [
+      { "name": "stardewcraft:animals/pig_1", "stream": false },
+      { "name": "stardewcraft:animals/pig_2", "stream": false }
+    ]
+  }
+}

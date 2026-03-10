@@ -1,0 +1,23 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:sardine",
+    "stardewcraft:anchovy",
+    "stardewcraft:herring",
+    "stardewcraft:red_snapper",
+    "stardewcraft:red_mullet",
+    "stardewcraft:sea_cucumber",
+    "stardewcraft:super_cucumber",
+    "stardewcraft:flounder",
+    "stardewcraft:halibut",
+    "stardewcraft:eel",
+    "stardewcraft:octopus",
+    "stardewcraft:squid",
+    "stardewcraft:tuna",
+    "stardewcraft:tilapia",
+    "stardewcraft:pufferfish",
+    "stardewcraft:albacore",
+    "stardewcraft:dorado",
+    "stardewcraft:midnight_squid"
+  ]
+}

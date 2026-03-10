@@ -1,0 +1,41 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:carrot_on_a_stick",
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": 1
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 704,
+                "minecraft:custom_name": "[{\"text\":\"钻石 \",\"color\":\"aqua\",\"bold\":true,\"italic\":false},{\"text\":\"斧\",\"color\":\"white\",\"bold\":false,\"italic\":false}]",
+                "minecraft:lore": [
+                  "{\"text\": \"📊 等级要求: \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"--\", \"color\": \"gray\", \"bold\": false}]}",
+                  "{\"text\": \"💥 砍伐伤害: \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"15\", \"color\": \"aqua\", \"bold\": true}]}",
+                  "{\"text\": \"⏰ 冷却时间: \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"0.25秒\", \"color\": \"yellow\", \"bold\": false}]}",
+                  "{\"text\": \"💰 售价：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"无法出售\", \"color\": \"red\", \"bold\": true}]}",
+                  "{\"text\": \"🔧 物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"工具\", \"color\": \"gold\", \"bold\": true}]}",
+                  "{\"text\": \"传说中的伐木神器，削铁如泥。\", \"color\": \"gray\", \"italic\": false}"
+                ],
+                "minecraft:custom_data": {
+                  "stardew_item": 1,
+                  "tool_type": "axe",
+                  "tier": 4
+                },
+                "minecraft:damage": 0
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

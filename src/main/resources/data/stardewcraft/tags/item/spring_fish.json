@@ -1,0 +1,23 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:sunfish",
+    "stardewcraft:chub",
+    "stardewcraft:bream",
+    "stardewcraft:smallmouth_bass",
+    "stardewcraft:shad",
+    "stardewcraft:catfish",
+    "stardewcraft:largemouth_bass",
+    "stardewcraft:carp",
+    "stardewcraft:bullhead",
+    "stardewcraft:sturgeon",
+    "stardewcraft:rainbow_trout",
+    "stardewcraft:sardine",
+    "stardewcraft:anchovy",
+    "stardewcraft:herring",
+    "stardewcraft:flounder",
+    "stardewcraft:halibut",
+    "stardewcraft:eel",
+    "stardewcraft:legend"
+  ]
+}

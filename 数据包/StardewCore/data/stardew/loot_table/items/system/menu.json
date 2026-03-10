@@ -1,0 +1,38 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:carrot_on_a_stick",
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": 1
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 1,
+                "minecraft:custom_name": "{\"text\": \"菜单\", \"color\": \"green\", \"bold\": true, \"italic\": false}",
+                "minecraft:lore": [
+                  "{\"text\": \"售价：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"不可出售\", \"color\": \"red\", \"bold\": true}]}",
+                  "{\"text\": \"物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"系统\", \"color\": \"light_purple\", \"bold\": true}]}",
+                  "{\"text\": \"神奇的书本，右键可以打开菜单界面\", \"color\": \"gray\", \"italic\": false}",
+                  "{\"text\": \"\"}",
+                  "{\"text\": \"潜行后90°抬头\", \"color\": \"green\", \"bold\": true, \"italic\": false, \"extra\": [{\"text\": \"看天即可重新获取\", \"color\": \"white\", \"bold\": false}]}"
+                ],
+                "minecraft:custom_data": {
+                  "stardew_item": 1,
+                  "item_type": "system"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

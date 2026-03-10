@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "#minecraft:is_river",
+    "minecraft:river",
+    "minecraft:frozen_river",
+    "#stardewcraft:is_town_river",
+    "#stardewcraft:is_forest_river"
+  ]
+}

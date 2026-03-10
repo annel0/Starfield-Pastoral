@@ -1,0 +1,41 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": 1
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 8020,
+                "minecraft:max_stack_size": 99,
+                "minecraft:custom_name": "[{\"text\": \"普通 \", \"color\": \"white\", \"bold\": false, \"italic\": false}, {\"text\": \"兔子脚\", \"color\": \"white\", \"bold\": false, \"italic\": false}]",
+                "minecraft:lore": [
+                  "{\"text\": \"售价：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"565G\", \"color\": \"gold\", \"bold\": true}]}",
+                  "{\"text\": \"物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"动物产物\", \"color\": \"gold\", \"bold\": true}]}",
+                  "{\"text\": \"据说会带来好运。\", \"color\": \"dark_gray\", \"italic\": false}",
+                  "{\"text\": \"有些人认为这有点怪诞。\", \"color\": \"dark_gray\", \"italic\": false}"
+                ],
+                "minecraft:custom_data": {
+                  "stardew_item": 1,
+                  "item_type": "animal_produce",
+                  "produce_id": "rabbit_foot",
+                  "quality": "base",
+                  "sd_price": 565
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

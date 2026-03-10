@@ -1,0 +1,40 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:carrot_on_a_stick",
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": 1
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 101,
+                "minecraft:custom_name": "[{\"text\":\"铜 \",\"color\":\"#CD7F32\",\"bold\":true,\"italic\":false},{\"text\":\"镰刀\",\"color\":\"white\",\"bold\":false,\"italic\":false}]",
+                "minecraft:lore": [
+                  "{\"text\": \"📊 等级要求: \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"--\", \"color\": \"gray\", \"bold\": false}]}",
+                  "{\"text\": \"📏 范围: \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"1x1\", \"color\": \"aqua\", \"bold\": true}]}",
+                  "{\"text\": \"💰 售价：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"无法出售\", \"color\": \"red\", \"bold\": true}]}",
+                  "{\"text\": \"🔧 物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"工具\", \"color\": \"gold\", \"bold\": true}]}",
+                  "{\"text\": \"🔨 基础的收割工具。\", \"color\": \"gray\", \"italic\": false}"
+                ],
+                "minecraft:custom_data": {
+                  "stardew_item": 1,
+                  "tool_type": "scythe",
+                  "tier": 1
+                },
+                "minecraft:damage": 0
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

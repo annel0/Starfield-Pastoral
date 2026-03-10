@@ -1,0 +1,19 @@
+{
+  "criteria": {
+    "requirement": {
+      "trigger": "minecraft:consume_item",
+      "conditions": {
+        "item": {
+          "predicates": {
+            "minecraft:custom_data": {
+              "is_food": 1
+            }
+          }
+        }
+      }
+    }
+  },
+  "rewards": {
+    "function": "stardew:food/on_consume"
+  }
+}

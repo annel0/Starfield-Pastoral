@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "stardewcraft:block/elevator"
+    },
+    "facing=south": {
+      "model": "stardewcraft:block/elevator",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "stardewcraft:block/elevator",
+      "y": 270
+    },
+    "facing=east": {
+      "model": "stardewcraft:block/elevator",
+      "y": 90
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:amaranth",
+    "stardewcraft:artichoke",
+    "stardewcraft:beet",
+    "stardewcraft:bok_choy",
+    "stardewcraft:broccoli",
+    "stardewcraft:carrot",
+    "stardewcraft:cauliflower",
+    "stardewcraft:corn",
+    "stardewcraft:eggplant",
+    "stardewcraft:garlic",
+    "stardewcraft:green_bean",
+    "stardewcraft:hops",
+    "stardewcraft:kale",
+    "stardewcraft:parsnip",
+    "stardewcraft:potato",
+    "stardewcraft:pumpkin",
+    "stardewcraft:radish",
+    "stardewcraft:red_cabbage",
+    "stardewcraft:tomato",
+    "stardewcraft:wheat",
+    "stardewcraft:yam"
+  ]
+}

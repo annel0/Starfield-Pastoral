@@ -1,0 +1,15 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:largemouth_bass",
+    "stardewcraft:carp",
+    "stardewcraft:bullhead",
+    "stardewcraft:sturgeon",
+    "stardewcraft:rainbow_trout",
+    "stardewcraft:perch",
+    "stardewcraft:sunfish",
+    "stardewcraft:lingcod",
+    "stardewcraft:midnight_carp",
+    "stardewcraft:woodskip"
+  ]
+}

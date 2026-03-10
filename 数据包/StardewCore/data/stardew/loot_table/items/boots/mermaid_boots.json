@@ -1,0 +1,49 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:carrot_on_a_stick",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 5015,
+                "minecraft:custom_name": "[{\"text\":\"美人鱼靴\",\"color\":\"#FF1493\",\"bold\":false,\"italic\":false}]",
+                "minecraft:lore": [
+                  "{\"text\": \"🛡 防御: \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"+3\", \"color\": \"aqua\", \"bold\": true}]}",
+                  "{\"text\": \"❄ 免疫: \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"+5\", \"color\": \"aqua\", \"bold\": true}]}",
+                  "{\"text\":\"⚒ 被动效果: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"海洋祝福\",\"color\":\"aqua\",\"bold\":true}]}",
+                  "{\"text\": \"💰 售价：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"无法出售\", \"color\": \"red\", \"bold\": true}]}",
+                  "{\"text\": \"🔧 物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"装备\", \"color\": \"light_purple\", \"bold\": true}]}",
+                  "{\"text\": \"美人鱼赠予的神秘靴子。\", \"color\": \"gray\", \"italic\": false}",
+                  "{\"text\": \"\"}",
+                  "{\"text\": \"被动效果 - \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"海洋祝福\", \"color\": \"aqua\", \"bold\": true}]}",
+                  "{\"text\": \"▪ 效果: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"钓鱼等级+2\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 触发: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"装备时自动生效\", \"color\": \"white\", \"bold\": false}]}"
+                ],
+                "minecraft:max_stack_size": 1,
+                "minecraft:custom_data": {
+                  "stardew": {
+                    "type": "boots",
+                    "id": "mermaid_boots",
+                    "name": "美人鱼靴",
+                    "defense": 3,
+                    "immunity": 5,
+                    "rarity": "legendary",
+                    "effects": {
+                      "fishing": 2
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

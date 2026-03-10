@@ -1,0 +1,28 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "stardewcraft:item/tool/watering_can/steel_watering_can"
+  },
+  "display": {
+    "thirdperson_righthand": {
+      "rotation": [-10.75, -82.31, -24.35],
+      "translation": [0, 0.25, -4.75],
+      "scale": [0.8, 0.8, 0.8]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [98.81, 77.45, -107.83],
+      "translation": [0, -1.5, -5],
+      "scale": [0.8, 0.8, 0.8]
+    },
+    "firstperson_righthand": {
+      "rotation": [0, -83, 0],
+      "translation": [0, 0, 0],
+      "scale": [0.8, 0.8, 0.8]
+    },
+    "firstperson_lefthand": {
+      "rotation": [-180, 71.5, 180],
+      "translation": [0, -0.25, 0],
+      "scale": [0.8, 0.8, 0.8]
+    }
+  }
+}

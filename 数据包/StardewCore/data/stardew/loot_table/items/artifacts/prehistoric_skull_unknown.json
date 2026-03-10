@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 7366,
+                "minecraft:max_stack_size": 99,
+                "minecraft:custom_name": "{\"text\": \"史前头骨\", \"color\": \"white\", \"bold\": false, \"italic\": false, \"obfuscated\": true}",
+                "minecraft:lore": [
+                  "{\"text\":\"💰 售价：???\",\"color\":\"gray\",\"italic\":false}",
+                  "{\"text\":\"还没有鉴别过……拿着这个按下F试试？\",\"color\":\"dark_gray\",\"italic\":true}"
+                ],
+                "minecraft:custom_data": {
+                  "stardew_item": 1,
+                  "item_type": "artifact",
+                  "artifact_type": "prehistoric_skull_unknown"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "variants": {
+    "facing=south,working=false": { "model": "stardewcraft:block/utility/keg" },
+    "facing=west,working=false": { "model": "stardewcraft:block/utility/keg", "y": 90 },
+    "facing=north,working=false": { "model": "stardewcraft:block/utility/keg", "y": 180 },
+    "facing=east,working=false": { "model": "stardewcraft:block/utility/keg", "y": 270 },
+    "facing=south,working=true": { "model": "stardewcraft:block/utility/keg" },
+    "facing=west,working=true": { "model": "stardewcraft:block/utility/keg", "y": 90 },
+    "facing=north,working=true": { "model": "stardewcraft:block/utility/keg", "y": 180 },
+    "facing=east,working=true": { "model": "stardewcraft:block/utility/keg", "y": 270 }
+  }
+}

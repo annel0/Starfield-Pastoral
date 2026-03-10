@@ -1,0 +1,1542 @@
+﻿{
+    "limestone":  {
+                      "price":  15,
+                      "edibility":  -300,
+                      "color":  "#808080"
+                  },
+    "crab_pot":  {
+                     "price":  50,
+                     "edibility":  -300,
+                     "color":  "#824925"
+                 },
+    "bait":  {
+                 "price":  5,
+                 "edibility":  -300
+             },
+    "magnet":  {
+                   "price":  15,
+                   "edibility":  -300
+               },
+    "wild_bait":  {
+                      "price":  15,
+                      "edibility":  -300
+                  },
+    "magic_bait":  {
+                       "price":  1,
+                       "edibility":  -300
+                   },
+    "deluxe_bait":  {
+                        "price":  1,
+                        "edibility":  -300
+                    },
+    "challenge_bait":  {
+                           "price":  1,
+                           "edibility":  -300
+                       },
+    "spinner":  {
+                    "price":  250,
+                    "edibility":  -300
+                },
+    "dressed_spinner":  {
+                            "price":  500,
+                            "edibility":  -300
+                        },
+    "trap_bobber":  {
+                        "price":  200,
+                        "edibility":  -300
+                    },
+    "cork_bobber":  {
+                        "price":  250,
+                        "edibility":  -300
+                    },
+    "lead_bobber":  {
+                        "price":  150,
+                        "edibility":  -300
+                    },
+    "treasure_hunter":  {
+                            "price":  250,
+                            "edibility":  -300
+                        },
+    "barbed_hook":  {
+                        "price":  500,
+                        "edibility":  -300
+                    },
+    "curiosity_lure":  {
+                           "price":  500,
+                           "edibility":  -300
+                       },
+    "quality_bobber":  {
+                           "price":  300,
+                           "edibility":  -300
+                       },
+    "sonar_bobber":  {
+                         "price":  250,
+                         "edibility":  -300,
+                         "color":  "#808080"
+                     },
+    "clay":  {
+                 "price":  20,
+                 "edibility":  -300,
+                 "color":  "#824925"
+             },
+    "fiber":  {
+                  "price":  1,
+                  "edibility":  -300,
+                  "color":  "#0A8F00"
+              },
+    "oak_resin":  {
+                      "price":  150,
+                      "edibility":  -300,
+                      "color":  "#0A8F00"
+                  },
+    "maple_syrup":  {
+                        "price":  200,
+                        "edibility":  20,
+                        "color":  "#824925"
+                    },
+    "pine_tar":  {
+                     "price":  100,
+                     "edibility":  -300,
+                     "color":  "#824925"
+                 },
+    "sap":  {
+                "price":  2,
+                "edibility":  -1,
+                "color":  "#FFE600"
+            },
+    "mystic_syrup":  {
+                         "price":  1000,
+                         "edibility":  200,
+                         "color":  "#00FFFF"
+                     },
+    "duck_egg":  {
+                     "price":  95,
+                     "edibility":  15,
+                     "color":  "#FFFFFF"
+                 },
+    "void_egg":  {
+                     "price":  65,
+                     "edibility":  -15,
+                     "color":  "#2D2D2D"
+                 },
+    "golden_egg":  {
+                       "price":  500,
+                       "edibility":  10
+                   },
+    "ostrich_egg":  {
+                        "price":  600,
+                        "edibility":  15,
+                        "color":  "#FFFFFF"
+                    },
+    "milk":  {
+                 "price":  125,
+                 "edibility":  15,
+                 "color":  "#FFFFFF"
+             },
+    "large_milk":  {
+                       "price":  190,
+                       "edibility":  20,
+                       "color":  "#FFFFFF"
+                   },
+    "goat_milk":  {
+                      "price":  225,
+                      "edibility":  25,
+                      "color":  "#FFFFFF"
+                  },
+    "wool":  {
+                 "price":  340,
+                 "edibility":  -300,
+                 "color":  "#FFFFFF"
+             },
+    "duck_feather":  {
+                         "price":  250,
+                         "edibility":  -300,
+                         "color":  "#0A8F00"
+                     },
+    "rabbits_foot":  {
+                         "price":  565,
+                         "edibility":  -300,
+                         "color":  "#FFE600"
+                     },
+    "truffle":  {
+                    "price":  625,
+                    "edibility":  5,
+                    "color":  "#824925"
+                },
+    "cheese":  {
+                   "price":  230,
+                   "edibility":  50,
+                   "color":  "#FFE600"
+               },
+    "goat_cheese":  {
+                        "price":  400,
+                        "edibility":  50,
+                        "color":  "#FFE600"
+                    },
+    "mayonnaise":  {
+                       "price":  190,
+                       "edibility":  20,
+                       "color":  "#FFFFFF"
+                   },
+    "dinosaur_mayonnaise":  {
+                                "price":  800,
+                                "edibility":  50,
+                                "color":  "#FFFFFF"
+                            },
+    "duck_mayonnaise":  {
+                            "price":  375,
+                            "edibility":  30,
+                            "color":  "#FFFFFF"
+                        },
+    "void_mayonnaise":  {
+                            "price":  275,
+                            "edibility":  -30,
+                            "color":  "#DC0000"
+                        },
+    "cloth":  {
+                  "price":  470,
+                  "edibility":  -300,
+                  "color":  "#FFFFFF"
+              },
+    "truffle_oil":  {
+                        "price":  1065,
+                        "edibility":  15,
+                        "color":  "#FFE600"
+                    },
+    "honey":  {
+                  "price":  100,
+                  "edibility":  -300,
+                  "color":  "#FFE600"
+              },
+    "beer":  {
+                 "price":  200,
+                 "edibility":  20,
+                 "color":  "#FFE600"
+             },
+    "pale_ale":  {
+                     "price":  300,
+                     "edibility":  20,
+                     "color":  "#FFD700"
+                 },
+    "mead":  {
+                 "price":  300,
+                 "edibility":  30,
+                 "color":  "#FFD700"
+             },
+    "coffee":  {
+                   "price":  150,
+                   "edibility":  1,
+                   "color":  "#8B4513"
+               },
+    "copper_ore":  {
+                       "price":  5,
+                       "edibility":  -300,
+                       "color":  "#B35500"
+                   },
+    "iron_ore":  {
+                     "price":  10,
+                     "edibility":  -300,
+                     "color":  "#C5D5E0"
+                 },
+    "gold_ore":  {
+                     "price":  25,
+                     "edibility":  -300,
+                     "color":  "#FFD700"
+                 },
+    "iridium_ore":  {
+                        "price":  100,
+                        "edibility":  -300,
+                        "color":  "#690FFF"
+                    },
+    "copper_bar":  {
+                       "price":  60,
+                       "edibility":  -300,
+                       "color":  "#B35500"
+                   },
+    "iron_bar":  {
+                     "price":  120,
+                     "edibility":  -300,
+                     "color":  "#C5D5E0"
+                 },
+    "gold_bar":  {
+                     "price":  250,
+                     "edibility":  -300,
+                     "color":  "#FFD700"
+                 },
+    "iridium_bar":  {
+                        "price":  1000,
+                        "edibility":  -300,
+                        "color":  "#690FFF"
+                    },
+    "coal":  {
+                 "price":  15,
+                 "edibility":  -300,
+                 "color":  "#2D2D2D"
+             },
+    "stone":  {
+                  "price":  0,
+                  "edibility":  -300
+              },
+    "refined_quartz":  {
+                           "price":  50,
+                           "edibility":  -300,
+                           "color":  "#690FFF"
+                       },
+    "geode":  {
+                  "price":  50,
+                  "edibility":  -300,
+                  "color":  "#824925"
+              },
+    "frozen_geode":  {
+                         "price":  100,
+                         "edibility":  -300,
+                         "color":  "#00FFFF"
+                     },
+    "magma_geode":  {
+                        "price":  150,
+                        "edibility":  -300,
+                        "color":  "#DC0000"
+                    },
+    "omni_geode":  {
+                       "price":  0,
+                       "edibility":  -300,
+                       "color":  "#808080"
+                   },
+    "quartz":  {
+                   "price":  25,
+                   "edibility":  -300,
+                   "color":  "#FFFFFF"
+               },
+    "earth_crystal":  {
+                          "price":  50,
+                          "edibility":  -300,
+                          "color":  "#B35500"
+                      },
+    "frozen_tear":  {
+                        "price":  75,
+                        "edibility":  -300,
+                        "color":  "#00FFFF"
+                    },
+    "fire_quartz":  {
+                        "price":  100,
+                        "edibility":  -300,
+                        "color":  "#DC0000"
+                    },
+    "emerald":  {
+                    "price":  250,
+                    "edibility":  -300,
+                    "color":  "#0A8F00"
+                },
+    "aquamarine":  {
+                       "price":  180,
+                       "edibility":  -300,
+                       "color":  "#7FFFD4"
+                   },
+    "ruby":  {
+                 "price":  250,
+                 "edibility":  -300,
+                 "color":  "#DC0000"
+             },
+    "amethyst":  {
+                     "price":  100,
+                     "edibility":  -300,
+                     "color":  "#7329B5"
+                 },
+    "topaz":  {
+                  "price":  80,
+                  "edibility":  -300,
+                  "color":  "#FFD700"
+              },
+    "jade":  {
+                 "price":  200,
+                 "edibility":  -300,
+                 "color":  "#829E5D"
+             },
+    "diamond":  {
+                    "price":  750,
+                    "edibility":  -300,
+                    "color":  "#FFFFFF"
+                },
+    "prismatic_shard":  {
+                            "price":  2000,
+                            "edibility":  -300
+                        },
+    "tigerseye":  {
+                      "price":  275,
+                      "edibility":  -300,
+                      "color":  "#FF8000"
+                  },
+    "opal":  {
+                 "price":  150,
+                 "edibility":  -300,
+                 "color":  "#B4FFFF"
+             },
+    "fire_opal":  {
+                      "price":  350,
+                      "edibility":  -300,
+                      "color":  "#9400D3"
+                  },
+    "alamite":  {
+                    "price":  150,
+                    "edibility":  -300,
+                    "color":  "#808080"
+                },
+    "bixite":  {
+                   "price":  300,
+                   "edibility":  -300,
+                   "color":  "#2D2D2D"
+               },
+    "baryte":  {
+                   "price":  50,
+                   "edibility":  -300,
+                   "color":  "#DC0000"
+               },
+    "aerinite":  {
+                     "price":  125,
+                     "edibility":  -300,
+                     "color":  "#00FFFF"
+                 },
+    "calcite":  {
+                    "price":  75,
+                    "edibility":  -300,
+                    "color":  "#FFE600"
+                },
+    "dolomite":  {
+                     "price":  300,
+                     "edibility":  -300,
+                     "color":  "#FFA3BA"
+                 },
+    "esperite":  {
+                     "price":  100,
+                     "edibility":  -300,
+                     "color":  "#0A8F00"
+                 },
+    "fluorapatite":  {
+                         "price":  200,
+                         "edibility":  -300,
+                         "color":  "#7329B5"
+                     },
+    "geminite":  {
+                     "price":  150,
+                     "edibility":  -300,
+                     "color":  "#808080"
+                 },
+    "helvite":  {
+                    "price":  450,
+                    "edibility":  -300,
+                    "color":  "#DC0000"
+                },
+    "jamborite":  {
+                      "price":  150,
+                      "edibility":  -300,
+                      "color":  "#00FF00"
+                  },
+    "jagoite":  {
+                    "price":  115,
+                    "edibility":  -300,
+                    "color":  "#FFD700"
+                },
+    "kyanite":  {
+                    "price":  250,
+                    "edibility":  -300,
+                    "color":  "#00008B"
+                },
+    "lunarite":  {
+                     "price":  200,
+                     "edibility":  -300,
+                     "color":  "#FFFFFF"
+                 },
+    "malachite":  {
+                      "price":  100,
+                      "edibility":  -300,
+                      "color":  "#0A8F00"
+                  },
+    "neptunite":  {
+                      "price":  400,
+                      "edibility":  -300,
+                      "color":  "#2D2D2D"
+                  },
+    "lemon_stone":  {
+                        "price":  200,
+                        "edibility":  -300,
+                        "color":  "#FF8000"
+                    },
+    "nekoite":  {
+                    "price":  80,
+                    "edibility":  -300,
+                    "color":  "#FFA3BA"
+                },
+    "orpiment":  {
+                     "price":  80,
+                     "edibility":  -300,
+                     "color":  "#FF8000"
+                 },
+    "petrified_slime":  {
+                            "price":  120,
+                            "edibility":  -300,
+                            "color":  "#0A8F00"
+                        },
+    "thunder_egg":  {
+                        "price":  100,
+                        "edibility":  -300,
+                        "color":  "#9400D3"
+                    },
+    "pyrite":  {
+                   "price":  120,
+                   "edibility":  -300,
+                   "color":  "#FFD700"
+               },
+    "ocean_stone":  {
+                        "price":  220,
+                        "edibility":  -300,
+                        "color":  "#0A8F00"
+                    },
+    "ghost_crystal":  {
+                          "price":  200,
+                          "edibility":  -300,
+                          "color":  "#808080"
+                      },
+    "jasper":  {
+                   "price":  150,
+                   "edibility":  -300,
+                   "color":  "#DC0000"
+               },
+    "celestine":  {
+                      "price":  125,
+                      "edibility":  -300,
+                      "color":  "#C5D5E0"
+                  },
+    "marble":  {
+                   "price":  110,
+                   "edibility":  -300,
+                   "color":  "#808080"
+               },
+    "sandstone":  {
+                      "price":  60,
+                      "edibility":  -300,
+                      "color":  "#FFDEAD"
+                  },
+    "granite":  {
+                    "price":  75,
+                    "edibility":  -300,
+                    "color":  "#808080"
+                },
+    "basalt":  {
+                   "price":  175,
+                   "edibility":  -300,
+                   "color":  "#808080"
+               },
+    "soapstone":  {
+                      "price":  120,
+                      "edibility":  -300,
+                      "color":  "#FFFFFF"
+                  },
+    "hematite":  {
+                     "price":  150,
+                     "edibility":  -300,
+                     "color":  "#B35500"
+                 },
+    "mudstone":  {
+                     "price":  25,
+                     "edibility":  -300,
+                     "color":  "#824925"
+                 },
+    "obsidian":  {
+                     "price":  200,
+                     "edibility":  -300,
+                     "color":  "#2D2D2D"
+                 },
+    "slate":  {
+                  "price":  85,
+                  "edibility":  -300,
+                  "color":  "#808080"
+              },
+    "fairy_stone":  {
+                        "price":  250,
+                        "edibility":  -300,
+                        "color":  "#7329B5"
+                    },
+    "star_shards":  {
+                        "price":  500,
+                        "edibility":  -300,
+                        "color":  "#FFA3BA"
+                    },
+    "dwarf_scroll_i":  {
+                           "price":  1,
+                           "edibility":  -300,
+                           "color":  "#DC0000"
+                       },
+    "dwarf_scroll_ii":  {
+                            "price":  1,
+                            "edibility":  -300,
+                            "color":  "#0A8F00"
+                        },
+    "dwarf_scroll_iii":  {
+                             "price":  1,
+                             "edibility":  -300,
+                             "color":  "#2E55B7"
+                         },
+    "dwarf_scroll_iv":  {
+                            "price":  1,
+                            "edibility":  -300,
+                            "color":  "#FFE600"
+                        },
+    "chipped_amphora":  {
+                            "price":  40,
+                            "edibility":  -300,
+                            "color":  "#824925"
+                        },
+    "arrowhead":  {
+                      "price":  40,
+                      "edibility":  -300,
+                      "color":  "#808080"
+                  },
+    "ancient_doll":  {
+                         "price":  60,
+                         "edibility":  -300,
+                         "color":  "#2E55B7"
+                     },
+    "elvish_jewelry":  {
+                           "price":  200,
+                           "edibility":  -300,
+                           "color":  "#FFE600"
+                       },
+    "chewing_stick":  {
+                          "price":  50,
+                          "edibility":  -300,
+                          "color":  "#824925"
+                      },
+    "ornamental_fan":  {
+                           "price":  300,
+                           "edibility":  -300,
+                           "color":  "#FFFFFF"
+                       },
+    "dinosaur_egg":  {
+                         "price":  350,
+                         "edibility":  -300,
+                         "color":  "#0A8F00"
+                     },
+    "rare_disc":  {
+                      "price":  300,
+                      "edibility":  -300,
+                      "color":  "#A9A9A9"
+                  },
+    "ancient_sword":  {
+                          "price":  100,
+                          "edibility":  -300,
+                          "color":  "#808080"
+                      },
+    "rusty_spoon":  {
+                        "price":  25,
+                        "edibility":  -300,
+                        "color":  "#808080"
+                    },
+    "rusty_spur":  {
+                       "price":  25,
+                       "edibility":  -300,
+                       "color":  "#824925"
+                   },
+    "rusty_cog":  {
+                      "price":  25,
+                      "edibility":  -300,
+                      "color":  "#824925"
+                  },
+    "chicken_statue":  {
+                           "price":  50,
+                           "edibility":  -300,
+                           "color":  "#FFDEAD"
+                       },
+    "ancient_seed":  {
+                         "price":  5,
+                         "edibility":  -300
+                     },
+    "prehistoric_tool":  {
+                             "price":  50,
+                             "edibility":  -300,
+                             "color":  "#808080"
+                         },
+    "dried_starfish":  {
+                           "price":  40,
+                           "edibility":  -300,
+                           "color":  "#FFE600"
+                       },
+    "anchor":  {
+                   "price":  100,
+                   "edibility":  -300,
+                   "color":  "#808080"
+               },
+    "glass_shards":  {
+                         "price":  20,
+                         "edibility":  -300,
+                         "color":  "#00FFFF"
+                     },
+    "bone_flute":  {
+                       "price":  100,
+                       "edibility":  -300,
+                       "color":  "#FFDEAD"
+                   },
+    "prehistoric_handaxe":  {
+                                "price":  50,
+                                "edibility":  -300,
+                                "color":  "#808080"
+                            },
+    "dwarvish_helm":  {
+                          "price":  100,
+                          "edibility":  -300,
+                          "color":  "#824925"
+                      },
+    "dwarf_gadget":  {
+                         "price":  200,
+                         "edibility":  -300,
+                         "color":  "#808080"
+                     },
+    "ancient_drum":  {
+                         "price":  100,
+                         "edibility":  -300,
+                         "color":  "#7329B5"
+                     },
+    "golden_mask":  {
+                        "price":  500,
+                        "edibility":  -300,
+                        "color":  "#FFD700"
+                    },
+    "golden_relic":  {
+                         "price":  250,
+                         "edibility":  -300,
+                         "color":  "#FFD700"
+                     },
+    "prehistoric_scapula":  {
+                                "price":  100,
+                                "edibility":  -300,
+                                "color":  "#FFFFFF"
+                            },
+    "prehistoric_tibia":  {
+                              "price":  100,
+                              "edibility":  -300,
+                              "color":  "#FFFFFF"
+                          },
+    "prehistoric_skull":  {
+                              "price":  100,
+                              "edibility":  -300,
+                              "color":  "#FFFFFF"
+                          },
+    "skeletal_hand":  {
+                          "price":  100,
+                          "edibility":  -300,
+                          "color":  "#FFFFFF"
+                      },
+    "prehistoric_rib":  {
+                            "price":  100,
+                            "edibility":  -300,
+                            "color":  "#FFFFFF"
+                        },
+    "prehistoric_vertebra":  {
+                                 "price":  100,
+                                 "edibility":  -300,
+                                 "color":  "#FFFFFF"
+                             },
+    "skeletal_tail":  {
+                          "price":  100,
+                          "edibility":  -300,
+                          "color":  "#FFFFFF"
+                      },
+    "nautilus_fossil":  {
+                            "price":  80,
+                            "edibility":  -300,
+                            "color":  "#FFFFFF"
+                        },
+    "amphibian_fossil":  {
+                             "price":  150,
+                             "edibility":  -300,
+                             "color":  "#FFFFFF"
+                         },
+    "palm_fossil":  {
+                        "price":  100,
+                        "edibility":  -300,
+                        "color":  "#FFFFFF"
+                    },
+    "trilobite":  {
+                      "price":  50,
+                      "edibility":  -300,
+                      "color":  "#FFFFFF"
+                  },
+    "mixed_seeds":  {
+                        "price":  0,
+                        "edibility":  -300
+                    },
+    "acorn":  {
+                  "price":  20,
+                  "edibility":  -300,
+                  "color":  "#824925"
+              },
+    "maple_seed":  {
+                       "price":  5,
+                       "edibility":  -300,
+                       "color":  "#824925"
+                   },
+    "pine_cone":  {
+                      "price":  5,
+                      "edibility":  -300,
+                      "color":  "#824925"
+                  },
+    "mahogany_seed":  {
+                          "price":  100,
+                          "edibility":  -300,
+                          "color":  "#824925"
+                      },
+    "mystic_tree_seed":  {
+                             "price":  100,
+                             "edibility":  -300
+                         },
+    "basic_fertilizer":  {
+                             "price":  2,
+                             "edibility":  -300,
+                             "color":  "#824925"
+                         },
+    "quality_fertilizer":  {
+                               "price":  10,
+                               "edibility":  -300,
+                               "color":  "#824925"
+                           },
+    "deluxe_fertilizer":  {
+                              "price":  70,
+                              "edibility":  -300
+                          },
+    "basic_retaining_soil":  {
+                                 "price":  4,
+                                 "edibility":  -300,
+                                 "color":  "#824925"
+                             },
+    "quality_retaining_soil":  {
+                                   "price":  5,
+                                   "edibility":  -300,
+                                   "color":  "#824925"
+                               },
+    "deluxe_retaining_soil":  {
+                                  "price":  30,
+                                  "edibility":  -300
+                              },
+    "speed_gro":  {
+                      "price":  20,
+                      "edibility":  -300,
+                      "color":  "#824925"
+                  },
+    "deluxe_speed_gro":  {
+                             "price":  40,
+                             "edibility":  -300,
+                             "color":  "#824925"
+                         },
+    "hyper_speed_gro":  {
+                            "price":  70,
+                            "edibility":  -300
+                        },
+    "tree_fertilizer":  {
+                            "price":  10,
+                            "edibility":  -300,
+                            "color":  "#824925"
+                        },
+    "fairy_dust":  {
+                       "price":  300,
+                       "edibility":  -300
+                   },
+    "amaranth_seeds":  {
+                           "price":  35,
+                           "edibility":  -300
+                       },
+    "artichoke_seeds":  {
+                            "price":  15,
+                            "edibility":  -300
+                        },
+    "beet_seeds":  {
+                       "price":  10,
+                       "edibility":  -300
+                   },
+    "blueberry_seeds":  {
+                            "price":  40,
+                            "edibility":  -300
+                        },
+    "bok_choy_seeds":  {
+                           "price":  25,
+                           "edibility":  -300
+                       },
+    "broccoli_seeds":  {
+                           "price":  40,
+                           "edibility":  -300,
+                           "color":  "#824925"
+                       },
+    "carrot_seeds":  {
+                         "price":  15,
+                         "edibility":  -300,
+                         "color":  "#824925"
+                     },
+    "cauliflower_seeds":  {
+                              "price":  40,
+                              "edibility":  -300
+                          },
+    "corn_seeds":  {
+                       "price":  75,
+                       "edibility":  -300
+                   },
+    "cranberry_seeds":  {
+                            "price":  120,
+                            "edibility":  -300
+                        },
+    "eggplant_seeds":  {
+                           "price":  10,
+                           "edibility":  -300
+                       },
+    "garlic_seeds":  {
+                         "price":  20,
+                         "edibility":  -300
+                     },
+    "kale_seeds":  {
+                       "price":  35,
+                       "edibility":  -300
+                   },
+    "melon_seeds":  {
+                        "price":  40,
+                        "edibility":  -300
+                    },
+    "parsnip_seeds":  {
+                          "price":  10,
+                          "edibility":  -300
+                      },
+    "poppy_seeds":  {
+                        "price":  50,
+                        "edibility":  -300
+                    },
+    "potato_seeds":  {
+                         "price":  25,
+                         "edibility":  -300
+                     },
+    "pumpkin_seeds":  {
+                          "price":  50,
+                          "edibility":  -300
+                      },
+    "radish_seeds":  {
+                         "price":  20,
+                         "edibility":  -300
+                     },
+    "red_cabbage_seeds":  {
+                              "price":  50,
+                              "edibility":  -300
+                          },
+    "rhubarb_seeds":  {
+                          "price":  50,
+                          "edibility":  -300
+                      },
+    "starfruit_seeds":  {
+                            "price":  200,
+                            "edibility":  -300
+                        },
+    "strawberry_seeds":  {
+                             "price":  0,
+                             "edibility":  -300
+                         },
+    "summer_squash_seeds":  {
+                                "price":  20,
+                                "edibility":  -300,
+                                "color":  "#824925"
+                            },
+    "sunflower_seeds":  {
+                            "price":  20,
+                            "edibility":  -300
+                        },
+    "tomato_seeds":  {
+                         "price":  25,
+                         "edibility":  -300
+                     },
+    "wheat_seeds":  {
+                        "price":  5,
+                        "edibility":  -300
+                    },
+    "yam_seeds":  {
+                      "price":  30,
+                      "edibility":  -300
+                  },
+    "amaranth":  {
+                     "price":  150,
+                     "edibility":  20,
+                     "color":  "#DB7093"
+                 },
+    "ancient_fruit":  {
+                          "price":  550,
+                          "edibility":  -300,
+                          "color":  "#00FFFF"
+                      },
+    "artichoke":  {
+                      "price":  160,
+                      "edibility":  12,
+                      "color":  "#0A8F00"
+                  },
+    "beet":  {
+                 "price":  100,
+                 "edibility":  12,
+                 "color":  "#9400D3"
+             },
+    "blue_jazz":  {
+                      "price":  50,
+                      "edibility":  18,
+                      "color":  "#2E55B7"
+                  },
+    "blueberry":  {
+                      "price":  50,
+                      "edibility":  10,
+                      "color":  "#2E55B7"
+                  },
+    "bok_choy":  {
+                     "price":  80,
+                     "edibility":  10,
+                     "color":  "#0A8F00"
+                 },
+    "broccoli":  {
+                     "price":  70,
+                     "edibility":  25,
+                     "color":  "#0A8F00"
+                 },
+    "carrot":  {
+                   "price":  35,
+                   "edibility":  30,
+                   "color":  "#FF8000"
+               },
+    "cauliflower":  {
+                        "price":  175,
+                        "edibility":  30,
+                        "color":  "#FFFFFF"
+                    },
+    "coffee_bean":  {
+                        "price":  15,
+                        "edibility":  -300,
+                        "color":  "#824925"
+                    },
+    "corn":  {
+                 "price":  50,
+                 "edibility":  10,
+                 "color":  "#FFE600"
+             },
+    "eggplant":  {
+                     "price":  60,
+                     "edibility":  8,
+                     "color":  "#7329B5"
+                 },
+    "fairy_rose":  {
+                       "price":  290,
+                       "edibility":  18,
+                       "color":  "#FFA3BA"
+                   },
+    "garlic":  {
+                   "price":  60,
+                   "edibility":  8,
+                   "color":  "#FFFFFF"
+               },
+    "grape":  {
+                  "price":  80,
+                  "edibility":  15,
+                  "color":  "#7329B5"
+              },
+    "green_bean":  {
+                       "price":  40,
+                       "edibility":  10,
+                       "color":  "#0A8F00"
+                   },
+    "hops":  {
+                 "price":  25,
+                 "edibility":  18,
+                 "color":  "#0A8F00"
+             },
+    "hot_pepper":  {
+                       "price":  40,
+                       "edibility":  5,
+                       "color":  "#DC0000"
+                   },
+    "kale":  {
+                 "price":  110,
+                 "edibility":  20,
+                 "color":  "#0A8F00"
+             },
+    "melon":  {
+                  "price":  250,
+                  "edibility":  45,
+                  "color":  "#FFA3BA"
+              },
+    "parsnip":  {
+                    "price":  35,
+                    "edibility":  10,
+                    "color":  "#FFE600"
+                },
+    "poppy":  {
+                  "price":  140,
+                  "edibility":  18,
+                  "color":  "#FF8000"
+              },
+    "potato":  {
+                   "price":  80,
+                   "edibility":  10,
+                   "color":  "#824925"
+               },
+    "pumpkin":  {
+                    "price":  320,
+                    "edibility":  -300,
+                    "color":  "#FF8000"
+                },
+    "radish":  {
+                   "price":  90,
+                   "edibility":  18,
+                   "color":  "#DC0000"
+               },
+    "red_cabbage":  {
+                        "price":  260,
+                        "edibility":  30,
+                        "color":  "#7329B5"
+                    },
+    "rhubarb":  {
+                    "price":  220,
+                    "edibility":  -300,
+                    "color":  "#DC0000"
+                },
+    "starfruit":  {
+                      "price":  750,
+                      "edibility":  50,
+                      "color":  "#FFE600"
+                  },
+    "strawberry":  {
+                       "price":  120,
+                       "edibility":  20,
+                       "color":  "#DC0000"
+                   },
+    "summer_spangle":  {
+                           "price":  90,
+                           "edibility":  18,
+                           "color":  "#FFE600"
+                       },
+    "summer_squash":  {
+                          "price":  45,
+                          "edibility":  25,
+                          "color":  "#FFE600"
+                      },
+    "sunflower":  {
+                      "price":  80,
+                      "edibility":  18,
+                      "color":  "#FFE600"
+                  },
+    "tomato":  {
+                   "price":  60,
+                   "edibility":  8,
+                   "color":  "#DC0000"
+               },
+    "tulip":  {
+                  "price":  30,
+                  "edibility":  18,
+                  "color":  "#DC0000"
+              },
+    "wheat":  {
+                  "price":  25,
+                  "edibility":  -300,
+                  "color":  "#FFE600"
+              },
+    "yam":  {
+                "price":  160,
+                "edibility":  18,
+                "color":  "#824925"
+            },
+    "chub":  {
+                 "price":  50,
+                 "edibility":  10,
+                 "color":  "#808080"
+             },
+    "bream":  {
+                  "price":  45,
+                  "edibility":  5,
+                  "color":  "#2E55B7"
+              },
+    "smallmouth_bass":  {
+                            "price":  50,
+                            "edibility":  10,
+                            "color":  "#824925"
+                        },
+    "catfish":  {
+                    "price":  200,
+                    "edibility":  20,
+                    "color":  "#808080"
+                },
+    "shad":  {
+                 "price":  60,
+                 "edibility":  10,
+                 "color":  "#0A8F00"
+             },
+    "tiger_trout":  {
+                        "price":  150,
+                        "edibility":  10,
+                        "color":  "#824925"
+                    },
+    "salmon":  {
+                   "price":  75,
+                   "edibility":  15,
+                   "color":  "#FF555F"
+               },
+    "walleye":  {
+                    "price":  105,
+                    "edibility":  12,
+                    "color":  "#FFE600"
+                },
+    "pike":  {
+                 "price":  100,
+                 "edibility":  15,
+                 "color":  "#FFE600"
+             },
+    "largemouth_bass":  {
+                            "price":  100,
+                            "edibility":  15,
+                            "color":  "#0A8F00"
+                        },
+    "carp":  {
+                 "price":  30,
+                 "edibility":  5,
+                 "color":  "#FFE600"
+             },
+    "bullhead":  {
+                     "price":  75,
+                     "edibility":  10,
+                     "color":  "#824925"
+                 },
+    "sturgeon":  {
+                     "price":  200,
+                     "edibility":  10,
+                     "color":  "#00FFFF"
+                 },
+    "rainbow_trout":  {
+                          "price":  65,
+                          "edibility":  10,
+                          "color":  "#FF8000"
+                      },
+    "perch":  {
+                  "price":  55,
+                  "edibility":  10,
+                  "color":  "#FFE600"
+              },
+    "sunfish":  {
+                    "price":  30,
+                    "edibility":  5,
+                    "color":  "#FF8000"
+                },
+    "lingcod":  {
+                    "price":  120,
+                    "edibility":  10,
+                    "color":  "#824925"
+                },
+    "midnight_carp":  {
+                          "price":  150,
+                          "edibility":  20,
+                          "color":  "#690FFF"
+                      },
+    "woodskip":  {
+                     "price":  75,
+                     "edibility":  10,
+                     "color":  "#FF8000"
+                 },
+    "sardine":  {
+                    "price":  40,
+                    "edibility":  5,
+                    "color":  "#2E55B7"
+                },
+    "anchovy":  {
+                    "price":  30,
+                    "edibility":  5,
+                    "color":  "#2E55B7"
+                },
+    "herring":  {
+                    "price":  30,
+                    "edibility":  5,
+                    "color":  "#2E55B7"
+                },
+    "red_snapper":  {
+                        "price":  50,
+                        "edibility":  10,
+                        "color":  "#DC0000"
+                    },
+    "red_mullet":  {
+                       "price":  75,
+                       "edibility":  10,
+                       "color":  "#DC0000"
+                   },
+    "sea_cucumber":  {
+                         "price":  75,
+                         "edibility":  -10,
+                         "color":  "#FFE600"
+                     },
+    "super_cucumber":  {
+                           "price":  250,
+                           "edibility":  50,
+                           "color":  "#7329B5"
+                       },
+    "flounder":  {
+                     "price":  100,
+                     "edibility":  15,
+                     "color":  "#824925"
+                 },
+    "halibut":  {
+                    "price":  80,
+                    "edibility":  10,
+                    "color":  "#A9A9A9"
+                },
+    "eel":  {
+                "price":  85,
+                "edibility":  12,
+                "color":  "#B35500"
+            },
+    "octopus":  {
+                    "price":  150,
+                    "edibility":  -300,
+                    "color":  "#FF8000"
+                },
+    "squid":  {
+                  "price":  80,
+                  "edibility":  10,
+                  "color":  "#FFFFFF"
+              },
+    "tuna":  {
+                 "price":  100,
+                 "edibility":  15,
+                 "color":  "#2E55B7"
+             },
+    "tilapia":  {
+                    "price":  75,
+                    "edibility":  10,
+                    "color":  "#808080"
+                },
+    "pufferfish":  {
+                       "price":  200,
+                       "edibility":  -40,
+                       "color":  "#FFE600"
+                   },
+    "albacore":  {
+                     "price":  75,
+                     "edibility":  10,
+                     "color":  "#2E55B7"
+                 },
+    "sandfish":  {
+                     "price":  75,
+                     "edibility":  5,
+                     "color":  "#FFE600"
+                 },
+    "scorpion_carp":  {
+                          "price":  150,
+                          "edibility":  -50,
+                          "color":  "#824925"
+                      },
+    "dorado":  {
+                   "price":  100,
+                   "edibility":  10,
+                   "color":  "#FF8000"
+               },
+    "ghostfish":  {
+                      "price":  45,
+                      "edibility":  15,
+                      "color":  "#FFFFFF"
+                  },
+    "stonefish":  {
+                      "price":  300,
+                      "edibility":  -300,
+                      "color":  "#824925"
+                  },
+    "ice_pip":  {
+                    "price":  500,
+                    "edibility":  15,
+                    "color":  "#2E55B7"
+                },
+    "lava_eel":  {
+                     "price":  700,
+                     "edibility":  20,
+                     "color":  "#DC0000"
+                 },
+    "void_salmon":  {
+                        "price":  150,
+                        "edibility":  25,
+                        "color":  "#9400D3"
+                    },
+    "slimejack":  {
+                      "price":  100,
+                      "edibility":  15,
+                      "color":  "#0A8F00"
+                  },
+    "midnight_squid":  {
+                           "price":  100,
+                           "edibility":  15,
+                           "color":  "#2E55B7"
+                       },
+    "spook_fish":  {
+                       "price":  220,
+                       "edibility":  15,
+                       "color":  "#2E55B7"
+                   },
+    "blobfish":  {
+                     "price":  500,
+                     "edibility":  15,
+                     "color":  "#FFDEAD"
+                 },
+    "legend":  {
+                   "price":  5000,
+                   "edibility":  200,
+                   "color":  "#0A8F00"
+               },
+    "glacierfish":  {
+                        "price":  1000,
+                        "edibility":  10,
+                        "color":  "#2E55B7"
+                    },
+    "crimsonfish":  {
+                        "price":  1500,
+                        "edibility":  15,
+                        "color":  "#DC0000"
+                    },
+    "angler":  {
+                   "price":  900,
+                   "edibility":  10,
+                   "color":  "#FFE600"
+               },
+    "mutant_carp":  {
+                        "price":  1000,
+                        "edibility":  10,
+                        "color":  "#0A8F00"
+                    },
+    "legend_ii":  {
+                      "price":  5000,
+                      "edibility":  200,
+                      "color":  "#0A8F00"
+                  },
+    "glacierfish_jr":  {
+                           "price":  1000,
+                           "edibility":  10,
+                           "color":  "#2E55B7"
+                       },
+    "son_of_crimsonfish":  {
+                               "price":  1500,
+                               "edibility":  15,
+                               "color":  "#DC0000"
+                           },
+    "ms_angler":  {
+                      "price":  900,
+                      "edibility":  10,
+                      "color":  "#FFA3BA"
+                  },
+    "radioactive_carp":  {
+                             "price":  1000,
+                             "edibility":  10,
+                             "color":  "#0A8F00"
+                         },
+    "lobster":  {
+                    "price":  120,
+                    "edibility":  -300,
+                    "color":  "#DC0000"
+                },
+    "crab":  {
+                 "price":  100,
+                 "edibility":  -300,
+                 "color":  "#DC0000"
+             },
+    "shrimp":  {
+                   "price":  60,
+                   "edibility":  -300,
+                   "color":  "#FFA3BA"
+               },
+    "clam":  {
+                 "price":  50,
+                 "edibility":  -300,
+                 "color":  "#B4FFFF"
+             },
+    "mussel":  {
+                   "price":  30,
+                   "edibility":  -300,
+                   "color":  "#808080"
+               },
+    "oyster":  {
+                   "price":  40,
+                   "edibility":  -300,
+                   "color":  "#808080"
+               },
+    "cockle":  {
+                   "price":  50,
+                   "edibility":  -300,
+                   "color":  "#A9A9A9"
+               },
+    "crayfish":  {
+                     "price":  75,
+                     "edibility":  -300,
+                     "color":  "#A9A9A9"
+                 },
+    "snail":  {
+                  "price":  65,
+                  "edibility":  -300,
+                  "color":  "#FFE600"
+              },
+    "periwinkle":  {
+                       "price":  20,
+                       "edibility":  -300,
+                       "color":  "#00FFFF"
+                   },
+    "seaweed":  {
+                    "price":  20,
+                    "edibility":  5,
+                    "color":  "#0A8F00"
+                },
+    "green_algae":  {
+                        "price":  15,
+                        "edibility":  5,
+                        "color":  "#006400"
+                    },
+    "white_algae":  {
+                        "price":  25,
+                        "edibility":  8,
+                        "color":  "#FFFFFF"
+                    },
+    "sea_jelly":  {
+                      "price":  200,
+                      "edibility":  35,
+                      "color":  "#00FFFF"
+                  },
+    "river_jelly":  {
+                        "price":  125,
+                        "edibility":  30,
+                        "color":  "#0A8F00"
+                    },
+    "cave_jelly":  {
+                       "price":  180,
+                       "edibility":  30,
+                       "color":  "#DC0000"
+                   },
+    "trash":  {
+                  "price":  0,
+                  "edibility":  -300,
+                  "color":  "#2D2D2D"
+              },
+    "driftwood":  {
+                      "price":  0,
+                      "edibility":  -300,
+                      "color":  "#824925"
+                  },
+    "soggy_newspaper":  {
+                            "price":  0,
+                            "edibility":  -300,
+                            "color":  "#808080"
+                        },
+    "broken_cd":  {
+                      "price":  0,
+                      "edibility":  -300,
+                      "color":  "#00FFFF"
+                  },
+    "broken_glasses":  {
+                           "price":  0,
+                           "edibility":  -300,
+                           "color":  "#00FFFF"
+                       },
+    "joja_cola":  {
+                      "price":  25,
+                      "edibility":  5,
+                      "color":  "#2E55B7"
+                  },
+    "rotten_plant":  {
+                         "price":  0,
+                         "edibility":  -300,
+                         "color":  "#B35500"
+                     }
+}

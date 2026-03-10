@@ -1,0 +1,41 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": 1
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 504,
+                "minecraft:max_stack_size": 99,
+                "!minecraft:max_damage": {},
+                "minecraft:custom_name": "{\"text\": \"醋\", \"color\": \"white\", \"italic\": false}",
+                "minecraft:lore": [
+                  "{\"text\": \"售价：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"100G\", \"color\": \"gold\", \"bold\": true}]}",
+                  "{\"text\": \"物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"烹饪原料\", \"color\": \"dark_green\", \"bold\": true}]}",
+                  "{\"text\": \"一种发酵陈酿液体，用于\", \"color\": \"gray\", \"italic\": false}",
+                  "{\"text\": \"许多烹饪配方。\", \"color\": \"gray\", \"italic\": false}"
+                ],
+                "minecraft:custom_data": {
+                  "stardew_item": 1,
+                  "item_type": "cooking_ingredient",
+                  "item_id": "vinegar",
+                  "sd_price": 100
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

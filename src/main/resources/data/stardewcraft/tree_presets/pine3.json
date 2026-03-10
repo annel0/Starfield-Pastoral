@@ -1,0 +1,466 @@
+{
+  "format": 1,
+  "tree": "pine",
+  "name": "pine3",
+  "blocks": [
+    {
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "part": "trunk0",
+      "state": {}
+    },
+    {
+      "x": 0,
+      "y": 1,
+      "z": 0,
+      "part": "trunk1",
+      "state": {}
+    },
+    {
+      "x": -1,
+      "y": 2,
+      "z": 0,
+      "part": "branch2",
+      "state": {
+        "facing": "west"
+      }
+    },
+    {
+      "x": 0,
+      "y": 2,
+      "z": 0,
+      "part": "trunk1",
+      "state": {}
+    },
+    {
+      "x": -1,
+      "y": 3,
+      "z": 0,
+      "part": "leaves",
+      "state": {
+        "facing": "west"
+      }
+    },
+    {
+      "x": 0,
+      "y": 3,
+      "z": 0,
+      "part": "trunk1",
+      "state": {}
+    },
+    {
+      "x": 1,
+      "y": 3,
+      "z": 0,
+      "part": "leaves",
+      "state": {
+        "facing": "down"
+      }
+    },
+    {
+      "x": -1,
+      "y": 4,
+      "z": -1,
+      "part": "leaves",
+      "state": {
+        "facing": "west"
+      }
+    },
+    {
+      "x": -1,
+      "y": 4,
+      "z": 0,
+      "part": "leaves",
+      "state": {
+        "facing": "west"
+      }
+    },
+    {
+      "x": -1,
+      "y": 4,
+      "z": 1,
+      "part": "leaves",
+      "state": {
+        "facing": "west"
+      }
+    },
+    {
+      "x": 0,
+      "y": 4,
+      "z": -2,
+      "part": "leaves",
+      "state": {
+        "facing": "down"
+      }
+    },
+    {
+      "x": 0,
+      "y": 4,
+      "z": -1,
+      "part": "branch1",
+      "state": {
+        "facing": "north"
+      }
+    },
+    {
+      "x": 0,
+      "y": 4,
+      "z": 0,
+      "part": "trunk1",
+      "state": {}
+    },
+    {
+      "x": 0,
+      "y": 4,
+      "z": 1,
+      "part": "branch1",
+      "state": {
+        "facing": "south"
+      }
+    },
+    {
+      "x": 1,
+      "y": 4,
+      "z": -1,
+      "part": "leaves",
+      "state": {
+        "facing": "down"
+      }
+    },
+    {
+      "x": 1,
+      "y": 4,
+      "z": 0,
+      "part": "branch1",
+      "state": {
+        "facing": "east"
+      }
+    },
+    {
+      "x": 1,
+      "y": 4,
+      "z": 1,
+      "part": "leaves",
+      "state": {
+        "facing": "down"
+      }
+    },
+    {
+      "x": 2,
+      "y": 4,
+      "z": 0,
+      "part": "leaves",
+      "state": {
+        "facing": "down"
+      }
+    },
+    {
+      "x": -1,
+      "y": 5,
+      "z": -1,
+      "part": "leaves",
+      "state": {
+        "facing": "west"
+      }
+    },
+    {
+      "x": -1,
+      "y": 5,
+      "z": 0,
+      "part": "leaves",
+      "state": {
+        "facing": "west"
+      }
+    },
+    {
+      "x": -1,
+      "y": 5,
+      "z": 1,
+      "part": "leaves",
+      "state": {
+        "facing": "west"
+      }
+    },
+    {
+      "x": 0,
+      "y": 5,
+      "z": -2,
+      "part": "leaves",
+      "state": {
+        "facing": "east"
+      }
+    },
+    {
+      "x": 0,
+      "y": 5,
+      "z": -1,
+      "part": "leaves",
+      "state": {
+        "facing": "north"
+      }
+    },
+    {
+      "x": 0,
+      "y": 5,
+      "z": 0,
+      "part": "trunk1",
+      "state": {}
+    },
+    {
+      "x": 0,
+      "y": 5,
+      "z": 1,
+      "part": "leaves",
+      "state": {
+        "facing": "west"
+      }
+    },
+    {
+      "x": 0,
+      "y": 5,
+      "z": 2,
+      "part": "leaves",
+      "state": {
+        "facing": "south"
+      }
+    },
+    {
+      "x": 1,
+      "y": 5,
+      "z": -2,
+      "part": "leaves",
+      "state": {
+        "facing": "north"
+      }
+    },
+    {
+      "x": 1,
+      "y": 5,
+      "z": -1,
+      "part": "leaves",
+      "state": {
+        "facing": "east"
+      }
+    },
+    {
+      "x": 1,
+      "y": 5,
+      "z": 0,
+      "part": "leaves",
+      "state": {
+        "facing": "south"
+      }
+    },
+    {
+      "x": 1,
+      "y": 5,
+      "z": 1,
+      "part": "leaves",
+      "state": {
+        "facing": "east"
+      }
+    },
+    {
+      "x": 1,
+      "y": 5,
+      "z": 2,
+      "part": "leaves",
+      "state": {
+        "facing": "south"
+      }
+    },
+    {
+      "x": 2,
+      "y": 5,
+      "z": -1,
+      "part": "leaves",
+      "state": {
+        "facing": "east"
+      }
+    },
+    {
+      "x": 2,
+      "y": 5,
+      "z": 0,
+      "part": "leaves",
+      "state": {
+        "facing": "east"
+      }
+    },
+    {
+      "x": 2,
+      "y": 5,
+      "z": 1,
+      "part": "leaves",
+      "state": {
+        "facing": "east"
+      }
+    },
+    {
+      "x": 0,
+      "y": 6,
+      "z": -1,
+      "part": "leaves",
+      "state": {
+        "facing": "up"
+      }
+    },
+    {
+      "x": 0,
+      "y": 6,
+      "z": 0,
+      "part": "trunk1",
+      "state": {}
+    },
+    {
+      "x": -1,
+      "y": 7,
+      "z": 0,
+      "part": "branch2",
+      "state": {
+        "facing": "west"
+      }
+    },
+    {
+      "x": 0,
+      "y": 7,
+      "z": 0,
+      "part": "trunk1",
+      "state": {}
+    },
+    {
+      "x": 0,
+      "y": 7,
+      "z": 1,
+      "part": "branch2",
+      "state": {
+        "facing": "south"
+      }
+    },
+    {
+      "x": 1,
+      "y": 7,
+      "z": -1,
+      "part": "leaves",
+      "state": {
+        "facing": "east"
+      }
+    },
+    {
+      "x": 1,
+      "y": 7,
+      "z": 0,
+      "part": "branch2",
+      "state": {
+        "facing": "east"
+      }
+    },
+    {
+      "x": -1,
+      "y": 8,
+      "z": 0,
+      "part": "leaves",
+      "state": {
+        "facing": "west"
+      }
+    },
+    {
+      "x": 0,
+      "y": 8,
+      "z": -1,
+      "part": "leaves",
+      "state": {
+        "facing": "north"
+      }
+    },
+    {
+      "x": 0,
+      "y": 8,
+      "z": 0,
+      "part": "trunk1",
+      "state": {}
+    },
+    {
+      "x": 0,
+      "y": 8,
+      "z": 1,
+      "part": "leaves",
+      "state": {
+        "facing": "south"
+      }
+    },
+    {
+      "x": 1,
+      "y": 8,
+      "z": 0,
+      "part": "leaves",
+      "state": {
+        "facing": "south"
+      }
+    },
+    {
+      "x": -1,
+      "y": 9,
+      "z": 0,
+      "part": "leaves",
+      "state": {
+        "facing": "west"
+      }
+    },
+    {
+      "x": 0,
+      "y": 9,
+      "z": -1,
+      "part": "leaves",
+      "state": {
+        "facing": "north"
+      }
+    },
+    {
+      "x": 0,
+      "y": 9,
+      "z": 0,
+      "part": "leaves",
+      "state": {
+        "facing": "up"
+      }
+    },
+    {
+      "x": 0,
+      "y": 9,
+      "z": 1,
+      "part": "leaves",
+      "state": {
+        "facing": "south"
+      }
+    },
+    {
+      "x": 1,
+      "y": 9,
+      "z": -1,
+      "part": "leaves",
+      "state": {
+        "facing": "north"
+      }
+    },
+    {
+      "x": 1,
+      "y": 9,
+      "z": 0,
+      "part": "leaves",
+      "state": {
+        "facing": "south"
+      }
+    },
+    {
+      "x": 0,
+      "y": 10,
+      "z": 0,
+      "part": "leaves",
+      "state": {
+        "facing": "up"
+      }
+    }
+  ]
+}

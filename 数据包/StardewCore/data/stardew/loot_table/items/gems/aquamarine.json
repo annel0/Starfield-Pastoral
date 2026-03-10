@@ -1,0 +1,35 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 7109,
+                "minecraft:max_stack_size": 99,
+                "minecraft:custom_name": "{\"text\": \"海蓝宝石\", \"color\": \"white\", \"bold\": false, \"italic\": false}",
+                "minecraft:lore": [
+                  "{\"text\":\"售价：\",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"180G\",\"color\":\"gold\",\"bold\":true,\"italic\":false}]}",
+                  "{\"text\":\"物品种类：\",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"宝石\",\"color\":\"light_purple\",\"bold\":true,\"italic\":false}]}",
+                  "{\"text\":\"一块蔚蓝色的宝石，像大海一样美丽。\",\"color\":\"gray\",\"italic\":false}"
+                ],
+                "minecraft:custom_data": {
+                  "stardew_item": 1,
+                  "item_type": "gem",
+                  "gem_type": "aquamarine",
+                  "sd_price": 180
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:carrot_on_a_stick",
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": 1
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 2208,
+                "minecraft:max_stack_size": 99,
+                "!minecraft:max_damage": {},
+                "minecraft:custom_name": "{\"text\": \"蓝莓种子\", \"color\": \"white\", \"italic\": false}",
+                "minecraft:lore": [
+                  "{\"text\": \"售价：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"80G\", \"color\": \"gold\", \"bold\": true}]}",
+                  "{\"text\": \"物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"种子\", \"color\": \"dark_green\", \"bold\": true}]}",
+                  "{\"text\": \"夏季播种。13天成熟，之后每4天收获一次。\", \"color\": \"gray\", \"italic\": false}"
+                ],
+                "minecraft:custom_data": {
+                  "stardew_item": 1,
+                  "item_type": "seed",
+                  "crop_id": "blueberry",
+                  "sd_price": 40
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

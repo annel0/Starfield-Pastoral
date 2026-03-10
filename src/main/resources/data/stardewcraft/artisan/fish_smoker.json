@@ -1,0 +1,6 @@
+{
+  "machine": "fish_smoker",
+  "recipes": [
+    { "inputMode": "fish_type", "minutes": 50, "outputMode": "smoked", "quality": "keep" }
+  ]
+}

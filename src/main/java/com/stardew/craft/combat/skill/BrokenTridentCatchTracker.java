@@ -1,0 +1,95 @@
+package com.stardew.craft.combat.skill;
+
+import com.stardew.craft.combat.network.BrokenTridentCatchPayload;
+import com.stardew.craft.core.ModTags;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.network.PacketDistributor;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+public final class BrokenTridentCatchTracker {
+
+    private static final Map<UUID, Long> ACTIVE = new HashMap<>();
+
+    private BrokenTridentCatchTracker() {}
+
+    @SuppressWarnings("null")
+    public static void start(ServerPlayer player, long nowTick, int durationTicks) {
+        if (player == null || durationTicks <= 0) {
+            return;
+        }
+        Long prevEnd = ACTIVE.get(player.getUUID());
+        boolean wasActive = prevEnd != null && nowTick < prevEnd;
+        ACTIVE.put(player.getUUID(), nowTick + durationTicks);
+        PacketDistributor.sendToPlayer(player, new BrokenTridentCatchPayload(true, durationTicks));
+        if (!wasActive) {
+            player.displayClientMessage(
+                Component.translatable("stardewcraft.hud.fish_catch").withStyle(ChatFormatting.AQUA),
+                true
+            );
+        }
+    }
+
+    public static void clear(ServerPlayer player) {
+        if (player == null) {
+            return;
+        }
+        ACTIVE.remove(player.getUUID());
+        PacketDistributor.sendToPlayer(player, new BrokenTridentCatchPayload(false, 0));
+    }
+
+    public static boolean isActive(ServerPlayer player, long nowTick) {
+        if (player == null) {
+            return false;
+        }
+        Long endTick = ACTIVE.get(player.getUUID());
+        if (endTick == null) {
+            return false;
+        }
+        if (nowTick >= endTick) {
+            clear(player);
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean consume(ServerPlayer player, long nowTick) {
+        if (!isActive(player, nowTick)) {
+            return false;
+        }
+        clear(player);
+        return true;
+    }
+
+    public static void tick(ServerPlayer player, long nowTick) {
+        if (player == null) {
+            return;
+        }
+        Long endTick = ACTIVE.get(player.getUUID());
+        if (endTick == null) {
+            return;
+        }
+        if (nowTick >= endTick) {
+            clear(player);
+        }
+    }
+
+    @SuppressWarnings("null")
+    public static boolean hasFishInInventory(Player player) {
+        if (player == null) {
+            return false;
+        }
+        for (ItemStack stack : player.getInventory().items) {
+            if (!stack.isEmpty() && stack.is(ModTags.Items.ALL_FISHING_CATCHES)) {
+                return true;
+            }
+        }
+        return false;
+    }
+}

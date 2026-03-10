@@ -1,0 +1,49 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:carrot_on_a_stick",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 5013,
+                "minecraft:custom_name": "[{\"text\":\"艾米丽的魔法靴\",\"color\":\"#9933FF\",\"bold\":false,\"italic\":false}]",
+                "minecraft:lore": [
+                  "{\"text\": \"🛡 防御: \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"+4\", \"color\": \"aqua\", \"bold\": true}]}",
+                  "{\"text\": \"❄ 免疫: \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"+4\", \"color\": \"aqua\", \"bold\": true}]}",
+                  "{\"text\":\"⚒ 被动效果: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"轻盈步伐\",\"color\":\"aqua\",\"bold\":true}]}",
+                  "{\"text\": \"💰 售价：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"无法出售\", \"color\": \"red\", \"bold\": true}]}",
+                  "{\"text\": \"🔧 物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"装备\", \"color\": \"light_purple\", \"bold\": true}]}",
+                  "{\"text\": \"艾米丽用魔法水晶制作的靴子。\", \"color\": \"gray\", \"italic\": false}",
+                  "{\"text\": \"\"}",
+                  "{\"text\": \"被动效果 - \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"轻盈步伐\", \"color\": \"aqua\", \"bold\": true}]}",
+                  "{\"text\": \"▪ 效果: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"移动速度+1\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 触发: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"装备时自动生效\", \"color\": \"white\", \"bold\": false}]}"
+                ],
+                "minecraft:max_stack_size": 1,
+                "minecraft:custom_data": {
+                  "stardew": {
+                    "type": "boots",
+                    "id": "emilys_magic_boots",
+                    "name": "艾米丽的魔法靴",
+                    "defense": 4,
+                    "immunity": 4,
+                    "rarity": "epic",
+                    "effects": {
+                      "speed": 1
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

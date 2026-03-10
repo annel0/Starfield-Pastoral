@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:carrot_on_a_stick",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 9108,
+                "minecraft:custom_name": "[{\"text\":\"[DEBUG] \",\"color\":\"red\",\"bold\":true,\"italic\":false},{\"text\":\"煤矿生成器 \",\"color\":\"dark_gray\",\"bold\":false},{\"text\":\"(主题4)\",\"color\":\"gray\",\"bold\":false}]",
+                "minecraft:lore": [
+                  "{\"text\":\"右键地面生成煤矿实体\",\"color\":\"yellow\",\"italic\":false}",
+                  "{\"text\":\"模型CMD: 7208\",\"color\":\"gray\",\"italic\":false}",
+                  "{\"text\":\"血量: 15 | 需求镐子等级: 1\",\"color\":\"white\",\"italic\":false}"
+                ],
+                "minecraft:custom_data": {
+                  "stardew_debug_tool": 1,
+                  "spawn_type": "coal",
+                  "theme": 4
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

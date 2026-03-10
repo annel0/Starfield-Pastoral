@@ -1,0 +1,41 @@
+
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:carrot_on_a_stick",
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": 1
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 9602,
+                "minecraft:max_stack_size": 1,
+                "!minecraft:max_damage": {},
+                "minecraft:custom_name": "{\"text\": \"[Debug] 筒仓添加器\", \"color\": \"gold\", \"italic\": false, \"bold\": true}",
+                "minecraft:lore": [
+                  "{\"text\": \"右键使用: 添加一个筒仓\", \"color\": \"green\", \"italic\": false}",
+                  "{\"text\": \"每个筒仓增加240个干草容量\", \"color\": \"gray\", \"italic\": false}",
+                  "{\"text\": \"\", \"color\": \"gray\", \"italic\": false}",
+                  "{\"text\": \"调试工具 - 仅供开发使用\", \"color\": \"red\", \"italic\": true}"
+                ],
+                "minecraft:custom_data": {
+                  "stardew_item": 1,
+                  "item_type": "debug",
+                  "debug_function": "add_silo"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

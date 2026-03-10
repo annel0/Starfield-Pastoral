@@ -1,0 +1,84 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:carrot_on_a_stick",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 6100108,
+                "minecraft:custom_name": "[{\"text\":\"无限 \",\"color\":\"#9933FF\",\"bold\":true,\"italic\":false},{\"text\":\"短剑\",\"color\":\"aqua\",\"bold\":true,\"italic\":false}]",
+                "minecraft:attribute_modifiers": {
+                  "modifiers": [
+                    {
+                      "type": "minecraft:attack_speed",
+                      "id": "stardew:weapon_attack_speed",
+                      "amount": -1.0,
+                      "operation": "add_value",
+                      "slot": "mainhand"
+                    }
+                  ],
+                  "show_in_tooltip": false
+                },
+                "minecraft:lore": [
+                  "{\"text\": \"📊 武器等级: \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"Lv.16\", \"color\": \"#FFD700\", \"bold\": true}]}",
+                  "{\"text\": \"⚔ 战斗等级要求: \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"16\", \"color\": \"green\", \"bold\": true}]}",
+                  "{\"text\":\"💥 伤害: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"42-58\",\"color\":\"red\",\"bold\":true}]}",
+                  "{\"text\":\"☆ 暴击率: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"+10%\",\"color\":\"gold\",\"bold\":true}]}",
+                  "{\"text\":\"⚡ 攻击速度: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"3.2/秒\",\"color\":\"aqua\",\"bold\":true}]}",
+                  "{\"text\":\"⚒ 技能: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"星流连斩\",\"color\":\"light_purple\",\"bold\":true},{\"text\":\" (右键)\",\"color\":\"gray\",\"bold\":false}]}",
+                  "{\"text\":\"⚒ 特殊技能: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"无限觉醒\",\"color\":\"#9933FF\",\"bold\":true},{\"text\":\" (Shift+右键)\",\"color\":\"gray\",\"bold\":false}]}",
+                  "{\"text\": \"💰 售价：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"无法出售\", \"color\": \"red\", \"bold\": true}]}",
+                  "{\"text\": \"🔧 物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"武器 (传说)\", \"color\": \"light_purple\", \"bold\": true}]}",
+                  "{\"text\": \"🔨 银河短剑的真正形态。\", \"color\": \"gray\", \"italic\": false}",
+                  "{\"text\": \"🔨 蕴含着无限的星辰之力。\", \"color\": \"#9933FF\", \"italic\": false}",
+                  "{\"text\": \"🔨 能够扭曲时间与空间。\", \"color\": \"aqua\", \"italic\": false}",
+                  "{\"text\": \"\"}",
+                  "{\"text\": \"技能 - \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"星流连斩\", \"color\": \"light_purple\", \"bold\": true}]}",
+                  "{\"text\": \"▪ 效果: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"如流星般连续攻击5次\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 伤害: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"每次30%武器伤害\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 持续时间: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"0.8秒\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 冷却时间: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"6.0秒\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"\"}",
+                  "{\"text\": \"特殊技能 - \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"无限觉醒\", \"color\": \"#9933FF\", \"bold\": true}]}",
+                  "{\"text\": \"▪ 效果: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"释放无限星辰之力\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 暴击率: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"+80%\", \"color\": \"gold\", \"bold\": true}]}",
+                  "{\"text\": \"▪ 移动速度: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"+40%\", \"color\": \"aqua\", \"bold\": true}]}",
+                  "{\"text\": \"▪ 闪避率: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"+25%\", \"color\": \"yellow\", \"bold\": true}]}",
+                  "{\"text\": \"▪ 攻击速度: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"+30%\", \"color\": \"green\", \"bold\": true}]}",
+                  "{\"text\": \"▪ 持续时间: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"8.0秒\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 冷却时间: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"20.0秒\", \"color\": \"white\", \"bold\": false}]}"
+                ],
+                "minecraft:max_stack_size": 1,
+                "minecraft:custom_data": {
+                  "stardew_item": true,
+                  "stardew_weapon": true,
+                  "weapon_type": "dagger",
+                  "weapon_damage_min": 42,
+                  "weapon_damage_max": 58,
+                  "weapon_crit_chance": 0.10,
+                  "weapon_attack_speed": 3.2,
+                  "weapon_special": "star_flurry",
+                  "weapon_special_2": "infinity_awakening",
+                  "weapon_skill_cooldown": 120,
+                  "weapon_skill_2_cooldown": 400,
+                  "weapon_crit_boost": 0.8,
+                  "weapon_speed_boost": 0.4,
+                  "weapon_dodge_boost": 0.25,
+                  "weapon_attack_speed_boost": 0.3,
+                  "weapon_awakening_duration": 160,
+                  "weapon_level": 16
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+package com.stardew.craft.combat.network;
+
+import com.stardew.craft.StardewCraft;
+import com.stardew.craft.client.weapon.SilverSaberFoldbackClientState;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.jetbrains.annotations.NotNull;
+
+public record SilverSaberFoldbackPayload(boolean active, int durationTicks) implements CustomPacketPayload {
+
+    @SuppressWarnings("null")
+    public static final Type<SilverSaberFoldbackPayload> TYPE = new Type<>(
+            ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "silver_saber_foldback")
+    );
+
+    @SuppressWarnings("null")
+    public static final StreamCodec<ByteBuf, SilverSaberFoldbackPayload> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.BOOL,
+            SilverSaberFoldbackPayload::active,
+            ByteBufCodecs.VAR_INT,
+            SilverSaberFoldbackPayload::durationTicks,
+            SilverSaberFoldbackPayload::new
+    );
+
+    @Override
+    public @NotNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    public static void handle(SilverSaberFoldbackPayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (payload.active()) {
+                Minecraft mc = Minecraft.getInstance();
+                long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
+                SilverSaberFoldbackClientState.start(nowTick, payload.durationTicks());
+            } else {
+                SilverSaberFoldbackClientState.clear();
+            }
+        });
+    }
+}

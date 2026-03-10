@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:pickaxe",
+    "stardewcraft:copper_pickaxe",
+    "stardewcraft:steel_pickaxe",
+    "stardewcraft:gold_pickaxe",
+    "stardewcraft:iridium_pickaxe"
+  ]
+}

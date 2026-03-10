@@ -1,0 +1,82 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:carrot_on_a_stick",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 6100208,
+                "minecraft:custom_name": "[{\"text\":\"龙牙 \",\"color\":\"#8B008B\",\"bold\":true,\"italic\":false},{\"text\":\"战棍\",\"color\":\"white\",\"bold\":true,\"italic\":false}]",
+                "minecraft:attribute_modifiers": {
+                  "modifiers": [
+                    {
+                      "type": "minecraft:attack_speed",
+                      "id": "stardew:weapon_attack_speed",
+                      "amount": -2.8,
+                      "operation": "add_value",
+                      "slot": "mainhand"
+                    }
+                  ],
+                  "show_in_tooltip": false
+                },
+                "minecraft:lore": [
+                  "{\"text\": \"📊 武器等级: \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"Lv.14\", \"color\": \"#FFD700\", \"bold\": true}]}",
+                  "{\"text\": \"⚔ 战斗等级要求: \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"14\", \"color\": \"green\", \"bold\": true}]}",
+                  "{\"text\":\"💥 伤害: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"80-100\",\"color\":\"red\",\"bold\":true}]}",
+                  "{\"text\":\"☆ 暴击率: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"+4%\",\"color\":\"gold\",\"bold\":true}]}",
+                  "{\"text\":\"💢 暴击倍率: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"+50%\",\"color\":\"gold\",\"bold\":true}]}",
+                  "{\"text\":\"⚡ 攻击速度: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"1.2/秒\",\"color\":\"aqua\",\"bold\":true}]}",
+                  "{\"text\":\"⚒ 技能: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"龙牙连击\",\"color\":\"light_purple\",\"bold\":true},{\"text\":\" (右键)\",\"color\":\"gray\",\"bold\":false}]}",
+                  "{\"text\":\"⚒ 特殊技能: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"龙牙狂怒\",\"color\":\"#8B008B\",\"bold\":true},{\"text\":\" (Shift+右键)\",\"color\":\"gray\",\"bold\":false}]}",
+                  "{\"text\": \"💰 售价：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"无法出售\", \"color\": \"red\", \"bold\": true}]}",
+                  "{\"text\": \"🔧 物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"武器 (史诗)\", \"color\": \"light_purple\", \"bold\": true}]}",
+                  "{\"text\": \"🔨 由远古龙牙打造的武器。\", \"color\": \"gray\", \"italic\": false}",
+                  "{\"text\": \"🔨 极高的暴击倍率。\", \"color\": \"gold\", \"italic\": false}",
+                  "{\"text\": \"\"}",
+                  "{\"text\": \"技能 - \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"龙牙连击\", \"color\": \"light_purple\", \"bold\": true}]}",
+                  "{\"text\": \"▪ 效果: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"5段节奏连击，伤害递增\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 伤害: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"120%/150%/200%/250%/300%\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 窗口期: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"0.4秒\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 冷却时间: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"10.0秒\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"\"}",
+                  "{\"text\": \"特殊技能 - \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"龙牙狂怒\", \"color\": \"#8B008B\", \"bold\": true}]}",
+                  "{\"text\": \"▪ 效果: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"激发龙之力量\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 攻击加成: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"+50%\", \"color\": \"red\", \"bold\": true}]}",
+                  "{\"text\": \"▪ 减伤: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"-30%\", \"color\": \"aqua\", \"bold\": true}]}",
+                  "{\"text\": \"▪ 普攻AOE: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"3格范围\", \"color\": \"gold\", \"bold\": true}]}",
+                  "{\"text\": \"▪ 持续时间: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"10.0秒\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 冷却时间: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"20.0秒\", \"color\": \"white\", \"bold\": false}]}"
+                ],
+                "minecraft:max_stack_size": 1,
+                "minecraft:custom_data": {
+                  "stardew_item": true,
+                  "stardew_weapon": true,
+                  "weapon_type": "club",
+                  "weapon_damage_min": 80,
+                  "weapon_damage_max": 100,
+                  "weapon_crit_chance": 0.04,
+                  "weapon_crit_multiplier": 0.5,
+                  "weapon_defense": 0,
+                  "weapon_knockback": 0,
+                  "weapon_attack_speed": 1.2,
+                  "weapon_range": 3.0,
+                  "weapon_special": "dragon_combo",
+                  "weapon_special_2": "dragon_fury",
+                  "weapon_skill_cooldown": 200,
+                  "weapon_skill_2_cooldown": 400,
+                  "weapon_tier": "dragontooth"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

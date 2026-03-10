@@ -1,0 +1,4 @@
+{
+	"replace": false,
+	"values": ["stardew:main", "animated_java:global/on_tick"]
+}

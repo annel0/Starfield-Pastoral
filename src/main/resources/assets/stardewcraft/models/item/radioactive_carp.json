@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": { "layer0": "stardewcraft:item/fish/legendary/radioactive_carp" },
+  "overrides": [
+    { "predicate": { "custom_model_data": 1 }, "model": "stardewcraft:item/radioactive_carp_silver" },
+    { "predicate": { "custom_model_data": 2 }, "model": "stardewcraft:item/radioactive_carp_gold" },
+    { "predicate": { "custom_model_data": 3 }, "model": "stardewcraft:item/radioactive_carp_iridium" }
+  ]
+}

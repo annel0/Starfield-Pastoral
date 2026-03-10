@@ -1,0 +1,56 @@
+{
+    "type": "minecraft:command",
+    "pools": [
+        {
+            "rolls": 1,
+            "entries": [
+                {
+                    "type": "minecraft:item",
+                    "name": "minecraft:paper",
+                    "functions": [
+                        {
+                            "function": "minecraft:set_count",
+                            "count": 1
+                        },
+                        {
+                            "function": "minecraft:set_components",
+                            "components": {
+                                "minecraft:custom_model_data": 137,
+                                "minecraft:max_stack_size": 99,
+                                "minecraft:custom_name": "[{\"text\": \"胡萝卜汁\", \"color\": \"white\", \"bold\": false, \"italic\": false}]",
+                                "minecraft:lore": [
+                                    "{\"text\": \"售价：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"78G\", \"color\": \"gold\", \"bold\": true}]}",
+                                    "{\"text\": \"物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"工匠物品\", \"color\": \"light_purple\", \"bold\": true}]}",
+                                    "{\"text\": \"富含营养的美味饮品。\", \"color\": \"dark_gray\", \"italic\": false}",
+                                    "{\"text\":\"\",\"color\":\"white\",\"bold\":true,\"italic\":false,\"extra\":[{\"text\":\"❤ 66\",\"color\":\"red\",\"bold\":true},{\"text\":\"  \",\"color\":\"white\",\"bold\":true},{\"text\":\"⚡ 150\",\"color\":\"green\",\"bold\":true}]}"
+                                ],
+                                "minecraft:custom_data": {
+                                    "stardew_item": 1,
+                                    "item_type": "artisan",
+                                    "artisan_type": "juice",
+                                    "sd_price": 78,
+                                    "is_food": 1,
+                                    "food_health": 66,
+                                    "food_energy": 150
+                                },
+                                "minecraft:food": {
+                                    "nutrition": 0,
+                                    "saturation": 0,
+                                    "can_always_eat": true
+                                },
+                                "minecraft:consumable": {
+                                    "consume_seconds": 0.8,
+                                    "animation": "drink",
+                                    "sound": {
+                                        "sound_id": "minecraft:entity.generic.drink"
+                                    },
+                                    "has_consume_particles": false
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

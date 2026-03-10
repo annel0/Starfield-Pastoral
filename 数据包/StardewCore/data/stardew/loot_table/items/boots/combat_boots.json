@@ -1,0 +1,41 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:carrot_on_a_stick",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 5003,
+                "minecraft:custom_name": "[{\"text\":\"战斗靴\",\"color\":\"aqua\",\"bold\":false,\"italic\":false}]",
+                "minecraft:lore": [
+                  "{\"text\": \"🛡 防御: \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"+4\", \"color\": \"aqua\", \"bold\": true}]}",
+                  "{\"text\": \"💰 售价：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"无法出售\", \"color\": \"red\", \"bold\": true}]}",
+                  "{\"text\": \"🔧 物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"装备\", \"color\": \"light_purple\", \"bold\": true}]}",
+                  "{\"text\": \"为战斗设计的靴子，防御力强。\", \"color\": \"gray\", \"italic\": false}"
+                ],
+                "minecraft:max_stack_size": 1,
+                "minecraft:custom_data": {
+                  "stardew": {
+                    "type": "boots",
+                    "id": "combat_boots",
+                    "name": "战斗靴",
+                    "defense": 4,
+                    "immunity": 0,
+                    "rarity": "uncommon",
+                    "effects": {}
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:sunfish",
+    "stardewcraft:chub",
+    "stardewcraft:bream",
+    "stardewcraft:pike",
+    "stardewcraft:rainbow_trout",
+    "stardewcraft:sturgeon",
+    "stardewcraft:largemouth_bass",
+    "stardewcraft:dorado",
+    "stardewcraft:red_snapper",
+    "stardewcraft:red_mullet",
+    "stardewcraft:octopus",
+    "stardewcraft:squid",
+    "stardewcraft:tuna",
+    "stardewcraft:tilapia",
+    "stardewcraft:pufferfish",
+    "stardewcraft:super_cucumber",
+    "stardewcraft:crimsonfish"
+  ]
+}

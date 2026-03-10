@@ -1,0 +1,79 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:carrot_on_a_stick",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 6100015,
+                "minecraft:custom_name": "[{\"text\":\"熔岩 \",\"color\":\"#FF4500\",\"bold\":true,\"italic\":false},{\"text\":\"武士刀\",\"color\":\"#FF6347\",\"bold\":true,\"italic\":false}]",
+                "minecraft:attribute_modifiers": {
+                  "modifiers": [
+                    {
+                      "type": "minecraft:attack_speed",
+                      "id": "stardew:weapon_attack_speed",
+                      "amount": -2.2,
+                      "operation": "add_value",
+                      "slot": "mainhand"
+                    }
+                  ],
+                  "show_in_tooltip": false
+                },
+                "minecraft:lore": [
+                  "{\"text\": \"📊 武器等级: \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"Lv.10\", \"color\": \"#FFD700\", \"bold\": true}]}",
+                  "{\"text\": \"⚔ 战斗等级要求: \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"10\", \"color\": \"green\", \"bold\": true}]}",
+                  "{\"text\":\"💥 伤害: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"55-64\",\"color\":\"red\",\"bold\":true}]}",
+                  "{\"text\":\"☆ 暴击率: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"+2%\",\"color\":\"gold\",\"bold\":true}]}",
+                  "{\"text\":\"⚡ 攻击速度: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"1.8/秒\",\"color\":\"aqua\",\"bold\":true}]}",
+                  "{\"text\":\"⚒ 技能: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"火焰斩\",\"color\":\"#FF4500\",\"bold\":true},{\"text\":\" (右键)\",\"color\":\"gray\",\"bold\":false}]}",
+                  "{\"text\":\"⚒ 特殊技能: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"熔岩爆发\",\"color\":\"#FF6347\",\"bold\":true},{\"text\":\" (Shift+右键)\",\"color\":\"gray\",\"bold\":false}]}",
+                  "{\"text\": \"💰 售价：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"无法出售\", \"color\": \"red\", \"bold\": true}]}",
+                  "{\"text\": \"🔧 物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"武器 (稀有)\", \"color\": \"gold\", \"bold\": true}]}",
+                  "{\"text\": \"🔨 浸泡在熔岩中淬炼的武士刀。\", \"color\": \"gray\", \"italic\": false}",
+                  "{\"text\": \"🔨 剑刃始终保持着炽热的温度。\", \"color\": \"#FF6347\", \"italic\": false}",
+                  "{\"text\": \"🔨 每次挥击都能感受到火山的力量。\", \"color\": \"dark_red\", \"italic\": false}",
+                  "{\"text\": \"\"}",
+                  "{\"text\": \"技能 - \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"火焰斩\", \"color\": \"#FF4500\", \"bold\": true}]}",
+                  "{\"text\": \"▪ 效果: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"剑刃附着火焰斩击敌人\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 伤害: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"120%武器伤害\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 燃烧: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"每秒10点伤害，持续3秒\", \"color\": \"red\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 冷却时间: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"4.0秒\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"\"}",
+                  "{\"text\": \"特殊技能 - \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"熔岩爆发\", \"color\": \"#FF6347\", \"bold\": true}]}",
+                  "{\"text\": \"▪ 效果: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"地面喷发熔岩火柱\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 伤害: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"150%武器伤害\", \"color\": \"red\", \"bold\": true}]}",
+                  "{\"text\": \"▪ 范围: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"5格圆形区域\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 燃烧: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"所有敌人燃烧5秒\", \"color\": \"red\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 冷却时间: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"12.0秒\", \"color\": \"white\", \"bold\": false}]}"
+                ],
+                "minecraft:max_stack_size": 1,
+                "minecraft:custom_data": {
+                  "stardew_item": true,
+                  "stardew_weapon": true,
+                  "weapon_type": "sword",
+                  "weapon_damage_min": 55,
+                  "weapon_damage_max": 64,
+                  "weapon_crit_chance": 0.02,
+                  "weapon_attack_speed": 1.8,
+                  "weapon_special": "flame_slash",
+                  "weapon_special_2": "lava_eruption",
+                  "weapon_burn_damage": 10,
+                  "weapon_burn_duration": 60,
+                  "weapon_skill_cooldown": 80,
+                  "weapon_skill_2_cooldown": 240,
+                  "weapon_level": 10
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

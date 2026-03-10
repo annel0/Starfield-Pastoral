@@ -1,0 +1,24 @@
+package com.stardew.craft.client.tooltip;
+
+import com.stardew.craft.StardewCraft;
+import com.stardew.craft.tooltip.FishingRodSlotRowTooltipComponent;
+import com.stardew.craft.tooltip.FishingRodSlotsTooltipComponent;
+import com.stardew.craft.tooltip.MaxChargeRangeTooltipComponent;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
+
+@SuppressWarnings("removal")
+@EventBusSubscriber(modid = StardewCraft.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+public final class ClientTooltipFactoryRegistrar {
+	private ClientTooltipFactoryRegistrar() {
+	}
+
+	@SubscribeEvent
+	public static void onRegisterTooltipFactories(RegisterClientTooltipComponentFactoriesEvent event) {
+		event.register(MaxChargeRangeTooltipComponent.class, MaxChargeRangeClientTooltipComponent::new);
+		event.register(FishingRodSlotsTooltipComponent.class, FishingRodSlotsClientTooltipComponent::new);
+		event.register(FishingRodSlotRowTooltipComponent.class, FishingRodSlotRowClientTooltipComponent::new);
+	}
+}

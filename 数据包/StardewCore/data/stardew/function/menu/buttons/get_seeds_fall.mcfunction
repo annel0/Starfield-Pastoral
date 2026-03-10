@@ -1,0 +1,21 @@
+# data/stardew/function/menu/buttons/get_seeds_fall.mcfunction
+# 获取所有秋季作物种子
+# 执行者: 玩家 (@s)
+
+# 使用loot spawn在玩家位置生成所有秋季作物种子
+execute at @s run loot spawn ~ ~ ~ loot stardew:items/seeds/crop_pumpkin
+execute at @s run loot spawn ~ ~ ~ loot stardew:items/seeds/crop_corn
+execute at @s run loot spawn ~ ~ ~ loot stardew:items/seeds/crop_eggplant
+execute at @s run loot spawn ~ ~ ~ loot stardew:items/seeds/crop_bok_choy
+execute at @s run loot spawn ~ ~ ~ loot stardew:items/seeds/crop_yam
+execute at @s run loot spawn ~ ~ ~ loot stardew:items/seeds/crop_cranberry
+execute at @s run loot spawn ~ ~ ~ loot stardew:items/seeds/crop_wheat
+execute at @s run loot spawn ~ ~ ~ loot stardew:items/seeds/crop_fairy_rose
+execute at @s run loot spawn ~ ~ ~ loot stardew:items/seeds/crop_amaranth
+execute at @s run loot spawn ~ ~ ~ loot stardew:items/seeds/crop_grape
+execute at @s run loot spawn ~ ~ ~ loot stardew:items/seeds/crop_sunflower
+execute at @s run loot spawn ~ ~ ~ loot stardew:items/seeds/crop_artichoke
+
+# 提示信息
+tellraw @s [{"text":"[物品获取] ","color":"gold","bold":true},{"text":"已获取所有秋季作物种子!","color":"green"}]
+playsound entity.item.pickup player @s ~ ~ ~ 1 1

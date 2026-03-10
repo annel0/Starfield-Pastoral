@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "side": "stardewcraft:block/building/barn_manager",
+    "end": "stardewcraft:block/building/coop_manager_top"
+  }
+}

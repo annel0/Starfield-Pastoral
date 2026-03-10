@@ -1,0 +1,26 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:fishing_rod",
+    "stardewcraft:training_rod",
+    "stardewcraft:fiberglass_rod",
+    "stardewcraft:iridium_rod",
+    "stardewcraft:advanced_iridium_rod",
+    "stardewcraft:bait",
+    "stardewcraft:magnet",
+    "stardewcraft:wild_bait",
+    "stardewcraft:magic_bait",
+    "stardewcraft:deluxe_bait",
+    "stardewcraft:challenge_bait",
+    "stardewcraft:spinner",
+    "stardewcraft:dressed_spinner",
+    "stardewcraft:trap_bobber",
+    "stardewcraft:cork_bobber",
+    "stardewcraft:lead_bobber",
+    "stardewcraft:treasure_hunter",
+    "stardewcraft:barbed_hook",
+    "stardewcraft:curiosity_lure",
+    "stardewcraft:quality_bobber",
+    "stardewcraft:sonar_bobber"
+  ]
+}

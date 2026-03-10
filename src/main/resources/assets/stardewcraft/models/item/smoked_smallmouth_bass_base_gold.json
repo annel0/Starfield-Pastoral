@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "stardewcraft:item/fish/smoked/smallmouth_bass",
+    "layer1": "stardewcraft:item/quality/gold_star"
+  }
+}

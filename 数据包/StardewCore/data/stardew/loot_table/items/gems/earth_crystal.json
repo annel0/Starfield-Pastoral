@@ -1,0 +1,35 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 7102,
+                "minecraft:max_stack_size": 99,
+                "minecraft:custom_name": "{\"text\": \"地晶\", \"color\": \"white\", \"bold\": false, \"italic\": false}",
+                "minecraft:lore": [
+                  "{\"text\":\"售价：\",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"50G\",\"color\":\"gold\",\"bold\":true,\"italic\":false}]}",
+                  "{\"text\":\"物品种类：\",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"宝石\",\"color\":\"light_purple\",\"bold\":true,\"italic\":false}]}",
+                  "{\"text\":\"蕴含大地之力的晶体。\",\"color\":\"gray\",\"italic\":false}"
+                ],
+                "minecraft:custom_data": {
+                  "stardew_item": 1,
+                  "item_type": "gem",
+                  "gem_type": "earth_crystal",
+                  "sd_price": 50
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

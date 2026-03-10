@@ -1,0 +1,7 @@
+{
+	"parent": "minecraft:block/cross",
+	"textures": {
+		"cross": "stardewcraft:block/tree/wild_oak_sapling_stage1"
+	}
+}
+

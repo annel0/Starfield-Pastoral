@@ -1,0 +1,16 @@
+{
+    "criteria": {
+        "interact_elevator_menu": {
+            "trigger": "minecraft:player_interacted_with_entity",
+            "conditions": {
+                "entity": {
+                    "type": "interaction",
+                    "nbt": "{Tags:[\"sd_elevator_menu\"]}"
+                }
+            }
+        }
+    },
+    "rewards": {
+        "function": "stardew:mine/elevator_ui/interact_menu"
+    }
+}

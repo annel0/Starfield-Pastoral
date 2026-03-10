@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "stardewcraft:item/fish/smoked/red_mullet",
+    "layer1": "stardewcraft:item/quality/silver_star"
+  }
+}

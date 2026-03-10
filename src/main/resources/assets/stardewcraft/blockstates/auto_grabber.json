@@ -1,0 +1,23 @@
+{
+  "variants": {
+    "facing=north,full=false,part=main": { "model": "stardewcraft:block/utility/auto_grabber" },
+    "facing=east,full=false,part=main": { "model": "stardewcraft:block/utility/auto_grabber", "y": 90 },
+    "facing=south,full=false,part=main": { "model": "stardewcraft:block/utility/auto_grabber", "y": 180 },
+    "facing=west,full=false,part=main": { "model": "stardewcraft:block/utility/auto_grabber", "y": 270 },
+
+    "facing=north,full=true,part=main": { "model": "stardewcraft:block/utility/auto_grabber_full" },
+    "facing=east,full=true,part=main": { "model": "stardewcraft:block/utility/auto_grabber_full", "y": 90 },
+    "facing=south,full=true,part=main": { "model": "stardewcraft:block/utility/auto_grabber_full", "y": 180 },
+    "facing=west,full=true,part=main": { "model": "stardewcraft:block/utility/auto_grabber_full", "y": 270 },
+
+    "facing=north,full=false,part=extension": { "model": "stardewcraft:block/utility/auto_grabber_extension" },
+    "facing=east,full=false,part=extension": { "model": "stardewcraft:block/utility/auto_grabber_extension" },
+    "facing=south,full=false,part=extension": { "model": "stardewcraft:block/utility/auto_grabber_extension" },
+    "facing=west,full=false,part=extension": { "model": "stardewcraft:block/utility/auto_grabber_extension" },
+
+    "facing=north,full=true,part=extension": { "model": "stardewcraft:block/utility/auto_grabber_full_extension" },
+    "facing=east,full=true,part=extension": { "model": "stardewcraft:block/utility/auto_grabber_full_extension" },
+    "facing=south,full=true,part=extension": { "model": "stardewcraft:block/utility/auto_grabber_full_extension" },
+    "facing=west,full=true,part=extension": { "model": "stardewcraft:block/utility/auto_grabber_full_extension" }
+  }
+}

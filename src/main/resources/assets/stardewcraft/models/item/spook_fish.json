@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": { "layer0": "stardewcraft:item/fish/special/spook_fish" },
+  "overrides": [
+    { "predicate": { "custom_model_data": 1 }, "model": "stardewcraft:item/spook_fish_silver" },
+    { "predicate": { "custom_model_data": 2 }, "model": "stardewcraft:item/spook_fish_gold" },
+    { "predicate": { "custom_model_data": 3 }, "model": "stardewcraft:item/spook_fish_iridium" }
+  ]
+}

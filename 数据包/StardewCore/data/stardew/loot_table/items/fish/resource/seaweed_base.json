@@ -1,0 +1,52 @@
+﻿{
+    "type":  "minecraft:command",
+    "pools":  [
+                  {
+                      "rolls":  1,
+                      "entries":  [
+                                      {
+                                          "type":  "minecraft:item",
+                                          "name":  "minecraft:paper",
+                                          "functions":  [
+                                                            {
+                                                                "function":  "minecraft:set_components",
+                                                                "components":  {
+                                                                                   "minecraft:custom_model_data":  40120,
+                                                                                   "minecraft:custom_data":  {
+                                                                                                                 "sd_price":  20,
+                                                                                                                 "stardew_item":  1,
+                                                                                                                 "item_type":  "trash",
+                                                                                                                 "is_food":  1,
+                                                                                                                 "food_health":  4,
+                                                                                                                 "food_energy":  9
+                                                                                                             },
+                                                                                   "minecraft:custom_name":  "[{\"text\":\"海草\",\"color\":\"yellow\",\"bold\":false,\"italic\":false}]",
+                                                                                   "minecraft:lore":  [
+                                                                                                          "{\"text\":\"售价：\",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"20G\",\"color\":\"gold\",\"bold\":true}]}",
+                                                                                                          "{\"text\":\"物品种类：\",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"资源\",\"color\":\"yellow\",\"bold\":true}]}",
+                                                                                                          "{\"text\":\"咸咸的植物，料理素材。\",\"color\":\"gray\",\"italic\":false}",
+                                                                                                          "{\"text\":\"常在海洋中发现。\",\"color\":\"dark_gray\",\"italic\":false}",
+                                                                                                          "{\"text\":\"\",\"color\":\"white\",\"bold\":true,\"italic\":false,\"extra\":[{\"text\":\"❤ 4\",\"color\":\"red\",\"bold\":true},{\"text\":\"  \",\"color\":\"white\",\"bold\":true},{\"text\":\"⚡ 9\",\"color\":\"green\",\"bold\":true}]}"
+                                                                                                      ],
+                                                                                   "minecraft:max_stack_size":  99,
+                                                                                   "minecraft:food":  {
+                                                                                                          "nutrition":  0,
+                                                                                                          "saturation":  0,
+                                                                                                          "can_always_eat":  true
+                                                                                                      },
+                                                                                   "minecraft:consumable":  {
+                                                                                                                "consume_seconds":  0.8,
+                                                                                                                "animation":  "eat",
+                                                                                                                "sound":  {
+                                                                                                                              "sound_id":  "minecraft:entity.generic.eat"
+                                                                                                                          },
+                                                                                                                "has_consume_particles":  true
+                                                                                                            }
+                                                                               }
+                                                            }
+                                                        ]
+                                      }
+                                  ]
+                  }
+              ]
+}

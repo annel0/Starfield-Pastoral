@@ -1,0 +1,1 @@
+# 此文件已废弃 - 功能已合并到 debug_tree_mahogany_raycast.mcfunction

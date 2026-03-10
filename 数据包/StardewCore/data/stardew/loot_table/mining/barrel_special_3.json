@@ -1,0 +1,40 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:loot_table",
+          "value": "stardew:items/weapon/forest_sword",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:loot_table",
+          "value": "stardew:items/weapon/iron_edge",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:loot_table",
+          "value": "stardew:items/weapon/wood_mallet",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:loot_table",
+          "value": "stardew:items/boots/thermal_boots",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:loot_table",
+          "value": "stardew:items/rings/glowstone_ring",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:loot_table",
+          "value": "stardew:items/rings/magnet_ring",
+          "weight": 1
+        }
+      ]
+    }
+  ]
+}

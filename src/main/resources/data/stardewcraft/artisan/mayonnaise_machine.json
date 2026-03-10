@@ -1,0 +1,14 @@
+{
+  "machine": "mayonnaise_machine",
+  "recipes": [
+    { "input": "stardewcraft:ostrich_egg", "output": "stardewcraft:mayonnaise", "outputCount": 10, "minutes": 180, "quality": "keep" },
+    { "input": "stardewcraft:golden_egg", "output": "stardewcraft:mayonnaise", "outputCount": 3, "minutes": 180, "quality": "gold" },
+    { "input": "stardewcraft:duck_egg", "output": "stardewcraft:duck_mayonnaise", "minutes": 180 },
+    { "input": "stardewcraft:void_egg", "output": "stardewcraft:void_mayonnaise", "minutes": 180 },
+    { "input": "stardewcraft:dinosaur_egg", "output": "stardewcraft:dinosaur_mayonnaise", "minutes": 180, "quality": "normal" },
+    { "input": "stardewcraft:large_egg_white", "output": "stardewcraft:mayonnaise", "minutes": 180, "quality": "gold" },
+    { "input": "stardewcraft:large_egg_brown", "output": "stardewcraft:mayonnaise", "minutes": 180, "quality": "gold" },
+    { "input": "stardewcraft:egg_white", "output": "stardewcraft:mayonnaise", "minutes": 180, "quality": "normal" },
+    { "input": "stardewcraft:egg_brown", "output": "stardewcraft:mayonnaise", "minutes": 180, "quality": "normal" }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:axe",
+    "stardewcraft:copper_axe",
+    "stardewcraft:steel_axe",
+    "stardewcraft:gold_axe",
+    "stardewcraft:iridium_axe"
+  ]
+}

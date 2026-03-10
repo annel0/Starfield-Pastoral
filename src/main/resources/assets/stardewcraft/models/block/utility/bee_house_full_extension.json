@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "stardewcraft:block/utility/bee_house_full_particle"
+  },
+  "elements": []
+}

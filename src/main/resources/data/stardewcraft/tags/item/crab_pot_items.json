@@ -1,0 +1,15 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:lobster",
+    "stardewcraft:crab",
+    "stardewcraft:shrimp",
+    "stardewcraft:clam",
+    "stardewcraft:mussel",
+    "stardewcraft:oyster",
+    "stardewcraft:cockle",
+    "stardewcraft:crayfish",
+    "stardewcraft:snail",
+    "stardewcraft:periwinkle"
+  ]
+}

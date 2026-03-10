@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "stardewcraft:item/crops/spring/blue_jazz4",
+    "layer1": "stardewcraft:item/quality/silver_star"
+  }
+}

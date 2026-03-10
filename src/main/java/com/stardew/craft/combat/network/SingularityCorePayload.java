@@ -1,0 +1,48 @@
+package com.stardew.craft.combat.network;
+
+import com.stardew.craft.StardewCraft;
+import com.stardew.craft.client.weapon.SingularityCoreEffectClient;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.jetbrains.annotations.NotNull;
+
+public record SingularityCorePayload(float x, float y, float z, float radius, int durationTicks, int color)
+        implements CustomPacketPayload {
+
+    @SuppressWarnings("null")
+    public static final Type<SingularityCorePayload> TYPE = new Type<>(
+        ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "singularity_core")
+    );
+
+    @SuppressWarnings("null")
+    public static final StreamCodec<ByteBuf, SingularityCorePayload> STREAM_CODEC = StreamCodec.composite(
+        ByteBufCodecs.FLOAT,
+        SingularityCorePayload::x,
+        ByteBufCodecs.FLOAT,
+        SingularityCorePayload::y,
+        ByteBufCodecs.FLOAT,
+        SingularityCorePayload::z,
+        ByteBufCodecs.FLOAT,
+        SingularityCorePayload::radius,
+        ByteBufCodecs.VAR_INT,
+        SingularityCorePayload::durationTicks,
+        ByteBufCodecs.INT,
+        SingularityCorePayload::color,
+        SingularityCorePayload::new
+    );
+
+    @Override
+    public @NotNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    public static void handle(SingularityCorePayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> SingularityCoreEffectClient.add(
+            payload.x(), payload.y(), payload.z(), payload.radius(), payload.durationTicks(), payload.color()
+        ));
+    }
+}

@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:common_mushroom",
+    "stardewcraft:red_mushroom",
+    "stardewcraft:purple_mushroom",
+    "stardewcraft:morel",
+    "stardewcraft:chanterelle",
+    "stardewcraft:magma_cap"
+  ]
+}

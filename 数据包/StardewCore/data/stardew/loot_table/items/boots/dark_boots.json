@@ -1,0 +1,42 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:carrot_on_a_stick",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 5006,
+                "minecraft:custom_name": "[{\"text\":\"暗影靴\",\"color\":\"blue\",\"bold\":false,\"italic\":false}]",
+                "minecraft:lore": [
+                  "{\"text\": \"🛡 防御: \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"+4\", \"color\": \"aqua\", \"bold\": true}]}",
+                  "{\"text\": \"❄ 免疫: \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"+1\", \"color\": \"aqua\", \"bold\": true}]}",
+                  "{\"text\": \"💰 售价：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"无法出售\", \"color\": \"red\", \"bold\": true}]}",
+                  "{\"text\": \"🔧 物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"装备\", \"color\": \"light_purple\", \"bold\": true}]}",
+                  "{\"text\": \"暗影能量编织而成的神秘靴子。\", \"color\": \"gray\", \"italic\": false}"
+                ],
+                "minecraft:max_stack_size": 1,
+                "minecraft:custom_data": {
+                  "stardew": {
+                    "type": "boots",
+                    "id": "dark_boots",
+                    "name": "暗影靴",
+                    "defense": 4,
+                    "immunity": 1,
+                    "rarity": "rare",
+                    "effects": {}
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

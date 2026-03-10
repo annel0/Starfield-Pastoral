@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "side": "stardewcraft:block/mine/mossy_sandstone",
+    "bottom": "stardewcraft:block/mine/mossy_sandstone",
+    "top": "stardewcraft:block/mine/mossy_sandstone_top"
+  }
+}

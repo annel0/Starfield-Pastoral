@@ -1,0 +1,35 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 7002,
+                "minecraft:max_stack_size": 99,
+                "minecraft:custom_name": "{\"text\": \"煤炭\", \"color\": \"white\", \"bold\": false, \"italic\": false}",
+                "minecraft:lore": [
+                  "{\"text\":\"售价：\",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"15G\",\"color\":\"gold\",\"bold\":true,\"italic\":false}]}",
+                  "{\"text\":\"物品种类：\",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"矿石\",\"color\":\"aqua\",\"bold\":true,\"italic\":false}]}",
+                  "{\"text\":\"可用作燃料或锻造材料。\",\"color\":\"gray\",\"italic\":false}"
+                ],
+                "minecraft:custom_data": {
+                  "stardew_item": 1,
+                  "item_type": "ore",
+                  "resource_type": "coal",
+                  "sd_price": 15
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

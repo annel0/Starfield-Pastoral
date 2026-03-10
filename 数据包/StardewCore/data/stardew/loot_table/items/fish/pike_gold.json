@@ -1,0 +1,62 @@
+{
+    "pools": [
+        {
+            "rolls": 1,
+            "entries": [
+                {
+                    "functions": [
+                        {
+                            "function": "minecraft:set_count",
+                            "count": 1
+                        },
+                        {
+                            "function": "minecraft:set_components",
+                            "components": {
+                                "minecraft:custom_model_data": 42032,
+                                "minecraft:custom_name": "[{\"text\":\"金星 \",\"color\":\"gold\",\"bold\":true,\"italic\":false},{\"text\":\"狗鱼\",\"color\":\"white\",\"bold\":false,\"italic\":false}]",
+                                "minecraft:custom_data": {
+                                    "stardew_item": 1,
+                                    "stardew_fish": true,
+                                    "is_food": 1,
+                                    "item_type": "fish",
+                                    "fish_id": "pike",
+                                    "quality": "gold",
+                                    "fish_tier": 3,
+                                    "sd_price": 150,
+                                    "food_health": 34,
+                                    "food_energy": 77,
+                                    "is_legendary": false,
+                                    "is_poisonous": false
+                                },
+                                "minecraft:lore": [
+                                    "{\"text\": \"售价：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"150G\", \"color\": \"gold\", \"bold\": true}]}",
+                                    "{\"text\": \"物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"鱼类\", \"color\": \"aqua\", \"bold\": true}]}",
+                                    "{\"text\": \"难度等级：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"B级\", \"color\": \"green\", \"bold\": true}]}",
+                                    "{\"text\": \"一种难以捕捉的淡水鱼。\", \"color\": \"dark_gray\", \"italic\": false}",
+                                    "{\"color\": \"white\", \"text\": \"\", \"bold\": true, \"italic\": false, \"extra\": [{\"color\": \"red\", \"text\": \"❤ 34\", \"bold\": true}, {\"color\": \"white\", \"text\": \"  \", \"bold\": true}, {\"color\": \"green\", \"text\": \"⚡ 77\", \"bold\": true}]}"
+                                ],
+                                "minecraft:food": {
+                                    "nutrition": 0,
+                                    "saturation": 0,
+                                    "can_always_eat": true
+                                },
+                                "minecraft:max_stack_size": 99,
+                                "minecraft:consumable": {
+                                    "sound": {
+                                        "sound_id": "minecraft:entity.generic.eat"
+                                    },
+                                    "has_consume_particles": true,
+                                    "animation": "eat",
+                                    "consume_seconds": 0.8
+                                }
+                            }
+                        }
+                    ],
+                    "type": "minecraft:item",
+                    "name": "minecraft:paper"
+                }
+            ]
+        }
+    ],
+    "type": "minecraft:command"
+}

@@ -1,0 +1,20 @@
+{
+  "variants": {
+    "facing=north,ready=false,part=main": { "model": "stardewcraft:block/utility/bee_house" },
+    "facing=east,ready=false,part=main": { "model": "stardewcraft:block/utility/bee_house", "y": 90 },
+    "facing=south,ready=false,part=main": { "model": "stardewcraft:block/utility/bee_house", "y": 180 },
+    "facing=west,ready=false,part=main": { "model": "stardewcraft:block/utility/bee_house", "y": 270 },
+    "facing=north,ready=true,part=main": { "model": "stardewcraft:block/utility/bee_house_full" },
+    "facing=east,ready=true,part=main": { "model": "stardewcraft:block/utility/bee_house_full", "y": 90 },
+    "facing=south,ready=true,part=main": { "model": "stardewcraft:block/utility/bee_house_full", "y": 180 },
+    "facing=west,ready=true,part=main": { "model": "stardewcraft:block/utility/bee_house_full", "y": 270 },
+    "facing=north,ready=false,part=extension": { "model": "stardewcraft:block/utility/bee_house_extension" },
+    "facing=east,ready=false,part=extension": { "model": "stardewcraft:block/utility/bee_house_extension" },
+    "facing=south,ready=false,part=extension": { "model": "stardewcraft:block/utility/bee_house_extension" },
+    "facing=west,ready=false,part=extension": { "model": "stardewcraft:block/utility/bee_house_extension" },
+    "facing=north,ready=true,part=extension": { "model": "stardewcraft:block/utility/bee_house_full_extension" },
+    "facing=east,ready=true,part=extension": { "model": "stardewcraft:block/utility/bee_house_full_extension" },
+    "facing=south,ready=true,part=extension": { "model": "stardewcraft:block/utility/bee_house_full_extension" },
+    "facing=west,ready=true,part=extension": { "model": "stardewcraft:block/utility/bee_house_full_extension" }
+  }
+}

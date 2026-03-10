@@ -1,0 +1,49 @@
+package com.stardew.craft.client;
+
+import com.stardew.craft.StardewCraft;
+import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ModelEvent;
+
+@SuppressWarnings("removal")
+@EventBusSubscriber(modid = StardewCraft.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+public final class ModClientModels {
+    private ModClientModels() {}
+
+    @SubscribeEvent
+    public static void onRegisterAdditional(ModelEvent.RegisterAdditional event) {
+        @SuppressWarnings("null")
+        ModelResourceLocation model = new ModelResourceLocation(
+            ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "entity/special_effect/ice_spine"),
+            "standalone"
+        );
+        event.register(model);
+
+        for (var id : BuiltInRegistries.ITEM.keySet()) {
+            if (!StardewCraft.MODID.equals(id.getNamespace())) {
+                continue;
+            }
+            String path = id.getPath();
+            if (!path.startsWith("smoked_")) {
+                continue;
+            }
+            registerSmokedBase(event, path + "_base");
+            registerSmokedBase(event, path + "_base_silver");
+            registerSmokedBase(event, path + "_base_gold");
+            registerSmokedBase(event, path + "_base_iridium");
+        }
+    }
+
+    private static void registerSmokedBase(ModelEvent.RegisterAdditional event, String path) {
+        @SuppressWarnings("null")
+        ModelResourceLocation model = new ModelResourceLocation(
+            ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "item/" + path),
+            "standalone"
+        );
+        event.register(model);
+    }
+}

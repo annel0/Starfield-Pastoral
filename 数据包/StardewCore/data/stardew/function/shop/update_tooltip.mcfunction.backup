@@ -1,0 +1,93 @@
+# 根据item_id更新tooltip显示内容
+# 前提: storage stardew:temp tooltip_data 包含物品数据
+
+# === 春季种子 ===
+execute if data storage stardew:temp tooltip_data{item_id:"parsnip_seeds"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '[{"text":"防风草种子\\n","color":"white","italic":false,"bold":true},{"text":"售价：","color":"white","italic":false,"bold":false},{"text":"20G","color":"gold","italic":false,"bold":true},{"text":"\\n物品种类：","color":"white","italic":false,"bold":false},{"text":"种子","color":"dark_green","italic":false,"bold":true},{"text":"\\n春季播种。4天成熟。","color":"gray","italic":false,"bold":false}]'
+
+execute if data storage stardew:temp tooltip_data{item_id:"green_bean_starter"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"绿豆种子\\n春季播种。10天成熟。\\n收获后会再生。\\n售价: 60G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"cauliflower_seeds"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"花椰菜种子\\n春季播种。12天成熟。\\n售价: 80G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"potato_seeds"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"土豆种子\\n春季播种。6天成熟。\\n有几率收获额外土豆。\\n售价: 50G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"tulip_bulb"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"郁金香球茎\\n春季播种。6天成熟。\\n适合制作蜂蜜。\\n售价: 20G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"kale_seeds"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"甘蓝种子\\n春季播种。6天成熟。\\n售价: 70G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"jazz_seeds"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"爵士蓝种子\\n春季播种。7天成熟。\\n适合制作蜂蜜。\\n售价: 30G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"garlic_seeds"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"大蒜种子\\n春季播种。4天成熟。\\n售价: 40G","color":"white","italic":false}'
+
+# === 夏季种子 ===
+execute if data storage stardew:temp tooltip_data{item_id:"melon_seeds"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"甜瓜种子\\n夏季播种。12天成熟。\\n售价: 80G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"tomato_seeds"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"番茄种子\\n夏季播种。11天成熟。\\n收获后会再生。\\n售价: 50G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"blueberry_seeds"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"蓝莓种子\\n夏季播种。13天成熟。\\n收获后会再生。\\n售价: 80G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"pepper_seeds"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"辣椒种子\\n夏季播种。5天成熟。\\n收获后会再生。\\n售价: 40G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"wheat_seeds"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"小麦种子\\n夏/秋季播种。4天成熟。\\n售价: 10G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"radish_seeds"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"萝卜种子\\n夏季播种。6天成熟。\\n售价: 40G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"poppy_seeds"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"虞美人种子\\n夏季播种。7天成熟。\\n适合制作蜂蜜。\\n售价: 100G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"spangle_seeds"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"夏季亮片种子\\n夏季播种。8天成熟。\\n适合制作蜂蜜。\\n售价: 50G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"hops_starter"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"啤酒花种子\\n夏季播种。11天成熟。\\n需要架子攀爬。\\n收获后会再生。\\n售价: 60G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"corn_seeds"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"玉米种子\\n夏/秋季播种。14天成熟。\\n收获后会再生。\\n售价: 150G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"sunflower_seeds"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"向日葵种子\\n夏/秋季播种。8天成熟。\\n适合制作蜂蜜。\\n售价: 200G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"red_cabbage_seeds"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"红叶卷心菜种子\\n夏季播种。9天成熟。\\n售价: 100G","color":"white","italic":false}'
+
+# === 秋季种子 ===
+execute if data storage stardew:temp tooltip_data{item_id:"eggplant_seeds"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"茄子种子\\n秋季播种。5天成熟。\\n收获后会再生。\\n售价: 20G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"pumpkin_seeds"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"南瓜种子\\n秋季播种。13天成熟。\\n售价: 100G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"bok_choy_seeds"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"白菜种子\\n秋季播种。4天成熟。\\n售价: 50G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"yam_seeds"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"山药种子\\n秋季播种。10天成熟。\\n售价: 60G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"cranberry_seeds"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"蔓越莓种子\\n秋季播种。7天成熟。\\n收获后会再生。\\n售价: 240G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"fairy_seeds"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"仙女玫瑰种子\\n秋季播种。12天成熟。\\n适合制作蜂蜜。\\n售价: 200G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"amaranth_seeds"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"苋菜种子\\n秋季播种。7天成熟。\\n售价: 70G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"grape_starter"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"葡萄种子\\n秋季播种。10天成熟。\\n需要架子攀爬。\\n收获后会再生。\\n售价: 60G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"artichoke_seeds"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"朝鲜蓟种子\\n秋季播种。8天成熟。\\n售价: 30G","color":"white","italic":false}'
+
+# === 冬季种子 ===
+execute if data storage stardew:temp tooltip_data{item_id:"winter_seeds"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"冬季种子\\n冬季播种。7天成熟。\\n可收获各种冬季作物。\\n售价: 30G","color":"white","italic":false}'
+
+# === 烹饪原料 ===
+execute if data storage stardew:temp tooltip_data{item_id:"sugar"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"糖\\n用于烹饪的甜味剂。\\n物品种类: 烹饪原料\\n售价: 100G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"wheat_flour"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"小麦粉\\n用于烹饪的常用材料。\\n物品种类: 烹饪原料\\n售价: 100G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"rice"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"大米\\n用于烹饪的主食材料。\\n物品种类: 烹饪原料\\n售价: 200G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"oil"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"油\\n用于烹饪的食用油。\\n物品种类: 烹饪原料\\n售价: 200G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"vinegar"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"醋\\n用于烹饪的调味品。\\n物品种类: 烹饪原料\\n售价: 200G","color":"white","italic":false}'
+
+# === 肥料 ===
+execute if data storage stardew:temp tooltip_data{item_id:"basic_fertilizer"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"基础肥料\\n提高作物品质概率。\\n物品种类: 肥料\\n售价: 100G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"quality_fertilizer"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"高级肥料\\n大幅提高作物品质概率。\\n物品种类: 肥料\\n售价: 150G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"basic_retaining_soil"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"基础保湿土壤\\n33%几率保持土壤湿润。\\n物品种类: 肥料\\n售价: 100G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"quality_retaining_soil"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"高级保湿土壤\\n66%几率保持土壤湿润。\\n物品种类: 肥料\\n售价: 150G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"speed_gro"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"生长激素\\n加快作物生长速度10%。\\n物品种类: 肥料\\n售价: 100G","color":"white","italic":false}'
+
+execute if data storage stardew:temp tooltip_data{item_id:"deluxe_speed_gro"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"高级生长激素\\n加快作物生长速度25%。\\n物品种类: 肥料\\n售价: 150G","color":"white","italic":false}'
+
+# === 全年商品 ===
+execute if data storage stardew:temp tooltip_data{item_id:"grass_starter"} run data modify entity @e[type=text_display,tag=shop_tooltip,limit=1] text set value '{"text":"草籽\\n种植后可长出牧草。\\n供动物食用。\\n售价: 100G","color":"white","italic":false}'

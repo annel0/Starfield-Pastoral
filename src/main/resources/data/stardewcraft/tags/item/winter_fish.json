@@ -1,0 +1,20 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:perch",
+    "stardewcraft:pike",
+    "stardewcraft:tiger_trout",
+    "stardewcraft:sturgeon",
+    "stardewcraft:lingcod",
+    "stardewcraft:midnight_carp",
+    "stardewcraft:sardine",
+    "stardewcraft:herring",
+    "stardewcraft:red_snapper",
+    "stardewcraft:red_mullet",
+    "stardewcraft:sea_cucumber",
+    "stardewcraft:squid",
+    "stardewcraft:tuna",
+    "stardewcraft:halibut",
+    "stardewcraft:glacierfish"
+  ]
+}

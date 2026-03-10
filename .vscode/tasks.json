@@ -1,0 +1,65 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "gradle build",
+			"type": "shell",
+			"command": "${workspaceFolder}\\gradlew.bat",
+			"args": [
+				"build"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "gradle classes",
+			"type": "shell",
+			"command": "${workspaceFolder}\\gradlew.bat",
+			"args": [
+				"classes"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "gradle classes (fresh terminal)",
+			"type": "shell",
+			"command": "${workspaceFolder}\\gradlew.bat",
+			"args": [
+				"--no-daemon",
+				"classes"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "gradle clean classes (no cache)",
+			"type": "shell",
+			"command": "${workspaceFolder}\\gradlew.bat",
+			"args": [
+				"--no-daemon",
+				"--no-build-cache",
+				"--rerun-tasks",
+				"clean",
+				"classes"
+			],
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "gradle build --stacktrace",
+			"type": "shell",
+			"command": "${workspaceFolder}\\gradlew.bat",
+			"args": [
+				"build",
+				"--stacktrace"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		}
+	]
+}

@@ -1,0 +1,76 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:carrot_on_a_stick",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 6100104,
+                "minecraft:custom_name": "[{\"text\":\"暗影 \",\"color\":\"#2F4F4F\",\"bold\":true,\"italic\":false},{\"text\":\"短剑\",\"color\":\"#696969\",\"bold\":false,\"italic\":false}]",
+                "minecraft:attribute_modifiers": {
+                  "modifiers": [
+                    {
+                      "type": "minecraft:attack_speed",
+                      "id": "stardew:weapon_attack_speed",
+                      "amount": -1.3,
+                      "operation": "add_value",
+                      "slot": "mainhand"
+                    }
+                  ],
+                  "show_in_tooltip": false
+                },
+                "minecraft:lore": [
+                  "{\"text\": \"📊 武器等级: \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"Lv.6\", \"color\": \"#FFD700\", \"bold\": true}]}",
+                  "{\"text\": \"⚔ 战斗等级要求: \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"6\", \"color\": \"green\", \"bold\": true}]}",
+                  "{\"text\":\"💥 伤害: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"12-18\",\"color\":\"red\",\"bold\":true}]}",
+                  "{\"text\":\"☆ 暴击率: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"+5%\",\"color\":\"gold\",\"bold\":true}]}",
+                  "{\"text\":\"⚡ 攻击速度: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"2.7/秒\",\"color\":\"aqua\",\"bold\":true}]}",
+                  "{\"text\":\"⚒ 技能: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"暗影步\",\"color\":\"light_purple\",\"bold\":true},{\"text\":\" (右键)\",\"color\":\"gray\",\"bold\":false}]}",
+                  "{\"text\":\"⚒ 特殊技能: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"暗影收割\",\"color\":\"#8B008B\",\"bold\":true},{\"text\":\" (Shift+右键)\",\"color\":\"gray\",\"bold\":false}]}",
+                  "{\"text\": \"💰 售价：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"无法出售\", \"color\": \"red\", \"bold\": true}]}",
+                  "{\"text\": \"🔧 物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"武器 (匕首)\", \"color\": \"red\", \"bold\": true}]}",
+                  "{\"text\": \"🔨 握住刀刃时能听到千魂的尖叫。\", \"color\": \"gray\", \"italic\": false}",
+                  "{\"text\": \"🔨 仿佛融入了黑暗之中。\", \"color\": \"#2F4F4F\", \"italic\": false}",
+                  "{\"text\": \"\"}",
+                  "{\"text\": \"技能 - \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"暗影步\", \"color\": \"light_purple\", \"bold\": true}]}",
+                  "{\"text\": \"▪ 效果: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"瞬移到敌人身后\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 伤害: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"100%武器伤害\", \"color\": \"red\", \"bold\": true}]}",
+                  "{\"text\": \"▪ 目标: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"单体\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 冷却时间: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"1.5秒\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"\"}",
+                  "{\"text\": \"特殊技能 - \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"暗影收割\", \"color\": \"#8B008B\", \"bold\": true}]}",
+                  "{\"text\": \"▪ 效果: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"对低血量目标造成巨额伤害\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 基础伤害: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"200%武器伤害\", \"color\": \"red\", \"bold\": true}]}",
+                  "{\"text\": \"▪ 斩杀加成: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"目标HP<30%时伤害翻倍\", \"color\": \"dark_red\", \"bold\": true}]}",
+                  "{\"text\": \"▪ 目标: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"单体\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 冷却时间: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"8.0秒\", \"color\": \"white\", \"bold\": false}]}"
+                ],
+                "minecraft:max_stack_size": 1,
+                "minecraft:custom_data": {
+                  "stardew_item": true,
+                  "stardew_weapon": true,
+                  "weapon_type": "dagger",
+                  "weapon_damage_min": 12,
+                  "weapon_damage_max": 18,
+                  "weapon_crit_chance": 0.05,
+                  "weapon_attack_speed": 2.7,
+                  "weapon_special": "shadow_step",
+                  "weapon_special_2": "shadow_reap",
+                  "weapon_skill_cooldown": 30,
+                  "weapon_skill_2_cooldown": 160,
+                  "weapon_level": 6
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:green_bean_seeds",
+    "stardewcraft:melon_seeds",
+    "stardewcraft:tomato_seeds",
+    "stardewcraft:blueberry_seeds",
+    "stardewcraft:hot_pepper_seeds",
+    "stardewcraft:wheat_seeds",
+    "stardewcraft:radish_seeds",
+    "stardewcraft:poppy_seeds",
+    "stardewcraft:summer_spangle_seeds",
+    "stardewcraft:hops_seeds",
+    "stardewcraft:summer_squash_seeds",
+    "stardewcraft:corn_seeds",
+    "stardewcraft:sunflower_seeds",
+    "stardewcraft:red_cabbage_seeds",
+    "stardewcraft:starfruit_seeds",
+    "stardewcraft:ancient_fruit_seeds",
+    "stardewcraft:coffee_bean_seeds"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:hoe",
+    "stardewcraft:copper_hoe",
+    "stardewcraft:steel_hoe",
+    "stardewcraft:gold_hoe",
+    "stardewcraft:iridium_hoe"
+  ]
+}

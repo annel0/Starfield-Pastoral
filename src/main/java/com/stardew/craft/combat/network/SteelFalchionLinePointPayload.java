@@ -1,0 +1,44 @@
+package com.stardew.craft.combat.network;
+
+import com.stardew.craft.StardewCraft;
+import com.stardew.craft.client.weapon.SteelFalchionLineEffectClient;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.jetbrains.annotations.NotNull;
+
+public record SteelFalchionLinePointPayload(int lineId, float x, float y, float z)
+        implements CustomPacketPayload {
+
+    @SuppressWarnings("null")
+    public static final Type<SteelFalchionLinePointPayload> TYPE = new Type<>(
+        ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "steel_falchion_line_point")
+    );
+
+    @SuppressWarnings("null")
+    public static final StreamCodec<ByteBuf, SteelFalchionLinePointPayload> STREAM_CODEC = StreamCodec.composite(
+        ByteBufCodecs.VAR_INT,
+        SteelFalchionLinePointPayload::lineId,
+        ByteBufCodecs.FLOAT,
+        SteelFalchionLinePointPayload::x,
+        ByteBufCodecs.FLOAT,
+        SteelFalchionLinePointPayload::y,
+        ByteBufCodecs.FLOAT,
+        SteelFalchionLinePointPayload::z,
+        SteelFalchionLinePointPayload::new
+    );
+
+    @Override
+    public @NotNull Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    public static void handle(SteelFalchionLinePointPayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> SteelFalchionLineEffectClient.addPoint(
+            payload.lineId(), payload.x(), payload.y(), payload.z()
+        ));
+    }
+}

@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "stardewcraft:item/artisan/preserves/pickles_base",
+    "layer1": "stardewcraft:item/artisan/preserves/pickles_overlay"
+  }
+}

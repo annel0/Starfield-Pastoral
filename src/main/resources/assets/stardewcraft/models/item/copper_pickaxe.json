@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "stardewcraft:item/tool/pickaxe/copper_pickaxe"
+  }
+}

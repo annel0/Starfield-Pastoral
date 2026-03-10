@@ -1,0 +1,12 @@
+{
+  "variants": {
+    "facing=north,working=false": { "model": "stardewcraft:block/utility/auto_petter" },
+    "facing=east,working=false": { "model": "stardewcraft:block/utility/auto_petter", "y": 90 },
+    "facing=south,working=false": { "model": "stardewcraft:block/utility/auto_petter", "y": 180 },
+    "facing=west,working=false": { "model": "stardewcraft:block/utility/auto_petter", "y": 270 },
+    "facing=north,working=true": { "model": "stardewcraft:block/utility/auto_petter" },
+    "facing=east,working=true": { "model": "stardewcraft:block/utility/auto_petter", "y": 90 },
+    "facing=south,working=true": { "model": "stardewcraft:block/utility/auto_petter", "y": 180 },
+    "facing=west,working=true": { "model": "stardewcraft:block/utility/auto_petter", "y": 270 }
+  }
+}

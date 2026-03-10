@@ -1,0 +1,58 @@
+{
+    "pools": [
+        {
+            "rolls": 1, 
+            "entries": [
+                {
+                    "functions": [
+                        {
+                            "function": "minecraft:set_count", 
+                            "count": 1
+                        }, 
+                        {
+                            "function": "minecraft:set_components", 
+                            "components": {
+                                "minecraft:custom_model_data": 4104, 
+                                "minecraft:custom_name": "[{\"text\": \"普通 \", \"color\": \"white\", \"bold\": false, \"italic\": false}, {\"text\": \"洋蓟\", \"color\": \"white\", \"bold\": false, \"italic\": false}]", 
+                                "minecraft:custom_data": {
+                                    "food_energy": 75, 
+                                    "is_food": 1, 
+                                    "item_type": "crop", 
+                                    "stardew_item": 1, 
+                                    "food_health": 30, 
+                                    "quality": "base", 
+                                    "crop_id": "artichoke", 
+                                    "sd_price": 160
+                                }, 
+                                "minecraft:lore": [
+                                    "{\"text\": \"售价：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"160G\", \"color\": \"gold\", \"bold\": true}]}", 
+                                    "{\"text\": \"物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"作物\", \"color\": \"green\", \"bold\": true}]}", 
+                                    "{\"text\": \"生长于\", \"color\": \"gray\", \"italic\": false, \"bold\": false, \"extra\": [{\"text\": \"秋季\", \"color\": \"gold\", \"bold\": true}, {\"text\": \"，需要\", \"color\": \"gray\", \"bold\": false}, {\"text\": \"8\", \"color\": \"white\", \"bold\": true}, {\"text\": \"天成熟\", \"color\": \"gray\", \"bold\": false}]}", 
+                                    "{\"text\": \"花蕾就是它的可食用部分。\", \"color\": \"dark_gray\", \"italic\": false}", 
+                                    "{\"color\": \"white\", \"text\": \"\", \"bold\": true, \"italic\": false, \"extra\": [{\"color\": \"red\", \"text\": \"❤ 30\", \"bold\": true}, {\"color\": \"white\", \"text\": \"  \", \"bold\": true}, {\"color\": \"green\", \"text\": \"⚡ 75\", \"bold\": true}]}"
+                                ], 
+                                "minecraft:food": {
+                                    "nutrition": 0, 
+                                    "saturation": 0, 
+                                    "can_always_eat": true
+                                }, 
+                                "minecraft:max_stack_size": 99, 
+                                "minecraft:consumable": {
+                                    "sound": {
+                                        "sound_id": "minecraft:entity.generic.eat"
+                                    }, 
+                                    "has_consume_particles": true, 
+                                    "animation": "eat", 
+                                    "consume_seconds": 0.8
+                                }
+                            }
+                        }
+                    ], 
+                    "type": "minecraft:item", 
+                    "name": "minecraft:paper"
+                }
+            ]
+        }
+    ], 
+    "type": "minecraft:command"
+}

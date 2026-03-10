@@ -1,0 +1,312 @@
+package com.stardew.craft.block.utility;
+
+import com.stardew.craft.Config;
+import com.stardew.craft.animal.data.AnimalWorldData;
+import com.stardew.craft.animal.model.AnimalBuildingRecord;
+import com.stardew.craft.animal.model.AnimalBuildingType;
+import com.stardew.craft.animal.service.BarnManagerValidationService;
+import com.stardew.craft.block.ModBlocks;
+import com.stardew.craft.menu.BarnManagerMenu;
+import net.minecraft.SharedConstants;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.entity.LivingEntity;
+
+import javax.annotation.Nullable;
+
+import java.util.Optional;
+
+@SuppressWarnings("null")
+public class BarnManagerBlock extends Block {
+    public static final String TAG_RELOCATE = CoopManagerBlock.TAG_RELOCATE;
+    public static final String TAG_BUILDING_ID = CoopManagerBlock.TAG_BUILDING_ID;
+    public static final String TAG_OWNER = CoopManagerBlock.TAG_OWNER;
+    public static final String TAG_DIMENSION = CoopManagerBlock.TAG_DIMENSION;
+    public static final String TAG_FAMILY = CoopManagerBlock.TAG_FAMILY;
+    public static final String TAG_TIER = CoopManagerBlock.TAG_TIER;
+    public static final String TAG_ANIMAL_COUNT = CoopManagerBlock.TAG_ANIMAL_COUNT;
+
+    public BarnManagerBlock(Properties properties) {
+        super(properties);
+    }
+
+    @Override
+    public boolean onDestroyedByPlayer(BlockState state,
+                                       Level level,
+                                       BlockPos pos,
+                                       Player player,
+                                       boolean willHarvest,
+                                       FluidState fluid) {
+        if (level instanceof ServerLevel serverLevel) {
+            AnimalWorldData data = AnimalWorldData.get(serverLevel);
+            boolean hasBinding = data.findBuildingByManagerAnyOwner(
+                serverLevel.dimension().location().toString(),
+                "barn",
+                pos
+            ).isPresent();
+            if (hasBinding) {
+                player.displayClientMessage(Component.translatable("message.stardew_craft.manager.break_blocked"), true);
+                return false;
+            }
+        }
+        return super.onDestroyedByPlayer(state, level, pos, player, willHarvest, fluid);
+    }
+
+    @Override
+    protected ItemInteractionResult useItemOn(ItemStack stack,
+                                              BlockState state,
+                                              Level level,
+                                              BlockPos pos,
+                                              Player player,
+                                              InteractionHand hand,
+                                              BlockHitResult hitResult) {
+        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+    }
+
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state,
+                                               Level level,
+                                               BlockPos pos,
+                                               Player player,
+                                               BlockHitResult hitResult) {
+        if (level.isClientSide) {
+            return InteractionResult.SUCCESS;
+        }
+        if (player instanceof ServerPlayer serverPlayer) {
+            serverPlayer.openMenu(
+                new SimpleMenuProvider(
+                    (containerId, playerInventory, playerEntity) -> new BarnManagerMenu(containerId, playerInventory, pos),
+                    Component.translatable("container.stardew_craft.barn_manager")
+                )
+            );
+        }
+        return InteractionResult.CONSUME;
+    }
+
+    @Override
+    public void setPlacedBy(Level level,
+                            BlockPos pos,
+                            BlockState state,
+                            @Nullable LivingEntity placer,
+                            ItemStack stack) {
+        super.setPlacedBy(level, pos, state, placer, stack);
+        if (!(level instanceof ServerLevel serverLevel) || !(placer instanceof ServerPlayer serverPlayer)) {
+            return;
+        }
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        if (!tag.contains(TAG_RELOCATE, Tag.TAG_COMPOUND)) {
+            return;
+        }
+        CompoundTag relocateTag = tag.getCompound(TAG_RELOCATE);
+        if (relocateTag == null) {
+            return;
+        }
+
+        String buildingId = relocateTag.getString(TAG_BUILDING_ID);
+        String owner = relocateTag.getString(TAG_OWNER);
+        String dimension = relocateTag.getString(TAG_DIMENSION);
+        String family = relocateTag.getString(TAG_FAMILY);
+        if (buildingId.isBlank() || owner.isBlank() || family.isBlank() || !"barn".equalsIgnoreCase(family)) {
+            return;
+        }
+        if (!serverPlayer.getUUID().toString().equals(owner)) {
+            serverPlayer.sendSystemMessage(Component.translatable("message.stardew_craft.manager.relocate_owner_mismatch"));
+            return;
+        }
+
+        boolean moved = AnimalWorldData.get(serverLevel).moveBuildingManagerFromItem(
+            buildingId,
+            serverPlayer.getUUID(),
+            dimension.isBlank() ? serverLevel.dimension().location().toString() : dimension,
+            pos,
+            family
+        );
+
+        if (moved) {
+            serverPlayer.sendSystemMessage(Component.translatable("message.stardew_craft.manager.relocate_pending"));
+        }
+    }
+
+    public static boolean tryBuildOrUpgrade(ServerLevel level, BlockPos managerPos, Player player) {
+        AnimalWorldData data = AnimalWorldData.get(level);
+        Optional<AnimalBuildingRecord> existingOpt = data.findBuildingByManager(
+            level.dimension().location().toString(),
+            player.getUUID(),
+            "barn",
+            managerPos
+        );
+
+        int currentTier = existingOpt.map(record -> record.buildingType().tier()).orElse(0);
+        if (currentTier >= 3) {
+            player.sendSystemMessage(Component.literal("[畜棚管理器] 已达到最高等级（3级）。"));
+            maybeSendDevHints(player, currentTier, null);
+            return false;
+        }
+
+        int targetTier = currentTier + 1;
+        BarnManagerValidationService.ValidationResult validation = BarnManagerValidationService.validateForTier(level, managerPos, targetTier);
+        if (!validation.success()) {
+            player.sendSystemMessage(Component.literal("[畜棚管理器] 触发失败：" + validation.message()));
+            maybeSendDevHints(player, targetTier, validation);
+            level.playSound(null, managerPos, SoundEvents.VILLAGER_NO, SoundSource.BLOCKS, 0.8f, 1.0f);
+            return false;
+        }
+
+        AnimalBuildingType targetType = AnimalBuildingType.of("barn", targetTier);
+        String defaultName = "Barn Tier " + targetTier;
+        String buildingId = data.createOrUpdateBuildingAtManager(
+            level,
+            targetType,
+            player.getUUID(),
+            managerPos,
+            defaultName,
+            validation.scan().interiorMinX(),
+            validation.scan().interiorMinY(),
+            validation.scan().interiorMinZ(),
+            validation.scan().interiorMaxX(),
+            validation.scan().interiorMaxY(),
+            validation.scan().interiorMaxZ(),
+            validation.scan().interiorAirCells(),
+            validation.scan().boundaryDoorCells()
+        );
+
+        if (currentTier == 0) {
+            player.sendSystemMessage(Component.literal("[畜棚管理器] 畜棚已创建为 1级（ID: " + buildingId + "）"));
+        } else {
+            player.sendSystemMessage(Component.literal("[畜棚管理器] 畜棚已升级到 " + targetTier + "级（ID: " + buildingId + "）"));
+        }
+
+        maybeSendDevHints(player, targetTier, validation);
+        level.playSound(null, managerPos, SoundEvents.ANVIL_USE, SoundSource.BLOCKS, 0.6f, 1.1f);
+        return true;
+    }
+
+    public static boolean tryDemolishBuilding(ServerLevel level, BlockPos managerPos, ServerPlayer player) {
+        AnimalWorldData data = AnimalWorldData.get(level);
+        Optional<AnimalBuildingRecord> existingOpt = data.findBuildingByManager(
+            level.dimension().location().toString(),
+            player.getUUID(),
+            "barn",
+            managerPos
+        );
+
+        if (existingOpt.isEmpty()) {
+            player.sendSystemMessage(Component.translatable("message.stardew_craft.manager.no_building"));
+            return false;
+        }
+
+        AnimalBuildingRecord existing = existingOpt.get();
+        if (!existing.memberAnimalIds().isEmpty()) {
+            player.sendSystemMessage(Component.translatable(
+                "message.stardew_craft.manager.demolish_has_animals",
+                existing.memberAnimalIds().size()
+            ));
+            return false;
+        }
+        int removedAnimals = data.demolishBuildingAndRemoveAnimals(existing.buildingId());
+
+        BlockState state = level.getBlockState(managerPos);
+        level.levelEvent(2001, managerPos, Block.getId(state));
+        level.removeBlock(managerPos, false);
+        popResource(level, managerPos, new ItemStack(ModBlocks.BARN_MANAGER.get()));
+        level.playSound(null, managerPos, SoundEvents.ITEM_BREAK, SoundSource.BLOCKS, 0.8f, 1.0f);
+
+        player.sendSystemMessage(Component.translatable("message.stardew_craft.manager.demolished", removedAnimals));
+        return true;
+    }
+
+    public static boolean tryRelocateManager(ServerLevel level, BlockPos managerPos, ServerPlayer player) {
+        AnimalWorldData data = AnimalWorldData.get(level);
+        Optional<AnimalBuildingRecord> existingOpt = data.findBuildingByManager(
+            level.dimension().location().toString(),
+            player.getUUID(),
+            "barn",
+            managerPos
+        );
+
+        if (existingOpt.isEmpty()) {
+            player.sendSystemMessage(Component.translatable("message.stardew_craft.manager.no_building"));
+            return false;
+        }
+
+        AnimalBuildingRecord existing = existingOpt.get();
+        data.deactivateBuildingForRelocation(existing.buildingId());
+
+        ItemStack managerItem = new ItemStack(ModBlocks.BARN_MANAGER.get().asItem());
+        CompoundTag rootTag = managerItem.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        CompoundTag relocateTag = new CompoundTag();
+        relocateTag.putString(TAG_BUILDING_ID, existing.buildingId());
+        relocateTag.putString(TAG_OWNER, existing.ownerPlayerUuid());
+        relocateTag.putString(TAG_DIMENSION, existing.dimensionId());
+        relocateTag.putString(TAG_FAMILY, existing.buildingType().family());
+        relocateTag.putInt(TAG_TIER, existing.buildingType().tier());
+        relocateTag.putInt(TAG_ANIMAL_COUNT, existing.memberAnimalIds().size());
+        rootTag.put(TAG_RELOCATE, relocateTag);
+        managerItem.set(DataComponents.CUSTOM_DATA, CustomData.of(rootTag));
+
+        if (!player.getInventory().add(managerItem)) {
+            popResource(level, managerPos, managerItem);
+        }
+
+        BlockState state = level.getBlockState(managerPos);
+        level.levelEvent(2001, managerPos, Block.getId(state));
+        level.removeBlock(managerPos, false);
+        level.playSound(null, managerPos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6f, 1.0f);
+        player.sendSystemMessage(Component.translatable("message.stardew_craft.manager.relocate_pickup"));
+        return true;
+    }
+
+    private static void maybeSendDevHints(Player player, int targetTier, BarnManagerValidationService.ValidationResult validation) {
+        if (!SharedConstants.IS_RUNNING_IN_IDE || !Config.BARN_DEV_HINTS.get()) {
+            return;
+        }
+
+        player.sendSystemMessage(Component.literal("[DEV][畜棚管理器] 目标等级: " + targetTier));
+        if (validation == null) {
+            return;
+        }
+
+        var req = validation.requirement();
+        var scan = validation.scan();
+        player.sendSystemMessage(Component.literal(
+            "[DEV][需求] 普通槽=" + req.feedTroughCount()
+                + " 自动槽=" + req.autoFeedTroughCount()
+                + " 喂料斗=" + req.hayHopperCount()
+                + " 孵化器=" + req.incubatorCount()
+                + " 内部空间=" + req.minInteriorBlocks() + "格"
+        ));
+        player.sendSystemMessage(Component.literal(
+            "[DEV][检测] 普通槽=" + scan.feedTroughCount()
+                + " 自动槽=" + scan.autoFeedTroughCount()
+                + " 喂料斗=" + scan.hayHopperCount()
+                + " 孵化器=" + scan.incubatorCount()
+                + " 内部空间=" + scan.interiorAirCount() + "格"
+                + " 尺寸=" + scan.width() + "x" + scan.length() + "x" + scan.height()
+                + " 门=" + scan.doorCount()
+                + " 封闭=" + scan.enclosed()
+        ));
+        player.sendSystemMessage(Component.literal(
+            "[DEV][内部包围盒] (" + scan.interiorMinX() + "," + scan.interiorMinY() + "," + scan.interiorMinZ() + ") ~ ("
+                + scan.interiorMaxX() + "," + scan.interiorMaxY() + "," + scan.interiorMaxZ() + ")"
+        ));
+    }
+}

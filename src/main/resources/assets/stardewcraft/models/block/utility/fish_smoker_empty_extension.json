@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "stardewcraft:block/utility/fish_smoker_empty_particle"
+  },
+  "elements": []
+}

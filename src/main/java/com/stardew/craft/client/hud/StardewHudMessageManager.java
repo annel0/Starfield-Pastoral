@@ -1,0 +1,337 @@
+package com.stardew.craft.client.hud;
+
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.stardew.craft.StardewCraft;
+import com.stardew.craft.item.ModItems;
+import com.stardew.craft.sound.ModSounds;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RenderGuiEvent;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+
+@EventBusSubscriber(modid = StardewCraft.MODID, value = Dist.CLIENT)
+public final class StardewHudMessageManager {
+	private static final ResourceLocation HUD_MESSAGE = ResourceLocation.fromNamespaceAndPath(
+		StardewCraft.MODID, "textures/gui/hud_message.png"
+	);
+	private static final ResourceLocation MONEY_DIGITS = ResourceLocation.fromNamespaceAndPath(
+		StardewCraft.MODID, "textures/gui/hud_message_digits.png"
+	);
+
+	private static final int TEX_WIDTH = 64;
+	private static final int TEX_HEIGHT = 64;
+	private static final int LEFT_U = 0;
+	private static final int LEFT_V = 0;
+	private static final int LEFT_W = 26;
+	private static final int LEFT_H = 24;
+	private static final int MID_U = 26;
+	private static final int MID_V = 0;
+	private static final int MID_W = 1;
+	private static final int MID_H = 24;
+	private static final int RIGHT_U = 27;
+	private static final int RIGHT_V = 0;
+	private static final int RIGHT_W = 6;
+	private static final int RIGHT_H = 24;
+	private static final int ERROR_U = 0;
+	private static final int ERROR_V = 24;
+	private static final int ERROR_W = 16;
+	private static final int ERROR_H = 16;
+	private static final int DIGIT_W = 5;
+	private static final int DIGIT_H = 7;
+	private static final int DIGIT_TEX_W = 5;
+	private static final int DIGIT_TEX_H = 70;
+
+	private static final float VANILLA_TO_MC = 0.40f;
+	private static final int BOX_HEIGHT = Math.round(112f * VANILLA_TO_MC);
+	private static final int BOX_MARGIN_LEFT = Math.round(16f * VANILLA_TO_MC);
+	private static final int BOX_MARGIN_BOTTOM = Math.round(64f * VANILLA_TO_MC);
+	private static final int SMALL_SCREEN_SHIFT = Math.round(48f * VANILLA_TO_MC);
+	private static final float UI_SCALE = 4f * VANILLA_TO_MC;
+	private static final float TEXT_SCALE = 1.12f;
+	private static final int TEXT_OFFSET_X = Math.round(99f * VANILLA_TO_MC);
+	private static final float TINY_DIGIT_SCALE = 3f * VANILLA_TO_MC;
+	private static final int SEGMENT_OVERLAP = 1;
+	private static final float ITEM_ICON_SCALE = 1.45f;
+	private static final float ICON_NUDGE_X = -1.0f;
+	private static final float ICON_NUDGE_Y = -0.5f;
+	private static final int NUMBER_NUDGE_X = -2;
+	private static final int NUMBER_NUDGE_Y = -2;
+	private static final float POP_START_MS = 3000f;
+	private static final float POP_DURATION_MS = 900f;
+	private static final int TEXT_COLOR = 0xFF221122;
+	private static final float DEFAULT_TIME_MS = 3500f;
+	private static final float FADE_STEP = 0.02f;
+	private static final float BASE_FRAME_MS = 16.6667f;
+	private static long lastUpdateNanos = System.nanoTime();
+
+	private static final List<HudMessage> MESSAGES = new ArrayList<>();
+
+	private StardewHudMessageManager() {
+	}
+
+	@SuppressWarnings("null")
+	public static void showMissingItem(Item item, String itemId, int requiredCount) {
+		String safeItemId = Objects.requireNonNullElse(itemId, "");
+		Component itemName = item != null
+			? new ItemStack(item).getHoverName().copy().withStyle(net.minecraft.ChatFormatting.WHITE)
+			: Component.literal(safeItemId).withStyle(net.minecraft.ChatFormatting.WHITE);
+		Component message = Component.translatable("stardewcraft.hud.requires_item", requiredCount, itemName);
+		addErrorMessage(message);
+		playCancelSound();
+	}
+
+	public static void showInfo(Component message) {
+		addMessage(new HudMessage(message, MessageKind.INFO));
+	}
+
+	public static void showHayHarvest(int deltaHay) {
+		if (deltaHay <= 0) {
+			return;
+		}
+		@SuppressWarnings("null")
+		ItemStack hayStack = new ItemStack((ItemLike) ModItems.HAY.get());
+		HudMessage message = new HudMessage(hayStack.getHoverName(), MessageKind.HAY_HARVEST);
+		message.messageSubject = hayStack;
+		message.typeKey = "hay";
+		message.number = deltaHay;
+		addMessage(message);
+	}
+
+	@SubscribeEvent
+	public static void onRenderGui(RenderGuiEvent.Post event) {
+		if (MESSAGES.isEmpty()) {
+			return;
+		}
+		updateMessages();
+		Minecraft mc = Minecraft.getInstance();
+		Font font = mc.font;
+		int screenWidth = mc.getWindow().getGuiScaledWidth();
+		int screenHeight = mc.getWindow().getGuiScaledHeight();
+		int heightUsed = 0;
+		GuiGraphics graphics = event.getGuiGraphics();
+
+		for (int i = MESSAGES.size() - 1; i >= 0; i--) {
+			HudMessage message = MESSAGES.get(i);
+			drawMessage(graphics, font, screenWidth, screenHeight, message, heightUsed);
+			heightUsed += BOX_HEIGHT;
+		}
+	}
+
+	private static void updateMessages() {
+		long now = System.nanoTime();
+		float deltaMs = (now - lastUpdateNanos) / 1_000_000f;
+		lastUpdateNanos = now;
+		if (deltaMs <= 0f) {
+			return;
+		}
+		float frameFactor = deltaMs / BASE_FRAME_MS;
+		Iterator<HudMessage> iterator = MESSAGES.iterator();
+		while (iterator.hasNext()) {
+			HudMessage message = iterator.next();
+			if (message.update(deltaMs, frameFactor)) {
+				iterator.remove();
+			}
+		}
+	}
+
+	private static void addErrorMessage(Component message) {
+		HudMessage hudMessage = new HudMessage(message, MessageKind.ERROR);
+		hudMessage.whatType = 3;
+		addMessage(hudMessage);
+	}
+
+	private static void addMessage(HudMessage message) {
+		for (HudMessage existing : MESSAGES) {
+			if (message.typeKey != null && message.typeKey.equals(existing.typeKey)) {
+				existing.number += Math.max(0, message.number);
+				existing.timeLeftMs = DEFAULT_TIME_MS;
+				existing.transparency = 1f;
+				return;
+			}
+			if (message.whatType != 0 && message.whatType == existing.whatType && message.messageText.equals(existing.messageText)) {
+				existing.reset();
+				return;
+			}
+		}
+		if (MESSAGES.isEmpty()) {
+			lastUpdateNanos = System.nanoTime();
+		}
+		MESSAGES.add(message);
+	}
+
+	@SuppressWarnings("null")
+	private static void drawMessage(GuiGraphics graphics, Font font, int screenWidth, int screenHeight, HudMessage message, int heightUsed) {
+		float boxLeft = BOX_MARGIN_LEFT;
+		float boxTop = screenHeight - BOX_HEIGHT - heightUsed - BOX_MARGIN_BOTTOM;
+		if (screenWidth < 1400) {
+			boxTop -= SMALL_SCREEN_SHIFT;
+		}
+
+		float alpha = message.transparency;
+		int alphaInt = Math.max(0, Math.min(255, Math.round(255f * alpha)));
+
+		RenderSystem.enableBlend();
+		RenderSystem.setShaderColor(1f, 1f, 1f, alpha);
+
+		int leftW = Math.round(LEFT_W * UI_SCALE);
+		int messageWidth = Math.max(1, Math.round(font.width(message.messageText) * TEXT_SCALE) + 2);
+		int baseX = Math.round(boxLeft);
+		int baseY = Math.round(boxTop);
+
+		int midX = baseX + leftW - SEGMENT_OVERLAP;
+		int midW = messageWidth + SEGMENT_OVERLAP;
+		int rightX = midX + midW - SEGMENT_OVERLAP;
+
+		drawScaledRegion(graphics, baseX, baseY, LEFT_U, LEFT_V, LEFT_W, LEFT_H, UI_SCALE, UI_SCALE);
+		drawScaledRegion(graphics, midX, baseY, MID_U, MID_V, MID_W, MID_H, midW, UI_SCALE);
+		drawScaledRegion(graphics, rightX, baseY, RIGHT_U, RIGHT_V, RIGHT_W, RIGHT_H, UI_SCALE, UI_SCALE);
+
+		float iconAreaX = boxLeft;
+		float iconAreaY = boxTop;
+		float iconAreaW = leftW;
+		float iconAreaH = Math.round(LEFT_H * UI_SCALE);
+		float iconCenterX = iconAreaX + iconAreaW * 0.5f + ICON_NUDGE_X;
+		float iconCenterY = iconAreaY + iconAreaH * 0.5f + ICON_NUDGE_Y;
+		float popScale = UI_SCALE + Math.max(0f, (message.timeLeftMs - POP_START_MS) / POP_DURATION_MS);
+		float itemScale = ITEM_ICON_SCALE * Math.max(1f, popScale / UI_SCALE);
+
+		if (message.messageSubject != null) {
+			graphics.pose().pushPose();
+			graphics.pose().translate(iconCenterX, iconCenterY, 0f);
+			graphics.pose().scale(itemScale, itemScale, 1f);
+			graphics.pose().translate(-8f, -8f, 0f);
+			graphics.renderItem(message.messageSubject, 0, 0);
+			graphics.pose().popPose();
+		} else if (message.whatType == 3) {
+			graphics.pose().pushPose();
+			graphics.pose().translate(iconCenterX, iconCenterY, 0f);
+			graphics.pose().scale(popScale * 0.9f, popScale * 0.9f, 1f);
+			graphics.blit(HUD_MESSAGE, -8, -8, ERROR_U, ERROR_V, ERROR_W, ERROR_H, TEX_WIDTH, TEX_HEIGHT);
+			graphics.pose().popPose();
+		}
+
+		if (message.number > 1) {
+			int panelW = Math.round(iconAreaW);
+			int panelH = Math.round(iconAreaH);
+			int digitStep = Math.round(DIGIT_W * TINY_DIGIT_SCALE) - 1;
+			int digitsWidth = Math.max(0, Integer.toString(message.number).length() * digitStep + 1);
+			int numberX = Math.round(iconAreaX) + panelW - digitsWidth - 2 + NUMBER_NUDGE_X;
+			int numberY = Math.round(iconAreaY) + panelH - Math.round(DIGIT_H * TINY_DIGIT_SCALE) - 1 + NUMBER_NUDGE_Y;
+			drawTinyDigits(
+				graphics,
+				message.number,
+				numberX,
+				numberY,
+				alpha
+			);
+		}
+
+		float textX = Math.round(boxLeft) + TEXT_OFFSET_X;
+		float textY = Math.round(boxTop + (Math.round(LEFT_H * UI_SCALE) - font.lineHeight * TEXT_SCALE) * 0.5f);
+		int textColor = (alphaInt << 24) | (TEXT_COLOR & 0xFFFFFF);
+		graphics.pose().pushPose();
+		graphics.pose().translate(textX, textY, 0f);
+		graphics.pose().scale(TEXT_SCALE, TEXT_SCALE, 1f);
+		graphics.drawString(font, message.message, 0, 0, textColor, true);
+		graphics.pose().popPose();
+
+		RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+		RenderSystem.disableBlend();
+	}
+
+	@SuppressWarnings("null")
+	private static void drawScaledRegion(GuiGraphics graphics, float x, float y, int u, int v, int width, int height, float scaleX, float scaleY) {
+		graphics.pose().pushPose();
+		graphics.pose().translate(x, y, 0f);
+		graphics.pose().scale(scaleX, scaleY, 1f);
+		graphics.blit(HUD_MESSAGE, 0, 0, u, v, width, height, TEX_WIDTH, TEX_HEIGHT);
+		graphics.pose().popPose();
+	}
+
+	@SuppressWarnings("null")
+	private static void drawTinyDigits(GuiGraphics graphics, int number, int x, int y, float alpha) {
+		String text = Integer.toString(number);
+		int cursorX = x;
+		for (int i = 0; i < text.length(); i++) {
+			char ch = text.charAt(i);
+			if (ch < '0' || ch > '9') {
+				continue;
+			}
+			int digit = ch - '0';
+			int sourceY = digit * DIGIT_H;
+			graphics.pose().pushPose();
+			graphics.pose().translate(cursorX, y, 0f);
+			graphics.pose().scale(TINY_DIGIT_SCALE, TINY_DIGIT_SCALE, 1f);
+			RenderSystem.setShaderColor(1f, 1f, 1f, alpha);
+			graphics.blit(MONEY_DIGITS, 0, 0, 0, sourceY, DIGIT_W, DIGIT_H, DIGIT_TEX_W, DIGIT_TEX_H);
+			graphics.pose().popPose();
+			cursorX += Math.round(DIGIT_W * TINY_DIGIT_SCALE) - 1;
+		}
+	}
+
+	private static void playCancelSound() {
+		Minecraft mc = Minecraft.getInstance();
+		var player = mc.player;
+		if (player == null) {
+			return;
+		}
+		var sound = ModSounds.CANCEL.get();
+		if (sound == null) {
+			return;
+		}
+		player.playSound(sound, 1.0f, 1.0f);
+	}
+
+	private static final class HudMessage {
+		private final Component message;
+		private final String messageText;
+		private String typeKey;
+		private int number = -1;
+		private int whatType;
+		private ItemStack messageSubject;
+		private float timeLeftMs = DEFAULT_TIME_MS;
+		private float transparency = 1f;
+
+		private HudMessage(Component message, MessageKind kind) {
+			this.message = Objects.requireNonNull(message, "message");
+			this.messageText = message.getString();
+			Objects.requireNonNull(kind, "kind");
+		}
+
+		private void reset() {
+			this.timeLeftMs = DEFAULT_TIME_MS;
+			this.transparency = 1f;
+		}
+
+		private boolean update(float deltaMs, float frameFactor) {
+			timeLeftMs -= deltaMs;
+			if (timeLeftMs < 0f) {
+				transparency -= FADE_STEP * frameFactor;
+				return transparency < 0f;
+			}
+			if (transparency < 1f) {
+				transparency = Math.min(transparency + FADE_STEP * frameFactor, 1f);
+			}
+			return false;
+		}
+	}
+
+	private enum MessageKind {
+		ERROR,
+		INFO,
+		HAY_HARVEST
+	}
+}

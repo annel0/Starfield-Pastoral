@@ -1,0 +1,35 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 7107,
+                "minecraft:max_stack_size": 99,
+                "minecraft:custom_name": "{\"text\": \"五彩碎片\", \"color\": \"white\", \"bold\": false, \"italic\": false}",
+                "minecraft:lore": [
+                  "{\"text\":\"售价：\",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"2000G\",\"color\":\"gold\",\"bold\":true,\"italic\":false}]}",
+                  "{\"text\":\"物品种类：\",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"神秘宝石\",\"color\":\"light_purple\",\"bold\":true,\"italic\":false}]}",
+                  "{\"text\":\"传说中的宝石，拥有不可思议的力量。\",\"color\":\"gray\",\"italic\":false}"
+                ],
+                "minecraft:custom_data": {
+                  "stardew_item": 1,
+                  "item_type": "gem",
+                  "gem_type": "prismatic_shard",
+                  "sd_price": 2000
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

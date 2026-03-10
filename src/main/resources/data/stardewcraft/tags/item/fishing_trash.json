@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:trash",
+    "stardewcraft:driftwood",
+    "stardewcraft:soggy_newspaper",
+    "stardewcraft:broken_cd",
+    "stardewcraft:broken_glasses",
+    "stardewcraft:joja_cola",
+    "stardewcraft:rotten_plant"
+  ]
+}

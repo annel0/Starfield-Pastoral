@@ -1,0 +1,44 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:carrot_on_a_stick",
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": 1
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 3006,
+                "minecraft:max_stack_size": 99,
+                "!minecraft:max_damage": {},
+                "minecraft:custom_name": "{\"text\": \"优质洒水器\", \"color\": \"aqua\", \"italic\": false}",
+                "minecraft:lore": [
+                  "{\"text\": \"售价：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"无法出售\", \"color\": \"red\"}]}",
+                  "{\"text\": \"物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"实用设施\", \"color\": \"gold\", \"bold\": true}]}",
+                  "{\"text\": \"浇水范围：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"周围8格(3x3)\", \"color\": \"aqua\", \"bold\": true}]}",
+                  "{\"text\": \"每天早上自动浇水周围的作物。\", \"color\": \"gray\", \"italic\": false}",
+                  "{\"text\": \"\"}",
+                  "{\"text\": \"右键放置\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"洒水器\", \"color\": \"green\", \"bold\": true}]}",
+                  "{\"text\": \"用\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"镐子左键\", \"color\": \"green\", \"bold\": true}, {\"text\": \"可以拆除\", \"color\": \"white\"}]}"
+                ],
+                "minecraft:custom_data": {
+                  "stardew_item": 1,
+                  "utility_type": "sprinkler",
+                  "item_category": "utility",
+                  "placeable": 1
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

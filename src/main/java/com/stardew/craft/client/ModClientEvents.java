@@ -1,0 +1,999 @@
+package com.stardew.craft.client;
+
+import com.stardew.craft.StardewCraft;
+import com.stardew.craft.item.IStardewItem;
+import com.stardew.craft.item.weapon.IStardewWeapon;
+import com.stardew.craft.item.weapon.WeaponData;
+import com.stardew.craft.item.weapon.WeaponSkillData;
+import com.stardew.craft.client.weapon.FireRingEffectClient;
+import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.util.Mth;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
+import com.stardew.craft.combat.network.WeaponSkillUsePayload;
+
+import java.util.List;
+import java.util.regex.Pattern;
+import java.util.Locale;
+
+@EventBusSubscriber(modid = StardewCraft.MODID, value = Dist.CLIENT)
+@SuppressWarnings("null")
+public class ModClientEvents {
+
+    private static final Pattern NEWLINE_SPLIT = Pattern.compile("(?:\\\\n|\\n)");
+
+    @SubscribeEvent
+    public static void onItemTooltip(ItemTooltipEvent event) {
+        ItemStack stack = event.getItemStack();
+        if (stack.getItem() instanceof IStardewItem stardewItem) {
+            List<Component> tooltip = event.getToolTip();
+
+            // 喷壶把“水量”存进耐久度系统里，因�?F3+H(高级提示) 会额外显示“耐久度：x/y”�?
+            // 这会和我们自己的水量�?97/100)重复，所以这里把耐久度那一行过滤掉�?
+            // 武器也不需要耐久度行（不可破坏），这里一起过滤�?
+            if (stack.getItem() instanceof com.stardew.craft.item.tool.WateringCanItem
+                    || stack.getItem() instanceof IStardewWeapon) {
+                tooltip.removeIf(ModClientEvents::isDurabilityTooltipLine);
+                tooltip.removeIf(ModClientEvents::isUnbreakableTooltipLine);
+            }
+            
+            // 插入位置：紧跟在名字后面 (index 1)
+            // 原版tooltip至少包含名字(index 0)
+            int insertIdx = 1;
+            if (tooltip.isEmpty()) insertIdx = 0; // 理论上不可能，防一�?
+            
+            // 临时列表，用于按顺序收集自定义tooltip
+            java.util.List<Component> customLines = new java.util.ArrayList<>();
+            
+            // 描述：第一�?种类：XX
+            if (stardewItem.getItemTypeKey() != null) {
+                String typeKey = stardewItem.getItemTypeKey();
+                net.minecraft.ChatFormatting typeColor = net.minecraft.ChatFormatting.GREEN;
+                
+                // 种子的种类颜色改成深绿色
+                if (typeKey.contains("seed")) {
+                    typeColor = net.minecraft.ChatFormatting.DARK_GREEN;
+                } else if ("stardewcraft.type.resource".equals(typeKey)) {
+                    // 资源：金�?
+                    typeColor = net.minecraft.ChatFormatting.GOLD;
+                } else if ("stardewcraft.type.mineral".equals(typeKey)) {
+                    // 矿物：青�?
+                    typeColor = net.minecraft.ChatFormatting.AQUA;
+                } else if ("stardewcraft.type.artifact".equals(typeKey)) {
+                    // 古物：深紫色
+                    typeColor = net.minecraft.ChatFormatting.DARK_PURPLE;
+                } else if ("stardewcraft.type.artisan_goods".equals(typeKey)) {
+                    // 工匠物品：浅紫色
+                    typeColor = net.minecraft.ChatFormatting.LIGHT_PURPLE;
+                } else if ("stardewcraft.type.artisan_animal_quality".equals(typeKey)) {
+                    // 动物工匠物品：与工匠物品一�?
+                    typeColor = net.minecraft.ChatFormatting.LIGHT_PURPLE;
+                } else if ("stardewcraft.type.animal_product".equals(typeKey)) {
+                    // 动物产物：使用未占用的颜�?
+                    typeColor = net.minecraft.ChatFormatting.BLUE;
+                } else if ("stardewcraft.type.utility".equals(typeKey)) {
+                    // 实用设施：黄色（粗体由下面统一加）
+                    typeColor = net.minecraft.ChatFormatting.YELLOW;
+                } else if ("stardewcraft.type.craftable".equals(typeKey)) {
+                    // 打造物品：未占用的颜色
+                    typeColor = net.minecraft.ChatFormatting.DARK_RED;
+                } else if ("stardewcraft.type.fishing".equals(typeKey)) {
+                    // 钓鱼：深蓝色
+                    typeColor = net.minecraft.ChatFormatting.DARK_BLUE;
+                } else if ("stardewcraft.type.fertilizer".equals(typeKey)) {
+                    // 肥料：深青色（棕色调�?
+                    typeColor = net.minecraft.ChatFormatting.DARK_AQUA;
+                } else if (typeKey.startsWith("stardewcraft.tool.")) {
+                    // 农具：天蓝色
+                    typeColor = net.minecraft.ChatFormatting.AQUA;
+                } else if ("stardewcraft.type.trash".equals(typeKey)) {
+                    // 垃圾：灰�?
+                    typeColor = net.minecraft.ChatFormatting.GRAY;
+                } else if (typeKey.startsWith("stardewcraft.type.weapon")) {
+                    // Weapons: red.
+                    typeColor = net.minecraft.ChatFormatting.RED;
+                }
+
+                customLines.add(Component.translatable("stardewcraft.tooltip.type_prefix") // Type label in white, non-bold.
+                        .withStyle(ChatFormatting.WHITE)
+                        .append(Component.translatable(typeKey)
+                        .withStyle(typeColor, ChatFormatting.BOLD)));
+            }
+            
+            // 第二行：单价
+            int sellPrice = stardewItem.getSellPrice(stack);
+                if (sellPrice > 0) {
+                 customLines.add(Component.translatable("stardewcraft.tooltip.price")
+                         .append(": ")
+                         .append(Component.literal(TooltipConstants.ICON_MONEY).withStyle(ChatFormatting.WHITE)) // 图标
+                         .append(Component.literal(" " + sellPrice + " G").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD)));
+            } else {
+                customLines.add(Component.translatable("stardewcraft.tooltip.price")
+                        .append(": ")
+                        .append(Component.literal("X ").withStyle(ChatFormatting.RED))
+                        .append(Component.translatable("stardewcraft.tooltip.not_sellable").withStyle(ChatFormatting.RED, ChatFormatting.BOLD)));
+            }
+            
+            // 第三行：总价 (如果堆叠数量 > 1)
+            if (stack.getCount() > 1 && sellPrice > 0) {
+                long totalPrice = (long) sellPrice * stack.getCount();
+                customLines.add(Component.translatable("stardewcraft.tooltip.total_price")
+                         .append(": ")
+                         .append(Component.literal(TooltipConstants.ICON_MONEY).withStyle(ChatFormatting.WHITE))
+                         .append(Component.literal(" " + totalPrice + " G").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD)));
+            }
+
+            // Tool: watering can extra info (after price, before description).
+            if (stack.getItem() instanceof com.stardew.craft.item.tool.WateringCanItem) {
+                customLines.add(Component.literal(TooltipConstants.MARKER_WATER_AMOUNT));
+                customLines.add(Component.literal(TooltipConstants.MARKER_MAX_CHARGE_RANGE));
+            }
+
+            // 工具：锄头的额外信息（最大蓄力范围）
+            if (stack.getItem() instanceof com.stardew.craft.item.tool.HoeItem) {
+                customLines.add(Component.literal(TooltipConstants.MARKER_MAX_CHARGE_RANGE));
+            }
+
+			// 工具：鱼竿的鱼饵/渔具槽位（分成两行独�?marker�?
+			if (stack.getItem() instanceof com.stardew.craft.item.tool.FishingRodItem rod) {
+				if (rod.canUseBait()) {
+					customLines.add(Component.literal(TooltipConstants.MARKER_FISHING_ROD_BAIT));
+				}
+				if (rod.getTackleSlots() > 0) {
+					customLines.add(Component.literal(TooltipConstants.MARKER_FISHING_ROD_TACKLE));
+				}
+			}
+            
+            boolean isMuseumItem = isMuseumItem(stardewItem);
+            boolean donated = !isMuseumItem || isMuseumDonated(stack);
+
+            // 第四行：功能性描�?(灰色细体) / 未捐赠提�?
+            if (!donated) {
+                customLines.add(Component.translatable("stardewcraft.tooltip.museum.gunther")
+                        .withStyle(ChatFormatting.GRAY));
+            } else {
+                String descKey = stack.getDescriptionId() + ".desc";
+                if (net.minecraft.client.resources.language.I18n.exists(descKey)) {
+                    String descText = net.minecraft.client.resources.language.I18n.get(descKey);
+                    String[] lines = NEWLINE_SPLIT.split(descText, -1);
+                    for (int i = 0; i < lines.length; i++) {
+                        String line = lines[i];
+                        if (line == null || line.isEmpty()) {
+                            customLines.add(Component.empty());
+                            continue;
+                        }
+                        customLines.add(Component.literal(line).withStyle(i == 0 ? ChatFormatting.GRAY : ChatFormatting.DARK_GRAY));
+                    }
+                }
+
+                // 第五行：Lore描述 (深灰色细�?
+                String flavorKey = stack.getDescriptionId() + ".flavor";
+                if (net.minecraft.client.resources.language.I18n.exists(flavorKey)) {
+                    String flavorText = net.minecraft.client.resources.language.I18n.get(flavorKey);
+                    String[] lines = NEWLINE_SPLIT.split(flavorText, -1);
+                    for (String line : lines) {
+                        if (line == null || line.isEmpty()) {
+                            customLines.add(Component.empty());
+                            continue;
+                        }
+                        customLines.add(Component.literal(line).withStyle(ChatFormatting.DARK_GRAY));
+                    }
+                }
+            }
+            
+            // 第六行：空行 + 恢复数�?(如果是食�?
+            if (stardewItem.isFood()) {
+                int energy = stardewItem.getEnergy(stack);
+                int health = stardewItem.getHealth(stack);
+                
+                // -300 表示完全不可食用，不显示任何图标（与原版一致）
+                if (energy == -300) {
+                    // 不显示任何东�?
+                } else if (energy >= 0) {
+                    // 正面效果：显示能量和生命
+                    if (energy > 0 || health > 0) {
+                        customLines.add(Component.empty());
+                        MutableComponent statsLine = Component.empty();
+                        
+                        if (energy > 0) {
+                            statsLine.append(Component.literal(TooltipConstants.ICON_ENERGY + " " + energy).withStyle(ChatFormatting.GREEN));
+                        }
+                        
+                        if (health > 0) {
+                            if (energy > 0) statsLine.append("  "); // 间距
+                            statsLine.append(Component.literal(TooltipConstants.ICON_HEALTH + " " + health).withStyle(ChatFormatting.LIGHT_PURPLE));
+                        }
+                        
+                        customLines.add(statsLine);
+
+                        // 吃完�?Buff（若有）
+                        java.util.List<Component> afterEat = stardewItem.getAfterEatTooltipLines(stack);
+                        if (!afterEat.isEmpty()) {
+                            customLines.add(Component.empty());
+                            customLines.add(Component.translatable("stardewcraft.tooltip.after_eaten").withStyle(ChatFormatting.GRAY));
+                            customLines.addAll(afterEat);
+                        }
+                    }
+                } else {
+                    // 负面效果：只显示能量（红色闪电），与原版一�?
+                    customLines.add(Component.empty());
+                    customLines.add(Component.literal(TooltipConstants.ICON_ENERGY_NEGATIVE + " " + energy).withStyle(ChatFormatting.RED));
+                }
+            }
+            
+            // 批量插入到指定位�?
+            tooltip.addAll(insertIdx, customLines);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onClientTick(ClientTickEvent.Post event) {
+        com.stardew.craft.client.emote.EmoteBubbleClientState.tick();
+        com.stardew.craft.client.emote.EmoteWheelClient.onClientTick();
+        com.stardew.craft.client.combat.DamageNumberClient.onClientTick(event);
+        com.stardew.craft.client.weapon.SkillFailShakeState.tick();
+        com.stardew.craft.client.weapon.CameraShakeState.tick();
+        com.stardew.craft.client.weapon.TideMarkClientState.onClientTick(event);
+        com.stardew.craft.client.weapon.LavaKatanaMarkClientState.onClientTick(event);
+        com.stardew.craft.client.weapon.OssifiedMarkClientState.onClientTick(event);
+        com.stardew.craft.client.weapon.ElfBladeMarkClientState.onClientTick(event);
+        com.stardew.craft.client.weapon.TemplarMarkClientState.onClientTick(event);
+        com.stardew.craft.client.weapon.YetiMarkClientState.onClientTick(event);
+        com.stardew.craft.client.weapon.GalaxyDaggerMarkClientState.onClientTick(event);
+        com.stardew.craft.client.weapon.InfinityDaggerMarkClientState.onClientTick(event);
+        com.stardew.craft.client.weapon.YetiFreezeClientState.onClientTick(event);
+        com.stardew.craft.client.weapon.CrystalDaggerLayerClientState.onClientTick(event);
+        com.stardew.craft.client.weapon.WickedKrisPoisonClientState.onClientTick(event);
+        com.stardew.craft.client.weapon.DwarfDaggerThrustClientState.onClientTick(event);
+        com.stardew.craft.client.weapon.DwarfDaggerRushClientState.onClientTick(event);
+        com.stardew.craft.client.weapon.IridiumNeedleFrenzyClientState.onClientTick(event);
+        com.stardew.craft.client.weapon.DragontoothShivBreathClientState.onClientTick(event);
+        com.stardew.craft.client.weapon.DashMovementClientState.onClientTick(event);
+        com.stardew.craft.client.weapon.WaterRingEffectClient.onClientTick(event);
+        com.stardew.craft.client.weapon.OssifiedExecutionCircleEffectClient.onClientTick(event);
+        com.stardew.craft.client.weapon.HolyBladeRingEffectClient.onClientTick(event);
+        FireRingEffectClient.onClientTick(event);
+        com.stardew.craft.client.weapon.ObsidianCrackEffectClient.onClientTick(event);
+        com.stardew.craft.client.weapon.SteelFalchionLineEffectClient.onClientTick(event);
+        com.stardew.craft.client.weapon.ShockwaveRingEffectClient.onClientTick(event);
+        com.stardew.craft.client.weapon.AccretionDiskEffectClient.onClientTick(event);
+        com.stardew.craft.client.weapon.SingularityCoreEffectClient.onClientTick(event);
+        com.stardew.craft.client.weapon.SingularityRuneEffectClient.onClientTick(event);
+        com.stardew.craft.client.weapon.RiftPathEffectClient.onClientTick(event);
+        com.stardew.craft.client.weapon.StarfallMeteorEffectClient.onClientTick(event);
+        com.stardew.craft.client.weapon.BlackHolePostEffectClient.onClientTick(event);
+        com.stardew.craft.client.weapon.StarfallShockwavePostEffectClient.onClientTick(event);
+        com.stardew.craft.client.weapon.TemplarVowClientState.clearIfNoPlayer();
+        com.stardew.craft.client.weapon.InsectEyeStanceClientState.clearIfNoPlayer();
+        com.stardew.craft.client.weapon.ObsidianResonanceClientState.clearIfNoPlayer();
+        com.stardew.craft.client.weapon.SteelFalchionTraceClientState.clearIfNoPlayer();
+        com.stardew.craft.client.weapon.DarkSwordBloodDebtClientState.clearIfNoPlayer();
+        com.stardew.craft.client.weapon.DarkSwordBloodMoonClientState.clearIfNoPlayer();
+        com.stardew.craft.client.weapon.LavaKatanaReverbClientState.clearIfNoPlayer();
+        com.stardew.craft.client.weapon.DwarfFortressClientState.clearIfNoPlayer();
+        com.stardew.craft.client.weapon.WindSpireClientState.clearIfNoPlayer();
+        com.stardew.craft.client.weapon.ElfBladeClientState.clearIfNoPlayer();
+        com.stardew.craft.client.weapon.BrokenTridentCatchClientState.clearIfNoPlayer();
+        com.stardew.craft.client.weapon.DwarfDaggerThrustClientState.clearIfNoPlayer();
+        com.stardew.craft.client.weapon.DwarfDaggerRushClientState.clearIfNoPlayer();
+        com.stardew.craft.client.weapon.IridiumNeedleFrenzyClientState.clearIfNoPlayer();
+        com.stardew.craft.client.weapon.IridiumNeedleCritClientState.clearIfNoPlayer();
+        com.stardew.craft.client.weapon.DragontoothShivBreathClientState.clearIfNoPlayer();
+        com.stardew.craft.client.weapon.DashMovementClientState.clearIfNoPlayer();
+
+        Minecraft mc = Minecraft.getInstance();
+        if (mc == null || mc.player == null || mc.level == null) {
+            return;
+        }
+        if (mc.screen != null) {
+            return;
+        }
+
+        ItemStack stack = mc.player.getMainHandItem();
+        if (!(stack.getItem() instanceof IStardewWeapon weaponItem)) {
+            drainSkillKeyClicks();
+            return;
+        }
+
+        WeaponData data = weaponItem.getWeaponData();
+        if (data == null) {
+            drainSkillKeyClicks();
+            return;
+        }
+
+        if (data.getSkill1() != null) {
+            while (ModKeyMappings.SKILL_MINOR.consumeClick()) {
+                if ("femur_slam".equals(data.getSkill1().getId())
+                    && !com.stardew.craft.client.weapon.WeaponSkillCooldownsClient.isOnCooldown(weaponItem.getWeaponId(), data.getSkill1().getId())
+                    && !mc.player.isUsingItem()) {
+                    mc.player.startUsingItem(InteractionHand.MAIN_HAND);
+                }
+                PacketDistributor.sendToServer(new WeaponSkillUsePayload(false));
+            }
+        }
+
+        if (data.getSkill2() == null) {
+            return;
+        }
+
+        while (ModKeyMappings.SKILL_MAJOR.consumeClick()) {
+            PacketDistributor.sendToServer(new WeaponSkillUsePayload(true));
+        }
+    }
+
+    private static void drainSkillKeyClicks() {
+        while (ModKeyMappings.SKILL_MINOR.consumeClick()) {
+            // consume pending input
+        }
+        while (ModKeyMappings.SKILL_MAJOR.consumeClick()) {
+            // consume pending input
+        }
+    }
+
+    @SubscribeEvent
+    public static void onRenderLevel(RenderLevelStageEvent event) {
+        com.stardew.craft.client.combat.DamageNumberClient.onRenderLevel(event);
+        com.stardew.craft.client.emote.EmoteBubbleWorldRenderer.onRenderLevel(event);
+        com.stardew.craft.client.weapon.TideMarkRenderer.onRenderLevel(event);
+        com.stardew.craft.client.weapon.OssifiedMarkRenderer.onRenderLevel(event);
+        com.stardew.craft.client.weapon.TemplarMarkRenderer.onRenderLevel(event);
+        com.stardew.craft.client.weapon.YetiMarkRenderer.onRenderLevel(event);
+        com.stardew.craft.client.weapon.GalaxyDaggerMarkRenderer.onRenderLevel(event);
+        com.stardew.craft.client.weapon.InfinityDaggerMarkRenderer.onRenderLevel(event);
+        com.stardew.craft.client.weapon.WaterRingEffectClient.onRenderLevel(event);
+        com.stardew.craft.client.weapon.OssifiedExecutionCircleEffectClient.onRenderLevel(event);
+        com.stardew.craft.client.weapon.HolyBladeRingEffectClient.onRenderLevel(event);
+        FireRingEffectClient.onRenderLevel(event);
+        com.stardew.craft.client.weapon.ObsidianCrackEffectClient.onRenderLevel(event);
+        com.stardew.craft.client.weapon.SteelFalchionLineEffectClient.onRenderLevel(event);
+        com.stardew.craft.client.weapon.ShockwaveRingEffectClient.onRenderLevel(event);
+        com.stardew.craft.client.weapon.AccretionDiskEffectClient.onRenderLevel(event);
+        com.stardew.craft.client.weapon.SingularityCoreEffectClient.onRenderLevel(event);
+        com.stardew.craft.client.weapon.SingularityRuneEffectClient.onRenderLevel(event);
+        com.stardew.craft.client.weapon.RiftPathEffectClient.onRenderLevel(event);
+        com.stardew.craft.client.weapon.StarfallMeteorEffectClient.onRenderLevel(event);
+        com.stardew.craft.client.weapon.BlackHolePostEffectClient.onRenderLevel(event);
+        com.stardew.craft.client.weapon.StarfallShockwavePostEffectClient.onRenderLevel(event);
+        com.stardew.craft.client.weapon.EvolvedAuraEffectClient.onRenderLevel(event);
+    }
+
+    @SubscribeEvent
+    public static void onRenderGuiOverlay(RenderGuiLayerEvent.Post event) {
+        if (!event.getName().equals(VanillaGuiLayers.HOTBAR)) {
+            return;
+        }
+
+        Minecraft mc = Minecraft.getInstance();
+        Player player = mc.player;
+        if (player == null) {
+            return;
+        }
+
+        ItemStack stack = player.getMainHandItem();
+        if (!(stack.getItem() instanceof IStardewWeapon weaponItem)) {
+            return;
+        }
+
+        WeaponData data = weaponItem.getWeaponData();
+        if (data == null) {
+            return;
+        }
+
+        WeaponSkillData skill1 = data.getSkill1();
+        WeaponSkillData skill2 = data.getSkill2();
+        if (skill1 == null && skill2 == null) {
+            return;
+        }
+
+        GuiGraphics gg = event.getGuiGraphics();
+        Font font = mc.font;
+
+        int screenH = gg.guiHeight();
+
+        int baseX = 22;
+        int baseY = (int) (screenH * 0.46f);
+        int spacingY = 46;
+
+        int index = 0;
+        if (skill1 != null) {
+            drawSkillHud(gg, font, player, weaponItem.getWeaponId(), skill1,
+                    baseX, baseY + (spacingY * index), ModKeyMappings.SKILL_MINOR);
+            index++;
+        }
+        if (skill2 != null) {
+            drawSkillHud(gg, font, player, weaponItem.getWeaponId(), skill2,
+                    baseX, baseY + (spacingY * index), ModKeyMappings.SKILL_MAJOR);
+        }
+    }
+
+    private static void drawSkillHud(GuiGraphics gg, Font font, Player player, String weaponId,
+                                     WeaponSkillData skill, int centerX, int centerY, net.minecraft.client.KeyMapping keyMapping) {
+        // 从客户端本地冷却存储读取（由服务端同步）
+        int totalTicks = com.stardew.craft.client.weapon.WeaponSkillCooldownsClient.getTotalTicks(weaponId, skill.getId());
+        if (totalTicks <= 0) {
+            totalTicks = Math.max(1, skill.getCooldown() * 20);
+        }
+        int remaining = com.stardew.craft.client.weapon.WeaponSkillCooldownsClient.getRemainingTicks(weaponId, skill.getId());
+        float ratio = Math.min(1.0f, Math.max(0.0f, remaining / (float) totalTicks));
+
+        boolean isDragonBreathJudgement = "dragon_breath_judgement".equals(skill.getId());
+        boolean isGalaxyJudgement = "galaxy_judgement".equals(skill.getId());
+        boolean isEternalCollapse = "eternal_collapse".equals(skill.getId());
+        int dragonBreathStacks = 0;
+        int startrailStacks = 0;
+        int singularityStacks = 0;
+        if (isDragonBreathJudgement) {
+            dragonBreathStacks = com.stardew.craft.client.weapon.DragonBreathClientState.getStacks(player);
+        }
+        if ("galaxy_sword".equals(weaponId)) {
+            startrailStacks = com.stardew.craft.client.weapon.StartrailClientState.getStacks(player);
+        }
+        if ("infinity_blade".equals(weaponId)) {
+            singularityStacks = com.stardew.craft.client.weapon.SingularityClientState.getStacks(player);
+        }
+
+        float radius = 16.0f;
+        float ringOuter = 19.0f;
+        float ringInner = 17.0f;
+
+        int bgColor = 0x66000000;
+        int ringColor = 0xCCFFFFFF;
+        int textColor = 0xFFFFFFFF;
+
+        drawFilledCircle(gg, centerX, centerY, radius, bgColor);
+
+        if (isDragonBreathJudgement) {
+            int purpleSegments = Math.min(15, dragonBreathStacks);
+            float purpleSweep = (purpleSegments / 15.0f) * 360.0f;
+            if (purpleSweep > 0.0f) {
+                drawArcRing(gg, centerX, centerY, 14.5f, 16.5f, -90.0f, purpleSweep, 0xCC7A4DFF);
+            }
+
+            int overflowSegments = Math.min(5, Math.max(0, dragonBreathStacks - 15));
+            float orangeSweep = (overflowSegments / 5.0f) * 360.0f;
+            if (orangeSweep > 0.0f) {
+                drawArcRing(gg, centerX, centerY, 16.7f, 18.3f, -90.0f, orangeSweep, 0xCCFF8A2A);
+            }
+        } else if (isGalaxyJudgement) {
+            int filled = Math.min(12, Math.max(0, startrailStacks));
+            if (filled > 0) {
+                drawSegmentRing(gg, centerX, centerY, 14.5f, 16.5f, 12, filled, 0xCC7A4DFF, 2.0f);
+            }
+        } else if (isEternalCollapse) {
+            int filled = Math.min(20, Math.max(0, singularityStacks));
+            if (filled > 0) {
+                drawSegmentRing(gg, centerX, centerY, 14.5f, 16.5f, 20, filled, 0xCCF2D56B, 1.5f);
+            }
+        } else {
+            DurationRingInfo durationRing = getSkillDurationRing(player, skill.getId());
+            if (durationRing != null) {
+                float sweep = durationRing.ratio() * 360.0f;
+                drawArcRing(gg, centerX, centerY, 14.5f, 16.5f, -90.0f, sweep, durationRing.argb());
+            }
+        }
+
+        boolean disabled = remaining > 0 || (isDragonBreathJudgement && dragonBreathStacks < 15);
+        if (remaining > 0) {
+            float sweep = ratio * 360.0f;
+            drawArcRing(gg, centerX, centerY, ringInner, ringOuter, -90.0f, sweep, ringColor);
+        }
+
+        ResourceLocation iconTex = getSkillIconTexture(skill.getId());
+        int iconSize = 14;
+        int iconX = centerX - iconSize / 2;
+        int iconY = centerY - iconSize / 2;
+        boolean evolvedHud = "infinity_blade".equals(weaponId) && singularityStacks >= 12;
+        if (evolvedHud) {
+            float pulse = 0.6f + 0.4f * Mth.sin((player.tickCount % 40) / 40.0f * Mth.TWO_PI);
+            int alpha = Math.min(255, Math.max(80, (int) (80 + 175 * pulse)));
+            int glowColor = (alpha << 24) | 0xF2D56B;
+            int border = 2;
+            int outer = iconSize + 4;
+            int outerX = centerX - outer / 2;
+            int outerY = centerY - outer / 2;
+            gg.fill(outerX, outerY, outerX + outer, outerY + border, glowColor);
+            gg.fill(outerX, outerY + outer - border, outerX + outer, outerY + outer, glowColor);
+            gg.fill(outerX, outerY, outerX + border, outerY + outer, glowColor);
+            gg.fill(outerX + outer - border, outerY, outerX + outer, outerY + outer, glowColor);
+        }
+        if (disabled) {
+            RenderSystem.setShaderColor(0.6f, 0.6f, 0.6f, 1.0f);
+        }
+        gg.blit(iconTex, iconX, iconY, 0, 0, iconSize, iconSize, iconSize, iconSize);
+        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+        if (remaining > 0) {
+            String timeText = String.format(Locale.US, "%.1f", remaining / 20.0f);
+            int timeX = centerX - font.width(timeText) / 2;
+            int timeY = centerY - 4;
+            gg.drawString(font, timeText, timeX, timeY, textColor, false);
+        }
+
+        String keyLabel = keyMapping.getTranslatedKeyMessage().getString();
+        if ("obsidian_resonance".equals(skill.getId())) {
+            keyLabel = Component.translatable("stardewcraft.weapon.skill.passive").getString();
+        }
+        int keyX = centerX - font.width(keyLabel) / 2;
+        int keyY = centerY + 24;
+        gg.drawString(font, keyLabel, keyX, keyY, 0xFFFFFFFF, false);
+    }
+
+    private static DurationRingInfo getSkillDurationRing(Player player, String skillId) {
+        if ("silver_foldback".equals(skillId)) {
+            if (com.stardew.craft.client.weapon.SilverSaberFoldbackClientState.isActive(player)) {
+                int remaining = com.stardew.craft.client.weapon.SilverSaberFoldbackClientState.getRemainingTicks(player);
+                int total = com.stardew.craft.client.weapon.SilverSaberFoldbackClientState.getTotalTicks();
+                float ratio = Math.min(1.0f, Math.max(0.0f, remaining / (float) total));
+                return new DurationRingInfo(ratio, 0xCC4A90E2); // blue
+            }
+        }
+        if ("forest_blessing".equals(skillId)) {
+            if (com.stardew.craft.client.weapon.ForestBlessingClientState.isActive(player)) {
+                int remaining = com.stardew.craft.client.weapon.ForestBlessingClientState.getRemainingTicks(player);
+                int total = com.stardew.craft.client.weapon.ForestBlessingClientState.getTotalTicks();
+                float ratio = Math.min(1.0f, Math.max(0.0f, remaining / (float) total));
+                return new DurationRingInfo(ratio, 0xCC7BC96F); // green
+            }
+        }
+        if ("steel_spine_fury".equals(skillId)) {
+            if (com.stardew.craft.client.weapon.SteelSpineFuryClientState.isActive(player)) {
+                int remaining = com.stardew.craft.client.weapon.SteelSpineFuryClientState.getRemainingTicks(player);
+                int total = com.stardew.craft.client.weapon.SteelSpineFuryClientState.getTotalTicks();
+                float ratio = Math.min(1.0f, Math.max(0.0f, remaining / (float) total));
+                return new DurationRingInfo(ratio, 0xCCB0B5BA); // steel gray
+            }
+        }
+        if ("templar_vow".equals(skillId)) {
+            if (com.stardew.craft.client.weapon.TemplarVowClientState.isActive(player)) {
+                int remaining = com.stardew.craft.client.weapon.TemplarVowClientState.getRemainingTicks(player);
+                int total = com.stardew.craft.client.weapon.TemplarVowClientState.getTotalTicks();
+                float ratio = Math.min(1.0f, Math.max(0.0f, remaining / (float) total));
+                return new DurationRingInfo(ratio, 0xCCF2D56B); // golden
+            }
+        }
+        if ("wind_spire_thrust".equals(skillId)) {
+            if (com.stardew.craft.client.weapon.WindSpireClientState.isActive(player)) {
+                int remaining = com.stardew.craft.client.weapon.WindSpireClientState.getRemainingTicks(player);
+                int total = com.stardew.craft.client.weapon.WindSpireClientState.getTotalTicks();
+                float ratio = Math.min(1.0f, Math.max(0.0f, remaining / (float) total));
+                return new DurationRingInfo(ratio, 0xCC8FD8FF); // light blue
+            }
+        }
+        if ("fishcatch_thrust".equals(skillId)) {
+            if (com.stardew.craft.client.weapon.BrokenTridentCatchClientState.isActive(player)) {
+                int remaining = com.stardew.craft.client.weapon.BrokenTridentCatchClientState.getRemainingTicks(player);
+                int total = com.stardew.craft.client.weapon.BrokenTridentCatchClientState.getTotalTicks();
+                float ratio = Math.min(1.0f, Math.max(0.0f, remaining / (float) total));
+                return new DurationRingInfo(ratio, 0xCC6CC9FF); // water blue
+            }
+        }
+        if ("elf_blade_leaf".equals(skillId)) {
+            if (com.stardew.craft.client.weapon.ElfBladeClientState.isActive(player)) {
+                int remaining = com.stardew.craft.client.weapon.ElfBladeClientState.getRemainingTicks(player);
+                int total = com.stardew.craft.client.weapon.ElfBladeClientState.getTotalTicks();
+                float ratio = Math.min(1.0f, Math.max(0.0f, remaining / (float) total));
+                return new DurationRingInfo(ratio, 0xCCF2D56B); // warm yellow
+            }
+        }
+        if ("crystal_dagger_layer".equals(skillId)) {
+            int stacks = com.stardew.craft.client.weapon.CrystalDaggerLayerClientState.getStacks(player);
+            if (stacks > 0) {
+                float ratio = Math.min(1.0f, Math.max(0.0f, stacks / 4.0f));
+                return new DurationRingInfo(ratio, 0xCC9EDBFF); // light blue
+            }
+        }
+        if ("wicked_kris_venom_ripple".equals(skillId)) {
+            int stacks = com.stardew.craft.client.weapon.WickedKrisPoisonClientState.getStacks(player);
+            if (stacks > 0) {
+                float ratio = Math.min(1.0f, Math.max(0.0f, stacks / 5.0f));
+                return new DurationRingInfo(ratio, 0xCC63D26B); // venom green
+            }
+        }
+        if ("wicked_kris_nest_burst".equals(skillId)) {
+            if (com.stardew.craft.client.weapon.WickedKrisPoisonClientState.hasDetonation(player)) {
+                int remaining = com.stardew.craft.client.weapon.WickedKrisPoisonClientState.getDetonationRemainingTicks(player);
+                int total = com.stardew.craft.client.weapon.WickedKrisPoisonClientState.getDetonationTotalTicks();
+                float ratio = Math.min(1.0f, Math.max(0.0f, remaining / (float) total));
+                return new DurationRingInfo(ratio, 0xCC4DAE5D); // detonation green
+            }
+        }
+        if ("dwarf_dagger_rush".equals(skillId)) {
+            if (com.stardew.craft.client.weapon.DwarfDaggerRushClientState.isActive(player)) {
+                int remaining = com.stardew.craft.client.weapon.DwarfDaggerRushClientState.getRemainingTicks(player);
+                int total = com.stardew.craft.client.weapon.DwarfDaggerRushClientState.getTotalTicks();
+                float ratio = Math.min(1.0f, Math.max(0.0f, remaining / (float) total));
+                return new DurationRingInfo(ratio, 0xCCB58B5A); // dwarf bronze
+            }
+        }
+        if ("insect_eye_stance".equals(skillId)) {
+            if (com.stardew.craft.client.weapon.InsectEyeStanceClientState.isActive(player)) {
+                int remaining = com.stardew.craft.client.weapon.InsectEyeStanceClientState.getRemainingTicks(player);
+                int total = com.stardew.craft.client.weapon.InsectEyeStanceClientState.getTotalTicks();
+                float ratio = Math.min(1.0f, Math.max(0.0f, remaining / (float) total));
+                return new DurationRingInfo(ratio, 0xCC7EDC7A); // insect green
+            }
+        }
+        if ("obsidian_resonance".equals(skillId)) {
+            float ratio = com.stardew.craft.client.weapon.ObsidianResonanceClientState.getChargeRatio(player);
+            if (ratio >= 0.0f) {
+                return new DurationRingInfo(ratio, 0xCC5B3B8C); // obsidian purple
+            }
+        }
+        if ("steel_falchion_trace".equals(skillId)) {
+            if (com.stardew.craft.client.weapon.SteelFalchionTraceClientState.isActive(player)) {
+                int remaining = com.stardew.craft.client.weapon.SteelFalchionTraceClientState.getRemainingTicks(player);
+                int total = com.stardew.craft.client.weapon.SteelFalchionTraceClientState.getTotalTicks();
+                float ratio = Math.min(1.0f, Math.max(0.0f, remaining / (float) total));
+                return new DurationRingInfo(ratio, 0xCC000000); // black
+            }
+        }
+        if ("dark_sword_blood_debt".equals(skillId)) {
+            if (com.stardew.craft.client.weapon.DarkSwordBloodDebtClientState.isActive(player)) {
+                int remaining = com.stardew.craft.client.weapon.DarkSwordBloodDebtClientState.getRemainingTicks(player);
+                int total = com.stardew.craft.client.weapon.DarkSwordBloodDebtClientState.getTotalTicks();
+                float ratio = Math.min(1.0f, Math.max(0.0f, remaining / (float) total));
+                return new DurationRingInfo(ratio, 0xCC000000); // black
+            }
+        }
+        if ("dark_sword_blood_moon".equals(skillId)) {
+            if (com.stardew.craft.client.weapon.DarkSwordBloodMoonClientState.isActive(player)) {
+                int remaining = com.stardew.craft.client.weapon.DarkSwordBloodMoonClientState.getRemainingTicks(player);
+                int total = com.stardew.craft.client.weapon.DarkSwordBloodMoonClientState.getTotalTicks();
+                float ratio = Math.min(1.0f, Math.max(0.0f, remaining / (float) total));
+                return new DurationRingInfo(ratio, 0xCC000000); // black
+            }
+        }
+        if ("lava_katana_reverb".equals(skillId)) {
+            if (com.stardew.craft.client.weapon.LavaKatanaReverbClientState.isActive(player)) {
+                int remaining = com.stardew.craft.client.weapon.LavaKatanaReverbClientState.getRemainingTicks(player);
+                int total = com.stardew.craft.client.weapon.LavaKatanaReverbClientState.getTotalTicks();
+                float ratio = Math.min(1.0f, Math.max(0.0f, remaining / (float) total));
+                return new DurationRingInfo(ratio, 0xCCF28C2E); // lava orange
+            }
+        }
+        if ("dwarf_fortress".equals(skillId)) {
+            if (com.stardew.craft.client.weapon.DwarfFortressClientState.isActive(player)) {
+                int remaining = com.stardew.craft.client.weapon.DwarfFortressClientState.getRemainingTicks(player);
+                int total = com.stardew.craft.client.weapon.DwarfFortressClientState.getTotalTicks();
+                float ratio = Math.min(1.0f, Math.max(0.0f, remaining / (float) total));
+                return new DurationRingInfo(ratio, 0xCC8B6A3E); // dwarf brown
+            }
+        }
+        if ("dragontooth_shiv_breath".equals(skillId)) {
+            if (com.stardew.craft.client.weapon.DragontoothShivBreathClientState.isActive(player)) {
+                int remaining = com.stardew.craft.client.weapon.DragontoothShivBreathClientState.getRemainingTicks(player);
+                int total = com.stardew.craft.client.weapon.DragontoothShivBreathClientState.getTotalTicks();
+                float ratio = Math.min(1.0f, Math.max(0.0f, remaining / (float) total));
+                return new DurationRingInfo(ratio, 0xCCF06A2E); // dragon ember
+            }
+        }
+        if ("iridium_needle_frenzy".equals(skillId)) {
+            if (com.stardew.craft.client.weapon.IridiumNeedleFrenzyClientState.isActive(player)) {
+                int remaining = com.stardew.craft.client.weapon.IridiumNeedleFrenzyClientState.getRemainingTicks(player);
+                int total = com.stardew.craft.client.weapon.IridiumNeedleFrenzyClientState.getTotalTicks();
+                float ratio = Math.min(1.0f, Math.max(0.0f, remaining / (float) total));
+                return new DurationRingInfo(ratio, 0xCCB05CFF); // iridium purple
+            }
+        }
+        if ("iridium_needle_thrust".equals(skillId)) {
+            int stacks = com.stardew.craft.client.weapon.IridiumNeedleCritClientState.getStacks(player);
+            if (stacks > 0) {
+                float ratio = Math.min(1.0f, Math.max(0.0f, stacks / 2.0f));
+                return new DurationRingInfo(ratio, 0xCCB05CFF); // iridium purple
+            }
+            if (com.stardew.craft.client.weapon.IridiumNeedleCritClientState.isFlashActive(player)) {
+                float pulse = 0.5f + 0.5f * Mth.sin((player.tickCount % 10) / 10.0f * Mth.TWO_PI);
+                int alpha = Math.min(255, Math.max(140, (int) (140 + 95 * pulse)));
+                int color = (alpha << 24) | 0xD0A2FF;
+                return new DurationRingInfo(1.0f, color);
+            }
+        }
+        return null;
+    }
+
+    private record DurationRingInfo(float ratio, int argb) {}
+
+    private static ResourceLocation getSkillIconTexture(String skillId) {
+        if ("tetanus_strike".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/rusty_sword_1.png");
+        }
+        if ("light_counter".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/steel_smallsword_1.png");
+        }
+        if ("tree_blessing".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/wooden_blade_1.png");
+        }
+        if ("desperate_plunder".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/pirates_sword_1.png");
+        }
+        if ("silver_foldback".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/silver_saber_1.png");
+        }
+        if ("crescent_slash".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/cutlass_1.png");
+        }
+        if ("forest_blessing".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/forest_sword_1.png");
+        }
+        if ("steel_spine_fury".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/iron_edge_1.png");
+        }
+        if ("femur_slam".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/femur_1.png");
+        }
+        if ("carving_thrust".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/carving_knife_1.png");
+        }
+        if ("iron_dirk_thrust".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/iron_dirk_1.png");
+        }
+        if ("wind_spire_thrust".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/wind_spire_1.png");
+        }
+        if ("elf_blade_leaf".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/elf_blade_1.png");
+        }
+        if ("burglar_shank".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/burglars_shank_1.png");
+        }
+        if ("crystal_dagger_layer".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/crystal_dagger_1.png");
+        }
+        if ("shadow_dagger_execute".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/shadow_dagger_1.png");
+        }
+        if ("wicked_kris_venom_ripple".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/wicked_kris_1.png");
+        }
+        if ("wicked_kris_nest_burst".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/wicked_kris_2.png");
+        }
+        if ("dwarf_dagger_thrust".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/dwarf_dagger_1.png");
+        }
+        if ("dwarf_dagger_rush".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/dwarf_dagger_2.png");
+        }
+        if ("dragontooth_shiv_stab".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/dragontooth_shiv_1.png");
+        }
+        if ("dragontooth_shiv_breath".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/dragontooth_shiv_2.png");
+        }
+        if ("iridium_needle_thrust".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/iridium_needle_1.png");
+        }
+        if ("iridium_needle_frenzy".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/iridium_needle_2.png");
+        }
+        if ("galaxy_dagger_starstab".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/galaxy_dagger_1.png");
+        }
+        if ("galaxy_dagger_starleap".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/galaxy_dagger_2.png");
+        }
+        if ("infinity_dagger_singularity_stab".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/infinity_dagger_1.png");
+        }
+        if ("infinity_dagger_singularity_backstab".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/infinity_dagger_2.png");
+        }
+        if ("meowmere_shot".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/meowmere_1.png");
+        }
+        if ("meowmere_symphony".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/meowmere_2.png");
+        }
+        if ("bone_fracture".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/bone_sword_1.png");
+        }
+        if ("claymore_foldback".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/claymore_1.png");
+        }
+        if ("tide_mark".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/tide_mark.png");
+        }
+        if ("tide_anchor".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/tide_anchor.png");
+        }
+        if ("fishcatch_thrust".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/broken_trident_1.png");
+        }
+        if ("tide_reel".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/broken_trident_2.png");
+        }
+        if ("templar_vow".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/templars_blade_1.png");
+        }
+        if ("templar_judgement".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/templars_blade_2.png");
+        }
+        if ("insect_eye_stance".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/insect_head_1.png");
+        }
+        if ("insect_dash".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/insect_head_2.png");
+        }
+        if ("obsidian_resonance".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/obsidian_edge_1.png");
+        }
+        if ("obsidian_crack".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/obsidian_edge_2.png");
+        }
+        if ("ossified_mark".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/ossified_blade_1.png");
+        }
+        if ("ossified_execution".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/ossified_blade_2.png");
+        }
+        if ("holy_smite".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/holy_blade_1.png");
+        }
+        if ("holy_domain".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/holy_blade_2.png");
+        }
+        if ("tempered_quench".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/tempered_broadsword_1.png");
+        }
+        if ("tempered_billet".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/tempered_broadsword_2.png");
+        }
+        if ("yeti_tooth_mark".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/yeti_tooth_1.png");
+        }
+        if ("yeti_tooth_spine".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/yeti_tooth_2.png");
+        }
+        if ("steel_falchion_line".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/steel_falchion_1.png");
+        }
+        if ("steel_falchion_trace".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/steel_falchion_2.png");
+        }
+        if ("dark_sword_blood_debt".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/dark_sword_1.png");
+        }
+        if ("dark_sword_blood_moon".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/dark_sword_2.png");
+        }
+        if ("lava_katana_brand".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/lava_katana_1.png");
+        }
+        if ("lava_katana_reverb".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/lava_katana_2.png");
+        }
+        if ("dragon_breath_thrust".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/dragontooth_cutlass_1.png");
+        }
+        if ("dragon_breath_judgement".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/dragontooth_cutlass_2.png");
+        }
+        if ("dwarf_rune_guard".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/dwarf_sword_1.png");
+        }
+        if ("dwarf_fortress".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/dwarf_sword_2.png");
+        }
+        if ("startrail_rift".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/galaxy_sword_1.png");
+        }
+        if ("galaxy_judgement".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/galaxy_sword_2.png");
+        }
+        if ("singularity_evolve".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/infinity_blade_1.png");
+        }
+        if ("eternal_collapse".equals(skillId)) {
+            return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/infinity_blade_2.png");
+        }
+        return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/weapon_skill/icon_skill.png");
+    }
+
+    private static void drawFilledCircle(GuiGraphics gg, int cx, int cy, float r, int argb) {
+        int radius = Math.round(r);
+        int r2 = radius * radius;
+        for (int dy = -radius; dy <= radius; dy++) {
+            int y = cy + dy;
+            int dx = (int) Math.floor(Math.sqrt(r2 - dy * dy));
+            int x1 = cx - dx;
+            int x2 = cx + dx + 1;
+            gg.fill(x1, y, x2, y + 1, argb);
+        }
+    }
+
+    private static void drawArcRing(GuiGraphics gg, int cx, int cy, float innerR, float outerR,
+                                    float startDeg, float sweepDeg, int argb) {
+        if (sweepDeg <= 0.0f) return;
+        int inner = Math.round(innerR);
+        int outer = Math.round(outerR);
+        int segments = Math.max(80, (int) (360 * (sweepDeg / 360.0f)));
+
+        for (int i = 0; i <= segments; i++) {
+            float t = i / (float) segments;
+            double ang = Math.toRadians(startDeg + sweepDeg * t);
+            float cos = (float) Math.cos(ang);
+            float sin = (float) Math.sin(ang);
+            int x1 = cx + Math.round(cos * inner);
+            int y1 = cy + Math.round(sin * inner);
+            int x2 = cx + Math.round(cos * outer);
+            int y2 = cy + Math.round(sin * outer);
+
+            int minX = Math.min(x1, x2);
+            int minY = Math.min(y1, y2);
+            int maxX = Math.max(x1, x2) + 1;
+            int maxY = Math.max(y1, y2) + 1;
+            gg.fill(minX, minY, maxX, maxY, argb);
+        }
+    }
+
+    private static void drawSegmentRing(GuiGraphics gg, int cx, int cy, float innerR, float outerR,
+                                        int totalSegments, int filledSegments, int argb, float gapDeg) {
+        if (totalSegments <= 0 || filledSegments <= 0) {
+            return;
+        }
+        int segCount = Math.max(1, totalSegments);
+        float step = 360.0f / segCount;
+        float gap = Math.max(0.0f, gapDeg);
+        float sweep = Math.max(0.5f, step - gap);
+        float start = -90.0f;
+        int filled = Math.min(segCount, filledSegments);
+
+        for (int i = 0; i < filled; i++) {
+            float segStart = start + (i * step) + (gap * 0.5f);
+            drawArcRing(gg, cx, cy, innerR, outerR, segStart, sweep, argb);
+        }
+    }
+
+    private static boolean isDurabilityTooltipLine(Component component) {
+        if (component == null) {
+            return false;
+        }
+
+        // Vanilla advanced tooltip uses translation key: item.durability
+        if (component.getContents() instanceof TranslatableContents translatable) {
+            return "item.durability".equals(translatable.getKey());
+        }
+        return false;
+    }
+
+    private static boolean isUnbreakableTooltipLine(Component component) {
+        if (component == null) {
+            return false;
+        }
+
+        if (component.getContents() instanceof TranslatableContents translatable) {
+            return "item.unbreakable".equals(translatable.getKey());
+        }
+        return false;
+    }
+
+    private static boolean isMuseumItem(IStardewItem item) {
+        String typeKey = item.getItemTypeKey();
+        return "stardewcraft.type.mineral".equals(typeKey) || "stardewcraft.type.artifact".equals(typeKey);
+    }
+
+    private static boolean isMuseumDonated(ItemStack stack) {
+        ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        return ClientMuseumDonationCache.isDonated(id.toString());
+    }
+}
+

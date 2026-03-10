@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:secret_woods_pond",
+    "#minecraft:is_forest"
+  ]
+}

@@ -1,0 +1,58 @@
+{
+    "pools": [
+        {
+            "rolls": 1, 
+            "entries": [
+                {
+                    "functions": [
+                        {
+                            "function": "minecraft:set_count", 
+                            "count": 1
+                        }, 
+                        {
+                            "function": "minecraft:set_components", 
+                            "components": {
+                                "minecraft:custom_model_data": 1705, 
+                                "minecraft:custom_name": "[{\"text\": \"银星 \", \"color\": \"white\", \"bold\": true, \"italic\": false}, {\"text\": \"郁金香\", \"color\": \"white\", \"bold\": false, \"italic\": false}]", 
+                                "minecraft:custom_data": {
+                                    "food_energy": 22, 
+                                    "is_food": 1, 
+                                    "item_type": "crop", 
+                                    "stardew_item": 1, 
+                                    "food_health": 8, 
+                                    "quality": "silver", 
+                                    "crop_id": "tulip", 
+                                    "sd_price": 37
+                                }, 
+                                "minecraft:lore": [
+                                    "{\"text\": \"售价：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"37G\", \"color\": \"gold\", \"bold\": true}]}", 
+                                    "{\"text\": \"物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"作物\", \"color\": \"green\", \"bold\": true}]}", 
+                                    "{\"text\": \"生长于\", \"color\": \"gray\", \"italic\": false, \"bold\": false, \"extra\": [{\"text\": \"春季\", \"color\": \"green\", \"bold\": true}, {\"text\": \"，需要\", \"color\": \"gray\", \"bold\": false}, {\"text\": \"6\", \"color\": \"white\", \"bold\": true}, {\"text\": \"天成熟\", \"color\": \"gray\", \"bold\": false}]}", 
+                                    "{\"text\": \"最受欢迎的春季花卉。有着非常微弱的甜香。\", \"color\": \"dark_gray\", \"italic\": false}", 
+                                    "{\"color\": \"white\", \"text\": \"\", \"bold\": true, \"italic\": false, \"extra\": [{\"color\": \"red\", \"text\": \"❤ 8\", \"bold\": true}, {\"color\": \"white\", \"text\": \"  \", \"bold\": true}, {\"color\": \"green\", \"text\": \"⚡ 22\", \"bold\": true}]}"
+                                ], 
+                                "minecraft:food": {
+                                    "nutrition": 0, 
+                                    "saturation": 0, 
+                                    "can_always_eat": true
+                                }, 
+                                "minecraft:max_stack_size": 99, 
+                                "minecraft:consumable": {
+                                    "sound": {
+                                        "sound_id": "minecraft:entity.generic.eat"
+                                    }, 
+                                    "has_consume_particles": true, 
+                                    "animation": "eat", 
+                                    "consume_seconds": 0.8
+                                }
+                            }
+                        }
+                    ], 
+                    "type": "minecraft:item", 
+                    "name": "minecraft:paper"
+                }
+            ]
+        }
+    ], 
+    "type": "minecraft:command"
+}

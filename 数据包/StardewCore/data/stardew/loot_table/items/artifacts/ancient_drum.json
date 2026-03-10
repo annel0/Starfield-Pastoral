@@ -1,0 +1,35 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 7352,
+                "minecraft:max_stack_size": 99,
+                "minecraft:custom_name": "{\"text\": \"远古鼓\", \"color\": \"white\", \"bold\": false, \"italic\": false}",
+                "minecraft:lore": [
+                  "{\"text\":\"售价：\",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"100G\",\"color\":\"gold\",\"bold\":true,\"italic\":false}]}",
+                  "{\"text\":\"物品种类：\",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"古物\",\"color\":\"light_purple\",\"bold\":true,\"italic\":false}]}",
+                  "{\"text\":\"这是一个用木头和动物皮制成的鼓。它有低沉的回声。\",\"color\":\"gray\",\"italic\":false}"
+                ],
+                "minecraft:custom_data": {
+                  "stardew_item": 1,
+                  "item_type": "artifact",
+                  "artifact_type": "ancient_drum",
+                  "sd_price": 100
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

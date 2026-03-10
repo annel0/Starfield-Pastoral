@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:carrot_on_a_stick",
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": 1
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 9003,
+                "minecraft:custom_name": "{\"text\":\"[Debug] 钓鱼听诊器\",\"color\":\"aqua\",\"italic\":false}",
+                "minecraft:custom_data": {
+                  "stardew_item": 1,
+                  "tier": 3
+                },
+                "minecraft:max_stack_size": 1
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

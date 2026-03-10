@@ -1,0 +1,166 @@
+package com.stardew.craft.combat.skill;
+
+import com.stardew.craft.StardewCraft;
+import com.stardew.craft.combat.network.OssifiedMarkPayload;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
+
+import java.util.UUID;
+
+@EventBusSubscriber(modid = StardewCraft.MODID)
+public final class OssifiedMarkTracker {
+
+    private static final String TAG_END_TICK = "stardewcraft_ossified_mark_until";
+    private static final String TAG_OWNER = "stardewcraft_ossified_mark_owner";
+    private static final String TAG_BONUS_USED = "stardewcraft_ossified_mark_bonus_used";
+    private static final String TAG_START_TICK = "stardewcraft_ossified_mark_start";
+
+    private OssifiedMarkTracker() {}
+
+    @SuppressWarnings("null")
+    public static void apply(LivingEntity target, ServerPlayer owner, long nowTick, int durationTicks) {
+        if (target == null || owner == null) {
+            return;
+        }
+        CompoundTag tag = target.getPersistentData();
+        tag.putLong(TAG_END_TICK, nowTick + durationTicks);
+        tag.putUUID(TAG_OWNER, owner.getUUID());
+        tag.putBoolean(TAG_BONUS_USED, false);
+        tag.putLong(TAG_START_TICK, nowTick);
+
+        if (!target.level().isClientSide) {
+            PacketDistributor.sendToPlayersTrackingEntityAndSelf(
+                target,
+                new OssifiedMarkPayload(target.getId(), durationTicks)
+            );
+
+            if (target.level() instanceof ServerLevel serverLevel) {
+                double x = target.getX();
+                double y = target.getY() + target.getBbHeight() * 0.6;
+                double z = target.getZ();
+                serverLevel.sendParticles(net.minecraft.core.particles.ParticleTypes.ASH,
+                    x, y, z,
+                    10, 0.35, 0.2, 0.35, 0.02);
+                serverLevel.sendParticles(net.minecraft.core.particles.ParticleTypes.SOUL_FIRE_FLAME,
+                    x, y, z,
+                    6, 0.25, 0.18, 0.25, 0.01);
+                serverLevel.playSound(null, target.blockPosition(),
+                    SoundEvents.BONE_BLOCK_PLACE,
+                    SoundSource.PLAYERS, 0.9f, 1.05f);
+                serverLevel.playSound(null, target.blockPosition(),
+                    SoundEvents.SOUL_ESCAPE.value(),
+                    SoundSource.PLAYERS, 0.8f, 0.9f);
+            }
+        }
+    }
+
+    public static boolean isMarked(LivingEntity target, long nowTick) {
+        CompoundTag tag = target.getPersistentData();
+        if (!tag.contains(TAG_END_TICK)) {
+            return false;
+        }
+        long endTick = tag.getLong(TAG_END_TICK);
+        if (nowTick >= endTick) {
+            clearMark(tag);
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean isMarkedBy(LivingEntity target, Player player, long nowTick) {
+        if (!isMarked(target, nowTick)) {
+            return false;
+        }
+        CompoundTag tag = target.getPersistentData();
+        if (!tag.hasUUID(TAG_OWNER)) {
+            return false;
+        }
+        UUID ownerId = tag.getUUID(TAG_OWNER);
+        return ownerId.equals(player.getUUID());
+    }
+
+    public static boolean consumeBonusIfEligible(LivingEntity target, Player player, long nowTick) {
+        if (!isMarkedBy(target, player, nowTick)) {
+            return false;
+        }
+        CompoundTag tag = target.getPersistentData();
+        if (tag.getBoolean(TAG_BONUS_USED)) {
+            return false;
+        }
+        tag.putBoolean(TAG_BONUS_USED, true);
+        return true;
+    }
+
+    public static long getStartTick(LivingEntity target) {
+        CompoundTag tag = target.getPersistentData();
+        if (!tag.contains(TAG_START_TICK)) {
+            return -1L;
+        }
+        return tag.getLong(TAG_START_TICK);
+    }
+
+    public static float getCritChanceBonus(LivingEntity target, Player player, long nowTick) {
+        return isMarkedBy(target, player, nowTick) ? 0.10f : 0.0f;
+    }
+
+    @SubscribeEvent
+    public static void onLivingTick(EntityTickEvent.Post event) {
+        if (!(event.getEntity() instanceof LivingEntity entity)) {
+            return;
+        }
+        if (entity.level().isClientSide) {
+            return;
+        }
+        CompoundTag tag = entity.getPersistentData();
+        if (!tag.contains(TAG_END_TICK)) {
+            return;
+        }
+        long nowTick = entity.level().getGameTime();
+        long endTick = tag.getLong(TAG_END_TICK);
+        if (nowTick >= endTick) {
+            handleExpire(entity, tag, nowTick);
+            clearMark(tag);
+        }
+    }
+
+    @SuppressWarnings("null")
+    private static void handleExpire(LivingEntity entity, CompoundTag tag, long nowTick) {
+        if (tag.getBoolean(TAG_BONUS_USED)) {
+            return;
+        }
+        if (!tag.hasUUID(TAG_OWNER)) {
+            return;
+        }
+        if (!(entity.level() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+        Player owner = serverLevel.getPlayerByUUID(tag.getUUID(TAG_OWNER));
+        if (owner == null) {
+            return;
+        }
+        long startTick = tag.getLong(TAG_START_TICK);
+        long desiredEnd = startTick + 4L * 20L;
+        int remaining = (int) Math.max(0L, desiredEnd - nowTick);
+        if (remaining > 0) {
+            WeaponSkillCooldowns.setCooldown(owner, "ossified_blade", "ossified_mark", nowTick, remaining);
+        } else {
+            WeaponSkillCooldowns.setCooldown(owner, "ossified_blade", "ossified_mark", nowTick, 0);
+        }
+    }
+
+    private static void clearMark(CompoundTag tag) {
+        tag.remove(TAG_END_TICK);
+        tag.remove(TAG_OWNER);
+        tag.remove(TAG_BONUS_USED);
+        tag.remove(TAG_START_TICK);
+    }
+}

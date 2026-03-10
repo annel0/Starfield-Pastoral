@@ -1,0 +1,5 @@
+﻿{
+  "type": "minecraft:stonecutting",
+  "ingredient": { "item": "stardewcraft:limestone" },
+  "result": { "count": 1, "id": "stardewcraft:limestone_stairs" }
+}

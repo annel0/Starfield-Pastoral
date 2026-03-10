@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "stardewcraft:block/ladder"
+    },
+    "facing=south": {
+      "model": "stardewcraft:block/ladder",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "stardewcraft:block/ladder",
+      "y": 270
+    },
+    "facing=east": {
+      "model": "stardewcraft:block/ladder",
+      "y": 90
+    }
+  }
+}

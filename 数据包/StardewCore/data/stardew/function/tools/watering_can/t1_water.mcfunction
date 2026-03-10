@@ -1,0 +1,1 @@
+function stardew:tools/watering_can/water_single_block

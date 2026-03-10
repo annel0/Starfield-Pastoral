@@ -1,0 +1,39 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": 1
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 8100,
+                "minecraft:custom_name": "[{\"text\":\"剪刀\",\"color\":\"white\",\"bold\":false,\"italic\":false}]",
+                "minecraft:lore": [
+                  "{\"text\": \"📊 等级要求: \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"--\", \"color\": \"gray\", \"bold\": false}]}",
+                  "{\"text\": \"💰 售价：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"无法出售\", \"color\": \"red\", \"bold\": true}]}",
+                  "{\"text\": \"🔧 物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"工具\", \"color\": \"gold\", \"bold\": true}]}",
+                  "{\"text\": \"🔨 用于给绵羊剪毛。\", \"color\": \"gray\", \"italic\": false}",
+                  "{\"text\": \"\"}",
+                  "{\"text\": \"对着\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"绵羊\", \"color\": \"green\", \"bold\": true}, {\"text\": \"\", \"color\": \"white\", \"bold\": false}, {\"text\": \"右键\", \"color\": \"green\", \"bold\": true}, {\"text\": \"使用\", \"color\": \"white\", \"bold\": false}]}"
+                ],
+                "minecraft:custom_data": {
+                  "stardew_item": 1,
+                  "tool_type": "shears"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

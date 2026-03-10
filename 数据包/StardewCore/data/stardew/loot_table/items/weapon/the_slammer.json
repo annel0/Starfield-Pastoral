@@ -1,0 +1,80 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:carrot_on_a_stick",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 6100205,
+                "minecraft:custom_name": "[{\"text\":\"重击 \",\"color\":\"gray\",\"bold\":true,\"italic\":false},{\"text\":\"锤\",\"color\":\"white\",\"bold\":true,\"italic\":false}]",
+                "minecraft:attribute_modifiers": {
+                  "modifiers": [
+                    {
+                      "type": "minecraft:attack_speed",
+                      "id": "stardew:weapon_attack_speed",
+                      "amount": -3.0,
+                      "operation": "add_value",
+                      "slot": "mainhand"
+                    }
+                  ],
+                  "show_in_tooltip": false
+                },
+                "minecraft:lore": [
+                  "{\"text\": \"📊 武器等级: \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"Lv.7\", \"color\": \"#FFD700\", \"bold\": true}]}",
+                  "{\"text\": \"⚔ 战斗等级要求: \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"7\", \"color\": \"green\", \"bold\": true}]}",
+                  "{\"text\":\"💥 伤害: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"40-55\",\"color\":\"red\",\"bold\":true}]}",
+                  "{\"text\":\"☆ 暴击率: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"+3%\",\"color\":\"gold\",\"bold\":true}]}",
+                  "{\"text\":\"⚡ 攻击速度: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"1.0/秒\",\"color\":\"aqua\",\"bold\":true}]}",
+                  "{\"text\":\"⚒ 技能: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"震地重击 IV\",\"color\":\"light_purple\",\"bold\":true},{\"text\":\" (右键)\",\"color\":\"gray\",\"bold\":false}]}",
+                  "{\"text\":\"⚒ 特殊技能: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"重击蓄力 II\",\"color\":\"#FF6347\",\"bold\":true},{\"text\":\" (Shift+右键)\",\"color\":\"gray\",\"bold\":false}]}",
+                  "{\"text\": \"💰 售价：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"无法出售\", \"color\": \"red\", \"bold\": true}]}",
+                  "{\"text\": \"🔧 物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"武器\", \"color\": \"red\", \"bold\": true}]}",
+                  "{\"text\": \"🔨 强力的重型战锤。\", \"color\": \"gray\", \"italic\": false}",
+                  "{\"text\": \"\"}",
+                  "{\"text\": \"技能 - \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"震地重击 IV\", \"color\": \"light_purple\", \"bold\": true}]}",
+                  "{\"text\": \"▪ 效果: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"砸地造成范围伤害并眩晕\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 伤害: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"240%武器伤害\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 范围: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"4格半径\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 眩晕: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"2秒\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 冷却时间: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"15.0秒\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"\"}",
+                  "{\"text\": \"特殊技能 - \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"重击蓄力 II\", \"color\": \"#FF6347\", \"bold\": true}]}",
+                  "{\"text\": \"▪ 效果: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"蓄力后释放强力一击\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 伤害: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"300%武器伤害\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 蓄力时间: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"1.0秒\", \"color\": \"white\", \"bold\": false}]}",
+                  "{\"text\": \"▪ 冷却时间: \", \"color\": \"gray\", \"italic\": false, \"extra\": [{\"text\": \"12.0秒\", \"color\": \"white\", \"bold\": false}]}"
+                ],
+                "minecraft:max_stack_size": 1,
+                "minecraft:custom_data": {
+                  "stardew_item": true,
+                  "stardew_weapon": true,
+                  "weapon_type": "club",
+                  "weapon_damage_min": 40,
+                  "weapon_damage_max": 55,
+                  "weapon_crit_chance": 0.03,
+                  "weapon_defense": 0,
+                  "weapon_knockback": 0,
+                  "weapon_attack_speed": 1.0,
+                  "weapon_range": 3.0,
+                  "weapon_special": "ground_slam",
+                  "weapon_special_2": "heavy_charge",
+                  "weapon_skill_level": 4,
+                  "weapon_skill_2_level": 2,
+                  "weapon_skill_cooldown": 300,
+                  "weapon_skill_2_cooldown": 240,
+                  "weapon_tier": "steel"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

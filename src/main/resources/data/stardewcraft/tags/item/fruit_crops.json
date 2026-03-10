@@ -1,0 +1,15 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:ancient_fruit",
+    "stardewcraft:blueberry",
+    "stardewcraft:cranberry",
+    "stardewcraft:grape",
+    "stardewcraft:hot_pepper",
+    "stardewcraft:melon",
+    "stardewcraft:powder_melon",
+    "stardewcraft:rhubarb",
+    "stardewcraft:starfruit",
+    "stardewcraft:strawberry"
+  ]
+}

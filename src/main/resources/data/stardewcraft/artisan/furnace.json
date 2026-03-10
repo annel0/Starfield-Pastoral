@@ -1,0 +1,13 @@
+{
+  "machine": "furnace",
+  "recipes": [
+    { "input": "stardewcraft:copper_ore", "output": "stardewcraft:copper_bar", "minutes": 30, "consume": 5 },
+    { "input": "stardewcraft:iron_ore", "output": "stardewcraft:iron_bar", "minutes": 120, "consume": 5 },
+    { "input": "stardewcraft:gold_ore", "output": "stardewcraft:gold_bar", "minutes": 300, "consume": 5 },
+    { "input": "stardewcraft:iridium_ore", "output": "stardewcraft:iridium_bar", "minutes": 480, "consume": 5 },
+    { "input": "stardewcraft:quartz", "output": "stardewcraft:refined_quartz", "minutes": 90 },
+    { "input": "stardewcraft:fire_quartz", "output": "stardewcraft:refined_quartz", "minutes": 90, "outputCount": 3 },
+    { "input": "stardewcraft:bouquet", "output": "stardewcraft:wilted_bouquet", "minutes": 10 },
+    { "input": "stardewcraft:radioactive_ore", "output": "stardewcraft:radioactive_bar", "minutes": 560, "consume": 5 }
+  ]
+}

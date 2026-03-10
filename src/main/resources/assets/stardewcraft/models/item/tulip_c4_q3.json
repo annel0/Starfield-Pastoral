@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "stardewcraft:item/crops/spring/tulip4",
+    "layer1": "stardewcraft:item/quality/iridium_star"
+  }
+}

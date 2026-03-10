@@ -1,0 +1,6 @@
+{
+  "machine": "charcoal_kiln",
+  "recipes": [
+    { "input": "stardewcraft:wood_normal", "output": "stardewcraft:coal", "minutes": 30, "consume": 10 }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:pelican_town_river",
+    "stardewcraft:mountain_lake",
+    "stardewcraft:secret_woods_pond",
+    "minecraft:river",
+    "minecraft:frozen_river",
+    "minecraft:plains",
+    "minecraft:forest",
+    "minecraft:birch_forest",
+    "minecraft:dark_forest",
+    "minecraft:swamp",
+    "minecraft:mangrove_swamp",
+    "minecraft:taiga",
+    "minecraft:snowy_taiga",
+    "minecraft:meadow",
+    "minecraft:cherry_grove",
+    "minecraft:sunflower_plains",
+    "#stardewcraft:is_river",
+    "#stardewcraft:is_mountain_lake",
+    "#stardewcraft:is_forest_pond"
+  ]
+}

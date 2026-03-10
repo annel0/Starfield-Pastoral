@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "season=0,variant=0": { "model": "stardewcraft:block/weeds/wild_weeds_spring_0" },
+    "season=0,variant=1": { "model": "stardewcraft:block/weeds/wild_weeds_spring_1" },
+    "season=0,variant=2": { "model": "stardewcraft:block/weeds/wild_weeds_spring_2" },
+
+    "season=1,variant=0": { "model": "stardewcraft:block/weeds/wild_weeds_summer_0" },
+    "season=1,variant=1": { "model": "stardewcraft:block/weeds/wild_weeds_summer_1" },
+    "season=1,variant=2": { "model": "stardewcraft:block/weeds/wild_weeds_summer_2" },
+
+    "season=2,variant=0": { "model": "stardewcraft:block/weeds/wild_weeds_fall_0" },
+    "season=2,variant=1": { "model": "stardewcraft:block/weeds/wild_weeds_fall_1" },
+    "season=2,variant=2": { "model": "stardewcraft:block/weeds/wild_weeds_fall_2" },
+
+    "season=3,variant=0": { "model": "stardewcraft:block/weeds/wild_weeds_winter_0" },
+    "season=3,variant=1": { "model": "stardewcraft:block/weeds/wild_weeds_winter_0" },
+    "season=3,variant=2": { "model": "stardewcraft:block/weeds/wild_weeds_winter_0" }
+  }
+}

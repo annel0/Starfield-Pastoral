@@ -1,0 +1,243 @@
+{
+  "id": "stardewcraft:oak1",
+  "blocks": [
+    {
+      "dx": -2,
+      "dy": 5,
+      "dz": 0,
+      "block": "stardewcraft:wild_oak_leaves",
+      "facing": "west"
+    },
+    {
+      "dx": -2,
+      "dy": 5,
+      "dz": 1,
+      "block": "stardewcraft:wild_oak_leaves",
+      "facing": "west"
+    },
+    {
+      "dx": -1,
+      "dy": 4,
+      "dz": 0,
+      "block": "stardewcraft:wild_oak_leaves",
+      "facing": "west"
+    },
+    {
+      "dx": -1,
+      "dy": 5,
+      "dz": -1,
+      "block": "stardewcraft:wild_oak_leaves",
+      "facing": "north"
+    },
+    {
+      "dx": -1,
+      "dy": 5,
+      "dz": 0,
+      "block": "stardewcraft:wild_oak_branch1",
+      "facing": "west"
+    },
+    {
+      "dx": -1,
+      "dy": 5,
+      "dz": 1,
+      "block": "stardewcraft:wild_oak_leaves",
+      "facing": "south"
+    },
+    {
+      "dx": -1,
+      "dy": 6,
+      "dz": -1,
+      "block": "stardewcraft:wild_oak_leaves",
+      "facing": "north"
+    },
+    {
+      "dx": -1,
+      "dy": 6,
+      "dz": 0,
+      "block": "stardewcraft:wild_oak_leaves",
+      "facing": "west"
+    },
+    {
+      "dx": -1,
+      "dy": 7,
+      "dz": -1,
+      "block": "stardewcraft:wild_oak_leaves",
+      "facing": "east"
+    },
+    {
+      "dx": -1,
+      "dy": 7,
+      "dz": 0,
+      "block": "stardewcraft:wild_oak_leaves",
+      "facing": "west"
+    },
+    {
+      "dx": 0,
+      "dy": 0,
+      "dz": 0,
+      "block": "stardewcraft:wild_oak_trunk0"
+    },
+    {
+      "dx": 0,
+      "dy": 1,
+      "dz": 0,
+      "block": "stardewcraft:wild_oak_trunk0"
+    },
+    {
+      "dx": 0,
+      "dy": 2,
+      "dz": -1,
+      "block": "stardewcraft:wild_oak_branch1",
+      "facing": "north"
+    },
+    {
+      "dx": 0,
+      "dy": 2,
+      "dz": 0,
+      "block": "stardewcraft:wild_oak_trunk1"
+    },
+    {
+      "dx": 0,
+      "dy": 3,
+      "dz": -1,
+      "block": "stardewcraft:wild_oak_leaves",
+      "facing": "north"
+    },
+    {
+      "dx": 0,
+      "dy": 3,
+      "dz": 0,
+      "block": "stardewcraft:wild_oak_trunk1"
+    },
+    {
+      "dx": 0,
+      "dy": 3,
+      "dz": 1,
+      "block": "stardewcraft:wild_oak_branch2",
+      "facing": "south"
+    },
+    {
+      "dx": 0,
+      "dy": 4,
+      "dz": 0,
+      "block": "stardewcraft:wild_oak_trunk1"
+    },
+    {
+      "dx": 0,
+      "dy": 4,
+      "dz": 1,
+      "block": "stardewcraft:wild_oak_leaves",
+      "facing": "east"
+    },
+    {
+      "dx": 0,
+      "dy": 5,
+      "dz": 0,
+      "block": "stardewcraft:wild_oak_trunk1"
+    },
+    {
+      "dx": 0,
+      "dy": 6,
+      "dz": -1,
+      "block": "stardewcraft:wild_oak_leaves",
+      "facing": "north"
+    },
+    {
+      "dx": 0,
+      "dy": 6,
+      "dz": 0,
+      "block": "stardewcraft:wild_oak_trunk1"
+    },
+    {
+      "dx": 0,
+      "dy": 6,
+      "dz": 1,
+      "block": "stardewcraft:wild_oak_leaves",
+      "facing": "south"
+    },
+    {
+      "dx": 0,
+      "dy": 7,
+      "dz": -1,
+      "block": "stardewcraft:wild_oak_leaves",
+      "facing": "east"
+    },
+    {
+      "dx": 0,
+      "dy": 7,
+      "dz": 0,
+      "block": "stardewcraft:wild_oak_leaves",
+      "facing": "east"
+    },
+    {
+      "dx": 0,
+      "dy": 7,
+      "dz": 1,
+      "block": "stardewcraft:wild_oak_leaves",
+      "facing": "south"
+    },
+    {
+      "dx": 0,
+      "dy": 8,
+      "dz": 0,
+      "block": "stardewcraft:wild_oak_leaves",
+      "facing": "south"
+    },
+    {
+      "dx": 1,
+      "dy": 4,
+      "dz": -1,
+      "block": "stardewcraft:wild_oak_leaves",
+      "facing": "north"
+    },
+    {
+      "dx": 1,
+      "dy": 4,
+      "dz": 0,
+      "block": "stardewcraft:wild_oak_branch2",
+      "facing": "east"
+    },
+    {
+      "dx": 1,
+      "dy": 4,
+      "dz": 1,
+      "block": "stardewcraft:wild_oak_leaves",
+      "facing": "south"
+    },
+    {
+      "dx": 1,
+      "dy": 5,
+      "dz": 0,
+      "block": "stardewcraft:wild_oak_leaves",
+      "facing": "east"
+    },
+    {
+      "dx": 1,
+      "dy": 6,
+      "dz": -1,
+      "block": "stardewcraft:wild_oak_leaves",
+      "facing": "north"
+    },
+    {
+      "dx": 1,
+      "dy": 6,
+      "dz": 0,
+      "block": "stardewcraft:wild_oak_leaves",
+      "facing": "east"
+    },
+    {
+      "dx": 1,
+      "dy": 7,
+      "dz": 0,
+      "block": "stardewcraft:wild_oak_leaves",
+      "facing": "east"
+    },
+    {
+      "dx": 2,
+      "dy": 4,
+      "dz": 0,
+      "block": "stardewcraft:wild_oak_leaves",
+      "facing": "east"
+    }
+  ]
+}

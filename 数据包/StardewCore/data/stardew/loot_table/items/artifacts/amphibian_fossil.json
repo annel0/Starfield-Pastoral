@@ -1,0 +1,35 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:paper",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 7378,
+                "minecraft:max_stack_size": 99,
+                "minecraft:custom_name": "{\"text\": \"两栖动物化石\", \"color\": \"white\", \"bold\": false, \"italic\": false}",
+                "minecraft:lore": [
+                  "{\"text\":\"售价：\",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"150G\",\"color\":\"gold\",\"bold\":true,\"italic\":false}]}",
+                  "{\"text\":\"物品种类：\",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"古物\",\"color\":\"light_purple\",\"bold\":true,\"italic\":false}]}",
+                  "{\"text\":\"相对较短的后腿表明这是某种原始蟾蜍。\",\"color\":\"gray\",\"italic\":false}"
+                ],
+                "minecraft:custom_data": {
+                  "stardew_item": 1,
+                  "item_type": "artifact",
+                  "artifact_type": "amphibian_fossil",
+                  "sd_price": 150
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

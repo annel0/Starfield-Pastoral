@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "#stardewcraft:hoes",
+    "#stardewcraft:watering_cans",
+    "#stardewcraft:scythes",
+    "#stardewcraft:pickaxes",
+    "#stardewcraft:fishing_rods"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:chub",
+    "stardewcraft:smallmouth_bass",
+    "stardewcraft:walleye",
+    "stardewcraft:tiger_trout",
+    "stardewcraft:catfish",
+    "stardewcraft:salmon",
+    "stardewcraft:midnight_carp",
+    "stardewcraft:sardine",
+    "stardewcraft:anchovy",
+    "stardewcraft:sea_cucumber",
+    "stardewcraft:eel",
+    "stardewcraft:albacore",
+    "stardewcraft:angler"
+  ]
+}

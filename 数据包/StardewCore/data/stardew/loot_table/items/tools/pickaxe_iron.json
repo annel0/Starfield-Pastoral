@@ -1,0 +1,47 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:carrot_on_a_stick",
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": 1
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 202,
+                "minecraft:custom_name": "[{\"text\":\"铁 \",\"color\":\"#D8D8D8\",\"bold\":true,\"italic\":false},{\"text\":\"镐\",\"color\":\"white\",\"bold\":false,\"italic\":false}]",
+                "minecraft:lore": [
+                  "{\"text\": \"📊 ⛏ 挖矿等级要求: \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"3\", \"color\": \"green\", \"bold\": true}]}",
+                  "{\"text\":\"💥 挖掘伤害: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"10\",\"color\":\"aqua\",\"bold\":true}]}",
+                  "{\"text\": \"⏰ 冷却时间: \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"0.75秒\", \"color\": \"yellow\", \"bold\": false}]}",
+                  "{\"text\": \"⚒ 可挖掘: \", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"石头、铜矿、铁矿、金矿\", \"color\": \"yellow\", \"bold\": false}]}",
+                  "{\"text\": \"💰 售价：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"无法出售\", \"color\": \"red\", \"bold\": true}]}",
+                  "{\"text\": \"🔧 物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"工具\", \"color\": \"gold\", \"bold\": true}]}",
+                  "{\"text\": \"更强的挖矿工具。\", \"color\": \"gray\", \"italic\": false}",
+                  "{\"text\": \"\"}",
+                  "{\"text\": \"用于\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"挖掘矿石\", \"color\": \"green\", \"bold\": true}, {\"text\": \"，也可以\", \"color\": \"white\", \"bold\": false}, {\"text\": \"右键\", \"color\": \"green\", \"bold\": true}, {\"text\": \"清除耕过的地面和作物\", \"color\": \"white\", \"bold\": false}]}"
+                ],
+                "minecraft:custom_data": {
+                  "stardew_item": 1,
+                  "tool_type": "pickaxe",
+                  "tier": 2,
+                  "pickaxe_damage": 10,
+                  "mining_level_required": 3
+                },
+                "minecraft:damage": 0,
+                "minecraft:max_damage": 200
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

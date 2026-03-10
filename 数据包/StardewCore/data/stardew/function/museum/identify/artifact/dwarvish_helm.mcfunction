@@ -1,0 +1,5 @@
+# 鉴定矮人头盔
+# 检查玩家是否已捐赠过此物品
+
+execute if entity @s[tag=sd_identified_dwarvish_helm] run function stardew:museum/identify_item {item_type:"artifact",item_name:"dwarvish_helm",item_cn:"矮人头盔",cmd:7348}
+execute unless entity @s[tag=sd_identified_dwarvish_helm] run function stardew:museum/cannot_identify {item_cn:"矮人头盔"}

@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:fishing_rod",
+    "stardewcraft:training_rod",
+    "stardewcraft:fiberglass_rod",
+    "stardewcraft:iridium_rod",
+    "stardewcraft:advanced_iridium_rod"
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:fishing_rod",
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": 1
+            },
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 403,
+                "minecraft:custom_name": "[{\"text\":\"金 \",\"color\":\"yellow\",\"bold\":true,\"italic\":false},{\"text\":\"钓竿\",\"color\":\"white\",\"bold\":false,\"italic\":false}]",
+                "minecraft:lore": [
+                  "{\"text\":\"📊 🎣 钓鱼等级要求: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"6\",\"color\":\"green\",\"bold\":true}]}",
+                  "{\"text\":\"💪 基础钓力: \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"4\",\"color\":\"aqua\",\"bold\":true}]}",
+                  "{\"text\":\"🎨 [渔具槽] \",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"空\",\"color\":\"dark_gray\",\"bold\":false}]}",
+                  "{\"text\":\"💰 售价：\",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"无法出售\",\"color\":\"red\",\"bold\":true}]}",
+                  "{\"text\": \"🔧 物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"工具\", \"color\": \"gold\", \"bold\": true}]}",
+                  "{\"text\":\"🔨 一把金制的优良钓竿。\",\"color\":\"gray\",\"italic\":false}"
+                ],
+                "minecraft:custom_data": {
+                  "fish_power": 4,
+                  "min_level": 6,
+                  "tackle_1": 0,
+                  "stardew_item": 1,
+                  "tool_type": "fishing_rod",
+                  "tier": 3
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

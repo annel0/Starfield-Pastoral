@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:loot_table",
+          "value": "stardew:items/weapon/wood_club",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:loot_table",
+          "value": "stardew:items/rings/small_glow_ring",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:loot_table",
+          "value": "stardew:items/rings/small_magnet_ring",
+          "weight": 1
+        }
+      ]
+    }
+  ]
+}

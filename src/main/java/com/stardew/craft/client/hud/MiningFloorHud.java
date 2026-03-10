@@ -1,0 +1,95 @@
+package com.stardew.craft.client.hud;
+
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.stardew.craft.StardewCraft;
+import com.stardew.craft.core.ModMiningDimensions;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RenderGuiEvent;
+
+/**
+ * 矿井层数显示 HUD - 显示在左上角
+ */
+@EventBusSubscriber(modid = StardewCraft.MODID, value = Dist.CLIENT)
+public class MiningFloorHud {
+    
+    // empty_slot 背景图（16x16）
+    private static final ResourceLocation EMPTY_SLOT = ResourceLocation.fromNamespaceAndPath(
+        StardewCraft.MODID, "textures/gui/jei/empty_slot.png"
+    );
+    
+    // 客户端缓存的当前层数（由网络包同步）
+    private static int currentFloor = 0;
+    
+    /**
+     * 更新客户端的层数显示
+     */
+    public static void setCurrentFloor(int floor) {
+        currentFloor = floor;
+    }
+
+    public static int getCurrentFloor() {
+        return currentFloor;
+    }
+    
+    /**
+     * 渲染层数 HUD
+     */
+    @SuppressWarnings("null")
+    @SubscribeEvent
+    public static void onRenderGui(RenderGuiEvent.Post event) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || mc.level == null) {
+            return;
+        }
+        
+        // 只在矿井维度显示
+        if (mc.level.dimension() != ModMiningDimensions.STARDEW_MINING) {
+            return;
+        }
+        
+        GuiGraphics guiGraphics = event.getGuiGraphics();
+        Font font = mc.font;
+        
+        // 左上角位置
+        int x = 10;
+        int y = 10;
+        
+        // 绘制 empty_slot 背景，放大2倍（32x32）
+        // 使用正确的blit方法：指定屏幕坐标、UV坐标、宽高、纹理总大小
+        RenderSystem.enableBlend();
+        guiGraphics.blit(EMPTY_SLOT, 
+            x, y,           // 屏幕坐标
+            0, 0,           // UV起点
+            32, 32,         // 渲染宽高（放大2倍）
+            32, 32);        // 纹理总大小（16x16拉伸到32x32）
+        
+        // 层数文本
+        String floorText = String.valueOf(currentFloor);
+        
+        // 栗色（Maroon） RGB(128, 0, 0) = 0x800000
+        int color = 0xFF800000;
+        
+        // 计算文字居中位置
+        // 纹理empty_slot.png是16x16，可显示区域原始是 7,6 到 22,21（宽15 高15）
+        // 放大2倍后：14,12 到 44,42（宽30 高30）
+        // 中心点应该在：x + 14 + 30/2 = x + 29, y + 12 + 30/2 = y + 27
+        @SuppressWarnings("null")
+        int textWidth = font.width(floorText);
+        int textHeight = font.lineHeight;
+        
+        // 但实际上empty_slot的中心应该是32x32的正中央：x+16, y+16
+        int textX = x + 16 - textWidth / 2;
+        int textY = y + 16 - textHeight / 2;
+        
+        // 绘制文字（启用阴影=加粗效果）
+        guiGraphics.drawString(font, floorText, textX, textY, color, true);
+        
+        RenderSystem.disableBlend();
+    }
+}

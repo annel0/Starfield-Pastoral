@@ -1,0 +1,48 @@
+{
+    "pools": [
+        {
+            "rolls": 1,
+            "entries": [
+                {
+                    "functions": [
+                        {
+                            "function": "minecraft:set_count",
+                            "count": 1
+                        },
+                        {
+                            "function": "minecraft:set_components",
+                            "components": {
+                                "minecraft:custom_model_data": 42992,
+                                "minecraft:custom_name": "[{\"text\":\"金星 \",\"color\":\"gold\",\"bold\":true,\"italic\":false},{\"text\":\"传说级 \",\"color\":\"gold\",\"bold\":true,\"italic\":false},{\"text\":\"深红鱼\",\"color\":\"white\",\"bold\":false,\"italic\":false}]",
+                                "minecraft:custom_data": {
+                                    "stardew_item": 1,
+                                    "stardew_fish": true,
+                                    "is_food": 0,
+                                    "item_type": "fish",
+                                    "fish_id": "crimsonfish",
+                                    "quality": "gold",
+                                    "fish_tier": 3,
+                                    "sd_price": 2250,
+                                    "food_health": 0,
+                                    "food_energy": 0,
+                                    "is_legendary": true,
+                                    "is_poisonous": false
+                                },
+                                "minecraft:lore": [
+                                    "{\"text\": \"售价：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"2250G\", \"color\": \"gold\", \"bold\": true}]}",
+                                    "{\"text\": \"物品种类：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"鱼类\", \"color\": \"aqua\", \"bold\": true}]}",
+                                    "{\"text\": \"难度等级：\", \"color\": \"white\", \"italic\": false, \"extra\": [{\"text\": \"👑 传说级\", \"color\": \"gold\", \"bold\": true}]}",
+                                    "{\"text\": \"生活在深海中，但喜欢在温暖的夏季水域产卵。\", \"color\": \"dark_gray\", \"italic\": false}"
+                                ],
+                                "minecraft:max_stack_size": 99
+                            }
+                        }
+                    ],
+                    "type": "minecraft:item",
+                    "name": "minecraft:paper"
+                }
+            ]
+        }
+    ],
+    "type": "minecraft:command"
+}

@@ -1,0 +1,32 @@
+{
+  "common_mushroom": {
+    "price": 40,
+    "edibility": 15,
+    "color": "#8B4513"
+  },
+  "red_mushroom": {
+    "price": 75,
+    "edibility": -20,
+    "color": "#DC0000"
+  },
+  "purple_mushroom": {
+    "price": 250,
+    "edibility": 50,
+    "color": "#7329B5"
+  },
+  "morel": {
+    "price": 150,
+    "edibility": 8,
+    "color": "#824925"
+  },
+  "chanterelle": {
+    "price": 160,
+    "edibility": 30,
+    "color": "#FF8000"
+  },
+  "magma_cap": {
+    "price": 400,
+    "edibility": 70,
+    "color": "#FF1493"
+  }
+}

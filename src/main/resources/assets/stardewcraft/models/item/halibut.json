@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": { "layer0": "stardewcraft:item/fish/ocean/halibut" },
+  "overrides": [
+    { "predicate": { "custom_model_data": 1 }, "model": "stardewcraft:item/halibut_silver" },
+    { "predicate": { "custom_model_data": 2 }, "model": "stardewcraft:item/halibut_gold" },
+    { "predicate": { "custom_model_data": 3 }, "model": "stardewcraft:item/halibut_iridium" }
+  ]
+}

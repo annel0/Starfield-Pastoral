@@ -1,0 +1,35 @@
+﻿{
+    "type":  "minecraft:command",
+    "pools":  [
+                  {
+                      "rolls":  1,
+                      "entries":  [
+                                      {
+                                          "type":  "minecraft:item",
+                                          "name":  "minecraft:paper",
+                                          "functions":  [
+                                                            {
+                                                                "function":  "minecraft:set_components",
+                                                                "components":  {
+                                                                                   "minecraft:custom_model_data":  40020,
+                                                                                   "minecraft:custom_data":  {
+                                                                                                                 "sd_price":  0,
+                                                                                                                 "stardew_item":  1,
+                                                                                                                 "item_type":  "trash"
+                                                                                                             },
+                                                                                   "minecraft:custom_name":  "[{\"text\":\"垃圾\",\"color\":\"gray\",\"bold\":false,\"italic\":false}]",
+                                                                                   "minecraft:lore":  [
+                                                                                                          "{\"text\":\"售价：\",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"0G\",\"color\":\"gold\",\"bold\":true}]}",
+                                                                                                          "{\"text\":\"物品种类：\",\"color\":\"white\",\"italic\":false,\"extra\":[{\"text\":\"垃圾\",\"color\":\"gray\",\"bold\":true}]}",
+                                                                                                          "{\"text\":\"仅仅是一堆生活垃圾。\",\"color\":\"gray\",\"italic\":false}",
+                                                                                                          "{\"text\":\"没什么用处。\",\"color\":\"dark_gray\",\"italic\":false}"
+                                                                                                      ],
+                                                                                   "minecraft:max_stack_size":  99
+                                                                               }
+                                                            }
+                                                        ]
+                                      }
+                                  ]
+                  }
+              ]
+}

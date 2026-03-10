@@ -1,0 +1,17 @@
+{
+  "machine": "crystalarium",
+  "recipes": [
+    { "input": "stardewcraft:quartz", "minutes": 420, "outputMode": "copy_input" },
+    { "input": "stardewcraft:earth_crystal", "minutes": 800, "outputMode": "copy_input" },
+    { "input": "stardewcraft:frozen_tear", "minutes": 1120, "outputMode": "copy_input" },
+    { "input": "stardewcraft:amethyst", "minutes": 1360, "outputMode": "copy_input" },
+    { "input": "stardewcraft:topaz", "minutes": 1120, "outputMode": "copy_input" },
+    { "input": "stardewcraft:jade", "minutes": 2400, "outputMode": "copy_input" },
+    { "input": "stardewcraft:ruby", "minutes": 3000, "outputMode": "copy_input" },
+    { "input": "stardewcraft:emerald", "minutes": 3000, "outputMode": "copy_input" },
+    { "input": "stardewcraft:aquamarine", "minutes": 2240, "outputMode": "copy_input" },
+    { "input": "stardewcraft:diamond", "minutes": 7200, "outputMode": "copy_input" },
+    { "input": "stardewcraft:fire_quartz", "minutes": 1300, "outputMode": "copy_input" },
+    { "inputMode": "mineral_type", "minutes": 5000, "outputMode": "copy_input" }
+  ]
+}

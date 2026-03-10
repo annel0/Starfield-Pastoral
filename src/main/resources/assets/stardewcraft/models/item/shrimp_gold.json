@@ -1,0 +1,4 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": { "layer0": "stardewcraft:item/fish/crabpot/shrimp", "layer1": "stardewcraft:item/quality/gold_star" }
+}

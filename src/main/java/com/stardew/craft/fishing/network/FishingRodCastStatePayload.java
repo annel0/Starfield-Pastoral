@@ -1,0 +1,51 @@
+package com.stardew.craft.fishing.network;
+
+import com.stardew.craft.StardewCraft;
+import com.stardew.craft.item.tool.FishingRodItem;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.jetbrains.annotations.NotNull;
+
+public record FishingRodCastStatePayload(boolean active) implements CustomPacketPayload {
+	@SuppressWarnings("null")
+	public static final Type<FishingRodCastStatePayload> TYPE = new Type<>(
+			ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "fishing_cast_state")
+	);
+
+	@SuppressWarnings("null")
+	public static final StreamCodec<ByteBuf, FishingRodCastStatePayload> STREAM_CODEC = StreamCodec.composite(
+			ByteBufCodecs.BOOL,
+			FishingRodCastStatePayload::active,
+			FishingRodCastStatePayload::new
+	);
+
+	@Override
+	public @NotNull Type<? extends CustomPacketPayload> type() {
+		return TYPE;
+	}
+
+	public static void handle(FishingRodCastStatePayload payload, IPayloadContext context) {
+		context.enqueueWork(() -> {
+			Minecraft mc = Minecraft.getInstance();
+			if (mc.player == null) {
+				return;
+			}
+			boolean active = payload.active();
+			@SuppressWarnings("null")
+			var main = mc.player.getMainHandItem();
+			if (!main.isEmpty() && main.getItem() instanceof FishingRodItem) {
+				FishingRodItem.setCastActive(main, active);
+			}
+			@SuppressWarnings("null")
+			var off = mc.player.getOffhandItem();
+			if (!off.isEmpty() && off.getItem() instanceof FishingRodItem) {
+				FishingRodItem.setCastActive(off, active);
+			}
+		});
+	}
+}

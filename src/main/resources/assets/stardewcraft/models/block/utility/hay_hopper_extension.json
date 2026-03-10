@@ -1,0 +1,9 @@
+﻿{
+    "ambientocclusion":  false,
+    "elements":  [
+
+                 ],
+    "textures":  {
+                     "particle":  "stardewcraft:block/utility/hay_hopper"
+                 }
+}

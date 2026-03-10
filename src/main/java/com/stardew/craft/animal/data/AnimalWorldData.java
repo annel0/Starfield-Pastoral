@@ -1,0 +1,662 @@
+package com.stardew.craft.animal.data;
+
+import com.stardew.craft.animal.model.AnimalAcquisitionSource;
+import com.stardew.craft.animal.model.AnimalBuildingRecord;
+import com.stardew.craft.animal.model.AnimalBuildingType;
+import com.stardew.craft.animal.model.AnimalTypeCatalog;
+import com.stardew.craft.animal.model.FarmAnimalRecord;
+import com.stardew.craft.time.StardewTimeManager;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.saveddata.SavedData;
+import javax.annotation.Nonnull;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+
+public class AnimalWorldData extends SavedData {
+    private static final String DATA_NAME = "stardew_animal_world";
+
+    private final Map<String, AnimalBuildingRecord> buildings = new LinkedHashMap<>();
+    private final Map<Long, FarmAnimalRecord> animals = new LinkedHashMap<>();
+    private final Map<String, Integer> hayByOwner = new LinkedHashMap<>();
+    private long nextBuildingId = 1L;
+    private long nextAnimalId = 1L;
+
+    public String createBuilding(ServerLevel level,
+                                 AnimalBuildingType buildingType,
+                                 UUID ownerPlayerId,
+                                 BlockPos managerPos,
+                                 int range,
+                                 String customName,
+                                 int capacity) {
+        String buildingId = buildingType.family() + "_" + nextBuildingId++;
+        int maxCapacity = capacity > 0 ? capacity : buildingType.defaultCapacity();
+        int hayCapacity = buildingType.hayCapacity();
+
+        int minX = managerPos.getX() - range;
+        int minY = managerPos.getY() - range;
+        int minZ = managerPos.getZ() - range;
+        int maxX = managerPos.getX() + range;
+        int maxY = managerPos.getY() + range;
+        int maxZ = managerPos.getZ() + range;
+
+        AnimalBuildingRecord record = new AnimalBuildingRecord(
+            buildingId,
+            ownerPlayerId.toString(),
+            buildingType,
+            customName,
+            level.dimension().location().toString(),
+            managerPos.immutable(),
+            range,
+            minX,
+            minY,
+            minZ,
+            maxX,
+            maxY,
+            maxZ,
+            maxCapacity,
+            hayCapacity,
+            true,
+            false,
+            Collections.emptySet(),
+            Collections.emptySet(),
+            new java.util.LinkedHashSet<>()
+        );
+
+        buildings.put(buildingId, record);
+        hayByOwner.putIfAbsent(ownerPlayerId.toString(), 0);
+        clampHayToCapacity(ownerPlayerId.toString());
+        setDirty();
+        return buildingId;
+    }
+
+    public void renameBuilding(String buildingId, String customName) {
+        AnimalBuildingRecord record = requireBuilding(buildingId);
+        record.setCustomName(customName);
+        setDirty();
+    }
+
+    public void toggleDoor(String buildingId, boolean doorOpen) {
+        AnimalBuildingRecord record = requireBuilding(buildingId);
+        record.setDoorOpen(doorOpen);
+        setDirty();
+    }
+
+    public void removeBuilding(String buildingId) {
+        AnimalBuildingRecord record = requireBuilding(buildingId);
+        if (!record.memberAnimalIds().isEmpty()) {
+            throw new IllegalStateException("Building has animals bound: " + record.memberAnimalIds().size());
+        }
+        buildings.remove(buildingId);
+        clampHayToCapacity(record.ownerPlayerUuid());
+        setDirty();
+    }
+
+    public int getHayAmount(UUID ownerPlayerId) {
+        return hayByOwner.getOrDefault(ownerPlayerId.toString(), 0);
+    }
+
+    public int getHayCapacity(UUID ownerPlayerId) {
+        String owner = ownerPlayerId.toString();
+        int total = 0;
+        for (AnimalBuildingRecord record : buildings.values()) {
+            if (owner.equals(record.ownerPlayerUuid())) {
+                total += Math.max(0, record.hayCapacity());
+            }
+        }
+        return total;
+    }
+
+    public boolean hasAnySilo(UUID ownerPlayerId) {
+        return getHayCapacity(ownerPlayerId) > 0;
+    }
+
+    public boolean hasAnyStoredHay() {
+        for (int pieces : hayByOwner.values()) {
+            if (pieces > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public int storeHay(UUID ownerPlayerId, int amount) {
+        if (amount <= 0) {
+            return 0;
+        }
+        String owner = ownerPlayerId.toString();
+        int capacity = getHayCapacity(ownerPlayerId);
+        if (capacity <= 0) {
+            return 0;
+        }
+        int current = hayByOwner.getOrDefault(owner, 0);
+        int free = Math.max(0, capacity - current);
+        int stored = Math.min(free, amount);
+        hayByOwner.put(owner, current + stored);
+        setDirty();
+        return stored;
+    }
+
+    public int takeHay(UUID ownerPlayerId, int amount) {
+        if (amount <= 0) {
+            return 0;
+        }
+        String owner = ownerPlayerId.toString();
+        int current = hayByOwner.getOrDefault(owner, 0);
+        int removed = Math.min(current, amount);
+        hayByOwner.put(owner, current - removed);
+        setDirty();
+        return removed;
+    }
+
+    public int takeHayFromAnyOwner(int amount) {
+        if (amount <= 0) {
+            return 0;
+        }
+        for (Map.Entry<String, Integer> entry : hayByOwner.entrySet()) {
+            int current = entry.getValue();
+            if (current <= 0) {
+                continue;
+            }
+            int removed = Math.min(current, amount);
+            entry.setValue(current - removed);
+            setDirty();
+            return removed;
+        }
+        return 0;
+    }
+
+    public FarmAnimalRecord createAnimal(String animalTypeId,
+                                         String customName,
+                                         String buildingId,
+                                         AnimalAcquisitionSource source) {
+        AnimalBuildingRecord building = requireBuilding(buildingId);
+        if (!building.hasCapacity()) {
+            throw new IllegalStateException("Building capacity exceeded: " + building.buildingId());
+        }
+
+        StardewTimeManager time = StardewTimeManager.get();
+        AnimalTypeCatalog.AnimalTypeSpec typeSpec = AnimalTypeCatalog.resolve(animalTypeId);
+        long animalId = nextAnimalId++;
+        FarmAnimalRecord animalRecord = new FarmAnimalRecord(
+            animalId,
+            animalTypeId,
+            customName,
+            buildingId,
+            source,
+            time.getCurrentDay(),
+            time.getCurrentSeason(),
+            time.getCurrentYear(),
+            0,
+            typeSpec.daysToMature()
+        );
+
+        animals.put(animalId, animalRecord);
+        building.addAnimal(animalId);
+        setDirty();
+        return animalRecord;
+    }
+
+    public int advanceAnimalGrowthOneDay() {
+        if (animals.isEmpty()) {
+            return 0;
+        }
+        int maturedToday = 0;
+        for (FarmAnimalRecord record : animals.values()) {
+            boolean wasBaby = record.isBaby();
+            record.incrementAgeDays(1);
+            if (wasBaby && !record.isBaby()) {
+                maturedToday++;
+            }
+        }
+        setDirty();
+        return maturedToday;
+    }
+
+    public Optional<AnimalBuildingRecord> getBuilding(String buildingId) {
+        AnimalBuildingRecord record = buildings.get(buildingId);
+        if (record == null || !record.active()) {
+            return Optional.empty();
+        }
+        return Optional.of(record);
+    }
+
+    public Optional<AnimalBuildingRecord> getBuildingIncludingInactive(String buildingId) {
+        return Optional.ofNullable(buildings.get(buildingId));
+    }
+
+    public Collection<AnimalBuildingRecord> getBuildings() {
+        List<AnimalBuildingRecord> active = new ArrayList<>();
+        for (AnimalBuildingRecord record : buildings.values()) {
+            if (record.active()) {
+                active.add(record);
+            }
+        }
+        return Collections.unmodifiableList(active);
+    }
+
+    public Optional<AnimalBuildingRecord> findBuildingByManager(String dimensionId,
+                                                                UUID ownerPlayerId,
+                                                                String family,
+                                                                BlockPos managerPos) {
+        String owner = ownerPlayerId.toString();
+        for (AnimalBuildingRecord record : buildings.values()) {
+            if (!dimensionId.equals(record.dimensionId())) {
+                continue;
+            }
+            if (!owner.equals(record.ownerPlayerUuid())) {
+                continue;
+            }
+            if (!family.equalsIgnoreCase(record.buildingType().family())) {
+                continue;
+            }
+            if (!managerPos.equals(record.managerPos())) {
+                continue;
+            }
+            return Optional.of(record);
+        }
+        return Optional.empty();
+    }
+
+    public Optional<AnimalBuildingRecord> findBuildingByManagerAnyOwner(String dimensionId,
+                                                                         String family,
+                                                                         BlockPos managerPos) {
+        for (AnimalBuildingRecord record : buildings.values()) {
+            if (!dimensionId.equals(record.dimensionId())) {
+                continue;
+            }
+            if (!family.equalsIgnoreCase(record.buildingType().family())) {
+                continue;
+            }
+            if (!managerPos.equals(record.managerPos())) {
+                continue;
+            }
+            return Optional.of(record);
+        }
+        return Optional.empty();
+    }
+
+    public boolean moveBuildingManagerFromItem(String buildingId,
+                                               UUID ownerPlayerId,
+                                               String dimensionId,
+                                               BlockPos newManagerPos,
+                                               String family) {
+        AnimalBuildingRecord existing = buildings.get(buildingId);
+        if (existing == null) {
+            return false;
+        }
+        if (!ownerPlayerId.toString().equals(existing.ownerPlayerUuid())) {
+            return false;
+        }
+        if (!dimensionId.equals(existing.dimensionId())) {
+            return false;
+        }
+        if (!family.equalsIgnoreCase(existing.buildingType().family())) {
+            return false;
+        }
+
+        int range = Math.max(
+            Math.max(Math.abs(newManagerPos.getX() - existing.minX()), Math.abs(existing.maxX() - newManagerPos.getX())),
+            Math.max(
+                Math.max(Math.abs(newManagerPos.getY() - existing.minY()), Math.abs(existing.maxY() - newManagerPos.getY())),
+                Math.max(Math.abs(newManagerPos.getZ() - existing.minZ()), Math.abs(existing.maxZ() - newManagerPos.getZ()))
+            )
+        );
+
+        AnimalBuildingRecord moved = new AnimalBuildingRecord(
+            existing.buildingId(),
+            existing.ownerPlayerUuid(),
+            existing.buildingType(),
+            existing.customName(),
+            existing.dimensionId(),
+            newManagerPos.immutable(),
+            range,
+            existing.minX(),
+            existing.minY(),
+            existing.minZ(),
+            existing.maxX(),
+            existing.maxY(),
+            existing.maxZ(),
+            existing.capacity(),
+            existing.hayCapacity(),
+            false,
+            existing.doorOpen(),
+            Collections.emptySet(),
+            Collections.emptySet(),
+            new java.util.LinkedHashSet<>(existing.memberAnimalIds())
+        );
+
+        buildings.put(buildingId, moved);
+        setDirty();
+        return true;
+    }
+
+    public int deactivateBuildingForRelocation(String buildingId) {
+        AnimalBuildingRecord existing = requireBuildingIncludingInactive(buildingId);
+        AnimalBuildingRecord inactive = new AnimalBuildingRecord(
+            existing.buildingId(),
+            existing.ownerPlayerUuid(),
+            existing.buildingType(),
+            existing.customName(),
+            existing.dimensionId(),
+            existing.managerPos(),
+            existing.range(),
+            existing.minX(),
+            existing.minY(),
+            existing.minZ(),
+            existing.maxX(),
+            existing.maxY(),
+            existing.maxZ(),
+            existing.capacity(),
+            existing.hayCapacity(),
+            false,
+            existing.doorOpen(),
+            Collections.emptySet(),
+            Collections.emptySet(),
+            new java.util.LinkedHashSet<>(existing.memberAnimalIds())
+        );
+        buildings.put(buildingId, inactive);
+        setDirty();
+        return inactive.memberAnimalIds().size();
+    }
+
+    public int demolishBuildingAndRemoveAnimals(String buildingId) {
+        AnimalBuildingRecord existing = requireBuildingIncludingInactive(buildingId);
+        int removedAnimals = 0;
+        for (Long animalId : new ArrayList<>(existing.memberAnimalIds())) {
+            if (animals.remove(animalId) != null) {
+                removedAnimals++;
+            }
+        }
+        buildings.remove(buildingId);
+        clampHayToCapacity(existing.ownerPlayerUuid());
+        setDirty();
+        return removedAnimals;
+    }
+
+    public String createOrUpdateBuildingAtManager(ServerLevel level,
+                                                  AnimalBuildingType buildingType,
+                                                  UUID ownerPlayerId,
+                                                  BlockPos managerPos,
+                                                  String customName,
+                                                  int minX,
+                                                  int minY,
+                                                  int minZ,
+                                                  int maxX,
+                                                  int maxY,
+                                                  int maxZ,
+                                                  Set<Long> interiorAirCells,
+                                                  Set<Long> boundaryDoorCells) {
+        String owner = ownerPlayerId.toString();
+        String dimensionId = level.dimension().location().toString();
+
+        Optional<AnimalBuildingRecord> existingOpt = findBuildingByManager(
+            dimensionId,
+            ownerPlayerId,
+            buildingType.family(),
+            managerPos
+        );
+
+        int range = Math.max(
+            Math.max(Math.abs(managerPos.getX() - minX), Math.abs(maxX - managerPos.getX())),
+            Math.max(
+                Math.max(Math.abs(managerPos.getY() - minY), Math.abs(maxY - managerPos.getY())),
+                Math.max(Math.abs(managerPos.getZ() - minZ), Math.abs(maxZ - managerPos.getZ()))
+            )
+        );
+
+        if (existingOpt.isPresent()) {
+            AnimalBuildingRecord existing = existingOpt.get();
+            if (buildingType.tier() < existing.buildingType().tier()) {
+                throw new IllegalArgumentException("Cannot downgrade building tier: " + existing.buildingId());
+            }
+
+            AnimalBuildingRecord updated = new AnimalBuildingRecord(
+                existing.buildingId(),
+                owner,
+                buildingType,
+                existing.customName() == null || existing.customName().isBlank() ? customName : existing.customName(),
+                dimensionId,
+                managerPos.immutable(),
+                range,
+                minX,
+                minY,
+                minZ,
+                maxX,
+                maxY,
+                maxZ,
+                buildingType.defaultCapacity(),
+                buildingType.hayCapacity(),
+                true,
+                existing.doorOpen(),
+                interiorAirCells,
+                boundaryDoorCells,
+                new java.util.LinkedHashSet<>(existing.memberAnimalIds())
+            );
+
+            buildings.put(existing.buildingId(), updated);
+            hayByOwner.putIfAbsent(owner, 0);
+            clampHayToCapacity(owner);
+            setDirty();
+            return existing.buildingId();
+        }
+
+        String buildingId = buildingType.family() + "_" + nextBuildingId++;
+        AnimalBuildingRecord created = new AnimalBuildingRecord(
+            buildingId,
+            owner,
+            buildingType,
+            customName,
+            dimensionId,
+            managerPos.immutable(),
+            range,
+            minX,
+            minY,
+            minZ,
+            maxX,
+            maxY,
+            maxZ,
+            buildingType.defaultCapacity(),
+            buildingType.hayCapacity(),
+            true,
+            false,
+            interiorAirCells,
+            boundaryDoorCells,
+            new java.util.LinkedHashSet<>()
+        );
+
+        buildings.put(buildingId, created);
+        hayByOwner.putIfAbsent(owner, 0);
+        clampHayToCapacity(owner);
+        setDirty();
+        return buildingId;
+    }
+
+    public Optional<AnimalBuildingRecord> findBuildingAt(String dimensionId, BlockPos pos, UUID ownerPlayerId, Set<String> buildingFamilies) {
+        String owner = ownerPlayerId.toString();
+        for (AnimalBuildingRecord record : buildings.values()) {
+            if (!dimensionId.equals(record.dimensionId())) {
+                continue;
+            }
+            if (!owner.equals(record.ownerPlayerUuid())) {
+                continue;
+            }
+            if (!buildingFamilies.contains(record.buildingType().family())) {
+                continue;
+            }
+            if (!record.active()) {
+                continue;
+            }
+            if (record.isInBounds(pos)) {
+                return Optional.of(record);
+            }
+        }
+        return Optional.empty();
+    }
+
+    public Collection<FarmAnimalRecord> getAnimals() {
+        return animals.values();
+    }
+
+    public Optional<FarmAnimalRecord> getAnimal(long animalId) {
+        return Optional.ofNullable(animals.get(animalId));
+    }
+
+    public boolean setAllowReproduction(long animalId, boolean allowReproduction) {
+        FarmAnimalRecord record = animals.get(animalId);
+        if (record == null) {
+            return false;
+        }
+        record.setAllowReproduction(allowReproduction);
+        setDirty();
+        return true;
+    }
+
+    public boolean removeAnimal(long animalId) {
+        FarmAnimalRecord removed = animals.remove(animalId);
+        if (removed == null) {
+            return false;
+        }
+        AnimalBuildingRecord building = buildings.get(removed.buildingId());
+        if (building != null) {
+            building.removeAnimal(animalId);
+        }
+        setDirty();
+        return true;
+    }
+
+    public void resetDailyPetFlags() {
+        if (animals.isEmpty()) {
+            return;
+        }
+        for (FarmAnimalRecord record : animals.values()) {
+            record.setWasPetToday(false);
+            record.setWasAutoPetToday(false);
+        }
+        setDirty();
+    }
+
+    public void markChanged() {
+        setDirty();
+    }
+
+    private AnimalBuildingRecord requireBuilding(String buildingId) {
+        AnimalBuildingRecord record = buildings.get(buildingId);
+        if (record == null) {
+            throw new IllegalArgumentException("Building not found: " + buildingId);
+        }
+        return record;
+    }
+
+    private AnimalBuildingRecord requireBuildingIncludingInactive(String buildingId) {
+        AnimalBuildingRecord record = buildings.get(buildingId);
+        if (record == null) {
+            throw new IllegalArgumentException("Building not found: " + buildingId);
+        }
+        return record;
+    }
+
+    @Override
+    @SuppressWarnings("null")
+    public CompoundTag save(@Nonnull CompoundTag tag, @Nonnull net.minecraft.core.HolderLookup.Provider provider) {
+        tag.putLong("nextBuildingId", nextBuildingId);
+        tag.putLong("nextAnimalId", nextAnimalId);
+
+        ListTag buildingList = new ListTag();
+        for (AnimalBuildingRecord record : buildings.values()) {
+            buildingList.add(record.save());
+        }
+        tag.put("buildings", buildingList);
+
+        ListTag animalList = new ListTag();
+        for (FarmAnimalRecord record : animals.values()) {
+            animalList.add(record.save());
+        }
+        tag.put("animals", animalList);
+
+        ListTag hayList = new ListTag();
+        for (Map.Entry<String, Integer> entry : hayByOwner.entrySet()) {
+            CompoundTag hayTag = new CompoundTag();
+            hayTag.putString("ownerPlayerUuid", entry.getKey());
+            hayTag.putInt("pieces", entry.getValue());
+            hayList.add(hayTag);
+        }
+        tag.put("hayByOwner", hayList);
+        return tag;
+    }
+
+    public static AnimalWorldData load(CompoundTag tag, net.minecraft.core.HolderLookup.Provider provider) {
+        AnimalWorldData data = new AnimalWorldData();
+        data.nextBuildingId = tag.contains("nextBuildingId") ? tag.getLong("nextBuildingId") : 1L;
+        data.nextAnimalId = tag.contains("nextAnimalId") ? tag.getLong("nextAnimalId") : 1L;
+
+        if (tag.contains("buildings", Tag.TAG_LIST)) {
+            ListTag buildingList = tag.getList("buildings", Tag.TAG_COMPOUND);
+            for (int i = 0; i < buildingList.size(); i++) {
+                CompoundTag buildingTag = buildingList.getCompound(i);
+                AnimalBuildingRecord record = AnimalBuildingRecord.load(buildingTag);
+                data.buildings.put(record.buildingId(), record);
+            }
+        }
+
+        if (tag.contains("animals", Tag.TAG_LIST)) {
+            ListTag animalList = tag.getList("animals", Tag.TAG_COMPOUND);
+            for (int i = 0; i < animalList.size(); i++) {
+                CompoundTag animalTag = animalList.getCompound(i);
+                FarmAnimalRecord record = FarmAnimalRecord.load(animalTag);
+                data.animals.put(record.animalId(), record);
+            }
+        }
+
+        if (tag.contains("hayByOwner", Tag.TAG_LIST)) {
+            ListTag hayList = tag.getList("hayByOwner", Tag.TAG_COMPOUND);
+            for (int i = 0; i < hayList.size(); i++) {
+                CompoundTag hayTag = hayList.getCompound(i);
+                String owner = hayTag.getString("ownerPlayerUuid");
+                int pieces = hayTag.getInt("pieces");
+                data.hayByOwner.put(owner, Math.max(0, pieces));
+            }
+        }
+
+        for (AnimalBuildingRecord record : data.buildings.values()) {
+            if (!record.ownerPlayerUuid().isEmpty()) {
+                data.hayByOwner.putIfAbsent(record.ownerPlayerUuid(), 0);
+                data.clampHayToCapacity(record.ownerPlayerUuid());
+            }
+        }
+
+        return data;
+    }
+
+    private void clampHayToCapacity(String ownerUuid) {
+        int capacity = 0;
+        for (AnimalBuildingRecord record : buildings.values()) {
+            if (ownerUuid.equals(record.ownerPlayerUuid())) {
+                capacity += Math.max(0, record.hayCapacity());
+            }
+        }
+        int current = hayByOwner.getOrDefault(ownerUuid, 0);
+        if (current > capacity) {
+            hayByOwner.put(ownerUuid, capacity);
+        }
+    }
+
+    public static AnimalWorldData get(ServerLevel level) {
+        ServerLevel overworld = level.getServer().overworld();
+        return overworld.getDataStorage().computeIfAbsent(
+            new SavedData.Factory<>(AnimalWorldData::new, AnimalWorldData::load),
+            DATA_NAME
+        );
+    }
+}

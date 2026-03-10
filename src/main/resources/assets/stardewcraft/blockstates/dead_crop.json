@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "variant=0": {
+      "model": "stardewcraft:block/crops/dead/dead_crop_0"
+    },
+    "variant=1": {
+      "model": "stardewcraft:block/crops/dead/dead_crop_1"
+    },
+    "variant=2": {
+      "model": "stardewcraft:block/crops/dead/dead_crop_2"
+    },
+    "variant=3": {
+      "model": "stardewcraft:block/crops/dead/dead_crop_3"
+    }
+  }
+}

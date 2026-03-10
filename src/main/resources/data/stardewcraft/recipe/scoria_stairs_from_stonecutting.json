@@ -1,0 +1,5 @@
+﻿{
+  "type": "minecraft:stonecutting",
+  "ingredient": { "item": "stardewcraft:scoria" },
+  "result": { "count": 1, "id": "stardewcraft:scoria_stairs" }
+}

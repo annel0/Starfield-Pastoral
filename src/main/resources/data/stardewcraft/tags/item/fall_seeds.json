@@ -1,0 +1,20 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:eggplant_seeds",
+    "stardewcraft:bok_choy_seeds",
+    "stardewcraft:cranberry_seeds",
+    "stardewcraft:pumpkin_seeds",
+    "stardewcraft:yam_seeds",
+    "stardewcraft:amaranth_seeds",
+    "stardewcraft:grape_seeds",
+    "stardewcraft:artichoke_seeds",
+    "stardewcraft:fairy_rose_seeds",
+    "stardewcraft:beet_seeds",
+    "stardewcraft:wheat_seeds",
+    "stardewcraft:corn_seeds",
+    "stardewcraft:sunflower_seeds",
+    "stardewcraft:broccoli_seeds",
+    "stardewcraft:ancient_fruit_seeds"
+  ]
+}

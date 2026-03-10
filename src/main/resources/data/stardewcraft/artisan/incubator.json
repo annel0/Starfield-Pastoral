@@ -1,0 +1,13 @@
+{
+  "machine": "incubator",
+  "recipes": [
+    { "input": "stardewcraft:egg_white", "outputMode": "copy_input", "minutes": 9000 },
+    { "input": "stardewcraft:egg_brown", "outputMode": "copy_input", "minutes": 9000 },
+    { "input": "stardewcraft:large_egg_white", "outputMode": "copy_input", "minutes": 9000 },
+    { "input": "stardewcraft:large_egg_brown", "outputMode": "copy_input", "minutes": 9000 },
+    { "input": "stardewcraft:duck_egg", "outputMode": "copy_input", "minutes": 9000 },
+    { "input": "stardewcraft:void_egg", "outputMode": "copy_input", "minutes": 9000 },
+    { "input": "stardewcraft:golden_egg", "outputMode": "copy_input", "minutes": 9000 },
+    { "input": "stardewcraft:dinosaur_egg", "outputMode": "copy_input", "minutes": 9000 }
+  ]
+}

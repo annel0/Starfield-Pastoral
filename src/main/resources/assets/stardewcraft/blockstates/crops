@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "growth_stage=1": {
+      "model": "stardewcraft:block/parsnip_stage1"
+    },
+    "growth_stage=2": {
+      "model": "stardewcraft:block/parsnip_stage2"
+    },
+    "growth_stage=3": {
+      "model": "stardewcraft:block/parsnip_stage3"
+    },
+    "growth_stage=4": {
+      "model": "stardewcraft:block/parsnip_stage4"
+    }
+  }
+}

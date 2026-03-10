@@ -1,0 +1,34 @@
+{
+  "type": "minecraft:command",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:carrot_on_a_stick",
+          "functions": [
+            {
+              "function": "minecraft:set_components",
+              "components": {
+                "minecraft:custom_model_data": 9130,
+                "minecraft:custom_name": "[{\"text\":\"[DEBUG] \",\"color\":\"red\",\"bold\":true,\"italic\":false},{\"text\":\"紫水晶生成器\",\"color\":\"light_purple\",\"bold\":false}]",
+                "minecraft:lore": [
+                  "{\"text\":\"右键地面生成紫水晶矿实体\",\"color\":\"yellow\",\"italic\":false}",
+                  "{\"text\":\"模型CMD: 7230\",\"color\":\"gray\",\"italic\":false}",
+                  "{\"text\":\"血量: 45 | 需求镐子等级: 3\",\"color\":\"white\",\"italic\":false}",
+                  "{\"text\":\"稀有宝石矿物\",\"color\":\"light_purple\",\"italic\":false}"
+                ],
+                "minecraft:custom_data": {
+                  "stardew_debug_tool": 1,
+                  "spawn_type": "amethyst",
+                  "theme": 1
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

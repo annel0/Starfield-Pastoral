@@ -1,0 +1,18 @@
+# 建筑坐标配置
+# 格式: 建筑ID = X坐标 (Y固定64, Z固定0)
+
+# 商业建筑
+# pierre_shop = 0
+# saloon = 1000
+# clinic = 2000
+# blacksmith = 3000
+# museum = 4000
+# community_center = 5000
+# joja_mart = 6000
+
+# 居民住宅
+# house_1_river_road = 0, 0, 1000
+# house_1_willow_lane = 1000, 0, 1000
+# house_2_willow_lane = 2000, 0, 1000
+# trailer = 3000, 0, 1000
+# mayor_manor = 4000, 0, 1000

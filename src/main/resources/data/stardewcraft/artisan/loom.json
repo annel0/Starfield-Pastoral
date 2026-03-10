@@ -1,0 +1,6 @@
+{
+  "machine": "loom",
+  "recipes": [
+    { "input": "stardewcraft:wool", "output": "stardewcraft:cloth", "minutes": 240 }
+  ]
+}

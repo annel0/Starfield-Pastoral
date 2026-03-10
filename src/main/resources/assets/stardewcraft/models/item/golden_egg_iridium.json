@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "stardewcraft:item/animal_product/golden_egg",
+    "layer1": "stardewcraft:item/quality/iridium_star"
+  }
+}
