@@ -100,7 +100,7 @@ public final class AnimalEntitySyncService {
         }
 
         entity.setCustomName(Component.literal(customName));
-        entity.setCustomNameVisible(false);
+        entity.setCustomNameVisible(true);
     }
 
     private static BaseCoopAnimalEntity findLoadedByManagedId(ServerLevel level, long animalId) {

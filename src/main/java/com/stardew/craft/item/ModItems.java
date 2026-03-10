@@ -642,6 +642,10 @@ public class ModItems {
         public static final DeferredItem<Item> MYSTIC_SYRUP = ITEMS.register("mystic_syrup",
                         () -> new SimpleStardewItem("stardewcraft.type.artisan_goods", 1000, new Item.Properties().stacksTo(999)));
 
+        // Special item: permanently doubles produce for one farm animal (except pigs).
+        public static final DeferredItem<Item> GOLDEN_ANIMAL_CRACKER = ITEMS.register("golden_animal_cracker",
+                        () -> new SimpleStardewItem("stardewcraft.type.misc", 1000, new Item.Properties().stacksTo(999)));
+
         // 动物产物
         public static final DeferredItem<Item> EGG_WHITE = ITEMS.register("egg_white",
                         () -> new StardewQualityItem("stardewcraft.type.animal_product", 50, 10, true, new Item.Properties().stacksTo(999)));

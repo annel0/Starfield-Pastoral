@@ -183,6 +183,10 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 			return InteractionResult.SUCCESS;
 		}
 
+		if (tryFeedGoldenAnimalCracker(player, data, record)) {
+			return InteractionResult.SUCCESS;
+		}
+
 		if (!record.wasPetToday()) {
 			boolean wasAutoPet = record.wasAutoPetToday();
 			record.setWasPetToday(true);
@@ -206,6 +210,40 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 			player.sendSystemMessage(Component.translatable("stardewcraft.animal.interact.already_pet"));
 		}
 		return InteractionResult.SUCCESS;
+	}
+
+	private boolean tryFeedGoldenAnimalCracker(Player player, AnimalWorldData data, FarmAnimalRecord record) {
+		ItemStack held = player.getMainHandItem();
+		if (!held.is(ModItems.GOLDEN_ANIMAL_CRACKER.get())) {
+			return false;
+		}
+
+		if (record.hasEatenAnimalCracker()) {
+			player.sendSystemMessage(Component.translatable("stardewcraft.animal.interact.golden_cracker_already_used"));
+			return true;
+		}
+
+		if (!canEatGoldenCrackers(record.animalTypeId())) {
+			this.level().playSound(null, this.blockPosition(), ModSounds.CANCEL.get(), SoundSource.NEUTRAL, 0.9F, 1.0F);
+			triggerEmote(8);
+			player.sendSystemMessage(Component.translatable("stardewcraft.animal.interact.golden_cracker_not_supported"));
+			return true;
+		}
+
+		record.setHasEatenAnimalCracker(true);
+		data.markChanged();
+		if (!player.getAbilities().instabuild) {
+			held.shrink(1);
+		}
+
+		this.level().playSound(null, this.blockPosition(), ModSounds.GIVE_GIFT.get(), SoundSource.NEUTRAL, 0.9F, 1.0F);
+		triggerEmote(56);
+		player.sendSystemMessage(Component.translatable("stardewcraft.animal.interact.golden_cracker_applied"));
+		return true;
+	}
+
+	private boolean canEatGoldenCrackers(String animalTypeId) {
+		return !"pig".equals(animalTypeId);
 	}
 
 	@Override
@@ -406,7 +444,9 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 				record.wasPetToday(),
 				record.friendship(),
 				record.allowReproduction(),
-				getVariant().ordinal()
+				record.hasEatenAnimalCracker(),
+				getVariant().ordinal(),
+				record.moodMessage()
 			),
 			displayName
 		));

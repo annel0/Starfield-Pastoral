@@ -1,7 +1,11 @@
 package com.stardew.craft.menu;
 
 import com.stardew.craft.animal.data.AnimalWorldData;
+import com.stardew.craft.animal.model.AnimalBuildingRecord;
+import com.stardew.craft.animal.model.AnimalTypeCatalog;
+import com.stardew.craft.animal.model.FarmAnimalRecord;
 import com.stardew.craft.entity.animal.BaseCoopAnimalEntity;
+import com.stardew.craft.network.payload.OpenAnimalMoveHomeScreenPayload;
 import com.stardew.craft.player.PlayerStardewDataAPI;
 import com.stardew.craft.sound.ModSounds;
 import net.minecraft.core.particles.ParticleTypes;
@@ -13,6 +17,10 @@ import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.AABB;
+import net.neoforged.neoforge.network.PacketDistributor;
+
+import java.util.ArrayList;
+import java.util.List;
 import javax.annotation.Nonnull;
 
 @SuppressWarnings("null")
@@ -27,10 +35,12 @@ public class AnimalQueryMenu extends AbstractContainerMenu {
     private int wasPetToday;
     private int friendship;
     private int allowReproduction;
+    private int hasEatenAnimalCracker;
     private int variantIndex;
+    private int moodMessage;
 
     public AnimalQueryMenu(int containerId, Inventory playerInventory) {
-        this(containerId, playerInventory, -1L, 0, 5, false, 0, false, 0);
+        this(containerId, playerInventory, -1L, 0, 5, false, 0, false, false, 0, 0);
     }
 
     public AnimalQueryMenu(int containerId,
@@ -41,7 +51,9 @@ public class AnimalQueryMenu extends AbstractContainerMenu {
                            boolean wasPetToday,
                            int friendship,
                            boolean allowReproduction,
-                           int variantIndex) {
+                           boolean hasEatenAnimalCracker,
+                           int variantIndex,
+                           int moodMessage) {
         super(ModMenuTypes.ANIMAL_QUERY.get(), containerId);
         this.player = playerInventory.player;
         this.animalId = animalId;
@@ -50,7 +62,9 @@ public class AnimalQueryMenu extends AbstractContainerMenu {
         this.wasPetToday = wasPetToday ? 1 : 0;
         this.friendship = Math.max(0, friendship);
         this.allowReproduction = allowReproduction ? 1 : 0;
+        this.hasEatenAnimalCracker = hasEatenAnimalCracker ? 1 : 0;
         this.variantIndex = Math.max(0, variantIndex);
+        this.moodMessage = Math.max(0, moodMessage);
 
         this.addDataSlot(new DataSlot() {
             @Override
@@ -127,12 +141,36 @@ public class AnimalQueryMenu extends AbstractContainerMenu {
         this.addDataSlot(new DataSlot() {
             @Override
             public int get() {
+                return AnimalQueryMenu.this.hasEatenAnimalCracker;
+            }
+
+            @Override
+            public void set(int value) {
+                AnimalQueryMenu.this.hasEatenAnimalCracker = value > 0 ? 1 : 0;
+            }
+        });
+
+        this.addDataSlot(new DataSlot() {
+            @Override
+            public int get() {
                 return AnimalQueryMenu.this.variantIndex;
             }
 
             @Override
             public void set(int value) {
                 AnimalQueryMenu.this.variantIndex = Math.max(0, value);
+            }
+        });
+
+        this.addDataSlot(new DataSlot() {
+            @Override
+            public int get() {
+                return AnimalQueryMenu.this.moodMessage;
+            }
+
+            @Override
+            public void set(int value) {
+                AnimalQueryMenu.this.moodMessage = Math.max(0, value);
             }
         });
     }
@@ -165,8 +203,35 @@ public class AnimalQueryMenu extends AbstractContainerMenu {
         return allowReproduction > 0;
     }
 
+    public boolean canToggleReproduction() {
+        if (isBaby()) {
+            return false;
+        }
+        return variantIndex >= 7 && variantIndex <= 11;
+    }
+
+    public boolean hasEatenAnimalCracker() {
+        return hasEatenAnimalCracker > 0;
+    }
+
     public int getVariantIndex() {
         return variantIndex;
+    }
+
+    public int getMoodMessage() {
+        return moodMessage;
+    }
+
+    public String getMoodTranslationKey() {
+        return switch (moodMessage) {
+            case 1 -> "stardewcraft.animal.query.mood.1";
+            case 2 -> "stardewcraft.animal.query.mood.2";
+            case 3 -> "stardewcraft.animal.query.mood.3";
+            case 4 -> "stardewcraft.animal.query.mood.4";
+            case 5 -> "stardewcraft.animal.query.mood.5";
+            case 6 -> "stardewcraft.animal.query.mood.6";
+            default -> "stardewcraft.animal.query.mood.2";
+        };
     }
 
     public int getEstimatedSellPrice() {
@@ -232,6 +297,64 @@ public class AnimalQueryMenu extends AbstractContainerMenu {
             }
         }
         serverPlayer.closeContainer();
+    }
+
+    public void handleOpenMoveHomeScreen() {
+        if (!(player instanceof ServerPlayer serverPlayer) || animalId <= 0L) {
+            return;
+        }
+
+        AnimalWorldData data = AnimalWorldData.get(serverPlayer.serverLevel());
+        FarmAnimalRecord animal = data.getAnimal(animalId).orElse(null);
+        if (animal == null) {
+            return;
+        }
+        AnimalBuildingRecord current = data.getBuilding(animal.buildingId()).orElse(null);
+        if (current == null) {
+            return;
+        }
+
+        String family = AnimalTypeCatalog.resolve(animal.animalTypeId()).family();
+        List<OpenAnimalMoveHomeScreenPayload.BuildingOption> options = new ArrayList<>();
+        for (AnimalBuildingRecord building : data.getBuildings()) {
+            if (!current.ownerPlayerUuid().equals(building.ownerPlayerUuid())) {
+                continue;
+            }
+            if (!family.equalsIgnoreCase(building.buildingType().family())) {
+                continue;
+            }
+
+            int animals = building.memberAnimalIds().size();
+            int capacity = Math.max(0, building.capacity());
+            boolean selectable = !building.buildingId().equals(current.buildingId()) && animals < capacity;
+            options.add(new OpenAnimalMoveHomeScreenPayload.BuildingOption(
+                building.buildingId(),
+                resolveBuildingDisplayName(building),
+                animals,
+                capacity,
+                selectable
+            ));
+        }
+
+        String animalName = resolveAnimalDisplayName(animal);
+        PacketDistributor.sendToPlayer(
+            serverPlayer,
+            new OpenAnimalMoveHomeScreenPayload(animal.animalId(), animalName, current.buildingId(), options)
+        );
+    }
+
+    private static String resolveBuildingDisplayName(AnimalBuildingRecord building) {
+        if (building.customName() != null && !building.customName().isBlank()) {
+            return building.customName();
+        }
+        return building.buildingId();
+    }
+
+    private static String resolveAnimalDisplayName(FarmAnimalRecord animal) {
+        if (animal.customName() != null && !animal.customName().isBlank()) {
+            return animal.customName();
+        }
+        return animal.animalTypeId();
     }
 
     @Override

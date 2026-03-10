@@ -6,7 +6,7 @@ public class FarmAnimalRecord {
     private final long animalId;
     private final String animalTypeId;
     private String customName;
-    private final String buildingId;
+    private String buildingId;
     private final AnimalAcquisitionSource acquisitionSource;
     private final int createdDay;
     private final int createdSeason;
@@ -256,6 +256,10 @@ public class FarmAnimalRecord {
 
     public String buildingId() {
         return buildingId;
+    }
+
+    public void setBuildingId(String buildingId) {
+        this.buildingId = buildingId;
     }
 
     public AnimalAcquisitionSource acquisitionSource() {

@@ -523,6 +523,89 @@ public class AnimalWorldData extends SavedData {
         return true;
     }
 
+    public boolean renameAnimal(long animalId, String customName) {
+        FarmAnimalRecord record = animals.get(animalId);
+        if (record == null) {
+            return false;
+        }
+        record.setCustomName(customName == null ? "" : customName);
+        setDirty();
+        return true;
+    }
+
+    public boolean hasOtherAnimalWithName(long animalId, String name) {
+        if (name == null || name.isBlank()) {
+            return false;
+        }
+        String normalized = name.trim();
+        for (FarmAnimalRecord record : animals.values()) {
+            if (record.animalId() == animalId) {
+                continue;
+            }
+            String existing = record.customName();
+            if (existing == null || existing.isBlank()) {
+                continue;
+            }
+            if (existing.trim().equalsIgnoreCase(normalized)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean hasAnyAnimalWithName(String name) {
+        if (name == null || name.isBlank()) {
+            return false;
+        }
+        String normalized = name.trim();
+        for (FarmAnimalRecord record : animals.values()) {
+            String existing = record.customName();
+            if (existing == null || existing.isBlank()) {
+                continue;
+            }
+            if (existing.trim().equalsIgnoreCase(normalized)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean moveAnimalToBuilding(long animalId, String targetBuildingId, String ownerPlayerUuid) {
+        FarmAnimalRecord animal = animals.get(animalId);
+        if (animal == null || targetBuildingId == null || targetBuildingId.isBlank()) {
+            return false;
+        }
+
+        AnimalBuildingRecord source = buildings.get(animal.buildingId());
+        AnimalBuildingRecord target = buildings.get(targetBuildingId);
+        if (source == null || target == null || !target.active()) {
+            return false;
+        }
+        if (source.buildingId().equals(target.buildingId())) {
+            return false;
+        }
+
+        if (ownerPlayerUuid != null && !ownerPlayerUuid.isBlank()) {
+            if (!ownerPlayerUuid.equals(source.ownerPlayerUuid()) || !ownerPlayerUuid.equals(target.ownerPlayerUuid())) {
+                return false;
+            }
+        }
+
+        String animalFamily = AnimalTypeCatalog.resolve(animal.animalTypeId()).family();
+        if (!animalFamily.equalsIgnoreCase(target.buildingType().family())) {
+            return false;
+        }
+        if (!target.hasCapacity()) {
+            return false;
+        }
+
+        source.removeAnimal(animalId);
+        target.addAnimal(animalId);
+        animal.setBuildingId(target.buildingId());
+        setDirty();
+        return true;
+    }
+
     public boolean removeAnimal(long animalId) {
         FarmAnimalRecord removed = animals.remove(animalId);
         if (removed == null) {

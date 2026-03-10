@@ -670,5 +670,35 @@ public class PacketHandler {
             com.stardew.craft.network.payload.AnimalQueryActionPayload::handle
         );
 
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenAnimalMoveHomeScreenPayload.TYPE,
+            com.stardew.craft.network.payload.OpenAnimalMoveHomeScreenPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenAnimalMoveHomeScreenPayload::handle
+        );
+
+        registrar.playToServer(
+            com.stardew.craft.network.payload.AnimalMoveHomeSelectPayload.TYPE,
+            com.stardew.craft.network.payload.AnimalMoveHomeSelectPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.AnimalMoveHomeSelectPayload::handle
+        );
+
+        registrar.playToServer(
+            com.stardew.craft.network.payload.AnimalRenamePayload.TYPE,
+            com.stardew.craft.network.payload.AnimalRenamePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.AnimalRenamePayload::handle
+        );
+
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenAnimalPurchaseScreenPayload.TYPE,
+            com.stardew.craft.network.payload.OpenAnimalPurchaseScreenPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenAnimalPurchaseScreenPayload::handle
+        );
+
+        registrar.playToServer(
+            com.stardew.craft.network.payload.AnimalPurchaseSubmitPayload.TYPE,
+            com.stardew.craft.network.payload.AnimalPurchaseSubmitPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.AnimalPurchaseSubmitPayload::handle
+        );
+
     }
 }

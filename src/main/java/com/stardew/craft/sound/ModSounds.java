@@ -62,6 +62,7 @@ public final class ModSounds {
 
 	// AnimalQueryMenu / FarmAnimal original cues
 	public static final DeferredHolder<SoundEvent, SoundEvent> SMALL_SELECT = register("small_select");
+	public static final DeferredHolder<SoundEvent, SoundEvent> GIVE_GIFT = register("give_gift");
 	public static final DeferredHolder<SoundEvent, SoundEvent> DRUMKIT6 = register("drumkit6");
 	public static final DeferredHolder<SoundEvent, SoundEvent> NEW_RECIPE = register("new_recipe");
 	public static final DeferredHolder<SoundEvent, SoundEvent> MONEY = register("money");

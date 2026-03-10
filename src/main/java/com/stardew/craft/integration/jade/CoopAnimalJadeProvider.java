@@ -24,6 +24,7 @@ public enum CoopAnimalJadeProvider implements IEntityComponentProvider, IServerD
     private static final ResourceLocation UID = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "coop_animal");
 
     private static final String NBT_NAME_KEY = "animalNameKey";
+    private static final String NBT_CUSTOM_NAME = "animalCustomName";
     private static final String NBT_IS_BABY = "isBaby";
     private static final String NBT_AGE_DAYS = "ageDays";
     private static final String NBT_DAYS_TO_MATURE = "daysToMature";
@@ -45,6 +46,7 @@ public enum CoopAnimalJadeProvider implements IEntityComponentProvider, IServerD
         }
 
         String animalType = animal.getManagedAnimalType();
+        String customName = "";
         boolean isBaby = animal.isBaby();
         int ageDays = 0;
         int daysToMature = 0;
@@ -62,6 +64,7 @@ public enum CoopAnimalJadeProvider implements IEntityComponentProvider, IServerD
                 daysToMature = farmRecord.daysToMature();
                 produceReady = !farmRecord.currentProduceId().isBlank();
                 produceKind = resolveProduceKind(farmRecord.animalTypeId());
+                customName = farmRecord.customName() == null ? "" : farmRecord.customName().trim();
             }
         }
 
@@ -71,6 +74,7 @@ public enum CoopAnimalJadeProvider implements IEntityComponentProvider, IServerD
 
         String nameKey = "entity." + StardewCraft.MODID + "." + animalType + (isBaby ? ".baby" : "");
         tag.putString(NBT_NAME_KEY, nameKey);
+        tag.putString(NBT_CUSTOM_NAME, customName);
         tag.putBoolean(NBT_IS_BABY, isBaby);
         tag.putInt(NBT_AGE_DAYS, Math.max(0, ageDays));
         tag.putInt(NBT_DAYS_TO_MATURE, Math.max(0, daysToMature));
@@ -86,7 +90,11 @@ public enum CoopAnimalJadeProvider implements IEntityComponentProvider, IServerD
         }
 
         String nameKey = data.getString(NBT_NAME_KEY);
-        tooltip.add(Component.translatable("stardewcraft.tooltip.animal.name", Component.translatable(nameKey))
+        String customName = data.getString(NBT_CUSTOM_NAME);
+        Component displayName = customName.isBlank()
+            ? Component.translatable(nameKey)
+            : Component.literal(customName);
+        tooltip.add(Component.translatable("stardewcraft.tooltip.animal.name", displayName)
             .withStyle(ChatFormatting.WHITE));
 
         if (data.getBoolean(NBT_IS_BABY)) {

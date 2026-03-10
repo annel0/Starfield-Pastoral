@@ -189,6 +189,11 @@
       { "name": "stardewcraft:ui/small_select", "stream": false }
     ]
   },
+  "give_gift": {
+    "sounds": [
+      { "name": "stardewcraft:give_gift", "stream": false }
+    ]
+  },
   "drumkit6": {
     "sounds": [
       { "name": "stardewcraft:ui/drumkit6", "stream": false }

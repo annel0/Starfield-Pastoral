@@ -10,6 +10,7 @@ import com.stardew.craft.animal.model.AnimalTypeCatalog;
 import com.stardew.craft.animal.service.AnimalAcquireService;
 import com.stardew.craft.animal.service.AnimalDoorStateService;
 import com.stardew.craft.animal.service.AnimalEntitySyncService;
+import com.stardew.craft.animal.service.AnimalShopService;
 import com.stardew.craft.core.ModDimensions;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -28,7 +29,7 @@ public class AnimalDebugCommand {
                 .then(Commands.literal("building")
                     .then(Commands.literal("create")
                         .then(Commands.literal("silo")
-                            .then(Commands.argument("name", StringArgumentType.word())
+                            .then(Commands.argument("name", StringArgumentType.string())
                                 .then(Commands.argument("range", IntegerArgumentType.integer(2, 64))
                                     .executes(AnimalDebugCommand::createSilo)
                                 )
@@ -36,7 +37,7 @@ public class AnimalDebugCommand {
                         )
                         .then(Commands.literal("coop")
                             .then(Commands.argument("tier", IntegerArgumentType.integer(1, 3))
-                                .then(Commands.argument("name", StringArgumentType.word())
+                                .then(Commands.argument("name", StringArgumentType.string())
                                     .then(Commands.argument("range", IntegerArgumentType.integer(2, 64))
                                         .executes(AnimalDebugCommand::createCoop)
                                     )
@@ -45,7 +46,7 @@ public class AnimalDebugCommand {
                         )
                         .then(Commands.literal("barn")
                             .then(Commands.argument("tier", IntegerArgumentType.integer(1, 3))
-                                .then(Commands.argument("name", StringArgumentType.word())
+                                .then(Commands.argument("name", StringArgumentType.string())
                                     .then(Commands.argument("range", IntegerArgumentType.integer(2, 64))
                                         .executes(AnimalDebugCommand::createBarn)
                                     )
@@ -55,7 +56,7 @@ public class AnimalDebugCommand {
                         .then(Commands.argument("family", StringArgumentType.word())
                             .suggests((ctx, builder) -> SharedSuggestionProvider.suggest(new String[]{"coop", "barn", "silo"}, builder))
                             .then(Commands.argument("tier", IntegerArgumentType.integer(1, 3))
-                                .then(Commands.argument("name", StringArgumentType.word())
+                                .then(Commands.argument("name", StringArgumentType.string())
                                     .then(Commands.argument("range", IntegerArgumentType.integer(2, 64))
                                         .then(Commands.argument("capacity", IntegerArgumentType.integer(1, 64))
                                             .executes(AnimalDebugCommand::createBuilding)
@@ -67,7 +68,7 @@ public class AnimalDebugCommand {
                     )
                     .then(Commands.literal("rename")
                         .then(Commands.argument("buildingId", StringArgumentType.word())
-                            .then(Commands.argument("name", StringArgumentType.word())
+                            .then(Commands.argument("name", StringArgumentType.greedyString())
                                 .executes(AnimalDebugCommand::renameBuilding)
                             )
                         )
@@ -118,7 +119,7 @@ public class AnimalDebugCommand {
                             .then(Commands.argument("animalType", StringArgumentType.word())
                                 .suggests((ctx, builder) -> SharedSuggestionProvider.suggest(AnimalTypeCatalog.knownTypeIds(), builder))
                                 .then(Commands.argument("buildingId", StringArgumentType.word())
-                                    .then(Commands.argument("name", StringArgumentType.word())
+                                    .then(Commands.argument("name", StringArgumentType.greedyString())
                                         .executes(AnimalDebugCommand::purchase)
                                     )
                                 )
@@ -126,6 +127,9 @@ public class AnimalDebugCommand {
                         )
                         .then(Commands.literal("list")
                             .executes(AnimalDebugCommand::listAnimals)
+                        )
+                        .then(Commands.literal("shop")
+                            .executes(AnimalDebugCommand::openAnimalShop)
                         )
                         .then(Commands.literal("sync")
                             .executes(AnimalDebugCommand::syncAnimals)
@@ -387,6 +391,13 @@ public class AnimalDebugCommand {
                 + ", age=" + record.ageDays() + "/" + record.daysToMature()
                 + ", building=" + record.buildingId()
         ), true);
+        return 1;
+    }
+
+    private static int openAnimalShop(CommandContext<CommandSourceStack> context) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+        requireStardewLevel(context);
+        ServerPlayer player = context.getSource().getPlayerOrException();
+        AnimalShopService.openForPlayer(player);
         return 1;
     }
 

@@ -50,7 +50,7 @@ public record AnimalQueryActionPayload(Action action, boolean toggleValue) imple
                 case CLOSE -> serverPlayer.closeContainer();
                 case SELL -> menu.handleSellAnimal();
                 case TOGGLE_REPRODUCTION -> menu.handleToggleReproduction(payload.toggleValue);
-                case MOVE_HOME -> serverPlayer.sendSystemMessage(net.minecraft.network.chat.Component.translatable("stardewcraft.animal.query.move_unavailable"));
+                case MOVE_HOME -> menu.handleOpenMoveHomeScreen();
             }
         });
     }
