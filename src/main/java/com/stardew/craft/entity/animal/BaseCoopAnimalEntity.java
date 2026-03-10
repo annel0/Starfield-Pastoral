@@ -4,7 +4,6 @@ import com.stardew.craft.StardewCraft;
 import com.stardew.craft.animal.data.AnimalWorldData;
 import com.stardew.craft.animal.model.AnimalBuildingRecord;
 import com.stardew.craft.animal.model.FarmAnimalRecord;
-import com.stardew.craft.animal.model.AnimalTypeCatalog;
 import com.stardew.craft.animal.service.AnimalDoorStateService;
 import com.stardew.craft.block.ModBlocks;
 import com.stardew.craft.block.nature.PastureGrassBlock;

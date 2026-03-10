@@ -40,17 +40,17 @@ public class AnimalQueryScreen extends AbstractContainerScreen<AnimalQueryMenu> 
     private static final ResourceLocation MOVE_ICON = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/animal_query/move_icon.png");
     private static final ResourceLocation OK_ICON = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/animal_query/ok_yes_tile46.png");
     private static final ResourceLocation NO_ICON = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/animal_query/cancel_no_tile47.png");
-    private static final ResourceLocation ICON_WHITE_CHICKEN = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/animal_query/icon_white_chicken.png");
-    private static final ResourceLocation ICON_DUCK = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/animal_query/icon_duck.png");
-    private static final ResourceLocation ICON_RABBIT = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/animal_query/icon_rabbit.png");
-    private static final ResourceLocation ICON_OSTRICH = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/animal_query/icon_ostrich.png");
+    private static final ResourceLocation TEX_WHITE_CHICKEN = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/entity/animal/white_chicken.png");
+    private static final ResourceLocation TEX_DUCK = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/entity/animal/duck.png");
+    private static final ResourceLocation TEX_RABBIT = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/entity/animal/rabbit.png");
+    private static final ResourceLocation TEX_OSTRICH = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/entity/animal/ostrich.png");
     private static final ResourceLocation TEX_GOLDEN_CHICKEN = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/entity/animal/golden_chicken.png");
     private static final ResourceLocation TEX_VOID_CHICKEN = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/entity/animal/void_chicken.png");
     private static final ResourceLocation TEX_DINOSAUR = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/entity/animal/dinosaur.png");
-    private static final ResourceLocation ICON_COW = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/animal_query/icon_cow.png");
-    private static final ResourceLocation ICON_GOAT = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/animal_query/icon_goat.png");
-    private static final ResourceLocation ICON_SHEEP = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/animal_query/icon_sheep.png");
-    private static final ResourceLocation ICON_PIG = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/animal_query/icon_pig.png");
+    private static final ResourceLocation TEX_COW = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/entity/animal/cow.png");
+    private static final ResourceLocation TEX_GOAT = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/entity/animal/goat.png");
+    private static final ResourceLocation TEX_SHEEP = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/entity/animal/sheep.png");
+    private static final ResourceLocation TEX_PIG = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/entity/animal/pig.png");
 
     private float uiScale = 1.0f;
     private int uiOriginX = 0;
@@ -322,29 +322,128 @@ public class AnimalQueryScreen extends AbstractContainerScreen<AnimalQueryMenu> 
     }
 
     private void drawAnimalIcon(GuiGraphics graphics, int x, int y) {
-        ResourceLocation tex = switch (this.menu.getVariantIndex()) {
-            case 0 -> ICON_WHITE_CHICKEN;
-            case 1 -> TEX_GOLDEN_CHICKEN;
-            case 2 -> ICON_DUCK;
-            case 3 -> TEX_VOID_CHICKEN;
-            case 4 -> ICON_RABBIT;
-            case 5 -> ICON_OSTRICH;
-            case 6 -> TEX_DINOSAUR;
-            case 7 -> ICON_COW;
-            case 8 -> ICON_GOAT;
-            case 9 -> ICON_SHEEP;
-            case 10 -> ICON_SHEEP;
-            case 11 -> ICON_PIG;
-            default -> ICON_WHITE_CHICKEN;
-        };
+        ResourceLocation tex;
+        int srcX = 0;
+        int srcY;
+        int srcW;
+        int srcH;
+        int texW;
+        int texH;
 
-        if (tex == ICON_WHITE_CHICKEN || tex == ICON_DUCK || tex == ICON_RABBIT || tex == ICON_OSTRICH
-            || tex == ICON_COW || tex == ICON_GOAT || tex == ICON_SHEEP || tex == ICON_PIG) {
-            graphics.blit(tex, x, y, 0, 0, 32, 32, 16, 16, 32, 16);
-            return;
+        switch (this.menu.getVariantIndex()) {
+            // Stardew AnimalPage parity for 16x16 animals: source rect (0, 16, 16, 16).
+            case 0 -> {
+                tex = TEX_WHITE_CHICKEN;
+                srcY = 16;
+                srcW = 16;
+                srcH = 16;
+                texW = 64;
+                texH = 112;
+            }
+            case 1 -> {
+                tex = TEX_GOLDEN_CHICKEN;
+                srcY = 16;
+                srcW = 16;
+                srcH = 16;
+                texW = 64;
+                texH = 112;
+            }
+            case 2 -> {
+                tex = TEX_DUCK;
+                srcY = 16;
+                srcW = 16;
+                srcH = 16;
+                texW = 64;
+                texH = 224;
+            }
+            case 3 -> {
+                tex = TEX_VOID_CHICKEN;
+                srcY = 16;
+                srcW = 16;
+                srcH = 16;
+                texW = 64;
+                texH = 112;
+            }
+            case 4 -> {
+                tex = TEX_RABBIT;
+                srcY = 16;
+                srcW = 16;
+                srcH = 16;
+                texW = 64;
+                texH = 112;
+            }
+            // Stardew AnimalPage parity for ostrich (32x32 sprite): source rect (0, 32, 32, 28).
+            case 5 -> {
+                tex = TEX_OSTRICH;
+                srcY = 32;
+                srcW = 32;
+                srcH = 28;
+                texW = 128;
+                texH = 160;
+            }
+            case 6 -> {
+                tex = TEX_DINOSAUR;
+                srcY = 16;
+                srcW = 16;
+                srcH = 16;
+                texW = 64;
+                texH = 112;
+            }
+            // Stardew AnimalPage parity for other 32x32 farm animals: source rect (0, 36, 32, 28).
+            case 7 -> {
+                tex = TEX_COW;
+                srcY = 36;
+                srcW = 32;
+                srcH = 28;
+                texW = 128;
+                texH = 160;
+            }
+            case 8 -> {
+                tex = TEX_GOAT;
+                srcY = 36;
+                srcW = 32;
+                srcH = 28;
+                texW = 128;
+                texH = 160;
+            }
+            case 9, 10 -> {
+                tex = TEX_SHEEP;
+                srcY = 36;
+                srcW = 32;
+                srcH = 28;
+                texW = 128;
+                texH = 160;
+            }
+            case 11 -> {
+                tex = TEX_PIG;
+                srcY = 36;
+                srcW = 32;
+                srcH = 28;
+                texW = 128;
+                texH = 160;
+            }
+            default -> {
+                tex = TEX_WHITE_CHICKEN;
+                srcY = 16;
+                srcW = 16;
+                srcH = 16;
+                texW = 64;
+                texH = 112;
+            }
         }
 
-        drawScaledPatch(graphics, tex, x, y, 2.0f, 16, 16, 16, 16);
+        float scale = 32.0f / srcW;
+        int drawH = Math.round(srcH * scale);
+        int drawY = y + Math.max(0, (32 - drawH) / 2);
+        drawScaledCrop(graphics, tex, x, drawY, scale, srcX, srcY, srcW, srcH, texW, texH);
+    }
+
+    private void drawScaledCrop(GuiGraphics graphics, ResourceLocation texture, int x, int y, float scale, int srcX, int srcY, int srcW, int srcH, int texW, int texH) {
+        graphics.pose().pushPose();
+        graphics.pose().translate(x, y, 0);
+        graphics.pose().scale(scale, scale, 1.0f);
+        graphics.blit(texture, 0, 0, srcX, srcY, srcW, srcH, texW, texH);
+        graphics.pose().popPose();
     }
 
     private float approach(float current, float target) {
