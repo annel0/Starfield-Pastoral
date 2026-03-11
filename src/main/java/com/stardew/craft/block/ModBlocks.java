@@ -1114,4 +1114,18 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .noOcclusion()
                                         // 需求：徒手也能很快拆（类似羊毛/更快）
                                         .strength(0.2F, 1.0F)));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WALLPAPER_BLOCK = BLOCKS.register("wallpaper_block",
+                        () -> new com.stardew.craft.block.utility.WallpaperBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOL)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOL)
+                                        .strength(0.8F, 1.0F)));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> FLOORING_BLOCK = BLOCKS.register("flooring_block",
+                        () -> new com.stardew.craft.block.utility.FlooringBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .strength(1.0F, 1.0F)));
 }

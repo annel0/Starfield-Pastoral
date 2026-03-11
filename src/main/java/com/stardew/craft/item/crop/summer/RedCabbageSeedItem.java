@@ -14,7 +14,7 @@ import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * 红叶卷心菜种子
+ * 红叶卷心菜种�?
  */
 public class RedCabbageSeedItem extends Item implements IStardewItem {
 
@@ -53,7 +53,7 @@ public class RedCabbageSeedItem extends Item implements IStardewItem {
 
         if (!level.isClientSide) {
             int season = StardewTimeManager.get().getCurrentSeason();
-            if (!(season == 1)) {
+            if (!com.stardew.craft.farming.SeasonLocationRules.isPlantingSeasonAllowed(level, abovePos, season, 1)) {
                 if (context.getPlayer() != null) {
                     context.getPlayer().displayClientMessage(
                             net.minecraft.network.chat.Component.translatable("stardewcraft.message.seed.wrong_season"),

@@ -16,7 +16,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import javax.annotation.Nonnull;
 
 /**
- * 郁金香种子
+ * 郁金香种�?
  */
 public class TulipSeedItem extends Item implements IStardewItem {
 
@@ -53,7 +53,7 @@ public class TulipSeedItem extends Item implements IStardewItem {
 
         if (!level.isClientSide) {
             int season = StardewTimeManager.get().getCurrentSeason();
-            if (!(season == 0)) {
+            if (!com.stardew.craft.farming.SeasonLocationRules.isPlantingSeasonAllowed(level, abovePos, season, 0)) {
                 if (context.getPlayer() != null) {
                     context.getPlayer().displayClientMessage(
                             net.minecraft.network.chat.Component.translatable("stardewcraft.message.seed.wrong_season"),

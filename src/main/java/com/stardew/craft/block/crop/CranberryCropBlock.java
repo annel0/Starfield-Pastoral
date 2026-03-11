@@ -60,6 +60,21 @@ public class CranberryCropBlock extends StardewCropBlock {
     }
 
     @Override
+    protected int getHarvestMinStack() {
+        return 2;
+    }
+
+    @Override
+    protected int getHarvestMaxStack() {
+        return 2;
+    }
+
+    @Override
+    protected double getExtraHarvestChance() {
+        return 0.1;
+    }
+
+    @Override
     protected boolean canRegrow() {
         return true;
     }

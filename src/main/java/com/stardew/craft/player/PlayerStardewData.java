@@ -1,8 +1,16 @@
 package com.stardew.craft.player;
 
+import com.stardew.craft.deco.DecorationStyleRegistry;
+import com.stardew.craft.deco.DecorationType;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -53,6 +61,18 @@ public class PlayerStardewData {
 
     private int tempMaxEnergyBonus;
     private long tempMaxEnergyBonusEndTick;
+
+    // ============ 装饰解锁 ============
+    private final Set<String> unlockedWallpaperStyles = new HashSet<>();
+    private final Set<String> unlockedFlooringStyles = new HashSet<>();
+
+    // ============ 钓鱼记录 ============
+    // 用于对齐原版 CatchLimit（例如传奇鱼一次性）
+    private final Map<String, Integer> fishCatchCounts = new HashMap<>();
+
+    // ============ 特殊订单规则 ============
+    // 对齐原版 PLAYER_SPECIAL_ORDER_RULE_ACTIVE 条件分支。
+    private final Set<String> activeSpecialOrderRules = new HashSet<>();
     
     // 经验值升级表（根据星露谷物语）
     private static final int[] EXP_TO_LEVEL = {
@@ -92,6 +112,9 @@ public class PlayerStardewData {
         this.tempLuckBonusEndTick = 0L;
         this.tempMaxEnergyBonus = 0;
         this.tempMaxEnergyBonusEndTick = 0L;
+
+        this.unlockedWallpaperStyles.add(DecorationStyleRegistry.getDefaultStyleId(DecorationType.WALLPAPER));
+        this.unlockedFlooringStyles.add(DecorationStyleRegistry.getDefaultStyleId(DecorationType.FLOORING));
     }
     
     /**
@@ -144,6 +167,50 @@ public class PlayerStardewData {
         data.tempMaxEnergyBonus = tag.contains("TempMaxEnergyBonus") ? tag.getInt("TempMaxEnergyBonus") : 0;
         data.tempMaxEnergyBonusEndTick = tag.contains("TempMaxEnergyBonusEndTick") ? tag.getLong("TempMaxEnergyBonusEndTick") : 0L;
 
+        data.unlockedWallpaperStyles.clear();
+        data.unlockedFlooringStyles.clear();
+        if (tag.contains("UnlockedWallpaperStyles")) {
+            ListTag list = tag.getList("UnlockedWallpaperStyles", 8);
+            for (int i = 0; i < list.size(); i++) {
+                data.unlockedWallpaperStyles.add(list.getString(i));
+            }
+        }
+        if (tag.contains("UnlockedFlooringStyles")) {
+            ListTag list = tag.getList("UnlockedFlooringStyles", 8);
+            for (int i = 0; i < list.size(); i++) {
+                data.unlockedFlooringStyles.add(list.getString(i));
+            }
+        }
+        data.unlockedWallpaperStyles.add(DecorationStyleRegistry.getDefaultStyleId(DecorationType.WALLPAPER));
+        data.unlockedFlooringStyles.add(DecorationStyleRegistry.getDefaultStyleId(DecorationType.FLOORING));
+
+        data.fishCatchCounts.clear();
+        if (tag.contains("FishCatchCounts")) {
+            ListTag list = tag.getList("FishCatchCounts", 10);
+            for (int i = 0; i < list.size(); i++) {
+                CompoundTag entry = list.getCompound(i);
+                if (!entry.contains("Item")) {
+                    continue;
+                }
+                String itemId = entry.getString("Item");
+                int count = Math.max(0, entry.getInt("Count"));
+                if (!itemId.isBlank() && count > 0) {
+                    data.fishCatchCounts.put(itemId, count);
+                }
+            }
+        }
+
+        data.activeSpecialOrderRules.clear();
+        if (tag.contains("ActiveSpecialOrderRules")) {
+            ListTag list = tag.getList("ActiveSpecialOrderRules", 8);
+            for (int i = 0; i < list.size(); i++) {
+                String rule = list.getString(i);
+                if (!rule.isBlank()) {
+                    data.activeSpecialOrderRules.add(rule);
+                }
+            }
+        }
+
         // 安全钳制：避免异常值导致越界（Buff 允许 maxEnergy 临时上升）
         data.maxHealth = Math.max(100, data.maxHealth);
         data.maxEnergy = Math.max(270, data.maxEnergy);
@@ -195,6 +262,40 @@ public class PlayerStardewData {
         tag.putLong("TempLuckBonusEndTick", tempLuckBonusEndTick);
         tag.putInt("TempMaxEnergyBonus", tempMaxEnergyBonus);
         tag.putLong("TempMaxEnergyBonusEndTick", tempMaxEnergyBonusEndTick);
+
+        ListTag unlockedWallpapers = new ListTag();
+        for (String styleId : unlockedWallpaperStyles) {
+            unlockedWallpapers.add(StringTag.valueOf(styleId));
+        }
+        tag.put("UnlockedWallpaperStyles", unlockedWallpapers);
+
+        ListTag unlockedFloorings = new ListTag();
+        for (String styleId : unlockedFlooringStyles) {
+            unlockedFloorings.add(StringTag.valueOf(styleId));
+        }
+        tag.put("UnlockedFlooringStyles", unlockedFloorings);
+
+        ListTag fishCounts = new ListTag();
+        for (Map.Entry<String, Integer> entry : fishCatchCounts.entrySet()) {
+            String itemId = entry.getKey();
+            int count = entry.getValue() == null ? 0 : entry.getValue();
+            if (itemId == null || itemId.isBlank() || count <= 0) {
+                continue;
+            }
+            CompoundTag fishCountTag = new CompoundTag();
+            fishCountTag.putString("Item", itemId);
+            fishCountTag.putInt("Count", count);
+            fishCounts.add(fishCountTag);
+        }
+        tag.put("FishCatchCounts", fishCounts);
+
+        ListTag activeRules = new ListTag();
+        for (String rule : activeSpecialOrderRules) {
+            if (rule != null && !rule.isBlank()) {
+                activeRules.add(StringTag.valueOf(rule));
+            }
+        }
+        tag.put("ActiveSpecialOrderRules", activeRules);
         
         return tag;
     }
@@ -497,6 +598,78 @@ public class PlayerStardewData {
     
     public List<Integer> getProfessions() {
         return new ArrayList<>(professions);
+    }
+
+    public boolean isDecorationUnlocked(DecorationType type, String styleId) {
+        if (styleId == null || styleId.isBlank()) {
+            return false;
+        }
+        return (type == DecorationType.WALLPAPER ? unlockedWallpaperStyles : unlockedFlooringStyles).contains(styleId);
+    }
+
+    public boolean unlockDecoration(DecorationType type, String styleId) {
+        if (styleId == null || styleId.isBlank()) {
+            return false;
+        }
+        boolean changed = (type == DecorationType.WALLPAPER ? unlockedWallpaperStyles : unlockedFlooringStyles).add(styleId);
+        if (changed) {
+            markDirty();
+        }
+        return changed;
+    }
+
+    public boolean lockDecoration(DecorationType type, String styleId) {
+        if (styleId == null || styleId.isBlank()) {
+            return false;
+        }
+        String defaultStyle = DecorationStyleRegistry.getDefaultStyleId(type);
+        if (defaultStyle.equals(styleId)) {
+            return false;
+        }
+        boolean changed = (type == DecorationType.WALLPAPER ? unlockedWallpaperStyles : unlockedFlooringStyles).remove(styleId);
+        if (changed) {
+            markDirty();
+        }
+        return changed;
+    }
+
+    public Set<String> getUnlockedDecorations(DecorationType type) {
+        return new HashSet<>(type == DecorationType.WALLPAPER ? unlockedWallpaperStyles : unlockedFlooringStyles);
+    }
+
+    public int getFishCatchCount(String itemId) {
+        if (itemId == null || itemId.isBlank()) {
+            return 0;
+        }
+        return Math.max(0, fishCatchCounts.getOrDefault(itemId, 0));
+    }
+
+    public boolean addFishCatchCount(String itemId, int amount) {
+        if (itemId == null || itemId.isBlank() || amount <= 0) {
+            return false;
+        }
+        int next = Math.max(0, fishCatchCounts.getOrDefault(itemId, 0)) + amount;
+        fishCatchCounts.put(itemId, next);
+        markDirty();
+        return true;
+    }
+
+    public boolean isSpecialOrderRuleActive(String ruleId) {
+        if (ruleId == null || ruleId.isBlank()) {
+            return false;
+        }
+        return activeSpecialOrderRules.contains(ruleId);
+    }
+
+    public boolean setSpecialOrderRuleActive(String ruleId, boolean active) {
+        if (ruleId == null || ruleId.isBlank()) {
+            return false;
+        }
+        boolean changed = active ? activeSpecialOrderRules.add(ruleId) : activeSpecialOrderRules.remove(ruleId);
+        if (changed) {
+            markDirty();
+        }
+        return changed;
     }
     
     public boolean isDirty() { return dirty; }

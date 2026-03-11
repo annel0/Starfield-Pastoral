@@ -199,6 +199,7 @@ public class CrabPotItem extends StardewBlockItem {
 				|| stack.is(ModItems.MAGIC_BAIT.get())
 				|| stack.is(ModItems.DELUXE_BAIT.get())
 				|| stack.is(ModItems.CHALLENGE_BAIT.get())
+				|| stack.is(ModItems.TARGETED_BAIT.get())
 				|| stack.is(ModItems.MAGNET.get());
 	}
 

@@ -72,6 +72,16 @@ public class CoffeeBeanCropBlock extends StardewCropBlock {
     }
 
     @Override
+    protected int getHarvestMinStack() {
+        return 4;
+    }
+
+    @Override
+    protected int getHarvestMaxStack() {
+        return 4;
+    }
+
+    @Override
     protected boolean canRegrow() {
         return true;
     }

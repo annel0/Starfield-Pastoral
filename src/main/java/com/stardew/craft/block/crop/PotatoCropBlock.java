@@ -72,6 +72,12 @@ public class PotatoCropBlock extends StardewCropBlock {
     }
 
     @Override
+    protected double getExtraHarvestChance() {
+        // 原版土豆：基础 1 个，20% 概率额外 +1（可连触发，单次概率上限 0.9）。
+        return 0.2;
+    }
+
+    @Override
     protected boolean canRegrow() {
         return false;
     }

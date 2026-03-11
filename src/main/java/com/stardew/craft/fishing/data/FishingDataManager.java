@@ -4,10 +4,15 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.core.ModDimensions;
+import com.stardew.craft.core.ModMiningDimensions;
+import com.stardew.craft.item.SpecificBaitItem;
+import com.stardew.craft.player.PlayerStardewData;
 import com.stardew.craft.player.PlayerStardewDataAPI;
 import com.stardew.craft.player.SkillType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -20,17 +25,32 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.tags.TagKey;
 
 import java.util.*;
 
 public final class FishingDataManager {
 	private static final Gson GSON = new Gson();
+	private static final Set<String> INHERITED_POOL_KEYS = Set.of("Default", "stardewcraft:stardew_valley");
+	private static volatile RuleEligibilityHook RULE_ELIGIBILITY_HOOK = RuleEligibilityHook.ALLOW_ALL;
 	private static volatile FishingDataManager INSTANCE = new FishingDataManager(
 			Collections.singletonMap("Default", FishingLocationData.defaultFallback())
 	);
 
 	public static FishingDataManager get() {
 		return INSTANCE;
+	}
+
+	static {
+		setRuleEligibilityHook(FishingDataManager::matchesVanillaCondition);
+	}
+
+	/**
+	 * Leave a single extension point for vanilla-gated conditions that require runtime state
+	 * outside raw fish JSON rules (e.g. special order unlocks).
+	 */
+	public static void setRuleEligibilityHook(RuleEligibilityHook hook) {
+		RULE_ELIGIBILITY_HOOK = hook == null ? RuleEligibilityHook.ALLOW_ALL : hook;
 	}
 
 	private final Map<String, FishingLocationData> byLocationKey;
@@ -51,13 +71,19 @@ public final class FishingDataManager {
 	 */
 	@SuppressWarnings("null")
 	public Optional<FishSelection> selectFish(ServerPlayer player, ServerLevel level, BlockPos bobberPos, int waterDepth, RandomSource random) {
+		if (!isStardewFishingDimension(level)) {
+			return Optional.of(new FishSelection(getRandomJunk(random), 0, 0, true));
+		}
+
 		int fishingLevel = PlayerStardewDataAPI.getSkillLevel(player, SkillType.FISHING);
+		PlayerStardewData playerData = PlayerStardewDataAPI.getData(player);
 		boolean hasCuriosityLure = hasCuriosityLure(player);
 		ItemStack rodStack = getRodFromPlayer(player);
 		boolean usingMagicBait = !rodStack.isEmpty()
 				&& (rodStack.getItem() instanceof com.stardew.craft.item.tool.FishingRodItem)
 				&& com.stardew.craft.item.tool.FishingRodItem.hasBait(rodStack, "stardewcraft:magic_bait");
 		boolean usingGoodBait = isUsingGoodBait(rodStack);
+		String baitTargetFishId = getTargetedBaitFishId(rodStack);
 
 		// 获取浮漂位置的群系
 		@SuppressWarnings("null")
@@ -71,30 +97,46 @@ public final class FishingDataManager {
 		long timeOfDay = level.getDayTime() % 24000;
 		String currentSeason = getCurrentSeason(level);
 
-		// 获取维度数据和默认数据
-		String dimensionKey = level.dimension().location().toString();
-		FishingLocationData defaults = byLocationKey.getOrDefault("Default", FishingLocationData.defaultFallback());
-		FishingLocationData specific = byLocationKey.getOrDefault(dimensionKey, FishingLocationData.empty(dimensionKey));
+		List<String> lookupKeys = resolveVanillaAlignedLocationKeys(level, biomeHolder);
+		String fishAreaId = resolveVanillaFishAreaId(biomeHolder);
 
-		List<SpawnFishRule> candidates = new ArrayList<>();
-		candidates.addAll(defaults.fish());
-		candidates.addAll(specific.fish());
+		List<CandidateRule> candidates = collectCandidatesByKeys(lookupKeys);
 
 		if (candidates.isEmpty()) {
 			// 如果没有任何候选鱼（数据未加载或配置错误），直接返回垃圾
-			StardewCraft.LOGGER.warn("No fish candidates found for dimension {} at biome {}. Check if fishing data loaded correctly!",
-					dimensionKey, biomeId);
+			StardewCraft.LOGGER.warn("No fish candidates found for keys {} at biome {}. Check if fishing data loaded correctly!",
+					lookupKeys, biomeId);
 			return Optional.of(new FishSelection(getRandomJunk(random), 0, 0, true));
 		}
 
 		// 按优先级排序，同优先级内随机
-		candidates.sort(Comparator.comparingInt(SpawnFishRule::precedence));
-		List<SpawnFishRule> ordered = stableShuffleByPrecedence(candidates, random);
+		candidates.sort(Comparator.comparingInt(c -> c.rule().precedence()));
+		List<CandidateRule> ordered = stableShuffleByPrecedence(candidates, random);
 
 		// Stardew Valley style selection: iterate by precedence and roll chance (not weighted).
 		SpawnFishRule chosen = null;
+		int targetedBaitTries = 0;
+		SpawnFishRule firstNonTargetRule = null;
 		for (int pass = 0; pass < 2 && chosen == null; pass++) {
-			for (SpawnFishRule rule : ordered) {
+			for (CandidateRule candidate : ordered) {
+				SpawnFishRule rule = candidate.rule();
+				if (candidate.inherited() && !rule.canBeInherited()) {
+					continue;
+				}
+				if (!RULE_ELIGIBILITY_HOOK.allow(player, level, bobberPos, biomeHolder, rule)) {
+					continue;
+				}
+				if (rule.catchLimit() >= 0 && playerData.getFishCatchCount(rule.itemId()) >= rule.catchLimit()) {
+					continue;
+				}
+				if (rule.requireMagicBait() && !usingMagicBait) {
+					continue;
+				}
+				if (rule.fishAreaId() != null && !rule.fishAreaId().isBlank()) {
+					if (fishAreaId == null || !rule.fishAreaId().equalsIgnoreCase(fishAreaId)) {
+						continue;
+					}
+				}
 				if (!rule.matchesBasic(fishingLevel, waterDepth)) {
 					continue;
 				}
@@ -116,6 +158,15 @@ public final class FishingDataManager {
 				if (random.nextFloat() >= chance) {
 					continue;
 				}
+				if (baitTargetFishId != null && !baitTargetFishId.isBlank()
+						&& !baitTargetFishId.equals(rule.itemId())
+						&& targetedBaitTries < 2) {
+					if (firstNonTargetRule == null) {
+						firstNonTargetRule = rule;
+					}
+					targetedBaitTries++;
+					continue;
+				}
 				chosen = rule;
 				break;
 			}
@@ -124,6 +175,10 @@ public final class FishingDataManager {
 			if (!usingGoodBait) {
 				break;
 			}
+		}
+
+		if (chosen == null && firstNonTargetRule != null) {
+			chosen = firstNonTargetRule;
 		}
 
 		if (chosen == null) {
@@ -144,6 +199,144 @@ public final class FishingDataManager {
 		StardewCraft.LOGGER.debug("Fish selected: {} in biome {} (depth={}, level={})",
 				chosen.itemId(), biomeId, waterDepth, fishingLevel);
 		return Optional.of(new FishSelection(stack, chosen.difficulty(), chosen.motionTypeId(), chosen.skipMinigame()));
+	}
+
+	private List<CandidateRule> collectCandidatesByKeys(List<String> lookupKeys) {
+		LinkedHashSet<String> uniqueKeys = new LinkedHashSet<>();
+		uniqueKeys.add("Default");
+		uniqueKeys.addAll(lookupKeys);
+		// Current data still stores most rules in the unified Stardew map key.
+		// Keep this dataset loaded, but final pool routing is controlled by biome tags.
+		uniqueKeys.add("stardewcraft:stardew_valley");
+
+		List<CandidateRule> out = new ArrayList<>();
+		for (String key : uniqueKeys) {
+			FishingLocationData data = byLocationKey.get(key);
+			if (data != null) {
+				boolean inherited = INHERITED_POOL_KEYS.contains(key) && !lookupKeys.contains(key);
+				for (SpawnFishRule rule : data.fish()) {
+					out.add(new CandidateRule(rule, inherited));
+				}
+			}
+		}
+		return out;
+	}
+
+	private record CandidateRule(SpawnFishRule rule, boolean inherited) {
+	}
+
+	/**
+	 * Match vanilla location buckets first (from Data/Locations), then fall back to legacy keys.
+	 */
+	private List<String> resolveVanillaAlignedLocationKeys(ServerLevel level, Holder<Biome> biomeHolder) {
+		List<String> keys = new ArrayList<>();
+
+		if (hasBiomeTag(biomeHolder, "stardewcraft:is_night_market")) {
+			keys.add("BeachNightMarket");
+			keys.add("Submarine");
+		}
+		if (hasBiomeTag(biomeHolder, "stardewcraft:is_pirate_cove")) {
+			keys.add("IslandSouthEastCave");
+		}
+		if (hasBiomeTag(biomeHolder, "stardewcraft:is_ginger_island_ocean")) {
+			keys.add("IslandSouth");
+			keys.add("IslandSouthEast");
+			keys.add("IslandWest");
+		}
+		if (hasBiomeTag(biomeHolder, "stardewcraft:is_ginger_island_river")) {
+			keys.add("IslandNorth");
+			keys.add("IslandWest");
+		}
+		if (hasBiomeTag(biomeHolder, "stardewcraft:is_ginger_island_pond")) {
+			keys.add("IslandWest");
+		}
+		if (hasBiomeTag(biomeHolder, "stardewcraft:is_volcano")) {
+			keys.add("Caldera");
+		}
+		if (hasBiomeTag(biomeHolder, "stardewcraft:is_witch_swamp")) {
+			keys.add("WitchSwamp");
+		}
+		if (hasBiomeTag(biomeHolder, "stardewcraft:is_mutant_bug_lair")) {
+			keys.add("BugLand");
+		}
+		if (hasBiomeTag(biomeHolder, "stardewcraft:is_sewers")) {
+			keys.add("Sewer");
+		}
+		if (hasBiomeTag(biomeHolder, "stardewcraft:is_desert")) {
+			keys.add("Desert");
+		}
+		if (hasBiomeTag(biomeHolder, "stardewcraft:is_mines_20")
+				|| hasBiomeTag(biomeHolder, "stardewcraft:is_mines_60")
+				|| hasBiomeTag(biomeHolder, "stardewcraft:is_mines_100")) {
+			keys.add("UndergroundMine");
+		}
+		if (hasBiomeTag(biomeHolder, "stardewcraft:is_beach") || hasBiomeTag(biomeHolder, "stardewcraft:is_ocean")) {
+			keys.add("Beach");
+		}
+		if (hasBiomeTag(biomeHolder, "stardewcraft:is_town_river") || hasBiomeTag(biomeHolder, "stardewcraft:is_jojamart_bridge")) {
+			keys.add("Town");
+		}
+		if (hasBiomeTag(biomeHolder, "stardewcraft:is_mountain_lake")) {
+			keys.add("Mountain");
+		}
+		if (hasBiomeTag(biomeHolder, "stardewcraft:is_forest_pond")
+				|| hasBiomeTag(biomeHolder, "stardewcraft:is_forest_river")
+				|| hasBiomeTag(biomeHolder, "stardewcraft:is_forest_waterfall")) {
+			keys.add("Forest");
+		}
+		if (hasBiomeTag(biomeHolder, "stardewcraft:is_secret_woods")) {
+			keys.add("Woods");
+		}
+
+		if (keys.isEmpty()) {
+			keys.add("Default");
+		}
+
+		LinkedHashSet<String> deduped = new LinkedHashSet<>(keys);
+		return new ArrayList<>(deduped);
+	}
+
+	private String resolveVanillaFishAreaId(Holder<Biome> biomeHolder) {
+		if (hasBiomeTag(biomeHolder, "stardewcraft:is_beach_pier")) {
+			return "Ocean";
+		}
+		if (hasBiomeTag(biomeHolder, "stardewcraft:is_beach") || hasBiomeTag(biomeHolder, "stardewcraft:is_ocean")) {
+			return "Ocean";
+		}
+		if (hasBiomeTag(biomeHolder, "stardewcraft:is_town_river") || hasBiomeTag(biomeHolder, "stardewcraft:is_river")) {
+			return "River";
+		}
+		if (hasBiomeTag(biomeHolder, "stardewcraft:is_mountain_lake")) {
+			return "Lake";
+		}
+		if (hasBiomeTag(biomeHolder, "stardewcraft:is_forest_pond")) {
+			return "Lake";
+		}
+		if (hasBiomeTag(biomeHolder, "stardewcraft:is_ginger_island_pond")) {
+			return "Freshwater";
+		}
+		if (hasBiomeTag(biomeHolder, "stardewcraft:is_ginger_island_river")) {
+			return "Freshwater";
+		}
+		if (hasBiomeTag(biomeHolder, "stardewcraft:is_mutant_bug_lair")) {
+			return "Marsh";
+		}
+		if (hasBiomeTag(biomeHolder, "stardewcraft:is_desert")) {
+			return "TopPond";
+		}
+		return null;
+	}
+
+	@SuppressWarnings("null")
+	private static boolean hasBiomeTag(Holder<Biome> biomeHolder, String tagId) {
+		ResourceLocation id = ResourceLocation.parse(tagId);
+		TagKey<Biome> tag = TagKey.create(Registries.BIOME, id);
+		return biomeHolder.is(tag);
+	}
+
+	private static boolean isStardewFishingDimension(ServerLevel level) {
+		return level.dimension() == ModDimensions.STARDEW_VALLEY
+				|| level.dimension() == ModMiningDimensions.STARDEW_MINING;
 	}
 
 	private static ItemStack getRodFromPlayer(ServerPlayer player) {
@@ -193,6 +386,24 @@ public final class FishingDataManager {
 		return false;
 	}
 
+	private static String getTargetedBaitFishId(ItemStack rodStack) {
+		if (rodStack == null || rodStack.isEmpty()) {
+			return null;
+		}
+		if (!(rodStack.getItem() instanceof com.stardew.craft.item.tool.FishingRodItem rodItem)) {
+			return null;
+		}
+		ItemStack bait = rodItem.getAttachmentsForTooltip(rodStack).bait();
+		if (bait.isEmpty() || !(bait.getItem() instanceof SpecificBaitItem)) {
+			return null;
+		}
+		String fishId = SpecificBaitItem.getTargetFishId(bait);
+		if (fishId == null || fishId.isBlank()) {
+			return null;
+		}
+		return fishId;
+	}
+
 	/**
 	 * Stardew Valley (1.6) curiosity lure behavior: for low-chance fish (chance < 0.25),
 	 * linearly raise the chance toward a minimum floor.
@@ -204,6 +415,26 @@ public final class FishingDataManager {
 		float max = 0.25f;
 		float min = 0.08f;
 		return (max - min) / max * baseChance + (max - min) / 2f;
+	}
+
+	private static boolean matchesVanillaCondition(ServerPlayer player, ServerLevel level, BlockPos bobberPos,
+									  Holder<Biome> biomeHolder, SpawnFishRule rule) {
+		String condition = rule.condition();
+		if (condition == null || condition.isBlank()) {
+			return true;
+		}
+
+		boolean negate = condition.startsWith("!");
+		String normalized = negate ? condition.substring(1).trim() : condition.trim();
+		String marker = "PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current ";
+		if (normalized.startsWith(marker)) {
+			String ruleId = normalized.substring(marker.length()).trim();
+			boolean active = PlayerStardewDataAPI.isSpecialOrderRuleActive(player, ruleId);
+			return negate ? !active : active;
+		}
+
+		// Unknown condition expression: keep current behavior permissive for compatibility.
+		return true;
 	}
 
 	/**
@@ -270,16 +501,16 @@ public final class FishingDataManager {
 		}
 	}
 
-	private static List<SpawnFishRule> stableShuffleByPrecedence(List<SpawnFishRule> sorted, RandomSource random) {
-		List<SpawnFishRule> result = new ArrayList<>(sorted.size());
+	private static List<CandidateRule> stableShuffleByPrecedence(List<CandidateRule> sorted, RandomSource random) {
+		List<CandidateRule> result = new ArrayList<>(sorted.size());
 		int i = 0;
 		while (i < sorted.size()) {
-			int precedence = sorted.get(i).precedence();
+			int precedence = sorted.get(i).rule().precedence();
 			int j = i + 1;
-			while (j < sorted.size() && sorted.get(j).precedence() == precedence) {
+			while (j < sorted.size() && sorted.get(j).rule().precedence() == precedence) {
 				j++;
 			}
-			List<SpawnFishRule> group = new ArrayList<>(sorted.subList(i, j));
+			List<CandidateRule> group = new ArrayList<>(sorted.subList(i, j));
 			Collections.shuffle(group, new Random(random.nextLong()));
 			result.addAll(group);
 			i = j;
@@ -288,6 +519,13 @@ public final class FishingDataManager {
 	}
 
 	public record FishSelection(ItemStack stack, int difficulty, int motionTypeId, boolean skipMinigame) {
+	}
+
+	@FunctionalInterface
+	public interface RuleEligibilityHook {
+		RuleEligibilityHook ALLOW_ALL = (player, level, bobberPos, biomeHolder, rule) -> true;
+
+		boolean allow(ServerPlayer player, ServerLevel level, BlockPos bobberPos, Holder<Biome> biomeHolder, SpawnFishRule rule);
 	}
 
 	/**

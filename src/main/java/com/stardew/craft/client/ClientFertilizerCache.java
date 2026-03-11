@@ -49,4 +49,11 @@ public class ClientFertilizerCache {
     public static boolean hasFertilizer(BlockPos pos) {
         return cache.containsKey(pos);
     }
+
+    /**
+     * 获取当前缓存快照，供渲染层安全遍历。
+     */
+    public static Map<BlockPos, FertilizerType> snapshot() {
+        return Map.copyOf(cache);
+    }
 }

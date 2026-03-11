@@ -1,0 +1,6 @@
+﻿{
+    "textures":  {
+                     "all":  "stardewcraft:block/deco/flooring/style_17_part_1"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

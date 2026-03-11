@@ -26,8 +26,8 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 public final class ScytheHarvestEvents {
 	// 收割几何：前方扇形（按玩家视线），避免“必须指着作物”以及“扫到身后”。
 	// 这里用 XZ 平面计算（高度用 3 个平面兜底，适配台阶/坡地）。
-	private static final double SWING_RADIUS_BLOCKS = 2.35;
-	private static final double COS_HALF_ANGLE = Math.cos(Math.toRadians(70.0));
+	private static final double SWING_RADIUS_BLOCKS = 2.9;
+	private static final double COS_HALF_ANGLE = Math.cos(Math.toRadians(85.0));
 
 	@SubscribeEvent
 	public static void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
@@ -78,6 +78,7 @@ public final class ScytheHarvestEvents {
 
 	public static boolean harvestSwing(ServerLevel level, ServerPlayer player, ScytheItem scythe) {
 		boolean didSomething = false;
+		boolean forceScytheHarvest = scythe.getTier() == ScytheItem.Tier.IRIDIUM;
 		BlockPos origin = player.blockPosition();
 		Vec3 look = player.getLookAngle();
 		double lookX = look.x;
@@ -98,26 +99,26 @@ public final class ScytheHarvestEvents {
 			for (int dx = -r; dx <= r; dx++) {
 				for (int dz = -r; dz <= r; dz++) {
 					BlockPos pos = new BlockPos(origin.getX() + dx, y, origin.getZ() + dz);
-					if (pos.equals(origin)) {
-						continue;
-					}
 
 					double vx = (pos.getX() + 0.5) - player.getX();
 					double vz = (pos.getZ() + 0.5) - player.getZ();
 					double dist = Math.sqrt(vx * vx + vz * vz);
-					if (dist > SWING_RADIUS_BLOCKS || dist < 1.0e-6) {
+					if (dist > SWING_RADIUS_BLOCKS) {
 						continue;
 					}
 
-					double dot = (vx / dist) * lookX + (vz / dist) * lookZ;
-					if (dot <= 0.0) {
-						continue;
-					}
-					if (dot < COS_HALF_ANGLE) {
-						continue;
+					// 脚下/近身格不强制朝向，避免“站在作物上收不到”。
+					if (dist >= 0.75 && dist >= 1.0e-6) {
+						double dot = (vx / dist) * lookX + (vz / dist) * lookZ;
+						if (dot <= 0.0) {
+							continue;
+						}
+						if (dot < COS_HALF_ANGLE) {
+							continue;
+						}
 					}
 
-					if (tryHarvestAt(level, player, scythe, pos)) {
+					if (tryHarvestAt(level, player, scythe, pos, forceScytheHarvest)) {
 						didSomething = true;
 					}
 				}
@@ -128,7 +129,7 @@ public final class ScytheHarvestEvents {
 	}
 
 	@SuppressWarnings("null")
-	private static boolean tryHarvestAt(ServerLevel level, ServerPlayer player, ScytheItem scythe, BlockPos pos) {
+	private static boolean tryHarvestAt(ServerLevel level, ServerPlayer player, ScytheItem scythe, BlockPos pos, boolean forceScytheHarvest) {
 		@SuppressWarnings("null")
 		BlockState state = level.getBlockState(pos);
 		if (state.isAir()) {
@@ -136,7 +137,7 @@ public final class ScytheHarvestEvents {
 		}
 
 		if (state.getBlock() instanceof StardewCropBlock crop) {
-			return crop.tryHarvestByTool(level, pos, state, player);
+			return crop.tryHarvestByTool(level, pos, state, player, forceScytheHarvest);
 		}
 
 		if (state.getBlock() instanceof WildWeedsBlock) {

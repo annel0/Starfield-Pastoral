@@ -60,6 +60,11 @@ public class AmaranthCropBlock extends StardewCropBlock {
     }
 
     @Override
+    protected HarvestMethod getHarvestMethod() {
+        return HarvestMethod.SCYTHE;
+    }
+
+    @Override
     protected boolean canRegrow() {
         return false;
     }

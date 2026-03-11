@@ -329,6 +329,7 @@ public final class FishingSessionManager {
 			}
 
 			ItemStack fish = session.plannedCatch();
+			boolean hasPlannedCatch = !fish.isEmpty();
 			if (fish.isEmpty()) {
 				// 如果plannedCatch为空（理论上不应该发生），给玩家垃圾而不是COD
 				StardewCraft.LOGGER.warn("Player {} caught fish but plannedCatch is empty! Giving trash.", player.getName().getString());
@@ -361,6 +362,12 @@ public final class FishingSessionManager {
 				
 				// 使用QualityHelper设置品质
 				com.stardew.craft.item.quality.QualityHelper.setQuality(fish, fishQuality);
+			}
+
+			if (hasPlannedCatch) {
+				@SuppressWarnings("null")
+				String itemId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(fish.getItem()).toString();
+				PlayerStardewDataAPI.addFishCatchCount(player, itemId, finalNumCaught);
 			}
 			
 			// Give multiple fish if applicable.

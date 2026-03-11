@@ -53,7 +53,7 @@ public class RhubarbSeedItem extends Item implements IStardewItem {
 
         if (!level.isClientSide) {
             int season = StardewTimeManager.get().getCurrentSeason();
-            if (!(season == 0)) {
+            if (!com.stardew.craft.farming.SeasonLocationRules.isPlantingSeasonAllowed(level, abovePos, season, 0)) {
                 if (context.getPlayer() != null) {
                     context.getPlayer().displayClientMessage(
                             net.minecraft.network.chat.Component.translatable("stardewcraft.message.seed.wrong_season"),

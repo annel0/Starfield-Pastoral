@@ -24,7 +24,7 @@ public class GrapeCropBlock extends StardewCropBlock {
         super(Properties.of()
                 .mapColor(MapColor.PLANT)
                 .pushReaction(PushReaction.DESTROY)
-                .sound(SoundType.CROP));
+                .sound(SoundType.CROP), true);
     }
 
     @Override

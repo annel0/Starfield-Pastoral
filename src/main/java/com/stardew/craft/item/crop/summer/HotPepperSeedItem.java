@@ -55,7 +55,7 @@ public class HotPepperSeedItem extends Item implements IStardewItem {
 
         if (!level.isClientSide) {
             int season = StardewTimeManager.get().getCurrentSeason();
-            if (season != 1) {
+            if (!com.stardew.craft.farming.SeasonLocationRules.isPlantingSeasonAllowed(level, abovePos, season, 1)) {
                 var player = context.getPlayer();
                 if (player != null) {
                     @Nonnull Component message = Component.translatable("stardewcraft.message.seed.wrong_season");

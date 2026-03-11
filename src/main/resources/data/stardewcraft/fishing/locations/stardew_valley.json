@@ -657,6 +657,7 @@
       "maxDepth": 5,
       "depthMultiplier": 0.05,
       "biomeTags": ["#stardewcraft:is_mountain_lake"],
+      "condition": "!PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
       "catchLimit": 1,
       "isBossFish": true
     },
@@ -673,6 +674,7 @@
       "maxDepth": 5,
       "depthMultiplier": 0.05,
       "biomeTags": ["#stardewcraft:is_ocean"],
+      "condition": "!PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
       "catchLimit": 1,
       "isBossFish": true
     },
@@ -689,6 +691,7 @@
       "maxDepth": 5,
       "depthMultiplier": 0.05,
       "biomeTags": ["#stardewcraft:is_town_river"],
+      "condition": "!PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
       "catchLimit": 1,
       "isBossFish": true
     },
@@ -705,6 +708,7 @@
       "maxDepth": 5,
       "depthMultiplier": 0.05,
       "biomeTags": ["#stardewcraft:is_forest_waterfall"],
+      "condition": "!PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
       "catchLimit": 1,
       "isBossFish": true
     },
@@ -719,6 +723,7 @@
       "maxDepth": 4,
       "depthMultiplier": 0.05,
       "biomeTags": ["#stardewcraft:is_sewers"],
+      "condition": "!PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
       "catchLimit": 1,
       "isBossFish": true
     },
@@ -736,6 +741,7 @@
       "maxDepth": 5,
       "depthMultiplier": 0.05,
       "biomeTags": ["#stardewcraft:is_mountain_lake"],
+      "condition": "PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
       "catchLimit": 1,
       "isBossFish": true
     },
@@ -752,6 +758,7 @@
       "maxDepth": 5,
       "depthMultiplier": 0.05,
       "biomeTags": ["#stardewcraft:is_ocean"],
+      "condition": "PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
       "catchLimit": 1,
       "isBossFish": true
     },
@@ -768,6 +775,7 @@
       "maxDepth": 5,
       "depthMultiplier": 0.05,
       "biomeTags": ["#stardewcraft:is_town_river"],
+      "condition": "PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
       "catchLimit": 1,
       "isBossFish": true
     },
@@ -784,6 +792,7 @@
       "maxDepth": 5,
       "depthMultiplier": 0.05,
       "biomeTags": ["#stardewcraft:is_forest_waterfall"],
+      "condition": "PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
       "catchLimit": 1,
       "isBossFish": true
     },
@@ -798,6 +807,7 @@
       "maxDepth": 4,
       "depthMultiplier": 0.05,
       "biomeTags": ["#stardewcraft:is_sewers"],
+      "condition": "PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
       "catchLimit": 1,
       "isBossFish": true
     }

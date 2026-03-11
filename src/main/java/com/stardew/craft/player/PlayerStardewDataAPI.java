@@ -357,4 +357,28 @@ public class PlayerStardewDataAPI {
     public static boolean hasProfession(ServerPlayer player, ProfessionType profession) {
         return getData(player).hasProfession(profession);
     }
+
+    // ============ 钓鱼记录（CatchLimit） ============
+
+    public static int getFishCatchCount(ServerPlayer player, String itemId) {
+        return getData(player).getFishCatchCount(itemId);
+    }
+
+    public static void addFishCatchCount(ServerPlayer player, String itemId, int amount) {
+        PlayerStardewData data = getData(player);
+        if (data.addFishCatchCount(itemId, amount)) {
+            PlayerDataEventHandler.syncPlayerData(player, data);
+        }
+    }
+
+    public static boolean isSpecialOrderRuleActive(ServerPlayer player, String ruleId) {
+        return getData(player).isSpecialOrderRuleActive(ruleId);
+    }
+
+    public static void setSpecialOrderRuleActive(ServerPlayer player, String ruleId, boolean active) {
+        PlayerStardewData data = getData(player);
+        if (data.setSpecialOrderRuleActive(ruleId, active)) {
+            PlayerDataEventHandler.syncPlayerData(player, data);
+        }
+    }
 }

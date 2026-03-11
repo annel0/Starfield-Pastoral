@@ -2,6 +2,7 @@ package com.stardew.craft;
 
 import com.stardew.craft.block.ModBlocks;
 import com.stardew.craft.item.ModItems;
+import com.stardew.craft.item.SpecificBaitItem;
 import com.stardew.craft.item.artisan.PreservesItem;
 import com.stardew.craft.client.render.FallenOakTreeRenderer;
 import com.stardew.craft.client.ModItemProperties;
@@ -166,6 +167,17 @@ public class StardewCraftClient {
             ModItems.DRIED_FRUIT.get(),
             ModItems.DRIED_MUSHROOMS.get()
         );
+            event.register((stack, tintIndex) -> {
+                if (!(stack.getItem() instanceof SpecificBaitItem specificBaitItem)) {
+                    return 0xFFFFFFFF;
+                }
+                if (tintIndex != 1) {
+                    return 0xFFFFFFFF;
+                }
+                int color = specificBaitItem.getColor(stack);
+                int rgb = color >= 0 ? color : 0xFFFFFF;
+                return 0xFF000000 | (rgb & 0xFFFFFF);
+            }, ModItems.TARGETED_BAIT.get());
     }
 
     @SubscribeEvent

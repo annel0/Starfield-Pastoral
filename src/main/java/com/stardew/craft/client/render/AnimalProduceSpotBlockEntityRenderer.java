@@ -37,13 +37,15 @@ public class AnimalProduceSpotBlockEntityRenderer implements BlockEntityRenderer
         float offsetX = randomRange(seed ^ 0x4CC99A11L, -0.06f, 0.06f);
         float offsetZ = randomRange(seed ^ 0x11AA66E3L, -0.08f, 0.08f);
 
-        poseStack.translate(0.5f + offsetX, 0.035f, 0.5f + offsetZ);
+        // Render produce like hay: resting flat on the floor with a readable size.
+        poseStack.translate(0.5f + offsetX, 0.055f, 0.5f + offsetZ);
         poseStack.mulPose(Axis.YP.rotationDegrees(yaw));
-        poseStack.scale(0.68f, 0.68f, 0.68f);
+        poseStack.mulPose(Axis.XP.rotationDegrees(90.0f));
+        poseStack.scale(0.98f, 0.98f, 0.98f);
 
         Minecraft.getInstance().getItemRenderer().renderStatic(
             stack,
-            ItemDisplayContext.GROUND,
+            ItemDisplayContext.FIXED,
             packedLight,
             OverlayTexture.NO_OVERLAY,
             poseStack,

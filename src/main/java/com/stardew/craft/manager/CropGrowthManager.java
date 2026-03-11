@@ -85,15 +85,14 @@ public class CropGrowthManager extends SavedData {
         return cropStates.get(globalPos);
     }
 
-    public void setRegrowing(Level level, BlockPos pos, boolean regrowing) {
+    public void setRegrowing(Level level, BlockPos pos, boolean regrowing, int dayInPhase, int phase) {
         if (!(level instanceof ServerLevel)) {
             return;
         }
         CropGrowthState state = getOrCreateState(level, pos);
         state.regrowing = regrowing;
-        state.dayInPhase = 0;
-        // 再生默认算作进入最后 phase 的倒计时
-        state.phase = 3;
+        state.dayInPhase = Math.max(0, dayInPhase);
+        state.phase = Math.max(0, phase);
         setDirty();
     }
 

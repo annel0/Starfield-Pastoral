@@ -131,15 +131,15 @@ public class StardewTimeManager extends SavedData {
             @SuppressWarnings("null")
             ServerLevel stardewLevel = server.getLevel(ModDimensions.STARDEW_VALLEY);
             if (stardewLevel != null) {
+                // 对齐 Stardew 的日结算语义：先确定“今天”的天气，再结算昨夜生长。
+                com.stardew.craft.weather.WeatherManager.applyWeatherForNewDay(stardewLevel, currentDay);
+
                 com.stardew.craft.manager.CropGrowthManager.get(stardewLevel).growDaily(stardewLevel);
 				com.stardew.craft.manager.TreeGrowthManager.get(stardewLevel).growDaily(stardewLevel);
                 com.stardew.craft.manager.WildTreeSeedManager.get(stardewLevel).onNewDay(stardewLevel, absDay);
                 com.stardew.craft.manager.SprinklerManager.get(stardewLevel).waterDaily(stardewLevel);
                 com.stardew.craft.manager.PastureGrassGrowthManager.get(stardewLevel).growDaily(stardewLevel);
                 com.stardew.craft.manager.AnimalGrowthManager.get(stardewLevel).growDaily(stardewLevel);
-                
-                // 应用今天的天气
-                com.stardew.craft.weather.WeatherManager.applyWeatherForNewDay(stardewLevel, currentDay);
                 
                 // 预测明天的天气
                 com.stardew.craft.weather.WeatherManager.updateWeatherForNewDay(

@@ -2,6 +2,7 @@ package com.stardew.craft.block.crop;
 
 import com.stardew.craft.block.shape.ModelVoxelShapeCache;
 import com.stardew.craft.core.ModDimensions;
+import com.stardew.craft.farming.SeasonLocationRules;
 import com.stardew.craft.item.quality.QualityHelper;
 import com.stardew.craft.manager.FertilizerManager;
 import com.stardew.craft.player.PlayerStardewDataAPI;
@@ -38,6 +39,11 @@ import javax.annotation.Nonnull;
  * 完全照抄原版Crop.cs的机制
  */
 public abstract class StardewCropBlock extends Block {
+
+    public enum HarvestMethod {
+        GRAB,
+        SCYTHE
+    }
     
     // 作物生长阶段 (0-3, 4个阶段)
     public static final IntegerProperty AGE = IntegerProperty.create("age", 0, 3);
@@ -113,19 +119,6 @@ public abstract class StardewCropBlock extends Block {
             shapes[age] = Block.box(min, 0.0, min, max, h, max);
         }
         return shapes;
-    }
-
-    private static int clampPositiveDays(int days) {
-        return Math.max(1, days);
-    }
-
-    private static int clampRequiredDaysForPhase(int phase, int days) {
-        // Stardew Valley: applySpeedIncreases 可能把某些阶段减到 0 天。
-        // 但第 0 阶段至少保留 1 天（条件：j>0 || phaseDays[j]>1）。
-        if (phase <= 0) {
-            return Math.max(1, days);
-        }
-        return Math.max(0, days);
     }
 
     private static int getFarmingLevel(Player player) {
@@ -204,44 +197,16 @@ public abstract class StardewCropBlock extends Block {
         return result;
     }
 
-    private static int computeTotalDays(int[] phaseDays) {
-        if (phaseDays == null || phaseDays.length == 0) {
-            return 1;
-        }
-        int total = 0;
-        for (int d : phaseDays) {
-            total += Math.max(0, d);
-        }
-        return Math.max(1, total);
-    }
-
-    private static int computeGrownDays(int[] phaseDays, int phase, int dayInPhase) {
-        if (phaseDays == null || phaseDays.length == 0) {
-            return 0;
-        }
-        int p = Math.max(0, Math.min(phase, phaseDays.length));
-        int grown = 0;
-        for (int i = 0; i < p && i < phaseDays.length; i++) {
-            grown += Math.max(0, phaseDays[i]);
-        }
-        grown += Math.max(0, dayInPhase);
-        return Math.max(0, grown);
-    }
-
     /**
-     * 把“生长进度(天)”均分到 3 个贴图阶段 (0/1/2)，成熟时才显示 3。
+     * Stardew 的 phaseDays 末尾有一个 99999 哨兵阶段（可收割阶段）。
      */
-    private static int computeVisualAgeEvenly(int grownDays, int totalDays) {
-        int total = Math.max(1, totalDays);
-        int grown = Math.max(0, Math.min(grownDays, total));
-
-        if (grown >= total) {
-            return MAX_AGE;
+    private static int[] withHarvestSentinel(int[] growthPhaseDays) {
+        if (growthPhaseDays == null || growthPhaseDays.length == 0) {
+            return new int[]{99999};
         }
-
-        // 0..(total-1) 映射到 0..2
-        int age = (int) ((grown * 3L) / total);
-        return Math.max(0, Math.min(MAX_AGE - 1, age));
+        int[] result = java.util.Arrays.copyOf(growthPhaseDays, growthPhaseDays.length + 1);
+        result[growthPhaseDays.length] = 99999;
+        return result;
     }
 
     /**
@@ -256,20 +221,25 @@ public abstract class StardewCropBlock extends Block {
         }
 
         CropGrowthManager.CropGrowthState growthState = CropGrowthManager.get(level).getState(level, pos);
-        if (growthState != null && growthState.regrowing) {
-            return false;
+        if (growthState == null) {
+            // 兼容旧状态缺失：成熟贴图直接允许收割，避免“永远不可收割”卡死。
+            return true;
         }
 
-        // 使用真实 phase，避免把 AGE 当作 phase 造成“都只有 3 天/3 阶段”的错觉。
-        if (growthState != null && growthState.phase < MAX_AGE) {
-            return false;
+        int[] phaseDays = withHarvestSentinel(applySpeedGroToPhaseDays(getPhaseDays(), getSpeedBoost(level, pos)));
+        int lastPhase = Math.max(0, phaseDays.length - 1);
+
+        if (growthState.phase < lastPhase) {
+            growthState.phase = lastPhase;
+            if (!growthState.regrowing) {
+                growthState.dayInPhase = 0;
+            }
         }
 
-        int[] phaseDays = getPhaseDays();
-        int last = (phaseDays != null && phaseDays.length > MAX_AGE) ? phaseDays[MAX_AGE] : 1;
-        int required = Math.max(0, last);
-        int dayInPhase = growthState != null ? growthState.dayInPhase : 0;
-        return dayInPhase >= required;
+        if (growthState.regrowing) {
+            return growthState.phase >= lastPhase && growthState.dayInPhase <= 0;
+        }
+        return growthState.phase >= lastPhase;
     }
     
     @Override
@@ -381,6 +351,11 @@ public abstract class StardewCropBlock extends Block {
             return InteractionResult.PASS;
         }
 
+        if (getHarvestMethod() == HarvestMethod.SCYTHE) {
+            // 镰刀作物不允许徒手右键收割。
+            return level.isClientSide ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
+        }
+
         @SuppressWarnings("null")
         int currentAge = state.getValue(AGE);
         
@@ -415,8 +390,9 @@ public abstract class StardewCropBlock extends Block {
         if (!level.isClientSide && level instanceof ServerLevel serverLevel) {
             @SuppressWarnings("null")
             boolean mature = state.getValue(AGE) == MAX_AGE && isMature(serverLevel, pos, state);
+            boolean canGrabHarvest = getHarvestMethod() == HarvestMethod.GRAB;
             // 如果不是创造模式，生成掉落物
-            if (mature && !player.isCreative()) {
+            if (mature && canGrabHarvest && !player.isCreative()) {
                 int farmingLevel = getFarmingLevel(player);
                 int fertilizerLevel = getFertilizerLevel(serverLevel, pos);
                 spawnHarvestDrops(serverLevel, pos, state, level.getRandom(), fertilizerLevel, farmingLevel);
@@ -453,7 +429,10 @@ public abstract class StardewCropBlock extends Block {
             level.setBlock(pos, currentState.setValue(AGE, regrowAge), 3);
 
             // 标记为“再生长倒计时”状态，让每日生长按 regrowDays 计算
-            CropGrowthManager.get(level).setRegrowing(level, pos, true);
+            int[] phaseDays = withHarvestSentinel(applySpeedGroToPhaseDays(getPhaseDays(), getSpeedBoost(level, pos)));
+            int lastPhase = Math.max(0, phaseDays.length - 1);
+            int regrowDays = Math.max(1, getRegrowDays());
+            CropGrowthManager.get(level).setRegrowing(level, pos, true, regrowDays, lastPhase);
         } else {
             // 一次性作物：移除方块
             level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
@@ -465,15 +444,22 @@ public abstract class StardewCropBlock extends Block {
      * 返回是否实际发生了收割。
      */
     @SuppressWarnings("null")
-    public boolean tryHarvestByTool(ServerLevel level, BlockPos pos, BlockState state, Player player) {
+    public boolean tryHarvestByTool(ServerLevel level, BlockPos pos, BlockState state, Player player, boolean forceScytheHarvest) {
         if (state.getValue(AGE) < MAX_AGE) {
             return false;
         }
         if (!isMature(level, pos, state)) {
             return false;
         }
+        if (getHarvestMethod() != HarvestMethod.SCYTHE && !forceScytheHarvest) {
+            return false;
+        }
         harvest(level, pos, state, player);
         return true;
+    }
+
+    protected HarvestMethod getHarvestMethod() {
+        return HarvestMethod.GRAB;
     }
 
     /**
@@ -499,8 +485,54 @@ public abstract class StardewCropBlock extends Block {
      * 获取收获数量（基于farming等级和随机）
      */
     protected int getHarvestCount(RandomSource random, int farmingLevel) {
-        // 原版逻辑：基础1个 + ExtraHarvestChance概率额外收获
+        // 1:1 对齐 Stardew Crop.harvest 的栈数与额外产出逻辑。
+        int minStack = getHarvestMinStack();
+        int maxStack = Math.max(minStack, getHarvestMaxStack());
+
+        float maxIncreasePerFarmingLevel = getHarvestMaxIncreasePerFarmingLevel();
+        if (maxIncreasePerFarmingLevel > 0f) {
+            maxStack += (int) (farmingLevel * maxIncreasePerFarmingLevel);
+        }
+
+        int count = 1;
+        if (minStack > 1 || maxStack > 1) {
+            count = random.nextInt(maxStack - minStack + 1) + minStack;
+        }
+
+        double extraHarvestChance = getExtraHarvestChance();
+        while (extraHarvestChance > 0.0 && random.nextDouble() < Math.min(0.9, extraHarvestChance)) {
+            count++;
+        }
+
+        return count;
+    }
+
+    /**
+     * 原版 CropData.HarvestMinStack
+     */
+    protected int getHarvestMinStack() {
         return 1;
+    }
+
+    /**
+     * 原版 CropData.HarvestMaxStack
+     */
+    protected int getHarvestMaxStack() {
+        return 1;
+    }
+
+    /**
+     * 原版 CropData.HarvestMaxIncreasePerFarmingLevel
+     */
+    protected float getHarvestMaxIncreasePerFarmingLevel() {
+        return 0f;
+    }
+
+    /**
+     * 原版 CropData.ExtraHarvestChance
+     */
+    protected double getExtraHarvestChance() {
+        return 0.0;
     }
     
     /**
@@ -654,8 +686,8 @@ public abstract class StardewCropBlock extends Block {
             return;
         }
         
-        // 检查季节
-        if (!isInSeason(level)) {
+        // 检查季节（对齐 Stardew 的 SeedsIgnoreSeasonsHere 语义）。
+        if (!SeasonLocationRules.seedsIgnoreSeasonsHere(level, pos) && !isInSeason(level)) {
             // 原版: Kill() -> replace with Dead Crop
             level.setBlock(pos, com.stardew.craft.block.ModBlocks.DEAD_CROP.get().defaultBlockState()
                     .setValue(com.stardew.craft.block.crop.DeadCropBlock.VARIANT, level.random.nextInt(4)), 3);
@@ -667,10 +699,8 @@ public abstract class StardewCropBlock extends Block {
             return;
         }
 
-        @SuppressWarnings("null")
-        int currentAge = state.getValue(AGE);
         float speedBoost = getSpeedBoost(level, pos);
-        int[] phaseDays = applySpeedGroToPhaseDays(getPhaseDays(), speedBoost);
+        int[] phaseDays = withHarvestSentinel(applySpeedGroToPhaseDays(getPhaseDays(), speedBoost));
         if (phaseDays == null || phaseDays.length <= 0) {
             return;
         }
@@ -680,95 +710,71 @@ public abstract class StardewCropBlock extends Block {
             return; // 没浇水就不生长
         }
 
-        // 旧存档/未初始化：尽量从 AGE 推断一个 phase，避免显示/生长错乱。
-        // 注意：AGE=3 只允许在“成熟可收割”时出现，因此 AGE=3 应被视为 phase=3 并视为成熟。
+        int lastPhase = Math.max(0, phaseDays.length - 1);
+        int preHarvestPhase = Math.max(0, lastPhase - 1);
+        int currentAge = state.getValue(AGE);
+
+        // 兼容旧状态：如果只存在贴图年龄，映射到对应 phase。
         if (growthState.phase == 0 && growthState.dayInPhase == 0 && !growthState.regrowing && currentAge > 0) {
-            if (currentAge >= MAX_AGE) {
-                growthState.phase = MAX_AGE;
-                int last = (phaseDays.length > MAX_AGE) ? phaseDays[MAX_AGE] : 1;
-                growthState.dayInPhase = Math.max(0, last);
-            } else {
-                growthState.phase = Math.min(currentAge, MAX_AGE - 1);
-            }
+            growthState.phase = currentAge >= MAX_AGE ? lastPhase : Math.min(currentAge, preHarvestPhase);
         }
 
-        // 再生作物：严格按 regrowDays 倒计时，不按 AGE/phaseDays 推进。
         if (growthState.regrowing && canRegrow()) {
-            // Stardew Valley 的 Speed-Gro 不会通过 applySpeedIncreases 影响再生倒计时。
-            int regrowDays = clampPositiveDays(getRegrowDays());
-            growthState.dayInPhase++;
-
-            if (growthState.dayInPhase >= regrowDays) {
+            // 再生倒计时：dayInPhase 表示 remaining days，<=0 即成熟可收割。
+            growthState.dayInPhase--;
+            if (growthState.dayInPhase <= 0) {
                 growthState.regrowing = false;
                 growthState.dayInPhase = 0;
-
-                // 再生结束：回到最后 phase，并切到成熟贴图(AGE=3)
-                growthState.phase = MAX_AGE;
-
-                // 回到可收割状态：AGE=3 并把 dayInPhase 置满最后阶段（用于成熟判定 & Jade 显示）
-                int last = (phaseDays != null && phaseDays.length > MAX_AGE) ? phaseDays[MAX_AGE] : 1;
-                int lastRequired = Math.max(0, last);
-                growthState.dayInPhase = lastRequired;
-                if (currentAge != MAX_AGE) {
-                    @SuppressWarnings("null")
-                    BlockState matureState = applyMatureVariant(level, pos, state).setValue(AGE, MAX_AGE);
-                    level.setBlock(pos, matureState, 2);
-                }
+                growthState.phase = lastPhase;
+                BlockState matureState = applyMatureVariant(level, pos, level.getBlockState(pos)).setValue(AGE, MAX_AGE);
+                level.setBlock(pos, matureState, 2);
             } else {
-                // 再生期间保持 regrowAge（通常是成熟植株外观），避免回到幼苗贴图
                 int regrowAge = getRegrowAge();
                 if (regrowAge < 0) regrowAge = 0;
                 if (regrowAge > MAX_AGE - 1) regrowAge = MAX_AGE - 1;
-                if (currentAge != regrowAge) {
-                    level.setBlock(pos, state.setValue(AGE, regrowAge), 2);
+                if (level.getBlockState(pos).getValue(AGE) != regrowAge) {
+                    level.setBlock(pos, level.getBlockState(pos).setValue(AGE, regrowAge), 2);
                 }
             }
             return;
         }
 
-        // 一次性/非再生：按“真实 phase(0-3)”推进。
-        // 要求：stage3(AGE=3) 只在成熟可收割时出现；成熟前的最后阶段保持 AGE=2。
-        int phase = growthState.phase;
-        if (phase < 0) phase = 0;
-        if (phase > MAX_AGE) phase = MAX_AGE;
+        int phase = Math.max(0, Math.min(growthState.phase, lastPhase));
+        int daysThisPhase = phaseDays[Math.min(phase, phaseDays.length - 1)];
 
-        if (phase < MAX_AGE) {
-            int required = clampRequiredDaysForPhase(phase, phaseDays.length > phase ? phaseDays[phase] : 1);
-            growthState.dayInPhase++;
-
-            if (growthState.dayInPhase >= required) {
-                growthState.phase = phase + 1;
-                growthState.dayInPhase = 0;
-            }
-
-            // 贴图阶段均分：0/1/2 在整个生长期内尽量平均占用（成熟才显示 3）
-            int totalDays = computeTotalDays(phaseDays);
-            int grownDays = computeGrownDays(phaseDays, growthState.phase, growthState.dayInPhase);
-            int targetAge = computeVisualAgeEvenly(grownDays, totalDays);
-
-            if (state.getValue(AGE) != targetAge) {
-                level.setBlock(pos, state.setValue(AGE, targetAge), 2);
+        if (phase >= lastPhase) {
+            growthState.phase = lastPhase;
+            growthState.dayInPhase = 0;
+            if (level.getBlockState(pos).getValue(AGE) != MAX_AGE) {
+                BlockState matureState = applyMatureVariant(level, pos, level.getBlockState(pos)).setValue(AGE, MAX_AGE);
+                level.setBlock(pos, matureState, 2);
             }
             return;
         }
 
-        // phase==3：成熟前最后阶段。成熟前保持 AGE=2，成熟当日切到 AGE=3。
-        int lastRequired = Math.max(0, phaseDays.length > MAX_AGE ? phaseDays[MAX_AGE] : 1);
-        growthState.dayInPhase++;
-        if (growthState.dayInPhase >= lastRequired) {
-            growthState.dayInPhase = lastRequired;
-            if (state.getValue(AGE) != MAX_AGE) {
-                @SuppressWarnings("null")
-                BlockState matureState = applyMatureVariant(level, pos, state).setValue(AGE, MAX_AGE);
+        if (daysThisPhase > 0) {
+            growthState.dayInPhase++;
+        }
+
+        if (daysThisPhase <= 0 || growthState.dayInPhase >= daysThisPhase) {
+            phase++;
+            growthState.phase = phase;
+            growthState.dayInPhase = 0;
+            while (growthState.phase < lastPhase && phaseDays[growthState.phase] <= 0) {
+                growthState.phase++;
+            }
+            phase = growthState.phase;
+        }
+
+        if (phase >= lastPhase) {
+            if (level.getBlockState(pos).getValue(AGE) != MAX_AGE) {
+                BlockState matureState = applyMatureVariant(level, pos, level.getBlockState(pos)).setValue(AGE, MAX_AGE);
                 level.setBlock(pos, matureState, 2);
             }
         } else {
-            int totalDays = computeTotalDays(phaseDays);
-            int grownDays = computeGrownDays(phaseDays, MAX_AGE, growthState.dayInPhase);
-            int targetAge = computeVisualAgeEvenly(grownDays, totalDays);
-            // computeVisualAgeEvenly 在未成熟时不会返回 3，所以 stage3 仍只会在成熟出现
-            if (state.getValue(AGE) != targetAge) {
-                level.setBlock(pos, state.setValue(AGE, targetAge), 2);
+            int targetAge = Math.min(phase, MAX_AGE - 1);
+            if (level.getBlockState(pos).getValue(AGE) != targetAge) {
+                level.setBlock(pos, level.getBlockState(pos).setValue(AGE, targetAge), 2);
             }
         }
     }

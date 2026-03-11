@@ -66,34 +66,37 @@ public class FertilizerOverlayRenderer {
 
         @SuppressWarnings("null")
         BlockPos playerPos = mc.player.blockPosition();
-        int renderDistance = 16;
+        // 跟随客户端视距，避免固定16格导致“远处突然消失”。
+        int renderDistance = Math.max(8, mc.options.getEffectiveRenderDistance());
+        int maxBlockDistance = renderDistance * 16;
+        int maxBlockDistanceSq = maxBlockDistance * maxBlockDistance;
         int renderCount = 0;
 
-        for (int x = -renderDistance; x <= renderDistance; x++) {
-            for (int y = -4; y <= 4; y++) {
-                for (int z = -renderDistance; z <= renderDistance; z++) {
-                    BlockPos pos = playerPos.offset(x, y, z);
-                    @SuppressWarnings("null")
-                    BlockState state = level.getBlockState(pos);
+        // 仅遍历有肥料的位置，避免每帧体积扫描带来的性能波动。
+        for (Map.Entry<BlockPos, FertilizerType> entry : ClientFertilizerCache.snapshot().entrySet()) {
+            BlockPos pos = entry.getKey();
+            FertilizerType type = entry.getValue();
 
-                    if (!(state.getBlock() instanceof FarmBlock)) {
-                        continue;
-                    }
-
-                    FertilizerType type = ClientFertilizerCache.getFertilizer(pos);
-                    
-                    if (type != null) {
-                        ResourceLocation textureLoc = getTexture(type);
-                        RenderType rt = getOverlayRenderType(textureLoc);
-                        usedTypes.add(rt);
-
-                        @SuppressWarnings("null")
-                        VertexConsumer vc = buffers.getBuffer(rt);
-                        renderFertilizerOverlay(poseStack, vc, level, pos);
-                        renderCount++;
-                    }
-                }
+            int dx = pos.getX() - playerPos.getX();
+            int dz = pos.getZ() - playerPos.getZ();
+            if (dx * dx + dz * dz > maxBlockDistanceSq) {
+                continue;
             }
+
+            @SuppressWarnings("null")
+            BlockState state = level.getBlockState(pos);
+            if (!(state.getBlock() instanceof FarmBlock)) {
+                continue;
+            }
+
+            ResourceLocation textureLoc = getTexture(type);
+            RenderType rt = getOverlayRenderType(textureLoc);
+            usedTypes.add(rt);
+
+            @SuppressWarnings("null")
+            VertexConsumer vc = buffers.getBuffer(rt);
+            renderFertilizerOverlay(poseStack, vc, level, pos);
+            renderCount++;
         }
 
         poseStack.popPose();

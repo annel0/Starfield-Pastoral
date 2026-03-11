@@ -31,6 +31,11 @@ import java.util.List;
  * @param weather 天气要求 (any, sunny, rainy)
  * @param timeRanges 时间范围列表 (如 [[600,1200],[1800,2400]]，空表示全天)
  * @param skipMinigame 是否跳过钓鱼小游戏（星露谷：非鱼类/可钓物品不会触发小游戏）
+ * @param fishAreaId 原版 FishAreaId（如 Ocean/River/Lake）
+ * @param canBeInherited 是否允许被继承地点查询使用
+ * @param requireMagicBait 是否要求魔法鱼饵
+ * @param catchLimit 抓取上限（-1 表示不限制）
+ * @param condition 原版风格条件表达式（如 PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY）
  */
 public record SpawnFishRule(
 		String id,
@@ -47,7 +52,12 @@ public record SpawnFishRule(
 		List<String> seasons,
 		String weather,
 		List<int[]> timeRanges,
-		boolean skipMinigame
+		boolean skipMinigame,
+		String fishAreaId,
+		boolean canBeInherited,
+		boolean requireMagicBait,
+		int catchLimit,
+		String condition
 ) {
 	/**
 	 * 检查基础条件（钓鱼等级、水深）
@@ -178,6 +188,18 @@ public record SpawnFishRule(
 		int minDepth = obj.has("minDistanceFromShore") ? obj.get("minDistanceFromShore").getAsInt() : 0;
 		int maxDepth = obj.has("maxDistanceFromShore") ? obj.get("maxDistanceFromShore").getAsInt() : -1;
 		boolean skipMinigame = obj.has("skipMinigame") && obj.get("skipMinigame").getAsBoolean();
+		String fishAreaId = obj.has("fishAreaId") && !obj.get("fishAreaId").isJsonNull()
+				? obj.get("fishAreaId").getAsString()
+				: null;
+		boolean canBeInherited = !obj.has("canBeInherited") || obj.get("canBeInherited").getAsBoolean();
+		boolean requireMagicBait = obj.has("requireMagicBait") && obj.get("requireMagicBait").getAsBoolean();
+		int catchLimit = obj.has("catchLimit") ? obj.get("catchLimit").getAsInt() : -1;
+		String condition = obj.has("condition") && !obj.get("condition").isJsonNull()
+				? obj.get("condition").getAsString()
+				: null;
+		if (catchLimit < 0 && obj.has("legendary") && obj.get("legendary").getAsBoolean()) {
+			catchLimit = 1;
+		}
 
 		// 解析群系列表
 		List<String> biomes = parseStringList(obj, "biomes");
@@ -187,7 +209,8 @@ public record SpawnFishRule(
 		List<int[]> timeRanges = parseTimeRanges(obj);
 
 		return new SpawnFishRule(id, precedence, item, chance, difficulty, motion, minLevel, minDepth, maxDepth,
-				biomes, biomeTags, seasons, weather, timeRanges, skipMinigame);
+				biomes, biomeTags, seasons, weather, timeRanges, skipMinigame,
+				fishAreaId, canBeInherited, requireMagicBait, catchLimit, condition);
 	}
 
 	private static List<String> parseStringList(JsonObject obj, String key) {

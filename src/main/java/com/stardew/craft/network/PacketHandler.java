@@ -700,5 +700,17 @@ public class PacketHandler {
             com.stardew.craft.network.payload.AnimalPurchaseSubmitPayload::handle
         );
 
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenDecorationScreenPayload.TYPE,
+            com.stardew.craft.network.payload.OpenDecorationScreenPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenDecorationScreenPayload::handle
+        );
+
+        registrar.playToServer(
+            com.stardew.craft.network.payload.ApplyDecorationStylePayload.TYPE,
+            com.stardew.craft.network.payload.ApplyDecorationStylePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.ApplyDecorationStylePayload::handle
+        );
+
     }
 }

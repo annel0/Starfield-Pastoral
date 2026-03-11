@@ -14,7 +14,7 @@ import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * 蔓越莓种子
+ * 蔓越莓种�?
  */
 public class CranberrySeedItem extends Item implements IStardewItem {
 
@@ -53,7 +53,7 @@ public class CranberrySeedItem extends Item implements IStardewItem {
 
         if (!level.isClientSide) {
             int season = StardewTimeManager.get().getCurrentSeason();
-            if (!(season == 2)) {
+            if (!com.stardew.craft.farming.SeasonLocationRules.isPlantingSeasonAllowed(level, abovePos, season, 2)) {
                 if (context.getPlayer() != null) {
                     context.getPlayer().displayClientMessage(
                             net.minecraft.network.chat.Component.translatable("stardewcraft.message.seed.wrong_season"),

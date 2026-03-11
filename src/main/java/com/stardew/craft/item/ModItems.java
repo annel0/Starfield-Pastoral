@@ -87,6 +87,7 @@ import com.stardew.craft.item.artisan.PreservesItem;
 import com.stardew.craft.item.artisan.SmokedFishItem;
 import com.stardew.craft.item.tool.AutoFeedTroughUpgraderItem;
 import com.stardew.craft.item.tool.HoeItem;
+import com.stardew.craft.item.tool.PaintbrushItem;
 import com.stardew.craft.item.tool.ScytheItem;
 import com.stardew.craft.item.tool.FishingRodItem;
 import com.stardew.craft.item.tool.StardewAxeItem;
@@ -459,6 +460,12 @@ public class ModItems {
 
         public static final DeferredItem<Item> CRAB_POT = ITEMS.register("crab_pot",
                         () -> new CrabPotItem(ModBlocks.CRAB_POT.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> WALLPAPER_BLOCK = ITEMS.register("wallpaper_block",
+                        () -> new StardewBlockItem(ModBlocks.WALLPAPER_BLOCK.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> FLOORING_BLOCK = ITEMS.register("flooring_block",
+                        () -> new StardewBlockItem(ModBlocks.FLOORING_BLOCK.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
     
     // 工具 - 镰刀
     public static final DeferredItem<Item> SCYTHE = ITEMS.register("scythe",
@@ -479,6 +486,17 @@ public class ModItems {
 
     public static final DeferredItem<Item> AUTOFEED_TROUGH_UPGRADER = ITEMS.register("autofeed_trough_upgrader",
             () -> new AutoFeedTroughUpgraderItem(new Item.Properties().stacksTo(64)));
+
+    public static final DeferredItem<Item> PAINTBRUSH = ITEMS.register("paintbrush",
+            () -> new PaintbrushItem(new Item.Properties().stacksTo(1)));
+
+    // Decoration icons are standalone items for shop/catalog usage.
+    // They are intentionally hidden from creative tab population by using a non-listed type key.
+    public static final DeferredItem<Item> WALLPAPER_ICON = ITEMS.register("wallpaper_icon",
+            () -> new SimpleStardewItem("stardewcraft.type.hidden", -1, new Item.Properties().stacksTo(1)));
+
+    public static final DeferredItem<Item> FLOORING_ICON = ITEMS.register("flooring_icon",
+            () -> new SimpleStardewItem("stardewcraft.type.hidden", -1, new Item.Properties().stacksTo(1)));
 
     // 工具 - 镐子（星露谷命名：基础/铜/钢/金/铱；内部 tier0-4 逻辑不变）
     public static final DeferredItem<Item> PICKAXE = ITEMS.register("pickaxe",
@@ -579,6 +597,9 @@ public class ModItems {
 
     public static final DeferredItem<Item> CHALLENGE_BAIT = ITEMS.register("challenge_bait",
             () -> new SimpleStardewItem("stardewcraft.type.fishing", 1, new Item.Properties().stacksTo(999)));
+
+    public static final DeferredItem<Item> TARGETED_BAIT = ITEMS.register("targeted_bait",
+            () -> new SpecificBaitItem(new Item.Properties().stacksTo(999)));
 
     // 钓鱼 - 渔具 (non-stackable)
     public static final DeferredItem<Item> SPINNER = ITEMS.register("spinner",

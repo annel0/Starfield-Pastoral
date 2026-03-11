@@ -1,0 +1,6 @@
+﻿{
+    "textures":  {
+                     "all":  "stardewcraft:block/deco/wallpaper/style_94_segment_1"
+                 },
+    "parent":  "minecraft:block/cube_all"
+}

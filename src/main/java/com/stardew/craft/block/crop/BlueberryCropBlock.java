@@ -60,6 +60,21 @@ public class BlueberryCropBlock extends StardewCropBlock {
     }
 
     @Override
+    protected int getHarvestMinStack() {
+        return 3;
+    }
+
+    @Override
+    protected int getHarvestMaxStack() {
+        return 3;
+    }
+
+    @Override
+    protected double getExtraHarvestChance() {
+        return 0.02;
+    }
+
+    @Override
     protected boolean canRegrow() {
         return true;
     }
