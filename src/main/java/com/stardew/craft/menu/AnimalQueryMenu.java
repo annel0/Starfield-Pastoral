@@ -339,7 +339,7 @@ public class AnimalQueryMenu extends AbstractContainerMenu {
         String animalName = resolveAnimalDisplayName(animal);
         PacketDistributor.sendToPlayer(
             serverPlayer,
-            new OpenAnimalMoveHomeScreenPayload(animal.animalId(), animalName, current.buildingId(), options)
+            new OpenAnimalMoveHomeScreenPayload(animal.animalId(), animalName, animal.animalTypeId(), current.buildingId(), options)
         );
     }
 

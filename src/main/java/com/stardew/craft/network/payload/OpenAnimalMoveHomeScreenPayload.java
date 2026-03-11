@@ -14,6 +14,7 @@ import java.util.List;
 public record OpenAnimalMoveHomeScreenPayload(
     long animalId,
     String animalName,
+    String animalTypeId,
     String currentBuildingId,
     List<BuildingOption> options
 ) implements CustomPacketPayload {
@@ -51,6 +52,8 @@ public record OpenAnimalMoveHomeScreenPayload(
         OpenAnimalMoveHomeScreenPayload::animalId,
         ByteBufCodecs.STRING_UTF8,
         OpenAnimalMoveHomeScreenPayload::animalName,
+        ByteBufCodecs.STRING_UTF8,
+        OpenAnimalMoveHomeScreenPayload::animalTypeId,
         ByteBufCodecs.STRING_UTF8,
         OpenAnimalMoveHomeScreenPayload::currentBuildingId,
         BuildingOption.STREAM_CODEC.apply(ByteBufCodecs.list()),

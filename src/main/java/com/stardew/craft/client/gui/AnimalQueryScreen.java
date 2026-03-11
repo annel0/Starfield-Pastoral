@@ -1,5 +1,6 @@
 package com.stardew.craft.client.gui;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.menu.AnimalQueryMenu;
 import com.stardew.craft.network.payload.AnimalQueryActionPayload;
@@ -7,10 +8,10 @@ import com.stardew.craft.network.payload.AnimalRenamePayload;
 import com.stardew.craft.sound.ModSounds;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.StringUtil;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
@@ -22,9 +23,37 @@ import java.util.List;
 @SuppressWarnings("null")
 public class AnimalQueryScreen extends AbstractContainerScreen<AnimalQueryMenu> {
 
-    private static final int BASE_WIDTH = 668;
-    private static final int BASE_HEIGHT = 394;
-    private static final int HEART_SPACING = 24;
+    private static final int BASE_WIDTH = 677;
+    private static final int BASE_HEIGHT = 360;
+    private static final float UI_SCALE = 0.5f;
+
+    // Figma absolute layout (relative to the 677x360 frame).
+    private static final int FIG_PORTRAIT_X = 34;
+    private static final int FIG_PORTRAIT_Y = 26;
+    private static final int FIG_PORTRAIT_SIZE = 229;
+    private static final int FIG_NAME_X = 355;
+    private static final int FIG_NAME_Y = 0;
+    private static final int FIG_NAME_W = 322;
+    private static final int FIG_NAME_H = 48;
+    private static final int FIG_RENAME_Y = 2;
+    private static final int FIG_RENAME_SIZE = 48;
+    private static final int FIG_ACTION_X = 321;
+    private static final int FIG_ACTION_Y = 310;
+    private static final int FIG_ACTION_SIZE = 50;
+    private static final int FIG_ACTION_SPACING = 70;
+    private static final int FIG_HEART_X = 48;
+    private static final int FIG_HEART_Y = 329;
+    private static final int FIG_HEART_SPACING = 44;
+    private static final float FIG_NAME_FONT_SIZE = 48.0f;
+    private static final float FIG_INFO_FONT_SIZE = 20.0f;
+    private static final int ENTRY_ANIM_MS = 320;
+
+    // Colors sampled from the Figma draft.
+    private static final int COLOR_TEXT_MAIN = 0xFFFFFFFF;
+    private static final int COLOR_TEXT_SUB = 0xFFF0F0F0;
+    private static final int COLOR_TEXT_HINT = 0xFFD2CDD2;
+    private static final int COLOR_ACCENT = 0xFFE3A564;
+    private static final int COLOR_NAME_UNDERLINE = 0xFF6B6470;
 
     private static final ResourceLocation HEART_EMPTY = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/animal_query/heart_empty.png");
     private static final ResourceLocation HEART_HALF_BASE = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/animal_query/heart_half_base.png");
@@ -37,6 +66,7 @@ public class AnimalQueryScreen extends AbstractContainerScreen<AnimalQueryMenu> 
     private static final ResourceLocation REPRO_ON_ICON = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/animal_query/repro_on.png");
     private static final ResourceLocation GOLDEN_CRACKER_ICON = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/item/misc/golden_animal_cracker.png");
     private static final ResourceLocation GOLD_ICON = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/gold_icon.png");
+    private static final ResourceLocation RENAME_ICON = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/animal_query/rename.png");
 
     private static final ResourceLocation ICON_WHITE_CHICKEN = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/animal_query/icon_white_chicken.png");
     private static final ResourceLocation ICON_GOLDEN_CHICKEN = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/animal_query/icon_golden_chicken.png");
@@ -50,65 +80,48 @@ public class AnimalQueryScreen extends AbstractContainerScreen<AnimalQueryMenu> 
     private static final ResourceLocation ICON_SHEEP = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/animal_query/icon_sheep.png");
     private static final ResourceLocation ICON_PIG = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/animal_query/icon_pig.png");
 
-    private static final int COLOR_OVERLAY = 0xA5000000;
-    private static final int COLOR_PANEL = 0xEF182332;
-    private static final int COLOR_PANEL_DARK = 0xE8162130;
-    private static final int COLOR_SECTION = 0xD9243346;
-    private static final int COLOR_ACCENT = 0xFFE0B464;
-    private static final int COLOR_TEXT_MAIN = 0xFFF5EBD8;
-    private static final int COLOR_TEXT_SUB = 0xFFB8C5D1;
-    private static final int COLOR_BORDER = 0xFF3C5368;
-
     private int panelX;
     private int panelY;
-    private int panelW;
-    private int panelH;
 
-    private int profileX;
-    private int profileY;
-    private int profileW;
-    private int profileH;
-
+    // Figma-relative anchors.
+    private int portraitCX;
+    private int portraitCY;
+    private int nameX;
+    private int nameY;
+    private int renameY;
     private int infoX;
     private int infoY;
     private int infoW;
-    private int infoH;
 
-    private int moodX;
-    private int moodY;
-    private int moodW;
-    private int moodH;
+    private int heartStartX;
+    private int heartY;
 
-    private int actionX;
+    private int actionStartX;
     private int actionY;
-
-    private int okBtnX;
-    private int okBtnY;
-    private int sellBtnX;
-    private int sellBtnY;
-    private int moveBtnX;
-    private int moveBtnY;
-    private int reproBtnX;
-    private int reproBtnY;
-
-    private int nameAreaX;
-    private int nameAreaY;
-    private int nameAreaW;
-    private int nameAreaH;
+    private int actionSpacing;
+    private int actionSize;
+    private int renameSize;
+    private int renameCenterX;
+    private int actionAnimOffsetY;
+    private int portraitAnimOffsetY;
 
     private boolean confirmingSell = false;
     private boolean editingName = false;
 
-    private float okScale = 2.6f;
-    private float sellScale = 2.6f;
-    private float moveScale = 2.6f;
-    private float reproScale = 2.6f;
-    private float yesScale = 2.6f;
-    private float noScale = 2.6f;
+    private float yesScale = 3.05f;
+    private float noScale = 3.05f;
+    private float renameHoverScale = 3.0f * UI_SCALE;
+    private float sellScale = 3.125f * UI_SCALE;
+    private float moveScale = 3.125f * UI_SCALE;
+    private float reproScale = 3.125f * UI_SCALE;
+    private float okScale = 3.125f * UI_SCALE;
 
-    private String hoverText = "";
-    private EditBox nameEditBox;
+    private int hoverHotspot = 0;
+    private long openedAtMs;
+
     private String lastSubmittedName = "";
+    private String editBuffer = "";
+    private int editCursor = 0;
 
     public AnimalQueryScreen(AnimalQueryMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -121,71 +134,45 @@ public class AnimalQueryScreen extends AbstractContainerScreen<AnimalQueryMenu> 
     protected void init() {
         super.init();
         computeLayout();
-        this.nameEditBox = new EditBox(this.font, 0, 0, 160, 18, Component.translatable("stardewcraft.animal.query.rename_hint"));
-        this.nameEditBox.setMaxLength(48);
-        this.nameEditBox.setBordered(true);
-        this.nameEditBox.setValue(this.lastSubmittedName);
-        this.addRenderableWidget(this.nameEditBox);
+        this.openedAtMs = System.currentTimeMillis();
+        this.hoverHotspot = 0;
+
+        this.editBuffer = this.lastSubmittedName;
+        this.editCursor = this.editBuffer.length();
         setEditingName(false);
-        updateNameBoxLayout();
     }
 
     @Override
     protected void renderBg(@Nonnull GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         computeLayout();
+        updateEntryAnimationState();
+        updateHoverState(mouseX, mouseY);
 
-        hoverText = "";
-        boolean hoverOk = inside(mouseX, mouseY, okBtnX - 22, okBtnY - 22, 44, 44);
-        boolean hoverSell = inside(mouseX, mouseY, sellBtnX - 22, sellBtnY - 22, 44, 44);
-        boolean hoverMove = inside(mouseX, mouseY, moveBtnX - 22, moveBtnY - 22, 44, 44);
-        boolean hoverRepro = this.menu.canToggleReproduction() && inside(mouseX, mouseY, reproBtnX - 22, reproBtnY - 22, 44, 44);
-        boolean hoverName = !editingName && inside(mouseX, mouseY, nameAreaX, nameAreaY, nameAreaW, nameAreaH);
+        // Keep vanilla scene visible, no custom panel block.
+        graphics.pose().pushPose();
+        graphics.pose().translate(0, portraitAnimOffsetY, 0);
+        drawPortrait(graphics);
+        graphics.pose().popPose();
 
-        if (hoverSell) {
-            hoverText = Component.translatable("stardewcraft.animal.query.hover.sell", this.menu.getEstimatedSellPrice()).getString();
-        } else if (hoverMove) {
-            hoverText = Component.translatable("stardewcraft.animal.query.hover.move").getString();
-        } else if (hoverRepro) {
-            hoverText = Component.translatable("stardewcraft.animal.query.hover.repro").getString();
-        } else if (hoverOk) {
-            hoverText = Component.translatable("gui.done").getString();
-        } else if (hoverName) {
-            hoverText = "点击以修改名字";
-        }
+        float rightEase = getEntryEase();
+        float rightScaleX = 0.78f + 0.22f * rightEase;
+        float rightScaleY = 0.90f + 0.10f * rightEase;
+        int rightPivotX = nameX;
+        int rightPivotY = nameY + si(4);
+        graphics.pose().pushPose();
+        graphics.pose().translate(rightPivotX, rightPivotY, 0);
+        graphics.pose().scale(rightScaleX, rightScaleY, 1.0f);
+        graphics.pose().translate(-rightPivotX, -rightPivotY, 0);
+        drawNameArea(graphics, mouseX, mouseY);
+        drawInfoLines(graphics);
+        graphics.pose().popPose();
 
-        okScale = approach(okScale, hoverOk ? 2.85f : 2.6f);
-        sellScale = approach(sellScale, hoverSell ? 2.85f : 2.6f);
-        moveScale = approach(moveScale, hoverMove ? 2.85f : 2.6f);
-        reproScale = approach(reproScale, hoverRepro ? 2.85f : 2.6f);
-
-        updateNameBoxLayout();
-
-        graphics.fill(0, 0, this.width, this.height, COLOR_OVERLAY);
-
-        drawWindow(graphics, panelX, panelY, panelW, panelH);
-        drawSection(graphics, profileX, profileY, profileW, profileH);
-        drawSection(graphics, infoX, infoY, infoW, infoH);
-        drawSection(graphics, moodX, moodY, moodW, moodH);
-
-        graphics.drawString(this.font, Component.literal("Animal Query"), panelX + 14, panelY + 10, COLOR_ACCENT, false);
-        drawSellPrice(graphics);
-
-        drawAnimalIcon(graphics);
-        if (!editingName) {
-            drawNameDisplay(graphics, hoverName);
-        }
-
-        drawInfoContent(graphics);
-        drawMoodContent(graphics);
         drawFriendshipRow(graphics);
         drawGoldenCrackerIndicator(graphics);
-
-        drawActionIcon(graphics, OK_ICON, okBtnX, okBtnY, okScale);
-        drawActionIcon(graphics, SELL_ICON, sellBtnX, sellBtnY, sellScale);
-        drawActionIcon(graphics, MOVE_ICON, moveBtnX, moveBtnY, moveScale);
-        if (this.menu.canToggleReproduction()) {
-            drawActionIcon(graphics, this.menu.allowReproduction() ? REPRO_ON_ICON : REPRO_OFF_ICON, reproBtnX, reproBtnY, reproScale);
-        }
+        graphics.pose().pushPose();
+        graphics.pose().translate(0, actionAnimOffsetY, 0);
+        drawActionRow(graphics, mouseX, mouseY);
+        graphics.pose().popPose();
 
         if (confirmingSell) {
             drawConfirmSellDialog(graphics, mouseX, mouseY);
@@ -198,11 +185,9 @@ public class AnimalQueryScreen extends AbstractContainerScreen<AnimalQueryMenu> 
 
     @Override
     public void render(@Nonnull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        this.renderTransparentBackground(graphics);
         super.render(graphics, mouseX, mouseY, partialTick);
-        this.renderTooltip(graphics, mouseX, mouseY);
-        if (!hoverText.isBlank() && !confirmingSell) {
-            graphics.renderTooltip(this.font, Component.literal(hoverText), mouseX, mouseY);
+        if (!confirmingSell) {
+            renderQuickTooltip(graphics, mouseX, mouseY);
         }
     }
 
@@ -217,61 +202,71 @@ public class AnimalQueryScreen extends AbstractContainerScreen<AnimalQueryMenu> 
         int my = (int) mouseY;
 
         if (button == 1) {
-            playUi(ModSounds.SMALL_SELECT.get(), 0.8f, 1.0f);
             commitNameAndCloseEdit();
             PacketDistributor.sendToServer(new AnimalQueryActionPayload(AnimalQueryActionPayload.Action.CLOSE, false));
             this.onClose();
             return true;
         }
 
-        if (confirmingSell) {
-            if (handleConfirmDialogClick(mx, my)) {
-                return true;
-            }
+        if (confirmingSell && handleConfirmDialogClick(mx, my)) {
+            return true;
         }
 
         if (button != 0) {
             return super.mouseClicked(mouseX, mouseY, button);
         }
 
-        if (editingName && this.nameEditBox != null && this.nameEditBox.mouseClicked(mouseX, mouseY, button)) {
-            return true;
-        }
-
-        if (!editingName && inside(mx, my, nameAreaX, nameAreaY, nameAreaW, nameAreaH)) {
+        if (inside(mx, my, nameX, nameY, si(FIG_NAME_W), si(FIG_NAME_H))) {
             setEditingName(true);
-            playUi(ModSounds.SMALL_SELECT.get(), 0.7f, 1.1f);
+            playUi(ModSounds.SMALL_SELECT.get(), 0.7f, 1.05f);
             return true;
         }
 
-        if (inside(mx, my, okBtnX - 22, okBtnY - 22, 44, 44)) {
-            playUi(ModSounds.SMALL_SELECT.get(), 0.8f, 1.0f);
-            commitNameAndCloseEdit();
-            PacketDistributor.sendToServer(new AnimalQueryActionPayload(AnimalQueryActionPayload.Action.CLOSE, false));
-            this.onClose();
+        int dynamicRenameX = getDynamicRenameCenterX();
+        if (inside(mx, my, dynamicRenameX - renameSize / 2, renameY - renameSize / 2, renameSize, renameSize)) {
+            setEditingName(true);
+            playUi(ModSounds.SMALL_SELECT.get(), 0.7f, 1.05f);
             return true;
         }
 
-        if (inside(mx, my, sellBtnX - 22, sellBtnY - 22, 44, 44)) {
+        int[] centers = computeActionCenters();
+        int actionHitY = actionY + actionAnimOffsetY;
+        if (centers.length > 0 && inside(mx, my, centers[0] - actionSize / 2, actionHitY - actionSize / 2, actionSize, actionSize)) {
             confirmingSell = true;
             commitNameAndCloseEdit();
             playUi(ModSounds.SMALL_SELECT.get(), 0.8f, 1.0f);
             return true;
         }
-
-        if (inside(mx, my, moveBtnX - 22, moveBtnY - 22, 44, 44)) {
-            playUi(ModSounds.SMALL_SELECT.get(), 0.8f, 1.0f);
+        if (centers.length > 1 && inside(mx, my, centers[1] - actionSize / 2, actionHitY - actionSize / 2, actionSize, actionSize)) {
             commitNameAndCloseEdit();
             PacketDistributor.sendToServer(new AnimalQueryActionPayload(AnimalQueryActionPayload.Action.MOVE_HOME, false));
+            playUi(ModSounds.SMALL_SELECT.get(), 0.8f, 1.0f);
             return true;
         }
 
-        if (this.menu.canToggleReproduction() && inside(mx, my, reproBtnX - 22, reproBtnY - 22, 44, 44)) {
-            boolean next = !this.menu.allowReproduction();
-            this.menu.setAllowReproductionValue(next);
-            playUi(ModSounds.DRUMKIT6.get(), 0.9f, 1.0f);
-            PacketDistributor.sendToServer(new AnimalQueryActionPayload(AnimalQueryActionPayload.Action.TOGGLE_REPRODUCTION, next));
-            return true;
+        if (this.menu.canToggleReproduction()) {
+            if (centers.length > 2 && inside(mx, my, centers[2] - actionSize / 2, actionHitY - actionSize / 2, actionSize, actionSize)) {
+                boolean next = !this.menu.allowReproduction();
+                this.menu.setAllowReproductionValue(next);
+                PacketDistributor.sendToServer(new AnimalQueryActionPayload(AnimalQueryActionPayload.Action.TOGGLE_REPRODUCTION, next));
+                playUi(ModSounds.DRUMKIT6.get(), 0.85f, 1.0f);
+                return true;
+            }
+            if (centers.length > 3 && inside(mx, my, centers[3] - actionSize / 2, actionHitY - actionSize / 2, actionSize, actionSize)) {
+                commitNameAndCloseEdit();
+                PacketDistributor.sendToServer(new AnimalQueryActionPayload(AnimalQueryActionPayload.Action.CLOSE, false));
+                this.onClose();
+                playUi(ModSounds.SMALL_SELECT.get(), 0.8f, 1.0f);
+                return true;
+            }
+        } else {
+            if (centers.length > 2 && inside(mx, my, centers[2] - actionSize / 2, actionHitY - actionSize / 2, actionSize, actionSize)) {
+                commitNameAndCloseEdit();
+                PacketDistributor.sendToServer(new AnimalQueryActionPayload(AnimalQueryActionPayload.Action.CLOSE, false));
+                this.onClose();
+                playUi(ModSounds.SMALL_SELECT.get(), 0.8f, 1.0f);
+                return true;
+            }
         }
 
         if (editingName) {
@@ -282,22 +277,55 @@ public class AnimalQueryScreen extends AbstractContainerScreen<AnimalQueryMenu> 
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (editingName && this.nameEditBox != null && this.nameEditBox.keyPressed(keyCode, scanCode, modifiers)) {
-            if (keyCode == 257 || keyCode == 335) {
+        if (editingName) {
+            if (keyCode == InputConstants.KEY_RETURN || keyCode == InputConstants.KEY_NUMPADENTER) {
                 commitNameAndCloseEdit();
+                return true;
             }
-            if (keyCode == 256) {
+            if (keyCode == InputConstants.KEY_ESCAPE) {
                 setEditingName(false);
+                return true;
             }
-            return true;
+            if (keyCode == InputConstants.KEY_LEFT && editCursor > 0) {
+                editCursor--;
+                return true;
+            }
+            if (keyCode == InputConstants.KEY_RIGHT && editCursor < editBuffer.length()) {
+                editCursor++;
+                return true;
+            }
+            if (keyCode == InputConstants.KEY_HOME) {
+                editCursor = 0;
+                return true;
+            }
+            if (keyCode == InputConstants.KEY_END) {
+                editCursor = editBuffer.length();
+                return true;
+            }
+            if (keyCode == InputConstants.KEY_BACKSPACE && editCursor > 0) {
+                editBuffer = editBuffer.substring(0, editCursor - 1) + editBuffer.substring(editCursor);
+                editCursor--;
+                return true;
+            }
+            if (keyCode == InputConstants.KEY_DELETE && editCursor < editBuffer.length()) {
+                editBuffer = editBuffer.substring(0, editCursor) + editBuffer.substring(editCursor + 1);
+                return true;
+            }
+            return super.keyPressed(keyCode, scanCode, modifiers);
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     @Override
     public boolean charTyped(char codePoint, int modifiers) {
-        if (editingName && this.nameEditBox != null && this.nameEditBox.charTyped(codePoint, modifiers)) {
-            return true;
+        if (editingName) {
+            if (StringUtil.isAllowedChatCharacter(codePoint) && editBuffer.length() < 48) {
+                editBuffer = editBuffer.substring(0, editCursor) + codePoint + editBuffer.substring(editCursor);
+                editCursor++;
+                this.renameCenterX = getDynamicRenameCenterX();
+                return true;
+            }
+            return super.charTyped(codePoint, modifiers);
         }
         return super.charTyped(codePoint, modifiers);
     }
@@ -308,112 +336,118 @@ public class AnimalQueryScreen extends AbstractContainerScreen<AnimalQueryMenu> 
         super.removed();
     }
 
-    private void drawSellPrice(GuiGraphics graphics) {
-        int y = panelY + 9;
-        int amount = this.menu.getEstimatedSellPrice();
-        String text = String.valueOf(amount);
-        int textW = this.font.width(text);
-        int iconW = 16;
-        int gap = 4;
-        int totalW = iconW + gap + textW;
-        int x = panelX + panelW - 14 - totalW;
+    private void drawPortrait(GuiGraphics graphics) {
+        int radius = si(FIG_PORTRAIT_SIZE / 2);
+        drawFilledCircle(graphics, portraitCX, portraitCY, radius, COLOR_ACCENT);
 
-        graphics.blit(GOLD_ICON, x, y - 2, 0, 0, 16, 16, 16, 16);
-        graphics.drawString(this.font, text, x + iconW + gap, y + 2, COLOR_TEXT_MAIN, false);
-    }
-
-    private void drawAnimalIcon(GuiGraphics graphics) {
         ResourceLocation icon = resolveAnimalIcon();
-        int iconPixel = 32;
-        float scale = 3.85f;
-        int drawW = Math.round(iconPixel * scale);
-        int drawH = Math.round(iconPixel * scale);
-
-        int cx = profileX + profileW / 2;
-        int cy = profileY + (profileH - 74) / 2;
-        int drawX = cx - drawW / 2;
-        int drawY = cy - drawH / 2;
+        // Keep cow icon inside the circle like the design draft.
+        float scale = 4.85f * UI_SCALE;
+        int src = 32;
+        int drawX = portraitCX - Math.round(src * scale / 2f);
+        int drawY = portraitCY - Math.round(src * scale / 2f);
 
         graphics.pose().pushPose();
         graphics.pose().translate(drawX, drawY, 0);
         graphics.pose().scale(scale, scale, 1.0f);
-        graphics.blit(icon, 0, 0, 0, 0, iconPixel, iconPixel, iconPixel, iconPixel);
+        graphics.blit(icon, 0, 0, 0, 0, src, src, src, src);
         graphics.pose().popPose();
     }
 
-    private void drawNameDisplay(GuiGraphics graphics, boolean hover) {
+    private void drawNameArea(GuiGraphics graphics, int mouseX, int mouseY) {
         String name = getCurrentName();
-        float nameScale = 1.65f;
-        int textW = Math.round(this.font.width(name) * nameScale);
-        int textX = nameAreaX + (nameAreaW - textW) / 2;
-        int textY = nameAreaY + 2;
+        float nameScale = (FIG_NAME_FONT_SIZE / 9.0f) * UI_SCALE;
+        int nameWidthInFontPx = Math.max(1, (int) (si(FIG_NAME_W - 8) / nameScale));
+        String shown = this.font.plainSubstrByWidth(name, nameWidthInFontPx);
 
         graphics.pose().pushPose();
-        graphics.pose().translate(textX, textY, 0);
+        graphics.pose().translate(nameX, nameY + si(4), 0);
         graphics.pose().scale(nameScale, nameScale, 1.0f);
-        Component boldName = Component.literal(name).withStyle(ChatFormatting.BOLD);
-        graphics.drawString(this.font, boldName, 0, 0, COLOR_TEXT_MAIN, false);
-        graphics.pose().popPose();
+        graphics.drawString(this.font, Component.literal(shown).withStyle(ChatFormatting.BOLD), 0, 0, COLOR_TEXT_MAIN, false);
 
-        int underlineColor = hover ? COLOR_ACCENT : COLOR_BORDER;
-        graphics.fill(nameAreaX + 8, nameAreaY + nameAreaH - 2, nameAreaX + nameAreaW - 8, nameAreaY + nameAreaH - 1, underlineColor);
-    }
-
-    private void drawInfoContent(GuiGraphics graphics) {
-        int textX = infoX + 14;
-        int top = infoY + 14;
-        int ageWeeks = Math.max(1, this.menu.getAgeDays() / 7 + 1);
-
-        Component stageText = Component.translatable(this.menu.isBaby()
-            ? "stardewcraft.animal.query.stage.baby"
-            : "stardewcraft.animal.query.stage.adult");
-
-        Component ageText = this.menu.isBaby()
-            ? Component.translatable("stardewcraft.animal.query.age_weeks_baby", ageWeeks)
-            : Component.translatable("stardewcraft.animal.query.age_weeks", ageWeeks);
-
-        graphics.drawString(this.font, ageText, textX, top, COLOR_TEXT_MAIN, false);
-        graphics.drawString(this.font, Component.translatable("stardewcraft.animal.query.stage", stageText), textX, top + 14, COLOR_TEXT_SUB, false);
-        graphics.drawString(this.font, Component.translatable("stardewcraft.animal.query.growth", this.menu.getAgeDays(), this.menu.getDaysToMature()), textX, top + 28, COLOR_TEXT_SUB, false);
-        graphics.drawString(this.font, Component.translatable(this.menu.wasPetToday()
-            ? "stardewcraft.animal.query.pet_status.done"
-            : "stardewcraft.animal.query.pet_status.pending"), textX, top + 42, COLOR_TEXT_SUB, false);
-    }
-
-    private void drawMoodContent(GuiGraphics graphics) {
-        graphics.drawString(this.font, Component.literal("Mood"), moodX + 12, moodY + 10, COLOR_ACCENT, false);
-        Component moodText = Component.translatable(this.menu.getMoodTranslationKey());
-        List<FormattedCharSequence> lines = this.font.split(moodText, moodW - 24);
-
-        int lineY = moodY + 26;
-        for (FormattedCharSequence line : lines) {
-            graphics.drawString(this.font, line, moodX + 12, lineY, COLOR_TEXT_SUB, false);
-            lineY += this.font.lineHeight + 1;
-            if (lineY > moodY + moodH - 10) {
-                break;
+        if (editingName) {
+            long tick = System.currentTimeMillis() / 500L;
+            if ((tick & 1L) == 0L) {
+                String raw = this.editBuffer;
+                int cursor = Math.max(0, Math.min(raw.length(), this.editCursor));
+                String prefix = raw.substring(0, cursor);
+                String shownPrefix = this.font.plainSubstrByWidth(prefix, nameWidthInFontPx);
+                int cursorX = this.font.width(shownPrefix) + 1;
+                graphics.fill(cursorX, -1, cursorX + 1, this.font.lineHeight + 1, COLOR_TEXT_MAIN);
             }
         }
+
+        graphics.pose().popPose();
+
+        int underlineY = nameY + si(FIG_NAME_H) - 1;
+        boolean hoverName = inside(mouseX, mouseY, nameX, nameY, si(FIG_NAME_W), si(FIG_NAME_H));
+        int underlineColor = (hoverName || editingName) ? 0xFFB8AFC3 : COLOR_NAME_UNDERLINE;
+        graphics.fill(nameX, underlineY, nameX + si(FIG_NAME_W), underlineY + 1, underlineColor);
+
+        this.renameCenterX = getDynamicRenameCenterX();
+        boolean hoverRename = inside(mouseX, mouseY, this.renameCenterX - renameSize / 2, renameY - renameSize / 2, renameSize, renameSize);
+        this.renameHoverScale = approach(this.renameHoverScale, hoverRename ? 3.25f * UI_SCALE : 3.0f * UI_SCALE);
+        drawScaledIcon(graphics, RENAME_ICON, this.renameCenterX, renameY, this.renameHoverScale, 16, 16, 16, 16);
+    }
+
+    private void drawInfoLines(GuiGraphics graphics) {
+        int textX = infoX;
+        float lineScale = (FIG_INFO_FONT_SIZE / 9.0f) * UI_SCALE;
+
+        String ageLine = "年龄：" + Math.max(1, this.menu.getAgeDays() / 7 + 1);
+        String stageLine = "阶段：（" + (this.menu.isBaby() ? "幼年" : "成年") + "）";
+        String petLine = "今日抚摸：" + (this.menu.wasPetToday() ? "✅" : "❌");
+        String feedLine = "今日喂食：" + (this.menu.wasPetToday() ? "✅" : "❌");
+
+        drawSingleLineScaled(graphics, Component.literal(ageLine), textX, infoY, COLOR_TEXT_SUB, infoW, lineScale);
+        drawSingleLineScaled(graphics, Component.literal(stageLine), textX, infoY + si(32), COLOR_TEXT_SUB, infoW, lineScale);
+        drawSingleLineScaled(graphics, Component.literal(petLine), textX, infoY + si(64), COLOR_TEXT_SUB, infoW, lineScale);
+        drawSingleLineScaled(graphics, Component.literal(feedLine), textX, infoY + si(96), COLOR_TEXT_SUB, infoW, lineScale);
+
+        // Keep mood text above the bottom action row at the current global UI scale.
+        drawSingleLineScaled(graphics, Component.literal("心情："), textX, infoY + si(132), COLOR_TEXT_MAIN, infoW, lineScale);
+        drawSingleLineScaled(graphics, Component.translatable(this.menu.getMoodTranslationKey()), textX, infoY + si(160), COLOR_TEXT_HINT, infoW, lineScale);
+
+        String price = String.valueOf(this.menu.getEstimatedSellPrice());
+        int priceX = infoX + infoW - this.font.width(price) - si(18);
+        graphics.pose().pushPose();
+        graphics.pose().translate(priceX - si(18), infoY - si(1), 0);
+        graphics.pose().scale(UI_SCALE, UI_SCALE, 1.0f);
+        graphics.blit(GOLD_ICON, 0, 0, 0, 0, 16, 16, 16, 16);
+        graphics.pose().popPose();
+        graphics.drawString(this.font, price, priceX, infoY + si(6), COLOR_TEXT_MAIN, false);
+    }
+
+    private void drawSingleLineScaled(GuiGraphics graphics, Component text, int x, int y, int color, int maxW, float scale) {
+        int fitWidth = Math.max(1, (int) (maxW / scale));
+        List<FormattedCharSequence> lines = this.font.split(text, fitWidth);
+        if (lines.isEmpty()) {
+            return;
+        }
+        graphics.pose().pushPose();
+        graphics.pose().translate(x, y, 0);
+        graphics.pose().scale(scale, scale, 1.0f);
+        graphics.drawString(this.font, lines.get(0), 0, 0, color, false);
+        graphics.pose().popPose();
     }
 
     private void drawFriendshipRow(GuiGraphics graphics) {
         int friendship = Math.max(0, Math.min(1000, this.menu.getFriendship()));
         int heartPoints = friendship / 100;
 
-        int startX = infoX + 14;
-        int y = infoY + infoH - 34;
-        float scale = 3.0f;
-
+        int x = heartStartX;
+        // Use uniform scaling to avoid edge artifacts (thin bottom line) on heart sprites.
+        float heartScale = 5.0f * UI_SCALE;
         for (int i = 0; i < 5; i++) {
-            int hx = startX + i * HEART_SPACING;
-            drawScaledPatch(graphics, HEART_EMPTY, hx, y, scale, 7, 6, 7, 6);
-
+            drawScaledPatch(graphics, HEART_EMPTY, x, heartY, heartScale, 7, 6, 7, 6);
             int need = (i + 1) * 2;
             if (heartPoints >= need) {
-                drawScaledPatch(graphics, HEART_HALF_BASE, hx, y, scale, 7, 6, 7, 6);
+                drawScaledPatch(graphics, HEART_HALF_BASE, x, heartY, heartScale, 7, 6, 7, 6);
             } else if (heartPoints == need - 1) {
-                drawScaledPatch(graphics, HEART_HALF_BASE, hx, y, scale, 7, 6, 7, 6);
-                drawScaledPatch(graphics, HEART_HALF_FILL, hx, y, scale, 4, 6, 4, 6);
+                drawScaledPatch(graphics, HEART_HALF_BASE, x, heartY, heartScale, 7, 6, 7, 6);
+                drawScaledPatch(graphics, HEART_HALF_FILL, x, heartY, heartScale, 4, 6, 4, 6);
             }
+            x += si(FIG_HEART_SPACING);
         }
     }
 
@@ -421,57 +455,103 @@ public class AnimalQueryScreen extends AbstractContainerScreen<AnimalQueryMenu> 
         if (!this.menu.hasEatenAnimalCracker()) {
             return;
         }
-        int x = infoX + 14 + (5 * HEART_SPACING) + 8;
-        int y = infoY + infoH - 31;
-        drawScaledIcon(graphics, GOLDEN_CRACKER_ICON, x, y, 1.25f, 16, 16, 16, 16);
+        drawScaledIcon(graphics, GOLDEN_CRACKER_ICON, heartStartX + si(240), heartY + si(11), 1.2f * UI_SCALE, 16, 16, 16, 16);
     }
 
-    private void drawActionIcon(GuiGraphics graphics, ResourceLocation icon, int centerX, int centerY, float scale) {
-        drawScaledIcon(graphics, icon, centerX, centerY, scale, 16, 16, 16, 16);
+    private void drawActionRow(GuiGraphics graphics, int mouseX, int mouseY) {
+        int[] centers = computeActionCenters();
+        if (centers.length == 0) {
+            return;
+        }
+        int drawY = actionY + actionAnimOffsetY;
+
+        boolean hoverSell = inside(mouseX, mouseY, centers[0] - actionSize / 2, drawY - actionSize / 2, actionSize, actionSize);
+        this.sellScale = approach(this.sellScale, hoverSell ? 3.3f * UI_SCALE : 3.125f * UI_SCALE);
+        drawScaledIcon(graphics, SELL_ICON, centers[0], drawY, this.sellScale, 16, 16, 16, 16);
+
+        if (centers.length > 1) {
+            boolean hoverMove = inside(mouseX, mouseY, centers[1] - actionSize / 2, drawY - actionSize / 2, actionSize, actionSize);
+            this.moveScale = approach(this.moveScale, hoverMove ? 3.3f * UI_SCALE : 3.125f * UI_SCALE);
+            drawScaledIcon(graphics, MOVE_ICON, centers[1], drawY, this.moveScale, 16, 16, 16, 16);
+        }
+
+        if (this.menu.canToggleReproduction()) {
+            ResourceLocation repro = this.menu.allowReproduction() ? REPRO_ON_ICON : REPRO_OFF_ICON;
+            boolean hoverRepro = inside(mouseX, mouseY, centers[2] - actionSize / 2, drawY - actionSize / 2, actionSize, actionSize);
+            boolean hoverOk = inside(mouseX, mouseY, centers[3] - actionSize / 2, drawY - actionSize / 2, actionSize, actionSize);
+            this.reproScale = approach(this.reproScale, hoverRepro ? 3.3f * UI_SCALE : 3.125f * UI_SCALE);
+            this.okScale = approach(this.okScale, hoverOk ? 3.3f * UI_SCALE : 3.125f * UI_SCALE);
+            drawScaledIcon(graphics, repro, centers[2], drawY, this.reproScale, 16, 16, 16, 16);
+            drawScaledIcon(graphics, OK_ICON, centers[3], drawY, this.okScale, 16, 16, 16, 16);
+        } else {
+            boolean hoverOk = inside(mouseX, mouseY, centers[2] - actionSize / 2, drawY - actionSize / 2, actionSize, actionSize);
+            this.okScale = approach(this.okScale, hoverOk ? 3.3f * UI_SCALE : 3.125f * UI_SCALE);
+            drawScaledIcon(graphics, OK_ICON, centers[2], drawY, this.okScale, 16, 16, 16, 16);
+        }
+    }
+
+    private int[] computeActionCenters() {
+        int tweak = si(8);
+        int[] full = new int[]{
+            actionStartX,
+            actionStartX + actionSpacing,
+            actionStartX + actionSpacing * 2 + tweak,
+            actionStartX + actionSpacing * 3 + tweak
+        };
+
+        if (this.menu.canToggleReproduction()) {
+            return full;
+        }
+
+        int left = full[0];
+        int right = full[3];
+        int mid = (left + right) / 2 + si(4);
+        return new int[]{left, mid, right};
     }
 
     private void drawConfirmSellDialog(GuiGraphics graphics, int mouseX, int mouseY) {
-        int boxW = 340;
-        int boxH = 168;
-        int boxX = (this.width - boxW) / 2;
-        int boxY = (this.height - boxH) / 2;
+        int boxW = si(320);
+        int boxH = si(154);
+        int boxX = panelX + (BASE_WIDTH - boxW) / 2;
+        int boxY = panelY + (BASE_HEIGHT - boxH) / 2;
 
-        drawWindow(graphics, boxX, boxY, boxW, boxH);
-
-        int yesX = boxX + boxW / 2 - 42;
-        int noX = boxX + boxW / 2 + 42;
-        int y = boxY + 108;
-
-        boolean hoverYes = inside(mouseX, mouseY, yesX - 22, y - 22, 44, 44);
-        boolean hoverNo = inside(mouseX, mouseY, noX - 22, y - 22, 44, 44);
-        yesScale = approach(yesScale, hoverYes ? 2.85f : 2.6f);
-        noScale = approach(noScale, hoverNo ? 2.85f : 2.6f);
-
-        drawActionIcon(graphics, OK_ICON, yesX, y, yesScale);
-        drawActionIcon(graphics, NO_ICON, noX, y, noScale);
+        graphics.fill(boxX, boxY, boxX + boxW, boxY + boxH, 0xF11A1B20);
 
         Component confirm = Component.translatable("stardewcraft.animal.query.confirm_sell");
-        graphics.drawString(this.font, confirm, boxX + (boxW - this.font.width(confirm)) / 2, boxY + 42, COLOR_TEXT_MAIN, false);
+        int tx = boxX + (boxW - this.font.width(confirm)) / 2;
+        graphics.drawString(this.font, confirm, tx, boxY + si(42), COLOR_TEXT_MAIN, false);
+
+        int yesX = boxX + boxW / 2 - si(40);
+        int noX = boxX + boxW / 2 + si(40);
+        int btnY = boxY + si(104);
+
+        boolean hoverYes = inside(mouseX, mouseY, yesX - si(24), btnY - si(24), si(48), si(48));
+        boolean hoverNo = inside(mouseX, mouseY, noX - si(24), btnY - si(24), si(48), si(48));
+        yesScale = approach(yesScale, hoverYes ? 3.2f * UI_SCALE : 3.05f * UI_SCALE);
+        noScale = approach(noScale, hoverNo ? 3.2f * UI_SCALE : 3.05f * UI_SCALE);
+
+        drawScaledIcon(graphics, OK_ICON, yesX, btnY, yesScale, 16, 16, 16, 16);
+        drawScaledIcon(graphics, NO_ICON, noX, btnY, noScale, 16, 16, 16, 16);
     }
 
     private boolean handleConfirmDialogClick(int mx, int my) {
-        int boxW = 340;
-        int boxH = 168;
-        int boxX = (this.width - boxW) / 2;
-        int boxY = (this.height - boxH) / 2;
+        int boxW = si(320);
+        int boxH = si(154);
+        int boxX = panelX + (BASE_WIDTH - boxW) / 2;
+        int boxY = panelY + (BASE_HEIGHT - boxH) / 2;
+        int yesX = boxX + boxW / 2 - si(40);
+        int noX = boxX + boxW / 2 + si(40);
+        int btnY = boxY + si(104);
 
-        int yesX = boxX + boxW / 2 - 42;
-        int noX = boxX + boxW / 2 + 42;
-        int y = boxY + 108;
-
-        if (inside(mx, my, yesX - 22, y - 22, 44, 44)) {
+        if (inside(mx, my, yesX - si(24), btnY - si(24), si(48), si(48))) {
             playUi(ModSounds.NEW_RECIPE.get(), 0.9f, 1.0f);
             playUi(ModSounds.MONEY.get(), 0.9f, 1.0f);
             PacketDistributor.sendToServer(new AnimalQueryActionPayload(AnimalQueryActionPayload.Action.SELL, false));
             this.onClose();
             return true;
         }
-        if (inside(mx, my, noX - 22, y - 22, 44, 44)) {
+
+        if (inside(mx, my, noX - si(24), btnY - si(24), si(48), si(48))) {
             confirmingSell = false;
             playUi(ModSounds.SMALL_SELECT.get(), 0.8f, 1.0f);
             return true;
@@ -479,69 +559,63 @@ public class AnimalQueryScreen extends AbstractContainerScreen<AnimalQueryMenu> 
         return false;
     }
 
-    private void computeLayout() {
-        this.panelW = Math.min(BASE_WIDTH, this.width - 18);
-        this.panelH = Math.min(BASE_HEIGHT, this.height - 18);
-        this.panelX = (this.width - panelW) / 2;
-        this.panelY = (this.height - panelH) / 2;
+    private void renderQuickTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
+        int[] centers = computeActionCenters();
+        Component tip = null;
 
-        this.profileX = panelX + 14;
-        this.profileY = panelY + 40;
-        this.profileW = 214;
-        this.profileH = panelH - 54;
+        int tooltipY = actionY + actionAnimOffsetY;
+        if (centers.length > 0 && inside(mouseX, mouseY, centers[0] - actionSize / 2, tooltipY - actionSize / 2, actionSize, actionSize)) {
+            tip = Component.translatable("stardewcraft.animal.query.hover.sell", this.menu.getEstimatedSellPrice());
+        } else if (centers.length > 1 && inside(mouseX, mouseY, centers[1] - actionSize / 2, tooltipY - actionSize / 2, actionSize, actionSize)) {
+            tip = Component.translatable("stardewcraft.animal.query.hover.move");
+        } else if (this.menu.canToggleReproduction() && centers.length > 2 && inside(mouseX, mouseY, centers[2] - actionSize / 2, tooltipY - actionSize / 2, actionSize, actionSize)) {
+            tip = Component.translatable("stardewcraft.animal.query.hover.repro");
+        } else if ((!this.menu.canToggleReproduction() && centers.length > 2 && inside(mouseX, mouseY, centers[2] - actionSize / 2, tooltipY - actionSize / 2, actionSize, actionSize))
+            || (this.menu.canToggleReproduction() && centers.length > 3 && inside(mouseX, mouseY, centers[3] - actionSize / 2, tooltipY - actionSize / 2, actionSize, actionSize))) {
+            tip = Component.translatable("gui.done");
+        }
 
-        this.actionX = panelX + panelW - 38;
-        this.actionY = panelY + 86;
-
-        this.infoX = profileX + profileW + 12;
-        this.infoY = panelY + 40;
-        this.infoW = panelW - (infoX - panelX) - 64;
-        this.infoH = 198;
-
-        this.moodX = infoX;
-        this.moodY = infoY + infoH + 10;
-        this.moodW = infoW;
-        this.moodH = panelY + panelH - 14 - moodY;
-
-        this.okBtnX = actionX;
-        this.okBtnY = actionY + 198;
-        this.sellBtnX = actionX;
-        this.sellBtnY = actionY;
-        this.moveBtnX = actionX;
-        this.moveBtnY = actionY + 66;
-        this.reproBtnX = actionX;
-        this.reproBtnY = actionY + 132;
-
-        this.nameAreaX = profileX + 10;
-        this.nameAreaY = profileY + profileH - 50;
-        this.nameAreaW = profileW - 20;
-        this.nameAreaH = 30;
+        if (tip != null) {
+            graphics.renderTooltip(this.font, tip, mouseX, mouseY);
+        }
     }
 
-    private void updateNameBoxLayout() {
-        if (this.nameEditBox == null) {
-            return;
-        }
-        int boxX = nameAreaX + 2;
-        int boxY = nameAreaY + 5;
-        int boxW = Math.max(120, nameAreaW - 4);
+    private void computeLayout() {
+        int scaledW = si(BASE_WIDTH);
+        int scaledH = si(BASE_HEIGHT);
+        this.panelX = (this.width - scaledW) / 2;
+        this.panelY = (this.height - scaledH) / 2;
 
-        this.nameEditBox.setX(boxX);
-        this.nameEditBox.setY(boxY);
-        this.nameEditBox.setWidth(boxW);
-        this.nameEditBox.setHeight(18);
+        this.portraitCX = panelX + si(FIG_PORTRAIT_X + FIG_PORTRAIT_SIZE / 2);
+        this.portraitCY = panelY + si(FIG_PORTRAIT_Y + FIG_PORTRAIT_SIZE / 2);
+
+        this.nameX = panelX + si(FIG_NAME_X);
+        this.nameY = panelY + si(FIG_NAME_Y);
+        this.renameY = panelY + si(FIG_RENAME_Y + FIG_RENAME_SIZE / 2);
+        this.renameSize = si(FIG_RENAME_SIZE);
+
+        this.infoX = panelX + si(FIG_NAME_X);
+        this.infoY = panelY + si(84);
+        this.infoW = si(221);
+
+        this.heartStartX = panelX + si(FIG_HEART_X);
+        this.heartY = panelY + si(FIG_HEART_Y);
+
+        this.actionStartX = panelX + si(FIG_ACTION_X + FIG_ACTION_SIZE / 2 + 14);
+        this.actionY = panelY + si(FIG_ACTION_Y + FIG_ACTION_SIZE / 2);
+        this.actionSpacing = si(FIG_ACTION_SPACING);
+        this.actionSize = si(FIG_ACTION_SIZE);
+
+        this.renameCenterX = getDynamicRenameCenterX();
     }
 
     private void setEditingName(boolean editing) {
         this.editingName = editing;
-        if (this.nameEditBox == null) {
-            return;
-        }
-        this.nameEditBox.setVisible(editing);
-        this.nameEditBox.active = editing;
-        this.nameEditBox.setFocused(editing);
         if (editing) {
-            this.setFocused(this.nameEditBox);
+            this.editBuffer = this.lastSubmittedName;
+            this.editCursor = this.editBuffer.length();
+            this.renameCenterX = getDynamicRenameCenterX();
+            this.setFocused(null);
         } else {
             this.setFocused(null);
         }
@@ -553,26 +627,107 @@ public class AnimalQueryScreen extends AbstractContainerScreen<AnimalQueryMenu> 
     }
 
     private String getCurrentName() {
-        if (this.nameEditBox != null && !this.nameEditBox.getValue().isBlank()) {
-            return this.nameEditBox.getValue();
+        if (this.editingName) {
+            return this.editBuffer;
         }
         return this.lastSubmittedName;
     }
 
     private void submitRenameIfChanged() {
-        if (this.nameEditBox == null) {
-            return;
-        }
-        String normalized = this.nameEditBox.getValue().trim();
+        String normalized = this.editBuffer.trim();
         if (normalized.isBlank()) {
             normalized = this.lastSubmittedName;
-            this.nameEditBox.setValue(normalized);
+            this.editBuffer = normalized;
+            this.editCursor = this.editBuffer.length();
         }
         if (normalized.equals(this.lastSubmittedName)) {
             return;
         }
         this.lastSubmittedName = normalized;
+        this.renameCenterX = getDynamicRenameCenterX();
         PacketDistributor.sendToServer(new AnimalRenamePayload(this.menu.getAnimalId(), normalized));
+    }
+
+    private int getDynamicRenameCenterX() {
+        String name = getCurrentName();
+        float nameScale = (FIG_NAME_FONT_SIZE / 9.0f) * UI_SCALE;
+        int nameWidthInFontPx = Math.max(1, (int) (si(FIG_NAME_W - 8) / nameScale));
+        String shown = this.font.plainSubstrByWidth(name, nameWidthInFontPx);
+        int textWidthPx = Math.round(this.font.width(shown) * nameScale);
+        int minCenter = nameX + si(24);
+        int maxCenter = nameX + si(FIG_NAME_W) - si(24);
+        int desired = nameX + textWidthPx + si(24);
+        return Math.max(minCenter, Math.min(maxCenter, desired));
+    }
+
+    private void updateHoverState(int mouseX, int mouseY) {
+        int current = detectHoverHotspot(mouseX, mouseY);
+        if (current != this.hoverHotspot) {
+            this.hoverHotspot = current;
+            if (current != 0) {
+                playUi(ModSounds.SMALL_SELECT.get(), 0.45f, 1.18f);
+            }
+        }
+    }
+
+    private int detectHoverHotspot(int mouseX, int mouseY) {
+        if (this.confirmingSell) {
+            int boxW = si(320);
+            int boxH = si(154);
+            int boxX = panelX + (BASE_WIDTH - boxW) / 2;
+            int boxY = panelY + (BASE_HEIGHT - boxH) / 2;
+            int yesX = boxX + boxW / 2 - si(40);
+            int noX = boxX + boxW / 2 + si(40);
+            int btnY = boxY + si(104);
+            if (inside(mouseX, mouseY, yesX - si(24), btnY - si(24), si(48), si(48))) {
+                return 101;
+            }
+            if (inside(mouseX, mouseY, noX - si(24), btnY - si(24), si(48), si(48))) {
+                return 102;
+            }
+            return 0;
+        }
+
+        if (inside(mouseX, mouseY, nameX, nameY, si(FIG_NAME_W), si(FIG_NAME_H))) {
+            return 1;
+        }
+        int dynamicRenameX = getDynamicRenameCenterX();
+        if (inside(mouseX, mouseY, dynamicRenameX - renameSize / 2, renameY - renameSize / 2, renameSize, renameSize)) {
+            return 2;
+        }
+
+        int[] centers = computeActionCenters();
+        int hitY = actionY + actionAnimOffsetY;
+        if (centers.length > 0 && inside(mouseX, mouseY, centers[0] - actionSize / 2, hitY - actionSize / 2, actionSize, actionSize)) {
+            return 10;
+        }
+        if (centers.length > 1 && inside(mouseX, mouseY, centers[1] - actionSize / 2, hitY - actionSize / 2, actionSize, actionSize)) {
+            return 11;
+        }
+        if (this.menu.canToggleReproduction()) {
+            if (centers.length > 2 && inside(mouseX, mouseY, centers[2] - actionSize / 2, hitY - actionSize / 2, actionSize, actionSize)) {
+                return 12;
+            }
+            if (centers.length > 3 && inside(mouseX, mouseY, centers[3] - actionSize / 2, hitY - actionSize / 2, actionSize, actionSize)) {
+                return 13;
+            }
+        } else if (centers.length > 2 && inside(mouseX, mouseY, centers[2] - actionSize / 2, hitY - actionSize / 2, actionSize, actionSize)) {
+            return 13;
+        }
+        return 0;
+    }
+
+    private void updateEntryAnimationState() {
+        float ease = getEntryEase();
+        this.portraitAnimOffsetY = Math.round((1.0f - ease) * si(44));
+        this.actionAnimOffsetY = Math.round((1.0f - ease) * si(34));
+    }
+
+    private float getEntryEase() {
+        long elapsed = Math.max(0L, System.currentTimeMillis() - this.openedAtMs);
+        float t = Math.min(1.0f, elapsed / (float) ENTRY_ANIM_MS);
+        float inv = 1.0f - t;
+        return 1.0f - inv * inv * inv;
     }
 
     private ResourceLocation resolveAnimalIcon() {
@@ -608,27 +763,12 @@ public class AnimalQueryScreen extends AbstractContainerScreen<AnimalQueryMenu> 
         graphics.pose().popPose();
     }
 
-    private void drawWindow(GuiGraphics graphics, int x, int y, int width, int height) {
-        graphics.fillGradient(x, y, x + width, y + height, COLOR_PANEL, 0xEC111B28);
-        graphics.fill(x + 2, y + 2, x + width - 2, y + 30, COLOR_PANEL_DARK);
-        drawBorder(graphics, x, y, width, height, COLOR_BORDER);
-        graphics.fill(x + 1, y + 1, x + width - 1, y + 2, COLOR_ACCENT);
-    }
-
-    private void drawSection(GuiGraphics graphics, int x, int y, int width, int height) {
-        graphics.fillGradient(x, y, x + width, y + height, COLOR_SECTION, 0xCB172433);
-        drawBorder(graphics, x, y, width, height, 0xFF31475D);
-    }
-
-    private void drawBorder(GuiGraphics graphics, int x, int y, int width, int height, int color) {
-        graphics.fill(x, y, x + width, y + 1, color);
-        graphics.fill(x, y + height - 1, x + width, y + height, color);
-        graphics.fill(x, y, x + 1, y + height, color);
-        graphics.fill(x + width - 1, y, x + width, y + height, color);
-    }
-
     private boolean inside(int mx, int my, int x, int y, int w, int h) {
         return mx >= x && mx < x + w && my >= y && my < y + h;
+    }
+
+    private int si(int value) {
+        return Math.max(1, Math.round(value * UI_SCALE));
     }
 
     private float approach(float current, float target) {
@@ -639,6 +779,13 @@ public class AnimalQueryScreen extends AbstractContainerScreen<AnimalQueryMenu> 
             return Math.max(target, current - 0.06f);
         }
         return current;
+    }
+
+    private void drawFilledCircle(GuiGraphics graphics, int centerX, int centerY, int radius, int color) {
+        for (int dy = -radius; dy <= radius; dy++) {
+            int span = (int) Math.floor(Math.sqrt((double) radius * radius - (double) dy * dy));
+            graphics.fill(centerX - span, centerY + dy, centerX + span + 1, centerY + dy + 1, color);
+        }
     }
 
     private void playUi(SoundEvent event, float volume, float pitch) {
