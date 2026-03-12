@@ -1,25 +1,19 @@
 package com.stardew.craft.client.fishing;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.fishing.TreasureChestMenu;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.Util;
-import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.util.RandomSource;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Client-only: shows a Stardew-like "caught" popup (texture), then triggers Minecraft's item activation animation.
@@ -62,7 +56,7 @@ public final class FishingCatchVisuals {
 	private static boolean treasureUIOpened;
 	private static long treasureAnimStartMs;
 	
-	private static List<ItemStack> pendingTreasure = new ArrayList<>();
+	private static long pendingTreasureChestId = -1L;
 	private static boolean pendingTreasureGolden = false;
 
 	private FishingCatchVisuals() {
@@ -90,7 +84,7 @@ public final class FishingCatchVisuals {
 		}
 
 		// If treasure exists, start the treasure animation immediately (it will open the UI afterward).
-		if (!pendingTreasure.isEmpty()) {
+		if (pendingTreasureChestId >= 0L) {
 			showingTreasureAnim = true;
 			treasureAnimStartMs = Util.getMillis();
 		}
@@ -115,10 +109,10 @@ public final class FishingCatchVisuals {
 		treasureUIOpened = false;
 	}
 	
-	public static void setPendingTreasure(List<ItemStack> items, boolean golden) {
-		pendingTreasure = new ArrayList<>(items);
+	public static void setPendingTreasure(long chestId, boolean golden) {
+		pendingTreasureChestId = chestId;
 		pendingTreasureGolden = golden;
-		StardewCraft.LOGGER.info("Set pending treasure: {} items, golden={}", items.size(), golden);
+		StardewCraft.LOGGER.info("Set pending treasure: chestId={}, golden={}", chestId, golden);
 	}
 
 	public static void startFail() {
@@ -131,7 +125,7 @@ public final class FishingCatchVisuals {
 		mode = Mode.FAIL_FLASH;
 		startMs = Util.getMillis();
 		showingTreasureAnim = false;
-		pendingTreasure.clear();
+		pendingTreasureChestId = -1L;
 	}
 
 	@SubscribeEvent
@@ -253,7 +247,7 @@ public final class FishingCatchVisuals {
 			if (!treasureUIOpened) {
 				treasureUIOpened = true;
 				showingTreasureAnim = false;
-				StardewCraft.LOGGER.info("Opening treasure chest with {} items", pendingTreasure.size());
+				StardewCraft.LOGGER.info("Requesting server to open treasure chest, chestId={}", pendingTreasureChestId);
 				mc.execute(() -> openTreasureChest(mc));
 			}
 			return;
@@ -303,45 +297,20 @@ public final class FishingCatchVisuals {
 	private static void openTreasureChest(Minecraft mc) {
 		if (mc.player == null) {
 			StardewCraft.LOGGER.warn("Cannot open treasure: player is null");
-			pendingTreasure.clear();
+			pendingTreasureChestId = -1L;
 			return;
 		}
-		
-		if (pendingTreasure.isEmpty()) {
-			StardewCraft.LOGGER.warn("Cannot open treasure: treasure list is empty");
+
+		if (pendingTreasureChestId < 0L) {
+			StardewCraft.LOGGER.warn("Cannot open treasure: missing chestId");
 			return;
 		}
-		
-		StardewCraft.LOGGER.info("Opening treasure chest with {} items (golden={})", pendingTreasure.size(), pendingTreasureGolden);
-		
-		SimpleContainer container = new SimpleContainer(36);
-		for (int i = 0; i < Math.min(pendingTreasure.size(), 36); i++) {
-			ItemStack item = pendingTreasure.get(i);
-			StardewCraft.LOGGER.info("  Item {}: {}", i, item);
-			container.setItem(i, item.copy());
-		}
-		
-		// 使用简单的自增ID
-		int containerId = (int) (System.currentTimeMillis() % 10000);
-		Component title = pendingTreasureGolden 
-				? Component.translatable("stardewcraft.treasure.golden")
-				: Component.translatable("stardewcraft.treasure.normal");
-		
-		@SuppressWarnings("null")
-		TreasureChestMenu menu = new TreasureChestMenu(containerId, mc.player.getInventory(), container, pendingTreasureGolden);
-		@SuppressWarnings("null")
-		TreasureChestScreen screen = new TreasureChestScreen(menu, mc.player.getInventory(), title);
-		
-		mc.player.containerMenu = menu;
-		mc.setScreen(screen);
-		
-		// 使用模组的宝箱打开音效
-		mc.player.playSound(com.stardew.craft.sound.ModSounds.OPEN_CHEST.get(), 1.0f, 1.0f);
-		
-		StardewCraft.LOGGER.info("Treasure chest UI opened successfully");
-		
-		// 清理宝箱数据
-		pendingTreasure.clear();
+
+		net.neoforged.neoforge.network.PacketDistributor.sendToServer(
+				new com.stardew.craft.network.payload.OpenTreasureChestRequestPayload(pendingTreasureChestId)
+		);
+
+		pendingTreasureChestId = -1L;
 		pendingTreasureGolden = false;
 	}
 

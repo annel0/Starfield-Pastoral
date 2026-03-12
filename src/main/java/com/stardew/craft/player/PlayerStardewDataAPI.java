@@ -159,8 +159,7 @@ public class PlayerStardewDataAPI {
      * 获取最大能量
      */
     public static int getMaxEnergy(ServerPlayer player) {
-        PlayerStardewData data = getData(player);
-        return data.getMaxEnergy() + data.getTempMaxEnergyBonus();
+        return getData(player).getMaxEnergy();
     }
     
     /**
@@ -235,6 +234,10 @@ public class PlayerStardewDataAPI {
         return getData(player).getTempLuckBonus();
     }
 
+    public static int getMagneticRadiusBuff(ServerPlayer player) {
+        return getData(player).getTempMagneticRadiusBonus();
+    }
+
     @SuppressWarnings("null")
     public static void applyFishingLevelBuff(ServerPlayer player, int bonus, int durationTicks) {
         if (bonus == 0 || durationTicks <= 0) {
@@ -292,6 +295,103 @@ public class PlayerStardewDataAPI {
         PlayerStardewData data = getData(player);
         long endTick = player.level().getGameTime() + durationTicks;
         data.applyTempMaxEnergyBonus(bonus, endTick);
+        PlayerDataEventHandler.syncPlayerData(player, data);
+    }
+
+    @SuppressWarnings("null")
+    public static void applyFarmingLevelBuff(ServerPlayer player, int bonus, int durationTicks) {
+        if (bonus == 0 || durationTicks <= 0) {
+            return;
+        }
+        player.addEffect(new net.minecraft.world.effect.MobEffectInstance(
+                com.stardew.craft.effect.ModMobEffects.FARMER_BLESSING,
+                durationTicks,
+                Math.max(0, bonus - 1)
+        ));
+        PlayerStardewData data = getData(player);
+        long endTick = player.level().getGameTime() + durationTicks;
+        data.applyTempFarmingLevelBonus(bonus, endTick);
+        PlayerDataEventHandler.syncPlayerData(player, data);
+    }
+
+    @SuppressWarnings("null")
+    public static void applyForagingLevelBuff(ServerPlayer player, int bonus, int durationTicks) {
+        if (bonus == 0 || durationTicks <= 0) {
+            return;
+        }
+        player.addEffect(new net.minecraft.world.effect.MobEffectInstance(
+                com.stardew.craft.effect.ModMobEffects.FORAGER_BLESSING,
+                durationTicks,
+                Math.max(0, bonus - 1)
+        ));
+        PlayerStardewData data = getData(player);
+        long endTick = player.level().getGameTime() + durationTicks;
+        data.applyTempForagingLevelBonus(bonus, endTick);
+        PlayerDataEventHandler.syncPlayerData(player, data);
+    }
+
+    @SuppressWarnings("null")
+    public static void applyMiningLevelBuff(ServerPlayer player, int bonus, int durationTicks) {
+        if (bonus == 0 || durationTicks <= 0) {
+            return;
+        }
+        player.addEffect(new net.minecraft.world.effect.MobEffectInstance(
+                com.stardew.craft.effect.ModMobEffects.MINER_BLESSING,
+                durationTicks,
+                Math.max(0, bonus - 1)
+        ));
+        PlayerStardewData data = getData(player);
+        long endTick = player.level().getGameTime() + durationTicks;
+        data.applyTempMiningLevelBonus(bonus, endTick);
+        PlayerDataEventHandler.syncPlayerData(player, data);
+    }
+
+    @SuppressWarnings("null")
+    public static void applyAttackBuff(ServerPlayer player, int bonus, int durationTicks) {
+        if (bonus == 0 || durationTicks <= 0) {
+            return;
+        }
+        player.addEffect(new net.minecraft.world.effect.MobEffectInstance(
+                com.stardew.craft.effect.ModMobEffects.WARRIOR_BLESSING,
+                durationTicks,
+                Math.max(0, bonus - 1)
+        ));
+        PlayerStardewData data = getData(player);
+        long endTick = player.level().getGameTime() + durationTicks;
+        data.applyTempAttackBonus(bonus, endTick);
+        PlayerDataEventHandler.syncPlayerData(player, data);
+    }
+
+    @SuppressWarnings("null")
+    public static void applyDefenseBuff(ServerPlayer player, int bonus, int durationTicks) {
+        if (bonus == 0 || durationTicks <= 0) {
+            return;
+        }
+        player.addEffect(new net.minecraft.world.effect.MobEffectInstance(
+                com.stardew.craft.effect.ModMobEffects.GUARDIAN_BLESSING,
+                durationTicks,
+                Math.max(0, bonus - 1)
+        ));
+        PlayerStardewData data = getData(player);
+        long endTick = player.level().getGameTime() + durationTicks;
+        data.applyTempDefenseBonus(bonus, endTick);
+        PlayerDataEventHandler.syncPlayerData(player, data);
+    }
+
+    @SuppressWarnings("null")
+    public static void applyMagneticRadiusBuff(ServerPlayer player, int bonus, int durationTicks) {
+        if (bonus == 0 || durationTicks <= 0) {
+            return;
+        }
+        int amplifier = Math.max(0, bonus - 1);
+        player.addEffect(new net.minecraft.world.effect.MobEffectInstance(
+                com.stardew.craft.effect.ModMobEffects.MAGNETISM,
+                durationTicks,
+                amplifier
+        ));
+        PlayerStardewData data = getData(player);
+        long endTick = player.level().getGameTime() + durationTicks;
+        data.applyTempMagneticRadiusBonus(bonus, endTick);
         PlayerDataEventHandler.syncPlayerData(player, data);
     }
     

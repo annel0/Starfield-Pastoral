@@ -9,6 +9,8 @@ import com.stardew.craft.entity.ModEntities;
 import com.stardew.craft.effect.ModMobEffects;
 import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.item.ModItems;
+import com.stardew.craft.item.SpecificBaitItem;
+import com.stardew.craft.item.StardewQualityItem;
 import com.stardew.craft.sound.ModSounds;
 import com.stardew.craft.item.artisan.ArtisanDrinkItem;
 import com.stardew.craft.item.artisan.DehydratorIngredientHelper;
@@ -301,9 +303,17 @@ public class StardewCraft {
                 output.accept(ModItems.GALAXY_SWORD.get());
                 output.accept(ModItems.INFINITY_BLADE.get());
                 // 种子/作物：自动把所有已注册作物系统物品加入标签
+                java.util.List<Item> fruitItems = new java.util.ArrayList<>();
+                java.util.List<Item> forageItems = new java.util.ArrayList<>();
+                java.util.List<Item> cookingIngredientItems = new java.util.ArrayList<>();
                 for (var holder : ModItems.ITEMS.getEntries()) {
                     Item item = holder.get();
                     if (!(item instanceof IStardewItem stardewItem)) {
+                        continue;
+                    }
+
+                    if (isHiddenTintedBaseItem(item)) {
+                        // Keep creative tab focused on flavored/targeted variants, not empty placeholders.
                         continue;
                     }
 
@@ -350,6 +360,16 @@ public class StardewCraft {
                         output.accept(item);
                     } else if ("stardewcraft.type.utility".equals(typeKey)) {
                         output.accept(item);
+                    } else if ("stardewcraft.type.furniture".equals(typeKey)) {
+                        output.accept(item);
+                    } else if ("stardewcraft.type.cooking".equals(typeKey)) {
+                        output.accept(item);
+                    } else if ("stardewcraft.type.fruit".equals(typeKey)) {
+                        fruitItems.add(item);
+                    } else if ("stardewcraft.type.forage".equals(typeKey)) {
+                        forageItems.add(item);
+                    } else if ("stardewcraft.type.cooking_ingredient".equals(typeKey)) {
+                        cookingIngredientItems.add(item);
                     } else if ("stardewcraft.type.tool".equals(typeKey) || typeKey.startsWith("stardewcraft.tool.")) {
                         output.accept(item);
                     } else if ("stardewcraft.type.craftable".equals(typeKey)) {
@@ -406,17 +426,50 @@ public class StardewCraft {
                     }
                 }
 
+                addGroupedCategoryItems(output, cookingIngredientItems, false);
+                addGroupedCategoryItems(output, fruitItems, true);
+                addGroupedCategoryItems(output, forageItems, true);
+
                 addPreserveVariants(output);
+                addSpecificBaitVariants(output);
             }).build());
+
+    private static boolean isHiddenTintedBaseItem(Item item) {
+        return item == ModItems.TARGETED_BAIT.get()
+                || item == ModItems.JELLY.get()
+                || item == ModItems.PICKLES.get()
+                || item == ModItems.ROE.get()
+                || item == ModItems.AGED_ROE.get()
+                || item == ModItems.CAVIAR.get()
+                || item == ModItems.DRIED_FRUIT.get()
+                || item == ModItems.DRIED_MUSHROOMS.get();
+    }
     
     /**
      * 创建带品质的物品
      */
+    @SuppressWarnings("null")
     private static ItemStack createQualityItem(Item item, int quality) {
         @SuppressWarnings("null")
         ItemStack stack = new ItemStack(item);
         com.stardew.craft.item.quality.QualityHelper.setQuality(stack, quality);
         return stack;
+    }
+
+    @SuppressWarnings("null")
+    private static void addGroupedCategoryItems(CreativeModeTab.Output output, java.util.List<Item> items, boolean forceQualityVariants) {
+        items.sort(java.util.Comparator.comparing(i -> BuiltInRegistries.ITEM.getKey(i).getPath()));
+        for (Item item : items) {
+            boolean supportsQuality = item instanceof StardewQualityItem qualityItem && qualityItem.supportsQuality();
+            if (forceQualityVariants || supportsQuality) {
+                output.accept(createQualityItem(item, com.stardew.craft.item.quality.QualityHelper.NORMAL));
+                output.accept(createQualityItem(item, com.stardew.craft.item.quality.QualityHelper.SILVER));
+                output.accept(createQualityItem(item, com.stardew.craft.item.quality.QualityHelper.GOLD));
+                output.accept(createQualityItem(item, com.stardew.craft.item.quality.QualityHelper.IRIDIUM));
+            } else {
+                output.accept(item);
+            }
+        }
     }
 
     @SuppressWarnings("null")
@@ -476,6 +529,32 @@ public class StardewCraft {
             } else if (isDehydratorMushroomIngredient(id)) {
                 addPreserveVariant(output, com.stardew.craft.item.artisan.PreserveType.DRIED_MUSHROOMS, item, ModItems.DRIED_MUSHROOMS.get());
             }
+        }
+    }
+
+    @SuppressWarnings("null")
+    private static void addSpecificBaitVariants(CreativeModeTab.Output output) {
+        int variantIndex = 0;
+        for (var holder : ModItems.ITEMS.getEntries()) {
+            Item item = holder.get();
+            if (!(item instanceof IStardewItem stardewItem)) {
+                continue;
+            }
+
+            String typeKey = stardewItem.getItemTypeKey();
+            if (!isPreserveFishIngredient(typeKey)) {
+                continue;
+            }
+
+            // Show pre-configured Specific Bait entries in creative tab so they are discoverable.
+            ItemStack fishStack = new ItemStack(item);
+            if (fishStack.isEmpty()) {
+                continue;
+            }
+            ItemStack baitStack = SpecificBaitItem.createForFish(fishStack, 1);
+            SpecificBaitItem.applyCreativeVariantMarker(baitStack, variantIndex);
+            output.accept(baitStack);
+            variantIndex++;
         }
     }
 

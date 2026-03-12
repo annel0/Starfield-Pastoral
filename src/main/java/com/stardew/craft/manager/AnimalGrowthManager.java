@@ -1,6 +1,5 @@
 package com.stardew.craft.manager;
 
-import com.stardew.craft.StardewCraft;
 import com.stardew.craft.animal.data.AnimalWorldData;
 import com.stardew.craft.animal.model.AnimalBuildingRecord;
 import com.stardew.craft.animal.model.FarmAnimalRecord;
@@ -109,36 +108,16 @@ public class AnimalGrowthManager extends SavedData {
 
     public void growDaily(ServerLevel level) {
         AnimalWorldData worldData = AnimalWorldData.get(level);
-        int maturedToday = 0;
-        int producedToday = 0;
 
         StardewTimeManager time = StardewTimeManager.get();
         int absoluteDaysPlayed = (time.getCurrentYear() - 1) * (28 * 4) + time.getCurrentSeason() * 28 + time.getCurrentDay();
 
         for (FarmAnimalRecord record : worldData.getAnimals()) {
-            boolean wasBaby = record.isBaby();
-            if (applyDayUpdate(level, worldData, record, absoluteDaysPlayed)) {
-                producedToday++;
-            }
-            if (wasBaby && !record.isBaby()) {
-                maturedToday++;
-            }
+            applyDayUpdate(level, worldData, record, absoluteDaysPlayed);
         }
 
         worldData.markChanged();
-        AnimalEntitySyncService.SyncResult syncResult = AnimalEntitySyncService.syncAll(level);
-        if (maturedToday > 0) {
-            StardewCraft.LOGGER.info("[ANIMAL_GROWTH] maturedToday={} in {}", maturedToday, level.dimension().location());
-        }
-        if (producedToday > 0) {
-            StardewCraft.LOGGER.info("[ANIMAL_PRODUCE] producedToday={} in {}", producedToday, level.dimension().location());
-        }
-        StardewCraft.LOGGER.info(
-            "[ANIMAL_SYNC] updated={}, spawned={} in {}",
-            syncResult.updated(),
-            syncResult.spawned(),
-            level.dimension().location()
-        );
+        AnimalEntitySyncService.syncAll(level);
         setDirty();
     }
 

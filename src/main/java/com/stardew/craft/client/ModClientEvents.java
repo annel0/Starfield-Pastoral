@@ -93,6 +93,9 @@ public class ModClientEvents {
                 } else if ("stardewcraft.type.utility".equals(typeKey)) {
                     // 实用设施：黄色（粗体由下面统一加）
                     typeColor = net.minecraft.ChatFormatting.YELLOW;
+                } else if ("stardewcraft.type.furniture".equals(typeKey)) {
+                    // 家具：青色
+                    typeColor = net.minecraft.ChatFormatting.DARK_AQUA;
                 } else if ("stardewcraft.type.craftable".equals(typeKey)) {
                     // 打造物品：未占用的颜色
                     typeColor = net.minecraft.ChatFormatting.DARK_RED;
@@ -102,6 +105,18 @@ public class ModClientEvents {
                 } else if ("stardewcraft.type.fertilizer".equals(typeKey)) {
                     // 肥料：深青色（棕色调�?
                     typeColor = net.minecraft.ChatFormatting.DARK_AQUA;
+                } else if ("stardewcraft.type.cooking".equals(typeKey)) {
+                    // 食物：亮橙色系
+                    typeColor = net.minecraft.ChatFormatting.GOLD;
+                } else if ("stardewcraft.type.fruit".equals(typeKey)) {
+                    // 水果：浅红色（与其他分类区分）
+                    typeColor = net.minecraft.ChatFormatting.LIGHT_PURPLE;
+                } else if ("stardewcraft.type.forage".equals(typeKey)) {
+                    // 采集：绿色（自然系）
+                    typeColor = net.minecraft.ChatFormatting.GREEN;
+                } else if ("stardewcraft.type.cooking_ingredient".equals(typeKey)) {
+                    // 烹饪原料：浅黄色（基础食材）
+                    typeColor = net.minecraft.ChatFormatting.YELLOW;
                 } else if (typeKey.startsWith("stardewcraft.tool.")) {
                     // 农具：天蓝色
                     typeColor = net.minecraft.ChatFormatting.AQUA;

@@ -70,7 +70,6 @@ public class FertilizerOverlayRenderer {
         int renderDistance = Math.max(8, mc.options.getEffectiveRenderDistance());
         int maxBlockDistance = renderDistance * 16;
         int maxBlockDistanceSq = maxBlockDistance * maxBlockDistance;
-        int renderCount = 0;
 
         // 仅遍历有肥料的位置，避免每帧体积扫描带来的性能波动。
         for (Map.Entry<BlockPos, FertilizerType> entry : ClientFertilizerCache.snapshot().entrySet()) {
@@ -96,7 +95,6 @@ public class FertilizerOverlayRenderer {
             @SuppressWarnings("null")
             VertexConsumer vc = buffers.getBuffer(rt);
             renderFertilizerOverlay(poseStack, vc, level, pos);
-            renderCount++;
         }
 
         poseStack.popPose();
@@ -106,10 +104,7 @@ public class FertilizerOverlayRenderer {
             buffers.endBatch(rt);
         }
         
-        if (renderCount > 0) {
-            StardewCraft.LOGGER.debug("Rendered {} fertilizer overlays", renderCount);
-        }
-        
+
         RenderSystem.depthMask(true);
         RenderSystem.enableCull();
         RenderSystem.disableBlend();

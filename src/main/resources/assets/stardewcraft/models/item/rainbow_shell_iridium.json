@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "stardewcraft:item/forage/rainbow_shell",
+    "layer1": "stardewcraft:item/quality/iridium_star"
+  }
+}

@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.stardew.craft.player.*;
 import com.stardew.craft.time.StardewTimeManager;
@@ -122,11 +123,84 @@ public class PlayerDataCommand {
                         .then(Commands.argument("value", DoubleArgumentType.doubleArg())
                             .executes(PlayerDataCommand::setLucky))))
                 
+                // Recipe commands
+                .then(Commands.literal("recipe")
+                    .then(Commands.literal("unlock")
+                        .then(Commands.argument("recipe_id", StringArgumentType.string())
+                            .suggests((ctx, builder) -> {
+                                java.util.List<String> suggestions = new java.util.ArrayList<>(com.stardew.craft.item.ModItems.COOKING_DISHES.keySet());
+                                suggestions.add("all");
+                                return net.minecraft.commands.SharedSuggestionProvider.suggest(suggestions, builder);
+                            })
+                            .executes(PlayerDataCommand::unlockRecipe)))
+                    .then(Commands.literal("lock")
+                        .then(Commands.argument("recipe_id", StringArgumentType.string())
+                            .suggests((ctx, builder) -> {
+                                java.util.List<String> suggestions = new java.util.ArrayList<>(com.stardew.craft.item.ModItems.COOKING_DISHES.keySet());
+                                suggestions.add("all");
+                                return net.minecraft.commands.SharedSuggestionProvider.suggest(suggestions, builder);
+                            })
+                            .executes(PlayerDataCommand::lockRecipe))))
+                
                 // 重置数据
                 .then(Commands.literal("reset")
                     .executes(PlayerDataCommand::resetPlayerData))
             )
         );
+    }
+
+    private static int unlockRecipe(CommandContext<CommandSourceStack> ctx) {
+        ServerPlayer player = ctx.getSource().getPlayer();
+        if (player == null) return 0;
+        
+        String recipeId = StringArgumentType.getString(ctx, "recipe_id");
+        PlayerStardewData data = PlayerStardewDataAPI.getData(player);
+        boolean changed = false;
+        if ("all".equalsIgnoreCase(recipeId)) {
+            for (String key : com.stardew.craft.item.ModItems.COOKING_DISHES.keySet()) {
+                if (data.unlockRecipe(key)) {
+                    changed = true;
+                }
+            }
+        } else {
+            changed = data.unlockRecipe(recipeId);
+        }
+        
+        if (changed) {
+            syncPlayerData(player, data);
+            ctx.getSource().sendSuccess(() -> Component.literal("Unlocked recipe(s): " + recipeId), true);
+            return 1;
+        } else {
+            ctx.getSource().sendFailure(Component.literal("Recipe(s) already unlocked or invalid: " + recipeId));
+            return 0;
+        }
+    }
+
+    private static int lockRecipe(CommandContext<CommandSourceStack> ctx) {
+        ServerPlayer player = ctx.getSource().getPlayer();
+        if (player == null) return 0;
+        
+        String recipeId = StringArgumentType.getString(ctx, "recipe_id");
+        PlayerStardewData data = PlayerStardewDataAPI.getData(player);
+        boolean changed = false;
+        if ("all".equalsIgnoreCase(recipeId)) {
+            for (String key : com.stardew.craft.item.ModItems.COOKING_DISHES.keySet()) {
+                if (data.lockRecipe(key)) {
+                    changed = true;
+                }
+            }
+        } else {
+            changed = data.lockRecipe(recipeId);
+        }
+        
+        if (changed) {
+            syncPlayerData(player, data);
+            ctx.getSource().sendSuccess(() -> Component.literal("Locked recipe(s): " + recipeId), true);
+            return 1;
+        } else {
+            ctx.getSource().sendFailure(Component.literal("Recipe(s) not unlocked or invalid: " + recipeId));
+            return 0;
+        }
     }
 
     private static int getLucky(CommandContext<CommandSourceStack> context) {

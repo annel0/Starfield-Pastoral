@@ -1,9 +1,12 @@
 package com.stardew.craft.fishing;
 
+import com.stardew.craft.menu.ModMenuTypes;
 import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -17,13 +20,30 @@ public class TreasureChestMenu extends AbstractContainerMenu {
 	private static final int CHEST_SIZE = CHEST_ROWS * CHEST_COLS;
 	
 	private final Container container;
-	private final boolean isGolden;
+	private int goldenFlag;
+
+	public TreasureChestMenu(int containerId, Inventory playerInventory) {
+		this(containerId, playerInventory, new SimpleContainer(CHEST_SIZE), false);
+	}
 
 	@SuppressWarnings("null")
 	public TreasureChestMenu(int containerId, Inventory playerInventory, Container container, boolean isGolden) {
-		super(null, containerId);  // MenuType为null，因为这是临时容器
+		super(ModMenuTypes.TREASURE_CHEST.get(), containerId);
 		this.container = container;
-		this.isGolden = isGolden;
+		this.goldenFlag = isGolden ? 1 : 0;
+		checkContainerSize(container, CHEST_SIZE);
+		container.startOpen(playerInventory.player);
+		this.addDataSlot(new DataSlot() {
+			@Override
+			public int get() {
+				return TreasureChestMenu.this.goldenFlag;
+			}
+
+			@Override
+			public void set(int value) {
+				TreasureChestMenu.this.goldenFlag = value;
+			}
+		});
 		
 		// 宝箱格子 (4行 x 9列)
 		for (int row = 0; row < CHEST_ROWS; row++) {
@@ -48,7 +68,7 @@ public class TreasureChestMenu extends AbstractContainerMenu {
 	}
 	
 	public boolean isGolden() {
-		return isGolden;
+		return this.goldenFlag != 0;
 	}
 
 	@SuppressWarnings("null")
@@ -84,16 +104,25 @@ public class TreasureChestMenu extends AbstractContainerMenu {
 	@SuppressWarnings("null")
 	@Override
 	public boolean stillValid(@SuppressWarnings("null") @NotNull Player player) {
-		return this.container.stillValid(player);
+		return true;
 	}
 	
 	@SuppressWarnings("null")
 	@Override
 	public void removed(@SuppressWarnings("null") @NotNull Player player) {
 		super.removed(player);
-		// 关闭时清空容器（宝箱内物品消失）
 		if (!player.level().isClientSide) {
-			this.container.clearContent();
+			for (int i = 0; i < CHEST_SIZE; i++) {
+				ItemStack leftover = this.container.getItem(i);
+				if (!leftover.isEmpty()) {
+					boolean added = player.getInventory().add(leftover.copy());
+					if (!added) {
+						player.drop(leftover.copy(), false);
+					}
+					this.container.setItem(i, ItemStack.EMPTY);
+				}
+			}
 		}
+		this.container.stopOpen(player);
 	}
 }

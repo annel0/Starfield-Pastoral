@@ -87,8 +87,6 @@ public class WeatherSavedData extends SavedData {
             entry.getValue().saveToNBT(stateTag);
             weatherData.put(dimKey, stateTag);
             
-            StardewCraft.LOGGER.debug("Saving weather for dimension {}: {}", 
-                dimKey, entry.getValue().getWeatherType());
         }
         
         tag.put("weather", weatherData);

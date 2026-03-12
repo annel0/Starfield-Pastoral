@@ -56,8 +56,6 @@ public class WeatherSyncEvents {
         );
         
         PacketDistributor.sendToPlayer(player, packet);
-        StardewCraft.LOGGER.debug("Synced weather to player {}: {}", 
-            player.getName().getString(), state.getWeatherType());
     }
     
     /**

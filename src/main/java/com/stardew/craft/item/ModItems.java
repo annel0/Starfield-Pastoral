@@ -85,6 +85,7 @@ import com.stardew.craft.item.artisan.DriedMushroomsItem;
 import com.stardew.craft.item.artisan.PreserveType;
 import com.stardew.craft.item.artisan.PreservesItem;
 import com.stardew.craft.item.artisan.SmokedFishItem;
+import com.stardew.craft.item.cooking.CookingDishRegistrar;
 import com.stardew.craft.item.tool.AutoFeedTroughUpgraderItem;
 import com.stardew.craft.item.tool.HoeItem;
 import com.stardew.craft.item.tool.PaintbrushItem;
@@ -124,6 +125,8 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 @SuppressWarnings("null")
 public class ModItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(StardewCraft.MODID);
+        public static final java.util.Map<String, DeferredItem<Item>> COOKING_DISHES = CookingDishRegistrar.registerAll(ITEMS);
+                public static final java.util.Map<String, DeferredItem<Item>> VANILLA_CATEGORY_ITEMS = VanillaCategoryItemRegistrar.registerAll(ITEMS);
 
         private static Item.Properties blockItemProps() {
                 return new Item.Properties().stacksTo(999);
@@ -383,6 +386,8 @@ public class ModItems {
 
         public static final DeferredItem<Item> FISH_SMOKER = ITEMS.register("fish_smoker",
                         () -> new StardewBlockItem(ModBlocks.FISH_SMOKER.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> COOKING_POT = ITEMS.register("cooking_pot",
+                        () -> new StardewBlockItem(ModBlocks.COOKING_POT.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> CRYSTALARIUM = ITEMS.register("crystalarium",
                         () -> new StardewBlockItem(ModBlocks.CRYSTALARIUM.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> SEED_MAKER = ITEMS.register("seed_maker",
@@ -666,6 +671,17 @@ public class ModItems {
         // Special item: permanently doubles produce for one farm animal (except pigs).
         public static final DeferredItem<Item> GOLDEN_ANIMAL_CRACKER = ITEMS.register("golden_animal_cracker",
                         () -> new SimpleStardewItem("stardewcraft.type.misc", 1000, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> MYSTERY_BOX = ITEMS.register("mystery_box",
+                        () -> new SimpleStardewItem("stardewcraft.type.misc", 0, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> GOLDEN_MYSTERY_BOX = ITEMS.register("golden_mystery_box",
+                        () -> new SimpleStardewItem("stardewcraft.type.misc", 0, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> STARDROP_TEA = ITEMS.register("stardrop_tea",
+                        () -> new SimpleStardewItem("stardewcraft.type.misc", 77, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> TREASURE_CHEST = ITEMS.register("treasure_chest",
+                        () -> new SimpleStardewItem("stardewcraft.type.misc", 5000, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> PEARL = ITEMS.register("pearl",
+                        () -> new SimpleStardewItem("stardewcraft.type.misc", 2500, new Item.Properties().stacksTo(999)));
 
         // 动物产物
         public static final DeferredItem<Item> EGG_WHITE = ITEMS.register("egg_white",

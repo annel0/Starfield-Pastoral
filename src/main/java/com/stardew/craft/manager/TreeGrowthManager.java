@@ -1,6 +1,5 @@
 package com.stardew.craft.manager;
 
-import com.stardew.craft.StardewCraft;
 import com.stardew.craft.block.tree.WildTreeSaplingBlock;
 import com.stardew.craft.tree.WildTrees;
 import net.minecraft.core.BlockPos;
@@ -104,7 +103,6 @@ public class TreeGrowthManager extends SavedData {
 	}
 
 	public void growDaily(ServerLevel level) {
-		StardewCraft.LOGGER.info("Starting daily tree growth update for {} saplings...", saplingPositions.size());
 		isProcessing = true;
 		try {
 			java.util.List<GlobalPos> snapshot = new java.util.ArrayList<>(saplingPositions);
@@ -131,8 +129,6 @@ public class TreeGrowthManager extends SavedData {
 				if (saplingBlock.getStage() == 1 && currentDay >= TOTAL_DAYS) {
 					if (canMature(level, pos, def) && placePresetOrFallbackTree(level, pos, def)) {
 						removeSapling(level, pos);
-					} else {
-						StardewCraft.LOGGER.debug("Sapling at {} could not grow (blocked)", pos);
 					}
 					continue;
 				}
@@ -140,7 +136,6 @@ public class TreeGrowthManager extends SavedData {
 				// Stardew-like: blocked saplings do not advance growth.
 				int nextDay = currentDay + 1;
 				if (!canAdvance(level, pos, def, saplingBlock.getStage(), nextDay)) {
-					StardewCraft.LOGGER.debug("Sapling at {} could not grow (blocked)", pos);
 					continue;
 				}
 
@@ -158,8 +153,6 @@ public class TreeGrowthManager extends SavedData {
 				if (saplingBlock.getStage() == 1 && nextDay >= TOTAL_DAYS) {
 					if (placePresetOrFallbackTree(level, pos, def)) {
 						removeSapling(level, pos);
-					} else {
-						StardewCraft.LOGGER.debug("Sapling at {} could not grow (blocked)", pos);
 					}
 				}
 			}

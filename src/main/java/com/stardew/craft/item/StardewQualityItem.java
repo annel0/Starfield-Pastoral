@@ -77,6 +77,10 @@ public class StardewQualityItem extends Item implements IStardewItem {
 		return typeKey;
 	}
 
+	public boolean supportsQuality() {
+		return supportsQuality;
+	}
+
 	@SuppressWarnings("null")
 	@Override
 	public Component getName(@SuppressWarnings("null") ItemStack stack) {

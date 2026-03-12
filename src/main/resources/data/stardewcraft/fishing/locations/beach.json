@@ -1,0 +1,446 @@
+﻿{
+    "location":  "Beach",
+    "fish":  [
+                 {
+                     "id":  "sardine",
+                     "precedence":  100,
+                     "item":  "stardewcraft:sardine",
+                     "chance":  0.4,
+                     "difficulty":  30,
+                     "motionType":  2,
+                     "minFishingLevel":  0,
+                     "seasons":  [
+                                     "spring",
+                                     "fall",
+                                     "winter"
+                                 ],
+                     "timeRanges":  [
+                                        [
+                                            600,
+                                            1900
+                                        ]
+                                    ],
+                     "maxDepth":  3,
+                     "depthMultiplier":  0.1,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_ocean"
+                                   ]
+                 },
+                 {
+                     "id":  "anchovy",
+                     "precedence":  100,
+                     "item":  "stardewcraft:anchovy",
+                     "chance":  0.35,
+                     "difficulty":  30,
+                     "motionType":  2,
+                     "minFishingLevel":  0,
+                     "seasons":  [
+                                     "spring",
+                                     "fall"
+                                 ],
+                     "maxDepth":  3,
+                     "depthMultiplier":  0.1,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_ocean"
+                                   ]
+                 },
+                 {
+                     "id":  "herring",
+                     "precedence":  100,
+                     "item":  "stardewcraft:herring",
+                     "chance":  0.3,
+                     "difficulty":  25,
+                     "motionType":  1,
+                     "minFishingLevel":  0,
+                     "seasons":  [
+                                     "spring",
+                                     "winter"
+                                 ],
+                     "maxDepth":  3,
+                     "depthMultiplier":  0.1,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_ocean"
+                                   ]
+                 },
+                 {
+                     "id":  "red_snapper",
+                     "precedence":  100,
+                     "item":  "stardewcraft:red_snapper",
+                     "chance":  0.15,
+                     "difficulty":  40,
+                     "motionType":  0,
+                     "minFishingLevel":  0,
+                     "seasons":  [
+                                     "summer",
+                                     "fall"
+                                 ],
+                     "weather":  "rainy",
+                     "timeRanges":  [
+                                        [
+                                            600,
+                                            1900
+                                        ]
+                                    ],
+                     "maxDepth":  4,
+                     "depthMultiplier":  0.05,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_ocean"
+                                   ]
+                 },
+                 {
+                     "id":  "red_mullet",
+                     "precedence":  100,
+                     "item":  "stardewcraft:red_mullet",
+                     "chance":  0.25,
+                     "difficulty":  55,
+                     "motionType":  0,
+                     "minFishingLevel":  0,
+                     "seasons":  [
+                                     "summer",
+                                     "winter"
+                                 ],
+                     "timeRanges":  [
+                                        [
+                                            600,
+                                            1900
+                                        ]
+                                    ],
+                     "maxDepth":  4,
+                     "depthMultiplier":  0.05,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_ocean"
+                                   ]
+                 },
+                 {
+                     "id":  "sea_cucumber",
+                     "precedence":  100,
+                     "item":  "stardewcraft:sea_cucumber",
+                     "chance":  0.2,
+                     "difficulty":  40,
+                     "motionType":  3,
+                     "minFishingLevel":  0,
+                     "seasons":  [
+                                     "fall",
+                                     "winter"
+                                 ],
+                     "timeRanges":  [
+                                        [
+                                            600,
+                                            1900
+                                        ]
+                                    ],
+                     "maxDepth":  5,
+                     "depthMultiplier":  0.05,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_ocean"
+                                   ]
+                 },
+                 {
+                     "id":  "super_cucumber",
+                     "precedence":  100,
+                     "item":  "stardewcraft:super_cucumber",
+                     "chance":  0.15,
+                     "difficulty":  80,
+                     "motionType":  3,
+                     "minFishingLevel":  5,
+                     "seasons":  [
+                                     "summer",
+                                     "fall"
+                                 ],
+                     "timeRanges":  [
+                                        [
+                                            1800,
+                                            2600
+                                        ]
+                                    ],
+                     "maxDepth":  5,
+                     "depthMultiplier":  0.05,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_ocean"
+                                   ]
+                 },
+                 {
+                     "id":  "flounder",
+                     "precedence":  100,
+                     "item":  "stardewcraft:flounder",
+                     "chance":  0.2,
+                     "difficulty":  50,
+                     "motionType":  3,
+                     "minFishingLevel":  0,
+                     "seasons":  [
+                                     "spring",
+                                     "summer"
+                                 ],
+                     "timeRanges":  [
+                                        [
+                                            600,
+                                            2000
+                                        ]
+                                    ],
+                     "maxDepth":  4,
+                     "depthMultiplier":  0.05,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_ocean"
+                                   ]
+                 },
+                 {
+                     "id":  "halibut",
+                     "precedence":  100,
+                     "item":  "stardewcraft:halibut",
+                     "chance":  0.15,
+                     "difficulty":  50,
+                     "motionType":  3,
+                     "minFishingLevel":  3,
+                     "seasons":  [
+                                     "spring",
+                                     "summer",
+                                     "winter"
+                                 ],
+                     "maxDepth":  5,
+                     "depthMultiplier":  0.05,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_ocean"
+                                   ]
+                 },
+                 {
+                     "id":  "eel",
+                     "precedence":  100,
+                     "item":  "stardewcraft:eel",
+                     "chance":  0.2,
+                     "difficulty":  70,
+                     "motionType":  2,
+                     "minFishingLevel":  0,
+                     "seasons":  [
+                                     "spring",
+                                     "fall"
+                                 ],
+                     "weather":  "rainy",
+                     "timeRanges":  [
+                                        [
+                                            1600,
+                                            2600
+                                        ]
+                                    ],
+                     "maxDepth":  4,
+                     "depthMultiplier":  0.05,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_ocean"
+                                   ]
+                 },
+                 {
+                     "id":  "octopus",
+                     "precedence":  100,
+                     "item":  "stardewcraft:octopus",
+                     "chance":  0.1,
+                     "difficulty":  95,
+                     "motionType":  1,
+                     "minFishingLevel":  0,
+                     "seasons":  [
+                                     "summer"
+                                 ],
+                     "timeRanges":  [
+                                        [
+                                            600,
+                                            1300
+                                        ]
+                                    ],
+                     "maxDepth":  5,
+                     "depthMultiplier":  0.05,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_ocean"
+                                   ]
+                 },
+                 {
+                     "id":  "squid",
+                     "precedence":  100,
+                     "item":  "stardewcraft:squid",
+                     "chance":  0.15,
+                     "difficulty":  75,
+                     "motionType":  1,
+                     "minFishingLevel":  0,
+                     "seasons":  [
+                                     "winter"
+                                 ],
+                     "timeRanges":  [
+                                        [
+                                            1800,
+                                            2600
+                                        ]
+                                    ],
+                     "maxDepth":  5,
+                     "depthMultiplier":  0.05,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_ocean"
+                                   ]
+                 },
+                 {
+                     "id":  "tuna",
+                     "precedence":  100,
+                     "item":  "stardewcraft:tuna",
+                     "chance":  0.15,
+                     "difficulty":  70,
+                     "motionType":  2,
+                     "minFishingLevel":  0,
+                     "seasons":  [
+                                     "summer",
+                                     "winter"
+                                 ],
+                     "timeRanges":  [
+                                        [
+                                            600,
+                                            1900
+                                        ]
+                                    ],
+                     "maxDepth":  5,
+                     "depthMultiplier":  0.05,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_ocean"
+                                   ]
+                 },
+                 {
+                     "id":  "tilapia",
+                     "precedence":  100,
+                     "item":  "stardewcraft:tilapia",
+                     "chance":  0.3,
+                     "difficulty":  50,
+                     "motionType":  0,
+                     "minFishingLevel":  0,
+                     "seasons":  [
+                                     "summer",
+                                     "fall"
+                                 ],
+                     "timeRanges":  [
+                                        [
+                                            600,
+                                            1400
+                                        ]
+                                    ],
+                     "maxDepth":  3,
+                     "depthMultiplier":  0.1,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_ocean"
+                                   ]
+                 },
+                 {
+                     "id":  "pufferfish",
+                     "precedence":  100,
+                     "item":  "stardewcraft:pufferfish",
+                     "chance":  0.1,
+                     "difficulty":  80,
+                     "motionType":  4,
+                     "minFishingLevel":  0,
+                     "seasons":  [
+                                     "summer"
+                                 ],
+                     "weather":  "sunny",
+                     "timeRanges":  [
+                                        [
+                                            1200,
+                                            1600
+                                        ]
+                                    ],
+                     "maxDepth":  4,
+                     "depthMultiplier":  0.05,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_ocean"
+                                   ]
+                 },
+                 {
+                     "id":  "albacore",
+                     "precedence":  100,
+                     "item":  "stardewcraft:albacore",
+                     "chance":  0.2,
+                     "difficulty":  60,
+                     "motionType":  0,
+                     "minFishingLevel":  0,
+                     "seasons":  [
+                                     "fall",
+                                     "winter"
+                                 ],
+                     "timeRanges":  [
+                                        [
+                                            600,
+                                            1100
+                                        ],
+                                        [
+                                            1800,
+                                            2400
+                                        ]
+                                    ],
+                     "maxDepth":  5,
+                     "depthMultiplier":  0.05,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_ocean"
+                                   ]
+                 },
+                 {
+                     "id":  "lingcod",
+                     "precedence":  100,
+                     "item":  "stardewcraft:lingcod",
+                     "chance":  0.15,
+                     "difficulty":  85,
+                     "motionType":  2,
+                     "minFishingLevel":  5,
+                     "seasons":  [
+                                     "winter"
+                                 ],
+                     "maxDepth":  5,
+                     "depthMultiplier":  0.05,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_ocean"
+                                   ]
+                 },
+                 {
+                     "id":  "crimsonfish",
+                     "precedence":  500,
+                     "item":  "stardewcraft:crimsonfish",
+                     "chance":  0.1,
+                     "difficulty":  95,
+                     "motionType":  0,
+                     "minFishingLevel":  10,
+                     "seasons":  [
+                                     "summer"
+                                 ],
+                     "timeRanges":  [
+                                        [
+                                            600,
+                                            2000
+                                        ]
+                                    ],
+                     "maxDepth":  5,
+                     "depthMultiplier":  0.05,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_ocean"
+                                   ],
+                     "condition":  "!PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
+                     "catchLimit":  1,
+                     "isBossFish":  true
+                 },
+                 {
+                     "id":  "son_of_crimsonfish",
+                     "precedence":  500,
+                     "item":  "stardewcraft:son_of_crimsonfish",
+                     "chance":  0.05,
+                     "difficulty":  95,
+                     "motionType":  0,
+                     "minFishingLevel":  15,
+                     "seasons":  [
+                                     "summer"
+                                 ],
+                     "timeRanges":  [
+                                        [
+                                            600,
+                                            2000
+                                        ]
+                                    ],
+                     "maxDepth":  5,
+                     "depthMultiplier":  0.05,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_ocean"
+                                   ],
+                     "condition":  "PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
+                     "catchLimit":  1,
+                     "isBossFish":  true
+                 }
+             ]
+}

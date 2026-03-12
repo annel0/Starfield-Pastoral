@@ -169,3 +169,8 @@ treasures.Add("(O)685", 5-15个); // Bait
 
 ❌ **错误**: 没有 luckModifier 和 clearWaterDistance
 ✅ **正确**: 必须根据钓鱼环境计算这些值
+
+## TODO（后续再做）
+
+- [ ] 钓鱼宝箱菜肴类物品按原版 1:1 补齐（如 Fish Stew、Shrimp Cocktail 等）
+- [ ] 钓鱼宝箱戒指类物品按原版 1:1 补齐（516-519、527、529-534）

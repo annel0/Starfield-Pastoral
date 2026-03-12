@@ -12,6 +12,12 @@ public class TooltipConstants {
     public static final String ICON_BUFF_SEA_KING_BLESSING = "\uE011";
     public static final String ICON_BUFF_SPIRIT_BLESSING = "\uE012";
     public static final String ICON_BUFF_SPEED = "\uE013";
+    public static final String ICON_BUFF_FARMER_BLESSING = "\uE014";
+    public static final String ICON_BUFF_FORAGER_BLESSING = "\uE015";
+    public static final String ICON_BUFF_MINER_BLESSING = "\uE016";
+    public static final String ICON_BUFF_WARRIOR_BLESSING = "\uE017";
+    public static final String ICON_BUFF_GUARDIAN_BLESSING = "\uE018";
+    public static final String ICON_BUFF_MAGNETISM = "\uE019";
 
     // Tooltip placeholder markers (should render as nothing)
     public static final String MARKER_WATER_AMOUNT = "\u200B"; // zero-width space

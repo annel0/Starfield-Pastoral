@@ -73,6 +73,54 @@ public final class ModMobEffects {
     );
 
         /**
+         * 农耕赐福：用于“农业等级”增益（每级 +1 Farming Level）。
+         */
+        public static final DeferredHolder<MobEffect, MobEffect> FARMER_BLESSING = MOB_EFFECTS.register(
+            "farmer_blessing",
+            () -> new SimpleBeneficialEffect(0x8ECF55)
+        );
+
+        /**
+         * 觅食赐福：用于“觅食等级”增益（每级 +1 Foraging Level）。
+         */
+        public static final DeferredHolder<MobEffect, MobEffect> FORAGER_BLESSING = MOB_EFFECTS.register(
+            "forager_blessing",
+            () -> new SimpleBeneficialEffect(0x6CBF6E)
+        );
+
+        /**
+         * 矿工赐福：用于“采矿等级”增益（每级 +1 Mining Level）。
+         */
+        public static final DeferredHolder<MobEffect, MobEffect> MINER_BLESSING = MOB_EFFECTS.register(
+            "miner_blessing",
+            () -> new SimpleBeneficialEffect(0x8FAAC7)
+        );
+
+        /**
+         * 战意：用于“攻击”增益（每级 +1 Attack）。
+         */
+        public static final DeferredHolder<MobEffect, MobEffect> WARRIOR_BLESSING = MOB_EFFECTS.register(
+            "warrior_blessing",
+            () -> new SimpleBeneficialEffect(0xD6804D)
+        );
+
+        /**
+         * 守势：用于“防御”增益（每级 +1 Defense）。
+         */
+        public static final DeferredHolder<MobEffect, MobEffect> GUARDIAN_BLESSING = MOB_EFFECTS.register(
+            "guardian_blessing",
+            () -> new SimpleBeneficialEffect(0x7AA7CF)
+        );
+
+        /**
+         * 磁吸：用于“磁力半径”增益（每级 +32）。
+         */
+        public static final DeferredHolder<MobEffect, MobEffect> MAGNETISM = MOB_EFFECTS.register(
+            "magnetism",
+            () -> new SimpleBeneficialEffect(0xD8B15A)
+        );
+
+        /**
          * 庇护：每级降低受到伤害 10%。
          */
         public static final DeferredHolder<MobEffect, MobEffect> SHELTER = MOB_EFFECTS.register(
@@ -132,6 +180,30 @@ public final class ModMobEffects {
     }
 
     public static int spiritLuckLevelBonus(int amplifier) {
+        return amplifier + 1;
+    }
+
+    public static int farmerFarmingLevelBonus(int amplifier) {
+        return amplifier + 1;
+    }
+
+    public static int foragerForagingLevelBonus(int amplifier) {
+        return amplifier + 1;
+    }
+
+    public static int minerMiningLevelBonus(int amplifier) {
+        return amplifier + 1;
+    }
+
+    public static int warriorAttackBonus(int amplifier) {
+        return amplifier + 1;
+    }
+
+    public static int guardianDefenseBonus(int amplifier) {
+        return amplifier + 1;
+    }
+
+    public static int magnetismRadiusBonus(int amplifier) {
         return amplifier + 1;
     }
 

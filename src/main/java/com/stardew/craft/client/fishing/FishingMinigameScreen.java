@@ -58,6 +58,7 @@ public final class FishingMinigameScreen extends Screen {
 	private final UUID sessionId;
 	private final float difficulty;
 	private final int motionType;
+	private final boolean legendaryFish;
 	private int remainingTicks;
 	
 	// 渔具效果
@@ -124,7 +125,7 @@ public final class FishingMinigameScreen extends Screen {
 	// Cached texture availability checks (per screen instance)
 	private Boolean hasTexturedUi;
 
-	public FishingMinigameScreen(UUID sessionId, int difficulty, int motionTypeId, int durationTicks,
+	public FishingMinigameScreen(UUID sessionId, int difficulty, int motionTypeId, boolean legendaryFish, int durationTicks,
 	                             boolean hasTreasure, boolean goldenTreasure,
 	                             boolean hasSonarBobber, String sonarFishItemId,
 	                             int barSizeBonus, float escapeLossPerTick, int barbedHookCount, int leadBobberCount) {
@@ -138,6 +139,7 @@ public final class FishingMinigameScreen extends Screen {
 		}
 		this.difficulty = d;
 		this.motionType = motionTypeId;
+		this.legendaryFish = legendaryFish;
 		this.remainingTicks = (durationTicks <= 0) ? -1 : Math.max(20, durationTicks);
 		this.random = new Random(sessionId.getMostSignificantBits() ^ sessionId.getLeastSignificantBits());
 		this.hasTreasure = hasTreasure;
@@ -793,11 +795,11 @@ public final class FishingMinigameScreen extends Screen {
 				endAlpha();
 
 				// Fish icon (20x20) at x2
-				// 只有高难度鱼（难度>=50，即传说鱼）才用boss图标
+				// Use server-selected fish category rather than local difficulty heuristic.
 				beginAlpha(1f);
 				float fishX = (uiX + UI_FISH_X * fit) + (fishShakeX * fit) + shakeX;
 				float fishYpx = (uiY + UI_FISH_Y * fit) + (bobberPosition * fit) + (fishShakeY * fit) + shakeY;
-				ResourceLocation fishTex = (difficulty >= 50) ? TEX_FISH_BOSS : TEX_FISH;
+				ResourceLocation fishTex = legendaryFish ? TEX_FISH_BOSS : TEX_FISH;
 				blitCenteredScaled(graphics, fishTex, fishX, fishYpx, 20, 20, s2);
 				endAlpha();
 

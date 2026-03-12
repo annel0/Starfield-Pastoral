@@ -130,15 +130,12 @@ public class DimensionEventHandler {
             if (ModDimensions.STARDEW_VALLEY.equals(event.getTo())) {
                 net.minecraft.core.BlockPos fixedPos = new net.minecraft.core.BlockPos(150, -13, 119);
                 preloadChunksAround(level, fixedPos, 4);
-                StardewCraft.LOGGER.info("[VALLEY_MAP] Teleport to fixed point: x=150, y=-13, z=119");
                 player.teleportTo(level, 150.0D, -13.0D, 119.0D, player.getYRot(), player.getXRot());
             }
 
             // 开启原版昼夜循环
             if (!level.getGameRules().getBoolean(GameRules.RULE_DAYLIGHT)) {
                 level.getGameRules().getRule(GameRules.RULE_DAYLIGHT).set(true, level.getServer());
-                StardewCraft.LOGGER.info("[TIME] Enabled doDaylightCycle for dimension {}", 
-                    level.dimension().location());
             }
             
             // 同步玩家数据到客户端
@@ -157,14 +154,11 @@ public class DimensionEventHandler {
             ServerPlayer player = (ServerPlayer) event.getEntity();
             ServerLevel level = player.serverLevel();
 
-            StardewCraft.LOGGER.info("[DIMENSION] Player {} entering mining dimension", player.getName().getString());
-            
             // 获取玩家的矿井数据
             com.stardew.craft.mining.MiningPlayerData playerData = 
                 com.stardew.craft.mining.MiningDataManager.getPlayerData(player);
             
             int currentFloor = playerData.getCurrentFloor();
-            StardewCraft.LOGGER.info("[DIMENSION] Player current floor: {}", currentFloor);
 
             // 确保大厅已生成（固定中心 0,64,0）
             com.stardew.craft.mining.MineEntranceBootstrap.ensureGenerated(level);
@@ -215,11 +209,9 @@ public class DimensionEventHandler {
         if (anyPlayerInStardew && !daylightEnabled) {
             // 有玩家在维度内，开启昼夜循环
             serverLevel.getGameRules().getRule(GameRules.RULE_DAYLIGHT).set(true, server);
-            StardewCraft.LOGGER.debug("[TIME] Player in Stardew dimension, enabling daylight cycle");
         } else if (!anyPlayerInStardew && daylightEnabled) {
             // 没有玩家在维度内，关闭昼夜循环（时间静止）
             serverLevel.getGameRules().getRule(GameRules.RULE_DAYLIGHT).set(false, server);
-            StardewCraft.LOGGER.debug("[TIME] No player in Stardew dimension, pausing time");
             return; // 时间静止时不需要后续处理
         } else if (!anyPlayerInStardew) {
             // 没有玩家且已经关闭，直接返回
@@ -248,8 +240,6 @@ public class DimensionEventHandler {
         // 检查是否到达2:00 AM（dayTime >= 20000）
         if (dayTime >= DAY_END_TIME && !dayAdvancing) {
             dayAdvancing = true;
-            
-            StardewCraft.LOGGER.info("[TIME] Reached 2:00 AM (dayTime={}), advancing to next day", dayTime);
             
             // 触发新的一天
             timeManager.advanceDay();
@@ -358,8 +348,6 @@ public class DimensionEventHandler {
                 ));
             }
             
-            StardewCraft.LOGGER.info("[TIME] Command: Stardew={} → MC dayOfTime={}, total={}", 
-                timeManager.getCurrentTime(), mcTimeOfDay, newDayTime);
         }
     }
 

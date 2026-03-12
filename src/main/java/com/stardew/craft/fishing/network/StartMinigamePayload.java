@@ -20,6 +20,7 @@ public record StartMinigamePayload(
 		UUID sessionId,
 		int difficulty,
 		int motionTypeId,
+		boolean legendaryFish,
 		int durationTicks,
 		boolean hasTreasure,
 		boolean goldenTreasure,
@@ -61,6 +62,8 @@ public record StartMinigamePayload(
 			@SuppressWarnings("null")
 			int motionTypeId = ByteBufCodecs.INT.decode(buf);
 			@SuppressWarnings("null")
+			boolean legendaryFish = ByteBufCodecs.BOOL.decode(buf);
+			@SuppressWarnings("null")
 			int durationTicks = ByteBufCodecs.INT.decode(buf);
 			@SuppressWarnings("null")
 			boolean hasTreasure = ByteBufCodecs.BOOL.decode(buf);
@@ -78,7 +81,7 @@ public record StartMinigamePayload(
 			int barbedHookCount = ByteBufCodecs.VAR_INT.decode(buf);
 			@SuppressWarnings("null")
 			int leadBobberCount = ByteBufCodecs.VAR_INT.decode(buf);
-			return new StartMinigamePayload(sessionId, difficulty, motionTypeId, durationTicks,
+			return new StartMinigamePayload(sessionId, difficulty, motionTypeId, legendaryFish, durationTicks,
 					hasTreasure, goldenTreasure, hasSonarBobber, sonarFishItemId,
 					barSizeBonus, escapeLossPerTick, barbedHookCount, leadBobberCount);
 		}
@@ -89,6 +92,7 @@ public record StartMinigamePayload(
 			UUID_STREAM_CODEC.encode(buf, value.sessionId());
 			ByteBufCodecs.INT.encode(buf, value.difficulty());
 			ByteBufCodecs.INT.encode(buf, value.motionTypeId());
+			ByteBufCodecs.BOOL.encode(buf, value.legendaryFish());
 			ByteBufCodecs.INT.encode(buf, value.durationTicks());
 			ByteBufCodecs.BOOL.encode(buf, value.hasTreasure());
 			ByteBufCodecs.BOOL.encode(buf, value.goldenTreasure());
@@ -114,6 +118,7 @@ public record StartMinigamePayload(
 						payload.sessionId(),
 						payload.difficulty(),
 						payload.motionTypeId(),
+						payload.legendaryFish(),
 						payload.durationTicks(),
 						payload.hasTreasure(),
 						payload.goldenTreasure(),

@@ -1,0 +1,1220 @@
+[
+  {
+    "id": 16,
+    "path": "wild_horseradish",
+    "name": "Wild Horseradish",
+    "price": 50,
+    "edibility": 5,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 16,
+    "contextTags": [
+      "color_brown",
+      "forage_item",
+      "season_spring"
+    ]
+  },
+  {
+    "id": 20,
+    "path": "leek",
+    "name": "Leek",
+    "price": 60,
+    "edibility": 16,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 20,
+    "contextTags": [
+      "color_white",
+      "forage_item",
+      "season_spring"
+    ]
+  },
+  {
+    "id": 22,
+    "path": "dandelion",
+    "name": "Dandelion",
+    "price": 40,
+    "edibility": 10,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 22,
+    "contextTags": [
+      "color_yellow",
+      "forage_item",
+      "season_spring"
+    ]
+  },
+  {
+    "id": 24,
+    "path": "parsnip",
+    "name": "Parsnip",
+    "price": 35,
+    "edibility": 10,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 24,
+    "contextTags": [
+      "color_yellow",
+      "dye_medium",
+      "season_spring"
+    ]
+  },
+  {
+    "id": 78,
+    "path": "cave_carrot",
+    "name": "Cave Carrot",
+    "price": 25,
+    "edibility": 12,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 78,
+    "contextTags": [
+      "color_brown",
+      "forage_item",
+      "forage_item_mines",
+      "season_all"
+    ]
+  },
+  {
+    "id": 88,
+    "path": "coconut",
+    "name": "Coconut",
+    "price": 100,
+    "edibility": -300,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 88,
+    "contextTags": [
+      "color_dark_brown",
+      "forage_item",
+      "forage_item_desert",
+      "season_all"
+    ]
+  },
+  {
+    "id": 91,
+    "path": "banana",
+    "name": "Banana",
+    "price": 150,
+    "edibility": 30,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 91,
+    "contextTags": [
+      "color_yellow",
+      "fruit_item",
+      "fruit_tree_item"
+    ]
+  },
+  {
+    "id": 130,
+    "path": "tuna",
+    "name": "Tuna",
+    "price": 100,
+    "edibility": 15,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 130,
+    "contextTags": [
+      "color_blue",
+      "fish_has_roe",
+      "fish_ocean",
+      "season_summer",
+      "season_winter"
+    ]
+  },
+  {
+    "id": 131,
+    "path": "sardine",
+    "name": "Sardine",
+    "price": 40,
+    "edibility": 5,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 131,
+    "contextTags": [
+      "color_blue",
+      "fish_has_roe",
+      "fish_ocean",
+      "fish_talk_demanding",
+      "season_fall",
+      "season_spring",
+      "season_winter"
+    ]
+  },
+  {
+    "id": 132,
+    "path": "bream",
+    "name": "Bream",
+    "price": 45,
+    "edibility": 5,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 132,
+    "contextTags": [
+      "color_blue",
+      "fish_has_roe",
+      "fish_river",
+      "season_all"
+    ]
+  },
+  {
+    "id": 136,
+    "path": "largemouth_bass",
+    "name": "Largemouth Bass",
+    "price": 100,
+    "edibility": 15,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 136,
+    "contextTags": [
+      "color_green",
+      "fish_has_roe",
+      "fish_lake",
+      "season_all"
+    ]
+  },
+  {
+    "id": 138,
+    "path": "rainbow_trout",
+    "name": "Rainbow Trout",
+    "price": 65,
+    "edibility": 10,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 138,
+    "contextTags": [
+      "color_orange",
+      "fish_has_roe",
+      "fish_river",
+      "season_summer"
+    ]
+  },
+  {
+    "id": 139,
+    "path": "salmon",
+    "name": "Salmon",
+    "price": 75,
+    "edibility": 15,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 139,
+    "contextTags": [
+      "color_salmon",
+      "fish_has_roe",
+      "fish_river",
+      "season_fall"
+    ]
+  },
+  {
+    "id": 142,
+    "path": "carp",
+    "name": "Carp",
+    "price": 30,
+    "edibility": 5,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 142,
+    "contextTags": [
+      "color_yellow",
+      "fish_has_roe",
+      "fish_lake",
+      "fish_secret_pond",
+      "fish_sewers",
+      "season_fall",
+      "season_spring",
+      "season_winter"
+    ]
+  },
+  {
+    "id": 145,
+    "path": "sunfish",
+    "name": "Sunfish",
+    "price": 30,
+    "edibility": 5,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 145,
+    "contextTags": [
+      "color_orange",
+      "fish_has_roe",
+      "fish_river",
+      "season_spring",
+      "season_summer"
+    ]
+  },
+  {
+    "id": 148,
+    "path": "eel",
+    "name": "Eel",
+    "price": 85,
+    "edibility": 12,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 148,
+    "contextTags": [
+      "color_copper",
+      "fish_has_roe",
+      "fish_ocean",
+      "fish_talk_rude",
+      "fish_upright",
+      "season_fall",
+      "season_spring"
+    ]
+  },
+  {
+    "id": 151,
+    "path": "squid",
+    "name": "Squid",
+    "price": 80,
+    "edibility": 10,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 151,
+    "contextTags": [
+      "color_white",
+      "fish_has_roe",
+      "fish_ocean",
+      "fish_upright",
+      "season_winter"
+    ]
+  },
+  {
+    "id": 152,
+    "path": "seaweed",
+    "name": "Seaweed",
+    "price": 20,
+    "edibility": 5,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 152,
+    "contextTags": [
+      "color_green",
+      "fish_nonfish"
+    ]
+  },
+  {
+    "id": 153,
+    "path": "green_algae",
+    "name": "Green Algae",
+    "price": 15,
+    "edibility": 5,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 153,
+    "contextTags": [
+      "algae_item",
+      "color_dark_green",
+      "fish_nonfish",
+      "use_reverse_name_for_sorting"
+    ]
+  },
+  {
+    "id": 154,
+    "path": "sea_cucumber",
+    "name": "Sea Cucumber",
+    "price": 75,
+    "edibility": -10,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 154,
+    "contextTags": [
+      "color_yellow",
+      "fish_has_roe",
+      "fish_ocean",
+      "fish_upright",
+      "season_fall",
+      "season_winter"
+    ]
+  },
+  {
+    "id": 157,
+    "path": "white_algae",
+    "name": "White Algae",
+    "price": 25,
+    "edibility": 8,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 157,
+    "contextTags": [
+      "algae_item",
+      "color_white",
+      "fish_nonfish",
+      "use_reverse_name_for_sorting"
+    ]
+  },
+  {
+    "id": 188,
+    "path": "green_bean",
+    "name": "Green Bean",
+    "price": 40,
+    "edibility": 10,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 188,
+    "contextTags": [
+      "color_green",
+      "dye_medium",
+      "season_spring"
+    ]
+  },
+  {
+    "id": 190,
+    "path": "cauliflower",
+    "name": "Cauliflower",
+    "price": 175,
+    "edibility": 30,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 190,
+    "contextTags": [
+      "color_white",
+      "dye_medium",
+      "season_spring"
+    ]
+  },
+  {
+    "id": 192,
+    "path": "potato",
+    "name": "Potato",
+    "price": 80,
+    "edibility": 10,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 192,
+    "contextTags": [
+      "color_brown",
+      "dye_medium",
+      "season_spring"
+    ]
+  },
+  {
+    "id": 194,
+    "path": "fried_egg",
+    "name": "Fried Egg",
+    "price": 35,
+    "edibility": 20,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 194,
+    "contextTags": [
+      "color_white",
+      "food_breakfast"
+    ]
+  },
+  {
+    "id": 195,
+    "path": "omelet",
+    "name": "Omelet",
+    "price": 125,
+    "edibility": 40,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 195,
+    "contextTags": [
+      "color_white",
+      "food_breakfast"
+    ]
+  },
+  {
+    "id": 210,
+    "path": "hashbrowns",
+    "name": "Hashbrowns",
+    "price": 120,
+    "edibility": 36,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 210,
+    "contextTags": [
+      "color_brown",
+      "food_breakfast"
+    ]
+  },
+  {
+    "id": 211,
+    "path": "pancakes",
+    "name": "Pancakes",
+    "price": 80,
+    "edibility": 36,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 211,
+    "contextTags": [
+      "color_brown",
+      "food_breakfast"
+    ]
+  },
+  {
+    "id": 216,
+    "path": "bread",
+    "name": "Bread",
+    "price": 60,
+    "edibility": 20,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 216,
+    "contextTags": [
+      "color_brown",
+      "food_bakery"
+    ]
+  },
+  {
+    "id": 229,
+    "path": "tortilla",
+    "name": "Tortilla",
+    "price": 50,
+    "edibility": 20,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 229,
+    "contextTags": [
+      "color_brown"
+    ]
+  },
+  {
+    "id": 245,
+    "path": "sugar",
+    "name": "Sugar",
+    "price": 50,
+    "edibility": 10,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 245,
+    "contextTags": [
+      "color_white",
+      "food_sweet"
+    ]
+  },
+  {
+    "id": 246,
+    "path": "wheat_flour",
+    "name": "Wheat Flour",
+    "price": 50,
+    "edibility": 5,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 246,
+    "contextTags": [
+      "color_white"
+    ]
+  },
+  {
+    "id": 247,
+    "path": "oil",
+    "name": "Oil",
+    "price": 100,
+    "edibility": 5,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 247,
+    "contextTags": [
+      "color_yellow"
+    ]
+  },
+  {
+    "id": 248,
+    "path": "garlic",
+    "name": "Garlic",
+    "price": 60,
+    "edibility": 8,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 248,
+    "contextTags": [
+      "color_white",
+      "crop_year_2",
+      "dye_medium",
+      "season_spring"
+    ]
+  },
+  {
+    "id": 250,
+    "path": "kale",
+    "name": "Kale",
+    "price": 110,
+    "edibility": 20,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 250,
+    "contextTags": [
+      "color_green",
+      "dye_strong",
+      "season_spring"
+    ]
+  },
+  {
+    "id": 252,
+    "path": "rhubarb",
+    "name": "Rhubarb",
+    "price": 220,
+    "edibility": -300,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 252,
+    "contextTags": [
+      "color_red",
+      "dye_medium",
+      "season_spring"
+    ]
+  },
+  {
+    "id": 254,
+    "path": "melon",
+    "name": "Melon",
+    "price": 250,
+    "edibility": 45,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 254,
+    "contextTags": [
+      "color_pink",
+      "dye_medium",
+      "season_summer"
+    ]
+  },
+  {
+    "id": 256,
+    "path": "tomato",
+    "name": "Tomato",
+    "price": 60,
+    "edibility": 8,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 256,
+    "contextTags": [
+      "color_red",
+      "dye_medium",
+      "season_summer"
+    ]
+  },
+  {
+    "id": 257,
+    "path": "morel",
+    "name": "Morel",
+    "price": 150,
+    "edibility": 8,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 257,
+    "contextTags": [
+      "color_brown",
+      "edible_mushroom",
+      "forage_item",
+      "forage_item_cave",
+      "forage_item_secret",
+      "season_spring"
+    ]
+  },
+  {
+    "id": 258,
+    "path": "blueberry",
+    "name": "Blueberry",
+    "price": 50,
+    "edibility": 10,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 258,
+    "contextTags": [
+      "color_blue",
+      "dye_strong",
+      "season_summer"
+    ]
+  },
+  {
+    "id": 259,
+    "path": "fiddlehead_fern",
+    "name": "Fiddlehead Fern",
+    "price": 90,
+    "edibility": 10,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 259,
+    "contextTags": [
+      "color_green",
+      "dye_strong",
+      "forage_item",
+      "forage_item_secret",
+      "season_summer"
+    ]
+  },
+  {
+    "id": 260,
+    "path": "hot_pepper",
+    "name": "Hot Pepper",
+    "price": 40,
+    "edibility": 5,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 260,
+    "contextTags": [
+      "color_red",
+      "dye_medium",
+      "season_summer"
+    ]
+  },
+  {
+    "id": 264,
+    "path": "radish",
+    "name": "Radish",
+    "price": 90,
+    "edibility": 18,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 264,
+    "contextTags": [
+      "color_red",
+      "dye_medium",
+      "season_summer"
+    ]
+  },
+  {
+    "id": 266,
+    "path": "red_cabbage",
+    "name": "Red Cabbage",
+    "price": 260,
+    "edibility": 30,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 266,
+    "contextTags": [
+      "color_purple",
+      "crop_year_2",
+      "dye_medium",
+      "season_summer"
+    ]
+  },
+  {
+    "id": 267,
+    "path": "flounder",
+    "name": "Flounder",
+    "price": 100,
+    "edibility": 15,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 267,
+    "contextTags": [
+      "color_brown",
+      "fish_has_roe",
+      "fish_ocean",
+      "season_spring",
+      "season_summer"
+    ]
+  },
+  {
+    "id": 269,
+    "path": "midnight_carp",
+    "name": "Midnight Carp",
+    "price": 150,
+    "edibility": 20,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 269,
+    "contextTags": [
+      "color_iridium",
+      "fish_has_roe",
+      "fish_lake",
+      "season_fall",
+      "season_winter"
+    ]
+  },
+  {
+    "id": 270,
+    "path": "corn",
+    "name": "Corn",
+    "price": 50,
+    "edibility": 10,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 270,
+    "contextTags": [
+      "color_yellow",
+      "dye_medium",
+      "season_fall",
+      "season_summer"
+    ]
+  },
+  {
+    "id": 272,
+    "path": "eggplant",
+    "name": "Eggplant",
+    "price": 60,
+    "edibility": 8,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 272,
+    "contextTags": [
+      "color_purple",
+      "dye_medium",
+      "season_fall"
+    ]
+  },
+  {
+    "id": 274,
+    "path": "artichoke",
+    "name": "Artichoke",
+    "price": 160,
+    "edibility": 12,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 274,
+    "contextTags": [
+      "color_green",
+      "crop_year_2",
+      "dye_medium",
+      "season_fall"
+    ]
+  },
+  {
+    "id": 276,
+    "path": "pumpkin",
+    "name": "Pumpkin",
+    "price": 320,
+    "edibility": -300,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 276,
+    "contextTags": [
+      "color_orange",
+      "dye_medium",
+      "season_fall"
+    ]
+  },
+  {
+    "id": 278,
+    "path": "bok_choy",
+    "name": "Bok Choy",
+    "price": 80,
+    "edibility": 10,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 278,
+    "contextTags": [
+      "color_green",
+      "dye_medium",
+      "season_fall"
+    ]
+  },
+  {
+    "id": 280,
+    "path": "yam",
+    "name": "Yam",
+    "price": 160,
+    "edibility": 18,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 280,
+    "contextTags": [
+      "color_brown",
+      "dye_medium",
+      "season_fall"
+    ]
+  },
+  {
+    "id": 282,
+    "path": "cranberries",
+    "name": "Cranberries",
+    "price": 75,
+    "edibility": 15,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 282,
+    "contextTags": [
+      "color_red",
+      "dye_strong",
+      "season_fall"
+    ]
+  },
+  {
+    "id": 284,
+    "path": "beet",
+    "name": "Beet",
+    "price": 100,
+    "edibility": 12,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 284,
+    "contextTags": [
+      "color_dark_purple",
+      "dye_strong",
+      "season_fall"
+    ]
+  },
+  {
+    "id": 300,
+    "path": "amaranth",
+    "name": "Amaranth",
+    "price": 150,
+    "edibility": 20,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 300,
+    "contextTags": [
+      "color_pale_violet_red",
+      "dye_medium",
+      "season_fall"
+    ]
+  },
+  {
+    "id": 306,
+    "path": "mayonnaise",
+    "name": "Mayonnaise",
+    "price": 190,
+    "edibility": 20,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 306,
+    "contextTags": [
+      "color_white",
+      "mayo_item"
+    ]
+  },
+  {
+    "id": 308,
+    "path": "void_mayonnaise",
+    "name": "Void Mayonnaise",
+    "price": 275,
+    "edibility": -30,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 308,
+    "contextTags": [
+      "color_red",
+      "mayo_item",
+      "use_reverse_name_for_sorting"
+    ]
+  },
+  {
+    "id": 372,
+    "path": "clam",
+    "name": "Clam",
+    "price": 50,
+    "edibility": -300,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 372,
+    "contextTags": [
+      "beach_item",
+      "color_light_cyan",
+      "fish_crab_pot",
+      "fish_has_roe",
+      "fish_ocean",
+      "fish_upright",
+      "forage_item",
+      "forage_item_beach"
+    ]
+  },
+  {
+    "id": 376,
+    "path": "poppy",
+    "name": "Poppy",
+    "price": 140,
+    "edibility": 18,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 376,
+    "contextTags": [
+      "color_orange",
+      "dye_medium",
+      "flower_item",
+      "season_summer"
+    ]
+  },
+  {
+    "id": 395,
+    "path": "coffee",
+    "name": "Coffee",
+    "price": 150,
+    "edibility": 1,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 395,
+    "contextTags": [
+      "color_dark_brown",
+      "coffee_item"
+    ]
+  },
+  {
+    "id": 404,
+    "path": "common_mushroom",
+    "name": "Common Mushroom",
+    "price": 40,
+    "edibility": 15,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 404,
+    "contextTags": [
+      "color_dark_brown",
+      "edible_mushroom",
+      "forage_item",
+      "season_fall",
+      "season_spring"
+    ]
+  },
+  {
+    "id": 406,
+    "path": "wild_plum",
+    "name": "Wild Plum",
+    "price": 80,
+    "edibility": 10,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 406,
+    "contextTags": [
+      "color_dark_purple",
+      "forage_item",
+      "season_fall"
+    ]
+  },
+  {
+    "id": 408,
+    "path": "hazelnut",
+    "name": "Hazelnut",
+    "price": 90,
+    "edibility": 12,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 408,
+    "contextTags": [
+      "color_brown",
+      "forage_item",
+      "season_fall"
+    ]
+  },
+  {
+    "id": 410,
+    "path": "blackberry",
+    "name": "Blackberry",
+    "price": 20,
+    "edibility": 10,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 410,
+    "contextTags": [
+      "color_dark_blue",
+      "forage_item",
+      "season_fall"
+    ]
+  },
+  {
+    "id": 412,
+    "path": "winter_root",
+    "name": "Winter Root",
+    "price": 70,
+    "edibility": 10,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 412,
+    "contextTags": [
+      "color_orange",
+      "forage_item",
+      "forage_item_mines",
+      "season_winter"
+    ]
+  },
+  {
+    "id": 419,
+    "path": "vinegar",
+    "name": "Vinegar",
+    "price": 100,
+    "edibility": 5,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 419,
+    "contextTags": [
+      "color_white",
+      "placeable"
+    ]
+  },
+  {
+    "id": 423,
+    "path": "rice",
+    "name": "Rice",
+    "price": 100,
+    "edibility": 5,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 423,
+    "contextTags": [
+      "color_white"
+    ]
+  },
+  {
+    "id": 424,
+    "path": "cheese",
+    "name": "Cheese",
+    "price": 230,
+    "edibility": 50,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 424,
+    "contextTags": [
+      "color_yellow"
+    ]
+  },
+  {
+    "id": 597,
+    "path": "blue_jazz",
+    "name": "Blue Jazz",
+    "price": 50,
+    "edibility": 18,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 597,
+    "contextTags": [
+      "color_blue",
+      "dye_medium",
+      "flower_item",
+      "season_spring"
+    ]
+  },
+  {
+    "id": 613,
+    "path": "apple",
+    "name": "Apple",
+    "price": 100,
+    "edibility": 15,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 613,
+    "contextTags": [
+      "color_red",
+      "fruit_item",
+      "fruit_tree_item"
+    ]
+  },
+  {
+    "id": 634,
+    "path": "apricot",
+    "name": "Apricot",
+    "price": 50,
+    "edibility": 15,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 634,
+    "contextTags": [
+      "color_orange",
+      "fruit_item",
+      "fruit_tree_item",
+      "season_spring"
+    ]
+  },
+  {
+    "id": 715,
+    "path": "lobster",
+    "name": "Lobster",
+    "price": 120,
+    "edibility": -300,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 715,
+    "contextTags": [
+      "color_red",
+      "fish_crab_pot",
+      "fish_has_roe",
+      "fish_ocean"
+    ]
+  },
+  {
+    "id": 716,
+    "path": "crayfish",
+    "name": "Crayfish",
+    "price": 75,
+    "edibility": -300,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 716,
+    "contextTags": [
+      "color_dark_gray",
+      "fish_crab_pot",
+      "fish_freshwater",
+      "fish_has_roe"
+    ]
+  },
+  {
+    "id": 717,
+    "path": "crab",
+    "name": "Crab",
+    "price": 100,
+    "edibility": -300,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 717,
+    "contextTags": [
+      "color_red",
+      "fish_crab_pot",
+      "fish_has_roe",
+      "fish_ocean",
+      "fish_upright"
+    ]
+  },
+  {
+    "id": 719,
+    "path": "mussel",
+    "name": "Mussel",
+    "price": 30,
+    "edibility": -300,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 719,
+    "contextTags": [
+      "color_gray",
+      "fish_crab_pot",
+      "fish_has_roe",
+      "fish_ocean",
+      "forage_item",
+      "forage_item_beach"
+    ]
+  },
+  {
+    "id": 720,
+    "path": "shrimp",
+    "name": "Shrimp",
+    "price": 60,
+    "edibility": -300,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 720,
+    "contextTags": [
+      "color_pink",
+      "fish_crab_pot",
+      "fish_has_roe",
+      "fish_ocean",
+      "fish_upright"
+    ]
+  },
+  {
+    "id": 721,
+    "path": "snail",
+    "name": "Snail",
+    "price": 65,
+    "edibility": -300,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 721,
+    "contextTags": [
+      "color_yellow",
+      "fish_crab_pot",
+      "fish_freshwater",
+      "fish_has_roe",
+      "fish_upright"
+    ]
+  },
+  {
+    "id": 722,
+    "path": "periwinkle",
+    "name": "Periwinkle",
+    "price": 20,
+    "edibility": -300,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 722,
+    "contextTags": [
+      "color_cyan",
+      "fish_crab_pot",
+      "fish_freshwater",
+      "fish_has_roe",
+      "fish_upright"
+    ]
+  },
+  {
+    "id": 724,
+    "path": "maple_syrup",
+    "name": "Maple Syrup",
+    "price": 200,
+    "edibility": 20,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 724,
+    "contextTags": [
+      "color_brown",
+      "syrup_item"
+    ]
+  },
+  {
+    "id": 814,
+    "path": "squid_ink",
+    "name": "Squid Ink",
+    "price": 110,
+    "edibility": -300,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 814,
+    "contextTags": [
+      "color_black"
+    ]
+  },
+  {
+    "id": 829,
+    "path": "ginger",
+    "name": "Ginger",
+    "price": 60,
+    "edibility": 10,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 829,
+    "contextTags": [
+      "color_yellow",
+      "forage_item",
+      "ginger_item",
+      "preserves_pickle"
+    ]
+  },
+  {
+    "id": 830,
+    "path": "taro_root",
+    "name": "Taro Root",
+    "price": 100,
+    "edibility": 15,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 830,
+    "contextTags": [
+      "color_brown"
+    ]
+  },
+  {
+    "id": 832,
+    "path": "pineapple",
+    "name": "Pineapple",
+    "price": 300,
+    "edibility": 55,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 832,
+    "contextTags": [
+      "color_yellow",
+      "fruit_item"
+    ]
+  },
+  {
+    "id": 834,
+    "path": "mango",
+    "name": "Mango",
+    "price": 130,
+    "edibility": 40,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 834,
+    "contextTags": [
+      "color_yellow",
+      "fruit_item",
+      "fruit_tree_item"
+    ]
+  }
+]

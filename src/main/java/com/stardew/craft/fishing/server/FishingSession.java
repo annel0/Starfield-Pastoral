@@ -7,6 +7,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
+import com.stardew.craft.item.IStardewItem;
 
 import java.util.List;
 import java.util.Optional;
@@ -248,6 +249,16 @@ public final class FishingSession {
 
 	public ItemStack plannedCatch() {
 		return plannedCatch;
+	}
+
+	public boolean isPlannedCatchLegendaryFish() {
+		if (plannedCatch == null || plannedCatch.isEmpty()) {
+			return false;
+		}
+		if (!(plannedCatch.getItem() instanceof IStardewItem stardewItem)) {
+			return false;
+		}
+		return "stardewcraft.type.legendary_fish".equals(stardewItem.getItemTypeKey());
 	}
 	
 	public double fishSize() {

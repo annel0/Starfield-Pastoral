@@ -67,26 +67,22 @@ public class StardewTimeManager extends SavedData {
         // 18:00 (1080分钟)
         if (currentTime >= 1080 && !event1800Triggered) {
             event1800Triggered = true;
-            StardewCraft.LOGGER.debug("18:00 event triggered");
             // 这里可以触发动物回家等事件
         }
         
         // 22:00 (1320分钟)
         if (currentTime >= 1320 && !event2200Triggered) {
             event2200Triggered = true;
-            StardewCraft.LOGGER.debug("22:00 event triggered");
         }
         
         // 0:00 (1440分钟)
         if (currentTime >= 1440 && !event0000Triggered) {
             event0000Triggered = true;
-            StardewCraft.LOGGER.debug("00:00 event triggered");
         }
         
         // 1:30 (1530分钟)
         if (currentTime >= 1530 && !event0130Triggered) {
             event0130Triggered = true;
-            StardewCraft.LOGGER.debug("01:30 event triggered - player should sleep soon");
         }
     }
     

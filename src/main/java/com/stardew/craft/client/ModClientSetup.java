@@ -113,6 +113,8 @@ public final class ModClientSetup {
 		event.register(ModMenuTypes.COOP_MANAGER.get(), CoopManagerScreen::new);
 		event.register(ModMenuTypes.BARN_MANAGER.get(), BarnManagerScreen::new);
 		event.register(ModMenuTypes.ANIMAL_QUERY.get(), AnimalQueryScreen::new);
+		event.register(ModMenuTypes.TREASURE_CHEST.get(), com.stardew.craft.client.fishing.TreasureChestScreen::new);
+		event.register(ModMenuTypes.COOKING_POT.get(), com.stardew.craft.client.gui.CookingPotScreen::new);
 	}
 
 	@SuppressWarnings("null")

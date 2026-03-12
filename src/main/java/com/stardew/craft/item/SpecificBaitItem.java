@@ -10,6 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomModelData;
 import net.minecraft.world.item.component.CustomData;
 
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.List;
 public class SpecificBaitItem extends Item implements IStardewItem {
     private static final String TAG_TARGET_FISH_ID = "TargetFishId";
     private static final String TAG_TARGET_FISH_COLOR = "TargetFishColor";
+    private static final int CREATIVE_VARIANT_CMD_BASE = 30_000;
     private static final int BASE_SELL_PRICE = 5;
 
     public SpecificBaitItem(Properties properties) {
@@ -60,7 +62,24 @@ public class SpecificBaitItem extends Item implements IStardewItem {
     }
 
     public int getColor(ItemStack stack) {
-        return getIntTag(stack, TAG_TARGET_FISH_COLOR, -1);
+        int color = getIntTag(stack, TAG_TARGET_FISH_COLOR, -1);
+        if (color >= 0) {
+            return color;
+        }
+
+        String fishIdRaw = getTargetFishId(stack);
+        if (fishIdRaw == null || fishIdRaw.isBlank()) {
+            return -1;
+        }
+
+        try {
+            ResourceLocation fishId = ResourceLocation.parse(fishIdRaw);
+            return PreservesIngredientDataManager.getData(fishId)
+                    .map(PreservesIngredientDataManager.IngredientData::getColorRgb)
+                    .orElse(-1);
+        } catch (Exception ignored) {
+            return -1;
+        }
     }
 
     public static ItemStack createForFish(ItemStack fishStack, int count) {
@@ -87,7 +106,16 @@ public class SpecificBaitItem extends Item implements IStardewItem {
     }
 
     public static String getTargetFishId(ItemStack stack) {
-        return getStringTag(stack, TAG_TARGET_FISH_ID, null);
+        String fromTag = getStringTag(stack, TAG_TARGET_FISH_ID, null);
+        if (fromTag != null && !fromTag.isBlank()) {
+            return fromTag;
+        }
+
+        ItemStack fallbackFish = getCreativeVariantFishStack(stack);
+        if (fallbackFish.isEmpty()) {
+            return null;
+        }
+        return BuiltInRegistries.ITEM.getKey(fallbackFish.getItem()).toString();
     }
 
     @SuppressWarnings("null")
@@ -104,6 +132,62 @@ public class SpecificBaitItem extends Item implements IStardewItem {
         } catch (Exception ignored) {
             return ItemStack.EMPTY;
         }
+    }
+
+    public static void applyCreativeVariantMarker(ItemStack baitStack, int variantIndex) {
+        if (baitStack == null || baitStack.isEmpty() || variantIndex < 0) {
+            return;
+        }
+        baitStack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(CREATIVE_VARIANT_CMD_BASE + variantIndex));
+    }
+
+    private static ItemStack getCreativeVariantFishStack(ItemStack stack) {
+        int variantIndex = resolveCreativeVariantIndex(stack);
+        if (variantIndex < 0) {
+            return ItemStack.EMPTY;
+        }
+
+        int index = 0;
+        for (var holder : ModItems.ITEMS.getEntries()) {
+            Item item = holder.get();
+            if (!(item instanceof IStardewItem stardewItem)) {
+                continue;
+            }
+            if (!isSpecificBaitTargetType(stardewItem.getItemTypeKey())) {
+                continue;
+            }
+            if (index == variantIndex) {
+                ItemStack fishStack = new ItemStack(item);
+                return fishStack.isEmpty() ? ItemStack.EMPTY : fishStack;
+            }
+            index++;
+        }
+        return ItemStack.EMPTY;
+    }
+
+    private static int resolveCreativeVariantIndex(ItemStack stack) {
+        CustomModelData cmd = stack.getOrDefault(DataComponents.CUSTOM_MODEL_DATA, CustomModelData.DEFAULT);
+        if (cmd.equals(CustomModelData.DEFAULT)) {
+            return -1;
+        }
+
+        int total = 0;
+        for (var holder : ModItems.ITEMS.getEntries()) {
+            Item item = holder.get();
+            if (item instanceof IStardewItem stardewItem && isSpecificBaitTargetType(stardewItem.getItemTypeKey())) {
+                if (cmd.equals(new CustomModelData(CREATIVE_VARIANT_CMD_BASE + total))) {
+                    return total;
+                }
+                total++;
+            }
+        }
+        return -1;
+    }
+
+    private static boolean isSpecificBaitTargetType(String typeKey) {
+        return "stardewcraft.type.fish".equals(typeKey)
+                || "stardewcraft.type.crabpot".equals(typeKey)
+                || "stardewcraft.type.legendary_fish".equals(typeKey);
     }
 
     private static CompoundTag getOrCreateTag(ItemStack stack) {

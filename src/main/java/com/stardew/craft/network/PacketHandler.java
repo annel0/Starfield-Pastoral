@@ -113,6 +113,12 @@ public class PacketHandler {
         );
 
         registrar.playToServer(
+            com.stardew.craft.network.payload.OpenTreasureChestRequestPayload.TYPE,
+            com.stardew.craft.network.payload.OpenTreasureChestRequestPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenTreasureChestRequestPayload::handle
+        );
+
+        registrar.playToServer(
             WeaponSkillUsePayload.TYPE,
             WeaponSkillUsePayload.STREAM_CODEC,
             WeaponSkillUsePayload::handle
@@ -710,6 +716,12 @@ public class PacketHandler {
             com.stardew.craft.network.payload.ApplyDecorationStylePayload.TYPE,
             com.stardew.craft.network.payload.ApplyDecorationStylePayload.STREAM_CODEC,
             com.stardew.craft.network.payload.ApplyDecorationStylePayload::handle
+        );
+
+        registrar.playToServer(
+            com.stardew.craft.network.payload.CookingPotCookSubmitPayload.TYPE,
+            com.stardew.craft.network.payload.CookingPotCookSubmitPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.CookingPotCookSubmitPayload::handle
         );
 
     }

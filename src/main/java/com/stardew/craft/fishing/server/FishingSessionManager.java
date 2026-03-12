@@ -1,6 +1,7 @@
 package com.stardew.craft.fishing.server;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.fishing.TreasureChestMenu;
 import com.stardew.craft.item.tool.FishingRodItem;
 import com.stardew.craft.fishing.network.FishingCatchVisualPayload;
 import com.stardew.craft.fishing.network.FishingFailVisualPayload;
@@ -15,6 +16,8 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.projectile.FishingHook;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.SimpleMenuProvider;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.*;
@@ -34,6 +37,11 @@ public final class FishingSessionManager {
 	}
 
 	private final Map<UUID, FishingSession> sessionsByPlayer = new HashMap<>();
+	private final Map<UUID, PendingTreasureChest> pendingTreasureByPlayer = new HashMap<>();
+	private final com.stardew.craft.fishing.data.TreasureLootManager lootManager = createLootManager();
+
+	private record PendingTreasureChest(long chestId, List<ItemStack> loot, boolean golden) {
+	}
 
 	private FishingSessionManager() {
 	}
@@ -211,6 +219,7 @@ public final class FishingSessionManager {
 				session.id(),
 				session.difficulty(),
 				session.motionTypeId(),
+				session.isPlannedCatchLegendaryFish(),
 				session.ticksUntilTimeout(),
 				session.hasTreasure(),
 				session.isGoldenTreasure(),
@@ -278,6 +287,27 @@ public final class FishingSessionManager {
 		session.finish();
 		clearAllRodCastFlags(player);
 		return true;
+	}
+
+	@SuppressWarnings("null")
+	public void openPendingTreasureChest(ServerPlayer player, long chestId) {
+		PendingTreasureChest pending = pendingTreasureByPlayer.get(player.getUUID());
+		if (pending == null || pending.chestId() != chestId) {
+			return;
+		}
+
+		pendingTreasureByPlayer.remove(player.getUUID());
+		SimpleContainer container = new SimpleContainer(36);
+		for (int i = 0; i < Math.min(36, pending.loot().size()); i++) {
+			container.setItem(i, pending.loot().get(i).copy());
+		}
+
+		player.openMenu(new SimpleMenuProvider(
+				(menuId, inv, p) -> new TreasureChestMenu(menuId, inv, container, pending.golden()),
+				pending.golden()
+						? net.minecraft.network.chat.Component.translatable("stardewcraft.treasure.golden.title")
+						: net.minecraft.network.chat.Component.translatable("stardewcraft.treasure.title")
+		));
 	}
 
 	@SuppressWarnings("null")
@@ -448,7 +478,6 @@ public final class FishingSessionManager {
 			}
 			if (!isHoldingStardewFishingRod(player)) {
 				// 玩家不再持竿（切换物品/死亡等）：直接取消会话。
-				StardewCraft.LOGGER.info("[TICK DEBUG] Player not holding Stardew rod, cancelling session");
 				cleanupHook(player.serverLevel(), session);
 				clearAllRodCastFlags(player);
 				it.remove();
@@ -456,9 +485,6 @@ public final class FishingSessionManager {
 			}
 			ServerLevel level = player.serverLevel();
 			if (!isHookAlive(level, session)) {
-				StardewCraft.LOGGER.info("[TICK DEBUG] Hook not alive (id={}), cancelling session. player.fishing={}", 
-					session.hookEntityId(),
-					player.fishing != null ? player.fishing.getId() + " alive=" + player.fishing.isAlive() : "null");
 				clearAllRodCastFlags(player);
 				it.remove();
 				continue;
@@ -618,23 +644,27 @@ public final class FishingSessionManager {
 		com.stardew.craft.fishing.data.TreasureLootManager lootMgr = getLootManager();
 		int fishingLevel = com.stardew.craft.player.PlayerStardewDataAPI.getSkillLevel(player, com.stardew.craft.player.SkillType.FISHING);
 		double dailyLuck = PlayerStardewDataAPI.getDailyLuck(player);
+		int luckBuffLevel = Math.max(0, PlayerStardewDataAPI.getLuckBuffLevel(player));
+		dailyLuck += 0.01D * luckBuffLevel;
 
 		java.util.List<ItemStack> loot = lootMgr.generateTreasure(
 				fishingLevel,
 				session.isGoldenTreasure(),
 				player.getRandom(),
-				50,
+				session.waterDepth(),
 				dailyLuck
 		);
 
 		// 保存战利品到session
 		session.setTreasureLoot(loot);
 
-		// 发送打开宝箱UI的网络包到客户端
-		// 注意：UI会在鱼动画展示之后才打开，由客户端控制时机
+		long chestId = player.server.getTickCount() * 100000L + Math.floorMod(player.getId(), 100000);
+		pendingTreasureByPlayer.put(player.getUUID(), new PendingTreasureChest(chestId, loot, session.isGoldenTreasure()));
+
+		// 发送开箱提示到客户端：客户端只播放动画并在结束后请求服务端打开容器。
 		net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(
 				player, 
-				new com.stardew.craft.network.payload.OpenTreasureChestPayload(loot, session.isGoldenTreasure())
+				new com.stardew.craft.network.payload.OpenTreasureChestPayload(chestId, session.isGoldenTreasure())
 		);
 
 		// 播放宝箱打开音效
@@ -647,9 +677,12 @@ public final class FishingSessionManager {
 	 * 获取宝箱战利品管理器（需要从服务器资源管理器获取）
 	 */
 	private com.stardew.craft.fishing.data.TreasureLootManager getLootManager() {
-		// 创建一个新的管理器并手动初始化默认数据
+		return lootManager;
+	}
+
+	private com.stardew.craft.fishing.data.TreasureLootManager createLootManager() {
 		com.stardew.craft.fishing.data.TreasureLootManager manager = new com.stardew.craft.fishing.data.TreasureLootManager();
-		manager.initializeWithDefaults();  // 手动初始化默认数据
+		manager.loadFromBundledData();
 		return manager;
 	}
 }

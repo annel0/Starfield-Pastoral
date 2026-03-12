@@ -1,0 +1,39 @@
+﻿{
+    "location":  "Sewer",
+    "fish":  [
+                 {
+                     "id":  "mutant_carp",
+                     "precedence":  500,
+                     "item":  "stardewcraft:mutant_carp",
+                     "chance":  0.1,
+                     "difficulty":  80,
+                     "motionType":  1,
+                     "minFishingLevel":  10,
+                     "maxDepth":  4,
+                     "depthMultiplier":  0.05,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_sewers"
+                                   ],
+                     "condition":  "!PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
+                     "catchLimit":  1,
+                     "isBossFish":  true
+                 },
+                 {
+                     "id":  "radioactive_carp",
+                     "precedence":  500,
+                     "item":  "stardewcraft:radioactive_carp",
+                     "chance":  0.05,
+                     "difficulty":  80,
+                     "motionType":  1,
+                     "minFishingLevel":  15,
+                     "maxDepth":  4,
+                     "depthMultiplier":  0.05,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_sewers"
+                                   ],
+                     "condition":  "PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
+                     "catchLimit":  1,
+                     "isBossFish":  true
+                 }
+             ]
+}

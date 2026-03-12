@@ -1,0 +1,63 @@
+﻿{
+    "location":  "Woods",
+    "fish":  [
+                 {
+                     "id":  "catfish",
+                     "precedence":  100,
+                     "item":  "stardewcraft:catfish",
+                     "chance":  0.2,
+                     "difficulty":  75,
+                     "motionType":  0,
+                     "minFishingLevel":  2,
+                     "seasons":  [
+                                     "spring",
+                                     "fall",
+                                     "summer"
+                                 ],
+                     "weather":  "rainy",
+                     "timeRanges":  [
+                                        [
+                                            600,
+                                            2400
+                                        ]
+                                    ],
+                     "maxDepth":  4,
+                     "depthMultiplier":  0.05,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_river",
+                                       "#stardewcraft:is_secret_woods"
+                                   ]
+                 },
+                 {
+                     "id":  "carp",
+                     "precedence":  100,
+                     "item":  "stardewcraft:carp",
+                     "chance":  0.4,
+                     "difficulty":  15,
+                     "motionType":  0,
+                     "minFishingLevel":  0,
+                     "maxDepth":  3,
+                     "depthMultiplier":  0.1,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_forest_pond",
+                                       "#stardewcraft:is_mountain_lake",
+                                       "#stardewcraft:is_secret_woods"
+                                   ]
+                 },
+                 {
+                     "id":  "woodskip",
+                     "precedence":  100,
+                     "item":  "stardewcraft:woodskip",
+                     "chance":  0.15,
+                     "difficulty":  50,
+                     "motionType":  2,
+                     "minFishingLevel":  0,
+                     "maxDepth":  3,
+                     "depthMultiplier":  0.1,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_secret_woods",
+                                       "#stardewcraft:is_forest_pond"
+                                   ]
+                 }
+             ]
+}

@@ -1,0 +1,119 @@
+[
+  {
+    "id": 91,
+    "path": "banana",
+    "name": "Banana",
+    "price": 150,
+    "edibility": 30,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 91,
+    "contextTags": [
+      "color_yellow",
+      "fruit_item",
+      "fruit_tree_item"
+    ]
+  },
+  {
+    "id": 613,
+    "path": "apple",
+    "name": "Apple",
+    "price": 100,
+    "edibility": 15,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 613,
+    "contextTags": [
+      "color_red",
+      "fruit_item",
+      "fruit_tree_item"
+    ]
+  },
+  {
+    "id": 634,
+    "path": "apricot",
+    "name": "Apricot",
+    "price": 50,
+    "edibility": 15,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 634,
+    "contextTags": [
+      "color_orange",
+      "fruit_item",
+      "fruit_tree_item",
+      "season_spring"
+    ]
+  },
+  {
+    "id": 635,
+    "path": "orange",
+    "name": "Orange",
+    "price": 100,
+    "edibility": 15,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 635,
+    "contextTags": [
+      "color_orange",
+      "fruit_item",
+      "fruit_tree_item",
+      "season_summer"
+    ]
+  },
+  {
+    "id": 636,
+    "path": "peach",
+    "name": "Peach",
+    "price": 140,
+    "edibility": 15,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 636,
+    "contextTags": [
+      "color_pink",
+      "fruit_item",
+      "fruit_tree_item",
+      "season_summer"
+    ]
+  },
+  {
+    "id": 637,
+    "path": "pomegranate",
+    "name": "Pomegranate",
+    "price": 140,
+    "edibility": 15,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 637,
+    "contextTags": [
+      "color_dark_pink",
+      "fruit_item",
+      "fruit_tree_item",
+      "season_fall"
+    ]
+  },
+  {
+    "id": 638,
+    "path": "cherry",
+    "name": "Cherry",
+    "price": 80,
+    "edibility": 15,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 638,
+    "contextTags": [
+      "color_red",
+      "fruit_item",
+      "fruit_tree_item",
+      "season_spring"
+    ]
+  },
+  {
+    "id": 834,
+    "path": "mango",
+    "name": "Mango",
+    "price": 130,
+    "edibility": 40,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 834,
+    "contextTags": [
+      "color_yellow",
+      "fruit_item",
+      "fruit_tree_item"
+    ]
+  }
+]

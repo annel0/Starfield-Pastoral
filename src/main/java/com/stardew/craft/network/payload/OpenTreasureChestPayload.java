@@ -7,18 +7,15 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
-
-import java.util.List;
 
 /**
  * 打开宝箱UI的网络数据包
  * 服务器 -> 客户端
- * 注意：这个数据包会在鱼动画播放完毕后，由客户端延迟显示
+ * 注意：这个数据包只下发元信息。客户端动画结束后再请求服务端真正打开容器。
  */
 public record OpenTreasureChestPayload(
-		List<ItemStack> items,
+		long chestId,
 		boolean isGolden
 ) implements CustomPacketPayload {
 	
@@ -28,8 +25,8 @@ public record OpenTreasureChestPayload(
 	
 	@SuppressWarnings("null")
 	public static final StreamCodec<RegistryFriendlyByteBuf, OpenTreasureChestPayload> STREAM_CODEC = StreamCodec.composite(
-			ItemStack.STREAM_CODEC.apply(ByteBufCodecs.list()),
-			OpenTreasureChestPayload::items,
+			ByteBufCodecs.VAR_LONG,
+			OpenTreasureChestPayload::chestId,
 			ByteBufCodecs.BOOL,
 			OpenTreasureChestPayload::isGolden,
 			OpenTreasureChestPayload::new
@@ -44,8 +41,8 @@ public record OpenTreasureChestPayload(
 		context.enqueueWork(() -> {
 			Minecraft mc = Minecraft.getInstance();
 			if (mc.player != null && mc.level != null) {
-				// 将宝箱数据传递给FishingCatchVisuals，让它在鱼动画结束后打开
-				com.stardew.craft.client.fishing.FishingCatchVisuals.setPendingTreasure(payload.items(), payload.isGolden());
+				// 客户端仅缓存 chestId 与外观类型；真正开箱由客户端请求服务端打开。
+				com.stardew.craft.client.fishing.FishingCatchVisuals.setPendingTreasure(payload.chestId(), payload.isGolden());
 			}
 		});
 	}

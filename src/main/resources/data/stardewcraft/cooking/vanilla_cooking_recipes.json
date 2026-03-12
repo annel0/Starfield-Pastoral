@@ -1,0 +1,972 @@
+﻿{
+    "fried_egg":  [
+                      {
+                          "token":  "-5",
+                          "count":  1
+                      }
+                  ],
+    "omelet":  [
+                   {
+                       "token":  "-5",
+                       "count":  1
+                   },
+                   {
+                       "token":  "-6",
+                       "count":  1
+                   }
+               ],
+    "salad":  [
+                  {
+                      "token":  "20",
+                      "count":  1
+                  },
+                  {
+                      "token":  "22",
+                      "count":  1
+                  },
+                  {
+                      "token":  "419",
+                      "count":  1
+                  }
+              ],
+    "cheese_cauliflower":  [
+                               {
+                                   "token":  "190",
+                                   "count":  1
+                               },
+                               {
+                                   "token":  "424",
+                                   "count":  1
+                               }
+                           ],
+    "baked_fish":  [
+                       {
+                           "token":  "145",
+                           "count":  1
+                       },
+                       {
+                           "token":  "132",
+                           "count":  1
+                       },
+                       {
+                           "token":  "246",
+                           "count":  1
+                       }
+                   ],
+    "parsnip_soup":  [
+                         {
+                             "token":  "24",
+                             "count":  1
+                         },
+                         {
+                             "token":  "-6",
+                             "count":  1
+                         },
+                         {
+                             "token":  "419",
+                             "count":  1
+                         }
+                     ],
+    "vegetable_medley":  [
+                             {
+                                 "token":  "256",
+                                 "count":  1
+                             },
+                             {
+                                 "token":  "284",
+                                 "count":  1
+                             }
+                         ],
+    "complete_breakfast":  [
+                               {
+                                   "token":  "194",
+                                   "count":  1
+                               },
+                               {
+                                   "token":  "-6",
+                                   "count":  1
+                               },
+                               {
+                                   "token":  "210",
+                                   "count":  1
+                               },
+                               {
+                                   "token":  "211",
+                                   "count":  1
+                               }
+                           ],
+    "fried_calamari":  [
+                           {
+                               "token":  "151",
+                               "count":  1
+                           },
+                           {
+                               "token":  "246",
+                               "count":  1
+                           },
+                           {
+                               "token":  "247",
+                               "count":  1
+                           }
+                       ],
+    "strange_bun":  [
+                        {
+                            "token":  "246",
+                            "count":  1
+                        },
+                        {
+                            "token":  "722",
+                            "count":  1
+                        },
+                        {
+                            "token":  "308",
+                            "count":  1
+                        }
+                    ],
+    "lucky_lunch":  [
+                        {
+                            "token":  "154",
+                            "count":  1
+                        },
+                        {
+                            "token":  "229",
+                            "count":  1
+                        },
+                        {
+                            "token":  "597",
+                            "count":  1
+                        }
+                    ],
+    "fried_mushroom":  [
+                           {
+                               "token":  "404",
+                               "count":  1
+                           },
+                           {
+                               "token":  "257",
+                               "count":  1
+                           },
+                           {
+                               "token":  "247",
+                               "count":  1
+                           }
+                       ],
+    "pizza":  [
+                  {
+                      "token":  "246",
+                      "count":  1
+                  },
+                  {
+                      "token":  "256",
+                      "count":  1
+                  },
+                  {
+                      "token":  "424",
+                      "count":  1
+                  }
+              ],
+    "bean_hotpot":  [
+                        {
+                            "token":  "188",
+                            "count":  2
+                        }
+                    ],
+    "glazed_yams":  [
+                        {
+                            "token":  "280",
+                            "count":  1
+                        },
+                        {
+                            "token":  "245",
+                            "count":  1
+                        }
+                    ],
+    "carp_surprise":  [
+                          {
+                              "token":  "142",
+                              "count":  4
+                          }
+                      ],
+    "hashbrowns":  [
+                       {
+                           "token":  "192",
+                           "count":  1
+                       },
+                       {
+                           "token":  "247",
+                           "count":  1
+                       }
+                   ],
+    "pancakes":  [
+                     {
+                         "token":  "246",
+                         "count":  1
+                     },
+                     {
+                         "token":  "-5",
+                         "count":  1
+                     }
+                 ],
+    "salmon_dinner":  [
+                          {
+                              "token":  "139",
+                              "count":  1
+                          },
+                          {
+                              "token":  "300",
+                              "count":  1
+                          },
+                          {
+                              "token":  "250",
+                              "count":  1
+                          }
+                      ],
+    "fish_taco":  [
+                      {
+                          "token":  "130",
+                          "count":  1
+                      },
+                      {
+                          "token":  "229",
+                          "count":  1
+                      },
+                      {
+                          "token":  "266",
+                          "count":  1
+                      },
+                      {
+                          "token":  "306",
+                          "count":  1
+                      }
+                  ],
+    "crispy_bass":  [
+                        {
+                            "token":  "136",
+                            "count":  1
+                        },
+                        {
+                            "token":  "246",
+                            "count":  1
+                        },
+                        {
+                            "token":  "247",
+                            "count":  1
+                        }
+                    ],
+    "pepper_poppers":  [
+                           {
+                               "token":  "260",
+                               "count":  1
+                           },
+                           {
+                               "token":  "424",
+                               "count":  1
+                           }
+                       ],
+    "bread":  [
+                  {
+                      "token":  "246",
+                      "count":  1
+                  }
+              ],
+    "tom_kha_soup":  [
+                         {
+                             "token":  "88",
+                             "count":  1
+                         },
+                         {
+                             "token":  "720",
+                             "count":  1
+                         },
+                         {
+                             "token":  "404",
+                             "count":  1
+                         }
+                     ],
+    "trout_soup":  [
+                       {
+                           "token":  "138",
+                           "count":  1
+                       },
+                       {
+                           "token":  "153",
+                           "count":  1
+                       }
+                   ],
+    "chocolate_cake":  [
+                           {
+                               "token":  "246",
+                               "count":  1
+                           },
+                           {
+                               "token":  "245",
+                               "count":  1
+                           },
+                           {
+                               "token":  "-5",
+                               "count":  1
+                           }
+                       ],
+    "pink_cake":  [
+                      {
+                          "token":  "254",
+                          "count":  1
+                      },
+                      {
+                          "token":  "246",
+                          "count":  1
+                      },
+                      {
+                          "token":  "245",
+                          "count":  1
+                      },
+                      {
+                          "token":  "-5",
+                          "count":  1
+                      }
+                  ],
+    "rhubarb_pie":  [
+                        {
+                            "token":  "252",
+                            "count":  1
+                        },
+                        {
+                            "token":  "246",
+                            "count":  1
+                        },
+                        {
+                            "token":  "245",
+                            "count":  1
+                        }
+                    ],
+    "cookie":  [
+                   {
+                       "token":  "246",
+                       "count":  1
+                   },
+                   {
+                       "token":  "245",
+                       "count":  1
+                   },
+                   {
+                       "token":  "-5",
+                       "count":  1
+                   }
+               ],
+    "spaghetti":  [
+                      {
+                          "token":  "246",
+                          "count":  1
+                      },
+                      {
+                          "token":  "256",
+                          "count":  1
+                      }
+                  ],
+    "fried_eel":  [
+                      {
+                          "token":  "148",
+                          "count":  1
+                      },
+                      {
+                          "token":  "247",
+                          "count":  1
+                      }
+                  ],
+    "spicy_eel":  [
+                      {
+                          "token":  "148",
+                          "count":  1
+                      },
+                      {
+                          "token":  "260",
+                          "count":  1
+                      }
+                  ],
+    "sashimi":  [
+                    {
+                        "token":  "-4",
+                        "count":  1
+                    }
+                ],
+    "maki_roll":  [
+                      {
+                          "token":  "-4",
+                          "count":  1
+                      },
+                      {
+                          "token":  "152",
+                          "count":  1
+                      },
+                      {
+                          "token":  "423",
+                          "count":  1
+                      }
+                  ],
+    "tortilla":  [
+                     {
+                         "token":  "270",
+                         "count":  1
+                     }
+                 ],
+    "red_plate":  [
+                      {
+                          "token":  "266",
+                          "count":  1
+                      },
+                      {
+                          "token":  "264",
+                          "count":  1
+                      }
+                  ],
+    "eggplant_parmesan":  [
+                              {
+                                  "token":  "272",
+                                  "count":  1
+                              },
+                              {
+                                  "token":  "256",
+                                  "count":  1
+                              }
+                          ],
+    "rice_pudding":  [
+                         {
+                             "token":  "-6",
+                             "count":  1
+                         },
+                         {
+                             "token":  "245",
+                             "count":  1
+                         },
+                         {
+                             "token":  "423",
+                             "count":  1
+                         }
+                     ],
+    "ice_cream":  [
+                      {
+                          "token":  "-6",
+                          "count":  1
+                      },
+                      {
+                          "token":  "245",
+                          "count":  1
+                      }
+                  ],
+    "blueberry_tart":  [
+                           {
+                               "token":  "258",
+                               "count":  1
+                           },
+                           {
+                               "token":  "246",
+                               "count":  1
+                           },
+                           {
+                               "token":  "245",
+                               "count":  1
+                           },
+                           {
+                               "token":  "-5",
+                               "count":  1
+                           }
+                       ],
+    "autumns_bounty":  [
+                           {
+                               "token":  "280",
+                               "count":  1
+                           },
+                           {
+                               "token":  "276",
+                               "count":  1
+                           }
+                       ],
+    "pumpkin_soup":  [
+                         {
+                             "token":  "276",
+                             "count":  1
+                         },
+                         {
+                             "token":  "-6",
+                             "count":  1
+                         }
+                     ],
+    "super_meal":  [
+                       {
+                           "token":  "278",
+                           "count":  1
+                       },
+                       {
+                           "token":  "282",
+                           "count":  1
+                       },
+                       {
+                           "token":  "274",
+                           "count":  1
+                       }
+                   ],
+    "cranberry_sauce":  [
+                            {
+                                "token":  "282",
+                                "count":  1
+                            },
+                            {
+                                "token":  "245",
+                                "count":  1
+                            }
+                        ],
+    "stuffing":  [
+                     {
+                         "token":  "216",
+                         "count":  1
+                     },
+                     {
+                         "token":  "282",
+                         "count":  1
+                     },
+                     {
+                         "token":  "408",
+                         "count":  1
+                     }
+                 ],
+    "farmers_lunch":  [
+                          {
+                              "token":  "195",
+                              "count":  1
+                          },
+                          {
+                              "token":  "24",
+                              "count":  1
+                          }
+                      ],
+    "survival_burger":  [
+                            {
+                                "token":  "216",
+                                "count":  1
+                            },
+                            {
+                                "token":  "78",
+                                "count":  1
+                            },
+                            {
+                                "token":  "272",
+                                "count":  1
+                            }
+                        ],
+    "dish_o_the_sea":  [
+                           {
+                               "token":  "131",
+                               "count":  2
+                           },
+                           {
+                               "token":  "210",
+                               "count":  1
+                           }
+                       ],
+    "miners_treat":  [
+                         {
+                             "token":  "78",
+                             "count":  2
+                         },
+                         {
+                             "token":  "245",
+                             "count":  1
+                         },
+                         {
+                             "token":  "-6",
+                             "count":  1
+                         }
+                     ],
+    "roots_platter":  [
+                          {
+                              "token":  "78",
+                              "count":  1
+                          },
+                          {
+                              "token":  "412",
+                              "count":  1
+                          }
+                      ],
+    "algae_soup":  [
+                       {
+                           "token":  "153",
+                           "count":  4
+                       }
+                   ],
+    "pale_broth":  [
+                       {
+                           "token":  "157",
+                           "count":  2
+                       }
+                   ],
+    "plum_pudding":  [
+                         {
+                             "token":  "406",
+                             "count":  2
+                         },
+                         {
+                             "token":  "246",
+                             "count":  1
+                         },
+                         {
+                             "token":  "245",
+                             "count":  1
+                         }
+                     ],
+    "artichoke_dip":  [
+                          {
+                              "token":  "274",
+                              "count":  1
+                          },
+                          {
+                              "token":  "-6",
+                              "count":  1
+                          }
+                      ],
+    "stir_fry":  [
+                     {
+                         "token":  "78",
+                         "count":  1
+                     },
+                     {
+                         "token":  "404",
+                         "count":  1
+                     },
+                     {
+                         "token":  "250",
+                         "count":  1
+                     },
+                     {
+                         "token":  "247",
+                         "count":  1
+                     }
+                 ],
+    "roasted_hazelnuts":  [
+                              {
+                                  "token":  "408",
+                                  "count":  3
+                              }
+                          ],
+    "pumpkin_pie":  [
+                        {
+                            "token":  "276",
+                            "count":  1
+                        },
+                        {
+                            "token":  "246",
+                            "count":  1
+                        },
+                        {
+                            "token":  "-6",
+                            "count":  1
+                        },
+                        {
+                            "token":  "245",
+                            "count":  1
+                        }
+                    ],
+    "radish_salad":  [
+                         {
+                             "token":  "247",
+                             "count":  1
+                         },
+                         {
+                             "token":  "419",
+                             "count":  1
+                         },
+                         {
+                             "token":  "264",
+                             "count":  1
+                         }
+                     ],
+    "fruit_salad":  [
+                        {
+                            "token":  "258",
+                            "count":  1
+                        },
+                        {
+                            "token":  "254",
+                            "count":  1
+                        },
+                        {
+                            "token":  "634",
+                            "count":  1
+                        }
+                    ],
+    "blackberry_cobbler":  [
+                               {
+                                   "token":  "410",
+                                   "count":  2
+                               },
+                               {
+                                   "token":  "245",
+                                   "count":  1
+                               },
+                               {
+                                   "token":  "246",
+                                   "count":  1
+                               }
+                           ],
+    "cranberry_candy":  [
+                            {
+                                "token":  "282",
+                                "count":  1
+                            },
+                            {
+                                "token":  "613",
+                                "count":  1
+                            },
+                            {
+                                "token":  "245",
+                                "count":  1
+                            }
+                        ],
+    "bruschetta":  [
+                       {
+                           "token":  "216",
+                           "count":  1
+                       },
+                       {
+                           "token":  "247",
+                           "count":  1
+                       },
+                       {
+                           "token":  "256",
+                           "count":  1
+                       }
+                   ],
+    "coleslaw":  [
+                     {
+                         "token":  "266",
+                         "count":  1
+                     },
+                     {
+                         "token":  "419",
+                         "count":  1
+                     },
+                     {
+                         "token":  "306",
+                         "count":  1
+                     }
+                 ],
+    "fiddlehead_risotto":  [
+                               {
+                                   "token":  "247",
+                                   "count":  1
+                               },
+                               {
+                                   "token":  "259",
+                                   "count":  1
+                               },
+                               {
+                                   "token":  "248",
+                                   "count":  1
+                               }
+                           ],
+    "poppyseed_muffin":  [
+                             {
+                                 "token":  "376",
+                                 "count":  1
+                             },
+                             {
+                                 "token":  "246",
+                                 "count":  1
+                             },
+                             {
+                                 "token":  "245",
+                                 "count":  1
+                             }
+                         ],
+    "chowder":  [
+                    {
+                        "token":  "372",
+                        "count":  1
+                    },
+                    {
+                        "token":  "-6",
+                        "count":  1
+                    }
+                ],
+    "lobster_bisque":  [
+                           {
+                               "token":  "715",
+                               "count":  1
+                           },
+                           {
+                               "token":  "-6",
+                               "count":  1
+                           }
+                       ],
+    "fish_stew":  [
+                      {
+                          "token":  "716",
+                          "count":  1
+                      },
+                      {
+                          "token":  "719",
+                          "count":  1
+                      },
+                      {
+                          "token":  "722",
+                          "count":  1
+                      },
+                      {
+                          "token":  "256",
+                          "count":  1
+                      }
+                  ],
+    "escargot":  [
+                     {
+                         "token":  "721",
+                         "count":  1
+                     },
+                     {
+                         "token":  "248",
+                         "count":  1
+                     }
+                 ],
+    "maple_bar":  [
+                      {
+                          "token":  "724",
+                          "count":  1
+                      },
+                      {
+                          "token":  "245",
+                          "count":  1
+                      },
+                      {
+                          "token":  "246",
+                          "count":  1
+                      }
+                  ],
+    "crab_cakes":  [
+                       {
+                           "token":  "717",
+                           "count":  1
+                       },
+                       {
+                           "token":  "246",
+                           "count":  1
+                       },
+                       {
+                           "token":  "-5",
+                           "count":  1
+                       },
+                       {
+                           "token":  "247",
+                           "count":  1
+                       }
+                   ],
+    "triple_shot_espresso":  [
+                                 {
+                                     "token":  "395",
+                                     "count":  3
+                                 }
+                             ],
+    "shrimp_cocktail":  [
+                            {
+                                "token":  "720",
+                                "count":  1
+                            },
+                            {
+                                "token":  "256",
+                                "count":  1
+                            },
+                            {
+                                "token":  "16",
+                                "count":  1
+                            }
+                        ],
+    "seafoam_pudding":  [
+                            {
+                                "token":  "267",
+                                "count":  1
+                            },
+                            {
+                                "token":  "269",
+                                "count":  1
+                            },
+                            {
+                                "token":  "814",
+                                "count":  1
+                            }
+                        ],
+    "ginger_ale":  [
+                       {
+                           "token":  "829",
+                           "count":  3
+                       },
+                       {
+                           "token":  "245",
+                           "count":  1
+                       }
+                   ],
+    "banana_pudding":  [
+                           {
+                               "token":  "91",
+                               "count":  1
+                           },
+                           {
+                               "token":  "-6",
+                               "count":  1
+                           },
+                           {
+                               "token":  "245",
+                               "count":  1
+                           }
+                       ],
+    "mango_sticky_rice":  [
+                              {
+                                  "token":  "834",
+                                  "count":  1
+                              },
+                              {
+                                  "token":  "88",
+                                  "count":  1
+                              },
+                              {
+                                  "token":  "423",
+                                  "count":  1
+                              }
+                          ],
+    "poi":  [
+                {
+                    "token":  "830",
+                    "count":  4
+                }
+            ],
+    "tropical_curry":  [
+                           {
+                               "token":  "88",
+                               "count":  1
+                           },
+                           {
+                               "token":  "832",
+                               "count":  1
+                           },
+                           {
+                               "token":  "260",
+                               "count":  1
+                           }
+                       ],
+    "squid_ink_ravioli":  [
+                              {
+                                  "token":  "814",
+                                  "count":  1
+                              },
+                              {
+                                  "token":  "246",
+                                  "count":  1
+                              },
+                              {
+                                  "token":  "256",
+                                  "count":  1
+                              }
+                          ],
+    "moss_soup":  [
+                      {
+                          "token":  "Moss",
+                          "count":  20
+                      }
+                  ]
+}

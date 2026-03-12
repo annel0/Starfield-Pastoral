@@ -44,9 +44,6 @@ public class WeatherManager {
         state.updateTomorrow(level, dayOfMonth, season, daysPlayed);
         WeatherSavedData.get(level).setDirty();
 
-        StardewCraft.LOGGER.debug("Updated weather for dimension {}: tomorrow (day {}) will be {}", 
-            level.dimension().location(), dayOfMonth + 1, state.weatherForTomorrow);
-        
         // 同步到客户端
         syncToAllPlayers(level, state);
     }

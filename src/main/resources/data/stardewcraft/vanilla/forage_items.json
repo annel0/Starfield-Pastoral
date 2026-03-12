@@ -1,0 +1,504 @@
+[
+  {
+    "id": 16,
+    "path": "wild_horseradish",
+    "name": "Wild Horseradish",
+    "price": 50,
+    "edibility": 5,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 16,
+    "contextTags": [
+      "color_brown",
+      "forage_item",
+      "season_spring"
+    ]
+  },
+  {
+    "id": 18,
+    "path": "daffodil",
+    "name": "Daffodil",
+    "price": 30,
+    "edibility": 0,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 18,
+    "contextTags": [
+      "color_yellow",
+      "forage_item",
+      "season_spring"
+    ]
+  },
+  {
+    "id": 20,
+    "path": "leek",
+    "name": "Leek",
+    "price": 60,
+    "edibility": 16,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 20,
+    "contextTags": [
+      "color_white",
+      "forage_item",
+      "season_spring"
+    ]
+  },
+  {
+    "id": 22,
+    "path": "dandelion",
+    "name": "Dandelion",
+    "price": 40,
+    "edibility": 10,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 22,
+    "contextTags": [
+      "color_yellow",
+      "forage_item",
+      "season_spring"
+    ]
+  },
+  {
+    "id": 78,
+    "path": "cave_carrot",
+    "name": "Cave Carrot",
+    "price": 25,
+    "edibility": 12,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 78,
+    "contextTags": [
+      "color_brown",
+      "forage_item",
+      "forage_item_mines",
+      "season_all"
+    ]
+  },
+  {
+    "id": 88,
+    "path": "coconut",
+    "name": "Coconut",
+    "price": 100,
+    "edibility": -300,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 88,
+    "contextTags": [
+      "color_dark_brown",
+      "forage_item",
+      "forage_item_desert",
+      "season_all"
+    ]
+  },
+  {
+    "id": 90,
+    "path": "cactus_fruit",
+    "name": "Cactus Fruit",
+    "price": 75,
+    "edibility": 30,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 90,
+    "contextTags": [
+      "color_green",
+      "forage_item",
+      "forage_item_desert"
+    ]
+  },
+  {
+    "id": 257,
+    "path": "morel",
+    "name": "Morel",
+    "price": 150,
+    "edibility": 8,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 257,
+    "contextTags": [
+      "color_brown",
+      "edible_mushroom",
+      "forage_item",
+      "forage_item_cave",
+      "forage_item_secret",
+      "season_spring"
+    ]
+  },
+  {
+    "id": 259,
+    "path": "fiddlehead_fern",
+    "name": "Fiddlehead Fern",
+    "price": 90,
+    "edibility": 10,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 259,
+    "contextTags": [
+      "color_green",
+      "dye_strong",
+      "forage_item",
+      "forage_item_secret",
+      "season_summer"
+    ]
+  },
+  {
+    "id": 281,
+    "path": "chanterelle",
+    "name": "Chanterelle",
+    "price": 160,
+    "edibility": 30,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 281,
+    "contextTags": [
+      "color_orange",
+      "edible_mushroom",
+      "forage_item",
+      "forage_item_cave",
+      "forage_item_secret",
+      "season_fall"
+    ]
+  },
+  {
+    "id": 283,
+    "path": "holly",
+    "name": "Holly",
+    "price": 80,
+    "edibility": -15,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 283,
+    "contextTags": [
+      "color_red",
+      "forage_item",
+      "season_winter"
+    ]
+  },
+  {
+    "id": 372,
+    "path": "clam",
+    "name": "Clam",
+    "price": 50,
+    "edibility": -300,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 372,
+    "contextTags": [
+      "beach_item",
+      "color_light_cyan",
+      "fish_crab_pot",
+      "fish_has_roe",
+      "fish_ocean",
+      "fish_upright",
+      "forage_item",
+      "forage_item_beach"
+    ]
+  },
+  {
+    "id": 392,
+    "path": "nautilus_shell",
+    "name": "Nautilus Shell",
+    "price": 120,
+    "edibility": -300,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 392,
+    "contextTags": [
+      "color_orange",
+      "forage_item",
+      "forage_item_beach",
+      "marine_item",
+      "season_winter"
+    ]
+  },
+  {
+    "id": 393,
+    "path": "coral",
+    "name": "Coral",
+    "price": 80,
+    "edibility": -300,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 393,
+    "contextTags": [
+      "color_red",
+      "forage_item",
+      "forage_item_beach"
+    ]
+  },
+  {
+    "id": 394,
+    "path": "rainbow_shell",
+    "name": "Rainbow Shell",
+    "price": 300,
+    "edibility": -300,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 394,
+    "contextTags": [
+      "color_prismatic",
+      "forage_item",
+      "forage_item_beach",
+      "season_summer"
+    ]
+  },
+  {
+    "id": 396,
+    "path": "spice_berry",
+    "name": "Spice Berry",
+    "price": 80,
+    "edibility": 10,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 396,
+    "contextTags": [
+      "color_orange",
+      "forage_item",
+      "season_summer"
+    ]
+  },
+  {
+    "id": 397,
+    "path": "sea_urchin",
+    "name": "Sea Urchin",
+    "price": 160,
+    "edibility": -300,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 397,
+    "contextTags": [
+      "color_purple",
+      "forage_item",
+      "forage_item_beach"
+    ]
+  },
+  {
+    "id": 398,
+    "path": "grape",
+    "name": "Grape",
+    "price": 80,
+    "edibility": 15,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 398,
+    "contextTags": [
+      "color_purple",
+      "forage_item",
+      "season_summer"
+    ]
+  },
+  {
+    "id": 399,
+    "path": "spring_onion",
+    "name": "Spring Onion",
+    "price": 8,
+    "edibility": 5,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 399,
+    "contextTags": [
+      "color_white",
+      "forage_item",
+      "season_spring"
+    ]
+  },
+  {
+    "id": 402,
+    "path": "sweet_pea",
+    "name": "Sweet Pea",
+    "price": 50,
+    "edibility": 0,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 402,
+    "contextTags": [
+      "color_purple",
+      "dye_medium",
+      "flower_item",
+      "forage_item",
+      "season_summer"
+    ]
+  },
+  {
+    "id": 404,
+    "path": "common_mushroom",
+    "name": "Common Mushroom",
+    "price": 40,
+    "edibility": 15,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 404,
+    "contextTags": [
+      "color_dark_brown",
+      "edible_mushroom",
+      "forage_item",
+      "season_fall",
+      "season_spring"
+    ]
+  },
+  {
+    "id": 406,
+    "path": "wild_plum",
+    "name": "Wild Plum",
+    "price": 80,
+    "edibility": 10,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 406,
+    "contextTags": [
+      "color_dark_purple",
+      "forage_item",
+      "season_fall"
+    ]
+  },
+  {
+    "id": 408,
+    "path": "hazelnut",
+    "name": "Hazelnut",
+    "price": 90,
+    "edibility": 12,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 408,
+    "contextTags": [
+      "color_brown",
+      "forage_item",
+      "season_fall"
+    ]
+  },
+  {
+    "id": 410,
+    "path": "blackberry",
+    "name": "Blackberry",
+    "price": 20,
+    "edibility": 10,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 410,
+    "contextTags": [
+      "color_dark_blue",
+      "forage_item",
+      "season_fall"
+    ]
+  },
+  {
+    "id": 412,
+    "path": "winter_root",
+    "name": "Winter Root",
+    "price": 70,
+    "edibility": 10,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 412,
+    "contextTags": [
+      "color_orange",
+      "forage_item",
+      "forage_item_mines",
+      "season_winter"
+    ]
+  },
+  {
+    "id": 414,
+    "path": "crystal_fruit",
+    "name": "Crystal Fruit",
+    "price": 150,
+    "edibility": 25,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 414,
+    "contextTags": [
+      "color_blue",
+      "forage_item",
+      "season_winter"
+    ]
+  },
+  {
+    "id": 418,
+    "path": "crocus",
+    "name": "Crocus",
+    "price": 60,
+    "edibility": 0,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 418,
+    "contextTags": [
+      "color_purple",
+      "dye_medium",
+      "flower_item",
+      "forage_item",
+      "season_winter"
+    ]
+  },
+  {
+    "id": 420,
+    "path": "red_mushroom",
+    "name": "Red Mushroom",
+    "price": 75,
+    "edibility": -20,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 420,
+    "contextTags": [
+      "color_red",
+      "forage_item",
+      "forage_item_mines",
+      "forage_item_secret",
+      "season_fall",
+      "season_summer"
+    ]
+  },
+  {
+    "id": 422,
+    "path": "purple_mushroom",
+    "name": "Purple Mushroom",
+    "price": 250,
+    "edibility": 50,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 422,
+    "contextTags": [
+      "color_purple",
+      "edible_mushroom",
+      "forage_item",
+      "forage_item_mines"
+    ]
+  },
+  {
+    "id": 718,
+    "path": "cockle",
+    "name": "Cockle",
+    "price": 50,
+    "edibility": -300,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 718,
+    "contextTags": [
+      "color_dark_gray",
+      "fish_crab_pot",
+      "fish_has_roe",
+      "fish_ocean",
+      "forage_item",
+      "forage_item_beach"
+    ]
+  },
+  {
+    "id": 719,
+    "path": "mussel",
+    "name": "Mussel",
+    "price": 30,
+    "edibility": -300,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 719,
+    "contextTags": [
+      "color_gray",
+      "fish_crab_pot",
+      "fish_has_roe",
+      "fish_ocean",
+      "forage_item",
+      "forage_item_beach"
+    ]
+  },
+  {
+    "id": 723,
+    "path": "oyster",
+    "name": "Oyster",
+    "price": 40,
+    "edibility": -300,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 723,
+    "contextTags": [
+      "color_gray",
+      "fish_crab_pot",
+      "fish_has_roe",
+      "fish_ocean",
+      "fish_upright",
+      "forage_item",
+      "forage_item_beach"
+    ]
+  },
+  {
+    "id": 829,
+    "path": "ginger",
+    "name": "Ginger",
+    "price": 60,
+    "edibility": 10,
+    "texture": "Maps\\springobjects",
+    "spriteIndex": 829,
+    "contextTags": [
+      "color_yellow",
+      "forage_item",
+      "ginger_item",
+      "preserves_pickle"
+    ]
+  }
+]

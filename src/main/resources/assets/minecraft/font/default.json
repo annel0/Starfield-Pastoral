@@ -55,6 +55,48 @@
       "ascent": 9,
       "height": 10,
       "chars": ["\uE013"]
+    },
+    {
+      "type": "bitmap",
+      "file": "stardewcraft:mob_effect/farmer_blessing.png",
+      "ascent": 9,
+      "height": 10,
+      "chars": ["\uE014"]
+    },
+    {
+      "type": "bitmap",
+      "file": "stardewcraft:mob_effect/forager_blessing.png",
+      "ascent": 9,
+      "height": 10,
+      "chars": ["\uE015"]
+    },
+    {
+      "type": "bitmap",
+      "file": "stardewcraft:mob_effect/miner_blessing.png",
+      "ascent": 9,
+      "height": 10,
+      "chars": ["\uE016"]
+    },
+    {
+      "type": "bitmap",
+      "file": "stardewcraft:mob_effect/warrior_blessing.png",
+      "ascent": 9,
+      "height": 10,
+      "chars": ["\uE017"]
+    },
+    {
+      "type": "bitmap",
+      "file": "stardewcraft:mob_effect/guardian_blessing.png",
+      "ascent": 9,
+      "height": 10,
+      "chars": ["\uE018"]
+    },
+    {
+      "type": "bitmap",
+      "file": "stardewcraft:mob_effect/magnetism.png",
+      "ascent": 9,
+      "height": 10,
+      "chars": ["\uE019"]
     }
   ]
 }

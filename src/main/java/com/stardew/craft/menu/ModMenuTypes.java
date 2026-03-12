@@ -45,4 +45,14 @@ public class ModMenuTypes {
     public static final DeferredHolder<MenuType<?>, MenuType<AnimalQueryMenu>> ANIMAL_QUERY =
         MENU_TYPES.register("animal_query",
             () -> new MenuType<>(AnimalQueryMenu::new, FeatureFlags.DEFAULT_FLAGS));
+
+    @SuppressWarnings("null")
+    public static final DeferredHolder<MenuType<?>, MenuType<com.stardew.craft.fishing.TreasureChestMenu>> TREASURE_CHEST =
+        MENU_TYPES.register("treasure_chest",
+            () -> new MenuType<>(com.stardew.craft.fishing.TreasureChestMenu::new, FeatureFlags.DEFAULT_FLAGS));
+
+    @SuppressWarnings("null")
+    public static final DeferredHolder<MenuType<?>, MenuType<CookingPotMenu>> COOKING_POT =
+        MENU_TYPES.register("cooking_pot",
+            () -> new MenuType<>(CookingPotMenu::new, FeatureFlags.DEFAULT_FLAGS));
 }

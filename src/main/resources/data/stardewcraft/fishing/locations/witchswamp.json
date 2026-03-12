@@ -1,0 +1,19 @@
+﻿{
+    "location":  "WitchSwamp",
+    "fish":  [
+                 {
+                     "id":  "void_salmon",
+                     "precedence":  100,
+                     "item":  "stardewcraft:void_salmon",
+                     "chance":  0.15,
+                     "difficulty":  80,
+                     "motionType":  0,
+                     "minFishingLevel":  0,
+                     "maxDepth":  4,
+                     "depthMultiplier":  0.05,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_witch_swamp"
+                                   ]
+                 }
+             ]
+}

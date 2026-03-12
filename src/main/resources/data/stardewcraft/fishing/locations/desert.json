@@ -1,0 +1,45 @@
+﻿{
+    "location":  "Desert",
+    "fish":  [
+                 {
+                     "id":  "sandfish",
+                     "precedence":  100,
+                     "item":  "stardewcraft:sandfish",
+                     "chance":  0.2,
+                     "difficulty":  65,
+                     "motionType":  0,
+                     "minFishingLevel":  0,
+                     "timeRanges":  [
+                                        [
+                                            600,
+                                            2000
+                                        ]
+                                    ],
+                     "maxDepth":  3,
+                     "depthMultiplier":  0.1,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_desert"
+                                   ]
+                 },
+                 {
+                     "id":  "scorpion_carp",
+                     "precedence":  100,
+                     "item":  "stardewcraft:scorpion_carp",
+                     "chance":  0.15,
+                     "difficulty":  90,
+                     "motionType":  1,
+                     "minFishingLevel":  4,
+                     "timeRanges":  [
+                                        [
+                                            600,
+                                            2000
+                                        ]
+                                    ],
+                     "maxDepth":  4,
+                     "depthMultiplier":  0.05,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_desert"
+                                   ]
+                 }
+             ]
+}

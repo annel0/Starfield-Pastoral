@@ -1,0 +1,193 @@
+package com.stardew.craft.network.payload;
+
+import com.stardew.craft.StardewCraft;
+import com.stardew.craft.cooking.service.VanillaCookingRecipeData;
+import com.stardew.craft.item.ModItems;
+import java.util.List;
+import java.util.function.Predicate;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+
+public record CookingPotCookSubmitPayload(String recipeItemId, int craftCount) implements CustomPacketPayload {
+
+    @SuppressWarnings("null")
+    public static final Type<CookingPotCookSubmitPayload> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "cooking_pot_cook_submit"));
+
+    @SuppressWarnings("null")
+    public static final StreamCodec<FriendlyByteBuf, CookingPotCookSubmitPayload> STREAM_CODEC = StreamCodec.of(
+            (buf, payload) -> {
+                buf.writeUtf(payload.recipeItemId, 128);
+                buf.writeVarInt(payload.craftCount);
+            },
+            buf -> new CookingPotCookSubmitPayload(buf.readUtf(128), buf.readVarInt())
+    );
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    @SuppressWarnings("null")
+    public static void handle(CookingPotCookSubmitPayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (!(context.player() instanceof ServerPlayer player)) {
+                return;
+            }
+
+            String recipeId = payload.recipeItemId == null ? "" : payload.recipeItemId.trim();
+            ResourceLocation recipeLoc = ResourceLocation.tryParse(recipeId);
+            String recipePath = recipeLoc != null ? recipeLoc.getPath() : recipeId;
+            var recipeDeferred = ModItems.COOKING_DISHES.get(recipePath);
+            if (recipeDeferred == null) {
+                player.sendSystemMessage(Component.translatable("stardewcraft.cooking.invalid_recipe"));
+                return;
+            }
+
+            if (!com.stardew.craft.player.PlayerStardewDataAPI.getData(player).isRecipeUnlocked(recipePath)) {
+                player.sendSystemMessage(Component.translatable("stardewcraft.cooking.recipe_locked"));
+                return;
+            }
+
+            List<VanillaCookingRecipeData.IngredientRequirement> requirements = VanillaCookingRecipeData.getRequirements(recipePath);
+            int count = resolveCraftCount(payload.craftCount, player.getInventory(), requirements);
+            if (count <= 0) {
+                player.sendSystemMessage(Component.translatable("stardewcraft.cooking.invalid_recipe"));
+                return;
+            }
+
+            for (var req : requirements) {
+                int required = req.count() * count;
+                Predicate<ItemStack> matcher = stack -> VanillaCookingRecipeData.matchesToken(stack, req.token());
+                if (countMatching(player.getInventory(), matcher) < required) {
+                    player.sendSystemMessage(Component.translatable(
+                            "stardewcraft.cooking.missing_ingredient",
+                            VanillaCookingRecipeData.describeToken(req.token()),
+                            required
+                    ));
+                    return;
+                }
+            }
+
+            for (var req : requirements) {
+                int required = req.count() * count;
+                Predicate<ItemStack> matcher = stack -> VanillaCookingRecipeData.matchesToken(stack, req.token());
+                consumeMatching(player.getInventory(), matcher, required);
+            }
+
+            ItemStack output = new ItemStack(recipeDeferred.get(), count);
+            moveOutputToCursorFirst(player, output);
+            if (!output.isEmpty()) {
+                boolean added = player.getInventory().add(output);
+                if (!added) {
+                    player.drop(output, false);
+                }
+            }
+        });
+    }
+
+    private static int resolveCraftCount(int requestedCount,
+                                         Inventory inventory,
+                                         List<VanillaCookingRecipeData.IngredientRequirement> requirements) {
+        if (requestedCount == -1) {
+            return computeMaxCrafts(inventory, requirements);
+        }
+        return Mth.clamp(requestedCount, 1, 5);
+    }
+
+    private static int computeMaxCrafts(Inventory inventory,
+                                        List<VanillaCookingRecipeData.IngredientRequirement> requirements) {
+        if (requirements.isEmpty()) {
+            return 1;
+        }
+
+        int maxCrafts = Integer.MAX_VALUE;
+        for (var req : requirements) {
+            if (req.count() <= 0) {
+                continue;
+            }
+            Predicate<ItemStack> matcher = stack -> VanillaCookingRecipeData.matchesToken(stack, req.token());
+            int available = countMatching(inventory, matcher);
+            int byThisReq = available / req.count();
+            maxCrafts = Math.min(maxCrafts, byThisReq);
+        }
+
+        if (maxCrafts == Integer.MAX_VALUE) {
+            return 0;
+        }
+        return Math.max(0, maxCrafts);
+    }
+
+    @SuppressWarnings("null")
+    private static void moveOutputToCursorFirst(ServerPlayer player, ItemStack output) {
+        ItemStack carried = player.containerMenu.getCarried();
+
+        if (carried.isEmpty()) {
+            int move = Math.min(output.getCount(), output.getMaxStackSize());
+            if (move > 0) {
+                ItemStack onCursor = output.copyWithCount(move);
+                                player.containerMenu.setCarried(onCursor);
+                player.connection.send(new ClientboundContainerSetSlotPacket(-1, player.containerMenu.getStateId(), -1, onCursor));
+                output.shrink(move);
+            }
+            player.containerMenu.broadcastChanges();
+            return;
+        }
+
+        if (!ItemStack.isSameItemSameComponents(carried, output)) {
+            return;
+        }
+
+        int space = Math.max(0, carried.getMaxStackSize() - carried.getCount());
+        if (space <= 0) {
+            return;
+        }
+
+        int move = Math.min(space, output.getCount());
+        if (move <= 0) {
+            return;
+        }
+
+        carried.grow(move);
+        output.shrink(move);
+                player.containerMenu.setCarried(carried);
+        player.connection.send(new ClientboundContainerSetSlotPacket(-1, player.containerMenu.getStateId(), -1, carried));
+        player.containerMenu.broadcastChanges();
+    }
+
+    private static int countMatching(Inventory inventory, Predicate<ItemStack> matcher) {
+        int total = 0;
+        for (ItemStack stack : inventory.items) {
+            if (matcher.test(stack)) {
+                total += stack.getCount();
+            }
+        }
+        return total;
+    }
+
+    private static void consumeMatching(Inventory inventory, Predicate<ItemStack> matcher, int amount) {
+        int remain = amount;
+        for (ItemStack stack : inventory.items) {
+            if (remain <= 0) {
+                break;
+            }
+            if (!matcher.test(stack)) {
+                continue;
+            }
+            int take = Math.min(remain, stack.getCount());
+            stack.shrink(take);
+            remain -= take;
+        }
+        inventory.setChanged();
+    }
+}
+

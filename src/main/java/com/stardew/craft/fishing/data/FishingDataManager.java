@@ -31,7 +31,8 @@ import java.util.*;
 
 public final class FishingDataManager {
 	private static final Gson GSON = new Gson();
-	private static final Set<String> INHERITED_POOL_KEYS = Set.of("Default", "stardewcraft:stardew_valley");
+	private static final Set<String> INHERITED_POOL_KEYS = Set.of("Default");
+	private static final String LEGACY_COMPAT_POOL_KEY = "stardewcraft:stardew_valley";
 	private static volatile RuleEligibilityHook RULE_ELIGIBILITY_HOOK = RuleEligibilityHook.ALLOW_ALL;
 	private static volatile FishingDataManager INSTANCE = new FishingDataManager(
 			Collections.singletonMap("Default", FishingLocationData.defaultFallback())
@@ -76,6 +77,7 @@ public final class FishingDataManager {
 		}
 
 		int fishingLevel = PlayerStardewDataAPI.getSkillLevel(player, SkillType.FISHING);
+		int luckBuffLevel = Math.max(0, PlayerStardewDataAPI.getLuckBuffLevel(player));
 		PlayerStardewData playerData = PlayerStardewDataAPI.getData(player);
 		boolean hasCuriosityLure = hasCuriosityLure(player);
 		ItemStack rodStack = getRodFromPlayer(player);
@@ -149,6 +151,10 @@ public final class FishingDataManager {
 					}
 				}
 				float chance = Math.max(0f, rule.chance());
+				if (luckBuffLevel > 0) {
+					// Spirit Blessing now gives tangible fishing benefit: +2% base catch roll per luck level.
+					chance = Math.min(1.0f, chance + 0.02f * luckBuffLevel);
+				}
 				if (hasCuriosityLure) {
 					chance = applyCuriosityLureWeight(chance);
 				}
@@ -196,8 +202,6 @@ public final class FishingDataManager {
 
 		@SuppressWarnings("null")
 		ItemStack stack = new ItemStack(item);
-		StardewCraft.LOGGER.debug("Fish selected: {} in biome {} (depth={}, level={})",
-				chosen.itemId(), biomeId, waterDepth, fishingLevel);
 		return Optional.of(new FishSelection(stack, chosen.difficulty(), chosen.motionTypeId(), chosen.skipMinigame()));
 	}
 
@@ -205,15 +209,20 @@ public final class FishingDataManager {
 		LinkedHashSet<String> uniqueKeys = new LinkedHashSet<>();
 		uniqueKeys.add("Default");
 		uniqueKeys.addAll(lookupKeys);
-		// Current data still stores most rules in the unified Stardew map key.
-		// Keep this dataset loaded, but final pool routing is controlled by biome tags.
-		uniqueKeys.add("stardewcraft:stardew_valley");
+
+		boolean hasMappedLocationData = lookupKeys.stream().anyMatch(byLocationKey::containsKey);
+		if (!hasMappedLocationData && byLocationKey.containsKey(LEGACY_COMPAT_POOL_KEY)) {
+			// Compatibility fallback during Step 2 migration: only use the legacy mega-pool
+			// when no mapped vanilla location file is present for this biome route.
+			uniqueKeys.add(LEGACY_COMPAT_POOL_KEY);
+		}
 
 		List<CandidateRule> out = new ArrayList<>();
 		for (String key : uniqueKeys) {
 			FishingLocationData data = byLocationKey.get(key);
 			if (data != null) {
-				boolean inherited = INHERITED_POOL_KEYS.contains(key) && !lookupKeys.contains(key);
+				boolean inherited = (INHERITED_POOL_KEYS.contains(key) && !lookupKeys.contains(key))
+						|| LEGACY_COMPAT_POOL_KEY.equals(key);
 				for (SpawnFishRule rule : data.fish()) {
 					out.add(new CandidateRule(rule, inherited));
 				}

@@ -1,6 +1,5 @@
 package com.stardew.craft.entity.animal;
 
-import com.stardew.craft.StardewCraft;
 import com.stardew.craft.animal.data.AnimalWorldData;
 import com.stardew.craft.animal.model.AnimalBuildingRecord;
 import com.stardew.craft.animal.model.FarmAnimalRecord;
@@ -52,9 +51,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import javax.annotation.Nonnull;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Set;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
@@ -85,7 +82,6 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 	private static final int MINUTES_2000 = 20 * 60;
 	private static final int STATIONARY_RESCUE_TICKS = 120;
 	private static final boolean AI_DIAGNOSTICS = true;
-	private static final int AI_DIAG_INTERVAL_TICKS = 120;
 	private static final double STUCK_MOVE_THRESHOLD_SQR = 0.01D;
 	private static final double DOORWAY_SETTLE_DISTANCE_SQR = 2.25D;
 	private static final int WANDER_MIN_RANGE = 2;
@@ -101,7 +97,6 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 	private int eatAnimationTicks = 0;
 	private int stationaryTicks;
 	private Vec3 lastServerPosition = Vec3.ZERO;
-	private final Map<String, Long> nextAiDiagTickByStage = new HashMap<>();
 
 	protected BaseCoopAnimalEntity(EntityType<? extends Animal> entityType, Level level) {
 		super(entityType, level);
@@ -494,23 +489,11 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 	}
 
 	private void logAiDiag(String stage, String message) {
-		if (!AI_DIAGNOSTICS || this.level().isClientSide) {
-			return;
-		}
-		long now = this.level().getGameTime();
-		long nextTick = nextAiDiagTickByStage.getOrDefault(stage, 0L);
-		if (now < nextTick) {
-			return;
-		}
-		nextAiDiagTickByStage.put(stage, now + AI_DIAG_INTERVAL_TICKS);
-		StardewCraft.LOGGER.info("[ANIMAL_AI] id={} type={} stage={} {}", managedAnimalId, managedAnimalType, stage, message);
+		// Diagnostics disabled in production.
 	}
 
 	private void logAiDiagNow(String stage, String message) {
-		if (!AI_DIAGNOSTICS || this.level().isClientSide) {
-			return;
-		}
-		StardewCraft.LOGGER.info("[ANIMAL_AI] id={} type={} stage={} {}", managedAnimalId, managedAnimalType, stage, message);
+		// Diagnostics disabled in production.
 	}
 
 	private void logAiStateSnapshot() {

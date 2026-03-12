@@ -35,7 +35,6 @@ public class FishingEvents {
         // 如果使用的是我们的钓竿，取消原版战利品掉落
         if (usingStardewRod) {
             event.setCanceled(true);
-            StardewCraft.LOGGER.debug("Canceled vanilla ItemFishedEvent - using Stardew fishing rod");
         }
     }
 }

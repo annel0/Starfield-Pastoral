@@ -1,0 +1,65 @@
+﻿{
+    "location":  "BeachNightMarket",
+    "fish":  [
+                 {
+                     "id":  "midnight_squid",
+                     "precedence":  100,
+                     "item":  "stardewcraft:midnight_squid",
+                     "chance":  0.15,
+                     "difficulty":  55,
+                     "motionType":  1,
+                     "minFishingLevel":  0,
+                     "timeRanges":  [
+                                        [
+                                            0,
+                                            200
+                                        ]
+                                    ],
+                     "maxDepth":  4,
+                     "depthMultiplier":  0.05,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_night_market"
+                                   ]
+                 },
+                 {
+                     "id":  "spook_fish",
+                     "precedence":  100,
+                     "item":  "stardewcraft:spook_fish",
+                     "chance":  0.15,
+                     "difficulty":  60,
+                     "motionType":  1,
+                     "minFishingLevel":  0,
+                     "timeRanges":  [
+                                        [
+                                            0,
+                                            200
+                                        ]
+                                    ],
+                     "maxDepth":  4,
+                     "depthMultiplier":  0.05,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_night_market"
+                                   ]
+                 },
+                 {
+                     "id":  "blobfish",
+                     "precedence":  100,
+                     "item":  "stardewcraft:blobfish",
+                     "chance":  0.1,
+                     "difficulty":  75,
+                     "motionType":  4,
+                     "minFishingLevel":  0,
+                     "timeRanges":  [
+                                        [
+                                            0,
+                                            200
+                                        ]
+                                    ],
+                     "maxDepth":  5,
+                     "depthMultiplier":  0.05,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_night_market"
+                                   ]
+                 }
+             ]
+}

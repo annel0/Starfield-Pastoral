@@ -1,0 +1,19 @@
+﻿{
+    "location":  "BugLand",
+    "fish":  [
+                 {
+                     "id":  "slimejack",
+                     "precedence":  100,
+                     "item":  "stardewcraft:slimejack",
+                     "chance":  0.2,
+                     "difficulty":  55,
+                     "motionType":  0,
+                     "minFishingLevel":  0,
+                     "maxDepth":  3,
+                     "depthMultiplier":  0.1,
+                     "biomeTags":  [
+                                       "#stardewcraft:is_mutant_bug_lair"
+                                   ]
+                 }
+             ]
+}

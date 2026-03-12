@@ -892,6 +892,14 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .strength(1.5F, 3.0F)));
 
         @SuppressWarnings("null")
+        public static final DeferredBlock<Block> COOKING_POT = BLOCKS.register("cooking_pot",
+                        () -> new com.stardew.craft.block.utility.CookingPotBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.METAL)
+                                        .sound(net.minecraft.world.level.block.SoundType.METAL)
+                                        .noOcclusion()
+                                        .strength(1.5F, 3.0F)));
+
+        @SuppressWarnings("null")
         public static final DeferredBlock<Block> CRYSTALARIUM = BLOCKS.register("crystalarium",
                         () -> new com.stardew.craft.block.utility.CrystalariumBlock(Block.Properties.of()
                                         .mapColor(net.minecraft.world.level.material.MapColor.METAL)

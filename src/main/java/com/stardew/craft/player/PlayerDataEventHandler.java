@@ -8,8 +8,11 @@ import com.stardew.craft.combat.WeaponStats;
 import com.stardew.craft.effect.ModMobEffects;
 import com.stardew.craft.network.PlayerDataSyncPacket;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -82,7 +85,6 @@ public class PlayerDataEventHandler {
             int moneyLoss = Math.min(data.getMoney() / 10, 1000);
             if (moneyLoss > 0) {
                 data.removeMoney(moneyLoss);
-                StardewCraft.LOGGER.debug("Player {} died, lost {} money", player.getName().getString(), moneyLoss);
             }
             
             // 重置生命值为满
@@ -133,8 +135,10 @@ public class PlayerDataEventHandler {
         // 武器防御（握持生效）
         WeaponStats weaponStats = WeaponStats.fromItemStack(player.getMainHandItem());
         float weaponDefense = weaponStats.getDefense();
-        if (weaponDefense > 0) {
-            float reduction = DamageCalculator.calculateDefenseReductionFromDefense(sdDamageFloat, weaponDefense);
+        float foodDefense = data.getTempDefenseBonus();
+        float totalDefense = weaponDefense + foodDefense;
+        if (totalDefense > 0) {
+            float reduction = DamageCalculator.calculateDefenseReductionFromDefense(sdDamageFloat, totalDefense);
             sdDamageFloat = Math.max(0.0f, sdDamageFloat - reduction);
         }
 
@@ -214,6 +218,66 @@ public class PlayerDataEventHandler {
                 changed |= data.clearTempLuckBonus();
             }
 
+            @SuppressWarnings("null")
+            MobEffectInstance farmerBlessing = player.getEffect(ModMobEffects.FARMER_BLESSING);
+            if (farmerBlessing != null) {
+                int bonus = ModMobEffects.farmerFarmingLevelBonus(farmerBlessing.getAmplifier());
+                long endTick = now + farmerBlessing.getDuration();
+                changed |= data.setTempFarmingLevelBonusDirect(bonus, endTick);
+            } else {
+                changed |= data.clearTempFarmingLevelBonus();
+            }
+
+            @SuppressWarnings("null")
+            MobEffectInstance foragerBlessing = player.getEffect(ModMobEffects.FORAGER_BLESSING);
+            if (foragerBlessing != null) {
+                int bonus = ModMobEffects.foragerForagingLevelBonus(foragerBlessing.getAmplifier());
+                long endTick = now + foragerBlessing.getDuration();
+                changed |= data.setTempForagingLevelBonusDirect(bonus, endTick);
+            } else {
+                changed |= data.clearTempForagingLevelBonus();
+            }
+
+            @SuppressWarnings("null")
+            MobEffectInstance minerBlessing = player.getEffect(ModMobEffects.MINER_BLESSING);
+            if (minerBlessing != null) {
+                int bonus = ModMobEffects.minerMiningLevelBonus(minerBlessing.getAmplifier());
+                long endTick = now + minerBlessing.getDuration();
+                changed |= data.setTempMiningLevelBonusDirect(bonus, endTick);
+            } else {
+                changed |= data.clearTempMiningLevelBonus();
+            }
+
+            @SuppressWarnings("null")
+            MobEffectInstance warriorBlessing = player.getEffect(ModMobEffects.WARRIOR_BLESSING);
+            if (warriorBlessing != null) {
+                int bonus = ModMobEffects.warriorAttackBonus(warriorBlessing.getAmplifier());
+                long endTick = now + warriorBlessing.getDuration();
+                changed |= data.setTempAttackBonusDirect(bonus, endTick);
+            } else {
+                changed |= data.clearTempAttackBonus();
+            }
+
+            @SuppressWarnings("null")
+            MobEffectInstance guardianBlessing = player.getEffect(ModMobEffects.GUARDIAN_BLESSING);
+            if (guardianBlessing != null) {
+                int bonus = ModMobEffects.guardianDefenseBonus(guardianBlessing.getAmplifier());
+                long endTick = now + guardianBlessing.getDuration();
+                changed |= data.setTempDefenseBonusDirect(bonus, endTick);
+            } else {
+                changed |= data.clearTempDefenseBonus();
+            }
+
+            @SuppressWarnings("null")
+            MobEffectInstance magnetism = player.getEffect(ModMobEffects.MAGNETISM);
+            if (magnetism != null) {
+                int bonus = ModMobEffects.magnetismRadiusBonus(magnetism.getAmplifier());
+                long endTick = now + magnetism.getDuration();
+                changed |= data.setTempMagneticRadiusBonusDirect(bonus, endTick);
+            } else {
+                changed |= data.clearTempMagneticRadiusBonus();
+            }
+
             // 兼容：若存在非 MobEffect 驱动的 timed buff，这里负责过期清理。
             changed |= data.tickTimedBuffs(now);
 
@@ -278,6 +342,8 @@ public class PlayerDataEventHandler {
         com.stardew.craft.combat.skill.EternalCollapseTracker.tick(player, player.level().getGameTime());
             com.stardew.craft.combat.skill.RiftPathDamageTracker.tick(player, player.level().getGameTime());
 
+        applyMagneticPull(player, PlayerDataManager.getPlayerData(player));
+
         if (player.level().dimension() != ModDimensions.STARDEW_VALLEY
             && player.level().dimension() != ModMiningDimensions.STARDEW_MINING) {
             return;
@@ -341,5 +407,49 @@ public class PlayerDataEventHandler {
     public static void syncPlayerData(ServerPlayer player, PlayerStardewData data) {
         PlayerDataSyncPacket packet = PlayerDataSyncPacket.fromPlayerData(data);
         PacketDistributor.sendToPlayer(player, packet);
+    }
+
+    /**
+     * 吸附掉落物（仅 motion 推进，不做瞬移）。
+     */
+    @SuppressWarnings("null")
+    private static void applyMagneticPull(ServerPlayer player, PlayerStardewData data) {
+        int radiusBonus = data.getTempMagneticRadiusBonus();
+        if (radiusBonus <= 0) {
+            return;
+        }
+        if (player.isSpectator()) {
+            return;
+        }
+
+        // Radius is configured directly in blocks (e.g. +3 => pull items within 3 blocks).
+        double radius = Math.max(1.0, radiusBonus);
+        AABB playerBox = player.getBoundingBox();
+        AABB range = playerBox.inflate(radius, radius * 0.75, radius);
+        Vec3 target = player.position().add(0.0, 0.6, 0.0);
+
+        for (ItemEntity item : player.level().getEntitiesOfClass(ItemEntity.class, range, ItemEntity::isAlive)) {
+            Vec3 itemPos = item.position().add(0.0, 0.1, 0.0);
+            Vec3 delta = target.subtract(itemPos);
+            double dist = delta.length();
+            if (dist < 0.05 || dist > radius) {
+                continue;
+            }
+
+            Vec3 dir = delta.scale(1.0 / dist);
+            double t = 1.0 - (dist / radius);
+            double accel = 0.04 + t * 0.12;
+            Vec3 pull = dir.scale(accel);
+
+            Vec3 nextMotion = item.getDeltaMovement().scale(0.82).add(pull);
+            double maxSpeed = 0.45;
+            if (nextMotion.lengthSqr() > maxSpeed * maxSpeed) {
+                nextMotion = nextMotion.normalize().scale(maxSpeed);
+            }
+
+            item.setDeltaMovement(nextMotion);
+            item.hasImpulse = true;
+            item.hurtMarked = true;
+        }
     }
 }

@@ -68,6 +68,7 @@ public record FishingStartPayload(UUID sessionId, int difficulty, int motionType
 					payload.sessionId(),
 					payload.difficulty(),
 					payload.motionTypeId(),
+					false,
 					payload.durationTicks(),
 					false,
 					false,

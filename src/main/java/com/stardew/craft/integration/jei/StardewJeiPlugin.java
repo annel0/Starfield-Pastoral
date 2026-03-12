@@ -5,6 +5,8 @@ import com.stardew.craft.fishing.data.FishingDataManager;
 import com.stardew.craft.fishing.data.SpawnFishRule;
 import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.item.ModItems;
+import com.stardew.craft.item.SpecificBaitItem;
+import com.stardew.craft.item.StardewQualityItem;
 import com.stardew.craft.item.artisan.ArtisanDrinkItem;
 import com.stardew.craft.item.artisan.DehydratorIngredientHelper;
 import com.stardew.craft.item.artisan.PreserveType;
@@ -85,13 +87,16 @@ public class StardewJeiPlugin implements IModPlugin {
         registration.registerSubtypeInterpreter(ModItems.AGED_ROE.get(), new PreserveSubtypeInterpreter());
         registration.registerSubtypeInterpreter(ModItems.DRIED_FRUIT.get(), new PreserveSubtypeInterpreter());
         registration.registerSubtypeInterpreter(ModItems.DRIED_MUSHROOMS.get(), new PreserveSubtypeInterpreter());
+        registration.registerSubtypeInterpreter(ModItems.TARGETED_BAIT.get(), new SpecificBaitSubtypeInterpreter());
     }
 
     @Override
     @SuppressWarnings("null")
     public void registerExtraIngredients(@SuppressWarnings("null") IExtraIngredientRegistration registration) {
+        registration.addExtraItemStacks(buildCategoryDisplayVariants());
         registration.addExtraItemStacks(buildPreserveVariants());
         registration.addExtraItemStacks(buildSmokedFishVariants());
+        registration.addExtraItemStacks(buildSpecificBaitVariants());
     }
 
     @SuppressWarnings("null")
@@ -133,6 +138,9 @@ public class StardewJeiPlugin implements IModPlugin {
         if (!(item instanceof IStardewItem stardewItem)) {
             return false;
         }
+        if (item instanceof StardewQualityItem qualityItem && qualityItem.supportsQuality()) {
+            return true;
+        }
         String typeKey = stardewItem.getItemTypeKey();
         if (item instanceof ArtisanDrinkItem drink && drink.supportsQuality()) {
             return true;
@@ -142,6 +150,8 @@ public class StardewJeiPlugin implements IModPlugin {
         }
         return "stardewcraft.type.crop".equals(typeKey)
             || "stardewcraft.type.crop_seed".equals(typeKey)
+            || "stardewcraft.type.fruit".equals(typeKey)
+            || "stardewcraft.type.forage".equals(typeKey)
             || "stardewcraft.type.fish".equals(typeKey)
             || "stardewcraft.type.crabpot".equals(typeKey)
             || "stardewcraft.type.legendary_fish".equals(typeKey)
@@ -211,6 +221,80 @@ public class StardewJeiPlugin implements IModPlugin {
         return stacks;
     }
 
+    private static List<ItemStack> buildSpecificBaitVariants() {
+        List<ItemStack> stacks = new ArrayList<>();
+        int variantIndex = 0;
+        for (var holder : ModItems.ITEMS.getEntries()) {
+            var item = holder.get();
+            if (!(item instanceof IStardewItem stardewItem)) {
+                continue;
+            }
+            if (!isPreserveFishIngredient(stardewItem.getItemTypeKey())) {
+                continue;
+            }
+
+            ItemStack fishStack = new ItemStack(item);
+            if (fishStack.isEmpty()) {
+                continue;
+            }
+
+            ItemStack baitStack = SpecificBaitItem.createForFish(fishStack, 1);
+            // Keep JEI subtype stable even if some environments strip custom NBT.
+            SpecificBaitItem.applyCreativeVariantMarker(baitStack, variantIndex);
+            stacks.add(baitStack);
+            variantIndex++;
+        }
+        return stacks;
+    }
+
+    private static List<ItemStack> buildCategoryDisplayVariants() {
+        List<ItemStack> stacks = new ArrayList<>();
+        List<net.minecraft.world.item.Item> cookingIngredients = new ArrayList<>();
+        List<net.minecraft.world.item.Item> fruits = new ArrayList<>();
+        List<net.minecraft.world.item.Item> forages = new ArrayList<>();
+
+        for (var holder : ModItems.ITEMS.getEntries()) {
+            var item = holder.get();
+            if (!(item instanceof IStardewItem stardewItem)) {
+                continue;
+            }
+
+            String typeKey = stardewItem.getItemTypeKey();
+            if ("stardewcraft.type.cooking_ingredient".equals(typeKey)) {
+                cookingIngredients.add(item);
+            } else if ("stardewcraft.type.fruit".equals(typeKey)) {
+                fruits.add(item);
+            } else if ("stardewcraft.type.forage".equals(typeKey)) {
+                forages.add(item);
+            }
+        }
+
+        stacks.addAll(buildGroupedCategoryStacks(cookingIngredients, false));
+        stacks.addAll(buildGroupedCategoryStacks(fruits, true));
+        stacks.addAll(buildGroupedCategoryStacks(forages, true));
+        return stacks;
+    }
+
+    @SuppressWarnings("null")
+    private static List<ItemStack> buildGroupedCategoryStacks(List<net.minecraft.world.item.Item> items, boolean forceQuality) {
+        List<ItemStack> stacks = new ArrayList<>();
+        items.sort(java.util.Comparator.comparing(i -> net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(i).getPath()));
+        for (var item : items) {
+            boolean supportsQuality = item instanceof StardewQualityItem qualityItem && qualityItem.supportsQuality();
+            if (forceQuality || supportsQuality) {
+                ItemStack base = new ItemStack(item);
+                stacks.add(QualityHelper.createWithQuality(base, QualityHelper.NORMAL));
+                stacks.add(QualityHelper.createWithQuality(base, QualityHelper.SILVER));
+                stacks.add(QualityHelper.createWithQuality(base, QualityHelper.GOLD));
+                stacks.add(QualityHelper.createWithQuality(base, QualityHelper.IRIDIUM));
+                continue;
+            }
+            ItemStack base = new ItemStack(item);
+            stacks.add(base);
+        }
+        return stacks;
+    }
+
     private static boolean isPreserveCropIngredient(String typeKey) {
         return "stardewcraft.type.crop".equals(typeKey);
     }
@@ -272,6 +356,20 @@ public class StardewJeiPlugin implements IModPlugin {
         @Override
         public String getLegacyStringSubtypeInfo(@SuppressWarnings("null") ItemStack stack, @SuppressWarnings("null") UidContext context) {
             return PreservesItem.getSubtypeKey(stack);
+        }
+    }
+
+    private static final class SpecificBaitSubtypeInterpreter implements ISubtypeInterpreter<ItemStack> {
+        @Override
+        public Object getSubtypeData(@SuppressWarnings("null") ItemStack stack, @SuppressWarnings("null") UidContext context) {
+            String fishId = SpecificBaitItem.getTargetFishId(stack);
+            return fishId == null || fishId.isBlank() ? "target=none" : "target=" + fishId;
+        }
+
+        @Override
+        public String getLegacyStringSubtypeInfo(@SuppressWarnings("null") ItemStack stack, @SuppressWarnings("null") UidContext context) {
+            String fishId = SpecificBaitItem.getTargetFishId(stack);
+            return fishId == null || fishId.isBlank() ? "target=none" : "target=" + fishId;
         }
     }
 }

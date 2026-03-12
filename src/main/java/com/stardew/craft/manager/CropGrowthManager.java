@@ -165,7 +165,6 @@ public class CropGrowthManager extends SavedData {
      */
     @SuppressWarnings("null")
     public void growDaily(ServerLevel serverLevel) {
-        StardewCraft.LOGGER.info("Starting daily crop growth update for {} crops...", cropPositions.size());
         isProcessing = true;
         try {
             // 使用快照遍历，避免方块替换触发 add/remove 导致 HashSet 迭代器 CME
@@ -227,8 +226,6 @@ public class CropGrowthManager extends SavedData {
      */
     @SuppressWarnings("null")
     public void killOutOfSeasonLoaded(ServerLevel serverLevel) {
-        StardewCraft.LOGGER.info("Checking out-of-season crops for {} crops...", cropPositions.size());
-
         isProcessing = true;
         try {
             // 使用快照遍历，避免 setBlock 触发 add/remove 导致 HashSet 迭代器 CME

@@ -21,11 +21,15 @@ public class ClientPlayerDataCache {
     private static int money = 500;  // 默认500金币
     private static int[] experience = new int[5];
     private static List<String> professions = new ArrayList<>();
+    private static final java.util.Set<String> unlockedRecipes = new java.util.HashSet<>();
 
     // 临时Buff（客户端显示/计算用）
     private static int tempFishingLevelBonus = 0;
     private static int tempLuckBonus = 0;
     private static int tempMaxEnergyBonus = 0;
+    private static int tempFarmingLevelBonus = 0;
+    private static int tempForagingLevelBonus = 0;
+    private static int tempMiningLevelBonus = 0;
     
     /**
      * 从NBT更新缓存
@@ -40,6 +44,9 @@ public class ClientPlayerDataCache {
 
         tempFishingLevelBonus = nbt.contains("TempFishingLevelBonus") ? nbt.getInt("TempFishingLevelBonus") : 0;
         tempLuckBonus = nbt.contains("TempLuckBonus") ? nbt.getInt("TempLuckBonus") : 0;
+        tempFarmingLevelBonus = nbt.contains("TempFarmingLevelBonus") ? nbt.getInt("TempFarmingLevelBonus") : 0;
+        tempForagingLevelBonus = nbt.contains("TempForagingLevelBonus") ? nbt.getInt("TempForagingLevelBonus") : 0;
+        tempMiningLevelBonus = nbt.contains("TempMiningLevelBonus") ? nbt.getInt("TempMiningLevelBonus") : 0;
         
         // 同步更新HUD的金币显示
         com.stardew.craft.client.hud.StardewTimeHud.updateClientMoney(money);
@@ -55,6 +62,15 @@ public class ClientPlayerDataCache {
         professions.clear();
         for (int i = 0; i < profList.size(); i++) {
             professions.add(profList.getString(i));
+        }
+
+        // 读取已解锁的配方
+        unlockedRecipes.clear();
+        if (nbt.contains("UnlockedRecipes")) {
+            ListTag recipesList = nbt.getList("UnlockedRecipes", Tag.TAG_STRING);
+            for (int i = 0; i < recipesList.size(); i++) {
+                unlockedRecipes.add(recipesList.getString(i));
+            }
         }
     }
     
@@ -89,9 +105,10 @@ public class ClientPlayerDataCache {
     
     public static int getSkillLevel(SkillType skill) {
         int level = calculateLevel(experience[skill.ordinal()]);
-        if (skill == SkillType.FISHING) {
-            level += tempFishingLevelBonus;
-        }
+        if (skill == SkillType.FISHING) level += tempFishingLevelBonus;
+        if (skill == SkillType.FARMING) level += tempFarmingLevelBonus;
+        if (skill == SkillType.FORAGING) level += tempForagingLevelBonus;
+        if (skill == SkillType.MINING) level += tempMiningLevelBonus;
         return Math.max(0, level);
     }
 
@@ -103,6 +120,14 @@ public class ClientPlayerDataCache {
         return new ArrayList<>(professions);
     }
     
+    public static java.util.Set<String> getUnlockedRecipes() {
+        return new java.util.HashSet<>(unlockedRecipes);
+    }
+
+    public static boolean hasRecipe(String recipeId) {
+        return unlockedRecipes.contains(recipeId);
+    }
+
     /**
      * 重置所有缓存（用于退出世界时）
      */
@@ -114,9 +139,13 @@ public class ClientPlayerDataCache {
         money = 0;
         experience = new int[5];
         professions.clear();
+        unlockedRecipes.clear();
         tempFishingLevelBonus = 0;
         tempLuckBonus = 0;
         tempMaxEnergyBonus = 0;
+        tempFarmingLevelBonus = 0;
+        tempForagingLevelBonus = 0;
+        tempMiningLevelBonus = 0;
     }
     
     /**

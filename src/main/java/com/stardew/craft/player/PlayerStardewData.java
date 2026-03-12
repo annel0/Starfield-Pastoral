@@ -62,9 +62,30 @@ public class PlayerStardewData {
     private int tempMaxEnergyBonus;
     private long tempMaxEnergyBonusEndTick;
 
+    private int tempFarmingLevelBonus;
+    private long tempFarmingLevelBonusEndTick;
+
+    private int tempForagingLevelBonus;
+    private long tempForagingLevelBonusEndTick;
+
+    private int tempMiningLevelBonus;
+    private long tempMiningLevelBonusEndTick;
+
+    private int tempAttackBonus;
+    private long tempAttackBonusEndTick;
+
+    private int tempDefenseBonus;
+    private long tempDefenseBonusEndTick;
+
+    private int tempMagneticRadiusBonus;
+    private long tempMagneticRadiusBonusEndTick;
+
     // ============ 装饰解锁 ============
     private final Set<String> unlockedWallpaperStyles = new HashSet<>();
     private final Set<String> unlockedFlooringStyles = new HashSet<>();
+
+    // ============ 配方解锁 ============
+    private final Set<String> unlockedRecipes = new HashSet<>();
 
     // ============ 钓鱼记录 ============
     // 用于对齐原版 CatchLimit（例如传奇鱼一次性）
@@ -112,6 +133,18 @@ public class PlayerStardewData {
         this.tempLuckBonusEndTick = 0L;
         this.tempMaxEnergyBonus = 0;
         this.tempMaxEnergyBonusEndTick = 0L;
+        this.tempFarmingLevelBonus = 0;
+        this.tempFarmingLevelBonusEndTick = 0L;
+        this.tempForagingLevelBonus = 0;
+        this.tempForagingLevelBonusEndTick = 0L;
+        this.tempMiningLevelBonus = 0;
+        this.tempMiningLevelBonusEndTick = 0L;
+        this.tempAttackBonus = 0;
+        this.tempAttackBonusEndTick = 0L;
+        this.tempDefenseBonus = 0;
+        this.tempDefenseBonusEndTick = 0L;
+        this.tempMagneticRadiusBonus = 0;
+        this.tempMagneticRadiusBonusEndTick = 0L;
 
         this.unlockedWallpaperStyles.add(DecorationStyleRegistry.getDefaultStyleId(DecorationType.WALLPAPER));
         this.unlockedFlooringStyles.add(DecorationStyleRegistry.getDefaultStyleId(DecorationType.FLOORING));
@@ -166,9 +199,22 @@ public class PlayerStardewData {
         data.tempLuckBonusEndTick = tag.contains("TempLuckBonusEndTick") ? tag.getLong("TempLuckBonusEndTick") : 0L;
         data.tempMaxEnergyBonus = tag.contains("TempMaxEnergyBonus") ? tag.getInt("TempMaxEnergyBonus") : 0;
         data.tempMaxEnergyBonusEndTick = tag.contains("TempMaxEnergyBonusEndTick") ? tag.getLong("TempMaxEnergyBonusEndTick") : 0L;
+        data.tempFarmingLevelBonus = tag.contains("TempFarmingLevelBonus") ? tag.getInt("TempFarmingLevelBonus") : 0;
+        data.tempFarmingLevelBonusEndTick = tag.contains("TempFarmingLevelBonusEndTick") ? tag.getLong("TempFarmingLevelBonusEndTick") : 0L;
+        data.tempForagingLevelBonus = tag.contains("TempForagingLevelBonus") ? tag.getInt("TempForagingLevelBonus") : 0;
+        data.tempForagingLevelBonusEndTick = tag.contains("TempForagingLevelBonusEndTick") ? tag.getLong("TempForagingLevelBonusEndTick") : 0L;
+        data.tempMiningLevelBonus = tag.contains("TempMiningLevelBonus") ? tag.getInt("TempMiningLevelBonus") : 0;
+        data.tempMiningLevelBonusEndTick = tag.contains("TempMiningLevelBonusEndTick") ? tag.getLong("TempMiningLevelBonusEndTick") : 0L;
+        data.tempAttackBonus = tag.contains("TempAttackBonus") ? tag.getInt("TempAttackBonus") : 0;
+        data.tempAttackBonusEndTick = tag.contains("TempAttackBonusEndTick") ? tag.getLong("TempAttackBonusEndTick") : 0L;
+        data.tempDefenseBonus = tag.contains("TempDefenseBonus") ? tag.getInt("TempDefenseBonus") : 0;
+        data.tempDefenseBonusEndTick = tag.contains("TempDefenseBonusEndTick") ? tag.getLong("TempDefenseBonusEndTick") : 0L;
+        data.tempMagneticRadiusBonus = tag.contains("TempMagneticRadiusBonus") ? tag.getInt("TempMagneticRadiusBonus") : 0;
+        data.tempMagneticRadiusBonusEndTick = tag.contains("TempMagneticRadiusBonusEndTick") ? tag.getLong("TempMagneticRadiusBonusEndTick") : 0L;
 
         data.unlockedWallpaperStyles.clear();
         data.unlockedFlooringStyles.clear();
+        data.unlockedRecipes.clear();
         if (tag.contains("UnlockedWallpaperStyles")) {
             ListTag list = tag.getList("UnlockedWallpaperStyles", 8);
             for (int i = 0; i < list.size(); i++) {
@@ -179,6 +225,12 @@ public class PlayerStardewData {
             ListTag list = tag.getList("UnlockedFlooringStyles", 8);
             for (int i = 0; i < list.size(); i++) {
                 data.unlockedFlooringStyles.add(list.getString(i));
+            }
+        }
+        if (tag.contains("UnlockedRecipes")) {
+            ListTag list = tag.getList("UnlockedRecipes", 8);
+            for (int i = 0; i < list.size(); i++) {
+                data.unlockedRecipes.add(list.getString(i));
             }
         }
         data.unlockedWallpaperStyles.add(DecorationStyleRegistry.getDefaultStyleId(DecorationType.WALLPAPER));
@@ -262,6 +314,18 @@ public class PlayerStardewData {
         tag.putLong("TempLuckBonusEndTick", tempLuckBonusEndTick);
         tag.putInt("TempMaxEnergyBonus", tempMaxEnergyBonus);
         tag.putLong("TempMaxEnergyBonusEndTick", tempMaxEnergyBonusEndTick);
+        tag.putInt("TempFarmingLevelBonus", tempFarmingLevelBonus);
+        tag.putLong("TempFarmingLevelBonusEndTick", tempFarmingLevelBonusEndTick);
+        tag.putInt("TempForagingLevelBonus", tempForagingLevelBonus);
+        tag.putLong("TempForagingLevelBonusEndTick", tempForagingLevelBonusEndTick);
+        tag.putInt("TempMiningLevelBonus", tempMiningLevelBonus);
+        tag.putLong("TempMiningLevelBonusEndTick", tempMiningLevelBonusEndTick);
+        tag.putInt("TempAttackBonus", tempAttackBonus);
+        tag.putLong("TempAttackBonusEndTick", tempAttackBonusEndTick);
+        tag.putInt("TempDefenseBonus", tempDefenseBonus);
+        tag.putLong("TempDefenseBonusEndTick", tempDefenseBonusEndTick);
+        tag.putInt("TempMagneticRadiusBonus", tempMagneticRadiusBonus);
+        tag.putLong("TempMagneticRadiusBonusEndTick", tempMagneticRadiusBonusEndTick);
 
         ListTag unlockedWallpapers = new ListTag();
         for (String styleId : unlockedWallpaperStyles) {
@@ -274,6 +338,12 @@ public class PlayerStardewData {
             unlockedFloorings.add(StringTag.valueOf(styleId));
         }
         tag.put("UnlockedFlooringStyles", unlockedFloorings);
+
+        ListTag unlockedRecipesTag = new ListTag();
+        for (String recipeId : unlockedRecipes) {
+            unlockedRecipesTag.add(StringTag.valueOf(recipeId));
+        }
+        tag.put("UnlockedRecipes", unlockedRecipesTag);
 
         ListTag fishCounts = new ListTag();
         for (Map.Entry<String, Integer> entry : fishCatchCounts.entrySet()) {
@@ -567,10 +637,13 @@ public class PlayerStardewData {
     
     public int getSkillLevel(SkillType skill) {
         int base = skillLevels[skill.getId()];
-        if (skill == SkillType.FISHING) {
-            return Math.max(0, base + tempFishingLevelBonus);
-        }
-        return base;
+        return switch (skill) {
+            case FISHING -> Math.max(0, base + tempFishingLevelBonus);
+            case FARMING -> Math.max(0, base + tempFarmingLevelBonus);
+            case FORAGING -> Math.max(0, base + tempForagingLevelBonus);
+            case MINING -> Math.max(0, base + tempMiningLevelBonus);
+            default -> base;
+        };
     }
 
     /**
@@ -637,6 +710,39 @@ public class PlayerStardewData {
         return new HashSet<>(type == DecorationType.WALLPAPER ? unlockedWallpaperStyles : unlockedFlooringStyles);
     }
 
+    public boolean isRecipeUnlocked(String recipeId) {
+        if (recipeId == null || recipeId.isBlank()) {
+            return false;
+        }
+        return unlockedRecipes.contains(recipeId);
+    }
+
+    public boolean unlockRecipe(String recipeId) {
+        if (recipeId == null || recipeId.isBlank()) {
+            return false;
+        }
+        boolean changed = unlockedRecipes.add(recipeId);
+        if (changed) {
+            markDirty();
+        }
+        return changed;
+    }
+
+    public boolean lockRecipe(String recipeId) {
+        if (recipeId == null || recipeId.isBlank()) {
+            return false;
+        }
+        boolean changed = unlockedRecipes.remove(recipeId);
+        if (changed) {
+            markDirty();
+        }
+        return changed;
+    }
+
+    public Set<String> getUnlockedRecipes() {
+        return new HashSet<>(unlockedRecipes);
+    }
+
     public int getFishCatchCount(String itemId) {
         if (itemId == null || itemId.isBlank()) {
             return 0;
@@ -698,6 +804,30 @@ public class PlayerStardewData {
         return tempMaxEnergyBonus;
     }
 
+    public int getTempFarmingLevelBonus() {
+        return tempFarmingLevelBonus;
+    }
+
+    public int getTempForagingLevelBonus() {
+        return tempForagingLevelBonus;
+    }
+
+    public int getTempMiningLevelBonus() {
+        return tempMiningLevelBonus;
+    }
+
+    public int getTempAttackBonus() {
+        return tempAttackBonus;
+    }
+
+    public int getTempDefenseBonus() {
+        return tempDefenseBonus;
+    }
+
+    public int getTempMagneticRadiusBonus() {
+        return tempMagneticRadiusBonus;
+    }
+
     /**
      * 直接设置临时Buff（用于从 MobEffect 同步）。
      * 不使用 max 叠加规则；仅当值发生变化时才 markDirty。
@@ -740,6 +870,78 @@ public class PlayerStardewData {
         return true;
     }
 
+    public boolean setTempFarmingLevelBonusDirect(int bonus, long endTick) {
+        bonus = Math.max(0, bonus);
+        endTick = Math.max(0L, endTick);
+        if (tempFarmingLevelBonus == bonus && tempFarmingLevelBonusEndTick == endTick) {
+            return false;
+        }
+        tempFarmingLevelBonus = bonus;
+        tempFarmingLevelBonusEndTick = endTick;
+        markDirty();
+        return true;
+    }
+
+    public boolean setTempForagingLevelBonusDirect(int bonus, long endTick) {
+        bonus = Math.max(0, bonus);
+        endTick = Math.max(0L, endTick);
+        if (tempForagingLevelBonus == bonus && tempForagingLevelBonusEndTick == endTick) {
+            return false;
+        }
+        tempForagingLevelBonus = bonus;
+        tempForagingLevelBonusEndTick = endTick;
+        markDirty();
+        return true;
+    }
+
+    public boolean setTempMiningLevelBonusDirect(int bonus, long endTick) {
+        bonus = Math.max(0, bonus);
+        endTick = Math.max(0L, endTick);
+        if (tempMiningLevelBonus == bonus && tempMiningLevelBonusEndTick == endTick) {
+            return false;
+        }
+        tempMiningLevelBonus = bonus;
+        tempMiningLevelBonusEndTick = endTick;
+        markDirty();
+        return true;
+    }
+
+    public boolean setTempAttackBonusDirect(int bonus, long endTick) {
+        bonus = Math.max(0, bonus);
+        endTick = Math.max(0L, endTick);
+        if (tempAttackBonus == bonus && tempAttackBonusEndTick == endTick) {
+            return false;
+        }
+        tempAttackBonus = bonus;
+        tempAttackBonusEndTick = endTick;
+        markDirty();
+        return true;
+    }
+
+    public boolean setTempDefenseBonusDirect(int bonus, long endTick) {
+        bonus = Math.max(0, bonus);
+        endTick = Math.max(0L, endTick);
+        if (tempDefenseBonus == bonus && tempDefenseBonusEndTick == endTick) {
+            return false;
+        }
+        tempDefenseBonus = bonus;
+        tempDefenseBonusEndTick = endTick;
+        markDirty();
+        return true;
+    }
+
+    public boolean setTempMagneticRadiusBonusDirect(int bonus, long endTick) {
+        bonus = Math.max(0, bonus);
+        endTick = Math.max(0L, endTick);
+        if (tempMagneticRadiusBonus == bonus && tempMagneticRadiusBonusEndTick == endTick) {
+            return false;
+        }
+        tempMagneticRadiusBonus = bonus;
+        tempMagneticRadiusBonusEndTick = endTick;
+        markDirty();
+        return true;
+    }
+
     public boolean clearTempFishingLevelBonus() {
         return setTempFishingLevelBonusDirect(0, 0L);
     }
@@ -750,6 +952,30 @@ public class PlayerStardewData {
 
     public boolean clearTempMaxEnergyBonus() {
         return setTempMaxEnergyBonusDirect(0, 0L);
+    }
+
+    public boolean clearTempFarmingLevelBonus() {
+        return setTempFarmingLevelBonusDirect(0, 0L);
+    }
+
+    public boolean clearTempForagingLevelBonus() {
+        return setTempForagingLevelBonusDirect(0, 0L);
+    }
+
+    public boolean clearTempMiningLevelBonus() {
+        return setTempMiningLevelBonusDirect(0, 0L);
+    }
+
+    public boolean clearTempAttackBonus() {
+        return setTempAttackBonusDirect(0, 0L);
+    }
+
+    public boolean clearTempDefenseBonus() {
+        return setTempDefenseBonusDirect(0, 0L);
+    }
+
+    public boolean clearTempMagneticRadiusBonus() {
+        return setTempMagneticRadiusBonusDirect(0, 0L);
     }
 
     public void applyTempFishingLevelBonus(int bonus, long endTick) {
@@ -769,6 +995,42 @@ public class PlayerStardewData {
         this.tempMaxEnergyBonusEndTick = Math.max(this.tempMaxEnergyBonusEndTick, endTick);
         // maxEnergy buff 影响能量上限，确保当前能量不超过新的上限
         this.energy = Math.min(this.energy, getEffectiveMaxEnergy());
+        markDirty();
+    }
+
+    public void applyTempFarmingLevelBonus(int bonus, long endTick) {
+        this.tempFarmingLevelBonus = Math.max(this.tempFarmingLevelBonus, bonus);
+        this.tempFarmingLevelBonusEndTick = Math.max(this.tempFarmingLevelBonusEndTick, endTick);
+        markDirty();
+    }
+
+    public void applyTempForagingLevelBonus(int bonus, long endTick) {
+        this.tempForagingLevelBonus = Math.max(this.tempForagingLevelBonus, bonus);
+        this.tempForagingLevelBonusEndTick = Math.max(this.tempForagingLevelBonusEndTick, endTick);
+        markDirty();
+    }
+
+    public void applyTempMiningLevelBonus(int bonus, long endTick) {
+        this.tempMiningLevelBonus = Math.max(this.tempMiningLevelBonus, bonus);
+        this.tempMiningLevelBonusEndTick = Math.max(this.tempMiningLevelBonusEndTick, endTick);
+        markDirty();
+    }
+
+    public void applyTempAttackBonus(int bonus, long endTick) {
+        this.tempAttackBonus = Math.max(this.tempAttackBonus, bonus);
+        this.tempAttackBonusEndTick = Math.max(this.tempAttackBonusEndTick, endTick);
+        markDirty();
+    }
+
+    public void applyTempDefenseBonus(int bonus, long endTick) {
+        this.tempDefenseBonus = Math.max(this.tempDefenseBonus, bonus);
+        this.tempDefenseBonusEndTick = Math.max(this.tempDefenseBonusEndTick, endTick);
+        markDirty();
+    }
+
+    public void applyTempMagneticRadiusBonus(int bonus, long endTick) {
+        this.tempMagneticRadiusBonus = Math.max(this.tempMagneticRadiusBonus, bonus);
+        this.tempMagneticRadiusBonusEndTick = Math.max(this.tempMagneticRadiusBonusEndTick, endTick);
         markDirty();
     }
 
@@ -794,6 +1056,36 @@ public class PlayerStardewData {
             tempMaxEnergyBonusEndTick = 0L;
             // buff 结束后，能量上限降低，夹紧当前能量
             energy = Math.min(energy, getEffectiveMaxEnergy());
+            changed = true;
+        }
+        if (tempFarmingLevelBonus != 0 && gameTime >= tempFarmingLevelBonusEndTick) {
+            tempFarmingLevelBonus = 0;
+            tempFarmingLevelBonusEndTick = 0L;
+            changed = true;
+        }
+        if (tempForagingLevelBonus != 0 && gameTime >= tempForagingLevelBonusEndTick) {
+            tempForagingLevelBonus = 0;
+            tempForagingLevelBonusEndTick = 0L;
+            changed = true;
+        }
+        if (tempMiningLevelBonus != 0 && gameTime >= tempMiningLevelBonusEndTick) {
+            tempMiningLevelBonus = 0;
+            tempMiningLevelBonusEndTick = 0L;
+            changed = true;
+        }
+        if (tempAttackBonus != 0 && gameTime >= tempAttackBonusEndTick) {
+            tempAttackBonus = 0;
+            tempAttackBonusEndTick = 0L;
+            changed = true;
+        }
+        if (tempDefenseBonus != 0 && gameTime >= tempDefenseBonusEndTick) {
+            tempDefenseBonus = 0;
+            tempDefenseBonusEndTick = 0L;
+            changed = true;
+        }
+        if (tempMagneticRadiusBonus != 0 && gameTime >= tempMagneticRadiusBonusEndTick) {
+            tempMagneticRadiusBonus = 0;
+            tempMagneticRadiusBonusEndTick = 0L;
             changed = true;
         }
 

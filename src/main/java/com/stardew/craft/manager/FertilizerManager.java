@@ -131,7 +131,6 @@ public class FertilizerManager extends SavedData {
             }
         }
         
-        com.stardew.craft.StardewCraft.LOGGER.debug("Removed fertilizer at {} in dimension {}", pos, dimKey.location());
     }
 
     /**
