@@ -39,12 +39,9 @@ public class AnimalPurchaseScreen extends Screen {
     private static final int SHOP_FIG_H = 920;
     private static final float SHOP_GLOBAL_SCALE = 0.50f;
     private static final float CARD_EXTRA_SCALE = 0.90f;
-    private static final float COOP_ICON_SCALE = 0.92f;
+    private static final float COOP_ICON_SCALE = 0.72f;
 
-    private static final int OVERLAY = 0x66121216;
-    private static final int CARD_COLOR = 0xFFE0C66D;
     private static final int CARD_TEXT = 0xFFF7F2DB;
-    private static final int CARD_TEXT_SUB = 0xFFEEE4BF;
     private static final int CARD_PRICE = 0xFFAD5933;
     private static final int DIM_TEXT = 0xFFB8B8B8;
     private static final int LINE = 0xA0A0A0A0;
@@ -79,6 +76,9 @@ public class AnimalPurchaseScreen extends Screen {
     private final OpenAnimalPurchaseScreenPayload payload;
     private final List<AnimalItem> items = new ArrayList<>();
     private final Random random = new Random();
+    
+    private List<OpenAnimalPurchaseScreenPayload.BuildingOption> cachedBuildings = null;
+    private int lastAnimalForBuildings = -1;
 
     private int panelX;
     private int panelY;
@@ -158,7 +158,22 @@ public class AnimalPurchaseScreen extends Screen {
         int diceCy;
     }
 
-    private record AnimalItem(int payloadIndex, OpenAnimalPurchaseScreenPayload.AnimalOption option) {}
+    private class AnimalItem {
+        final OpenAnimalPurchaseScreenPayload.AnimalOption option;
+        final String title;
+        final List<String> descLines;
+        final String priceString;
+        final boolean isCoop;
+
+        AnimalItem(OpenAnimalPurchaseScreenPayload.AnimalOption option) {
+            this.option = option;
+            this.title = trim(resolveDisplayName(option.displayName(), option.animalTypeId()), 8);
+            String rawDesc = option.unlocked() ? Component.translatable(option.descriptionKey()).getString() : Component.translatable(option.lockReasonKey()).getString();
+            this.descLines = splitSimple(rawDesc, 4, 10);
+            this.priceString = option.unlocked() ? (option.price() + " G") : "??? G";
+            this.isCoop = isCoopAnimalType(option.animalTypeId());
+        }
+    }
 
     public AnimalPurchaseScreen(OpenAnimalPurchaseScreenPayload payload) {
         super(Component.translatable("container.stardew_craft.animal_purchase"));
@@ -172,7 +187,7 @@ public class AnimalPurchaseScreen extends Screen {
 
         items.clear();
         for (int i = 0; i < payload.animalOptions().size(); i++) {
-            items.add(new AnimalItem(i, payload.animalOptions().get(i)));
+            items.add(new AnimalItem(payload.animalOptions().get(i)));
         }
         items.sort(Comparator
             .comparing((AnimalItem i) -> !i.option.unlocked())
@@ -411,7 +426,8 @@ public class AnimalPurchaseScreen extends Screen {
         updateHover(mouseX, mouseY);
 
         this.renderTransparentBackground(graphics);
-        graphics.fill(0, 0, this.width, this.height, OVERLAY);
+        // Cinematic vignette overlay
+        graphics.fillGradient(0, 0, this.width, this.height, 0xAA0A0A0E, 0xEA050508);
 
         float entry = easeOutCubic(Math.min(1.0f, (System.currentTimeMillis() - openedAtMs) / (float) CAROUSEL_ENTRY_MS));
         float swap = easeOutCubic(Math.min(1.0f, (System.currentTimeMillis() - stageChangedAtMs) / (float) STAGE_SWAP_MS));
@@ -436,8 +452,13 @@ public class AnimalPurchaseScreen extends Screen {
     private void drawCarouselStage(GuiGraphics graphics, int mouseX, int mouseY, float alpha) {
         int titleX = fx(-346);
         int titleY = fy(-434);
-        drawScaledBoldText(graphics, "玛尼的动物商店", titleX, titleY, fs(48), alphaColor(0xFFFFFFFF, alpha));
-        graphics.fill(fx(-635), fy(-364), fx(279), fy(-363), alphaColor(LINE, alpha));
+        
+        // 增加质感顶条，而非原本空洞的背景
+        graphics.fillGradient(fx(-778), fy(-470), fx(346), fy(-350), alphaColor(0x2A3D3627, alpha), alphaColor(0x00000000, alpha));
+        
+        drawScaledBoldText(graphics, "玛尼的动物商店", titleX, titleY, fs(48), alphaColor(0xFFFFF6D5, alpha));
+        // 玛尼商店横线（明亮分割线）
+        graphics.fill(fx(-635), fy(-356), fx(279), fy(-354), alphaColor(0xFFEADB8C, alpha));
 
         float moneyIconScale = ssi(59) / 16.0f;
         drawScaledIcon(graphics, GOLD_ICON, fx(96), fy(-414), moneyIconScale, alphaColor(0xFFFFFFFF, alpha));
@@ -487,14 +508,16 @@ public class AnimalPurchaseScreen extends Screen {
 
         graphics.pose().pushPose();
         graphics.pose().translate(cardCx, cardCy, 0);
-        graphics.pose().scale(CARD_EXTRA_SCALE, CARD_EXTRA_SCALE, 1.0f);
+        
+        // 缩放缓动，被选中时有弹出的张力
+        float activeScale = selected ? CARD_EXTRA_SCALE * 1.05f : CARD_EXTRA_SCALE * 0.95f;
+        graphics.pose().scale(activeScale, activeScale, 1.0f);
         graphics.pose().translate(-cardCx, -cardCy, 0);
 
-        float dim = selected ? 1.0f : 0.62f;
+        float dim = selected ? 1.0f : 0.45f;
         if (!option.unlocked()) {
             dim *= 0.58f;
         }
-        int cardTint = alphaColor(CARD_COLOR, alpha * dim);
 
         // Body rectangle follows Figma body block (not full icon bounds).
         float bx0 = lerp(-309f, leftSide ? -599.16547f : 22.83453f, sideT);
@@ -505,7 +528,27 @@ public class AnimalPurchaseScreen extends Screen {
         int bodyY = fy(by0);
         int bodyW = ssi(bw);
         int bodyH = ssi(bh);
-        graphics.fill(bodyX, bodyY, bodyX + bodyW, bodyY + bodyH, cardTint);
+
+        // 极高质感的卡片背板渲染 (橙色调)
+        if (option.unlocked()) {
+            if (selected) {
+                // 外层发光描边
+                graphics.fill(bodyX - 2, bodyY - 2, bodyX + bodyW + 2, bodyY + bodyH + 2, alphaColor(0xFFF7F2DB, alpha));
+                // 内部橙色渐变色
+                graphics.fillGradient(bodyX, bodyY, bodyX + bodyW, bodyY + bodyH, alphaColor(0xFFD16C2E, alpha), alphaColor(0xFFAB4C13, alpha));
+            } else {
+                // 未选中态金属感暗橙边
+                graphics.fill(bodyX - 1, bodyY - 1, bodyX + bodyW + 1, bodyY + bodyH + 1, alphaColor(0xFF964B17, alpha * dim));
+                graphics.fillGradient(bodyX, bodyY, bodyX + bodyW, bodyY + bodyH, alphaColor(0xFFBA541A, alpha * dim), alphaColor(0xFF8F3B0E, alpha * dim));
+            }
+        } else {
+            // 未解锁阴影态
+            graphics.fill(bodyX - 1, bodyY - 1, bodyX + bodyW + 1, bodyY + bodyH + 1, alphaColor(0xFF4A4A4A, alpha * dim));
+            graphics.fillGradient(bodyX, bodyY, bodyX + bodyW, bodyY + bodyH, alphaColor(0xFF2E2E36, alpha * dim), alphaColor(0xFF1B1B20, alpha * dim));
+        }
+
+        // 顶部阴影过渡，增加立体感
+        graphics.fillGradient(bodyX, bodyY, bodyX + bodyW, bodyY + ssi(30), alphaColor(0x22000000, alpha * dim), alphaColor(0x00000000, alpha * dim));
 
         float ix0 = lerp(-329f, leftSide ? -616f : 6f, sideT);
         float iy0 = lerp(-375f, leftSide ? -306f : -304f, sideT);
@@ -513,7 +556,7 @@ public class AnimalPurchaseScreen extends Screen {
         int iconY = fy(iy0);
         int iconW = ssi(lerp(302f, 254.2f, sideT));
         int iconH = iconW;
-        if (isCoopAnimalType(option.animalTypeId())) {
+        if (item.isCoop) {
             // Keep coop sprites slightly smaller to avoid overfilling card tops.
             int shrunkW = Math.max(1, Math.round(iconW * COOP_ICON_SCALE));
             int shrunkH = Math.max(1, Math.round(iconH * COOP_ICON_SCALE));
@@ -522,6 +565,13 @@ public class AnimalPurchaseScreen extends Screen {
             iconW = shrunkW;
             iconH = shrunkH;
         }
+
+        if (selected) {
+            // 给选中的活物增加浮动特效
+            long time = System.currentTimeMillis();
+            iconY += (int)(Math.sin(time / 300.0) * ssi(5));
+        }
+
         if (option.unlocked()) {
             drawAnimalIconBox(graphics, option.animalTypeId(), iconX, iconY, iconW, iconH, alpha * dim);
         } else {
@@ -529,20 +579,18 @@ public class AnimalPurchaseScreen extends Screen {
         }
 
         int titleY = fy(lerp(-61f, leftSide ? -41.697815f : -39.697815f, sideT));
-        String title = trim(resolveDisplayName(option.displayName(), option.animalTypeId()), 8);
-        drawScaledBoldTextCentered(graphics, title, bodyX, bodyY, bodyW, bodyH, titleY, fs(lerp(40f, 32f, sideT)), alphaColor(CARD_TEXT, alpha * dim));
+        drawScaledBoldTextCentered(graphics, item.title, bodyX, bodyY, bodyW, bodyH, titleY, fs(lerp(40f, 32f, sideT)), alphaColor(CARD_TEXT, alpha * dim));
 
-        String desc = option.unlocked() ? Component.translatable(option.descriptionKey()).getString() : Component.translatable(option.lockReasonKey()).getString();
-        List<String> lines = splitSimple(desc, 4, 10);
         int descX = bodyX;
         int ly = fy(lerp(7f, leftSide ? 30f : 32f, sideT));
-        int descColor = option.unlocked() ? CARD_TEXT_SUB : 0xFFD9C9A0;
-        for (String line : lines) {
+        int descColor = option.unlocked() ? (!selected ? 0xFFDFD1A5 : 0xFFFAEFD1) : 0xFF999999;
+        
+        for (String line : item.descLines) {
             drawScaledTextCentered(graphics, line, descX, bodyW, ly, fs(lerp(24f, 20f, sideT)), alphaColor(descColor, alpha * dim));
             ly += ssi(Math.round(lerp(29f, 24f, sideT)));
         }
 
-        String price = option.unlocked() ? (option.price() + " G") : "??? G";
+        String price = item.priceString;
         int priceY = fy(lerp(223f, leftSide ? 198f : 200f, sideT));
         float priceScale = fs(lerp(40f, 32f, sideT));
         int textW = Math.round(this.font.width(price) * priceScale);
@@ -552,7 +600,7 @@ public class AnimalPurchaseScreen extends Screen {
         int coinCx = priceLeft + coinPx / 2;
         int coinCy = priceY + coinPx / 2;
         drawScaledIcon(graphics, GOLD_ICON, coinCx, coinCy, coinPx / 16.0f, alphaColor(0xFFFFFFFF, alpha * dim));
-        drawScaledBoldText(graphics, price, priceLeft + coinPx + ssi(10), priceY, priceScale, alphaColor(CARD_PRICE, alpha * dim));
+        drawScaledBoldText(graphics, price, priceLeft + coinPx + ssi(10), priceY, priceScale, alphaColor(selected && option.unlocked() ? 0xFF8A3010 : CARD_PRICE, alpha * dim));
         graphics.pose().popPose();
     }
 
@@ -560,10 +608,18 @@ public class AnimalPurchaseScreen extends Screen {
         int cx = fx(-177);
         int topCy = fy(-332);
         int bottomCy = fy(367);
-        int h = ssi(20);
-        int w = ssi(22);
-        int color = alphaColor(0xFFFFFFFF, alpha);
+        
+        long time = System.currentTimeMillis();
+        int offset = (int)(Math.sin(time / 200.0) * ssi(3));
+        
+        topCy += offset;
+        bottomCy -= offset;
+        
+        int h = ssi(15);
+        int w = ssi(18);
+        int color = alphaColor(0xFFEADB8C, alpha * 0.9f); // 金色高雅三角
 
+        // 优化：采用更圆润的方法绘制或至少缩小
         for (int dy = 0; dy <= h; dy++) {
             int half = Math.round(w * (1.0f - dy / (float) h));
             graphics.fill(cx - half, topCy + dy, cx + half + 1, topCy + dy + 1, color);
@@ -587,6 +643,10 @@ public class AnimalPurchaseScreen extends Screen {
         int cx = bx(148);
         int cy = by(156);
         int radius = si(154);
+        
+        // 更高级的多层头像框底座
+        drawFilledCircle(graphics, cx, cy, radius + si(5), alphaColor(0x44000000, alpha));
+        drawFilledCircle(graphics, cx, cy, radius + si(2), alphaColor(0xFFEADB8C, alpha));
         drawFilledCircle(graphics, cx, cy, radius, alphaColor(PORTRAIT_BG, alpha));
 
         AnimalItem item = currentAnimal();
@@ -598,10 +658,17 @@ public class AnimalPurchaseScreen extends Screen {
 
     private void drawNameEditor(GuiGraphics graphics, int mouseX, int mouseY, float alpha) {
         NameLayout nl = computeBuildingNameLayout();
-        int underline = inside(mouseX, mouseY, nl.lineX, nl.lineY - si(20), nl.lineW, si(24)) || editingName ? 0xFFB6ADC2 : 0xFF6B6470;
-        graphics.fill(nl.lineX, nl.lineY, nl.lineX + nl.lineW, nl.lineY + 1, alphaColor(underline, alpha));
+        boolean focused = inside(mouseX, mouseY, nl.lineX, nl.lineY - si(20), nl.lineW, si(24)) || editingName;
+        int underline = focused ? 0xFFEADB8C : 0xAA8B8490;
+        
+        if (focused) {
+            graphics.fill(nl.lineX, nl.lineY, nl.lineX + nl.lineW, nl.lineY + si(2), alphaColor(underline, alpha));
+            graphics.fillGradient(nl.lineX, nl.lineY + si(2), nl.lineX + nl.lineW, nl.lineY + si(8), alphaColor(0x44EADB8C, alpha), alphaColor(0x00EADB8C, alpha));
+        } else {
+            graphics.fill(nl.lineX, nl.lineY, nl.lineX + nl.lineW, nl.lineY + 1, alphaColor(underline, alpha));
+        }
 
-        drawScaledBoldText(graphics, nl.shown, nl.textX, nl.textY, nl.textScale, alphaColor(0xFFFFFFFF, alpha));
+        drawScaledBoldText(graphics, nl.shown, nl.textX, nl.textY, nl.textScale, alphaColor(0xFFFFF7D0, alpha));
 
         if (editingName && ((System.currentTimeMillis() / 450L) & 1L) == 0L) {
             int visibleCursor = Math.max(0, Math.min(editCursor, nl.shown.length()));
@@ -645,14 +712,16 @@ public class AnimalPurchaseScreen extends Screen {
 
             int rx = Math.round(x);
             int ry = Math.round(y);
-            drawFilledCircle(graphics, rx - si(24), ry + si(10), si(i == selectedBuilding ? 4 : 3), alphaColor(0xFFFFFFFF, a));
+            
+            drawFilledCircle(graphics, rx - si(24), ry + si(2), si(i == selectedBuilding ? 4 : 3), alphaColor(0xFFFFFFFF, a));
             int lw = i == selectedBuilding ? si(449 - 150) : si(431 - 150);
             graphics.fill(rx + si(6), ry + si(8), rx + si(6) + lw, ry + si(9), alphaColor(LINE, a));
 
-            drawScaledText(graphics, trim(opt.displayName(), 12), rx, ry - si(14), 0.92f * s, alphaColor(0xFFFFFFFF, a));
-            drawScaledText(graphics, trim(opt.buildingId(), 14), rx, ry + si(14), 0.70f * s, alphaColor(DIM_TEXT, a));
-            drawScaledText(graphics, opt.animalCount() + "/" + opt.capacity(), rx + si(164), ry - si(14), 0.92f * s, alphaColor(0xFFFFFFFF, a));
-            drawScaledText(graphics, "可用", rx + si(285), ry - si(2), 0.70f * s, alphaColor(0xFF92E472, a));
+            int titleColor = i == selectedBuilding ? 0xFFFFFFFF : 0xFFAAAAAA;
+            drawScaledText(graphics, trim(opt.displayName(), 12), rx, ry - si(14), 0.92f * s, alphaColor(titleColor, a));
+            drawScaledText(graphics, trim(opt.buildingId(), 14), rx, ry + si(5), 0.70f * s, alphaColor(DIM_TEXT, a));
+            drawScaledText(graphics, opt.animalCount() + "/" + opt.capacity(), rx + si(164), ry - si(14), 0.92f * s, alphaColor(titleColor, a));
+            drawScaledText(graphics, Component.translatable("stardewcraft.ui.available").getString(), rx + si(285), ry - si(12), 0.70f * s, alphaColor(0xFF92E472, a));
         }
     }
 
@@ -812,6 +881,10 @@ public class AnimalPurchaseScreen extends Screen {
         if (current == null) {
             return List.of();
         }
+        
+        if (cachedBuildings != null && selectedAnimal == lastAnimalForBuildings) {
+            return cachedBuildings;
+        }
 
         List<OpenAnimalPurchaseScreenPayload.BuildingOption> out = new ArrayList<>();
         for (OpenAnimalPurchaseScreenPayload.BuildingOption b : payload.buildingOptions()) {
@@ -826,6 +899,9 @@ public class AnimalPurchaseScreen extends Screen {
             }
             out.add(b);
         }
+        
+        cachedBuildings = out;
+        lastAnimalForBuildings = selectedAnimal;
         return out;
     }
 

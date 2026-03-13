@@ -167,6 +167,20 @@
       "maxCount": 2,
       "weight": 35,
       "minFishingLevel": 0
+    },
+    {
+      "item": "stardewcraft:fish_stew",
+      "minCount": 1,
+      "maxCount": 1,
+      "weight": 16,
+      "minFishingLevel": 2
+    },
+    {
+      "item": "stardewcraft:shrimp_cocktail",
+      "minCount": 1,
+      "maxCount": 1,
+      "weight": 14,
+      "minFishingLevel": 2
     }
   ],
   "goldenLoot": [
@@ -239,6 +253,20 @@
       "maxCount": 1,
       "weight": 8,
       "minFishingLevel": 10
+    },
+    {
+      "item": "stardewcraft:fish_stew",
+      "minCount": 1,
+      "maxCount": 2,
+      "weight": 18,
+      "minFishingLevel": 2
+    },
+    {
+      "item": "stardewcraft:shrimp_cocktail",
+      "minCount": 1,
+      "maxCount": 2,
+      "weight": 16,
+      "minFishingLevel": 2
     }
   ],
   "fallbackLoot": [

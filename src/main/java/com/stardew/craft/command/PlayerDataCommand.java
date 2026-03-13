@@ -149,6 +149,7 @@ public class PlayerDataCommand {
         );
     }
 
+    @SuppressWarnings("null")
     private static int unlockRecipe(CommandContext<CommandSourceStack> ctx) {
         ServerPlayer player = ctx.getSource().getPlayer();
         if (player == null) return 0;
@@ -176,6 +177,7 @@ public class PlayerDataCommand {
         }
     }
 
+    @SuppressWarnings("null")
     private static int lockRecipe(CommandContext<CommandSourceStack> ctx) {
         ServerPlayer player = ctx.getSource().getPlayer();
         if (player == null) return 0;

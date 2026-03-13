@@ -232,12 +232,16 @@ public class TreasureLootManager extends SimplePreparableReloadListener<Treasure
 		d.rareLoot.add(createEntry("stardewcraft:omni_geode", 1, 1, 45));
 		d.rareLoot.add(createEntry("stardewcraft:sonar_bobber", 1, 1, 25, 6));
 		d.rareLoot.add(createEntry("stardewcraft:deluxe_bait", 5, 5, 35, 6));
+		d.rareLoot.add(createEntry("stardewcraft:fish_stew", 1, 1, 16, 2));
+		d.rareLoot.add(createEntry("stardewcraft:shrimp_cocktail", 1, 1, 14, 2));
 
 		d.goldenLoot.add(createEntry("stardewcraft:diamond", 2, 5, 100));
 		d.goldenLoot.add(createEntry("stardewcraft:prismatic_shard", 1, 2, 35));
 		d.goldenLoot.add(createEntry("stardewcraft:fairy_dust", 3, 6, 40));
 		d.goldenLoot.add(createEntry("stardewcraft:challenge_bait", 3, 6, 45));
 		d.goldenLoot.add(createEntry("stardewcraft:magnet", 3, 6, 30));
+		d.goldenLoot.add(createEntry("stardewcraft:fish_stew", 1, 2, 18, 2));
+		d.goldenLoot.add(createEntry("stardewcraft:shrimp_cocktail", 1, 2, 16, 2));
 
 		d.fallbackLoot.add(createEntry("stardewcraft:bait", 5, 15, 100));
 		return d;

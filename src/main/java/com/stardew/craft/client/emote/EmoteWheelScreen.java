@@ -108,16 +108,24 @@ public final class EmoteWheelScreen extends Screen {
 			poseStack.translate(x, y, 0);
 			poseStack.scale(hoverScale, hoverScale, 1.0F);
 
+			RenderSystem.enableBlend();
+			
+			// 纯色精确轮廓描边
 			if (hoverProgress[i] > 0) {
-				int bgAlpha = (int)(0x55 * hoverProgress[i]);
-				guiGraphics.fill(-16, -16, 16, 16, bgAlpha << 24);
+				float alpha = hoverProgress[i];
+				
+				// 设定纯金色（星露谷风格的 UI 高亮色）
+				RenderSystem.setShaderColor(1.0F, 0.9F, 0.2F, alpha);
+				
+				// 上下左右各偏移 1 像素，利用自身透明通道贴图生成完美纯色外框
+				drawEmoteIcon(guiGraphics, -ICON_SIZE / 2 - 1, -ICON_SIZE / 2,     ICON_SIZE, wheelItems.get(i));
+				drawEmoteIcon(guiGraphics, -ICON_SIZE / 2 + 1, -ICON_SIZE / 2,     ICON_SIZE, wheelItems.get(i));
+				drawEmoteIcon(guiGraphics, -ICON_SIZE / 2,     -ICON_SIZE / 2 - 1, ICON_SIZE, wheelItems.get(i));
+				drawEmoteIcon(guiGraphics, -ICON_SIZE / 2,     -ICON_SIZE / 2 + 1, ICON_SIZE, wheelItems.get(i));
+				
+				RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F); // 恢复正常的颜色绘制本体
 			}
 
-			if (hoverProgress[i] > 0) {
-                guiGraphics.fill(-1, -17, 1, -15, 0xAAFFD84A); // little indicator
-            }
-
-			RenderSystem.enableBlend();
 			drawEmoteIcon(guiGraphics, -ICON_SIZE / 2, -ICON_SIZE / 2, ICON_SIZE, wheelItems.get(i));
 			poseStack.popPose();
 		}

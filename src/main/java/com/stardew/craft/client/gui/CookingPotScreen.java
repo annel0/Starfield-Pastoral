@@ -33,7 +33,6 @@ public class CookingPotScreen extends AbstractContainerScreen<CookingPotMenu> {
     private static final int BG_OVERLAY = 0xD8111116;
     private static final int TITLE_COLOR = 0xFFF7F2DB; 
     private static final int TEXT_MUTED = 0xFFA0A0A0;
-    private static final int GOLD_HIGHLIGHT = 0xFFE0C66D;
     private static final ResourceLocation ENERGY_ICON = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/energy.png");
     private static final ResourceLocation HEALTH_ICON = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/health.png");
 
@@ -44,7 +43,6 @@ public class CookingPotScreen extends AbstractContainerScreen<CookingPotMenu> {
     private int currentFocusIndex = 0;
     private float[] itemHoverScales = new float[45];
     private float showcaseAlpha = 1.0f;
-    private int lastFocusIndex = 0;
 
     public CookingPotScreen(CookingPotMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -226,12 +224,8 @@ public class CookingPotScreen extends AbstractContainerScreen<CookingPotMenu> {
     }
 
     private void updateVisualFocus(int mouseX, int mouseY, float partialTick) {
-        int x = this.leftPos;
-        int y = this.topPos;
         int gridX = getGridX();
         int gridY = getGridY();
-
-        boolean hoveredAny = false;
 
         for (int i = 0; i < 45; i++) {
             int cx = gridX + (i % 9) * 22;
@@ -243,9 +237,7 @@ public class CookingPotScreen extends AbstractContainerScreen<CookingPotMenu> {
                               mouseY >= cy - 2 && mouseY <= cy + 20;
 
             if (isHover) {
-                hoveredAny = true;
                 if (currentFocusIndex != dataIndex) {
-                    lastFocusIndex = currentFocusIndex;
                     currentFocusIndex = dataIndex;
                     showcaseAlpha = 0.0f;
                 }
