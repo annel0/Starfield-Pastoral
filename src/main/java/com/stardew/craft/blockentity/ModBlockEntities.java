@@ -31,6 +31,10 @@ public final class ModBlockEntities {
 			BLOCK_ENTITIES.register("dehydrator", () -> BlockEntityType.Builder.of(DehydratorBlockEntity::new, ModBlocks.DEHYDRATOR.get()).build(null));
 
 	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BaitMakerBlockEntity>> BAIT_MAKER =
+			BLOCK_ENTITIES.register("bait_maker", () -> BlockEntityType.Builder.of(BaitMakerBlockEntity::new, ModBlocks.BAIT_MAKER.get()).build(null));
+
+	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FishSmokerBlockEntity>> FISH_SMOKER =
 			BLOCK_ENTITIES.register("fish_smoker", () -> BlockEntityType.Builder.of(FishSmokerBlockEntity::new, ModBlocks.FISH_SMOKER.get()).build(null));
 
@@ -109,6 +113,14 @@ public final class ModBlockEntities {
 	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AutoPetterBlockEntity>> AUTO_PETTER =
 			BLOCK_ENTITIES.register("auto_petter", () -> BlockEntityType.Builder.of(AutoPetterBlockEntity::new, ModBlocks.AUTO_PETTER.get()).build(null));
+
+	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<WoodenChestBlockEntity>> WOODEN_CHEST =
+			BLOCK_ENTITIES.register("wooden_chest", () -> BlockEntityType.Builder.of(WoodenChestBlockEntity::new, ModBlocks.WOODEN_CHEST.get()).build(null));
+
+	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<StoneChestBlockEntity>> STONE_CHEST =
+			BLOCK_ENTITIES.register("stone_chest", () -> BlockEntityType.Builder.of(StoneChestBlockEntity::new, ModBlocks.STONE_CHEST.get()).build(null));
 
 	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<HeaterBlockEntity>> HEATER =

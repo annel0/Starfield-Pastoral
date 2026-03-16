@@ -6,9 +6,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.Display;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,11 +45,11 @@ public class MineFloorGenerator {
     private static final double GEM_SURFACE_BIAS = 0.7;
     
     // 房间尺寸范围
-    private static final int MIN_SIZE = 20;
-    private static final int MAX_SIZE = 50;
+    private static final int MIN_SIZE = 80;
+    private static final int MAX_SIZE = 120;
     
     // 房间高度（固定10层，向上/向下各扩展2格）
-    private static final int FLOOR_HEIGHT = 10;
+    private static final int FLOOR_HEIGHT = 20;
     private static final int FLOOR_Y_START = 62;
     private static final int FLOOR_Y_END = FLOOR_Y_START + FLOOR_HEIGHT - 1; // 62-71
     
@@ -59,6 +62,7 @@ public class MineFloorGenerator {
 
     // 洞窟与地板/天花板的最小间距（至少留 1-2 层）
     private static final int CAVE_VERTICAL_PADDING = 2;
+    private static final String LADDER_HIGHLIGHT_TAG = "stardewcraft_mine_ladder_highlight";
     
     /**
      * 生成指定楼层
@@ -109,6 +113,9 @@ public class MineFloorGenerator {
         
         // 8. 生成中心安全区（清空玩家出生点周围）
         generateSafeZone(level, centerX, centerZ, floorNumber);
+        if (floorNumber < 120) {
+            generateLevelExit(level, random, centerX, centerZ, size, floorNumber, manager.getOrCreateFloorData(floorNumber, 0));
+        }
 
         // 9. 生成A类矿（洞窟表面）与B类矿（宝石矿石节点）
         generateSurfaceMinerals(level, random, centerX, centerZ, size, floorNumber);
@@ -558,8 +565,7 @@ public class MineFloorGenerator {
             || block == ModBlocks.SALT_ROCK.get()
             || block == Blocks.ANDESITE
             || block == Blocks.DIRT
-            || block == Blocks.GRAVEL
-            || block == Blocks.BLUE_ICE
+                        || block == Blocks.BLUE_ICE
             || block == Blocks.PACKED_ICE
             || block == Blocks.PRISMARINE_BRICKS
             || block == Blocks.MAGMA_BLOCK
@@ -664,18 +670,6 @@ public class MineFloorGenerator {
         return isMainStone(state) || isDecorStone(state);
     }
 
-    @SuppressWarnings("null")
-    private static boolean hasAdjacentAir(ServerLevel level, BlockPos pos) {
-        for (Direction dir : Direction.values()) {
-            @SuppressWarnings("null")
-            BlockPos neighbor = pos.relative(dir);
-            if (level.getBlockState(neighbor).isAir()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private static List<BlockPos> collectStonePositions(ServerLevel level, int centerX, int centerZ, int size) {
         int halfSize = size / 2;
         List<BlockPos> positions = new ArrayList<>();
@@ -696,23 +690,24 @@ public class MineFloorGenerator {
         return positions;
     }
 
+    @SuppressWarnings("null")
     private static List<BlockPos> collectSurfaceStonePositions(ServerLevel level, int centerX, int centerZ, int size) {
         int halfSize = size / 2;
         List<BlockPos> positions = new ArrayList<>();
 
         for (int x = centerX - halfSize + 1; x < centerX + halfSize; x++) {
             for (int z = centerZ - halfSize + 1; z < centerZ + halfSize; z++) {
-                for (int y = FLOOR_Y_START; y <= FLOOR_Y_END; y++) {
-                    if (isInSafeZone(x, y, z, centerX, centerZ)) {
-                        continue;
-                    }
-                    BlockPos pos = new BlockPos(x, y, z);
-                    BlockState state = level.getBlockState(pos);
-                    if (!isStoneForMineral(state)) {
-                        continue;
-                    }
-                    if (hasAdjacentAir(level, pos)) {
-                        positions.add(pos);
+                for (int y = FLOOR_Y_START; y <= FLOOR_Y_END - 1; y++) {
+                    if (isInSafeZone(x, y, z, centerX, centerZ)) continue;
+
+                    BlockPos stonePos = new BlockPos(x, y, z);
+                    BlockPos airPos = stonePos.above();
+
+                    BlockState stoneState = level.getBlockState(stonePos);
+                    BlockState airState = level.getBlockState(airPos);
+
+                    if (isStoneForMineral(stoneState) && airState.isAir()) {
+                        positions.add(airPos); // Store the AIR position where the mineral will go
                     }
                 }
             }
@@ -721,24 +716,77 @@ public class MineFloorGenerator {
     }
 
     @SuppressWarnings("null")
-    private static void generateSurfaceMinerals(ServerLevel level, RandomSource random,
-                                                int centerX, int centerZ, int size, int floorNumber) {
-        List<BlockPos> surfaceStones = collectSurfaceStonePositions(level, centerX, centerZ, size);
-        if (surfaceStones.isEmpty()) {
+    
+    private static void generateLevelExit(ServerLevel level, RandomSource random, int centerX, int centerZ, int size, int floorNumber, MineFloorData data) {
+        List<BlockPos> surfaceAirPositions = collectSurfaceStonePositions(level, centerX, centerZ, size);
+        if (surfaceAirPositions.isEmpty()) return;
+        
+        BlockPos bestPos = surfaceAirPositions.get(random.nextInt(surfaceAirPositions.size()));
+        double maxDist = 0;
+        
+        for (int i = 0; i < 20; i++) {
+            BlockPos pos = surfaceAirPositions.get(random.nextInt(surfaceAirPositions.size()));
+            double dist = pos.distToCenterSqr(centerX, pos.getY(), centerZ);
+            if (dist > maxDist) {
+                maxDist = dist;
+                bestPos = pos;
+            }
+        }
+        
+        BlockPos ladderPos = bestPos.below();
+        level.setBlock(ladderPos, ModBlocks.MINE_LADDER.get().defaultBlockState(), 3);
+        data.setLadderPos(ladderPos);
+        data.setLadderFound(true);
+
+        spawnLadderHighlightDisplay(level, centerX, centerZ, size, floorNumber, ladderPos);
+    }
+
+    private static void spawnLadderHighlightDisplay(ServerLevel level, int centerX, int centerZ, int size, int floorNumber, BlockPos ladderPos) {
+        int halfSize = size / 2;
+        AABB scanBox = new AABB(
+            centerX - halfSize, FLOOR_Y_START - 2, centerZ - halfSize,
+            centerX + halfSize + 1, FLOOR_Y_END + 3, centerZ + halfSize + 1
+        );
+
+        String floorTag = LADDER_HIGHLIGHT_TAG + "_" + floorNumber;
+        for (Display.BlockDisplay existing : level.getEntitiesOfClass(Display.BlockDisplay.class, scanBox,
+            e -> e.getTags().contains(LADDER_HIGHLIGHT_TAG) && e.getTags().contains(floorTag))) {
+            existing.discard();
+        }
+
+        Display.BlockDisplay marker = EntityType.BLOCK_DISPLAY.create(level);
+        if (marker == null) {
             return;
         }
 
-        int targetCount = (int)Math.round(surfaceStones.size() * SURFACE_MINERAL_RATE);
+        marker.setPos(ladderPos.getX() + 0.5D, ladderPos.getY(), ladderPos.getZ() + 0.5D);
+        marker.setGlowingTag(true);
+        marker.setInvisible(true);
+        marker.setNoGravity(true);
+        marker.setInvulnerable(true);
+        marker.setSilent(true);
+        marker.addTag(LADDER_HIGHLIGHT_TAG);
+        marker.addTag(floorTag);
+        marker.addTag("stardewcraft_mine_ladder_highlight_anchor");
+        level.addFreshEntity(marker);
+    }
+
+    @SuppressWarnings("null")
+    private static void generateSurfaceMinerals(ServerLevel level, RandomSource random, int centerX, int centerZ, int size, int floorNumber) {
+        List<BlockPos> surfaceAirPositions = collectSurfaceStonePositions(level, centerX, centerZ, size);
+        if (surfaceAirPositions.isEmpty()) {
+            return;
+        }
+
+        int targetCount = (int)Math.round(surfaceAirPositions.size() * SURFACE_MINERAL_RATE);
         int attempts = Math.max(10, targetCount * 4);
         int placed = 0;
 
         while (placed < targetCount && attempts-- > 0) {
-            BlockPos pos = surfaceStones.get(random.nextInt(surfaceStones.size()));
-            @SuppressWarnings("null")
+            BlockPos pos = surfaceAirPositions.get(random.nextInt(surfaceAirPositions.size()));
             BlockState state = level.getBlockState(pos);
-            if (!isStoneForMineral(state)) {
-                continue;
-            }
+            if (!state.isAir()) continue;
+
             Block mineral = pickSurfaceMineralBlock(random, floorNumber);
             if (mineral != null) {
                 level.setBlock(pos, mineral.defaultBlockState(), 3);
@@ -845,7 +893,7 @@ public class MineFloorGenerator {
         int halfSize = size / 2;
         
         // 生成2-5条洞窟通道（类似原版的cave carver）
-    int caveCount = 4 + random.nextInt(4);
+    int caveCount = (int)((size * size) / 800.0) + random.nextInt(4);
         
         List<Block> decorBlocks = getCaveDecorationBlocks(theme);
         
@@ -865,18 +913,18 @@ public class MineFloorGenerator {
             // 随机方向和长度
             float yaw = random.nextFloat() * (float)Math.PI * 2.0F;
             float pitch = (random.nextFloat() - 0.5F) * 0.5F;
-            float baseRadius = 2.0F + random.nextFloat() * 1.5F; // 基础半径
+            float baseRadius = 2.5F + random.nextFloat() * 2.5F; // 基础半径
             
             // 洞窟长度（10-25格）
-            int caveLength = 14 + random.nextInt(17);
+            int caveLength = 30 + random.nextInt(40);
             
             // 类似原版的"虫蚀"生成
             carveCaveTunnel(level, random, centerX, centerZ, halfSize, decorBlocks,
-                           startX, startY, startZ, yaw, pitch, baseRadius, caveLength);
+                           startX, startY, startZ, yaw, pitch, baseRadius, caveLength, 0);
         }
         
         // 额外生成1-2个大型洞穴室（类似原版的cave room）
-    int roomCount = 1 + random.nextInt(3);
+    int roomCount = (int)((size * size) / 800.0) + random.nextInt(5);
         for (int i = 0; i < roomCount; i++) {
             generateCaveRoom(level, random, centerX, centerZ, halfSize, decorBlocks, theme);
         }
@@ -886,12 +934,12 @@ public class MineFloorGenerator {
      * 雕刻洞窟通道（类似原版的carve方法）
      * 模拟虫蚀效果，创建曲折的自然洞窟
      */
-    private static void carveCaveTunnel(ServerLevel level, RandomSource random,
-                                        int centerX, int centerZ, int halfSize,
+    private static void carveCaveTunnel(ServerLevel level, RandomSource random, 
+                                        int centerX, int centerZ, int halfSize, 
                                         List<Block> decorBlocks,
                                         double startX, double startY, double startZ,
                                         float yaw, float pitch, float baseRadius,
-                                        int steps) {
+                                        int steps, int depth) {
         double x = startX;
         double y = startY;
         double z = startZ;
@@ -930,6 +978,12 @@ public class MineFloorGenerator {
             }
             
             // 雕刻球形空间（类似原版）- 传入边界参数确保不超出
+            
+            if (depth < 1 && step > steps / 3 && random.nextFloat() < 0.05f) {
+                carveCaveTunnel(level, random, centerX, centerZ, halfSize, decorBlocks,
+                                x, y, z, yaw + (random.nextFloat() - 0.5f) * 2.0f, pitch + (random.nextFloat() - 0.5f), 
+                                baseRadius * 0.7f, steps / 2, depth + 1);
+            }
             carveSphere(level, x, y, z, currentRadius, decorBlocks, random, centerX, centerZ, halfSize);
         }
     }
@@ -1009,12 +1063,12 @@ public class MineFloorGenerator {
         }
         
         // 大型椭球形房间（半径4-7格）
-        float roomRadius = 4.0F + random.nextFloat() * 3.0F;
+        float roomRadius = 6.0F + random.nextFloat() * 6.0F;
         
         // 雕刻大型房间（使用变形的球形）
-        for (int dx = -(int)roomRadius - 2; dx <= (int)roomRadius + 2; dx++) {
-            for (int dz = -(int)roomRadius - 2; dz <= (int)roomRadius + 2; dz++) {
-                for (int dy = -2; dy <= 3; dy++) {
+        for (int dx = -(int)roomRadius - 3; dx <= (int)roomRadius + 3; dx++) {
+            for (int dz = -(int)roomRadius - 3; dz <= (int)roomRadius + 3; dz++) {
+                for (int dy = -3; dy <= 4; dy++) {
                     int x = roomX + dx;
                     int z = roomZ + dz;
                     int y = roomY + dy;
@@ -1061,10 +1115,7 @@ public class MineFloorGenerator {
     }
 
     private static boolean isInSafeZone(int x, int y, int z, int centerX, int centerZ) {
-        return Math.abs(x - centerX) <= SAFE_ZONE_RADIUS
-                && Math.abs(z - centerZ) <= SAFE_ZONE_RADIUS
-                && y >= SAFE_ZONE_Y_START
-                && y <= SAFE_ZONE_Y_END;
+        return Math.abs(x - centerX) <= SAFE_ZONE_RADIUS + 1 && Math.abs(z - centerZ) <= SAFE_ZONE_RADIUS + 1 && y >= FLOOR_Y_START && y <= SAFE_ZONE_Y_END + 2;
     }
     
     /**
@@ -1202,7 +1253,7 @@ public class MineFloorGenerator {
         switch (theme) {
             case EARTH:
                 // 土段: 安山岩、泥土、沙砾
-                Block[] earthVanilla = {Blocks.ANDESITE, Blocks.DIRT, Blocks.GRAVEL};
+                Block[] earthVanilla = {Blocks.ANDESITE, Blocks.DIRT};
                 return earthVanilla[random.nextInt(earthVanilla.length)];
                 
             case FROST:

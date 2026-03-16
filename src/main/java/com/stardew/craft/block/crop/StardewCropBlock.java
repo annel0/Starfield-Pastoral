@@ -26,6 +26,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -344,8 +346,15 @@ public abstract class StardewCropBlock extends Block {
     /**
      * 右键收割成熟作物
      */
+    @SuppressWarnings("null")
     @Override
     protected InteractionResult useWithoutItem(@SuppressWarnings("null") BlockState state, @SuppressWarnings("null") Level level, @SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") Player player, @SuppressWarnings("null") BlockHitResult hitResult) {
+        BlockPos interactionPos = resolveMultiBlockRootPos(level, pos, state);
+        BlockState interactionState = level.getBlockState(interactionPos);
+        if (interactionState.getBlock() != this) {
+            return InteractionResult.PASS;
+        }
+
         // 只有空手才能尝试交互收割
         if (!player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty()) {
             return InteractionResult.PASS;
@@ -357,7 +366,7 @@ public abstract class StardewCropBlock extends Block {
         }
 
         @SuppressWarnings("null")
-        int currentAge = state.getValue(AGE);
+        int currentAge = interactionState.getValue(AGE);
         
         // 只有成熟时才能收割
         if (currentAge < MAX_AGE) {
@@ -367,14 +376,14 @@ public abstract class StardewCropBlock extends Block {
 
         // AGE==3 但仍在最后阶段生长中（还没到 phaseDays[3]），也视为未成熟
         if (!level.isClientSide && level instanceof ServerLevel serverLevel) {
-            if (!isMature(serverLevel, pos, state)) {
+            if (!isMature(serverLevel, interactionPos, interactionState)) {
                 return InteractionResult.CONSUME;
             }
         }
         
         // 成熟的作物，进行收割
         if (!level.isClientSide && level instanceof ServerLevel serverLevel) {
-            harvest(serverLevel, pos, state, player);
+            harvest(serverLevel, interactionPos, interactionState, player);
         }
         
         return InteractionResult.sidedSuccess(level.isClientSide);
@@ -388,14 +397,17 @@ public abstract class StardewCropBlock extends Block {
     @Override
     public BlockState playerWillDestroy(@SuppressWarnings("null") Level level, @SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") BlockState state, @SuppressWarnings("null") Player player) {
         if (!level.isClientSide && level instanceof ServerLevel serverLevel) {
-            @SuppressWarnings("null")
-            boolean mature = state.getValue(AGE) == MAX_AGE && isMature(serverLevel, pos, state);
+            BlockPos interactionPos = resolveMultiBlockRootPos(level, pos, state);
+            BlockState interactionState = level.getBlockState(interactionPos);
+            boolean mature = interactionState.getBlock() == this
+                    && interactionState.getValue(AGE) == MAX_AGE
+                    && isMature(serverLevel, interactionPos, interactionState);
             boolean canGrabHarvest = getHarvestMethod() == HarvestMethod.GRAB;
             // 如果不是创造模式，生成掉落物
             if (mature && canGrabHarvest && !player.isCreative()) {
                 int farmingLevel = getFarmingLevel(player);
-                int fertilizerLevel = getFertilizerLevel(serverLevel, pos);
-                spawnHarvestDrops(serverLevel, pos, state, level.getRandom(), fertilizerLevel, farmingLevel);
+                int fertilizerLevel = getFertilizerLevel(serverLevel, interactionPos);
+                spawnHarvestDrops(serverLevel, interactionPos, interactionState, level.getRandom(), fertilizerLevel, farmingLevel);
             }
         }
         return super.playerWillDestroy(level, pos, state, player);
@@ -406,36 +418,39 @@ public abstract class StardewCropBlock extends Block {
      */
     @SuppressWarnings("null")
     protected void harvest(ServerLevel level, BlockPos pos, BlockState state, Player player) {
+        BlockPos harvestPos = resolveMultiBlockRootPos(level, pos, state);
+
         // 重新获取当前最新的state（防止使用旧state）
-        @SuppressWarnings("null")
-        BlockState currentState = level.getBlockState(pos);
+        BlockState currentState = level.getBlockState(harvestPos);
         if (!(currentState.getBlock() instanceof StardewCropBlock)) {
             return; // 方块已经改变，停止收割
         }
         
         int farmingLevel = getFarmingLevel(player);
-        int fertilizerLevel = getFertilizerLevel(level, pos);
+        int fertilizerLevel = getFertilizerLevel(level, harvestPos);
         
         // 生成并掉落物品
-        spawnHarvestDrops(level, pos, state, level.getRandom(), fertilizerLevel, farmingLevel);
+        spawnHarvestDrops(level, harvestPos, currentState, level.getRandom(), fertilizerLevel, farmingLevel);
         
         // 播放收割音效（原版harvest）
-        level.playSound(null, pos, SoundEvents.CROP_BREAK, SoundSource.BLOCKS, 1.0F, 1.0F);
+        level.playSound(null, harvestPos, SoundEvents.CROP_BREAK, SoundSource.BLOCKS, 1.0F, 1.0F);
         
         // 检查是否可以再生长
         if (canRegrow()) {
             // 重新生长：重置为regrow阶段
             int regrowAge = getRegrowAge();
-            level.setBlock(pos, currentState.setValue(AGE, regrowAge), 3);
+            BlockState regrowState = currentState.setValue(AGE, regrowAge);
+            level.setBlock(harvestPos, regrowState, 3);
+            syncMultiBlockPartnerFromRoot(level, harvestPos, regrowState);
 
             // 标记为“再生长倒计时”状态，让每日生长按 regrowDays 计算
-            int[] phaseDays = withHarvestSentinel(applySpeedGroToPhaseDays(getPhaseDays(), getSpeedBoost(level, pos)));
+            int[] phaseDays = withHarvestSentinel(applySpeedGroToPhaseDays(getPhaseDays(), getSpeedBoost(level, harvestPos)));
             int lastPhase = Math.max(0, phaseDays.length - 1);
             int regrowDays = Math.max(1, getRegrowDays());
-            CropGrowthManager.get(level).setRegrowing(level, pos, true, regrowDays, lastPhase);
+            CropGrowthManager.get(level).setRegrowing(level, harvestPos, true, regrowDays, lastPhase);
         } else {
             // 一次性作物：移除方块
-            level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+            level.setBlock(harvestPos, Blocks.AIR.defaultBlockState(), 3);
         }
     }
 
@@ -445,16 +460,22 @@ public abstract class StardewCropBlock extends Block {
      */
     @SuppressWarnings("null")
     public boolean tryHarvestByTool(ServerLevel level, BlockPos pos, BlockState state, Player player, boolean forceScytheHarvest) {
-        if (state.getValue(AGE) < MAX_AGE) {
+        BlockPos harvestPos = resolveMultiBlockRootPos(level, pos, state);
+        BlockState harvestState = level.getBlockState(harvestPos);
+        if (harvestState.getBlock() != this) {
             return false;
         }
-        if (!isMature(level, pos, state)) {
+
+        if (harvestState.getValue(AGE) < MAX_AGE) {
+            return false;
+        }
+        if (!isMature(level, harvestPos, harvestState)) {
             return false;
         }
         if (getHarvestMethod() != HarvestMethod.SCYTHE && !forceScytheHarvest) {
             return false;
         }
-        harvest(level, pos, state, player);
+        harvest(level, harvestPos, harvestState, player);
         return true;
     }
 
@@ -728,12 +749,15 @@ public abstract class StardewCropBlock extends Block {
                 growthState.phase = lastPhase;
                 BlockState matureState = applyMatureVariant(level, pos, level.getBlockState(pos)).setValue(AGE, MAX_AGE);
                 level.setBlock(pos, matureState, 2);
+                syncMultiBlockPartnerFromRoot(level, pos, matureState);
             } else {
                 int regrowAge = getRegrowAge();
                 if (regrowAge < 0) regrowAge = 0;
                 if (regrowAge > MAX_AGE - 1) regrowAge = MAX_AGE - 1;
                 if (level.getBlockState(pos).getValue(AGE) != regrowAge) {
-                    level.setBlock(pos, level.getBlockState(pos).setValue(AGE, regrowAge), 2);
+                    BlockState regrowState = level.getBlockState(pos).setValue(AGE, regrowAge);
+                    level.setBlock(pos, regrowState, 2);
+                    syncMultiBlockPartnerFromRoot(level, pos, regrowState);
                 }
             }
             return;
@@ -770,12 +794,69 @@ public abstract class StardewCropBlock extends Block {
             if (level.getBlockState(pos).getValue(AGE) != MAX_AGE) {
                 BlockState matureState = applyMatureVariant(level, pos, level.getBlockState(pos)).setValue(AGE, MAX_AGE);
                 level.setBlock(pos, matureState, 2);
+                syncMultiBlockPartnerFromRoot(level, pos, matureState);
             }
         } else {
             int targetAge = Math.min(phase, MAX_AGE - 1);
             if (level.getBlockState(pos).getValue(AGE) != targetAge) {
-                level.setBlock(pos, level.getBlockState(pos).setValue(AGE, targetAge), 2);
+                BlockState nextState = level.getBlockState(pos).setValue(AGE, targetAge);
+                level.setBlock(pos, nextState, 2);
+                syncMultiBlockPartnerFromRoot(level, pos, nextState);
             }
+        }
+    }
+
+    @SuppressWarnings("null")
+    protected BlockPos resolveMultiBlockRootPos(Level level, BlockPos pos, BlockState state) {
+        if (!state.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)) {
+            return pos;
+        }
+        if (state.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) != DoubleBlockHalf.UPPER) {
+            return pos;
+        }
+
+        BlockPos belowPos = pos.below();
+        BlockState belowState = level.getBlockState(belowPos);
+        if (belowState.getBlock() == this
+                && belowState.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)
+                && belowState.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.LOWER) {
+            return belowPos;
+        }
+        return pos;
+    }
+
+    @SuppressWarnings("null")
+    protected void syncMultiBlockPartnerFromRoot(Level level, BlockPos rootPos, BlockState rootState) {
+        if (!rootState.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)) {
+            return;
+        }
+
+        BlockPos lowerPos = rootPos;
+        BlockState lowerState = rootState;
+        if (rootState.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.UPPER) {
+            lowerPos = rootPos.below();
+            lowerState = level.getBlockState(lowerPos);
+        }
+
+        if (lowerState.getBlock() != this
+                || !lowerState.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)
+                || lowerState.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) != DoubleBlockHalf.LOWER) {
+            return;
+        }
+
+        BlockPos upperPos = lowerPos.above();
+        BlockState upperState = level.getBlockState(upperPos);
+        BlockState expectedUpper = lowerState.setValue(BlockStateProperties.DOUBLE_BLOCK_HALF, DoubleBlockHalf.UPPER);
+
+        if (upperState.getBlock() != this
+                || !upperState.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)
+                || upperState.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) != DoubleBlockHalf.UPPER) {
+            level.setBlock(upperPos, expectedUpper, 3);
+            return;
+        }
+
+        if (!upperState.equals(expectedUpper)) {
+            level.setBlock(upperPos, expectedUpper, 3);
         }
     }
     

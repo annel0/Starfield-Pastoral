@@ -1,0 +1,6 @@
+﻿{
+    "parent":  "minecraft:block/cross",
+    "textures":  {
+                     "cross":  "stardewcraft:block/crops/summer/melon_stage0_top"
+                 }
+}

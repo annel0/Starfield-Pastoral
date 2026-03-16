@@ -3,6 +3,7 @@ package com.stardew.craft.integration;
 import com.stardew.craft.block.crop.StardewCropBlock;
 import com.stardew.craft.block.animal.AnimalProduceSpotBlock;
 import com.stardew.craft.block.utility.BeeHouseBlock;
+import com.stardew.craft.block.utility.BaitMakerBlock;
 import com.stardew.craft.block.utility.CaskBlock;
 import com.stardew.craft.block.utility.CharcoalKilnBlock;
 import com.stardew.craft.block.utility.CheesePressBlock;
@@ -57,8 +58,6 @@ public class JadePlugin implements IWailaPlugin {
 
     private static final String NBT_TOTAL_DAYS = "Stardew_TotalDays";
     private static final String NBT_DAYS_GROWN = "Stardew_DaysGrown";
-    private static final String NBT_REGROWING = "Stardew_Regrowing";
-    private static final String NBT_REGROW_DAYS = "Stardew_RegrowDays";
     private static final String NBT_MATURE = "Stardew_Mature";
 	private static final String NBT_BLOCKED = "Stardew_Blocked";
 
@@ -95,6 +94,7 @@ public class JadePlugin implements IWailaPlugin {
             || block instanceof CheesePressBlock
             || block instanceof CrystalariumBlock
             || block instanceof DehydratorBlock
+            || block instanceof BaitMakerBlock
             || block instanceof DeluxeWormBinBlock
             || block instanceof FishSmokerBlock
             || block instanceof FurnaceBlock
@@ -173,57 +173,58 @@ public class JadePlugin implements IWailaPlugin {
             }
 
             int age = state.getValue(Objects.requireNonNull(StardewCropBlock.AGE, "AGE"));
-            int[] phaseDays = cropBlock.getPhaseDaysForDisplay();
-            if (phaseDays == null || phaseDays.length == 0) {
-                return;
-            }
-
-            int totalDays = 0;
-            for (int d : phaseDays) {
-                totalDays += Math.max(0, d);
-            }
-            if (totalDays <= 0) {
-                totalDays = 1;
-            }
-
             CropGrowthManager.CropGrowthState gs = CropGrowthManager.get(serverLevel).getState(serverLevel, accessor.getPosition());
             int dayInPhase = gs != null ? gs.dayInPhase : 0;
-            boolean regrowing = gs != null && gs.regrowing;
             int phase = gs != null ? gs.phase : 0;
+            boolean regrowing = gs != null && gs.regrowing;
 
             boolean mature;
-            int displayGrown;
-            int displayTotal;
-            int regrowDays = cropBlock.getRegrowDaysForDisplay();
+            
+            int totalDays = 0;
+            int daysGrown = 0;
 
-            if (regrowing && cropBlock.canRegrowForDisplay()) {
-                displayGrown = Math.max(0, dayInPhase);
-                displayTotal = Math.max(1, regrowDays);
-                mature = false;
+            int[] phaseDays = cropBlock.getPhaseDaysForDisplay();
+            if (phaseDays == null || phaseDays.length == 0) {
+                mature = age >= StardewCropBlock.MAX_AGE;
+                totalDays = StardewCropBlock.MAX_AGE;
+                daysGrown = age;
             } else {
-                int grown = 0;
-                // 用真实 phase(0-3) 来计算天数进度；AGE 只是渲染阶段
                 int effectivePhase = phase;
-                if (effectivePhase <= 0) {
+                if (effectivePhase <= 0 && gs == null) { // Fallback if no crop state is found
                     effectivePhase = age >= StardewCropBlock.MAX_AGE ? StardewCropBlock.MAX_AGE : Math.min(age, StardewCropBlock.MAX_AGE - 1);
                 }
-
-                for (int i = 0; i < effectivePhase && i < phaseDays.length; i++) {
-                    grown += Math.max(0, phaseDays[i]);
-                }
-                grown += Math.max(0, dayInPhase);
-                displayGrown = Math.min(grown, totalDays);
-                displayTotal = totalDays;
-
+                
                 int lastReq = phaseDays.length > StardewCropBlock.MAX_AGE ? phaseDays[StardewCropBlock.MAX_AGE] : 1;
                 lastReq = Math.max(1, lastReq);
                 mature = age >= StardewCropBlock.MAX_AGE && effectivePhase >= StardewCropBlock.MAX_AGE && dayInPhase >= lastReq;
+                
+                if (regrowing) {
+                    totalDays = cropBlock.getRegrowDaysForDisplay();
+                    daysGrown = Math.min(dayInPhase, totalDays);
+                } else {
+                    for (int pd : phaseDays) {
+                        totalDays += pd;
+                    }
+                    
+                    for (int i = 0; i < effectivePhase && i < phaseDays.length; i++) {
+                        daysGrown += phaseDays[i];
+                    }
+                    
+                    if (effectivePhase < phaseDays.length) {
+                        daysGrown += Math.min(dayInPhase, phaseDays[effectivePhase]);
+                    } else {
+                        daysGrown += dayInPhase;
+                    }
+                }
+                
+                if (mature) {
+                    daysGrown = totalDays; // Cap it properly at visual maturity
+                }
             }
 
-            tag.putInt(NBT_TOTAL_DAYS, displayTotal);
-            tag.putInt(NBT_DAYS_GROWN, displayGrown);
-            tag.putBoolean(NBT_REGROWING, regrowing);
-            tag.putInt(NBT_REGROW_DAYS, Math.max(0, regrowDays));
+            // Jade 显示“已生长的天数 / 总需天数”
+            tag.putInt(NBT_TOTAL_DAYS, totalDays);
+            tag.putInt(NBT_DAYS_GROWN, daysGrown);
             tag.putBoolean(NBT_MATURE, mature);
         }
 
@@ -238,21 +239,10 @@ public class JadePlugin implements IWailaPlugin {
                 if (serverData != null && serverData.contains(NBT_TOTAL_DAYS) && serverData.contains(NBT_DAYS_GROWN)) {
                     int grown = serverData.getInt(NBT_DAYS_GROWN);
                     int total = serverData.getInt(NBT_TOTAL_DAYS);
-                    boolean regrowing = serverData.getBoolean(NBT_REGROWING);
-
-                    int remaining = Math.max(0, total - grown);
-
-                    String progressText;
-                    if (regrowing) {
-                        progressText = "再生 " + grown + "/" + total;
-                    } else {
-                        progressText = grown + "/" + total;
-                    }
+                    String progressText = grown + "/" + total;
                     tooltip.add(Component.translatable("stardewcraft.tooltip.growth_stage", progressText));
-                    tooltip.add(Component.translatable("stardewcraft.tooltip.remaining_days", remaining));
                 } else {
-                    // fallback：没有服务端数据时，至少别误导成“0/3天”，改成“阶段 0/3”
-                    String progressText = "阶段 " + age + "/" + maxAge;
+                    String progressText = age + "/" + maxAge;
                     tooltip.add(Component.translatable("stardewcraft.tooltip.growth_stage", progressText));
                 }
                 

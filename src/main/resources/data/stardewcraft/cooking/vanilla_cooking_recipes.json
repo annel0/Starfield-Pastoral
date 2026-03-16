@@ -471,7 +471,7 @@
                                "count":  1
                            }
                        ],
-    "autumns_bounty":  [
+    "autumn_s_bounty":  [
                            {
                                "token":  "280",
                                "count":  1
@@ -529,7 +529,7 @@
                          "count":  1
                      }
                  ],
-    "farmers_lunch":  [
+    "farmer_s_lunch":  [
                           {
                               "token":  "195",
                               "count":  1
@@ -563,7 +563,7 @@
                                "count":  1
                            }
                        ],
-    "miners_treat":  [
+    "miner_s_treat":  [
                          {
                              "token":  "78",
                              "count":  2

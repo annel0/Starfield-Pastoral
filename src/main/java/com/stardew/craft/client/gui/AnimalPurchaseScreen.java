@@ -1209,17 +1209,27 @@ public class AnimalPurchaseScreen extends Screen {
     }
 
     private void drawFilledCircle(GuiGraphics graphics, int centerX, int centerY, int radius, int color) {
-        for (int dy = -radius; dy <= radius; dy++) {
-            int span = (int) Math.floor(Math.sqrt((double) radius * radius - (double) dy * dy));
-            graphics.fill(centerX - span, centerY + dy, centerX + span + 1, centerY + dy + 1, color);
+        if (radius <= 0) return;
+        int step = Math.max(1, radius / 12);
+        for (int dy = -radius; dy <= radius; dy += step) {
+            double effectiveY = Math.min(Math.abs(dy) + step / 2.0, radius);
+            int span = (int) Math.floor(Math.sqrt((double) radius * radius - effectiveY * effectiveY));
+            int h = Math.min(step, radius - dy + 1);
+            if (h > 0) {
+                graphics.fill(centerX - span, centerY + dy, centerX + span + 1, centerY + dy + h, color);
+            }
         }
     }
 
     private void drawRightTriangle(GuiGraphics graphics, int cx, int cy, int tipW, int halfH, int color) {
-        for (int dy = -halfH; dy <= halfH; dy++) {
-            float t = 1.0f - (Math.abs(dy) / (float) halfH);
-            int w = Math.max(1, Math.round(tipW * t));
-            graphics.fill(cx - tipW, cy + dy, cx - tipW + w, cy + dy + 1, color);
+        int step = Math.max(1, halfH / 6);
+        for (int dy = -halfH; dy <= halfH; dy += step) {
+            float t = 1.0f - (Math.abs(dy + step / 2.0f) / (float) halfH);
+            int w = Math.max(1, Math.round(tipW * Math.max(0, t)));
+            int h = Math.min(step, halfH - dy + 1);
+            if(h > 0) {
+                graphics.fill(cx - tipW, cy + dy, cx - tipW + w, cy + dy + h, color);
+            }
         }
     }
 

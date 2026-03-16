@@ -4,7 +4,7 @@
     { "when": { "age": 1 }, "apply": { "model": "stardewcraft:block/crops/summer/poppy_stage1" } },
     { "when": { "age": 2 }, "apply": { "model": "stardewcraft:block/crops/summer/poppy_stage2" } },
     { "when": { "age": 3, "color": 0 }, "apply": { "model": "stardewcraft:block/crops/summer/poppy_stage3_1" } },
-    { "when": { "age": 3, "color": 1 }, "apply": { "model": "stardewcraft:block/crops/summer/poppy_stage3_2" } },
-    { "when": { "age": 3, "color": 2 }, "apply": { "model": "stardewcraft:block/crops/summer/poppy_stage3_3" } }
+    { "when": { "age": 3, "color": 1 }, "apply": { "model": "stardewcraft:block/crops/summer/poppy_stage3_3" } },
+    { "when": { "age": 3, "color": 2 }, "apply": { "model": "stardewcraft:block/crops/summer/poppy_stage3_2" } }
   ]
 }

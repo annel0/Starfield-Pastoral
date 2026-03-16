@@ -8,6 +8,7 @@ import com.stardew.craft.blockentity.CharcoalKilnBlockEntity;
 import com.stardew.craft.blockentity.CrystalariumBlockEntity;
 import com.stardew.craft.blockentity.DeluxeWormBinBlockEntity;
 import com.stardew.craft.blockentity.DehydratorBlockEntity;
+import com.stardew.craft.blockentity.BaitMakerBlockEntity;
 import com.stardew.craft.blockentity.FishSmokerBlockEntity;
 import com.stardew.craft.blockentity.FurnaceBlockEntity;
 import com.stardew.craft.blockentity.KegBlockEntity;
@@ -84,6 +85,8 @@ public record AdvanceUtilitiesPayload() implements CustomPacketPayload {
 							crystalarium.advanceDays(1);
 						} else if (be instanceof DehydratorBlockEntity dehydrator) {
 							dehydrator.advanceDays(1);
+						} else if (be instanceof BaitMakerBlockEntity baitMaker) {
+							baitMaker.advanceDays(1);
 						} else if (be instanceof FishSmokerBlockEntity fishSmoker) {
 							fishSmoker.advanceDays(1);
 						} else if (be instanceof SeedMakerBlockEntity seedMaker) {

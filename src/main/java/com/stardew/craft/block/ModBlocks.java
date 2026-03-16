@@ -883,6 +883,14 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .strength(1.5F, 3.0F)));
 
         @SuppressWarnings("null")
+        public static final DeferredBlock<Block> BAIT_MAKER = BLOCKS.register("bait_maker",
+                        () -> new com.stardew.craft.block.utility.BaitMakerBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.METAL)
+                                        .sound(net.minecraft.world.level.block.SoundType.METAL)
+                                        .noOcclusion()
+                                        .strength(1.5F, 3.0F)));
+
+        @SuppressWarnings("null")
         public static final DeferredBlock<Block> FISH_SMOKER = BLOCKS.register("fish_smoker",
                         () -> new com.stardew.craft.block.utility.FishSmokerBlock(Block.Properties.of()
                                         .mapColor(net.minecraft.world.level.material.MapColor.METAL)
@@ -1065,6 +1073,22 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                         () -> new com.stardew.craft.block.utility.AutoPetterBlock(Block.Properties.of()
                                         .mapColor(net.minecraft.world.level.material.MapColor.METAL)
                                         .sound(net.minecraft.world.level.block.SoundType.METAL)
+                                        .noOcclusion()
+                                        .strength(1.5F, 3.0F)));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WOODEN_CHEST = BLOCKS.register("wooden_chest",
+                        () -> new com.stardew.craft.block.utility.WoodenChestBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(1.5F, 3.0F)));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> STONE_CHEST = BLOCKS.register("stone_chest",
+                        () -> new com.stardew.craft.block.utility.StoneChestBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.STONE)
+                                        .sound(net.minecraft.world.level.block.SoundType.STONE)
                                         .noOcclusion()
                                         .strength(1.5F, 3.0F)));
 

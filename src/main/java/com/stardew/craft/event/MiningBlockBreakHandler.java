@@ -3,11 +3,9 @@ package com.stardew.craft.event;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.block.ModBlocks;
 import com.stardew.craft.core.ModMiningDimensions;
-import com.stardew.craft.mining.LadderProbabilityCalculator;
 import com.stardew.craft.mining.MineFloorData;
 import com.stardew.craft.mining.MineFloorDataManager;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.Block;
@@ -19,11 +17,7 @@ import net.neoforged.neoforge.event.level.BlockEvent;
 /**
  * 矿井方块破坏事件处理器
  * 
- * 实现星露谷式的梯子生成机制：
- * - 玩家挖掉主石头时触发
- * - 按概率判断是否生成梯子
- * - 梯子生成在玩家脚下
- * - 显示提示消息
+ * 处理矿井石头计数。
  */
 @EventBusSubscriber(modid = StardewCraft.MODID)
 public class MiningBlockBreakHandler {
@@ -91,38 +85,8 @@ public class MiningBlockBreakHandler {
         floorData.decrementStone();
         manager.setFloorData(floorNumber, floorData);
 
-        // 判断是否生成梯子
-        boolean shouldGenerate = LadderProbabilityCalculator.shouldGenerateLadder(
-            floorData.getStonesLeft(),
-            player,
-            floorData,
-            serverLevel.getRandom()
-        );
-
-        if (shouldGenerate) {
-            // 生成梯子在玩家脚下
-            BlockPos playerPos = player.blockPosition();
-            BlockPos ladderPos = playerPos.below(); // 玩家脚下一格
-
-            // 检查位置是否可以放置梯子
-            @SuppressWarnings("null")
-            BlockState belowState = serverLevel.getBlockState(ladderPos);
-            if (belowState.isAir() || belowState.canBeReplaced()) {
-                // 放置梯子
-                serverLevel.setBlock(ladderPos, ModBlocks.MINE_LADDER.get().defaultBlockState(), 3);
-
-                // 标记本层已找到梯子
-                floorData.setLadderFound(true);
-                floorData.setLadderPos(ladderPos);
-                manager.setFloorData(floorNumber, floorData);
-
-                // 发送消息给玩家
-                player.sendSystemMessage(Component.translatable("message.stardew_craft.ladder_found"));
-
-                StardewCraft.LOGGER.info("玩家 {} 在第 {} 层发现了梯子！位置: {}",
-                    player.getName().getString(), floorNumber, ladderPos);
-            }
-        }
+        StardewCraft.LOGGER.debug("[MINE] Stone broken by {} on floor {}, stones left: {}",
+            player.getName().getString(), floorNumber, floorData.getStonesLeft());
     }
     
     /**
@@ -135,9 +99,9 @@ public class MiningBlockBreakHandler {
     
     /**
      * 从坐标计算楼层编号
-     * 每层中心在 (0, 64, floor * 100)
+     * 每层中心在 (0, 64, floor * FLOOR_SPACING)
      */
     private static int getFloorNumber(BlockPos pos) {
-        return Math.round(pos.getZ() / 100.0f);
+        return Math.round(pos.getZ() / (float) com.stardew.craft.mining.MiningCoordinates.FLOOR_SPACING);
     }
 }

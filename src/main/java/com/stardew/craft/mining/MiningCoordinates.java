@@ -25,7 +25,7 @@ public class MiningCoordinates {
     public static final int FIXED_Y = 66;
     
     // 层间距
-    public static final int FLOOR_SPACING = 100;
+    public static final int FLOOR_SPACING = 500;
     
     /**
      * 获取指定层数的中心坐标

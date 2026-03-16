@@ -55,4 +55,14 @@ public class ModMenuTypes {
     public static final DeferredHolder<MenuType<?>, MenuType<CookingPotMenu>> COOKING_POT =
         MENU_TYPES.register("cooking_pot",
             () -> new MenuType<>(CookingPotMenu::new, FeatureFlags.DEFAULT_FLAGS));
+
+    @SuppressWarnings("null")
+    public static final DeferredHolder<MenuType<?>, MenuType<WoodenChestMenu>> WOODEN_CHEST =
+        MENU_TYPES.register("wooden_chest",
+            () -> new MenuType<>(WoodenChestMenu::new, FeatureFlags.DEFAULT_FLAGS));
+
+    @SuppressWarnings("null")
+    public static final DeferredHolder<MenuType<?>, MenuType<StoneChestMenu>> STONE_CHEST =
+        MENU_TYPES.register("stone_chest",
+            () -> new MenuType<>(StoneChestMenu::new, FeatureFlags.DEFAULT_FLAGS));
 }

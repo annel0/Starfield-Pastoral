@@ -1,0 +1,7 @@
+{
+  "parent": "block/cube_all",
+  "textures": {
+    "all": "stardewcraft:block/utility/stone_chest",
+    "particle": "stardewcraft:block/utility/stone_chest"
+  }
+}

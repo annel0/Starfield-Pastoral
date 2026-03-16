@@ -384,6 +384,9 @@ public class ModItems {
         public static final DeferredItem<Item> DEHYDRATOR = ITEMS.register("dehydrator",
                         () -> new StardewBlockItem(ModBlocks.DEHYDRATOR.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
 
+        public static final DeferredItem<Item> BAIT_MAKER = ITEMS.register("bait_maker",
+                        () -> new StardewBlockItem(ModBlocks.BAIT_MAKER.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
+
         public static final DeferredItem<Item> FISH_SMOKER = ITEMS.register("fish_smoker",
                         () -> new StardewBlockItem(ModBlocks.FISH_SMOKER.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> COOKING_POT = ITEMS.register("cooking_pot",
@@ -444,6 +447,12 @@ public class ModItems {
 
         public static final DeferredItem<Item> AUTO_PETTER = ITEMS.register("auto_petter",
                         () -> new StardewBlockItem(ModBlocks.AUTO_PETTER.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> WOODEN_CHEST = ITEMS.register("wooden_chest",
+                        () -> new StardewBlockItem(ModBlocks.WOODEN_CHEST.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> STONE_CHEST = ITEMS.register("stone_chest",
+                        () -> new StardewBlockItem(ModBlocks.STONE_CHEST.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
 
         public static final DeferredItem<Item> HEATER = ITEMS.register("heater",
                         () -> new StardewBlockItem(ModBlocks.HEATER.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));

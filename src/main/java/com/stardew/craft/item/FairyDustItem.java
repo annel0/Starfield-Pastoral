@@ -4,6 +4,7 @@ import com.stardew.craft.blockentity.BeeHouseBlockEntity;
 import com.stardew.craft.blockentity.CheesePressBlockEntity;
 import com.stardew.craft.blockentity.CrystalariumBlockEntity;
 import com.stardew.craft.blockentity.CharcoalKilnBlockEntity;
+import com.stardew.craft.blockentity.BaitMakerBlockEntity;
 import com.stardew.craft.blockentity.FurnaceBlockEntity;
 import com.stardew.craft.blockentity.FishSmokerBlockEntity;
 import com.stardew.craft.blockentity.KegBlockEntity;
@@ -46,6 +47,7 @@ public class FairyDustItem extends SimpleStardewItem {
         if (!(be instanceof KegBlockEntity
                 || be instanceof CaskBlockEntity
             || be instanceof PreservesJarBlockEntity
+                || be instanceof BaitMakerBlockEntity
                 || be instanceof CheesePressBlockEntity
                 || be instanceof MayonnaiseMachineBlockEntity
                 || be instanceof CrystalariumBlockEntity
@@ -70,6 +72,8 @@ public class FairyDustItem extends SimpleStardewItem {
             canApply = cask.canApplyFairyDust();
         } else if (be instanceof PreservesJarBlockEntity preservesJar) {
             canApply = preservesJar.canApplyFairyDust();
+        } else if (be instanceof BaitMakerBlockEntity baitMaker) {
+            canApply = baitMaker.canApplyFairyDust();
         } else if (be instanceof CheesePressBlockEntity press) {
             canApply = press.canApplyFairyDust();
         } else if (be instanceof MayonnaiseMachineBlockEntity machine) {
@@ -113,6 +117,8 @@ public class FairyDustItem extends SimpleStardewItem {
                 applied = cask.applyFairyDust();
             } else if (be instanceof PreservesJarBlockEntity preservesJar) {
                 applied = preservesJar.applyFairyDust();
+            } else if (be instanceof BaitMakerBlockEntity baitMaker) {
+                applied = baitMaker.applyFairyDust();
             } else if (be instanceof CheesePressBlockEntity press) {
                 applied = press.applyFairyDust();
             } else if (be instanceof MayonnaiseMachineBlockEntity machine) {

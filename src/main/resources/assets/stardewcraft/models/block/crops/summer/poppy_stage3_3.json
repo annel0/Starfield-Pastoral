@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cross",
   "textures": {
-    "cross": "stardewcraft:block/crops/summer/poppy_stage3"
+    "cross": "stardewcraft:block/crops/summer/poppy_stage3_2"
   }
 }

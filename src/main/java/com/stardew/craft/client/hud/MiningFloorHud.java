@@ -1,6 +1,7 @@
 package com.stardew.craft.client.hud;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.stardew.craft.mining.MiningCoordinates;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModMiningDimensions;
 import net.minecraft.client.Minecraft;
@@ -52,6 +53,10 @@ public class MiningFloorHud {
         if (mc.level.dimension() != ModMiningDimensions.STARDEW_MINING) {
             return;
         }
+
+        // Dynamically calculate floor based on player Z position!
+        currentFloor = (int) Math.max(0, Math.round(mc.player.getZ() / MiningCoordinates.FLOOR_SPACING));
+
         
         GuiGraphics guiGraphics = event.getGuiGraphics();
         Font font = mc.font;

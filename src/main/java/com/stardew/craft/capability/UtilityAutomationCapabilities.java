@@ -2,6 +2,7 @@ package com.stardew.craft.capability;
 
 import com.stardew.craft.block.ModBlocks;
 import com.stardew.craft.block.utility.AutoGrabberBlock;
+import com.stardew.craft.block.utility.BaitMakerBlock;
 import com.stardew.craft.block.utility.BeeHouseBlock;
 import com.stardew.craft.block.utility.CharcoalKilnBlock;
 import com.stardew.craft.block.utility.CheesePressBlock;
@@ -36,6 +37,8 @@ public final class UtilityAutomationCapabilities {
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ModBlockEntities.PRESERVES_JAR.get(),
             (be, ctx) -> be.getAutomationItemHandler());
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ModBlockEntities.DEHYDRATOR.get(),
+            (be, ctx) -> be.getAutomationItemHandler());
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ModBlockEntities.BAIT_MAKER.get(),
             (be, ctx) -> be.getAutomationItemHandler());
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ModBlockEntities.FISH_SMOKER.get(),
             (be, ctx) -> be.getAutomationItemHandler());
@@ -84,6 +87,7 @@ public final class UtilityAutomationCapabilities {
             ModBlocks.BEE_HOUSE.get(),
             ModBlocks.CHEESE_PRESS.get(),
             ModBlocks.DEHYDRATOR.get(),
+            ModBlocks.BAIT_MAKER.get(),
             ModBlocks.FISH_SMOKER.get(),
             ModBlocks.FURNACE.get(),
             ModBlocks.CHARCOAL_KILN.get(),
@@ -115,6 +119,9 @@ public final class UtilityAutomationCapabilities {
         }
         if (state.getBlock() instanceof DehydratorBlock) {
             return DehydratorBlock.getMainPos(pos, state);
+        }
+        if (state.getBlock() instanceof BaitMakerBlock) {
+            return BaitMakerBlock.getMainPos(pos, state);
         }
         if (state.getBlock() instanceof FishSmokerBlock) {
             return FishSmokerBlock.getMainPos(pos, state);

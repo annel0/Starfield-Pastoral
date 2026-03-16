@@ -73,6 +73,8 @@ import com.stardew.craft.combat.network.BrokenTridentThrustStrikePayload;
 import com.stardew.craft.combat.network.IridiumNeedleCritPayload;
 import com.stardew.craft.combat.network.IridiumNeedleFrenzyPayload;
 import com.stardew.craft.combat.network.IridiumNeedleThrustStrikePayload;
+import com.stardew.craft.network.payload.StoneChestColorSelectPayload;
+import com.stardew.craft.network.payload.WoodenChestColorSelectPayload;
 
 @SuppressWarnings("null")
 public class PacketHandler {
@@ -122,6 +124,18 @@ public class PacketHandler {
             WeaponSkillUsePayload.TYPE,
             WeaponSkillUsePayload.STREAM_CODEC,
             WeaponSkillUsePayload::handle
+        );
+
+        registrar.playToServer(
+            WoodenChestColorSelectPayload.TYPE,
+            WoodenChestColorSelectPayload.STREAM_CODEC,
+            WoodenChestColorSelectPayload::handle
+        );
+
+        registrar.playToServer(
+            StoneChestColorSelectPayload.TYPE,
+            StoneChestColorSelectPayload.STREAM_CODEC,
+            StoneChestColorSelectPayload::handle
         );
         
         // 服务端 -> 客户端

@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "源文件", "源文件", "{B711E86B-78AB-B3C2-DC77-AA8DE91EF146}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stardew-Valley", "源文件\Stardew-Valley.csproj", "{BB95B1F2-DBB4-1D85-2337-729FC4D46833}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BB95B1F2-DBB4-1D85-2337-729FC4D46833}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB95B1F2-DBB4-1D85-2337-729FC4D46833}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB95B1F2-DBB4-1D85-2337-729FC4D46833}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB95B1F2-DBB4-1D85-2337-729FC4D46833}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{BB95B1F2-DBB4-1D85-2337-729FC4D46833} = {B711E86B-78AB-B3C2-DC77-AA8DE91EF146}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C8994944-E7B8-444F-8697-54FAA8E6D960}
+	EndGlobalSection
+EndGlobal
