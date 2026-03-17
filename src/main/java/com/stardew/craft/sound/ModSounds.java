@@ -44,6 +44,17 @@ public final class ModSounds {
 	public static final DeferredHolder<SoundEvent, SoundEvent> WOODY_STEP = register("woody_step");
 	public static final DeferredHolder<SoundEvent, SoundEvent> BACKPACK_IN = register("backpack_in");
 	public static final DeferredHolder<SoundEvent, SoundEvent> SHWIP = register("shwip");
+	public static final DeferredHolder<SoundEvent, SoundEvent> BIG_SELECT = register("big_select");
+	public static final DeferredHolder<SoundEvent, SoundEvent> BIG_DESELECT = register("big_deselect");
+	public static final DeferredHolder<SoundEvent, SoundEvent> SHADOW_DIE = register("shadow_die");
+	public static final DeferredHolder<SoundEvent, SoundEvent> THUD_STEP = register("thud_step");
+	public static final DeferredHolder<SoundEvent, SoundEvent> STONE_STEP = register("stone_step");
+	public static final DeferredHolder<SoundEvent, SoundEvent> HARVEST = register("harvest");
+	public static final DeferredHolder<SoundEvent, SoundEvent> LEAFRUSTLE = register("leafrustle");
+	public static final DeferredHolder<SoundEvent, SoundEvent> BUTTON1 = register("button1");
+	public static final DeferredHolder<SoundEvent, SoundEvent> HAMMER = register("hammer");
+	public static final DeferredHolder<SoundEvent, SoundEvent> COIN = register("coin");
+	public static final DeferredHolder<SoundEvent, SoundEvent> MONEY_DIAL = register("money_dial");
 
 	// 武器音效
 	public static final DeferredHolder<SoundEvent, SoundEvent> MEOW = register("weapon.meow");

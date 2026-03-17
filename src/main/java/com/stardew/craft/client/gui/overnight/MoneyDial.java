@@ -1,11 +1,14 @@
 package com.stardew.craft.client.gui.overnight;
 
+import com.stardew.craft.sound.ModSounds;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.Minecraft;
+import net.minecraft.util.Mth;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
+@SuppressWarnings("null")
 public class MoneyDial {
 
     public int numDigits;
@@ -14,6 +17,8 @@ public class MoneyDial {
 
     private int speed;
     private int soundTimer;
+    private int moneyMadeAccumulator;
+    private int moneyShineTimer;
 
     public MoneyDial(int numDigits) {
         this.numDigits = numDigits;
@@ -21,14 +26,33 @@ public class MoneyDial {
     }
 
     public void draw(GuiGraphics graphics, int x, int y, int target) {
+        float guiScale = (float) net.minecraft.client.Minecraft.getInstance().getWindow().getGuiScale();
+        float digitScale = 4.0f / guiScale;
+        int digitStep = Math.max(1, Math.round(24.0f / guiScale));
+
         if (previousTargetValue != target) {
             speed = (target - currentValue) / 100;
             previousTargetValue = target;
             soundTimer = Math.max(6, 100 / (Math.abs(speed) + 1));
         }
+
+        if (moneyShineTimer > 0 && currentValue == target) {
+            moneyShineTimer = Math.max(0, moneyShineTimer - 16);
+        }
+
+        if (moneyMadeAccumulator > 0) {
+            moneyMadeAccumulator -= (Math.abs(speed / 2) + 1) * 100;
+            if (moneyMadeAccumulator <= 0) {
+                moneyShineTimer = numDigits * 60;
+            }
+        }
         
         if (currentValue != target) {
             currentValue += speed + ((currentValue < target) ? 1 : -1);
+
+            if (currentValue < target) {
+                moneyMadeAccumulator += Math.abs(speed);
+            }
             
             soundTimer--;
             
@@ -37,8 +61,9 @@ public class MoneyDial {
             }
             
             if (soundTimer <= 0) {
-                // Play money sound - Minecraft equivalent
-                // e.g. Minecraft.getInstance().player.playSound(SoundEvents.EXPERIENCE_ORB_PICKUP, 0.5f, 1.0f);
+                if (target > currentValue && net.minecraft.client.Minecraft.getInstance() != null) {
+                    net.minecraft.client.Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(ModSounds.MONEY_DIAL.get(), 1.0f, 1.0f));
+                }
                 soundTimer = Math.max(6, 100 / (Math.abs(speed) + 1));
             }
         }
@@ -54,10 +79,15 @@ public class MoneyDial {
             }
             
             if (significant) {
-                // b.Draw(..., position + new Vector2(xPosition, ...), new Rectangle(286, 502 - currentDigit * 8, 5, 8), ..., scale: 4f)
-                StardewGuiUtil.drawFromCursors(graphics, x + xPosition, y, 286, 502 - currentDigit * 8, 5, 8, 4f);
+                float yOffset = 0.0f;
+                if (net.minecraft.client.Minecraft.getInstance().screen instanceof ShippingMenuScreen && currentValue >= 1_000_000) {
+                    yOffset = Mth.sin((float) (System.currentTimeMillis() / 100.53096771240234D + j)) * (currentValue / 1_000_000.0f);
+                }
+                float scale = digitScale + ((moneyShineTimer / 60 == numDigits - j) ? (0.3f / guiScale) : 0.0f);
+                StardewGuiUtil.drawFromCursorsTint(graphics, x + xPosition, (int) (y + yOffset), 286, 502 - currentDigit * 8, 5, 8, scale,
+                        128.0F / 255.0F, 0.0F, 0.0F, 1.0F);
             }
-            xPosition += 24; // 24 is 6 * 4
+            xPosition += digitStep;
             digitStrip /= 10;
         }
     }

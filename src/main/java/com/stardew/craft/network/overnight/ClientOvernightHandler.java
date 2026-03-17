@@ -1,7 +1,6 @@
 package com.stardew.craft.network.overnight;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.minecraft.client.gui.screens.Screen;

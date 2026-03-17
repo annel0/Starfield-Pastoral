@@ -75,7 +75,6 @@ import com.stardew.craft.combat.network.IridiumNeedleFrenzyPayload;
 import com.stardew.craft.combat.network.IridiumNeedleThrustStrikePayload;
 import com.stardew.craft.network.payload.StoneChestColorSelectPayload;
 import com.stardew.craft.network.payload.WoodenChestColorSelectPayload;
-import com.stardew.craft.network.overnight.OvernightSettlementPayload;
 
 @SuppressWarnings("null")
 public class PacketHandler {

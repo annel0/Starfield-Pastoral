@@ -133,6 +133,56 @@
       { "name": "stardewcraft:shwip", "stream": false }
     ]
   },
+  "big_select": {
+    "sounds": [
+      { "name": "stardewcraft:big_select", "stream": false }
+    ]
+  },
+  "big_deselect": {
+    "sounds": [
+      { "name": "stardewcraft:big_deselect", "stream": false }
+    ]
+  },
+  "shadow_die": {
+    "sounds": [
+      { "name": "stardewcraft:shadow_die", "stream": false }
+    ]
+  },
+  "thud_step": {
+    "sounds": [
+      { "name": "stardewcraft:thud_step", "stream": false }
+    ]
+  },
+  "stone_step": {
+    "sounds": [
+      { "name": "stardewcraft:stone_step", "stream": false }
+    ]
+  },
+  "harvest": {
+    "sounds": [
+      { "name": "stardewcraft:utility/select", "stream": false }
+    ]
+  },
+  "leafrustle": {
+    "sounds": [
+      { "name": "stardewcraft:woody_step", "stream": false }
+    ]
+  },
+  "button1": {
+    "sounds": [
+      { "name": "stardewcraft:utility/select", "stream": false }
+    ]
+  },
+  "hammer": {
+    "sounds": [
+      { "name": "stardewcraft:thud_step", "stream": false }
+    ]
+  },
+  "coin": {
+    "sounds": [
+      { "name": "stardewcraft:ui/money", "stream": false }
+    ]
+  },
   "weapon.meow": {
     "sounds": [
       { "name": "stardewcraft:weapon/meow_1", "stream": false },
