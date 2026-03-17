@@ -65,4 +65,9 @@ public class ModMenuTypes {
     public static final DeferredHolder<MenuType<?>, MenuType<StoneChestMenu>> STONE_CHEST =
         MENU_TYPES.register("stone_chest",
             () -> new MenuType<>(StoneChestMenu::new, FeatureFlags.DEFAULT_FLAGS));
+
+    @SuppressWarnings("null")
+    public static final DeferredHolder<MenuType<?>, MenuType<ShippingBinMenu>> SHIPPING_BIN =
+        MENU_TYPES.register("shipping_bin",
+            () -> new MenuType<>(ShippingBinMenu::new, FeatureFlags.DEFAULT_FLAGS));
 }

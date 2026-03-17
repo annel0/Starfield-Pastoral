@@ -7,6 +7,7 @@ import com.stardew.craft.manager.WildTreeSeedManager;
 import com.stardew.craft.tree.WildTrees;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.player.PlayerStardewDataAPI;
+import com.stardew.craft.player.ProfessionType;
 import com.stardew.craft.player.SkillType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -218,15 +219,20 @@ public final class WildTreeChopEvents {
 				// Sap (different from tapper products)
 				fallDrops.add(new ItemStack(ModItems.SAP.get(), 5));
 				// Wood/Hardwood
-				int dropCount = getFelledWoodDropCount(level, def);
+				int dropCount = getFelledWoodDropCount(level, def, player);
 				if (dropCount > 0) {
 					var woodItem = getWoodDropItem(def);
 					fallDrops.add(new ItemStack(woodItem, dropCount));
+				}
+				int hardwoodBonus = getLumberjackBonusHardwood(level, def, player);
+				if (hardwoodBonus > 0) {
+					fallDrops.add(new ItemStack(ModItems.WOOD_HARD.get(), hardwoodBonus));
 				}
 				// 树倒下后只剩树桩：不再参与“每日种子/扩散”。
 				WildTreeSeedManager.get(level).untrackTree(level, snapshot.pivotTrunk0Pos);
 				Direction dir = computeFallDirection(player, snapshot.pivotTrunk0Pos);
 				fellTree(level, snapshot, dir, def, fallDrops);
+				PlayerStardewDataAPI.addExperience(player, SkillType.FORAGING, 12);
 				// Keep trunk0 in place: cancel vanilla break.
 				event.setCanceled(true);
 				return;
@@ -237,11 +243,16 @@ public final class WildTreeChopEvents {
 				consumeEnergyForTreeChop(player, level, pos);
 				level.removeBlock(pos, false);
 				playStumpEffects(level, pos, def);
-				int dropCount = getStumpWoodDropCount(level, def);
+				int dropCount = getStumpWoodDropCount(level, def, player);
 				if (dropCount > 0) {
 					var woodItem = getWoodDropItem(def);
 					Block.popResource(level, pos, new ItemStack(woodItem, dropCount));
 				}
+				int hardwoodBonus = getLumberjackBonusHardwood(level, def, player);
+				if (hardwoodBonus > 0) {
+					Block.popResource(level, pos, new ItemStack(ModItems.WOOD_HARD.get(), hardwoodBonus));
+				}
+				PlayerStardewDataAPI.addExperience(player, SkillType.FORAGING, 5);
 				WildTreeSeedManager.get(level).untrackTree(level, pos);
 				event.setCanceled(true);
 				return;
@@ -339,31 +350,54 @@ public final class WildTreeChopEvents {
 	}
 
 	@SuppressWarnings("null")
-	private static int getFelledWoodDropCount(ServerLevel level, WildTrees.Def def) {
+	private static int getFelledWoodDropCount(ServerLevel level, WildTrees.Def def, ServerPlayer player) {
 		// Match Stardew Valley ranges (approx):
 		// - Normal trees: 12-16 Wood
 		// - Mahogany: 8-13 Hardwood
 		// - Mystic Tree: 7-11 Hardwood
 		String id = def.id();
-		return switch (id) {
+		int base = switch (id) {
 			case "mahogany" -> Mth.nextInt(level.random, 8, 13);
 			case "mystic_tree" -> Mth.nextInt(level.random, 7, 11);
 			default -> Mth.nextInt(level.random, 12, 16);
 		};
+		if (!isHardwoodTree(def) && PlayerStardewDataAPI.hasProfession(player, ProfessionType.FORESTER)) {
+			base = Math.max(1, Mth.floor(base * 1.25f));
+		}
+		return base;
 	}
 
 	@SuppressWarnings("null")
-	private static int getStumpWoodDropCount(ServerLevel level, WildTrees.Def def) {
+	private static int getStumpWoodDropCount(ServerLevel level, WildTrees.Def def, ServerPlayer player) {
 		// Match Stardew Valley stump behavior (approx):
 		// - Normal stumps: 5-9 Wood
 		// - Mystic stump: +1 Hardwood
 		// - Mahogany stump: treat as 1-3 Hardwood (close enough; exact rules vary by version)
 		String id = def.id();
-		return switch (id) {
+		int base = switch (id) {
 			case "mystic_tree" -> 1;
 			case "mahogany" -> Mth.nextInt(level.random, 1, 3);
 			default -> Mth.nextInt(level.random, 5, 9);
 		};
+		if (!isHardwoodTree(def) && PlayerStardewDataAPI.hasProfession(player, ProfessionType.FORESTER)) {
+			base = Math.max(1, Mth.floor(base * 1.25f));
+		}
+		return base;
+	}
+
+	private static boolean isHardwoodTree(WildTrees.Def def) {
+		String id = def.id();
+		return "mahogany".equals(id) || "mystic_tree".equals(id);
+	}
+
+	private static int getLumberjackBonusHardwood(ServerLevel level, WildTrees.Def def, ServerPlayer player) {
+		if (isHardwoodTree(def)) {
+			return 0;
+		}
+		if (!PlayerStardewDataAPI.hasProfession(player, ProfessionType.LUMBERJACK)) {
+			return 0;
+		}
+		return level.random.nextFloat() < 0.25f ? 1 : 0;
 	}
 
 	private static Direction computeFallDirection(ServerPlayer player, BlockPos rootPos) {

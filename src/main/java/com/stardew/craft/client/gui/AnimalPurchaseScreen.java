@@ -3,8 +3,10 @@ package com.stardew.craft.client.gui;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.network.payload.AnimalPurchaseSubmitPayload;
+import com.stardew.craft.network.payload.IncubatorClaimSubmitPayload;
 import com.stardew.craft.network.payload.OpenAnimalPurchaseScreenPayload;
 import com.stardew.craft.sound.ModSounds;
+import net.minecraft.core.BlockPos;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -195,6 +197,9 @@ public class AnimalPurchaseScreen extends Screen {
             .thenComparing(i -> i.option.displayName()));
 
         selectedAnimal = Math.max(0, firstUnlockedSortedIndex());
+        if (payload.incubatorMode()) {
+            selectedAnimal = 0;
+        }
         visualAnimal = selectedAnimal;
 
         resetBuildingSelection();
@@ -202,6 +207,10 @@ public class AnimalPurchaseScreen extends Screen {
 
         openedAtMs = System.currentTimeMillis();
         stageChangedAtMs = openedAtMs;
+        if (payload.incubatorMode()) {
+            stage = Stage.BUILDING;
+            previousStage = Stage.BUILDING;
+        }
         hoverHotspot = 0;
     }
 
@@ -726,6 +735,9 @@ public class AnimalPurchaseScreen extends Screen {
     }
 
     private void scrollAnimals(int delta) {
+        if (payload.incubatorMode()) {
+            return;
+        }
         if (items.isEmpty()) {
             return;
         }
@@ -745,6 +757,9 @@ public class AnimalPurchaseScreen extends Screen {
     }
 
     private void scrollBuildings(int delta) {
+        if (payload.incubatorMode()) {
+            return;
+        }
         List<OpenAnimalPurchaseScreenPayload.BuildingOption> list = filteredBuildings();
         if (list.isEmpty()) {
             return;
@@ -800,6 +815,9 @@ public class AnimalPurchaseScreen extends Screen {
     }
 
     private int pickBuildingAt(int mx, int my) {
+        if (payload.incubatorMode()) {
+            return -1;
+        }
         List<OpenAnimalPurchaseScreenPayload.BuildingOption> list = filteredBuildings();
         int floor = (int) Math.floor(visualBuilding);
         int best = -1;
@@ -843,7 +861,11 @@ public class AnimalPurchaseScreen extends Screen {
         }
         OpenAnimalPurchaseScreenPayload.BuildingOption b = buildings.get(selectedBuilding);
         String finalName = editName == null ? "" : editName.trim();
-        PacketDistributor.sendToServer(new AnimalPurchaseSubmitPayload(item.option.animalTypeId(), b.buildingId(), finalName));
+        if (payload.incubatorMode()) {
+            PacketDistributor.sendToServer(new IncubatorClaimSubmitPayload(BlockPos.of(payload.contextBlockPos()), finalName));
+        } else {
+            PacketDistributor.sendToServer(new AnimalPurchaseSubmitPayload(item.option.animalTypeId(), b.buildingId(), finalName));
+        }
         playUi(ModSounds.NEW_RECIPE.get(), 0.88f, 1.0f);
         onClose();
     }
@@ -856,6 +878,9 @@ public class AnimalPurchaseScreen extends Screen {
         }
         if (selectedBuilding < 0 || selectedBuilding >= b.size()) {
             return false;
+        }
+        if (payload.incubatorMode()) {
+            return true;
         }
         return payload.playerMoney() >= item.option.price();
     }

@@ -38,6 +38,8 @@ import com.stardew.craft.item.weapon.WeaponRegistry;
 import com.stardew.craft.item.weapon.WeaponSkillData;
 import com.stardew.craft.effect.ModMobEffects;
 import com.stardew.craft.player.PlayerStardewDataAPI;
+import com.stardew.craft.player.SkillType;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -584,6 +586,13 @@ public class WeaponCombatEvents {
             return;
         }
 
+        if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+            boolean killed = !target.isAlive() || target.getHealth() <= 0.0f;
+            if (killed) {
+                PlayerStardewDataAPI.addExperience(serverPlayer, SkillType.COMBAT, getCombatExperienceOnKill(target));
+            }
+        }
+
         double headTop = target.getY() + target.getBbHeight();
         double baseYOffset = Math.max(0.20, target.getBbHeight() * 0.25);
         double baseY = headTop + baseYOffset;
@@ -967,6 +976,55 @@ public class WeaponCombatEvents {
         target.invulnerableTime = 0;
         target.hurtTime = 0;
         target.hurt(player.damageSources().playerAttack(player), 1.0F);
+    }
+
+    private static int getCombatExperienceOnKill(LivingEntity target) {
+        var tags = target.getTags();
+
+        if (tags.contains("sd_mob_slime")) {
+            if (tags.contains("sd_tier_5")) return 20;
+            if (tags.contains("sd_tier_4")) return 10;
+            if (tags.contains("sd_tier_3")) return 6;
+            if (tags.contains("sd_tier_2")) return 5;
+            return 3;
+        }
+        if (tags.contains("sd_mob_bat")) {
+            if (tags.contains("sd_tier_4")) return 15;
+            if (tags.contains("sd_tier_3")) return 10;
+            if (tags.contains("sd_tier_2")) return 7;
+            return 5;
+        }
+        if (tags.contains("sd_mob_fly")) return 3;
+        if (tags.contains("sd_mob_grub")) return 2;
+        if (tags.contains("sd_mob_bug")) return tags.contains("sd_tier_2") ? 10 : 5;
+        if (tags.contains("sd_mob_dust_sprite")) return 3;
+        if (tags.contains("sd_mob_skeleton")) return tags.contains("sd_tier_3") ? 20 : 15;
+        if (tags.contains("sd_mob_ghost")) return tags.contains("sd_tier_2") ? 20 : 15;
+        if (tags.contains("sd_mob_mummy")) return 20;
+        if (tags.contains("sd_mob_serpent")) return 10;
+        if (tags.contains("sd_mob_crab")) {
+            if (tags.contains("sd_tier_3")) return 12;
+            if (tags.contains("sd_tier_2")) return 8;
+            return 5;
+        }
+        if (tags.contains("sd_mob_golem")) return tags.contains("sd_tier_2") ? 15 : 10;
+        if (tags.contains("sd_mob_shadow")) return tags.contains("sd_tier_2") ? 15 : 12;
+        if (tags.contains("sd_mob_duggy")) return 5;
+        if (tags.contains("sd_mob_metal_head")) return 15;
+        if (tags.contains("sd_mob_squid")) return 10;
+
+        // 非标签怪：按实体类型回退，匹配数据包 COMBAT_SYSTEM.md 的默认对应关系。
+        @SuppressWarnings("null")
+        String path = BuiltInRegistries.ENTITY_TYPE.getKey(target.getType()).getPath();
+        return switch (path) {
+            case "slime" -> 3;
+            case "phantom", "bat" -> 5;
+            case "endermite" -> 2;
+            case "spider", "cave_spider", "silverfish" -> 5;
+            case "skeleton", "stray", "wither_skeleton", "zombie", "drowned", "blaze" -> 15;
+            case "vex" -> 10;
+            default -> 3;
+        };
     }
 
     private static float calculateKnockbackStrength(WeaponStats stats) {

@@ -1093,6 +1093,14 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .strength(1.5F, 3.0F)));
 
         @SuppressWarnings("null")
+        public static final DeferredBlock<Block> SHIPPING_BIN = BLOCKS.register("shipping_bin",
+                        () -> new com.stardew.craft.block.utility.ShippingBinBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(1.5F, 3.0F)));
+
+        @SuppressWarnings("null")
         public static final DeferredBlock<Block> HEATER = BLOCKS.register("heater",
                         () -> new com.stardew.craft.block.utility.HeaterBlock(Block.Properties.of()
                                         .mapColor(net.minecraft.world.level.material.MapColor.METAL)

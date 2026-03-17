@@ -1,6 +1,7 @@
 package com.stardew.craft.client;
 
 import com.stardew.craft.player.SkillType;
+import com.stardew.craft.player.ProfessionType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -57,11 +58,21 @@ public class ClientPlayerDataCache {
             experience = expArray;
         }
         
-        // 读取职业列表
-        ListTag profList = nbt.getList("Professions", Tag.TAG_STRING);
+        // 读取职业列表（服务端标准格式为 int[]，同时兼容旧 string-list）
         professions.clear();
-        for (int i = 0; i < profList.size(); i++) {
-            professions.add(profList.getString(i));
+        int[] professionIds = nbt.getIntArray("Professions");
+        if (professionIds.length > 0) {
+            for (int professionId : professionIds) {
+                ProfessionType profession = ProfessionType.fromId(professionId);
+                if (profession != null) {
+                    professions.add(profession.getName());
+                }
+            }
+        } else {
+            ListTag profList = nbt.getList("Professions", Tag.TAG_STRING);
+            for (int i = 0; i < profList.size(); i++) {
+                professions.add(profList.getString(i));
+            }
         }
 
         // 读取已解锁的配方
@@ -118,6 +129,20 @@ public class ClientPlayerDataCache {
     
     public static List<String> getProfessions() {
         return new ArrayList<>(professions);
+    }
+
+    public static boolean hasProfession(ProfessionType profession) {
+        if (profession == null) {
+            return false;
+        }
+
+        String expectedName = profession.getName();
+        for (String name : professions) {
+            if (expectedName.equalsIgnoreCase(name)) {
+                return true;
+            }
+        }
+        return false;
     }
     
     public static java.util.Set<String> getUnlockedRecipes() {

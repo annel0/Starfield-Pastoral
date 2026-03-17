@@ -41,6 +41,7 @@ public class PlayerStardewData {
     
     // 职业选择
     private final List<Integer> professions = new ArrayList<>();
+    private final List<ProfessionChoicePrompt> pendingProfessionChoices = new ArrayList<>();
     
     // ============ 其他数据 ============
     private long lastSyncTime;       // 最后一次同步时间
@@ -184,6 +185,22 @@ public class PlayerStardewData {
                 data.professions.add(prof);
             }
         }
+
+        data.pendingProfessionChoices.clear();
+        if (tag.contains("PendingProfessionChoices")) {
+            ListTag list = tag.getList("PendingProfessionChoices", 10);
+            for (int i = 0; i < list.size(); i++) {
+                CompoundTag entry = list.getCompound(i);
+                if (!entry.contains("SkillId") || !entry.contains("Level")) {
+                    continue;
+                }
+                SkillType skill = SkillType.fromId(entry.getInt("SkillId"));
+                int level = entry.getInt("Level");
+                if ((level == 5 || level == 10) && !data.hasPendingProfessionChoice(skill, level)) {
+                    data.pendingProfessionChoices.add(new ProfessionChoicePrompt(skill, level));
+                }
+            }
+        }
         
         // 元数据
         data.lastSyncTime = tag.getLong("LastSyncTime");
@@ -270,6 +287,8 @@ public class PlayerStardewData {
         data.health = Math.max(0, Math.min(data.health, data.maxHealth));
         data.energy = Math.max(0, Math.min(data.energy, effectiveMaxEnergy));
 
+        data.repairMissingProfessionChoices();
+
         data.dirty = false;
         
         return data;
@@ -299,6 +318,15 @@ public class PlayerStardewData {
         // 职业
         int[] profsArray = professions.stream().mapToInt(Integer::intValue).toArray();
         tag.putIntArray("Professions", profsArray);
+
+        ListTag pendingChoicesTag = new ListTag();
+        for (ProfessionChoicePrompt prompt : pendingProfessionChoices) {
+            CompoundTag entry = new CompoundTag();
+            entry.putInt("SkillId", prompt.skill().getId());
+            entry.putInt("Level", prompt.level());
+            pendingChoicesTag.add(entry);
+        }
+        tag.put("PendingProfessionChoices", pendingChoicesTag);
         
         // 元数据
         tag.putLong("LastSyncTime", lastSyncTime);
@@ -388,6 +416,15 @@ public class PlayerStardewData {
         int newLevel = calculateLevel(experiencePoints[skillId]);
         if (newLevel > oldLevel && newLevel <= 10) {
             skillLevels[skillId] = newLevel;
+
+            for (int level = oldLevel + 1; level <= newLevel; level++) {
+                if (level == 5 && !hasLevel5Profession(skill) && !hasPendingProfessionChoice(skill, 5)) {
+                    pendingProfessionChoices.add(new ProfessionChoicePrompt(skill, 5));
+                }
+                if (level == 10 && hasLevel5Profession(skill) && !hasLevel10Profession(skill) && !hasPendingProfessionChoice(skill, 10)) {
+                    pendingProfessionChoices.add(new ProfessionChoicePrompt(skill, 10));
+                }
+            }
             
             // 战斗技能升级增加最大生命值
             if (skill == SkillType.COMBAT && newLevel != 5 && newLevel != 10) {
@@ -444,14 +481,16 @@ public class PlayerStardewData {
     /**
      * 添加职业
      */
-    public void addProfession(ProfessionType profession) {
-        if (!professions.contains(profession.getId())) {
-            professions.add(profession.getId());
-            
-            // 应用职业效果
-            applyProfessionEffect(profession);
-            markDirty();
+    public boolean addProfession(ProfessionType profession) {
+        if (profession == null || professions.contains(profession.getId())) {
+            return false;
         }
+        professions.add(profession.getId());
+
+        // 应用职业效果
+        applyProfessionEffect(profession);
+        markDirty();
+        return true;
     }
     
     /**
@@ -459,6 +498,86 @@ public class PlayerStardewData {
      */
     public boolean hasProfession(ProfessionType profession) {
         return professions.contains(profession.getId());
+    }
+
+    public boolean removeProfession(ProfessionType profession) {
+        if (profession == null || !professions.remove(Integer.valueOf(profession.getId()))) {
+            return false;
+        }
+        revertProfessionEffect(profession);
+        markDirty();
+        return true;
+    }
+
+    public boolean clearProfessions() {
+        if (professions.isEmpty()) {
+            return false;
+        }
+        List<Integer> copy = new ArrayList<>(professions);
+        professions.clear();
+        for (int professionId : copy) {
+            ProfessionType profession = ProfessionType.fromId(professionId);
+            if (profession != null) {
+                revertProfessionEffect(profession);
+            }
+        }
+        pendingProfessionChoices.clear();
+        repairMissingProfessionChoices();
+        markDirty();
+        return true;
+    }
+
+    public List<ProfessionChoicePrompt> getPendingProfessionChoices() {
+        return new ArrayList<>(pendingProfessionChoices);
+    }
+
+    public boolean hasPendingProfessionChoices() {
+        return !pendingProfessionChoices.isEmpty();
+    }
+
+    public boolean choosePendingProfession(ProfessionType selectedProfession) {
+        if (selectedProfession == null || pendingProfessionChoices.isEmpty()) {
+            return false;
+        }
+
+        ProfessionChoicePrompt prompt = pendingProfessionChoices.get(0);
+        SkillType promptSkill = prompt.skill();
+        int promptLevel = prompt.level();
+
+        if (selectedProfession.getSkillType() != promptSkill || selectedProfession.getRequiredLevel() != promptLevel) {
+            return false;
+        }
+
+        if (promptLevel == 5) {
+            ProfessionType[] options = ProfessionType.getLevel5Options(promptSkill);
+            if (selectedProfession != options[0] && selectedProfession != options[1]) {
+                return false;
+            }
+        } else if (promptLevel == 10) {
+            ProfessionType level5Profession = getLevel5Profession(promptSkill);
+            if (level5Profession == null) {
+                return false;
+            }
+            ProfessionType[] options = ProfessionType.getLevel10Options(promptSkill, level5Profession);
+            if (selectedProfession != options[0] && selectedProfession != options[1]) {
+                return false;
+            }
+        } else {
+            return false;
+        }
+
+        if (!addProfession(selectedProfession)) {
+            return false;
+        }
+
+        pendingProfessionChoices.remove(0);
+
+        if (promptLevel == 5 && getRawSkillLevel(promptSkill) >= 10 && !hasLevel10Profession(promptSkill) && !hasPendingProfessionChoice(promptSkill, 10)) {
+            pendingProfessionChoices.add(0, new ProfessionChoicePrompt(promptSkill, 10));
+        }
+
+        markDirty();
+        return true;
     }
     
     /**
@@ -474,6 +593,67 @@ public class PlayerStardewData {
             case DEFENDER -> {
                 maxHealth += 25;
                 health = Math.min(health + 25, maxHealth);
+            }
+        }
+    }
+
+    @SuppressWarnings("incomplete-switch")
+    private void revertProfessionEffect(ProfessionType profession) {
+        switch (profession) {
+            case FIGHTER -> {
+                maxHealth = Math.max(100, maxHealth - 15);
+                health = Math.min(health, maxHealth);
+            }
+            case DEFENDER -> {
+                maxHealth = Math.max(100, maxHealth - 25);
+                health = Math.min(health, maxHealth);
+            }
+        }
+    }
+
+    private boolean hasPendingProfessionChoice(SkillType skill, int level) {
+        for (ProfessionChoicePrompt prompt : pendingProfessionChoices) {
+            if (prompt.skill() == skill && prompt.level() == level) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean hasLevel5Profession(SkillType skill) {
+        return getLevel5Profession(skill) != null;
+    }
+
+    private ProfessionType getLevel5Profession(SkillType skill) {
+        for (int professionId : professions) {
+            ProfessionType profession = ProfessionType.fromId(professionId);
+            if (profession != null && profession.getSkillType() == skill && profession.getRequiredLevel() == 5) {
+                return profession;
+            }
+        }
+        return null;
+    }
+
+    private boolean hasLevel10Profession(SkillType skill) {
+        for (int professionId : professions) {
+            ProfessionType profession = ProfessionType.fromId(professionId);
+            if (profession != null && profession.getSkillType() == skill && profession.getRequiredLevel() == 10) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void repairMissingProfessionChoices() {
+        pendingProfessionChoices.removeIf(prompt -> getRawSkillLevel(prompt.skill()) < prompt.level());
+
+        for (SkillType skill : SkillType.values()) {
+            int rawLevel = getRawSkillLevel(skill);
+            if (rawLevel >= 5 && !hasLevel5Profession(skill) && !hasPendingProfessionChoice(skill, 5)) {
+                pendingProfessionChoices.add(new ProfessionChoicePrompt(skill, 5));
+            }
+            if (rawLevel >= 10 && hasLevel5Profession(skill) && !hasLevel10Profession(skill) && !hasPendingProfessionChoice(skill, 10)) {
+                pendingProfessionChoices.add(new ProfessionChoicePrompt(skill, 10));
             }
         }
     }
@@ -646,6 +826,10 @@ public class PlayerStardewData {
         };
     }
 
+    public int getRawSkillLevel(SkillType skill) {
+        return skillLevels[skill.getId()];
+    }
+
     /**
      * 星露谷“Luck Buff”等级（目前仅来自临时Buff）。
      * 注意：这不是 dailyLuck。
@@ -665,12 +849,16 @@ public class PlayerStardewData {
         // 重新计算等级
         int newLevel = calculateLevel(experiencePoints[skillId]);
         skillLevels[skillId] = newLevel;
+        repairMissingProfessionChoices();
         
         markDirty();
     }
     
     public List<Integer> getProfessions() {
         return new ArrayList<>(professions);
+    }
+
+    public record ProfessionChoicePrompt(SkillType skill, int level) {
     }
 
     public boolean isDecorationUnlocked(DecorationType type, String styleId) {

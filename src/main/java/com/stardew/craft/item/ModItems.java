@@ -454,6 +454,9 @@ public class ModItems {
         public static final DeferredItem<Item> STONE_CHEST = ITEMS.register("stone_chest",
                         () -> new StardewBlockItem(ModBlocks.STONE_CHEST.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
 
+        public static final DeferredItem<Item> SHIPPING_BIN = ITEMS.register("shipping_bin",
+                        () -> new StardewBlockItem(ModBlocks.SHIPPING_BIN.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
+
         public static final DeferredItem<Item> HEATER = ITEMS.register("heater",
                         () -> new StardewBlockItem(ModBlocks.HEATER.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
 

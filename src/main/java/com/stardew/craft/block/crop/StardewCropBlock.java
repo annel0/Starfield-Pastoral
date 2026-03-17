@@ -6,6 +6,8 @@ import com.stardew.craft.farming.SeasonLocationRules;
 import com.stardew.craft.item.quality.QualityHelper;
 import com.stardew.craft.manager.FertilizerManager;
 import com.stardew.craft.player.PlayerStardewDataAPI;
+import com.stardew.craft.player.PlayerDataManager;
+import com.stardew.craft.player.ProfessionType;
 import com.stardew.craft.player.SkillType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -32,6 +34,9 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.function.Supplier;
 import com.stardew.craft.manager.CropGrowthManager;
 import javax.annotation.Nonnull;
@@ -40,7 +45,65 @@ import javax.annotation.Nonnull;
  * 星露谷作物基类
  * 完全照抄原版Crop.cs的机制
  */
+@SuppressWarnings("null")
 public abstract class StardewCropBlock extends Block {
+
+    private static final Map<String, Integer> CROP_FARMING_XP = new HashMap<>();
+    private static final Map<String, String> CROP_XP_ALIASES = new HashMap<>();
+
+    static {
+        // 对齐 数据包/StardewCore/data/stardew/function/farming/xp/crop_xp_table.mcfunction
+        CROP_FARMING_XP.put("parsnip", 8);
+        CROP_FARMING_XP.put("garlic", 12);
+        CROP_FARMING_XP.put("potato", 14);
+        CROP_FARMING_XP.put("tulip", 7);
+        CROP_FARMING_XP.put("kale", 17);
+        CROP_FARMING_XP.put("blue_jazz", 10);
+        CROP_FARMING_XP.put("cauliflower", 23);
+        CROP_FARMING_XP.put("carrot", 8);
+        CROP_FARMING_XP.put("rhubarb", 26);
+        CROP_FARMING_XP.put("green_bean", 9);
+        CROP_FARMING_XP.put("strawberry", 18);
+        CROP_FARMING_XP.put("coffee_bean", 4);
+
+        CROP_FARMING_XP.put("wheat", 6);
+        CROP_FARMING_XP.put("radish", 15);
+        CROP_FARMING_XP.put("red_cabbage", 28);
+        CROP_FARMING_XP.put("poppy", 20);
+        CROP_FARMING_XP.put("summer_spangle", 15);
+        CROP_FARMING_XP.put("melon", 27);
+        CROP_FARMING_XP.put("corn", 10);
+        CROP_FARMING_XP.put("tomato", 12);
+        CROP_FARMING_XP.put("blueberry", 10);
+        CROP_FARMING_XP.put("hot_pepper", 9);
+        CROP_FARMING_XP.put("hops", 6);
+        CROP_FARMING_XP.put("starfruit", 43);
+        CROP_FARMING_XP.put("summer_squash", 9);
+
+        CROP_FARMING_XP.put("eggplant", 12);
+        CROP_FARMING_XP.put("broccoli", 13);
+        CROP_FARMING_XP.put("bok_choy", 14);
+        CROP_FARMING_XP.put("cranberries", 14);
+        CROP_FARMING_XP.put("grape", 14);
+        CROP_FARMING_XP.put("sunflower", 5);
+        CROP_FARMING_XP.put("beet", 16);
+        CROP_FARMING_XP.put("amaranth", 21);
+        CROP_FARMING_XP.put("artichoke", 22);
+        CROP_FARMING_XP.put("yam", 22);
+        CROP_FARMING_XP.put("fairy_rose", 29);
+        CROP_FARMING_XP.put("pumpkin", 31);
+
+        CROP_FARMING_XP.put("ancient_fruit", 38);
+        CROP_FARMING_XP.put("sweet_gem_berry", 64);
+        CROP_FARMING_XP.put("cactus_fruit", 14);
+        CROP_FARMING_XP.put("taro_root", 16);
+        CROP_FARMING_XP.put("pineapple", 30);
+        CROP_FARMING_XP.put("powdermelon", 12);
+        CROP_FARMING_XP.put("unmilled_rice", 7);
+
+        CROP_XP_ALIASES.put("cranberry", "cranberries");
+        CROP_XP_ALIASES.put("powder_melon", "powdermelon");
+    }
 
     public enum HarvestMethod {
         GRAB,
@@ -151,6 +214,18 @@ public abstract class StardewCropBlock extends Block {
         }
         FertilizerManager manager = FertilizerManager.get(level);
         return manager.getSpeedBoost(level, farmPos);
+    }
+
+    private static float getAgriculturistSpeedBoost(ServerLevel level, CropGrowthManager.CropGrowthState growthState) {
+        if (growthState == null || growthState.planterUuid == null) {
+            return 0f;
+        }
+
+        if (PlayerDataManager.getPlayerData(growthState.planterUuid).hasProfession(ProfessionType.AGRICULTURIST)) {
+            // Stardew Agriculturist: crop growth speed +10%
+            return 0.1f;
+        }
+        return 0f;
     }
 
     private static int[] applySpeedGroToPhaseDays(int[] phaseDays, float speedBoost) {
@@ -403,11 +478,16 @@ public abstract class StardewCropBlock extends Block {
                     && interactionState.getValue(AGE) == MAX_AGE
                     && isMature(serverLevel, interactionPos, interactionState);
             boolean canGrabHarvest = getHarvestMethod() == HarvestMethod.GRAB;
-            // 如果不是创造模式，生成掉落物
-            if (mature && canGrabHarvest && !player.isCreative()) {
+            // 如果不是创造模式，生成掉落物并给予经验
+            if (mature && canGrabHarvest && !player.isCreative() && player instanceof ServerPlayer serverPlayer) {
                 int farmingLevel = getFarmingLevel(player);
                 int fertilizerLevel = getFertilizerLevel(serverLevel, interactionPos);
                 spawnHarvestDrops(serverLevel, interactionPos, interactionState, level.getRandom(), fertilizerLevel, farmingLevel);
+
+                int farmingExp = getHarvestFarmingExperience(interactionState);
+                if (farmingExp > 0) {
+                    PlayerStardewDataAPI.addExperience(serverPlayer, SkillType.FARMING, farmingExp);
+                }
             }
         }
         return super.playerWillDestroy(level, pos, state, player);
@@ -431,6 +511,13 @@ public abstract class StardewCropBlock extends Block {
         
         // 生成并掉落物品
         spawnHarvestDrops(level, harvestPos, currentState, level.getRandom(), fertilizerLevel, farmingLevel);
+
+        if (player instanceof ServerPlayer serverPlayer && !serverPlayer.isCreative()) {
+            int farmingExp = getHarvestFarmingExperience(currentState);
+            if (farmingExp > 0) {
+                PlayerStardewDataAPI.addExperience(serverPlayer, SkillType.FARMING, farmingExp);
+            }
+        }
         
         // 播放收割音效（原版harvest）
         level.playSound(null, harvestPos, SoundEvents.CROP_BREAK, SoundSource.BLOCKS, 1.0F, 1.0F);
@@ -452,6 +539,15 @@ public abstract class StardewCropBlock extends Block {
             // 一次性作物：移除方块
             level.setBlock(harvestPos, Blocks.AIR.defaultBlockState(), 3);
         }
+    }
+
+    private int getHarvestFarmingExperience(BlockState state) {
+        String path = BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath();
+        if (path.endsWith("_crop")) {
+            path = path.substring(0, path.length() - 5);
+        }
+        String key = CROP_XP_ALIASES.getOrDefault(path, path);
+        return CROP_FARMING_XP.getOrDefault(key, 0);
     }
 
     /**
@@ -720,7 +816,7 @@ public abstract class StardewCropBlock extends Block {
             return;
         }
 
-        float speedBoost = getSpeedBoost(level, pos);
+        float speedBoost = getSpeedBoost(level, pos) + getAgriculturistSpeedBoost(level, growthState);
         int[] phaseDays = withHarvestSentinel(applySpeedGroToPhaseDays(getPhaseDays(), speedBoost));
         if (phaseDays == null || phaseDays.length <= 0) {
             return;
@@ -874,7 +970,18 @@ public abstract class StardewCropBlock extends Block {
         if (!state.is(oldState.getBlock())) {
             // 新放置 (或者方块类型改变)，注册到管理器
             if (level instanceof ServerLevel serverLevel) {
-                com.stardew.craft.manager.CropGrowthManager.get(serverLevel).addCrop(serverLevel, pos);
+                UUID planterUuid = null;
+                net.minecraft.world.entity.player.Player nearest = serverLevel.getNearestPlayer(
+                    pos.getX() + 0.5D,
+                    pos.getY() + 0.5D,
+                    pos.getZ() + 0.5D,
+                    6.0D,
+                    false
+                );
+                if (nearest instanceof ServerPlayer serverPlayer) {
+                    planterUuid = serverPlayer.getUUID();
+                }
+                com.stardew.craft.manager.CropGrowthManager.get(serverLevel).addCrop(serverLevel, pos, planterUuid);
             }
         }
         super.onPlace(state, level, pos, oldState, isMoving);

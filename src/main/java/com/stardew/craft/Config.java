@@ -12,6 +12,10 @@ public class Config {
             .comment("Enable weapon post-processing effects (reserved for future shaders)")
             .define("client.weaponPostEffects", true);
 
+    public static final ModConfigSpec.BooleanValue ENABLE_UI_INFO_SUITE = BUILDER
+            .comment("Enable UI Info Suite features (Experience bars, tooltips, luck, NPC locations, etc.)")
+            .define("client.uiInfoSuite.enabled", true);
+
     static {
         BUILDER.push("coopManager");
 

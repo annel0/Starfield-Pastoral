@@ -1,7 +1,9 @@
 package com.stardew.craft.player;
 
 import com.stardew.craft.time.StardewTimeManager;
+import com.stardew.craft.network.payload.SkillExperienceGainPayload;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.Random;
 
@@ -9,6 +11,7 @@ import java.util.Random;
  * 玩家星露谷数据 API
  * 提供便捷的静态方法来访问和操作玩家数据
  */
+@SuppressWarnings("null")
 public class PlayerStardewDataAPI {
 
     /**
@@ -85,9 +88,24 @@ public class PlayerStardewDataAPI {
      * @return 是否升级
      */
     public static boolean addExperience(ServerPlayer player, SkillType skill, int amount) {
+        if (amount <= 0) {
+            return false;
+        }
         PlayerStardewData data = getData(player);
+        int beforeExp = data.getSkillExperience(skill);
+        int beforeLevel = data.getSkillLevel(skill);
         boolean leveledUp = data.addExperience(skill, amount);
+        int afterExp = data.getSkillExperience(skill);
+        int afterLevel = data.getSkillLevel(skill);
         PlayerDataEventHandler.syncPlayerData(player, data);
+        PacketDistributor.sendToPlayer(player, new SkillExperienceGainPayload(
+            skill.getId(),
+            amount,
+            beforeExp,
+            afterExp,
+            beforeLevel,
+            afterLevel
+        ));
         return leveledUp;
     }
     
@@ -447,8 +465,62 @@ public class PlayerStardewDataAPI {
     /**
      * 添加职业
      */
-    public static void addProfession(ServerPlayer player, ProfessionType profession) {
-        getData(player).addProfession(profession);
+    public static boolean addProfession(ServerPlayer player, ProfessionType profession) {
+        PlayerStardewData data = getData(player);
+        boolean changed = data.addProfession(profession);
+        if (changed) {
+            PlayerDataEventHandler.syncPlayerData(player, data);
+        }
+        return changed;
+    }
+
+    /**
+     * 移除职业
+     */
+    public static boolean removeProfession(ServerPlayer player, ProfessionType profession) {
+        PlayerStardewData data = getData(player);
+        boolean changed = data.removeProfession(profession);
+        if (changed) {
+            PlayerDataEventHandler.syncPlayerData(player, data);
+        }
+        return changed;
+    }
+
+    /**
+     * 清空职业并重新根据等级补齐待选项
+     */
+    public static boolean clearProfessions(ServerPlayer player) {
+        PlayerStardewData data = getData(player);
+        boolean changed = data.clearProfessions();
+        if (changed) {
+            PlayerDataEventHandler.syncPlayerData(player, data);
+        }
+        return changed;
+    }
+
+    /**
+     * 选择当前待处理职业
+     */
+    public static boolean choosePendingProfession(ServerPlayer player, ProfessionType profession) {
+        PlayerStardewData data = getData(player);
+        boolean changed = data.choosePendingProfession(profession);
+        if (changed) {
+            PlayerDataEventHandler.syncPlayerData(player, data);
+        }
+        return changed;
+    }
+
+    /**
+     * 按当前等级修复漏掉的职业待选项
+     */
+    public static void repairMissingProfessionChoices(ServerPlayer player) {
+        PlayerStardewData data = getData(player);
+        data.repairMissingProfessionChoices();
+        PlayerDataEventHandler.syncPlayerData(player, data);
+    }
+
+    public static java.util.List<PlayerStardewData.ProfessionChoicePrompt> getPendingProfessionChoices(ServerPlayer player) {
+        return getData(player).getPendingProfessionChoices();
     }
     
     /**

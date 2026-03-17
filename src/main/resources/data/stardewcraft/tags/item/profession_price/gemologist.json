@@ -1,0 +1,20 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:quartz",
+    "stardewcraft:earth_crystal",
+    "stardewcraft:frozen_tear",
+    "stardewcraft:fire_quartz",
+    "stardewcraft:emerald",
+    "stardewcraft:aquamarine",
+    "stardewcraft:ruby",
+    "stardewcraft:amethyst",
+    "stardewcraft:topaz",
+    "stardewcraft:jade",
+    "stardewcraft:diamond",
+    "stardewcraft:prismatic_shard",
+    "stardewcraft:tigerseye",
+    "stardewcraft:opal",
+    "stardewcraft:fire_opal"
+  ]
+}

@@ -7,6 +7,7 @@ import com.stardew.craft.command.DecorationDebugCommand;
 import com.stardew.craft.command.PlayerDataCommand;
 import com.stardew.craft.command.StardewTeleportCommand;
 import com.stardew.craft.command.TimeDebugCommand;
+import com.stardew.craft.command.OvernightDebugCommand;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
@@ -25,6 +26,7 @@ public class CommandEventHandler {
         MuseumDebugCommand.register(event.getDispatcher(), event.getBuildContext());
         AnimalDebugCommand.register(event.getDispatcher());
         DecorationDebugCommand.register(event.getDispatcher());
+        OvernightDebugCommand.register(event.getDispatcher());
         StardewCraft.LOGGER.info("Registered Stardew commands");
     }
 }

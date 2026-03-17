@@ -39,7 +39,11 @@ public final class ModSounds {
 	public static final DeferredHolder<SoundEvent, SoundEvent> NEW_ARTIFACT = register("new_artifact");
 	// 宝箱打开音效
 	public static final DeferredHolder<SoundEvent, SoundEvent> OPEN_CHEST = register("open_chest");
+	public static final DeferredHolder<SoundEvent, SoundEvent> DOOR_CREAK = register("door_creak");
 	public static final DeferredHolder<SoundEvent, SoundEvent> DOOR_CREAK_REVERSE = register("door_creak_reverse");
+	public static final DeferredHolder<SoundEvent, SoundEvent> WOODY_STEP = register("woody_step");
+	public static final DeferredHolder<SoundEvent, SoundEvent> BACKPACK_IN = register("backpack_in");
+	public static final DeferredHolder<SoundEvent, SoundEvent> SHWIP = register("shwip");
 
 	// 武器音效
 	public static final DeferredHolder<SoundEvent, SoundEvent> MEOW = register("weapon.meow");
@@ -75,8 +79,8 @@ public final class ModSounds {
 	public static final DeferredHolder<SoundEvent, SoundEvent> SHEEP = register("sheep");
 	public static final DeferredHolder<SoundEvent, SoundEvent> PIG = register("pig");
 
-	private ModSounds() {
-	}
+    // Level up sound
+    public static final DeferredHolder<SoundEvent, SoundEvent> LEVEL_UP = register("level_up");
 
 	@SuppressWarnings("null")
 	private static DeferredHolder<SoundEvent, SoundEvent> register(String path) {

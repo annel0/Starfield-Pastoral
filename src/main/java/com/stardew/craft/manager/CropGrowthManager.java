@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.UUID;
 
 /**
  * 作物生长管理器
@@ -57,15 +58,17 @@ public class CropGrowthManager extends SavedData {
          */
         public int phase;
         public boolean regrowing;
+        public UUID planterUuid;
 
         public CropGrowthState() {
-            this(0, 0, false);
+            this(0, 0, false, null);
         }
 
-        public CropGrowthState(int dayInPhase, int phase, boolean regrowing) {
+        public CropGrowthState(int dayInPhase, int phase, boolean regrowing, UUID planterUuid) {
             this.dayInPhase = dayInPhase;
             this.phase = phase;
             this.regrowing = regrowing;
+            this.planterUuid = planterUuid;
         }
     }
 
@@ -100,18 +103,38 @@ public class CropGrowthManager extends SavedData {
      * 添加作物位置
      */
     public void addCrop(Level level, BlockPos pos) {
+        addCrop(level, pos, null);
+    }
+
+    /**
+     * 添加作物位置并记录最近种植者，用于职业判定（如 Agriculturist）。
+     */
+    public void addCrop(Level level, BlockPos pos, UUID planterUuid) {
         if (level instanceof ServerLevel) {
             @SuppressWarnings("null")
             GlobalPos globalPos = GlobalPos.of(level.dimension(), pos.immutable());
             if (isProcessing) {
                 pendingAdds.add(globalPos);
                 pendingRemoves.remove(globalPos);
-                cropStates.putIfAbsent(globalPos, new CropGrowthState());
+                CropGrowthState state = cropStates.computeIfAbsent(globalPos, k -> new CropGrowthState());
+                if (planterUuid != null && state.planterUuid == null) {
+                    state.planterUuid = planterUuid;
+                }
                 setDirty();
                 return;
             }
             if (cropPositions.add(globalPos)) {
-                cropStates.putIfAbsent(globalPos, new CropGrowthState());
+                CropGrowthState state = cropStates.computeIfAbsent(globalPos, k -> new CropGrowthState());
+                if (planterUuid != null && state.planterUuid == null) {
+                    state.planterUuid = planterUuid;
+                }
+                setDirty();
+                return;
+            }
+
+            CropGrowthState state = cropStates.computeIfAbsent(globalPos, k -> new CropGrowthState());
+            if (planterUuid != null && state.planterUuid == null) {
+                state.planterUuid = planterUuid;
                 setDirty();
             }
         }
@@ -346,6 +369,9 @@ public class CropGrowthManager extends SavedData {
                 posTag.putInt("DayInPhase", state.dayInPhase);
                 posTag.putInt("Phase", state.phase);
                 posTag.putBoolean("Regrowing", state.regrowing);
+                if (state.planterUuid != null) {
+                    posTag.putUUID("PlanterUuid", state.planterUuid);
+                }
             }
 
             list.add(posTag);
@@ -371,7 +397,8 @@ public class CropGrowthManager extends SavedData {
                 int dayInPhase = posTag.contains("DayInPhase", Tag.TAG_INT) ? posTag.getInt("DayInPhase") : 0;
                 int phase = posTag.contains("Phase", Tag.TAG_INT) ? posTag.getInt("Phase") : 0;
                 boolean regrowing = posTag.contains("Regrowing", Tag.TAG_BYTE) && posTag.getBoolean("Regrowing");
-                manager.cropStates.put(gp, new CropGrowthState(dayInPhase, phase, regrowing));
+                UUID planterUuid = posTag.hasUUID("PlanterUuid") ? posTag.getUUID("PlanterUuid") : null;
+                manager.cropStates.put(gp, new CropGrowthState(dayInPhase, phase, regrowing, planterUuid));
             }
         }
         return manager;

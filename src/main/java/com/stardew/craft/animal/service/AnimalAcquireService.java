@@ -45,12 +45,22 @@ public final class AnimalAcquireService {
     public static FarmAnimalRecord incubation(ServerLevel level,
                                               String animalTypeId,
                                               String buildingId) {
+        return incubation(level, animalTypeId, null, buildingId);
+    }
+
+    public static FarmAnimalRecord incubation(ServerLevel level,
+                                              String animalTypeId,
+                                              String customName,
+                                              String buildingId) {
         AnimalWorldData worldData = AnimalWorldData.get(level);
         AnimalBuildingRecord building = worldData.getBuilding(buildingId)
             .orElseThrow(() -> new IllegalArgumentException("Building not found: " + buildingId));
 
         validateBuildingFamily(animalTypeId, building);
-        FarmAnimalRecord record = worldData.createAnimal(animalTypeId, defaultName(animalTypeId), buildingId, AnimalAcquisitionSource.INCUBATION);
+        String finalName = (customName == null || customName.isBlank())
+            ? defaultName(animalTypeId)
+            : customName;
+        FarmAnimalRecord record = worldData.createAnimal(animalTypeId, finalName, buildingId, AnimalAcquisitionSource.INCUBATION);
         AnimalEntitySyncService.spawnOrSyncSingle(level, record);
         return record;
     }

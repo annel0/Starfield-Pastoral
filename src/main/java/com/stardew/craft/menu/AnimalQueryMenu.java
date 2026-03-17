@@ -4,9 +4,11 @@ import com.stardew.craft.animal.data.AnimalWorldData;
 import com.stardew.craft.animal.model.AnimalBuildingRecord;
 import com.stardew.craft.animal.model.AnimalTypeCatalog;
 import com.stardew.craft.animal.model.FarmAnimalRecord;
+import com.stardew.craft.economy.sell.ProfessionSellPriceService;
+import com.stardew.craft.economy.sell.SellQuote;
+import com.stardew.craft.economy.sell.SellSource;
 import com.stardew.craft.entity.animal.BaseCoopAnimalEntity;
 import com.stardew.craft.network.payload.OpenAnimalMoveHomeScreenPayload;
-import com.stardew.craft.player.PlayerStardewDataAPI;
 import com.stardew.craft.sound.ModSounds;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundSource;
@@ -235,6 +237,14 @@ public class AnimalQueryMenu extends AbstractContainerMenu {
     }
 
     public int getEstimatedSellPrice() {
+        int basePrice = getBaseAnimalSellPrice();
+        if (player instanceof ServerPlayer serverPlayer) {
+            return ProfessionSellPriceService.quoteAnimal(serverPlayer, basePrice, SellSource.ANIMAL_SALE).totalPrice();
+        }
+        return basePrice;
+    }
+
+    private int getBaseAnimalSellPrice() {
         int base = switch (variantIndex) {
             case 2 -> 1200; // duck
             case 4 -> 800;  // rabbit
@@ -269,13 +279,17 @@ public class AnimalQueryMenu extends AbstractContainerMenu {
             return;
         }
 
-        int sellPrice = getEstimatedSellPrice();
+        SellQuote quote = ProfessionSellPriceService.quoteAnimal(
+            serverPlayer,
+            getBaseAnimalSellPrice(),
+            SellSource.ANIMAL_SALE
+        );
         AnimalWorldData data = AnimalWorldData.get(serverPlayer.serverLevel());
         if (!data.removeAnimal(animalId)) {
             return;
         }
 
-        PlayerStardewDataAPI.addMoney(serverPlayer, sellPrice);
+        ProfessionSellPriceService.payout(serverPlayer, quote);
 
         for (BaseCoopAnimalEntity entity : serverPlayer.serverLevel().getEntitiesOfClass(BaseCoopAnimalEntity.class, FULL_LEVEL_BOX)) {
             if (entity.getManagedAnimalId() == animalId) {

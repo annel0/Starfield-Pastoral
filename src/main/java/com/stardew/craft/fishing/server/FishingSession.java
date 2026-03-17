@@ -300,6 +300,11 @@ public final class FishingSession {
 		double dailyLuck = com.stardew.craft.player.PlayerStardewDataAPI.getDailyLuck(player);
 		treasureChance += dailyLuck / 2.0;
 
+		// Pirate：额外+15%宝箱率（与原版一致为再加一次 baseChance）。
+		if (com.stardew.craft.player.PlayerStardewDataAPI.hasProfession(player, com.stardew.craft.player.ProfessionType.PIRATE)) {
+			treasureChance += BASE_TREASURE_CHANCE;
+		}
+
 		// Magnet鱼饵：+15% (物品ID: stardewcraft:magnet)
 		if (com.stardew.craft.item.tool.FishingRodItem.hasBait(rod, "stardewcraft:magnet")) {
 			treasureChance += BASE_TREASURE_CHANCE;

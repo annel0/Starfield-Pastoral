@@ -13,7 +13,9 @@ import com.stardew.craft.blockentity.HeaterBlockEntity;
 import com.stardew.craft.entity.animal.BaseCoopAnimalEntity;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.item.quality.QualityHelper;
+import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.PlayerStardewDataAPI;
+import com.stardew.craft.player.ProfessionType;
 import com.stardew.craft.time.StardewTimeManager;
 import com.stardew.craft.weather.WeatherManager;
 import net.minecraft.core.BlockPos;
@@ -32,6 +34,7 @@ import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.phys.AABB;
 
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 import javax.annotation.Nonnull;
@@ -72,19 +75,19 @@ public class AnimalGrowthManager extends SavedData {
     );
 
     private static final Map<String, AnimalProfile> PROFILES = Map.ofEntries(
-        Map.entry("white_chicken", DEFAULT_CHICKEN),
-        Map.entry("brown_chicken", new AnimalProfile(1, -1, 200, 1200.0f, 0.0f, 7, -1, -1, -1, AnimalHarvestType.DROP_OVERNIGHT, ModItems.EGG_BROWN, ModItems.LARGE_EGG_BROWN)),
-        Map.entry("blue_chicken", new AnimalProfile(1, -1, 200, 1200.0f, 0.0f, 7, -1, -1, -1, AnimalHarvestType.DROP_OVERNIGHT, ModItems.EGG_WHITE, ModItems.LARGE_EGG_WHITE)),
-        Map.entry("void_chicken", new AnimalProfile(1, -1, 200, 1200.0f, 0.0f, 5, -1, -1, -1, AnimalHarvestType.DROP_OVERNIGHT, ModItems.VOID_EGG, null)),
-        Map.entry("golden_chicken", new AnimalProfile(1, -1, 200, 1200.0f, 0.0f, 10, -1, -1, -1, AnimalHarvestType.DROP_OVERNIGHT, ModItems.GOLDEN_EGG, null)),
-        Map.entry("duck", new AnimalProfile(2, -1, 200, 4750.0f, 1.01f, 5, -1, -1, -1, AnimalHarvestType.DROP_OVERNIGHT, ModItems.DUCK_EGG, ModItems.DUCK_FEATHER)),
-        Map.entry("rabbit", new AnimalProfile(4, -1, 0, 5000.0f, 1.02f, 5, -1, -1, -1, AnimalHarvestType.DROP_OVERNIGHT, ModItems.WOOL, ModItems.RABBITS_FOOT)),
-        Map.entry("dinosaur", new AnimalProfile(7, -1, 200, 1200.0f, 0.0f, 4, -1, -1, -1, AnimalHarvestType.DROP_OVERNIGHT, ModItems.DINOSAUR_EGG, null)),
-        Map.entry("ostrich", new AnimalProfile(7, -1, 200, 1200.0f, 0.0f, 5, -1, -1, -1, AnimalHarvestType.DROP_OVERNIGHT, ModItems.OSTRICH_EGG, null)),
-        Map.entry("cow", new AnimalProfile(1, -1, 200, 1200.0f, 0.0f, 8, -1, -1, -1, AnimalHarvestType.HELD, ModItems.MILK, ModItems.LARGE_MILK)),
-        Map.entry("goat", new AnimalProfile(2, -1, 200, 1200.0f, 0.0f, 8, -1, -1, -1, AnimalHarvestType.HELD, ModItems.GOAT_MILK, ModItems.LARGE_GOAT_MILK)),
-        Map.entry("sheep", new AnimalProfile(3, -1, 0, 5000.0f, 1.02f, 8, -1, -1, -1, AnimalHarvestType.HELD, ModItems.WOOL, null)),
-        Map.entry("pig", new AnimalProfile(1, -1, 0, 1200.0f, 0.0f, 8, -1, -1, -1, AnimalHarvestType.DIG_UP, ModItems.TRUFFLE, null))
+        Map.entry("white_chicken", new AnimalProfile(1, -1, 200, 1200.0f, 0.0f, 7, ProfessionType.COOPMASTER.getId(), -1, -1, AnimalHarvestType.DROP_OVERNIGHT, ModItems.EGG_WHITE, ModItems.LARGE_EGG_WHITE)),
+        Map.entry("brown_chicken", new AnimalProfile(1, -1, 200, 1200.0f, 0.0f, 7, ProfessionType.COOPMASTER.getId(), -1, -1, AnimalHarvestType.DROP_OVERNIGHT, ModItems.EGG_BROWN, ModItems.LARGE_EGG_BROWN)),
+        Map.entry("blue_chicken", new AnimalProfile(1, -1, 200, 1200.0f, 0.0f, 7, ProfessionType.COOPMASTER.getId(), -1, -1, AnimalHarvestType.DROP_OVERNIGHT, ModItems.EGG_WHITE, ModItems.LARGE_EGG_WHITE)),
+        Map.entry("void_chicken", new AnimalProfile(1, -1, 200, 1200.0f, 0.0f, 5, ProfessionType.COOPMASTER.getId(), -1, -1, AnimalHarvestType.DROP_OVERNIGHT, ModItems.VOID_EGG, null)),
+        Map.entry("golden_chicken", new AnimalProfile(1, -1, 200, 1200.0f, 0.0f, 10, ProfessionType.COOPMASTER.getId(), -1, -1, AnimalHarvestType.DROP_OVERNIGHT, ModItems.GOLDEN_EGG, null)),
+        Map.entry("duck", new AnimalProfile(2, -1, 200, 4750.0f, 1.01f, 5, ProfessionType.COOPMASTER.getId(), -1, -1, AnimalHarvestType.DROP_OVERNIGHT, ModItems.DUCK_EGG, ModItems.DUCK_FEATHER)),
+        Map.entry("rabbit", new AnimalProfile(4, -1, 0, 5000.0f, 1.02f, 5, ProfessionType.COOPMASTER.getId(), -1, -1, AnimalHarvestType.DROP_OVERNIGHT, ModItems.WOOL, ModItems.RABBITS_FOOT)),
+        Map.entry("dinosaur", new AnimalProfile(7, -1, 200, 1200.0f, 0.0f, 4, ProfessionType.COOPMASTER.getId(), -1, -1, AnimalHarvestType.DROP_OVERNIGHT, ModItems.DINOSAUR_EGG, null)),
+        Map.entry("ostrich", new AnimalProfile(7, -1, 200, 1200.0f, 0.0f, 5, ProfessionType.COOPMASTER.getId(), -1, -1, AnimalHarvestType.DROP_OVERNIGHT, ModItems.OSTRICH_EGG, null)),
+        Map.entry("cow", new AnimalProfile(1, -1, 200, 1200.0f, 0.0f, 8, ProfessionType.SHEPHERD.getId(), -1, -1, AnimalHarvestType.HELD, ModItems.MILK, ModItems.LARGE_MILK)),
+        Map.entry("goat", new AnimalProfile(2, -1, 200, 1200.0f, 0.0f, 8, ProfessionType.SHEPHERD.getId(), -1, -1, AnimalHarvestType.HELD, ModItems.GOAT_MILK, ModItems.LARGE_GOAT_MILK)),
+        Map.entry("sheep", new AnimalProfile(3, -1, 0, 5000.0f, 1.02f, 8, ProfessionType.SHEPHERD.getId(), -1, ProfessionType.SHEPHERD.getId(), AnimalHarvestType.HELD, ModItems.WOOL, null)),
+        Map.entry("pig", new AnimalProfile(1, -1, 0, 1200.0f, 0.0f, 8, ProfessionType.SHEPHERD.getId(), -1, -1, AnimalHarvestType.DIG_UP, ModItems.TRUFFLE, null))
     );
 
     public AnimalGrowthManager() {
@@ -260,8 +263,10 @@ public class AnimalGrowthManager extends SavedData {
         AnimalProfile profile = resolveProfile(record.animalTypeId());
         RandomSource random = randomForAnimalDay(record.animalId(), absoluteDaysPlayed);
         AnimalBuildingRecord building = worldData.getBuilding(record.buildingId()).orElse(null);
+        boolean hasHappinessProfession = hasBuildingOwnerProfession(building, profile.professionForHappinessBoost());
+        boolean hasQualityProfession = hasBuildingOwnerProfession(building, profile.professionForQualityBoost());
+        boolean hasFasterProduceProfession = hasBuildingOwnerProfession(building, profile.professionForFasterProduce());
         boolean animalOutdoors = false;
-        // TODO(profession-produce): 职业加成（加速产出/品质提升）尚未做完，当前保持关闭。
         double averageDailyLuck = computeAverageDailyLuck(level);
         boolean wasLeftOutLastNight = false;
 
@@ -293,7 +298,7 @@ public class AnimalGrowthManager extends SavedData {
         record.setWasAutoPetToday(false);
 
         if (building != null && hasWorkingAutoPetter(level, building)) {
-            applyAutoPetterEffect(record, profile);
+            applyAutoPetterEffect(record, profile, hasHappinessProfession);
         }
 
         // Parity: overnight feeding comes from indoor hay when the animal is considered back at home.
@@ -313,7 +318,9 @@ public class AnimalGrowthManager extends SavedData {
 
         int produceSpeedBonus = (profile.friendshipForFasterProduce() >= 0
             && record.friendship() >= profile.friendshipForFasterProduce()) ? 1 : 0;
-        // TODO(profession-produce): 恢复 professionForFasterProduce 分支。
+        if (hasFasterProduceProfession) {
+            produceSpeedBonus += 1;
+        }
         int daysToProduce = Math.max(1, profile.daysToProduce() - produceSpeedBonus);
         boolean produceToday = record.daysSinceLastProduce() >= daysToProduce
             && random.nextDouble() < record.fullness() / 200.0
@@ -343,8 +350,7 @@ public class AnimalGrowthManager extends SavedData {
                 }
 
                 record.resetDaysSinceLastProduce();
-                // TODO(profession-produce): 恢复 professionForQualityBoost 分支。
-                produceQuality = rollQuality(record.friendship(), record.happiness(), false, random);
+                produceQuality = rollQuality(record.friendship(), record.happiness(), hasQualityProfession, random);
             }
 
             if (!produceStack.isEmpty()) {
@@ -517,7 +523,25 @@ public class AnimalGrowthManager extends SavedData {
         return false;
     }
 
-    private void applyAutoPetterEffect(FarmAnimalRecord record, AnimalProfile profile) {
+    private boolean hasBuildingOwnerProfession(AnimalBuildingRecord building, int professionId) {
+        if (building == null || professionId < 0) {
+            return false;
+        }
+        ProfessionType profession = ProfessionType.fromId(professionId);
+        if (profession == null) {
+            return false;
+        }
+
+        UUID ownerUuid;
+        try {
+            ownerUuid = UUID.fromString(building.ownerPlayerUuid());
+        } catch (IllegalArgumentException ex) {
+            return false;
+        }
+        return PlayerDataManager.getPlayerData(ownerUuid).hasProfession(profession);
+    }
+
+    private void applyAutoPetterEffect(FarmAnimalRecord record, AnimalProfile profile, boolean hasHappinessProfession) {
         if (record.wasPetToday()) {
             return;
         }
@@ -531,6 +555,10 @@ public class AnimalGrowthManager extends SavedData {
         record.setWasAutoPetToday(true);
 
         int happinessGain = Math.max(5, 30 + profile.happinessDrain());
+        if (hasHappinessProfession) {
+            record.addFriendship(15);
+            record.addHappiness(happinessGain);
+        }
         record.addHappiness(happinessGain);
     }
 

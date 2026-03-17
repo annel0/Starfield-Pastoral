@@ -42,6 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 矿石挖掘事件处理器 - 实现星露谷风格的镐子tier系统
  * 事件在 StardewCraft 主类中手动注册
  */
+@SuppressWarnings("null")
 public final class MinePickaxeEvents {
 	private static final int BLOCKS_PER_ENERGY = 5;
 	private static final float ENERGY_PER_BLOCK_GROUP = 1.0f;
@@ -167,7 +168,7 @@ public final class MinePickaxeEvents {
 		if (isStardewOre(state)) {
 			Item dropItem = getOreDropItem(state);
 			if (dropItem != null) {
-				int count = isGemOre(state) ? 1 : computeStardewOreCount(player, pos);
+				int count = isGemOre(state) ? computeGemOreCount(level, player) : computeStardewOreCount(player, pos);
 				if (count <= 0) {
 					count = 1;
 				}
@@ -179,12 +180,52 @@ public final class MinePickaxeEvents {
 
 			// 额外晶洞掉落（概率降低，但逻辑与原版一致）
 			tryDropGeode(level, player, pos, state);
+			tryDropCoalFromStone(level, player, pos, state);
 		}
 
 		// 触发梯子概率逻辑（生存模式自定义挖掘路径）
 		MiningBlockBreakHandler.handleStoneBreak(level, player, pos, state);
 
+		int miningExp = getMiningExperienceForBlock(state);
+		if (miningExp > 0) {
+			PlayerStardewDataAPI.addExperience(player, SkillType.MINING, miningExp);
+		}
+
 		consumeMiningEnergy(player, level);
+	}
+
+	private static int getMiningExperienceForBlock(BlockState state) {
+		@SuppressWarnings("null")
+		String path = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath();
+
+		if (path.contains("prismatic_shard")) return 50;
+		if (path.contains("diamond_ore") || path.contains("amethyst_ore") || path.contains("aquamarine_ore")
+				|| path.contains("emerald_ore") || path.contains("jade_ore") || path.contains("ruby_ore")
+				|| path.contains("topaz_ore")) {
+			return 25;
+		}
+		if (path.contains("iridium_ore")) return 25;
+		if (path.contains("gold_ore")) return 15;
+		if (path.contains("iron_ore")) return 10;
+		if (path.contains("coal_ore") || path.contains("copper_ore")) return 5;
+
+		if (state.is(ModTags.Blocks.STARDEW_STONES)
+				|| path.equals("earth_shale")
+				|| path.equals("frost_gneiss")
+				|| path.equals("lava_basalt")
+				|| path.equals("dark_earth_shale")
+				|| path.equals("dark_frost_gneiss")
+				|| path.equals("dark_lava_basalt")
+				|| path.equals("banded_marble")
+				|| path.equals("limestone")
+				|| path.equals("mossy_sandstone")
+				|| path.equals("cracked_slate")
+				|| path.equals("scoria")
+				|| path.equals("salt_rock")) {
+			return 1;
+		}
+
+		return 0;
 	}
 
 	@SuppressWarnings("null")
@@ -293,6 +334,33 @@ public final class MinePickaxeEvents {
 			case "topaz_ore" -> ModItems.TOPAZ.get();
 			default -> null;
 		};
+	}
+
+	private static int computeGemOreCount(ServerLevel level, ServerPlayer player) {
+		int count = 1;
+		if (PlayerStardewDataAPI.hasProfession(player, ProfessionType.GEOLOGIST) && level.getRandom().nextFloat() < 0.5f) {
+			count += 1;
+		}
+		return count;
+	}
+
+	private static void tryDropCoalFromStone(ServerLevel level, ServerPlayer player, BlockPos pos, BlockState state) {
+		if (level.dimension() != ModMiningDimensions.STARDEW_MINING || !isMineralBlock(state)) {
+			return;
+		}
+		int miningLevel = PlayerStardewDataAPI.getSkillLevel(player, SkillType.MINING);
+		double dailyLuck = PlayerStardewDataAPI.getDailyLuck(player);
+		double luckBuff = PlayerStardewDataAPI.getLuckBuffLevel(player);
+
+		double chance = 0.035 + miningLevel * 0.001 + dailyLuck * 0.10 + luckBuff * 0.001;
+		if (PlayerStardewDataAPI.hasProfession(player, ProfessionType.PROSPECTOR)) {
+			chance *= 2.0;
+		}
+		chance = Mth.clamp(chance, 0.0, 0.95);
+
+		if (level.getRandom().nextDouble() < chance) {
+			Block.popResource(level, pos, new ItemStack(ModItems.COAL.get(), 1));
+		}
 	}
 
 	private static int computeStardewOreCount(ServerPlayer player, BlockPos pos) {

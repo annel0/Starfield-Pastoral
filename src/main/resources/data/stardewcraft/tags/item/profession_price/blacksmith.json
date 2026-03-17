@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:copper_bar",
+    "stardewcraft:iron_bar",
+    "stardewcraft:gold_bar",
+    "stardewcraft:iridium_bar",
+    "stardewcraft:radioactive_bar"
+  ]
+}

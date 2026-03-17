@@ -7,6 +7,7 @@ import com.stardew.craft.client.gui.MineExitScreen;
 import com.stardew.craft.client.gui.CoopManagerScreen;
 import com.stardew.craft.client.gui.BarnManagerScreen;
 import com.stardew.craft.client.gui.AnimalQueryScreen;
+import com.stardew.craft.client.gui.ShippingBinScreen;
 import com.stardew.craft.client.gui.StoneChestScreen;
 import com.stardew.craft.client.gui.WoodenChestScreen;
 import com.stardew.craft.client.render.BeeHouseBlockEntityRenderer;
@@ -20,6 +21,7 @@ import com.stardew.craft.client.render.KegBlockEntityRenderer;
 import com.stardew.craft.client.render.LightningRodBlockEntityRenderer;
 import com.stardew.craft.client.render.MayonnaiseMachineBlockEntityRenderer;
 import com.stardew.craft.client.render.OilMakerBlockEntityRenderer;
+import com.stardew.craft.client.render.IncubatorBlockEntityRenderer;
 import com.stardew.craft.client.render.PreservesJarBlockEntityRenderer;
 import com.stardew.craft.client.render.CrystalariumBlockEntityRenderer;
 import com.stardew.craft.client.render.SeedMakerBlockEntityRenderer;
@@ -28,6 +30,7 @@ import com.stardew.craft.client.render.DehydratorBlockEntityRenderer;
 import com.stardew.craft.client.render.DeluxeWormBinBlockEntityRenderer;
 import com.stardew.craft.client.render.AutoPetterBlockEntityRenderer;
 import com.stardew.craft.client.render.HeaterBlockEntityRenderer;
+import com.stardew.craft.client.render.ShippingBinBlockEntityRenderer;
 import com.stardew.craft.client.render.StoneChestBlockEntityRenderer;
 import com.stardew.craft.client.render.WoodenChestBlockEntityRenderer;
 import com.stardew.craft.client.render.SolarPanelBlockEntityRenderer;
@@ -101,6 +104,7 @@ public final class ModClientSetup {
 		event.registerBlockEntityRenderer(ModBlockEntities.LIGHTNING_ROD.get(), LightningRodBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.SOLAR_PANEL.get(), SolarPanelBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.MAYONNAISE_MACHINE.get(), MayonnaiseMachineBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(ModBlockEntities.INCUBATOR.get(), IncubatorBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.OIL_MAKER.get(), OilMakerBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.WORM_BIN.get(), WormBinBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.FEED_TROUGH.get(), FeedTroughBlockEntityRenderer::new);
@@ -108,6 +112,7 @@ public final class ModClientSetup {
 		event.registerBlockEntityRenderer(ModBlockEntities.AUTO_PETTER.get(), AutoPetterBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.WOODEN_CHEST.get(), WoodenChestBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.STONE_CHEST.get(), StoneChestBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(ModBlockEntities.SHIPPING_BIN.get(), ShippingBinBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.HEATER.get(), HeaterBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.DELUXE_WORM_BIN.get(), DeluxeWormBinBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.ANIMAL_PRODUCE_SPOT.get(), AnimalProduceSpotBlockEntityRenderer::new);
@@ -125,6 +130,7 @@ public final class ModClientSetup {
 		event.register(ModMenuTypes.COOKING_POT.get(), com.stardew.craft.client.gui.CookingPotScreen::new);
 		event.register(ModMenuTypes.WOODEN_CHEST.get(), WoodenChestScreen::new);
 		event.register(ModMenuTypes.STONE_CHEST.get(), StoneChestScreen::new);
+		event.register(ModMenuTypes.SHIPPING_BIN.get(), ShippingBinScreen::new);
 	}
 
 	@SuppressWarnings("null")

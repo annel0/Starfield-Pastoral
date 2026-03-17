@@ -2,6 +2,7 @@ package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.client.gui.AnimalPurchaseScreen;
+import net.minecraft.core.BlockPos;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -15,7 +16,9 @@ import java.util.List;
 public record OpenAnimalPurchaseScreenPayload(
     int playerMoney,
     List<AnimalOption> animalOptions,
-    List<BuildingOption> buildingOptions
+    List<BuildingOption> buildingOptions,
+    boolean incubatorMode,
+    long contextBlockPos
 ) implements CustomPacketPayload {
 
     public record AnimalOption(
@@ -84,8 +87,28 @@ public record OpenAnimalPurchaseScreenPayload(
         OpenAnimalPurchaseScreenPayload::animalOptions,
         BuildingOption.STREAM_CODEC.apply(ByteBufCodecs.list()),
         OpenAnimalPurchaseScreenPayload::buildingOptions,
+        ByteBufCodecs.BOOL,
+        OpenAnimalPurchaseScreenPayload::incubatorMode,
+        ByteBufCodecs.VAR_LONG,
+        OpenAnimalPurchaseScreenPayload::contextBlockPos,
         OpenAnimalPurchaseScreenPayload::new
     );
+
+    public static OpenAnimalPurchaseScreenPayload normal(
+        int playerMoney,
+        List<AnimalOption> animalOptions,
+        List<BuildingOption> buildingOptions
+    ) {
+        return new OpenAnimalPurchaseScreenPayload(playerMoney, animalOptions, buildingOptions, false, 0L);
+    }
+
+    public static OpenAnimalPurchaseScreenPayload incubator(
+        List<AnimalOption> animalOptions,
+        List<BuildingOption> buildingOptions,
+        BlockPos incubatorPos
+    ) {
+        return new OpenAnimalPurchaseScreenPayload(0, animalOptions, buildingOptions, true, incubatorPos.asLong());
+    }
 
     @Override
     public Type<? extends CustomPacketPayload> type() {

@@ -9,6 +9,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -119,6 +120,19 @@ public class CrabPotBlock extends Block implements EntityBlock, SimpleWaterlogge
 			.setValue(FACING, context.getHorizontalDirection().getOpposite())
 			.setValue(WATERLOGGED, true);
 	}
+
+	@Override
+	@SuppressWarnings("null")
+	public void setPlacedBy(@SuppressWarnings("null") Level level, @SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") BlockState state, @Nullable LivingEntity placer, @SuppressWarnings("null") ItemStack stack) {
+		super.setPlacedBy(level, pos, state, placer, stack);
+		if (level.isClientSide || !(placer instanceof Player player)) {
+			return;
+		}
+		BlockEntity be = level.getBlockEntity(pos);
+		if (be instanceof CrabPotBlockEntity crabPot) {
+			crabPot.setOwnerIfAbsent(player.getUUID());
+		}
+	}
 	
 	@SuppressWarnings("null")
 	@Override
@@ -149,6 +163,8 @@ public class CrabPotBlock extends Block implements EntityBlock, SimpleWaterlogge
 		if (!(be instanceof CrabPotBlockEntity crabPot)) {
 			return InteractionResult.PASS;
 		}
+
+		crabPot.setOwnerIfAbsent(player.getUUID());
 
 		// 如果有产物，收获
 		if (crabPot.isReady()) {

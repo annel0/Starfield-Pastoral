@@ -3,18 +3,26 @@ package com.stardew.craft.blockentity;
 import com.stardew.craft.item.artisan.ArtisanRecipeDataManager;
 import com.stardew.craft.animal.data.AnimalWorldData;
 import com.stardew.craft.animal.model.AnimalBuildingRecord;
+import com.stardew.craft.animal.service.AnimalAcquireService;
+import com.stardew.craft.item.ModItems;
+import com.stardew.craft.player.PlayerDataManager;
+import com.stardew.craft.player.ProfessionType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 
 import javax.annotation.Nullable;
+import java.util.UUID;
 
 public class IncubatorBlockEntity extends TimedProductionBlockEntity {
     private static final String TAG_INPUT = "input";
@@ -22,6 +30,18 @@ public class IncubatorBlockEntity extends TimedProductionBlockEntity {
     private static final String TAG_READY = "ready";
 
     public record RemainingTime(int days, int hours, int minutes) {
+    }
+
+    public enum ClaimResult {
+        SUCCESS,
+        NOT_READY,
+        NOT_IN_BUILDING,
+        NOT_OWNER,
+        INVALID_BUILDING,
+        BUILDING_FULL,
+        INVALID_EGG,
+        NAME_DUPLICATE,
+        FAILED
     }
 
     public IncubatorBlockEntity(BlockPos pos, BlockState state) {
@@ -89,6 +109,39 @@ public class IncubatorBlockEntity extends TimedProductionBlockEntity {
         return input;
     }
 
+    @Nullable
+    public String getReadyAnimalTypeId() {
+        if (!ready || input.isEmpty()) {
+            return null;
+        }
+        return resolveAnimalTypeId(input);
+    }
+
+    @Nullable
+    public static String resolveAnimalTypeId(ItemStack eggStack) {
+        if (eggStack.isEmpty()) {
+            return null;
+        }
+        Item egg = eggStack.getItem();
+        if (egg == ModItems.EGG_WHITE.get() || egg == ModItems.EGG_BROWN.get()
+            || egg == ModItems.LARGE_EGG_WHITE.get() || egg == ModItems.LARGE_EGG_BROWN.get()) {
+            return "white_chicken";
+        }
+        if (egg == ModItems.DUCK_EGG.get()) {
+            return "duck";
+        }
+        if (egg == ModItems.VOID_EGG.get()) {
+            return "void_chicken";
+        }
+        if (egg == ModItems.GOLDEN_EGG.get()) {
+            return "golden_chicken";
+        }
+        if (egg == ModItems.DINOSAUR_EGG.get()) {
+            return "dinosaur";
+        }
+        return null;
+    }
+
     public RemainingTime getRemainingTime() {
         long remaining = getRemainingAbsMinutes();
         int days = (int) (remaining / EFFECTIVE_MINUTES_PER_DAY);
@@ -96,6 +149,58 @@ public class IncubatorBlockEntity extends TimedProductionBlockEntity {
         int hours = minutesRemainder / com.stardew.craft.time.StardewTimeManager.MINUTES_PER_HOUR;
         int minutes = minutesRemainder % com.stardew.craft.time.StardewTimeManager.MINUTES_PER_HOUR;
         return new RemainingTime(days, hours, minutes);
+    }
+
+    @Nullable
+    public AnimalBuildingRecord getContainingAnimalBuilding(ServerLevel serverLevel) {
+        return resolveContainingBuilding(serverLevel, worldPosition);
+    }
+
+    public ClaimResult claimReadyAnimal(ServerPlayer player, String customName) {
+        if (!ready || input.isEmpty()) {
+            return ClaimResult.NOT_READY;
+        }
+        Level currentLevel = level;
+        if (!(currentLevel instanceof ServerLevel serverLevel)) {
+            return ClaimResult.FAILED;
+        }
+
+        AnimalBuildingRecord building = getContainingAnimalBuilding(serverLevel);
+        if (building == null) {
+            return ClaimResult.NOT_IN_BUILDING;
+        }
+        if (!"coop".equalsIgnoreCase(building.buildingType().family())) {
+            return ClaimResult.INVALID_BUILDING;
+        }
+        if (!player.getUUID().toString().equals(building.ownerPlayerUuid())) {
+            return ClaimResult.NOT_OWNER;
+        }
+        if (building.memberAnimalIds().size() >= building.capacity()) {
+            return ClaimResult.BUILDING_FULL;
+        }
+
+        String animalTypeId = resolveAnimalTypeId(input);
+        if (animalTypeId == null) {
+            return ClaimResult.INVALID_EGG;
+        }
+
+        String finalName = customName == null ? "" : customName.trim();
+        if (finalName.isBlank()) {
+            finalName = animalTypeId;
+        }
+
+        AnimalWorldData data = AnimalWorldData.get(serverLevel);
+        if (data.hasAnyAnimalWithName(finalName)) {
+            return ClaimResult.NAME_DUPLICATE;
+        }
+
+        try {
+            AnimalAcquireService.incubation(serverLevel, animalTypeId, finalName, building.buildingId());
+            clearIncubationState();
+            return ClaimResult.SUCCESS;
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            return ClaimResult.FAILED;
+        }
     }
 
     public boolean tryInsert(ItemStack stack, Player player) {
@@ -123,7 +228,8 @@ public class IncubatorBlockEntity extends TimedProductionBlockEntity {
         input = inputStack.copy();
         input.setCount(1);
         product = ItemStack.EMPTY;
-        readyAtAbsMinute = getCurrentAbsMinute() + minutesUntilReady;
+        int adjustedMinutes = applyProfessionTimeModifiers(minutesUntilReady);
+        readyAtAbsMinute = getCurrentAbsMinute() + adjustedMinutes;
         ready = false;
         if (player == null || !player.isCreative()) {
             inputStack.shrink(1);
@@ -132,11 +238,62 @@ public class IncubatorBlockEntity extends TimedProductionBlockEntity {
         syncToClient();
     }
 
+    private int applyProfessionTimeModifiers(int minutesUntilReady) {
+        Level currentLevel = this.level;
+        if (minutesUntilReady <= 0 || currentLevel == null || currentLevel.isClientSide) {
+            return minutesUntilReady;
+        }
+        if (!(currentLevel instanceof net.minecraft.server.level.ServerLevel serverLevel)) {
+            return minutesUntilReady;
+        }
+
+        AnimalBuildingRecord building = resolveContainingBuilding(serverLevel, worldPosition);
+        if (building == null) {
+            return minutesUntilReady;
+        }
+        if (!"coop".equalsIgnoreCase(building.buildingType().family())) {
+            return minutesUntilReady;
+        }
+        if (!ownerHasProfession(building, ProfessionType.COOPMASTER)) {
+            return minutesUntilReady;
+        }
+        return Math.max(1, minutesUntilReady / 2);
+    }
+
+    private AnimalBuildingRecord resolveContainingBuilding(net.minecraft.server.level.ServerLevel serverLevel, BlockPos pos) {
+        String dim = serverLevel.dimension().location().toString();
+        for (AnimalBuildingRecord record : AnimalWorldData.get(serverLevel).getBuildings()) {
+            if (!dim.equals(record.dimensionId())) {
+                continue;
+            }
+            if (record.isInBounds(pos)) {
+                return record;
+            }
+        }
+        return null;
+    }
+
+    private boolean ownerHasProfession(AnimalBuildingRecord building, ProfessionType profession) {
+        if (building == null || profession == null) {
+            return false;
+        }
+        UUID ownerUuid;
+        try {
+            ownerUuid = UUID.fromString(building.ownerPlayerUuid());
+        } catch (IllegalArgumentException ex) {
+            return false;
+        }
+        return PlayerDataManager.getPlayerData(ownerUuid).hasProfession(profession);
+    }
+
     public void completeIncubation() {
         if (!ready) {
             return;
         }
-        // TODO: 接入动物系统后，在这里生成孵化后的动物并触发相关事件。
+        clearIncubationState();
+    }
+
+    private void clearIncubationState() {
         input = ItemStack.EMPTY;
         product = ItemStack.EMPTY;
         readyAtAbsMinute = -1;

@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+@SuppressWarnings("null")
 public final class AnimalShopService {
     public record ShopAnimalRule(
         String animalTypeId,
@@ -91,10 +92,9 @@ public final class AnimalShopService {
             ));
         }
 
-        PacketDistributor.sendToPlayer(
-            player,
-            new OpenAnimalPurchaseScreenPayload(PlayerStardewDataAPI.getMoney(player), animals, buildings)
-        );
+        @SuppressWarnings("null")
+        OpenAnimalPurchaseScreenPayload payload = OpenAnimalPurchaseScreenPayload.normal(PlayerStardewDataAPI.getMoney(player), animals, buildings);
+        PacketDistributor.sendToPlayer(player, payload);
     }
 
     public static ShopAnimalRule getRule(String animalTypeId) {

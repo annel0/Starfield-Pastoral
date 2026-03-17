@@ -104,12 +104,33 @@
   },
   "open_chest": {
     "sounds": [
-      { "name": "stardewcraft:utility/open_chest", "stream": false }
+      { "name": "stardewcraft:utility/open_chest", "stream": false },
+      { "name": "stardewcraft:fishing/open_chest", "stream": false }
     ]
   },
   "door_creak_reverse": {
     "sounds": [
       { "name": "stardewcraft:utility/door_creak_reverse", "stream": false }
+    ]
+  },
+  "door_creak": {
+    "sounds": [
+      { "name": "stardewcraft:utility/door_creak", "stream": false }
+    ]
+  },
+  "woody_step": {
+    "sounds": [
+      { "name": "stardewcraft:woody_step", "stream": false }
+    ]
+  },
+  "backpack_in": {
+    "sounds": [
+      { "name": "stardewcraft:backpackIN", "stream": false }
+    ]
+  },
+  "shwip": {
+    "sounds": [
+      { "name": "stardewcraft:shwip", "stream": false }
     ]
   },
   "weapon.meow": {

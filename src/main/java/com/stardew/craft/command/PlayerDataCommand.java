@@ -141,6 +141,29 @@ public class PlayerDataCommand {
                                 return net.minecraft.commands.SharedSuggestionProvider.suggest(suggestions, builder);
                             })
                             .executes(PlayerDataCommand::lockRecipe))))
+
+                // 职业相关（调试 + 原版分支选择流程）
+                .then(Commands.literal("profession")
+                    .then(Commands.literal("list")
+                        .executes(PlayerDataCommand::listProfessions))
+                    .then(Commands.literal("pending")
+                        .executes(PlayerDataCommand::showPendingProfessions))
+                    .then(Commands.literal("choose")
+                        .then(Commands.argument("profession", StringArgumentType.word())
+                            .suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(getProfessionSuggestions(), builder))
+                            .executes(PlayerDataCommand::choosePendingProfession)))
+                    .then(Commands.literal("grant")
+                        .then(Commands.argument("profession", StringArgumentType.word())
+                            .suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(getProfessionSuggestions(), builder))
+                            .executes(PlayerDataCommand::grantProfession)))
+                    .then(Commands.literal("revoke")
+                        .then(Commands.argument("profession", StringArgumentType.word())
+                            .suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(getProfessionSuggestions(), builder))
+                            .executes(PlayerDataCommand::revokeProfession)))
+                    .then(Commands.literal("clear")
+                        .executes(PlayerDataCommand::clearProfessions))
+                    .then(Commands.literal("repair")
+                        .executes(PlayerDataCommand::repairProfessionChoices)))
                 
                 // 重置数据
                 .then(Commands.literal("reset")
@@ -298,8 +321,198 @@ public class PlayerDataCommand {
                 }
             }
         }
+
+        if (data.hasPendingProfessionChoices()) {
+            context.getSource().sendSuccess(() -> Component.literal("待选职业："), false);
+            int index = 1;
+            for (PlayerStardewData.ProfessionChoicePrompt prompt : data.getPendingProfessionChoices()) {
+                SkillType skill = prompt.skill();
+                int level = prompt.level();
+                String options = getChoiceOptionsText(skill, level, data);
+                int currentIndex = index;
+                context.getSource().sendSuccess(() -> Component.literal(
+                    "  " + currentIndex + ") " + skill.getDisplayName() + " Lv." + level + " -> " + options
+                ), false);
+                index++;
+            }
+        }
         
         return 1;
+    }
+
+    private static java.util.List<String> getProfessionSuggestions() {
+        java.util.List<String> suggestions = new java.util.ArrayList<>();
+        for (ProfessionType profession : ProfessionType.values()) {
+            suggestions.add(profession.getName());
+        }
+        return suggestions;
+    }
+
+    private static ProfessionType parseProfession(CommandContext<CommandSourceStack> context) {
+        String input = StringArgumentType.getString(context, "profession");
+        for (ProfessionType profession : ProfessionType.values()) {
+            if (profession.getName().equalsIgnoreCase(input)) {
+                return profession;
+            }
+        }
+        return null;
+    }
+
+    private static String getChoiceOptionsText(SkillType skill, int level, PlayerStardewData data) {
+        if (level == 5) {
+            ProfessionType[] options = ProfessionType.getLevel5Options(skill);
+            return options[0].getName() + " | " + options[1].getName();
+        }
+        if (level == 10) {
+            ProfessionType level5 = null;
+            for (int professionId : data.getProfessions()) {
+                ProfessionType profession = ProfessionType.fromId(professionId);
+                if (profession != null && profession.getSkillType() == skill && profession.getRequiredLevel() == 5) {
+                    level5 = profession;
+                    break;
+                }
+            }
+            if (level5 != null) {
+                ProfessionType[] options = ProfessionType.getLevel10Options(skill, level5);
+                return options[0].getName() + " | " + options[1].getName();
+            }
+        }
+        return "(无可用选项)";
+    }
+
+    private static int listProfessions(CommandContext<CommandSourceStack> context) {
+        ServerPlayer player = context.getSource().getPlayer();
+        if (player == null) return 0;
+
+        PlayerStardewData data = PlayerStardewDataAPI.getData(player);
+        if (data.getProfessions().isEmpty()) {
+            context.getSource().sendSuccess(() -> Component.literal("当前没有已选职业。"), false);
+            return 1;
+        }
+
+        context.getSource().sendSuccess(() -> Component.literal("已选职业："), false);
+        for (int professionId : data.getProfessions()) {
+            ProfessionType profession = ProfessionType.fromId(professionId);
+            if (profession != null) {
+                context.getSource().sendSuccess(() -> Component.literal(
+                    "- " + profession.getName() + " (" + profession.getSkillType().getName() + " Lv." + profession.getRequiredLevel() + ")"
+                ), false);
+            }
+        }
+        return 1;
+    }
+
+    private static int showPendingProfessions(CommandContext<CommandSourceStack> context) {
+        ServerPlayer player = context.getSource().getPlayer();
+        if (player == null) return 0;
+
+        PlayerStardewData data = PlayerStardewDataAPI.getData(player);
+        if (!data.hasPendingProfessionChoices()) {
+            context.getSource().sendSuccess(() -> Component.literal("当前没有待选职业。"), false);
+            return 1;
+        }
+
+        context.getSource().sendSuccess(() -> Component.literal("待选职业队列："), false);
+        int index = 1;
+        for (PlayerStardewData.ProfessionChoicePrompt prompt : data.getPendingProfessionChoices()) {
+            SkillType skill = prompt.skill();
+            int level = prompt.level();
+            int currentIndex = index;
+            String options = getChoiceOptionsText(skill, level, data);
+            context.getSource().sendSuccess(() -> Component.literal(
+                "" + currentIndex + ") " + skill.getName() + " Lv." + level + " -> " + options
+            ), false);
+            index++;
+        }
+        return 1;
+    }
+
+    private static int choosePendingProfession(CommandContext<CommandSourceStack> context) {
+        ServerPlayer player = context.getSource().getPlayer();
+        if (player == null) return 0;
+
+        ProfessionType profession = parseProfession(context);
+        if (profession == null) {
+            sendFailure(context.getSource(), "未知职业名称。");
+            return 0;
+        }
+
+        boolean success = PlayerStardewDataAPI.choosePendingProfession(player, profession);
+        if (!success) {
+            sendFailure(context.getSource(), "职业选择失败：请先查看 /stardew player profession pending 的队列与可选项。");
+            return 0;
+        }
+
+        context.getSource().sendSuccess(() -> Component.literal("已选择职业：" + profession.getName()), true);
+        return 1;
+    }
+
+    private static int grantProfession(CommandContext<CommandSourceStack> context) {
+        ServerPlayer player = context.getSource().getPlayer();
+        if (player == null) return 0;
+
+        ProfessionType profession = parseProfession(context);
+        if (profession == null) {
+            sendFailure(context.getSource(), "未知职业名称。");
+            return 0;
+        }
+
+        boolean changed = PlayerStardewDataAPI.addProfession(player, profession);
+        if (!changed) {
+            sendFailure(context.getSource(), "玩家已拥有该职业。");
+            return 0;
+        }
+
+        context.getSource().sendSuccess(() -> Component.literal("已授予职业：" + profession.getName()), true);
+        return 1;
+    }
+
+    private static int revokeProfession(CommandContext<CommandSourceStack> context) {
+        ServerPlayer player = context.getSource().getPlayer();
+        if (player == null) return 0;
+
+        ProfessionType profession = parseProfession(context);
+        if (profession == null) {
+            sendFailure(context.getSource(), "未知职业名称。");
+            return 0;
+        }
+
+        boolean changed = PlayerStardewDataAPI.removeProfession(player, profession);
+        if (!changed) {
+            sendFailure(context.getSource(), "玩家未拥有该职业。");
+            return 0;
+        }
+
+        context.getSource().sendSuccess(() -> Component.literal("已移除职业：" + profession.getName()), true);
+        return 1;
+    }
+
+    private static int clearProfessions(CommandContext<CommandSourceStack> context) {
+        ServerPlayer player = context.getSource().getPlayer();
+        if (player == null) return 0;
+
+        boolean changed = PlayerStardewDataAPI.clearProfessions(player);
+        if (!changed) {
+            sendFailure(context.getSource(), "当前没有可清空的职业。");
+            return 0;
+        }
+
+        context.getSource().sendSuccess(() -> Component.literal("已清空职业，并按当前技能等级重建待选队列。"), true);
+        return 1;
+    }
+
+    private static int repairProfessionChoices(CommandContext<CommandSourceStack> context) {
+        ServerPlayer player = context.getSource().getPlayer();
+        if (player == null) return 0;
+
+        PlayerStardewDataAPI.repairMissingProfessionChoices(player);
+        context.getSource().sendSuccess(() -> Component.literal("已按当前等级修复遗漏的职业待选项。"), false);
+        return 1;
+    }
+
+    @SuppressWarnings("null")
+    private static void sendFailure(CommandSourceStack source, String message) {
+        source.sendFailure(Component.literal(message));
     }
     
     /**

@@ -75,6 +75,7 @@ import com.stardew.craft.combat.network.IridiumNeedleFrenzyPayload;
 import com.stardew.craft.combat.network.IridiumNeedleThrustStrikePayload;
 import com.stardew.craft.network.payload.StoneChestColorSelectPayload;
 import com.stardew.craft.network.payload.WoodenChestColorSelectPayload;
+import com.stardew.craft.network.overnight.OvernightSettlementPayload;
 
 @SuppressWarnings("null")
 public class PacketHandler {
@@ -167,6 +168,12 @@ public class PacketHandler {
             HayHarvestHudMessagePacket.TYPE,
             HayHarvestHudMessagePacket.STREAM_CODEC,
             HayHarvestHudMessagePacket::handle
+        );
+
+        registrar.playToClient(
+            com.stardew.craft.network.payload.SkillExperienceGainPayload.TYPE,
+            com.stardew.craft.network.payload.SkillExperienceGainPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.SkillExperienceGainPayload::handle
         );
 
         registrar.playToClient(
@@ -720,6 +727,12 @@ public class PacketHandler {
             com.stardew.craft.network.payload.AnimalPurchaseSubmitPayload::handle
         );
 
+        registrar.playToServer(
+            com.stardew.craft.network.payload.IncubatorClaimSubmitPayload.TYPE,
+            com.stardew.craft.network.payload.IncubatorClaimSubmitPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.IncubatorClaimSubmitPayload::handle
+        );
+
         registrar.playToClient(
             com.stardew.craft.network.payload.OpenDecorationScreenPayload.TYPE,
             com.stardew.craft.network.payload.OpenDecorationScreenPayload.STREAM_CODEC,
@@ -736,6 +749,12 @@ public class PacketHandler {
             com.stardew.craft.network.payload.CookingPotCookSubmitPayload.TYPE,
             com.stardew.craft.network.payload.CookingPotCookSubmitPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.CookingPotCookSubmitPayload::handle
+        );
+
+        registrar.playToClient(
+            com.stardew.craft.network.overnight.OvernightSettlementPayload.TYPE,
+            com.stardew.craft.network.overnight.OvernightSettlementPayload.STREAM_CODEC,
+            com.stardew.craft.network.overnight.OvernightSettlementPayload::handle
         );
 
     }

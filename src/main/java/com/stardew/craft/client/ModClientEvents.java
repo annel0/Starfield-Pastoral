@@ -1,6 +1,9 @@
 package com.stardew.craft.client;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.economy.sell.ProfessionSellPriceService;
+import com.stardew.craft.economy.sell.SellQuote;
+import com.stardew.craft.economy.sell.SellSource;
 import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.item.weapon.IStardewWeapon;
 import com.stardew.craft.item.weapon.WeaponData;
@@ -134,8 +137,10 @@ public class ModClientEvents {
                         .withStyle(typeColor, ChatFormatting.BOLD)));
             }
             
-            // 第二行：单价
-            int sellPrice = stardewItem.getSellPrice(stack);
+                // 第二行：单价（与服务端结算复用同一职业报价逻辑）
+                SellQuote quote = ProfessionSellPriceService.quoteItemForProfessionNames(
+                    new java.util.HashSet<>(ClientPlayerDataCache.getProfessions()), stack, SellSource.SHOP_COUNTER);
+                int sellPrice = quote.finalUnitPrice();
                 if (sellPrice > 0) {
                  customLines.add(Component.translatable("stardewcraft.tooltip.price")
                          .append(": ")

@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:oak_resin",
+    "stardewcraft:maple_syrup",
+    "stardewcraft:pine_tar",
+    "stardewcraft:mystic_syrup"
+  ]
+}

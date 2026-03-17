@@ -5,6 +5,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.network.PacketDistributor;
 import com.stardew.craft.combat.network.SkillCooldownSyncPayload;
+import com.stardew.craft.player.PlayerStardewDataAPI;
+import com.stardew.craft.player.ProfessionType;
 
 /**
  * 技能独立冷却（按技能ID）
@@ -39,16 +41,27 @@ public final class WeaponSkillCooldowns {
 
     @SuppressWarnings("null")
     public static void setCooldown(Player player, String weaponId, String skillId, long nowTick, int durationTicks) {
+        int appliedDuration = applyProfessionModifiers(player, durationTicks);
         CompoundTag root = player.getPersistentData();
         CompoundTag cd = root.contains(TAG_ROOT) ? root.getCompound(TAG_ROOT) : new CompoundTag();
-        cd.putLong(getKey(weaponId, skillId), nowTick + durationTicks);
+        cd.putLong(getKey(weaponId, skillId), nowTick + appliedDuration);
         root.put(TAG_ROOT, cd);
         
         // 同步冷却信息到客户端
         if (player instanceof ServerPlayer serverPlayer) {
             PacketDistributor.sendToPlayer(serverPlayer, 
-                new SkillCooldownSyncPayload(weaponId, skillId, durationTicks, durationTicks));
+                new SkillCooldownSyncPayload(weaponId, skillId, appliedDuration, appliedDuration));
         }
+    }
+
+    private static int applyProfessionModifiers(Player player, int durationTicks) {
+        if (durationTicks <= 0) {
+            return durationTicks;
+        }
+        if (player instanceof ServerPlayer serverPlayer && PlayerStardewDataAPI.hasProfession(serverPlayer, ProfessionType.ACROBAT)) {
+            return Math.max(1, durationTicks / 2);
+        }
+        return durationTicks;
     }
 
     private static String getKey(String weaponId, String skillId) {

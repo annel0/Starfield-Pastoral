@@ -608,11 +608,11 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 	}
 
 	private boolean hasHappinessBoostProfession(ServerPlayer player, String animalTypeId) {
-		int professionId = switch (animalTypeId) {
-			case "ostrich" -> 3;
-			default -> 2;
+		ProfessionType profession = switch (animalTypeId) {
+			case "white_chicken", "brown_chicken", "blue_chicken", "golden_chicken", "void_chicken", "duck", "rabbit", "dinosaur", "ostrich" -> ProfessionType.COOPMASTER;
+			case "cow", "goat", "sheep", "pig" -> ProfessionType.SHEPHERD;
+			default -> null;
 		};
-		ProfessionType profession = ProfessionType.fromId(professionId);
 		return profession != null && PlayerStardewDataAPI.hasProfession(player, profession);
 	}
 

@@ -15,12 +15,17 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import com.stardew.craft.fishing.data.FishingDataManager;
+import com.stardew.craft.player.PlayerStardewDataAPI;
+import com.stardew.craft.player.ProfessionType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.IItemHandler;
 
 import javax.annotation.Nullable;
+import java.util.UUID;
 
 /**
  * 蟹笼方块实体
@@ -34,11 +39,13 @@ public class CrabPotBlockEntity extends BlockEntity implements UtilityAutomation
 	private static final String TAG_PRODUCT = "product";
 	private static final String TAG_READY = "ready";
 	private static final String TAG_LAST_CHECK_DAY = "lastCheckDay";
+	private static final String TAG_OWNER = "ownerPlayerUuid";
 
 	private ItemStack bait = ItemStack.EMPTY;
 	private ItemStack product = ItemStack.EMPTY;
 	private boolean ready = false;
 	private int lastCheckDay = -1;
+	private UUID ownerPlayerId;
 	private final UtilityItemHandler automationItemHandler = new UtilityItemHandler(this);
 
 	@SuppressWarnings("null")
@@ -78,9 +85,12 @@ public class CrabPotBlockEntity extends BlockEntity implements UtilityAutomation
 	 * 每日更新逻辑（参考 CrabPot.DayUpdate）
 	 */
 	private void dayUpdate(Level level, BlockPos pos) {
+		ServerPlayer professionPlayer = resolveProfessionPlayer(level, pos);
+		boolean hasMariner = professionPlayer != null && PlayerStardewDataAPI.hasProfession(professionPlayer, ProfessionType.MARINER);
+		boolean hasLuremaster = professionPlayer != null && PlayerStardewDataAPI.hasProfession(professionPlayer, ProfessionType.LUREMASTER);
+
 		// 需要鱼饵且没有产物才能捕获
-		// 说明：职业相关（Mariner/Luremaster）暂时不做，但留接口供后续接入。
-		if (!canWorkToday(level, pos)) {
+		if (!canWorkToday(hasLuremaster)) {
 			return;
 		}
 
@@ -92,7 +102,7 @@ public class CrabPotBlockEntity extends BlockEntity implements UtilityAutomation
 		boolean isOceanBiome = isOceanBiome(biome);
 
 		// 垃圾概率：默认20% (后续接入本项目 FishArea/地点数据驱动)
-		double junkChance = 0.2;
+		double junkChance = hasMariner ? 0.0 : 0.2;
 
 		// 读取鱼饵ID判断效果
 		@SuppressWarnings("null")
@@ -135,8 +145,10 @@ public class CrabPotBlockEntity extends BlockEntity implements UtilityAutomation
 
 		// 设置产物
 		product = result;
-		// 消耗鱼饵（后续若接入 Luremaster，可改为有概率/不消耗）
-		bait = ItemStack.EMPTY;
+		// Luremaster：蟹笼无需消耗鱼饵。
+		if (!hasLuremaster) {
+			bait = ItemStack.EMPTY;
+		}
 		
 		setChanged();
 		syncToClient();
@@ -153,11 +165,27 @@ public class CrabPotBlockEntity extends BlockEntity implements UtilityAutomation
 	 * - Mariner：允许无鱼饵也工作
 	 * - Luremaster：不消耗鱼饵
 	 */
-	private boolean canWorkToday(Level level, BlockPos pos) {
+	private boolean canWorkToday(boolean hasLuremaster) {
 		if (!product.isEmpty()) {
 			return false;
 		}
-		return !bait.isEmpty();
+		return hasLuremaster || !bait.isEmpty();
+	}
+
+	@Nullable
+	private ServerPlayer resolveProfessionPlayer(Level level, BlockPos pos) {
+		if (!(level instanceof ServerLevel serverLevel)) {
+			return null;
+		}
+		UUID ownerId = ownerPlayerId;
+		if (ownerId != null) {
+			ServerPlayer owner = serverLevel.getServer().getPlayerList().getPlayer(ownerId);
+			if (owner != null) {
+				return owner;
+			}
+		}
+		var nearest = serverLevel.getNearestPlayer(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, 16.0D, false);
+		return nearest instanceof ServerPlayer serverPlayer ? serverPlayer : null;
 	}
 
 
@@ -257,6 +285,19 @@ public class CrabPotBlockEntity extends BlockEntity implements UtilityAutomation
 		this.bait = baitStack.copy();
 		setChanged();
 		syncToClient();
+	}
+
+	public void setOwnerIfAbsent(UUID owner) {
+		if (ownerPlayerId != null || owner == null) {
+			return;
+		}
+		ownerPlayerId = owner;
+		setChanged();
+		syncToClient();
+	}
+
+	public UUID getOwnerPlayerId() {
+		return ownerPlayerId;
 	}
 
 	public ItemStack getProduct() {
@@ -386,6 +427,9 @@ public class CrabPotBlockEntity extends BlockEntity implements UtilityAutomation
 		}
 		tag.putBoolean(TAG_READY, ready);
 		tag.putInt(TAG_LAST_CHECK_DAY, lastCheckDay);
+		if (ownerPlayerId != null) {
+			tag.putUUID(TAG_OWNER, ownerPlayerId);
+		}
 	}
 
 	@SuppressWarnings("null")
@@ -400,6 +444,7 @@ public class CrabPotBlockEntity extends BlockEntity implements UtilityAutomation
 			: ItemStack.EMPTY;
 		ready = tag.getBoolean(TAG_READY);
 		lastCheckDay = tag.getInt(TAG_LAST_CHECK_DAY);
+		ownerPlayerId = tag.hasUUID(TAG_OWNER) ? tag.getUUID(TAG_OWNER) : null;
 	}
 
 	@Override

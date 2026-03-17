@@ -459,11 +459,6 @@ public class DamageCalculator {
             defense += buffManager.getDefenseBonus();
         }
         
-        // Defender职业: +25防御
-        if (playerData != null && playerData.hasProfession(ProfessionType.DEFENDER)) {
-            defense += 25;
-        }
-        
         return defense;
     }
     

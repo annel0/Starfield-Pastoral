@@ -1,6 +1,8 @@
 package com.stardew.craft.manager;
 
 import com.stardew.craft.item.ModItems;
+import com.stardew.craft.player.PlayerStardewDataAPI;
+import com.stardew.craft.player.SkillType;
 import com.stardew.craft.time.StardewTimeManager;
 import com.stardew.craft.tree.WildTrees;
 import net.minecraft.core.BlockPos;
@@ -104,6 +106,7 @@ public class WildTreeSeedManager extends SavedData {
 			Item seed = getSeedItem(def);
 			if (seed != null) {
 				Block.popResource(level, trunk0Pos, new ItemStack(seed, 1));
+				PlayerStardewDataAPI.addExperience(player, SkillType.FORAGING, 7);
 			}
 			entry.hasSeed = false;
 		}
