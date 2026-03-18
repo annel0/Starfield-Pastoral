@@ -49,6 +49,58 @@ public class DimensionEventHandler {
     private static int lastAnimalTenMinuteDayKey = Integer.MIN_VALUE;
     private static int lastAnimalTenMinuteSlot = Integer.MIN_VALUE;
 
+    @SuppressWarnings("null")
+    private static void advanceToNextMorning(ServerLevel sourceLevel, int sleepMinute, String reason) {
+        if (dayAdvancing) {
+            return;
+        }
+        dayAdvancing = true;
+        try {
+            StardewTimeManager timeManager = StardewTimeManager.get();
+            timeManager.advanceDayWithSleepTime(sleepMinute);
+
+            var server = sourceLevel.getServer();
+            long currentDay = sourceLevel.getDayTime() / 24000;
+            long newDayTime = (currentDay + 1) * 24000;
+
+            for (ServerLevel level : server.getAllLevels()) {
+                level.setDayTime(newDayTime);
+            }
+
+            for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+                ServerLevel playerLevel = player.serverLevel();
+                player.connection.send(new ClientboundSetTimePacket(
+                    playerLevel.getGameTime(),
+                    newDayTime,
+                    playerLevel.getGameRules().getBoolean(GameRules.RULE_DAYLIGHT)
+                ));
+            }
+
+            PacketDistributor.sendToAllPlayers(TimeSyncPacket.fromTimeManager(timeManager));
+            lastAnimalTenMinuteDayKey = Integer.MIN_VALUE;
+            lastAnimalTenMinuteSlot = Integer.MIN_VALUE;
+            StardewCraft.LOGGER.info("Stardew day advanced to next morning by {} (sleepMinute={})", reason, sleepMinute);
+        } finally {
+            dayAdvancing = false;
+        }
+    }
+
+    @SuppressWarnings("null")
+    public static void requestSleepAdvance(ServerPlayer player, int sleepMinute) {
+        if (player == null) {
+            return;
+        }
+        if (player.level().dimension() != ModDimensions.STARDEW_VALLEY
+            && player.level().dimension() != ModMiningDimensions.STARDEW_MINING) {
+            return;
+        }
+        ServerLevel stardewLevel = player.server.getLevel(ModDimensions.STARDEW_VALLEY);
+        if (stardewLevel == null) {
+            return;
+        }
+        advanceToNextMorning(stardewLevel, sleepMinute, "sleep_confirm");
+    }
+
     /**
      * 从MC dayTime计算星露谷分钟
      * dayTime 0 = 6:00 AM = 360分钟
@@ -239,37 +291,7 @@ public class DimensionEventHandler {
         
         // 检查是否到达2:00 AM（dayTime >= 20000）
         if (dayTime >= DAY_END_TIME && !dayAdvancing) {
-            dayAdvancing = true;
-            
-            // 触发新的一天
-            timeManager.advanceDay();
-            
-            // 计算新的dayTime（下一天的6:00 AM）
-            long currentDay = serverLevel.getDayTime() / 24000;
-            long newDayTime = (currentDay + 1) * 24000; // 下一天的6:00 AM (dayTime 0)
-            
-            // 设置所有维度的时间（MC dayTime是全局共享的）
-            for (ServerLevel level : server.getAllLevels()) {
-                level.setDayTime(newDayTime);
-            }
-            
-            // 立即发送时间包到所有玩家（让客户端天空立即变成早上）
-            for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-                ServerLevel playerLevel = player.serverLevel();
-                player.connection.send(new ClientboundSetTimePacket(
-                    playerLevel.getGameTime(),
-                    newDayTime,
-                    playerLevel.getGameRules().getBoolean(GameRules.RULE_DAYLIGHT)
-                ));
-            }
-            
-            // 同步星露谷时间到所有玩家（HUD显示）
-            PacketDistributor.sendToAllPlayers(TimeSyncPacket.fromTimeManager(timeManager));
-
-            lastAnimalTenMinuteDayKey = Integer.MIN_VALUE;
-            lastAnimalTenMinuteSlot = Integer.MIN_VALUE;
-            
-            dayAdvancing = false;
+            advanceToNextMorning(serverLevel, stardewMinutes, "pass_out_2am");
         }
         
         // 每秒（20 ticks）同步UI时间到客户端
@@ -285,37 +307,8 @@ public class DimensionEventHandler {
     @SubscribeEvent
     public static void onSleepFinished(SleepFinishedTimeEvent event) {
         if (event.getLevel() instanceof ServerLevel level && level.dimension() == ModDimensions.STARDEW_VALLEY) {
-            // 触发星露谷时间的新一天逻辑（这会包含作物生长等）
             StardewTimeManager timeManager = StardewTimeManager.get();
-            timeManager.advanceDay();
-            
-            // 计算新的dayTime（下一天的6:00 AM）
-            var server = level.getServer();
-            long currentDay = level.getDayTime() / 24000;
-            long newDayTime = (currentDay + 1) * 24000;
-            
-            // 设置所有维度的时间
-            for (ServerLevel sl : server.getAllLevels()) {
-                sl.setDayTime(newDayTime);
-            }
-            
-            // 立即发送时间包到所有玩家
-            for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-                ServerLevel playerLevel = player.serverLevel();
-                player.connection.send(new ClientboundSetTimePacket(
-                    playerLevel.getGameTime(),
-                    newDayTime,
-                    playerLevel.getGameRules().getBoolean(GameRules.RULE_DAYLIGHT)
-                ));
-            }
-            
-            // 同步星露谷时间
-            PacketDistributor.sendToAllPlayers(TimeSyncPacket.fromTimeManager(timeManager));
-
-            lastAnimalTenMinuteDayKey = Integer.MIN_VALUE;
-            lastAnimalTenMinuteSlot = Integer.MIN_VALUE;
-            
-            StardewCraft.LOGGER.info("Sleep finished, advanced Stardew day.");
+            advanceToNextMorning(level, timeManager.getCurrentTime(), "vanilla_sleep_finished");
         }
     }
 

@@ -143,6 +143,31 @@
       { "name": "stardewcraft:big_deselect", "stream": false }
     ]
   },
+  "breathin": {
+    "sounds": [
+      { "name": "stardewcraft:breathin", "stream": false }
+    ]
+  },
+  "breathout": {
+    "sounds": [
+      { "name": "stardewcraft:breathout", "stream": false }
+    ]
+  },
+  "cowboy_gunshot": {
+    "sounds": [
+      { "name": "stardewcraft:cowboy_gunshot", "stream": false }
+    ]
+  },
+  "dialogue_character": {
+    "sounds": [
+      { "name": "stardewcraft:dialogue_character", "stream": false }
+    ]
+  },
+  "dialogue_character_close": {
+    "sounds": [
+      { "name": "stardewcraft:dialogue_character_close", "stream": false }
+    ]
+  },
   "shadow_die": {
     "sounds": [
       { "name": "stardewcraft:shadow_die", "stream": false }

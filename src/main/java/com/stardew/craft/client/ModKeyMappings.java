@@ -29,12 +29,19 @@ public final class ModKeyMappings {
             CATEGORY
     );
 
-        public static final KeyMapping EMOTE_WHEEL = new KeyMapping(
+    public static final KeyMapping EMOTE_WHEEL = new KeyMapping(
             "key.stardewcraft.emote_wheel",
             InputConstants.Type.KEYSYM,
             GLFW.GLFW_KEY_TAB,
             CATEGORY
-        );
+    );
+
+    public static final KeyMapping GAME_MENU = new KeyMapping(
+            "key.stardewcraft.game_menu",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_V,
+            CATEGORY
+    );
 
     private ModKeyMappings() {}
 
@@ -44,5 +51,6 @@ public final class ModKeyMappings {
         event.register(SKILL_MINOR);
         event.register(SKILL_MAJOR);
         event.register(EMOTE_WHEEL);
+        event.register(GAME_MENU);
     }
 }

@@ -46,6 +46,11 @@ public final class ModSounds {
 	public static final DeferredHolder<SoundEvent, SoundEvent> SHWIP = register("shwip");
 	public static final DeferredHolder<SoundEvent, SoundEvent> BIG_SELECT = register("big_select");
 	public static final DeferredHolder<SoundEvent, SoundEvent> BIG_DESELECT = register("big_deselect");
+	public static final DeferredHolder<SoundEvent, SoundEvent> BREATHIN = register("breathin");
+	public static final DeferredHolder<SoundEvent, SoundEvent> BREATHOUT = register("breathout");
+	public static final DeferredHolder<SoundEvent, SoundEvent> COWBOY_GUNSHOT = register("cowboy_gunshot");
+	public static final DeferredHolder<SoundEvent, SoundEvent> DIALOGUE_CHARACTER = register("dialogue_character");
+	public static final DeferredHolder<SoundEvent, SoundEvent> DIALOGUE_CHARACTER_CLOSE = register("dialogue_character_close");
 	public static final DeferredHolder<SoundEvent, SoundEvent> SHADOW_DIE = register("shadow_die");
 	public static final DeferredHolder<SoundEvent, SoundEvent> THUD_STEP = register("thud_step");
 	public static final DeferredHolder<SoundEvent, SoundEvent> STONE_STEP = register("stone_step");

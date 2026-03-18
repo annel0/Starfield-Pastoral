@@ -142,6 +142,16 @@ public class PlayerDataCommand {
                             })
                             .executes(PlayerDataCommand::lockRecipe))))
 
+                .then(Commands.literal("unlock-source")
+                    .then(Commands.literal("apply")
+                        .then(Commands.argument("source_id", StringArgumentType.string())
+                            .suggests((ctx, builder) ->
+                                net.minecraft.commands.SharedSuggestionProvider.suggest(
+                                    UnlockSourceData.getSourceIds(),
+                                    builder
+                                ))
+                            .executes(PlayerDataCommand::applyUnlockSource))))
+
                 // 职业相关（调试 + 原版分支选择流程）
                 .then(Commands.literal("profession")
                     .then(Commands.literal("list")
@@ -226,6 +236,22 @@ public class PlayerDataCommand {
             ctx.getSource().sendFailure(Component.literal("Recipe(s) not unlocked or invalid: " + recipeId));
             return 0;
         }
+    }
+
+    @SuppressWarnings("null")
+    private static int applyUnlockSource(CommandContext<CommandSourceStack> ctx) {
+        ServerPlayer player = ctx.getSource().getPlayer();
+        if (player == null) return 0;
+
+        String sourceId = StringArgumentType.getString(ctx, "source_id");
+        boolean changed = PlayerStardewDataAPI.applyUnlockSource(player, sourceId);
+        if (changed) {
+            ctx.getSource().sendSuccess(() -> Component.literal("Applied unlock source: " + sourceId), true);
+            return 1;
+        }
+
+        ctx.getSource().sendFailure(Component.literal("No unlock applied (unknown source or already unlocked): " + sourceId));
+        return 0;
     }
 
     private static int getLucky(CommandContext<CommandSourceStack> context) {
@@ -529,8 +555,8 @@ public class PlayerDataCommand {
         int newExp = PlayerStardewDataAPI.getSkillExperience(player, skill);
         
         if (leveledUp) {
-            context.getSource().sendSuccess(() -> Component.translatable(
-                "stardewcraft.command.exp.levelup", skill.getDisplayName(), newLevel), true);
+            context.getSource().sendSuccess(() -> Component.literal(
+                "经验已增加并达到升级阈值，等级将在夜间结算时生效。当前已生效等级: " + newLevel), true);
         } else {
             context.getSource().sendSuccess(() -> Component.translatable(
                 "stardewcraft.command.exp.added", amount, skill.getDisplayName(), newExp), false);

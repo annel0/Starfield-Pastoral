@@ -1,0 +1,439 @@
+package com.stardew.craft.client.gui.common;
+
+import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
+import com.stardew.craft.network.payload.SleepConfirmChoicePayload;
+import com.stardew.craft.sound.ModSounds;
+import net.minecraft.Util;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvent;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.network.PacketDistributor;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@OnlyIn(Dist.CLIENT)
+@SuppressWarnings("null")
+public class StardewConfirmDialogScreen extends Screen {
+    private final StardewQuestionDialogSpec spec;
+    private StardewRenderMapping mapping;
+
+    private int selected = -1;
+    private boolean resolved;
+    private int boxX;
+    private int boxDrawY;
+    private int boxWidth;
+    private int boxHeight;
+    private int questionHeight;
+    private final List<WrappedResponse> wrappedResponses = new ArrayList<>();
+    private boolean transitioning = true;
+    private boolean transitioningBigger = true;
+    private boolean transitionInitialized;
+    private int transitionX;
+    private int transitionY;
+    private int transitionWidth;
+    private int transitionHeight;
+    private int pendingAnswerIndex = -1;
+    private long lastUpdateMs;
+    private boolean openingSoundPlayed;
+    private int characterIndexInDialogue;
+    private int characterAdvanceTimer;
+    private int safetyTimer = 750;
+
+    private record WrappedResponse(Component original, List<net.minecraft.util.FormattedCharSequence> lines, int lineHeight) {
+    }
+
+    private StardewConfirmDialogScreen(StardewQuestionDialogSpec spec) {
+        super(spec.question());
+        this.spec = spec;
+        this.selected = spec.defaultSelectedIndex();
+    }
+
+    public static StardewConfirmDialogScreen createQuestionDialog(StardewQuestionDialogSpec spec) {
+        return new StardewConfirmDialogScreen(spec);
+    }
+
+    public static StardewConfirmDialogScreen createSleepConfirm(int currentMinute) {
+        return createQuestionDialog(
+            StardewQuestionDialogSpec.of(
+                Component.translatable("stardewcraft.sleep.confirm.message"),
+                List.of(
+                    Component.translatable("stardewcraft.sleep.confirm.yes"),
+                    Component.translatable("stardewcraft.sleep.confirm.no")
+                ),
+                index -> PacketDistributor.sendToServer(new SleepConfirmChoicePayload(index == 0, currentMinute)),
+                -1
+            )
+        );
+    }
+
+    private void playUiSound(SoundEvent sound, float volume, float pitch) {
+        if (this.minecraft != null) {
+            this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(sound, volume, pitch));
+        }
+    }
+
+    private float guiScale() {
+        return this.minecraft == null ? 1.0f : (float) this.minecraft.getWindow().getGuiScale();
+    }
+
+    private int px(int stardewPixels) {
+        return (mapping == null) ? Math.round(stardewPixels / guiScale()) : mapping.ui(stardewPixels);
+    }
+
+    private int measureWrappedHeight(List<net.minecraft.util.FormattedCharSequence> lines) {
+        int lineCount = Math.max(1, lines.size());
+        return lineCount * this.font.lineHeight;
+    }
+
+    private String getCurrentString() {
+        return spec.question().getString();
+    }
+
+    private int getQuestionWrapWidth() {
+        return Math.max(1, boxWidth - px(16));
+    }
+
+    private int measureQuestionHeight() {
+        return measureWrappedHeight(this.font.split(spec.question(), getQuestionWrapWidth()));
+    }
+
+    private void recomputeLayout() {
+        mapping = new StardewRenderMapping(this.width, this.height, guiScale());
+        boxWidth = px(spec.dialogWidth());
+        int questionWrapWidth = getQuestionWrapWidth();
+        questionHeight = measureWrappedHeight(this.font.split(spec.question(), questionWrapWidth));
+
+        wrappedResponses.clear();
+        int totalHeight = questionHeight;
+        for (Component response : spec.responses()) {
+            List<net.minecraft.util.FormattedCharSequence> lines = this.font.split(response, boxWidth);
+            int responseHeight = measureWrappedHeight(lines);
+            wrappedResponses.add(new WrappedResponse(response, lines, responseHeight));
+            totalHeight += responseHeight + px(16);
+        }
+        totalHeight += px(40);
+        boxHeight = totalHeight;
+
+        boxX = mapping.centerX(boxWidth);
+        boxDrawY = mapping.bottomY(boxHeight, spec.dialogBottomMargin());
+    }
+
+    private int optionStartY() {
+        return boxDrawY + questionHeight + px(48);
+    }
+
+    private int optionRowHeight(int index) {
+        return wrappedResponses.get(index).lineHeight() + px(16);
+    }
+
+    private int optionAt(double mouseX, double mouseY) {
+        int y = optionStartY();
+        for (int i = 0; i < wrappedResponses.size(); i++) {
+            int rowHeight = optionRowHeight(i);
+            if (mouseX >= boxX + px(8) && mouseX <= boxX + boxWidth - px(8) && mouseY >= y - px(8) && mouseY < y + rowHeight - px(8)) {
+                return i;
+            }
+            y += rowHeight;
+        }
+        return -1;
+    }
+
+    private void drawWrappedLeftAligned(GuiGraphics graphics, List<net.minecraft.util.FormattedCharSequence> lines, int x, int y, int color) {
+        int drawY = y;
+        for (net.minecraft.util.FormattedCharSequence line : lines) {
+            graphics.drawString(this.font, line, x, drawY, color, false);
+            drawY += this.font.lineHeight;
+        }
+    }
+
+    private void blitCursors(GuiGraphics graphics, int x, int y, int width, int height, int u, int v, int srcW, int srcH) {
+        if (width <= 0 || height <= 0) {
+            return;
+        }
+        graphics.blit(
+            StardewGuiUtil.CURSORS,
+            x,
+            y,
+            width,
+            height,
+            u,
+            v,
+            srcW,
+            srcH,
+            StardewGuiUtil.CURSORS_WIDTH,
+            StardewGuiUtil.CURSORS_HEIGHT
+        );
+    }
+
+    // Code-level port of Stardew DialogueBox.drawBox for question dialogues.
+    private void drawQuestionBoxFrame(GuiGraphics graphics, int xPos, int yPos, int frameWidth, int frameHeight) {
+        blitCursors(graphics, xPos, yPos, frameWidth, frameHeight, 306, 320, 16, 16);
+
+        blitCursors(graphics, xPos, yPos - px(20), frameWidth, px(24), 275, 313, 1, 6);
+        blitCursors(graphics, xPos + px(12), yPos + frameHeight, Math.max(0, frameWidth - px(20)), px(32), 275, 328, 1, 8);
+        blitCursors(graphics, xPos - px(32), yPos + px(24), px(32), Math.max(0, frameHeight - px(28)), 264, 325, 8, 1);
+        blitCursors(graphics, xPos + frameWidth, yPos, px(28), frameHeight, 293, 324, 7, 1);
+
+        float s4 = mapping.s4();
+        StardewGuiUtil.drawFromCursors(graphics, xPos - px(44), yPos - px(28), 261, 311, 14, 13, s4);
+        StardewGuiUtil.drawFromCursors(graphics, xPos + frameWidth - px(8), yPos - px(28), 291, 311, 12, 11, s4);
+        StardewGuiUtil.drawFromCursors(graphics, xPos + frameWidth - px(8), yPos + frameHeight - px(8), 291, 326, 12, 12, s4);
+        StardewGuiUtil.drawFromCursors(graphics, xPos - px(44), yPos + frameHeight - px(4), 261, 327, 14, 11, s4);
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        recomputeLayout();
+        lastUpdateMs = Util.getMillis();
+        characterIndexInDialogue = 0;
+        characterAdvanceTimer = 90;
+        safetyTimer = 750;
+    }
+
+    private void updateTransition(long elapsedMs) {
+        if (!transitioning) {
+            return;
+        }
+
+        if (!transitionInitialized) {
+            transitionInitialized = true;
+            transitionX = boxX + boxWidth / 2;
+            transitionY = boxDrawY + boxHeight / 2;
+            transitionWidth = 0;
+            transitionHeight = 0;
+        }
+
+        float ratio = (boxWidth <= 0) ? 1.0f : ((float) boxHeight / (float) boxWidth);
+        int speed = (int) (elapsedMs * 3L);
+        int speedY = (int) (elapsedMs * 3L * ratio);
+
+        if (transitioningBigger) {
+            int oldWidth = transitionWidth;
+            transitionX -= speed;
+            transitionY -= speedY;
+            transitionX = Math.max(boxX, transitionX);
+            transitionY = Math.max(boxDrawY, transitionY);
+            transitionWidth += speed * 2;
+            transitionHeight += speedY * 2;
+            transitionWidth = Math.min(boxWidth, transitionWidth);
+            transitionHeight = Math.min(boxHeight, transitionHeight);
+
+            if (!openingSoundPlayed && oldWidth == 0 && transitionWidth > 0) {
+                openingSoundPlayed = true;
+                playUiSound(ModSounds.BREATHIN.get(), 1.0f, 1.0f);
+            }
+
+            if (transitionX == boxX && transitionY == boxDrawY) {
+                transitioning = false;
+                transitionX = boxX;
+                transitionY = boxDrawY;
+                transitionWidth = boxWidth;
+                transitionHeight = boxHeight;
+            }
+        } else {
+            transitionX += speed;
+            transitionY += speedY;
+            transitionX = Math.min(boxX + boxWidth / 2, transitionX);
+            transitionY = Math.min(boxDrawY + boxHeight / 2, transitionY);
+            transitionWidth -= speed * 2;
+            transitionHeight -= speedY * 2;
+            transitionWidth = Math.max(0, transitionWidth);
+            transitionHeight = Math.max(0, transitionHeight);
+
+            if (transitionWidth == 0 && transitionHeight == 0) {
+                transitioning = false;
+                if (!resolved && pendingAnswerIndex >= 0) {
+                    resolved = true;
+                    spec.onAnswer().accept(pendingAnswerIndex);
+                }
+                if (this.minecraft != null) {
+                    this.minecraft.setScreen(null);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void tick() {
+        recomputeLayout();
+        long now = Util.getMillis();
+        long elapsed = Math.max(0L, now - lastUpdateMs);
+        lastUpdateMs = now;
+        updateTransition(elapsed);
+
+        if (safetyTimer > 0) {
+            safetyTimer -= (int) elapsed;
+        }
+
+        if (!transitioning && pendingAnswerIndex < 0 && characterIndexInDialogue < getCurrentString().length()) {
+            characterAdvanceTimer -= (int) elapsed;
+            if (characterAdvanceTimer <= 0) {
+                characterAdvanceTimer = 30;
+                int oldIndex = characterIndexInDialogue;
+                characterIndexInDialogue = Math.min(characterIndexInDialogue + 1, getCurrentString().length());
+                if (characterIndexInDialogue != oldIndex && characterIndexInDialogue == getCurrentString().length()) {
+                    playUiSound(ModSounds.DIALOGUE_CHARACTER_CLOSE.get(), 1.0f, 1.0f);
+                }
+                if (characterIndexInDialogue > 1 && characterIndexInDialogue < getCurrentString().length()) {
+                    playUiSound(ModSounds.DIALOGUE_CHARACTER.get(), 1.0f, 1.0f);
+                }
+            }
+        }
+    }
+
+    private String getVisibleQuestionText() {
+        String text = getCurrentString();
+        int end = Math.max(0, Math.min(characterIndexInDialogue, text.length()));
+        return text.substring(0, end);
+    }
+
+    @Override
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        recomputeLayout();
+
+        if (transitioning) {
+            if (transitionWidth > 0 && transitionHeight > 0) {
+                drawQuestionBoxFrame(graphics, transitionX, transitionY, transitionWidth, transitionHeight);
+            }
+            return;
+        }
+
+        boolean showOptions = characterIndexInDialogue >= getCurrentString().length();
+        int hoverIndex = showOptions ? optionAt(mouseX, mouseY) : -1;
+        if (hoverIndex >= 0) {
+            if (hoverIndex != selected) {
+                playUiSound(ModSounds.COWBOY_GUNSHOT.get(), 1.0f, 1.0f);
+            }
+            selected = hoverIndex;
+        }
+
+        drawQuestionBoxFrame(graphics, boxX, boxDrawY, boxWidth, boxHeight);
+        float s4 = mapping.s4();
+        StardewGuiUtil.drawFromCursors16(graphics, boxX + boxWidth - px(72), boxDrawY - px(88), 495, 461, 17, 19, s4);
+        int arrowFrame = (int) ((System.currentTimeMillis() % 900L) / 150L);
+        StardewGuiUtil.drawFromCursors16(graphics, boxX + boxWidth - px(52), boxDrawY - px(72), 470 + arrowFrame * 7, 447, 7, 12, s4);
+
+        int textX = boxX + px(8);
+        List<net.minecraft.util.FormattedCharSequence> questionLines = this.font.split(Component.literal(getVisibleQuestionText()), getQuestionWrapWidth());
+        drawWrappedLeftAligned(graphics, questionLines, textX, boxDrawY + px(12), 0x3A2A1A);
+
+        if (showOptions) {
+            int responseY = boxDrawY + measureQuestionHeight() + px(48);
+            for (int i = 0; i < wrappedResponses.size(); i++) {
+                WrappedResponse response = wrappedResponses.get(i);
+                if (i == selected) {
+                    StardewGuiUtil.drawTextureBox(
+                        graphics,
+                        StardewGuiUtil.CURSORS,
+                        StardewGuiUtil.CURSORS_WIDTH,
+                        StardewGuiUtil.CURSORS_HEIGHT,
+                        375,
+                        357,
+                        3,
+                        3,
+                        boxX + px(4),
+                        responseY - px(8),
+                        boxWidth - px(8),
+                        response.lineHeight() + px(16),
+                        s4,
+                        false
+                    );
+                }
+
+                float alpha = (selected == i) ? 1.0f : 0.6f;
+                graphics.setColor(alpha, alpha, alpha, 1.0f);
+                drawWrappedLeftAligned(graphics, response.lines(), textX, responseY, 0x3A2A1A);
+                graphics.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+                responseY += response.lineHeight() + px(16);
+            }
+        }
+    }
+
+    private void submitDecision(int index) {
+        if (resolved || transitioning || pendingAnswerIndex >= 0) {
+            return;
+        }
+        pendingAnswerIndex = index;
+        playUiSound(ModSounds.SMALL_SELECT.get(), 1.0f, 1.0f);
+        playUiSound(ModSounds.BREATHOUT.get(), 1.0f, 1.0f);
+        transitioning = true;
+        transitioningBigger = false;
+        transitionInitialized = false;
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (transitioning || pendingAnswerIndex >= 0) {
+            return true;
+        }
+        if (button == 0) {
+            if (characterIndexInDialogue < getCurrentString().length()) {
+                characterIndexInDialogue = getCurrentString().length();
+                playUiSound(ModSounds.SMALL_SELECT.get(), 1.0f, 1.0f);
+                return true;
+            }
+            if (safetyTimer > 0) {
+                return true;
+            }
+            int hit = optionAt(mouseX, mouseY);
+            if (hit >= 0) {
+                submitDecision(hit);
+                return true;
+            }
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (transitioning || pendingAnswerIndex >= 0) {
+            return true;
+        }
+        if (characterIndexInDialogue < getCurrentString().length()) {
+            characterIndexInDialogue = getCurrentString().length();
+            playUiSound(ModSounds.SMALL_SELECT.get(), 1.0f, 1.0f);
+            return true;
+        }
+        if (safetyTimer > 0) {
+            return true;
+        }
+        if (keyCode == 265 || keyCode == 264 || keyCode == 263 || keyCode == 262) {
+            if (selected < 0) {
+                selected = 0;
+            } else {
+                int delta = (keyCode == 265 || keyCode == 263) ? -1 : 1;
+                selected = Math.floorMod(selected + delta, spec.responses().size());
+            }
+            return true;
+        }
+
+        // Y hotkey mirrors vanilla createYesNoResponses behavior for the first response.
+        if (keyCode == 89) {
+            submitDecision(0);
+            return true;
+        }
+
+        // Escape/N maps to the last response in vanilla yes-no dialogs.
+        if (keyCode == 78 || keyCode == 256) {
+            submitDecision(spec.responses().size() - 1);
+            return true;
+        }
+
+        if (keyCode == 257 || keyCode == 32 || keyCode == 335) {
+            submitDecision((selected >= 0) ? selected : 0);
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    @Override
+    public boolean isPauseScreen() {
+        return false;
+    }
+}

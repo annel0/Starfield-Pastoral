@@ -1,0 +1,55 @@
+{
+  "skill:farming:3": {
+    "recipes": [
+      "farmer_s_lunch"
+    ]
+  },
+  "skill:fishing:9": {
+    "recipes": [
+      "seafoam_pudding"
+    ]
+  },
+  "skill:foraging:2": {
+    "recipes": [
+      "survival_burger"
+    ]
+  },
+  "skill:foraging:3": {
+    "recipes": [
+      "moss_soup"
+    ]
+  },
+  "skill:mining:3": {
+    "recipes": [
+      "miner_treat",
+      "miner_s_treat",
+      "dish_o_the_sea"
+    ]
+  },
+  "skill:combat:3": {
+    "recipes": [
+      "roots_platter"
+    ]
+  },
+  "skill:combat:9": {
+    "recipes": [
+      "squid_ink_ravioli"
+    ]
+  },
+  "shop:wizard_catalogue": {
+    "wallpapers": [
+      "12"
+    ],
+    "floorings": [
+      "51"
+    ]
+  },
+  "shop:joja_catalogue": {
+    "wallpapers": [
+      "21"
+    ],
+    "floorings": [
+      "8"
+    ]
+  }
+}

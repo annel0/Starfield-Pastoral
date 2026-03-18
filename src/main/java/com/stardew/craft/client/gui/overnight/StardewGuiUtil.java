@@ -14,6 +14,9 @@ public class StardewGuiUtil {
     public static final ResourceLocation CURSORS2 = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/mouse_cursors2.png");
     public static final int CURSORS2_WIDTH = 256;
     public static final int CURSORS2_HEIGHT = 320;
+    public static final ResourceLocation CURSORS_1_6 = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/cursors_1_6.png");
+    public static final int CURSORS_1_6_WIDTH = 512;
+    public static final int CURSORS_1_6_HEIGHT = 512;
     public static final ResourceLocation MENU_TILES = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/animal_query/menu_tiles.png");
     public static final int MENU_TILES_WIDTH = 256;
     public static final int MENU_TILES_HEIGHT = 1152;
@@ -46,6 +49,20 @@ public class StardewGuiUtil {
         graphics.pose().translate(x, y, 0);
         graphics.pose().scale(scale, scale, 1.0f);
         graphics.blit(CURSORS2, 0, 0, u, v, width, height, CURSORS2_WIDTH, CURSORS2_HEIGHT);
+        graphics.pose().popPose();
+        graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+    }
+
+    public static void drawFromCursors16(GuiGraphics graphics, int x, int y, int u, int v, int width, int height, float scale) {
+        drawFromCursors16(graphics, x, y, u, v, width, height, scale, 1.0f);
+    }
+
+    public static void drawFromCursors16(GuiGraphics graphics, int x, int y, int u, int v, int width, int height, float scale, float alpha) {
+        graphics.setColor(1.0F, 1.0F, 1.0F, alpha);
+        graphics.pose().pushPose();
+        graphics.pose().translate(x, y, 0);
+        graphics.pose().scale(scale, scale, 1.0f);
+        graphics.blit(CURSORS_1_6, 0, 0, u, v, width, height, CURSORS_1_6_WIDTH, CURSORS_1_6_HEIGHT);
         graphics.pose().popPose();
         graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
     }

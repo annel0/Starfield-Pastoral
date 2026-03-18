@@ -1,0 +1,79 @@
+{
+  "variants": {
+    "style=0": {
+      "model": "stardewcraft:decor/pierre_shop/window_1"
+    },
+    "style=1": {
+      "model": "stardewcraft:decor/pierre_shop/carpet_1"
+    },
+    "style=2": {
+      "model": "stardewcraft:decor/pierre_shop/carpet_2"
+    },
+    "style=3": {
+      "model": "stardewcraft:decor/pierre_shop/2"
+    },
+    "style=4": {
+      "model": "stardewcraft:decor/pierre_shop/3_1"
+    },
+    "style=5": {
+      "model": "stardewcraft:decor/pierre_shop/3_2"
+    },
+    "style=6": {
+      "model": "stardewcraft:decor/pierre_shop/3_3"
+    },
+    "style=7": {
+      "model": "stardewcraft:decor/pierre_shop/3_4"
+    },
+    "style=8": {
+      "model": "stardewcraft:decor/pierre_shop/3_5"
+    },
+    "style=9": {
+      "model": "stardewcraft:decor/pierre_shop/3_6"
+    },
+    "style=10": {
+      "model": "stardewcraft:decor/pierre_shop/3_7"
+    },
+    "style=11": {
+      "model": "stardewcraft:decor/pierre_shop/3_8"
+    },
+    "style=12": {
+      "model": "stardewcraft:decor/pierre_shop/3_9"
+    },
+    "style=13": {
+      "model": "stardewcraft:decor/pierre_shop/3_10"
+    },
+    "style=14": {
+      "model": "stardewcraft:decor/pierre_shop/4_1"
+    },
+    "style=15": {
+      "model": "stardewcraft:decor/pierre_shop/5_1"
+    },
+    "style=16": {
+      "model": "stardewcraft:decor/pierre_shop/5_2"
+    },
+    "style=17": {
+      "model": "stardewcraft:decor/pierre_shop/5_3"
+    },
+    "style=18": {
+      "model": "stardewcraft:decor/pierre_shop/6_1"
+    },
+    "style=19": {
+      "model": "stardewcraft:decor/pierre_shop/6_2"
+    },
+    "style=20": {
+      "model": "stardewcraft:decor/pierre_shop/7_1"
+    },
+    "style=21": {
+      "model": "stardewcraft:decor/pierre_shop/8_1"
+    },
+    "style=22": {
+      "model": "stardewcraft:decor/pierre_shop/8_2"
+    },
+    "style=23": {
+      "model": "stardewcraft:decor/pierre_shop/8_3"
+    },
+    "style=24": {
+      "model": "stardewcraft:decor/pierre_shop/8_4"
+    }
+  }
+}

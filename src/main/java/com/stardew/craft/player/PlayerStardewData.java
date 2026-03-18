@@ -92,6 +92,11 @@ public class PlayerStardewData {
     // 用于对齐原版 CatchLimit（例如传奇鱼一次性）
     private final Map<String, Integer> fishCatchCounts = new HashMap<>();
 
+    // ============ 出货统计（夜间结算） ============
+    // 对齐原版 player.shippedBasic 与 stats.ItemsShipped 的基础数据结构。
+    private final Set<String> shippedBasic = new HashSet<>();
+    private final Map<String, Integer> itemsShipped = new HashMap<>();
+
     // ============ 特殊订单规则 ============
     // 对齐原版 PLAYER_SPECIAL_ORDER_RULE_ACTIVE 条件分支。
     private final Set<String> activeSpecialOrderRules = new HashSet<>();
@@ -269,6 +274,33 @@ public class PlayerStardewData {
             }
         }
 
+        data.shippedBasic.clear();
+        if (tag.contains("ShippedBasic")) {
+            ListTag list = tag.getList("ShippedBasic", 8);
+            for (int i = 0; i < list.size(); i++) {
+                String itemId = list.getString(i);
+                if (!itemId.isBlank()) {
+                    data.shippedBasic.add(itemId);
+                }
+            }
+        }
+
+        data.itemsShipped.clear();
+        if (tag.contains("ItemsShipped")) {
+            ListTag list = tag.getList("ItemsShipped", 10);
+            for (int i = 0; i < list.size(); i++) {
+                CompoundTag entry = list.getCompound(i);
+                if (!entry.contains("Item")) {
+                    continue;
+                }
+                String itemId = entry.getString("Item");
+                int count = Math.max(0, entry.getInt("Count"));
+                if (!itemId.isBlank() && count > 0) {
+                    data.itemsShipped.put(itemId, count);
+                }
+            }
+        }
+
         data.activeSpecialOrderRules.clear();
         if (tag.contains("ActiveSpecialOrderRules")) {
             ListTag list = tag.getList("ActiveSpecialOrderRules", 8);
@@ -387,6 +419,28 @@ public class PlayerStardewData {
         }
         tag.put("FishCatchCounts", fishCounts);
 
+        ListTag shippedBasicTag = new ListTag();
+        for (String itemId : shippedBasic) {
+            if (itemId != null && !itemId.isBlank()) {
+                shippedBasicTag.add(StringTag.valueOf(itemId));
+            }
+        }
+        tag.put("ShippedBasic", shippedBasicTag);
+
+        ListTag itemsShippedTag = new ListTag();
+        for (Map.Entry<String, Integer> entry : itemsShipped.entrySet()) {
+            String itemId = entry.getKey();
+            int count = entry.getValue() == null ? 0 : entry.getValue();
+            if (itemId == null || itemId.isBlank() || count <= 0) {
+                continue;
+            }
+            CompoundTag shippedTag = new CompoundTag();
+            shippedTag.putString("Item", itemId);
+            shippedTag.putInt("Count", count);
+            itemsShippedTag.add(shippedTag);
+        }
+        tag.put("ItemsShipped", itemsShippedTag);
+
         ListTag activeRules = new ListTag();
         for (String rule : activeSpecialOrderRules) {
             if (rule != null && !rule.isBlank()) {
@@ -406,38 +460,55 @@ public class PlayerStardewData {
      */
     public boolean addExperience(SkillType skill, int amount) {
         if (amount <= 0) return false;
-        
-        int skillId = skill.getId();
-        int oldLevel = skillLevels[skillId];
-        
-        experiencePoints[skillId] += amount;
-        
-        // 检查是否升级
-        int newLevel = calculateLevel(experiencePoints[skillId]);
-        if (newLevel > oldLevel && newLevel <= 10) {
-            skillLevels[skillId] = newLevel;
 
-            for (int level = oldLevel + 1; level <= newLevel; level++) {
+        int skillId = skill.getId();
+        int oldLevelByExp = calculateLevel(experiencePoints[skillId]);
+
+        experiencePoints[skillId] += amount;
+        int newLevelByExp = calculateLevel(experiencePoints[skillId]);
+
+        markDirty();
+        return newLevelByExp > oldLevelByExp;
+    }
+
+    public int getLevelByExperience(SkillType skill) {
+        return calculateLevel(experiencePoints[skill.getId()]);
+    }
+
+    public List<SkillLevelUp> applyPendingSkillLevelUps() {
+        List<SkillLevelUp> applied = new ArrayList<>();
+
+        for (SkillType skill : SkillType.values()) {
+            int skillId = skill.getId();
+            int oldLevel = skillLevels[skillId];
+            int targetLevel = Math.min(10, calculateLevel(experiencePoints[skillId]));
+            if (targetLevel <= oldLevel) {
+                continue;
+            }
+
+            for (int level = oldLevel + 1; level <= targetLevel; level++) {
                 if (level == 5 && !hasLevel5Profession(skill) && !hasPendingProfessionChoice(skill, 5)) {
                     pendingProfessionChoices.add(new ProfessionChoicePrompt(skill, 5));
                 }
                 if (level == 10 && hasLevel5Profession(skill) && !hasLevel10Profession(skill) && !hasPendingProfessionChoice(skill, 10)) {
                     pendingProfessionChoices.add(new ProfessionChoicePrompt(skill, 10));
                 }
+
+                if (skill == SkillType.COMBAT && level != 5 && level != 10) {
+                    maxHealth += 5;
+                    health = Math.min(health + 5, maxHealth);
+                }
+
+                applied.add(new SkillLevelUp(skill, level));
             }
-            
-            // 战斗技能升级增加最大生命值
-            if (skill == SkillType.COMBAT && newLevel != 5 && newLevel != 10) {
-                maxHealth += 5;
-                health = Math.min(health + 5, maxHealth);
-            }
-            
-            markDirty();
-            return true;
+
+            skillLevels[skillId] = targetLevel;
         }
-        
-        markDirty();
-        return false;
+
+        if (!applied.isEmpty()) {
+            markDirty();
+        }
+        return applied;
     }
     
     /**
@@ -473,7 +544,11 @@ public class PlayerStardewData {
         int nextLevelExp = EXP_TO_LEVEL[level + 1];
         int currentExp = experiencePoints[skillId];
         
-        return (float)(currentExp - currentLevelExp) / (nextLevelExp - currentLevelExp);
+        float progress = (float)(currentExp - currentLevelExp) / (nextLevelExp - currentLevelExp);
+        if (progress < 0.0f) {
+            return 0.0f;
+        }
+        return Math.min(progress, 1.0f);
     }
     
     // ============ 职业相关方法 ============
@@ -861,6 +936,9 @@ public class PlayerStardewData {
     public record ProfessionChoicePrompt(SkillType skill, int level) {
     }
 
+    public record SkillLevelUp(SkillType skill, int newLevel) {
+    }
+
     public boolean isDecorationUnlocked(DecorationType type, String styleId) {
         if (styleId == null || styleId.isBlank()) {
             return false;
@@ -953,6 +1031,35 @@ public class PlayerStardewData {
             return false;
         }
         return activeSpecialOrderRules.contains(ruleId);
+    }
+
+    public boolean recordShippedItem(String itemId, int amount) {
+        if (itemId == null || itemId.isBlank() || amount <= 0) {
+            return false;
+        }
+
+        boolean changed = shippedBasic.add(itemId);
+        int next = Math.max(0, itemsShipped.getOrDefault(itemId, 0)) + amount;
+        if (next != itemsShipped.getOrDefault(itemId, 0)) {
+            itemsShipped.put(itemId, next);
+            changed = true;
+        }
+
+        if (changed) {
+            markDirty();
+        }
+        return changed;
+    }
+
+    public Set<String> getShippedBasic() {
+        return new HashSet<>(shippedBasic);
+    }
+
+    public int getItemsShippedCount(String itemId) {
+        if (itemId == null || itemId.isBlank()) {
+            return 0;
+        }
+        return Math.max(0, itemsShipped.getOrDefault(itemId, 0));
     }
 
     public boolean setSpecialOrderRuleActive(String ruleId, boolean active) {

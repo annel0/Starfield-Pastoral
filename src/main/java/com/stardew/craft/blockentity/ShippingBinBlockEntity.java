@@ -2,9 +2,11 @@ package com.stardew.craft.blockentity;
 
 import com.stardew.craft.block.utility.ShippingBinBlock;
 import com.stardew.craft.economy.sell.ProfessionSellPriceService;
+import com.stardew.craft.economy.sell.SellQuote;
 import com.stardew.craft.economy.sell.SellSource;
 import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.menu.ShippingBinMenu;
+import com.stardew.craft.network.overnight.OvernightSettlementTracker;
 import com.stardew.craft.sound.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
@@ -133,7 +135,11 @@ public class ShippingBinBlockEntity extends net.minecraft.world.level.block.enti
         if (!oldStack.isEmpty()) {
             ServerPlayer payer = resolvePayoutPlayer();
             if (payer != null) {
-                ProfessionSellPriceService.payoutItem(payer, oldStack, SellSource.SHIPPING_BIN);
+                SellQuote quote = ProfessionSellPriceService.quoteItem(payer, oldStack, SellSource.SHIPPING_BIN);
+                ProfessionSellPriceService.payout(payer, quote);
+                if (quote.sellable() && quote.finalUnitPrice() > 0) {
+                    OvernightSettlementTracker.recordShipping(payer, oldStack, quote.finalUnitPrice());
+                }
             } else {
                 Containers.dropItemStack(level, worldPosition.getX(), worldPosition.getY() + 1, worldPosition.getZ(), oldStack);
             }

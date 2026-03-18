@@ -2,9 +2,13 @@ package com.stardew.craft.client.gui.overnight;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.client.ClientPlayerDataCache;
+import com.stardew.craft.network.overnight.ClientOvernightHandler;
 import com.stardew.craft.network.overnight.OvernightSettlementPayload;
+import com.stardew.craft.network.payload.OvernightProfessionChoicePayload;
 import com.stardew.craft.player.ProfessionType;
+import com.stardew.craft.player.SkillLevelRecipeUnlocks;
 import com.stardew.craft.player.SkillType;
+import com.stardew.craft.player.UnlockSourceData;
 import com.stardew.craft.sound.ModSounds;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -15,6 +19,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.FormattedCharSequence;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -188,6 +193,18 @@ public class LevelUpMenuScreen extends Screen {
             graphics.drawString(this.font, proficiency, xPos + guiWidth / 2 - px(92), yPos + px(SPACE_TOP + 82), 0x3A2A1A, false);
             graphics.drawString(this.font, Component.translatable("stardewcraft.levelup.new_recipes"), xPos + guiWidth / 2 - px(76), yPos + px(SPACE_TOP + 130), 0x3A2A1A, false);
 
+            List<Component> unlockedRecipeLines = getUnlockedRecipeLines();
+            int lineY = yPos + px(SPACE_TOP + 160);
+            if (unlockedRecipeLines.isEmpty()) {
+                graphics.drawString(this.font, Component.translatable("stardewcraft.levelup.new_recipes.none"), xPos + guiWidth / 2 - px(84), lineY, 0x5A4A3A, false);
+            } else {
+                int maxLines = Math.min(4, unlockedRecipeLines.size());
+                for (int i = 0; i < maxLines; i++) {
+                    Component line = unlockedRecipeLines.get(i);
+                    graphics.drawString(this.font, line, xPos + guiWidth / 2 - px(140), lineY + i * px(20), 0x3A2A1A, false);
+                }
+            }
+
             // Draw OK button
             int[] okRect = getOkButtonRect(xPos, yPos, guiWidth, guiHeight);
             int okX = okRect[0];
@@ -216,13 +233,18 @@ public class LevelUpMenuScreen extends Screen {
             if (isProfessionChooser) {
                 int splitY = yPos + px(192);
                 if (mouseY >= splitY && mouseY <= yPos + guiHeight) {
+                    int[] professions = getProfessionPair(currentSkill, currentLevel);
                     if (mouseX >= xPos && mouseX < xPos + guiWidth / 2) {
                         playUiSound(ModSounds.BIG_DESELECT.get(), 1.0f, 1.0f);
+                        ClientOvernightHandler.recordLocalProfessionChoice(professions[0]);
+                        PacketDistributor.sendToServer(new OvernightProfessionChoicePayload(professions[0]));
                         this.onClose();
                         return true;
                     }
                     if (mouseX >= xPos + guiWidth / 2 && mouseX <= xPos + guiWidth) {
                         playUiSound(ModSounds.BIG_DESELECT.get(), 1.0f, 1.0f);
+                        ClientOvernightHandler.recordLocalProfessionChoice(professions[1]);
+                        PacketDistributor.sendToServer(new OvernightProfessionChoicePayload(professions[1]));
                         this.onClose();
                         return true;
                     }
@@ -299,11 +321,11 @@ public class LevelUpMenuScreen extends Screen {
 
         SkillType skillType = mapSkill(skill);
         ProfessionType[] level5Choices = ProfessionType.getLevel5Options(skillType);
-        if (ClientPlayerDataCache.hasProfession(level5Choices[0])) {
+        if (ClientOvernightHandler.hasLocalProfession(level5Choices[0]) || ClientPlayerDataCache.hasProfession(level5Choices[0])) {
             ProfessionType[] level10 = ProfessionType.getLevel10Options(skillType, level5Choices[0]);
             return new int[]{level10[0].getId(), level10[1].getId()};
         }
-        if (ClientPlayerDataCache.hasProfession(level5Choices[1])) {
+        if (ClientOvernightHandler.hasLocalProfession(level5Choices[1]) || ClientPlayerDataCache.hasProfession(level5Choices[1])) {
             ProfessionType[] level10 = ProfessionType.getLevel10Options(skillType, level5Choices[1]);
             return new int[]{level10[0].getId(), level10[1].getId()};
         }
@@ -341,6 +363,26 @@ public class LevelUpMenuScreen extends Screen {
             return Component.translatable("stardewcraft.levelup.profession.unknown.desc");
         }
         return Component.translatable("stardewcraft.levelup.profession." + profession + ".desc");
+    }
+
+    private List<Component> getUnlockedRecipeLines() {
+        List<Component> lines = new ArrayList<>();
+        SkillType skillType = mapSkill(currentSkill);
+
+        UnlockSourceData.UnlockBundle sourceBundle = UnlockSourceData.getSkillLevelUnlocks(skillType, currentLevel);
+        List<String> unlocks = sourceBundle.recipes();
+        if (unlocks.isEmpty()) {
+            // Legacy fallback for levels not migrated into unlock_sources yet.
+            unlocks = SkillLevelRecipeUnlocks.getUnlocks(skillType, currentLevel);
+        }
+
+        for (String recipeId : unlocks) {
+            if (recipeId == null || recipeId.isBlank()) {
+                continue;
+            }
+            lines.add(Component.translatable("recipe.stardewcraft." + recipeId));
+        }
+        return lines;
     }
 
     private void drawWrappedText(GuiGraphics graphics, Component text, int x, int y, int maxWidth, int color, int lineStep) {

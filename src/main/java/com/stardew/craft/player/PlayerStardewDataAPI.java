@@ -1,10 +1,16 @@
 package com.stardew.craft.player;
 
 import com.stardew.craft.time.StardewTimeManager;
+import com.stardew.craft.network.overnight.OvernightSettlementPayload;
 import com.stardew.craft.network.payload.SkillExperienceGainPayload;
+import com.stardew.craft.deco.DecorationType;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -93,20 +99,25 @@ public class PlayerStardewDataAPI {
         }
         PlayerStardewData data = getData(player);
         int beforeExp = data.getSkillExperience(skill);
-        int beforeLevel = data.getSkillLevel(skill);
+        int beforeDisplayLevel = data.getSkillLevel(skill);
         boolean leveledUp = data.addExperience(skill, amount);
         int afterExp = data.getSkillExperience(skill);
-        int afterLevel = data.getSkillLevel(skill);
+        int afterDisplayLevel = data.getSkillLevel(skill);
         PlayerDataEventHandler.syncPlayerData(player, data);
         PacketDistributor.sendToPlayer(player, new SkillExperienceGainPayload(
             skill.getId(),
             amount,
             beforeExp,
             afterExp,
-            beforeLevel,
-            afterLevel
+            beforeDisplayLevel,
+            afterDisplayLevel
         ));
         return leveledUp;
+    }
+
+    public static java.util.List<PlayerStardewData.SkillLevelUp> applyPendingSkillLevelUps(ServerPlayer player) {
+        PlayerStardewData data = getData(player);
+        return data.applyPendingSkillLevelUps();
     }
     
     /**
@@ -552,5 +563,128 @@ public class PlayerStardewDataAPI {
         if (data.setSpecialOrderRuleActive(ruleId, active)) {
             PlayerDataEventHandler.syncPlayerData(player, data);
         }
+    }
+
+    @SuppressWarnings("null")
+    public static void recordOvernightShippedItems(ServerPlayer player, java.util.List<OvernightSettlementPayload.ShippedItem> shippedItems) {
+        if (player == null || shippedItems == null || shippedItems.isEmpty()) {
+            return;
+        }
+
+        PlayerStardewData data = getData(player);
+        boolean changed = false;
+        for (OvernightSettlementPayload.ShippedItem shippedItem : shippedItems) {
+            if (shippedItem == null || shippedItem.stack().isEmpty() || shippedItem.stack().getCount() <= 0) {
+                continue;
+            }
+
+            String itemId = BuiltInRegistries.ITEM.getKey(shippedItem.stack().getItem()).toString();
+            if (data.recordShippedItem(itemId, shippedItem.stack().getCount())) {
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            PlayerDataEventHandler.syncPlayerData(player, data);
+        }
+    }
+
+    public static void applySkillLevelRecipeUnlocks(ServerPlayer player, java.util.List<PlayerStardewData.SkillLevelUp> levelUps) {
+        if (player == null || levelUps == null || levelUps.isEmpty()) {
+            return;
+        }
+
+        PlayerStardewData data = getData(player);
+        boolean changed = false;
+        for (PlayerStardewData.SkillLevelUp levelUp : levelUps) {
+            if (levelUp == null) {
+                continue;
+            }
+
+            String sourceId = UnlockSourceData.skillLevelSourceId(levelUp.skill(), levelUp.newLevel());
+            if (UnlockSourceData.hasSource(sourceId)) {
+                changed |= applyUnlockBundle(data, UnlockSourceData.getUnlocks(sourceId));
+                continue;
+            }
+
+            // Legacy fallback: if a skill-level source isn't configured yet,
+            // continue to honor the old recipe-only data table.
+            java.util.List<String> unlocks = SkillLevelRecipeUnlocks.getUnlocks(levelUp.skill(), levelUp.newLevel());
+            for (String recipeId : unlocks) {
+                if (data.unlockRecipe(recipeId)) {
+                    changed = true;
+                }
+            }
+        }
+
+        if (changed) {
+            PlayerDataEventHandler.syncPlayerData(player, data);
+        }
+    }
+
+    public static boolean applyUnlockSource(ServerPlayer player, String sourceId) {
+        if (player == null || sourceId == null || sourceId.isBlank()) {
+            return false;
+        }
+
+        if (!UnlockSourceData.hasSource(sourceId)) {
+            return false;
+        }
+
+        UnlockSourceData.UnlockBundle bundle = UnlockSourceData.getUnlocks(sourceId);
+        PlayerStardewData data = getData(player);
+        boolean changed = applyUnlockBundle(data, bundle);
+
+        if (changed) {
+            PlayerDataEventHandler.syncPlayerData(player, data);
+        }
+        return changed;
+    }
+
+    public static boolean applyUnlockSources(ServerPlayer player, Collection<String> sourceIds) {
+        if (player == null || sourceIds == null || sourceIds.isEmpty()) {
+            return false;
+        }
+
+        PlayerStardewData data = getData(player);
+        boolean changed = false;
+        for (String sourceId : sourceIds) {
+            if (sourceId == null || sourceId.isBlank() || !UnlockSourceData.hasSource(sourceId)) {
+                continue;
+            }
+
+            UnlockSourceData.UnlockBundle bundle = UnlockSourceData.getUnlocks(sourceId);
+            changed |= applyUnlockBundle(data, bundle);
+        }
+
+        if (changed) {
+            PlayerDataEventHandler.syncPlayerData(player, data);
+        }
+
+        return changed;
+    }
+
+    private static boolean applyUnlockBundle(PlayerStardewData data, UnlockSourceData.UnlockBundle bundle) {
+        if (data == null || bundle == null) {
+            return false;
+        }
+
+        boolean changed = false;
+        for (String recipeId : bundle.recipes()) {
+            if (data.unlockRecipe(recipeId)) {
+                changed = true;
+            }
+        }
+        for (String styleId : bundle.wallpapers()) {
+            if (data.unlockDecoration(DecorationType.WALLPAPER, styleId)) {
+                changed = true;
+            }
+        }
+        for (String styleId : bundle.floorings()) {
+            if (data.unlockDecoration(DecorationType.FLOORING, styleId)) {
+                changed = true;
+            }
+        }
+        return changed;
     }
 }

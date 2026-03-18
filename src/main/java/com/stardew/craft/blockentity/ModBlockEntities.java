@@ -145,4 +145,8 @@ public final class ModBlockEntities {
 	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DecorBlockEntity>> DECOR_BLOCK =
 			BLOCK_ENTITIES.register("decor_block", () -> BlockEntityType.Builder.of(DecorBlockEntity::new, ModBlocks.WALLPAPER_BLOCK.get(), ModBlocks.FLOORING_BLOCK.get()).build(null));
+
+	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DecorAnchorBlockEntity>> DECOR_ANCHOR =
+			BLOCK_ENTITIES.register("decor_anchor", () -> BlockEntityType.Builder.of(DecorAnchorBlockEntity::new, ModBlocks.DECOR_ANCHOR.get()).build(null));
 }

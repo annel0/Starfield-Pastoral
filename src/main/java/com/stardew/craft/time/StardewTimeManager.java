@@ -2,10 +2,18 @@ package com.stardew.craft.time;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModDimensions;
+import com.stardew.craft.core.ModMiningDimensions;
+import com.stardew.craft.network.overnight.OvernightSettlementPayload;
+import com.stardew.craft.network.overnight.OvernightSettlementTracker;
+import com.stardew.craft.player.PlayerStardewData;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import net.neoforged.neoforge.network.PacketDistributor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 星露谷时间管理系统
@@ -90,9 +98,14 @@ public class StardewTimeManager extends SavedData {
      * 进入下一天
      */
     public void advanceDay() {
-        // 记录“入睡时间”（用于次日恢复计算）。
-        // 注意：advanceDay() 可能由 2:00 强制触发，也可能由指令/其他机制触发。
-        int timeWentToSleepMinutes = currentTime;
+        advanceDayWithSleepTime(currentTime);
+    }
+
+    /**
+     * 进入下一天（可指定结算时的入睡时间）
+     */
+    public void advanceDayWithSleepTime(int sleepMinute) {
+        int timeWentToSleepMinutes = sleepMinute;
 
         currentDay++;
         
@@ -146,15 +159,40 @@ public class StardewTimeManager extends SavedData {
             // 次日恢复：生命回满；能量按 SV 原版 dayupdate 规则恢复（疲惫则减半）。
             // 目前没有“上床睡觉”系统，因此统一以触发 advanceDay 时的时间作为 timeWentToSleep。
             for (var player : server.getPlayerList().getPlayers()) {
-                if (player.level().dimension() != ModDimensions.STARDEW_VALLEY) {
+                if (player.level().dimension() != ModDimensions.STARDEW_VALLEY
+                    && player.level().dimension() != ModMiningDimensions.STARDEW_MINING) {
                     continue;
                 }
 
-                com.stardew.craft.player.PlayerStardewDataAPI.sleep(player, timeWentToSleepMinutes);
+                if (player.isCreative()) {
+                    com.stardew.craft.player.PlayerStardewDataAPI.cureExhaustion(player);
+                    com.stardew.craft.player.PlayerStardewDataAPI.restoreEnergy(player, com.stardew.craft.player.PlayerStardewDataAPI.getMaxEnergy(player));
+                } else {
+                    com.stardew.craft.player.PlayerStardewDataAPI.sleep(player, timeWentToSleepMinutes);
+                }
                 com.stardew.craft.player.PlayerStardewDataAPI.setHealth(player, com.stardew.craft.player.PlayerStardewDataAPI.getMaxHealth(player));
+
+                OvernightSettlementPayload settlementPayload = OvernightSettlementTracker.consumePayload(player);
+                com.stardew.craft.player.PlayerStardewDataAPI.recordOvernightShippedItems(player, settlementPayload.shippedItems());
+                List<PlayerStardewData.SkillLevelUp> appliedLevelUps = com.stardew.craft.player.PlayerStardewDataAPI.applyPendingSkillLevelUps(player);
+                com.stardew.craft.player.PlayerStardewDataAPI.applySkillLevelRecipeUnlocks(player, appliedLevelUps);
 
                 // 同步到客户端（HUD 依赖客户端缓存）
                 com.stardew.craft.player.PlayerDataEventHandler.syncPlayerData(player, com.stardew.craft.player.PlayerDataManager.getPlayerData(player));
+
+                List<OvernightSettlementPayload.LevelUpData> overnightLevelUps = new ArrayList<>(settlementPayload.levelUps());
+                for (PlayerStardewData.SkillLevelUp levelUp : appliedLevelUps) {
+                    overnightLevelUps.add(new OvernightSettlementPayload.LevelUpData(levelUp.skill().getId(), levelUp.newLevel()));
+                }
+
+                OvernightSettlementPayload finalPayload = new OvernightSettlementPayload(
+                    settlementPayload.shippedItems(),
+                    List.copyOf(overnightLevelUps)
+                );
+
+                if (!finalPayload.shippedItems().isEmpty() || !finalPayload.levelUps().isEmpty()) {
+                    PacketDistributor.sendToPlayer(player, finalPayload);
+                }
             }
         }
         

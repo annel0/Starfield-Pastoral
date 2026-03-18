@@ -21,6 +21,7 @@ public class ClientPlayerDataCache {
     private static int maxEnergy = 270;
     private static int money = 500;  // 默认500金币
     private static int[] experience = new int[5];
+    private static int[] skillLevels = new int[5];
     private static List<String> professions = new ArrayList<>();
     private static final java.util.Set<String> unlockedRecipes = new java.util.HashSet<>();
 
@@ -56,6 +57,17 @@ public class ClientPlayerDataCache {
         int[] expArray = nbt.getIntArray("Experience");
         if (expArray.length == 5) {
             experience = expArray;
+        }
+
+        int[] levelArray = nbt.getIntArray("SkillLevels");
+        if (levelArray.length == 5) {
+            skillLevels = levelArray;
+        } else if (expArray.length == 5) {
+            int[] fallback = new int[5];
+            for (int i = 0; i < fallback.length; i++) {
+                fallback[i] = calculateLevel(expArray[i]);
+            }
+            skillLevels = fallback;
         }
         
         // 读取职业列表（服务端标准格式为 int[]，同时兼容旧 string-list）
@@ -115,7 +127,7 @@ public class ClientPlayerDataCache {
     }
     
     public static int getSkillLevel(SkillType skill) {
-        int level = calculateLevel(experience[skill.ordinal()]);
+        int level = skillLevels[skill.ordinal()];
         if (skill == SkillType.FISHING) level += tempFishingLevelBonus;
         if (skill == SkillType.FARMING) level += tempFarmingLevelBonus;
         if (skill == SkillType.FORAGING) level += tempForagingLevelBonus;
@@ -163,6 +175,7 @@ public class ClientPlayerDataCache {
         maxEnergy = 270;
         money = 0;
         experience = new int[5];
+        skillLevels = new int[5];
         professions.clear();
         unlockedRecipes.clear();
         tempFishingLevelBonus = 0;
