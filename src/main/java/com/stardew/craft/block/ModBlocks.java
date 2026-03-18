@@ -1169,10 +1169,4 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .sound(net.minecraft.world.level.block.SoundType.WOOD)
                                         .strength(1.0F, 1.0F)));
 
-        @SuppressWarnings("null")
-        public static final DeferredBlock<Block> DECOR_ANCHOR = BLOCKS.register("decor_anchor",
-                        () -> new com.stardew.craft.block.utility.DecorAnchorBlock(Block.Properties.of()
-                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
-                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
-                                        .strength(1.5F, 2.0F)));
-}
+        }

@@ -484,8 +484,7 @@ public class ModItems {
         public static final DeferredItem<Item> FLOORING_BLOCK = ITEMS.register("flooring_block",
                         () -> new StardewBlockItem(ModBlocks.FLOORING_BLOCK.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
 
-        public static final DeferredItem<Item> DECOR_ANCHOR = ITEMS.register("decor_anchor",
-                        () -> new StardewBlockItem(ModBlocks.DECOR_ANCHOR.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
+        
     
     // 工具 - 镰刀
     public static final DeferredItem<Item> SCYTHE = ITEMS.register("scythe",

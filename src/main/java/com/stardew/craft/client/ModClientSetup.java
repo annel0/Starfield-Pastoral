@@ -17,7 +17,6 @@ import com.stardew.craft.client.render.CheesePressBlockEntityRenderer;
 import com.stardew.craft.client.render.FurnaceBlockEntityRenderer;
 import com.stardew.craft.client.render.FishSmokerBlockEntityRenderer;
 import com.stardew.craft.client.render.BaitMakerBlockEntityRenderer;
-import com.stardew.craft.client.render.DecorAnchorBlockEntityRenderer;
 import com.stardew.craft.client.render.KegBlockEntityRenderer;
 import com.stardew.craft.client.render.LightningRodBlockEntityRenderer;
 import com.stardew.craft.client.render.MayonnaiseMachineBlockEntityRenderer;
@@ -117,8 +116,7 @@ public final class ModClientSetup {
 		event.registerBlockEntityRenderer(ModBlockEntities.HEATER.get(), HeaterBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.DELUXE_WORM_BIN.get(), DeluxeWormBinBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.ANIMAL_PRODUCE_SPOT.get(), AnimalProduceSpotBlockEntityRenderer::new);
-		event.registerBlockEntityRenderer(ModBlockEntities.DECOR_ANCHOR.get(), DecorAnchorBlockEntityRenderer::new);
-	}
+			}
 
 	@SuppressWarnings("null")
 	@SubscribeEvent

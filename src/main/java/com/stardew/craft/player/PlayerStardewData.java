@@ -87,6 +87,7 @@ public class PlayerStardewData {
 
     // ============ 配方解锁 ============
     private final Set<String> unlockedRecipes = new HashSet<>();
+    private final Map<String, Integer> recipeCraftCounts = new HashMap<>();
 
     // ============ 钓鱼记录 ============
     // 用于对齐原版 CatchLimit（例如传奇鱼一次性）
@@ -237,6 +238,7 @@ public class PlayerStardewData {
         data.unlockedWallpaperStyles.clear();
         data.unlockedFlooringStyles.clear();
         data.unlockedRecipes.clear();
+        data.recipeCraftCounts.clear();
         if (tag.contains("UnlockedWallpaperStyles")) {
             ListTag list = tag.getList("UnlockedWallpaperStyles", 8);
             for (int i = 0; i < list.size(); i++) {
@@ -253,6 +255,20 @@ public class PlayerStardewData {
             ListTag list = tag.getList("UnlockedRecipes", 8);
             for (int i = 0; i < list.size(); i++) {
                 data.unlockedRecipes.add(list.getString(i));
+            }
+        }
+        if (tag.contains("RecipeCraftCounts")) {
+            ListTag list = tag.getList("RecipeCraftCounts", 10);
+            for (int i = 0; i < list.size(); i++) {
+                CompoundTag entry = list.getCompound(i);
+                if (!entry.contains("Recipe")) {
+                    continue;
+                }
+                String recipeId = entry.getString("Recipe");
+                int count = Math.max(0, entry.getInt("Count"));
+                if (!recipeId.isBlank() && count > 0) {
+                    data.recipeCraftCounts.put(recipeId, count);
+                }
             }
         }
         data.unlockedWallpaperStyles.add(DecorationStyleRegistry.getDefaultStyleId(DecorationType.WALLPAPER));
@@ -404,6 +420,20 @@ public class PlayerStardewData {
             unlockedRecipesTag.add(StringTag.valueOf(recipeId));
         }
         tag.put("UnlockedRecipes", unlockedRecipesTag);
+
+        ListTag recipeCraftCountsTag = new ListTag();
+        for (Map.Entry<String, Integer> entry : recipeCraftCounts.entrySet()) {
+            String recipeId = entry.getKey();
+            int count = entry.getValue() == null ? 0 : entry.getValue();
+            if (recipeId == null || recipeId.isBlank() || count <= 0) {
+                continue;
+            }
+            CompoundTag recipeTag = new CompoundTag();
+            recipeTag.putString("Recipe", recipeId);
+            recipeTag.putInt("Count", count);
+            recipeCraftCountsTag.add(recipeTag);
+        }
+        tag.put("RecipeCraftCounts", recipeCraftCountsTag);
 
         ListTag fishCounts = new ListTag();
         for (Map.Entry<String, Integer> entry : fishCatchCounts.entrySet()) {
@@ -1007,6 +1037,33 @@ public class PlayerStardewData {
 
     public Set<String> getUnlockedRecipes() {
         return new HashSet<>(unlockedRecipes);
+    }
+
+    public int getRecipeCraftCount(String recipeId) {
+        if (recipeId == null || recipeId.isBlank()) {
+            return 0;
+        }
+        return Math.max(0, recipeCraftCounts.getOrDefault(recipeId, 0));
+    }
+
+    public Map<String, Integer> getAllRecipeCraftCounts() {
+        return new HashMap<>(recipeCraftCounts);
+    }
+
+    public boolean recordRecipeCrafted(String recipeId, int craftedAmount) {
+        if (recipeId == null || recipeId.isBlank() || craftedAmount <= 0) {
+            return false;
+        }
+
+        int current = Math.max(0, recipeCraftCounts.getOrDefault(recipeId, 0));
+        int next = current + craftedAmount;
+        if (next == current) {
+            return false;
+        }
+
+        recipeCraftCounts.put(recipeId, next);
+        markDirty();
+        return true;
     }
 
     public int getFishCatchCount(String itemId) {

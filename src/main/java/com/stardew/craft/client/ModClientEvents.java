@@ -371,8 +371,7 @@ public class ModClientEvents {
 
     @SubscribeEvent
     public static void onRenderLevel(RenderLevelStageEvent event) {
-        com.stardew.craft.client.deco.DecorAnchorWorldGizmo.onRenderLevel(event);
-        com.stardew.craft.client.combat.DamageNumberClient.onRenderLevel(event);
+                com.stardew.craft.client.combat.DamageNumberClient.onRenderLevel(event);
         com.stardew.craft.client.emote.EmoteBubbleWorldRenderer.onRenderLevel(event);
         com.stardew.craft.client.weapon.TideMarkRenderer.onRenderLevel(event);
         com.stardew.craft.client.weapon.OssifiedMarkRenderer.onRenderLevel(event);

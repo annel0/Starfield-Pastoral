@@ -745,18 +745,6 @@ public class PacketHandler {
         );
 
         registrar.playToServer(
-            com.stardew.craft.network.payload.UpdateDecorAnchorPayload.TYPE,
-            com.stardew.craft.network.payload.UpdateDecorAnchorPayload.STREAM_CODEC,
-            com.stardew.craft.network.payload.UpdateDecorAnchorPayload::handle
-        );
-
-        registrar.playToClient(
-            com.stardew.craft.network.payload.OpenDecorAnchorEditorPayload.TYPE,
-            com.stardew.craft.network.payload.OpenDecorAnchorEditorPayload.STREAM_CODEC,
-            com.stardew.craft.network.payload.OpenDecorAnchorEditorPayload::handle
-        );
-
-        registrar.playToServer(
             com.stardew.craft.network.payload.CookingPotCookSubmitPayload.TYPE,
             com.stardew.craft.network.payload.CookingPotCookSubmitPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.CookingPotCookSubmitPayload::handle

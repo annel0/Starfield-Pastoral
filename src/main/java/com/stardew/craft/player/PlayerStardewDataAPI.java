@@ -10,7 +10,9 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -620,6 +622,33 @@ public class PlayerStardewDataAPI {
         if (changed) {
             PlayerDataEventHandler.syncPlayerData(player, data);
         }
+    }
+
+    public static int getRecipeCraftCount(ServerPlayer player, String recipeId) {
+        if (player == null || recipeId == null || recipeId.isBlank()) {
+            return 0;
+        }
+        return getData(player).getRecipeCraftCount(recipeId);
+    }
+
+    public static Map<String, Integer> getAllRecipeCraftCounts(ServerPlayer player) {
+        if (player == null) {
+            return Collections.emptyMap();
+        }
+        return getData(player).getAllRecipeCraftCounts();
+    }
+
+    public static boolean recordRecipeCrafted(ServerPlayer player, String recipeId, int craftedAmount) {
+        if (player == null || recipeId == null || recipeId.isBlank() || craftedAmount <= 0) {
+            return false;
+        }
+
+        PlayerStardewData data = getData(player);
+        boolean changed = data.recordRecipeCrafted(recipeId, craftedAmount);
+        if (changed) {
+            PlayerDataEventHandler.syncPlayerData(player, data);
+        }
+        return changed;
     }
 
     public static boolean applyUnlockSource(ServerPlayer player, String sourceId) {
