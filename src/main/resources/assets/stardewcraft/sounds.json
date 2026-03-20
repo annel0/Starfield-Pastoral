@@ -125,7 +125,7 @@
   },
   "backpack_in": {
     "sounds": [
-      { "name": "stardewcraft:backpackIN", "stream": false }
+      { "name": "stardewcraft:backpack_in", "stream": false }
     ]
   },
   "shwip": {
@@ -303,6 +303,16 @@
   "money": {
     "sounds": [
       { "name": "stardewcraft:ui/money", "stream": false }
+    ]
+  },
+  "trashcanlid": {
+    "sounds": [
+      { "name": "stardewcraft:trashcanlid", "stream": false }
+    ]
+  },
+  "throw_down_item": {
+    "sounds": [
+      { "name": "stardewcraft:throw_down_item", "stream": false }
     ]
   },
   "cluck": {

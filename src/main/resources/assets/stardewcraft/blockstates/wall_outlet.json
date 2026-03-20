@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "stardewcraft:decor/wall_decor/common/wall_outlet" },
+    "facing=east": { "model": "stardewcraft:decor/wall_decor/common/wall_outlet", "y": 90 },
+    "facing=south": { "model": "stardewcraft:decor/wall_decor/common/wall_outlet", "y": 180 },
+    "facing=west": { "model": "stardewcraft:decor/wall_decor/common/wall_outlet", "y": 270 }
+  }
+}

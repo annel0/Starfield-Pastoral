@@ -13,9 +13,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
-/**
- * 玫瑰仙子种子
- */
+/** Seed item. */
 public class FairyRoseSeedItem extends Item implements IStardewItem {
 
     public FairyRoseSeedItem(Item.Properties properties) {
@@ -85,3 +83,4 @@ public class FairyRoseSeedItem extends Item implements IStardewItem {
         return blockId.contains("farmland");
     }
 }
+

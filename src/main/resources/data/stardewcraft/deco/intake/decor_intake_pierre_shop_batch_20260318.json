@@ -121,32 +121,90 @@
     },
 
     {
-      "sourceFile": "models/decor/pierre_shop/8_1.json",
+      "sourceFile": "models/decor/wall_decor/common/wall_hanging_small_a.json",
       "purpose": "wall_small_decor_01",
       "mountType": "wall",
       "collisionProfile": "thin",
       "tags": ["wall_decor", "small"]
     },
     {
-      "sourceFile": "models/decor/pierre_shop/8_2.json",
+      "sourceFile": "models/decor/wall_decor/common/wall_notice_board_small.json",
       "purpose": "wall_notice_board",
       "mountType": "wall",
       "collisionProfile": "thin",
       "tags": ["wall_decor", "board"]
     },
     {
-      "sourceFile": "models/decor/pierre_shop/8_3.json",
+      "sourceFile": "models/decor/wall_decor/common/wall_hanging_small_b.json",
       "purpose": "wall_small_decor_02",
       "mountType": "wall",
       "collisionProfile": "thin",
       "tags": ["wall_decor", "small"]
     },
     {
-      "sourceFile": "models/decor/pierre_shop/8_4.json",
+      "sourceFile": "models/decor/wall_decor/common/wall_bulletin_notes.json",
       "purpose": "wall_bulletin_notes",
       "mountType": "wall",
       "collisionProfile": "thin",
       "tags": ["wall_decor", "bulletin", "notes"]
+    },
+    {
+      "sourceFile": "models/decor/wall_decor/common/wall_hanging_strip.json",
+      "purpose": "wall_hanging_strip",
+      "mountType": "wall",
+      "collisionProfile": "thin",
+      "tags": ["wall_decor", "strip"]
+    },
+    {
+      "sourceFile": "models/decor/wall_decor/common/wall_switch_panel_on.json",
+      "purpose": "wall_switch_panel_on",
+      "mountType": "wall",
+      "collisionProfile": "thin",
+      "interactive": true,
+      "tags": ["wall_decor", "switch", "interactive"]
+    },
+    {
+      "sourceFile": "models/decor/wall_decor/common/wall_switch_panel_off.json",
+      "purpose": "wall_switch_panel_off",
+      "mountType": "wall",
+      "collisionProfile": "thin",
+      "interactive": true,
+      "tags": ["wall_decor", "switch", "interactive"]
+    },
+    {
+      "sourceFile": "models/decor/wall_decor/common/wall_hanging_triptych.json",
+      "purpose": "wall_hanging_triptych",
+      "mountType": "wall",
+      "collisionProfile": "thin",
+      "tags": ["wall_decor", "triptych"]
+    },
+    {
+      "sourceFile": "models/decor/wall_decor/common/wall_hanging_ornament.json",
+      "purpose": "wall_hanging_ornament",
+      "mountType": "wall",
+      "collisionProfile": "thin",
+      "tags": ["wall_decor", "ornament"]
+    },
+    {
+      "sourceFile": "models/decor/wall_decor/common/wall_notice_board_medium.json",
+      "purpose": "wall_notice_board_medium",
+      "mountType": "wall",
+      "collisionProfile": "thin",
+      "tags": ["wall_decor", "board", "medium"]
+    },
+    {
+      "sourceFile": "models/decor/wall_decor/common/wall_frame_wide.json",
+      "purpose": "wall_frame_wide",
+      "mountType": "wall",
+      "collisionProfile": "thin",
+      "tags": ["wall_decor", "frame", "wide"]
+    },
+    {
+      "sourceFile": "models/decor/wall_decor/common/wall_frame_double.json",
+      "purpose": "wall_frame_double",
+      "mountType": "wall",
+      "collisionProfile": "thin",
+      "tags": ["wall_decor", "frame", "double"]
     },
 
     {
@@ -163,10 +221,69 @@
       "collisionProfile": "solid",
       "tags": ["carpet", "floor"]
     },
+    {
+      "sourceFile": "models/decor/pierre_shop/carpet_3.json",
+      "purpose": "carpet_variant_03",
+      "mountType": "rug",
+      "collisionProfile": "solid",
+      "tags": ["carpet", "floor"]
+    },
+
+    {
+      "sourceFile": "models/decor/wall_decor/common/wall_sticky_notes.json",
+      "purpose": "wall_sticky_notes",
+      "mountType": "wall",
+      "collisionProfile": "thin",
+      "tags": ["wall_decor", "notes", "sticky"]
+    },
+    {
+      "sourceFile": "models/decor/wall_decor/common/wall_poster_gamepad.json",
+      "purpose": "wall_poster_gamepad",
+      "mountType": "wall",
+      "collisionProfile": "thin",
+      "tags": ["wall_decor", "poster", "gamepad"]
+    },
+    {
+      "sourceFile": "models/decor/wall_decor/common/wall_poster_dolphin.json",
+      "purpose": "wall_poster_dolphin",
+      "mountType": "wall",
+      "collisionProfile": "thin",
+      "tags": ["wall_decor", "poster", "dolphin"]
+    },
+    {
+      "sourceFile": "models/decor/wall_decor/common/wall_poster_game_character.json",
+      "purpose": "wall_poster_game_character",
+      "mountType": "wall",
+      "collisionProfile": "thin",
+      "tags": ["wall_decor", "poster", "character"]
+    },
+    {
+      "sourceFile": "models/decor/wall_decor/common/wall_outlet.json",
+      "purpose": "wall_outlet",
+      "mountType": "wall",
+      "collisionProfile": "thin",
+      "tags": ["wall_decor", "outlet"]
+    },
+    {
+      "sourceFile": "models/decor/wall_decor/common/wall_photo_white_hall.json",
+      "purpose": "wall_photo_white_hall",
+      "mountType": "wall",
+      "collisionProfile": "thin",
+      "tags": ["wall_decor", "photo", "white_hall"]
+    },
 
     {
       "sourceFile": "models/decor/pierre_shop/window_1.json",
       "purpose": "window_variant_01",
+      "mountType": "wall",
+      "collisionProfile": "thin",
+      "emissive": true,
+      "lightLevel": 15,
+      "tags": ["window", "emissive", "wall"]
+    },
+    {
+      "sourceFile": "models/decor/pierre_shop/window_2.json",
+      "purpose": "window_variant_02",
       "mountType": "wall",
       "collisionProfile": "thin",
       "emissive": true,

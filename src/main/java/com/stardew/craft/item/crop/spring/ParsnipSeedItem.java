@@ -13,9 +13,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
-/**
- * 防风草种�?
- */
+/** Seed item. */
 public class ParsnipSeedItem extends Item implements IStardewItem {
 
     public ParsnipSeedItem(Item.Properties properties) {
@@ -85,3 +83,4 @@ public class ParsnipSeedItem extends Item implements IStardewItem {
         return blockId.contains("farmland");
     }
 }
+

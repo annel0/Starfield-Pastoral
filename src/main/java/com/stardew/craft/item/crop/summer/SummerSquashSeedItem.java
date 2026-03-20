@@ -13,9 +13,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
-/**
- * 金皮西葫芦种�?
- */
+/** Seed item. */
 public class SummerSquashSeedItem extends Item implements IStardewItem {
 
     public SummerSquashSeedItem(Item.Properties properties) {
@@ -85,3 +83,4 @@ public class SummerSquashSeedItem extends Item implements IStardewItem {
         return blockId.contains("farmland");
     }
 }
+

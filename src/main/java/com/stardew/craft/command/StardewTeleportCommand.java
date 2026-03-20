@@ -7,6 +7,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModMiningDimensions;
+import com.stardew.craft.interior.InteriorSubspaceManager;
 import com.stardew.craft.manager.CropGrowthManager;
 import com.stardew.craft.mining.MineEntranceBootstrap;
 import com.stardew.craft.mining.MineFloorGenerator;
@@ -59,6 +60,20 @@ public class StardewTeleportCommand {
                         .then(Commands.argument("floor", IntegerArgumentType.integer(0))
                             .executes(StardewTeleportCommand::setMineFloor)
                         )
+                    )
+                )
+                .then(Commands.literal("interior")
+                    .then(Commands.literal("ensure")
+                        .executes(StardewTeleportCommand::ensureInteriorLoaded)
+                    )
+                    .then(Commands.literal("reload")
+                        .executes(StardewTeleportCommand::forceReloadInterior)
+                    )
+                    .then(Commands.literal("tp_origin")
+                        .executes(StardewTeleportCommand::teleportToInteriorOrigin)
+                    )
+                    .then(Commands.literal("tp_spawn")
+                        .executes(StardewTeleportCommand::teleportToInteriorSpawn)
                     )
                 )
                 // 树预制导出
@@ -222,6 +237,8 @@ public class StardewTeleportCommand {
                 sendFailureMsg(context, "星露谷维度未加载！");
                 return 0;
             }
+
+            InteriorSubspaceManager.ensureLoaded(stardewLevel, "tp_stardew");
             
             // 传送到星露谷维度的出生点（可以后续改为农场位置）
             BlockPos targetPos = new BlockPos(0, 70, 0);
@@ -242,6 +259,88 @@ public class StardewTeleportCommand {
             return 1;
         } catch (Exception e) {
             sendFailureMsg(context, "传送失败: " + e.getMessage());
+            return 0;
+        }
+    }
+
+    private static int ensureInteriorLoaded(CommandContext<CommandSourceStack> context) {
+        try {
+            @SuppressWarnings("null")
+            ServerLevel stardewLevel = context.getSource().getServer().getLevel(ModDimensions.STARDEW_VALLEY);
+            if (stardewLevel == null) {
+                sendFailureMsg(context, "星露谷维度未加载！");
+                return 0;
+            }
+
+            InteriorSubspaceManager.forceReload(stardewLevel, "manual_command_force_reload");
+            context.getSource().sendSuccess(
+                () -> Component.literal("已强制重载室内结构/交互体（manual_command_force_reload）"),
+                false
+            );
+            return 1;
+        } catch (Exception e) {
+            sendFailureMsg(context, "触发室内加载失败: " + e.getMessage());
+            return 0;
+        }
+    }
+
+    private static int forceReloadInterior(CommandContext<CommandSourceStack> context) {
+        try {
+            @SuppressWarnings("null")
+            ServerLevel stardewLevel = context.getSource().getServer().getLevel(ModDimensions.STARDEW_VALLEY);
+            if (stardewLevel == null) {
+                sendFailureMsg(context, "星露谷维度未加载！");
+                return 0;
+            }
+
+            InteriorSubspaceManager.forceReload(stardewLevel, "manual_force_reload");
+            context.getSource().sendSuccess(
+                () -> Component.literal("已强制重载室内结构（manual_force_reload）"),
+                false
+            );
+            return 1;
+        } catch (Exception e) {
+            sendFailureMsg(context, "强制重载室内失败: " + e.getMessage());
+            return 0;
+        }
+    }
+
+    private static int teleportToInteriorOrigin(CommandContext<CommandSourceStack> context) {
+        try {
+            ServerPlayer player = context.getSource().getPlayerOrException();
+            @SuppressWarnings("null")
+            ServerLevel stardewLevel = context.getSource().getServer().getLevel(ModDimensions.STARDEW_VALLEY);
+            if (stardewLevel == null) {
+                sendFailureMsg(context, "星露谷维度未加载！");
+                return 0;
+            }
+
+            InteriorSubspaceManager.ensureLoaded(stardewLevel, "manual_tp_origin");
+            player.teleportTo(stardewLevel, 12032.5D, 70.0D, 12032.5D, player.getYRot(), player.getXRot());
+            context.getSource().sendSuccess(() -> Component.literal("已传送到室内结构原点附近: 12032 70 12032"), false);
+            return 1;
+        } catch (Exception e) {
+            sendFailureMsg(context, "传送室内原点失败: " + e.getMessage());
+            return 0;
+        }
+    }
+
+    private static int teleportToInteriorSpawn(CommandContext<CommandSourceStack> context) {
+        try {
+            ServerPlayer player = context.getSource().getPlayerOrException();
+            @SuppressWarnings("null")
+            ServerLevel stardewLevel = context.getSource().getServer().getLevel(ModDimensions.STARDEW_VALLEY);
+            if (stardewLevel == null) {
+                sendFailureMsg(context, "星露谷维度未加载！");
+                return 0;
+            }
+
+            InteriorSubspaceManager.ensureLoaded(stardewLevel, "manual_tp_spawn");
+            player.teleportTo(stardewLevel, 12038.5D, 71.0D, 12038.5D, -90.0F, 0.0F);
+            context.getSource().sendSuccess(() -> Component.literal("已传送到室内落点: 12038 71 12038（朝东）"), false);
+            return 1;
+        } catch (Exception e) {
+            sendFailureMsg(context, "传送室内落点失败: " + e.getMessage());
             return 0;
         }
     }

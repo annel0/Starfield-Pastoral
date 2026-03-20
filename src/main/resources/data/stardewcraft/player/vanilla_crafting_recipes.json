@@ -1,0 +1,714 @@
+﻿{
+    "recipes":  [
+                    {
+                        "id":  "trap_bobber",
+                        "unlockCondition":  "s Fishing 6",
+                        "output":  {
+                                       "item":  "stardewcraft:trap_bobber",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:copper_bar",
+                                                "count":  1
+                                            },
+                                            {
+                                                "item":  "stardewcraft:sap",
+                                                "count":  10
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "crystalarium",
+                        "unlockCondition":  "s Mining 9",
+                        "output":  {
+                                       "item":  "stardewcraft:crystalarium",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:stone",
+                                                "count":  99
+                                            },
+                                            {
+                                                "item":  "stardewcraft:gold_bar",
+                                                "count":  5
+                                            },
+                                            {
+                                                "item":  "stardewcraft:iridium_bar",
+                                                "count":  2
+                                            },
+                                            {
+                                                "item":  "stardewcraft:battery_pack",
+                                                "count":  1
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "solar_panel",
+                        "unlockCondition":  "null",
+                        "output":  {
+                                       "item":  "stardewcraft:solar_panel",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:refined_quartz",
+                                                "count":  10
+                                            },
+                                            {
+                                                "item":  "stardewcraft:iron_bar",
+                                                "count":  5
+                                            },
+                                            {
+                                                "item":  "stardewcraft:gold_bar",
+                                                "count":  5
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "wooden_chest",
+                        "unlockCondition":  "default",
+                        "output":  {
+                                       "item":  "stardewcraft:wooden_chest",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:wood_normal",
+                                                "count":  50
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "worm_bin",
+                        "unlockCondition":  "s Fishing 4",
+                        "output":  {
+                                       "item":  "stardewcraft:worm_bin",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:wood_hard",
+                                                "count":  15
+                                            },
+                                            {
+                                                "item":  "stardewcraft:gold_bar",
+                                                "count":  1
+                                            },
+                                            {
+                                                "item":  "stardewcraft:iron_bar",
+                                                "count":  1
+                                            },
+                                            {
+                                                "item":  "stardewcraft:fiber",
+                                                "count":  50
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "grass_starter",
+                        "unlockCondition":  "null",
+                        "output":  {
+                                       "item":  "stardewcraft:grass_starter",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:fiber",
+                                                "count":  10
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "crab_pot",
+                        "unlockCondition":  "s Fishing 3",
+                        "output":  {
+                                       "item":  "stardewcraft:crab_pot",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:wood_normal",
+                                                "count":  40
+                                            },
+                                            {
+                                                "item":  "stardewcraft:iron_bar",
+                                                "count":  3
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "cask",
+                        "unlockCondition":  "null",
+                        "output":  {
+                                       "item":  "stardewcraft:cask",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:wood_normal",
+                                                "count":  20
+                                            },
+                                            {
+                                                "item":  "stardewcraft:wood_hard",
+                                                "count":  1
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "cheese_press",
+                        "unlockCondition":  "s Farming 6",
+                        "output":  {
+                                       "item":  "stardewcraft:cheese_press",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:wood_normal",
+                                                "count":  45
+                                            },
+                                            {
+                                                "item":  "stardewcraft:stone",
+                                                "count":  45
+                                            },
+                                            {
+                                                "item":  "stardewcraft:wood_hard",
+                                                "count":  10
+                                            },
+                                            {
+                                                "item":  "stardewcraft:copper_bar",
+                                                "count":  1
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "magnet",
+                        "unlockCondition":  "s Fishing 9",
+                        "output":  {
+                                       "item":  "stardewcraft:magnet",
+                                       "count":  3
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:iron_bar",
+                                                "count":  1
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "deluxe_retaining_soil",
+                        "unlockCondition":  "null",
+                        "output":  {
+                                       "item":  "stardewcraft:deluxe_retaining_soil",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:stone",
+                                                "count":  5
+                                            },
+                                            {
+                                                "item":  "stardewcraft:fiber",
+                                                "count":  3
+                                            },
+                                            {
+                                                "item":  "stardewcraft:clay",
+                                                "count":  1
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "loom",
+                        "unlockCondition":  "s Farming 7",
+                        "output":  {
+                                       "item":  "stardewcraft:loom",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:wood_normal",
+                                                "count":  60
+                                            },
+                                            {
+                                                "item":  "stardewcraft:fiber",
+                                                "count":  30
+                                            },
+                                            {
+                                                "item":  "stardewcraft:pine_tar",
+                                                "count":  1
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "furnace",
+                        "unlockCondition":  "l 2",
+                        "output":  {
+                                       "item":  "stardewcraft:furnace",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:copper_ore",
+                                                "count":  20
+                                            },
+                                            {
+                                                "item":  "stardewcraft:stone",
+                                                "count":  25
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "sprinkler",
+                        "unlockCondition":  "s Farming 2",
+                        "output":  {
+                                       "item":  "stardewcraft:sprinkler",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:copper_bar",
+                                                "count":  1
+                                            },
+                                            {
+                                                "item":  "stardewcraft:iron_bar",
+                                                "count":  1
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "quality_retaining_soil",
+                        "unlockCondition":  "s Farming 7",
+                        "output":  {
+                                       "item":  "stardewcraft:quality_retaining_soil",
+                                       "count":  2
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:stone",
+                                                "count":  3
+                                            },
+                                            {
+                                                "item":  "stardewcraft:clay",
+                                                "count":  1
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "quality_sprinkler",
+                        "unlockCondition":  "s Farming 6",
+                        "output":  {
+                                       "item":  "stardewcraft:quality_sprinkler",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:iron_bar",
+                                                "count":  1
+                                            },
+                                            {
+                                                "item":  "stardewcraft:gold_bar",
+                                                "count":  1
+                                            },
+                                            {
+                                                "item":  "stardewcraft:refined_quartz",
+                                                "count":  1
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "deluxe_fertilizer",
+                        "unlockCondition":  "null",
+                        "output":  {
+                                       "item":  "stardewcraft:deluxe_fertilizer",
+                                       "count":  5
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:iridium_bar",
+                                                "count":  1
+                                            },
+                                            {
+                                                "item":  "stardewcraft:sap",
+                                                "count":  40
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "basic_fertilizer",
+                        "unlockCondition":  "s Farming 1",
+                        "output":  {
+                                       "item":  "stardewcraft:basic_fertilizer",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:sap",
+                                                "count":  2
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "basic_retaining_soil",
+                        "unlockCondition":  "s Farming 4",
+                        "output":  {
+                                       "item":  "stardewcraft:basic_retaining_soil",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:stone",
+                                                "count":  2
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "preserves_jar",
+                        "unlockCondition":  "s Farming 4",
+                        "output":  {
+                                       "item":  "stardewcraft:preserves_jar",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:wood_normal",
+                                                "count":  50
+                                            },
+                                            {
+                                                "item":  "stardewcraft:stone",
+                                                "count":  40
+                                            },
+                                            {
+                                                "item":  "stardewcraft:coal",
+                                                "count":  8
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "tree_fertilizer",
+                        "unlockCondition":  "s Foraging 7",
+                        "output":  {
+                                       "item":  "stardewcraft:tree_fertilizer",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:fiber",
+                                                "count":  5
+                                            },
+                                            {
+                                                "item":  "stardewcraft:stone",
+                                                "count":  5
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "mayonnaise_machine",
+                        "unlockCondition":  "s Farming 2",
+                        "output":  {
+                                       "item":  "stardewcraft:mayonnaise_machine",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:wood_normal",
+                                                "count":  15
+                                            },
+                                            {
+                                                "item":  "stardewcraft:stone",
+                                                "count":  15
+                                            },
+                                            {
+                                                "item":  "stardewcraft:earth_crystal",
+                                                "count":  1
+                                            },
+                                            {
+                                                "item":  "stardewcraft:copper_bar",
+                                                "count":  1
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "treasure_hunter",
+                        "unlockCondition":  "s Fishing 7",
+                        "output":  {
+                                       "item":  "stardewcraft:treasure_hunter",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:gold_bar",
+                                                "count":  2
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "charcoal_kiln",
+                        "unlockCondition":  "s Foraging 2",
+                        "output":  {
+                                       "item":  "stardewcraft:charcoal_kiln",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:wood_normal",
+                                                "count":  20
+                                            },
+                                            {
+                                                "item":  "stardewcraft:copper_bar",
+                                                "count":  2
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "fairy_dust",
+                        "unlockCondition":  "null",
+                        "output":  {
+                                       "item":  "stardewcraft:fairy_dust",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:diamond",
+                                                "count":  1
+                                            },
+                                            {
+                                                "item":  "stardewcraft:fairy_rose",
+                                                "count":  1
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "seed_maker",
+                        "unlockCondition":  "s Farming 9",
+                        "output":  {
+                                       "item":  "stardewcraft:seed_maker",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:wood_normal",
+                                                "count":  25
+                                            },
+                                            {
+                                                "item":  "stardewcraft:coal",
+                                                "count":  10
+                                            },
+                                            {
+                                                "item":  "stardewcraft:gold_bar",
+                                                "count":  1
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "dressed_spinner",
+                        "unlockCondition":  "s Fishing 8",
+                        "output":  {
+                                       "item":  "stardewcraft:dressed_spinner",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:iron_bar",
+                                                "count":  2
+                                            },
+                                            {
+                                                "item":  "stardewcraft:cloth",
+                                                "count":  1
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "iridium_sprinkler",
+                        "unlockCondition":  "s Farming 9",
+                        "output":  {
+                                       "item":  "stardewcraft:iridium_sprinkler",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:gold_bar",
+                                                "count":  1
+                                            },
+                                            {
+                                                "item":  "stardewcraft:iridium_bar",
+                                                "count":  1
+                                            },
+                                            {
+                                                "item":  "stardewcraft:battery_pack",
+                                                "count":  1
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "keg",
+                        "unlockCondition":  "s Farming 8",
+                        "output":  {
+                                       "item":  "stardewcraft:keg",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:wood_normal",
+                                                "count":  30
+                                            },
+                                            {
+                                                "item":  "stardewcraft:copper_bar",
+                                                "count":  1
+                                            },
+                                            {
+                                                "item":  "stardewcraft:iron_bar",
+                                                "count":  1
+                                            },
+                                            {
+                                                "item":  "stardewcraft:oak_resin",
+                                                "count":  1
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "tapper",
+                        "unlockCondition":  "s Foraging 4",
+                        "output":  {
+                                       "item":  "stardewcraft:tapper",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:wood_normal",
+                                                "count":  40
+                                            },
+                                            {
+                                                "item":  "stardewcraft:copper_bar",
+                                                "count":  2
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "bee_house",
+                        "unlockCondition":  "s Farming 3",
+                        "output":  {
+                                       "item":  "stardewcraft:bee_house",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:wood_normal",
+                                                "count":  40
+                                            },
+                                            {
+                                                "item":  "stardewcraft:coal",
+                                                "count":  8
+                                            },
+                                            {
+                                                "item":  "stardewcraft:iron_bar",
+                                                "count":  1
+                                            },
+                                            {
+                                                "item":  "stardewcraft:maple_syrup",
+                                                "count":  1
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "dehydrator",
+                        "unlockCondition":  "null",
+                        "output":  {
+                                       "item":  "stardewcraft:dehydrator",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:wood_normal",
+                                                "count":  30
+                                            },
+                                            {
+                                                "item":  "stardewcraft:clay",
+                                                "count":  2
+                                            },
+                                            {
+                                                "item":  "stardewcraft:fire_quartz",
+                                                "count":  1
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "stone_chest",
+                        "unlockCondition":  "null",
+                        "output":  {
+                                       "item":  "stardewcraft:stone_chest",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:stone",
+                                                "count":  50
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "iron_bar",
+                        "unlockCondition":  "s Mining 4",
+                        "output":  {
+                                       "item":  "stardewcraft:iron_bar",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:copper_bar",
+                                                "count":  3
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "spinner",
+                        "unlockCondition":  "s Fishing 6",
+                        "output":  {
+                                       "item":  "stardewcraft:spinner",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:iron_bar",
+                                                "count":  2
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "gold_bar",
+                        "unlockCondition":  "s Mining 7",
+                        "output":  {
+                                       "item":  "stardewcraft:gold_bar",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:iron_bar",
+                                                "count":  2
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "barbed_hook",
+                        "unlockCondition":  "s Fishing 8",
+                        "output":  {
+                                       "item":  "stardewcraft:barbed_hook",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:copper_bar",
+                                                "count":  1
+                                            },
+                                            {
+                                                "item":  "stardewcraft:iron_bar",
+                                                "count":  1
+                                            },
+                                            {
+                                                "item":  "stardewcraft:gold_bar",
+                                                "count":  1
+                                            }
+                                        ]
+                    }
+                ]
+}

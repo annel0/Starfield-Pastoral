@@ -1,0 +1,103 @@
+{
+	"format_version": "1.9.0",
+	"credit": "Made with Blockbench",
+	"texture_size": [64, 64],
+	"textures": {
+		"0": "stardewcraft:block/deco/misc/pierres_shop/8_1",
+		"particle": "stardewcraft:block/deco/misc/pierres_shop/8_1"
+	},
+	"elements": [
+		{
+			"from": [11, 13, 14.9],
+			"to": [24, 24, 15.9],
+			"rotation": {"angle": 0, "axis": "y", "origin": [22, 13, 15.9]},
+			"faces": {
+				"north": {"uv": [0, 0, 3.25, 2.75], "texture": "#0"},
+				"east": {"uv": [5.5, 0.25, 5.75, 3], "texture": "#0"},
+				"south": {"uv": [0, 2.75, 3.25, 5.5], "texture": "#0"},
+				"west": {"uv": [5.5, 3, 5.75, 5.75], "texture": "#0"},
+				"up": {"uv": [3.25, 5.75, 0, 5.5], "texture": "#0"},
+				"down": {"uv": [8.75, 0, 5.5, 0.25], "texture": "#0"}
+			}
+		},
+		{
+			"from": [-5, 4, 15.9],
+			"to": [4, 18, 15.9],
+			"rotation": {"angle": 0, "axis": "y", "origin": [7, 12, 15.9]},
+			"faces": {
+				"north": {"uv": [3.25, 0, 5.5, 3.5], "texture": "#0"},
+				"east": {"uv": [0, 0, 0, 3.5], "texture": "#0"},
+				"south": {"uv": [3.25, 3.5, 5.5, 7], "texture": "#0"},
+				"west": {"uv": [0, 0, 0, 3.5], "texture": "#0"},
+				"up": {"uv": [2.25, 0, 0, 0], "texture": "#0"},
+				"down": {"uv": [2.25, 0, 0, 0], "texture": "#0"}
+			}
+		},
+		{
+			"from": [24, 14, 14.9],
+			"to": [25, 23, 15.9],
+			"rotation": {"angle": 0, "axis": "y", "origin": [35, 13, 15.9]},
+			"faces": {
+				"north": {"uv": [0, 5.75, 0.25, 8], "texture": "#0"},
+				"east": {"uv": [0.25, 5.75, 0.5, 8], "texture": "#0"},
+				"south": {"uv": [5.75, 0.25, 6, 2.5], "texture": "#0"},
+				"west": {"uv": [0.5, 5.75, 0.75, 8], "texture": "#0"},
+				"up": {"uv": [2, 6, 1.75, 5.75], "texture": "#0"},
+				"down": {"uv": [2.25, 5.75, 2, 6], "texture": "#0"}
+			}
+		},
+		{
+			"from": [10, 14, 14.9],
+			"to": [11, 23, 15.9],
+			"rotation": {"angle": 0, "axis": "y", "origin": [21, 13, 15.9]},
+			"faces": {
+				"north": {"uv": [0.75, 5.75, 1, 8], "texture": "#0"},
+				"east": {"uv": [1, 5.75, 1.25, 8], "texture": "#0"},
+				"south": {"uv": [1.25, 5.75, 1.5, 8], "texture": "#0"},
+				"west": {"uv": [1.5, 5.75, 1.75, 8], "texture": "#0"},
+				"up": {"uv": [2.5, 6, 2.25, 5.75], "texture": "#0"},
+				"down": {"uv": [2.75, 5.75, 2.5, 6], "texture": "#0"}
+			}
+		}
+	],
+	"display": {
+		"thirdperson_righthand": {
+			"rotation": [75, 45, 0],
+			"translation": [0, 2.5, 0],
+			"scale": [0.375, 0.375, 0.375]
+		},
+		"thirdperson_lefthand": {
+			"rotation": [75, 45, 0],
+			"translation": [0, 2.5, 0],
+			"scale": [0.375, 0.375, 0.375]
+		},
+		"firstperson_righthand": {
+			"rotation": [0, 45, 0],
+			"scale": [0.4, 0.4, 0.4]
+		},
+		"firstperson_lefthand": {
+			"rotation": [0, -135, 0],
+			"scale": [0.4, 0.4, 0.4]
+		},
+		"ground": {
+			"translation": [0, 3, 0],
+			"scale": [0.25, 0.25, 0.25]
+		},
+		"gui": {
+			"rotation": [30, -135, 0],
+			"scale": [0.625, 0.625, 0.625]
+		},
+		"fixed": {
+			"translation": [0, 0, -3.25],
+			"scale": [0.5, 0.5, 0.5]
+		}
+	},
+	"groups": [
+		{
+			"name": "group",
+			"origin": [8, 8, 8],
+			"color": 0,
+			"children": [0, 1, 2, 3]
+		}
+	]
+}

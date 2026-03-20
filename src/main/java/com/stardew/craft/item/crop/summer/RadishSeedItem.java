@@ -13,9 +13,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
-/**
- * 萝卜种子
- */
+/** Seed item. */
 public class RadishSeedItem extends Item implements IStardewItem {
 
     public RadishSeedItem(Item.Properties properties) {
@@ -85,3 +83,4 @@ public class RadishSeedItem extends Item implements IStardewItem {
         return blockId.contains("farmland");
     }
 }
+

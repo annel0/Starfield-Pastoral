@@ -21,9 +21,7 @@ import javax.annotation.Nonnull;
 import java.util.Locale;
 import java.util.Objects;
 
-/**
- * 蓝莓种子
- */
+/** Seed item. */
 public class BlueberrySeedItem extends Item implements IStardewItem {
 
     public BlueberrySeedItem(Item.Properties properties) {
@@ -91,3 +89,4 @@ public class BlueberrySeedItem extends Item implements IStardewItem {
         return blockId.contains("farmland");
     }
 }
+

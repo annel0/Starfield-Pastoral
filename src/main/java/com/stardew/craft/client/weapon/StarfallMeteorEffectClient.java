@@ -77,8 +77,8 @@ public final class StarfallMeteorEffectClient {
         Vec3 camPos = event.getCamera().getPosition();
         PoseStack poseStack = event.getPoseStack();
         MultiBufferSource.BufferSource buffer = mc.renderBuffers().bufferSource();
-        RenderType headType = WeaponEffectRenderTypes.weaponEffect(METEOR_TEXTURE);
-        VertexConsumer headConsumer = buffer.getBuffer(headType);
+        RenderType trailType = WeaponEffectRenderTypes.weaponEffect(TRAIL_TEXTURE);
+        VertexConsumer trailConsumer = buffer.getBuffer(trailType);
         float partial = event.getPartialTick().getGameTimeDeltaPartialTick(false);
         float shaderTime = mc.level.getGameTime() + partial;
         if (shader != null) {
@@ -91,8 +91,8 @@ public final class StarfallMeteorEffectClient {
             shader.safeGetUniform("ErosionStrength").set(0.0f);
             shader.safeGetUniform("AlphaBoost").set(1.5f);
         }
-        RenderType trailType = WeaponEffectRenderTypes.weaponEffect(TRAIL_TEXTURE);
-        VertexConsumer trailConsumer = buffer.getBuffer(trailType);
+        RenderType headType = WeaponEffectRenderTypes.weaponEffect(METEOR_TEXTURE);
+        VertexConsumer headConsumer = buffer.getBuffer(headType);
 
         for (Meteor meteor : METEORS) {
             float age = meteor.age + partial;

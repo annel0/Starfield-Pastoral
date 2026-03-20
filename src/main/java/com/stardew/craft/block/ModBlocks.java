@@ -1155,6 +1155,285 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         // 需求：徒手也能很快拆（类似羊毛/更快）
                                         .strength(0.2F, 1.0F)));
 
+        // 地图装饰：皮埃尔商店（第一批）
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> PIERRE_SHOP_BASKET_2 = BLOCKS.register("pierre_shop_basket_2",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.8F, 1.0F), "stardewcraft:decor/pierre_shop/2"));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> PIERRE_SHOP_CRATE_FRUIT_3_1 = BLOCKS.register("pierre_shop_crate_fruit_3_1",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.8F, 1.0F), "stardewcraft:decor/pierre_shop/3_1"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> PIERRE_SHOP_CRATE_FRUIT_3_2 = BLOCKS.register("pierre_shop_crate_fruit_3_2",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).sound(net.minecraft.world.level.block.SoundType.WOOD).noOcclusion().strength(0.8F, 1.0F), "stardewcraft:decor/pierre_shop/3_2"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> PIERRE_SHOP_CRATE_FRUIT_3_3 = BLOCKS.register("pierre_shop_crate_fruit_3_3",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).sound(net.minecraft.world.level.block.SoundType.WOOD).noOcclusion().strength(0.8F, 1.0F), "stardewcraft:decor/pierre_shop/3_3"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> PIERRE_SHOP_CRATE_FRUIT_3_4 = BLOCKS.register("pierre_shop_crate_fruit_3_4",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).sound(net.minecraft.world.level.block.SoundType.WOOD).noOcclusion().strength(0.8F, 1.0F), "stardewcraft:decor/pierre_shop/3_4"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> PIERRE_SHOP_CRATE_FRUIT_3_5 = BLOCKS.register("pierre_shop_crate_fruit_3_5",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).sound(net.minecraft.world.level.block.SoundType.WOOD).noOcclusion().strength(0.8F, 1.0F), "stardewcraft:decor/pierre_shop/3_5"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> PIERRE_SHOP_CRATE_FRUIT_3_6 = BLOCKS.register("pierre_shop_crate_fruit_3_6",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).sound(net.minecraft.world.level.block.SoundType.WOOD).noOcclusion().strength(0.8F, 1.0F), "stardewcraft:decor/pierre_shop/3_6"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> PIERRE_SHOP_CRATE_FRUIT_3_7 = BLOCKS.register("pierre_shop_crate_fruit_3_7",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).sound(net.minecraft.world.level.block.SoundType.WOOD).noOcclusion().strength(0.8F, 1.0F), "stardewcraft:decor/pierre_shop/3_7"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> PIERRE_SHOP_CRATE_FRUIT_3_8 = BLOCKS.register("pierre_shop_crate_fruit_3_8",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).sound(net.minecraft.world.level.block.SoundType.WOOD).noOcclusion().strength(0.8F, 1.0F), "stardewcraft:decor/pierre_shop/3_8"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> PIERRE_SHOP_CRATE_FRUIT_3_9 = BLOCKS.register("pierre_shop_crate_fruit_3_9",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).sound(net.minecraft.world.level.block.SoundType.WOOD).noOcclusion().strength(0.8F, 1.0F), "stardewcraft:decor/pierre_shop/3_9"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> PIERRE_SHOP_CRATE_FRUIT_3_10 = BLOCKS.register("pierre_shop_crate_fruit_3_10",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).sound(net.minecraft.world.level.block.SoundType.WOOD).noOcclusion().strength(0.8F, 1.0F), "stardewcraft:decor/pierre_shop/3_10"));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> PIERRE_SHOP_PACK_BOX_4_1 = BLOCKS.register("pierre_shop_pack_box_4_1",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.8F, 1.0F), "stardewcraft:decor/pierre_shop/4_1"));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> PIERRE_SHOP_COUNTER_5_1 = BLOCKS.register("pierre_shop_counter_5_1",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).sound(net.minecraft.world.level.block.SoundType.WOOD).noOcclusion().strength(1.0F, 1.0F), "stardewcraft:decor/pierre_shop/5_1", 1, 0, 0));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> PIERRE_SHOP_COUNTER_5_2 = BLOCKS.register("pierre_shop_counter_5_2",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).sound(net.minecraft.world.level.block.SoundType.WOOD).noOcclusion().strength(1.0F, 1.0F), "stardewcraft:decor/pierre_shop/5_2", 1, 0, 0));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> PIERRE_SHOP_COUNTER_5_3 = BLOCKS.register("pierre_shop_counter_5_3",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).sound(net.minecraft.world.level.block.SoundType.WOOD).noOcclusion().strength(1.0F, 1.0F), "stardewcraft:decor/pierre_shop/5_3", 1, 0, 0));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> PIERRE_SHOP_SHELF_EAST_6_1 = BLOCKS.register("pierre_shop_shelf_east_6_1",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).sound(net.minecraft.world.level.block.SoundType.WOOD).noOcclusion().strength(1.0F, 1.0F), "stardewcraft:decor/pierre_shop/6_1", 1, 0, 0));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> PIERRE_SHOP_SHELF_EAST_6_2 = BLOCKS.register("pierre_shop_shelf_east_6_2",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).sound(net.minecraft.world.level.block.SoundType.WOOD).noOcclusion().strength(1.0F, 1.0F), "stardewcraft:decor/pierre_shop/6_2", 1, 0, 0));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> PIERRE_SHOP_SHIPPING_BIN_7_1 = BLOCKS.register("pierre_shop_shipping_bin_7_1",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.8F, 1.0F), "stardewcraft:decor/pierre_shop/7_1"));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> PIERRE_SHOP_CARPET_1 = BLOCKS.register("pierre_shop_carpet_1",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOL)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOL)
+                                        .noOcclusion()
+                                        .strength(0.5F, 0.5F), "stardewcraft:decor/pierre_shop/carpet_1", 1, 0, 0));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> PIERRE_SHOP_CARPET_2 = BLOCKS.register("pierre_shop_carpet_2",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOL)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOL)
+                                        .noOcclusion()
+                                        .strength(0.5F, 0.5F), "stardewcraft:decor/pierre_shop/carpet_2", 1, 0, 0));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> PIERRE_SHOP_CARPET_3 = BLOCKS.register("pierre_shop_carpet_3",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOL)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOL)
+                                        .noOcclusion()
+                                        .strength(0.5F, 0.5F), "stardewcraft:decor/pierre_shop/carpet_3"));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WALL_HANGING_SMALL_A = BLOCKS.register("wall_hanging_small_a",
+                        () -> new com.stardew.craft.block.decor.MapDecorWallStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.6F, 1.0F), "stardewcraft:decor/wall_decor/common/wall_hanging_small_a"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WALL_NOTICE_BOARD_SMALL = BLOCKS.register("wall_notice_board_small",
+                        () -> new com.stardew.craft.block.decor.MapDecorWallStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.6F, 1.0F), "stardewcraft:decor/wall_decor/common/wall_notice_board_small"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WALL_HANGING_SMALL_B = BLOCKS.register("wall_hanging_small_b",
+                        () -> new com.stardew.craft.block.decor.MapDecorWallStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.6F, 1.0F), "stardewcraft:decor/wall_decor/common/wall_hanging_small_b"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WALL_BULLETIN_NOTES = BLOCKS.register("wall_bulletin_notes",
+                        () -> new com.stardew.craft.block.decor.MapDecorWallStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.6F, 1.0F), "stardewcraft:decor/wall_decor/common/wall_bulletin_notes"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WALL_HANGING_STRIP = BLOCKS.register("wall_hanging_strip",
+                        () -> new com.stardew.craft.block.decor.MapDecorWallThinBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.6F, 1.0F)));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WALL_SWITCH_PANEL = BLOCKS.register("wall_switch_panel",
+                        () -> new com.stardew.craft.block.decor.MapDecorWallSwitchBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.6F, 1.0F)));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WALL_HANGING_TRIPTYCH = BLOCKS.register("wall_hanging_triptych",
+                        () -> new com.stardew.craft.block.decor.MapDecorWallStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.6F, 1.0F), "stardewcraft:decor/wall_decor/common/wall_hanging_triptych"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WALL_HANGING_ORNAMENT = BLOCKS.register("wall_hanging_ornament",
+                        () -> new com.stardew.craft.block.decor.MapDecorWallThinBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.6F, 1.0F)));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WALL_NOTICE_BOARD_MEDIUM = BLOCKS.register("wall_notice_board_medium",
+                        () -> new com.stardew.craft.block.decor.MapDecorWallThinBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.6F, 1.0F)));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WALL_FRAME_WIDE = BLOCKS.register("wall_frame_wide",
+                        () -> new com.stardew.craft.block.decor.MapDecorWallStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.6F, 1.0F), "stardewcraft:decor/wall_decor/common/wall_frame_wide"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WALL_FRAME_DOUBLE = BLOCKS.register("wall_frame_double",
+                        () -> new com.stardew.craft.block.decor.MapDecorWallStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.6F, 1.0F), "stardewcraft:decor/wall_decor/common/wall_frame_double"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WALL_STICKY_NOTES = BLOCKS.register("wall_sticky_notes",
+                        () -> new com.stardew.craft.block.decor.MapDecorWallThinBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.6F, 1.0F)));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WALL_POSTER_GAMEPAD = BLOCKS.register("wall_poster_gamepad",
+                        () -> new com.stardew.craft.block.decor.MapDecorWallThinBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.6F, 1.0F)));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WALL_POSTER_DOLPHIN = BLOCKS.register("wall_poster_dolphin",
+                        () -> new com.stardew.craft.block.decor.MapDecorWallThinBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.6F, 1.0F)));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WALL_POSTER_GAME_CHARACTER = BLOCKS.register("wall_poster_game_character",
+                        () -> new com.stardew.craft.block.decor.MapDecorWallThinBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.6F, 1.0F)));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WALL_OUTLET = BLOCKS.register("wall_outlet",
+                        () -> new com.stardew.craft.block.decor.MapDecorWallThinBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.6F, 1.0F)));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WALL_PHOTO_WHITE_HALL = BLOCKS.register("wall_photo_white_hall",
+                        () -> new com.stardew.craft.block.decor.MapDecorWallStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.6F, 1.0F), "stardewcraft:decor/wall_decor/common/wall_photo_white_hall"));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> PIERRE_SHOP_WINDOW_1 = BLOCKS.register("pierre_shop_window_1",
+                        () -> new com.stardew.craft.block.decor.MapDecorWallStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.GLASS)
+                                        .lightLevel(state -> 15)
+                                        .noOcclusion()
+                                        .strength(0.6F, 1.0F), "stardewcraft:decor/pierre_shop/window_1"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> PIERRE_SHOP_WINDOW_2 = BLOCKS.register("pierre_shop_window_2",
+                        () -> new com.stardew.craft.block.decor.MapDecorWallStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.GLASS)
+                                        .lightLevel(state -> 15)
+                                        .noOcclusion()
+                                        .strength(0.6F, 1.0F), "stardewcraft:decor/pierre_shop/window_2"));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> BONSAI_1 = BLOCKS.register("bonsai_1",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.PLANT)
+                                        .sound(net.minecraft.world.level.block.SoundType.GRASS)
+                                        .noOcclusion()
+                                        .strength(0.4F, 0.8F), "stardewcraft:decor/bonsai/bonsai_1"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> BONSAI_2 = BLOCKS.register("bonsai_2",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.PLANT)
+                                        .sound(net.minecraft.world.level.block.SoundType.GRASS)
+                                        .noOcclusion()
+                                        .strength(0.4F, 0.8F), "stardewcraft:decor/bonsai/bonsai_2"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> BONSAI_3 = BLOCKS.register("bonsai_3",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.PLANT)
+                                        .sound(net.minecraft.world.level.block.SoundType.GRASS)
+                                        .noOcclusion()
+                                        .strength(0.4F, 0.8F), "stardewcraft:decor/bonsai/bonsai_3"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> BONSAI_4 = BLOCKS.register("bonsai_4",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.PLANT)
+                                        .sound(net.minecraft.world.level.block.SoundType.GRASS)
+                                        .noOcclusion()
+                                        .strength(0.4F, 0.8F), "stardewcraft:decor/bonsai/bonsai_4"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> BONSAI_5_WALL = BLOCKS.register("bonsai_5_wall",
+                        () -> new com.stardew.craft.block.decor.MapDecorWallStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.PLANT)
+                                        .sound(net.minecraft.world.level.block.SoundType.GRASS)
+                                        .noOcclusion()
+                                        .strength(0.4F, 0.8F), "stardewcraft:decor/bonsai/bonsai_5_wall"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> BONSAI_6 = BLOCKS.register("bonsai_6",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.PLANT)
+                                        .sound(net.minecraft.world.level.block.SoundType.GRASS)
+                                        .noOcclusion()
+                                        .strength(0.4F, 0.8F), "stardewcraft:decor/bonsai/bonsai_6"));
+
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> WALLPAPER_BLOCK = BLOCKS.register("wallpaper_block",
                         () -> new com.stardew.craft.block.utility.WallpaperBlock(Block.Properties.of()

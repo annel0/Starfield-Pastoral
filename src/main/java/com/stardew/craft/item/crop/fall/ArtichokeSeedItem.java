@@ -13,9 +13,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
-/**
- * 洋蓟种子
- */
+/** Seed item. */
 public class ArtichokeSeedItem extends Item implements IStardewItem {
 
     public ArtichokeSeedItem(Item.Properties properties) {
@@ -85,3 +83,4 @@ public class ArtichokeSeedItem extends Item implements IStardewItem {
         return blockId.contains("farmland");
     }
 }
+

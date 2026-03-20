@@ -53,7 +53,7 @@ public class MeowmereProjectileRenderer extends EntityRenderer<MeowmereProjectil
         @SuppressWarnings("null")
         VertexConsumer vertexconsumer = buffer.getBuffer(RenderType.entityCutoutNoCull(this.getTextureLocation(entity)));
         @SuppressWarnings("null")
-        VertexConsumer glowConsumer = buffer.getBuffer(RenderType.entityTranslucentEmissive(this.getTextureLocation(entity)));
+        VertexConsumer glowConsumer = buffer.getBuffer(RenderType.entityCutoutNoCull(this.getTextureLocation(entity)));
         
         // 绘制 -0.5 到 0.5 的矩形 (32x32 像素看起来大概是这么大)
         float size = 0.5f;
@@ -85,7 +85,7 @@ public class MeowmereProjectileRenderer extends EntityRenderer<MeowmereProjectil
         @SuppressWarnings("null")
         VertexConsumer consumer = buffer.getBuffer(RenderType.entityTranslucent(TRAIL_TEXTURE));
         @SuppressWarnings("null")
-        VertexConsumer glowConsumer = buffer.getBuffer(RenderType.entityTranslucentEmissive(TRAIL_TEXTURE));
+        VertexConsumer glowConsumer = buffer.getBuffer(RenderType.entityTranslucent(TRAIL_TEXTURE));
         Vec3 entityPos = new Vec3(entity.getX(), entity.getY(), entity.getZ());
         Vec3 worldUp = new Vec3(0, 1, 0);
         Vec3 cameraPos = getViewerPos(entity, partialTicks);

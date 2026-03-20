@@ -17,9 +17,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvent;
 import javax.annotation.Nonnull;
 
-/**
- * 甘蓝菜种�?
- */
+/** Seed item. */
 public class KaleSeedItem extends Item implements IStardewItem {
 
     public KaleSeedItem(Item.Properties properties) {
@@ -89,3 +87,4 @@ public class KaleSeedItem extends Item implements IStardewItem {
         return blockId.contains("farmland");
     }
 }
+

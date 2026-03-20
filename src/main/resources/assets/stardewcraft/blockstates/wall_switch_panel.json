@@ -1,0 +1,12 @@
+{
+  "variants": {
+    "facing=north,on=true": { "model": "stardewcraft:decor/wall_decor/common/wall_switch_panel_on" },
+    "facing=east,on=true": { "model": "stardewcraft:decor/wall_decor/common/wall_switch_panel_on", "y": 90 },
+    "facing=south,on=true": { "model": "stardewcraft:decor/wall_decor/common/wall_switch_panel_on", "y": 180 },
+    "facing=west,on=true": { "model": "stardewcraft:decor/wall_decor/common/wall_switch_panel_on", "y": 270 },
+    "facing=north,on=false": { "model": "stardewcraft:decor/wall_decor/common/wall_switch_panel_off" },
+    "facing=east,on=false": { "model": "stardewcraft:decor/wall_decor/common/wall_switch_panel_off", "y": 90 },
+    "facing=south,on=false": { "model": "stardewcraft:decor/wall_decor/common/wall_switch_panel_off", "y": 180 },
+    "facing=west,on=false": { "model": "stardewcraft:decor/wall_decor/common/wall_switch_panel_off", "y": 270 }
+  }
+}

@@ -8,6 +8,7 @@ import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.item.weapon.IStardewWeapon;
 import com.stardew.craft.item.weapon.WeaponData;
 import com.stardew.craft.item.weapon.WeaponSkillData;
+import com.stardew.craft.client.gui.menu.StardewGameMenuScreen;
 import com.stardew.craft.client.weapon.FireRingEffectClient;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
@@ -324,6 +325,13 @@ public class ModClientEvents {
         if (mc == null || mc.player == null || mc.level == null) {
             return;
         }
+
+        while (ModKeyMappings.GAME_MENU.consumeClick()) {
+            if (mc.screen == null) {
+                mc.setScreen(new StardewGameMenuScreen());
+            }
+        }
+
         if (mc.screen != null) {
             return;
         }

@@ -24,6 +24,7 @@ public class ClientPlayerDataCache {
     private static int[] skillLevels = new int[5];
     private static List<String> professions = new ArrayList<>();
     private static final java.util.Set<String> unlockedRecipes = new java.util.HashSet<>();
+    private static final java.util.Map<String, Integer> recipeCraftCounts = new java.util.HashMap<>();
 
     // 临时Buff（客户端显示/计算用）
     private static int tempFishingLevelBonus = 0;
@@ -93,6 +94,22 @@ public class ClientPlayerDataCache {
             ListTag recipesList = nbt.getList("UnlockedRecipes", Tag.TAG_STRING);
             for (int i = 0; i < recipesList.size(); i++) {
                 unlockedRecipes.add(recipesList.getString(i));
+            }
+        }
+
+        recipeCraftCounts.clear();
+        if (nbt.contains("RecipeCraftCounts")) {
+            ListTag countList = nbt.getList("RecipeCraftCounts", Tag.TAG_COMPOUND);
+            for (int i = 0; i < countList.size(); i++) {
+                CompoundTag entry = countList.getCompound(i);
+                if (!entry.contains("Recipe", Tag.TAG_STRING)) {
+                    continue;
+                }
+                String recipeId = entry.getString("Recipe");
+                int count = Math.max(0, entry.getInt("Count"));
+                if (!recipeId.isBlank() && count > 0) {
+                    recipeCraftCounts.put(recipeId, count);
+                }
             }
         }
     }
@@ -165,6 +182,17 @@ public class ClientPlayerDataCache {
         return unlockedRecipes.contains(recipeId);
     }
 
+    public static int getRecipeCraftCount(String recipeId) {
+        if (recipeId == null || recipeId.isBlank()) {
+            return 0;
+        }
+        return Math.max(0, recipeCraftCounts.getOrDefault(recipeId, 0));
+    }
+
+    public static java.util.Map<String, Integer> getRecipeCraftCounts() {
+        return new java.util.HashMap<>(recipeCraftCounts);
+    }
+
     /**
      * 重置所有缓存（用于退出世界时）
      */
@@ -178,6 +206,7 @@ public class ClientPlayerDataCache {
         skillLevels = new int[5];
         professions.clear();
         unlockedRecipes.clear();
+        recipeCraftCounts.clear();
         tempFishingLevelBonus = 0;
         tempLuckBonus = 0;
         tempMaxEnergyBonus = 0;

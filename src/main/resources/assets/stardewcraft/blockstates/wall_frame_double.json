@@ -1,0 +1,31 @@
+﻿{
+    "variants":  {
+                     "part=main,facing=north":  {
+                                                    "model":  "stardewcraft:decor/wall_decor/common/wall_frame_double"
+                                                },
+                     "part=main,facing=east":  {
+                                                   "model":  "stardewcraft:decor/wall_decor/common/wall_frame_double",
+                                                   "y":  90
+                                               },
+                     "part=main,facing=south":  {
+                                                    "model":  "stardewcraft:decor/wall_decor/common/wall_frame_double",
+                                                    "y":  180
+                                                },
+                     "part=main,facing=west":  {
+                                                   "model":  "stardewcraft:decor/wall_decor/common/wall_frame_double",
+                                                   "y":  270
+                                               },
+                     "part=extension,facing=north":  {
+                                                         "model":  "stardewcraft:block/decor/extensions/wall_frame_double_extension_empty"
+                                                     },
+                     "part=extension,facing=east":  {
+                                                        "model":  "stardewcraft:block/decor/extensions/wall_frame_double_extension_empty"
+                                                    },
+                     "part=extension,facing=south":  {
+                                                         "model":  "stardewcraft:block/decor/extensions/wall_frame_double_extension_empty"
+                                                     },
+                     "part=extension,facing=west":  {
+                                                        "model":  "stardewcraft:block/decor/extensions/wall_frame_double_extension_empty"
+                                                    }
+                 }
+}

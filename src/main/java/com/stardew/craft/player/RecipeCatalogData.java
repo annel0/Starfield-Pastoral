@@ -1,12 +1,8 @@
 package com.stardew.craft.player;
 
-import com.google.gson.Gson;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.item.ModItems;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -20,12 +16,6 @@ import java.util.Set;
  * Uses data file for crafting recipes and keeps cooking list extensible from the ModItems registry map.
  */
 public final class RecipeCatalogData {
-    private record RawCatalog(List<String> crafting) {
-    }
-
-    private static final Gson GSON = new Gson();
-    private static final String DATA_PATH = "/data/stardewcraft/player/known_recipe_catalog.json";
-
     private static final Set<String> CRAFTING_RECIPES = loadCraftingRecipes();
 
     private RecipeCatalogData() {
@@ -62,31 +52,23 @@ public final class RecipeCatalogData {
     }
 
     private static Set<String> loadCraftingRecipes() {
-        try (InputStream in = RecipeCatalogData.class.getResourceAsStream(DATA_PATH)) {
-            if (in == null) {
-                StardewCraft.LOGGER.warn("Missing known recipe catalog: {}", DATA_PATH);
-                return Set.of();
-            }
-
-            RawCatalog parsed = GSON.fromJson(new InputStreamReader(in, StandardCharsets.UTF_8), RawCatalog.class);
-            if (parsed == null || parsed.crafting == null || parsed.crafting.isEmpty()) {
-                return Set.of();
-            }
-
-            List<String> normalized = new ArrayList<>();
-            for (String id : parsed.crafting) {
-                if (id == null || id.isBlank()) {
-                    continue;
-                }
-                if (!normalized.contains(id)) {
-                    normalized.add(id);
-                }
-            }
-            StardewCraft.LOGGER.info("Loaded crafting recipe catalog: {} entries", normalized.size());
-            return Collections.unmodifiableSet(new LinkedHashSet<>(normalized));
-        } catch (Exception ex) {
-            StardewCraft.LOGGER.warn("Failed to load known recipe catalog: {}", ex.getMessage());
+        List<String> ids = StardewCraftingRecipeData.getRecipeIds();
+        if (ids.isEmpty()) {
+            StardewCraft.LOGGER.warn("Stardew crafting recipe data is empty");
             return Set.of();
         }
+
+        List<String> normalized = new ArrayList<>();
+        for (String id : ids) {
+            if (id == null || id.isBlank()) {
+                continue;
+            }
+            if (!normalized.contains(id)) {
+                normalized.add(id);
+            }
+        }
+
+        StardewCraft.LOGGER.info("Loaded crafting recipe catalog from Stardew data: {} entries", normalized.size());
+        return Collections.unmodifiableSet(new LinkedHashSet<>(normalized));
     }
 }

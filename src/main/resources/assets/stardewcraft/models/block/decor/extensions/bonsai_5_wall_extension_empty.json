@@ -1,0 +1,9 @@
+﻿{
+    "parent":  "minecraft:block/block",
+    "textures":  {
+                     "particle":  "stardewcraft:block/deco/misc/bonsai/bonsai_5"
+                 },
+    "elements":  [
+
+                 ]
+}

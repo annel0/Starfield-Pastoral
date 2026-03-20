@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "stardewcraft:decor/wall_decor/common/wall_poster_dolphin" },
+    "facing=east": { "model": "stardewcraft:decor/wall_decor/common/wall_poster_dolphin", "y": 90 },
+    "facing=south": { "model": "stardewcraft:decor/wall_decor/common/wall_poster_dolphin", "y": 180 },
+    "facing=west": { "model": "stardewcraft:decor/wall_decor/common/wall_poster_dolphin", "y": 270 }
+  }
+}

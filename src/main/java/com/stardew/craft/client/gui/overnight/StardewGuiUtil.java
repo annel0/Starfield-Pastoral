@@ -8,7 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 @SuppressWarnings("null")
 public class StardewGuiUtil {
 
-    public static final ResourceLocation CURSORS = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/overnight/cursors_vanilla.png");
+    public static final ResourceLocation CURSORS = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/cursors.png");
     public static final int CURSORS_WIDTH = 704;
     public static final int CURSORS_HEIGHT = 2256;
     public static final ResourceLocation CURSORS2 = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/mouse_cursors2.png");
@@ -176,6 +176,10 @@ public class StardewGuiUtil {
         int u = (tileIndex % columns) * tileSize;
         int v = (tileIndex / columns) * tileSize;
         drawRegion(graphics, MENU_TILES, MENU_TILES_WIDTH, MENU_TILES_HEIGHT, x, y, width, height, u, v, tileSize, tileSize);
+    }
+
+    public static void drawMenuTileIndex(GuiGraphics graphics, int x, int y, int width, int height, int tileIndex) {
+        drawMenuTile(graphics, x, y, width, height, tileIndex);
     }
 
     private static void drawMenuRegion(GuiGraphics graphics, int x, int y, int width, int height, int u, int v, int srcW, int srcH) {

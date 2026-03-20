@@ -1,6 +1,7 @@
 package com.stardew.craft.player;
 
 import com.stardew.craft.time.StardewTimeManager;
+import com.stardew.craft.mining.MiningDataManager;
 import com.stardew.craft.network.overnight.OvernightSettlementPayload;
 import com.stardew.craft.network.payload.SkillExperienceGainPayload;
 import com.stardew.craft.deco.DecorationType;
@@ -8,10 +9,8 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -621,6 +620,93 @@ public class PlayerStardewDataAPI {
 
         if (changed) {
             PlayerDataEventHandler.syncPlayerData(player, data);
+        }
+
+        // Stardew 原版会在登录/等级变化时按配方 unlock 条件补齐漏学配方。
+        applyStardewCraftingConditionUnlocks(player);
+    }
+
+    public static boolean applyStardewCraftingConditionUnlocks(ServerPlayer player) {
+        if (player == null) {
+            return false;
+        }
+
+        PlayerStardewData data = getData(player);
+        int maxMineFloor = 0;
+        try {
+            maxMineFloor = MiningDataManager.getPlayerData(player).getMaxFloorReached();
+        } catch (Exception ignored) {
+            maxMineFloor = 0;
+        }
+
+        boolean changed = false;
+        for (StardewCraftingRecipeData.RecipeEntry recipe : StardewCraftingRecipeData.getRecipes()) {
+            if (recipe == null || recipe.id() == null || recipe.id().isBlank()) {
+                continue;
+            }
+            if (data.isRecipeUnlocked(recipe.id())) {
+                continue;
+            }
+            if (matchesCraftingUnlockCondition(recipe.unlockCondition(), data, maxMineFloor) && data.unlockRecipe(recipe.id())) {
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            PlayerDataEventHandler.syncPlayerData(player, data);
+        }
+        return changed;
+    }
+
+    private static boolean matchesCraftingUnlockCondition(String rawCondition, PlayerStardewData data, int maxMineFloor) {
+        if (data == null) {
+            return false;
+        }
+
+        if (rawCondition == null) {
+            return false;
+        }
+
+        String condition = rawCondition.trim();
+        if (condition.isEmpty() || "null".equalsIgnoreCase(condition)) {
+            return false;
+        }
+        if ("default".equalsIgnoreCase(condition)) {
+            return true;
+        }
+
+        String[] parts = condition.split("\\s+");
+        if (parts.length == 0) {
+            return false;
+        }
+
+        String head = parts[0].toLowerCase(java.util.Locale.ROOT);
+        if ("s".equals(head) && parts.length >= 3) {
+            SkillType skill = SkillType.fromName(parts[1]);
+            Integer level = parseInt(parts[2]);
+            return skill != null && level != null && data.getRawSkillLevel(skill) >= level;
+        }
+
+        if ("farming".equals(head) || "fishing".equals(head) || "foraging".equals(head)
+                || "mining".equals(head) || "combat".equals(head)) {
+            SkillType skill = SkillType.fromName(parts[0]);
+            Integer level = parts.length >= 2 ? parseInt(parts[1]) : null;
+            return skill != null && level != null && data.getRawSkillLevel(skill) >= level;
+        }
+
+        if ("l".equals(head) && parts.length >= 2) {
+            Integer requiredMineFloor = parseInt(parts[1]);
+            return requiredMineFloor != null && maxMineFloor >= requiredMineFloor;
+        }
+
+        return false;
+    }
+
+    private static Integer parseInt(String value) {
+        try {
+            return Integer.parseInt(value);
+        } catch (Exception ignored) {
+            return null;
         }
     }
 

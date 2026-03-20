@@ -60,6 +60,8 @@ public final class ModSounds {
 	public static final DeferredHolder<SoundEvent, SoundEvent> HAMMER = register("hammer");
 	public static final DeferredHolder<SoundEvent, SoundEvent> COIN = register("coin");
 	public static final DeferredHolder<SoundEvent, SoundEvent> MONEY_DIAL = register("money_dial");
+	public static final DeferredHolder<SoundEvent, SoundEvent> TRASHCANLID = register("trashcanlid");
+	public static final DeferredHolder<SoundEvent, SoundEvent> THROW_DOWN_ITEM = register("throw_down_item");
 
 	// 武器音效
 	public static final DeferredHolder<SoundEvent, SoundEvent> MEOW = register("weapon.meow");

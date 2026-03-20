@@ -1,0 +1,126 @@
+{
+  "version": 1,
+  "notes": "Canonical wall decor naming map. Registry IDs and model paths use canonical keys.",
+  "entries": [
+    {
+      "registryId": "block.stardewcraft.wall_hanging_small_a",
+      "canonicalKey": "wall_hanging_small_a",
+      "model": "stardewcraft:decor/wall_decor/common/wall_hanging_small_a",
+      "mountType": "wall",
+      "interactive": false
+    },
+    {
+      "registryId": "block.stardewcraft.wall_notice_board_small",
+      "canonicalKey": "wall_notice_board_small",
+      "model": "stardewcraft:decor/wall_decor/common/wall_notice_board_small",
+      "mountType": "wall",
+      "interactive": false
+    },
+    {
+      "registryId": "block.stardewcraft.wall_hanging_small_b",
+      "canonicalKey": "wall_hanging_small_b",
+      "model": "stardewcraft:decor/wall_decor/common/wall_hanging_small_b",
+      "mountType": "wall",
+      "interactive": false
+    },
+    {
+      "registryId": "block.stardewcraft.wall_bulletin_notes",
+      "canonicalKey": "wall_bulletin_notes",
+      "model": "stardewcraft:decor/wall_decor/common/wall_bulletin_notes",
+      "mountType": "wall",
+      "interactive": false
+    },
+    {
+      "registryId": "block.stardewcraft.wall_hanging_strip",
+      "canonicalKey": "wall_hanging_strip",
+      "model": "stardewcraft:decor/wall_decor/common/wall_hanging_strip",
+      "mountType": "wall",
+      "interactive": false
+    },
+    {
+      "registryId": "block.stardewcraft.wall_switch_panel",
+      "canonicalKey": "wall_switch_panel",
+      "modelOn": "stardewcraft:decor/wall_decor/common/wall_switch_panel_on",
+      "modelOff": "stardewcraft:decor/wall_decor/common/wall_switch_panel_off",
+      "mountType": "wall",
+      "interactive": true
+    },
+    {
+      "registryId": "block.stardewcraft.wall_hanging_triptych",
+      "canonicalKey": "wall_hanging_triptych",
+      "model": "stardewcraft:decor/wall_decor/common/wall_hanging_triptych",
+      "mountType": "wall",
+      "interactive": false
+    },
+    {
+      "registryId": "block.stardewcraft.wall_hanging_ornament",
+      "canonicalKey": "wall_hanging_ornament",
+      "model": "stardewcraft:decor/wall_decor/common/wall_hanging_ornament",
+      "mountType": "wall",
+      "interactive": false
+    },
+    {
+      "registryId": "block.stardewcraft.wall_notice_board_medium",
+      "canonicalKey": "wall_notice_board_medium",
+      "model": "stardewcraft:decor/wall_decor/common/wall_notice_board_medium",
+      "mountType": "wall",
+      "interactive": false
+    },
+    {
+      "registryId": "block.stardewcraft.wall_frame_wide",
+      "canonicalKey": "wall_frame_wide",
+      "model": "stardewcraft:decor/wall_decor/common/wall_frame_wide",
+      "mountType": "wall",
+      "interactive": false
+    },
+    {
+      "registryId": "block.stardewcraft.wall_frame_double",
+      "canonicalKey": "wall_frame_double",
+      "model": "stardewcraft:decor/wall_decor/common/wall_frame_double",
+      "mountType": "wall",
+      "interactive": false
+    },
+    {
+      "registryId": "block.stardewcraft.wall_sticky_notes",
+      "canonicalKey": "wall_sticky_notes",
+      "model": "stardewcraft:decor/wall_decor/common/wall_sticky_notes",
+      "mountType": "wall",
+      "interactive": false
+    },
+    {
+      "registryId": "block.stardewcraft.wall_poster_gamepad",
+      "canonicalKey": "wall_poster_gamepad",
+      "model": "stardewcraft:decor/wall_decor/common/wall_poster_gamepad",
+      "mountType": "wall",
+      "interactive": false
+    },
+    {
+      "registryId": "block.stardewcraft.wall_poster_dolphin",
+      "canonicalKey": "wall_poster_dolphin",
+      "model": "stardewcraft:decor/wall_decor/common/wall_poster_dolphin",
+      "mountType": "wall",
+      "interactive": false
+    },
+    {
+      "registryId": "block.stardewcraft.wall_poster_game_character",
+      "canonicalKey": "wall_poster_game_character",
+      "model": "stardewcraft:decor/wall_decor/common/wall_poster_game_character",
+      "mountType": "wall",
+      "interactive": false
+    },
+    {
+      "registryId": "block.stardewcraft.wall_outlet",
+      "canonicalKey": "wall_outlet",
+      "model": "stardewcraft:decor/wall_decor/common/wall_outlet",
+      "mountType": "wall",
+      "interactive": false
+    },
+    {
+      "registryId": "block.stardewcraft.wall_photo_white_hall",
+      "canonicalKey": "wall_photo_white_hall",
+      "model": "stardewcraft:decor/wall_decor/common/wall_photo_white_hall",
+      "mountType": "wall",
+      "interactive": false
+    }
+  ]
+}

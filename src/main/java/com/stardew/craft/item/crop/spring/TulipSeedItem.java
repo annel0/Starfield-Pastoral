@@ -15,9 +15,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.core.registries.BuiltInRegistries;
 import javax.annotation.Nonnull;
 
-/**
- * 郁金香种�?
- */
+/** Seed item. */
 public class TulipSeedItem extends Item implements IStardewItem {
 
     public TulipSeedItem(Item.Properties properties) {
@@ -85,3 +83,4 @@ public class TulipSeedItem extends Item implements IStardewItem {
         return blockId.contains("farmland");
     }
 }
+

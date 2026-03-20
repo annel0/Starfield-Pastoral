@@ -125,10 +125,44 @@ public class PlayerDataCommand {
                 
                 // Recipe commands
                 .then(Commands.literal("recipe")
+                    .then(Commands.literal("crafting")
+                        .then(Commands.literal("unlock")
+                            .then(Commands.argument("recipe_id", StringArgumentType.string())
+                                .suggests((ctx, builder) -> {
+                                    java.util.List<String> suggestions = getCraftingRecipeSuggestions();
+                                    suggestions.add("all");
+                                    return net.minecraft.commands.SharedSuggestionProvider.suggest(suggestions, builder);
+                                })
+                                .executes(ctx -> unlockRecipeByCategory(ctx, RecipeCatalogData.getCraftingRecipeIds(), "crafting"))))
+                        .then(Commands.literal("lock")
+                            .then(Commands.argument("recipe_id", StringArgumentType.string())
+                                .suggests((ctx, builder) -> {
+                                    java.util.List<String> suggestions = getCraftingRecipeSuggestions();
+                                    suggestions.add("all");
+                                    return net.minecraft.commands.SharedSuggestionProvider.suggest(suggestions, builder);
+                                })
+                                .executes(ctx -> lockRecipeByCategory(ctx, RecipeCatalogData.getCraftingRecipeIds(), "crafting")))))
+                    .then(Commands.literal("cooking")
+                        .then(Commands.literal("unlock")
+                            .then(Commands.argument("recipe_id", StringArgumentType.string())
+                                .suggests((ctx, builder) -> {
+                                    java.util.List<String> suggestions = getCookingRecipeSuggestions();
+                                    suggestions.add("all");
+                                    return net.minecraft.commands.SharedSuggestionProvider.suggest(suggestions, builder);
+                                })
+                                .executes(ctx -> unlockRecipeByCategory(ctx, RecipeCatalogData.getCookingRecipeIds(), "cooking"))))
+                        .then(Commands.literal("lock")
+                            .then(Commands.argument("recipe_id", StringArgumentType.string())
+                                .suggests((ctx, builder) -> {
+                                    java.util.List<String> suggestions = getCookingRecipeSuggestions();
+                                    suggestions.add("all");
+                                    return net.minecraft.commands.SharedSuggestionProvider.suggest(suggestions, builder);
+                                })
+                                .executes(ctx -> lockRecipeByCategory(ctx, RecipeCatalogData.getCookingRecipeIds(), "cooking")))))
                     .then(Commands.literal("unlock")
                         .then(Commands.argument("recipe_id", StringArgumentType.string())
                             .suggests((ctx, builder) -> {
-                                java.util.List<String> suggestions = new java.util.ArrayList<>(com.stardew.craft.item.ModItems.COOKING_DISHES.keySet());
+                                java.util.List<String> suggestions = getRecipeSuggestions();
                                 suggestions.add("all");
                                 return net.minecraft.commands.SharedSuggestionProvider.suggest(suggestions, builder);
                             })
@@ -136,7 +170,7 @@ public class PlayerDataCommand {
                     .then(Commands.literal("lock")
                         .then(Commands.argument("recipe_id", StringArgumentType.string())
                             .suggests((ctx, builder) -> {
-                                java.util.List<String> suggestions = new java.util.ArrayList<>(com.stardew.craft.item.ModItems.COOKING_DISHES.keySet());
+                                java.util.List<String> suggestions = getRecipeSuggestions();
                                 suggestions.add("all");
                                 return net.minecraft.commands.SharedSuggestionProvider.suggest(suggestions, builder);
                             })
@@ -183,6 +217,70 @@ public class PlayerDataCommand {
     }
 
     @SuppressWarnings("null")
+    private static int unlockRecipeByCategory(CommandContext<CommandSourceStack> ctx, java.util.List<String> categoryRecipeIds, String categoryLabel) {
+        ServerPlayer player = ctx.getSource().getPlayer();
+        if (player == null) return 0;
+
+        String recipeId = StringArgumentType.getString(ctx, "recipe_id");
+        PlayerStardewData data = PlayerStardewDataAPI.getData(player);
+        boolean changed = false;
+        if ("all".equalsIgnoreCase(recipeId)) {
+            for (String key : categoryRecipeIds) {
+                if (data.unlockRecipe(key)) {
+                    changed = true;
+                }
+            }
+        } else {
+            if (!categoryRecipeIds.contains(recipeId)) {
+                ctx.getSource().sendFailure(Component.literal("Unknown " + categoryLabel + " recipe: " + recipeId));
+                return 0;
+            }
+            changed = data.unlockRecipe(recipeId);
+        }
+
+        if (changed) {
+            syncPlayerData(player, data);
+            ctx.getSource().sendSuccess(() -> Component.literal("Unlocked " + categoryLabel + " recipe(s): " + recipeId), true);
+            return 1;
+        } else {
+            ctx.getSource().sendFailure(Component.literal(categoryLabel + " recipe(s) already unlocked or invalid: " + recipeId));
+            return 0;
+        }
+    }
+
+    @SuppressWarnings("null")
+    private static int lockRecipeByCategory(CommandContext<CommandSourceStack> ctx, java.util.List<String> categoryRecipeIds, String categoryLabel) {
+        ServerPlayer player = ctx.getSource().getPlayer();
+        if (player == null) return 0;
+
+        String recipeId = StringArgumentType.getString(ctx, "recipe_id");
+        PlayerStardewData data = PlayerStardewDataAPI.getData(player);
+        boolean changed = false;
+        if ("all".equalsIgnoreCase(recipeId)) {
+            for (String key : categoryRecipeIds) {
+                if (data.lockRecipe(key)) {
+                    changed = true;
+                }
+            }
+        } else {
+            if (!categoryRecipeIds.contains(recipeId)) {
+                ctx.getSource().sendFailure(Component.literal("Unknown " + categoryLabel + " recipe: " + recipeId));
+                return 0;
+            }
+            changed = data.lockRecipe(recipeId);
+        }
+
+        if (changed) {
+            syncPlayerData(player, data);
+            ctx.getSource().sendSuccess(() -> Component.literal("Locked " + categoryLabel + " recipe(s): " + recipeId), true);
+            return 1;
+        } else {
+            ctx.getSource().sendFailure(Component.literal(categoryLabel + " recipe(s) not unlocked or invalid: " + recipeId));
+            return 0;
+        }
+    }
+
+    @SuppressWarnings("null")
     private static int unlockRecipe(CommandContext<CommandSourceStack> ctx) {
         ServerPlayer player = ctx.getSource().getPlayer();
         if (player == null) return 0;
@@ -191,7 +289,7 @@ public class PlayerDataCommand {
         PlayerStardewData data = PlayerStardewDataAPI.getData(player);
         boolean changed = false;
         if ("all".equalsIgnoreCase(recipeId)) {
-            for (String key : com.stardew.craft.item.ModItems.COOKING_DISHES.keySet()) {
+            for (String key : RecipeCatalogData.getAllKnownRecipeIds()) {
                 if (data.unlockRecipe(key)) {
                     changed = true;
                 }
@@ -219,7 +317,7 @@ public class PlayerDataCommand {
         PlayerStardewData data = PlayerStardewDataAPI.getData(player);
         boolean changed = false;
         if ("all".equalsIgnoreCase(recipeId)) {
-            for (String key : com.stardew.craft.item.ModItems.COOKING_DISHES.keySet()) {
+            for (String key : RecipeCatalogData.getAllKnownRecipeIds()) {
                 if (data.lockRecipe(key)) {
                     changed = true;
                 }
@@ -372,6 +470,18 @@ public class PlayerDataCommand {
             suggestions.add(profession.getName());
         }
         return suggestions;
+    }
+
+    private static java.util.List<String> getRecipeSuggestions() {
+        return new java.util.ArrayList<>(RecipeCatalogData.getAllKnownRecipeIds());
+    }
+
+    private static java.util.List<String> getCraftingRecipeSuggestions() {
+        return new java.util.ArrayList<>(RecipeCatalogData.getCraftingRecipeIds());
+    }
+
+    private static java.util.List<String> getCookingRecipeSuggestions() {
+        return new java.util.ArrayList<>(RecipeCatalogData.getCookingRecipeIds());
     }
 
     private static ProfessionType parseProfession(CommandContext<CommandSourceStack> context) {

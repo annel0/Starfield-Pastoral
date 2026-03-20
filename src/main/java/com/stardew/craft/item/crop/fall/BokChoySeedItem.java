@@ -13,9 +13,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
-/**
- * 小白菜种�?
- */
+/** Seed item. */
 public class BokChoySeedItem extends Item implements IStardewItem {
 
     public BokChoySeedItem(Item.Properties properties) {
@@ -85,3 +83,4 @@ public class BokChoySeedItem extends Item implements IStardewItem {
         return blockId.contains("farmland");
     }
 }
+

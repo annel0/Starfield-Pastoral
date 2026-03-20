@@ -7,6 +7,7 @@ import com.stardew.craft.mining.MiningCoordinates;
 import com.stardew.craft.mining.MiningDataManager;
 import com.stardew.craft.mining.MiningPlayerData;
 import com.stardew.craft.network.MiningFloorSyncPacket;
+import com.stardew.craft.player.PlayerStardewDataAPI;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
@@ -134,6 +135,7 @@ public class MineLadderBlock extends Block {
         // 更新层数
         playerData.setCurrentFloor(nextFloor);
         MiningDataManager.savePlayerData(serverPlayer, playerData);
+        PlayerStardewDataAPI.applyStardewCraftingConditionUnlocks(serverPlayer);
 
         // 播放传送音效
         level.playSound(null, pos, SoundEvents.ENDERMAN_TELEPORT, SoundSource.BLOCKS, 1.0F, 1.0F);

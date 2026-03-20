@@ -107,47 +107,111 @@ public final class SteelFalchionLineEffectClient {
         PoseStack poseStack = event.getPoseStack();
         MultiBufferSource.BufferSource buffer = mc.renderBuffers().bufferSource();
 
-        VertexConsumer headConsumer = buffer.getBuffer(RenderType.entityTranslucent(HEAD_TEXTURE));
-        VertexConsumer midConsumer = buffer.getBuffer(RenderType.entityTranslucent(MID_TEXTURE));
-        VertexConsumer tailConsumer = buffer.getBuffer(RenderType.entityTranslucent(TAIL_TEXTURE));
+        RenderType headType = RenderType.entityTranslucent(HEAD_TEXTURE);
+        RenderType midType = RenderType.entityTranslucent(MID_TEXTURE);
+        RenderType tailType = RenderType.entityTranslucent(TAIL_TEXTURE);
 
         float partial = event.getPartialTick().getGameTimeDeltaPartialTick(false);
 
+        VertexConsumer headConsumer = buffer.getBuffer(headType);
         for (Line line : LINES.values()) {
             if (line.points.size() < 2) {
                 continue;
             }
-            float age = line.age + partial;
-            float t = Math.min(1.0f, Math.max(0.0f, age / line.durationTicks));
-
-            float alpha = 0.9f;
-            if (t < 0.15f) {
-                alpha *= (t / 0.15f);
-            } else if (t > 0.75f) {
-                alpha *= ((1.0f - t) / 0.25f);
-            }
-
-            float width = line.width;
-            if (line.pulseTicks > 0) {
-                alpha = Math.min(1.0f, alpha + 0.25f);
-                width *= 1.15f;
-            }
-            if (line.burstTicks > 0) {
-                alpha = Math.min(1.0f, alpha + 0.45f);
-                width *= 1.35f;
-            }
-
-            renderLine(line, poseStack, camPos, headConsumer, midConsumer, tailConsumer, alpha, width);
+            float[] alphaWidth = computeAlphaAndWidth(line, partial);
+            renderLineHead(line, poseStack, camPos, headConsumer, alphaWidth[0], alphaWidth[1]);
         }
+        buffer.endBatch(headType);
 
-        buffer.endBatch(RenderType.entityTranslucent(HEAD_TEXTURE));
-        buffer.endBatch(RenderType.entityTranslucent(MID_TEXTURE));
-        buffer.endBatch(RenderType.entityTranslucent(TAIL_TEXTURE));
+        VertexConsumer midConsumer = buffer.getBuffer(midType);
+        for (Line line : LINES.values()) {
+            if (line.points.size() < 2) {
+                continue;
+            }
+            float[] alphaWidth = computeAlphaAndWidth(line, partial);
+            renderLineMid(line, poseStack, camPos, midConsumer, alphaWidth[0], alphaWidth[1]);
+        }
+        buffer.endBatch(midType);
+
+        VertexConsumer tailConsumer = buffer.getBuffer(tailType);
+        for (Line line : LINES.values()) {
+            if (line.points.size() < 2) {
+                continue;
+            }
+            float[] alphaWidth = computeAlphaAndWidth(line, partial);
+            renderLineTail(line, poseStack, camPos, tailConsumer, alphaWidth[0], alphaWidth[1]);
+        }
+        buffer.endBatch(tailType);
     }
 
-    private static void renderLine(Line line, PoseStack poseStack, Vec3 camPos,
-                                   VertexConsumer headConsumer, VertexConsumer midConsumer, VertexConsumer tailConsumer,
-                                   float alpha, float width) {
+    private static float[] computeAlphaAndWidth(Line line, float partial) {
+        float age = line.age + partial;
+        float t = Math.min(1.0f, Math.max(0.0f, age / line.durationTicks));
+
+        float alpha = 0.9f;
+        if (t < 0.15f) {
+            alpha *= (t / 0.15f);
+        } else if (t > 0.75f) {
+            alpha *= ((1.0f - t) / 0.25f);
+        }
+
+        float width = line.width;
+        if (line.pulseTicks > 0) {
+            alpha = Math.min(1.0f, alpha + 0.25f);
+            width *= 1.15f;
+        }
+        if (line.burstTicks > 0) {
+            alpha = Math.min(1.0f, alpha + 0.45f);
+            width *= 1.35f;
+        }
+        return new float[] { alpha, width };
+    }
+
+    private static void renderLineHead(Line line, PoseStack poseStack, Vec3 camPos,
+                                   VertexConsumer headConsumer, float alpha, float width) {
+        List<Vec3> points = line.points;
+        int count = points.size();
+        if (count < 2) {
+            return;
+        }
+
+        Vec3 first = points.get(0);
+        Vec3 second = points.get(1);
+        Vec3 firstDir = normalize2D(second.subtract(first));
+
+        float headLen = (float) Math.min(0.6, second.subtract(first).horizontalDistance());
+        float halfWidth = width * 0.5f;
+
+        if (headLen > 0.01f) {
+            Vec3 headCenter = first.add(firstDir.scale(headLen * 0.5));
+            float yaw = yawFromDir(firstDir);
+            renderQuad(headConsumer, poseStack, camPos, headCenter, yaw, headLen, halfWidth, alpha);
+        }
+    }
+
+    private static void renderLineTail(Line line, PoseStack poseStack, Vec3 camPos,
+                                   VertexConsumer tailConsumer, float alpha, float width) {
+        List<Vec3> points = line.points;
+        int count = points.size();
+        if (count < 2) {
+            return;
+        }
+
+        Vec3 last = points.get(count - 1);
+        Vec3 prev = points.get(count - 2);
+        Vec3 lastDir = normalize2D(last.subtract(prev));
+        float tailLen = (float) Math.min(0.6, last.subtract(prev).horizontalDistance());
+        float halfWidth = width * 0.5f;
+
+        if (tailLen > 0.01f) {
+            Vec3 tailCenter = last.subtract(lastDir.scale(tailLen * 0.5));
+            float yaw = yawFromDir(lastDir);
+            renderQuad(tailConsumer, poseStack, camPos, tailCenter, yaw, tailLen, halfWidth, alpha);
+        }
+    }
+
+    private static void renderLineMid(Line line, PoseStack poseStack, Vec3 camPos,
+                                   VertexConsumer midConsumer, float alpha, float width) {
         List<Vec3> points = line.points;
         int count = points.size();
         if (count < 2) {
@@ -158,25 +222,9 @@ public final class SteelFalchionLineEffectClient {
         Vec3 second = points.get(1);
         Vec3 last = points.get(count - 1);
         Vec3 prev = points.get(count - 2);
-
-        Vec3 firstDir = normalize2D(second.subtract(first));
-        Vec3 lastDir = normalize2D(last.subtract(prev));
-
         float headLen = (float) Math.min(0.6, second.subtract(first).horizontalDistance());
         float tailLen = (float) Math.min(0.6, last.subtract(prev).horizontalDistance());
         float halfWidth = width * 0.5f;
-
-        if (headLen > 0.01f) {
-            Vec3 headCenter = first.add(firstDir.scale(headLen * 0.5));
-            float yaw = yawFromDir(firstDir);
-            renderQuad(headConsumer, poseStack, camPos, headCenter, yaw, headLen, halfWidth, alpha);
-        }
-
-        if (tailLen > 0.01f) {
-            Vec3 tailCenter = last.subtract(lastDir.scale(tailLen * 0.5));
-            float yaw = yawFromDir(lastDir);
-            renderQuad(tailConsumer, poseStack, camPos, tailCenter, yaw, tailLen, halfWidth, alpha);
-        }
 
         for (int i = 0; i < count - 1; i++) {
             Vec3 a = points.get(i);

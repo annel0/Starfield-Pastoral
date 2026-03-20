@@ -12,6 +12,8 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.block.state.BlockState;
 
+import java.util.List;
+
 @SuppressWarnings("null")
 public class DecorBlockEntity extends net.minecraft.world.level.block.entity.BlockEntity {
     private static final String TAG_STYLE_ID = "StyleId";
@@ -56,7 +58,9 @@ public class DecorBlockEntity extends net.minecraft.world.level.block.entity.Blo
     @Override
     protected void loadAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider provider) {
         super.loadAdditional(tag, provider);
-        styleId = tag.contains(TAG_STYLE_ID) ? tag.getString(TAG_STYLE_ID) : DecorationStyleRegistry.getDefaultStyleId(resolveType(getBlockState()));
+        styleId = tag.contains(TAG_STYLE_ID)
+            ? tag.getString(TAG_STYLE_ID)
+            : resolveStyleIdFromBlockState(getBlockState());
     }
 
     @Override
@@ -114,6 +118,23 @@ public class DecorBlockEntity extends net.minecraft.world.level.block.entity.Blo
         if (updated != current) {
             level.setBlock(getBlockPos(), updated, 3);
         }
+    }
+
+    private String resolveStyleIdFromBlockState(BlockState state) {
+        DecorationType type = resolveType(state);
+        int visual = 0;
+        if (type == DecorationType.WALLPAPER && state.hasProperty(WallpaperBlock.STYLE)) {
+            visual = state.getValue(WallpaperBlock.STYLE);
+        } else if (type == DecorationType.FLOORING && state.hasProperty(FlooringBlock.STYLE)) {
+            visual = state.getValue(FlooringBlock.STYLE);
+        }
+
+        List<com.stardew.craft.deco.DecorationStyle> styles = DecorationStyleRegistry.getStyles(type);
+        if (visual >= 0 && visual < styles.size()) {
+            return styles.get(visual).id();
+        }
+
+        return DecorationStyleRegistry.getDefaultStyleId(type);
     }
 
     private int resolveWallpaperSegment() {

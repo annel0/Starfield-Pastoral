@@ -13,9 +13,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
-/**
- * 啤酒花种�?
- */
+/** Seed item. */
 public class HopsSeedItem extends Item implements IStardewItem {
 
     public HopsSeedItem(Item.Properties properties) {
@@ -85,3 +83,4 @@ public class HopsSeedItem extends Item implements IStardewItem {
         return blockId.contains("farmland");
     }
 }
+

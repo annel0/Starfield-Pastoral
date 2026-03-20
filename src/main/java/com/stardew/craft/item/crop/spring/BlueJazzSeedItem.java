@@ -13,9 +13,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
-/**
- * 蓝爵种子
- */
+/** Seed item. */
 public class BlueJazzSeedItem extends Item implements IStardewItem {
 
     public BlueJazzSeedItem(Item.Properties properties) {
@@ -85,3 +83,4 @@ public class BlueJazzSeedItem extends Item implements IStardewItem {
         return blockId.contains("farmland");
     }
 }
+

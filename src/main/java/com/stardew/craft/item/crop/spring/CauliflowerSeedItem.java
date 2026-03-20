@@ -13,9 +13,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
-/**
- * 花椰菜种�?
- */
+/** Seed item. */
 public class CauliflowerSeedItem extends Item implements IStardewItem {
 
     public CauliflowerSeedItem(Item.Properties properties) {
@@ -85,3 +83,4 @@ public class CauliflowerSeedItem extends Item implements IStardewItem {
         return blockId.contains("farmland");
     }
 }
+

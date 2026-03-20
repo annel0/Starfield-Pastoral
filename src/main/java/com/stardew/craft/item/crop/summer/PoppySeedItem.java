@@ -21,9 +21,7 @@ import javax.annotation.Nonnull;
 import java.util.Locale;
 import java.util.Objects;
 
-/**
- * 虞美人花种子
- */
+/** Seed item. */
 public class PoppySeedItem extends Item implements IStardewItem {
 
     public PoppySeedItem(Item.Properties properties) {
@@ -92,3 +90,4 @@ public class PoppySeedItem extends Item implements IStardewItem {
         return blockId.contains("farmland");
     }
 }
+

@@ -17,9 +17,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvent;
 import javax.annotation.Nonnull;
 
-/**
- * 辣椒种子
- */
+/** Seed item. */
 public class HotPepperSeedItem extends Item implements IStardewItem {
 
     public HotPepperSeedItem(Item.Properties properties) {
@@ -89,3 +87,4 @@ public class HotPepperSeedItem extends Item implements IStardewItem {
         return blockId.contains("farmland");
     }
 }
+

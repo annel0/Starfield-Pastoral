@@ -134,7 +134,32 @@ public class StardewCraftClient {
                 ModBlocks.TULIP_CROP.get(),
                 ModBlocks.WHEAT_CROP.get(),
                 ModBlocks.YAM_CROP.get(),
-                ModBlocks.DEAD_CROP.get()
+                ModBlocks.DEAD_CROP.get(),
+                ModBlocks.WALL_HANGING_SMALL_A.get(),
+                ModBlocks.WALL_NOTICE_BOARD_SMALL.get(),
+                ModBlocks.WALL_HANGING_SMALL_B.get(),
+                ModBlocks.WALL_BULLETIN_NOTES.get(),
+                ModBlocks.WALL_HANGING_STRIP.get(),
+                ModBlocks.WALL_SWITCH_PANEL.get(),
+                ModBlocks.WALL_HANGING_TRIPTYCH.get(),
+                ModBlocks.WALL_HANGING_ORNAMENT.get(),
+                ModBlocks.WALL_NOTICE_BOARD_MEDIUM.get(),
+                ModBlocks.WALL_FRAME_WIDE.get(),
+                ModBlocks.WALL_FRAME_DOUBLE.get(),
+                ModBlocks.WALL_STICKY_NOTES.get(),
+                ModBlocks.WALL_POSTER_GAMEPAD.get(),
+                ModBlocks.WALL_POSTER_DOLPHIN.get(),
+                ModBlocks.WALL_POSTER_GAME_CHARACTER.get(),
+                ModBlocks.WALL_OUTLET.get(),
+                ModBlocks.WALL_PHOTO_WHITE_HALL.get(),
+                ModBlocks.PIERRE_SHOP_WINDOW_1.get(),
+                ModBlocks.PIERRE_SHOP_WINDOW_2.get(),
+                ModBlocks.BONSAI_1.get(),
+                ModBlocks.BONSAI_2.get(),
+                ModBlocks.BONSAI_3.get(),
+                ModBlocks.BONSAI_4.get(),
+                ModBlocks.BONSAI_5_WALL.get(),
+                ModBlocks.BONSAI_6.get()
             ));
             
 			ModItemProperties.register();

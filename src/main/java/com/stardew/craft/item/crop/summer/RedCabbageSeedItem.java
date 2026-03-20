@@ -13,9 +13,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
-/**
- * 红叶卷心菜种�?
- */
+/** Seed item. */
 public class RedCabbageSeedItem extends Item implements IStardewItem {
 
     public RedCabbageSeedItem(Item.Properties properties) {
@@ -85,3 +83,4 @@ public class RedCabbageSeedItem extends Item implements IStardewItem {
         return blockId.contains("farmland");
     }
 }
+

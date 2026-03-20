@@ -39,6 +39,7 @@ public class PlayerDataEventHandler {
         if (event.getEntity() instanceof ServerPlayer player) {
             // 获取或创建玩家数据（会自动从NBT加载）
             PlayerStardewData data = PlayerDataManager.getPlayerData(player);
+            PlayerStardewDataAPI.applyStardewCraftingConditionUnlocks(player);
             StardewCraft.LOGGER.info("Player {} logged in, loaded Stardew data", player.getName().getString());
             
             // 同步数据到客户端

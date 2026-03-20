@@ -63,7 +63,7 @@ public class ElfBladeLeafRenderer extends EntityRenderer<ElfBladeLeafEntity> {
         Matrix4f matrix4f = last.pose();
         Matrix3f matrix3f = last.normal();
         VertexConsumer baseConsumer = buffer.getBuffer(RenderType.entityCutoutNoCull(this.getTextureLocation(entity)));
-        VertexConsumer glowConsumer = buffer.getBuffer(RenderType.entityTranslucentEmissive(this.getTextureLocation(entity)));
+        VertexConsumer glowConsumer = buffer.getBuffer(RenderType.entityCutoutNoCull(this.getTextureLocation(entity)));
 
         float size = 0.45f;
         int glowLight = 0xF000F0;
@@ -94,7 +94,7 @@ public class ElfBladeLeafRenderer extends EntityRenderer<ElfBladeLeafEntity> {
         }
 
         VertexConsumer consumer = buffer.getBuffer(RenderType.entityTranslucent(TRAIL_TEXTURE));
-        VertexConsumer glowConsumer = buffer.getBuffer(RenderType.entityTranslucentEmissive(TRAIL_TEXTURE));
+        VertexConsumer glowConsumer = buffer.getBuffer(RenderType.entityTranslucent(TRAIL_TEXTURE));
         Vec3 entityPos = new Vec3(entity.getX(), entity.getY(), entity.getZ());
         Vec3 worldUp = new Vec3(0, 1, 0);
         Vec3 cameraPos = getCameraPos();
