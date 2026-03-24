@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking_ingredient/squid_ink"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking_ingredient/squid_ink",
+                     "particle":  "stardewcraft:item/cooking_ingredient/squid_ink"
+                 }
 }

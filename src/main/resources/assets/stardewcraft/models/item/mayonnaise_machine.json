@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/utility/mayonnaise_machine"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/utility/mayonnaise_machine",
+                     "particle":  "stardewcraft:item/utility/mayonnaise_machine"
+                 }
 }

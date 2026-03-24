@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/fried_mushroom"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/fried_mushroom",
+                     "particle":  "stardewcraft:item/cooking/fried_mushroom"
+                 }
 }

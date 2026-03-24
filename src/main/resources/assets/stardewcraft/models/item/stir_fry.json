@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/stir_fry"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/stir_fry",
+                     "particle":  "stardewcraft:item/cooking/stir_fry"
+                 }
 }

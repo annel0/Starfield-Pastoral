@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/resource/sap"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/resource/sap",
+                     "particle":  "stardewcraft:item/resource/sap"
+                 }
 }

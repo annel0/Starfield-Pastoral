@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/mineral/alamite"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/mineral/alamite",
+                     "particle":  "stardewcraft:item/mineral/alamite"
+                 }
 }

@@ -1,26 +1,27 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/forage/coral"
-  },
-  "overrides": [
-    {
-      "predicate": {
-        "custom_model_data": 1
-      },
-      "model": "stardewcraft:item/coral_silver"
-    },
-    {
-      "predicate": {
-        "custom_model_data": 2
-      },
-      "model": "stardewcraft:item/coral_gold"
-    },
-    {
-      "predicate": {
-        "custom_model_data": 3
-      },
-      "model": "stardewcraft:item/coral_iridium"
-    }
-  ]
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/forage/coral",
+                     "particle":  "stardewcraft:item/forage/coral"
+                 },
+    "overrides":  [
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  1
+                                        },
+                          "model":  "stardewcraft:item/coral_silver"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2
+                                        },
+                          "model":  "stardewcraft:item/coral_gold"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3
+                                        },
+                          "model":  "stardewcraft:item/coral_iridium"
+                      }
+                  ]
 }

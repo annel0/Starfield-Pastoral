@@ -1,9 +1,27 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": { "layer0": "stardewcraft:item/fish/lake/sturgeon" },
-  "overrides": [
-    { "predicate": { "custom_model_data": 1 }, "model": "stardewcraft:item/sturgeon_silver" },
-    { "predicate": { "custom_model_data": 2 }, "model": "stardewcraft:item/sturgeon_gold" },
-    { "predicate": { "custom_model_data": 3 }, "model": "stardewcraft:item/sturgeon_iridium" }
-  ]
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/fish/lake/sturgeon",
+                     "particle":  "stardewcraft:item/fish/lake/sturgeon"
+                 },
+    "overrides":  [
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  1
+                                        },
+                          "model":  "stardewcraft:item/sturgeon_silver"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2
+                                        },
+                          "model":  "stardewcraft:item/sturgeon_gold"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3
+                                        },
+                          "model":  "stardewcraft:item/sturgeon_iridium"
+                      }
+                  ]
 }

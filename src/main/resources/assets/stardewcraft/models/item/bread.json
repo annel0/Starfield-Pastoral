@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/bread"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/bread",
+                     "particle":  "stardewcraft:item/cooking/bread"
+                 }
 }

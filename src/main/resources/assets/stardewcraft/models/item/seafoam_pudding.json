@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/seafoam_pudding"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/seafoam_pudding",
+                     "particle":  "stardewcraft:item/cooking/seafoam_pudding"
+                 }
 }

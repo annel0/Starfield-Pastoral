@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/utility/dehydrator"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/utility/dehydrator",
+                     "particle":  "stardewcraft:item/utility/dehydrator"
+                 }
 }

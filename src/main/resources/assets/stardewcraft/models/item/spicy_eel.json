@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/spicy_eel"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/spicy_eel",
+                     "particle":  "stardewcraft:item/cooking/spicy_eel"
+                 }
 }

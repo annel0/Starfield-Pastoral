@@ -1,3 +1,6 @@
-{
-  "parent": "stardewcraft:block/frost_gneiss"
+﻿{
+    "parent":  "stardewcraft:block/frost_gneiss",
+    "textures":  {
+                     "particle":  "stardewcraft:block/mine/frost_gneiss"
+                 }
 }

@@ -1,26 +1,27 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/fish/smoked/glacierfish_jr"
-  },
-  "overrides": [
-    {
-      "predicate": {
-        "custom_model_data": 1
-      },
-      "model": "stardewcraft:item/smoked_glacierfish_jr_base_silver"
-    },
-    {
-      "predicate": {
-        "custom_model_data": 2
-      },
-      "model": "stardewcraft:item/smoked_glacierfish_jr_base_gold"
-    },
-    {
-      "predicate": {
-        "custom_model_data": 3
-      },
-      "model": "stardewcraft:item/smoked_glacierfish_jr_base_iridium"
-    }
-  ]
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/fish/smoked/glacierfish_jr",
+                     "particle":  "stardewcraft:item/fish/smoked/glacierfish_jr"
+                 },
+    "overrides":  [
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  1
+                                        },
+                          "model":  "stardewcraft:item/smoked_glacierfish_jr_base_silver"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2
+                                        },
+                          "model":  "stardewcraft:item/smoked_glacierfish_jr_base_gold"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3
+                                        },
+                          "model":  "stardewcraft:item/smoked_glacierfish_jr_base_iridium"
+                      }
+                  ]
 }

@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/artisan/preserves/caviar"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/artisan/preserves/caviar",
+                     "particle":  "stardewcraft:item/artisan/preserves/caviar"
+                 }
 }

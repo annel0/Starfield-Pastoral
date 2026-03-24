@@ -30,6 +30,7 @@ import com.stardew.craft.client.render.DehydratorBlockEntityRenderer;
 import com.stardew.craft.client.render.DeluxeWormBinBlockEntityRenderer;
 import com.stardew.craft.client.render.AutoPetterBlockEntityRenderer;
 import com.stardew.craft.client.render.HeaterBlockEntityRenderer;
+import com.stardew.craft.client.render.LargeFireplaceBlockEntityRenderer;
 import com.stardew.craft.client.render.ShippingBinBlockEntityRenderer;
 import com.stardew.craft.client.render.StoneChestBlockEntityRenderer;
 import com.stardew.craft.client.render.WoodenChestBlockEntityRenderer;
@@ -40,6 +41,7 @@ import com.stardew.craft.client.render.WormBinBlockEntityRenderer;
 import com.stardew.craft.client.render.FeedTroughBlockEntityRenderer;
 import com.stardew.craft.client.render.AutoFeedTroughBlockEntityRenderer;
 import com.stardew.craft.client.render.AnimalProduceSpotBlockEntityRenderer;
+import com.stardew.craft.client.render.MuseumExhibitStandBlockEntityRenderer;
 import com.stardew.craft.menu.ModMenuTypes;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -54,6 +56,7 @@ import com.stardew.craft.client.renderer.entity.TideAnchorProjectileRenderer;
 import com.stardew.craft.client.renderer.entity.TemperedBilletProjectileRenderer;
 import com.stardew.craft.client.renderer.entity.IceSpineEffectRenderer;
 import com.stardew.craft.client.renderer.entity.CoopAnimalGeoRenderer;
+import com.stardew.craft.client.renderer.entity.NpcGeoRenderer;
 import com.stardew.craft.client.renderer.layer.YetiFreezeLayer;
 
 @SuppressWarnings("removal")
@@ -86,6 +89,7 @@ public final class ModClientSetup {
 		event.registerEntityRenderer(ModEntities.GOAT.get(), CoopAnimalGeoRenderer::new);
 		event.registerEntityRenderer(ModEntities.SHEEP.get(), CoopAnimalGeoRenderer::new);
 		event.registerEntityRenderer(ModEntities.PIG.get(), CoopAnimalGeoRenderer::new);
+		event.registerEntityRenderer(ModEntities.STARDEW_NPC.get(), NpcGeoRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.TAPPER.get(), TapperBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.KEG.get(), KegBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.PRESERVES_JAR.get(), PreservesJarBlockEntityRenderer::new);
@@ -96,6 +100,7 @@ public final class ModClientSetup {
 		event.registerBlockEntityRenderer(ModBlockEntities.LOOM.get(), LoomBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.BEE_HOUSE.get(), BeeHouseBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.CRAB_POT.get(), CrabPotBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(ModBlockEntities.MUSEUM_EXHIBIT_STAND.get(), MuseumExhibitStandBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.FISH_SMOKER.get(), FishSmokerBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.CRYSTALARIUM.get(), CrystalariumBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.SEED_MAKER.get(), SeedMakerBlockEntityRenderer::new);
@@ -116,6 +121,7 @@ public final class ModClientSetup {
 		event.registerBlockEntityRenderer(ModBlockEntities.HEATER.get(), HeaterBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.DELUXE_WORM_BIN.get(), DeluxeWormBinBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.ANIMAL_PRODUCE_SPOT.get(), AnimalProduceSpotBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(ModBlockEntities.LARGE_FIREPLACE.get(), LargeFireplaceBlockEntityRenderer::new);
 			}
 
 	@SuppressWarnings("null")

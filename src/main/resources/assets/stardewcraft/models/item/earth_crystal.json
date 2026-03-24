@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/mineral/earth_crystal"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/mineral/earth_crystal",
+                     "particle":  "stardewcraft:item/mineral/earth_crystal"
+                 }
 }

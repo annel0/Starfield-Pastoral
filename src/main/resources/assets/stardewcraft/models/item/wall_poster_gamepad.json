@@ -1,3 +1,6 @@
-{
-  "parent": "stardewcraft:decor/wall_decor/common/wall_poster_gamepad"
+﻿{
+    "parent":  "stardewcraft:decor/wall_decor/common/wall_poster_gamepad",
+    "textures":  {
+                     "particle":  "stardewcraft:block/deco/misc/pierres_shop/wall_poster_gamepad"
+                 }
 }

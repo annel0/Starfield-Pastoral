@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:block/cross",
-  "textures": {
-    "cross": "stardewcraft:block/tree/wild_maple_sapling_stage0"
-  }
+﻿{
+    "parent":  "minecraft:block/cross",
+    "textures":  {
+                     "cross":  "stardewcraft:block/tree/wild_maple_sapling_stage0",
+                     "particle":  "stardewcraft:block/tree/wild_maple_sapling_stage0"
+                 }
 }

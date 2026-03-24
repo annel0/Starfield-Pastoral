@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/utility/crab_pot"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/utility/crab_pot",
+                     "particle":  "stardewcraft:item/utility/crab_pot"
+                 }
 }

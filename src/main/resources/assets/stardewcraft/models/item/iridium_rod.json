@@ -1,14 +1,15 @@
-{
-  "parent": "stardewcraft:item/rod_base",
-  "textures": {
-    "layer0": "stardewcraft:item/tool/fishing_rod/iridium_rod"
-  },
-  "overrides": [
-    {
-      "predicate": {
-        "cast": 1
-      },
-      "model": "stardewcraft:item/iridium_rod_cast"
-    }
-  ]
+﻿{
+    "parent":  "stardewcraft:item/rod_base",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/tool/fishing_rod/iridium_rod",
+                     "particle":  "stardewcraft:item/tool/fishing_rod/iridium_rod"
+                 },
+    "overrides":  [
+                      {
+                          "predicate":  {
+                                            "cast":  1
+                                        },
+                          "model":  "stardewcraft:item/iridium_rod_cast"
+                      }
+                  ]
 }

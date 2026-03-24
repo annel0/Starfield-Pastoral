@@ -1,0 +1,673 @@
+package com.stardew.craft.client.gui.common;
+
+import com.stardew.craft.StardewCraft;
+import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
+import com.stardew.craft.sound.ModSounds;
+import com.mojang.blaze3d.platform.NativeImage;
+import net.minecraft.Util;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.sounds.SoundEvent;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+@OnlyIn(Dist.CLIENT)
+@SuppressWarnings("null")
+public class StardewNpcDialogueScreen extends Screen {
+    private static final Pattern NUMERIC_EMOTION = Pattern.compile("\\$([0-9]+)");
+    private static final String[] PERCENT_TOKENS = new String[] {
+        "%adj", "%noun", "%place", "%spouse", "%name", "%firstnameletter", "%time", "%band", "%book", "%pet",
+        "%farm", "%favorite", "%fork", "%year", "%kid1", "%kid2", "%revealtaste", "%season"
+    };
+
+    private final String npcId;
+    private final String rawText;
+    private final int friendshipPoints;
+    private static final Map<ResourceLocation, PortraitResource> PORTRAIT_CACHE = new ConcurrentHashMap<>();
+
+    private final List<DialoguePage> pages = new ArrayList<>();
+    private StardewRenderMapping mapping;
+
+    private int pageIndex;
+    private int characterIndexInDialogue;
+    private int characterAdvanceTimer;
+    private int safetyTimer;
+    private int newPortraitShakeTimer;
+    private long lastUpdateMs;
+    private boolean transitioning = true;
+    private boolean transitioningBigger = true;
+    private boolean transitionInitialized;
+    private boolean openingSoundPlayed;
+    private int transitionX;
+    private int transitionY;
+    private int transitionWidth;
+    private int transitionHeight;
+    private int iconFrameTick;
+    private long lastRenderMs;
+
+    private int boxX;
+    private int boxY;
+    private int boxW;
+    private int boxH;
+
+    private record DialogueChunk(String text, boolean showPortrait, int portraitIndex) {
+    }
+
+    private record DialoguePage(String text, boolean showPortrait, int portraitIndex) {
+    }
+
+    public StardewNpcDialogueScreen(String npcId, String text, int friendshipPoints) {
+        super(Component.literal("NPC Dialogue"));
+        this.npcId = npcId == null ? "" : npcId;
+        this.rawText = text == null ? "..." : text;
+        this.friendshipPoints = Math.max(0, friendshipPoints);
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        recomputeLayout();
+        rebuildPages();
+        this.pageIndex = 0;
+        this.characterIndexInDialogue = 0;
+        this.characterAdvanceTimer = 90;
+        this.safetyTimer = 750;
+        if (!currentPage().text().isEmpty() && currentPage().text().length() <= 20) {
+            this.safetyTimer = Math.max(0, this.safetyTimer - 200);
+        }
+        this.transitioning = true;
+        this.transitioningBigger = true;
+        this.transitionInitialized = false;
+        this.openingSoundPlayed = false;
+        this.iconFrameTick = 0;
+        this.lastRenderMs = Util.getMillis();
+        this.lastUpdateMs = Util.getMillis();
+    }
+
+    @Override
+    public void tick() {
+        recomputeLayout();
+        long now = Util.getMillis();
+        int elapsed = (int) Math.max(0L, now - this.lastUpdateMs);
+        this.lastUpdateMs = now;
+        if (transitioning) {
+            return;
+        }
+
+        if (newPortraitShakeTimer > 0) {
+            newPortraitShakeTimer = Math.max(0, newPortraitShakeTimer - elapsed);
+        }
+        if (safetyTimer > 0) {
+            safetyTimer = Math.max(0, safetyTimer - elapsed);
+        }
+
+        String current = currentPage().text();
+        if (characterIndexInDialogue >= current.length()) {
+            return;
+        }
+
+        characterAdvanceTimer -= elapsed;
+        while (characterAdvanceTimer <= 0 && characterIndexInDialogue < current.length()) {
+            characterAdvanceTimer += 30;
+            int old = characterIndexInDialogue;
+            characterIndexInDialogue = Math.min(current.length(), characterIndexInDialogue + 1);
+            if (characterIndexInDialogue != old && characterIndexInDialogue == current.length()) {
+                playUiSound(ModSounds.DIALOGUE_CHARACTER_CLOSE.get(), 1.0f, 1.0f);
+            } else if (characterIndexInDialogue > 1 && characterIndexInDialogue < current.length()) {
+                playUiSound(ModSounds.DIALOGUE_CHARACTER.get(), 1.0f, 1.0f);
+            }
+        }
+    }
+
+    @Override
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        recomputeLayout();
+        long now = Util.getMillis();
+        int renderElapsed = (int) Math.max(0L, now - this.lastRenderMs);
+        this.lastRenderMs = now;
+        this.iconFrameTick += renderElapsed;
+        updateTransition(renderElapsed);
+
+        if (transitioning) {
+            if (transitionWidth > 0 && transitionHeight > 0) {
+                drawBox(graphics, transitionX, transitionY, transitionWidth, transitionHeight);
+            }
+            return;
+        }
+
+        drawBox(graphics, boxX, boxY, boxW, boxH);
+
+        DialoguePage page = currentPage();
+        if (page.showPortrait()) {
+            drawPortraitArea(graphics, page);
+        }
+
+        drawDialogueText(graphics, page);
+        drawContinueOrCloseIcon(graphics, page);
+        drawFriendshipHover(graphics, mouseX, mouseY);
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (button != 0) {
+            return super.mouseClicked(mouseX, mouseY, button);
+        }
+        if (transitioning) {
+            return true;
+        }
+        receiveAdvanceClick();
+        return true;
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (transitioning) {
+            return true;
+        }
+        if (keyCode == 256) {
+            beginOutro();
+            return true;
+        }
+        if (keyCode == 257 || keyCode == 32) {
+            receiveAdvanceClick();
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    private void receiveAdvanceClick() {
+        String current = currentPage().text();
+        if (characterIndexInDialogue < current.length() - 1) {
+            characterIndexInDialogue = Math.max(0, current.length() - 1);
+            return;
+        }
+        if (safetyTimer > 0) {
+            return;
+        }
+
+        int oldPortrait = currentPage().portraitIndex();
+        if (pageIndex + 1 < pages.size()) {
+            pageIndex++;
+            characterIndexInDialogue = 0;
+            characterAdvanceTimer = 90;
+            safetyTimer = 750;
+            if (currentPage().text().length() <= 20) {
+                safetyTimer = Math.max(0, safetyTimer - 200);
+            }
+            int newPortrait = currentPage().portraitIndex();
+            if (newPortrait != oldPortrait) {
+                newPortraitShakeTimer = (newPortrait == 1) ? 250 : 50;
+            }
+            playUiSound(ModSounds.SMALL_SELECT.get(), 1.0f, 1.0f);
+            return;
+        }
+
+        playUiSound(ModSounds.SMALL_SELECT.get(), 1.0f, 1.0f);
+        beginOutro();
+    }
+
+    private void beginOutro() {
+        if (transitioning) {
+            return;
+        }
+        this.transitioning = true;
+        this.transitioningBigger = false;
+        playUiSound(ModSounds.BREATHOUT.get(), 1.0f, 1.0f);
+    }
+
+    private void updateTransition(int elapsedMs) {
+        if (!transitioning) {
+            return;
+        }
+
+        if (!transitionInitialized) {
+            transitionInitialized = true;
+            transitionX = boxX + boxW / 2;
+            transitionY = boxY + boxH / 2;
+            transitionWidth = 0;
+            transitionHeight = 0;
+        }
+
+        float ratio = boxW <= 0 ? 1.0f : ((float) boxH / (float) boxW);
+        int speed = (int) (elapsedMs * 3f);
+        int speedY = (int) (elapsedMs * 3f * ratio);
+
+        if (transitioningBigger) {
+            int oldWidth = transitionWidth;
+            transitionX -= speed;
+            transitionY -= speedY;
+            transitionX = Math.max(boxX, transitionX);
+            transitionY = Math.max(boxY, transitionY);
+            transitionWidth += speed * 2;
+            transitionHeight += speedY * 2;
+            transitionWidth = Math.min(boxW, transitionWidth);
+            transitionHeight = Math.min(boxH, transitionHeight);
+
+            if (!openingSoundPlayed && oldWidth == 0 && transitionWidth > 0) {
+                openingSoundPlayed = true;
+                playUiSound(ModSounds.BREATHIN.get(), 1.0f, 1.0f);
+            }
+
+            if (transitionX == boxX && transitionY == boxY) {
+                transitioning = false;
+                transitionX = boxX;
+                transitionY = boxY;
+                transitionWidth = boxW;
+                transitionHeight = boxH;
+                characterAdvanceTimer = 90;
+            }
+            return;
+        }
+
+        transitionX += speed;
+        transitionY += speedY;
+        transitionX = Math.min(boxX + boxW / 2, transitionX);
+        transitionY = Math.min(boxY + boxH / 2, transitionY);
+        transitionWidth -= speed * 2;
+        transitionHeight -= speedY * 2;
+        transitionWidth = Math.max(0, transitionWidth);
+        transitionHeight = Math.max(0, transitionHeight);
+        if (transitionWidth == 0 && transitionHeight == 0) {
+            closeScreen();
+        }
+    }
+
+    private void recomputeLayout() {
+        float guiScale = this.minecraft == null ? 1.0f : (float) this.minecraft.getWindow().getGuiScale();
+        this.mapping = new StardewRenderMapping(this.width, this.height, guiScale);
+        this.boxW = mapping.ui(1200);
+        this.boxH = mapping.ui(384);
+        this.boxX = mapping.centerX(boxW);
+        this.boxY = this.height - boxH - mapping.ui(64);
+    }
+
+    private void rebuildPages() {
+        pages.clear();
+        List<DialogueChunk> chunks = parseChunks(rawText);
+        for (DialogueChunk chunk : chunks) {
+            paginateChunk(chunk, pages);
+        }
+        if (pages.isEmpty()) {
+            pages.add(new DialoguePage("...", true, 0));
+        }
+    }
+
+    private List<DialogueChunk> parseChunks(String text) {
+        String normalized = text
+            .replace("\r", "")
+            .replace("\n", "")
+            .replace("#$b#", "\f")
+            .replace("$b", "\f")
+            .replace("#$e#", "\f")
+            .replace("$e", "\f");
+        String[] rawChunks = normalized.split("\\f");
+        List<DialogueChunk> result = new ArrayList<>();
+        for (String raw : rawChunks) {
+            String chunk = raw.trim();
+            if (chunk.isEmpty()) {
+                continue;
+            }
+
+            boolean showPortrait = true;
+            if (chunk.startsWith("%") && !startsWithPercentToken(chunk)) {
+                showPortrait = false;
+                chunk = chunk.substring(1);
+            }
+
+            int portraitIndex = 0;
+            if (chunk.contains("$h")) {
+                portraitIndex = 1;
+                chunk = chunk.replace("$h", "");
+            } else if (chunk.contains("$s")) {
+                portraitIndex = 2;
+                chunk = chunk.replace("$s", "");
+            } else if (chunk.contains("$u")) {
+                portraitIndex = 3;
+                chunk = chunk.replace("$u", "");
+            } else if (chunk.contains("$l")) {
+                portraitIndex = 4;
+                chunk = chunk.replace("$l", "");
+            } else if (chunk.contains("$a")) {
+                portraitIndex = 5;
+                chunk = chunk.replace("$a", "");
+            } else {
+                Matcher m = NUMERIC_EMOTION.matcher(chunk);
+                if (m.find()) {
+                    try {
+                        portraitIndex = Integer.parseInt(m.group(1));
+                    } catch (NumberFormatException ignored) {
+                        portraitIndex = 0;
+                    }
+                    chunk = m.replaceFirst("");
+                }
+            }
+
+            chunk = chunk.trim();
+            if (!chunk.isEmpty()) {
+                result.add(new DialogueChunk(chunk, showPortrait, Math.max(0, portraitIndex)));
+            }
+        }
+        return result;
+    }
+
+    private boolean startsWithPercentToken(String text) {
+        String lower = text.toLowerCase(Locale.ROOT);
+        for (String token : PERCENT_TOKENS) {
+            if (lower.startsWith(token)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void paginateChunk(DialogueChunk chunk, List<DialoguePage> out) {
+        int textWidth = chunk.showPortrait() ? boxW - mapping.ui(460) - mapping.ui(24) : boxW;
+        int textHeight = boxH - mapping.ui(16);
+        int lineHeight = scaledLineHeight();
+        int maxLines = Math.max(1, textHeight / lineHeight);
+
+        String content = chunk.text().trim();
+        if (content.isEmpty()) {
+            out.add(new DialoguePage("...", chunk.showPortrait(), chunk.portraitIndex()));
+            return;
+        }
+
+        int wrapWidth = Math.max(1, Math.round(textWidth / textScale()));
+        String[] words = content.split("\\s+");
+        StringBuilder pageBuilder = new StringBuilder();
+        for (String word : words) {
+            String candidate = pageBuilder.length() == 0 ? word : pageBuilder + " " + word;
+            int lineCount = this.font.split(Component.literal(candidate), wrapWidth).size();
+            if (lineCount > maxLines && pageBuilder.length() > 0) {
+                out.add(new DialoguePage(pageBuilder.toString().trim(), chunk.showPortrait(), chunk.portraitIndex()));
+                pageBuilder.setLength(0);
+                pageBuilder.append(word);
+            } else {
+                if (pageBuilder.length() > 0) {
+                    pageBuilder.append(' ');
+                }
+                pageBuilder.append(word);
+            }
+        }
+
+        if (pageBuilder.length() > 0) {
+            out.add(new DialoguePage(pageBuilder.toString().trim(), chunk.showPortrait(), chunk.portraitIndex()));
+        }
+    }
+
+    private DialoguePage currentPage() {
+        return pages.get(Math.max(0, Math.min(pageIndex, pages.size() - 1)));
+    }
+
+    private void drawDialogueText(GuiGraphics graphics, DialoguePage page) {
+        int textX = boxX + mapping.ui(8);
+        int textY = boxY + mapping.ui(8);
+        int wrap = boxW;
+        if (page.showPortrait()) {
+            textX = boxX + mapping.ui(8);
+            wrap = boxW - mapping.ui(460) - mapping.ui(24);
+        }
+
+        String all = page.text();
+        int end = Math.max(0, Math.min(characterIndexInDialogue, all.length()));
+        Component visible = Component.literal(all.substring(0, end));
+        float scale = textScale();
+        int unscaledWrap = Math.max(1, Math.round(wrap / scale));
+        List<net.minecraft.util.FormattedCharSequence> lines = this.font.split(visible, unscaledWrap);
+
+        graphics.pose().pushPose();
+        graphics.pose().translate(textX, textY, 0.0f);
+        graphics.pose().scale(scale, scale, 1.0f);
+        int drawY = 0;
+        for (net.minecraft.util.FormattedCharSequence line : lines) {
+            graphics.drawString(this.font, line, 0, drawY, 0x2E251A, false);
+            drawY += this.font.lineHeight;
+        }
+        graphics.pose().popPose();
+    }
+
+    private void drawContinueOrCloseIcon(GuiGraphics graphics, DialoguePage page) {
+        if (characterIndexInDialogue < page.text().length()) {
+            return;
+        }
+
+        boolean hasNextPage = pageIndex + 1 < pages.size();
+        int x = boxX + boxW - mapping.ui(40);
+        int y = boxY + boxH - mapping.ui(40);
+        if (page.showPortrait()) {
+            x -= mapping.ui(492);
+        }
+
+        if (hasNextPage) {
+            int frame = (iconFrameTick / 90) % 6;
+            int periodic = iconFrameTick % 1500;
+            int half = 750;
+            int triangle = periodic <= half ? periodic : (1500 - periodic);
+            int bob = Math.round((triangle / (float) half) * mapping.ui(8));
+            StardewGuiUtil.drawFromCursors(graphics, x, y + bob, 232 + frame * 9, 346, 9, 9, mapping.s4());
+        } else {
+            int frame = (iconFrameTick / 80) % 11;
+            StardewGuiUtil.drawFromCursors(graphics, x, y - mapping.ui(4), 289 + frame * 11, 342, 11, 12, mapping.s4());
+        }
+    }
+
+    private void drawFriendshipHover(GuiGraphics graphics, int mouseX, int mouseY) {
+        if (transitioning || pages.isEmpty() || !currentPage().showPortrait()) {
+            return;
+        }
+        int jewelX = boxX + boxW - mapping.ui(64);
+        int jewelY = boxY + mapping.ui(256);
+        int jewelSize = mapping.ui(44);
+        if (mouseX < jewelX || mouseX >= jewelX + jewelSize || mouseY < jewelY || mouseY >= jewelY + jewelSize) {
+            return;
+        }
+
+        int hearts = Math.max(0, Math.min(14, friendshipPoints / 250));
+        String hover = hearts + "/14<";
+
+        float scale = textScale();
+        int textWidth = Math.round(this.font.width(hover) * scale);
+        int textHeight = Math.round(this.font.lineHeight * scale);
+        int hoverX = jewelX + jewelSize / 2 - textWidth / 2;
+        int hoverY = jewelY - mapping.ui(64);
+        StardewGuiUtil.drawTextureBoxNoShadow(graphics, hoverX - mapping.ui(8), hoverY - mapping.ui(8), textWidth + mapping.ui(16), textHeight + mapping.ui(16));
+
+        graphics.pose().pushPose();
+        graphics.pose().translate(hoverX, hoverY, 0.0f);
+        graphics.pose().scale(scale, scale, 1.0f);
+        graphics.drawString(this.font, hover, 0, 0, 0x2E251A, false);
+        graphics.pose().popPose();
+    }
+
+    private void drawPortraitArea(GuiGraphics graphics, DialoguePage page) {
+        if (boxW < mapping.ui(642)) {
+            return;
+        }
+
+        int xPositionOfPortraitArea = boxX + boxW - mapping.ui(448) + mapping.ui(4);
+        int widthOfPortraitArea = boxX + boxW - xPositionOfPortraitArea;
+
+        blitCursorsRect(graphics, xPositionOfPortraitArea - mapping.ui(40), boxY, mapping.ui(36), boxH, 278, 324, 9, 1);
+        StardewGuiUtil.drawFromCursors(graphics, xPositionOfPortraitArea - mapping.ui(40), boxY - mapping.ui(20), 278, 313, 10, 7, mapping.s4());
+        StardewGuiUtil.drawFromCursors(graphics, xPositionOfPortraitArea - mapping.ui(40), boxY + boxH, 278, 328, 10, 8, mapping.s4());
+
+        int portraitBoxX = xPositionOfPortraitArea + mapping.ui(76);
+        int portraitBoxY = boxY + boxH / 2 - mapping.ui(148) - mapping.ui(36);
+        StardewGuiUtil.drawFromCursors(graphics, xPositionOfPortraitArea - mapping.ui(8), boxY, 583, 411, 115, 97, mapping.s4());
+
+        int xOffset = newPortraitShakeTimer > 0 ? mapping.ui((int) (Math.random() * 3.0) - 1) : 0;
+        drawNpcPortrait(graphics, portraitBoxX + mapping.ui(16) + xOffset, portraitBoxY + mapping.ui(24), page.portraitIndex());
+
+        String displayName = displayNpcName();
+        int nameX = xPositionOfPortraitArea + widthOfPortraitArea / 2;
+        int nameY = portraitBoxY + mapping.ui(312);
+        drawScaledCenteredText(graphics, displayName, nameX, nameY, 0x2E251A);
+
+        drawFriendshipJewel(graphics);
+    }
+
+    private void drawFriendshipJewel(GuiGraphics graphics) {
+        int jewelX = boxX + boxW - mapping.ui(64);
+        int jewelY = boxY + mapping.ui(256);
+        int hearts = Math.max(0, Math.min(14, friendshipPoints / 250));
+
+        int sourceX;
+        int sourceY;
+        if (hearts >= 10) {
+            sourceX = 269;
+            sourceY = 494;
+        } else {
+            int frame = ((int) ((System.currentTimeMillis() % 1000L) / 250L)) * 11;
+            sourceX = 140 + frame;
+            sourceY = 532 + (hearts / 2) * 11;
+        }
+
+        StardewGuiUtil.drawFromCursors(graphics, jewelX, jewelY, sourceX, sourceY, 11, 11, mapping.s4());
+    }
+
+    private void drawNpcPortrait(GuiGraphics graphics, int x, int y, int portraitIndex) {
+        PortraitResource portrait = resolvePortraitResource();
+        ResourceLocation portraitTexture = portrait.texture();
+        int sheetW = portrait.sheetWidth();
+        int sheetH = portrait.sheetHeight();
+        int cols = Math.max(1, sheetW / 64);
+        int index = Math.max(0, portraitIndex);
+        int sx = (index % cols) * 64;
+        int sy = (index / cols) * 64;
+        if (sy + 64 > sheetH) {
+            sx = 0;
+            sy = 0;
+        }
+        graphics.blit(portraitTexture, x, y, mapping.ui(256), mapping.ui(256), sx, sy, 64, 64, sheetW, sheetH);
+    }
+
+    private PortraitResource resolvePortraitResource() {
+        String id = normalizedNpcId();
+        ResourceLocation vanillaPortrait = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/portraits/" + id + ".png");
+        if (hasResource(vanillaPortrait)) {
+            return loadPortrait(vanillaPortrait, 128, 320);
+        }
+
+        ResourceLocation fallback = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/entity/npc/" + id + ".png");
+        return loadPortrait(fallback, 128, 128);
+    }
+
+    private boolean hasResource(ResourceLocation location) {
+        ResourceManager resourceManager = this.minecraft == null ? null : this.minecraft.getResourceManager();
+        return resourceManager != null && resourceManager.getResource(location).isPresent();
+    }
+
+    private PortraitResource loadPortrait(ResourceLocation location, int fallbackW, int fallbackH) {
+        PortraitResource cached = PORTRAIT_CACHE.get(location);
+        if (cached != null) {
+            return cached;
+        }
+
+        ResourceManager resourceManager = this.minecraft == null ? null : this.minecraft.getResourceManager();
+        if (resourceManager == null) {
+            return new PortraitResource(location, fallbackW, fallbackH);
+        }
+
+        int width = fallbackW;
+        int height = fallbackH;
+        try {
+            var resource = resourceManager.getResource(location).orElse(null);
+            if (resource != null) {
+                try (var stream = resource.open(); NativeImage image = NativeImage.read(stream)) {
+                    width = image.getWidth();
+                    height = image.getHeight();
+                }
+            }
+        } catch (IOException ignored) {
+        }
+
+        PortraitResource resolved = new PortraitResource(location, Math.max(64, width), Math.max(64, height));
+        PORTRAIT_CACHE.put(location, resolved);
+        return resolved;
+    }
+
+    private float textScale() {
+        return Math.max(1.0f, mapping == null ? 1.0f : mapping.s4());
+    }
+
+    private int scaledLineHeight() {
+        return Math.max(1, Math.round(this.font.lineHeight * textScale()));
+    }
+
+    private void drawScaledCenteredText(GuiGraphics graphics, String text, int centerX, int y, int color) {
+        float scale = textScale();
+        int unscaledCenterX = Math.round(centerX / scale);
+        int unscaledY = Math.round(y / scale);
+        int unscaledTextWidth = this.font.width(text);
+
+        graphics.pose().pushPose();
+        graphics.pose().scale(scale, scale, 1.0f);
+        graphics.drawString(this.font, text, unscaledCenterX - unscaledTextWidth / 2, unscaledY, color, false);
+        graphics.pose().popPose();
+    }
+
+    private String normalizedNpcId() {
+        String id = this.npcId.trim().toLowerCase(Locale.ROOT);
+        return id.isEmpty() ? "lewis" : id;
+    }
+
+    private String displayNpcName() {
+        String id = normalizedNpcId();
+        if (id.isEmpty()) {
+            return "Lewis";
+        }
+        return Character.toUpperCase(id.charAt(0)) + id.substring(1);
+    }
+
+    private void blitCursorsRect(GuiGraphics graphics, int x, int y, int width, int height, int u, int v, int srcW, int srcH) {
+        if (width <= 0 || height <= 0) {
+            return;
+        }
+        graphics.blit(StardewGuiUtil.CURSORS, x, y, width, height, u, v, srcW, srcH, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT);
+    }
+
+    private void drawBox(GuiGraphics graphics, int xPos, int yPos, int boxWidth, int boxHeight) {
+        if (!transitionInitialized || boxWidth <= 0 || boxHeight <= 0) {
+            return;
+        }
+        blitCursorsRect(graphics, xPos, yPos, boxWidth, boxHeight, 306, 320, 16, 16);
+        blitCursorsRect(graphics, xPos, yPos - mapping.ui(20), boxWidth, mapping.ui(24), 275, 313, 1, 6);
+        blitCursorsRect(graphics, xPos + mapping.ui(12), yPos + boxHeight, Math.max(0, boxWidth - mapping.ui(20)), mapping.ui(32), 275, 328, 1, 8);
+        blitCursorsRect(graphics, xPos - mapping.ui(32), yPos + mapping.ui(24), mapping.ui(32), Math.max(0, boxHeight - mapping.ui(28)), 264, 325, 8, 1);
+        blitCursorsRect(graphics, xPos + boxWidth, yPos, mapping.ui(28), boxHeight, 293, 324, 7, 1);
+
+        float s4 = mapping.s4();
+        StardewGuiUtil.drawFromCursors(graphics, xPos - mapping.ui(44), yPos - mapping.ui(28), 261, 311, 14, 13, s4);
+        StardewGuiUtil.drawFromCursors(graphics, xPos + boxWidth - mapping.ui(8), yPos - mapping.ui(28), 291, 311, 12, 11, s4);
+        StardewGuiUtil.drawFromCursors(graphics, xPos + boxWidth - mapping.ui(8), yPos + boxHeight - mapping.ui(8), 291, 326, 12, 12, s4);
+        StardewGuiUtil.drawFromCursors(graphics, xPos - mapping.ui(44), yPos + boxHeight - mapping.ui(4), 261, 327, 14, 11, s4);
+    }
+
+    private void closeScreen() {
+        if (this.minecraft != null) {
+            this.minecraft.setScreen(null);
+        }
+    }
+
+    private void playUiSound(SoundEvent sound, float volume, float pitch) {
+        if (this.minecraft != null) {
+            this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(sound, volume, pitch));
+        }
+    }
+
+    private record PortraitResource(ResourceLocation texture, int sheetWidth, int sheetHeight) {
+    }
+}

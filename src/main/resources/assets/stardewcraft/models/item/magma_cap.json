@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/forage/magma_cap"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/forage/magma_cap",
+                     "particle":  "stardewcraft:item/forage/magma_cap"
+                 }
 }

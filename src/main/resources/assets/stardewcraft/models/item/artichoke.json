@@ -1,26 +1,27 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/crops/fall/artichoke"
-  },
-  "overrides": [
-    {
-      "predicate": {
-        "custom_model_data": 1
-      },
-      "model": "stardewcraft:item/artichoke_silver"
-    },
-    {
-      "predicate": {
-        "custom_model_data": 2
-      },
-      "model": "stardewcraft:item/artichoke_gold"
-    },
-    {
-      "predicate": {
-        "custom_model_data": 3
-      },
-      "model": "stardewcraft:item/artichoke_iridium"
-    }
-  ]
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/crops/fall/artichoke",
+                     "particle":  "stardewcraft:item/crops/fall/artichoke"
+                 },
+    "overrides":  [
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  1
+                                        },
+                          "model":  "stardewcraft:item/artichoke_silver"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2
+                                        },
+                          "model":  "stardewcraft:item/artichoke_gold"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3
+                                        },
+                          "model":  "stardewcraft:item/artichoke_iridium"
+                      }
+                  ]
 }

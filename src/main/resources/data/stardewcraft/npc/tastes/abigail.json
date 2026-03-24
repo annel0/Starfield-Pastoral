@@ -1,0 +1,8 @@
+{
+  "npc_id": "abigail",
+  "loved": ["amethyst"],
+  "liked": ["pumpkin"],
+  "neutral": [],
+  "disliked": ["salmonberry"],
+  "hated": ["holly"]
+}

@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/eggplant_parmesan"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/eggplant_parmesan",
+                     "particle":  "stardewcraft:item/cooking/eggplant_parmesan"
+                 }
 }

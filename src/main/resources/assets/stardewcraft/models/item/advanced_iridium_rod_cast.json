@@ -1,6 +1,7 @@
-{
-  "parent": "stardewcraft:item/rod_base",
-  "textures": {
-    "layer0": "stardewcraft:item/tool/fishing_rod/advanced_iridium_rod_cast"
-  }
+﻿{
+    "parent":  "stardewcraft:item/rod_base",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/tool/fishing_rod/advanced_iridium_rod_cast",
+                     "particle":  "stardewcraft:item/tool/fishing_rod/advanced_iridium_rod_cast"
+                 }
 }

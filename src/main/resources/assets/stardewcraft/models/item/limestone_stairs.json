@@ -1,3 +1,6 @@
-{
-  "parent": "stardewcraft:block/limestone_stairs"
+﻿{
+    "parent":  "stardewcraft:block/limestone_stairs",
+    "textures":  {
+                     "particle":  "stardewcraft:block/mine/limestone"
+                 }
 }

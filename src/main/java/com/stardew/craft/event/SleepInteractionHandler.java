@@ -1,6 +1,7 @@
 package com.stardew.craft.event;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.block.ModBlocks;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.network.payload.OpenSleepConfirmScreenPayload;
 import com.stardew.craft.time.StardewTimeManager;
@@ -31,7 +32,10 @@ public final class SleepInteractionHandler {
         if (player.level().dimension() != ModDimensions.STARDEW_VALLEY) {
             return;
         }
-        if (!(player.level().getBlockState(event.getPos()).getBlock() instanceof BedBlock)) {
+        var state = player.level().getBlockState(event.getPos());
+        boolean isVanillaBed = state.getBlock() instanceof BedBlock;
+        boolean isDecorBed = state.is(ModBlocks.BED_1.get()) || state.is(ModBlocks.BED_2.get());
+        if (!isVanillaBed && !isDecorBed) {
             return;
         }
 

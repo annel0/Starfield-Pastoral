@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/carp_surprise"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/carp_surprise",
+                     "particle":  "stardewcraft:item/cooking/carp_surprise"
+                 }
 }

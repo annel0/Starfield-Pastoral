@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/fish/trash/trash"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/fish/trash/trash",
+                     "particle":  "stardewcraft:item/fish/trash/trash"
+                 }
 }

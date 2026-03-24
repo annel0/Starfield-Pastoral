@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/crops/spring/tulip4"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/crops/spring/tulip4",
+                     "particle":  "stardewcraft:item/crops/spring/tulip4"
+                 }
 }

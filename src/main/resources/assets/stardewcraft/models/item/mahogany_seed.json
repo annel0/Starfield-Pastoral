@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/tree/mahogany_seed"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/tree/mahogany_seed",
+                     "particle":  "stardewcraft:item/tree/mahogany_seed"
+                 }
 }

@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/blackberry_cobbler"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/blackberry_cobbler",
+                     "particle":  "stardewcraft:item/cooking/blackberry_cobbler"
+                 }
 }

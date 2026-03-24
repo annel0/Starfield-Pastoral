@@ -84,6 +84,22 @@ public class StardewGuiUtil {
         drawMenuTile(graphics, x + width - unit, y, unit, unit, 7);
     }
 
+    // Equivalent to IClickableMenu.drawHorizontalPartition(..., small=true)
+    public static void drawHorizontalPartitionSmall(GuiGraphics graphics, int x, int y, int width, float scale) {
+        int unit = Math.max(1, Math.round(16.0f * scale));
+        int startX = x + unit / 2;
+        int middleWidth = Math.max(0, width - unit);
+        drawMenuTile(graphics, startX, y, middleWidth, unit, 25);
+    }
+
+    // Equivalent to IClickableMenu.drawVerticalPartition(..., small=true)
+    public static void drawVerticalPartitionSmall(GuiGraphics graphics, int x, int menuY, int menuHeight, float scale) {
+        int unit = Math.max(1, Math.round(16.0f * scale));
+        int y = menuY + unit + unit / 2;
+        int height = Math.max(0, menuHeight - unit * 2);
+        drawMenuTile(graphics, x, y, unit, height, 26);
+    }
+
     // Equivalent to IClickableMenu.drawVerticalIntersectingPartition
     public static void drawVerticalIntersectingPartition(GuiGraphics graphics, int x, int y, int menuY, int menuHeight, float scale) {
         int unit = Math.max(1, Math.round(16.0f * scale));

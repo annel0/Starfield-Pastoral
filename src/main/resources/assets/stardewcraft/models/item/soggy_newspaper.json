@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/fish/trash/soggy_newspaper"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/fish/trash/soggy_newspaper",
+                     "particle":  "stardewcraft:item/fish/trash/soggy_newspaper"
+                 }
 }

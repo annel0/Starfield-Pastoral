@@ -1,3 +1,6 @@
-{
-  "parent": "stardewcraft:block/lava_copper_ore"
+﻿{
+    "parent":  "stardewcraft:block/lava_copper_ore",
+    "textures":  {
+                     "particle":  "stardewcraft:block/mine/lava_copper_ore"
+                 }
 }

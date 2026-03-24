@@ -1,0 +1,185 @@
+{
+  "event_id": "npc_route_points",
+  "points": {
+    "manorhouse_outer": {
+      "x": -196.0,
+      "y": -17.0,
+      "z": -22.0,
+      "note": "当前室外门点"
+    },
+    "towngarden": {
+      "x": -206.0,
+      "y": -18.0,
+      "z": -24.0,
+      "note": "纯室外目标"
+    },
+    "communitycenter_outer": {
+      "x": -190.0,
+      "y": -10.0,
+      "z": 138.0,
+      "note": "临时室外点，后续替换为室内Hall"
+    },
+    "saloon_outer": {
+      "x": -163.0,
+      "y": -17.0,
+      "z": 14.0,
+      "note": "临时室外点，后续替换为室内Table"
+    },
+    "seedshop_outer": {
+      "x": -159.0,
+      "y": -18.0,
+      "z": 54.0,
+      "note": "先到室外门"
+    },
+    "seedshop_inner_entry": {
+      "x": 12038.0,
+      "y": 71.0,
+      "z": 12038.0,
+      "note": "室内入口，当前与出口同点"
+    },
+    "abigail_seedshop_outer": {
+      "x": -159.0,
+      "y": -18.0,
+      "z": 54.0,
+      "note": "Abigail种子店室外门点"
+    },
+    "abigail_seedshop_inner_entry": {
+      "x": 12038.0,
+      "y": 71.0,
+      "z": 12038.0,
+      "note": "Abigail种子店室内入口"
+    },
+    "seedshop_counter": {
+      "x": 12049.0,
+      "y": 71.0,
+      "z": 12038.0,
+      "note": "室内目标柜台"
+    },
+    "abigail_seedshop_indoor_target": {
+      "x": 12067.0,
+      "y": 71.0,
+      "z": 12041.0,
+      "note": "Abigail种子店室内停留点"
+    },
+    "abigail_sebastianroom_outer": {
+      "x": -212.0,
+      "y": -12.0,
+      "z": 219.0,
+      "note": "Abigail去SebastianRoom前的室外门点（木匠家门外）"
+    },
+    "abigail_town_stay": {
+      "x": -166.0,
+      "y": -18.0,
+      "z": -27.0,
+      "note": "Abigail镇上常驻点"
+    },
+    "abigail_mountain_flute": {
+      "x": -249.0,
+      "y": -5.0,
+      "z": 174.0,
+      "note": "Abigail山区吹笛点"
+    },
+    "abigail_forest_stay": {
+      "x": 202.0,
+      "y": -13.0,
+      "z": -73.0,
+      "note": "Abigail森林停留点"
+    },
+    "abigail_beach_stay": {
+      "x": -247.0,
+      "y": -15.0,
+      "z": -172.0,
+      "note": "Abigail海滩停留点"
+    },
+    "abigail_hospital_stay": {
+      "x": -145.0,
+      "y": -18.0,
+      "z": 60.0,
+      "note": "Abigail医院停留点（当前为室外门口锚点）"
+    },
+    "abigail_archaeologyhouse_stay": {
+      "x": -303.0,
+      "y": -17.0,
+      "z": -38.0,
+      "note": "Abigail博物馆停留点"
+    },
+    "abigail_saloon_stay": {
+      "x": -163.0,
+      "y": -17.0,
+      "z": 14.0,
+      "note": "Abigail酒吧停留点"
+    },
+    "abigail_busstop_stay": {
+      "x": 75.0,
+      "y": -12.0,
+      "z": 201.0,
+      "note": "Abigail公交站停留点"
+    },
+    "abigail_sciencehouse_stay": {
+      "x": -212.0,
+      "y": -13.0,
+      "z": 218.0,
+      "note": "Abigail科学屋停留点"
+    },
+    "abigail_railroad_stay": {
+      "x": -93.0,
+      "y": -13.0,
+      "z": 341.0,
+      "note": "Abigail铁路山区停留点"
+    },
+    "fishshop_outer": {
+      "x": -237.0,
+      "y": -15.0,
+      "z": -212.0,
+      "note": "当前仅室外点，室内待补"
+    },
+    "lewis_manorhouse_outer": {
+      "x": -196.0,
+      "y": -17.0,
+      "z": -22.0,
+      "note": "Lewis室外门点"
+    },
+    "lewis_towngarden": {
+      "x": -206.0,
+      "y": -18.0,
+      "z": -24.0,
+      "note": "Lewis镇上停留点"
+    },
+    "lewis_communitycenter_outer": {
+      "x": -190.0,
+      "y": -10.0,
+      "z": 138.0,
+      "note": "Lewis社区中心室外点"
+    },
+    "lewis_saloon_outer": {
+      "x": -163.0,
+      "y": -17.0,
+      "z": 14.0,
+      "note": "Lewis酒吧室外点"
+    },
+    "lewis_seedshop_outer": {
+      "x": -159.0,
+      "y": -18.0,
+      "z": 54.0,
+      "note": "Lewis种子店室外门点"
+    },
+    "lewis_seedshop_inner_entry": {
+      "x": 12038.0,
+      "y": 71.0,
+      "z": 12038.0,
+      "note": "Lewis种子店室内入口"
+    },
+    "lewis_seedshop_counter": {
+      "x": 12049.0,
+      "y": 71.0,
+      "z": 12038.0,
+      "note": "Lewis种子店室内柜台点"
+    },
+    "lewis_fishshop_outer": {
+      "x": -237.0,
+      "y": -15.0,
+      "z": -212.0,
+      "note": "Lewis鱼店室外点"
+    }
+  }
+}

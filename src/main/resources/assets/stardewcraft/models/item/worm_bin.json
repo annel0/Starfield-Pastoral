@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/utility/worm_bin"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/utility/worm_bin",
+                     "particle":  "stardewcraft:item/utility/worm_bin"
+                 }
 }

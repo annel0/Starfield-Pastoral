@@ -1,1 +1,7 @@
-{"parent":"minecraft:block/wall_inventory","textures":{"wall":"stardewcraft:block/mine/salt_rock"}}
+﻿{
+    "parent":  "minecraft:block/wall_inventory",
+    "textures":  {
+                     "wall":  "stardewcraft:block/mine/salt_rock",
+                     "particle":  "stardewcraft:block/mine/salt_rock"
+                 }
+}

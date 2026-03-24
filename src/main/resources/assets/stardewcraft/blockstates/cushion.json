@@ -1,0 +1,9 @@
+﻿{
+  "multipart": [
+    { "when": { "part": "main", "facing": "north" }, "apply": { "model": "stardewcraft:block/utility/cushion" } },
+    { "when": { "part": "main", "facing": "east" }, "apply": { "model": "stardewcraft:block/utility/cushion", "y": 90 } },
+    { "when": { "part": "main", "facing": "south" }, "apply": { "model": "stardewcraft:block/utility/cushion", "y": 180 } },
+    { "when": { "part": "main", "facing": "west" }, "apply": { "model": "stardewcraft:block/utility/cushion", "y": 270 } },
+    { "when": { "part": "extension" }, "apply": { "model": "stardewcraft:block/decor/extensions/furniture_extension_empty" } }
+  ]
+}

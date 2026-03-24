@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/resource/maple_syrup"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/resource/maple_syrup",
+                     "particle":  "stardewcraft:item/resource/maple_syrup"
+                 }
 }

@@ -1,26 +1,27 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/fish/smoked/blobfish"
-  },
-  "overrides": [
-    {
-      "predicate": {
-        "custom_model_data": 1
-      },
-      "model": "stardewcraft:item/smoked_blobfish_base_silver"
-    },
-    {
-      "predicate": {
-        "custom_model_data": 2
-      },
-      "model": "stardewcraft:item/smoked_blobfish_base_gold"
-    },
-    {
-      "predicate": {
-        "custom_model_data": 3
-      },
-      "model": "stardewcraft:item/smoked_blobfish_base_iridium"
-    }
-  ]
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/fish/smoked/blobfish",
+                     "particle":  "stardewcraft:item/fish/smoked/blobfish"
+                 },
+    "overrides":  [
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  1
+                                        },
+                          "model":  "stardewcraft:item/smoked_blobfish_base_silver"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2
+                                        },
+                          "model":  "stardewcraft:item/smoked_blobfish_base_gold"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3
+                                        },
+                          "model":  "stardewcraft:item/smoked_blobfish_base_iridium"
+                      }
+                  ]
 }

@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/fish/trash/joja_cola"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/fish/trash/joja_cola",
+                     "particle":  "stardewcraft:item/fish/trash/joja_cola"
+                 }
 }

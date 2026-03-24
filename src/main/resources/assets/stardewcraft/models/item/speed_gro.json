@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/fertilizer/speed_gro"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/fertilizer/speed_gro",
+                     "particle":  "stardewcraft:item/fertilizer/speed_gro"
+                 }
 }

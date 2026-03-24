@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/crops/winter/powder_melon_seeds"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/crops/winter/powder_melon_seeds",
+                     "particle":  "stardewcraft:item/crops/winter/powder_melon_seeds"
+                 }
 }

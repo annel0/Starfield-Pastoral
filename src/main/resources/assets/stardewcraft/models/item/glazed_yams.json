@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/glazed_yams"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/glazed_yams",
+                     "particle":  "stardewcraft:item/cooking/glazed_yams"
+                 }
 }

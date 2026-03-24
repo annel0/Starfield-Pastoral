@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/fertilizer/basic_fertilizer"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/fertilizer/basic_fertilizer",
+                     "particle":  "stardewcraft:item/fertilizer/basic_fertilizer"
+                 }
 }

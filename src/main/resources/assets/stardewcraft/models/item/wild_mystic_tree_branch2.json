@@ -1,3 +1,6 @@
-{
-  "parent": "stardewcraft:block/wild_tree/mystic_tree/branch2"
+﻿{
+    "parent":  "stardewcraft:block/wild_tree/mystic_tree/branch2",
+    "textures":  {
+                     "particle":  "stardewcraft:block/wild_tree/mystic_tree/branch1"
+                 }
 }

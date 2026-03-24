@@ -1,3 +1,6 @@
-{
-  "parent": "stardewcraft:block/dark_earth_shale"
+﻿{
+    "parent":  "stardewcraft:block/dark_earth_shale",
+    "textures":  {
+                     "particle":  "stardewcraft:block/mine/dark_earth_shale"
+                 }
 }

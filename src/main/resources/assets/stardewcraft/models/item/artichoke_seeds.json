@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/crops/fall/artichoke_seeds"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/crops/fall/artichoke_seeds",
+                     "particle":  "stardewcraft:item/crops/fall/artichoke_seeds"
+                 }
 }

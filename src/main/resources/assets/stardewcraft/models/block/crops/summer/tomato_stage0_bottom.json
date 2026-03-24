@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:block/cross",
-  "textures": {
-    "cross": "stardewcraft:block/crops/summer/tomato_stage0_bottom"
-  }
+﻿{
+    "parent":  "minecraft:block/cross",
+    "textures":  {
+                     "cross":  "stardewcraft:block/crops/summer/tomato_stage0_bottom",
+                     "particle":  "stardewcraft:block/crops/summer/tomato_stage0_bottom"
+                 }
 }

@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/pumpkin_soup"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/pumpkin_soup",
+                     "particle":  "stardewcraft:item/cooking/pumpkin_soup"
+                 }
 }

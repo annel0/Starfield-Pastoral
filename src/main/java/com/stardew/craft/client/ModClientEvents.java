@@ -10,6 +10,7 @@ import com.stardew.craft.item.weapon.WeaponData;
 import com.stardew.craft.item.weapon.WeaponSkillData;
 import com.stardew.craft.client.gui.menu.StardewGameMenuScreen;
 import com.stardew.craft.client.weapon.FireRingEffectClient;
+import com.stardew.craft.network.payload.RequestNpcFriendshipOverviewPayload;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -328,6 +329,7 @@ public class ModClientEvents {
 
         while (ModKeyMappings.GAME_MENU.consumeClick()) {
             if (mc.screen == null) {
+                PacketDistributor.sendToServer(new RequestNpcFriendshipOverviewPayload());
                 mc.setScreen(new StardewGameMenuScreen());
             }
         }

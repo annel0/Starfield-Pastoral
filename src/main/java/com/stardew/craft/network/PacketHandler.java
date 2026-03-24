@@ -73,6 +73,8 @@ import com.stardew.craft.combat.network.BrokenTridentThrustStrikePayload;
 import com.stardew.craft.combat.network.IridiumNeedleCritPayload;
 import com.stardew.craft.combat.network.IridiumNeedleFrenzyPayload;
 import com.stardew.craft.combat.network.IridiumNeedleThrustStrikePayload;
+import com.stardew.craft.network.payload.ApplySofaColorPayload;
+import com.stardew.craft.network.payload.OpenSofaColorScreenPayload;
 import com.stardew.craft.network.payload.StoneChestColorSelectPayload;
 import com.stardew.craft.network.payload.WoodenChestColorSelectPayload;
 
@@ -136,6 +138,12 @@ public class PacketHandler {
             StoneChestColorSelectPayload.TYPE,
             StoneChestColorSelectPayload.STREAM_CODEC,
             StoneChestColorSelectPayload::handle
+        );
+
+        registrar.playToServer(
+            ApplySofaColorPayload.TYPE,
+            ApplySofaColorPayload.STREAM_CODEC,
+            ApplySofaColorPayload::handle
         );
         
         // 服务端 -> 客户端
@@ -738,6 +746,12 @@ public class PacketHandler {
             com.stardew.craft.network.payload.OpenDecorationScreenPayload::handle
         );
 
+        registrar.playToClient(
+            OpenSofaColorScreenPayload.TYPE,
+            OpenSofaColorScreenPayload.STREAM_CODEC,
+            OpenSofaColorScreenPayload::handle
+        );
+
         registrar.playToServer(
             com.stardew.craft.network.payload.ApplyDecorationStylePayload.TYPE,
             com.stardew.craft.network.payload.ApplyDecorationStylePayload.STREAM_CODEC,
@@ -762,10 +776,34 @@ public class PacketHandler {
             com.stardew.craft.network.payload.CraftingMenuInventoryActionPayload::handle
         );
 
+        registrar.playToServer(
+            com.stardew.craft.network.payload.RequestNpcFriendshipOverviewPayload.TYPE,
+            com.stardew.craft.network.payload.RequestNpcFriendshipOverviewPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.RequestNpcFriendshipOverviewPayload::handle
+        );
+
         registrar.playToClient(
             com.stardew.craft.network.payload.OpenSleepConfirmScreenPayload.TYPE,
             com.stardew.craft.network.payload.OpenSleepConfirmScreenPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.OpenSleepConfirmScreenPayload::handle
+        );
+
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenNpcDialogueScreenPayload.TYPE,
+            com.stardew.craft.network.payload.OpenNpcDialogueScreenPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenNpcDialogueScreenPayload::handle
+        );
+
+        registrar.playToClient(
+            com.stardew.craft.network.payload.SyncNpcFriendshipOverviewPayload.TYPE,
+            com.stardew.craft.network.payload.SyncNpcFriendshipOverviewPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.SyncNpcFriendshipOverviewPayload::handle
+        );
+
+        registrar.playToClient(
+            com.stardew.craft.network.payload.SyncNpcFriendshipStatusPayload.TYPE,
+            com.stardew.craft.network.payload.SyncNpcFriendshipStatusPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.SyncNpcFriendshipStatusPayload::handle
         );
 
         registrar.playToServer(

@@ -1,0 +1,41 @@
+package com.stardew.craft.network.payload;
+
+import com.stardew.craft.StardewCraft;
+import com.stardew.craft.client.gui.SofaColorSelectionScreen;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+
+public record OpenSofaColorScreenPayload(BlockPos targetPos, int currentColor) implements CustomPacketPayload {
+    @SuppressWarnings("null")
+    public static final Type<OpenSofaColorScreenPayload> TYPE =
+        new Type<>(ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "open_sofa_color_screen"));
+
+    @SuppressWarnings("null")
+    public static final StreamCodec<FriendlyByteBuf, OpenSofaColorScreenPayload> STREAM_CODEC = StreamCodec.of(
+        (buf, payload) -> {
+            buf.writeBlockPos(payload.targetPos());
+            buf.writeVarInt(payload.currentColor());
+        },
+        buf -> new OpenSofaColorScreenPayload(buf.readBlockPos(), buf.readVarInt())
+    );
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    public static void handle(OpenSofaColorScreenPayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            Minecraft minecraft = Minecraft.getInstance();
+            if (minecraft.player == null) {
+                return;
+            }
+            minecraft.setScreen(new SofaColorSelectionScreen(payload.targetPos(), payload.currentColor()));
+        });
+    }
+}

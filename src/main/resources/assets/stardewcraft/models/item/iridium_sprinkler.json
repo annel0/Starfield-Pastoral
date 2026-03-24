@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/utility/iridium_sprinkler"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/utility/iridium_sprinkler",
+                     "particle":  "stardewcraft:item/utility/iridium_sprinkler"
+                 }
 }

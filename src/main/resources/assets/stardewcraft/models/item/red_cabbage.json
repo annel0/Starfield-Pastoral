@@ -1,26 +1,27 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/crops/summer/red_cabbage"
-  },
-  "overrides": [
-    {
-      "predicate": {
-        "custom_model_data": 1
-      },
-      "model": "stardewcraft:item/red_cabbage_silver"
-    },
-    {
-      "predicate": {
-        "custom_model_data": 2
-      },
-      "model": "stardewcraft:item/red_cabbage_gold"
-    },
-    {
-      "predicate": {
-        "custom_model_data": 3
-      },
-      "model": "stardewcraft:item/red_cabbage_iridium"
-    }
-  ]
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/crops/summer/red_cabbage",
+                     "particle":  "stardewcraft:item/crops/summer/red_cabbage"
+                 },
+    "overrides":  [
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  1
+                                        },
+                          "model":  "stardewcraft:item/red_cabbage_silver"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2
+                                        },
+                          "model":  "stardewcraft:item/red_cabbage_gold"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3
+                                        },
+                          "model":  "stardewcraft:item/red_cabbage_iridium"
+                      }
+                  ]
 }

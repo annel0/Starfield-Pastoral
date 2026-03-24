@@ -1,7 +1,8 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/crops/spring/green_bean",
-    "layer1": "stardewcraft:item/quality/iridium_star"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/crops/spring/green_bean",
+                     "layer1":  "stardewcraft:item/quality/iridium_star",
+                     "particle":  "stardewcraft:item/crops/spring/green_bean"
+                 }
 }

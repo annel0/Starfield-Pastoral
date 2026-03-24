@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:block/cube_all",
-  "textures": {
-    "all": "stardewcraft:block/mine/lava_basalt"
-  }
+﻿{
+    "parent":  "minecraft:block/cube_all",
+    "textures":  {
+                     "all":  "stardewcraft:block/mine/lava_basalt",
+                     "particle":  "stardewcraft:block/mine/lava_basalt"
+                 }
 }

@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/crops/spring/potato_seeds"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/crops/spring/potato_seeds",
+                     "particle":  "stardewcraft:item/crops/spring/potato_seeds"
+                 }
 }

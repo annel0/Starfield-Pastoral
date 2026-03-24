@@ -1,9 +1,27 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": { "layer0": "stardewcraft:item/fish/legendary/legend" },
-  "overrides": [
-    { "predicate": { "custom_model_data": 1 }, "model": "stardewcraft:item/legend_silver" },
-    { "predicate": { "custom_model_data": 2 }, "model": "stardewcraft:item/legend_gold" },
-    { "predicate": { "custom_model_data": 3 }, "model": "stardewcraft:item/legend_iridium" }
-  ]
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/fish/legendary/legend",
+                     "particle":  "stardewcraft:item/fish/legendary/legend"
+                 },
+    "overrides":  [
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  1
+                                        },
+                          "model":  "stardewcraft:item/legend_silver"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2
+                                        },
+                          "model":  "stardewcraft:item/legend_gold"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3
+                                        },
+                          "model":  "stardewcraft:item/legend_iridium"
+                      }
+                  ]
 }

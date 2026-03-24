@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/tree/maple_seed"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/tree/maple_seed",
+                     "particle":  "stardewcraft:item/tree/maple_seed"
+                 }
 }

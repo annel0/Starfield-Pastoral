@@ -1,0 +1,573 @@
+﻿{
+    "multipart":  [
+                      {
+                          "when":  {
+                                       "has_cloth":  "false"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_top"
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "has_cloth":  "true"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_top_clothed"
+                                    }
+                      },
+                      {
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_apron_core"
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "true"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_apron_n"
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "east_connected":  "true"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_apron_e"
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "south_connected":  "true"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_apron_s"
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "west_connected":  "true"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_apron_w"
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "OR":  [
+                                                  {
+                                                      "north_connected":  "false",
+                                                      "west_connected":  "false"
+                                                  },
+                                                  {
+                                                      "north_connected":  "true",
+                                                      "north_west_connected":  "false",
+                                                      "west_connected":  "true"
+                                                  }
+                                              ]
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_leg_nw"
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "OR":  [
+                                                  {
+                                                      "north_connected":  "false",
+                                                      "east_connected":  "false"
+                                                  },
+                                                  {
+                                                      "north_connected":  "true",
+                                                      "east_connected":  "true",
+                                                      "north_east_connected":  "false"
+                                                  }
+                                              ]
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_leg_ne"
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "OR":  [
+                                                  {
+                                                      "south_connected":  "false",
+                                                      "east_connected":  "false"
+                                                  },
+                                                  {
+                                                      "south_east_connected":  "false",
+                                                      "east_connected":  "true",
+                                                      "south_connected":  "true"
+                                                  }
+                                              ]
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_leg_se"
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "OR":  [
+                                                  {
+                                                      "south_connected":  "false",
+                                                      "west_connected":  "false"
+                                                  },
+                                                  {
+                                                      "south_west_connected":  "false",
+                                                      "west_connected":  "true",
+                                                      "south_connected":  "true"
+                                                  }
+                                              ]
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_leg_sw"
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "true",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "0",
+                                       "east_connected":  "true",
+                                       "west_connected":  "true",
+                                       "south_connected":  "true"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_edge_0_none"
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "false",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "0",
+                                       "east_connected":  "true",
+                                       "west_connected":  "true",
+                                       "south_connected":  "true"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_edge_1_n",
+                                        "y":  0
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "true",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "0",
+                                       "east_connected":  "false",
+                                       "west_connected":  "true",
+                                       "south_connected":  "true"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_edge_1_n",
+                                        "y":  90
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "true",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "0",
+                                       "east_connected":  "true",
+                                       "west_connected":  "true",
+                                       "south_connected":  "false"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_edge_1_n",
+                                        "y":  180
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "true",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "0",
+                                       "east_connected":  "true",
+                                       "west_connected":  "false",
+                                       "south_connected":  "true"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_edge_1_n",
+                                        "y":  270
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "false",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "0",
+                                       "east_connected":  "false",
+                                       "west_connected":  "true",
+                                       "south_connected":  "true"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_edge_2_ne",
+                                        "y":  0
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "true",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "0",
+                                       "east_connected":  "false",
+                                       "west_connected":  "true",
+                                       "south_connected":  "false"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_edge_2_ne",
+                                        "y":  90
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "true",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "0",
+                                       "east_connected":  "true",
+                                       "west_connected":  "false",
+                                       "south_connected":  "false"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_edge_2_ne",
+                                        "y":  180
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "false",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "0",
+                                       "east_connected":  "true",
+                                       "west_connected":  "false",
+                                       "south_connected":  "true"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_edge_2_ne",
+                                        "y":  270
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "true",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "0",
+                                       "east_connected":  "false",
+                                       "west_connected":  "false",
+                                       "south_connected":  "true"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_edge_2_ew",
+                                        "y":  0
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "false",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "0",
+                                       "east_connected":  "true",
+                                       "west_connected":  "true",
+                                       "south_connected":  "false"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_edge_2_ew",
+                                        "y":  90
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "false",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "0",
+                                       "east_connected":  "false",
+                                       "west_connected":  "false",
+                                       "south_connected":  "true"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_edge_3_new",
+                                        "y":  0
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "false",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "0",
+                                       "east_connected":  "false",
+                                       "west_connected":  "true",
+                                       "south_connected":  "false"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_edge_3_new",
+                                        "y":  90
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "true",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "0",
+                                       "east_connected":  "false",
+                                       "west_connected":  "false",
+                                       "south_connected":  "false"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_edge_3_new",
+                                        "y":  180
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "false",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "0",
+                                       "east_connected":  "true",
+                                       "west_connected":  "false",
+                                       "south_connected":  "false"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_edge_3_new",
+                                        "y":  270
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "false",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "0",
+                                       "east_connected":  "false",
+                                       "west_connected":  "false",
+                                       "south_connected":  "false"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_edge_4_nesw"
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "true",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "1",
+                                       "east_connected":  "true",
+                                       "west_connected":  "true",
+                                       "south_connected":  "true"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_sky_edge_0_none"
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "false",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "1",
+                                       "east_connected":  "true",
+                                       "west_connected":  "true",
+                                       "south_connected":  "true"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_sky_edge_1_n",
+                                        "y":  0
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "true",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "1",
+                                       "east_connected":  "false",
+                                       "west_connected":  "true",
+                                       "south_connected":  "true"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_sky_edge_1_n",
+                                        "y":  90
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "true",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "1",
+                                       "east_connected":  "true",
+                                       "west_connected":  "true",
+                                       "south_connected":  "false"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_sky_edge_1_n",
+                                        "y":  180
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "true",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "1",
+                                       "east_connected":  "true",
+                                       "west_connected":  "false",
+                                       "south_connected":  "true"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_sky_edge_1_n",
+                                        "y":  270
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "false",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "1",
+                                       "east_connected":  "false",
+                                       "west_connected":  "true",
+                                       "south_connected":  "true"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_sky_edge_2_ne",
+                                        "y":  0
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "true",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "1",
+                                       "east_connected":  "false",
+                                       "west_connected":  "true",
+                                       "south_connected":  "false"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_sky_edge_2_ne",
+                                        "y":  90
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "true",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "1",
+                                       "east_connected":  "true",
+                                       "west_connected":  "false",
+                                       "south_connected":  "false"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_sky_edge_2_ne",
+                                        "y":  180
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "false",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "1",
+                                       "east_connected":  "true",
+                                       "west_connected":  "false",
+                                       "south_connected":  "true"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_sky_edge_2_ne",
+                                        "y":  270
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "true",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "1",
+                                       "east_connected":  "false",
+                                       "west_connected":  "false",
+                                       "south_connected":  "true"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_sky_edge_2_ew",
+                                        "y":  0
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "false",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "1",
+                                       "east_connected":  "true",
+                                       "west_connected":  "true",
+                                       "south_connected":  "false"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_sky_edge_2_ew",
+                                        "y":  90
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "false",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "1",
+                                       "east_connected":  "false",
+                                       "west_connected":  "false",
+                                       "south_connected":  "true"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_sky_edge_3_new",
+                                        "y":  0
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "false",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "1",
+                                       "east_connected":  "false",
+                                       "west_connected":  "true",
+                                       "south_connected":  "false"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_sky_edge_3_new",
+                                        "y":  90
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "true",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "1",
+                                       "east_connected":  "false",
+                                       "west_connected":  "false",
+                                       "south_connected":  "false"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_sky_edge_3_new",
+                                        "y":  180
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "false",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "1",
+                                       "east_connected":  "true",
+                                       "west_connected":  "false",
+                                       "south_connected":  "false"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_sky_edge_3_new",
+                                        "y":  270
+                                    }
+                      },
+                      {
+                          "when":  {
+                                       "north_connected":  "false",
+                                       "has_cloth":  "true",
+                                       "cloth_style":  "1",
+                                       "east_connected":  "false",
+                                       "west_connected":  "false",
+                                       "south_connected":  "false"
+                                   },
+                          "apply":  {
+                                        "model":  "stardewcraft:block/utility/oak_table_cloth_sky_edge_4_nesw"
+                                    }
+                      }
+                  ]
+}

@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:block/cube_all",
-  "textures": {
-    "all": "stardewcraft:block/mine/lava_iridium_ore"
-  }
+﻿{
+    "parent":  "minecraft:block/cube_all",
+    "textures":  {
+                     "all":  "stardewcraft:block/mine/lava_iridium_ore",
+                     "particle":  "stardewcraft:block/mine/lava_iridium_ore"
+                 }
 }

@@ -289,6 +289,15 @@
       "emissive": true,
       "lightLevel": 15,
       "tags": ["window", "emissive", "wall"]
+    },
+    {
+      "sourceFile": "models/decor/common/fireplace_1.json",
+      "purpose": "large_fireplace_01",
+      "mountType": "floor",
+      "sizeClass": "multi",
+      "collisionProfile": "solid",
+      "interactive": false,
+      "tags": ["fireplace", "stone", "floor", "large"]
     }
   ]
 }

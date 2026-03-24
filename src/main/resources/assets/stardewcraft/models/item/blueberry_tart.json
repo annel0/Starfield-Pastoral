@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/blueberry_tart"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/blueberry_tart",
+                     "particle":  "stardewcraft:item/cooking/blueberry_tart"
+                 }
 }

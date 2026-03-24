@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:block/cube_all",
-  "textures": {
-    "all": "stardewcraft:block/mine/scoria"
-  }
+﻿{
+    "parent":  "minecraft:block/cube_all",
+    "textures":  {
+                     "all":  "stardewcraft:block/mine/scoria",
+                     "particle":  "stardewcraft:block/mine/scoria"
+                 }
 }

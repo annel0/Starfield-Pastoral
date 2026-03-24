@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/mineral/esperite"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/mineral/esperite",
+                     "particle":  "stardewcraft:item/mineral/esperite"
+                 }
 }

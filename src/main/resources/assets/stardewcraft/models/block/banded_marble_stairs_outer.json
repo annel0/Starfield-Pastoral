@@ -1,1 +1,9 @@
-{"parent":"minecraft:block/outer_stairs","textures":{"bottom":"stardewcraft:block/mine/banded_marble","top":"stardewcraft:block/mine/banded_marble","side":"stardewcraft:block/mine/banded_marble"}}
+﻿{
+    "parent":  "minecraft:block/outer_stairs",
+    "textures":  {
+                     "bottom":  "stardewcraft:block/mine/banded_marble",
+                     "top":  "stardewcraft:block/mine/banded_marble",
+                     "side":  "stardewcraft:block/mine/banded_marble",
+                     "particle":  "stardewcraft:block/mine/banded_marble"
+                 }
+}

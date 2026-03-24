@@ -1,4 +1,8 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": { "layer0": "stardewcraft:item/fish/crabpot/mussel", "layer1": "stardewcraft:item/quality/iridium_star" }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/fish/crabpot/mussel",
+                     "layer1":  "stardewcraft:item/quality/iridium_star",
+                     "particle":  "stardewcraft:item/fish/crabpot/mussel"
+                 }
 }

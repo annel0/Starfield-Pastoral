@@ -1,28 +1,77 @@
-{
-  "parent": "minecraft:item/handheld",
-  "textures": {
-    "layer0": "stardewcraft:item/tool/scythe/scythe"
-  },
-  "display": {
-    "thirdperson_righthand": {
-      "rotation": [-9.04, -34.38, -45.18],
-      "translation": [0, 5.5, 0],
-      "scale": [1, 1, 1]
-    },
-    "thirdperson_lefthand": {
-      "rotation": [177.42, 12.11, -145.2],
-      "translation": [-1.25, 7.25, 1.25],
-      "scale": [1, 1, 1]
-    },
-    "firstperson_righthand": {
-      "rotation": [22.75, -71, 0],
-      "translation": [0, 4.25, 0],
-      "scale": [0.8, 0.8, 0.8]
-    },
-    "firstperson_lefthand": {
-      "rotation": [-22.75, 71, 0],
-      "translation": [0, 3.25, 0],
-      "scale": [0.8, 0.8, 0.8]
-    }
-  }
+﻿{
+    "parent":  "minecraft:item/handheld",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/tool/scythe/scythe",
+                     "particle":  "stardewcraft:item/tool/scythe/scythe"
+                 },
+    "display":  {
+                    "thirdperson_righthand":  {
+                                                  "rotation":  [
+                                                                   -9.04,
+                                                                   -34.38,
+                                                                   -45.18
+                                                               ],
+                                                  "translation":  [
+                                                                      0,
+                                                                      5.5,
+                                                                      0
+                                                                  ],
+                                                  "scale":  [
+                                                                1,
+                                                                1,
+                                                                1
+                                                            ]
+                                              },
+                    "thirdperson_lefthand":  {
+                                                 "rotation":  [
+                                                                  177.42,
+                                                                  12.11,
+                                                                  -145.2
+                                                              ],
+                                                 "translation":  [
+                                                                     -1.25,
+                                                                     7.25,
+                                                                     1.25
+                                                                 ],
+                                                 "scale":  [
+                                                               1,
+                                                               1,
+                                                               1
+                                                           ]
+                                             },
+                    "firstperson_righthand":  {
+                                                  "rotation":  [
+                                                                   22.75,
+                                                                   -71,
+                                                                   0
+                                                               ],
+                                                  "translation":  [
+                                                                      0,
+                                                                      4.25,
+                                                                      0
+                                                                  ],
+                                                  "scale":  [
+                                                                0.8,
+                                                                0.8,
+                                                                0.8
+                                                            ]
+                                              },
+                    "firstperson_lefthand":  {
+                                                 "rotation":  [
+                                                                  -22.75,
+                                                                  71,
+                                                                  0
+                                                              ],
+                                                 "translation":  [
+                                                                     0,
+                                                                     3.25,
+                                                                     0
+                                                                 ],
+                                                 "scale":  [
+                                                               0.8,
+                                                               0.8,
+                                                               0.8
+                                                           ]
+                                             }
+                }
 }

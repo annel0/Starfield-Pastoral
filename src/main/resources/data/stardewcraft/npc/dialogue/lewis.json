@@ -1,0 +1,9 @@
+{
+  "npc_id": "lewis",
+  "entries": {
+    "default": [
+      "Welcome to Stardew Valley.",
+      "As mayor, I keep things running around here."
+    ]
+  }
+}

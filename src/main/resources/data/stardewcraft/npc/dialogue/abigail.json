@@ -1,0 +1,9 @@
+{
+  "npc_id": "abigail",
+  "entries": {
+    "default": [
+      "Hey. I'm Abigail.",
+      "I hope this place feels alive like Pelican Town."
+    ]
+  }
+}

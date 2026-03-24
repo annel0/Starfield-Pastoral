@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/crispy_bass"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/crispy_bass",
+                     "particle":  "stardewcraft:item/cooking/crispy_bass"
+                 }
 }

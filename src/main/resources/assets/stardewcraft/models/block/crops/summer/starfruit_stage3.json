@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:block/cross",
-  "textures": {
-    "cross": "stardewcraft:block/crops/summer/starfruit_stage3"
-  }
+﻿{
+    "parent":  "minecraft:block/cross",
+    "textures":  {
+                     "cross":  "stardewcraft:block/crops/summer/starfruit_stage3",
+                     "particle":  "stardewcraft:block/crops/summer/starfruit_stage3"
+                 }
 }

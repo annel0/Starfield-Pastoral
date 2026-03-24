@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking_ingredient/wheat_flour"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking_ingredient/wheat_flour",
+                     "particle":  "stardewcraft:item/cooking_ingredient/wheat_flour"
+                 }
 }

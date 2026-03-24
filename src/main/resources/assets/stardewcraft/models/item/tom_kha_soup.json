@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/tom_kha_soup"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/tom_kha_soup",
+                     "particle":  "stardewcraft:item/cooking/tom_kha_soup"
+                 }
 }

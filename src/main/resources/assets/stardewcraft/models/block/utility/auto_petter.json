@@ -1,6 +1,7 @@
-{
-  "parent": "block/cube_all",
-  "textures": {
-    "all": "stardewcraft:block/utility/auto_petter"
-  }
+﻿{
+    "parent":  "block/cube_all",
+    "textures":  {
+                     "all":  "stardewcraft:block/utility/auto_petter",
+                     "particle":  "stardewcraft:block/utility/auto_petter"
+                 }
 }

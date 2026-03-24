@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/handheld",
-  "textures": {
-    "layer0": "stardewcraft:item/tool/pickaxe/pickaxe"
-  }
+﻿{
+    "parent":  "minecraft:item/handheld",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/tool/pickaxe/pickaxe",
+                     "particle":  "stardewcraft:item/tool/pickaxe/pickaxe"
+                 }
 }

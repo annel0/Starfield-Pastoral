@@ -95,6 +95,10 @@ public final class ModBlockEntities {
 			BLOCK_ENTITIES.register("crab_pot", () -> BlockEntityType.Builder.of(CrabPotBlockEntity::new, ModBlocks.CRAB_POT.get()).build(null));
 
 	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MuseumExhibitStandBlockEntity>> MUSEUM_EXHIBIT_STAND =
+			BLOCK_ENTITIES.register("museum_exhibit_stand", () -> BlockEntityType.Builder.of(MuseumExhibitStandBlockEntity::new, ModBlocks.MUSEUM_EXHIBIT_STAND.get()).build(null));
+
+	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<WormBinBlockEntity>> WORM_BIN =
 			BLOCK_ENTITIES.register("worm_bin", () -> BlockEntityType.Builder.of(WormBinBlockEntity::new, ModBlocks.WORM_BIN.get()).build(null));
 
@@ -145,5 +149,9 @@ public final class ModBlockEntities {
 	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DecorBlockEntity>> DECOR_BLOCK =
 			BLOCK_ENTITIES.register("decor_block", () -> BlockEntityType.Builder.of(DecorBlockEntity::new, ModBlocks.WALLPAPER_BLOCK.get(), ModBlocks.FLOORING_BLOCK.get()).build(null));
+
+	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<LargeFireplaceBlockEntity>> LARGE_FIREPLACE =
+			BLOCK_ENTITIES.register("large_fireplace", () -> BlockEntityType.Builder.of(LargeFireplaceBlockEntity::new, ModBlocks.LARGE_FIREPLACE_1.get()).build(null));
 
 	}

@@ -1,9 +1,27 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": { "layer0": "stardewcraft:item/fish/lake/bullhead" },
-  "overrides": [
-    { "predicate": { "custom_model_data": 1 }, "model": "stardewcraft:item/bullhead_silver" },
-    { "predicate": { "custom_model_data": 2 }, "model": "stardewcraft:item/bullhead_gold" },
-    { "predicate": { "custom_model_data": 3 }, "model": "stardewcraft:item/bullhead_iridium" }
-  ]
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/fish/lake/bullhead",
+                     "particle":  "stardewcraft:item/fish/lake/bullhead"
+                 },
+    "overrides":  [
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  1
+                                        },
+                          "model":  "stardewcraft:item/bullhead_silver"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2
+                                        },
+                          "model":  "stardewcraft:item/bullhead_gold"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3
+                                        },
+                          "model":  "stardewcraft:item/bullhead_iridium"
+                      }
+                  ]
 }

@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking_ingredient/sugar"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking_ingredient/sugar",
+                     "particle":  "stardewcraft:item/cooking_ingredient/sugar"
+                 }
 }

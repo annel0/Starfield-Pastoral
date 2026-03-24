@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/utility/preserves_jar"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/utility/preserves_jar",
+                     "particle":  "stardewcraft:item/utility/preserves_jar"
+                 }
 }

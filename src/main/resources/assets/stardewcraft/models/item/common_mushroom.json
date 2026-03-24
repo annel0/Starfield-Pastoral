@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/forage/common_mushroom"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/forage/common_mushroom",
+                     "particle":  "stardewcraft:item/forage/common_mushroom"
+                 }
 }

@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/artisan/animal/truffle_oil"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/artisan/animal/truffle_oil",
+                     "particle":  "stardewcraft:item/artisan/animal/truffle_oil"
+                 }
 }

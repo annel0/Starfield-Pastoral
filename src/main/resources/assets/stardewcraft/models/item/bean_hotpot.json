@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/bean_hotpot"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/bean_hotpot",
+                     "particle":  "stardewcraft:item/cooking/bean_hotpot"
+                 }
 }

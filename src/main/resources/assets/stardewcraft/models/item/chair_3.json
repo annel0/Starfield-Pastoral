@@ -1,0 +1,6 @@
+﻿{
+    "parent":  "stardewcraft:decor/common/chair_3",
+    "textures":  {
+                     "particle":  "stardewcraft:block/decor/common/chair_3"
+                 }
+}

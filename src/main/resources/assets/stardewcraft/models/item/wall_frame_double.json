@@ -1,3 +1,6 @@
-{
-  "parent": "stardewcraft:decor/wall_decor/common/wall_frame_double"
+﻿{
+    "parent":  "stardewcraft:decor/wall_decor/common/wall_frame_double",
+    "textures":  {
+                     "particle":  "stardewcraft:block/deco/misc/pierres_shop/8_11"
+                 }
 }

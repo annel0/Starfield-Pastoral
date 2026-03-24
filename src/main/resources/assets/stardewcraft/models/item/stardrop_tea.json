@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/misc/stardrop_tea"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/misc/stardrop_tea",
+                     "particle":  "stardewcraft:item/misc/stardrop_tea"
+                 }
 }

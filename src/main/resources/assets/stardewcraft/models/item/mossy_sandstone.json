@@ -1,3 +1,6 @@
-{
-  "parent": "stardewcraft:block/mossy_sandstone"
+﻿{
+    "parent":  "stardewcraft:block/mossy_sandstone",
+    "textures":  {
+                     "particle":  "stardewcraft:block/mine/mossy_sandstone"
+                 }
 }

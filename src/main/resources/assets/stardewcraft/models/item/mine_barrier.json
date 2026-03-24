@@ -1,3 +1,6 @@
-{
-  "parent": "stardewcraft:block/mine_barrier"
+﻿{
+    "parent":  "stardewcraft:block/mine_barrier",
+    "textures":  {
+                     "particle":  "stardewcraft:block/mine/mine_barrier"
+                 }
 }

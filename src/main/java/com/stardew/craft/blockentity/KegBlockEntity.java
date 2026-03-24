@@ -16,6 +16,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.phys.AABB;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -272,5 +273,11 @@ public class KegBlockEntity extends TimedProductionBlockEntity {
 	@Override
 	public @Nullable Packet<ClientGamePacketListener> getUpdatePacket() {
 		return ClientboundBlockEntityDataPacket.create(this);
+	}
+
+	@SuppressWarnings("null")
+	public AABB getRenderBoundingBox() {
+		// Keg visuals can span beyond one block when using model-driven extension geometry.
+		return new AABB(worldPosition).inflate(2.0D, 1.0D, 2.0D);
 	}
 }

@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/fertilizer/quality_retaining_soil"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/fertilizer/quality_retaining_soil",
+                     "particle":  "stardewcraft:item/fertilizer/quality_retaining_soil"
+                 }
 }

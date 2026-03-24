@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/poppyseed_muffin"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/poppyseed_muffin",
+                     "particle":  "stardewcraft:item/cooking/poppyseed_muffin"
+                 }
 }

@@ -1,6 +1,7 @@
 package com.stardew.craft.event;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.entity.npc.StardewNpcEntity;
 import com.stardew.craft.interior.InteriorSubspaceManager;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
@@ -22,6 +23,12 @@ public final class InteriorSubspaceMobSpawnEvents {
         if (!(event.getEntity() instanceof Mob mob)) {
             return;
         }
+
+        // Stardew NPC 也属于 Mob，不能被室内禁刷逻辑误伤。
+        if (mob instanceof StardewNpcEntity) {
+            return;
+        }
+
         if (!InteriorSubspaceManager.isInteriorRegion(level, mob.blockPosition())) {
             return;
         }

@@ -1,3 +1,6 @@
-{
-  "parent": "stardewcraft:decor/wall_decor/common/wall_photo_white_hall"
+﻿{
+    "parent":  "stardewcraft:decor/wall_decor/common/wall_photo_white_hall",
+    "textures":  {
+                     "particle":  "stardewcraft:block/deco/misc/pierres_shop/wall_photo_white_hall"
+                 }
 }

@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/cranberry_sauce"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/cranberry_sauce",
+                     "particle":  "stardewcraft:item/cooking/cranberry_sauce"
+                 }
 }

@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/artisan/juice/red_cabbage"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/artisan/juice/red_cabbage",
+                     "particle":  "stardewcraft:item/artisan/juice/red_cabbage"
+                 }
 }

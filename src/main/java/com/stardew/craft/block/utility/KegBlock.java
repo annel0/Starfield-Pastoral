@@ -1,7 +1,6 @@
 package com.stardew.craft.block.utility;
 
 import com.stardew.craft.block.ModBlocks;
-import com.stardew.craft.block.shape.ModelVoxelShapeCache;
 import com.stardew.craft.blockentity.UtilityDropHelper;
 import com.stardew.craft.blockentity.InsertResult;
 import com.stardew.craft.blockentity.KegBlockEntity;
@@ -10,33 +9,24 @@ import com.stardew.craft.blockentity.MissingItemRequirement;
 import com.stardew.craft.network.MissingItemHudMessagePacket;
 import com.stardew.craft.sound.ModSounds;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
-import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.RenderShape;
-import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.VoxelShape;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -44,23 +34,20 @@ import java.util.List;
 /**
  * 小桶（Keg）- 将作物加工为果酒/果汁/饮品
  */
-public class KegBlock extends Block implements EntityBlock {
-	public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+public class KegBlock extends MapUtilityStaticBlock implements EntityBlock {
 	public static final BooleanProperty WORKING = BooleanProperty.create("working");
-
-	private static final VoxelShape[] SHAPES = ModelVoxelShapeCache.horizontalShapes("stardewcraft:block/utility/keg", Direction.SOUTH);
 
 	@SuppressWarnings("null")
 	public KegBlock(Properties properties) {
-		super(properties);
-		registerDefaultState(stateDefinition.any()
-			.setValue(FACING, Direction.NORTH)
-			.setValue(WORKING, false));
+		super(properties, "stardewcraft:block/utility/keg");
+		registerDefaultState(defaultBlockState().setValue(WORKING, false));
 	}
 
+	@SuppressWarnings("null")
 	@Override
 	protected void createBlockStateDefinition(@SuppressWarnings("null") StateDefinition.Builder<Block, BlockState> builder) {
-		builder.add(FACING, WORKING);
+		super.createBlockStateDefinition(builder);
+		builder.add(WORKING);
 	}
 
 	@Override
@@ -72,30 +59,29 @@ public class KegBlock extends Block implements EntityBlock {
 	@SuppressWarnings("null")
 	@Override
 	protected List<ItemStack> getDrops(@SuppressWarnings("null") BlockState state, @SuppressWarnings("null") LootParams.Builder params) {
+		if (state.getValue(PART) == Part.EXTENSION) {
+			return List.of();
+		}
 		return List.of(new ItemStack(ModBlocks.KEG.get()));
 	}
 
 	@SuppressWarnings("null")
 	@Override
-	public VoxelShape getShape(@SuppressWarnings("null") BlockState state, @SuppressWarnings("null") BlockGetter level, @SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") CollisionContext context) {
-		return SHAPES[ModelVoxelShapeCache.horizontalIndex(state.getValue(FACING))];
+	@Nullable
+	public BlockEntity newBlockEntity(@SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") BlockState state) {
+		if (state.getValue(PART) == Part.EXTENSION) {
+			return null;
+		}
+		return new KegBlockEntity(pos, state);
 	}
 
 	@SuppressWarnings("null")
 	@Override
-	public VoxelShape getCollisionShape(@SuppressWarnings("null") BlockState state, @SuppressWarnings("null") BlockGetter level, @SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") CollisionContext context) {
-		return SHAPES[ModelVoxelShapeCache.horizontalIndex(state.getValue(FACING))];
-	}
-
-	@Override
-	@Nullable
-	public BlockEntity newBlockEntity(@SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") BlockState state) {
-		return new KegBlockEntity(pos, state);
-	}
-
-	@Override
 	@Nullable
 	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(@SuppressWarnings("null") Level level, @SuppressWarnings("null") BlockState state, @SuppressWarnings("null") BlockEntityType<T> type) {
+		if (state.getValue(PART) == Part.EXTENSION) {
+			return null;
+		}
 		if (type != ModBlockEntities.KEG.get()) {
 			return null;
 		}
@@ -107,25 +93,15 @@ public class KegBlock extends Block implements EntityBlock {
 
 	@SuppressWarnings("null")
 	@Override
-	public BlockState getStateForPlacement(@SuppressWarnings("null") BlockPlaceContext context) {
-		return defaultBlockState().setValue(FACING, context.getHorizontalDirection());
-	}
-
-	@SuppressWarnings("null")
-	@Override
-	public BlockState rotate(@SuppressWarnings("null") BlockState state, @SuppressWarnings("null") Rotation rotation) {
-		return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
-	}
-
-	@SuppressWarnings("null")
-	@Override
-	public BlockState mirror(@SuppressWarnings("null") BlockState state, @SuppressWarnings("null") Mirror mirror) {
-		return state.rotate(mirror.getRotation(state.getValue(FACING)));
-	}
-
-	@SuppressWarnings("null")
-	@Override
 	protected ItemInteractionResult useItemOn(@SuppressWarnings("null") ItemStack stack, @SuppressWarnings("null") BlockState state, @SuppressWarnings("null") Level level, @SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") Player player, @SuppressWarnings("null") InteractionHand hand, @SuppressWarnings("null") BlockHitResult hit) {
+		if (state.getValue(PART) == Part.EXTENSION) {
+			BlockPos mainPos = findMainPos(level, pos, state);
+			if (mainPos == null) {
+				return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+			}
+			return useItemOn(stack, level.getBlockState(mainPos), level, mainPos, player, hand, hit);
+		}
+
 		if (level.isClientSide) {
 			return ItemInteractionResult.sidedSuccess(true);
 		}
@@ -171,7 +147,7 @@ public class KegBlock extends Block implements EntityBlock {
 	@SuppressWarnings("null")
 	@Override
 	public void onRemove(@SuppressWarnings("null") BlockState state, @SuppressWarnings("null") Level level, @SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") BlockState newState, boolean isMoving) {
-		if (!state.is(newState.getBlock()) && !isMoving) {
+		if (!state.is(newState.getBlock()) && !isMoving && state.getValue(PART) == Part.MAIN) {
 			UtilityDropHelper.dropAutomationContents(level, pos);
 		}
 		super.onRemove(state, level, pos, newState, isMoving);
@@ -180,6 +156,14 @@ public class KegBlock extends Block implements EntityBlock {
 	@SuppressWarnings("null")
 	@Override
 	protected InteractionResult useWithoutItem(@SuppressWarnings("null") BlockState state, @SuppressWarnings("null") Level level, @SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") Player player, @SuppressWarnings("null") BlockHitResult hit) {
+		if (state.getValue(PART) == Part.EXTENSION) {
+			BlockPos mainPos = findMainPos(level, pos, state);
+			if (mainPos == null) {
+				return InteractionResult.PASS;
+			}
+			return useWithoutItem(level.getBlockState(mainPos), level, mainPos, player, hit);
+		}
+
 		if (level.isClientSide) {
 			return InteractionResult.SUCCESS;
 		}

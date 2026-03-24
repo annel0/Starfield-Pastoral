@@ -2,23 +2,26 @@ package com.stardew.craft.client.gui.menu;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.client.ClientPlayerDataCache;
+import com.stardew.craft.client.NpcFriendshipClientCache;
 import com.stardew.craft.client.gui.common.StardewRenderMapping;
 import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
+import com.stardew.craft.network.payload.RequestNpcFriendshipOverviewPayload;
 import com.stardew.craft.network.payload.CraftingMenuCraftSubmitPayload;
 import com.stardew.craft.network.payload.CraftingMenuInventoryActionPayload;
 import com.stardew.craft.player.RecipeCatalogData;
 import com.stardew.craft.player.StardewCraftingRecipeData;
 import com.stardew.craft.sound.ModSounds;
-import com.mojang.math.Axis;
+import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.Mth;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -27,22 +30,27 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.Comparator;
 
 @SuppressWarnings({"null", "unused"})
 public class StardewGameMenuScreen extends Screen {
     private static final int STD_TILE_SIZE = 16;
-    private static final ResourceLocation VANILLA_PAGE_UP = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/crafting/vanilla_page_up.png");
-    private static final ResourceLocation VANILLA_PAGE_DOWN = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/crafting/vanilla_page_down.png");
-    private static final ResourceLocation VANILLA_TRASH_BODY = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/crafting/vanilla_trashcan_body.png");
-    private static final ResourceLocation VANILLA_TRASH_LID = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/crafting/vanilla_trashcan_lid.png");
     private static final int TRASH_W = 18;
     private static final int TRASH_BODY_H = 26;
     private static final int TRASH_LID_H = 10;
+    private static final int TRASH_U_BASE = 564;
+    private static final int TRASH_BODY_V = 102;
+    private static final int TRASH_LID_V = 129;
     private static final float ITEM_VISUAL_SCALE = 1.0f;
     private static final int CARRIED_ITEM_OFFSET_SDV = 16;
     private static final int INVENTORY_COLS = 9;
@@ -65,6 +73,20 @@ public class StardewGameMenuScreen extends Screen {
 
     private static final int[] TAB_SHEET_INDEX = new int[] {0, 1, 2, 3, 4, -1, -1, 5, 6, 7};
     private static final int TAB_COUNT = 10;
+    private static final int TAB_SOCIAL = 2;
+
+    private static final int SOCIAL_ROW_HEIGHT_SDV = 112;
+    private static final int SOCIAL_MAX_VISIBLE = 5;
+    private static final int[][] SOCIAL_HEART_FILL_PATTERN = new int[][] {
+        {1, 1, 0, 1, 1},
+        {1, 1, 1, 1, 1},
+        {0, 1, 1, 1, 0},
+        {0, 0, 1, 0, 0}
+    };
+    private static final Set<String> DATEABLE_NPCS = Set.of(
+        "abigail", "alex", "elliott", "emily", "haley", "harvey", "leah", "maru", "penny", "sam", "sebastian", "shane"
+    );
+    private static final Map<ResourceLocation, PortraitResource> SOCIAL_PORTRAIT_CACHE = new HashMap<>();
 
     private static final String[] TAB_KEYS = new String[] {
             "stardewcraft.game_menu.tab.inventory",
@@ -100,6 +122,41 @@ public class StardewGameMenuScreen extends Screen {
     
     private int currentFocusIndex = -1;
     private float showcaseAlpha = 0.0f;
+    private int socialScroll;
+    private boolean socialScrolling;
+
+    // Social tuning is intentionally disabled for strict vanilla parity.
+    private static final boolean socialTuneMode = false;
+    private int socialTuneTarget = -1;
+    private int socialTuneStep = 1;
+    private boolean socialTuneDragging;
+    private final int[] socialTuneOffsetX = new int[SOCIAL_TUNE_TARGET_COUNT];
+    private final int[] socialTuneOffsetY = new int[SOCIAL_TUNE_TARGET_COUNT];
+
+    private static final int SOCIAL_TUNE_TARGET_VLINE_LEFT = 0;
+    private static final int SOCIAL_TUNE_TARGET_VLINE_MIDDLE = 1;
+    private static final int SOCIAL_TUNE_TARGET_VLINE_RIGHT = 2;
+    private static final int SOCIAL_TUNE_TARGET_HLINE_1 = 3;
+    private static final int SOCIAL_TUNE_TARGET_HLINE_2 = 4;
+    private static final int SOCIAL_TUNE_TARGET_HLINE_3 = 5;
+    private static final int SOCIAL_TUNE_TARGET_HLINE_4 = 6;
+    private static final int SOCIAL_TUNE_TARGET_PORTRAIT = 7;
+    private static final int SOCIAL_TUNE_TARGET_NAME = 8;
+    private static final int SOCIAL_TUNE_TARGET_HEARTS = 9;
+    private static final int SOCIAL_TUNE_TARGET_GIFT_ICON = 10;
+    private static final int SOCIAL_TUNE_TARGET_GIFT_BOX_1 = 11;
+    private static final int SOCIAL_TUNE_TARGET_GIFT_BOX_2 = 12;
+    private static final int SOCIAL_TUNE_TARGET_TALK_ICON = 13;
+    private static final int SOCIAL_TUNE_TARGET_TALK_BOX = 14;
+    private static final int SOCIAL_TUNE_TARGET_COUNT = 15;
+
+    private static final String[] SOCIAL_TUNE_TARGET_LABELS = new String[] {
+        "VLINE_LEFT", "VLINE_MIDDLE", "VLINE_RIGHT",
+        "HLINE_1", "HLINE_2", "HLINE_3", "HLINE_4",
+        "PORTRAIT", "NAME", "HEARTS",
+        "GIFT_ICON", "GIFT_BOX_1", "GIFT_BOX_2",
+        "TALK_ICON", "TALK_BOX"
+    };
 
     private record RecipeRequirement(Ingredient ingredient, ItemStack icon, int need) {
     }
@@ -164,10 +221,14 @@ public class StardewGameMenuScreen extends Screen {
     }
 
     private boolean closeContains(double mouseX, double mouseY) {
-        int x = menuX + menuWidth - ui(CLOSE_X_OFFSET_SDV);
+        int x = menuX + activeMenuWidth() - ui(CLOSE_X_OFFSET_SDV);
         int y = menuY - ui(CLOSE_Y_OFFSET_SDV);
         int s = ui(CLOSE_SIZE_SDV);
         return mouseX >= x && mouseX < x + s && mouseY >= y && mouseY < y + s;
+    }
+
+    private int activeMenuWidth() {
+        return currentTab == TAB_SOCIAL ? socialPageWidth() : menuWidth;
     }
 
     @Override
@@ -180,7 +241,7 @@ public class StardewGameMenuScreen extends Screen {
             updateVisualFocus();
         }
 
-        StardewGuiUtil.drawDialogueBoxFrame(graphics, menuX, menuY, menuWidth, menuHeight);
+        StardewGuiUtil.drawDialogueBoxFrame(graphics, menuX, menuY, activeMenuWidth(), menuHeight);
         drawTabs(graphics);
         drawCloseButton(graphics);
         drawCurrentPage(graphics, mouseX, mouseY);
@@ -206,6 +267,264 @@ public class StardewGameMenuScreen extends Screen {
         if (hoveredTab >= 0) {
             graphics.renderTooltip(this.font, Component.translatable(TAB_KEYS[hoveredTab]), mouseX, mouseY);
         }
+
+        if (currentTab == TAB_SOCIAL && socialTuneMode) {
+            drawSocialTuneOverlay(graphics);
+        }
+    }
+
+    private int socialTuneUiX(int target) {
+        return 0;
+    }
+
+    private int socialTuneUiY(int target) {
+        return 0;
+    }
+
+    private int socialTuneHorizontalLineY(int lineIndex) {
+        int target = SOCIAL_TUNE_TARGET_HLINE_1 + lineIndex;
+        return socialVerticalStartY() + ui(lineIndex * SOCIAL_ROW_HEIGHT_SDV) + socialTuneUiY(target);
+    }
+
+    private int socialTuneHorizontalLineX(int lineIndex) {
+        return menuX;
+    }
+
+    private int socialPageWidth() {
+        return menuWidth + ui(36);
+    }
+
+    private int socialPageRightX() {
+        return menuX + socialPageWidth();
+    }
+
+    private int socialTuneVerticalLineX(int target) {
+        return switch (target) {
+            case SOCIAL_TUNE_TARGET_VLINE_LEFT -> menuX + ui(268);
+            case SOCIAL_TUNE_TARGET_VLINE_MIDDLE -> menuX + ui(620);
+            case SOCIAL_TUNE_TARGET_VLINE_RIGHT -> menuX + ui(752);
+            default -> menuX;
+        };
+    }
+
+    private int socialTuneVerticalLineStartY(int target) {
+        // Align social columns with the first content row to avoid excess top blank space.
+        return menuY + ui(64);
+    }
+
+    private int socialTuneTargetAt(double mouseX, double mouseY) {
+        for (int target = 0; target < SOCIAL_TUNE_TARGET_COUNT; target++) {
+            if (socialTuneTargetContains(target, mouseX, mouseY)) {
+                return target;
+            }
+        }
+
+        // Fallback: when clicking in social table area, snap to nearest separator target.
+        int contentTop = menuY;
+        int contentBottom = menuY + menuHeight;
+        if (mouseX >= menuX && mouseX <= socialPageRightX() && mouseY >= contentTop && mouseY <= contentBottom) {
+            int nearest = nearestSeparatorTarget(mouseX, mouseY);
+            if (nearest >= 0) {
+                return nearest;
+            }
+        }
+
+        return -1;
+    }
+
+    private int nearestSeparatorTarget(double mouseX, double mouseY) {
+        int bestTarget = SOCIAL_TUNE_TARGET_VLINE_LEFT;
+        double bestDistance = Double.MAX_VALUE;
+
+        int[] vTargets = {SOCIAL_TUNE_TARGET_VLINE_LEFT, SOCIAL_TUNE_TARGET_VLINE_MIDDLE, SOCIAL_TUNE_TARGET_VLINE_RIGHT};
+        for (int target : vTargets) {
+            double d = Math.abs(mouseX - socialTuneVerticalLineX(target));
+            if (d < bestDistance) {
+                bestDistance = d;
+                bestTarget = target;
+            }
+        }
+
+        for (int i = 0; i < 4; i++) {
+            int target = SOCIAL_TUNE_TARGET_HLINE_1 + i;
+            double d = Math.abs(mouseY - socialTuneHorizontalLineY(i));
+            if (d < bestDistance) {
+                bestDistance = d;
+                bestTarget = target;
+            }
+        }
+
+        double threshold = ui(24);
+        return bestDistance <= threshold ? bestTarget : -1;
+    }
+
+    private boolean socialTuneTargetContains(int target, double mouseX, double mouseY) {
+        int unit16 = ui(16);
+
+        int x;
+        int y;
+        int w;
+        int h;
+
+        switch (target) {
+            case SOCIAL_TUNE_TARGET_VLINE_LEFT, SOCIAL_TUNE_TARGET_VLINE_MIDDLE, SOCIAL_TUNE_TARGET_VLINE_RIGHT -> {
+                int pad = ui(4);
+                x = socialTuneVerticalLineX(target) - pad;
+                y = socialTuneVerticalLineStartY(target);
+                w = unit16 + pad * 2;
+                h = Math.max(0, menuHeight - ui(128));
+            }
+            case SOCIAL_TUNE_TARGET_HLINE_1, SOCIAL_TUNE_TARGET_HLINE_2, SOCIAL_TUNE_TARGET_HLINE_3, SOCIAL_TUNE_TARGET_HLINE_4 -> {
+                int lineIndex = target - SOCIAL_TUNE_TARGET_HLINE_1;
+                int pad = ui(4);
+                x = socialTuneHorizontalLineX(lineIndex);
+                y = socialTuneHorizontalLineY(lineIndex) - pad;
+                w = socialPageWidth();
+                h = unit16 + pad * 2;
+            }
+            case SOCIAL_TUNE_TARGET_PORTRAIT -> {
+                x = socialPortraitX();
+                w = ui(64);
+                h = ui(96);
+                for (int row = 0; row < SOCIAL_MAX_VISIBLE; row++) {
+                    y = socialRowPosition(row) + socialTuneUiY(SOCIAL_TUNE_TARGET_PORTRAIT);
+                    if (mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + h) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            case SOCIAL_TUNE_TARGET_NAME -> {
+                x = socialNameCenterX() - ui(72);
+                w = ui(144);
+                h = ui(36);
+                for (int row = 0; row < SOCIAL_MAX_VISIBLE; row++) {
+                    y = socialRowPosition(row) + ui(16) + socialTuneUiY(SOCIAL_TUNE_TARGET_NAME);
+                    if (mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + h) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            case SOCIAL_TUNE_TARGET_HEARTS -> {
+                x = socialHeartsBaseX();
+                w = ui(320);
+                h = ui(48);
+                for (int row = 0; row < SOCIAL_MAX_VISIBLE; row++) {
+                    y = socialRowPosition(row) + socialHeartsTopRowOffsetY();
+                    if (mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + h) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            case SOCIAL_TUNE_TARGET_GIFT_ICON -> {
+                x = socialGiftIconX();
+                w = ui(56);
+                h = ui(48);
+                for (int row = 0; row < SOCIAL_MAX_VISIBLE; row++) {
+                    y = socialRowPosition(row) + socialGiftIconOffsetY();
+                    if (mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + h) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            case SOCIAL_TUNE_TARGET_GIFT_BOX_1 -> {
+                x = socialGiftFirstBoxX();
+                w = ui(36);
+                h = ui(36);
+                for (int row = 0; row < SOCIAL_MAX_VISIBLE; row++) {
+                    y = socialRowPosition(row) + socialGiftBoxesOffsetY();
+                    if (mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + h) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            case SOCIAL_TUNE_TARGET_GIFT_BOX_2 -> {
+                x = socialGiftSecondBoxX();
+                w = ui(36);
+                h = ui(36);
+                for (int row = 0; row < SOCIAL_MAX_VISIBLE; row++) {
+                    y = socialRowPosition(row) + socialGiftBoxesOffsetY();
+                    if (mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + h) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            case SOCIAL_TUNE_TARGET_TALK_ICON -> {
+                x = socialTalkIconX();
+                w = ui(52);
+                h = ui(44);
+                for (int row = 0; row < SOCIAL_MAX_VISIBLE; row++) {
+                    y = socialRowPosition(row) + socialTalkIconOffsetY();
+                    if (mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + h) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            case SOCIAL_TUNE_TARGET_TALK_BOX -> {
+                x = socialTalkBoxX();
+                w = ui(36);
+                h = ui(36);
+                for (int row = 0; row < SOCIAL_MAX_VISIBLE; row++) {
+                    y = socialRowPosition(row) + socialTalkBoxOffsetY();
+                    if (mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + h) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            default -> {
+                return false;
+            }
+        }
+
+        return mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + h;
+    }
+
+    private void drawSocialTuneOverlay(GuiGraphics graphics) {
+        int x = menuX + ui(16);
+        int y = menuY - ui(22);
+        String label = socialTuneTarget >= 0 && socialTuneTarget < SOCIAL_TUNE_TARGET_LABELS.length
+            ? SOCIAL_TUNE_TARGET_LABELS[socialTuneTarget]
+            : "NONE";
+        String line = "SocialTune[F6] LeftClick=select Drag=move Wheel=step(" + socialTuneStep + ") R=reset selected Shift+R=reset all target=" + label;
+        graphics.drawString(this.font, line, x, y, 0xFFEEE2C2, false);
+    }
+
+    private boolean isShiftPressed(int modifiers) {
+        return (modifiers & GLFW.GLFW_MOD_SHIFT) != 0;
+    }
+
+    private boolean handleSocialTuneKey(int keyCode, int modifiers) {
+        return false;
+    }
+
+    private void applySocialTuneDelta(int dx, int dy) {
+        if (socialTuneTarget < 0 || socialTuneTarget >= SOCIAL_TUNE_TARGET_COUNT) {
+            return;
+        }
+        socialTuneOffsetX[socialTuneTarget] += dx;
+        socialTuneOffsetY[socialTuneTarget] += dy;
+    }
+
+    private void resetAllSocialTuneOffsets() {
+        for (int i = 0; i < SOCIAL_TUNE_TARGET_COUNT; i++) {
+            socialTuneOffsetX[i] = 0;
+            socialTuneOffsetY[i] = 0;
+        }
+    }
+
+    private void resetSocialTuneTarget(int target) {
+        if (target < 0 || target >= SOCIAL_TUNE_TARGET_COUNT) {
+            return;
+        }
+        socialTuneOffsetX[target] = 0;
+        socialTuneOffsetY[target] = 0;
     }
 
     private int hoveredTab(int mouseX, int mouseY) {
@@ -241,12 +560,17 @@ public class StardewGameMenuScreen extends Screen {
     }
 
     private void drawCloseButton(GuiGraphics graphics) {
-        int x = menuX + menuWidth - ui(CLOSE_X_OFFSET_SDV);
+        int x = menuX + activeMenuWidth() - ui(CLOSE_X_OFFSET_SDV);
         int y = menuY - ui(CLOSE_Y_OFFSET_SDV);
         StardewGuiUtil.drawFromCursors(graphics, x, y, 337, 494, 12, 12, mapping.s4());
     }
 
     private void drawCurrentPage(GuiGraphics graphics, int mouseX, int mouseY) {
+        if (currentTab == TAB_SOCIAL) {
+            drawSocialPage(graphics, mouseX, mouseY);
+            return;
+        }
+
         if (currentTab == 4) {
             drawCraftingPage(graphics, mouseX, mouseY);
             return;
@@ -262,6 +586,499 @@ public class StardewGameMenuScreen extends Screen {
 
         graphics.drawString(this.font, title, titleX, centerY - 10, 0xFFF3E6C6, false);
         graphics.drawString(this.font, line, lineX, centerY + 8, 0xFFD8C9A8, false);
+    }
+
+    private void drawSocialPage(GuiGraphics graphics, int mouseX, int mouseY) {
+        List<NpcFriendshipClientCache.Entry> all = visibleSocialEntries();
+        int total = all.size();
+        socialScroll = Mth.clamp(socialScroll, 0, socialMaxScroll(total));
+
+        // Exact vanilla separator style for SocialPage: small horizontal + small vertical partitions.
+        for (int i = 0; i < 4; i++) {
+            StardewGuiUtil.drawHorizontalPartitionSmall(
+                graphics,
+                socialTuneHorizontalLineX(i),
+                socialTuneHorizontalLineY(i),
+                socialPageWidth(),
+                mapping.s4()
+            );
+        }
+
+        drawSocialVerticalPartitions(graphics);
+
+        if (!all.isEmpty()) {
+            int toIndex = Math.min(total, socialScroll + SOCIAL_MAX_VISIBLE);
+            for (int i = socialScroll; i < toIndex; i++) {
+                int visibleRow = i - socialScroll;
+                drawSocialRow(graphics, all.get(i), visibleRow);
+            }
+        }
+
+        drawSocialScrollControls(graphics, total);
+    }
+
+    private int socialVerticalPartitionClipTopY() {
+        // Vanilla rowPosition(numFarmers - 1) resolves to y + 92 when no farmers are listed.
+        return Math.max(0, menuY + ui(92));
+    }
+
+    private void drawSocialVerticalPartitions(GuiGraphics graphics) {
+        int clipTop = socialVerticalPartitionClipTopY();
+        int clipBottom = Math.min(this.height, menuY + menuHeight);
+        if (clipBottom <= clipTop) {
+            return;
+        }
+
+        graphics.enableScissor(0, clipTop, this.width, clipBottom);
+        try {
+            StardewGuiUtil.drawVerticalPartitionSmall(graphics, socialVerticalLeftX(), menuY, menuHeight, mapping.s4());
+            StardewGuiUtil.drawVerticalPartitionSmall(graphics, socialVerticalMiddleX(), menuY, menuHeight, mapping.s4());
+            StardewGuiUtil.drawVerticalPartitionSmall(graphics, socialVerticalRightX(), menuY, menuHeight, mapping.s4());
+        } finally {
+            graphics.disableScissor();
+        }
+    }
+
+    private void drawSocialRow(GuiGraphics graphics,
+                               NpcFriendshipClientCache.Entry entry,
+                               int visibleRow) {
+        int y = socialRowPosition(visibleRow);
+        boolean datable = DATEABLE_NPCS.contains(normalizeNpcId(entry.npcId()));
+
+        String name = formatNpcName(entry.npcId());
+        drawSocialPortrait(graphics, entry.npcId(), socialPortraitX(), y);
+        // Name centered horizontally between portrait right edge and left partition line
+        int nameX = socialNameCenterX() - this.font.width(name) / 2;
+        int nameY = y + ui(datable ? 24 : 28);
+        graphics.drawString(this.font, name, nameX, nameY, 0xFF7B5A2F, false);
+
+        drawSocialHearts(graphics, entry, y);
+        drawSocialGiftAndTalkMarkers(graphics, entry, y);
+    }
+
+    private int socialLeftColumnStartX() {
+        return menuX + ui(BORDER_WIDTH);
+    }
+
+    private int socialLeftColumnEndX() {
+        return socialVerticalLeftX();
+    }
+
+    private int socialHeartsColumnStartX() {
+        return socialVerticalLeftX() + ui(64);
+    }
+
+    private int socialHeartsColumnEndX() {
+        return socialVerticalMiddleX();
+    }
+
+    private int socialGiftColumnStartX() {
+        return socialVerticalMiddleX() + ui(64);
+    }
+
+    private int socialGiftColumnEndX() {
+        return socialVerticalRightX();
+    }
+
+    private int socialTalkColumnStartX() {
+        return socialVerticalRightX() + ui(64);
+    }
+
+    private int socialTalkColumnEndX() {
+        return socialPageRightX() - ui(BORDER_WIDTH);
+    }
+
+    private int socialRowPosition(int index) {
+        return menuY + ui(64 + index * SOCIAL_ROW_HEIGHT_SDV);
+    }
+
+    private int socialContentTopY() {
+        return socialVerticalStartY();
+    }
+
+    private void drawSocialHearts(GuiGraphics graphics, NpcFriendshipClientCache.Entry entry, int rowY) {
+        int points = Math.max(0, entry.points());
+        int fullHearts = Math.max(0, Math.min(14, points / 250));
+        int maxHearts = Math.max(10, fullHearts);
+        boolean datableLocked = isDatableHeartLocked(entry);
+        for (int hearts = 0; hearts < maxHearts; hearts++) {
+            boolean isLockedHeart = datableLocked && hearts >= 8;
+            int u = (hearts < fullHearts || isLockedHeart) ? 211 : 218;
+            int drawX;
+            int drawY;
+            if (hearts < 10) {
+                drawX = socialHeartsBaseX() + ui(hearts * 32);
+                drawY = rowY + socialHeartsTopRowOffsetY();
+            } else {
+                drawX = socialHeartsBaseX() + ui((hearts - 10) * 32);
+                drawY = rowY + socialHeartsBottomRowOffsetY();
+            }
+            if (isLockedHeart && hearts < 10) {
+                StardewGuiUtil.drawFromCursorsTint(graphics, drawX, drawY, u, 428, 7, 6, mapping.s4(), 0.0f, 0.0f, 0.0f, 0.35f);
+            } else {
+                StardewGuiUtil.drawFromCursors(graphics, drawX, drawY, u, 428, 7, 6, mapping.s4(), 0.88f);
+            }
+        }
+
+        drawSocialHeartPartialFill(graphics, rowY, points, fullHearts, maxHearts);
+    }
+
+    private void drawSocialHeartPartialFill(GuiGraphics graphics, int rowY, int points, int fullHearts, int maxHearts) {
+        if (points <= 0 || fullHearts >= maxHearts) {
+            return;
+        }
+
+        int pointsToNextHeart = points % 250;
+        if (pointsToNextHeart <= 0) {
+            return;
+        }
+
+        int activeHeart = fullHearts;
+        int drawX;
+        int drawY;
+        if (activeHeart < 10) {
+            drawX = socialHeartsBaseX() + ui(activeHeart * 32);
+            drawY = rowY + socialHeartsTopRowOffsetY();
+        } else {
+            drawX = socialHeartsBaseX() + ui((activeHeart - 10) * 32);
+            drawY = rowY + socialHeartsBottomRowOffsetY();
+        }
+
+        int filledCells = Math.max(0, Math.min(20, (int) (pointsToNextHeart / 12.5f)));
+        if (filledCells <= 0) {
+            return;
+        }
+
+        int cell = Math.max(1, ui(4));
+        int offsetX = ui(2);
+        int offsetY = ui(2);
+        int remaining = filledCells;
+
+        for (int row = 3; row >= 0 && remaining > 0; row--) {
+            for (int col = 0; col < 5 && remaining > 0; col++) {
+                if (SOCIAL_HEART_FILL_PATTERN[row][col] != 1) {
+                    continue;
+                }
+                int x = drawX + offsetX + col * cell;
+                int y = drawY + offsetY + row * cell;
+                graphics.fill(x, y, x + cell, y + cell, 0xFFDC143C);
+                remaining--;
+            }
+        }
+    }
+
+    private void drawSocialGiftAndTalkMarkers(GuiGraphics graphics, NpcFriendshipClientCache.Entry entry, int rowY) {
+        StardewGuiUtil.drawFromCursors2(graphics, socialGiftIconX(), rowY + socialGiftIconOffsetY(), 166, 174, 14, 12, mapping.s4(), 0.88f);
+        StardewGuiUtil.drawFromCursors(graphics, socialGiftSecondBoxX(), rowY + socialGiftBoxesOffsetY(), 227 + (entry.giftsThisWeek() >= 2 ? 9 : 0), 425, 9, 9, mapping.s4(), 0.88f);
+        StardewGuiUtil.drawFromCursors(graphics, socialGiftFirstBoxX(), rowY + socialGiftBoxesOffsetY(), 227 + (entry.giftsThisWeek() >= 1 ? 9 : 0), 425, 9, 9, mapping.s4(), 0.88f);
+
+        StardewGuiUtil.drawFromCursors2(graphics, socialTalkIconX(), rowY + socialTalkIconOffsetY(), 180, 175, 13, 11, mapping.s4(), 0.88f);
+        StardewGuiUtil.drawFromCursors(graphics, socialTalkBoxX(), rowY + socialTalkBoxOffsetY(), 227 + (entry.talkedToday() ? 9 : 0), 425, 9, 9, mapping.s4(), 0.88f);
+    }
+
+    // ─── Vanilla-derived absolute positions (relative to menuX/menuY) ───
+    // Match original SocialPage column cuts directly: 268, 620, 752.
+    private int socialPortraitX() { return menuX + ui(BORDER_WIDTH + 4); }
+
+    private int socialNameCenterX() { return menuX + ui(188); }
+
+    private int socialVerticalLeftX() { return socialTuneVerticalLineX(SOCIAL_TUNE_TARGET_VLINE_LEFT); }
+    private int socialVerticalMiddleX() { return socialTuneVerticalLineX(SOCIAL_TUNE_TARGET_VLINE_MIDDLE); }
+    private int socialVerticalRightX() { return socialTuneVerticalLineX(SOCIAL_TUNE_TARGET_VLINE_RIGHT); }
+
+    private int socialHeartsBaseX() { return menuX + ui(316); }
+
+    private int socialHeartsTopRowOffsetY() { return ui(36); }
+    private int socialHeartsBottomRowOffsetY() { return ui(64); }
+
+    private int socialGiftIconX() { return menuX + ui(688); }
+
+    private int socialGiftIconOffsetY() { return -ui(4); }
+
+    private int socialGiftFirstBoxX() { return menuX + ui(680); }
+
+    private int socialGiftSecondBoxX() { return menuX + ui(720); }
+
+    private int socialGiftBoxesOffsetY() { return ui(52); }
+
+    private int socialTalkIconX() { return menuX + ui(808); }
+
+    private int socialTalkIconOffsetY() { return 0; }
+
+    private int socialTalkBoxX() { return menuX + ui(816); }
+
+    private int socialTalkBoxOffsetY() { return ui(52); }
+
+    private int socialVerticalStartY() { return menuY + ui(BORDER_WIDTH + 100); }
+
+    private int socialContentLeftX() {
+        return menuX + ui(BORDER_WIDTH);
+    }
+
+    private int socialContentRightX() {
+        return socialPageRightX() - ui(BORDER_WIDTH);
+    }
+
+    private int socialContentWidth() {
+        return Math.max(1, socialContentRightX() - socialContentLeftX());
+    }
+
+    private void drawSocialScrollControls(GuiGraphics graphics, int total) {
+        int upX = socialUpButtonX();
+        int upY = socialUpButtonY();
+        int downX = socialDownButtonX();
+        int downY = socialDownButtonY();
+        int maxScroll = socialMaxScroll(total);
+
+        if (socialScroll > 0) {
+            drawArrowFromCursors(graphics, upX, upY, 12, 0.8f);
+        }
+        if (socialScroll < maxScroll) {
+            drawArrowFromCursors(graphics, downX, downY, 11, 0.8f);
+        }
+
+        StardewGuiUtil.drawTextureBox(
+            graphics,
+            StardewGuiUtil.CURSORS,
+            StardewGuiUtil.CURSORS_WIDTH,
+            StardewGuiUtil.CURSORS_HEIGHT,
+            403,
+            383,
+            6,
+            6,
+            socialScrollRunnerX(),
+            socialScrollRunnerY(),
+            socialScrollRunnerWidth(),
+            socialScrollRunnerHeight(),
+            mapping.s4(),
+            false
+        );
+        StardewGuiUtil.drawFromCursors(graphics, socialScrollBarX(), currentSocialScrollBarY(total), 435, 463, 6, 10, mapping.s4());
+    }
+
+    private int socialMaxScroll(int total) {
+        return Math.max(0, total - SOCIAL_MAX_VISIBLE);
+    }
+
+    private int socialUpButtonX() {
+        return socialPageRightX() + ui(16);
+    }
+
+    private int socialUpButtonY() {
+        return menuY + ui(64);
+    }
+
+    private int socialDownButtonX() {
+        return socialUpButtonX();
+    }
+
+    private int socialDownButtonY() {
+        return menuY + menuHeight - ui(64);
+    }
+
+    private int socialArrowBoundWidth() {
+        return ui(44);
+    }
+
+    private int socialArrowBoundHeight() {
+        return ui(48);
+    }
+
+    private int socialScrollBarX() {
+        return socialUpButtonX() + ui(12);
+    }
+
+    private int socialScrollBarY() {
+        return socialUpButtonY() + socialArrowBoundHeight() + ui(4);
+    }
+
+    private int socialScrollBarWidth() {
+        return ui(24);
+    }
+
+    private int socialScrollBarHeight() {
+        return ui(40);
+    }
+
+    private int socialScrollRunnerX() {
+        return socialScrollBarX();
+    }
+
+    private int socialScrollRunnerY() {
+        return socialScrollBarY();
+    }
+
+    private int socialScrollRunnerWidth() {
+        return socialScrollBarWidth();
+    }
+
+    private int socialScrollRunnerHeight() {
+        return menuHeight - ui(128) - socialArrowBoundHeight() - ui(8);
+    }
+
+    private int currentSocialScrollBarY(int total) {
+        if (total <= 0) {
+            return socialScrollRunnerY();
+        }
+        int maxScroll = socialMaxScroll(total);
+        int y = socialScrollRunnerHeight() / Math.max(1, total - SOCIAL_MAX_VISIBLE + 1) * socialScroll + socialUpButtonY() + socialArrowBoundHeight() + ui(4);
+        if (maxScroll > 0 && socialScroll == maxScroll) {
+            y = socialDownButtonY() - socialScrollBarHeight() - ui(4);
+        }
+        return y;
+    }
+
+    private boolean socialUpButtonContains(double mouseX, double mouseY) {
+        return mouseX >= socialUpButtonX() && mouseX < socialUpButtonX() + socialArrowBoundWidth()
+            && mouseY >= socialUpButtonY() && mouseY < socialUpButtonY() + socialArrowBoundHeight();
+    }
+
+    private boolean socialDownButtonContains(double mouseX, double mouseY) {
+        return mouseX >= socialDownButtonX() && mouseX < socialDownButtonX() + socialArrowBoundWidth()
+            && mouseY >= socialDownButtonY() && mouseY < socialDownButtonY() + socialArrowBoundHeight();
+    }
+
+    private boolean socialScrollBarContains(double mouseX, double mouseY, int total) {
+        int y = currentSocialScrollBarY(total);
+        return mouseX >= socialScrollBarX() && mouseX < socialScrollBarX() + socialScrollBarWidth()
+            && mouseY >= y && mouseY < y + socialScrollBarHeight();
+    }
+
+    private boolean socialScrollRunnerContains(double mouseX, double mouseY) {
+        return mouseX > socialPageRightX() && mouseX < socialPageRightX() + ui(128)
+            && mouseY > menuY && mouseY < menuY + menuHeight
+            && !socialDownButtonContains(mouseX, mouseY);
+    }
+
+    private void setSocialScrollFromMouse(double mouseY, int total) {
+        int maxScroll = socialMaxScroll(total);
+        if (maxScroll <= 0) {
+            socialScroll = 0;
+            return;
+        }
+        int minY = menuY + ui(68);
+        int maxY = menuY + menuHeight - ui(64) - ui(12) - socialScrollBarHeight();
+        int clampedY = Mth.clamp((int) Math.round(mouseY), minY, maxY);
+        float percentage = (clampedY - socialScrollRunnerY()) / (float) Math.max(1, socialScrollRunnerHeight());
+        socialScroll = Mth.clamp((int) (total * percentage), 0, maxScroll);
+    }
+
+    private String formatNpcName(String npcId) {
+        if (npcId == null || npcId.isBlank()) {
+            return "?";
+        }
+        String[] parts = npcId.trim().split("[_\\s]+");
+        StringBuilder sb = new StringBuilder();
+        for (String part : parts) {
+            if (part == null || part.isBlank()) {
+                continue;
+            }
+            if (!sb.isEmpty()) {
+                sb.append(' ');
+            }
+            sb.append(part.substring(0, 1).toUpperCase(Locale.ROOT));
+            if (part.length() > 1) {
+                sb.append(part.substring(1).toLowerCase(Locale.ROOT));
+            }
+        }
+        return sb.isEmpty() ? npcId : sb.toString();
+    }
+
+    private void drawSocialPortrait(GuiGraphics graphics, String npcId, int x, int y) {
+        PortraitResource portrait = resolveSocialMugshot(npcId);
+        graphics.blit(portrait.texture(), x, y, ui(64), ui(96), 0, 0, 16, 24, portrait.sheetWidth(), portrait.sheetHeight());
+    }
+
+    private PortraitResource resolveSocialMugshot(String npcId) {
+        String normalized = normalizeNpcId(npcId);
+        ResourceLocation mugshotLocation = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/mugshots/" + normalized + ".png");
+        return loadPortrait(mugshotLocation, 16, 24);
+    }
+
+    private List<NpcFriendshipClientCache.Entry> visibleSocialEntries() {
+        List<NpcFriendshipClientCache.Entry> all = NpcFriendshipClientCache.entries();
+        if (all.isEmpty()) {
+            return all;
+        }
+
+        List<NpcFriendshipClientCache.Entry> filtered = new ArrayList<>(all.size());
+        for (NpcFriendshipClientCache.Entry entry : all) {
+            if (entry == null) {
+                continue;
+            }
+            String npcId = normalizeNpcId(entry.npcId());
+            if (hasSocialPortraitAndCharacter(npcId)) {
+                filtered.add(entry);
+            }
+        }
+
+        filtered.sort(Comparator
+            .comparingInt(NpcFriendshipClientCache.Entry::points).reversed()
+            .thenComparingInt(NpcFriendshipClientCache.Entry::metOrder)
+            .thenComparing(entry -> displayNameForSort(entry.npcId()))
+            .thenComparing(NpcFriendshipClientCache.Entry::npcId));
+        return filtered;
+    }
+
+    private boolean hasSocialPortraitAndCharacter(String normalizedNpcId) {
+        ResourceLocation portraitLocation = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/portraits/" + normalizedNpcId + ".png");
+        if (!hasResource(portraitLocation)) {
+            return false;
+        }
+        ResourceLocation mugshotLocation = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/mugshots/" + normalizedNpcId + ".png");
+        return hasResource(mugshotLocation);
+    }
+
+    private String displayNameForSort(String npcId) {
+        return formatNpcName(npcId).toLowerCase(Locale.ROOT);
+    }
+
+    private boolean isDatableHeartLocked(NpcFriendshipClientCache.Entry entry) {
+        return DATEABLE_NPCS.contains(normalizeNpcId(entry.npcId()));
+    }
+
+    private String normalizeNpcId(String npcId) {
+        if (npcId == null || npcId.isBlank()) {
+            return "lewis";
+        }
+        return npcId.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private boolean hasResource(ResourceLocation location) {
+        ResourceManager resourceManager = this.minecraft == null ? null : this.minecraft.getResourceManager();
+        return resourceManager != null && resourceManager.getResource(location).isPresent();
+    }
+
+    private PortraitResource loadPortrait(ResourceLocation location, int fallbackW, int fallbackH) {
+        PortraitResource cached = SOCIAL_PORTRAIT_CACHE.get(location);
+        if (cached != null) {
+            return cached;
+        }
+
+        ResourceManager resourceManager = this.minecraft == null ? null : this.minecraft.getResourceManager();
+        if (resourceManager == null) {
+            return new PortraitResource(location, fallbackW, fallbackH);
+        }
+
+        int width = fallbackW;
+        int height = fallbackH;
+        try {
+            var resource = resourceManager.getResource(location).orElse(null);
+            if (resource != null) {
+                try (var stream = resource.open(); NativeImage image = NativeImage.read(stream)) {
+                    width = image.getWidth();
+                    height = image.getHeight();
+                }
+            }
+        } catch (IOException ignored) {
+        }
+
+        PortraitResource resolved = new PortraitResource(location, Math.max(1, width), Math.max(1, height));
+        SOCIAL_PORTRAIT_CACHE.put(location, resolved);
+        return resolved;
+    }
+
+    private record PortraitResource(ResourceLocation texture, int sheetWidth, int sheetHeight) {
     }
 
     private void rebuildCraftingEntries() {
@@ -561,6 +1378,8 @@ public class StardewGameMenuScreen extends Screen {
     private void drawTrashCan(GuiGraphics graphics, int mouseX, int mouseY) {
         int bodyX = menuX + menuWidth + ui(4);
         int bodyY = menuY + menuHeight - ui(360);
+        int trashCanLevel = 0;
+        int trashU = TRASH_U_BASE + trashCanLevel * TRASH_W;
         boolean hovered = trashCanContains(mouseX, mouseY);
         if (hovered && !trashCanLidSoundPlayed) {
             playUiSound(ModSounds.TRASHCANLID.get(), 1.0f, 1.0f);
@@ -576,11 +1395,17 @@ public class StardewGameMenuScreen extends Screen {
             trashCanLidRotation = Math.max(trashCanLidRotation - step, 0.0f);
         }
 
-        drawScaledTexture(graphics, VANILLA_TRASH_BODY, bodyX, bodyY, TRASH_W, TRASH_BODY_H, mapping.s4());
+        StardewGuiUtil.drawFromCursors(graphics, bodyX, bodyY, trashU, TRASH_BODY_V, TRASH_W, TRASH_BODY_H, mapping.s4());
 
+        float lidScale = mapping.s4();
         int lidDrawX = bodyX + ui(60);
         int lidDrawY = bodyY + ui(40);
-        drawRotatedScaledTexture(graphics, VANILLA_TRASH_LID, lidDrawX, lidDrawY, TRASH_W, TRASH_LID_H, mapping.s4(), trashCanLidRotation, 16, 10, 0, 0, TRASH_W, TRASH_LID_H);
+        graphics.pose().pushPose();
+        graphics.pose().translate(lidDrawX, lidDrawY, 0);
+        graphics.pose().mulPose(com.mojang.math.Axis.ZP.rotation(trashCanLidRotation));
+        graphics.pose().scale(lidScale, lidScale, 1.0f);
+        graphics.blit(StardewGuiUtil.CURSORS, -16, -10, trashU, TRASH_LID_V, TRASH_W, TRASH_LID_H, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT);
+        graphics.pose().popPose();
     }
 
     private void drawPlayerInventory(GuiGraphics graphics, int mouseX, int mouseY) {
@@ -644,23 +1469,6 @@ public class StardewGameMenuScreen extends Screen {
     }
 
 // unused scaling helpers removed
-
-    private void drawScaledTexture(GuiGraphics graphics, ResourceLocation texture, int x, int y, int width, int height, float scale) {
-        graphics.pose().pushPose();
-        graphics.pose().translate(x, y, 0);
-        graphics.pose().scale(scale, scale, 1.0f);
-        graphics.blit(texture, 0, 0, width, height, 0, 0, width, height, width, height);
-        graphics.pose().popPose();
-    }
-
-    private void drawRotatedScaledTexture(GuiGraphics graphics, ResourceLocation texture, int x, int y, int width, int height, float scale, float rotation, int originX, int originY, int u, int v, int texWidth, int texHeight) {
-        graphics.pose().pushPose();
-        graphics.pose().translate(x, y, 0);
-        graphics.pose().mulPose(Axis.ZP.rotation(rotation));
-        graphics.pose().scale(scale, scale, 1.0f);
-        graphics.blit(texture, -originX, -originY, width, height, u, v, width, height, texWidth, texHeight);
-        graphics.pose().popPose();
-    }
 
     private int craftingGridIndexAt(double mouseX, double mouseY) {
         return craftingGridIndexAt(mouseX, mouseY, 0);
@@ -791,7 +1599,7 @@ public class StardewGameMenuScreen extends Screen {
     }
 
     private boolean pointInsideMainMenu(double mouseX, double mouseY) {
-        return mouseX >= menuX && mouseX < menuX + menuWidth && mouseY >= menuY && mouseY < menuY + menuHeight;
+        return mouseX >= menuX && mouseX < menuX + activeMenuWidth() && mouseY >= menuY && mouseY < menuY + menuHeight;
     }
 
     private int vanillaLikeCraftAmountOnLeftClick() {
@@ -1045,6 +1853,16 @@ public class StardewGameMenuScreen extends Screen {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) {
+            if (currentTab == TAB_SOCIAL && socialTuneMode) {
+                int picked = socialTuneTargetAt(mouseX, mouseY);
+                if (picked >= 0) {
+                    socialTuneTarget = picked;
+                    socialTuneDragging = true;
+                    playUiSound(ModSounds.SMALL_SELECT.get(), 1.0f, 1.0f);
+                    return true;
+                }
+            }
+
             if (closeContains(mouseX, mouseY)) {
                 closeWithSound();
                 return true;
@@ -1053,7 +1871,39 @@ public class StardewGameMenuScreen extends Screen {
                 if (tabContains(i, mouseX, mouseY)) {
                     if (currentTab != i) {
                         currentTab = i;
+                        if (currentTab == TAB_SOCIAL) {
+                            socialScroll = 0;
+                            PacketDistributor.sendToServer(new RequestNpcFriendshipOverviewPayload());
+                        }
                         playUiSound(ModSounds.SMALL_SELECT.get(), 1.0f, 1.0f);
+                    }
+                    return true;
+                }
+            }
+
+            if (currentTab == TAB_SOCIAL) {
+                int total = visibleSocialEntries().size();
+                int maxScroll = socialMaxScroll(total);
+
+                if (socialUpButtonContains(mouseX, mouseY) && socialScroll > 0) {
+                    socialScroll--;
+                    playUiSound(ModSounds.SHWIP.get(), 1.0f, 1.0f);
+                    return true;
+                }
+                if (socialDownButtonContains(mouseX, mouseY) && socialScroll < maxScroll) {
+                    socialScroll++;
+                    playUiSound(ModSounds.SHWIP.get(), 1.0f, 1.0f);
+                    return true;
+                }
+                if (socialScrollBarContains(mouseX, mouseY, total)) {
+                    socialScrolling = true;
+                    return true;
+                }
+                if (socialScrollRunnerContains(mouseX, mouseY)) {
+                    int before = socialScroll;
+                    setSocialScrollFromMouse(mouseY, total);
+                    if (before != socialScroll) {
+                        playUiSound(ModSounds.SHWIP.get(), 1.0f, 1.0f);
                     }
                     return true;
                 }
@@ -1136,6 +1986,35 @@ public class StardewGameMenuScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (currentTab == TAB_SOCIAL && socialTuneMode) {
+            if (scrollY > 0) {
+                socialTuneStep = Math.min(16, socialTuneStep + 1);
+            } else if (scrollY < 0) {
+                socialTuneStep = Math.max(1, socialTuneStep - 1);
+            }
+            return true;
+        }
+
+        if (currentTab == TAB_SOCIAL) {
+            int total = visibleSocialEntries().size();
+            int maxScroll = Math.max(0, total - SOCIAL_MAX_VISIBLE);
+            if (maxScroll <= 0) {
+                return true;
+            }
+
+            int before = socialScroll;
+            if (scrollY > 0) {
+                socialScroll = Math.max(0, socialScroll - 1);
+            } else if (scrollY < 0) {
+                socialScroll = Math.min(maxScroll, socialScroll + 1);
+            }
+
+            if (before != socialScroll) {
+                playUiSound(ModSounds.SHWIP.get(), 1.0f, 1.0f);
+            }
+            return true;
+        }
+
         if (currentTab != 4 || craftingRecipeIds.isEmpty()) {
             return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
         }
@@ -1157,10 +2036,67 @@ public class StardewGameMenuScreen extends Screen {
     }
 
     @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        if (currentTab == TAB_SOCIAL && socialTuneMode && socialTuneDragging && button == 0 && socialTuneTarget >= 0) {
+            int dx = Math.round((float) dragX * guiScale());
+            int dy = Math.round((float) dragY * guiScale());
+            if (dx != 0 || dy != 0) {
+                socialTuneOffsetX[socialTuneTarget] += dx;
+                socialTuneOffsetY[socialTuneTarget] += dy;
+            }
+            return true;
+        }
+
+        if (currentTab == TAB_SOCIAL && socialScrolling && button == 0) {
+            int before = socialScroll;
+            setSocialScrollFromMouse(mouseY, visibleSocialEntries().size());
+            if (before != socialScroll) {
+                playUiSound(ModSounds.SHWIP.get(), 1.0f, 1.0f);
+            }
+            return true;
+        }
+        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (button == 0) {
+            socialScrolling = false;
+            socialTuneDragging = false;
+        }
+        return super.mouseReleased(mouseX, mouseY, button);
+    }
+
+    @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (keyCode == 256) {
             closeWithSound();
             return true;
+        }
+
+        if (handleSocialTuneKey(keyCode, modifiers)) {
+            return true;
+        }
+
+        if (currentTab == TAB_SOCIAL) {
+            int total = visibleSocialEntries().size();
+            int maxScroll = Math.max(0, total - SOCIAL_MAX_VISIBLE);
+            if (keyCode == 265) {
+                int before = socialScroll;
+                socialScroll = Math.max(0, socialScroll - 1);
+                if (before != socialScroll) {
+                    playUiSound(ModSounds.SHWIP.get(), 1.0f, 1.0f);
+                }
+                return true;
+            }
+            if (keyCode == 264) {
+                int before = socialScroll;
+                socialScroll = Math.min(maxScroll, socialScroll + 1);
+                if (before != socialScroll) {
+                    playUiSound(ModSounds.SHWIP.get(), 1.0f, 1.0f);
+                }
+                return true;
+            }
         }
         if (keyCode == 265 && currentTab == 4) {
             int old = currentCraftingPage;

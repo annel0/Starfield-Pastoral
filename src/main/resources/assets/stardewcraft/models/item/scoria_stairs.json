@@ -1,3 +1,6 @@
-{
-  "parent": "stardewcraft:block/scoria_stairs"
+﻿{
+    "parent":  "stardewcraft:block/scoria_stairs",
+    "textures":  {
+                     "particle":  "stardewcraft:block/mine/scoria"
+                 }
 }

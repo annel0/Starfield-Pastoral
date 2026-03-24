@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/utility/fish_smoker"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/utility/fish_smoker",
+                     "particle":  "stardewcraft:item/utility/fish_smoker"
+                 }
 }

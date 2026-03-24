@@ -1,0 +1,5 @@
+{
+  "event_id": "core_bootstrap",
+  "description": "Phase-A placeholder event file for data pipeline wiring.",
+  "commands": []
+}

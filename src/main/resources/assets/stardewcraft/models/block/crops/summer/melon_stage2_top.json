@@ -1,6 +1,7 @@
 ﻿{
     "parent":  "minecraft:block/cross",
     "textures":  {
-                     "cross":  "stardewcraft:block/crops/summer/melon_stage2_top"
+                     "cross":  "stardewcraft:block/crops/summer/melon_stage2_top",
+                     "particle":  "stardewcraft:block/crops/summer/melon_stage2_top"
                  }
 }

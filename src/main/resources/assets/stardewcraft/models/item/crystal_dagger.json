@@ -1,18 +1,43 @@
-{
-  "parent": "minecraft:item/handheld",
-  "textures": {
-    "layer0": "stardewcraft:item/weapon/dagger/crystal_dagger"
-  },
-  "display": {
-    "first_person_right_hand": {
-      "rotation": [0, -90, 25],
-      "translation": [1.13, 3.2, 1.13],
-      "scale": [0.68, 0.68, 0.68]
-    },
-    "first_person_left_hand": {
-      "rotation": [0, 90, -25],
-      "translation": [-1.13, 3.2, 1.13],
-      "scale": [0.68, 0.68, 0.68]
-    }
-  }
+﻿{
+    "parent":  "minecraft:item/handheld",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/weapon/dagger/crystal_dagger",
+                     "particle":  "stardewcraft:item/weapon/dagger/crystal_dagger"
+                 },
+    "display":  {
+                    "first_person_right_hand":  {
+                                                    "rotation":  [
+                                                                     0,
+                                                                     -90,
+                                                                     25
+                                                                 ],
+                                                    "translation":  [
+                                                                        1.13,
+                                                                        3.2,
+                                                                        1.13
+                                                                    ],
+                                                    "scale":  [
+                                                                  0.68,
+                                                                  0.68,
+                                                                  0.68
+                                                              ]
+                                                },
+                    "first_person_left_hand":  {
+                                                   "rotation":  [
+                                                                    0,
+                                                                    90,
+                                                                    -25
+                                                                ],
+                                                   "translation":  [
+                                                                       -1.13,
+                                                                       3.2,
+                                                                       1.13
+                                                                   ],
+                                                   "scale":  [
+                                                                 0.68,
+                                                                 0.68,
+                                                                 0.68
+                                                             ]
+                                               }
+                }
 }

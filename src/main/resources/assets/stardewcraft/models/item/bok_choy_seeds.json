@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/crops/fall/bok_choy_seeds"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/crops/fall/bok_choy_seeds",
+                     "particle":  "stardewcraft:item/crops/fall/bok_choy_seeds"
+                 }
 }

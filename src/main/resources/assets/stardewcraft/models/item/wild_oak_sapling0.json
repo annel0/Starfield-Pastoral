@@ -1,3 +1,6 @@
-{
-  "parent": "stardewcraft:block/tree/wild_oak_sapling_stage0"
+﻿{
+    "parent":  "stardewcraft:block/tree/wild_oak_sapling_stage0",
+    "textures":  {
+                     "particle":  "stardewcraft:block/tree/wild_oak_sapling_stage0"
+                 }
 }

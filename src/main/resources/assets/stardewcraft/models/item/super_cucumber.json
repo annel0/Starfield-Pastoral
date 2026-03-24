@@ -1,9 +1,27 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": { "layer0": "stardewcraft:item/fish/ocean/super_cucumber" },
-  "overrides": [
-    { "predicate": { "custom_model_data": 1 }, "model": "stardewcraft:item/super_cucumber_silver" },
-    { "predicate": { "custom_model_data": 2 }, "model": "stardewcraft:item/super_cucumber_gold" },
-    { "predicate": { "custom_model_data": 3 }, "model": "stardewcraft:item/super_cucumber_iridium" }
-  ]
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/fish/ocean/super_cucumber",
+                     "particle":  "stardewcraft:item/fish/ocean/super_cucumber"
+                 },
+    "overrides":  [
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  1
+                                        },
+                          "model":  "stardewcraft:item/super_cucumber_silver"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2
+                                        },
+                          "model":  "stardewcraft:item/super_cucumber_gold"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3
+                                        },
+                          "model":  "stardewcraft:item/super_cucumber_iridium"
+                      }
+                  ]
 }

@@ -1,3 +1,6 @@
-{
-  "parent": "stardewcraft:block/salt_rock_slab"
+﻿{
+    "parent":  "stardewcraft:block/salt_rock_slab",
+    "textures":  {
+                     "particle":  "stardewcraft:block/mine/salt_rock"
+                 }
 }

@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/tree/mystic_tree_seed"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/tree/mystic_tree_seed",
+                     "particle":  "stardewcraft:item/tree/mystic_tree_seed"
+                 }
 }

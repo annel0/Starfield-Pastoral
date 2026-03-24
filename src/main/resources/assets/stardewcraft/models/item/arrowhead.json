@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/artifact/arrowhead"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/artifact/arrowhead",
+                     "particle":  "stardewcraft:item/artifact/arrowhead"
+                 }
 }

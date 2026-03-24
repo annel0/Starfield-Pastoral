@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/fish/trash/broken_glasses"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/fish/trash/broken_glasses",
+                     "particle":  "stardewcraft:item/fish/trash/broken_glasses"
+                 }
 }

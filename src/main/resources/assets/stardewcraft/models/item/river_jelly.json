@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/fish/misc/river_jelly"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/fish/misc/river_jelly",
+                     "particle":  "stardewcraft:item/fish/misc/river_jelly"
+                 }
 }

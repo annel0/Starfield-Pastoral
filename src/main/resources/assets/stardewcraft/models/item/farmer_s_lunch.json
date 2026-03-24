@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/farmer_s_lunch"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/farmer_s_lunch",
+                     "particle":  "stardewcraft:item/cooking/farmer_s_lunch"
+                 }
 }

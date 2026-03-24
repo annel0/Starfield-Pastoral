@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:block/cross",
-  "textures": {
-    "cross": "stardewcraft:block/crops/spring/green_bean_stage3_top"
-  }
+﻿{
+    "parent":  "minecraft:block/cross",
+    "textures":  {
+                     "cross":  "stardewcraft:block/crops/spring/green_bean_stage3_top",
+                     "particle":  "stardewcraft:block/crops/spring/green_bean_stage3_top"
+                 }
 }

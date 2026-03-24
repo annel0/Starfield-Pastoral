@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/complete_breakfast"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/complete_breakfast",
+                     "particle":  "stardewcraft:item/cooking/complete_breakfast"
+                 }
 }

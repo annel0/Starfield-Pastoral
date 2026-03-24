@@ -17,6 +17,7 @@ public class InteriorSubspaceLifecycleEvents {
 
     private static final String PLAYER_FIRST_INTERIOR_ENTERED = "stardewcraft_interior_region_first_entered";
     private static int tickCounter = 0;
+    private static int fallbackRetryCounter = 0;
 
     @SubscribeEvent
     public static void onServerStarted(ServerStartedEvent event) {
@@ -56,8 +57,10 @@ public class InteriorSubspaceLifecycleEvents {
         tickCounter = 0;
 
         // 兜底触发：老存档/特殊进服时序下可能错过 server_started 与 dimension_changed。
-        // 这里只在星露谷维度存在玩家时每秒尝试一次，ensureLoaded 内部会快速短路。
-        if (!level.players().isEmpty()) {
+        // 仅在布局尚未初始化时重试，避免每秒重复触发昂贵的自愈路径。
+        fallbackRetryCounter++;
+        if (!InteriorSubspaceManager.isLayoutInitialized(level) && !level.players().isEmpty() && fallbackRetryCounter >= 30) {
+            fallbackRetryCounter = 0;
             InteriorSubspaceManager.ensureLoaded(level, "stardew_player_present");
         }
 

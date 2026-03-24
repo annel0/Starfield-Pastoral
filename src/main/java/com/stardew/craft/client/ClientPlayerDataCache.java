@@ -213,6 +213,7 @@ public class ClientPlayerDataCache {
         tempFarmingLevelBonus = 0;
         tempForagingLevelBonus = 0;
         tempMiningLevelBonus = 0;
+        NpcFriendshipClientCache.reset();
     }
     
     /**

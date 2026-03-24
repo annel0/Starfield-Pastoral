@@ -1,3 +1,6 @@
-{
-  "parent": "stardewcraft:block/limestone_wall_inventory"
+﻿{
+    "parent":  "stardewcraft:block/limestone_wall_inventory",
+    "textures":  {
+                     "particle":  "stardewcraft:block/mine/limestone"
+                 }
 }

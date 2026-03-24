@@ -1,3 +1,6 @@
-{
-  "parent": "stardewcraft:block/earth_coal_ore"
+﻿{
+    "parent":  "stardewcraft:block/earth_coal_ore",
+    "textures":  {
+                     "particle":  "stardewcraft:block/mine/earth_coal_ore"
+                 }
 }

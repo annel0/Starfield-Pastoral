@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:block/cross",
-  "textures": {
-    "cross": "stardewcraft:item/crops/dead/dead_crop_2"
-  }
+﻿{
+    "parent":  "minecraft:block/cross",
+    "textures":  {
+                     "cross":  "stardewcraft:item/crops/dead/dead_crop_2",
+                     "particle":  "stardewcraft:item/crops/dead/dead_crop_2"
+                 }
 }

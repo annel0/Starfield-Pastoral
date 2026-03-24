@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:block/cube_all",
-  "textures": {
-    "all": "stardewcraft:block/mine/topaz_ore"
-  }
+﻿{
+    "parent":  "minecraft:block/cube_all",
+    "textures":  {
+                     "all":  "stardewcraft:block/mine/topaz_ore",
+                     "particle":  "stardewcraft:block/mine/topaz_ore"
+                 }
 }

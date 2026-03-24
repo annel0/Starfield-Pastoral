@@ -1,0 +1,205 @@
+{
+  "locations": [
+    "town",
+    "seedshop",
+    "manorhouse",
+    "hospital",
+    "animalshop",
+    "archaeologyhouse",
+    "sciencehouse",
+    "communitycenter",
+    "sunroom",
+    "railroad",
+    "pierreshop",
+    "farm",
+    "saloon",
+    "mountain",
+    "forest",
+    "beach",
+    "busstop",
+    "fishshop",
+    "samhouse",
+    "jojamart",
+    "blacksmith",
+    "elliotthouse",
+    "haleyhouse",
+    "joshhouse",
+    "trailer",
+    "leahhouse"
+  ],
+  "aliases": {
+    "pierreshop": "seedshop",
+    "shop": "seedshop",
+    "manor": "manorhouse",
+    "museum": "archaeologyhouse",
+    "carpenter": "sciencehouse",
+    "marnieranch": "animalshop",
+    "willyshop": "fishshop"
+  },
+  "anchors": {
+    "town": {
+      "x": -221.5,
+      "y": -18.0,
+      "z": -34.5,
+      "indoor": false,
+      "use_ground_height": true,
+      "use_schedule_tile_offset": false
+    },
+    "seedshop": {
+      "x": 12032.5,
+      "y": 71.0,
+      "z": 12032.5,
+      "indoor": true,
+      "portal_target": "pierre_house_enter",
+      "use_ground_height": false,
+      "use_schedule_tile_offset": false
+    },
+    "manorhouse": {
+      "x": -206.0,
+      "y": -18.0,
+      "z": -27.0,
+      "indoor": false,
+      "use_ground_height": true
+    },
+    "hospital": {
+      "x": -145.0,
+      "y": -18.0,
+      "z": 60.0,
+      "indoor": false,
+      "use_ground_height": true
+    },
+    "animalshop": {
+      "x": 179.0,
+      "y": -14.0,
+      "z": -5.0,
+      "indoor": false,
+      "use_ground_height": true
+    },
+    "archaeologyhouse": {
+      "x": -303.0,
+      "y": -17.0,
+      "z": -38.0,
+      "indoor": false,
+      "use_ground_height": true
+    },
+    "sciencehouse": {
+      "x": -212.0,
+      "y": -13.0,
+      "z": 218.0,
+      "indoor": false,
+      "use_ground_height": true
+    },
+    "communitycenter": {
+      "x": -190.0,
+      "y": -10.0,
+      "z": 138.0,
+      "indoor": false,
+      "use_ground_height": true
+    },
+    "railroad": {
+      "x": -93.0,
+      "y": -13.0,
+      "z": 341.0,
+      "indoor": false,
+      "use_ground_height": true
+    },
+    "saloon": {
+      "x": -163.0,
+      "y": -19.0,
+      "z": 12.0,
+      "indoor": false,
+      "use_ground_height": true
+    },
+    "mountain": {
+      "x": -284.0,
+      "y": -11.0,
+      "z": 225.0,
+      "indoor": false,
+      "use_ground_height": true
+    },
+    "beach": {
+      "x": -196.0,
+      "y": -163.0,
+      "z": -15.0,
+      "indoor": false,
+      "use_ground_height": true
+    },
+    "forest": {
+      "x": 177.0,
+      "y": -16.0,
+      "z": -148.0,
+      "indoor": false,
+      "use_ground_height": true
+    },
+    "busstop": {
+      "x": 75.0,
+      "y": -12.0,
+      "z": 201.0,
+      "indoor": false,
+      "use_ground_height": true
+    },
+    "fishshop": {
+      "x": -237.0,
+      "y": -15.0,
+      "z": -212.0,
+      "indoor": false,
+      "use_ground_height": true
+    },
+    "samhouse": {
+      "x": 84.0,
+      "y": -16.0,
+      "z": -25.0,
+      "indoor": false,
+      "use_ground_height": true
+    },
+    "jojamart": {
+      "x": -292.0,
+      "y": -16.0,
+      "z": 59.0,
+      "indoor": false,
+      "use_ground_height": true
+    },
+    "blacksmith": {
+      "x": -288.0,
+      "y": -18.0,
+      "z": -18.0,
+      "indoor": false,
+      "use_ground_height": true
+    },
+    "elliotthouse": {
+      "x": -266.0,
+      "y": -13.0,
+      "z": -153.0,
+      "indoor": false,
+      "use_ground_height": true
+    },
+    "haleyhouse": {
+      "x": -108.0,
+      "y": -17.0,
+      "z": -27.0,
+      "indoor": false,
+      "use_ground_height": true
+    },
+    "joshhouse": {
+      "x": -195.0,
+      "y": -18.0,
+      "z": 32.0,
+      "indoor": false,
+      "use_ground_height": true
+    },
+    "trailer": {
+      "x": -231.0,
+      "y": -18.0,
+      "z": 20.0,
+      "indoor": false,
+      "use_ground_height": true
+    },
+    "leahhouse": {
+      "x": 156.0,
+      "y": -13.0,
+      "z": -59.0,
+      "indoor": false,
+      "use_ground_height": true
+    }
+  }
+}

@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/crops/summer/blueberry_seeds"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/crops/summer/blueberry_seeds",
+                     "particle":  "stardewcraft:item/crops/summer/blueberry_seeds"
+                 }
 }

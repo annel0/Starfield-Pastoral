@@ -1,1 +1,7 @@
-{"parent":"minecraft:block/template_wall_post","textures":{"wall":"stardewcraft:block/mine/limestone"}}
+﻿{
+    "parent":  "minecraft:block/template_wall_post",
+    "textures":  {
+                     "wall":  "stardewcraft:block/mine/limestone",
+                     "particle":  "stardewcraft:block/mine/limestone"
+                 }
+}

@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:block/cube_all",
-  "textures": {
-    "all": "stardewcraft:block/mine/earth_iron_ore"
-  }
+﻿{
+    "parent":  "minecraft:block/cube_all",
+    "textures":  {
+                     "all":  "stardewcraft:block/mine/earth_iron_ore",
+                     "particle":  "stardewcraft:block/mine/earth_iron_ore"
+                 }
 }

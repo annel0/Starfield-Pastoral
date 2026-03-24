@@ -1,3 +1,6 @@
 ﻿{
-  "parent": "stardewcraft:decor/bonsai/bonsai_2"
+    "parent":  "stardewcraft:decor/bonsai/bonsai_2",
+    "textures":  {
+                     "particle":  "stardewcraft:block/deco/misc/bonsai/bonsai_2"
+                 }
 }

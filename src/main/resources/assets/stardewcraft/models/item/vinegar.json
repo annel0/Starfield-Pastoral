@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking_ingredient/vinegar"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking_ingredient/vinegar",
+                     "particle":  "stardewcraft:item/cooking_ingredient/vinegar"
+                 }
 }

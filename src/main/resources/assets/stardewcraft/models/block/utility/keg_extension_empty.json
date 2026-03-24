@@ -1,0 +1,9 @@
+﻿{
+    "parent":  "block/block",
+    "elements":  [
+
+                 ],
+    "textures":  {
+                     "particle":  "stardewcraft:block/utility/keg_particle"
+                 }
+}

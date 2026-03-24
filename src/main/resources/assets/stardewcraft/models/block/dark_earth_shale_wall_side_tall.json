@@ -1,1 +1,7 @@
-{"parent":"minecraft:block/template_wall_side_tall","textures":{"wall":"stardewcraft:block/mine/dark_earth_shale"}}
+﻿{
+    "parent":  "minecraft:block/template_wall_side_tall",
+    "textures":  {
+                     "wall":  "stardewcraft:block/mine/dark_earth_shale",
+                     "particle":  "stardewcraft:block/mine/dark_earth_shale"
+                 }
+}

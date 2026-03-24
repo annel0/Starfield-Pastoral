@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/artisan/animal/void_mayonnaise"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/artisan/animal/void_mayonnaise",
+                     "particle":  "stardewcraft:item/artisan/animal/void_mayonnaise"
+                 }
 }

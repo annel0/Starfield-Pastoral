@@ -184,5 +184,10 @@ public class KegBlockEntityRenderer implements BlockEntityRenderer<KegBlockEntit
 		return Math.max(min, Math.min(max, v));
 	}
 
+	@Override
+	public boolean shouldRenderOffScreen(@Nonnull KegBlockEntity blockEntity) {
+		return true;
+	}
+
 	private record Keyframe(float t, float sx, float sy, float sz, float y) {}
 }

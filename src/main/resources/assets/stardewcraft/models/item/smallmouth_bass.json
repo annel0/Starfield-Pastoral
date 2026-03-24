@@ -1,20 +1,27 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/fish/river/smallmouth_bass"
-  },
-  "overrides": [
-    {
-      "predicate": { "custom_model_data": 1 },
-      "model": "stardewcraft:item/smallmouth_bass_silver"
-    },
-    {
-      "predicate": { "custom_model_data": 2 },
-      "model": "stardewcraft:item/smallmouth_bass_gold"
-    },
-    {
-      "predicate": { "custom_model_data": 3 },
-      "model": "stardewcraft:item/smallmouth_bass_iridium"
-    }
-  ]
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/fish/river/smallmouth_bass",
+                     "particle":  "stardewcraft:item/fish/river/smallmouth_bass"
+                 },
+    "overrides":  [
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  1
+                                        },
+                          "model":  "stardewcraft:item/smallmouth_bass_silver"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2
+                                        },
+                          "model":  "stardewcraft:item/smallmouth_bass_gold"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3
+                                        },
+                          "model":  "stardewcraft:item/smallmouth_bass_iridium"
+                      }
+                  ]
 }

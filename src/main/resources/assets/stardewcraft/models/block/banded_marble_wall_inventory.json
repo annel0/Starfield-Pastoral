@@ -1,1 +1,7 @@
-{"parent":"minecraft:block/wall_inventory","textures":{"wall":"stardewcraft:block/mine/banded_marble"}}
+﻿{
+    "parent":  "minecraft:block/wall_inventory",
+    "textures":  {
+                     "wall":  "stardewcraft:block/mine/banded_marble",
+                     "particle":  "stardewcraft:block/mine/banded_marble"
+                 }
+}

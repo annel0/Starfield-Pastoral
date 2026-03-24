@@ -1,1 +1,9 @@
-{"parent":"minecraft:block/slab","textures":{"bottom":"stardewcraft:block/mine/salt_rock","top":"stardewcraft:block/mine/salt_rock","side":"stardewcraft:block/mine/salt_rock"}}
+﻿{
+    "parent":  "minecraft:block/slab",
+    "textures":  {
+                     "bottom":  "stardewcraft:block/mine/salt_rock",
+                     "top":  "stardewcraft:block/mine/salt_rock",
+                     "side":  "stardewcraft:block/mine/salt_rock",
+                     "particle":  "stardewcraft:block/mine/salt_rock"
+                 }
+}

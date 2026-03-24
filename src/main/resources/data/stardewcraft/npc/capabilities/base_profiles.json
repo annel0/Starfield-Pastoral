@@ -1,0 +1,22 @@
+{
+  "npcs": [
+    {
+      "id": "abigail",
+      "implemented": true,
+      "pathing_enabled": true,
+      "animation_profile": "idle_walk"
+    },
+    {
+      "id": "caroline",
+      "implemented": true,
+      "pathing_enabled": true,
+      "animation_profile": "idle_walk"
+    },
+    {
+      "id": "lewis",
+      "implemented": true,
+      "pathing_enabled": true,
+      "animation_profile": "idle_walk"
+    }
+  ]
+}

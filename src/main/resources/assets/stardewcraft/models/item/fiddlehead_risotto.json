@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/fiddlehead_risotto"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/fiddlehead_risotto",
+                     "particle":  "stardewcraft:item/cooking/fiddlehead_risotto"
+                 }
 }

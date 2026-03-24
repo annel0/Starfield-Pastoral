@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/tool/misc/autofeed_trough_upgrader"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/tool/misc/autofeed_trough_upgrader",
+                     "particle":  "stardewcraft:item/tool/misc/autofeed_trough_upgrader"
+                 }
 }

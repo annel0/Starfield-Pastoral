@@ -1,4 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": { "layer0": "stardewcraft:item/fish/misc/green_algae" }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/fish/misc/green_algae",
+                     "particle":  "stardewcraft:item/fish/misc/green_algae"
+                 }
 }

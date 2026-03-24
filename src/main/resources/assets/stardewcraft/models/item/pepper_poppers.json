@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/pepper_poppers"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/pepper_poppers",
+                     "particle":  "stardewcraft:item/cooking/pepper_poppers"
+                 }
 }

@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/vegetable_medley"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/vegetable_medley",
+                     "particle":  "stardewcraft:item/cooking/vegetable_medley"
+                 }
 }

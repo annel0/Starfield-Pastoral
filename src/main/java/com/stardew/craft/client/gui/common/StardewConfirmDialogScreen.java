@@ -39,6 +39,7 @@ public class StardewConfirmDialogScreen extends Screen {
     private int transitionHeight;
     private int pendingAnswerIndex = -1;
     private long lastUpdateMs;
+    private long lastRenderMs;
     private boolean openingSoundPlayed;
     private int characterIndexInDialogue;
     private int characterAdvanceTimer;
@@ -191,6 +192,7 @@ public class StardewConfirmDialogScreen extends Screen {
         super.init();
         recomputeLayout();
         lastUpdateMs = Util.getMillis();
+        lastRenderMs = Util.getMillis();
         characterIndexInDialogue = 0;
         characterAdvanceTimer = 90;
         safetyTimer = 750;
@@ -265,7 +267,6 @@ public class StardewConfirmDialogScreen extends Screen {
         long now = Util.getMillis();
         long elapsed = Math.max(0L, now - lastUpdateMs);
         lastUpdateMs = now;
-        updateTransition(elapsed);
 
         if (safetyTimer > 0) {
             safetyTimer -= (int) elapsed;
@@ -296,6 +297,10 @@ public class StardewConfirmDialogScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         recomputeLayout();
+        long now = Util.getMillis();
+        long renderElapsed = Math.max(0L, now - lastRenderMs);
+        lastRenderMs = now;
+        updateTransition(renderElapsed);
 
         if (transitioning) {
             if (transitionWidth > 0 && transitionHeight > 0) {

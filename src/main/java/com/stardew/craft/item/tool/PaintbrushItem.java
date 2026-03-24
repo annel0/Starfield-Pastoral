@@ -4,6 +4,7 @@ import com.stardew.craft.block.ModBlocks;
 import com.stardew.craft.deco.DecorationService;
 import com.stardew.craft.deco.DecorationType;
 import com.stardew.craft.item.IStardewItem;
+import com.stardew.craft.network.payload.OpenSofaColorScreenPayload;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
@@ -12,6 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 public class PaintbrushItem extends Item implements IStardewItem {
     public PaintbrushItem(Properties properties) {
@@ -43,6 +45,27 @@ public class PaintbrushItem extends Item implements IStardewItem {
         }
 
         if (type == null) {
+            if (clicked.getBlock() == ModBlocks.SOFA.get()) {
+                if (level.isClientSide) {
+                    return InteractionResult.SUCCESS;
+                }
+                if (context.getPlayer() instanceof ServerPlayer serverPlayer) {
+                    int current = clicked.getValue(com.stardew.craft.block.utility.SofaBlock.COLOR);
+                    PacketDistributor.sendToPlayer(serverPlayer, new OpenSofaColorScreenPayload(pos, current));
+                    return InteractionResult.CONSUME;
+                }
+            }
+            if (clicked.getBlock() == ModBlocks.CUSHION.get()) {
+                if (level.isClientSide) {
+                    return InteractionResult.SUCCESS;
+                }
+                if (context.getPlayer() instanceof ServerPlayer serverPlayer
+                    && clicked.hasProperty(com.stardew.craft.block.utility.CushionBlock.COLOR)) {
+                    int current = clicked.getValue(com.stardew.craft.block.utility.CushionBlock.COLOR);
+                    PacketDistributor.sendToPlayer(serverPlayer, new OpenSofaColorScreenPayload(pos, current));
+                    return InteractionResult.CONSUME;
+                }
+            }
             return InteractionResult.PASS;
         }
 

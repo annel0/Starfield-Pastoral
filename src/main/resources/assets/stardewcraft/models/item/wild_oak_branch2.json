@@ -1,3 +1,6 @@
-{
-  "parent": "stardewcraft:block/wild_tree/oak/branch2"
+﻿{
+    "parent":  "stardewcraft:block/wild_tree/oak/branch2",
+    "textures":  {
+                     "particle":  "stardewcraft:block/wild_tree/oak/branch1"
+                 }
 }

@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/autumn_s_bounty"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/autumn_s_bounty",
+                     "particle":  "stardewcraft:item/cooking/autumn_s_bounty"
+                 }
 }

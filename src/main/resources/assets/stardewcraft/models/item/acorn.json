@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/tree/acorn"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/tree/acorn",
+                     "particle":  "stardewcraft:item/tree/acorn"
+                 }
 }

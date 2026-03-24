@@ -1,3 +1,6 @@
-{
-  "parent": "stardewcraft:block/scoria_wall_inventory"
+﻿{
+    "parent":  "stardewcraft:block/scoria_wall_inventory",
+    "textures":  {
+                     "particle":  "stardewcraft:block/mine/scoria"
+                 }
 }

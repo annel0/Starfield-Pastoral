@@ -27,7 +27,7 @@
             },
             {
               "type": "minecraft:item",
-              "name": "stardewcraft:coffee_bean_seeds"
+              "name": "stardewcraft:coffee_bean"
             }
           ]
         }

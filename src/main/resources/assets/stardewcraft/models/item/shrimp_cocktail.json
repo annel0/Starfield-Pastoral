@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/shrimp_cocktail"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/shrimp_cocktail",
+                     "particle":  "stardewcraft:item/cooking/shrimp_cocktail"
+                 }
 }

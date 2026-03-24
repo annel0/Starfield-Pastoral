@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/artisan/dehydrator/raisins"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/artisan/dehydrator/raisins",
+                     "particle":  "stardewcraft:item/artisan/dehydrator/raisins"
+                 }
 }

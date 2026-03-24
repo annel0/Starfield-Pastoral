@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/triple_shot_espresso"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/triple_shot_espresso",
+                     "particle":  "stardewcraft:item/cooking/triple_shot_espresso"
+                 }
 }

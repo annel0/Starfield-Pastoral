@@ -1,0 +1,35 @@
+{
+  "npc_id": "lewis",
+  "loved": [
+    "stardewcraft:vegetable_medley",
+    "stardewcraft:glazed_yams",
+    "stardewcraft:autumn_s_bounty",
+    "stardewcraft:green_tea",
+    "stardewcraft:hot_pepper"
+  ],
+  "liked": [
+    "stardewcraft:coconut",
+    "stardewcraft:cactus_fruit",
+    "stardewcraft:parsnip",
+    "stardewcraft:potato",
+    "stardewcraft:blueberry",
+    "stardewcraft:radish",
+    "stardewcraft:eggplant",
+    "stardewcraft:artichoke",
+    "stardewcraft:bok_choy"
+  ],
+  "neutral": [],
+  "disliked": [
+    "stardewcraft:salmonberry",
+    "stardewcraft:wild_horseradish",
+    "stardewcraft:milk",
+    "stardewcraft:large_milk",
+    "stardewcraft:goat_milk",
+    "stardewcraft:large_goat_milk",
+    "stardewcraft:clay"
+  ],
+  "hated": [
+    "stardewcraft:holly",
+    "stardewcraft:quartz"
+  ]
+}

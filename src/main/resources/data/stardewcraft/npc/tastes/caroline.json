@@ -1,0 +1,8 @@
+{
+  "npc_id": "caroline",
+  "loved": ["stardewcraft:summer_spangle", "stardewcraft:fish_taco"],
+  "liked": ["stardewcraft:parsnip", "stardewcraft:green_tea"],
+  "neutral": [],
+  "disliked": ["stardewcraft:salmonberry"],
+  "hated": ["stardewcraft:holly"]
+}

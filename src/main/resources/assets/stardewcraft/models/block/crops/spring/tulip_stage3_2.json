@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:block/cross",
-  "textures": {
-    "cross": "stardewcraft:block/crops/spring/tulip_stage3_2"
-  }
+﻿{
+    "parent":  "minecraft:block/cross",
+    "textures":  {
+                     "cross":  "stardewcraft:block/crops/spring/tulip_stage3_2",
+                     "particle":  "stardewcraft:block/crops/spring/tulip_stage3_2"
+                 }
 }

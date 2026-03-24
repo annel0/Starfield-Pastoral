@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:block/cross",
-  "textures": {
-    "cross": "stardewcraft:block/crops/summer/blueberry_stage2"
-  }
+﻿{
+    "parent":  "minecraft:block/cross",
+    "textures":  {
+                     "cross":  "stardewcraft:block/crops/summer/blueberry_stage2",
+                     "particle":  "stardewcraft:block/crops/summer/blueberry_stage2"
+                 }
 }

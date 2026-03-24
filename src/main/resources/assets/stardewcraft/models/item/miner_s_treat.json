@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/miner_s_treat"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/miner_s_treat",
+                     "particle":  "stardewcraft:item/cooking/miner_s_treat"
+                 }
 }

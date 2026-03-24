@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/crops/other/blue_grass_starter"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/crops/other/blue_grass_starter",
+                     "particle":  "stardewcraft:item/crops/other/blue_grass_starter"
+                 }
 }

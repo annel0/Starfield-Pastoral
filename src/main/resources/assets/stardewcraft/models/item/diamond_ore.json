@@ -1,3 +1,6 @@
-{
-  "parent": "stardewcraft:block/diamond_ore"
+﻿{
+    "parent":  "stardewcraft:block/diamond_ore",
+    "textures":  {
+                     "particle":  "stardewcraft:block/mine/diamond_ore"
+                 }
 }

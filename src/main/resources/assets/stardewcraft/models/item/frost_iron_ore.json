@@ -1,3 +1,6 @@
-{
-  "parent": "stardewcraft:block/frost_iron_ore"
+﻿{
+    "parent":  "stardewcraft:block/frost_iron_ore",
+    "textures":  {
+                     "particle":  "stardewcraft:block/mine/frost_iron_ore"
+                 }
 }

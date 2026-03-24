@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/pumpkin_pie"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/pumpkin_pie",
+                     "particle":  "stardewcraft:item/cooking/pumpkin_pie"
+                 }
 }

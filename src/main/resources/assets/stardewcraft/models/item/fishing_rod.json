@@ -1,14 +1,15 @@
-{
-  "parent": "stardewcraft:item/rod_base",
-  "textures": {
-    "layer0": "stardewcraft:item/tool/fishing_rod/bamboo_pole"
-  },
-  "overrides": [
-    {
-      "predicate": {
-        "cast": 1
-      },
-      "model": "stardewcraft:item/fishing_rod_cast"
-    }
-  ]
+﻿{
+    "parent":  "stardewcraft:item/rod_base",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/tool/fishing_rod/bamboo_pole",
+                     "particle":  "stardewcraft:item/tool/fishing_rod/bamboo_pole"
+                 },
+    "overrides":  [
+                      {
+                          "predicate":  {
+                                            "cast":  1
+                                        },
+                          "model":  "stardewcraft:item/fishing_rod_cast"
+                      }
+                  ]
 }

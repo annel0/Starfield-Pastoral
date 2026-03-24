@@ -1,3 +1,6 @@
-{
-  "parent": "stardewcraft:block/utility/cooking_pot"
+﻿{
+    "parent":  "stardewcraft:block/utility/cooking_pot",
+    "textures":  {
+                     "particle":  "stardewcraft:block/utility/cooking_pot"
+                 }
 }

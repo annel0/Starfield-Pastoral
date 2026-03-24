@@ -1,3 +1,6 @@
-{
-  "parent": "stardewcraft:decor/wall_decor/common/wall_hanging_small_b"
+﻿{
+    "parent":  "stardewcraft:decor/wall_decor/common/wall_hanging_small_b",
+    "textures":  {
+                     "particle":  "stardewcraft:block/deco/misc/pierres_shop/8_3"
+                 }
 }

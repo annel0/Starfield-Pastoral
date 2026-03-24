@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/chocolate_cake"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/chocolate_cake",
+                     "particle":  "stardewcraft:item/cooking/chocolate_cake"
+                 }
 }

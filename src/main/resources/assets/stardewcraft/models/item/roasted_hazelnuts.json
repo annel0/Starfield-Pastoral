@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/roasted_hazelnuts"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/roasted_hazelnuts",
+                     "particle":  "stardewcraft:item/cooking/roasted_hazelnuts"
+                 }
 }

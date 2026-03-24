@@ -1,3 +1,6 @@
-{
-  "parent": "stardewcraft:block/cracked_slate_slab"
+﻿{
+    "parent":  "stardewcraft:block/cracked_slate_slab",
+    "textures":  {
+                     "particle":  "stardewcraft:block/mine/cracked_slate"
+                 }
 }

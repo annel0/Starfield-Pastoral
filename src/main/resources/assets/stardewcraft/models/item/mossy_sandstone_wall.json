@@ -1,3 +1,6 @@
-{
-  "parent": "stardewcraft:block/mossy_sandstone_wall_inventory"
+﻿{
+    "parent":  "stardewcraft:block/mossy_sandstone_wall_inventory",
+    "textures":  {
+                     "particle":  "stardewcraft:block/mine/mossy_sandstone"
+                 }
 }

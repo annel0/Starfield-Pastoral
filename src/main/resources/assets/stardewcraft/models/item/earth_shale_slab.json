@@ -1,1 +1,6 @@
-{"parent":"stardewcraft:block/earth_shale_slab"}
+﻿{
+    "parent":  "stardewcraft:block/earth_shale_slab",
+    "textures":  {
+                     "particle":  "stardewcraft:block/mine/earth_shale"
+                 }
+}

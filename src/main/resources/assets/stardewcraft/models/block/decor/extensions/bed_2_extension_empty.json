@@ -1,0 +1,9 @@
+﻿{
+    "parent":  "minecraft:block/block",
+    "elements":  [
+
+                 ],
+    "textures":  {
+                     "particle":  "stardewcraft:block/decor/common/bed_2"
+                 }
+}

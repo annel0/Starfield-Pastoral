@@ -1,3 +1,6 @@
-{
-  "parent": "stardewcraft:block/wild_tree/maple/leaves"
+﻿{
+    "parent":  "stardewcraft:block/wild_tree/maple/leaves",
+    "textures":  {
+                     "particle":  "stardewcraft:block/wild_tree/maple/leaves"
+                 }
 }

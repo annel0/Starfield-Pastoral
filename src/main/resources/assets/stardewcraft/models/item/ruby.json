@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/mineral/ruby"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/mineral/ruby",
+                     "particle":  "stardewcraft:item/mineral/ruby"
+                 }
 }

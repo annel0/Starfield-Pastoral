@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/lobster_bisque"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/lobster_bisque",
+                     "particle":  "stardewcraft:item/cooking/lobster_bisque"
+                 }
 }

@@ -1,9 +1,27 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": { "layer0": "stardewcraft:item/fish/special/void_salmon" },
-  "overrides": [
-    { "predicate": { "custom_model_data": 1 }, "model": "stardewcraft:item/void_salmon_silver" },
-    { "predicate": { "custom_model_data": 2 }, "model": "stardewcraft:item/void_salmon_gold" },
-    { "predicate": { "custom_model_data": 3 }, "model": "stardewcraft:item/void_salmon_iridium" }
-  ]
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/fish/special/void_salmon",
+                     "particle":  "stardewcraft:item/fish/special/void_salmon"
+                 },
+    "overrides":  [
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  1
+                                        },
+                          "model":  "stardewcraft:item/void_salmon_silver"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2
+                                        },
+                          "model":  "stardewcraft:item/void_salmon_gold"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3
+                                        },
+                          "model":  "stardewcraft:item/void_salmon_iridium"
+                      }
+                  ]
 }

@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:block/cross",
-  "textures": {
-    "cross": "stardewcraft:block/crops/spring/kale_stage1"
-  }
+﻿{
+    "parent":  "minecraft:block/cross",
+    "textures":  {
+                     "cross":  "stardewcraft:block/crops/spring/kale_stage1",
+                     "particle":  "stardewcraft:block/crops/spring/kale_stage1"
+                 }
 }

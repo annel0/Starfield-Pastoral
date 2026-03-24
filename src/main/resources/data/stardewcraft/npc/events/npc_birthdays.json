@@ -1,0 +1,17 @@
+{
+  "event_id": "npc_birthdays",
+  "birthdays": {
+    "abigail": {
+      "season": "fall",
+      "day": 13
+    },
+    "caroline": {
+      "season": "winter",
+      "day": 7
+    },
+    "lewis": {
+      "season": "spring",
+      "day": 7
+    }
+  }
+}

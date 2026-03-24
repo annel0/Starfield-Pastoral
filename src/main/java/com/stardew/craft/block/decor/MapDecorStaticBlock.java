@@ -99,18 +99,21 @@ public class MapDecorStaticBlock extends Block {
     private VoxelShape resolvePartShape(BlockState state, BlockGetter level, BlockPos pos, Part part) {
         Direction facing = state.hasProperty(FACING) ? state.getValue(FACING) : Direction.NORTH;
         if (part == Part.MAIN) {
-            return clippedShapeForCell(facing, 0, 0, 0);
+            return shapeForPart(facing, CellOffset.ZERO);
         }
         CellOffset offset = findOffsetForExtension(level, pos, state);
         if (offset == null) {
             return Shapes.empty();
         }
-        return clippedShapeForCell(facing, offset.dx, offset.dy, offset.dz);
+        return shapeForPart(facing, offset);
     }
 
-    private VoxelShape clippedShapeForCell(Direction facing, int cx, int cy, int cz) {
-        String key = modelId + "#" + facing.getSerializedName() + "#" + cx + "," + cy + "," + cz;
-        return SHAPE_CACHE.computeIfAbsent(key, unused -> clipToCell(orientedShape(facing), cx, cy, cz));
+    private VoxelShape shapeForPart(Direction facing, CellOffset offsetFromMain) {
+        String key = modelId + "#" + facing.getSerializedName() + "#part#" + offsetFromMain.dx + "," + offsetFromMain.dy + "," + offsetFromMain.dz;
+        return SHAPE_CACHE.computeIfAbsent(
+            key,
+            unused -> shiftShape(orientedShape(facing), -offsetFromMain.dx, -offsetFromMain.dy, -offsetFromMain.dz)
+        );
     }
 
     private VoxelShape orientedShape(Direction facing) {
@@ -141,24 +144,16 @@ public class MapDecorStaticBlock extends Block {
         };
     }
 
-    private static VoxelShape clipToCell(VoxelShape shape, int cx, int cy, int cz) {
+    private static VoxelShape shiftShape(VoxelShape shape, int dx, int dy, int dz) {
         if (shape.isEmpty()) {
             return Shapes.empty();
         }
         final VoxelShape[] out = new VoxelShape[] { Shapes.empty() };
         shape.forAllBoxes((minX, minY, minZ, maxX, maxY, maxZ) -> {
-            double cMinX = Math.max(cx, minX);
-            double cMinY = Math.max(cy, minY);
-            double cMinZ = Math.max(cz, minZ);
-            double cMaxX = Math.min(cx + 1.0, maxX);
-            double cMaxY = Math.min(cy + 1.0, maxY);
-            double cMaxZ = Math.min(cz + 1.0, maxZ);
-            if (cMaxX > cMinX && cMaxY > cMinY && cMaxZ > cMinZ) {
-                out[0] = Shapes.or(
-                    out[0],
-                    Shapes.box(cMinX - cx, cMinY - cy, cMinZ - cz, cMaxX - cx, cMaxY - cy, cMaxZ - cz)
-                );
-            }
+            out[0] = Shapes.or(
+                out[0],
+                Shapes.box(minX + dx, minY + dy, minZ + dz, maxX + dx, maxY + dy, maxZ + dz)
+            );
         });
         return out[0].optimize();
     }

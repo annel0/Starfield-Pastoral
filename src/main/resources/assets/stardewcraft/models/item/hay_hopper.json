@@ -1,3 +1,6 @@
-{
-  "parent": "stardewcraft:block/utility/hay_hopper"
+﻿{
+    "parent":  "stardewcraft:block/utility/hay_hopper",
+    "textures":  {
+                     "particle":  "stardewcraft:block/utility/hay_hopper"
+                 }
 }

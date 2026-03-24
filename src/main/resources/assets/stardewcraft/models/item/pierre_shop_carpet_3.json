@@ -1,3 +1,6 @@
-{
-  "parent": "stardewcraft:decor/pierre_shop/carpet_3"
+﻿{
+    "parent":  "stardewcraft:decor/pierre_shop/carpet_3",
+    "textures":  {
+                     "particle":  "stardewcraft:block/deco/misc/pierres_shop/carpet_3"
+                 }
 }

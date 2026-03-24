@@ -1,6 +1,7 @@
-{
-  "parent": "stardewcraft:item/rod_base",
-  "textures": {
-    "layer0": "stardewcraft:item/tool/fishing_rod/bamboo_pole_cast"
-  }
+﻿{
+    "parent":  "stardewcraft:item/rod_base",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/tool/fishing_rod/bamboo_pole_cast",
+                     "particle":  "stardewcraft:item/tool/fishing_rod/bamboo_pole_cast"
+                 }
 }

@@ -1,11 +1,27 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/fish/lake/largemouth_bass"
-  },
-  "overrides": [
-    { "predicate": { "custom_model_data": 1 }, "model": "stardewcraft:item/largemouth_bass_silver" },
-    { "predicate": { "custom_model_data": 2 }, "model": "stardewcraft:item/largemouth_bass_gold" },
-    { "predicate": { "custom_model_data": 3 }, "model": "stardewcraft:item/largemouth_bass_iridium" }
-  ]
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/fish/lake/largemouth_bass",
+                     "particle":  "stardewcraft:item/fish/lake/largemouth_bass"
+                 },
+    "overrides":  [
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  1
+                                        },
+                          "model":  "stardewcraft:item/largemouth_bass_silver"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2
+                                        },
+                          "model":  "stardewcraft:item/largemouth_bass_gold"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3
+                                        },
+                          "model":  "stardewcraft:item/largemouth_bass_iridium"
+                      }
+                  ]
 }

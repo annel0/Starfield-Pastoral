@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/misc/wilted_bouquet"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/misc/wilted_bouquet",
+                     "particle":  "stardewcraft:item/misc/wilted_bouquet"
+                 }
 }

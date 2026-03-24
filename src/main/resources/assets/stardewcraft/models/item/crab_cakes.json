@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/cooking/crab_cakes"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/cooking/crab_cakes",
+                     "particle":  "stardewcraft:item/cooking/crab_cakes"
+                 }
 }

@@ -10,7 +10,11 @@ import com.stardew.craft.client.ModRenderLayers;
 import com.stardew.craft.client.render.FertilizerOverlayRenderer;
 import com.stardew.craft.client.renderer.SprinklerOverlayRenderer;
 import com.stardew.craft.client.DebugKeybindsTick;
+import com.stardew.craft.client.renderer.entity.SofaSeatEntityRenderer;
 import com.stardew.craft.entity.ModEntities;
+import com.stardew.craft.block.utility.CushionBlock;
+import com.stardew.craft.block.utility.SofaBlock;
+import com.stardew.craft.block.utility.WoodenChestColorPalette;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.inventory.InventoryMenu;
@@ -159,8 +163,33 @@ public class StardewCraftClient {
                 ModBlocks.BONSAI_3.get(),
                 ModBlocks.BONSAI_4.get(),
                 ModBlocks.BONSAI_5_WALL.get(),
-                ModBlocks.BONSAI_6.get()
+                ModBlocks.BONSAI_6.get(),
+                ModBlocks.SOFA.get(),
+                ModBlocks.CHAIR_1.get(),
+                ModBlocks.CHAIR_2.get(),
+                ModBlocks.CHAIR_3.get(),
+                ModBlocks.CUSHION.get(),
+                ModBlocks.LIGHT_1.get(),
+                ModBlocks.LIGHT_2.get(),
+                ModBlocks.LIGHT_3.get(),
+                ModBlocks.LIGHT_4.get(),
+                ModBlocks.LIGHT_5.get(),
+                ModBlocks.LIGHT_6.get(),
+                ModBlocks.LIGHT_7.get(),
+                ModBlocks.OAK_TABLE.get(),
+                ModBlocks.SPRUCE_TABLE.get(),
+                ModBlocks.BIRCH_TABLE.get()
             ));
+
+            // Negative-volume models with mixed opaque/transparent faces.
+            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
+                ModBlocks.OIL_MAKER.get(),
+                net.minecraft.client.renderer.RenderType.translucent()
+            );
+            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
+                ModBlocks.MUSEUM_EXHIBIT_STAND.get(),
+                net.minecraft.client.renderer.RenderType.translucent()
+            );
             
 			ModItemProperties.register();
         });
@@ -170,10 +199,42 @@ public class StardewCraftClient {
     @SubscribeEvent
     static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(ModEntities.FALLEN_OAK_TREE.get(), FallenOakTreeRenderer::new);
+        event.registerEntityRenderer(ModEntities.SOFA_SEAT.get(), SofaSeatEntityRenderer::new);
+    }
+
+    @SuppressWarnings("null")
+    @SubscribeEvent
+    static void onRegisterBlockColors(RegisterColorHandlersEvent.Block event) {
+        event.register((state, level, pos, tintIndex) -> {
+            if (tintIndex != 0 || state == null) {
+                return 0xFFFFFFFF;
+            }
+            Integer indexValue = null;
+            if (state.hasProperty(SofaBlock.COLOR)) {
+                indexValue = state.getValue(SofaBlock.COLOR);
+            } else if (state.hasProperty(CushionBlock.COLOR)) {
+                indexValue = state.getValue(CushionBlock.COLOR);
+            }
+            if (indexValue == null) {
+                return 0xFFFFFFFF;
+            }
+            int index = WoodenChestColorPalette.clampIndex(indexValue);
+            if (index < 0) {
+                index = 0;
+            }
+            return 0xFF000000 | (WoodenChestColorPalette.rgbAt(index) & 0xFFFFFF);
+        }, ModBlocks.SOFA.get(), ModBlocks.CUSHION.get());
     }
 
     @SubscribeEvent
     static void onRegisterItemColors(RegisterColorHandlersEvent.Item event) {
+        event.register((stack, tintIndex) -> {
+            if (tintIndex != 0) {
+                return 0xFFFFFFFF;
+            }
+            return 0xFF000000 | (WoodenChestColorPalette.rgbAt(0) & 0xFFFFFF);
+        }, ModItems.SOFA.get(), ModItems.CUSHION.get());
+
         event.register((stack, tintIndex) -> {
             if (!(stack.getItem() instanceof PreservesItem preservesItem)) {
                 return 0xFFFFFFFF;

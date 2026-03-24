@@ -23,6 +23,8 @@ import com.stardew.craft.entity.animal.RabbitEntity;
 import com.stardew.craft.entity.animal.SheepEntity;
 import com.stardew.craft.entity.animal.VoidChickenEntity;
 import com.stardew.craft.entity.animal.WhiteChickenEntity;
+import com.stardew.craft.entity.npc.StardewNpcEntity;
+import com.stardew.craft.entity.seat.SofaSeatEntity;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 
 public final class ModEntities {
@@ -186,6 +188,24 @@ public final class ModEntities {
 					.build("pig")
 	);
 
+	public static final DeferredHolder<EntityType<?>, EntityType<StardewNpcEntity>> STARDEW_NPC = ENTITY_TYPES.register(
+			"stardew_npc",
+			() -> EntityType.Builder.<StardewNpcEntity>of(StardewNpcEntity::new, MobCategory.CREATURE)
+					.sized(0.8F, 1.8F)
+					.clientTrackingRange(16)
+					.updateInterval(2)
+					.build("stardew_npc")
+	);
+
+	public static final DeferredHolder<EntityType<?>, EntityType<SofaSeatEntity>> SOFA_SEAT = ENTITY_TYPES.register(
+			"sofa_seat",
+			() -> EntityType.Builder.<SofaSeatEntity>of(SofaSeatEntity::new, MobCategory.MISC)
+					.sized(0.01F, 0.01F)
+					.clientTrackingRange(8)
+					.updateInterval(1)
+					.build("sofa_seat")
+	);
+
 	@SuppressWarnings("null")
 	public static void onEntityAttributeCreation(EntityAttributeCreationEvent event) {
 		event.put(DUCK.get(), BaseCoopAnimalEntity.createAttributes().build());
@@ -199,6 +219,7 @@ public final class ModEntities {
 		event.put(GOAT.get(), BaseCoopAnimalEntity.createAttributes().build());
 		event.put(SHEEP.get(), BaseCoopAnimalEntity.createAttributes().build());
 		event.put(PIG.get(), BaseCoopAnimalEntity.createAttributes().build());
+		event.put(STARDEW_NPC.get(), StardewNpcEntity.createAttributes().build());
 	}
 
 }

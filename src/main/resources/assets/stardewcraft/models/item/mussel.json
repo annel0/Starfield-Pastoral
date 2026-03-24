@@ -1,4 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": { "layer0": "stardewcraft:item/fish/crabpot/mussel" }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/fish/crabpot/mussel",
+                     "particle":  "stardewcraft:item/fish/crabpot/mussel"
+                 }
 }

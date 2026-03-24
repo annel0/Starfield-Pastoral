@@ -50,6 +50,8 @@ public final class InteriorSubspaceManager {
     private static final String DATA_NAME = "stardew_interior_subspace_layout";
 
     private static final List<FixedStructure> FIXED_STRUCTURES = new ArrayList<>();
+    private static final int STRUCTURE_FORCE_RADIUS_CHUNKS = 3;
+    private static boolean interiorChunksForced;
 
     static {
         // 用户指定：室内坐标都放在 X>10000, Z>10000，且只需保证互不重叠。
@@ -107,6 +109,14 @@ public final class InteriorSubspaceManager {
             && pos.getZ() <= REGION_MAX_Z;
     }
 
+    public static boolean isLayoutInitialized(ServerLevel level) {
+        if (!ModDimensions.STARDEW_VALLEY.equals(level.dimension())) {
+            return false;
+        }
+        InteriorSubspaceSavedData data = InteriorSubspaceSavedData.get(level);
+        return data.layoutVersion == LAYOUT_VERSION && data.initialized;
+    }
+
     public static void ensureLoaded(ServerLevel level, String reason) {
         if (!ModDimensions.STARDEW_VALLEY.equals(level.dimension())) {
             return;
@@ -114,9 +124,6 @@ public final class InteriorSubspaceManager {
 
         InteriorSubspaceSavedData data = InteriorSubspaceSavedData.get(level);
         if (data.layoutVersion == LAYOUT_VERSION && data.initialized) {
-            // 结构已初始化时，仅做交互实体自愈检查（轻量）。
-            ensurePortalInteractions(level);
-            StardewCraft.LOGGER.info("[INTERIOR] Layout already initialized. reason={}, version={}", reason, LAYOUT_VERSION);
             return;
         }
 
@@ -148,6 +155,33 @@ public final class InteriorSubspaceManager {
         data.layoutVersion = 0;
         data.setDirty();
         ensureLoaded(level, reason);
+    }
+
+    public static void setInteriorChunksForced(ServerLevel level, boolean force, String reason) {
+        if (!ModDimensions.STARDEW_VALLEY.equals(level.dimension())) {
+            return;
+        }
+        if (interiorChunksForced == force) {
+            return;
+        }
+
+        for (FixedStructure structure : FIXED_STRUCTURES) {
+            int centerChunkX = structure.origin().getX() >> 4;
+            int centerChunkZ = structure.origin().getZ() >> 4;
+            for (int dz = -STRUCTURE_FORCE_RADIUS_CHUNKS; dz <= STRUCTURE_FORCE_RADIUS_CHUNKS; dz++) {
+                for (int dx = -STRUCTURE_FORCE_RADIUS_CHUNKS; dx <= STRUCTURE_FORCE_RADIUS_CHUNKS; dx++) {
+                    int chunkX = centerChunkX + dx;
+                    int chunkZ = centerChunkZ + dz;
+                    level.setChunkForced(chunkX, chunkZ, force);
+                    if (force) {
+                        level.getChunk(chunkX, chunkZ);
+                    }
+                }
+            }
+        }
+
+        interiorChunksForced = force;
+        StardewCraft.LOGGER.info("[INTERIOR] Interior structure chunk forcing toggled: {} (reason={})", force, reason);
     }
 
     private static boolean placeAllStructures(ServerLevel level) {

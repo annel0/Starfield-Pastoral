@@ -1,0 +1,623 @@
+package com.stardew.craft.npc.runtime;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.stardew.craft.StardewCraft;
+import com.stardew.craft.npc.data.NpcCapabilityProfile;
+import com.stardew.craft.npc.data.NpcLocationAnchor;
+import com.stardew.craft.npc.data.NpcDataRegistry;
+import com.stardew.craft.time.StardewTimeManager;
+import com.stardew.craft.weather.WeatherManager;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.phys.Vec3;
+
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.Comparator;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
+/**
+ * Prototype schedule runtime: resolves the active checkpoint from schedule data by Stardew time.
+ */
+@SuppressWarnings("null")
+public final class NpcScheduleRuntimeService {
+    private static final String[] WEEKDAY_NAMES = {"monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"};
+    private static boolean warnedMissingTownAnchor;
+    private static final Map<String, ScheduleKeyTrace> LAST_KEY_TRACE = new LinkedHashMap<>();
+    private static final Set<String> MAIL_POLICY_LOGGED = new HashSet<>();
+    private static final Set<String> UNKNOWN_CONDITION_LOGGED = new HashSet<>();
+
+    private NpcScheduleRuntimeService() {
+    }
+
+    public static void tick(ServerLevel level) {
+        StardewTimeManager timeManager = StardewTimeManager.get();
+        int currentTime = minutesToScheduleClock(timeManager.getCurrentTime());
+        String activeWeather = WeatherManager.getCurrentWeather(level);
+        NpcRuntimeDataManager runtimeData = NpcRuntimeDataManager.get(level);
+        boolean changed = false;
+
+        for (Map.Entry<String, NpcCapabilityProfile> entry : NpcDataRegistry.capabilities().entrySet()) {
+            NpcCapabilityProfile profile = entry.getValue();
+            if (!profile.implemented()) {
+                continue;
+            }
+
+            String npcId = profile.npcId();
+            NpcRuntimeState state = runtimeData.getOrCreate(npcId);
+            ScheduleNode activeNode = resolveActiveNode(level, npcId, NpcDataRegistry.schedules().get(npcId), currentTime, timeManager, activeWeather);
+            if (activeNode == null) {
+                continue;
+            }
+
+            boolean stateChanged = false;
+            if (!activeNode.scheduleKey().equalsIgnoreCase(state.activeScheduleKey())) {
+                state.setActiveScheduleKey(activeNode.scheduleKey());
+                stateChanged = true;
+            }
+            if (state.scheduleCheckpoint() != activeNode.checkpoint()) {
+                state.setScheduleCheckpoint(activeNode.checkpoint());
+                stateChanged = true;
+            }
+            if (!activeNode.locationName().equalsIgnoreCase(state.locationName())) {
+                state.setLocationName(activeNode.locationName());
+                stateChanged = true;
+            }
+            if (state.tileX() != activeNode.tileX()) {
+                state.setTileX(activeNode.tileX());
+                stateChanged = true;
+            }
+            if (state.tileY() != activeNode.tileY()) {
+                state.setTileY(activeNode.tileY());
+                stateChanged = true;
+            }
+            if (state.facing() != activeNode.facing()) {
+                state.setFacing(activeNode.facing());
+                stateChanged = true;
+            }
+            if (state.scheduleNodeIndex() != activeNode.index()) {
+                state.setScheduleNodeIndex(activeNode.index());
+                stateChanged = true;
+            }
+            if (!activeNode.routeBehaviorToken().equals(state.routeBehaviorToken())) {
+                state.setRouteBehaviorToken(activeNode.routeBehaviorToken());
+                stateChanged = true;
+            }
+
+            if (stateChanged) {
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            runtimeData.setDirty();
+        }
+    }
+
+    public static TargetPoint resolveWorldTarget(ServerLevel level, NpcRuntimeState state, Vec3 fallback) {
+        if (state == null) {
+            return TargetPoint.fallback(fallback);
+        }
+
+        String location = canonicalLocation(state.locationName());
+        NpcLocationAnchor anchor = NpcDataRegistry.locationAnchors().get(location);
+        if (anchor != null) {
+            if (anchor.useScheduleTileOffset()) {
+                double x = anchor.x() + state.tileX();
+                double z = anchor.z() + state.tileY();
+                return new TargetPoint(new Vec3(x, anchor.y(), z), anchor.useGroundHeight(), anchor.indoor());
+            }
+
+            return new TargetPoint(new Vec3(anchor.x(), anchor.y(), anchor.z()), anchor.useGroundHeight(), anchor.indoor());
+        }
+
+        if ("town".equals(location) && !warnedMissingTownAnchor) {
+            warnedMissingTownAnchor = true;
+            StardewCraft.LOGGER.warn("NPC schedule location 'Town' has no anchor mapping. Add anchors.town in npc/location_mappings to enable Town tile routing.");
+        }
+        return TargetPoint.fallback(fallback);
+    }
+
+    public static ScheduleKeyTrace getLastKeyTrace(String npcId) {
+        if (npcId == null) {
+            return null;
+        }
+        return LAST_KEY_TRACE.get(npcId.toLowerCase(Locale.ROOT));
+    }
+
+    private static String canonicalLocation(String locationName) {
+        if (locationName == null || locationName.isBlank()) {
+            return "";
+        }
+        String raw = locationName.trim().toLowerCase(Locale.ROOT);
+        return NpcDataRegistry.locationAliases().getOrDefault(raw, raw);
+    }
+
+    private static ScheduleNode resolveActiveNode(ServerLevel level,
+                                                  String npcId,
+                                                  JsonObject scheduleRoot,
+                                                  int currentTime,
+                                                  StardewTimeManager timeManager,
+                                                  String activeWeather) {
+        if (scheduleRoot == null) {
+            return null;
+        }
+
+        String scheduleKey = selectScheduleKey(level, npcId, scheduleRoot, timeManager, activeWeather);
+        if (scheduleKey == null) {
+            return null;
+        }
+
+            JsonObject activeSchedule = resolveScheduleObjectWithGoto(level, npcId, scheduleRoot, scheduleKey);
+        if (activeSchedule == null) {
+            return null;
+        }
+        List<ScheduleNode> nodes = new ArrayList<>();
+        String lastLocation = "";
+        for (Map.Entry<String, JsonElement> entry : activeSchedule.entrySet()) {
+            if (entry.getKey().startsWith("_")) {
+                continue;
+            }
+            int checkpoint = parseCheckpoint(entry.getKey());
+            if (checkpoint < 0 || !entry.getValue().isJsonPrimitive()) {
+                continue;
+            }
+
+            ScheduleNode parsed = parseNode(scheduleKey, checkpoint, entry.getValue().getAsString(), lastLocation);
+            if (parsed != null) {
+                nodes.add(parsed);
+                lastLocation = parsed.locationName();
+            }
+        }
+
+        if (nodes.isEmpty()) {
+            return null;
+        }
+
+        nodes.sort(Comparator.comparingInt(ScheduleNode::checkpoint));
+        for (int i = 0; i < nodes.size(); i++) {
+            ScheduleNode node = nodes.get(i);
+            nodes.set(i, node.withIndex(i));
+        }
+
+        ScheduleNode active = nodes.get(0);
+        for (ScheduleNode node : nodes) {
+            if (currentTime >= node.checkpoint()) {
+                active = node;
+            }
+        }
+        return active;
+    }
+
+    private static String selectScheduleKey(ServerLevel level,
+                                            String npcId,
+                                            JsonObject scheduleRoot,
+                                            StardewTimeManager timeManager,
+                                            String activeWeather) {
+        NpcFriendshipDataManager friendship = NpcFriendshipDataManager.get(level);
+        UUID schedulePlayerId = resolveScheduleContextPlayer(level, npcId);
+        Set<String> candidates = new LinkedHashSet<>();
+        int day = Math.max(1, timeManager.getCurrentDay());
+        String season = timeManager.getSeasonName().toLowerCase(Locale.ROOT);
+        String weekday = WEEKDAY_NAMES[(day - 1) % WEEKDAY_NAMES.length];
+        String weather = activeWeather == null ? "" : activeWeather.toLowerCase(Locale.ROOT);
+        int hearts = Math.max(0, friendship.getPointsForNpc(schedulePlayerId, canonicalNpcId(npcId)) / 250);
+
+        // 1) <season>_<day>
+        candidates.add(season + "_" + day);
+
+        // 2) <day>_<hearts>
+        candidates.add(day + "_" + hearts);
+
+        // 3) <day>
+        candidates.add(String.valueOf(day));
+
+        // 4) bus (Pam special key, kept in chain for parity completeness)
+        candidates.add("bus");
+
+        // 5/6) rain2 -> rain
+        if (weather.contains("rain") || weather.contains("storm")) {
+            candidates.add("rain2");
+            candidates.add("rain");
+        }
+
+        // 7) <season>_<dayOfWeek>_<hearts>
+        candidates.add(season + "_" + weekday + "_" + hearts);
+
+        // 8) <season>_<dayOfWeek>
+        candidates.add(season + "_" + weekday);
+
+        // 9) <dayOfWeek>_<hearts>
+        candidates.add(weekday + "_" + hearts);
+
+        // 10) <dayOfWeek>
+        candidates.add(weekday);
+
+        // 11) <season>
+        candidates.add(season);
+
+        // 12) spring_<dayOfWeek>
+        candidates.add("spring_" + weekday);
+
+        // 13) spring
+        candidates.add("spring");
+
+        // 14) default
+        candidates.add("default");
+
+        if (weather.contains("greenrain")) {
+            candidates.add("greenrain");
+            candidates.add("GreenRain");
+        }
+        if (weather.contains("snow")) {
+            candidates.add("snow");
+        }
+
+        List<String> traceCandidates = new ArrayList<>();
+        List<String> traceRejects = new ArrayList<>();
+
+        for (String candidate : candidates) {
+            traceCandidates.add(candidate);
+            JsonObject obj = getScheduleObjectCaseInsensitive(scheduleRoot, candidate);
+            if (obj == null) {
+                traceRejects.add(candidate + " -> missing_key");
+                continue;
+            }
+
+            if (!scheduleConditionPasses(level, obj, schedulePlayerId)) {
+                traceRejects.add(candidate + " -> condition_blocked");
+                continue;
+            }
+
+            String actual = findActualScheduleKey(scheduleRoot, candidate);
+            LAST_KEY_TRACE.put(
+                canonicalNpcId(npcId),
+                new ScheduleKeyTrace(
+                    canonicalNpcId(npcId),
+                    day,
+                    season,
+                    weekday,
+                    weather,
+                    hearts,
+                    actual,
+                    Collections.unmodifiableList(traceCandidates),
+                    Collections.unmodifiableList(traceRejects)
+                )
+            );
+            return actual;
+        }
+
+        LAST_KEY_TRACE.put(
+            canonicalNpcId(npcId),
+            new ScheduleKeyTrace(
+                canonicalNpcId(npcId),
+                day,
+                season,
+                weekday,
+                weather,
+                hearts,
+                "<none>",
+                Collections.unmodifiableList(traceCandidates),
+                Collections.unmodifiableList(traceRejects)
+            )
+        );
+        return null;
+    }
+
+    private static String canonicalNpcId(String npcId) {
+        if (npcId == null) {
+            return "";
+        }
+        return npcId.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private static JsonObject resolveScheduleObjectWithGoto(ServerLevel level, String npcId, JsonObject scheduleRoot, String scheduleKey) {
+        String current = scheduleKey;
+        UUID schedulePlayerId = resolveScheduleContextPlayer(level, npcId);
+        Set<String> visited = new HashSet<>();
+
+        while (current != null && !current.isBlank() && !visited.contains(current)) {
+            visited.add(current);
+            JsonObject obj = getScheduleObjectCaseInsensitive(scheduleRoot, current);
+            if (obj == null) {
+                return null;
+            }
+
+            if (!scheduleConditionPasses(level, obj, schedulePlayerId)) {
+                return null;
+            }
+            if (!obj.has("_goto") || !obj.get("_goto").isJsonPrimitive()) {
+                return obj;
+            }
+
+            String next = obj.get("_goto").getAsString();
+            current = next == null ? null : next.trim();
+        }
+
+        return null;
+    }
+
+    private static boolean scheduleConditionPasses(ServerLevel level, JsonObject scheduleObj, UUID schedulePlayerId) {
+        if (!scheduleObj.has("_condition") || !scheduleObj.get("_condition").isJsonPrimitive()) {
+            return true;
+        }
+
+        String raw = scheduleObj.get("_condition").getAsString();
+        if (raw == null || raw.isBlank()) {
+            return true;
+        }
+
+        String[] parts = raw.trim().split("\\s+");
+        if (parts.length >= 4 && "NOT".equalsIgnoreCase(parts[0]) && "friendship".equalsIgnoreCase(parts[1])) {
+            return evaluateFriendshipCondition(level, parts, true, schedulePlayerId);
+        }
+        if (parts.length >= 3 && "friendship".equalsIgnoreCase(parts[0])) {
+            return evaluateFriendshipCondition(level, parts, false, schedulePlayerId);
+        }
+        if (parts.length >= 2 && "MAIL".equalsIgnoreCase(parts[0])) {
+            boolean allowed = mailConditionAllowed(level, false);
+            logMailPolicyDecision(raw, allowed);
+            return allowed;
+        }
+        if (parts.length >= 3 && "NOT".equalsIgnoreCase(parts[0]) && "MAIL".equalsIgnoreCase(parts[1])) {
+            boolean allowed = mailConditionAllowed(level, true);
+            logMailPolicyDecision(raw, allowed);
+            return allowed;
+        }
+
+        logUnknownCondition(raw);
+        // Unknown condition syntax: keep schedule available rather than hard-blocking it.
+        return true;
+    }
+
+    private static void logMailPolicyDecision(String rawCondition, boolean allowed) {
+        String key = rawCondition == null ? "<null>" : rawCondition.trim().toLowerCase(Locale.ROOT);
+        if (!MAIL_POLICY_LOGGED.add(key + "|" + allowed)) {
+            return;
+        }
+        com.stardew.craft.StardewCraft.LOGGER.info(
+            "[NPC_SCHEDULE_MAIL_POLICY] condition='{}' policy='{}' allowed={}",
+            rawCondition,
+            resolveMailConditionPolicyRaw(NpcDataRegistry.events().get("npc_schedule_policy")),
+            allowed
+        );
+    }
+
+    private static void logUnknownCondition(String rawCondition) {
+        String key = rawCondition == null ? "<null>" : rawCondition.trim().toLowerCase(Locale.ROOT);
+        if (!UNKNOWN_CONDITION_LOGGED.add(key)) {
+            return;
+        }
+        com.stardew.craft.StardewCraft.LOGGER.warn(
+            "[NPC_SCHEDULE_CONDITION_UNKNOWN] condition='{}' action='allow'",
+            rawCondition
+        );
+    }
+
+    private static boolean mailConditionAllowed(ServerLevel level, boolean negated) {
+        String policy = resolveMailConditionPolicyRaw(NpcDataRegistry.events().get("npc_schedule_policy"));
+        return switch (policy) {
+            case "allow_all" -> true;
+            case "block_all" -> false;
+            case "strict_block" -> false;
+            case "block_mail_allow_not_mail" -> negated;
+            default -> negated;
+        };
+    }
+
+    private static String resolveMailConditionPolicyRaw(JsonObject policyRoot) {
+        if (policyRoot == null || !policyRoot.has("mail_condition_policy") || !policyRoot.get("mail_condition_policy").isJsonPrimitive()) {
+            return "block_mail_allow_not_mail";
+        }
+        String raw = policyRoot.get("mail_condition_policy").getAsString();
+        if (raw == null || raw.isBlank()) {
+            return "block_mail_allow_not_mail";
+        }
+        return raw.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private static boolean evaluateFriendshipCondition(ServerLevel level, String[] parts, boolean negate, UUID schedulePlayerId) {
+        int startIndex = negate ? 2 : 1;
+        if ((parts.length - startIndex) < 2) {
+            return true;
+        }
+
+        NpcFriendshipDataManager friendship = NpcFriendshipDataManager.get(level);
+        boolean allMatched = true;
+
+        for (int i = startIndex; i + 1 < parts.length; i += 2) {
+            String targetNpc = parts[i].toLowerCase(Locale.ROOT);
+            int hearts;
+            try {
+                hearts = Integer.parseInt(parts[i + 1]);
+            } catch (NumberFormatException ignored) {
+                continue;
+            }
+
+            int thresholdPoints = hearts * 250;
+            int currentPoints = friendship.getPointsForNpc(schedulePlayerId, targetNpc);
+            if (currentPoints < thresholdPoints) {
+                allMatched = false;
+                break;
+            }
+        }
+
+        return negate ? !allMatched : allMatched;
+    }
+
+    private static UUID resolveScheduleContextPlayer(ServerLevel level, String npcId) {
+        if (level == null) {
+            return null;
+        }
+
+        List<ServerPlayer> players = level.players();
+        if (players == null || players.isEmpty()) {
+            return null;
+        }
+
+        // Multiplayer policy: always bind schedule context to host player to keep
+        // global NPC schedule deterministic across clients.
+        if (level.getServer() != null) {
+            for (ServerPlayer player : players) {
+                if (player == null) {
+                    continue;
+                }
+                if (level.getServer().isSingleplayerOwner(player.getGameProfile())) {
+                    return player.getUUID();
+                }
+            }
+        }
+
+        for (ServerPlayer player : players) {
+            if (player != null && !player.isSpectator()) {
+                return player.getUUID();
+            }
+        }
+        return players.get(0).getUUID();
+    }
+
+    private static JsonObject getScheduleObjectCaseInsensitive(JsonObject root, String candidate) {
+        if (candidate == null || candidate.isBlank()) {
+            return null;
+        }
+        for (Map.Entry<String, JsonElement> entry : root.entrySet()) {
+            if (!entry.getKey().equalsIgnoreCase(candidate)) {
+                continue;
+            }
+            if (!entry.getValue().isJsonObject()) {
+                return null;
+            }
+            return entry.getValue().getAsJsonObject();
+        }
+        return null;
+    }
+
+    private static String findActualScheduleKey(JsonObject root, String candidate) {
+        for (String key : root.keySet()) {
+            if (key.equalsIgnoreCase(candidate)) {
+                return key;
+            }
+        }
+        return candidate;
+    }
+
+    private static int parseCheckpoint(String raw) {
+        try {
+            return Integer.parseInt(raw.trim());
+        } catch (NumberFormatException ignored) {
+            return -1;
+        }
+    }
+
+    private static int minutesToScheduleClock(int totalMinutes) {
+        int hour = Math.max(0, totalMinutes / 60);
+        int minute = Math.max(0, totalMinutes % 60);
+        return hour * 100 + minute;
+    }
+
+    private static ScheduleNode parseNode(String scheduleKey, int checkpoint, String raw, String fallbackLocation) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+
+        String[] parts = raw.trim().split("\\s+");
+        if (parts.length < 4) {
+            return null;
+        }
+
+        try {
+            int startIndex = 0;
+            String location;
+            if (isInteger(parts[0])) {
+                if (fallbackLocation == null || fallbackLocation.isBlank()) {
+                    return null;
+                }
+                location = fallbackLocation;
+            } else {
+                location = parts[0];
+                startIndex = 1;
+            }
+
+            if (parts.length < startIndex + 3) {
+                return null;
+            }
+
+            int tileX = Integer.parseInt(parts[startIndex]);
+            int tileY = Integer.parseInt(parts[startIndex + 1]);
+            int facing = Integer.parseInt(parts[startIndex + 2]);
+            String behavior = extractRouteBehaviorToken(parts, startIndex + 3);
+            return new ScheduleNode(scheduleKey, checkpoint, location, tileX, tileY, facing, behavior, 0);
+        } catch (NumberFormatException ignored) {
+            return null;
+        }
+    }
+
+    private static boolean isInteger(String token) {
+        if (token == null || token.isBlank()) {
+            return false;
+        }
+        try {
+            Integer.parseInt(token);
+            return true;
+        } catch (NumberFormatException ignored) {
+            return false;
+        }
+    }
+
+    private static String extractRouteBehaviorToken(String[] parts, int tokenStartIndex) {
+        if (parts.length <= tokenStartIndex) {
+            return "";
+        }
+        for (int i = tokenStartIndex; i < parts.length; i++) {
+            String token = parts[i];
+            if (token == null || token.isBlank()) {
+                continue;
+            }
+            if (token.startsWith("\"") || token.contains("\\")) {
+                continue;
+            }
+            return token;
+        }
+        return "";
+    }
+
+    private record ScheduleNode(String scheduleKey,
+                                int checkpoint,
+                                String locationName,
+                                int tileX,
+                                int tileY,
+                                int facing,
+                                String routeBehaviorToken,
+                                int index) {
+        private ScheduleNode withIndex(int nextIndex) {
+            return new ScheduleNode(scheduleKey, checkpoint, locationName, tileX, tileY, facing, routeBehaviorToken, nextIndex);
+        }
+    }
+
+    public record TargetPoint(Vec3 position, boolean useGroundHeight, boolean indoorTarget) {
+        private static TargetPoint fallback(Vec3 fallback) {
+            return new TargetPoint(fallback, true, false);
+        }
+    }
+
+    public record ScheduleKeyTrace(
+        String npcId,
+        int day,
+        String season,
+        String weekday,
+        String weather,
+        int hearts,
+        String selectedKey,
+        List<String> candidates,
+        List<String> rejections
+    ) {
+    }
+}

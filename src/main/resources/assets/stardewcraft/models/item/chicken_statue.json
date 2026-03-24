@@ -1,6 +1,7 @@
-{
-  "parent": "item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/artifact/chicken_statue"
-  }
+﻿{
+    "parent":  "item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/artifact/chicken_statue",
+                     "particle":  "stardewcraft:item/artifact/chicken_statue"
+                 }
 }

@@ -1,6 +1,7 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "stardewcraft:item/crops/fall/fairy_rose1"
-  }
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/crops/fall/fairy_rose1",
+                     "particle":  "stardewcraft:item/crops/fall/fairy_rose1"
+                 }
 }

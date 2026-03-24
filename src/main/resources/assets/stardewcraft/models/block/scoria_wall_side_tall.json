@@ -1,1 +1,7 @@
-{"parent":"minecraft:block/template_wall_side_tall","textures":{"wall":"stardewcraft:block/mine/scoria"}}
+﻿{
+    "parent":  "minecraft:block/template_wall_side_tall",
+    "textures":  {
+                     "wall":  "stardewcraft:block/mine/scoria",
+                     "particle":  "stardewcraft:block/mine/scoria"
+                 }
+}

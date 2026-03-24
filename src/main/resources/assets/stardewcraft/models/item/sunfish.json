@@ -1,9 +1,27 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": { "layer0": "stardewcraft:item/fish/lake/sunfish" },
-  "overrides": [
-    { "predicate": { "custom_model_data": 1 }, "model": "stardewcraft:item/sunfish_silver" },
-    { "predicate": { "custom_model_data": 2 }, "model": "stardewcraft:item/sunfish_gold" },
-    { "predicate": { "custom_model_data": 3 }, "model": "stardewcraft:item/sunfish_iridium" }
-  ]
+﻿{
+    "parent":  "minecraft:item/generated",
+    "textures":  {
+                     "layer0":  "stardewcraft:item/fish/lake/sunfish",
+                     "particle":  "stardewcraft:item/fish/lake/sunfish"
+                 },
+    "overrides":  [
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  1
+                                        },
+                          "model":  "stardewcraft:item/sunfish_silver"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2
+                                        },
+                          "model":  "stardewcraft:item/sunfish_gold"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3
+                                        },
+                          "model":  "stardewcraft:item/sunfish_iridium"
+                      }
+                  ]
 }
