@@ -1,0 +1,7 @@
+﻿{
+  "parent": "stardewcraft:decor/common/dresser_3_1",
+  "textures": {
+    "particle": "stardewcraft:block/deco/misc/common/dresser_3_1"
+  }
+}
+

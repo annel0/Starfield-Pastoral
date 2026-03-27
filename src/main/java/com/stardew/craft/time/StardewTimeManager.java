@@ -106,6 +106,7 @@ public class StardewTimeManager extends SavedData {
      */
     public void advanceDayWithSleepTime(int sleepMinute) {
         int timeWentToSleepMinutes = sleepMinute;
+        boolean seasonChanged = false;
 
         currentDay++;
         
@@ -113,6 +114,7 @@ public class StardewTimeManager extends SavedData {
         if (currentDay > 28) {
             currentDay = 1;
             currentSeason++;
+            seasonChanged = true;
             
             // 检查是否需要换年
             if (currentSeason > 3) {
@@ -140,6 +142,10 @@ public class StardewTimeManager extends SavedData {
             @SuppressWarnings("null")
             ServerLevel stardewLevel = server.getLevel(ModDimensions.STARDEW_VALLEY);
             if (stardewLevel != null) {
+                if (seasonChanged) {
+                    com.stardew.craft.block.nature.WildWeedsBlock.refreshLoadedWeedsForSeason(stardewLevel, currentSeason);
+                }
+
                 // 对齐 Stardew 的日结算语义：先确定“今天”的天气，再结算昨夜生长。
                 com.stardew.craft.weather.WeatherManager.applyWeatherForNewDay(stardewLevel, currentDay);
 

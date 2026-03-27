@@ -93,21 +93,21 @@ import com.stardew.craft.item.tool.ScytheItem;
 import com.stardew.craft.item.tool.FishingRodItem;
 import com.stardew.craft.item.tool.StardewAxeItem;
 import com.stardew.craft.item.tool.StardewPickaxeItem;
-// 鱼类 - 河流
+// 楸肩被 - 娌虫祦
 import com.stardew.craft.item.fish.river.*;
-// 鱼类 - 湖泊
+// 楸肩被 - 婀栨硦
 import com.stardew.craft.item.fish.lake.*;
-// 鱼类 - 海洋
+// 楸肩被 - 娴锋磱
 import com.stardew.craft.item.fish.ocean.*;
-// 鱼类 - 特殊位置
+// 楸肩被 - 鐗规畩浣嶇疆
 import com.stardew.craft.item.fish.special.*;
-// 鱼类 - 传说
+// 楸肩被 - 浼犺
 import com.stardew.craft.item.fish.legendary.*;
-// 鱼类 - 蟹笼
+// 楸肩被 - 锜圭
 import com.stardew.craft.item.fish.crabpot.*;
-// 鱼类 - 杂项
+// 楸肩被 - 鏉傞」
 import com.stardew.craft.item.fish.misc.*;
-// 垃圾
+// 鍨冨溇
 import com.stardew.craft.item.fishing.trash.TrashItem;
 import com.stardew.craft.item.fishing.trash.JojaColaItem;
 import com.stardew.craft.item.tree.TreeSeedItem;
@@ -120,7 +120,7 @@ import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 /**
- * 物品注册管理器
+ * 鐗╁搧娉ㄥ唽绠＄悊鍣?
  */
 @SuppressWarnings("null")
 public class ModItems {
@@ -136,8 +136,11 @@ public class ModItems {
                 return ITEMS.register(name, () -> new BlockItem(block.get(), blockItemProps()));
         }
 
-        // 野草方块物品（按季节和变体注册）
-        // 春季野草 (season=0)
+        // 閲庤崏鏂瑰潡鐗╁搧锛氫富鍏ュ彛浣跨敤缁熶竴 wild_weeds銆?
+        // 鏃?seasonal id 淇濈暀涓哄吋瀹瑰埆鍚嶏紙閬垮厤宸叉湁瀛樻。/鐗╁搧涓㈠け锛夈€?
+        public static final DeferredItem<Item> WILD_WEEDS = blockItem("wild_weeds", ModBlocks.WILD_WEEDS);
+
+        // 鏄ュ閲庤崏 (legacy alias)
         public static final DeferredItem<Item> WILD_WEEDS_SPRING_0 = ITEMS.register("wild_weeds_spring_0",
                         () -> new WildWeedsBlockItem(ModBlocks.WILD_WEEDS.get(), 0, 0, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> WILD_WEEDS_SPRING_1 = ITEMS.register("wild_weeds_spring_1",
@@ -145,7 +148,7 @@ public class ModItems {
         public static final DeferredItem<Item> WILD_WEEDS_SPRING_2 = ITEMS.register("wild_weeds_spring_2",
                         () -> new WildWeedsBlockItem(ModBlocks.WILD_WEEDS.get(), 0, 2, new Item.Properties().stacksTo(999)));
         
-        // 夏季野草 (season=1)
+        // 澶忓閲庤崏 (legacy alias)
         public static final DeferredItem<Item> WILD_WEEDS_SUMMER_0 = ITEMS.register("wild_weeds_summer_0",
                         () -> new WildWeedsBlockItem(ModBlocks.WILD_WEEDS.get(), 1, 0, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> WILD_WEEDS_SUMMER_1 = ITEMS.register("wild_weeds_summer_1",
@@ -153,7 +156,7 @@ public class ModItems {
         public static final DeferredItem<Item> WILD_WEEDS_SUMMER_2 = ITEMS.register("wild_weeds_summer_2",
                         () -> new WildWeedsBlockItem(ModBlocks.WILD_WEEDS.get(), 1, 2, new Item.Properties().stacksTo(999)));
         
-        // 秋季野草 (season=2)
+        // 绉嬪閲庤崏 (legacy alias)
         public static final DeferredItem<Item> WILD_WEEDS_FALL_0 = ITEMS.register("wild_weeds_fall_0",
                         () -> new WildWeedsBlockItem(ModBlocks.WILD_WEEDS.get(), 2, 0, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> WILD_WEEDS_FALL_1 = ITEMS.register("wild_weeds_fall_1",
@@ -161,15 +164,15 @@ public class ModItems {
         public static final DeferredItem<Item> WILD_WEEDS_FALL_2 = ITEMS.register("wild_weeds_fall_2",
                         () -> new WildWeedsBlockItem(ModBlocks.WILD_WEEDS.get(), 2, 2, new Item.Properties().stacksTo(999)));
         
-        // 冬季野草 (season=3)
+        // 鍐閲庤崏 (legacy alias)
         public static final DeferredItem<Item> WILD_WEEDS_WINTER_0 = ITEMS.register("wild_weeds_winter_0",
                         () -> new WildWeedsBlockItem(ModBlocks.WILD_WEEDS.get(), 3, 0, new Item.Properties().stacksTo(999)));
 
         public static final DeferredItem<Item> PASTURE_GRASS = blockItem("pasture_grass", ModBlocks.PASTURE_GRASS);
         public static final DeferredItem<Item> BLUE_PASTURE_GRASS = blockItem("blue_pasture_grass", ModBlocks.BLUE_PASTURE_GRASS);
 
-        // 方块物品（野生树：橡树原型）
-        // 矿井
+        // 鏂瑰潡鐗╁搧锛堥噹鐢熸爲锛氭鏍戝師鍨嬶級
+        // 鐭夸簳
         public static final DeferredItem<Item> MINE_BARRIER = blockItem("mine_barrier", ModBlocks.MINE_BARRIER);
 
         public static final DeferredItem<Item> EARTH_SHALE = blockItem("earth_shale", ModBlocks.EARTH_SHALE);
@@ -180,34 +183,34 @@ public class ModItems {
         public static final DeferredItem<Item> DARK_FROST_GNEISS = blockItem("dark_frost_gneiss", ModBlocks.DARK_FROST_GNEISS);
         public static final DeferredItem<Item> DARK_LAVA_BASALT = blockItem("dark_lava_basalt", ModBlocks.DARK_LAVA_BASALT);
 
-        // ========== 主石头变体物品：台阶、楼梯、墙 ==========
+        // ========== 涓荤煶澶村彉浣撶墿鍝侊細鍙伴樁銆佹ゼ姊€佸 ==========
         
-        // Earth Shale 变体
+        // Earth Shale 鍙樹綋
         public static final DeferredItem<Item> EARTH_SHALE_SLAB = blockItem("earth_shale_slab", ModBlocks.EARTH_SHALE_SLAB);
         public static final DeferredItem<Item> EARTH_SHALE_STAIRS = blockItem("earth_shale_stairs", ModBlocks.EARTH_SHALE_STAIRS);
         public static final DeferredItem<Item> EARTH_SHALE_WALL = blockItem("earth_shale_wall", ModBlocks.EARTH_SHALE_WALL);
 
-        // Frost Gneiss 变体
+        // Frost Gneiss 鍙樹綋
         public static final DeferredItem<Item> FROST_GNEISS_SLAB = blockItem("frost_gneiss_slab", ModBlocks.FROST_GNEISS_SLAB);
         public static final DeferredItem<Item> FROST_GNEISS_STAIRS = blockItem("frost_gneiss_stairs", ModBlocks.FROST_GNEISS_STAIRS);
         public static final DeferredItem<Item> FROST_GNEISS_WALL = blockItem("frost_gneiss_wall", ModBlocks.FROST_GNEISS_WALL);
 
-        // Lava Basalt 变体
+        // Lava Basalt 鍙樹綋
         public static final DeferredItem<Item> LAVA_BASALT_SLAB = blockItem("lava_basalt_slab", ModBlocks.LAVA_BASALT_SLAB);
         public static final DeferredItem<Item> LAVA_BASALT_STAIRS = blockItem("lava_basalt_stairs", ModBlocks.LAVA_BASALT_STAIRS);
         public static final DeferredItem<Item> LAVA_BASALT_WALL = blockItem("lava_basalt_wall", ModBlocks.LAVA_BASALT_WALL);
 
-        // Dark Earth Shale 变体
+        // Dark Earth Shale 鍙樹綋
         public static final DeferredItem<Item> DARK_EARTH_SHALE_SLAB = blockItem("dark_earth_shale_slab", ModBlocks.DARK_EARTH_SHALE_SLAB);
         public static final DeferredItem<Item> DARK_EARTH_SHALE_STAIRS = blockItem("dark_earth_shale_stairs", ModBlocks.DARK_EARTH_SHALE_STAIRS);
         public static final DeferredItem<Item> DARK_EARTH_SHALE_WALL = blockItem("dark_earth_shale_wall", ModBlocks.DARK_EARTH_SHALE_WALL);
 
-        // Dark Frost Gneiss 变体
+        // Dark Frost Gneiss 鍙樹綋
         public static final DeferredItem<Item> DARK_FROST_GNEISS_SLAB = blockItem("dark_frost_gneiss_slab", ModBlocks.DARK_FROST_GNEISS_SLAB);
         public static final DeferredItem<Item> DARK_FROST_GNEISS_STAIRS = blockItem("dark_frost_gneiss_stairs", ModBlocks.DARK_FROST_GNEISS_STAIRS);
         public static final DeferredItem<Item> DARK_FROST_GNEISS_WALL = blockItem("dark_frost_gneiss_wall", ModBlocks.DARK_FROST_GNEISS_WALL);
 
-        // Dark Lava Basalt 变体
+        // Dark Lava Basalt 鍙樹綋
         public static final DeferredItem<Item> DARK_LAVA_BASALT_SLAB = blockItem("dark_lava_basalt_slab", ModBlocks.DARK_LAVA_BASALT_SLAB);
         public static final DeferredItem<Item> DARK_LAVA_BASALT_STAIRS = blockItem("dark_lava_basalt_stairs", ModBlocks.DARK_LAVA_BASALT_STAIRS);
         public static final DeferredItem<Item> DARK_LAVA_BASALT_WALL = blockItem("dark_lava_basalt_wall", ModBlocks.DARK_LAVA_BASALT_WALL);
@@ -219,47 +222,47 @@ public class ModItems {
         public static final DeferredItem<Item> SCORIA = blockItem("scoria", ModBlocks.SCORIA);
         public static final DeferredItem<Item> SALT_ROCK = blockItem("salt_rock", ModBlocks.SALT_ROCK);
 
-        // ========== 装饰石材变体物品：台阶、楼梯、墙 ==========
+        // ========== 瑁呴グ鐭虫潗鍙樹綋鐗╁搧锛氬彴闃躲€佹ゼ姊€佸 ==========
         
-        // Banded Marble 变体
+        // Banded Marble 鍙樹綋
         public static final DeferredItem<Item> BANDED_MARBLE_SLAB = blockItem("banded_marble_slab", ModBlocks.BANDED_MARBLE_SLAB);
         public static final DeferredItem<Item> BANDED_MARBLE_STAIRS = blockItem("banded_marble_stairs", ModBlocks.BANDED_MARBLE_STAIRS);
         public static final DeferredItem<Item> BANDED_MARBLE_WALL = blockItem("banded_marble_wall", ModBlocks.BANDED_MARBLE_WALL);
 
-        // Limestone 变体
+        // Limestone 鍙樹綋
         public static final DeferredItem<Item> LIMESTONE_SLAB = blockItem("limestone_slab", ModBlocks.LIMESTONE_SLAB);
         public static final DeferredItem<Item> LIMESTONE_STAIRS = blockItem("limestone_stairs", ModBlocks.LIMESTONE_STAIRS);
         public static final DeferredItem<Item> LIMESTONE_WALL = blockItem("limestone_wall", ModBlocks.LIMESTONE_WALL);
 
-        // Mossy Sandstone 变体
+        // Mossy Sandstone 鍙樹綋
         public static final DeferredItem<Item> MOSSY_SANDSTONE_SLAB = blockItem("mossy_sandstone_slab", ModBlocks.MOSSY_SANDSTONE_SLAB);
         public static final DeferredItem<Item> MOSSY_SANDSTONE_STAIRS = blockItem("mossy_sandstone_stairs", ModBlocks.MOSSY_SANDSTONE_STAIRS);
         public static final DeferredItem<Item> MOSSY_SANDSTONE_WALL = blockItem("mossy_sandstone_wall", ModBlocks.MOSSY_SANDSTONE_WALL);
 
-        // Cracked Slate 变体
+        // Cracked Slate 鍙樹綋
         public static final DeferredItem<Item> CRACKED_SLATE_SLAB = blockItem("cracked_slate_slab", ModBlocks.CRACKED_SLATE_SLAB);
         public static final DeferredItem<Item> CRACKED_SLATE_STAIRS = blockItem("cracked_slate_stairs", ModBlocks.CRACKED_SLATE_STAIRS);
         public static final DeferredItem<Item> CRACKED_SLATE_WALL = blockItem("cracked_slate_wall", ModBlocks.CRACKED_SLATE_WALL);
 
-        // Scoria 变体
+        // Scoria 鍙樹綋
         public static final DeferredItem<Item> SCORIA_SLAB = blockItem("scoria_slab", ModBlocks.SCORIA_SLAB);
         public static final DeferredItem<Item> SCORIA_STAIRS = blockItem("scoria_stairs", ModBlocks.SCORIA_STAIRS);
         public static final DeferredItem<Item> SCORIA_WALL = blockItem("scoria_wall", ModBlocks.SCORIA_WALL);
 
-        // Salt Rock 变体
+        // Salt Rock 鍙樹綋
         public static final DeferredItem<Item> SALT_ROCK_SLAB = blockItem("salt_rock_slab", ModBlocks.SALT_ROCK_SLAB);
         public static final DeferredItem<Item> SALT_ROCK_STAIRS = blockItem("salt_rock_stairs", ModBlocks.SALT_ROCK_STAIRS);
         public static final DeferredItem<Item> SALT_ROCK_WALL = blockItem("salt_rock_wall", ModBlocks.SALT_ROCK_WALL);
 
         public static final DeferredItem<Item> ELEVATOR = blockItem("elevator", ModBlocks.ELEVATOR);
 
-        // 矿井：下楼梯子物品
+        // 鐭夸簳锛氫笅妤兼瀛愮墿鍝?
         public static final DeferredItem<Item> MINE_LADDER = blockItem("mine_ladder", ModBlocks.MINE_LADDER);
 
-        // 矿井：出口梯子物品
+        // 鐭夸簳锛氬嚭鍙ｆ瀛愮墿鍝?
         public static final DeferredItem<Item> MINE_EXIT = blockItem("mine_exit", ModBlocks.MINE_EXIT);
 
-        // 矿石方块物品
+        // 鐭跨煶鏂瑰潡鐗╁搧
         public static final DeferredItem<Item> EARTH_COPPER_ORE = ITEMS.register("earth_copper_ore",
                         () -> new BlockItem(ModBlocks.EARTH_COPPER_ORE.get(), new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> FROST_COPPER_ORE = ITEMS.register("frost_copper_ore",
@@ -295,7 +298,7 @@ public class ModItems {
         public static final DeferredItem<Item> LAVA_COAL_ORE = ITEMS.register("lava_coal_ore",
                         () -> new BlockItem(ModBlocks.LAVA_COAL_ORE.get(), new Item.Properties().stacksTo(999)));
 
-        // 矿物矿石节点（宝石矿，晶洞产物不做）
+        // 鐭跨墿鐭跨煶鑺傜偣锛堝疂鐭崇熆锛屾櫠娲炰骇鐗╀笉鍋氾級
         public static final DeferredItem<Item> AMETHYST_ORE = ITEMS.register("amethyst_ore",
                         () -> new BlockItem(ModBlocks.AMETHYST_ORE.get(), new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> AQUAMARINE_ORE = ITEMS.register("aquamarine_ore",
@@ -311,7 +314,7 @@ public class ModItems {
         public static final DeferredItem<Item> TOPAZ_ORE = ITEMS.register("topaz_ore",
                         () -> new BlockItem(ModBlocks.TOPAZ_ORE.get(), new Item.Properties().stacksTo(999)));
 
-        // 方块物品（野生树：橡树原型）
+        // 鏂瑰潡鐗╁搧锛堥噹鐢熸爲锛氭鏍戝師鍨嬶級
         public static final DeferredItem<Item> WILD_OAK_TRUNK0 = ITEMS.register("wild_oak_trunk0",
                         () -> new BlockItem(ModBlocks.WILD_OAK_TRUNK0.get(), new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> WILD_OAK_TRUNK1 = ITEMS.register("wild_oak_trunk1",
@@ -323,7 +326,7 @@ public class ModItems {
         public static final DeferredItem<Item> WILD_OAK_LEAVES = ITEMS.register("wild_oak_leaves",
                         () -> new BlockItem(ModBlocks.WILD_OAK_LEAVES.get(), new Item.Properties().stacksTo(999)));
 
-                // 方块物品（野生树：枫树）
+                // 鏂瑰潡鐗╁搧锛堥噹鐢熸爲锛氭灚鏍戯級
                 public static final DeferredItem<Item> WILD_MAPLE_TRUNK0 = ITEMS.register("wild_maple_trunk0",
                                                 () -> new BlockItem(ModBlocks.WILD_MAPLE_TRUNK0.get(), new Item.Properties().stacksTo(999)));
                 public static final DeferredItem<Item> WILD_MAPLE_TRUNK1 = ITEMS.register("wild_maple_trunk1",
@@ -335,7 +338,7 @@ public class ModItems {
                 public static final DeferredItem<Item> WILD_MAPLE_LEAVES = ITEMS.register("wild_maple_leaves",
                                                 () -> new BlockItem(ModBlocks.WILD_MAPLE_LEAVES.get(), new Item.Properties().stacksTo(999)));
 
-                // 方块物品（野生树：松树）
+                // 鏂瑰潡鐗╁搧锛堥噹鐢熸爲锛氭澗鏍戯級
                 public static final DeferredItem<Item> WILD_PINE_TRUNK0 = ITEMS.register("wild_pine_trunk0",
                                                 () -> new BlockItem(ModBlocks.WILD_PINE_TRUNK0.get(), new Item.Properties().stacksTo(999)));
                 public static final DeferredItem<Item> WILD_PINE_TRUNK1 = ITEMS.register("wild_pine_trunk1",
@@ -347,7 +350,7 @@ public class ModItems {
                 public static final DeferredItem<Item> WILD_PINE_LEAVES = ITEMS.register("wild_pine_leaves",
                                                 () -> new BlockItem(ModBlocks.WILD_PINE_LEAVES.get(), new Item.Properties().stacksTo(999)));
 
-                // 方块物品（野生树：桃花心木）
+                // 鏂瑰潡鐗╁搧锛堥噹鐢熸爲锛氭鑺卞績鏈級
                 public static final DeferredItem<Item> WILD_MAHOGANY_TRUNK0 = ITEMS.register("wild_mahogany_trunk0",
                                                 () -> new BlockItem(ModBlocks.WILD_MAHOGANY_TRUNK0.get(), new Item.Properties().stacksTo(999)));
                 public static final DeferredItem<Item> WILD_MAHOGANY_TRUNK1 = ITEMS.register("wild_mahogany_trunk1",
@@ -359,7 +362,7 @@ public class ModItems {
                 public static final DeferredItem<Item> WILD_MAHOGANY_LEAVES = ITEMS.register("wild_mahogany_leaves",
                                                 () -> new BlockItem(ModBlocks.WILD_MAHOGANY_LEAVES.get(), new Item.Properties().stacksTo(999)));
 
-                // 方块物品（野生树：神秘树）
+                // 鏂瑰潡鐗╁搧锛堥噹鐢熸爲锛氱绉樻爲锛?
                 public static final DeferredItem<Item> WILD_MYSTIC_TREE_TRUNK0 = ITEMS.register("wild_mystic_tree_trunk0",
                                                 () -> new BlockItem(ModBlocks.WILD_MYSTIC_TREE_TRUNK0.get(), new Item.Properties().stacksTo(999)));
                 public static final DeferredItem<Item> WILD_MYSTIC_TREE_TRUNK1 = ITEMS.register("wild_mystic_tree_trunk1",
@@ -371,7 +374,7 @@ public class ModItems {
                 public static final DeferredItem<Item> WILD_MYSTIC_TREE_LEAVES = ITEMS.register("wild_mystic_tree_leaves",
                                                 () -> new BlockItem(ModBlocks.WILD_MYSTIC_TREE_LEAVES.get(), new Item.Properties().stacksTo(999)));
 
-        // 方块物品（实用设施）
+        // 鏂瑰潡鐗╁搧锛堝疄鐢ㄨ鏂斤級
         public static final DeferredItem<Item> TAPPER = ITEMS.register("tapper",
                         () -> new StardewBlockItem(ModBlocks.TAPPER.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
 
@@ -454,6 +457,9 @@ public class ModItems {
         public static final DeferredItem<Item> STONE_CHEST = ITEMS.register("stone_chest",
                         () -> new StardewBlockItem(ModBlocks.STONE_CHEST.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
 
+        public static final DeferredItem<Item> FRIDGE = ITEMS.register("fridge",
+                        () -> new StardewBlockItem(ModBlocks.FRIDGE.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
+
         public static final DeferredItem<Item> SHIPPING_BIN = ITEMS.register("shipping_bin",
                         () -> new StardewBlockItem(ModBlocks.SHIPPING_BIN.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
 
@@ -523,6 +529,18 @@ public class ModItems {
         public static final DeferredItem<Item> CUSHION = ITEMS.register("cushion",
                         () -> new StardewBlockItem(ModBlocks.CUSHION.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
 
+        public static final DeferredItem<Item> OFFICE_STOOL = ITEMS.register("office_stool",
+                        () -> new StardewBlockItem(ModBlocks.OFFICE_STOOL.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> OFFICE_CHAIR_2 = ITEMS.register("office_chair_2",
+                        () -> new StardewBlockItem(ModBlocks.OFFICE_CHAIR_2.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> SINK_4 = ITEMS.register("sink_4",
+                        () -> new StardewBlockItem(ModBlocks.SINK_4.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> FLOOR_LAMP_5 = ITEMS.register("floor_lamp_5",
+                        () -> new StardewBlockItem(ModBlocks.FLOOR_LAMP_5.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+
         public static final DeferredItem<Item> OAK_TABLE = ITEMS.register("oak_table",
                         () -> new StardewBlockItem(ModBlocks.OAK_TABLE.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
 
@@ -531,6 +549,9 @@ public class ModItems {
 
         public static final DeferredItem<Item> BIRCH_TABLE = ITEMS.register("birch_table",
                         () -> new StardewBlockItem(ModBlocks.BIRCH_TABLE.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> SPRUCE_COUNTER = ITEMS.register("spruce_counter",
+                        () -> new StardewBlockItem(ModBlocks.SPRUCE_COUNTER.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
 
         public static final DeferredItem<Item> PINK_TABLECLOTH = ITEMS.register("pink_tablecloth",
                         () -> new com.stardew.craft.item.furniture.PinkTableclothItem(new Item.Properties().stacksTo(999)));
@@ -544,7 +565,7 @@ public class ModItems {
         public static final DeferredItem<Item> FLOORING_BLOCK = ITEMS.register("flooring_block",
                         () -> new StardewBlockItem(ModBlocks.FLOORING_BLOCK.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
 
-        // 地图装饰：皮埃尔商店（第一批）
+        // 鍦板浘瑁呴グ锛氱毊鍩冨皵鍟嗗簵锛堢涓€鎵癸級
         public static final DeferredItem<Item> PIERRE_SHOP_BASKET_2 = ITEMS.register("pierre_shop_basket_2",
                         () -> new StardewBlockItem(ModBlocks.PIERRE_SHOP_BASKET_2.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> PIERRE_SHOP_CRATE_FRUIT_3_1 = ITEMS.register("pierre_shop_crate_fruit_3_1",
@@ -581,12 +602,48 @@ public class ModItems {
                         () -> new StardewBlockItem(ModBlocks.PIERRE_SHOP_SHELF_EAST_6_2.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> PIERRE_SHOP_SHIPPING_BIN_7_1 = ITEMS.register("pierre_shop_shipping_bin_7_1",
                         () -> new StardewBlockItem(ModBlocks.PIERRE_SHOP_SHIPPING_BIN_7_1.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
-        public static final DeferredItem<Item> PIERRE_SHOP_CARPET_1 = ITEMS.register("pierre_shop_carpet_1",
-                        () -> new StardewBlockItem(ModBlocks.PIERRE_SHOP_CARPET_1.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
-        public static final DeferredItem<Item> PIERRE_SHOP_CARPET_2 = ITEMS.register("pierre_shop_carpet_2",
-                        () -> new StardewBlockItem(ModBlocks.PIERRE_SHOP_CARPET_2.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
-        public static final DeferredItem<Item> PIERRE_SHOP_CARPET_3 = ITEMS.register("pierre_shop_carpet_3",
-                        () -> new StardewBlockItem(ModBlocks.PIERRE_SHOP_CARPET_3.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> CARPET_1 = ITEMS.register("carpet_1",
+                        () -> new StardewBlockItem(ModBlocks.CARPET_1.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> CARPET_2 = ITEMS.register("carpet_2",
+                        () -> new StardewBlockItem(ModBlocks.CARPET_2.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> CARPET_3 = ITEMS.register("carpet_3",
+                        () -> new StardewBlockItem(ModBlocks.CARPET_3.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> CARPET_4 = ITEMS.register("carpet_4",
+                        () -> new StardewBlockItem(ModBlocks.CARPET_4.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> CARPET_5 = ITEMS.register("carpet_5",
+                        () -> new StardewBlockItem(ModBlocks.CARPET_5.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> CARPET_6 = ITEMS.register("carpet_6",
+                        () -> new StardewBlockItem(ModBlocks.CARPET_6.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> CARPET_7 = ITEMS.register("carpet_7",
+                        () -> new StardewBlockItem(ModBlocks.CARPET_7.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> CARPET_8 = ITEMS.register("carpet_8",
+                        () -> new StardewBlockItem(ModBlocks.CARPET_8.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> CARPET_9 = ITEMS.register("carpet_9",
+                        () -> new StardewBlockItem(ModBlocks.CARPET_9.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> CARPET_10 = ITEMS.register("carpet_10",
+                        () -> new StardewBlockItem(ModBlocks.CARPET_10.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> CARPET_11 = ITEMS.register("carpet_11",
+                        () -> new StardewBlockItem(ModBlocks.CARPET_11.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> CARPET_12 = ITEMS.register("carpet_12",
+                        () -> new StardewBlockItem(ModBlocks.CARPET_12.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> CARPET_13 = ITEMS.register("carpet_13",
+                        () -> new StardewBlockItem(ModBlocks.CARPET_13.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> CARPET_14 = ITEMS.register("carpet_14",
+                        () -> new StardewBlockItem(ModBlocks.CARPET_14.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> CARPET_15 = ITEMS.register("carpet_15",
+                        () -> new StardewBlockItem(ModBlocks.CARPET_15.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> CARPET_16 = ITEMS.register("carpet_16",
+                        () -> new StardewBlockItem(ModBlocks.CARPET_16.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> CARPET_17 = ITEMS.register("carpet_17",
+                        () -> new StardewBlockItem(ModBlocks.CARPET_17.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> CARPET_18 = ITEMS.register("carpet_18",
+                        () -> new StardewBlockItem(ModBlocks.CARPET_18.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> CARPET_19 = ITEMS.register("carpet_19",
+                        () -> new StardewBlockItem(ModBlocks.CARPET_19.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> CARPET_20 = ITEMS.register("carpet_20",
+                        () -> new StardewBlockItem(ModBlocks.CARPET_20.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> CARPET_21 = ITEMS.register("carpet_21",
+                        () -> new StardewBlockItem(ModBlocks.CARPET_21.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> WALL_HANGING_SMALL_A = ITEMS.register("wall_hanging_small_a",
                         () -> new StardewBlockItem(ModBlocks.WALL_HANGING_SMALL_A.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> WALL_NOTICE_BOARD_SMALL = ITEMS.register("wall_notice_board_small",
@@ -621,6 +678,10 @@ public class ModItems {
                         () -> new StardewBlockItem(ModBlocks.WALL_OUTLET.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> WALL_PHOTO_WHITE_HALL = ITEMS.register("wall_photo_white_hall",
                         () -> new StardewBlockItem(ModBlocks.WALL_PHOTO_WHITE_HALL.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> WALL_BLACKSMITH_SIGN = ITEMS.register("wall_blacksmith_sign",
+                        () -> new StardewBlockItem(ModBlocks.WALL_BLACKSMITH_SIGN.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> WALL_BLACKSMITH_HAMMERS = ITEMS.register("wall_blacksmith_hammers",
+                        () -> new StardewBlockItem(ModBlocks.WALL_BLACKSMITH_HAMMERS.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> PIERRE_SHOP_WINDOW_1 = ITEMS.register("pierre_shop_window_1",
                         () -> new StardewBlockItem(ModBlocks.PIERRE_SHOP_WINDOW_1.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> PIERRE_SHOP_WINDOW_2 = ITEMS.register("pierre_shop_window_2",
@@ -639,10 +700,52 @@ public class ModItems {
                         () -> new StardewBlockItem(ModBlocks.BONSAI_5_WALL.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> BONSAI_6 = ITEMS.register("bonsai_6",
                         () -> new StardewBlockItem(ModBlocks.BONSAI_6.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> COMPUTER_1 = ITEMS.register("computer_1",
+                        () -> new StardewBlockItem(ModBlocks.COMPUTER_1.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> SAILBOAT_2 = ITEMS.register("sailboat_2",
+                        () -> new StardewBlockItem(ModBlocks.SAILBOAT_2.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> DRESSER_3_1 = ITEMS.register("dresser_3_1",
+                        () -> new StardewBlockItem(ModBlocks.DRESSER_3_1.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> DRESSER_3_2 = ITEMS.register("dresser_3_2",
+                        () -> new StardewBlockItem(ModBlocks.DRESSER_3_2.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> DRESSER_3_3 = ITEMS.register("dresser_3_3",
+                        () -> new StardewBlockItem(ModBlocks.DRESSER_3_3.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> WOOD_BUNDLE_4 = ITEMS.register("wood_bundle_4",
+                        () -> new StardewBlockItem(ModBlocks.WOOD_BUNDLE_4.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> BARREL_5 = ITEMS.register("barrel_5",
+                        () -> new StardewBlockItem(ModBlocks.BARREL_5.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> BONSAI_6_1 = ITEMS.register("bonsai_6_1",
+                        () -> new StardewBlockItem(ModBlocks.BONSAI_6_1.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> BONSAI_6_2 = ITEMS.register("bonsai_6_2",
+                        () -> new StardewBlockItem(ModBlocks.BONSAI_6_2.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> BONSAI_6_3 = ITEMS.register("bonsai_6_3",
+                        () -> new StardewBlockItem(ModBlocks.BONSAI_6_3.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> BONSAI_6_4 = ITEMS.register("bonsai_6_4",
+                        () -> new StardewBlockItem(ModBlocks.BONSAI_6_4.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> BONSAI_6_5 = ITEMS.register("bonsai_6_5",
+                        () -> new StardewBlockItem(ModBlocks.BONSAI_6_5.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> BONSAI_6_6 = ITEMS.register("bonsai_6_6",
+                        () -> new StardewBlockItem(ModBlocks.BONSAI_6_6.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> SHRINE_7 = ITEMS.register("shrine_7",
+                        () -> new StardewBlockItem(ModBlocks.SHRINE_7.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> RADIO_1 = ITEMS.register("radio_1",
+                        () -> new StardewBlockItem(ModBlocks.RADIO_1.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> BOOK_STACK_2_1 = ITEMS.register("book_stack_2_1",
+                        () -> new StardewBlockItem(ModBlocks.BOOK_STACK_2_1.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> BOOK_STACK_2_2 = ITEMS.register("book_stack_2_2",
+                        () -> new StardewBlockItem(ModBlocks.BOOK_STACK_2_2.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> BOOK_STACK_2_3 = ITEMS.register("book_stack_2_3",
+                        () -> new StardewBlockItem(ModBlocks.BOOK_STACK_2_3.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> BOOKSHELF_WALL_3_1 = ITEMS.register("bookshelf_wall_3_1",
+                        () -> new StardewBlockItem(ModBlocks.BOOKSHELF_WALL_3_1.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> BOOKSHELF_3_2 = ITEMS.register("bookshelf_3_2",
+                        () -> new StardewBlockItem(ModBlocks.BOOKSHELF_3_2.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> BOOKSHELF_3_3 = ITEMS.register("bookshelf_3_3",
+                        () -> new StardewBlockItem(ModBlocks.BOOKSHELF_3_3.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
 
         
     
-    // 工具 - 镰刀
+    // 宸ュ叿 - 闀板垁
     public static final DeferredItem<Item> SCYTHE = ITEMS.register("scythe",
             () -> new ScytheItem(ScytheItem.Tier.NORMAL, new Item.Properties()));
 
@@ -652,7 +755,7 @@ public class ModItems {
     public static final DeferredItem<Item> IRIDIUM_SCYTHE = ITEMS.register("iridium_scythe",
             () -> new ScytheItem(ScytheItem.Tier.IRIDIUM, new Item.Properties()));
 
-    // 工具 - 畜牧工具（占模，无耐久）
+    // 宸ュ叿 - 鐣滅墽宸ュ叿锛堝崰妯★紝鏃犺€愪箙锛?
     public static final DeferredItem<Item> MILK_PAIL = ITEMS.register("milk_pail",
             () -> new SimpleStardewItem("stardewcraft.tool.scythe", -1, new Item.Properties().stacksTo(1)));
 
@@ -673,7 +776,7 @@ public class ModItems {
     public static final DeferredItem<Item> FLOORING_ICON = ITEMS.register("flooring_icon",
             () -> new SimpleStardewItem("stardewcraft.type.hidden", -1, new Item.Properties().stacksTo(1)));
 
-    // 工具 - 镐子（星露谷命名：基础/铜/钢/金/铱；内部 tier0-4 逻辑不变）
+    // 宸ュ叿 - 闀愬瓙锛堟槦闇茶胺鍛藉悕锛氬熀纭€/閾?閽?閲?閾憋紱鍐呴儴 tier0-4 閫昏緫涓嶅彉锛?
     public static final DeferredItem<Item> PICKAXE = ITEMS.register("pickaxe",
             () -> new StardewPickaxeItem(0, Tiers.WOOD, 0.0F, new Item.Properties()));
 
@@ -689,7 +792,7 @@ public class ModItems {
     public static final DeferredItem<Item> IRIDIUM_PICKAXE = ITEMS.register("iridium_pickaxe",
             () -> new StardewPickaxeItem(4, Tiers.NETHERITE, 1.0F, new Item.Properties()));
 
-    // 工具 - 锄头
+    // 宸ュ叿 - 閿勫ご
     public static final DeferredItem<Item> HOE = ITEMS.register("hoe",
             () -> new HoeItem(HoeItem.Tier.STARTER, new Item.Properties()));
 
@@ -705,7 +808,7 @@ public class ModItems {
     public static final DeferredItem<Item> IRIDIUM_HOE = ITEMS.register("iridium_hoe",
             () -> new HoeItem(HoeItem.Tier.IRIDIUM, new Item.Properties()));
 
-    // 工具 - 喷壶
+    // 宸ュ叿 - 鍠峰６
     public static final DeferredItem<Item> WATERING_CAN = ITEMS.register("watering_can",
             () -> new WateringCanItem(WateringCanItem.Tier.STARTER, new Item.Properties()));
             
@@ -721,7 +824,7 @@ public class ModItems {
     public static final DeferredItem<Item> IRIDIUM_WATERING_CAN = ITEMS.register("iridium_watering_can",
             () -> new WateringCanItem(WateringCanItem.Tier.IRIDIUM, new Item.Properties()));
 
-    // 工具 - 斧头
+    // 宸ュ叿 - 鏂уご
     public static final DeferredItem<Item> AXE = ITEMS.register("axe",
             () -> new StardewAxeItem(StardewAxeItem.Tier.STARTER, new Item.Properties()));
 
@@ -737,7 +840,7 @@ public class ModItems {
     public static final DeferredItem<Item> IRIDIUM_AXE = ITEMS.register("iridium_axe",
             () -> new StardewAxeItem(StardewAxeItem.Tier.IRIDIUM, new Item.Properties()));
 
-    // 工具 - 钓鱼竿
+    // 宸ュ叿 - 閽撻奔绔?
     // Keep legacy id `fishing_rod` as Bamboo Pole.
     public static final DeferredItem<Item> FISHING_ROD = ITEMS.register("fishing_rod",
             () -> new FishingRodItem(FishingRodItem.RodTier.BAMBOO_POLE, new Item.Properties().stacksTo(1)));
@@ -754,7 +857,7 @@ public class ModItems {
     public static final DeferredItem<Item> ADVANCED_IRIDIUM_ROD = ITEMS.register("advanced_iridium_rod",
             () -> new FishingRodItem(FishingRodItem.RodTier.ADVANCED_IRIDIUM_ROD, new Item.Properties().stacksTo(1)));
 
-    // 钓鱼 - 鱼饵 (stackable)
+    // 閽撻奔 - 楸奸サ (stackable)
     public static final DeferredItem<Item> BAIT = ITEMS.register("bait",
             () -> new SimpleStardewItem("stardewcraft.type.fishing", 1, new Item.Properties().stacksTo(999)));
 
@@ -776,7 +879,7 @@ public class ModItems {
     public static final DeferredItem<Item> TARGETED_BAIT = ITEMS.register("targeted_bait",
             () -> new SpecificBaitItem(new Item.Properties().stacksTo(999)));
 
-    // 钓鱼 - 渔具 (non-stackable)
+    // 閽撻奔 - 娓斿叿 (non-stackable)
     public static final DeferredItem<Item> SPINNER = ITEMS.register("spinner",
             () -> new SimpleStardewItem("stardewcraft.type.fishing", 250, new Item.Properties().stacksTo(1).durability(20)));
 
@@ -807,7 +910,7 @@ public class ModItems {
     public static final DeferredItem<Item> SONAR_BOBBER = ITEMS.register("sonar_bobber",
             () -> new SimpleStardewItem("stardewcraft.type.fishing", 250, new Item.Properties().stacksTo(1).durability(20)));
 
-    // 资源/杂项
+    // 璧勬簮/鏉傞」
     public static final DeferredItem<Item> CLAY = ITEMS.register("clay",
             () -> new SimpleStardewItem("stardewcraft.type.resource", 20, new Item.Properties().stacksTo(999)));
 
@@ -817,18 +920,18 @@ public class ModItems {
     public static final DeferredItem<Item> HAY = ITEMS.register("hay",
             () -> new SimpleStardewItem("stardewcraft.type.resource", 0, new Item.Properties().stacksTo(999)));
 
-	// 木材（对齐 Stardew Valley：资源）
+	// 鏈ㄦ潗锛堝榻?Stardew Valley锛氳祫婧愶級
 	public static final DeferredItem<Item> WOOD_NORMAL = ITEMS.register("wood_normal",
 			() -> new SimpleStardewItem("stardewcraft.type.resource", 2, new Item.Properties().stacksTo(999)));
 
-	// 硬木（对齐 Stardew Valley：资源）
+	// 纭湪锛堝榻?Stardew Valley锛氳祫婧愶級
 	public static final DeferredItem<Item> WOOD_HARD = ITEMS.register("wood_hard",
 			() -> new SimpleStardewItem("stardewcraft.type.resource", 15, new Item.Properties().stacksTo(999)));
 
     public static final DeferredItem<Item> OAK_RESIN = ITEMS.register("oak_resin",
             () -> new SimpleStardewItem("stardewcraft.type.artisan_goods", 150, new Item.Properties().stacksTo(999)));
 
-        // 树液采集器产物（对齐原版 Stardew Valley）
+        // 鏍戞恫閲囬泦鍣ㄤ骇鐗╋紙瀵归綈鍘熺増 Stardew Valley锛?
         public static final DeferredItem<Item> MAPLE_SYRUP = ITEMS.register("maple_syrup",
                         () -> new SimpleStardewItem("stardewcraft.type.artisan_goods", 200, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> PINE_TAR = ITEMS.register("pine_tar",
@@ -853,7 +956,7 @@ public class ModItems {
         public static final DeferredItem<Item> PEARL = ITEMS.register("pearl",
                         () -> new SimpleStardewItem("stardewcraft.type.misc", 2500, new Item.Properties().stacksTo(999)));
 
-        // 动物产物
+        // 鍔ㄧ墿浜х墿
         public static final DeferredItem<Item> EGG_WHITE = ITEMS.register("egg_white",
                         () -> new StardewQualityItem("stardewcraft.type.animal_product", 50, 10, true, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> EGG_BROWN = ITEMS.register("egg_brown",
@@ -887,7 +990,7 @@ public class ModItems {
         public static final DeferredItem<Item> TRUFFLE = ITEMS.register("truffle",
                         () -> new StardewQualityItem("stardewcraft.type.animal_product", 625, 5, true, new Item.Properties().stacksTo(999)));
 
-        // 动物工匠物品（有品质）
+        // 鍔ㄧ墿宸ュ尃鐗╁搧锛堟湁鍝佽川锛?
         public static final DeferredItem<Item> CHEESE = ITEMS.register("cheese",
                         () -> new StardewQualityItem("stardewcraft.type.artisan_animal_quality", 230, 50, true, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> GOAT_CHEESE = ITEMS.register("goat_cheese",
@@ -897,7 +1000,7 @@ public class ModItems {
         public static final DeferredItem<Item> DINOSAUR_MAYONNAISE = ITEMS.register("dinosaur_mayonnaise",
                         () -> new StardewQualityItem("stardewcraft.type.artisan_animal_quality", 800, 50, true, new Item.Properties().stacksTo(999)));
 
-        // 动物工匠物品（无品质）
+        // 鍔ㄧ墿宸ュ尃鐗╁搧锛堟棤鍝佽川锛?
         public static final DeferredItem<Item> DUCK_MAYONNAISE = ITEMS.register("duck_mayonnaise",
                         () -> new StardewQualityItem("stardewcraft.type.artisan_goods", 375, 30, false, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> VOID_MAYONNAISE = ITEMS.register("void_mayonnaise",
@@ -909,7 +1012,7 @@ public class ModItems {
         public static final DeferredItem<Item> TRUFFLE_OIL = ITEMS.register("truffle_oil",
                         () -> new StardewQualityItem("stardewcraft.type.artisan_goods", 1065, 15, false, new Item.Properties().stacksTo(999)));
 
-        // 工匠物品 - 脱水机产物
+        // 宸ュ尃鐗╁搧 - 鑴辨按鏈轰骇鐗?
         public static final DeferredItem<Item> RAISINS = ITEMS.register("raisins",
                         () -> new StardewQualityItem("stardewcraft.type.artisan_goods", 600, 50, false, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> DRIED_FRUIT = ITEMS.register("dried_fruit",
@@ -917,7 +1020,7 @@ public class ModItems {
         public static final DeferredItem<Item> DRIED_MUSHROOMS = ITEMS.register("dried_mushrooms",
                         () -> new DriedMushroomsItem(new Item.Properties().stacksTo(999)));
 
-        // 工匠物品 - 小桶产物（饮品）
+        // 宸ュ尃鐗╁搧 - 灏忔《浜х墿锛堥ギ鍝侊級
         public static final DeferredItem<Item> HONEY = ITEMS.register("honey",
                         () -> new HoneyItem("stardewcraft.type.artisan_goods", 100, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> JELLY = ITEMS.register("jelly",
@@ -939,7 +1042,7 @@ public class ModItems {
         public static final DeferredItem<Item> COFFEE = ITEMS.register("coffee",
                         () -> new ArtisanDrinkItem(150, 3, 1, 1, 83 * 20, new Item.Properties().stacksTo(999)));
 
-        // 工匠物品 - 果酒
+        // 宸ュ尃鐗╁搧 - 鏋滈厭
         public static final DeferredItem<Item> ANCIENT_FRUIT_WINE = ITEMS.register("ancient_fruit_wine",
                         () -> new ArtisanDrinkItem(1650, 105, 43, -1, 30 * 20, true, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> BLUEBERRY_WINE = ITEMS.register("blueberry_wine",
@@ -963,7 +1066,7 @@ public class ModItems {
         public static final DeferredItem<Item> STRAWBERRY_WINE = ITEMS.register("strawberry_wine",
                         () -> new ArtisanDrinkItem(360, 87, 38, -1, 30 * 20, true, new Item.Properties().stacksTo(999)));
 
-        // 工匠物品 - 果汁
+        // 宸ュ尃鐗╁搧 - 鏋滄眮
         public static final DeferredItem<Item> AMARANTH_JUICE = ITEMS.register("amaranth_juice",
                         () -> new ArtisanDrinkItem(337, 100, 44, 0, 0, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> ARTICHOKE_JUICE = ITEMS.register("artichoke_juice",
@@ -1005,7 +1108,7 @@ public class ModItems {
         public static final DeferredItem<Item> YAM_JUICE = ITEMS.register("yam_juice",
                         () -> new ArtisanDrinkItem(360, 90, 36, 0, 0, new Item.Properties().stacksTo(999)));
 
-        // 矿井资源（你已把贴图放在 textures/item/resource 下）
+        // 鐭夸簳璧勬簮锛堜綘宸叉妸璐村浘鏀惧湪 textures/item/resource 涓嬶級
         public static final DeferredItem<Item> COPPER_ORE = ITEMS.register("copper_ore",
                         () -> new SimpleStardewItem("stardewcraft.type.resource", 5, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> IRON_ORE = ITEMS.register("iron_ore",
@@ -1044,7 +1147,7 @@ public class ModItems {
         public static final DeferredItem<Item> WILTED_BOUQUET = ITEMS.register("wilted_bouquet",
                                         () -> new SimpleStardewItem("stardewcraft.type.misc", 100, new Item.Properties().stacksTo(999)));
 
-        // 晶洞
+        // 鏅舵礊
         public static final DeferredItem<Item> GEODE = ITEMS.register("geode",
                         () -> new SimpleStardewItem("stardewcraft.type.resource", 50, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> FROZEN_GEODE = ITEMS.register("frozen_geode",
@@ -1054,7 +1157,7 @@ public class ModItems {
         public static final DeferredItem<Item> OMNI_GEODE = ITEMS.register("omni_geode",
                         () -> new SimpleStardewItem("stardewcraft.type.resource", -1, new Item.Properties().stacksTo(999)));
 
-        // 矿物（Minerals）
+        // 鐭跨墿锛圡inerals锛?
         public static final DeferredItem<Item> QUARTZ = ITEMS.register("quartz",
                         () -> new StardewBlockItem(ModBlocks.QUARTZ.get(), "stardewcraft.type.mineral", 25,
                                         new Item.Properties().stacksTo(999)));
@@ -1166,7 +1269,7 @@ public class ModItems {
         public static final DeferredItem<Item> STAR_SHARDS = ITEMS.register("star_shards",
                         () -> new SimpleStardewItem("stardewcraft.type.mineral", 500, new Item.Properties().stacksTo(999)));
 
-        // 古物（Artifacts）
+        // 鍙ょ墿锛圓rtifacts锛?
         public static final DeferredItem<Item> DWARF_SCROLL_I = ITEMS.register("dwarf_scroll_i",
                         () -> new SimpleStardewItem("stardewcraft.type.artifact", 1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> DWARF_SCROLL_II = ITEMS.register("dwarf_scroll_ii",
@@ -1259,7 +1362,7 @@ public class ModItems {
         public static final DeferredItem<Item> BLUE_GRASS_STARTER = ITEMS.register("blue_grass_starter",
                                                 () -> new GrassStarterItem(ModBlocks.BLUE_PASTURE_GRASS, 50, new Item.Properties().stacksTo(999)));
 
-        // 树种子（来自星露谷：橡子/枫树种子/松果/桃花心木种子/神秘树种）
+        // 鏍戠瀛愶紙鏉ヨ嚜鏄熼湶璋凤細姗″瓙/鏋爲绉嶅瓙/鏉炬灉/妗冭姳蹇冩湪绉嶅瓙/绁炵鏍戠锛?
         public static final DeferredItem<Item> ACORN = ITEMS.register("acorn",
                         () -> new TreeSeedItem(ModBlocks.WILD_OAK_SAPLING0, 20, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> MAPLE_SEED = ITEMS.register("maple_seed",
@@ -1271,7 +1374,7 @@ public class ModItems {
         public static final DeferredItem<Item> MYSTIC_TREE_SEED = ITEMS.register("mystic_tree_seed",
                         () -> new TreeSeedItem(ModBlocks.WILD_MYSTIC_TREE_SAPLING0, 100, new Item.Properties().stacksTo(999)));
 
-    // 肥料（对齐 Stardew Valley：品质类肥料）
+    // 鑲ユ枡锛堝榻?Stardew Valley锛氬搧璐ㄧ被鑲ユ枡锛?
     public static final DeferredItem<Item> BASIC_FERTILIZER = ITEMS.register("basic_fertilizer",
             () -> new FertilizerItem(com.stardew.craft.block.FertilizerType.BASIC_FERTILIZER, 
                     2, new Item.Properties().stacksTo(999)));
@@ -1282,7 +1385,7 @@ public class ModItems {
             () -> new FertilizerItem(com.stardew.craft.block.FertilizerType.DELUXE_FERTILIZER, 
                     70, new Item.Properties().stacksTo(999)));
 
-    // 肥料（对齐 Stardew Valley：保湿土壤）
+    // 鑲ユ枡锛堝榻?Stardew Valley锛氫繚婀垮湡澹わ級
     public static final DeferredItem<Item> BASIC_RETAINING_SOIL = ITEMS.register("basic_retaining_soil",
             () -> new FertilizerItem(com.stardew.craft.block.FertilizerType.BASIC_RETAINING_SOIL, 
                     4, new Item.Properties().stacksTo(999)));
@@ -1293,7 +1396,7 @@ public class ModItems {
             () -> new FertilizerItem(com.stardew.craft.block.FertilizerType.DELUXE_RETAINING_SOIL, 
                     30, new Item.Properties().stacksTo(999)));
 
-    // 肥料（对齐 Stardew Valley：生长激素）
+    // 鑲ユ枡锛堝榻?Stardew Valley锛氱敓闀挎縺绱狅級
     public static final DeferredItem<Item> SPEED_GRO = ITEMS.register("speed_gro",
             () -> new FertilizerItem(com.stardew.craft.block.FertilizerType.SPEED_GRO, 
                     20, new Item.Properties().stacksTo(999)));
@@ -1304,15 +1407,15 @@ public class ModItems {
             () -> new FertilizerItem(com.stardew.craft.block.FertilizerType.HYPER_SPEED_GRO, 
                     70, new Item.Properties().stacksTo(999)));
 
-    // 肥料（对齐 Stardew Valley：树肥）注意：树肥不用于耕地，暂时保留SimpleStardewItem
+    // 鑲ユ枡锛堝榻?Stardew Valley锛氭爲鑲ワ級娉ㄦ剰锛氭爲鑲ヤ笉鐢ㄤ簬鑰曞湴锛屾殏鏃朵繚鐣橲impleStardewItem
     public static final DeferredItem<Item> TREE_FERTILIZER = ITEMS.register("tree_fertilizer",
             () -> new SimpleStardewItem("stardewcraft.type.fertilizer", 10, new Item.Properties().stacksTo(999)));
 
-    // 打造物品
+    // 鎵撻€犵墿鍝?
     public static final DeferredItem<Item> FAIRY_DUST = ITEMS.register("fairy_dust",
             () -> new FairyDustItem(300, new Item.Properties().stacksTo(999)));
 
-    // 种子
+    // 绉嶅瓙
     public static final DeferredItem<Item> AMARANTH_SEEDS = ITEMS.register("amaranth_seeds",
             () -> new AmaranthSeedItem(new Item.Properties().stacksTo(999)));
     
@@ -1343,7 +1446,7 @@ public class ModItems {
     public static final DeferredItem<Item> CAULIFLOWER_SEEDS = ITEMS.register("cauliflower_seeds",
             () -> new CauliflowerSeedItem(new Item.Properties().stacksTo(999)));
     
-    // 注意：咖啡豆自己就是种子，不需要单独的种子物品
+    // 娉ㄦ剰锛氬挅鍟¤眴鑷繁灏辨槸绉嶅瓙锛屼笉闇€瑕佸崟鐙殑绉嶅瓙鐗╁搧
     
     public static final DeferredItem<Item> CORN_SEEDS = ITEMS.register("corn_seeds",
             () -> new CornSeedItem(new Item.Properties().stacksTo(999)));
@@ -1429,7 +1532,7 @@ public class ModItems {
     public static final DeferredItem<Item> YAM_SEEDS = ITEMS.register("yam_seeds",
             () -> new YamSeedItem(new Item.Properties().stacksTo(999)));
     
-    // 作物 (使用品质系统)
+    // 浣滅墿 (浣跨敤鍝佽川绯荤粺)
     public static final DeferredItem<Item> AMARANTH = ITEMS.register("amaranth",
             () -> new AmaranthItem(new Item.Properties().stacksTo(999)));
     
@@ -1547,9 +1650,9 @@ public class ModItems {
     public static final DeferredItem<Item> YAM = ITEMS.register("yam",
             () -> new YamItem(new Item.Properties().stacksTo(999)));
     
-    // ==================== 鱼类 ====================
+    // ==================== 楸肩被 ====================
     
-    // 河流鱼类
+    // 娌虫祦楸肩被
     public static final DeferredItem<Item> CHUB = ITEMS.register("chub",
             () -> new ChubItem(new Item.Properties().stacksTo(999)));
     
@@ -1577,7 +1680,7 @@ public class ModItems {
     public static final DeferredItem<Item> PIKE = ITEMS.register("pike",
             () -> new PikeItem(new Item.Properties().stacksTo(999)));
     
-    // 湖泊鱼类
+    // 婀栨硦楸肩被
     public static final DeferredItem<Item> LARGEMOUTH_BASS = ITEMS.register("largemouth_bass",
             () -> new LargemouthBassItem(new Item.Properties().stacksTo(999)));
     
@@ -1608,7 +1711,7 @@ public class ModItems {
     public static final DeferredItem<Item> WOODSKIP = ITEMS.register("woodskip",
             () -> new WoodskipItem(new Item.Properties().stacksTo(999)));
     
-    // 海洋鱼类
+    // 娴锋磱楸肩被
     public static final DeferredItem<Item> SARDINE = ITEMS.register("sardine",
             () -> new SardineItem(new Item.Properties().stacksTo(999)));
     
@@ -1657,7 +1760,7 @@ public class ModItems {
     public static final DeferredItem<Item> ALBACORE = ITEMS.register("albacore",
             () -> new AlbacoreItem(new Item.Properties().stacksTo(999)));
     
-    // 特殊位置鱼类
+    // 鐗规畩浣嶇疆楸肩被
     public static final DeferredItem<Item> SANDFISH = ITEMS.register("sandfish",
             () -> new SandfishItem(new Item.Properties().stacksTo(999)));
     
@@ -1694,7 +1797,7 @@ public class ModItems {
     public static final DeferredItem<Item> BLOBFISH = ITEMS.register("blobfish",
             () -> new BlobfishItem(new Item.Properties().stacksTo(999)));
     
-    // 传说鱼类
+    // 浼犺楸肩被
     public static final DeferredItem<Item> LEGEND = ITEMS.register("legend",
             () -> new LegendItem(new Item.Properties().stacksTo(1)));
     
@@ -1725,7 +1828,7 @@ public class ModItems {
     public static final DeferredItem<Item> RADIOACTIVE_CARP = ITEMS.register("radioactive_carp",
             () -> new RadioactiveCarpItem(new Item.Properties().stacksTo(1)));
     
-    // 蟹笼物品
+    // 锜圭鐗╁搧
     public static final DeferredItem<Item> LOBSTER = ITEMS.register("lobster",
             () -> new LobsterItem(new Item.Properties().stacksTo(999)));
     
@@ -1756,7 +1859,7 @@ public class ModItems {
     public static final DeferredItem<Item> PERIWINKLE = ITEMS.register("periwinkle",
             () -> new PeriwinkleItem(new Item.Properties().stacksTo(999)));
 
-    // 熏鱼
+    // 鐔忛奔
     public static final DeferredItem<Item> SMOKED_CHUB = ITEMS.register("smoked_chub",
             () -> new SmokedFishItem(ModItems.CHUB::get, new Item.Properties().stacksTo(999)));
     public static final DeferredItem<Item> SMOKED_BREAM = ITEMS.register("smoked_bream",
@@ -1897,7 +2000,7 @@ public class ModItems {
     public static final DeferredItem<Item> SMOKED_PERIWINKLE = ITEMS.register("smoked_periwinkle",
             () -> new SmokedFishItem(ModItems.PERIWINKLE::get, new Item.Properties().stacksTo(999)));
     
-    // 杂项
+    // 鏉傞」
     public static final DeferredItem<Item> SEAWEED = ITEMS.register("seaweed",
             () -> new SeaweedItem(new Item.Properties().stacksTo(999)));
     
@@ -1907,7 +2010,7 @@ public class ModItems {
     public static final DeferredItem<Item> WHITE_ALGAE = ITEMS.register("white_algae",
             () -> new WhiteAlgaeItem(new Item.Properties().stacksTo(999)));
 
-    // 杂项 - 蘑菇
+    // 鏉傞」 - 铇戣弴
     public static final DeferredItem<Item> COMMON_MUSHROOM = ITEMS.register("common_mushroom",
             () -> new StardewQualityItem("stardewcraft.type.misc", 40, 15, false, new Item.Properties().stacksTo(999)));
 
@@ -1935,7 +2038,7 @@ public class ModItems {
     public static final DeferredItem<Item> CAVE_JELLY = ITEMS.register("cave_jelly",
             () -> new CaveJellyItem(new Item.Properties().stacksTo(999)));
     
-    // 垃圾物品（钓鱼垃圾）
+    // 鍨冨溇鐗╁搧锛堥挀楸煎瀮鍦撅級
     public static final DeferredItem<Item> TRASH = ITEMS.register("trash",
             () -> new TrashItem(0, new Item.Properties().stacksTo(999)));
     
@@ -1957,15 +2060,15 @@ public class ModItems {
     public static final DeferredItem<Item> ROTTEN_PLANT = ITEMS.register("rotten_plant",
             () -> new TrashItem(0, new Item.Properties().stacksTo(999)));
     
-    // ========== 武器 ==========
-    // 剑类
+    // ========== 姝﹀櫒 ==========
+    // 鍓戠被
     public static final DeferredItem<Item> RUSTY_SWORD = ITEMS.register("rusty_sword",
             () -> new com.stardew.craft.item.weapon.StardewWeaponItem("rusty_sword", new Item.Properties().stacksTo(1)));
 
     public static final DeferredItem<Item> STEEL_SMALLSWORD = ITEMS.register("steel_smallsword",
             () -> new com.stardew.craft.item.weapon.StardewWeaponItem("steel_smallsword", new Item.Properties().stacksTo(1)));
 
-    // 匕首
+    // 鍖曢
     public static final DeferredItem<Item> CARVING_KNIFE = ITEMS.register("carving_knife",
             () -> new com.stardew.craft.item.weapon.StardewDaggerItem("carving_knife", new Item.Properties().stacksTo(1)));
 
@@ -2008,7 +2111,7 @@ public class ModItems {
     public static final DeferredItem<Item> BROKEN_TRIDENT = ITEMS.register("broken_trident",
             () -> new com.stardew.craft.item.weapon.StardewDaggerItem("broken_trident", new Item.Properties().stacksTo(1)));
 
-    // 棍棒
+    // 妫嶆
     public static final DeferredItem<Item> FEMUR = ITEMS.register("femur",
             () -> new com.stardew.craft.item.weapon.StardewClubItem("femur", new Item.Properties().stacksTo(1)));
 

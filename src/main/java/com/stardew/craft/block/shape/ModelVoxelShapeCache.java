@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class ModelVoxelShapeCache {
     private static final Map<String, VoxelShape> SHAPE_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, GeoModelData> GEO_MODEL_CACHE = new ConcurrentHashMap<>();
     private static final Map<String, Map<String, VariantModelRef>> BLOCKSTATE_VARIANTS_CACHE = new ConcurrentHashMap<>();
 
     private ModelVoxelShapeCache() {
@@ -177,6 +178,13 @@ public final class ModelVoxelShapeCache {
 
     @SuppressWarnings("null")
     private static VoxelShape loadShapeFromModelId(String modelId) {
+        if (isGeoShapeModelId(modelId)) {
+            VoxelShape geoShape = loadShapeFromGeoModelId(modelId);
+            if (!geoShape.isEmpty()) {
+                return geoShape.optimize();
+            }
+        }
+
         ModelResolve resolved = normalizeModelIdForShape(modelId);
         String resolvedModelId = resolved.modelId();
         JsonObject model = readModel(resolveModelPath(resolvedModelId));
@@ -255,6 +263,335 @@ public final class ModelVoxelShapeCache {
             shape = offsetY(shape, -1.0);
         }
         return shape.optimize();
+    }
+
+    private static boolean isGeoShapeModelId(String modelId) {
+        return modelId != null && modelId.endsWith(".geo.json");
+    }
+
+    public static GeoBounds geoBoundsFromModelId(String modelId) {
+        if (!isGeoShapeModelId(modelId)) {
+            return null;
+        }
+        GeoModelData data = GEO_MODEL_CACHE.computeIfAbsent(modelId, ModelVoxelShapeCache::loadGeoModelDataFromModelId);
+        return data == null ? null : data.bounds();
+    }
+
+    @SuppressWarnings("null")
+    private static VoxelShape loadShapeFromGeoModelId(String modelId) {
+        GeoModelData data = GEO_MODEL_CACHE.computeIfAbsent(modelId, ModelVoxelShapeCache::loadGeoModelDataFromModelId);
+        if (data == null || data.shape().isEmpty()) {
+            return Shapes.empty();
+        }
+        return data.shape();
+    }
+
+    private static GeoModelData loadGeoModelDataFromModelId(String modelId) {
+        JsonObject geoRoot = readGeo(resolveGeoPath(modelId));
+        if (geoRoot == null) {
+            return GeoModelData.empty();
+        }
+
+        JsonArray geometries = geoRoot.getAsJsonArray("minecraft:geometry");
+        if (geometries == null || geometries.isEmpty() || !geometries.get(0).isJsonObject()) {
+            return GeoModelData.empty();
+        }
+
+        JsonObject geometry = geometries.get(0).getAsJsonObject();
+        JsonArray bonesArray = geometry.getAsJsonArray("bones");
+        if (bonesArray == null || bonesArray.isEmpty()) {
+            return GeoModelData.empty();
+        }
+
+        Map<String, JsonObject> bones = new ConcurrentHashMap<>();
+        for (JsonElement boneEl : bonesArray) {
+            if (!boneEl.isJsonObject()) {
+                continue;
+            }
+            JsonObject bone = boneEl.getAsJsonObject();
+            if (!bone.has("name")) {
+                continue;
+            }
+            bones.put(bone.get("name").getAsString(), bone);
+        }
+
+        if (bones.isEmpty()) {
+            return GeoModelData.empty();
+        }
+
+        Map<String, double[][]> worldTransformCache = new ConcurrentHashMap<>();
+
+        Set<Long> occupiedVoxels = new HashSet<>();
+
+        for (JsonObject bone : bones.values()) {
+            String boneName = bone.get("name").getAsString();
+            double[][] boneWorld = resolveBoneWorldTransform(boneName, bones, worldTransformCache);
+            double[] bonePivot = jsonArrayToVec3(bone.getAsJsonArray("pivot"), 0.0, 0.0, 0.0);
+
+            JsonArray cubes = bone.getAsJsonArray("cubes");
+            if (cubes == null) {
+                continue;
+            }
+
+            for (JsonElement cubeEl : cubes) {
+                if (!cubeEl.isJsonObject()) {
+                    continue;
+                }
+                JsonObject cube = cubeEl.getAsJsonObject();
+                JsonArray originArray = cube.getAsJsonArray("origin");
+                JsonArray sizeArray = cube.getAsJsonArray("size");
+                if (originArray == null || sizeArray == null || originArray.size() < 3 || sizeArray.size() < 3) {
+                    continue;
+                }
+
+                double inflate = cube.has("inflate") ? cube.get("inflate").getAsDouble() : 0.0;
+                double oX = originArray.get(0).getAsDouble() - inflate;
+                double oY = originArray.get(1).getAsDouble() - inflate;
+                double oZ = originArray.get(2).getAsDouble() - inflate;
+                double tX = originArray.get(0).getAsDouble() + sizeArray.get(0).getAsDouble() + inflate;
+                double tY = originArray.get(1).getAsDouble() + sizeArray.get(1).getAsDouble() + inflate;
+                double tZ = originArray.get(2).getAsDouble() + sizeArray.get(2).getAsDouble() + inflate;
+
+                double[] cubePivot = jsonArrayToVec3(cube.getAsJsonArray("pivot"), bonePivot[0], bonePivot[1], bonePivot[2]);
+                double[] cubeRotation = jsonArrayToVec3(cube.getAsJsonArray("rotation"), 0.0, 0.0, 0.0);
+                double[][] cubeTransform = multiplyMatrices(boneWorld, pivotRotationMatrix(cubePivot, cubeRotation));
+                double[][] inverseCubeTransform = invertAffineMatrix(cubeTransform);
+
+                double[][] corners = new double[][] {
+                    {oX, oY, oZ}, {oX, oY, tZ}, {oX, tY, oZ}, {oX, tY, tZ},
+                    {tX, oY, oZ}, {tX, oY, tZ}, {tX, tY, oZ}, {tX, tY, tZ}
+                };
+
+                double cubeMinX = Double.POSITIVE_INFINITY;
+                double cubeMinY = Double.POSITIVE_INFINITY;
+                double cubeMinZ = Double.POSITIVE_INFINITY;
+                double cubeMaxX = Double.NEGATIVE_INFINITY;
+                double cubeMaxY = Double.NEGATIVE_INFINITY;
+                double cubeMaxZ = Double.NEGATIVE_INFINITY;
+
+                for (double[] c : corners) {
+                    double[] world = transformPoint(cubeTransform, c[0], c[1], c[2]);
+                    cubeMinX = Math.min(cubeMinX, world[0]);
+                    cubeMinY = Math.min(cubeMinY, world[1]);
+                    cubeMinZ = Math.min(cubeMinZ, world[2]);
+                    cubeMaxX = Math.max(cubeMaxX, world[0]);
+                    cubeMaxY = Math.max(cubeMaxY, world[1]);
+                    cubeMaxZ = Math.max(cubeMaxZ, world[2]);
+                }
+
+                int minVX = (int) Math.floor(cubeMinX + 1.0E-6);
+                int minVY = (int) Math.floor(cubeMinY + 1.0E-6);
+                int minVZ = (int) Math.floor(cubeMinZ + 1.0E-6);
+                int maxVX = (int) Math.ceil(cubeMaxX - 1.0E-6) - 1;
+                int maxVY = (int) Math.ceil(cubeMaxY - 1.0E-6) - 1;
+                int maxVZ = (int) Math.ceil(cubeMaxZ - 1.0E-6) - 1;
+
+                for (int vx = minVX; vx <= maxVX; vx++) {
+                    for (int vy = minVY; vy <= maxVY; vy++) {
+                        for (int vz = minVZ; vz <= maxVZ; vz++) {
+                            double[] localCenter = transformPoint(inverseCubeTransform, vx + 0.5, vy + 0.5, vz + 0.5);
+                            if (localCenter[0] >= oX - 1.0E-6 && localCenter[0] <= tX + 1.0E-6
+                                && localCenter[1] >= oY - 1.0E-6 && localCenter[1] <= tY + 1.0E-6
+                                && localCenter[2] >= oZ - 1.0E-6 && localCenter[2] <= tZ + 1.0E-6) {
+                                occupiedVoxels.add(packVoxel(vx, vy, vz));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (occupiedVoxels.isEmpty()) {
+            return GeoModelData.empty();
+        }
+
+        int minX = Integer.MAX_VALUE;
+        int minY = Integer.MAX_VALUE;
+        int minZ = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE;
+        int maxY = Integer.MIN_VALUE;
+        int maxZ = Integer.MIN_VALUE;
+
+        VoxelShape shape = Shapes.empty();
+        for (long packed : occupiedVoxels) {
+            int vx = unpackVoxelX(packed);
+            int vy = unpackVoxelY(packed);
+            int vz = unpackVoxelZ(packed);
+            minX = Math.min(minX, vx);
+            minY = Math.min(minY, vy);
+            minZ = Math.min(minZ, vz);
+            maxX = Math.max(maxX, vx + 1);
+            maxY = Math.max(maxY, vy + 1);
+            maxZ = Math.max(maxZ, vz + 1);
+            shape = Shapes.or(shape, Block.box(vx, vy, vz, vx + 1, vy + 1, vz + 1));
+        }
+
+        GeoBounds bounds = new GeoBounds(minX, minY, minZ, maxX, maxY, maxZ);
+        return new GeoModelData(shape.optimize(), bounds);
+    }
+
+    private static long packVoxel(int x, int y, int z) {
+        long ux = ((long) x - Integer.MIN_VALUE) & 0x1FFFFFL;
+        long uy = ((long) y - Integer.MIN_VALUE) & 0x1FFFFFL;
+        long uz = ((long) z - Integer.MIN_VALUE) & 0x1FFFFFL;
+        return (ux << 42) | (uy << 21) | uz;
+    }
+
+    private static int unpackVoxelX(long packed) {
+        return (int) (((packed >>> 42) & 0x1FFFFFL) + Integer.MIN_VALUE);
+    }
+
+    private static int unpackVoxelY(long packed) {
+        return (int) (((packed >>> 21) & 0x1FFFFFL) + Integer.MIN_VALUE);
+    }
+
+    private static int unpackVoxelZ(long packed) {
+        return (int) ((packed & 0x1FFFFFL) + Integer.MIN_VALUE);
+    }
+
+    private static double[][] invertAffineMatrix(double[][] m) {
+        double r00 = m[0][0], r01 = m[0][1], r02 = m[0][2];
+        double r10 = m[1][0], r11 = m[1][1], r12 = m[1][2];
+        double r20 = m[2][0], r21 = m[2][1], r22 = m[2][2];
+        double tx = m[0][3], ty = m[1][3], tz = m[2][3];
+
+        double[][] inv = identityMatrix();
+        inv[0][0] = r00;
+        inv[0][1] = r10;
+        inv[0][2] = r20;
+        inv[1][0] = r01;
+        inv[1][1] = r11;
+        inv[1][2] = r21;
+        inv[2][0] = r02;
+        inv[2][1] = r12;
+        inv[2][2] = r22;
+
+        inv[0][3] = -(inv[0][0] * tx + inv[0][1] * ty + inv[0][2] * tz);
+        inv[1][3] = -(inv[1][0] * tx + inv[1][1] * ty + inv[1][2] * tz);
+        inv[2][3] = -(inv[2][0] * tx + inv[2][1] * ty + inv[2][2] * tz);
+        return inv;
+    }
+
+    private static double[][] resolveBoneWorldTransform(String boneName,
+                                                        Map<String, JsonObject> bones,
+                                                        Map<String, double[][]> cache) {
+        double[][] cached = cache.get(boneName);
+        if (cached != null) {
+            return cached;
+        }
+
+        JsonObject bone = bones.get(boneName);
+        if (bone == null) {
+            return identityMatrix();
+        }
+
+        double[] pivot = jsonArrayToVec3(bone.getAsJsonArray("pivot"), 0.0, 0.0, 0.0);
+        double[] rotation = jsonArrayToVec3(bone.getAsJsonArray("rotation"), 0.0, 0.0, 0.0);
+        double[][] local = pivotRotationMatrix(pivot, rotation);
+
+        double[][] world;
+        if (bone.has("parent")) {
+            String parentName = bone.get("parent").getAsString();
+            double[][] parentWorld = resolveBoneWorldTransform(parentName, bones, cache);
+            world = multiplyMatrices(parentWorld, local);
+        } else {
+            world = local;
+        }
+
+        cache.put(boneName, world);
+        return world;
+    }
+
+    private static double[] jsonArrayToVec3(JsonArray array, double fallbackX, double fallbackY, double fallbackZ) {
+        if (array == null || array.size() < 3) {
+            return new double[] { fallbackX, fallbackY, fallbackZ };
+        }
+        return new double[] { array.get(0).getAsDouble(), array.get(1).getAsDouble(), array.get(2).getAsDouble() };
+    }
+
+    private static double[][] identityMatrix() {
+        return new double[][] {
+            {1.0, 0.0, 0.0, 0.0},
+            {0.0, 1.0, 0.0, 0.0},
+            {0.0, 0.0, 1.0, 0.0},
+            {0.0, 0.0, 0.0, 1.0}
+        };
+    }
+
+    private static double[][] multiplyMatrices(double[][] a, double[][] b) {
+        double[][] out = new double[4][4];
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                double sum = 0.0;
+                for (int k = 0; k < 4; k++) {
+                    sum += a[i][k] * b[k][j];
+                }
+                out[i][j] = sum;
+            }
+        }
+        return out;
+    }
+
+    private static double[][] translationMatrix(double x, double y, double z) {
+        return new double[][] {
+            {1.0, 0.0, 0.0, x},
+            {0.0, 1.0, 0.0, y},
+            {0.0, 0.0, 1.0, z},
+            {0.0, 0.0, 0.0, 1.0}
+        };
+    }
+
+    private static double[][] rotationXMatrix(double angleDeg) {
+        double r = Math.toRadians(angleDeg);
+        double c = Math.cos(r);
+        double s = Math.sin(r);
+        return new double[][] {
+            {1.0, 0.0, 0.0, 0.0},
+            {0.0, c, -s, 0.0},
+            {0.0, s, c, 0.0},
+            {0.0, 0.0, 0.0, 1.0}
+        };
+    }
+
+    private static double[][] rotationYMatrix(double angleDeg) {
+        double r = Math.toRadians(angleDeg);
+        double c = Math.cos(r);
+        double s = Math.sin(r);
+        return new double[][] {
+            {c, 0.0, s, 0.0},
+            {0.0, 1.0, 0.0, 0.0},
+            {-s, 0.0, c, 0.0},
+            {0.0, 0.0, 0.0, 1.0}
+        };
+    }
+
+    private static double[][] rotationZMatrix(double angleDeg) {
+        double r = Math.toRadians(angleDeg);
+        double c = Math.cos(r);
+        double s = Math.sin(r);
+        return new double[][] {
+            {c, -s, 0.0, 0.0},
+            {s, c, 0.0, 0.0},
+            {0.0, 0.0, 1.0, 0.0},
+            {0.0, 0.0, 0.0, 1.0}
+        };
+    }
+
+    private static double[][] pivotRotationMatrix(double[] pivot, double[] rotation) {
+        double[][] translateToPivot = translationMatrix(pivot[0], pivot[1], pivot[2]);
+        double[][] rotate = multiplyMatrices(
+            multiplyMatrices(rotationXMatrix(rotation[0]), rotationYMatrix(rotation[1])),
+            rotationZMatrix(rotation[2])
+        );
+        double[][] translateBack = translationMatrix(-pivot[0], -pivot[1], -pivot[2]);
+        return multiplyMatrices(multiplyMatrices(translateToPivot, rotate), translateBack);
+    }
+
+    private static double[] transformPoint(double[][] matrix, double x, double y, double z) {
+        double outX = matrix[0][0] * x + matrix[0][1] * y + matrix[0][2] * z + matrix[0][3];
+        double outY = matrix[1][0] * x + matrix[1][1] * y + matrix[1][2] * z + matrix[1][3];
+        double outZ = matrix[2][0] * x + matrix[2][1] * y + matrix[2][2] * z + matrix[2][3];
+        return new double[] { outX, outY, outZ };
     }
 
     private static ModelResolve normalizeModelIdForShape(String modelId) {
@@ -442,6 +779,13 @@ public final class ModelVoxelShapeCache {
         return "assets/" + namespace + "/models/" + path + ".json";
     }
 
+    private static String resolveGeoPath(String modelId) {
+        String[] split = modelId.split(":", 2);
+        String namespace = split.length == 2 ? split[0] : "minecraft";
+        String path = split.length == 2 ? split[1] : split[0];
+        return "assets/" + namespace + "/" + path;
+    }
+
     private static String resolveBlockstatePath(String blockId) {
         String[] split = blockId.split(":", 2);
         String namespace = split.length == 2 ? split[0] : "minecraft";
@@ -451,6 +795,18 @@ public final class ModelVoxelShapeCache {
 
     @SuppressWarnings("null")
     private static JsonObject readModel(String classpathPath) {
+        try (InputStream input = ModelVoxelShapeCache.class.getClassLoader().getResourceAsStream(classpathPath)) {
+            if (input == null) {
+                return null;
+            }
+            return JsonParser.parseReader(new InputStreamReader(input, StandardCharsets.UTF_8)).getAsJsonObject();
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    @SuppressWarnings("null")
+    private static JsonObject readGeo(String classpathPath) {
         try (InputStream input = ModelVoxelShapeCache.class.getClassLoader().getResourceAsStream(classpathPath)) {
             if (input == null) {
                 return null;
@@ -589,5 +945,25 @@ public final class ModelVoxelShapeCache {
     }
 
     private record ModelResolve(String modelId, boolean shiftDownOneBlock) {
+    }
+
+    public record GeoBounds(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
+        private static final GeoBounds EMPTY = new GeoBounds(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+
+        public static GeoBounds empty() {
+            return EMPTY;
+        }
+
+        public boolean isEmpty() {
+            return maxX <= minX || maxY <= minY || maxZ <= minZ;
+        }
+    }
+
+    private record GeoModelData(VoxelShape shape, GeoBounds bounds) {
+        private static final GeoModelData EMPTY = new GeoModelData(Shapes.empty(), GeoBounds.empty());
+
+        private static GeoModelData empty() {
+            return EMPTY;
+        }
     }
 }

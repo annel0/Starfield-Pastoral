@@ -764,6 +764,12 @@ public class PacketHandler {
             com.stardew.craft.network.payload.CookingPotCookSubmitPayload::handle
         );
 
+        registrar.playToClient(
+            com.stardew.craft.network.payload.CookingPotIngredientAvailabilityPayload.TYPE,
+            com.stardew.craft.network.payload.CookingPotIngredientAvailabilityPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.CookingPotIngredientAvailabilityPayload::handle
+        );
+
         registrar.playToServer(
             com.stardew.craft.network.payload.CraftingMenuCraftSubmitPayload.TYPE,
             com.stardew.craft.network.payload.CraftingMenuCraftSubmitPayload.STREAM_CODEC,

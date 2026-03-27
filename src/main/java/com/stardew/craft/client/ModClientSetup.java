@@ -12,6 +12,7 @@ import com.stardew.craft.client.gui.StoneChestScreen;
 import com.stardew.craft.client.gui.WoodenChestScreen;
 import com.stardew.craft.client.render.BeeHouseBlockEntityRenderer;
 import com.stardew.craft.client.render.CrabPotBlockEntityRenderer;
+import com.stardew.craft.client.render.BookshelfGeoBlockEntityRenderer;
 import com.stardew.craft.client.render.CharcoalKilnBlockEntityRenderer;
 import com.stardew.craft.client.render.CheesePressBlockEntityRenderer;
 import com.stardew.craft.client.render.FurnaceBlockEntityRenderer;
@@ -31,6 +32,7 @@ import com.stardew.craft.client.render.DeluxeWormBinBlockEntityRenderer;
 import com.stardew.craft.client.render.AutoPetterBlockEntityRenderer;
 import com.stardew.craft.client.render.HeaterBlockEntityRenderer;
 import com.stardew.craft.client.render.LargeFireplaceBlockEntityRenderer;
+import com.stardew.craft.client.render.ShrineBlockEntityRenderer;
 import com.stardew.craft.client.render.ShippingBinBlockEntityRenderer;
 import com.stardew.craft.client.render.StoneChestBlockEntityRenderer;
 import com.stardew.craft.client.render.WoodenChestBlockEntityRenderer;
@@ -42,6 +44,8 @@ import com.stardew.craft.client.render.FeedTroughBlockEntityRenderer;
 import com.stardew.craft.client.render.AutoFeedTroughBlockEntityRenderer;
 import com.stardew.craft.client.render.AnimalProduceSpotBlockEntityRenderer;
 import com.stardew.craft.client.render.MuseumExhibitStandBlockEntityRenderer;
+import com.stardew.craft.client.render.TableDisplayBlockEntityRenderer;
+import com.stardew.craft.client.render.OfficeStoolBlockEntityRenderer;
 import com.stardew.craft.menu.ModMenuTypes;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -122,6 +126,10 @@ public final class ModClientSetup {
 		event.registerBlockEntityRenderer(ModBlockEntities.DELUXE_WORM_BIN.get(), DeluxeWormBinBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.ANIMAL_PRODUCE_SPOT.get(), AnimalProduceSpotBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.LARGE_FIREPLACE.get(), LargeFireplaceBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(ModBlockEntities.SHRINE.get(), ShrineBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(ModBlockEntities.BOOKSHELF_GEO.get(), BookshelfGeoBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(ModBlockEntities.TABLE_DISPLAY.get(), TableDisplayBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(ModBlockEntities.OFFICE_STOOL.get(), OfficeStoolBlockEntityRenderer::new);
 			}
 
 	@SuppressWarnings("null")

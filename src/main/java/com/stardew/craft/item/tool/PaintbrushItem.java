@@ -66,6 +66,28 @@ public class PaintbrushItem extends Item implements IStardewItem {
                     return InteractionResult.CONSUME;
                 }
             }
+            if (clicked.getBlock() == ModBlocks.OFFICE_STOOL.get()) {
+                if (level.isClientSide) {
+                    return InteractionResult.SUCCESS;
+                }
+                if (context.getPlayer() instanceof ServerPlayer serverPlayer
+                    && clicked.hasProperty(com.stardew.craft.block.utility.OfficeStoolBlock.COLOR)) {
+                    int current = clicked.getValue(com.stardew.craft.block.utility.OfficeStoolBlock.COLOR);
+                    PacketDistributor.sendToPlayer(serverPlayer, new OpenSofaColorScreenPayload(pos, current));
+                    return InteractionResult.CONSUME;
+                }
+            }
+            if (clicked.getBlock() == ModBlocks.OFFICE_CHAIR_2.get()) {
+                if (level.isClientSide) {
+                    return InteractionResult.SUCCESS;
+                }
+                if (context.getPlayer() instanceof ServerPlayer serverPlayer
+                    && clicked.hasProperty(com.stardew.craft.block.utility.OfficeChair2Block.COLOR)) {
+                    int current = clicked.getValue(com.stardew.craft.block.utility.OfficeChair2Block.COLOR);
+                    PacketDistributor.sendToPlayer(serverPlayer, new OpenSofaColorScreenPayload(pos, current));
+                    return InteractionResult.CONSUME;
+                }
+            }
             return InteractionResult.PASS;
         }
 

@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:decor/common/fridge",
+  "textures": {
+    "particle": "stardewcraft:block/decor/common/fridge"
+  }
+}

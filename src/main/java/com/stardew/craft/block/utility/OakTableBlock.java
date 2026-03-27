@@ -1,17 +1,32 @@
 package com.stardew.craft.block.utility;
 
 import com.stardew.craft.block.shape.ModelVoxelShapeCache;
+import com.stardew.craft.blockentity.TableDisplayBlockEntity;
+import com.stardew.craft.item.furniture.PinkTableclothItem;
+import com.stardew.craft.item.furniture.SkyBlueTableclothItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -23,7 +38,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings("null")
-public class OakTableBlock extends Block {
+public class OakTableBlock extends Block implements EntityBlock {
     public static final BooleanProperty NORTH_CONNECTED = BooleanProperty.create("north_connected");
     public static final BooleanProperty EAST_CONNECTED = BooleanProperty.create("east_connected");
     public static final BooleanProperty SOUTH_CONNECTED = BooleanProperty.create("south_connected");
@@ -126,9 +141,91 @@ public class OakTableBlock extends Block {
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
         if (!state.is(newState.getBlock()) && !level.isClientSide) {
+            BlockEntity be = level.getBlockEntity(pos);
+            if (be instanceof TableDisplayBlockEntity tableBe && tableBe.hasDisplayItem()) {
+                popResource(level, pos, tableBe.removeDisplayItem());
+            }
             refreshNeighbors(level, pos, state.getBlock());
         }
         super.onRemove(state, level, pos, newState, isMoving);
+    }
+
+    @Override
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new TableDisplayBlockEntity(pos, state);
+    }
+
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        return null;
+    }
+
+    @Override
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        // Let dedicated tablecloth items handle right-click first.
+        if (stack.getItem() instanceof PinkTableclothItem || stack.getItem() instanceof SkyBlueTableclothItem) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+
+        if (player.isShiftKeyDown()) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+
+        if (stack.isEmpty()) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+
+        if (!(level.getBlockEntity(pos) instanceof TableDisplayBlockEntity tableBe)) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+        if (tableBe.hasDisplayItem()) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+
+        if (level.isClientSide) {
+            return ItemInteractionResult.sidedSuccess(true);
+        }
+
+        ItemStack placed = stack.copy();
+        placed.setCount(1);
+        // Snap display orientation to player cardinal facing so placement feels intentional.
+        float snappedYaw = (float) net.minecraft.core.Direction.fromYRot(player.getYRot()).toYRot();
+        tableBe.setDisplayItem(placed, snappedYaw);
+        if (!player.getAbilities().instabuild) {
+            stack.shrink(1);
+        }
+
+        level.playSound(null, pos, SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.BLOCKS, 0.7f, 1.0f);
+        return ItemInteractionResult.sidedSuccess(false);
+    }
+
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+        if (player.isShiftKeyDown()) {
+            return InteractionResult.PASS;
+        }
+
+        if (!(level.getBlockEntity(pos) instanceof TableDisplayBlockEntity tableBe)) {
+            return InteractionResult.PASS;
+        }
+        if (!tableBe.hasDisplayItem()) {
+            return InteractionResult.PASS;
+        }
+
+        if (level.isClientSide) {
+            return InteractionResult.SUCCESS;
+        }
+
+        ItemStack removed = tableBe.removeDisplayItem();
+        if (removed.isEmpty()) {
+            return InteractionResult.PASS;
+        }
+
+        if (!player.addItem(removed)) {
+            player.drop(removed, false);
+        }
+        level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.7f, 1.0f);
+        return InteractionResult.CONSUME;
     }
 
     @Override
@@ -138,7 +235,8 @@ public class OakTableBlock extends Block {
 
     @Override
     public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return getModelShape(state);
+        // Keep gameplay collision identical whether cloth is present or not.
+        return getModelShape(state.setValue(HAS_CLOTH, false));
     }
 
     private BlockState updateConnections(LevelAccessor level, BlockPos pos, BlockState state) {
@@ -323,22 +421,6 @@ public class OakTableBlock extends Block {
             }
             if (shouldRenderLegSw(state)) {
                 shape = Shapes.or(shape, ModelVoxelShapeCache.shapeFromModelId(legSwModel));
-            }
-
-            // Cloth adds draping on exposed sides; include simplified side skirts in collision.
-            if (state.getValue(HAS_CLOTH)) {
-                if (!state.getValue(NORTH_CONNECTED)) {
-                    shape = Shapes.or(shape, Block.box(0.0, 0.0, 0.0, 16.0, 10.0, 1.0));
-                }
-                if (!state.getValue(EAST_CONNECTED)) {
-                    shape = Shapes.or(shape, Block.box(15.0, 0.0, 0.0, 16.0, 10.0, 16.0));
-                }
-                if (!state.getValue(SOUTH_CONNECTED)) {
-                    shape = Shapes.or(shape, Block.box(0.0, 0.0, 15.0, 16.0, 10.0, 16.0));
-                }
-                if (!state.getValue(WEST_CONNECTED)) {
-                    shape = Shapes.or(shape, Block.box(0.0, 0.0, 0.0, 1.0, 10.0, 16.0));
-                }
             }
 
             shape = shape.optimize();

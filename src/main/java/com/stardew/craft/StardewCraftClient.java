@@ -13,6 +13,10 @@ import com.stardew.craft.client.DebugKeybindsTick;
 import com.stardew.craft.client.renderer.entity.SofaSeatEntityRenderer;
 import com.stardew.craft.entity.ModEntities;
 import com.stardew.craft.block.utility.CushionBlock;
+import com.stardew.craft.block.utility.OfficeChair2Block;
+import com.stardew.craft.block.utility.OfficeChair2TopRenderBlock;
+import com.stardew.craft.block.utility.OfficeStoolBlock;
+import com.stardew.craft.block.utility.OfficeStoolTopRenderBlock;
 import com.stardew.craft.block.utility.SofaBlock;
 import com.stardew.craft.block.utility.WoodenChestColorPalette;
 
@@ -164,11 +168,26 @@ public class StardewCraftClient {
                 ModBlocks.BONSAI_4.get(),
                 ModBlocks.BONSAI_5_WALL.get(),
                 ModBlocks.BONSAI_6.get(),
+                ModBlocks.COMPUTER_1.get(),
+                ModBlocks.SAILBOAT_2.get(),
+                ModBlocks.BONSAI_6_1.get(),
+                ModBlocks.BONSAI_6_2.get(),
+                ModBlocks.BONSAI_6_3.get(),
+                ModBlocks.BONSAI_6_4.get(),
+                ModBlocks.BONSAI_6_5.get(),
+                ModBlocks.BONSAI_6_6.get(),
+                ModBlocks.RADIO_1.get(),
+                ModBlocks.BOOK_STACK_2_1.get(),
+                ModBlocks.BOOK_STACK_2_2.get(),
+                ModBlocks.BOOK_STACK_2_3.get(),
+                ModBlocks.BOOKSHELF_WALL_3_1.get(),
                 ModBlocks.SOFA.get(),
                 ModBlocks.CHAIR_1.get(),
                 ModBlocks.CHAIR_2.get(),
                 ModBlocks.CHAIR_3.get(),
                 ModBlocks.CUSHION.get(),
+                ModBlocks.OFFICE_STOOL.get(),
+                ModBlocks.OFFICE_CHAIR_2.get(),
                 ModBlocks.LIGHT_1.get(),
                 ModBlocks.LIGHT_2.get(),
                 ModBlocks.LIGHT_3.get(),
@@ -214,6 +233,14 @@ public class StardewCraftClient {
                 indexValue = state.getValue(SofaBlock.COLOR);
             } else if (state.hasProperty(CushionBlock.COLOR)) {
                 indexValue = state.getValue(CushionBlock.COLOR);
+            } else if (state.hasProperty(OfficeStoolBlock.COLOR)) {
+                indexValue = state.getValue(OfficeStoolBlock.COLOR);
+            } else if (state.hasProperty(OfficeStoolTopRenderBlock.COLOR)) {
+                indexValue = state.getValue(OfficeStoolTopRenderBlock.COLOR);
+            } else if (state.hasProperty(OfficeChair2Block.COLOR)) {
+                indexValue = state.getValue(OfficeChair2Block.COLOR);
+            } else if (state.hasProperty(OfficeChair2TopRenderBlock.COLOR)) {
+                indexValue = state.getValue(OfficeChair2TopRenderBlock.COLOR);
             }
             if (indexValue == null) {
                 return 0xFFFFFFFF;
@@ -223,7 +250,7 @@ public class StardewCraftClient {
                 index = 0;
             }
             return 0xFF000000 | (WoodenChestColorPalette.rgbAt(index) & 0xFFFFFF);
-        }, ModBlocks.SOFA.get(), ModBlocks.CUSHION.get());
+        }, ModBlocks.SOFA.get(), ModBlocks.CUSHION.get(), ModBlocks.OFFICE_STOOL.get(), ModBlocks.OFFICE_STOOL_TOP_RENDER.get(), ModBlocks.OFFICE_CHAIR_2.get(), ModBlocks.OFFICE_CHAIR_2_TOP_RENDER.get());
     }
 
     @SubscribeEvent
@@ -233,7 +260,7 @@ public class StardewCraftClient {
                 return 0xFFFFFFFF;
             }
             return 0xFF000000 | (WoodenChestColorPalette.rgbAt(0) & 0xFFFFFF);
-        }, ModItems.SOFA.get(), ModItems.CUSHION.get());
+        }, ModItems.SOFA.get(), ModItems.CUSHION.get(), ModItems.OFFICE_STOOL.get(), ModItems.OFFICE_CHAIR_2.get());
 
         event.register((stack, tintIndex) -> {
             if (!(stack.getItem() instanceof PreservesItem preservesItem)) {

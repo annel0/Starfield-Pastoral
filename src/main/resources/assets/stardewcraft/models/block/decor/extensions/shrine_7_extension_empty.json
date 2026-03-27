@@ -1,0 +1,7 @@
+﻿{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "stardewcraft:block/deco/misc/common/shrine_7"
+  },
+  "elements": []
+}

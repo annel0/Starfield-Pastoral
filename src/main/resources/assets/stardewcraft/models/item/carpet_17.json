@@ -1,0 +1,7 @@
+﻿{
+  "parent": "stardewcraft:decor/carpet/carpet_17",
+  "textures": {
+    "particle": "stardewcraft:block/decor/carpet/carpet_17"
+  }
+}
+

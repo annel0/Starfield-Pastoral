@@ -1,0 +1,14 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "stardewcraft:block/utility/office_stool_top_forbidden"
+      }
+    },
+    {
+      "apply": {
+        "model": "stardewcraft:block/utility/office_stool_top_tint"
+      }
+    }
+  ]
+}

@@ -2,6 +2,8 @@ package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.block.utility.CushionBlock;
+import com.stardew.craft.block.utility.OfficeChair2Block;
+import com.stardew.craft.block.utility.OfficeStoolBlock;
 import com.stardew.craft.block.utility.SofaBlock;
 import com.stardew.craft.block.utility.WoodenChestColorPalette;
 import com.stardew.craft.item.ModItems;
@@ -77,6 +79,22 @@ public record ApplySofaColorPayload(BlockPos targetPos, int colorIndex) implemen
 
             if (state.getBlock() instanceof CushionBlock && state.hasProperty(CushionBlock.COLOR)) {
                 BlockState updated = state.setValue(CushionBlock.COLOR, clamped);
+                if (updated != state) {
+                    player.level().setBlock(payload.targetPos(), updated, 3);
+                }
+                return;
+            }
+
+            if (state.getBlock() instanceof OfficeStoolBlock && state.hasProperty(OfficeStoolBlock.COLOR)) {
+                BlockState updated = state.setValue(OfficeStoolBlock.COLOR, clamped);
+                if (updated != state) {
+                    player.level().setBlock(payload.targetPos(), updated, 3);
+                }
+                return;
+            }
+
+            if (state.getBlock() instanceof OfficeChair2Block && state.hasProperty(OfficeChair2Block.COLOR)) {
+                BlockState updated = state.setValue(OfficeChair2Block.COLOR, clamped);
                 if (updated != state) {
                     player.level().setBlock(payload.targetPos(), updated, 3);
                 }

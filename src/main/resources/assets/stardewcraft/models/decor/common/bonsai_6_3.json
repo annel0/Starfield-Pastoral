@@ -1,0 +1,85 @@
+﻿{
+	"format_version": "1.21.11",
+	"credit": "Made with Blockbench",
+	"texture_size": [32, 32],
+	"textures": {
+		"1": "stardewcraft:block/deco/misc/common/bonsai_6_3"
+	},
+	"elements": [
+		{
+			"from": [4, 0, 4],
+			"to": [12, 4, 12],
+			"rotation": {"angle": 0, "axis": "y", "origin": [0, -5, 0]},
+			"faces": {
+				"north": {"uv": [10, 9, 14, 11], "texture": "#1"},
+				"east": {"uv": [10, 11.5, 14, 13.5], "texture": "#1"},
+				"south": {"uv": [0, 12, 4, 14], "texture": "#1"},
+				"west": {"uv": [4.5, 12, 8.5, 14], "texture": "#1"},
+				"up": {"uv": [14, 4, 10, 0], "texture": "#1"},
+				"down": {"uv": [14, 4.5, 10, 8.5], "texture": "#1"}
+			}
+		},
+		{
+			"from": [3.5, 3, 8],
+			"to": [12.5, 14, 8],
+			"rotation": {"angle": 22.5, "axis": "y", "origin": [8, 12, 8]},
+			"faces": {
+				"north": {"uv": [0, 5.5, 4.5, 0], "texture": "#1"},
+				"south": {"uv": [5, 5.5, 9.5, 0], "texture": "#1"}
+			}
+		},
+		{
+			"from": [8, 2, 3.5],
+			"to": [8, 13, 12.5],
+			"rotation": {"angle": 22.5, "axis": "y", "origin": [8, 11, 8]},
+			"faces": {
+				"east": {"uv": [0, 11.5, 4.5, 6], "texture": "#1"},
+				"west": {"uv": [5, 11.5, 9.5, 6], "texture": "#1"}
+			}
+		}
+	],
+	"display": {
+		"thirdperson_righthand": {
+			"rotation": [75, 45, 0],
+			"translation": [0, 2.5, 0],
+			"scale": [0.375, 0.375, 0.375]
+		},
+		"thirdperson_lefthand": {
+			"rotation": [75, 45, 0],
+			"translation": [0, 2.5, 0],
+			"scale": [0.375, 0.375, 0.375]
+		},
+		"firstperson_righthand": {
+			"rotation": [0, 45, 0],
+			"scale": [0.4, 0.4, 0.4]
+		},
+		"firstperson_lefthand": {
+			"rotation": [0, -135, 0],
+			"scale": [0.4, 0.4, 0.4]
+		},
+		"ground": {
+			"translation": [0, 3, 0],
+			"scale": [0.25, 0.25, 0.25]
+		},
+		"gui": {
+			"rotation": [30, -135, 0],
+			"scale": [0.625, 0.625, 0.625]
+		},
+		"head": {
+			"translation": [0, -30.5, 0],
+			"scale": [1.6, 1.6, 1.6]
+		},
+		"fixed": {
+			"scale": [0.5, 0.5, 0.5]
+		}
+	},
+	"groups": [
+		{
+			"name": "group",
+			"origin": [0, 0, 0],
+			"scope": 0,
+			"color": 0,
+			"children": [0, 1, 2]
+		}
+	]
+}

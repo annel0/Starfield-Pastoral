@@ -58,21 +58,8 @@ public class StardewCraft {
             .withTabsBefore(CreativeModeTabs.COMBAT)
             .icon(() -> ModItems.PARSNIP_SEEDS.get().getDefaultInstance())
             .displayItems((parameters, output) -> {
-                // 野草（按季节分类）
-                // 春季野草
-                output.accept(ModItems.WILD_WEEDS_SPRING_0.get());
-                output.accept(ModItems.WILD_WEEDS_SPRING_1.get());
-                output.accept(ModItems.WILD_WEEDS_SPRING_2.get());
-                // 夏季野草
-                output.accept(ModItems.WILD_WEEDS_SUMMER_0.get());
-                output.accept(ModItems.WILD_WEEDS_SUMMER_1.get());
-                output.accept(ModItems.WILD_WEEDS_SUMMER_2.get());
-                // 秋季野草
-                output.accept(ModItems.WILD_WEEDS_FALL_0.get());
-                output.accept(ModItems.WILD_WEEDS_FALL_1.get());
-                output.accept(ModItems.WILD_WEEDS_FALL_2.get());
-                // 冬季野草
-                output.accept(ModItems.WILD_WEEDS_WINTER_0.get());
+                // 杂草统一物品：放置时自动按季节选择外观，同季节内随机变体。
+                output.accept(ModItems.WILD_WEEDS.get());
                 output.accept(ModItems.PASTURE_GRASS.get());
                 output.accept(ModItems.BLUE_PASTURE_GRASS.get());
 

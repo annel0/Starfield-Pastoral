@@ -15,9 +15,13 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 星露谷“杂草/野草”地表物（对应原版 debris weeds）。
@@ -115,6 +119,62 @@ public class WildWeedsBlock extends Block {
 			return 0;
 		}
 		return random.nextInt(3);
+	}
+
+	/**
+	 * 换季当天主动刷新已加载区域内的杂草外观：
+	 * - 方块保持同一个 wild_weeds
+	 * - season 状态切到当前季节
+	 * - variant 在该季节内随机
+	 */
+	@SuppressWarnings("null")
+	public static void refreshLoadedWeedsForSeason(ServerLevel level, int season) {
+		if (level == null || level.dimension() != ModDimensions.STARDEW_VALLEY) {
+			return;
+		}
+
+		int normalizedSeason = clampSeason(season);
+		Set<Long> visitedChunks = new HashSet<>();
+		for (var player : level.players()) {
+			int centerChunkX = player.blockPosition().getX() >> 4;
+			int centerChunkZ = player.blockPosition().getZ() >> 4;
+			int radius = 10;
+
+			for (int cx = centerChunkX - radius; cx <= centerChunkX + radius; cx++) {
+				for (int cz = centerChunkZ - radius; cz <= centerChunkZ + radius; cz++) {
+					long chunkKey = ((long) cx << 32) ^ (cz & 0xFFFFFFFFL);
+					if (!visitedChunks.add(chunkKey) || !level.hasChunk(cx, cz)) {
+						continue;
+					}
+
+					for (int lx = 0; lx < 16; lx++) {
+						for (int lz = 0; lz < 16; lz++) {
+							int worldX = (cx << 4) + lx;
+							int worldZ = (cz << 4) + lz;
+							int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, worldX, worldZ);
+
+							int minY = Math.max(level.getMinBuildHeight(), surfaceY - 2);
+							int maxY = Math.min(level.getMaxBuildHeight() - 1, surfaceY + 2);
+							for (int y = minY; y <= maxY; y++) {
+								BlockPos pos = new BlockPos(worldX, y, worldZ);
+								BlockState state = level.getBlockState(pos);
+								if (!(state.getBlock() instanceof WildWeedsBlock)) {
+									continue;
+								}
+
+								int currentSeason = state.getValue(SEASON);
+								if (currentSeason == normalizedSeason) {
+									continue;
+								}
+
+								int variant = pickVariantForSeason(normalizedSeason, level.getRandom());
+								level.setBlock(pos, state.setValue(SEASON, normalizedSeason).setValue(VARIANT, variant), 3);
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	@SuppressWarnings("null")

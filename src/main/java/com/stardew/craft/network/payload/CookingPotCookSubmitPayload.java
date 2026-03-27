@@ -1,10 +1,18 @@
 package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.block.ModBlocks;
+import com.stardew.craft.block.utility.CookingPotBlock;
+import com.stardew.craft.blockentity.FridgeBlockEntity;
+import com.stardew.craft.cooking.service.CookingPotService;
 import com.stardew.craft.cooking.service.VanillaCookingRecipeData;
 import com.stardew.craft.item.ModItems;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
@@ -14,9 +22,12 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
+@SuppressWarnings("null")
 public record CookingPotCookSubmitPayload(String recipeItemId, int craftCount) implements CustomPacketPayload {
 
     @SuppressWarnings("null")
@@ -59,7 +70,8 @@ public record CookingPotCookSubmitPayload(String recipeItemId, int craftCount) i
             }
 
             List<VanillaCookingRecipeData.IngredientRequirement> requirements = VanillaCookingRecipeData.getRequirements(recipePath);
-            int count = resolveCraftCount(payload.craftCount, player.getInventory(), requirements);
+            List<FridgeBlockEntity> nearbyFridges = findNearbyFridges(player);
+            int count = resolveCraftCount(payload.craftCount, player.getInventory(), nearbyFridges, requirements);
             if (count <= 0) {
                 player.sendSystemMessage(Component.translatable("stardewcraft.cooking.invalid_recipe"));
                 return;
@@ -68,7 +80,7 @@ public record CookingPotCookSubmitPayload(String recipeItemId, int craftCount) i
             for (var req : requirements) {
                 int required = req.count() * count;
                 Predicate<ItemStack> matcher = stack -> VanillaCookingRecipeData.matchesToken(stack, req.token());
-                if (countMatching(player.getInventory(), matcher) < required) {
+                if (countMatching(player.getInventory(), matcher) + countMatchingFridges(nearbyFridges, matcher) < required) {
                     player.sendSystemMessage(Component.translatable(
                             "stardewcraft.cooking.missing_ingredient",
                             VanillaCookingRecipeData.describeToken(req.token()),
@@ -81,7 +93,10 @@ public record CookingPotCookSubmitPayload(String recipeItemId, int craftCount) i
             for (var req : requirements) {
                 int required = req.count() * count;
                 Predicate<ItemStack> matcher = stack -> VanillaCookingRecipeData.matchesToken(stack, req.token());
-                consumeMatching(player.getInventory(), matcher, required);
+                int remain = consumeMatching(player.getInventory(), matcher, required);
+                if (remain > 0) {
+                    consumeMatchingFridges(nearbyFridges, matcher, remain);
+                }
             }
 
             ItemStack output = new ItemStack(recipeDeferred.get(), count);
@@ -92,19 +107,23 @@ public record CookingPotCookSubmitPayload(String recipeItemId, int craftCount) i
                     player.drop(output, false);
                 }
             }
+
+            net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player, CookingPotIngredientAvailabilityPayload.fromPlayer(player));
         });
     }
 
     private static int resolveCraftCount(int requestedCount,
                                          Inventory inventory,
+                                         List<FridgeBlockEntity> fridges,
                                          List<VanillaCookingRecipeData.IngredientRequirement> requirements) {
         if (requestedCount == -1) {
-            return computeMaxCrafts(inventory, requirements);
+            return computeMaxCrafts(inventory, fridges, requirements);
         }
         return Mth.clamp(requestedCount, 1, 5);
     }
 
     private static int computeMaxCrafts(Inventory inventory,
+                                        List<FridgeBlockEntity> fridges,
                                         List<VanillaCookingRecipeData.IngredientRequirement> requirements) {
         if (requirements.isEmpty()) {
             return 1;
@@ -116,7 +135,7 @@ public record CookingPotCookSubmitPayload(String recipeItemId, int craftCount) i
                 continue;
             }
             Predicate<ItemStack> matcher = stack -> VanillaCookingRecipeData.matchesToken(stack, req.token());
-            int available = countMatching(inventory, matcher);
+            int available = countMatching(inventory, matcher) + countMatchingFridges(fridges, matcher);
             int byThisReq = available / req.count();
             maxCrafts = Math.min(maxCrafts, byThisReq);
         }
@@ -174,7 +193,7 @@ public record CookingPotCookSubmitPayload(String recipeItemId, int craftCount) i
         return total;
     }
 
-    private static void consumeMatching(Inventory inventory, Predicate<ItemStack> matcher, int amount) {
+    private static int consumeMatching(Inventory inventory, Predicate<ItemStack> matcher, int amount) {
         int remain = amount;
         for (ItemStack stack : inventory.items) {
             if (remain <= 0) {
@@ -188,6 +207,79 @@ public record CookingPotCookSubmitPayload(String recipeItemId, int craftCount) i
             remain -= take;
         }
         inventory.setChanged();
+        return remain;
+    }
+
+    private static int countMatchingFridges(List<FridgeBlockEntity> fridges, Predicate<ItemStack> matcher) {
+        int total = 0;
+        for (FridgeBlockEntity fridge : fridges) {
+            for (int slot = 0; slot < fridge.getContainerSize(); slot++) {
+                ItemStack stack = fridge.getItem(slot);
+                if (!stack.isEmpty() && matcher.test(stack)) {
+                    total += stack.getCount();
+                }
+            }
+        }
+        return total;
+    }
+
+    private static int consumeMatchingFridges(List<FridgeBlockEntity> fridges, Predicate<ItemStack> matcher, int amount) {
+        int remain = amount;
+        for (FridgeBlockEntity fridge : fridges) {
+            boolean modified = false;
+            for (int slot = 0; slot < fridge.getContainerSize(); slot++) {
+                if (remain <= 0) {
+                    break;
+                }
+                ItemStack stack = fridge.getItem(slot);
+                if (stack.isEmpty() || !matcher.test(stack)) {
+                    continue;
+                }
+                int take = Math.min(remain, stack.getCount());
+                stack.shrink(take);
+                remain -= take;
+                modified = true;
+            }
+            if (modified) {
+                fridge.setChanged();
+            }
+            if (remain <= 0) {
+                return 0;
+            }
+        }
+        return remain;
+    }
+
+    private static List<FridgeBlockEntity> findNearbyFridges(ServerPlayer player) {
+        if (!player.getPersistentData().contains(CookingPotService.LAST_COOKING_POT_POS_TAG)) {
+            return List.of();
+        }
+        if (player.level().isClientSide) {
+            return List.of();
+        }
+
+        BlockPos potPos = BlockPos.of(player.getPersistentData().getLong(CookingPotService.LAST_COOKING_POT_POS_TAG));
+        var level = player.serverLevel();
+        BlockState state = level.getBlockState(potPos);
+        if (!state.is(ModBlocks.COOKING_POT.get())) {
+            return List.of();
+        }
+        if (state.hasProperty(CookingPotBlock.PART) && state.getValue(CookingPotBlock.PART) == CookingPotBlock.Part.EXTENSION) {
+            potPos = CookingPotBlock.getMainPos(potPos, state);
+        }
+
+        Set<BlockPos> seen = new HashSet<>();
+        List<FridgeBlockEntity> result = new ArrayList<>();
+        for (BlockPos scanPos : BlockPos.betweenClosed(potPos.offset(-2, -2, -2), potPos.offset(2, 2, 2))) {
+            BlockEntity be = level.getBlockEntity(scanPos);
+            if (!(be instanceof FridgeBlockEntity fridge)) {
+                continue;
+            }
+            if (seen.add(fridge.getBlockPos())) {
+                result.add(fridge);
+            }
+        }
+        return result;
     }
 }
 

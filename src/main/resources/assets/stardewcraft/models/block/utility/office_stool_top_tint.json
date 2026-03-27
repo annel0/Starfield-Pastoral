@@ -1,0 +1,429 @@
+{
+    "format_version":  "1.9.0",
+    "credit":  "Made with Blockbench",
+    "texture_size":  [
+                         64,
+                         64
+                     ],
+    "textures":  {
+                     "0":  "stardewcraft:block/decor/common/office_stool_tint",
+                     "particle":  "stardewcraft:block/decor/common/office_stool_tint"
+                 },
+    "elements":  [
+                     {
+                         "from":  [
+                                      3,
+                                      7,
+                                      4
+                                  ],
+                         "to":  [
+                                    13,
+                                    9,
+                                    12
+                                ],
+                         "rotation":  {
+                                          "angle":  0,
+                                          "axis":  "y",
+                                          "origin":  [
+                                                         8,
+                                                         8,
+                                                         8
+                                                     ]
+                                      },
+                         "faces":  {
+                                       "north":  {
+                                                     "uv":  [
+                                                                4.25,
+                                                                4,
+                                                                6.75,
+                                                                4.5
+                                                            ],
+                                                     "texture":  "#0",
+                                                     "tintindex":  0
+                                                 },
+                                       "east":  {
+                                                    "uv":  [
+                                                               5,
+                                                               0.75,
+                                                               7,
+                                                               1.25
+                                                           ],
+                                                    "texture":  "#0",
+                                                    "tintindex":  0
+                                                },
+                                       "south":  {
+                                                     "uv":  [
+                                                                0,
+                                                                4.5,
+                                                                2.5,
+                                                                5
+                                                            ],
+                                                     "texture":  "#0",
+                                                     "tintindex":  0
+                                                 },
+                                       "west":  {
+                                                    "uv":  [
+                                                               5,
+                                                               1.5,
+                                                               7,
+                                                               2
+                                                           ],
+                                                    "texture":  "#0",
+                                                    "tintindex":  0
+                                                },
+                                       "up":  {
+                                                  "uv":  [
+                                                             2.5,
+                                                             2,
+                                                             0,
+                                                             0
+                                                         ],
+                                                  "texture":  "#0",
+                                                  "tintindex":  0
+                                              },
+                                       "down":  {
+                                                    "uv":  [
+                                                               2.5,
+                                                               2.25,
+                                                               0,
+                                                               4.25
+                                                           ],
+                                                    "texture":  "#0",
+                                                    "tintindex":  0
+                                                }
+                                   }
+                     },
+                     {
+                         "from":  [
+                                      13,
+                                      7,
+                                      5
+                                  ],
+                         "to":  [
+                                    14,
+                                    9,
+                                    11
+                                ],
+                         "rotation":  {
+                                          "angle":  0,
+                                          "axis":  "y",
+                                          "origin":  [
+                                                         8,
+                                                         8,
+                                                         8
+                                                     ]
+                                      },
+                         "faces":  {
+                                       "north":  {
+                                                     "uv":  [
+                                                                10.25,
+                                                                6.75,
+                                                                10.5,
+                                                                7.25
+                                                            ],
+                                                     "texture":  "#0",
+                                                     "tintindex":  0
+                                                 },
+                                       "east":  {
+                                                    "uv":  [
+                                                               7.25,
+                                                               0,
+                                                               8.75,
+                                                               0.5
+                                                           ],
+                                                    "texture":  "#0",
+                                                    "tintindex":  0
+                                                },
+                                       "south":  {
+                                                     "uv":  [
+                                                                9,
+                                                                10.25,
+                                                                9.25,
+                                                                10.75
+                                                            ],
+                                                     "texture":  "#0",
+                                                     "tintindex":  0
+                                                 },
+                                       "west":  {
+                                                    "uv":  [
+                                                               7.25,
+                                                               0.75,
+                                                               8.75,
+                                                               1.25
+                                                           ],
+                                                    "texture":  "#0",
+                                                    "tintindex":  0
+                                                },
+                                       "up":  {
+                                                  "uv":  [
+                                                             8.75,
+                                                             11,
+                                                             8.5,
+                                                             9.5
+                                                         ],
+                                                  "texture":  "#0",
+                                                  "tintindex":  0
+                                              },
+                                       "down":  {
+                                                    "uv":  [
+                                                               10,
+                                                               9,
+                                                               9.75,
+                                                               10.5
+                                                           ],
+                                                    "texture":  "#0",
+                                                    "tintindex":  0
+                                                }
+                                   }
+                     },
+                     {
+                         "from":  [
+                                      4,
+                                      7,
+                                      12
+                                  ],
+                         "to":  [
+                                    12,
+                                    9,
+                                    13
+                                ],
+                         "rotation":  {
+                                          "angle":  0,
+                                          "axis":  "y",
+                                          "origin":  [
+                                                         8,
+                                                         8,
+                                                         8
+                                                     ]
+                                      },
+                         "faces":  {
+                                       "north":  {
+                                                     "uv":  [
+                                                                2.25,
+                                                                6.25,
+                                                                4.25,
+                                                                6.75
+                                                            ],
+                                                     "texture":  "#0",
+                                                     "tintindex":  0
+                                                 },
+                                       "east":  {
+                                                    "uv":  [
+                                                               1.25,
+                                                               10.75,
+                                                               1.5,
+                                                               11.25
+                                                           ],
+                                                    "texture":  "#0",
+                                                    "tintindex":  0
+                                                },
+                                       "south":  {
+                                                     "uv":  [
+                                                                4.5,
+                                                                6.25,
+                                                                6.5,
+                                                                6.75
+                                                            ],
+                                                     "texture":  "#0",
+                                                     "tintindex":  0
+                                                 },
+                                       "west":  {
+                                                    "uv":  [
+                                                               1.75,
+                                                               10.75,
+                                                               2,
+                                                               11.25
+                                                           ],
+                                                    "texture":  "#0",
+                                                    "tintindex":  0
+                                                },
+                                       "up":  {
+                                                  "uv":  [
+                                                             7.25,
+                                                             9.75,
+                                                             5.25,
+                                                             9.5
+                                                         ],
+                                                  "texture":  "#0",
+                                                  "tintindex":  0
+                                              },
+                                       "down":  {
+                                                    "uv":  [
+                                                               2,
+                                                               9.75,
+                                                               0,
+                                                               10
+                                                           ],
+                                                    "texture":  "#0",
+                                                    "tintindex":  0
+                                                }
+                                   }
+                     },
+                     {
+                         "from":  [
+                                      2,
+                                      7,
+                                      5
+                                  ],
+                         "to":  [
+                                    3,
+                                    9,
+                                    11
+                                ],
+                         "rotation":  {
+                                          "angle":  0,
+                                          "axis":  "y",
+                                          "origin":  [
+                                                         8,
+                                                         8,
+                                                         8
+                                                     ]
+                                      },
+                         "faces":  {
+                                       "north":  {
+                                                     "uv":  [
+                                                                10.25,
+                                                                5.25,
+                                                                10.5,
+                                                                5.75
+                                                            ],
+                                                     "texture":  "#0",
+                                                     "tintindex":  0
+                                                 },
+                                       "east":  {
+                                                    "uv":  [
+                                                               3.75,
+                                                               7,
+                                                               5.25,
+                                                               7.5
+                                                           ],
+                                                    "texture":  "#0",
+                                                    "tintindex":  0
+                                                },
+                                       "south":  {
+                                                     "uv":  [
+                                                                10.25,
+                                                                6,
+                                                                10.5,
+                                                                6.5
+                                                            ],
+                                                     "texture":  "#0",
+                                                     "tintindex":  0
+                                                 },
+                                       "west":  {
+                                                    "uv":  [
+                                                               7,
+                                                               4,
+                                                               8.5,
+                                                               4.5
+                                                           ],
+                                                    "texture":  "#0",
+                                                    "tintindex":  0
+                                                },
+                                       "up":  {
+                                                  "uv":  [
+                                                             7.75,
+                                                             11,
+                                                             7.5,
+                                                             9.5
+                                                         ],
+                                                  "texture":  "#0",
+                                                  "tintindex":  0
+                                              },
+                                       "down":  {
+                                                    "uv":  [
+                                                               8.25,
+                                                               9.5,
+                                                               8,
+                                                               11
+                                                           ],
+                                                    "texture":  "#0",
+                                                    "tintindex":  0
+                                                }
+                                   }
+                     },
+                     {
+                         "from":  [
+                                      4,
+                                      7,
+                                      3
+                                  ],
+                         "to":  [
+                                    12,
+                                    9,
+                                    4
+                                ],
+                         "rotation":  {
+                                          "angle":  0,
+                                          "axis":  "y",
+                                          "origin":  [
+                                                         8,
+                                                         8,
+                                                         8
+                                                     ]
+                                      },
+                         "faces":  {
+                                       "north":  {
+                                                     "uv":  [
+                                                                4.5,
+                                                                5.5,
+                                                                6.5,
+                                                                6
+                                                            ],
+                                                     "texture":  "#0",
+                                                     "tintindex":  0
+                                                 },
+                                       "east":  {
+                                                    "uv":  [
+                                                               10.25,
+                                                               10.5,
+                                                               10.5,
+                                                               11
+                                                           ],
+                                                    "texture":  "#0",
+                                                    "tintindex":  0
+                                                },
+                                       "south":  {
+                                                     "uv":  [
+                                                                0,
+                                                                6,
+                                                                2,
+                                                                6.5
+                                                            ],
+                                                     "texture":  "#0",
+                                                     "tintindex":  0
+                                                 },
+                                       "west":  {
+                                                    "uv":  [
+                                                               0.75,
+                                                               10.75,
+                                                               1,
+                                                               11.25
+                                                           ],
+                                                    "texture":  "#0",
+                                                    "tintindex":  0
+                                                },
+                                       "up":  {
+                                                  "uv":  [
+                                                             2,
+                                                             9.5,
+                                                             0,
+                                                             9.25
+                                                         ],
+                                                  "texture":  "#0",
+                                                  "tintindex":  0
+                                              },
+                                       "down":  {
+                                                    "uv":  [
+                                                               11.25,
+                                                               4.75,
+                                                               9.25,
+                                                               5
+                                                           ],
+                                                    "texture":  "#0",
+                                                    "tintindex":  0
+                                                }
+                                   }
+                     }
+                 ]
+}

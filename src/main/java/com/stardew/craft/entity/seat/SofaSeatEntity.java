@@ -3,6 +3,9 @@ package com.stardew.craft.entity.seat;
 import com.stardew.craft.block.utility.SofaBlock;
 import com.stardew.craft.block.utility.ChairBlock;
 import com.stardew.craft.block.utility.CushionBlock;
+import com.stardew.craft.block.utility.OfficeChair2Block;
+import com.stardew.craft.block.utility.OfficeStoolBlock;
+import com.stardew.craft.blockentity.OfficeStoolBlockEntity;
 import com.stardew.craft.entity.ModEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -10,6 +13,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -63,9 +67,18 @@ public class SofaSeatEntity extends Entity {
             return;
         }
 
-        if (!isSupportedSeatBlock(level().getBlockState(sofaPos).getBlock())) {
+        BlockState seatBlockState = level().getBlockState(sofaPos);
+        if (!isSupportedSeatBlock(seatBlockState.getBlock())) {
             discard();
             return;
+        }
+
+        if (isVehicle()
+            && (seatBlockState.getBlock() instanceof OfficeStoolBlock || seatBlockState.getBlock() instanceof OfficeChair2Block)
+            && !getPassengers().isEmpty()) {
+            if (level().getBlockEntity(sofaPos) instanceof OfficeStoolBlockEntity stoolBe) {
+                stoolBe.setTopYawDegrees(getFirstPassenger().getYRot() + 180.0F);
+            }
         }
 
         this.setPos(sofaPos.getX() + 0.5D, sofaPos.getY() + seatYOffset, sofaPos.getZ() + 0.5D);
@@ -138,7 +151,11 @@ public class SofaSeatEntity extends Entity {
     }
 
     private static boolean isSupportedSeatBlock(net.minecraft.world.level.block.Block block) {
-        return block instanceof SofaBlock || block instanceof ChairBlock || block instanceof CushionBlock;
+        return block instanceof SofaBlock
+            || block instanceof ChairBlock
+            || block instanceof CushionBlock
+            || block instanceof OfficeStoolBlock
+            || block instanceof OfficeChair2Block;
     }
 
     public static void removeForPos(ServerLevel level, BlockPos sofaPos) {

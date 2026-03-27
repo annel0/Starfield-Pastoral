@@ -1,6 +1,7 @@
 package com.stardew.craft.client.gui;
 
 import com.stardew.craft.client.ClientPlayerDataCache;
+import com.stardew.craft.client.CookingIngredientAvailabilityCache;
 import net.minecraft.client.resources.language.I18n;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.stardew.craft.StardewCraft;
@@ -447,7 +448,7 @@ public class CookingPotScreen extends AbstractContainerScreen<CookingPotMenu> {
                 count += stack.getCount();
             }
         }
-        return count;
+        return count + CookingIngredientAvailabilityCache.getFridgeTokenCount(token);
     }
 
     private ItemStack resolveRequirementIcon(String token) {

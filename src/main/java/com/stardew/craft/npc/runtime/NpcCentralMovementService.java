@@ -38,8 +38,13 @@ public final class NpcCentralMovementService {
     private static final double WALK_SPEED = 0.14D;
     private static final double WAYPOINT_REACH_SQR = 0.45D * 0.45D;
     private static final double DONE_RESYNC_DIST_SQR = 9.0D * 9.0D;
+    private static final double NPC_CLEARANCE_HALF_WIDTH = 0.27D;
+    private static final double NPC_DOORWAY_CLEARANCE_HALF_WIDTH = 0.22D;
+    private static final double DOOR_AXIS_LOCK_DIST_SQR = 2.25D;
     private static final int REPATH_COOLDOWN_TICKS = 10;
     private static final int NO_PATH_REPATH_COOLDOWN_TICKS = 40;
+    private static final int NO_PATH_NEAR_QUICK_SYNC_TICKS = 30;
+    private static final double NO_PATH_NEAR_QUICK_SYNC_DIST_SQR = 4.0D * 4.0D;
     private static final int STUCK_REPATH_TICKS = 40;
     private static final int STUCK_FORCE_SYNC_TICKS = 120;
     private static final double PROGRESS_MOVE_DIST_SQR = 0.16D;
@@ -53,6 +58,7 @@ public final class NpcCentralMovementService {
     private static final int ASTAR_MIN_VISITS = 4_000;
     private static final int ASTAR_MAX_VISITS = 24_000;
     private static final int ASTAR_WARN_INTERVAL_TICKS = 200;
+    private static final int ASTAR_MAX_CALLS_PER_TICK = 2;
     private static final int MAX_FORCED_CORRIDOR_CHUNK_DELTA = 24;
 
     private static final Vec3 MANORHOUSE_OUTER = new Vec3(-196.0D, -17.0D, -22.0D);
@@ -73,6 +79,8 @@ public final class NpcCentralMovementService {
     private static final Map<String, Set<Long>> FORCED_ROUTE_CHUNKS_BY_NPC = new HashMap<>();
     private static MinecraftServer activeServer;
     private static long lastAstarWarnTick = Long.MIN_VALUE;
+    private static long astarCallBudgetTick = Long.MIN_VALUE;
+    private static int astarCallsThisTick = 0;
 
     private NpcCentralMovementService() {
     }
@@ -178,6 +186,24 @@ public final class NpcCentralMovementService {
         FORCED_TARGET_CHUNK_BY_NPC.clear();
         FORCED_ROUTE_CHUNKS_BY_NPC.clear();
         lastAstarWarnTick = Long.MIN_VALUE;
+        astarCallBudgetTick = Long.MIN_VALUE;
+        astarCallsThisTick = 0;
+    }
+
+    private static boolean allowAstarCall(ServerLevel level) {
+        if (level == null) {
+            return false;
+        }
+        long now = level.getGameTime();
+        if (astarCallBudgetTick != now) {
+            astarCallBudgetTick = now;
+            astarCallsThisTick = 0;
+        }
+        if (astarCallsThisTick >= ASTAR_MAX_CALLS_PER_TICK) {
+            return false;
+        }
+        astarCallsThisTick++;
+        return true;
     }
 
     private static void releaseInactiveForcedChunks(ServerLevel level, Set<String> activeNpcIds) {
@@ -447,10 +473,18 @@ public final class NpcCentralMovementService {
         if ((plan.path.isEmpty() || plan.pathIndex >= plan.path.size())
             && now - plan.lastRepathTick >= REPATH_COOLDOWN_TICKS
             && now >= plan.noPathRetryBlockedUntilTick) {
-            plan.path = planPath(level, npc.position(), step.target);
+            boolean attemptedAstar = false;
+            if (allowAstarCall(level)) {
+                plan.path = planPath(level, npc.position(), step.target);
+                attemptedAstar = true;
+            } else {
+                plan.debugRepathReason = "astar_tick_budget";
+            }
             plan.pathIndex = 0;
             plan.lastRepathTick = now;
-            plan.debugRepathReason = "path_init_or_exhausted";
+            if (attemptedAstar) {
+                plan.debugRepathReason = "path_init_or_exhausted";
+            }
             if (plan.path.isEmpty()) {
                 plan.debugStage = "no_path_repath";
                 plan.noPathRetryBlockedUntilTick = now + NO_PATH_REPATH_COOLDOWN_TICKS;
@@ -464,7 +498,11 @@ public final class NpcCentralMovementService {
             npc.setDeltaMovement(Vec3.ZERO);
             if (now - plan.lastProgressTick > STUCK_REPATH_TICKS
                 && now >= plan.noPathRetryBlockedUntilTick) {
-                plan.path = planPath(level, npc.position(), step.target);
+                if (allowAstarCall(level)) {
+                    plan.path = planPath(level, npc.position(), step.target);
+                } else {
+                    plan.debugRepathReason = "astar_tick_budget";
+                }
                 plan.pathIndex = 0;
                 plan.lastRepathTick = now;
                 if (plan.path.isEmpty()) {
@@ -480,11 +518,15 @@ public final class NpcCentralMovementService {
 
             long noPathDuration = level.getGameTime() - plan.lastProgressTick;
             double toTarget = npc.position().distanceToSqr(step.target);
+            boolean nearQuickFallback = noPathDuration > NO_PATH_NEAR_QUICK_SYNC_TICKS
+                && toTarget <= NO_PATH_NEAR_QUICK_SYNC_DIST_SQR;
             boolean nearTarget = toTarget <= NO_PATH_FORCE_SYNC_MAX_DIST_SQR;
             boolean shortWindowFallback = noPathDuration > NO_PATH_FORCE_SYNC_TICKS && toTarget > NO_PATH_FORCE_SYNC_DIST_SQR;
             boolean maxWindowFallback = noPathDuration > NO_PATH_FORCE_SYNC_MAX_TICKS;
             boolean farWindowFallback = noPathDuration > NO_PATH_FORCE_SYNC_FAR_TICKS;
-            if ((nearTarget && (shortWindowFallback || maxWindowFallback)) || (!nearTarget && farWindowFallback)) {
+            if (nearQuickFallback
+                || (nearTarget && (shortWindowFallback || maxWindowFallback))
+                || (!nearTarget && farWindowFallback)) {
                 plan.debugStage = "no_path_fallback_tp";
                 plan.lastFallbackTeleportUsed = true;
                 npc.setPos(step.target.x, step.target.y, step.target.z);
@@ -493,7 +535,11 @@ public final class NpcCentralMovementService {
                 plan.pathIndex = 0;
                 plan.lastProgressTick = level.getGameTime();
                 plan.lastPos = npc.position();
-                plan.debugRepathReason = nearTarget ? "no_path_near_fallback" : "no_path_far_timeout_fallback";
+                if (nearQuickFallback) {
+                    plan.debugRepathReason = "no_path_near_quick_sync";
+                } else {
+                    plan.debugRepathReason = nearTarget ? "no_path_near_fallback" : "no_path_far_timeout_fallback";
+                }
             }
             return false;
         }
@@ -528,6 +574,21 @@ public final class NpcCentralMovementService {
             double vz = (horizontal.z / length) * WALK_SPEED;
             double vy = npc.getDeltaMovement().y;
 
+            if (shouldAxisLockNearOpenDoor(level, npc, waypoint)
+                && Math.abs(vx) > 1.0E-4D
+                && Math.abs(vz) > 1.0E-4D) {
+                // In 1-block narrow doorways, diagonal motion rubs collision and causes stutter.
+                // Force axis-aligned movement for stable door traversal.
+                if (Math.abs(vx) >= Math.abs(vz)) {
+                    vx = Math.signum(vx) * WALK_SPEED;
+                    vz = 0.0D;
+                } else {
+                    vz = Math.signum(vz) * WALK_SPEED;
+                    vx = 0.0D;
+                }
+                plan.debugRepathReason = "door_axis_lock";
+            }
+
             // Path nodes use block-center Y, so flat-ground rise is often around 0.5.
             // Only jump when we actually need to climb a higher step.
             double verticalRise = waypoint.y - npc.getY();
@@ -536,7 +597,9 @@ public final class NpcCentralMovementService {
 
             if (npc.horizontalCollision && !needsToJump
                 && level.getGameTime() - plan.lastRepathTick > REPATH_COOLDOWN_TICKS) {
-                plan.path = planPath(level, npc.position(), step.target);
+                if (allowAstarCall(level)) {
+                    plan.path = planPath(level, npc.position(), step.target);
+                }
                 plan.pathIndex = 0;
                 plan.lastRepathTick = level.getGameTime();
                 plan.debugStage = "collision_repath";
@@ -925,11 +988,57 @@ public final class NpcCentralMovementService {
 
         // Validate with entity-size clearance so routes that look passable per-block
         // but are blocked for a 0.6x1.8 NPC are rejected by A*.
+        // Use a slightly slimmer probe near open doors to avoid false negatives from
+        // thin door collision geometry in 1-block passages.
+        double halfWidth = isOpenDoorNearby(level, pos)
+            ? NPC_DOORWAY_CLEARANCE_HALF_WIDTH
+            : NPC_CLEARANCE_HALF_WIDTH;
         double cx = pos.getX() + 0.5D;
         double cz = pos.getZ() + 0.5D;
         double y = pos.getY();
-        AABB npcBox = new AABB(cx - 0.27D, y, cz - 0.27D, cx + 0.27D, y + 1.80D, cz + 0.27D);
+        AABB npcBox = new AABB(cx - halfWidth, y, cz - halfWidth, cx + halfWidth, y + 1.80D, cz + halfWidth);
         return level.noCollision(npcBox);
+    }
+
+    private static boolean shouldAxisLockNearOpenDoor(ServerLevel level,
+                                                      StardewNpcEntity npc,
+                                                      Vec3 waypoint) {
+        if (level == null || npc == null || waypoint == null) {
+            return false;
+        }
+        BlockPos npcPos = npc.blockPosition();
+        BlockPos waypointPos = BlockPos.containing(waypoint);
+        if (!isOpenDoorNearby(level, npcPos) && !isOpenDoorNearby(level, waypointPos)) {
+            return false;
+        }
+        return npc.position().distanceToSqr(waypoint) <= DOOR_AXIS_LOCK_DIST_SQR;
+    }
+
+    private static boolean isOpenDoorNearby(ServerLevel level, BlockPos center) {
+        if (level == null || center == null) {
+            return false;
+        }
+        int[][] offsets = {
+            {0, 0},
+            {1, 0}, {-1, 0},
+            {0, 1}, {0, -1}
+        };
+        for (int[] off : offsets) {
+            BlockPos p = center.offset(off[0], 0, off[1]);
+            if (isOpenDoorBlock(level.getBlockState(p))
+                || isOpenDoorBlock(level.getBlockState(p.above()))
+                || isOpenDoorBlock(level.getBlockState(p.below()))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isOpenDoorBlock(BlockState state) {
+        if (!(state.getBlock() instanceof DoorBlock)) {
+            return false;
+        }
+        return state.hasProperty(DoorBlock.OPEN) && state.getValue(DoorBlock.OPEN);
     }
 
     private static double transitionCost(ServerLevel level, BlockPos from, BlockPos to, int dx, int dz) {

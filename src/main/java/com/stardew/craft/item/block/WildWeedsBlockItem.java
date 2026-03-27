@@ -1,7 +1,6 @@
 package com.stardew.craft.item.block;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.block.nature.WildWeedsBlock;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -13,21 +12,12 @@ import net.minecraft.world.level.block.state.BlockState;
 public class WildWeedsBlockItem extends BlockItem {
     private final int season;
     private final int variant;
-    private final String seasonName;
 
     @SuppressWarnings("null")
     public WildWeedsBlockItem(Block block, int season, int variant, Properties properties) {
         super(block, properties);
         this.season = season;
         this.variant = variant;
-        // 根据季节设置名称
-        this.seasonName = switch (season) {
-            case 0 -> "spring";
-            case 1 -> "summer";
-            case 2 -> "fall";
-            case 3 -> "winter";
-            default -> "spring";
-        };
     }
 
     @SuppressWarnings("null")
@@ -38,26 +28,20 @@ public class WildWeedsBlockItem extends BlockItem {
     }
 
     /**
-     * 返回唯一的描述ID，这样每个野草变体都有自己的翻译和图标
+     * 兼容旧 seasonal 物品 id：统一显示为“杂草”。
      */
     @Override
     public String getDescriptionId() {
-        return "item." + StardewCraft.MODID + ".wild_weeds_" + seasonName + "_" + variant;
+        return "block." + StardewCraft.MODID + ".wild_weeds";
     }
 
     /**
-     * 放置方块时设置正确的状态
+     * 放置时交给方块本身决定季节/变体，保证行为与统一杂草物品一致。
      */
     @SuppressWarnings("null")
     @Override
     protected BlockState getPlacementState(@SuppressWarnings("null") net.minecraft.world.item.context.BlockPlaceContext context) {
-        @SuppressWarnings("null")
-        BlockState state = super.getPlacementState(context);
-        if (state != null && state.getBlock() instanceof WildWeedsBlock) {
-            state = state.setValue(WildWeedsBlock.SEASON, this.season)
-                        .setValue(WildWeedsBlock.VARIANT, this.variant);
-        }
-        return state;
+        return super.getPlacementState(context);
     }
 
     public int getSeason() {

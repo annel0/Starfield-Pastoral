@@ -187,7 +187,7 @@ public class CookingPotBlock extends Block {
             return ItemInteractionResult.sidedSuccess(true);
         }
         if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
-            CookingPotService.openForPlayer(serverPlayer);
+            CookingPotService.openForPlayer(serverPlayer, pos);
         }
         return ItemInteractionResult.sidedSuccess(false);
     }
@@ -205,7 +205,7 @@ public class CookingPotBlock extends Block {
             return InteractionResult.SUCCESS;
         }
         if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
-            CookingPotService.openForPlayer(serverPlayer);
+            CookingPotService.openForPlayer(serverPlayer, pos);
             return InteractionResult.CONSUME;
         }
         return InteractionResult.PASS;

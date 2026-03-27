@@ -1,0 +1,12 @@
+{
+	"variants": {
+		"part=main,facing=north": {"model": "stardewcraft:decor/wall_decor/common/wall_blacksmith_hammers"},
+		"part=main,facing=east": {"model": "stardewcraft:decor/wall_decor/common/wall_blacksmith_hammers", "y": 90},
+		"part=main,facing=south": {"model": "stardewcraft:decor/wall_decor/common/wall_blacksmith_hammers", "y": 180},
+		"part=main,facing=west": {"model": "stardewcraft:decor/wall_decor/common/wall_blacksmith_hammers", "y": 270},
+		"part=extension,facing=north": {"model": "stardewcraft:block/decor/extensions/wall_blacksmith_hammers_extension_empty"},
+		"part=extension,facing=east": {"model": "stardewcraft:block/decor/extensions/wall_blacksmith_hammers_extension_empty"},
+		"part=extension,facing=south": {"model": "stardewcraft:block/decor/extensions/wall_blacksmith_hammers_extension_empty"},
+		"part=extension,facing=west": {"model": "stardewcraft:block/decor/extensions/wall_blacksmith_hammers_extension_empty"}
+	}
+}

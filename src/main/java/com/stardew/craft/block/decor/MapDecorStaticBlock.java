@@ -184,6 +184,7 @@ public class MapDecorStaticBlock extends Block {
                     }
                 }
             });
+
             if (!discovered.contains(CellOffset.ZERO)) {
                 discovered.add(CellOffset.ZERO);
             }

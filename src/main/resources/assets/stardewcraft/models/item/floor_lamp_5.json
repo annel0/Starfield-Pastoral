@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:decor/common/floor_lamp_5",
+  "textures": {
+    "particle": "stardewcraft:block/decor/common/floor_lamp_5"
+  }
+}

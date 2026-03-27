@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:decor/common/spruce_counter",
+  "textures": {
+    "particle": "stardewcraft:block/decor/common/spruce_counter"
+  }
+}

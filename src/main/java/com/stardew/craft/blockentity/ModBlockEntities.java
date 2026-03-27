@@ -127,6 +127,10 @@ public final class ModBlockEntities {
 			BLOCK_ENTITIES.register("stone_chest", () -> BlockEntityType.Builder.of(StoneChestBlockEntity::new, ModBlocks.STONE_CHEST.get()).build(null));
 
 	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FridgeBlockEntity>> FRIDGE =
+			BLOCK_ENTITIES.register("fridge", () -> BlockEntityType.Builder.of(FridgeBlockEntity::new, ModBlocks.FRIDGE.get()).build(null));
+
+	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ShippingBinBlockEntity>> SHIPPING_BIN =
 			BLOCK_ENTITIES.register("shipping_bin", () -> BlockEntityType.Builder.of(ShippingBinBlockEntity::new, ModBlocks.SHIPPING_BIN.get()).build(null));
 
@@ -153,5 +157,23 @@ public final class ModBlockEntities {
 	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<LargeFireplaceBlockEntity>> LARGE_FIREPLACE =
 			BLOCK_ENTITIES.register("large_fireplace", () -> BlockEntityType.Builder.of(LargeFireplaceBlockEntity::new, ModBlocks.LARGE_FIREPLACE_1.get()).build(null));
+
+	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ShrineBlockEntity>> SHRINE =
+			BLOCK_ENTITIES.register("shrine", () -> BlockEntityType.Builder.of(ShrineBlockEntity::new, ModBlocks.SHRINE_7.get()).build(null));
+
+	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BookshelfGeoBlockEntity>> BOOKSHELF_GEO =
+			BLOCK_ENTITIES.register("bookshelf_geo", () -> BlockEntityType.Builder.of(BookshelfGeoBlockEntity::new,
+				ModBlocks.BOOKSHELF_3_2.get(), ModBlocks.BOOKSHELF_3_3.get()).build(null));
+
+	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TableDisplayBlockEntity>> TABLE_DISPLAY =
+			BLOCK_ENTITIES.register("table_display", () -> BlockEntityType.Builder.of(TableDisplayBlockEntity::new,
+				ModBlocks.OAK_TABLE.get(), ModBlocks.SPRUCE_TABLE.get(), ModBlocks.BIRCH_TABLE.get(), ModBlocks.SPRUCE_COUNTER.get()).build(null));
+
+	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<OfficeStoolBlockEntity>> OFFICE_STOOL =
+			BLOCK_ENTITIES.register("office_stool", () -> BlockEntityType.Builder.of(OfficeStoolBlockEntity::new, ModBlocks.OFFICE_STOOL.get(), ModBlocks.OFFICE_CHAIR_2.get()).build(null));
 
 	}

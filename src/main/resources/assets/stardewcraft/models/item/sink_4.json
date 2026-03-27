@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:decor/common/sink_4",
+  "textures": {
+    "particle": "stardewcraft:block/decor/common/sink_4"
+  }
+}
