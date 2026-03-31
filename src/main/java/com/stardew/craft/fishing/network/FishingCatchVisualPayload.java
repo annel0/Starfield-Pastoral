@@ -56,30 +56,32 @@ public record FishingCatchVisualPayload(ResourceLocation itemId, int count) impl
 		return TYPE;
 	}
 
-	@SuppressWarnings("null")
 	public static void handle(FishingCatchVisualPayload payload, IPayloadContext context) {
-		context.enqueueWork(() -> {
-			Minecraft mc = Minecraft.getInstance();
-			if (mc.player == null) {
-				return;
-			}
-			if (payload.itemId() == null || payload.count() <= 0) {
-				return;
-			}
-			var item = BuiltInRegistries.ITEM.get(payload.itemId());
-			if (item == null) {
-				return;
-			}
-			ItemStack stack = new ItemStack(item, payload.count());
-			if (stack.isEmpty()) {
-				return;
-			}
+		context.enqueueWork(() -> handleClient(payload));
+	}
 
-			// Stardew FishingRod.cs: on pullFishFromWater it plays pullItemFromWater + dwop.
-			// Use playLocalSound for reliable client playback (mirrors SV's location.playSound semantics).
-			mc.player.displayClientMessage(Component.translatable("stardewcraft.fishing.caught", stack.getHoverName()), true);
-
-			FishingCatchVisuals.start(stack);
-		});
+	@SuppressWarnings("null")
+	@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+	private static void handleClient(FishingCatchVisualPayload payload) {
+		Minecraft mc = Minecraft.getInstance();
+		var player = mc.player;
+		if (player == null) {
+			return;
+		}
+		if (payload.itemId() == null || payload.count() <= 0) {
+			return;
+		}
+		var item = BuiltInRegistries.ITEM.get(payload.itemId());
+		if (item == null) {
+			return;
+		}
+		ItemStack stack = new ItemStack(item, payload.count());
+		if (stack.isEmpty()) {
+			return;
+		}
+		// Stardew FishingRod.cs: on pullFishFromWater it plays pullItemFromWater + dwop.
+		// Use playLocalSound for reliable client playback (mirrors SV's location.playSound semantics).
+		player.displayClientMessage(Component.translatable("stardewcraft.fishing.caught", stack.getHoverName()), true);
+		FishingCatchVisuals.start(stack);
 	}
 }

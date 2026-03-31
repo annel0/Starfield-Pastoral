@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/common/board_game",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/board_game"
+	}
+}

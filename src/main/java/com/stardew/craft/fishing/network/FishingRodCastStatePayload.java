@@ -30,22 +30,25 @@ public record FishingRodCastStatePayload(boolean active) implements CustomPacket
 	}
 
 	public static void handle(FishingRodCastStatePayload payload, IPayloadContext context) {
-		context.enqueueWork(() -> {
-			Minecraft mc = Minecraft.getInstance();
-			if (mc.player == null) {
-				return;
-			}
-			boolean active = payload.active();
-			@SuppressWarnings("null")
-			var main = mc.player.getMainHandItem();
-			if (!main.isEmpty() && main.getItem() instanceof FishingRodItem) {
-				FishingRodItem.setCastActive(main, active);
-			}
-			@SuppressWarnings("null")
-			var off = mc.player.getOffhandItem();
-			if (!off.isEmpty() && off.getItem() instanceof FishingRodItem) {
-				FishingRodItem.setCastActive(off, active);
-			}
-		});
+		context.enqueueWork(() -> handleClient(payload));
+	}
+
+	@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+	private static void handleClient(FishingRodCastStatePayload payload) {
+		Minecraft mc = Minecraft.getInstance();
+		if (mc.player == null) {
+			return;
+		}
+		boolean active = payload.active();
+		@SuppressWarnings("null")
+		var main = mc.player.getMainHandItem();
+		if (!main.isEmpty() && main.getItem() instanceof FishingRodItem) {
+			FishingRodItem.setCastActive(main, active);
+		}
+		@SuppressWarnings("null")
+		var off = mc.player.getOffhandItem();
+		if (!off.isEmpty() && off.getItem() instanceof FishingRodItem) {
+			FishingRodItem.setCastActive(off, active);
+		}
 	}
 }

@@ -163,4 +163,14 @@ public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
     public boolean hurt(DamageSource source, float amount) {
         return false;
     }
+
+    @Override
+    public boolean isPushable() {
+        return false;
+    }
+
+    @Override
+    public void push(double x, double y, double z) {
+        // NPC cannot be displaced by player or entity collisions.
+    }
 }

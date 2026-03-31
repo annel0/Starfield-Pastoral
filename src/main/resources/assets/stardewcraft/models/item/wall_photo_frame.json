@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/wall_decor/common/wall_photo_frame",
+	"textures": {
+		"particle": "stardewcraft:block/decor/wall_decor/common/wall_photo_frame"
+	}
+}

@@ -33,14 +33,17 @@ public record SteelFalchionTracePayload(boolean active, int durationTicks) imple
     }
 
     public static void handle(SteelFalchionTracePayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            if (payload.active()) {
-                Minecraft mc = Minecraft.getInstance();
-                long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
-                SteelFalchionTraceClientState.start(nowTick, payload.durationTicks());
-            } else {
-                SteelFalchionTraceClientState.clear();
-            }
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(SteelFalchionTracePayload payload) {
+        if (payload.active()) {
+            Minecraft mc = Minecraft.getInstance();
+            long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
+            SteelFalchionTraceClientState.start(nowTick, payload.durationTicks());
+        } else {
+            SteelFalchionTraceClientState.clear();
+        }
     }
 }

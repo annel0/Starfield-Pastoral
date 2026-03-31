@@ -6,19 +6,19 @@
       "request": "launch",
       "name": "Client",
       "presentation": {
-        "group": "Mod Development - stardewcraft-template-1.21.1",
+        "group": "Mod Development - StardewCraft",
         "order": 0
       },
-      "projectName": "stardewcraft-template-1.21.1",
+      "projectName": "StardewCraft",
       "mainClass": "net.neoforged.devlaunch.Main",
       "args": [
-        "@C:\\Users\\23169\\Desktop\\stardewcraft-template-1.21.1\\build\\moddev\\clientRunProgramArgs.txt"
+        "@/Users/jiayuhan/游戏制作/StardewCraft/build/moddev/clientRunProgramArgs.txt"
       ],
       "vmArgs": [
-        "@C:\\Users\\23169\\Desktop\\stardewcraft-template-1.21.1\\build\\moddev\\clientRunVmArgs.txt",
-        "-Dfml.modFolders\u003dstardewcraft%%C:\\Users\\23169\\Desktop\\stardewcraft-template-1.21.1\\bin\\main"
+        "@/Users/jiayuhan/游戏制作/StardewCraft/build/moddev/clientRunVmArgs.txt",
+        "-Dfml.modFolders\u003dstardewcraft%%/Users/jiayuhan/游戏制作/StardewCraft/bin/main"
       ],
-      "cwd": "${workspaceFolder}\\run",
+      "cwd": "${workspaceFolder}/run",
       "env": {},
       "console": "internalConsole",
       "shortenCommandLine": "none"
@@ -28,19 +28,19 @@
       "request": "launch",
       "name": "Data",
       "presentation": {
-        "group": "Mod Development - stardewcraft-template-1.21.1",
+        "group": "Mod Development - StardewCraft",
         "order": 1
       },
-      "projectName": "stardewcraft-template-1.21.1",
+      "projectName": "StardewCraft",
       "mainClass": "net.neoforged.devlaunch.Main",
       "args": [
-        "@C:\\Users\\23169\\Desktop\\stardewcraft-template-1.21.1\\build\\moddev\\dataRunProgramArgs.txt"
+        "@/Users/jiayuhan/游戏制作/StardewCraft/build/moddev/dataRunProgramArgs.txt"
       ],
       "vmArgs": [
-        "@C:\\Users\\23169\\Desktop\\stardewcraft-template-1.21.1\\build\\moddev\\dataRunVmArgs.txt",
-        "-Dfml.modFolders\u003dstardewcraft%%C:\\Users\\23169\\Desktop\\stardewcraft-template-1.21.1\\bin\\main"
+        "@/Users/jiayuhan/游戏制作/StardewCraft/build/moddev/dataRunVmArgs.txt",
+        "-Dfml.modFolders\u003dstardewcraft%%/Users/jiayuhan/游戏制作/StardewCraft/bin/main"
       ],
-      "cwd": "${workspaceFolder}\\run",
+      "cwd": "${workspaceFolder}/run",
       "env": {},
       "console": "internalConsole",
       "shortenCommandLine": "none"
@@ -50,19 +50,19 @@
       "request": "launch",
       "name": "GameTestServer",
       "presentation": {
-        "group": "Mod Development - stardewcraft-template-1.21.1",
+        "group": "Mod Development - StardewCraft",
         "order": 2
       },
-      "projectName": "stardewcraft-template-1.21.1",
+      "projectName": "StardewCraft",
       "mainClass": "net.neoforged.devlaunch.Main",
       "args": [
-        "@C:\\Users\\23169\\Desktop\\stardewcraft-template-1.21.1\\build\\moddev\\gameTestServerRunProgramArgs.txt"
+        "@/Users/jiayuhan/游戏制作/StardewCraft/build/moddev/gameTestServerRunProgramArgs.txt"
       ],
       "vmArgs": [
-        "@C:\\Users\\23169\\Desktop\\stardewcraft-template-1.21.1\\build\\moddev\\gameTestServerRunVmArgs.txt",
-        "-Dfml.modFolders\u003dstardewcraft%%C:\\Users\\23169\\Desktop\\stardewcraft-template-1.21.1\\bin\\main"
+        "@/Users/jiayuhan/游戏制作/StardewCraft/build/moddev/gameTestServerRunVmArgs.txt",
+        "-Dfml.modFolders\u003dstardewcraft%%/Users/jiayuhan/游戏制作/StardewCraft/bin/main"
       ],
-      "cwd": "${workspaceFolder}\\run",
+      "cwd": "${workspaceFolder}/run",
       "env": {},
       "console": "internalConsole",
       "shortenCommandLine": "none"
@@ -72,19 +72,19 @@
       "request": "launch",
       "name": "Server",
       "presentation": {
-        "group": "Mod Development - stardewcraft-template-1.21.1",
+        "group": "Mod Development - StardewCraft",
         "order": 3
       },
-      "projectName": "stardewcraft-template-1.21.1",
+      "projectName": "StardewCraft",
       "mainClass": "net.neoforged.devlaunch.Main",
       "args": [
-        "@C:\\Users\\23169\\Desktop\\stardewcraft-template-1.21.1\\build\\moddev\\serverRunProgramArgs.txt"
+        "@/Users/jiayuhan/游戏制作/StardewCraft/build/moddev/serverRunProgramArgs.txt"
       ],
       "vmArgs": [
-        "@C:\\Users\\23169\\Desktop\\stardewcraft-template-1.21.1\\build\\moddev\\serverRunVmArgs.txt",
-        "-Dfml.modFolders\u003dstardewcraft%%C:\\Users\\23169\\Desktop\\stardewcraft-template-1.21.1\\bin\\main"
+        "@/Users/jiayuhan/游戏制作/StardewCraft/build/moddev/serverRunVmArgs.txt",
+        "-Dfml.modFolders\u003dstardewcraft%%/Users/jiayuhan/游戏制作/StardewCraft/bin/main"
       ],
-      "cwd": "${workspaceFolder}\\run",
+      "cwd": "${workspaceFolder}/run",
       "env": {},
       "console": "internalConsole",
       "shortenCommandLine": "none"

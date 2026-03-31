@@ -26,11 +26,14 @@ public record CarvingKnifeThrustStrikePayload() implements CustomPacketPayload {
     }
 
     public static void handle(CarvingKnifeThrustStrikePayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            Minecraft mc = Minecraft.getInstance();
-            if (mc.player != null) {
-                SkillEffectsClient.playSkillEffects("carving_thrust", mc.player);
-            }
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(CarvingKnifeThrustStrikePayload payload) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player != null) {
+            SkillEffectsClient.playSkillEffects("carving_thrust", mc.player);
+        }
     }
 }

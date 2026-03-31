@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:decor/common/tv_2",
+  "textures": {
+    "particle": "stardewcraft:block/decor/common/tv_2"
+  }
+}

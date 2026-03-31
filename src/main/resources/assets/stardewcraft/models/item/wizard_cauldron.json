@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/common/wizard_cauldron",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/wizard_cauldron"
+	}
+}

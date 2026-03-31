@@ -24,12 +24,15 @@ public record FishingFailVisualPayload() implements CustomPacketPayload {
 	}
 
 	public static void handle(FishingFailVisualPayload payload, IPayloadContext context) {
-		context.enqueueWork(() -> {
-			Minecraft mc = Minecraft.getInstance();
-			if (mc.player == null) {
-				return;
-			}
-			FishingCatchVisuals.startFail();
-		});
+		context.enqueueWork(() -> handleClient(payload));
+	}
+
+	@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+	private static void handleClient(FishingFailVisualPayload payload) {
+		Minecraft mc = Minecraft.getInstance();
+		if (mc.player == null) {
+			return;
+		}
+		FishingCatchVisuals.startFail();
 	}
 }

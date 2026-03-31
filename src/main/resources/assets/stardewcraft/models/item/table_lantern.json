@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:decor/common/table_lantern",
+  "textures": {
+    "particle": "stardewcraft:block/decor/common/table_lantern"
+  }
+}

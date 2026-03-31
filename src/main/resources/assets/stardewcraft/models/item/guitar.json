@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/common/guitar",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/guitar"
+	}
+}

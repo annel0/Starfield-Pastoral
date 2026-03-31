@@ -26,12 +26,15 @@ public record BurglarShankLootPayload() implements CustomPacketPayload {
     }
 
     public static void handle(BurglarShankLootPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            Minecraft mc = Minecraft.getInstance();
-            if (mc.player != null) {
-                SkillEffectsClient.playBurglarShankLoot(mc.player);
-                StardewTimeHud.triggerMoneyShake();
-            }
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(BurglarShankLootPayload payload) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player != null) {
+            SkillEffectsClient.playBurglarShankLoot(mc.player);
+            StardewTimeHud.triggerMoneyShake();
+        }
     }
 }

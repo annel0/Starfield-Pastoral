@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/common/joja_vending_machine",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/joja_vending_machine"
+	}
+}

@@ -33,14 +33,17 @@ public record DwarfFortressPayload(boolean active, int durationTicks) implements
     }
 
     public static void handle(DwarfFortressPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            if (payload.active()) {
-                Minecraft mc = Minecraft.getInstance();
-                long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
-                DwarfFortressClientState.start(nowTick, payload.durationTicks());
-            } else {
-                DwarfFortressClientState.clear();
-            }
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(DwarfFortressPayload payload) {
+        if (payload.active()) {
+            Minecraft mc = Minecraft.getInstance();
+            long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
+            DwarfFortressClientState.start(nowTick, payload.durationTicks());
+        } else {
+            DwarfFortressClientState.clear();
+        }
     }
 }

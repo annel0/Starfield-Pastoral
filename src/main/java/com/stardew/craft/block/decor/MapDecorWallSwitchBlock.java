@@ -54,7 +54,7 @@ public class MapDecorWallSwitchBlock extends Block {
 
     @Override
     public BlockState mirror(@Nonnull BlockState state, @Nonnull Mirror mirror) {
-        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+        return state.setValue(FACING, mirror.mirror(state.getValue(FACING)));
     }
 
     @Override

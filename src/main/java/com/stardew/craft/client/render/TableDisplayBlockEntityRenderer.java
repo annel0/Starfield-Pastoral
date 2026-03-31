@@ -3,6 +3,8 @@ package com.stardew.craft.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.stardew.craft.block.utility.OakTableBlock;
+import com.stardew.craft.block.utility.KitchenCounterBlock;
+import com.stardew.craft.block.utility.OakRoundTableBlock;
 import com.stardew.craft.block.utility.SpruceCounterBlock;
 import com.stardew.craft.blockentity.TableDisplayBlockEntity;
 import net.minecraft.client.Minecraft;
@@ -28,11 +30,15 @@ public class TableDisplayBlockEntityRenderer implements BlockEntityRenderer<Tabl
             return;
         }
 
-        float y = 11.02f / 16.0f;
+        float y = 16.02f / 16.0f;
         BlockState state = be.getBlockState();
         if (state.getBlock() instanceof OakTableBlock && state.hasProperty(OakTableBlock.HAS_CLOTH) && state.getValue(OakTableBlock.HAS_CLOTH)) {
-            y = 11.10f / 16.0f;
+            y = 16.10f / 16.0f;
         } else if (state.getBlock() instanceof SpruceCounterBlock) {
+            y = 16.02f / 16.0f;
+        } else if (state.getBlock() instanceof OakRoundTableBlock) {
+            y = 16.02f / 16.0f;
+        } else if (state.getBlock() instanceof KitchenCounterBlock) {
             y = 16.02f / 16.0f;
         }
 

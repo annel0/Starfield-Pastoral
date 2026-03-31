@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/common/beaker",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/beaker"
+	}
+}

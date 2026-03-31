@@ -60,6 +60,12 @@ public class WildOakLeavesBlock extends Block {
 	protected void onPlace(@SuppressWarnings("null") BlockState state, @SuppressWarnings("null") Level level, @SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") BlockState oldState, boolean movedByPiston) {
 		super.onPlace(state, level, pos, oldState, movedByPiston);
 		if (!level.isClientSide && level instanceof ServerLevel serverLevel) {
+			// 如果刚放置的叶子周围没有树干/树枝支撑，说明是玩家/WE/Axiom 手动放置的，
+			// 自动标记为 placed 以防止衰减。自然树生成时树干已先就位，不会走到这里。
+			WildTrees.Def def = WildTrees.findByAnyPart(state);
+			if (def != null && !hasNearbySupport(serverLevel, pos, def)) {
+				WildLeavesPlacedManager.get(serverLevel).markPlaced(pos);
+			}
 			serverLevel.scheduleTick(pos, this, DECAY_CHECK_DELAY_TICKS);
 		}
 	}

@@ -34,18 +34,21 @@ public record BrokenTridentCatchPayload(boolean active, int durationTicks) imple
     }
 
     public static void handle(BrokenTridentCatchPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            if (payload.active()) {
-                Minecraft mc = Minecraft.getInstance();
-                long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
-                boolean wasActive = mc.player != null && BrokenTridentCatchClientState.isActive(mc.player);
-                BrokenTridentCatchClientState.start(nowTick, payload.durationTicks());
-                if (!wasActive && mc.player != null) {
-                    SkillEffectsClient.playFishcatchReady(mc.player);
-                }
-            } else {
-                BrokenTridentCatchClientState.clear();
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(BrokenTridentCatchPayload payload) {
+        if (payload.active()) {
+            Minecraft mc = Minecraft.getInstance();
+            long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
+            boolean wasActive = mc.player != null && BrokenTridentCatchClientState.isActive(mc.player);
+            BrokenTridentCatchClientState.start(nowTick, payload.durationTicks());
+            if (!wasActive && mc.player != null) {
+                SkillEffectsClient.playFishcatchReady(mc.player);
             }
-        });
+        } else {
+            BrokenTridentCatchClientState.clear();
+        }
     }
 }

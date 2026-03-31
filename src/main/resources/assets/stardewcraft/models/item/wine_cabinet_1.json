@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/common/wine_cabinet_1",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/wine_cabinet_1"
+	}
+}

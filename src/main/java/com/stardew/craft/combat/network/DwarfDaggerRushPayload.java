@@ -33,14 +33,17 @@ public record DwarfDaggerRushPayload(boolean active, int durationTicks) implemen
     }
 
     public static void handle(DwarfDaggerRushPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            if (payload.active()) {
-                Minecraft mc = Minecraft.getInstance();
-                long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
-                DwarfDaggerRushClientState.start(nowTick, payload.durationTicks());
-            } else {
-                DwarfDaggerRushClientState.clear();
-            }
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(DwarfDaggerRushPayload payload) {
+        if (payload.active()) {
+            Minecraft mc = Minecraft.getInstance();
+            long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
+            DwarfDaggerRushClientState.start(nowTick, payload.durationTicks());
+        } else {
+            DwarfDaggerRushClientState.clear();
+        }
     }
 }

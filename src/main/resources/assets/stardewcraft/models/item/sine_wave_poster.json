@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/wall_decor/common/sine_wave_poster",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/sine_wave_poster"
+	}
+}

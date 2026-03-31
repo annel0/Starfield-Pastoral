@@ -3,6 +3,7 @@ package com.stardew.craft.entity.seat;
 import com.stardew.craft.block.utility.SofaBlock;
 import com.stardew.craft.block.utility.ChairBlock;
 import com.stardew.craft.block.utility.CushionBlock;
+import com.stardew.craft.block.utility.DyeableChairBlock;
 import com.stardew.craft.block.utility.OfficeChair2Block;
 import com.stardew.craft.block.utility.OfficeStoolBlock;
 import com.stardew.craft.blockentity.OfficeStoolBlockEntity;
@@ -155,7 +156,8 @@ public class SofaSeatEntity extends Entity {
             || block instanceof ChairBlock
             || block instanceof CushionBlock
             || block instanceof OfficeStoolBlock
-            || block instanceof OfficeChair2Block;
+            || block instanceof OfficeChair2Block
+            || block instanceof DyeableChairBlock;
     }
 
     public static void removeForPos(ServerLevel level, BlockPos sofaPos) {

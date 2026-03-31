@@ -101,6 +101,9 @@ public class PlayerStardewData {
     // ============ 特殊订单规则 ============
     // 对齐原版 PLAYER_SPECIAL_ORDER_RULE_ACTIVE 条件分支。
     private final Set<String> activeSpecialOrderRules = new HashSet<>();
+
+    // ============ 垃圾桶统计 ============
+    private int trashCansChecked;
     
     // 经验值升级表（根据星露谷物语）
     private static final int[] EXP_TO_LEVEL = {
@@ -328,6 +331,8 @@ public class PlayerStardewData {
             }
         }
 
+        data.trashCansChecked = tag.contains("TrashCansChecked") ? tag.getInt("TrashCansChecked") : 0;
+
         // 安全钳制：避免异常值导致越界（Buff 允许 maxEnergy 临时上升）
         data.maxHealth = Math.max(100, data.maxHealth);
         data.maxEnergy = Math.max(270, data.maxEnergy);
@@ -478,6 +483,8 @@ public class PlayerStardewData {
             }
         }
         tag.put("ActiveSpecialOrderRules", activeRules);
+
+        tag.putInt("TrashCansChecked", trashCansChecked);
         
         return tag;
     }
@@ -1135,6 +1142,13 @@ public class PlayerStardewData {
     public double getDailyLuck() { return dailyLuck; }
 
     public int getDailyLuckDateKey() { return dailyLuckDateKey; }
+
+    public int getTrashCansChecked() { return trashCansChecked; }
+
+    public void incrementTrashCansChecked() {
+        trashCansChecked++;
+        markDirty();
+    }
 
     public void setDailyLuckForDate(double dailyLuck, int dateKey) {
         this.dailyLuck = dailyLuck;

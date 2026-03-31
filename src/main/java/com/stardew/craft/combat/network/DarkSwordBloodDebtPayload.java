@@ -33,14 +33,17 @@ public record DarkSwordBloodDebtPayload(boolean active, int durationTicks) imple
     }
 
     public static void handle(DarkSwordBloodDebtPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            if (payload.active()) {
-                Minecraft mc = Minecraft.getInstance();
-                long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
-                DarkSwordBloodDebtClientState.start(nowTick, payload.durationTicks());
-            } else {
-                DarkSwordBloodDebtClientState.clear();
-            }
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(DarkSwordBloodDebtPayload payload) {
+        if (payload.active()) {
+            Minecraft mc = Minecraft.getInstance();
+            long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
+            DarkSwordBloodDebtClientState.start(nowTick, payload.durationTicks());
+        } else {
+            DarkSwordBloodDebtClientState.clear();
+        }
     }
 }

@@ -54,7 +54,9 @@ public class MapDecorStaticBlock extends Block {
 
     private static final Map<String, VoxelShape> SHAPE_CACHE = new ConcurrentHashMap<>();
     private static final Map<String, VoxelShape> ORIENTED_SHAPE_CACHE = new ConcurrentHashMap<>();
-    private static final double EPS = 1.0E-6;
+    // Tolerance of 1 pixel (1/16 block) so sub-pixel model overflows
+    // don't claim extra extension cells.
+    private static final double EPS = 1.0 / 16.0;
 
     private final String modelId;
     private volatile Set<CellOffset> localOccupiedOffsets;
@@ -81,6 +83,7 @@ public class MapDecorStaticBlock extends Block {
         return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public BlockState mirror(@Nonnull BlockState state, @Nonnull Mirror mirror) {
         return state.rotate(mirror.getRotation(state.getValue(FACING)));
@@ -118,10 +121,27 @@ public class MapDecorStaticBlock extends Block {
 
     private VoxelShape orientedShape(Direction facing) {
         String key = modelId + "#" + facing.getSerializedName();
-        return ORIENTED_SHAPE_CACHE.computeIfAbsent(key, unused -> rotateShapeY(ModelVoxelShapeCache.shapeFromModelId(modelId), facing));
+        return ORIENTED_SHAPE_CACHE.computeIfAbsent(key, unused -> {
+            if (modelId.contains("bonsai")) {
+                if (modelId.contains("wall")) {
+                    return Block.box(0, 0, 0, 16, 16, 16);
+                }
+                // 盆栽 (bonsai_6_x) 也就是在 common 里的盆栽系列，碰撞箱只需1格高(1*1*1)
+                if (modelId.contains("bonsai_6_")) {
+                    return Block.box(0, 0, 0, 16, 16, 16);
+                }
+                // 原版盆景系列 (长1宽1高2)
+                return Block.box(0, 0, 0, 16, 32, 16); 
+            }
+            return rotateShapeY(ModelVoxelShapeCache.shapeFromModelId(modelId), facing);
+        });
     }
 
     private static VoxelShape rotateShapeY(VoxelShape shape, Direction facing) {
+        return rotateShapeForFacing(shape, facing);
+    }
+
+    protected static VoxelShape rotateShapeForFacing(VoxelShape shape, Direction facing) {
         if (facing == Direction.NORTH || shape.isEmpty()) {
             return shape;
         }
@@ -158,7 +178,7 @@ public class MapDecorStaticBlock extends Block {
         return out[0].optimize();
     }
 
-    private Set<CellOffset> localOccupiedOffsets() {
+    protected Set<CellOffset> localOccupiedOffsets() {
         Set<CellOffset> cached = localOccupiedOffsets;
         if (cached != null) {
             return cached;
@@ -286,7 +306,7 @@ public class MapDecorStaticBlock extends Block {
         if (state.getValue(PART) == Part.EXTENSION) {
             return List.of();
         }
-        return super.getDrops(state, params);
+        return List.of(new ItemStack(this));
     }
 
     @Override
@@ -365,7 +385,7 @@ public class MapDecorStaticBlock extends Block {
     }
 
     protected record CellOffset(int dx, int dy, int dz) {
-        private static final CellOffset ZERO = new CellOffset(0, 0, 0);
+        static final CellOffset ZERO = new CellOffset(0, 0, 0);
 
         private boolean isZero() {
             return dx == 0 && dy == 0 && dz == 0;
@@ -376,6 +396,15 @@ public class MapDecorStaticBlock extends Block {
                 case EAST -> new CellOffset(-dz, dy, dx);
                 case SOUTH -> new CellOffset(-dx, dy, -dz);
                 case WEST -> new CellOffset(dz, dy, -dx);
+                default -> this;
+            };
+        }
+
+        CellOffset unrotateY(Direction facing) {
+            return switch (facing) {
+                case EAST -> new CellOffset(dz, dy, -dx);
+                case SOUTH -> new CellOffset(-dx, dy, -dz);
+                case WEST -> new CellOffset(-dz, dy, dx);
                 default -> this;
             };
         }

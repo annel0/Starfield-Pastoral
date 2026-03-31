@@ -33,14 +33,17 @@ public record DragontoothShivBreathPayload(boolean active, int durationTicks) im
     }
 
     public static void handle(DragontoothShivBreathPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            if (payload.active()) {
-                Minecraft mc = Minecraft.getInstance();
-                long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
-                DragontoothShivBreathClientState.start(nowTick, payload.durationTicks());
-            } else {
-                DragontoothShivBreathClientState.clear();
-            }
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(DragontoothShivBreathPayload payload) {
+        if (payload.active()) {
+            Minecraft mc = Minecraft.getInstance();
+            long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
+            DragontoothShivBreathClientState.start(nowTick, payload.durationTicks());
+        } else {
+            DragontoothShivBreathClientState.clear();
+        }
     }
 }

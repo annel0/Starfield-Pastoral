@@ -38,9 +38,43 @@ public final class NpcSpawnManager {
     private static final Map<String, UUID> TRACKED_NPC_UUIDS = new LinkedHashMap<>();
     private static final Map<String, Integer> TRACKED_MISS_COUNTS = new LinkedHashMap<>();
     private static final Map<String, Long> LAST_SPAWN_GAME_TIME = new LinkedHashMap<>();
-    private static final Map<String, Long> FORCED_CHUNK_BY_NPC = new LinkedHashMap<>();
 
     private NpcSpawnManager() {
+    }
+
+    /**
+     * Called when the last player leaves the Stardew Valley dimension.
+     * Teleports every tracked NPC to their current schedule target so that
+     * when the player returns they are at the correct position.
+     */
+    public static void onAllPlayersLeft(ServerLevel level) {
+        for (Map.Entry<String, UUID> entry : TRACKED_NPC_UUIDS.entrySet()) {
+            String npcId = entry.getKey();
+            StardewNpcEntity npc = getTrackedNpc(level, npcId);
+            if (npc == null) continue;
+            NpcRuntimeState state = NpcRuntimeDataManager.get(level).states().get(npcId);
+            Vec3 sharedSpawn = Vec3.atCenterOf(level.getSharedSpawnPos());
+            NpcScheduleRuntimeService.TargetPoint target = NpcScheduleRuntimeService.resolveWorldTarget(level, state, sharedSpawn);
+            if (target != null && target.position() != null) {
+                npc.setPos(target.position().x, target.position().y, target.position().z);
+                npc.setDeltaMovement(Vec3.ZERO);
+            }
+        }
+    }
+
+    /**
+     * Called when a player enters the Stardew Valley dimension.
+     * Forces an immediate full sweep to clean up duplicates and snap NPCs.
+     */
+    public static void onPlayerEntered(ServerLevel level) {
+        Set<String> implementedIds = new HashSet<>();
+        for (Map.Entry<String, NpcCapabilityProfile> entry : NpcDataRegistry.capabilities().entrySet()) {
+            if (entry.getValue().implemented()) {
+                implementedIds.add(canonicalNpcId(entry.getValue().npcId()));
+            }
+        }
+        cleanupUnknownAndDuplicated(level, implementedIds);
+        initialSweepDone = true;
     }
 
     public static void onNpcJoin(ServerLevel level, StardewNpcEntity npc) {
@@ -148,9 +182,8 @@ public final class NpcSpawnManager {
             double spawnY = y;
             double spawnZ = z;
 
-            // Keep Lewis' active area loaded, otherwise UUID lookup and debug listing can
-            // report missing while entity is merely chunk-unloaded.
-            ensureNpcChunkForced(level, npcId, spawnX, spawnZ);
+            // Chunk forcing is fully managed by NpcChunkForceManager now.
+            // SpawnManager only tracks UUID→entity mapping.
 
             if (hasTrackedNpc(level, npcId)) {
                 TRACKED_MISS_COUNTS.put(npcId, 0);
@@ -159,7 +192,6 @@ public final class NpcSpawnManager {
 
             StardewNpcEntity existing = loadedByNpcId.get(npcId);
             if (existing != null) {
-                ensureNpcChunkForced(level, npcId, existing.getX(), existing.getZ());
                 TRACKED_NPC_UUIDS.put(npcId, existing.getUUID());
                 TRACKED_MISS_COUNTS.put(npcId, 0);
                 continue;
@@ -264,7 +296,6 @@ public final class NpcSpawnManager {
             if (byId != null) {
                 TRACKED_NPC_UUIDS.put(canonicalId, byId.getUUID());
                 TRACKED_MISS_COUNTS.put(canonicalId, 0);
-                ensureNpcChunkForced(level, canonicalId, byId.getX(), byId.getZ());
                 return true;
             }
             return false;
@@ -276,7 +307,6 @@ public final class NpcSpawnManager {
             if (byId != null) {
                 TRACKED_NPC_UUIDS.put(canonicalId, byId.getUUID());
                 TRACKED_MISS_COUNTS.put(canonicalId, 0);
-                ensureNpcChunkForced(level, canonicalId, byId.getX(), byId.getZ());
                 return true;
             }
             TRACKED_NPC_UUIDS.remove(canonicalId);
@@ -291,8 +321,6 @@ public final class NpcSpawnManager {
             TRACKED_MISS_COUNTS.put(canonicalId, TRACKED_MISS_COUNTS.getOrDefault(canonicalId, 0) + 1);
             return false;
         }
-
-        ensureNpcChunkForced(level, canonicalId, npc.getX(), npc.getZ());
 
         if (!canonicalId.equals(canonicalNpcId(npc.getNpcId()))) {
             TRACKED_NPC_UUIDS.remove(canonicalId);
@@ -361,7 +389,6 @@ public final class NpcSpawnManager {
 
         TRACKED_NPC_UUIDS.put(canonicalNpcId, keeper.getUUID());
         TRACKED_MISS_COUNTS.put(canonicalNpcId, 0);
-        ensureNpcChunkForced(level, canonicalNpcId, keeper.getX(), keeper.getZ());
     }
 
     public static StardewNpcEntity getTrackedNpc(ServerLevel level, String npcId) {
@@ -443,34 +470,7 @@ public final class NpcSpawnManager {
         TRACKED_NPC_UUIDS.clear();
         TRACKED_MISS_COUNTS.clear();
         LAST_SPAWN_GAME_TIME.clear();
-        FORCED_CHUNK_BY_NPC.clear();
         StardewCraft.LOGGER.info("Reset NPC prototype spawn tracking for server '{}'.", server.getWorldData().getLevelName());
-    }
-
-    private static void ensureNpcChunkForced(ServerLevel level, String npcId, double x, double z) {
-        if (level == null || npcId == null || npcId.isBlank()) {
-            return;
-        }
-
-        String canonicalId = canonicalNpcId(npcId);
-        int chunkX = ((int) Math.floor(x)) >> 4;
-        int chunkZ = ((int) Math.floor(z)) >> 4;
-        long newKey = (((long) chunkX) << 32) | (((long) chunkZ) & 0xFFFFFFFFL);
-
-        Long previous = FORCED_CHUNK_BY_NPC.get(canonicalId);
-        if (previous != null && previous == newKey) {
-            return;
-        }
-
-        if (previous != null) {
-            int oldChunkX = (int) (previous >> 32);
-            int oldChunkZ = (int) (long) previous;
-            level.setChunkForced(oldChunkX, oldChunkZ, false);
-        }
-
-        level.setChunkForced(chunkX, chunkZ, true);
-        level.getChunk(chunkX, chunkZ);
-        FORCED_CHUNK_BY_NPC.put(canonicalId, newKey);
     }
 
     private static void discardWithReason(StardewNpcEntity npc, String reason) {
@@ -499,9 +499,9 @@ public final class NpcSpawnManager {
         }
         UUID tracked = TRACKED_NPC_UUIDS.get(id);
         if (tracked == null) {
-            // Tracked can be momentarily null; give it a pass until the periodic sweeper runs,
-            // or let the 10-tick grace period handle it.
-            return true;
+            // Only forgive during early boot (first 60 ticks) before initial sweep runs.
+            // After that, untracked entities are NOT official.
+            return !initialSweepDone;
         }
         return tracked.equals(npc.getUUID());
     }
@@ -529,13 +529,7 @@ public final class NpcSpawnManager {
             }
         }
 
-        Long chunkKey = FORCED_CHUNK_BY_NPC.get(canonicalId);
-        String chunk = "<none>";
-        if (chunkKey != null) {
-            int chunkX = (int) (chunkKey >> 32);
-            int chunkZ = (int) (long) chunkKey;
-            chunk = chunkX + "," + chunkZ;
-        }
+        String chunk = NpcChunkForceManager.currentForcedTargetChunk(canonicalId);
 
         boolean trackedAlive = false;
         if (trackedUuid != null) {

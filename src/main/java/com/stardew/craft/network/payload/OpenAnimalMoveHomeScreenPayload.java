@@ -66,14 +66,16 @@ public record OpenAnimalMoveHomeScreenPayload(
         return TYPE;
     }
 
-    @SuppressWarnings("null")
     public static void handle(OpenAnimalMoveHomeScreenPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            Minecraft minecraft = Minecraft.getInstance();
-            if (minecraft.player == null) {
-                return;
-            }
-            minecraft.setScreen(new com.stardew.craft.client.gui.AnimalMoveHomeSelectScreen(payload));
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(OpenAnimalMoveHomeScreenPayload payload) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.player == null) {
+            return;
+        }
+        minecraft.setScreen(new com.stardew.craft.client.gui.AnimalMoveHomeSelectScreen(payload));
     }
 }

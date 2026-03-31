@@ -42,21 +42,24 @@ public record TremorBlockPayload(float x, float y, float z, int blockStateId, fl
     }
 
     public static void handle(TremorBlockPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            var mc = Minecraft.getInstance();
-            if (mc == null || mc.level == null) {
-                return;
-            }
-            var level = java.util.Objects.requireNonNull(mc.level);
-            var state = Block.stateById(payload.blockStateId());
-            if (state == null) {
-                return;
-            }
-            level.addParticle(
-                new BlockParticleOption(java.util.Objects.requireNonNull(ParticleTypes.BLOCK), java.util.Objects.requireNonNull(state)),
-                payload.x(), payload.y(), payload.z(),
-                0.0, payload.ySpeed(), 0.0
-            );
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(TremorBlockPayload payload) {
+        var mc = Minecraft.getInstance();
+        if (mc == null || mc.level == null) {
+            return;
+        }
+        var level = java.util.Objects.requireNonNull(mc.level);
+        var state = Block.stateById(payload.blockStateId());
+        if (state == null) {
+            return;
+        }
+        level.addParticle(
+            new BlockParticleOption(java.util.Objects.requireNonNull(ParticleTypes.BLOCK), java.util.Objects.requireNonNull(state)),
+            payload.x(), payload.y(), payload.z(),
+            0.0, payload.ySpeed(), 0.0
+        );
     }
 }

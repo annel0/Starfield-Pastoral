@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/common/kitchen_counter",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/kitchen_counter"
+	}
+}

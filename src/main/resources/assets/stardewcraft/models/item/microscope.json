@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/common/microscope",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/microscope"
+	}
+}

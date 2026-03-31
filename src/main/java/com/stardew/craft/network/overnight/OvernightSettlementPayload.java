@@ -27,10 +27,13 @@ public record OvernightSettlementPayload(List<ShippedItem> shippedItems, List<Le
         return TYPE;
     }
 
-    public static void handle(final OvernightSettlementPayload payload, final IPayloadContext context) {
-        context.enqueueWork(() -> {
-            ClientOvernightHandler.startSequence(payload);
-        });
+    public static void handle(OvernightSettlementPayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(OvernightSettlementPayload payload) {
+        ClientOvernightHandler.startSequence(payload);
     }
 
     public record LevelUpData(int skillIndex, int newLevel) {

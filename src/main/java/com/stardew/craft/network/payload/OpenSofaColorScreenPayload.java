@@ -30,12 +30,15 @@ public record OpenSofaColorScreenPayload(BlockPos targetPos, int currentColor) i
     }
 
     public static void handle(OpenSofaColorScreenPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            Minecraft minecraft = Minecraft.getInstance();
-            if (minecraft.player == null) {
-                return;
-            }
-            minecraft.setScreen(new SofaColorSelectionScreen(payload.targetPos(), payload.currentColor()));
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(OpenSofaColorScreenPayload payload) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.player == null) {
+            return;
+        }
+        minecraft.setScreen(new SofaColorSelectionScreen(payload.targetPos(), payload.currentColor()));
     }
 }

@@ -13,13 +13,14 @@ import software.bernie.geckolib.renderer.GeoBlockRenderer;
 
 import javax.annotation.Nonnull;
 
+@SuppressWarnings("null")
 public class ShrineBlockEntityRenderer extends GeoBlockRenderer<ShrineBlockEntity> {
     public ShrineBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
         super(new ShrineGeoModel());
     }
 
     @Override
-    public void render(@Nonnull ShrineBlockEntity animatable, float partialTick, @Nonnull PoseStack poseStack, @Nonnull MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+    public void render(ShrineBlockEntity animatable, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState state = animatable.getBlockState();
         if (state.hasProperty(MapDecorStaticBlock.PART)
             && state.getValue(MapDecorStaticBlock.PART) != MapDecorStaticBlock.Part.MAIN) {
@@ -36,5 +37,10 @@ public class ShrineBlockEntityRenderer extends GeoBlockRenderer<ShrineBlockEntit
         poseStack.translate(-0.5D, 0.0D, -0.5D);
         super.render(animatable, partialTick, poseStack, bufferSource, packedLight, packedOverlay);
         poseStack.popPose();
+    }
+
+    @Override
+    protected void rotateBlock(@Nonnull Direction facing, @Nonnull PoseStack poseStack) {
+        // Rotation is already handled in render(); prevent GeoBlockRenderer from applying it again.
     }
 }

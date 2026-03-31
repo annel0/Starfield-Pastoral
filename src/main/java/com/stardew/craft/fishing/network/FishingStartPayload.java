@@ -52,33 +52,36 @@ public record FishingStartPayload(UUID sessionId, int difficulty, int motionType
 		return TYPE;
 	}
 
-	@SuppressWarnings("null")
 	public static void handle(FishingStartPayload payload, IPayloadContext context) {
-		context.enqueueWork(() -> {
-			Minecraft mc = Minecraft.getInstance();
-			if (mc.player == null) {
-				return;
-			}
-			// Accept any StardewCraft fishing rod tier.
-			if (!(mc.player.getMainHandItem().getItem() instanceof com.stardew.craft.item.tool.FishingRodItem)
-					&& !(mc.player.getOffhandItem().getItem() instanceof com.stardew.craft.item.tool.FishingRodItem)) {
-				return;
-			}
-			mc.setScreen(new FishingMinigameScreen(
-					payload.sessionId(),
-					payload.difficulty(),
-					payload.motionTypeId(),
-					false,
-					payload.durationTicks(),
-					false,
-					false,
-					false,
-					"",
-					0,     // 默认bar size bonus (pixels)
-					0.003f, // 默认不在条内掉进度
-					0,     // 默认barbed hook count
-					0      // 默认lead bobber count
-			));
-		});
+		context.enqueueWork(() -> handleClient(payload));
+	}
+
+	@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+	private static void handleClient(FishingStartPayload payload) {
+		Minecraft mc = Minecraft.getInstance();
+		var player = mc.player;
+		if (player == null) {
+			return;
+		}
+		// Accept any StardewCraft fishing rod tier.
+		if (!(player.getMainHandItem().getItem() instanceof com.stardew.craft.item.tool.FishingRodItem)
+				&& !(player.getOffhandItem().getItem() instanceof com.stardew.craft.item.tool.FishingRodItem)) {
+			return;
+		}
+		mc.setScreen(new FishingMinigameScreen(
+				payload.sessionId(),
+				payload.difficulty(),
+				payload.motionTypeId(),
+				false,
+				payload.durationTicks(),
+				false,
+				false,
+				false,
+				"",
+				0,     // 默认bar size bonus (pixels)
+				0.003f, // 默认不在条内掉进度
+				0,     // 默认barbed hook count
+				0      // 默认lead bobber count
+		));
 	}
 }

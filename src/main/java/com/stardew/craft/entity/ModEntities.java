@@ -191,7 +191,7 @@ public final class ModEntities {
 	public static final DeferredHolder<EntityType<?>, EntityType<StardewNpcEntity>> STARDEW_NPC = ENTITY_TYPES.register(
 			"stardew_npc",
 			() -> EntityType.Builder.<StardewNpcEntity>of(StardewNpcEntity::new, MobCategory.CREATURE)
-					.sized(0.8F, 1.8F)
+					.sized(0.6F, 1.8F)
 					.clientTrackingRange(16)
 					.updateInterval(2)
 					.build("stardew_npc")

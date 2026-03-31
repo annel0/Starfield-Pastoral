@@ -26,11 +26,14 @@ public record IridiumNeedleThrustStrikePayload() implements CustomPacketPayload 
     }
 
     public static void handle(IridiumNeedleThrustStrikePayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            Minecraft mc = Minecraft.getInstance();
-            if (mc.player != null) {
-                SkillEffectsClient.playSkillEffects("iridium_needle_thrust", mc.player);
-            }
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(IridiumNeedleThrustStrikePayload payload) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player != null) {
+            SkillEffectsClient.playSkillEffects("iridium_needle_thrust", mc.player);
+        }
     }
 }

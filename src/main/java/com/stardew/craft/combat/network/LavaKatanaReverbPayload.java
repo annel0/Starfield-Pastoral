@@ -33,14 +33,17 @@ public record LavaKatanaReverbPayload(boolean active, int durationTicks) impleme
     }
 
     public static void handle(LavaKatanaReverbPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            if (payload.active()) {
-                Minecraft mc = Minecraft.getInstance();
-                long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
-                LavaKatanaReverbClientState.start(nowTick, payload.durationTicks());
-            } else {
-                LavaKatanaReverbClientState.clear();
-            }
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(LavaKatanaReverbPayload payload) {
+        if (payload.active()) {
+            Minecraft mc = Minecraft.getInstance();
+            long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
+            LavaKatanaReverbClientState.start(nowTick, payload.durationTicks());
+        } else {
+            LavaKatanaReverbClientState.clear();
+        }
     }
 }

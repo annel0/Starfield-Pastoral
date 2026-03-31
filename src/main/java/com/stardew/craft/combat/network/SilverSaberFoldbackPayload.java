@@ -33,14 +33,17 @@ public record SilverSaberFoldbackPayload(boolean active, int durationTicks) impl
     }
 
     public static void handle(SilverSaberFoldbackPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            if (payload.active()) {
-                Minecraft mc = Minecraft.getInstance();
-                long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
-                SilverSaberFoldbackClientState.start(nowTick, payload.durationTicks());
-            } else {
-                SilverSaberFoldbackClientState.clear();
-            }
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(SilverSaberFoldbackPayload payload) {
+        if (payload.active()) {
+            Minecraft mc = Minecraft.getInstance();
+            long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
+            SilverSaberFoldbackClientState.start(nowTick, payload.durationTicks());
+        } else {
+            SilverSaberFoldbackClientState.clear();
+        }
     }
 }

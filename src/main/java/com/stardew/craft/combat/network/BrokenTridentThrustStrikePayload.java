@@ -26,11 +26,14 @@ public record BrokenTridentThrustStrikePayload() implements CustomPacketPayload 
     }
 
     public static void handle(BrokenTridentThrustStrikePayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            Minecraft mc = Minecraft.getInstance();
-            if (mc.player != null) {
-                SkillEffectsClient.playSkillEffects("fishcatch_thrust", mc.player);
-            }
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(BrokenTridentThrustStrikePayload payload) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player != null) {
+            SkillEffectsClient.playSkillEffects("fishcatch_thrust", mc.player);
+        }
     }
 }

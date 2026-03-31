@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/wall_decor/common/periodic_table",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/periodic_table"
+	}
+}

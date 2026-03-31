@@ -33,14 +33,17 @@ public record WindSpirePayload(boolean active, int durationTicks) implements Cus
     }
 
     public static void handle(WindSpirePayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            if (payload.active()) {
-                Minecraft mc = Minecraft.getInstance();
-                long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
-                WindSpireClientState.start(nowTick, payload.durationTicks());
-            } else {
-                WindSpireClientState.clear();
-            }
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(WindSpirePayload payload) {
+        if (payload.active()) {
+            Minecraft mc = Minecraft.getInstance();
+            long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
+            WindSpireClientState.start(nowTick, payload.durationTicks());
+        } else {
+            WindSpireClientState.clear();
+        }
     }
 }

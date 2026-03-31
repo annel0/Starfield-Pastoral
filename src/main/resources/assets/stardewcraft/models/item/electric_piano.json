@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/common/electric_piano",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/electric_piano"
+	}
+}

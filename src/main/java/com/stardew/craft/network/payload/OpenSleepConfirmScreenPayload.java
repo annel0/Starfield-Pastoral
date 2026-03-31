@@ -26,12 +26,15 @@ public record OpenSleepConfirmScreenPayload(int currentMinute) implements Custom
     }
 
     public static void handle(OpenSleepConfirmScreenPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            Minecraft mc = Minecraft.getInstance();
-            if (mc.player == null) {
-                return;
-            }
-            mc.setScreen(StardewConfirmDialogScreen.createSleepConfirm(payload.currentMinute()));
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(OpenSleepConfirmScreenPayload payload) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) {
+            return;
+        }
+        mc.setScreen(StardewConfirmDialogScreen.createSleepConfirm(payload.currentMinute()));
     }
 }

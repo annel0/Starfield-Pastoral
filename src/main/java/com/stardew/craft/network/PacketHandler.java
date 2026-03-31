@@ -830,5 +830,24 @@ public class PacketHandler {
             com.stardew.craft.network.overnight.OvernightSettlementPayload::handle
         );
 
+        // TV system
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenTVScreenPayload.TYPE,
+            com.stardew.craft.network.payload.OpenTVScreenPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenTVScreenPayload::handle
+        );
+
+        registrar.playToServer(
+            com.stardew.craft.network.payload.TVRecipeUnlockPayload.TYPE,
+            com.stardew.craft.network.payload.TVRecipeUnlockPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.TVRecipeUnlockPayload::handle
+        );
+
+        registrar.playToServer(
+            com.stardew.craft.network.payload.JojaVendingPurchasePayload.TYPE,
+            com.stardew.craft.network.payload.JojaVendingPurchasePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.JojaVendingPurchasePayload::handle
+        );
+
     }
 }

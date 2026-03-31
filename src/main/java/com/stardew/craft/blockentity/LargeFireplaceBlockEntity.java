@@ -2,6 +2,7 @@ package com.stardew.craft.blockentity;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import software.bernie.geckolib.animatable.GeoBlockEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.AnimatableManager;
@@ -30,5 +31,10 @@ public class LargeFireplaceBlockEntity extends net.minecraft.world.level.block.e
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return cache;
+    }
+
+    @SuppressWarnings("null")
+    public AABB getRenderBoundingBox() {
+        return new AABB(worldPosition).inflate(1.0);
     }
 }

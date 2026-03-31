@@ -33,14 +33,17 @@ public record InsectEyeStancePayload(boolean active, int durationTicks) implemen
     }
 
     public static void handle(InsectEyeStancePayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            if (payload.active()) {
-                Minecraft mc = Minecraft.getInstance();
-                long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
-                InsectEyeStanceClientState.start(nowTick, payload.durationTicks());
-            } else {
-                InsectEyeStanceClientState.clear();
-            }
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(InsectEyeStancePayload payload) {
+        if (payload.active()) {
+            Minecraft mc = Minecraft.getInstance();
+            long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
+            InsectEyeStanceClientState.start(nowTick, payload.durationTicks());
+        } else {
+            InsectEyeStanceClientState.clear();
+        }
     }
 }

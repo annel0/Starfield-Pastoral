@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/common/hospital_counter",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/hospital_counter"
+	}
+}

@@ -35,6 +35,10 @@ public final class NpcScheduleRuntimeService {
     private static final Set<String> MAIL_POLICY_LOGGED = new HashSet<>();
     private static final Set<String> UNKNOWN_CONDITION_LOGGED = new HashSet<>();
 
+    // Schedule resolution cache: only re-resolve when game clock changes.
+    private static int cachedScheduleClock = Integer.MIN_VALUE;
+    private static String cachedWeather = "";
+
     private NpcScheduleRuntimeService() {
     }
 
@@ -42,6 +46,15 @@ public final class NpcScheduleRuntimeService {
         StardewTimeManager timeManager = StardewTimeManager.get();
         int currentTime = minutesToScheduleClock(timeManager.getCurrentTime());
         String activeWeather = WeatherManager.getCurrentWeather(level);
+        if (activeWeather == null) activeWeather = "";
+
+        // Skip full re-resolution if clock and weather haven't changed since last tick.
+        if (currentTime == cachedScheduleClock && activeWeather.equals(cachedWeather)) {
+            return;
+        }
+        cachedScheduleClock = currentTime;
+        cachedWeather = activeWeather;
+
         NpcRuntimeDataManager runtimeData = NpcRuntimeDataManager.get(level);
         boolean changed = false;
 
@@ -100,6 +113,12 @@ public final class NpcScheduleRuntimeService {
         if (changed) {
             runtimeData.setDirty();
         }
+    }
+
+    /** Force cache invalidation (e.g. after server context reset or data reload). */
+    public static void invalidateCache() {
+        cachedScheduleClock = Integer.MIN_VALUE;
+        cachedWeather = "";
     }
 
     public static TargetPoint resolveWorldTarget(ServerLevel level, NpcRuntimeState state, Vec3 fallback) {

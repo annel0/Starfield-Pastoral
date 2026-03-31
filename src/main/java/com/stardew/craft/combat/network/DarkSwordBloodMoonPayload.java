@@ -33,14 +33,17 @@ public record DarkSwordBloodMoonPayload(boolean active, int durationTicks) imple
     }
 
     public static void handle(DarkSwordBloodMoonPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            if (payload.active()) {
-                Minecraft mc = Minecraft.getInstance();
-                long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
-                DarkSwordBloodMoonClientState.start(nowTick, payload.durationTicks());
-            } else {
-                DarkSwordBloodMoonClientState.clear();
-            }
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(DarkSwordBloodMoonPayload payload) {
+        if (payload.active()) {
+            Minecraft mc = Minecraft.getInstance();
+            long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
+            DarkSwordBloodMoonClientState.start(nowTick, payload.durationTicks());
+        } else {
+            DarkSwordBloodMoonClientState.clear();
+        }
     }
 }

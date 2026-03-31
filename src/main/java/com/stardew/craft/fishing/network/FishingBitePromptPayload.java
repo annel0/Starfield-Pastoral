@@ -33,12 +33,15 @@ public record FishingBitePromptPayload(int hookEntityId, int durationTicks) impl
 	}
 
 	public static void handle(FishingBitePromptPayload payload, IPayloadContext context) {
-		context.enqueueWork(() -> {
-			Minecraft mc = Minecraft.getInstance();
-			if (mc == null || mc.player == null) {
-				return;
-			}
-			FishingBiteVisuals.startBitePrompt(payload.hookEntityId(), payload.durationTicks());
-		});
+		context.enqueueWork(() -> handleClient(payload));
+	}
+
+	@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+	private static void handleClient(FishingBitePromptPayload payload) {
+		Minecraft mc = Minecraft.getInstance();
+		if (mc == null || mc.player == null) {
+			return;
+		}
+		FishingBiteVisuals.startBitePrompt(payload.hookEntityId(), payload.durationTicks());
 	}
 }

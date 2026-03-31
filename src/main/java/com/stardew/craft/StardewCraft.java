@@ -62,6 +62,7 @@ public class StardewCraft {
                 output.accept(ModItems.WILD_WEEDS.get());
                 output.accept(ModItems.PASTURE_GRASS.get());
                 output.accept(ModItems.BLUE_PASTURE_GRASS.get());
+                output.accept(ModItems.YELLOW_DIRT.get());
 
                 // 矿井
                 output.accept(ModItems.MINE_BARRIER.get());
@@ -289,6 +290,15 @@ public class StardewCraft {
                 output.accept(ModItems.DWARF_SWORD.get());
                 output.accept(ModItems.GALAXY_SWORD.get());
                 output.accept(ModItems.INFINITY_BLADE.get());
+
+                // 家具/装饰
+                output.accept(ModItems.WALL_PHOTO_FRAME.get());
+                output.accept(ModItems.WALL_BONE_DECOR.get());
+                output.accept(ModItems.KITCHEN_COUNTER.get());
+                output.accept(ModItems.TABLEWARE_PINK.get());
+                output.accept(ModItems.TABLEWARE_BLUE.get());
+                output.accept(ModItems.WALL_KITCHEN_CABINET.get());
+
                 // 种子/作物：自动把所有已注册作物系统物品加入标签
                 java.util.List<Item> fruitItems = new java.util.ArrayList<>();
                 java.util.List<Item> forageItems = new java.util.ArrayList<>();

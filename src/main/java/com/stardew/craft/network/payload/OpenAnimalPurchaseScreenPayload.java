@@ -116,12 +116,15 @@ public record OpenAnimalPurchaseScreenPayload(
     }
 
     public static void handle(OpenAnimalPurchaseScreenPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            Minecraft minecraft = Minecraft.getInstance();
-            if (minecraft.player == null) {
-                return;
-            }
-            minecraft.setScreen(new AnimalPurchaseScreen(payload));
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(OpenAnimalPurchaseScreenPayload payload) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.player == null) {
+            return;
+        }
+        minecraft.setScreen(new AnimalPurchaseScreen(payload));
     }
 }

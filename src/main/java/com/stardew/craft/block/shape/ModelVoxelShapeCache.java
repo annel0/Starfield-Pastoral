@@ -286,6 +286,7 @@ public final class ModelVoxelShapeCache {
         return data.shape();
     }
 
+    @SuppressWarnings("null")
     private static GeoModelData loadGeoModelDataFromModelId(String modelId) {
         JsonObject geoRoot = readGeo(resolveGeoPath(modelId));
         if (geoRoot == null) {

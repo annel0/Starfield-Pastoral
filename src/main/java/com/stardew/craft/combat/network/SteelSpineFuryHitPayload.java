@@ -28,11 +28,14 @@ public record SteelSpineFuryHitPayload() implements CustomPacketPayload {
     }
 
     public static void handle(SteelSpineFuryHitPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            Minecraft mc = Minecraft.getInstance();
-            if (mc.player != null) {
-                SkillEffectsClient.playSteelSpineFuryHit(mc.player);
-            }
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(SteelSpineFuryHitPayload payload) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player != null) {
+            SkillEffectsClient.playSteelSpineFuryHit(mc.player);
+        }
     }
 }

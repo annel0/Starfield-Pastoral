@@ -33,14 +33,17 @@ public record SteelSpineFuryPayload(boolean active, int durationTicks) implement
     }
 
     public static void handle(SteelSpineFuryPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            if (payload.active()) {
-                Minecraft mc = Minecraft.getInstance();
-                long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
-                SteelSpineFuryClientState.start(nowTick, payload.durationTicks());
-            } else {
-                SteelSpineFuryClientState.clear();
-            }
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(SteelSpineFuryPayload payload) {
+        if (payload.active()) {
+            Minecraft mc = Minecraft.getInstance();
+            long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
+            SteelSpineFuryClientState.start(nowTick, payload.durationTicks());
+        } else {
+            SteelSpineFuryClientState.clear();
+        }
     }
 }

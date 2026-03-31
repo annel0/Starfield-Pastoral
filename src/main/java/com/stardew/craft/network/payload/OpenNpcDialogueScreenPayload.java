@@ -31,12 +31,15 @@ public record OpenNpcDialogueScreenPayload(String npcId, String text, int friend
     }
 
     public static void handle(OpenNpcDialogueScreenPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            Minecraft mc = Minecraft.getInstance();
-            if (mc.player == null) {
-                return;
-            }
-            mc.setScreen(new StardewNpcDialogueScreen(payload.npcId(), payload.text(), payload.friendshipPoints()));
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(OpenNpcDialogueScreenPayload payload) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) {
+            return;
+        }
+        mc.setScreen(new StardewNpcDialogueScreen(payload.npcId(), payload.text(), payload.friendshipPoints()));
     }
 }

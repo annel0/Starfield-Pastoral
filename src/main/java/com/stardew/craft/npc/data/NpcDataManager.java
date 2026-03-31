@@ -282,8 +282,10 @@ public final class NpcDataManager {
                     boolean useGround = readBoolean(obj, "use_ground_height", !indoor);
                     String portalTarget = readString(obj, "portal_target");
                     boolean useScheduleTileOffset = readBoolean(obj, "use_schedule_tile_offset", false);
+                    String outdoorDoorPoint = readString(obj, "outdoor_door_point");
+                    String indoorEntryPoint = readString(obj, "indoor_entry_point");
 
-                    anchors.put(name, new NpcLocationAnchor(x, y, z, indoor, portalTarget, useGround, useScheduleTileOffset));
+                    anchors.put(name, new NpcLocationAnchor(x, y, z, indoor, portalTarget, useGround, useScheduleTileOffset, outdoorDoorPoint, indoorEntryPoint));
                     locations.add(name);
                 }
             }

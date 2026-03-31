@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/common/pool_table",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/pool_table_1"
+	}
+}

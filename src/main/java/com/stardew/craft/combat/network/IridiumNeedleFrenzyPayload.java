@@ -34,17 +34,20 @@ public record IridiumNeedleFrenzyPayload(boolean active, int durationTicks) impl
     }
 
     public static void handle(IridiumNeedleFrenzyPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            if (payload.active()) {
-                Minecraft mc = Minecraft.getInstance();
-                long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
-                IridiumNeedleFrenzyClientState.start(nowTick, payload.durationTicks());
-                if (mc.player != null) {
-                    SkillEffectsClient.playSkillEffects("iridium_needle_frenzy", mc.player);
-                }
-            } else {
-                IridiumNeedleFrenzyClientState.clear();
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(IridiumNeedleFrenzyPayload payload) {
+        if (payload.active()) {
+            Minecraft mc = Minecraft.getInstance();
+            long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
+            IridiumNeedleFrenzyClientState.start(nowTick, payload.durationTicks());
+            if (mc.player != null) {
+                SkillEffectsClient.playSkillEffects("iridium_needle_frenzy", mc.player);
             }
-        });
+        } else {
+            IridiumNeedleFrenzyClientState.clear();
+        }
     }
 }

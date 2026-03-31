@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:block/utility/stool_item",
+  "textures": {
+    "particle": "stardewcraft:block/decor/common/stool_base"
+  }
+}

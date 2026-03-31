@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/common/white_teacup",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/white_teacup"
+	}
+}

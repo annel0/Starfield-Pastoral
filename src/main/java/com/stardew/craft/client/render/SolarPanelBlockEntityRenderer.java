@@ -24,7 +24,7 @@ public class SolarPanelBlockEntityRenderer implements BlockEntityRenderer<SolarP
     public SolarPanelBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
 
-    @SuppressWarnings({ "null", "deprecation" })
+    @SuppressWarnings("null")
     @Override
     public void render(@Nonnull SolarPanelBlockEntity be, float partialTick, @Nonnull PoseStack poseStack, @Nonnull MultiBufferSource buffer, int packedLight, int packedOverlay) {
         boolean ready = be.isReady();

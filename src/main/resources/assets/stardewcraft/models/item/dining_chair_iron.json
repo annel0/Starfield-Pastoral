@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:block/utility/dining_chair_iron_item",
+  "textures": {
+    "particle": "stardewcraft:block/decor/common/dining_chair_iron_base"
+  }
+}

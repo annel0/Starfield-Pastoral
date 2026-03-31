@@ -35,15 +35,18 @@ public record ObsidianResonanceSyncPayload(boolean active, int remainingTicks, i
     }
 
     public static void handle(ObsidianResonanceSyncPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            var mc = net.minecraft.client.Minecraft.getInstance();
-            if (mc.level == null) return;
-            long nowTick = mc.level.getGameTime();
-            if (payload.active()) {
-                ObsidianResonanceClientState.sync(nowTick, payload.remainingTicks(), payload.totalTicks());
-            } else {
-                ObsidianResonanceClientState.clear();
-            }
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(ObsidianResonanceSyncPayload payload) {
+        var mc = net.minecraft.client.Minecraft.getInstance();
+        if (mc.level == null) return;
+        long nowTick = mc.level.getGameTime();
+        if (payload.active()) {
+            ObsidianResonanceClientState.sync(nowTick, payload.remainingTicks(), payload.totalTicks());
+        } else {
+            ObsidianResonanceClientState.clear();
+        }
     }
 }

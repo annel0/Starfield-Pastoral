@@ -33,8 +33,10 @@ import com.stardew.craft.client.render.AutoPetterBlockEntityRenderer;
 import com.stardew.craft.client.render.HeaterBlockEntityRenderer;
 import com.stardew.craft.client.render.LargeFireplaceBlockEntityRenderer;
 import com.stardew.craft.client.render.ShrineBlockEntityRenderer;
+import com.stardew.craft.client.render.PillarGeoBlockEntityRenderer;
 import com.stardew.craft.client.render.ShippingBinBlockEntityRenderer;
 import com.stardew.craft.client.render.StoneChestBlockEntityRenderer;
+import com.stardew.craft.client.render.TrashBinBlockEntityRenderer;
 import com.stardew.craft.client.render.WoodenChestBlockEntityRenderer;
 import com.stardew.craft.client.render.SolarPanelBlockEntityRenderer;
 import com.stardew.craft.client.render.TapperBlockEntityRenderer;
@@ -122,12 +124,15 @@ public final class ModClientSetup {
 		event.registerBlockEntityRenderer(ModBlockEntities.WOODEN_CHEST.get(), WoodenChestBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.STONE_CHEST.get(), StoneChestBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.SHIPPING_BIN.get(), ShippingBinBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(ModBlockEntities.TRASH_BIN.get(), TrashBinBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.HEATER.get(), HeaterBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.DELUXE_WORM_BIN.get(), DeluxeWormBinBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.ANIMAL_PRODUCE_SPOT.get(), AnimalProduceSpotBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.LARGE_FIREPLACE.get(), LargeFireplaceBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.SHRINE.get(), ShrineBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.BOOKSHELF_GEO.get(), BookshelfGeoBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(ModBlockEntities.PILLAR_GEO.get(), PillarGeoBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(ModBlockEntities.GRANDFATHER_CLOCK.get(), com.stardew.craft.client.render.GrandfatherClockBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.TABLE_DISPLAY.get(), TableDisplayBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.OFFICE_STOOL.get(), OfficeStoolBlockEntityRenderer::new);
 			}

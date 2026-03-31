@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:decor/common/jukebox",
+  "textures": {
+    "particle": "stardewcraft:block/decor/common/jukebox"
+  }
+}

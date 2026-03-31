@@ -31,16 +31,19 @@ public record IridiumNeedleCritPayload(int stacks) implements CustomPacketPayloa
     }
 
     public static void handle(IridiumNeedleCritPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            Minecraft mc = Minecraft.getInstance();
-            if (mc.player == null) {
-                return;
-            }
-            if (payload.stacks() > 0) {
-                IridiumNeedleCritClientState.setStacks(payload.stacks());
-            } else {
-                IridiumNeedleCritClientState.clear();
-            }
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(IridiumNeedleCritPayload payload) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) {
+            return;
+        }
+        if (payload.stacks() > 0) {
+            IridiumNeedleCritClientState.setStacks(payload.stacks());
+        } else {
+            IridiumNeedleCritClientState.clear();
+        }
     }
 }

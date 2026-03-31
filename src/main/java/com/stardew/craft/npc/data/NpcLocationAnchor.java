@@ -10,9 +10,13 @@ public record NpcLocationAnchor(
     boolean indoor,
     String portalTarget,
     boolean useGroundHeight,
-    boolean useScheduleTileOffset
+    boolean useScheduleTileOffset,
+    String outdoorDoorPoint,
+    String indoorEntryPoint
 ) {
     public NpcLocationAnchor {
         portalTarget = portalTarget == null ? "" : portalTarget.trim().toLowerCase();
+        outdoorDoorPoint = outdoorDoorPoint == null ? "" : outdoorDoorPoint.trim();
+        indoorEntryPoint = indoorEntryPoint == null ? "" : indoorEntryPoint.trim();
     }
 }

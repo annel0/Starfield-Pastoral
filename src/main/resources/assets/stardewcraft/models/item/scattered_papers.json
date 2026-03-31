@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/common/scattered_papers",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/scattered_papers"
+	}
+}

@@ -41,15 +41,18 @@ public record DwarfDaggerThrustPayload(boolean active, int durationTicks, double
     }
 
     public static void handle(DwarfDaggerThrustPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            if (payload.active()) {
-                Minecraft mc = Minecraft.getInstance();
-                long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
-                Vec3 end = new Vec3(payload.endX(), payload.endY(), payload.endZ());
-                DwarfDaggerThrustClientState.start(nowTick, payload.durationTicks(), end);
-            } else {
-                DwarfDaggerThrustClientState.clear();
-            }
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(DwarfDaggerThrustPayload payload) {
+        if (payload.active()) {
+            Minecraft mc = Minecraft.getInstance();
+            long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
+            Vec3 end = new Vec3(payload.endX(), payload.endY(), payload.endZ());
+            DwarfDaggerThrustClientState.start(nowTick, payload.durationTicks(), end);
+        } else {
+            DwarfDaggerThrustClientState.clear();
+        }
     }
 }

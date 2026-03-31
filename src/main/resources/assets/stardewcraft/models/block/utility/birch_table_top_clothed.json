@@ -1,4 +1,4 @@
-﻿{
+{
   "parent": "block/block",
   "textures": {
     "0": "stardewcraft:block/decor/common/birch_table",
@@ -7,17 +7,74 @@
   "elements": [
     {
       "name": "top",
-      "from": [0.1, 10, 0.1],
-      "to": [15.9, 11, 15.9],
+      "from": [
+        0.1,
+        15,
+        0.1
+      ],
+      "to": [
+        15.9,
+        16,
+        15.9
+      ],
       "faces": {
-        "north": {"uv": [7.5, 0, 11.5, 0.25], "texture": "#0"},
-        "east": {"uv": [7.5, 0.25, 11.5, 0.5], "texture": "#0"},
-        "south": {"uv": [6, 7, 10, 7.25], "texture": "#0"},
-        "west": {"uv": [6, 7.25, 10, 7.5], "texture": "#0"},
-        "up": {"uv": [4, 4, 0, 0], "rotation": 180, "texture": "#0"},
-        "down": {"uv": [4, 4, 0, 8], "rotation": 180, "texture": "#0"}
+        "north": {
+          "uv": [
+            7.5,
+            0,
+            11.5,
+            0.25
+          ],
+          "texture": "#0"
+        },
+        "east": {
+          "uv": [
+            7.5,
+            0.25,
+            11.5,
+            0.5
+          ],
+          "texture": "#0"
+        },
+        "south": {
+          "uv": [
+            6,
+            7,
+            10,
+            7.25
+          ],
+          "texture": "#0"
+        },
+        "west": {
+          "uv": [
+            6,
+            7.25,
+            10,
+            7.5
+          ],
+          "texture": "#0"
+        },
+        "up": {
+          "uv": [
+            4,
+            4,
+            0,
+            0
+          ],
+          "rotation": 180,
+          "texture": "#0"
+        },
+        "down": {
+          "uv": [
+            4,
+            4,
+            0,
+            8
+          ],
+          "rotation": 180,
+          "texture": "#0"
+        }
       }
     }
   ]
 }
-

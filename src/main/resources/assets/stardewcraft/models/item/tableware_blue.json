@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/common/tableware_blue",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/tableware_blue"
+	}
+}

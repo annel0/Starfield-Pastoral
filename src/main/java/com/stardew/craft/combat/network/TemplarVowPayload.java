@@ -33,16 +33,19 @@ public record TemplarVowPayload(boolean active, int durationTicks) implements Cu
     }
 
     public static void handle(TemplarVowPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            var mc = net.minecraft.client.Minecraft.getInstance();
-            if (mc.level == null) return;
-            long nowTick = mc.level.getGameTime();
-            if (payload.active()) {
-                TemplarVowClientState.start(nowTick, payload.durationTicks());
-            } else {
-                TemplarVowClientState.clear();
-                WeaponSkillAnimationClient.stop();
-            }
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(TemplarVowPayload payload) {
+        var mc = net.minecraft.client.Minecraft.getInstance();
+        if (mc.level == null) return;
+        long nowTick = mc.level.getGameTime();
+        if (payload.active()) {
+            TemplarVowClientState.start(nowTick, payload.durationTicks());
+        } else {
+            TemplarVowClientState.clear();
+            WeaponSkillAnimationClient.stop();
+        }
     }
 }

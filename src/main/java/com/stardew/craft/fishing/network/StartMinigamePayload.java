@@ -111,25 +111,28 @@ public record StartMinigamePayload(
 	}
 
 	public static void handle(StartMinigamePayload payload, IPayloadContext context) {
-		context.enqueueWork(() -> {
-			Minecraft mc = Minecraft.getInstance();
-			if (mc != null && mc.player != null) {
-				mc.setScreen(new FishingMinigameScreen(
-						payload.sessionId(),
-						payload.difficulty(),
-						payload.motionTypeId(),
-						payload.legendaryFish(),
-						payload.durationTicks(),
-						payload.hasTreasure(),
-						payload.goldenTreasure(),
-						payload.hasSonarBobber(),
-						payload.sonarFishItemId(),
-						payload.barSizeBonus(),
-						payload.escapeLossPerTick(),
-						payload.barbedHookCount(),
-						payload.leadBobberCount()
-				));
-			}
-		});
+		context.enqueueWork(() -> handleClient(payload));
+	}
+
+	@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+	private static void handleClient(StartMinigamePayload payload) {
+		Minecraft mc = Minecraft.getInstance();
+		if (mc != null && mc.player != null) {
+			mc.setScreen(new FishingMinigameScreen(
+					payload.sessionId(),
+					payload.difficulty(),
+					payload.motionTypeId(),
+					payload.legendaryFish(),
+					payload.durationTicks(),
+					payload.hasTreasure(),
+					payload.goldenTreasure(),
+					payload.hasSonarBobber(),
+					payload.sonarFishItemId(),
+					payload.barSizeBonus(),
+					payload.escapeLossPerTick(),
+					payload.barbedHookCount(),
+					payload.leadBobberCount()
+			));
+		}
 	}
 }

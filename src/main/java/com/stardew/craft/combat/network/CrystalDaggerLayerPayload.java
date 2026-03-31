@@ -38,26 +38,29 @@ public record CrystalDaggerLayerPayload(int stacks, int durationTicks, boolean p
     }
 
     public static void handle(CrystalDaggerLayerPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            Minecraft mc = Minecraft.getInstance();
-            if (mc.player == null || mc.level == null) {
-                return;
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(CrystalDaggerLayerPayload payload) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || mc.level == null) {
+            return;
+        }
+        var level = Objects.requireNonNull(mc.level, "level");
+        var player = Objects.requireNonNull(mc.player, "player");
+        long nowTick = level.getGameTime();
+        if (payload.stacks() > 0) {
+            CrystalDaggerLayerClientState.start(nowTick, payload.durationTicks(), payload.stacks());
+        } else {
+            CrystalDaggerLayerClientState.clear();
+        }
+        if (payload.playChime() && payload.stacks() > 0) {
+            float pitch = 1.0f + 0.2f * Math.max(0, payload.stacks() - 1);
+            var sound = SoundEvents.EXPERIENCE_ORB_PICKUP;
+            if (sound != null) {
+                player.playSound(sound, 1.0f, pitch);
             }
-            var level = Objects.requireNonNull(mc.level, "level");
-            var player = Objects.requireNonNull(mc.player, "player");
-            long nowTick = level.getGameTime();
-            if (payload.stacks() > 0) {
-                CrystalDaggerLayerClientState.start(nowTick, payload.durationTicks(), payload.stacks());
-            } else {
-                CrystalDaggerLayerClientState.clear();
-            }
-            if (payload.playChime() && payload.stacks() > 0) {
-                float pitch = 1.0f + 0.2f * Math.max(0, payload.stacks() - 1);
-                var sound = SoundEvents.EXPERIENCE_ORB_PICKUP;
-                if (sound != null) {
-                    player.playSound(sound, 1.0f, pitch);
-                }
-            }
-        });
+        }
     }
 }

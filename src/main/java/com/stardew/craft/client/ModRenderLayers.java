@@ -8,7 +8,7 @@ public final class ModRenderLayers {
     private ModRenderLayers() {
     }
 
-    @SuppressWarnings("null")
+    @SuppressWarnings({"null", "deprecation"})
     public static void registerCutout(Iterable<Block> blocks) {
         for (Block block : blocks) {
             ItemBlockRenderTypes.setRenderLayer(block, RenderType.cutout());

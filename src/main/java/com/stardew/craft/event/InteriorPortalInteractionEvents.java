@@ -7,9 +7,12 @@ import com.stardew.craft.interior.InteriorSubspaceManager;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 import java.util.Locale;
 import java.util.Optional;
@@ -158,15 +161,30 @@ public class InteriorPortalInteractionEvents {
     private static void applyInteriorFlag(ServerPlayer player, InteriorPortalRegistry.PortalMode mode) {
         if (mode == InteriorPortalRegistry.PortalMode.ENTRANCE) {
             player.getPersistentData().putBoolean(PLAYER_FLAG_INTERIOR, true);
+            player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, -1, 0, false, false, false));
             return;
         }
         if (mode == InteriorPortalRegistry.PortalMode.EXIT) {
             player.getPersistentData().putBoolean(PLAYER_FLAG_INTERIOR, false);
+            player.removeEffect(MobEffects.NIGHT_VISION);
         }
     }
 
     public static boolean isPlayerInInteriorSpace(ServerPlayer player) {
         return player.getPersistentData().getBoolean(PLAYER_FLAG_INTERIOR);
+    }
+
+    @SubscribeEvent
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+        if (!event.getEntity().level().isClientSide && event.getEntity() instanceof ServerPlayer player) {
+            if (player.tickCount % 40 == 0) {
+                if (isPlayerInInteriorSpace(player)) {
+                    if (!player.hasEffect(MobEffects.NIGHT_VISION)) {
+                        player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, -1, 0, false, false, false));
+                    }
+                }
+            }
+        }
     }
 
     private record PortalTargetSpec(

@@ -147,7 +147,7 @@ public final class AnimalEntitySyncService {
     private static boolean canStand(ServerLevel level, BlockPos pos) {
         return level.getBlockState(pos).isAir()
             && level.getBlockState(pos.above()).isAir()
-            && level.getBlockState(pos.below()).blocksMotion();
+            && !level.getBlockState(pos.below()).getCollisionShape(level, pos.below()).isEmpty();
     }
 
     private static EntityType<? extends BaseCoopAnimalEntity> resolveEntityType(String animalTypeId) {

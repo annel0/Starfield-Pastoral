@@ -41,15 +41,18 @@ public record DashMovementPayload(boolean active, int durationTicks, double endX
     }
 
     public static void handle(DashMovementPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            if (payload.active()) {
-                Minecraft mc = Minecraft.getInstance();
-                long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
-                Vec3 end = new Vec3(payload.endX(), payload.endY(), payload.endZ());
-                DashMovementClientState.start(nowTick, payload.durationTicks(), end);
-            } else {
-                DashMovementClientState.clear();
-            }
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(DashMovementPayload payload) {
+        if (payload.active()) {
+            Minecraft mc = Minecraft.getInstance();
+            long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
+            Vec3 end = new Vec3(payload.endX(), payload.endY(), payload.endZ());
+            DashMovementClientState.start(nowTick, payload.durationTicks(), end);
+        } else {
+            DashMovementClientState.clear();
+        }
     }
 }

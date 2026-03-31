@@ -1,0 +1,27 @@
+{
+  "event_id": "location_graph",
+  "edges": [
+    { "from": "town",              "to": "seedshop",         "via_outdoor": "seedshop_outer",         "via_indoor": "seedshop_inner_entry",  "mode": "walk_warp" },
+    { "from": "town",              "to": "saloon",            "via_outdoor": "saloon_outer",           "via_indoor": "",                      "mode": "walk_warp" },
+    { "from": "town",              "to": "manorhouse",        "via_outdoor": "manorhouse_outer",       "via_indoor": "",                      "mode": "walk" },
+    { "from": "town",              "to": "hospital",          "via_outdoor": "",                       "via_indoor": "",                      "mode": "walk" },
+    { "from": "town",              "to": "blacksmith",        "via_outdoor": "",                       "via_indoor": "",                      "mode": "walk" },
+    { "from": "town",              "to": "archaeologyhouse",  "via_outdoor": "",                       "via_indoor": "",                      "mode": "walk" },
+    { "from": "town",              "to": "jojamart",          "via_outdoor": "",                       "via_indoor": "",                      "mode": "walk" },
+    { "from": "town",              "to": "haleyhouse",        "via_outdoor": "",                       "via_indoor": "",                      "mode": "walk" },
+    { "from": "town",              "to": "joshhouse",         "via_outdoor": "",                       "via_indoor": "",                      "mode": "walk" },
+    { "from": "town",              "to": "trailer",           "via_outdoor": "",                       "via_indoor": "",                      "mode": "walk" },
+    { "from": "town",              "to": "samhouse",          "via_outdoor": "",                       "via_indoor": "",                      "mode": "walk" },
+    { "from": "town",              "to": "communitycenter",   "via_outdoor": "communitycenter_outer",  "via_indoor": "",                      "mode": "walk" },
+    { "from": "town",              "to": "beach",             "via_outdoor": "",                       "via_indoor": "",                      "mode": "walk" },
+    { "from": "town",              "to": "busstop",           "via_outdoor": "",                       "via_indoor": "",                      "mode": "walk" },
+    { "from": "town",              "to": "mountain",          "via_outdoor": "",                       "via_indoor": "",                      "mode": "walk" },
+    { "from": "town",              "to": "elliotthouse",      "via_outdoor": "",                       "via_indoor": "",                      "mode": "walk" },
+    { "from": "mountain",          "to": "sciencehouse",      "via_outdoor": "",                       "via_indoor": "",                      "mode": "walk" },
+    { "from": "mountain",          "to": "railroad",          "via_outdoor": "",                       "via_indoor": "",                      "mode": "walk" },
+    { "from": "busstop",           "to": "forest",            "via_outdoor": "",                       "via_indoor": "",                      "mode": "walk" },
+    { "from": "forest",            "to": "animalshop",        "via_outdoor": "",                       "via_indoor": "",                      "mode": "walk" },
+    { "from": "forest",            "to": "leahhouse",         "via_outdoor": "",                       "via_indoor": "",                      "mode": "walk" },
+    { "from": "beach",             "to": "fishshop",          "via_outdoor": "fishshop_outer",         "via_indoor": "",                      "mode": "walk" }
+  ]
+}

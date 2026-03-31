@@ -57,6 +57,7 @@ public class SmokedFishItemRenderer extends BlockEntityWithoutLevelRenderer {
 
         poseStack.pushPose();
 
+        @SuppressWarnings("deprecation")
         RenderType baseType = ItemBlockRenderTypes.getRenderType(sourceStack, true);
         VertexConsumer baseVc = buffer.getBuffer(baseType);
         mc.getItemRenderer().renderModelLists(

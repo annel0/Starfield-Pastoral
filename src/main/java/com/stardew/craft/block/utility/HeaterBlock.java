@@ -104,6 +104,6 @@ public class HeaterBlock extends Block implements EntityBlock {
     @SuppressWarnings("null")
     @Override
     public BlockState mirror(@SuppressWarnings("null") BlockState state, @SuppressWarnings("null") Mirror mirror) {
-        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+        return state.setValue(FACING, mirror.mirror(state.getValue(FACING)));
     }
 }

@@ -310,6 +310,21 @@
       { "name": "stardewcraft:trashcanlid", "stream": false }
     ]
   },
+  "trashcan": {
+    "sounds": [
+      { "name": "stardewcraft:trashcan", "stream": false }
+    ]
+  },
+  "explosion": {
+    "sounds": [
+      { "name": "stardewcraft:explosion", "stream": false }
+    ]
+  },
+  "crit": {
+    "sounds": [
+      { "name": "stardewcraft:crit", "stream": false }
+    ]
+  },
   "throw_down_item": {
     "sounds": [
       { "name": "stardewcraft:throw_down_item", "stream": false }
@@ -359,6 +374,16 @@
     "sounds": [
       { "name": "stardewcraft:animals/pig_1", "stream": false },
       { "name": "stardewcraft:animals/pig_2", "stream": false }
+    ]
+  },
+  "level_up": {
+    "sounds": [
+      { "name": "stardewcraft:level_up", "stream": false }
+    ]
+  },
+  "new_artifact": {
+    "sounds": [
+      { "name": "stardewcraft:new_artifact", "stream": false }
     ]
   }
 }

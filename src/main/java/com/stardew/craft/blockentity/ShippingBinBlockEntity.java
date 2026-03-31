@@ -420,4 +420,9 @@ public class ShippingBinBlockEntity extends net.minecraft.world.level.block.enti
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return cache;
     }
+
+    @SuppressWarnings("null")
+    public AABB getRenderBoundingBox() {
+        return new AABB(worldPosition).inflate(1.0);
+    }
 }

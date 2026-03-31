@@ -87,12 +87,15 @@ public record OpenDecorationScreenPayload(
     }
 
     public static void handle(OpenDecorationScreenPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            Minecraft minecraft = Minecraft.getInstance();
-            if (minecraft.player == null) {
-                return;
-            }
-            minecraft.setScreen(new DecorationSelectionScreen(payload));
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(OpenDecorationScreenPayload payload) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.player == null) {
+            return;
+        }
+        minecraft.setScreen(new DecorationSelectionScreen(payload));
     }
 }

@@ -38,29 +38,31 @@ public record WickedKrisPoisonStatusPayload(int stacks, int durationTicks, int d
     }
 
     public static void handle(WickedKrisPoisonStatusPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            Minecraft mc = Minecraft.getInstance();
-            if (mc.level == null) {
-                return;
-            }
-            long nowTick = mc.level.getGameTime();
-            if (payload.stacks() > 0 && payload.durationTicks() > 0) {
-                WickedKrisPoisonClientState.updatePoison(nowTick, payload.durationTicks(), payload.stacks());
-            } else if (payload.stacks() <= 0) {
-                WickedKrisPoisonClientState.clearPoison();
-            }
+        context.enqueueWork(() -> handleClient(payload));
+    }
 
-            if (payload.detonateRemainingTicks() >= 0) {
-                if (payload.detonateRemainingTicks() > 0) {
-                    WickedKrisPoisonClientState.updateDetonation(
-                        nowTick,
-                        payload.detonateRemainingTicks(),
-                        payload.detonateTotalTicks()
-                    );
-                } else {
-                    WickedKrisPoisonClientState.clearDetonation();
-                }
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(WickedKrisPoisonStatusPayload payload) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.level == null) {
+            return;
+        }
+        long nowTick = mc.level.getGameTime();
+        if (payload.stacks() > 0 && payload.durationTicks() > 0) {
+            WickedKrisPoisonClientState.updatePoison(nowTick, payload.durationTicks(), payload.stacks());
+        } else if (payload.stacks() <= 0) {
+            WickedKrisPoisonClientState.clearPoison();
+        }
+        if (payload.detonateRemainingTicks() >= 0) {
+            if (payload.detonateRemainingTicks() > 0) {
+                WickedKrisPoisonClientState.updateDetonation(
+                    nowTick,
+                    payload.detonateRemainingTicks(),
+                    payload.detonateTotalTicks()
+                );
+            } else {
+                WickedKrisPoisonClientState.clearDetonation();
             }
-        });
+        }
     }
 }

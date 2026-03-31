@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:decor/common/arcade_machine",
+  "textures": {
+    "particle": "stardewcraft:block/decor/common/arcade_machine"
+  }
+}

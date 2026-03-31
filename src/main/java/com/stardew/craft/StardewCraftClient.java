@@ -8,12 +8,14 @@ import com.stardew.craft.client.render.FallenOakTreeRenderer;
 import com.stardew.craft.client.ModItemProperties;
 import com.stardew.craft.client.ModRenderLayers;
 import com.stardew.craft.client.render.FertilizerOverlayRenderer;
+import com.stardew.craft.client.render.TVScreenOverlayRenderer;
 import com.stardew.craft.client.renderer.SprinklerOverlayRenderer;
 import com.stardew.craft.client.DebugKeybindsTick;
 import com.stardew.craft.client.renderer.entity.SofaSeatEntityRenderer;
 import com.stardew.craft.entity.ModEntities;
 import com.stardew.craft.block.utility.CushionBlock;
 import com.stardew.craft.block.utility.OfficeChair2Block;
+import com.stardew.craft.block.utility.DyeableChairBlock;
 import com.stardew.craft.block.utility.OfficeChair2TopRenderBlock;
 import com.stardew.craft.block.utility.OfficeStoolBlock;
 import com.stardew.craft.block.utility.OfficeStoolTopRenderBlock;
@@ -48,6 +50,7 @@ public class StardewCraftClient {
         // Do not forget to add translations for your config options to the en_us.json file.
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
     NeoForge.EVENT_BUS.register(FertilizerOverlayRenderer.class);
+    NeoForge.EVENT_BUS.register(TVScreenOverlayRenderer.class);
     NeoForge.EVENT_BUS.register(SprinklerOverlayRenderer.class);
     NeoForge.EVENT_BUS.register(DebugKeybindsTick.class);
     }
@@ -182,6 +185,9 @@ public class StardewCraftClient {
                 ModBlocks.BOOK_STACK_2_3.get(),
                 ModBlocks.BOOKSHELF_WALL_3_1.get(),
                 ModBlocks.SOFA.get(),
+                ModBlocks.STOOL.get(),
+                ModBlocks.DINING_CHAIR_WOOD.get(),
+                ModBlocks.DINING_CHAIR_IRON.get(),
                 ModBlocks.CHAIR_1.get(),
                 ModBlocks.CHAIR_2.get(),
                 ModBlocks.CHAIR_3.get(),
@@ -197,7 +203,46 @@ public class StardewCraftClient {
                 ModBlocks.LIGHT_7.get(),
                 ModBlocks.OAK_TABLE.get(),
                 ModBlocks.SPRUCE_TABLE.get(),
-                ModBlocks.BIRCH_TABLE.get()
+                ModBlocks.BIRCH_TABLE.get(),
+                ModBlocks.OAK_ROUND_TABLE.get(),
+                ModBlocks.ARCADE_MACHINE.get(),
+                ModBlocks.WALL_PHOTO_FRAME.get(),
+                ModBlocks.WALL_BONE_DECOR.get(),
+                ModBlocks.KITCHEN_COUNTER.get(),
+                ModBlocks.TABLEWARE_PINK.get(),
+                ModBlocks.TABLEWARE_BLUE.get(),
+                ModBlocks.WALL_KITCHEN_CABINET.get(),
+                ModBlocks.JOJA_VENDING_MACHINE.get(),
+                ModBlocks.WHITE_TEACUP.get(),
+                ModBlocks.POOL_TABLE.get(),
+                ModBlocks.HOSPITAL_COUNTER.get(),
+                ModBlocks.HOSPITAL_POSTER_1.get(),
+                ModBlocks.HOSPITAL_POSTER_2.get(),
+                ModBlocks.HOSPITAL_POSTER_3.get(),
+                ModBlocks.HOSPITAL_POSTER_4.get(),
+                ModBlocks.HOSPITAL_POSTER_5.get(),
+                ModBlocks.ELECTRIC_PIANO.get(),
+                ModBlocks.WIZARD_CAULDRON.get(),
+                ModBlocks.GUITAR.get(),
+                ModBlocks.MICROWAVE.get(),
+                ModBlocks.DRUM_SET.get(),
+                ModBlocks.WINE_CABINET_1.get(),
+                ModBlocks.WINE_CABINET_2.get(),
+                ModBlocks.WINE_CABINET_3.get(),
+                ModBlocks.ALEX_POSTER_1.get(),
+                ModBlocks.ALEX_POSTER_2.get(),
+                ModBlocks.ALEX_POSTER_3.get(),
+                ModBlocks.PERIODIC_TABLE.get(),
+                ModBlocks.MICROSCOPE.get(),
+                ModBlocks.TRAIN_PHOTO.get(),
+                ModBlocks.WALL_PHOTO_1.get(),
+                ModBlocks.PAPER_CHECKLIST.get(),
+                ModBlocks.SINE_WAVE_POSTER.get(),
+                ModBlocks.SCATTERED_PAPERS.get(),
+                ModBlocks.SEBASTIAN_POSTER_1.get(),
+                ModBlocks.SEBASTIAN_POSTER_2.get(),
+                ModBlocks.SEBASTIAN_POSTER_3.get(),
+                ModBlocks.BOARD_GAME.get()
             ));
 
             // Negative-volume models with mixed opaque/transparent faces.
@@ -207,6 +252,18 @@ public class StardewCraftClient {
             );
             net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
                 ModBlocks.MUSEUM_EXHIBIT_STAND.get(),
+                net.minecraft.client.renderer.RenderType.translucent()
+            );
+            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
+                ModBlocks.TABLE_LANTERN.get(),
+                net.minecraft.client.renderer.RenderType.translucent()
+            );
+            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
+                ModBlocks.JUKEBOX.get(),
+                net.minecraft.client.renderer.RenderType.translucent()
+            );
+            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
+                ModBlocks.BEAKER.get(),
                 net.minecraft.client.renderer.RenderType.translucent()
             );
             
@@ -241,6 +298,8 @@ public class StardewCraftClient {
                 indexValue = state.getValue(OfficeChair2Block.COLOR);
             } else if (state.hasProperty(OfficeChair2TopRenderBlock.COLOR)) {
                 indexValue = state.getValue(OfficeChair2TopRenderBlock.COLOR);
+            } else if (state.hasProperty(DyeableChairBlock.COLOR)) {
+                indexValue = state.getValue(DyeableChairBlock.COLOR);
             }
             if (indexValue == null) {
                 return 0xFFFFFFFF;
@@ -250,7 +309,7 @@ public class StardewCraftClient {
                 index = 0;
             }
             return 0xFF000000 | (WoodenChestColorPalette.rgbAt(index) & 0xFFFFFF);
-        }, ModBlocks.SOFA.get(), ModBlocks.CUSHION.get(), ModBlocks.OFFICE_STOOL.get(), ModBlocks.OFFICE_STOOL_TOP_RENDER.get(), ModBlocks.OFFICE_CHAIR_2.get(), ModBlocks.OFFICE_CHAIR_2_TOP_RENDER.get());
+        }, ModBlocks.SOFA.get(), ModBlocks.CUSHION.get(), ModBlocks.OFFICE_STOOL.get(), ModBlocks.OFFICE_STOOL_TOP_RENDER.get(), ModBlocks.OFFICE_CHAIR_2.get(), ModBlocks.OFFICE_CHAIR_2_TOP_RENDER.get(), ModBlocks.STOOL.get(), ModBlocks.DINING_CHAIR_WOOD.get(), ModBlocks.DINING_CHAIR_IRON.get());
     }
 
     @SubscribeEvent
@@ -260,7 +319,7 @@ public class StardewCraftClient {
                 return 0xFFFFFFFF;
             }
             return 0xFF000000 | (WoodenChestColorPalette.rgbAt(0) & 0xFFFFFF);
-        }, ModItems.SOFA.get(), ModItems.CUSHION.get(), ModItems.OFFICE_STOOL.get(), ModItems.OFFICE_CHAIR_2.get());
+        }, ModItems.SOFA.get(), ModItems.CUSHION.get(), ModItems.OFFICE_STOOL.get(), ModItems.OFFICE_CHAIR_2.get(), ModItems.STOOL.get(), ModItems.DINING_CHAIR_WOOD.get(), ModItems.DINING_CHAIR_IRON.get());
 
         event.register((stack, tintIndex) -> {
             if (!(stack.getItem() instanceof PreservesItem preservesItem)) {

@@ -33,14 +33,17 @@ public record ElfBladePayload(boolean active, int durationTicks) implements Cust
     }
 
     public static void handle(ElfBladePayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            if (payload.active()) {
-                Minecraft mc = Minecraft.getInstance();
-                long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
-                ElfBladeClientState.start(nowTick, payload.durationTicks());
-            } else {
-                ElfBladeClientState.clear();
-            }
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(ElfBladePayload payload) {
+        if (payload.active()) {
+            Minecraft mc = Minecraft.getInstance();
+            long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
+            ElfBladeClientState.start(nowTick, payload.durationTicks());
+        } else {
+            ElfBladeClientState.clear();
+        }
     }
 }

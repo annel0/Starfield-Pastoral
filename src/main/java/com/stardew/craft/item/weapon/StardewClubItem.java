@@ -61,7 +61,7 @@ public class StardewClubItem extends Item implements IStardewItem, IStardewWeapo
         return stack;
     }
 
-    @SuppressWarnings("null")
+    @SuppressWarnings({"null", "deprecation"})
     @Override
     public ItemAttributeModifiers getDefaultAttributeModifiers() {
         if (weaponData == null) {

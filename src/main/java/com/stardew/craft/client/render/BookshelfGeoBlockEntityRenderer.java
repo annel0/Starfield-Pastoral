@@ -13,13 +13,14 @@ import software.bernie.geckolib.renderer.GeoBlockRenderer;
 
 import javax.annotation.Nonnull;
 
+@SuppressWarnings("null")
 public class BookshelfGeoBlockEntityRenderer extends GeoBlockRenderer<BookshelfGeoBlockEntity> {
     public BookshelfGeoBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
         super(new BookshelfGeoModel());
     }
 
     @Override
-    public void render(@Nonnull BookshelfGeoBlockEntity animatable, float partialTick, @Nonnull PoseStack poseStack, @Nonnull MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+    public void render(BookshelfGeoBlockEntity animatable, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState state = animatable.getBlockState();
         if (state.hasProperty(MapDecorStaticBlock.PART)
             && state.getValue(MapDecorStaticBlock.PART) != MapDecorStaticBlock.Part.MAIN) {
@@ -32,9 +33,14 @@ public class BookshelfGeoBlockEntityRenderer extends GeoBlockRenderer<BookshelfG
 
         poseStack.pushPose();
         poseStack.translate(0.5D, 0.0D, 0.5D);
-        poseStack.mulPose(Axis.YP.rotationDegrees(-facing.toYRot()));
+        poseStack.mulPose(Axis.YP.rotationDegrees(-facing.toYRot() + 180f));
         poseStack.translate(-0.5D, 0.0D, -0.5D);
         super.render(animatable, partialTick, poseStack, bufferSource, packedLight, packedOverlay);
         poseStack.popPose();
+    }
+
+    @Override
+    protected void rotateBlock(@Nonnull Direction facing, @Nonnull PoseStack poseStack) {
+        // Rotation is already handled in render(); prevent GeoBlockRenderer from applying it again.
     }
 }

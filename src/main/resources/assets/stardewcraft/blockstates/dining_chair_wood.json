@@ -1,0 +1,90 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "facing": "north",
+        "part": "main"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/dining_chair_wood_base_forbidden"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "part": "main"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/dining_chair_wood_base_tint"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "part": "main"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/dining_chair_wood_base_forbidden",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "part": "main"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/dining_chair_wood_base_tint",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "part": "main"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/dining_chair_wood_base_forbidden",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "part": "main"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/dining_chair_wood_base_tint",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "part": "main"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/dining_chair_wood_base_forbidden",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "part": "main"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/dining_chair_wood_base_tint",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "part": "extension"
+      },
+      "apply": {
+        "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+      }
+    }
+  ]
+}

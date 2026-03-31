@@ -98,6 +98,48 @@ public record ApplySofaColorPayload(BlockPos targetPos, int colorIndex) implemen
                 if (updated != state) {
                     player.level().setBlock(payload.targetPos(), updated, 3);
                 }
+                return;
+            }
+
+            if (state.getBlock() instanceof com.stardew.craft.block.utility.DyeableChairBlock && state.hasProperty(com.stardew.craft.block.utility.DyeableChairBlock.COLOR)) {
+                com.stardew.craft.block.utility.DyeableChairBlock chairBlock =
+                    (com.stardew.craft.block.utility.DyeableChairBlock) state.getBlock();
+                BlockPos mainPos = chairBlock.resolveMainPos(player.level(), payload.targetPos(), state);
+                BlockState mainState = player.level().getBlockState(mainPos);
+                if (!(mainState.getBlock() instanceof com.stardew.craft.block.utility.DyeableChairBlock)
+                    || !mainState.hasProperty(com.stardew.craft.block.utility.DyeableChairBlock.COLOR)) {
+                    return;
+                }
+
+                BlockState updatedMain = mainState.setValue(com.stardew.craft.block.utility.DyeableChairBlock.COLOR, clamped);
+                if (updatedMain != mainState) {
+                    player.level().setBlock(mainPos, updatedMain, 3);
+                }
+
+                // Keep extension cells synchronized with MAIN so clicking either part is stable.
+                for (int dx = -1; dx <= 1; dx++) {
+                    for (int dy = -2; dy <= 2; dy++) {
+                        for (int dz = -1; dz <= 1; dz++) {
+                            if (dx == 0 && dy == 0 && dz == 0) {
+                                continue;
+                            }
+                            BlockPos candidatePos = mainPos.offset(dx, dy, dz);
+                            BlockState candidateState = player.level().getBlockState(candidatePos);
+                            if (!(candidateState.getBlock() instanceof com.stardew.craft.block.utility.DyeableChairBlock)
+                                || !candidateState.hasProperty(com.stardew.craft.block.utility.DyeableChairBlock.COLOR)) {
+                                continue;
+                            }
+                            BlockPos resolvedMain = chairBlock.resolveMainPos(player.level(), candidatePos, candidateState);
+                            if (!mainPos.equals(resolvedMain)) {
+                                continue;
+                            }
+                            BlockState updatedCandidate = candidateState.setValue(com.stardew.craft.block.utility.DyeableChairBlock.COLOR, clamped);
+                            if (updatedCandidate != candidateState) {
+                                player.level().setBlock(candidatePos, updatedCandidate, 3);
+                            }
+                        }
+                    }
+                }
             }
         });
     }

@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/common/microwave",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/microwave"
+	}
+}

@@ -26,11 +26,14 @@ public record CrystalDaggerBurstPayload() implements CustomPacketPayload {
     }
 
     public static void handle(CrystalDaggerBurstPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            Minecraft mc = Minecraft.getInstance();
-            if (mc.player != null) {
-                SkillEffectsClient.playSkillEffects("crystal_dagger_burst", mc.player);
-            }
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(CrystalDaggerBurstPayload payload) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player != null) {
+            SkillEffectsClient.playSkillEffects("crystal_dagger_burst", mc.player);
+        }
     }
 }

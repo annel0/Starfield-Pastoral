@@ -266,9 +266,9 @@ public class CrabPotBlock extends Block implements EntityBlock, SimpleWaterlogge
 		return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
 	}
 
-	@SuppressWarnings({ "null", "deprecation" })
+	@SuppressWarnings("null")
 	@Override
 	public BlockState mirror(@SuppressWarnings("null") BlockState state, @SuppressWarnings("null") Mirror mirror) {
-		return state.rotate(mirror.getRotation(state.getValue(FACING)));
+		return state.setValue(FACING, mirror.mirror(state.getValue(FACING)));
 	}
 }

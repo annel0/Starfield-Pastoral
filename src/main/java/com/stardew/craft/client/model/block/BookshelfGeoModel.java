@@ -7,6 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
 import software.bernie.geckolib.model.GeoModel;
 
+@SuppressWarnings("null")
 public class BookshelfGeoModel extends GeoModel<BookshelfGeoBlockEntity> {
     private static final ResourceLocation MODEL_3_2 = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "geo/block/decor/bookshelf_3_2.geo.json");
     private static final ResourceLocation TEXTURE_3_2 = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/block/deco/misc/common/bookshelf_3_2.png");

@@ -52,14 +52,17 @@
       "indoor": true,
       "portal_target": "pierre_house_enter",
       "use_ground_height": false,
-      "use_schedule_tile_offset": false
+      "use_schedule_tile_offset": false,
+      "outdoor_door_point": "seedshop_outer",
+      "indoor_entry_point": "seedshop_inner_entry"
     },
     "manorhouse": {
       "x": -206.0,
       "y": -18.0,
       "z": -27.0,
       "indoor": false,
-      "use_ground_height": true
+      "use_ground_height": true,
+      "outdoor_door_point": "manorhouse_outer"
     },
     "hospital": {
       "x": -145.0,
@@ -94,7 +97,8 @@
       "y": -10.0,
       "z": 138.0,
       "indoor": false,
-      "use_ground_height": true
+      "use_ground_height": true,
+      "outdoor_door_point": "communitycenter_outer"
     },
     "railroad": {
       "x": -93.0,
@@ -108,7 +112,8 @@
       "y": -19.0,
       "z": 12.0,
       "indoor": false,
-      "use_ground_height": true
+      "use_ground_height": true,
+      "outdoor_door_point": "saloon_outer"
     },
     "mountain": {
       "x": -284.0,
@@ -143,7 +148,8 @@
       "y": -15.0,
       "z": -212.0,
       "indoor": false,
-      "use_ground_height": true
+      "use_ground_height": true,
+      "outdoor_door_point": "fishshop_outer"
     },
     "samhouse": {
       "x": 84.0,

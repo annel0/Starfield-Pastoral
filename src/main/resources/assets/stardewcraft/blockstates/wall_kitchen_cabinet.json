@@ -1,0 +1,19 @@
+{
+	"variants": {
+		"facing=north": {
+			"model": "stardewcraft:decor/wall_decor/common/wall_kitchen_cabinet"
+		},
+		"facing=east": {
+			"model": "stardewcraft:decor/wall_decor/common/wall_kitchen_cabinet",
+			"y": 90
+		},
+		"facing=south": {
+			"model": "stardewcraft:decor/wall_decor/common/wall_kitchen_cabinet",
+			"y": 180
+		},
+		"facing=west": {
+			"model": "stardewcraft:decor/wall_decor/common/wall_kitchen_cabinet",
+			"y": 270
+		}
+	}
+}

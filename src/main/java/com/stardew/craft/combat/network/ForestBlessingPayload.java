@@ -33,14 +33,17 @@ public record ForestBlessingPayload(boolean active, int durationTicks) implement
     }
 
     public static void handle(ForestBlessingPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            if (payload.active()) {
-                Minecraft mc = Minecraft.getInstance();
-                long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
-                ForestBlessingClientState.start(nowTick, payload.durationTicks());
-            } else {
-                ForestBlessingClientState.clear();
-            }
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(ForestBlessingPayload payload) {
+        if (payload.active()) {
+            Minecraft mc = Minecraft.getInstance();
+            long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
+            ForestBlessingClientState.start(nowTick, payload.durationTicks());
+        } else {
+            ForestBlessingClientState.clear();
+        }
     }
 }

@@ -38,13 +38,16 @@ public record OpenTreasureChestPayload(
 	}
 	
 	public static void handle(OpenTreasureChestPayload payload, IPayloadContext context) {
-		context.enqueueWork(() -> {
-			Minecraft mc = Minecraft.getInstance();
-			if (mc.player != null && mc.level != null) {
-				// 客户端仅缓存 chestId 与外观类型；真正开箱由客户端请求服务端打开。
-				com.stardew.craft.client.fishing.FishingCatchVisuals.setPendingTreasure(payload.chestId(), payload.isGolden());
-			}
-		});
+		context.enqueueWork(() -> handleClient(payload));
+	}
+
+	@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+	private static void handleClient(OpenTreasureChestPayload payload) {
+		Minecraft mc = Minecraft.getInstance();
+		if (mc.player != null && mc.level != null) {
+			// 客户端仅缓存 chestId 与外观类型；真正开箱由客户端请求服务端打开。
+			com.stardew.craft.client.fishing.FishingCatchVisuals.setPendingTreasure(payload.chestId(), payload.isGolden());
+		}
 	}
 }
 

@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/common/grandfather_clock_display",
+	"textures": {
+		"particle": "stardewcraft:block/deco/misc/common/grandfather_clock"
+	}
+}

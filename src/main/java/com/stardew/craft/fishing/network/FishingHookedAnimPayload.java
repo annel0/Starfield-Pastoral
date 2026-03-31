@@ -32,12 +32,15 @@ public record FishingHookedAnimPayload(int durationTicks) implements CustomPacke
 	}
 
 	public static void handle(FishingHookedAnimPayload payload, IPayloadContext context) {
-		context.enqueueWork(() -> {
-			Minecraft mc = Minecraft.getInstance();
-			if (mc == null || mc.player == null) {
-				return;
-			}
-			FishingBiteVisuals.startHookedAnim(payload.durationTicks());
-		});
+		context.enqueueWork(() -> handleClient(payload));
+	}
+
+	@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+	private static void handleClient(FishingHookedAnimPayload payload) {
+		Minecraft mc = Minecraft.getInstance();
+		if (mc == null || mc.player == null) {
+			return;
+		}
+		FishingBiteVisuals.startHookedAnim(payload.durationTicks());
 	}
 }

@@ -88,6 +88,23 @@ public class PaintbrushItem extends Item implements IStardewItem {
                     return InteractionResult.CONSUME;
                 }
             }
+            if (clicked.getBlock() instanceof com.stardew.craft.block.utility.DyeableChairBlock) {
+                if (level.isClientSide) {
+                    return InteractionResult.SUCCESS;
+                }
+                if (context.getPlayer() instanceof ServerPlayer serverPlayer
+                    && clicked.hasProperty(com.stardew.craft.block.utility.DyeableChairBlock.COLOR)) {
+                    com.stardew.craft.block.utility.DyeableChairBlock chairBlock =
+                        (com.stardew.craft.block.utility.DyeableChairBlock) clicked.getBlock();
+                    BlockPos targetPos = chairBlock.resolveMainPos(level, pos, clicked);
+                    BlockState targetState = level.getBlockState(targetPos);
+                    int current = targetState.hasProperty(com.stardew.craft.block.utility.DyeableChairBlock.COLOR)
+                        ? targetState.getValue(com.stardew.craft.block.utility.DyeableChairBlock.COLOR)
+                        : clicked.getValue(com.stardew.craft.block.utility.DyeableChairBlock.COLOR);
+                    PacketDistributor.sendToPlayer(serverPlayer, new OpenSofaColorScreenPayload(targetPos, current));
+                    return InteractionResult.CONSUME;
+                }
+            }
             return InteractionResult.PASS;
         }
 

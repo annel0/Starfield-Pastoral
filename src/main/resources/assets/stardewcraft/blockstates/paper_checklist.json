@@ -1,0 +1,19 @@
+{
+	"variants": {
+		"facing=north": {
+			"model": "stardewcraft:decor/wall_decor/common/paper_checklist"
+		},
+		"facing=east": {
+			"model": "stardewcraft:decor/wall_decor/common/paper_checklist",
+			"y": 90
+		},
+		"facing=south": {
+			"model": "stardewcraft:decor/wall_decor/common/paper_checklist",
+			"y": 180
+		},
+		"facing=west": {
+			"model": "stardewcraft:decor/wall_decor/common/paper_checklist",
+			"y": 270
+		}
+	}
+}

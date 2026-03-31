@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/wall_decor/common/sebastian_poster_1",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/sebastian_poster_1"
+	}
+}
