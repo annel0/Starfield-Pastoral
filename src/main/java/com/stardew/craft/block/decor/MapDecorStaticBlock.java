@@ -188,7 +188,20 @@ public class MapDecorStaticBlock extends Block {
                 return localOccupiedOffsets;
             }
             Set<CellOffset> discovered = new LinkedHashSet<>();
-            VoxelShape shape = ModelVoxelShapeCache.shapeFromModelId(modelId);
+            // For bonsai blocks, use the same canonical shape as orientedShape() so that
+            // overflowing decorative geometry in the model does not cause EXTENSION blocks
+            // to be spuriously placed in neighbouring cells (which would block block-placement
+            // next to the bonsai and leave orphaned extensions after removal).
+            VoxelShape shape;
+            if (modelId.contains("bonsai")) {
+                if (modelId.contains("wall") || modelId.contains("bonsai_6_")) {
+                    shape = Block.box(0, 0, 0, 16, 16, 16); // 1×1×1
+                } else {
+                    shape = Block.box(0, 0, 0, 16, 32, 16); // 1×2×1 tall bonsai
+                }
+            } else {
+                shape = ModelVoxelShapeCache.shapeFromModelId(modelId);
+            }
             shape.forAllBoxes((minX, minY, minZ, maxX, maxY, maxZ) -> {
                 int minCX = (int) Math.floor(minX + EPS);
                 int minCY = (int) Math.floor(minY + EPS);

@@ -1,0 +1,7 @@
+{
+  "parent": "stardewcraft:decor/common/sailboat_2",
+  "textures": {
+    "particle": "stardewcraft:block/deco/misc/common/sailboat_2"
+  }
+}
+

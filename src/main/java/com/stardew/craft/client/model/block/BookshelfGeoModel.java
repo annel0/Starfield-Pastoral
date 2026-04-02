@@ -18,13 +18,13 @@ public class BookshelfGeoModel extends GeoModel<BookshelfGeoBlockEntity> {
     @Override
     public ResourceLocation getModelResource(BookshelfGeoBlockEntity animatable) {
         BlockState state = animatable.getBlockState();
-        return state.is(ModBlocks.BOOKSHELF_3_3.get()) ? MODEL_3_3 : MODEL_3_2;
+        return state.is(ModBlocks.BOOKSHELF_TALL_2.get()) ? MODEL_3_3 : MODEL_3_2;
     }
 
     @Override
     public ResourceLocation getTextureResource(BookshelfGeoBlockEntity animatable) {
         BlockState state = animatable.getBlockState();
-        return state.is(ModBlocks.BOOKSHELF_3_3.get()) ? TEXTURE_3_3 : TEXTURE_3_2;
+        return state.is(ModBlocks.BOOKSHELF_TALL_2.get()) ? TEXTURE_3_3 : TEXTURE_3_2;
     }
 
     @Override

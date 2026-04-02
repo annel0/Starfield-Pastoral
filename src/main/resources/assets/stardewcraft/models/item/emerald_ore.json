@@ -1,4 +1,4 @@
-﻿{
+{
     "parent":  "stardewcraft:block/emerald_ore",
     "textures":  {
                      "particle":  "stardewcraft:block/mine/emerald_ore"

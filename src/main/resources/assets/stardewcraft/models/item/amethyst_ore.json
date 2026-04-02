@@ -1,4 +1,4 @@
-﻿{
+{
     "parent":  "stardewcraft:block/amethyst_ore",
     "textures":  {
                      "particle":  "stardewcraft:block/mine/amethyst_ore"

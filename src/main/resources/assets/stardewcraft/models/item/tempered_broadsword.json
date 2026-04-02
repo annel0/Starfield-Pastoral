@@ -1,4 +1,4 @@
-﻿{
+{
     "parent":  "minecraft:item/handheld",
     "textures":  {
                      "layer0":  "stardewcraft:item/weapon/sword/tempered_broadsword",

@@ -1,4 +1,4 @@
-﻿{
+{
     "parent":  "stardewcraft:block/frost_iridium_ore",
     "textures":  {
                      "particle":  "stardewcraft:block/mine/frost_iridium_ore"

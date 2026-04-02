@@ -16,6 +16,11 @@ public final class NpcRuntimeState {
     private int facing;
     private int scheduleNodeIndex;
     private String routeBehaviorToken;
+    /**
+     * Named route-point ID resolved from the active schedule node (\"@point_id\" format).
+     * Empty string when the node uses legacy tile-offset or anchor logic.
+     */
+    private String namedPointId;
     private boolean pathingSuppressed;
 
     public NpcRuntimeState(String npcId) {
@@ -28,6 +33,7 @@ public final class NpcRuntimeState {
         this.facing = 2;
         this.scheduleNodeIndex = 0;
         this.routeBehaviorToken = "";
+        this.namedPointId = "";
         this.pathingSuppressed = false;
     }
 
@@ -103,6 +109,14 @@ public final class NpcRuntimeState {
         this.routeBehaviorToken = routeBehaviorToken == null ? "" : routeBehaviorToken;
     }
 
+    public String namedPointId() {
+        return namedPointId;
+    }
+
+    public void setNamedPointId(String namedPointId) {
+        this.namedPointId = namedPointId == null ? "" : namedPointId;
+    }
+
     public boolean pathingSuppressed() {
         return pathingSuppressed;
     }
@@ -122,6 +136,7 @@ public final class NpcRuntimeState {
         tag.putInt("Facing", facing);
         tag.putInt("ScheduleNodeIndex", scheduleNodeIndex);
         tag.putString("RouteBehaviorToken", routeBehaviorToken);
+        tag.putString("NamedPointId", namedPointId);
         tag.putBoolean("PathingSuppressed", pathingSuppressed);
         return tag;
     }
@@ -137,6 +152,7 @@ public final class NpcRuntimeState {
         state.facing = tag.contains("Facing") ? tag.getInt("Facing") : 2;
         state.scheduleNodeIndex = Math.max(0, tag.getInt("ScheduleNodeIndex"));
         state.routeBehaviorToken = tag.contains("RouteBehaviorToken") ? tag.getString("RouteBehaviorToken") : "";
+        state.namedPointId = tag.contains("NamedPointId") ? tag.getString("NamedPointId") : "";
         state.pathingSuppressed = tag.getBoolean("PathingSuppressed");
         return state;
     }

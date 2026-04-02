@@ -1,4 +1,4 @@
-﻿{
+{
     "parent":  "stardewcraft:block/utility/autofeed_trough_base",
     "textures":  {
                      "particle":  "stardewcraft:block/utility/autofeed_trough"

@@ -40,6 +40,9 @@ public class StardewNpcDialogueScreen extends Screen {
 
     private final List<DialoguePage> pages = new ArrayList<>();
     private StardewRenderMapping mapping;
+    
+    private record NpcResponseAction(int scoreDelta, String nextNodeId, String responseText) {}
+    private final List<NpcResponseAction> questionResponses = new ArrayList<>();
 
     private int pageIndex;
     private int characterIndexInDialogue;
@@ -216,6 +219,32 @@ public class StardewNpcDialogueScreen extends Screen {
         }
 
         playUiSound(ModSounds.SMALL_SELECT.get(), 1.0f, 1.0f);
+        
+        if (!questionResponses.isEmpty()) {
+            List<Component> options = new ArrayList<>();
+            for (NpcResponseAction action : questionResponses) {
+                options.add(Component.literal(action.responseText()));
+            }
+            StardewQuestionDialogSpec spec = StardewQuestionDialogSpec.of(
+                Component.literal(""),
+                options,
+                (answerIndex) -> {
+                    if (answerIndex >= 0 && answerIndex < questionResponses.size()) {
+                        NpcResponseAction picked = questionResponses.get(answerIndex);
+                        net.minecraft.client.Minecraft.getInstance().setScreen(null);
+                        net.neoforged.neoforge.network.PacketDistributor.sendToServer(
+                            new com.stardew.craft.network.payload.AnswerNpcQuestionPayload(
+                                npcId, picked.nextNodeId(), picked.scoreDelta()
+                            )
+                        );
+                    }
+                },
+                -1
+            );
+            net.minecraft.client.Minecraft.getInstance().setScreen(StardewConfirmDialogScreen.createQuestionDialog(spec));
+            return;
+        }
+
         beginOutro();
     }
 
@@ -306,9 +335,53 @@ public class StardewNpcDialogueScreen extends Screen {
     }
 
     private List<DialogueChunk> parseChunks(String text) {
+        questionResponses.clear();
         String normalized = text
             .replace("\r", "")
-            .replace("\n", "")
+            .replace("\n", "");
+
+        if (normalized.contains("$q ")) {
+            int qIndex = normalized.indexOf("$q ");
+            String mainText = normalized.substring(0, qIndex).trim();
+            String queryPart = normalized.substring(qIndex);
+            
+            // Format: $q <id> <next_if_already> <base text>#$r <resId> <score> <resNext>#<resText>#$r...
+            // Extract base text
+            int firstHash = queryPart.indexOf("#");
+            if (firstHash != -1) {
+                int nextHash = queryPart.indexOf("#$r", firstHash);
+                if (nextHash == -1) nextHash = queryPart.length();
+                String baseText = queryPart.substring(firstHash + 1, nextHash).trim();
+                if (!baseText.isEmpty()) {
+                    mainText += (mainText.isEmpty() ? "" : " ") + baseText;
+                }
+                
+                // Parse responses
+                String remain = queryPart.substring(nextHash);
+                while (remain.startsWith("#$r") || remain.startsWith("$r")) {
+                    int rStart = remain.indexOf("$r ") + 3;
+                    int rHash1 = remain.indexOf("#", rStart);
+                    if (rHash1 == -1) break;
+                    String[] tokens = remain.substring(rStart, rHash1).trim().split(" ");
+                    if (tokens.length >= 3) {
+                        int scoreDelta = 0;
+                        try { scoreDelta = Integer.parseInt(tokens[1]); } catch (NumberFormatException ignored) {}
+                        String nextNodeId = tokens[2];
+                        
+                        int rHash2 = remain.indexOf("#$r", rHash1);
+                        if (rHash2 == -1) rHash2 = remain.length();
+                        String responseText = remain.substring(rHash1 + 1, rHash2).trim();
+                        questionResponses.add(new NpcResponseAction(scoreDelta, nextNodeId, responseText));
+                        remain = remain.substring(rHash2);
+                    } else {
+                        break;
+                    }
+                }
+            }
+            normalized = mainText;
+        }
+
+        normalized = normalized
             .replace("#$b#", "\f")
             .replace("$b", "\f")
             .replace("#$e#", "\f")

@@ -1,4 +1,4 @@
-﻿{
+{
   "multipart": [
     { "when": { "part": "main", "facing": "north" }, "apply": { "model": "stardewcraft:block/utility/cushion" } },
     { "when": { "part": "main", "facing": "east" }, "apply": { "model": "stardewcraft:block/utility/cushion", "y": 90 } },

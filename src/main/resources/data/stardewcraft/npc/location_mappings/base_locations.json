@@ -57,19 +57,24 @@
       "indoor_entry_point": "seedshop_inner_entry"
     },
     "manorhouse": {
-      "x": -206.0,
-      "y": -18.0,
-      "z": -27.0,
-      "indoor": false,
-      "use_ground_height": true,
-      "outdoor_door_point": "manorhouse_outer"
+      "x": 14786.5,
+      "y": 71.0,
+      "z": 14789.5,
+      "indoor": true,
+      "portal_target": "mayor_house_enter",
+      "use_ground_height": false,
+      "outdoor_door_point": "manorhouse_outdoor_door",
+      "indoor_entry_point": "manorhouse_indoor_entry"
     },
     "hospital": {
-      "x": -145.0,
-      "y": -18.0,
-      "z": 60.0,
-      "indoor": false,
-      "use_ground_height": true
+      "x": 15362.5,
+      "y": 71.0,
+      "z": 15371.5,
+      "indoor": true,
+      "portal_target": "clinic_enter",
+      "use_ground_height": false,
+      "outdoor_door_point": "clinic_outdoor_door",
+      "indoor_entry_point": "clinic_indoor_entry"
     },
     "animalshop": {
       "x": 179.0,
@@ -79,18 +84,24 @@
       "use_ground_height": true
     },
     "archaeologyhouse": {
-      "x": -303.0,
-      "y": -17.0,
-      "z": -38.0,
-      "indoor": false,
-      "use_ground_height": true
+      "x": 13066.5,
+      "y": 71.0,
+      "z": 13061.5,
+      "indoor": true,
+      "portal_target": "museum_enter",
+      "use_ground_height": false,
+      "outdoor_door_point": "museum_outdoor_door",
+      "indoor_entry_point": "museum_indoor_entry"
     },
     "sciencehouse": {
-      "x": -212.0,
-      "y": -13.0,
-      "z": 218.0,
-      "indoor": false,
-      "use_ground_height": true
+      "x": 16525.5,
+      "y": 75.0,
+      "z": 16519.5,
+      "indoor": true,
+      "portal_target": "carpenter_shop_enter",
+      "use_ground_height": false,
+      "outdoor_door_point": "sciencehouse_outdoor_door",
+      "indoor_entry_point": "sciencehouse_indoor_entry"
     },
     "communitycenter": {
       "x": -190.0,
@@ -108,12 +119,14 @@
       "use_ground_height": true
     },
     "saloon": {
-      "x": -163.0,
-      "y": -19.0,
-      "z": 12.0,
-      "indoor": false,
-      "use_ground_height": true,
-      "outdoor_door_point": "saloon_outer"
+      "x": 14210.5,
+      "y": 71.0,
+      "z": 14225.5,
+      "indoor": true,
+      "portal_target": "saloon_enter",
+      "use_ground_height": false,
+      "outdoor_door_point": "saloon_outdoor_door",
+      "indoor_entry_point": "saloon_indoor_entry"
     },
     "mountain": {
       "x": -284.0,
@@ -166,11 +179,14 @@
       "use_ground_height": true
     },
     "blacksmith": {
-      "x": -288.0,
-      "y": -18.0,
-      "z": -18.0,
-      "indoor": false,
-      "use_ground_height": true
+      "x": 13635.5,
+      "y": 71.0,
+      "z": 13640.5,
+      "indoor": true,
+      "portal_target": "blacksmith_enter",
+      "use_ground_height": false,
+      "outdoor_door_point": "blacksmith_outdoor_door",
+      "indoor_entry_point": "blacksmith_indoor_entry"
     },
     "elliotthouse": {
       "x": -266.0,

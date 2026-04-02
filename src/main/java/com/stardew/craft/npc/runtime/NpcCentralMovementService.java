@@ -36,8 +36,9 @@ public final class NpcCentralMovementService {
     private static final int NO_PATH_CONSECUTIVE_FAIL_TELEPORT = 3;
     private static final int NO_PATH_NEAR_QUICK_SYNC_TICKS = 30;
     private static final double NO_PATH_NEAR_QUICK_SYNC_DIST_SQR = 4.0D * 4.0D;
-    private static final int STUCK_REPATH_TICKS = 60;
-    private static final int STUCK_FORCE_SYNC_TICKS = 100;
+    private static final int STUCK_REPATH_TICKS = 20;
+    private static final int STUCK_FORCE_SYNC_TICKS = 60;
+    private static final int MAX_COLLISION_RETPATHS = 4;
     private static final double PROGRESS_MOVE_DIST_SQR = 0.16D;
     private static final double PROGRESS_TARGET_GAIN_EPSILON_SQR = 0.04D;
     private static final int NO_PATH_FORCE_SYNC_TICKS = 20;
@@ -267,6 +268,9 @@ public final class NpcCentralMovementService {
             } else {
                 plan.consecutivePathFailures = 0;
                 plan.noPathRetryBlockedUntilTick = now;
+                // Open every door on the freshly-built path immediately so
+                // the entity never physically collides with a closed door.
+                openAllDoorsOnPath(level, npc, plan.path);
             }
         }
 
@@ -345,8 +349,9 @@ public final class NpcCentralMovementService {
         Vec3 waypoint = plan.path.get(Math.min(plan.pathIndex, plan.path.size() - 1));
         plan.debugNextWaypoint = waypoint;
         tryOpenNearbyDoors(level, npc, waypoint, step.target);
-        // Look ahead 2-3 path nodes to open doors before NPC arrives
-        for (int ahead = 1; ahead <= 3 && plan.pathIndex + ahead < plan.path.size(); ahead++) {
+        // Look-ahead: open doors along the upcoming path BEFORE the NPC reaches them.
+        // A door must be open before the entity's physics volume touches it.
+        for (int ahead = 1; ahead <= 5 && plan.pathIndex + ahead < plan.path.size(); ahead++) {
             Vec3 futureWp = plan.path.get(plan.pathIndex + ahead);
             BlockPos futurePos = BlockPos.containing(futureWp);
             tryOpenDoorAt(level, npc, futurePos);
@@ -356,6 +361,7 @@ public final class NpcCentralMovementService {
 
         if (horizontal.lengthSqr() <= WAYPOINT_REACH_SQR) {
             plan.pathIndex++;
+            plan.collisionRetpathCount = 0; // made forward progress
             plan.lastProgressTick = level.getGameTime();
             plan.lastPos = npc.position();
             if (plan.pathIndex >= plan.path.size()) {
@@ -402,23 +408,50 @@ public final class NpcCentralMovementService {
 
             if (npc.horizontalCollision && !needsToJump
                 && level.getGameTime() - plan.lastRepathTick > REPATH_COOLDOWN_TICKS) {
-                // Register a collision penalty at current position so A* avoids it next time.
-                NpcPathfinder.addCollisionPenalty(level, npc.position());
-                if (NpcPathfinder.allowAstarCall(level)) {
-                    plan.path = NpcPathfinder.planPath(level, npc.position(), step.target);
+                plan.collisionRetpathCount++;
+                if (plan.collisionRetpathCount >= MAX_COLLISION_RETPATHS) {
+                    // Stuck against the same obstacle after multiple retries.
+                    // Micro-teleport to the current waypoint to bypass it and
+                    // continue along the rest of the path normally.
+                    npc.setPos(waypoint.x, waypoint.y, waypoint.z);
+                    plan.pathIndex++;
+                    plan.collisionRetpathCount = 0;
+                    plan.consecutivePathFailures = 0;
+                    plan.lastProgressTick = level.getGameTime();
+                    plan.lastRepathTick = level.getGameTime();
+                    plan.lastPos = npc.position();
+                    plan.debugStage = "collision_micro_tp";
+                    plan.debugRepathReason = "collision_max_skip_waypoint";
+                } else {
+                    // Penalise the block we are walking INTO (not the block we’re standing on)
+                    // so A* genuinely routes around the obstacle next attempt.
+                    Vec3 penaltyPos = npc.position().add(vx * 4, 0, vz * 4);
+                    NpcPathfinder.addCollisionPenalty(level, penaltyPos);
+                    if (NpcPathfinder.allowAstarCall(level)) {
+                        plan.path = NpcPathfinder.planPath(level, npc.position(), step.target);
+                        if (!plan.path.isEmpty()) {
+                            openAllDoorsOnPath(level, npc, plan.path);
+                            // Reset progress clock so the force-TP gate doesn't fire
+                            // in the same tick as (or immediately after) a successful repath.
+                            plan.lastProgressTick = level.getGameTime();
+                        }
+                    }
+                    plan.pathIndex = 0;
+                    plan.lastRepathTick = level.getGameTime();
+                    plan.debugStage = "collision_repath";
+                    plan.debugRepathReason = (NpcPathfinder.isBarrierAhead(level, npc.position(), vx, vz)
+                        ? "barrier_repath_" : "collision_repath_") + plan.collisionRetpathCount;
                 }
-                plan.pathIndex = 0;
-                plan.lastRepathTick = level.getGameTime();
-                plan.debugStage = "collision_repath";
-                plan.debugRepathReason = NpcPathfinder.isBarrierAhead(level, npc.position(), vx, vz)
-                    ? "barrier_repath"
-                    : "collision_repath";
             }
 
             if (needsToJump && npc.onGround()) {
                 vy = 0.42D; // Standard Minecraft jump velocity
                 plan.debugStage = "walk_jump";
             }
+
+            // When NPC is at or adjacent to a door, snap perpendicular axis to
+            // exact block centre so it never clips the door's collision strip.
+            trySnapToDoorCenter(level, npc, waypoint);
 
             npc.setDeltaMovement(vx, vy, vz);
             float moveYaw = (float) (Math.toDegrees(Math.atan2(-vx, vz)));
@@ -428,12 +461,15 @@ public final class NpcCentralMovementService {
         }
 
         double moved = npc.position().distanceToSqr(plan.lastPos);
-        double checkpointToTarget = plan.lastPos.distanceToSqr(step.target);
-        double currentToTarget = npc.position().distanceToSqr(step.target);
-        boolean targetProgressed = currentToTarget + PROGRESS_TARGET_GAIN_EPSILON_SQR < checkpointToTarget;
-        if (moved > PROGRESS_MOVE_DIST_SQR && targetProgressed) {
+        // Use distance to the CURRENT WAYPOINT (not the step target) to detect forward
+        // progress; winding paths can move away from the target while still advancing.
+        double currentToWaypoint = npc.position().distanceToSqr(waypoint);
+        double lastToWaypoint = plan.lastPos.distanceToSqr(waypoint);
+        boolean waypointProgressed = currentToWaypoint + PROGRESS_TARGET_GAIN_EPSILON_SQR < lastToWaypoint;
+        if (moved > PROGRESS_MOVE_DIST_SQR && waypointProgressed) {
             plan.lastPos = npc.position();
             plan.lastProgressTick = level.getGameTime();
+            plan.collisionRetpathCount = 0;
         }
 
         if (level.getGameTime() - plan.lastProgressTick > STUCK_REPATH_TICKS
@@ -441,6 +477,12 @@ public final class NpcCentralMovementService {
             && level.getGameTime() >= plan.noPathRetryBlockedUntilTick) {
             if (NpcPathfinder.allowAstarCall(level)) {
                 plan.path = NpcPathfinder.planPath(level, npc.position(), step.target);
+                if (!plan.path.isEmpty()) {
+                    openAllDoorsOnPath(level, npc, plan.path);
+                    // Reset progress clock so the force-TP gate doesn't fire
+                    // in the same tick as (or immediately after) a successful repath.
+                    plan.lastProgressTick = level.getGameTime();
+                }
             }
             plan.pathIndex = 0;
             plan.lastRepathTick = level.getGameTime();
@@ -589,6 +631,71 @@ public final class NpcCentralMovementService {
         door.setOpen(npc, level, state, lowerPos, true);
     }
 
+    /**
+     * Open every door block on the given A* path immediately.
+     * Called each time a new path is computed so that no door is ever
+     * closed when the entity physically reaches it.
+     */
+    private static void openAllDoorsOnPath(ServerLevel level, StardewNpcEntity npc, List<Vec3> path) {
+        if (level == null || npc == null || path == null) return;
+        for (Vec3 wp : path) {
+            BlockPos pos = BlockPos.containing(wp);
+            tryOpenDoorAt(level, npc, pos);
+            tryOpenDoorAt(level, npc, pos.above());
+        }
+    }
+
+    /**
+     * When the NPC is at or immediately adjacent to a door block, snap its
+     * perpendicular coordinate to the exact centre of the door column.
+     * A wooden door open on the hinge side has a 3/16-block collision strip;
+     * an entity centred at X+0.5 has a margin of 0.0125 on each side — tiny
+     * enough that floating-point drift can cause a clip. Snapping guarantees
+     * the entity is always perfectly centred before it passes through.
+     */
+    private static void trySnapToDoorCenter(ServerLevel level, StardewNpcEntity npc, Vec3 waypoint) {
+        if (level == null || npc == null || waypoint == null) return;
+        BlockPos npcPos = npc.blockPosition();
+        BlockPos wpPos = BlockPos.containing(waypoint);
+        for (BlockPos checkPos : new BlockPos[]{npcPos, wpPos}) {
+            BlockState state = level.getBlockState(checkPos);
+            // Try lower or upper half
+            if (!(state.getBlock() instanceof DoorBlock) || state.getBlock() == Blocks.IRON_DOOR) {
+                state = level.getBlockState(checkPos.above());
+                if (!(state.getBlock() instanceof DoorBlock) || state.getBlock() == Blocks.IRON_DOOR) {
+                    continue;
+                }
+            }
+            // Resolve FACING from the lower half
+            BlockPos lowerPos = checkPos;
+            if (state.hasProperty(DoorBlock.HALF)
+                && state.getValue(DoorBlock.HALF) == net.minecraft.world.level.block.state.properties.DoubleBlockHalf.UPPER) {
+                lowerPos = checkPos.below();
+                state = level.getBlockState(lowerPos);
+                if (!(state.getBlock() instanceof DoorBlock)) continue;
+            }
+            if (!state.hasProperty(DoorBlock.FACING)) continue;
+            net.minecraft.core.Direction facing = state.getValue(DoorBlock.FACING);
+            // NORTH/SOUTH door: passage runs along Z → snap X to block centre
+            // EAST/WEST door:   passage runs along X → snap Z to block centre
+            // Door gap = 1 - 3/16 (strip) - 0.3 (half-width) = 0.0125; any X/Z
+            // drift > 0.0125 causes a clip, so snap with a very tight tolerance.
+            if (facing == net.minecraft.core.Direction.NORTH
+                || facing == net.minecraft.core.Direction.SOUTH) {
+                double cx = lowerPos.getX() + 0.5;
+                if (Math.abs(npc.getX() - cx) > 0.005) {
+                    npc.setPos(cx, npc.getY(), npc.getZ());
+                }
+            } else {
+                double cz = lowerPos.getZ() + 0.5;
+                if (Math.abs(npc.getZ() - cz) > 0.005) {
+                    npc.setPos(npc.getX(), npc.getY(), cz);
+                }
+            }
+            return; // snap to first door found
+        }
+    }
+
     private static boolean markAndCheckScheduleNodeChange(String npcId, NpcRuntimeState state) {
         if (state == null || npcId == null || npcId.isBlank()) {
             return false;
@@ -626,6 +733,7 @@ public final class NpcCentralMovementService {
         private long lastRepathTick;
         private long noPathRetryBlockedUntilTick;
         private int consecutivePathFailures;
+        private int collisionRetpathCount;
         private Vec3 lastPos;
         private String debugStage;
         private String debugPointId;
@@ -645,6 +753,7 @@ public final class NpcCentralMovementService {
             this.lastRepathTick = now;
             this.noPathRetryBlockedUntilTick = now;
             this.consecutivePathFailures = 0;
+            this.collisionRetpathCount = 0;
             this.lastPos = Vec3.ZERO;
             this.debugStage = "init";
             this.debugPointId = "<none>";

@@ -155,8 +155,8 @@ public final class NpcFriendshipDataManager extends SavedData {
             }
         }
 
-        public void addPoints(int delta) {
-            this.points = Math.max(0, this.points + delta);
+        public void addPoints(int delta, int maxPoints) {
+            this.points = Math.max(0, Math.min(this.points + delta, maxPoints));
         }
 
         public void normalizeGiftWeek(int weekKey) {

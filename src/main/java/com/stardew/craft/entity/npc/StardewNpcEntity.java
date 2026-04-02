@@ -8,6 +8,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -89,6 +90,15 @@ public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
 
     public void setNpcId(String npcId) {
         this.entityData.set(DATA_NPC_ID, npcId == null ? "" : npcId.toLowerCase());
+    }
+
+    @Override
+    public Component getName() {
+        String id = getNpcId();
+        if (id != null && !id.isBlank()) {
+            return Component.translatable("entity.stardewcraft.npc." + id);
+        }
+        return super.getName();
     }
 
     public boolean hasValidNpcId() {

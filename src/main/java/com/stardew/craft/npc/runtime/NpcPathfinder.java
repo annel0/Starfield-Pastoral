@@ -1,14 +1,12 @@
 package com.stardew.craft.npc.runtime;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.DoorHingeSide;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 
@@ -161,24 +159,16 @@ public final class NpcPathfinder {
         }
 
         List<Vec3> path = new ArrayList<>();
-        Set<Integer> doorIndices = new HashSet<>();
         Node cursor = endNode;
         while (cursor != null) {
-            Vec3 waypoint = isDoorPosition(level, cursor.pos)
-                ? computeDoorWaypoint(level, cursor.pos)
-                : Vec3.atCenterOf(cursor.pos);
-            path.add(0, waypoint);
-            if (isDoorPosition(level, cursor.pos)) {
-                doorIndices.add(0); // will be adjusted below
-            }
+            path.add(0, Vec3.atCenterOf(cursor.pos));
             cursor = cursor.parent;
         }
-        // Fix door indices: we inserted at 0 each time, so indices shifted.
-        // Re-scan after building the full path.
-        doorIndices.clear();
+        // Tag door positions so smoothPath never removes them
+        // (we must traverse the exact door block for correct approach angle).
+        Set<Integer> doorIndices = new HashSet<>();
         for (int i = 0; i < path.size(); i++) {
-            BlockPos bp = BlockPos.containing(path.get(i));
-            if (isDoorPosition(level, bp)) {
+            if (isDoorPosition(level, BlockPos.containing(path.get(i)))) {
                 doorIndices.add(i);
             }
         }
@@ -266,17 +256,12 @@ public final class NpcPathfinder {
         List<Vec3> path = new ArrayList<>();
         Node cursor = endNode;
         while (cursor != null) {
-            Vec3 waypoint = isDoorPositionSnapshot(snapshot, cursor.pos)
-                ? computeDoorWaypointSnapshot(snapshot, cursor.pos)
-                : Vec3.atCenterOf(cursor.pos);
-            path.add(0, waypoint);
+            path.add(0, Vec3.atCenterOf(cursor.pos));
             cursor = cursor.parent;
         }
-        // Identify door indices for smooth-path preservation.
         Set<Integer> doorIndices = new HashSet<>();
         for (int i = 0; i < path.size(); i++) {
-            BlockPos bp = BlockPos.containing(path.get(i));
-            if (isDoorPositionSnapshot(snapshot, bp)) {
+            if (isDoorPositionSnapshot(snapshot, BlockPos.containing(path.get(i)))) {
                 doorIndices.add(i);
             }
         }
@@ -502,9 +487,9 @@ public final class NpcPathfinder {
         return penalty;
     }
 
-    // ──── Door waypoint offset helpers ────
+    // ──── Door position detection (for smoothPath preservation) ────
 
-    /** Check if feet or head at this position is a non-iron door. */
+    /** Returns true if feet or head at this position is a non-iron door block. */
     private static boolean isDoorPosition(ServerLevel level, BlockPos pos) {
         BlockState feet = level.getBlockState(pos);
         if (feet.getBlock() instanceof DoorBlock && feet.getBlock() != Blocks.IRON_DOOR) return true;
@@ -517,51 +502,6 @@ public final class NpcPathfinder {
         if (feet != null && feet.getBlock() instanceof DoorBlock && feet.getBlock() != Blocks.IRON_DOOR) return true;
         BlockState head = snap.getBlockState(pos.above());
         return head != null && head.getBlock() instanceof DoorBlock && head.getBlock() != Blocks.IRON_DOOR;
-    }
-
-    /**
-     * Compute an offset waypoint for a door block.
-     * When a door is open, the hinge-side has a thin (3/16) collision strip.
-     * Entity at block center barely fits → offset 0.2 blocks away from hinge.
-     */
-    private static Vec3 computeDoorWaypoint(ServerLevel level, BlockPos pos) {
-        BlockState doorState = findDoorState(level.getBlockState(pos), level.getBlockState(pos.above()));
-        if (doorState == null) return Vec3.atCenterOf(pos);
-        return applyDoorOffset(pos, doorState);
-    }
-
-    private static Vec3 computeDoorWaypointSnapshot(BlockSnapshot snap, BlockPos pos) {
-        BlockState feet = snap.getBlockState(pos);
-        BlockState head = snap.getBlockState(pos.above());
-        BlockState doorState = findDoorState(feet, head);
-        if (doorState == null) return Vec3.atCenterOf(pos);
-        return applyDoorOffset(pos, doorState);
-    }
-
-    private static BlockState findDoorState(BlockState feet, BlockState head) {
-        if (feet != null && feet.getBlock() instanceof DoorBlock && feet.getBlock() != Blocks.IRON_DOOR) return feet;
-        if (head != null && head.getBlock() instanceof DoorBlock && head.getBlock() != Blocks.IRON_DOOR) return head;
-        return null;
-    }
-
-    private static Vec3 applyDoorOffset(BlockPos pos, BlockState doorState) {
-        if (!doorState.hasProperty(DoorBlock.FACING) || !doorState.hasProperty(DoorBlock.HINGE)) {
-            return Vec3.atCenterOf(pos);
-        }
-        Direction facing = doorState.getValue(DoorBlock.FACING);
-        DoorHingeSide hinge = doorState.getValue(DoorBlock.HINGE);
-
-        // When open, collision strip is on the hinge side of the block.
-        // LEFT hinge → strip at facing.getCounterClockWise() edge
-        // RIGHT hinge → strip at facing.getClockWise() edge
-        // Offset 0.2 blocks AWAY from hinge to maximize clearance.
-        Direction hingeDir = (hinge == DoorHingeSide.LEFT)
-            ? facing.getCounterClockWise()
-            : facing.getClockWise();
-
-        double offsetX = -hingeDir.getStepX() * 0.2;
-        double offsetZ = -hingeDir.getStepZ() * 0.2;
-        return new Vec3(pos.getX() + 0.5 + offsetX, pos.getY() + 0.5, pos.getZ() + 0.5 + offsetZ);
     }
 
     // ──── Snapshot terrain helpers (off-thread safe) ────

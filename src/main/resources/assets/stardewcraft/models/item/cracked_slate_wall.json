@@ -1,4 +1,4 @@
-﻿{
+{
     "parent":  "stardewcraft:block/cracked_slate_wall_inventory",
     "textures":  {
                      "particle":  "stardewcraft:block/mine/cracked_slate"

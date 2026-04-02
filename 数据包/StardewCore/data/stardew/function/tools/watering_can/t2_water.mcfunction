@@ -1,9 +1,0 @@
-execute positioned ~-1 ~ ~-1 if block ~ ~ ~ minecraft:farmland run function stardew:tools/watering_can/water_single_block
-execute positioned ~-1 ~ ~0 if block ~ ~ ~ minecraft:farmland run function stardew:tools/watering_can/water_single_block
-execute positioned ~-1 ~ ~1 if block ~ ~ ~ minecraft:farmland run function stardew:tools/watering_can/water_single_block
-execute positioned ~0 ~ ~-1 if block ~ ~ ~ minecraft:farmland run function stardew:tools/watering_can/water_single_block
-execute positioned ~0 ~ ~0 if block ~ ~ ~ minecraft:farmland run function stardew:tools/watering_can/water_single_block
-execute positioned ~0 ~ ~1 if block ~ ~ ~ minecraft:farmland run function stardew:tools/watering_can/water_single_block
-execute positioned ~1 ~ ~-1 if block ~ ~ ~ minecraft:farmland run function stardew:tools/watering_can/water_single_block
-execute positioned ~1 ~ ~0 if block ~ ~ ~ minecraft:farmland run function stardew:tools/watering_can/water_single_block
-execute positioned ~1 ~ ~1 if block ~ ~ ~ minecraft:farmland run function stardew:tools/watering_can/water_single_block

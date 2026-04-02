@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/common/bear_skin_rug",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/bear_skin_rug"
+	}
+}

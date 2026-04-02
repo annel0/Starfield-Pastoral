@@ -385,5 +385,25 @@
     "sounds": [
       { "name": "stardewcraft:new_artifact", "stream": false }
     ]
+  },
+  "purchase": {
+    "sounds": [
+      { "name": "stardewcraft:purchase", "stream": false }
+    ]
+  },
+  "sell": {
+    "sounds": [
+      { "name": "stardewcraft:sell", "stream": false }
+    ]
+  },
+  "purchase_click": {
+    "sounds": [
+      { "name": "stardewcraft:ui/purchase_click", "stream": false }
+    ]
+  },
+  "purchase_repeat": {
+    "sounds": [
+      { "name": "stardewcraft:ui/purchase_repeat", "stream": false }
+    ]
   }
 }

@@ -50,13 +50,13 @@ public final class NpcDebugCommand {
     private static int debugAll(CommandContext<CommandSourceStack> context) {
         ServerLevel level = context.getSource().getServer().getLevel(ModDimensions.STARDEW_VALLEY);
         if (level == null) {
-            context.getSource().sendFailure(Component.literal("Stardew Valley dimension is not loaded."));
+            context.getSource().sendFailure(Component.literal("星露谷维度未加载。"));
             return 0;
         }
 
         Map<String, NpcRuntimeState> states = NpcRuntimeDataManager.get(level).states();
         if (states.isEmpty()) {
-            context.getSource().sendSuccess(() -> Component.literal("NPC runtime state map is empty."), false);
+            context.getSource().sendSuccess(() -> Component.literal("NPC 运行时状态为空。"), false);
             return 1;
         }
 
@@ -64,19 +64,19 @@ public final class NpcDebugCommand {
         ids.sort(Comparator.naturalOrder());
         int shown = 0;
 
-        context.getSource().sendSuccess(() -> Component.literal("=== NPC runtime debug (first 20) ==="), false);
+        context.getSource().sendSuccess(() -> Component.literal("=== NPC 调试总览（最多 20 个）==="), false);
         for (String npcId : ids) {
             if (shown >= 20) {
                 break;
             }
             shown++;
-            sendNpcSnapshot(context.getSource(), level, npcId, states.get(npcId));
+            sendNpcSummary(context.getSource(), level, npcId, states.get(npcId));
         }
 
         int hidden = ids.size() - shown;
         if (hidden > 0) {
             int finalHidden = hidden;
-            context.getSource().sendSuccess(() -> Component.literal("... and " + finalHidden + " more NPC states."), false);
+            context.getSource().sendSuccess(() -> Component.literal("... 其余 " + finalHidden + " 个 NPC 未显示。"), false);
         }
         return 1;
     }
@@ -85,22 +85,22 @@ public final class NpcDebugCommand {
         String npcId = StringArgumentType.getString(context, "npcId").toLowerCase(Locale.ROOT);
         ServerLevel level = context.getSource().getServer().getLevel(ModDimensions.STARDEW_VALLEY);
         if (level == null) {
-            context.getSource().sendFailure(Component.literal("Stardew Valley dimension is not loaded."));
+            context.getSource().sendFailure(Component.literal("星露谷维度未加载。"));
             return 0;
         }
 
         NpcRuntimeState state = NpcRuntimeDataManager.get(level).states().get(npcId);
         if (state == null) {
-            context.getSource().sendFailure(Component.literal("No runtime state found for npcId='" + npcId + "'."));
+            context.getSource().sendFailure(Component.literal("未找到 NPC 运行时状态: " + npcId));
             return 0;
         }
 
-        context.getSource().sendSuccess(() -> Component.literal("=== NPC runtime debug: " + npcId + " ==="), false);
-        sendNpcSnapshot(context.getSource(), level, npcId, state);
+        context.getSource().sendSuccess(() -> Component.literal("=== NPC 详细调试: " + npcId + " ==="), false);
+        sendNpcDetails(context.getSource(), level, npcId, state);
         return 1;
     }
 
-    private static void sendNpcSnapshot(CommandSourceStack source, ServerLevel level, String npcId, NpcRuntimeState state) {
+    private static void sendNpcSummary(CommandSourceStack source, ServerLevel level, String npcId, NpcRuntimeState state) {
         List<StardewNpcEntity> entities = level.getEntitiesOfClass(
             StardewNpcEntity.class,
             GLOBAL_NPC_SCAN,
@@ -111,23 +111,57 @@ public final class NpcDebugCommand {
         Vec3 fallback = entity != null ? entity.position() : Vec3.atCenterOf(level.getSharedSpawnPos());
         NpcScheduleRuntimeService.TargetPoint target = NpcScheduleRuntimeService.resolveWorldTarget(level, state, fallback);
 
-        String header = String.format(
+        Vec3 t = target.position();
+        String targetText = t == null ? "<none>" : String.format(Locale.ROOT, "(%.1f, %.1f, %.1f)", t.x, t.y, t.z);
+        String summary = String.format(
             Locale.ROOT,
-            "%s | schedule=%s@%d node=%d | loc=%s (%d,%d) facing=%d behavior=%s",
+            "[%s] 日程=%s@%d 节点=%d 位置=%s 朝向=%d 目标=%s 实体=%s",
             npcId,
             state.activeScheduleKey(),
             state.scheduleCheckpoint(),
             state.scheduleNodeIndex(),
             state.locationName(),
+            state.facing(),
+            targetText,
+            entity == null ? "缺失" : "在线"
+        );
+        source.sendSuccess(() -> Component.literal(summary), false);
+    }
+
+    private static void sendNpcDetails(CommandSourceStack source, ServerLevel level, String npcId, NpcRuntimeState state) {
+        List<StardewNpcEntity> entities = level.getEntitiesOfClass(
+            StardewNpcEntity.class,
+            GLOBAL_NPC_SCAN,
+            entity -> npcId.equals(entity.getNpcId())
+        );
+
+        StardewNpcEntity entity = entities.isEmpty() ? null : entities.get(0);
+        Vec3 fallback = entity != null ? entity.position() : Vec3.atCenterOf(level.getSharedSpawnPos());
+        NpcScheduleRuntimeService.TargetPoint target = NpcScheduleRuntimeService.resolveWorldTarget(level, state, fallback);
+
+        source.sendSuccess(() -> Component.literal("- 基本状态"), false);
+        source.sendSuccess(() -> Component.literal(String.format(
+            Locale.ROOT,
+            "  日程: %s @ %d (node=%d)",
+            state.activeScheduleKey(),
+            state.scheduleCheckpoint(),
+            state.scheduleNodeIndex()
+        )), false);
+        source.sendSuccess(() -> Component.literal(String.format(
+            Locale.ROOT,
+            "  位置键: %s, tile=(%d,%d), 朝向=%d, 行为=%s, 命名点=%s",
+            state.locationName(),
             state.tileX(),
             state.tileY(),
             state.facing(),
-            state.routeBehaviorToken().isBlank() ? "<none>" : state.routeBehaviorToken()
-        );
-        source.sendSuccess(() -> Component.literal(header), false);
+            state.routeBehaviorToken().isBlank() ? "无" : state.routeBehaviorToken(),
+            state.namedPointId().isBlank() ? "无" : state.namedPointId()
+        )), false);
 
         if (entity == null) {
-            source.sendSuccess(() -> Component.literal("  entity=<missing> target=" + formatVec(target.position()) + " indoor=" + target.indoorTarget()), false);
+            source.sendSuccess(() -> Component.literal("- 实体状态"), false);
+            source.sendSuccess(() -> Component.literal("  实体: 缺失"), false);
+            source.sendSuccess(() -> Component.literal("  目标: " + formatVec(target.position()) + " indoor=" + target.indoorTarget()), false);
             return;
         }
 
@@ -141,63 +175,69 @@ public final class NpcDebugCommand {
         boolean pathDone = !hasPath || nav.getPath().isDone();
         var navTarget = nav.getTargetPos();
 
-        String line = String.format(
-            Locale.ROOT,
-            "  entity=%s target=%s d2d=%.2f indoor=%s count=%d nav(hasPath=%s,done=%s,target=%s)",
+        source.sendSuccess(() -> Component.literal("- 实体状态"), false);
+        source.sendSuccess(() -> Component.literal(String.format(Locale.ROOT,
+            "  实体坐标: %s  目标坐标: %s  平面距离: %.2f  indoor目标=%s",
             formatVec(pos),
             formatVec(t),
             dist2d,
-            target.indoorTarget(),
-            entities.size(),
+            target.indoorTarget()
+        )), false);
+        source.sendSuccess(() -> Component.literal(String.format(Locale.ROOT,
+            "  导航: hasPath=%s done=%s navTarget=%s 同ID实体数=%d",
             hasPath,
             pathDone,
-            navTarget == null ? "<none>" : navTarget.toShortString()
-        );
-        source.sendSuccess(() -> Component.literal(line), false);
+            navTarget == null ? "<none>" : navTarget.toShortString(),
+            entities.size()
+        )), false);
 
         NpcCentralMovementService.DebugSnapshot movement = NpcCentralMovementService.getDebugSnapshot(npcId);
         if (movement != null) {
-            String movementLine = String.format(
+            source.sendSuccess(() -> Component.literal("- 移动快照"), false);
+            source.sendSuccess(() -> Component.literal(String.format(
                 Locale.ROOT,
-                "  move(stage=%s,loc=%s,point=%s,path=%d@%d,fallbackTp=%s,target=%s,next=%s,repath=%s,noPathTicks=%d)",
+                "  stage=%s loc=%s point=%s path=%d/%d fallbackTp=%s",
                 movement.stage(),
                 movement.location(),
                 movement.pointId(),
-                movement.pathSize(),
                 movement.pathIndex(),
-                movement.fallbackTeleportUsed(),
+                movement.pathSize(),
+                movement.fallbackTeleportUsed()
+            )), false);
+            source.sendSuccess(() -> Component.literal(String.format(
+                Locale.ROOT,
+                "  target=%s next=%s repath=%s noPathTicks=%d forcedChunk=%s",
                 formatVec(movement.target()),
                 formatVec(movement.nextWaypoint()),
                 movement.repathReason(),
-                movement.noPathTicks()
-            );
-            String moveLineWithChunk = movementLine.substring(0, movementLine.length() - 1)
-                + ",forcedTargetChunk=" + movement.forcedTargetChunk() + ")";
-            source.sendSuccess(() -> Component.literal(moveLineWithChunk), false);
+                movement.noPathTicks(),
+                movement.forcedTargetChunk()
+            )), false);
         }
 
         NpcScheduleRuntimeService.ScheduleKeyTrace keyTrace = NpcScheduleRuntimeService.getLastKeyTrace(npcId);
         if (keyTrace != null) {
-            String keyTraceLine = String.format(
+            source.sendSuccess(() -> Component.literal("- 日程选键"), false);
+            source.sendSuccess(() -> Component.literal(String.format(
                 Locale.ROOT,
-                "  keyTrace(day=%d,season=%s,weekday=%s,weather=%s,hearts=%d,selected=%s,candidates=%s,rejects=%s)",
+                "  day=%d season=%s weekday=%s weather=%s hearts=%d selected=%s",
                 keyTrace.day(),
                 keyTrace.season(),
                 keyTrace.weekday(),
                 keyTrace.weather().isBlank() ? "<none>" : keyTrace.weather(),
                 keyTrace.hearts(),
-                keyTrace.selectedKey(),
-                compactList(keyTrace.candidates(), 8),
-                compactList(keyTrace.rejections(), 5)
-            );
-            source.sendSuccess(() -> Component.literal(keyTraceLine), false);
+                keyTrace.selectedKey()
+            )), false);
+            source.sendSuccess(() -> Component.literal("  candidates=" + compactList(keyTrace.candidates(), 8)), false);
+            source.sendSuccess(() -> Component.literal("  rejects=" + compactList(keyTrace.rejections(), 5)), false);
         }
 
         NpcSpawnManager.SpawnDebugSnapshot spawn = NpcSpawnManager.getDebugSnapshot(level, npcId);
         if (spawn != null) {
-            String spawnLine = String.format(
+            source.sendSuccess(() -> Component.literal("- 生成追踪"), false);
+            source.sendSuccess(() -> Component.literal(String.format(
                 Locale.ROOT,
-                "  spawn(tracked=%s,trackedAlive=%s,loadedCount=%d,firstLoaded=%s,miss=%d,spawnAge=%d,forcedChunk=%s)",
+                "  tracked=%s alive=%s loaded=%d first=%s miss=%d ageTicks=%d forcedChunk=%s",
                 spawn.trackedUuid(),
                 spawn.trackedAlive(),
                 spawn.loadedCount(),
@@ -205,8 +245,7 @@ public final class NpcDebugCommand {
                 spawn.missCount(),
                 spawn.spawnAgeTicks(),
                 spawn.forcedChunk()
-            );
-            source.sendSuccess(() -> Component.literal(spawnLine), false);
+            )), false);
         }
     }
 

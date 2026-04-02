@@ -1,4 +1,4 @@
-﻿{
+{
     "parent":  "stardewcraft:block/utility/museum_exhibit_stand",
     "textures":  {
                      "particle":  "stardewcraft:block/utility/museum_exhibit_stand"

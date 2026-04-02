@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/common/easel",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/easel"
+	}
+}

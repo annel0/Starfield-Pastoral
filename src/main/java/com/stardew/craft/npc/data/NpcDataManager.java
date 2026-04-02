@@ -205,6 +205,13 @@ public final class NpcDataManager {
                     animationProfile = NpcCapabilityProfile.ANIM_IDLE_WALK;
                 }
 
+                int age = readInt(obj, "age", NpcCapabilityProfile.AGE_ADULT);
+                int manners = readInt(obj, "manners", NpcCapabilityProfile.MANNERS_NEUTRAL);
+                int socialAnxiety = readInt(obj, "social_anxiety", NpcCapabilityProfile.SOCIAL_OUTGOING);
+                int optimism = readInt(obj, "optimism", NpcCapabilityProfile.OPTIMISM_POSITIVE);
+                int gender = readInt(obj, "gender", NpcCapabilityProfile.GENDER_MALE);
+                boolean datable = readBoolean(obj, "datable", false);
+
                 boolean hasWalkAnimation = NpcAnimationInspector.hasWalkAnimation(npcId.trim().toLowerCase(Locale.ROOT));
                 if (pathingEnabled && !hasWalkAnimation) {
                     pathingEnabled = false;
@@ -216,7 +223,13 @@ public final class NpcDataManager {
                     npcId.trim(),
                     implemented,
                     pathingEnabled,
-                    animationProfile.trim().toLowerCase(Locale.ROOT)
+                    animationProfile.trim().toLowerCase(Locale.ROOT),
+                    age,
+                    manners,
+                    socialAnxiety,
+                    optimism,
+                    gender,
+                    datable
                 );
 
                 output.put(profile.npcId(), profile);
@@ -470,6 +483,17 @@ public final class NpcDataManager {
             }
             try {
                 return obj.get(key).getAsDouble();
+            } catch (Exception ignored) {
+                return fallback;
+            }
+        }
+
+        private static int readInt(JsonObject obj, String key, int fallback) {
+            if (!obj.has(key) || !obj.get(key).isJsonPrimitive()) {
+                return fallback;
+            }
+            try {
+                return obj.get(key).getAsInt();
             } catch (Exception ignored) {
                 return fallback;
             }

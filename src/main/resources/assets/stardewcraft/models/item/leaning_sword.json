@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/common/leaning_sword",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/leaning_sword"
+	}
+}

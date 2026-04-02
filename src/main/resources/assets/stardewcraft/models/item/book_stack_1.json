@@ -1,0 +1,4 @@
+{
+  "parent": "stardewcraft:decor/common/book_stack_2_1",
+  "textures": { "particle": "stardewcraft:block/deco/misc/common/book_stack_2_1" }
+}

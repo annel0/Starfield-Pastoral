@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/wall_decor/common/leah_poster_1",
+	"textures": {
+		"particle": "stardewcraft:block/decor/wall_decor/common/leah_poster_1"
+	}
+}

@@ -728,6 +728,38 @@ public class PacketHandler {
             com.stardew.craft.network.payload.OpenAnimalPurchaseScreenPayload::handle
         );
 
+        // Generic Shop System
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenShopScreenPayload.TYPE,
+            com.stardew.craft.network.payload.OpenShopScreenPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenShopScreenPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.ShopPurchasePayload.TYPE,
+            com.stardew.craft.network.payload.ShopPurchasePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.ShopPurchasePayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.ShopPurchaseResultPayload.TYPE,
+            com.stardew.craft.network.payload.ShopPurchaseResultPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.ShopPurchaseResultPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.ShopSellPayload.TYPE,
+            com.stardew.craft.network.payload.ShopSellPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.ShopSellPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.ShopSellResultPayload.TYPE,
+            com.stardew.craft.network.payload.ShopSellResultPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.ShopSellResultPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.ShopPickupPayload.TYPE,
+            com.stardew.craft.network.payload.ShopPickupPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.ShopPickupPayload::handle
+        );
+
         registrar.playToServer(
             com.stardew.craft.network.payload.AnimalPurchaseSubmitPayload.TYPE,
             com.stardew.craft.network.payload.AnimalPurchaseSubmitPayload.STREAM_CODEC,
@@ -792,6 +824,12 @@ public class PacketHandler {
             com.stardew.craft.network.payload.OpenSleepConfirmScreenPayload.TYPE,
             com.stardew.craft.network.payload.OpenSleepConfirmScreenPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.OpenSleepConfirmScreenPayload::handle
+        );
+
+        registrar.playToServer(
+            com.stardew.craft.network.payload.AnswerNpcQuestionPayload.TYPE,
+            com.stardew.craft.network.payload.AnswerNpcQuestionPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.AnswerNpcQuestionPayload::handle
         );
 
         registrar.playToClient(

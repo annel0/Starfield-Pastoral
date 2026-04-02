@@ -1,4 +1,4 @@
-﻿{
+{
     "parent":  "stardewcraft:block/frost_gneiss_stairs",
     "textures":  {
                      "particle":  "stardewcraft:block/mine/frost_gneiss"

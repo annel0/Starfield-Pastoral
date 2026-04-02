@@ -1,0 +1,31 @@
+{
+    "variants":  {
+                     "part=main,facing=north":  {
+                                                    "model":  "stardewcraft:decor/pierre_shop/3_7"
+                                                },
+                     "part=main,facing=east":  {
+                                                   "model":  "stardewcraft:decor/pierre_shop/3_7",
+                                                   "y":  90
+                                               },
+                     "part=main,facing=south":  {
+                                                    "model":  "stardewcraft:decor/pierre_shop/3_7",
+                                                    "y":  180
+                                                },
+                     "part=main,facing=west":  {
+                                                   "model":  "stardewcraft:decor/pierre_shop/3_7",
+                                                   "y":  270
+                                               },
+                     "part=extension,facing=north":  {
+                                                         "model":  "stardewcraft:block/decor/extensions/shop_crate_fruit_7_extension_empty"
+                                                     },
+                     "part=extension,facing=east":  {
+                                                        "model":  "stardewcraft:block/decor/extensions/shop_crate_fruit_7_extension_empty"
+                                                    },
+                     "part=extension,facing=south":  {
+                                                         "model":  "stardewcraft:block/decor/extensions/shop_crate_fruit_7_extension_empty"
+                                                     },
+                     "part=extension,facing=west":  {
+                                                        "model":  "stardewcraft:block/decor/extensions/shop_crate_fruit_7_extension_empty"
+                                                    }
+                 }
+}

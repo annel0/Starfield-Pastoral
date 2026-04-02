@@ -1,4 +1,4 @@
-﻿{
+{
   "multipart": [
     { "when": { "up": "true" }, "apply": { "model": "stardewcraft:block/scoria_wall_post" } },
     { "when": { "north": "low" }, "apply": { "model": "stardewcraft:block/scoria_wall_side", "uvlock": true } },

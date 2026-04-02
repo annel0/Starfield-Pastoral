@@ -1,4 +1,4 @@
-﻿{
+{
     "parent":  "stardewcraft:block/scoria_slab",
     "textures":  {
                      "particle":  "stardewcraft:block/mine/scoria"

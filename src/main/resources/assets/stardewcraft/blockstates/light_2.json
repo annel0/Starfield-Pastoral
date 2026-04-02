@@ -1,4 +1,4 @@
-﻿{
+{
   "variants": {
     "part=main,facing=north,lit=true": { "model": "stardewcraft:decor/common/light_2" },
     "part=main,facing=east,lit=true": { "model": "stardewcraft:decor/common/light_2", "y": 90 },

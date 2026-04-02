@@ -1,4 +1,4 @@
-﻿{
+{
   "parent": "minecraft:block/block",
   "textures": {
     "particle": "stardewcraft:block/deco/misc/common/computer_1"

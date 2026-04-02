@@ -17,6 +17,7 @@ import java.util.Set;
 /**
  * Route resolution: converts schedule targets and route profiles into step sequences.
  */
+@SuppressWarnings("null")
 final class NpcRoutePlanner {
 
     private static final Vec3 MANORHOUSE_OUTER = new Vec3(-196.0D, -17.0D, -22.0D);
@@ -235,6 +236,27 @@ final class NpcRoutePlanner {
 
         if (destination.isEmpty()) {
             return null;
+        }
+
+        // If the active schedule provides a named point ("@point_id"), prefer it as
+        // the final indoor destination for profile routes that include a warp step.
+        // This prevents hard-coded profile endpoints from overriding per-time schedule targets
+        // such as Abigail gaming/sleep points inside SeedShop.
+        String namedPointId = state.namedPointId();
+        if (namedPointId != null && !namedPointId.isBlank()) {
+            Vec3 scheduleNamedTarget = pointFromConfigStrict(namedPointId, state, canonicalLocation);
+            if (scheduleNamedTarget != null) {
+                boolean hasWarp = destination.stream().anyMatch(step -> step.mode == RouteStepMode.WARP);
+                if (hasWarp) {
+                    int last = destination.size() - 1;
+                    NpcRouteStep lastStep = destination.get(last);
+                    if (lastStep.mode == RouteStepMode.WALK) {
+                        destination.set(last, NpcRouteStep.walk(namedPointId, scheduleNamedTarget));
+                    } else {
+                        destination.add(NpcRouteStep.walk(namedPointId, scheduleNamedTarget));
+                    }
+                }
+            }
         }
 
         return new NpcRouteContext(canonicalLocation, destination);

@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/common/leah_sculpture",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/leah_sculpture"
+	}
+}

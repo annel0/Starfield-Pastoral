@@ -104,6 +104,10 @@ public final class NpcScheduleRuntimeService {
                 state.setRouteBehaviorToken(activeNode.routeBehaviorToken());
                 stateChanged = true;
             }
+            if (!activeNode.namedPointId().equals(state.namedPointId())) {
+                state.setNamedPointId(activeNode.namedPointId());
+                stateChanged = true;
+            }
 
             if (stateChanged) {
                 changed = true;
@@ -126,6 +130,29 @@ public final class NpcScheduleRuntimeService {
             return TargetPoint.fallback(fallback);
         }
 
+        // --- Named-point override (project-native "@point_id" schedule format) ---
+        // This bypasses anchor lookup and returns the exact world position from route_points.json.
+        String pointId = state.namedPointId();
+        if (pointId != null && !pointId.isBlank()) {
+            com.google.gson.JsonObject routePointsRoot = NpcDataRegistry.events().get("npc_route_points");
+            if (routePointsRoot != null && routePointsRoot.has("points")) {
+                com.google.gson.JsonObject points = routePointsRoot.getAsJsonObject("points");
+                if (points.has(pointId)) {
+                    com.google.gson.JsonObject pt = points.getAsJsonObject(pointId);
+                    double x = pt.has("x") ? pt.get("x").getAsDouble() : 0;
+                    double y = pt.has("y") ? pt.get("y").getAsDouble() : 0;
+                    double z = pt.has("z") ? pt.get("z").getAsDouble() : 0;
+                    boolean indoor = pt.has("indoor") && pt.get("indoor").getAsBoolean();
+                    // Named points are always precise — no ground-height scan needed.
+                    return new TargetPoint(new Vec3(x, y, z), false, indoor);
+                }
+            }
+            // Named point defined in schedule but missing from route_points.json — fall through to anchor.
+            StardewCraft.LOGGER.warn("[NPC_SCHEDULE] Named point '{}' not found in npc_route_points.json (npc={})",
+                pointId, state.npcId());
+        }
+
+        // --- Anchor lookup (legacy tile-offset or per-location anchor) ---
         String location = canonicalLocation(state.locationName());
         NpcLocationAnchor anchor = NpcDataRegistry.locationAnchors().get(location);
         if (anchor != null) {
@@ -548,7 +575,7 @@ public final class NpcScheduleRuntimeService {
         }
 
         String[] parts = raw.trim().split("\\s+");
-        if (parts.length < 4) {
+        if (parts.length < 2) {
             return null;
         }
 
@@ -565,6 +592,27 @@ public final class NpcScheduleRuntimeService {
                 startIndex = 1;
             }
 
+            // --- NEW FORMAT: "<location> @<namedPointId> [<facing>] [<behavior>]" ---
+            if (startIndex < parts.length && parts[startIndex].startsWith("@")) {
+                String namedPointId = parts[startIndex].substring(1);
+                int facing = 2; // default facing south
+                String behavior = "";
+                if (startIndex + 1 < parts.length && isInteger(parts[startIndex + 1])) {
+                    facing = Integer.parseInt(parts[startIndex + 1]);
+                    behavior = extractRouteBehaviorToken(parts, startIndex + 2);
+                } else if (startIndex + 1 < parts.length) {
+                    behavior = extractRouteBehaviorToken(parts, startIndex + 1);
+                }
+                return new ScheduleNode(scheduleKey, checkpoint, location, 0, 0, facing, behavior, namedPointId, 0);
+            }
+
+            // --- SIMPLE FORMAT: "<location> <facing>" (1 int, outdoor shorthand) ---
+            if (parts.length == startIndex + 1 && isInteger(parts[startIndex])) {
+                int facing = Integer.parseInt(parts[startIndex]);
+                return new ScheduleNode(scheduleKey, checkpoint, location, 0, 0, facing, "", "", 0);
+            }
+
+            // --- LEGACY SDV FORMAT: "<location> <tileX> <tileY> <facing> [<behavior>]" ---
             if (parts.length < startIndex + 3) {
                 return null;
             }
@@ -573,7 +621,7 @@ public final class NpcScheduleRuntimeService {
             int tileY = Integer.parseInt(parts[startIndex + 1]);
             int facing = Integer.parseInt(parts[startIndex + 2]);
             String behavior = extractRouteBehaviorToken(parts, startIndex + 3);
-            return new ScheduleNode(scheduleKey, checkpoint, location, tileX, tileY, facing, behavior, 0);
+            return new ScheduleNode(scheduleKey, checkpoint, location, tileX, tileY, facing, behavior, "", 0);
         } catch (NumberFormatException ignored) {
             return null;
         }
@@ -615,9 +663,15 @@ public final class NpcScheduleRuntimeService {
                                 int tileY,
                                 int facing,
                                 String routeBehaviorToken,
+                                /**
+                                 * Named route-point ID from npc_route_points.json.
+                                 * Set when the schedule uses the {@code @point_id} shorthand;
+                                 * empty string = use anchor / tile-offset logic.
+                                 */
+                                String namedPointId,
                                 int index) {
         private ScheduleNode withIndex(int nextIndex) {
-            return new ScheduleNode(scheduleKey, checkpoint, locationName, tileX, tileY, facing, routeBehaviorToken, nextIndex);
+            return new ScheduleNode(scheduleKey, checkpoint, locationName, tileX, tileY, facing, routeBehaviorToken, namedPointId, nextIndex);
         }
     }
 

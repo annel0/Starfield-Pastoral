@@ -201,7 +201,10 @@ public class StardewTimeManager extends SavedData {
                 }
             }
         }
-        
+
+        // Reset per-player shop stock for the new day (SDV: SynchronizedShopStock parity)
+        com.stardew.craft.shop.ShopStockTracker.resetForNewDay();
+
         setDirty();
     }
     

@@ -1,4 +1,4 @@
-﻿{
+{
     "parent":  "stardewcraft:block/dark_earth_shale_wall_inventory",
     "textures":  {
                      "particle":  "stardewcraft:block/mine/dark_earth_shale"

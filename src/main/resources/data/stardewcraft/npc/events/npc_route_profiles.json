@@ -1,95 +1,371 @@
 {
   "event_id": "npc_route_profiles",
+  "_format_note": "npc_id -> location_name -> [{mode: walk|warp, point: route_point_id}]. walk=pathfind; warp=teleport. Last step is final stay target.",
   "profiles": {
     "abigail": {
       "seedshop": [
-        { "mode": "walk", "point": "abigail_seedshop_outer" },
-        { "mode": "warp", "point": "abigail_seedshop_inner_entry" },
-        { "mode": "walk", "point": "abigail_seedshop_indoor_target" }
+        {
+          "mode": "walk",
+          "point": "seedshop_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "seedshop_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "abigail_seedshop_indoor_target"
+        }
       ],
       "pierreshop": [
-        { "mode": "walk", "point": "abigail_seedshop_outer" },
-        { "mode": "warp", "point": "abigail_seedshop_inner_entry" },
-        { "mode": "walk", "point": "abigail_seedshop_indoor_target" }
-      ],
-      "shop": [
-        { "mode": "walk", "point": "abigail_seedshop_outer" },
-        { "mode": "warp", "point": "abigail_seedshop_inner_entry" },
-        { "mode": "walk", "point": "abigail_seedshop_indoor_target" }
-      ],
-      "sebastianroom": [
-        { "mode": "walk", "point": "abigail_sebastianroom_outer" }
-      ],
-      "sunroom": [
-        { "mode": "walk", "point": "abigail_seedshop_outer" },
-        { "mode": "warp", "point": "abigail_seedshop_inner_entry" },
-        { "mode": "walk", "point": "abigail_seedshop_indoor_target" }
-      ],
-      "town": [
-        { "mode": "walk", "point": "abigail_town_stay" }
-      ],
-      "towngarden": [
-        { "mode": "walk", "point": "abigail_town_stay" }
-      ],
-      "mountain": [
-        { "mode": "walk", "point": "abigail_mountain_flute" }
-      ],
-      "railroad": [
-        { "mode": "walk", "point": "abigail_railroad_stay" }
-      ],
-      "forest": [
-        { "mode": "walk", "point": "abigail_forest_stay" }
-      ],
-      "beach": [
-        { "mode": "walk", "point": "abigail_beach_stay" }
-      ],
-      "hospital": [
-        { "mode": "walk", "point": "abigail_hospital_stay" }
-      ],
-      "archaeologyhouse": [
-        { "mode": "walk", "point": "abigail_archaeologyhouse_stay" }
+        {
+          "mode": "walk",
+          "point": "seedshop_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "seedshop_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "abigail_seedshop_indoor_target"
+        }
       ],
       "saloon": [
-        { "mode": "walk", "point": "abigail_saloon_stay" }
+        {
+          "mode": "walk",
+          "point": "saloon_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "saloon_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "abigail_saloon_indoor_stay"
+        }
       ],
-      "busstop": [
-        { "mode": "walk", "point": "abigail_busstop_stay" }
+      "archaeologyhouse": [
+        {
+          "mode": "walk",
+          "point": "museum_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "museum_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "abigail_museum_indoor_stay"
+        }
+      ],
+      "museum": [
+        {
+          "mode": "walk",
+          "point": "museum_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "museum_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "abigail_museum_indoor_stay"
+        }
+      ],
+      "hospital": [
+        {
+          "mode": "walk",
+          "point": "clinic_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "clinic_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "abigail_clinic_indoor_stay"
+        }
       ],
       "sciencehouse": [
-        { "mode": "walk", "point": "abigail_sciencehouse_stay" }
+        {
+          "mode": "walk",
+          "point": "sciencehouse_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "sciencehouse_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "abigail_sciencehouse_indoor_stay"
+        }
       ],
-      "desert": [
-        { "mode": "walk", "point": "abigail_seedshop_outer" },
-        { "mode": "warp", "point": "abigail_seedshop_inner_entry" },
-        { "mode": "walk", "point": "abigail_seedshop_indoor_target" }
+      "sebastianroom": [
+        {
+          "mode": "walk",
+          "point": "sciencehouse_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "sciencehouse_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "abigail_sciencehouse_indoor_stay"
+        }
+      ],
+      "carpenter": [
+        {
+          "mode": "walk",
+          "point": "sciencehouse_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "sciencehouse_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "abigail_sciencehouse_indoor_stay"
+        }
+      ],
+      "town": [
+        {
+          "mode": "walk",
+          "point": "abigail_town_stay"
+        }
+      ],
+      "towngarden": [
+        {
+          "mode": "walk",
+          "point": "abigail_town_stay"
+        }
+      ],
+      "mountain": [
+        {
+          "mode": "walk",
+          "point": "abigail_mountain_flute"
+        }
+      ],
+      "railroad": [
+        {
+          "mode": "walk",
+          "point": "abigail_railroad_stay"
+        }
+      ],
+      "forest": [
+        {
+          "mode": "walk",
+          "point": "abigail_forest_stay"
+        }
+      ],
+      "beach": [
+        {
+          "mode": "walk",
+          "point": "abigail_beach_stay"
+        }
+      ],
+      "busstop": [
+        {
+          "mode": "walk",
+          "point": "abigail_busstop_stay"
+        }
       ]
     },
     "lewis": {
       "manorhouse": [
-        { "mode": "walk", "point": "lewis_manorhouse_outer" }
-      ],
-      "town": [
-        { "mode": "walk", "point": "lewis_towngarden" }
-      ],
-      "towngarden": [
-        { "mode": "walk", "point": "lewis_towngarden" }
-      ],
-      "communitycenter": [
-        { "mode": "walk", "point": "lewis_communitycenter_outer" }
+        {
+          "mode": "walk",
+          "point": "manorhouse_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "manorhouse_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "lewis_manorhouse_indoor_stay"
+        }
       ],
       "saloon": [
-        { "mode": "walk", "point": "lewis_saloon_outer" }
+        {
+          "mode": "walk",
+          "point": "saloon_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "saloon_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "lewis_saloon_indoor_stay"
+        }
+      ],
+      "blacksmith": [
+        {
+          "mode": "walk",
+          "point": "blacksmith_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "blacksmith_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "lewis_blacksmith_indoor_stay"
+        }
+      ],
+      "archaeologyhouse": [
+        {
+          "mode": "walk",
+          "point": "museum_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "museum_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "lewis_museum_indoor_stay"
+        }
+      ],
+      "museum": [
+        {
+          "mode": "walk",
+          "point": "museum_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "museum_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "lewis_museum_indoor_stay"
+        }
+      ],
+      "sciencehouse": [
+        {
+          "mode": "walk",
+          "point": "sciencehouse_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "sciencehouse_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "lewis_sciencehouse_indoor_stay"
+        }
+      ],
+      "carpenter": [
+        {
+          "mode": "walk",
+          "point": "sciencehouse_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "sciencehouse_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "lewis_sciencehouse_indoor_stay"
+        }
+      ],
+      "hospital": [
+        {
+          "mode": "walk",
+          "point": "clinic_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "clinic_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "lewis_clinic_indoor_stay"
+        }
       ],
       "seedshop": [
-        { "mode": "walk", "point": "lewis_seedshop_outer" },
-        { "mode": "warp", "point": "lewis_seedshop_inner_entry" },
-        { "mode": "walk", "point": "lewis_seedshop_counter" }
+        {
+          "mode": "walk",
+          "point": "seedshop_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "seedshop_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "lewis_seedshop_counter"
+        }
+      ],
+      "pierreshop": [
+        {
+          "mode": "walk",
+          "point": "seedshop_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "seedshop_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "lewis_seedshop_counter"
+        }
+      ],
+      "town": [
+        {
+          "mode": "walk",
+          "point": "lewis_towngarden"
+        }
+      ],
+      "towngarden": [
+        {
+          "mode": "walk",
+          "point": "lewis_towngarden"
+        }
+      ],
+      "communitycenter": [
+        {
+          "mode": "walk",
+          "point": "lewis_communitycenter_outdoor"
+        }
       ],
       "fishshop": [
-        { "mode": "walk", "point": "lewis_fishshop_outer" }
+        {
+          "mode": "walk",
+          "point": "lewis_fishshop_outdoor"
+        }
       ],
       "willyshop": [
-        { "mode": "walk", "point": "lewis_fishshop_outer" }
+        {
+          "mode": "walk",
+          "point": "lewis_fishshop_outdoor"
+        }
+      ],
+      "animalshop": [
+        {
+          "mode": "walk",
+          "point": "lewis_animalshop_outdoor"
+        }
+      ],
+      "marnieranch": [
+        {
+          "mode": "walk",
+          "point": "lewis_animalshop_outdoor"
+        }
+      ],
+      "beach": [
+        {
+          "mode": "walk",
+          "point": "lewis_beach_outdoor"
+        }
+      ],
+      "forest": [
+        {
+          "mode": "walk",
+          "point": "lewis_forest_outdoor"
+        }
       ]
     }
   }

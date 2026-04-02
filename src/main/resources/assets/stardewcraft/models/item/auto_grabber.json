@@ -1,4 +1,4 @@
-﻿{
+{
     "parent":  "stardewcraft:block/utility/auto_grabber",
     "textures":  {
                      "particle":  "stardewcraft:block/utility/auto_grabber"

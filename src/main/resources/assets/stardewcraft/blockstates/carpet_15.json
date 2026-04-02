@@ -1,4 +1,4 @@
-﻿{
+{
   "variants": {
     "part=main,facing=north": { "model": "stardewcraft:decor/carpet/carpet_15" },
     "part=main,facing=east": { "model": "stardewcraft:decor/carpet/carpet_15", "y": 90 },

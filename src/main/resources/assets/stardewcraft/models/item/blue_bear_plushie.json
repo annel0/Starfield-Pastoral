@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/common/blue_bear_plushie",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/blue_bear_plushie"
+	}
+}

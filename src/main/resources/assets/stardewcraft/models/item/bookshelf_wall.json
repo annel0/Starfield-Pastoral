@@ -1,0 +1,4 @@
+{
+  "parent": "stardewcraft:decor/wall_decor/common/bookshelf_wall_3_1",
+  "textures": { "particle": "stardewcraft:block/deco/misc/common/bookshelf_wall_3_1" }
+}

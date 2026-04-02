@@ -1,4 +1,4 @@
-﻿{
+{
   "variants": {
     "facing=east,half=bottom,shape=inner_left": { "model": "stardewcraft:block/limestone_stairs_inner", "y": 270, "uvlock": true },
     "facing=east,half=bottom,shape=inner_right": { "model": "stardewcraft:block/limestone_stairs_inner" },

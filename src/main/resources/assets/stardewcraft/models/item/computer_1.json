@@ -1,7 +1,0 @@
-﻿{
-  "parent": "stardewcraft:decor/common/computer_1",
-  "textures": {
-    "particle": "stardewcraft:block/deco/misc/common/computer_1"
-  }
-}
-

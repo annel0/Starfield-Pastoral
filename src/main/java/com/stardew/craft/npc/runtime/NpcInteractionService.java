@@ -4,8 +4,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.emote.EmoteCatalog;
+import com.stardew.craft.emote.EmoteType;
 import com.stardew.craft.entity.npc.StardewNpcEntity;
+import com.stardew.craft.npc.data.NpcCapabilityProfile;
 import com.stardew.craft.npc.data.NpcDataRegistry;
+import com.stardew.craft.network.payload.EmoteBroadcastPayload;
 import com.stardew.craft.network.payload.OpenNpcDialogueScreenPayload;
 import com.stardew.craft.network.payload.SyncNpcFriendshipStatusPayload;
 import com.stardew.craft.time.StardewTimeManager;
@@ -27,6 +31,7 @@ import java.util.Map;
 @SuppressWarnings("null")
 public final class NpcInteractionService {
     private static final String[] WEEKDAY_SHORT = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
+    private static final String STARDROP_TEA_ID = "stardewcraft:stardrop_tea";
 
     private NpcInteractionService() {
     }
@@ -55,10 +60,10 @@ public final class NpcInteractionService {
         state.normalizeGiftWeek(dayContext.weekKey());
 
         if (!held.isEmpty()) {
-            String resultText = receiveGift(serverPlayer, held, npcId, state, dayContext);
+            String resultText = receiveGift(serverPlayer, npc, held, npcId, state, dayContext);
             friendshipManager.setDirty();
             syncFriendshipStatus(serverPlayer, npcId, state, dayContext);
-            PacketDistributor.sendToPlayer(serverPlayer, new OpenNpcDialogueScreenPayload(npcId, formatDialogueForPlayer(resultText, serverPlayer), state.points()));
+            sendDialoguePacket(serverPlayer, npcId, resultText, state.points());
             return InteractionResult.SUCCESS;
         }
 
@@ -71,8 +76,18 @@ public final class NpcInteractionService {
         grantConversationFriendship(npcId, state, dayContext, dialogueText);
         friendshipManager.setDirty();
         syncFriendshipStatus(serverPlayer, npcId, state, dayContext);
-        PacketDistributor.sendToPlayer(serverPlayer, new OpenNpcDialogueScreenPayload(npcId, formatDialogueForPlayer(dialogueText, serverPlayer), state.points()));
+        sendDialoguePacket(serverPlayer, npcId, dialogueText, state.points());
         return InteractionResult.SUCCESS;
+    }
+
+    public static int getMaxFriendshipPointsFor(String npcId) {
+        NpcCapabilityProfile profile = NpcDataRegistry.capabilities().get(npcId);
+        boolean datable = profile != null && profile.datable();
+        // Since we don't have a dating/bouquet system yet, datable NPCs are capped at 8 hearts.
+        int maxHearts = datable ? 8 : 10;
+        // Vanilla formula: (maxHearts + 1) * 250 - 1
+        // Thus 8 hearts -> 9 * 250 - 1 = 2249 points (which safely renders as 8 hearts and no more)
+        return (maxHearts + 1) * 250 - 1;
     }
 
     private static void syncFriendshipStatus(ServerPlayer player,
@@ -111,7 +126,7 @@ public final class NpcInteractionService {
         }
         int before = state.points();
         state.setLastTalkDayKey(dayContext.dayKey());
-        state.addPoints(20);
+        state.addPoints(20, getMaxFriendshipPointsFor(npcId));
         StardewCraft.LOGGER.info(
             "[NPC_FRIENDSHIP_TRACE] npc={} source=talk dayKey={} delta=20 before={} after={}",
             npcId,
@@ -121,36 +136,66 @@ public final class NpcInteractionService {
         );
     }
 
+    private static boolean isStardropTea(ItemStack held) {
+        return STARDROP_TEA_ID.equals(normalizeItemId(held));
+    }
+
     private static String receiveGift(ServerPlayer player,
+                                      StardewNpcEntity npcEntity,
                                       ItemStack held,
                                       String npcId,
                                       NpcFriendshipDataManager.FriendshipState state,
                                       DayContext dayContext) {
-        if (state.lastGiftDayKey() == dayContext.dayKey()) {
-            return "I've already received a gift from you today.";
-        }
-        if (state.giftsThisWeek() >= 2) {
-            return "You've already given me two gifts this week.";
+        boolean stardropTea = isStardropTea(held);
+
+        // StardropTea bypasses daily & weekly limits (vanilla parity)
+        if (!stardropTea) {
+            if (state.lastGiftDayKey() == dayContext.dayKey()) {
+                return "stardewcraft.npc.generic.gift.already_today";
+            }
+            if (state.giftsThisWeek() >= 2) {
+                return "stardewcraft.npc.generic.gift.already_week_limit";
+            }
         }
 
-        GiftTasteResult tasteResult = getGiftTasteForThisItem(held, npcId);
-        GiftTaste taste = tasteResult.taste();
-        int baseDelta = friendshipDeltaFromTaste(taste);
         boolean birthday = isNpcBirthday(npcId, dayContext);
-        int finalDelta = birthday ? baseDelta * 8 : baseDelta;
+        float birthdayMul = birthday ? 8f : 1f;
+
+        int finalDelta;
+        GiftTasteResult tasteResult;
+        GiftTaste taste;
+        if (stardropTea) {
+            // Vanilla: gift_taste_stardroptea = 7 → min(750, 250 * multiplier)
+            tasteResult = new GiftTasteResult(GiftTaste.LOVED, "stardrop_tea_special");
+            taste = GiftTaste.LOVED;
+            finalDelta = Math.min(750, (int)(250f * birthdayMul));
+        } else {
+            tasteResult = getGiftTasteForThisItem(held, npcId);
+            taste = tasteResult.taste();
+            int baseDelta = friendshipDeltaFromTaste(taste);
+            float qualityMul = qualityMultiplier(held);
+            // Vanilla: quality multiplier only applies to positive tastes
+            if (baseDelta > 0) {
+                finalDelta = (int)(baseDelta * birthdayMul * qualityMul);
+            } else {
+                finalDelta = (int)(baseDelta * birthdayMul);
+            }
+        }
 
         int before = state.points();
-        state.addPoints(finalDelta);
-        state.applyGiftCounters(dayContext.dayKey(), dayContext.weekKey());
+        state.addPoints(finalDelta, getMaxFriendshipPointsFor(npcId));
+        // StardropTea does NOT count toward daily/weekly gift limits (vanilla parity)
+        if (!stardropTea) {
+            state.applyGiftCounters(dayContext.dayKey(), dayContext.weekKey());
+        }
 
         StardewCraft.LOGGER.info(
-            "[NPC_GIFT_TRACE] npc={} item={} taste={} tasteSource={} birthday={} baseDelta={} finalDelta={} weekGifts={} before={} after={}",
+            "[NPC_GIFT_TRACE] npc={} item={} taste={} tasteSource={} birthday={} finalDelta={} weekGifts={} before={} after={}",
             npcId,
             normalizeItemId(held),
             taste,
             tasteResult.source(),
             birthday,
-            baseDelta,
             finalDelta,
             state.giftsThisWeek(),
             before,
@@ -161,21 +206,44 @@ public final class NpcInteractionService {
             held.shrink(1);
         }
 
+        // Broadcast NPC emote to all players (vanilla parity)
+        broadcastGiftEmote(npcEntity, taste);
+
         return buildGiftResponseText(npcId, held, taste, birthday, finalDelta);
     }
 
     private static GiftTasteResult getGiftTasteForThisItem(ItemStack held, String npcId) {
         String key = normalizeItemId(held);
+
+        // 1. NPC-specific item match (highest priority)
         JsonObject npcTastes = NpcDataRegistry.tastes().get(npcId);
         GiftTaste npcResult = findTasteInTable(npcTastes, key);
         if (npcResult != null) {
             return new GiftTasteResult(npcResult, "npc");
         }
 
+        // 2. NPC-specific category match
+        String itemCategory = resolveItemCategory(held);
+        if (itemCategory != null) {
+            GiftTaste npcCatResult = findTasteByCategory(npcTastes, itemCategory);
+            if (npcCatResult != null) {
+                return new GiftTasteResult(npcCatResult, "npc-category");
+            }
+        }
+
+        // 3. Universal item match
         JsonObject universalTastes = NpcDataRegistry.tastes().get("universal");
         GiftTaste universalResult = findTasteInTable(universalTastes, key);
         if (universalResult != null) {
             return new GiftTasteResult(universalResult, "universal");
+        }
+
+        // 4. Universal category match
+        if (itemCategory != null) {
+            GiftTaste univCatResult = findTasteByCategory(universalTastes, itemCategory);
+            if (univCatResult != null) {
+                return new GiftTasteResult(univCatResult, "universal-category");
+            }
         }
 
         return new GiftTasteResult(GiftTaste.NEUTRAL, "fallback-neutral");
@@ -211,6 +279,40 @@ public final class NpcInteractionService {
             }
         }
         return false;
+    }
+
+    /**
+     * Check taste table for category-based entries.
+     * Checks "loved_categories", "liked_categories", etc. arrays against the item's category tag.
+     */
+    private static GiftTaste findTasteByCategory(JsonObject tastes, String category) {
+        if (tastes == null || category == null) {
+            return null;
+        }
+        if (containsTaste(tastes, "loved_categories", category)) return GiftTaste.LOVED;
+        if (containsTaste(tastes, "hated_categories", category)) return GiftTaste.HATED;
+        if (containsTaste(tastes, "liked_categories", category)) return GiftTaste.LIKED;
+        if (containsTaste(tastes, "disliked_categories", category)) return GiftTaste.DISLIKED;
+        if (containsTaste(tastes, "neutral_categories", category)) return GiftTaste.NEUTRAL;
+        return null;
+    }
+
+    /**
+     * Resolve item category from NBT custom data tag "StardewCategory".
+     * Returns a lowercase category string (e.g. "fish", "gem", "cooking", "archaeology")
+     * or null if no category is set.
+     */
+    private static String resolveItemCategory(ItemStack held) {
+        if (held.isEmpty()) return null;
+        net.minecraft.world.item.component.CustomData customData =
+            held.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
+                              net.minecraft.world.item.component.CustomData.EMPTY);
+        net.minecraft.nbt.CompoundTag tag = customData.copyTag();
+        if (tag.contains("StardewCategory")) {
+            String cat = tag.getString("StardewCategory");
+            return (cat != null && !cat.isBlank()) ? cat.toLowerCase(Locale.ROOT) : null;
+        }
+        return null;
     }
 
     private static String loadCurrentDialogue(ServerLevel level,
@@ -292,6 +394,9 @@ public final class NpcInteractionService {
                                                 boolean birthday,
                                                 int finalDelta) {
         JsonObject dialogueRoot = NpcDataRegistry.dialogues().get(npcId);
+        NpcCapabilityProfile profile = NpcDataRegistry.capabilities().get(npcId);
+        int manners = profile != null ? profile.manners() : NpcCapabilityProfile.MANNERS_NEUTRAL;
+
         if (birthday) {
             if (taste == GiftTaste.LOVED) {
                 String loved = resolveDialogueTextByKey(dialogueRoot, "AcceptBirthdayGift_Loved", currentDayKey());
@@ -299,34 +404,115 @@ public final class NpcInteractionService {
                     return loved;
                 }
             }
-            String birthdayKey = (taste == GiftTaste.DISLIKED || taste == GiftTaste.HATED)
-                ? "AcceptBirthdayGift_Negative"
-                : "AcceptBirthdayGift_Positive";
-            String birthdayText = resolveDialogueTextByKey(dialogueRoot, birthdayKey, currentDayKey());
-            if (birthdayText != null && !birthdayText.isBlank()) {
-                return birthdayText;
+
+            // Personality-branched birthday responses (vanilla NPC.cs parity)
+            boolean positive = (taste == GiftTaste.LOVED || taste == GiftTaste.LIKED || taste == GiftTaste.NEUTRAL);
+            boolean negative = (taste == GiftTaste.DISLIKED || taste == GiftTaste.HATED);
+
+            if (positive) {
+                String birthdayKey = "AcceptBirthdayGift_Positive";
+                String birthdayText = resolveDialogueTextByKey(dialogueRoot, birthdayKey, currentDayKey());
+                if (birthdayText != null && !birthdayText.isBlank()) {
+                    return "$h" + birthdayText;
+                }
+                // Manners-based fallback (vanilla NPC.cs:4274-4277)
+                if (manners == NpcCapabilityProfile.MANNERS_RUDE) {
+                    return "$h" + "stardewcraft.npc.generic.birthday.positive_rude";
+                }
+                return "$h" + "stardewcraft.npc.generic.birthday.positive";
             }
+            if (negative) {
+                String birthdayKey = "AcceptBirthdayGift_Negative";
+                String birthdayText = resolveDialogueTextByKey(dialogueRoot, birthdayKey, currentDayKey());
+                if (birthdayText != null && !birthdayText.isBlank()) {
+                    return "$s" + birthdayText;
+                }
+                // Manners-based fallback (vanilla NPC.cs:4278-4279)
+                if (manners == NpcCapabilityProfile.MANNERS_RUDE) {
+                    return "$s" + "stardewcraft.npc.generic.birthday.negative_rude";
+                }
+                return "$s" + "stardewcraft.npc.generic.birthday.negative";
+            }
+            // Neutral birthday
+            if (manners == NpcCapabilityProfile.MANNERS_RUDE) {
+                return "stardewcraft.npc.generic.birthday.neutral_rude";
+            }
+            return "stardewcraft.npc.generic.birthday.neutral";
         }
 
+        // Item-specific dialogue (e.g. AcceptGift_(O)StardropTea, AcceptGift_(O)66 for Amethyst)
         String itemSpecificKey = "AcceptGift_(O)" + stardewObjectToken(held);
         String itemSpecificText = resolveDialogueTextByKey(dialogueRoot, itemSpecificKey, currentDayKey());
         if (itemSpecificText != null && !itemSpecificText.isBlank()) {
             return itemSpecificText;
         }
 
-        if (finalDelta >= 80) {
-            return "I love this!";
+        // NPC-specific taste response messages from taste data (vanilla parity)
+        String tasteMsg = findNpcTasteMessage(npcId, taste);
+        if (tasteMsg != null && !tasteMsg.isBlank()) {
+            String emotionPrefix = switch (taste) {
+                case LOVED, LIKED -> "$h";
+                case HATED, DISLIKED -> "$s";
+                case NEUTRAL -> "";
+            };
+            return emotionPrefix + tasteMsg;
         }
-        if (finalDelta >= 45) {
-            return "This is a really nice gift.";
+
+        // Generic fallback with portrait emotion tags
+        return switch (taste) {
+            case LOVED -> "$h" + "stardewcraft.npc.generic.gift.loved";
+            case LIKED -> "$h" + "stardewcraft.npc.generic.gift.liked";
+            case NEUTRAL -> "stardewcraft.npc.generic.gift.neutral";
+            case DISLIKED -> "$s" + "stardewcraft.npc.generic.gift.disliked";
+            case HATED -> "$s" + "stardewcraft.npc.generic.gift.hated";
+        };
+    }
+
+    /**
+     * Look up NPC-specific taste response message from the taste data table.
+     * Vanilla NPCGiftTastes stores per-NPC messages for each taste level.
+     * Our taste JSON supports optional "loved_msg", "liked_msg", "neutral_msg", "disliked_msg", "hated_msg" fields.
+     */
+    private static String findNpcTasteMessage(String npcId, GiftTaste taste) {
+        JsonObject npcTastes = NpcDataRegistry.tastes().get(npcId);
+        if (npcTastes == null) {
+            return null;
         }
-        if (finalDelta >= 20) {
-            return "Thanks.";
+        String msgKey = switch (taste) {
+            case LOVED -> "loved_msg";
+            case LIKED -> "liked_msg";
+            case NEUTRAL -> "neutral_msg";
+            case DISLIKED -> "disliked_msg";
+            case HATED -> "hated_msg";
+        };
+        if (npcTastes.has(msgKey) && npcTastes.get(msgKey).isJsonPrimitive()) {
+            String msg = npcTastes.get(msgKey).getAsString();
+            if (!msg.isBlank()) {
+                // Wrap in translatable with NPC-specific key
+                String langKey = "stardewcraft.npc." + npcId + ".gift_taste." + taste.name().toLowerCase(Locale.ROOT);
+                return langKey;
+            }
         }
-        if (finalDelta <= -40) {
-            return "I hate this...";
+        return null;
+    }
+
+    /**
+     * Broadcast an emote bubble above the NPC entity based on gift taste.
+     * Vanilla parity: loved → heart(20), liked → happy(32), hated → angry(12),
+     * disliked → sad(28), neutral → no emote.
+     */
+    private static void broadcastGiftEmote(StardewNpcEntity npcEntity, GiftTaste taste) {
+        EmoteType emote = switch (taste) {
+            case LOVED -> EmoteCatalog.byId("heart");
+            case LIKED -> EmoteCatalog.byId("happy");
+            case HATED -> EmoteCatalog.byId("angry");
+            case DISLIKED -> EmoteCatalog.byId("sad");
+            case NEUTRAL -> null;
+        };
+        if (emote != null) {
+            int baseIndex = EmoteCatalog.getBubbleBaseIndex(emote);
+            PacketDistributor.sendToAllPlayers(new EmoteBroadcastPayload(npcEntity.getId(), baseIndex));
         }
-        return "I don't really like this.";
     }
 
     private static int friendshipDeltaFromTaste(GiftTaste taste) {
@@ -337,6 +523,25 @@ public final class NpcInteractionService {
             case DISLIKED -> -20;
             case HATED -> -40;
         };
+    }
+
+    /** Vanilla quality multiplier: silver=1.1, gold=1.25, iridium=1.5, otherwise 1.0 */
+    private static float qualityMultiplier(ItemStack held) {
+        if (held.isEmpty()) return 1f;
+        net.minecraft.world.item.component.CustomData customData =
+            held.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA,
+                              net.minecraft.world.item.component.CustomData.EMPTY);
+        net.minecraft.nbt.CompoundTag tag = customData.copyTag();
+        if (tag.contains("StardewQuality")) {
+            int q = tag.getInt("StardewQuality");
+            return switch (q) {
+                case 1 -> 1.1f;  // silver
+                case 2 -> 1.25f; // gold
+                case 4 -> 1.5f;  // iridium
+                default -> 1f;
+            };
+        }
+        return 1f;
     }
 
     private static List<String> buildDialoguePrefixes(DayContext dayContext) {
@@ -447,26 +652,55 @@ public final class NpcInteractionService {
         if (entry.isJsonPrimitive()) {
             return entry.getAsString();
         }
+        if (entry.isJsonObject()) {
+            JsonObject obj = entry.getAsJsonObject();
+            if (obj.has("translate") && obj.get("translate").isJsonPrimitive()) {
+                return obj.get("translate").getAsString();
+            }
+            return null;
+        }
         if (entry.isJsonArray()) {
             JsonArray arr = entry.getAsJsonArray();
             if (arr.isEmpty()) {
                 return null;
             }
             JsonElement el = arr.get(Math.floorMod(dayKey, arr.size()));
-            return el != null && el.isJsonPrimitive() ? el.getAsString() : null;
+            return pickTextFromEntry(el, dayKey);
         }
         return null;
     }
 
-    private static String formatDialogueForPlayer(String raw, ServerPlayer player) {
-        if (raw == null || raw.isBlank() || player == null) {
-            return raw;
+    /**
+     * Send dialogue to client. Accepts either a plain translate key or the
+     * internal {@code tr::key::base64} format (strips it down to just the key).
+     */
+    private static void sendDialoguePacket(ServerPlayer player, String npcId, String translateKey, int points) {
+        if (translateKey == null || translateKey.isBlank()) {
+            translateKey = "...";
         }
-        String playerId = player.getGameProfile() == null ? "player" : player.getGameProfile().getName();
-        if (playerId == null || playerId.isBlank()) {
-            playerId = "player";
+        PacketDistributor.sendToPlayer(player,
+                new OpenNpcDialogueScreenPayload(npcId, translateKey, points));
+    }
+
+    public static void handleClientQuestionAnswer(ServerPlayer player, String npcId, String nextDialogueNode, int friendshipDelta) {
+        if (npcId == null || npcId.isBlank()) return;
+        NpcFriendshipDataManager friendshipManager = NpcFriendshipDataManager.get((net.minecraft.server.level.ServerLevel) player.level());
+        NpcFriendshipDataManager.FriendshipState state = friendshipManager.getOrCreate(player.getUUID(), npcId);
+        
+        if (friendshipDelta != 0) {
+            state.addPoints(friendshipDelta, getMaxFriendshipPointsFor(npcId));
+            friendshipManager.setDirty();
+            DayContext dayContext = currentDayContext((net.minecraft.server.level.ServerLevel) player.level());
+            syncFriendshipStatus(player, npcId, state, dayContext);
         }
-        return raw.replace("@", playerId);
+
+        if (nextDialogueNode != null && !nextDialogueNode.isBlank() && !nextDialogueNode.equals("null")) {
+            JsonObject dialogueRoot = NpcDataRegistry.dialogues().get(npcId);
+            String text = resolveDialogueTextByKey(dialogueRoot, nextDialogueNode, currentDayKey());
+            if (text != null && !text.isBlank()) {
+                sendDialoguePacket(player, npcId, text, state.points());
+            }
+        }
     }
 
     private static String findKeyCaseInsensitive(JsonObject obj, String candidate) {

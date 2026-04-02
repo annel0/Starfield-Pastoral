@@ -9,6 +9,7 @@ import com.stardew.craft.command.StardewTeleportCommand;
 import com.stardew.craft.command.TimeDebugCommand;
 import com.stardew.craft.command.OvernightDebugCommand;
 import com.stardew.craft.command.NpcDebugCommand;
+import com.stardew.craft.command.ShopDebugCommand;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
@@ -29,6 +30,7 @@ public class CommandEventHandler {
         DecorationDebugCommand.register(event.getDispatcher());
         OvernightDebugCommand.register(event.getDispatcher());
         NpcDebugCommand.register(event.getDispatcher());
+        ShopDebugCommand.register(event.getDispatcher());
         StardewCraft.LOGGER.info("Registered Stardew commands");
     }
 }

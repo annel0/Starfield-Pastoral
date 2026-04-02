@@ -1,4 +1,4 @@
-﻿{
+{
     "parent":  "stardewcraft:block/earth_shale_stairs",
     "textures":  {
                      "particle":  "stardewcraft:block/mine/earth_shale"

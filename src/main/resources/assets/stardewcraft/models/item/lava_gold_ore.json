@@ -1,4 +1,4 @@
-﻿{
+{
     "parent":  "stardewcraft:block/lava_gold_ore",
     "textures":  {
                      "particle":  "stardewcraft:block/mine/lava_gold_ore"

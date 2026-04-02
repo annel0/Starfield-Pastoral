@@ -160,21 +160,21 @@ public final class ModBlockEntities {
 
 	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<LargeFireplaceBlockEntity>> LARGE_FIREPLACE =
-			BLOCK_ENTITIES.register("large_fireplace", () -> BlockEntityType.Builder.of(LargeFireplaceBlockEntity::new, ModBlocks.LARGE_FIREPLACE_1.get()).build(null));
+			BLOCK_ENTITIES.register("large_fireplace", () -> BlockEntityType.Builder.of(LargeFireplaceBlockEntity::new, ModBlocks.FIREPLACE_LARGE.get()).build(null));
 
 	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ShrineBlockEntity>> SHRINE =
-			BLOCK_ENTITIES.register("shrine", () -> BlockEntityType.Builder.of(ShrineBlockEntity::new, ModBlocks.SHRINE_7.get()).build(null));
+			BLOCK_ENTITIES.register("shrine", () -> BlockEntityType.Builder.of(ShrineBlockEntity::new, ModBlocks.SHRINE.get()).build(null));
 
 	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BookshelfGeoBlockEntity>> BOOKSHELF_GEO =
 			BLOCK_ENTITIES.register("bookshelf_geo", () -> BlockEntityType.Builder.of(BookshelfGeoBlockEntity::new,
-				ModBlocks.BOOKSHELF_3_2.get(), ModBlocks.BOOKSHELF_3_3.get()).build(null));
+				ModBlocks.BOOKSHELF_TALL_1.get(), ModBlocks.BOOKSHELF_TALL_2.get()).build(null));
 
 	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PillarGeoBlockEntity>> PILLAR_GEO =
 			BLOCK_ENTITIES.register("pillar_geo", () -> BlockEntityType.Builder.of(PillarGeoBlockEntity::new,
-				ModBlocks.PILLAR_1.get()).build(null));
+				ModBlocks.PILLAR.get()).build(null));
 
 	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TableDisplayBlockEntity>> TABLE_DISPLAY =

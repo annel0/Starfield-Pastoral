@@ -1,4 +1,4 @@
-﻿{
+{
     "parent":  "stardewcraft:block/salt_rock_stairs",
     "textures":  {
                      "particle":  "stardewcraft:block/mine/salt_rock"

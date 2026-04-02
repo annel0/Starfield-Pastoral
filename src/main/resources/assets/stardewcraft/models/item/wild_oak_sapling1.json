@@ -1,4 +1,4 @@
-﻿{
+{
     "parent":  "stardewcraft:block/tree/wild_oak_sapling_stage1",
     "textures":  {
                      "particle":  "stardewcraft:block/tree/wild_oak_sapling_stage1"

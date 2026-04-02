@@ -1,8 +1,32 @@
 {
   "npc_id": "abigail",
-  "loved": ["amethyst"],
-  "liked": ["pumpkin"],
+  "_vanilla_ref": "66=amethyst 128=pufferfish 220=chocolate_cake 226=spicy_eel 276=pumpkin 611=blackberry_cobbler 904=mummified_bat Book_Void=book_of_shadows",
+  "loved": [
+    "stardewcraft:amethyst",
+    "stardewcraft:pufferfish",
+    "stardewcraft:pumpkin"
+  ],
+  "_loved_not_yet_in_mod": ["chocolate_cake(220)", "spicy_eel(226)", "blackberry_cobbler(611)", "mummified_bat(904)", "book_of_shadows(Book_Void)"],
+  "liked": [
+    "stardewcraft:ancient_sword",
+    "stardewcraft:bone_flute"
+  ],
+  "_liked_not_yet_in_mod": ["skillbook_4(SkillBook_4)", "basilisk_paw(BasiliskPaw)"],
   "neutral": [],
-  "disliked": ["salmonberry"],
-  "hated": ["holly"]
+  "disliked": [
+    "stardewcraft:salmonberry",
+    "stardewcraft:egg",
+    "stardewcraft:void_egg",
+    "stardewcraft:duck_egg",
+    "stardewcraft:dinosaur_egg"
+  ],
+  "_disliked_vanilla_note": "Categories -5(eggs) -75(vegetables) -79(fruits), plus 16=wild_horseradish 245=sugar 246=wheat_flour. Eggs listed explicitly; vegetables/fruits handled by universal or item-level. wild_horseradish/sugar/wheat_flour not yet in mod.",
+  "hated": [
+    "stardewcraft:clay"
+  ],
+  "loved_msg": "I seriously love this! You're the best, @!",
+  "liked_msg": "Hey, how'd you know I was hungry? This looks delicious!",
+  "neutral_msg": "You brought me a present? Thanks.",
+  "disliked_msg": "What am I supposed to do with this?",
+  "hated_msg": "What were you thinking? This is awful!"
 }

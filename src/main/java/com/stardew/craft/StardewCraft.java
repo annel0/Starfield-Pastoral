@@ -291,13 +291,193 @@ public class StardewCraft {
                 output.accept(ModItems.GALAXY_SWORD.get());
                 output.accept(ModItems.INFINITY_BLADE.get());
 
-                // 家具/装饰
-                output.accept(ModItems.WALL_PHOTO_FRAME.get());
-                output.accept(ModItems.WALL_BONE_DECOR.get());
+                // ── 家具/装饰 ──────────────────────────────────────────────────
+                // 床 / 沙发 / 坐具
+                output.accept(ModItems.BED_1.get());
+                output.accept(ModItems.BED_2.get());
+                output.accept(ModItems.SOFA.get());
+                output.accept(ModItems.CHAIR_1.get());
+                output.accept(ModItems.CHAIR_2.get());
+                output.accept(ModItems.CHAIR_3.get());
+                output.accept(ModItems.DINING_CHAIR_WOOD.get());
+                output.accept(ModItems.DINING_CHAIR_IRON.get());
+                output.accept(ModItems.CUSHION.get());
+                output.accept(ModItems.STOOL.get());
+                output.accept(ModItems.OFFICE_STOOL.get());
+                output.accept(ModItems.OFFICE_CHAIR_2.get());
+                // 桌子 / 台面
+                output.accept(ModItems.OAK_TABLE.get());
+                output.accept(ModItems.SPRUCE_TABLE.get());
+                output.accept(ModItems.BIRCH_TABLE.get());
+                output.accept(ModItems.OAK_ROUND_TABLE.get());
+                output.accept(ModItems.SPRUCE_COUNTER.get());
                 output.accept(ModItems.KITCHEN_COUNTER.get());
                 output.accept(ModItems.TABLEWARE_PINK.get());
                 output.accept(ModItems.TABLEWARE_BLUE.get());
+                // 灯具
+                output.accept(ModItems.LIGHT_1.get());
+                output.accept(ModItems.LIGHT_2.get());
+                output.accept(ModItems.LIGHT_3.get());
+                output.accept(ModItems.LIGHT_4.get());
+                output.accept(ModItems.LIGHT_5.get());
+                output.accept(ModItems.LIGHT_6.get());
+                output.accept(ModItems.LIGHT_7.get());
+                output.accept(ModItems.FLOOR_LAMP.get());
+                output.accept(ModItems.TABLE_LAMP.get());
+                output.accept(ModItems.TABLE_LANTERN.get());
+                // 收纳 / 储物
+                output.accept(ModItems.DRESSER_1.get());
+                output.accept(ModItems.DRESSER_2.get());
+                output.accept(ModItems.DRESSER_3.get());
+                output.accept(ModItems.BARREL.get());
+                output.accept(ModItems.WOOD_BUNDLE.get());
                 output.accept(ModItems.WALL_KITCHEN_CABINET.get());
+                output.accept(ModItems.SINK_4.get());
+                output.accept(ModItems.WINE_CABINET_1.get());
+                output.accept(ModItems.WINE_CABINET_2.get());
+                output.accept(ModItems.WINE_CABINET_3.get());
+                // 书架 / 书堆
+                output.accept(ModItems.BOOKSHELF_TALL_1.get());
+                output.accept(ModItems.BOOKSHELF_TALL_2.get());
+                output.accept(ModItems.BOOKSHELF_WALL.get());
+                output.accept(ModItems.BOOK_STACK_1.get());
+                output.accept(ModItems.BOOK_STACK_2.get());
+                output.accept(ModItems.BOOK_STACK_3.get());
+                // 电器 / 娱乐
+                output.accept(ModItems.TV_1.get());
+                output.accept(ModItems.TV_2.get());
+                output.accept(ModItems.COMPUTER.get());
+                output.accept(ModItems.RADIO.get());
+                output.accept(ModItems.ARCADE_MACHINE.get());
+                output.accept(ModItems.JUKEBOX.get());
+                output.accept(ModItems.MICROWAVE.get());
+                output.accept(ModItems.GRANDFATHER_CLOCK.get());
+                output.accept(ModItems.ELECTRIC_PIANO.get());
+                output.accept(ModItems.GUITAR.get());
+                output.accept(ModItems.DRUM_SET.get());
+                output.accept(ModItems.WIZARD_CAULDRON.get());
+                // 装饰物
+                output.accept(ModItems.FIREPLACE_LARGE.get());
+                output.accept(ModItems.COOKING_POT.get());
+                output.accept(ModItems.PILLAR.get());
+                output.accept(ModItems.SHRINE.get());
+                output.accept(ModItems.SAILBOAT.get());
+                output.accept(ModItems.PHOTO_FRAME.get());
+                output.accept(ModItems.WHITE_TEACUP.get());
+                output.accept(ModItems.POOL_TABLE.get());
+                output.accept(ModItems.HOSPITAL_COUNTER.get());
+                output.accept(ModItems.JOJA_VENDING_MACHINE.get());
+                // 植物
+                output.accept(ModItems.BONSAI_1.get());
+                output.accept(ModItems.BONSAI_2.get());
+                output.accept(ModItems.BONSAI_3.get());
+                output.accept(ModItems.BONSAI_4.get());
+                output.accept(ModItems.BONSAI_5_WALL.get());
+                output.accept(ModItems.BONSAI_BUSH.get());
+                output.accept(ModItems.POTTED_PLANT_1.get());
+                output.accept(ModItems.POTTED_PLANT_2.get());
+                output.accept(ModItems.POTTED_PLANT_3.get());
+                output.accept(ModItems.POTTED_PLANT_4.get());
+                output.accept(ModItems.POTTED_PLANT_5.get());
+                output.accept(ModItems.POTTED_PLANT_6.get());
+                // 地毯 / 毛皮
+                output.accept(ModItems.CARPET_1.get());
+                output.accept(ModItems.CARPET_2.get());
+                output.accept(ModItems.CARPET_3.get());
+                output.accept(ModItems.CARPET_4.get());
+                output.accept(ModItems.CARPET_5.get());
+                output.accept(ModItems.CARPET_6.get());
+                output.accept(ModItems.CARPET_7.get());
+                output.accept(ModItems.CARPET_8.get());
+                output.accept(ModItems.CARPET_9.get());
+                output.accept(ModItems.CARPET_10.get());
+                output.accept(ModItems.CARPET_11.get());
+                output.accept(ModItems.CARPET_12.get());
+                output.accept(ModItems.CARPET_13.get());
+                output.accept(ModItems.CARPET_14.get());
+                output.accept(ModItems.CARPET_15.get());
+                output.accept(ModItems.CARPET_16.get());
+                output.accept(ModItems.CARPET_17.get());
+                output.accept(ModItems.CARPET_18.get());
+                output.accept(ModItems.CARPET_19.get());
+                output.accept(ModItems.CARPET_20.get());
+                output.accept(ModItems.CARPET_21.get());
+                output.accept(ModItems.BEAR_SKIN_RUG.get());
+                // 壁挂装饰
+                output.accept(ModItems.WALL_PHOTO_FRAME.get());
+                output.accept(ModItems.WALL_BONE_DECOR.get());
+                output.accept(ModItems.WALL_PHOTO_WHITE_HALL.get());
+                output.accept(ModItems.WALL_PHOTO_1.get());
+                output.accept(ModItems.TRAIN_PHOTO.get());
+                output.accept(ModItems.WALL_BLACKSMITH_SIGN.get());
+                output.accept(ModItems.WALL_BLACKSMITH_HAMMERS.get());
+                output.accept(ModItems.WALL_HANGING_SMALL_A.get());
+                output.accept(ModItems.WALL_HANGING_SMALL_B.get());
+                output.accept(ModItems.WALL_HANGING_STRIP.get());
+                output.accept(ModItems.WALL_HANGING_TRIPTYCH.get());
+                output.accept(ModItems.WALL_HANGING_ORNAMENT.get());
+                output.accept(ModItems.WALL_NOTICE_BOARD_SMALL.get());
+                output.accept(ModItems.WALL_NOTICE_BOARD_MEDIUM.get());
+                output.accept(ModItems.WALL_FRAME_WIDE.get());
+                output.accept(ModItems.WALL_FRAME_DOUBLE.get());
+                output.accept(ModItems.WALL_BULLETIN_NOTES.get());
+                output.accept(ModItems.WALL_STICKY_NOTES.get());
+                output.accept(ModItems.PAPER_CHECKLIST.get());
+                output.accept(ModItems.SCATTERED_PAPERS.get());
+                output.accept(ModItems.WALL_POSTER_GAMEPAD.get());
+                output.accept(ModItems.WALL_POSTER_DOLPHIN.get());
+                output.accept(ModItems.WALL_POSTER_GAME_CHARACTER.get());
+                output.accept(ModItems.SINE_WAVE_POSTER.get());
+                output.accept(ModItems.PERIODIC_TABLE.get());
+                output.accept(ModItems.HOSPITAL_POSTER_1.get());
+                output.accept(ModItems.HOSPITAL_POSTER_2.get());
+                output.accept(ModItems.HOSPITAL_POSTER_3.get());
+                output.accept(ModItems.HOSPITAL_POSTER_4.get());
+                output.accept(ModItems.HOSPITAL_POSTER_5.get());
+                output.accept(ModItems.ALEX_POSTER_1.get());
+                output.accept(ModItems.ALEX_POSTER_2.get());
+                output.accept(ModItems.ALEX_POSTER_3.get());
+                output.accept(ModItems.SEBASTIAN_POSTER_1.get());
+                output.accept(ModItems.SEBASTIAN_POSTER_2.get());
+                output.accept(ModItems.SEBASTIAN_POSTER_3.get());
+                output.accept(ModItems.LEAH_POSTER_1.get());
+                output.accept(ModItems.LEAH_POSTER_2.get());
+                output.accept(ModItems.LEAH_POSTER_3.get());
+                output.accept(ModItems.WALL_OUTLET.get());
+                output.accept(ModItems.WALL_SWITCH_PANEL.get());
+                output.accept(ModItems.WALL_ADVENTURER_MAP.get());
+                output.accept(ModItems.WALL_FISH_SIGN.get());
+                output.accept(ModItems.WALL_ISLAND_MAP.get());
+                output.accept(ModItems.WALL_BUOY.get());
+                // 商店装饰
+                output.accept(ModItems.SHOP_COUNTER_1.get());
+                output.accept(ModItems.SHOP_COUNTER_2.get());
+                output.accept(ModItems.SHOP_COUNTER_3.get());
+                output.accept(ModItems.SHOP_SHELF_EAST_1.get());
+                output.accept(ModItems.SHOP_SHELF_EAST_2.get());
+                output.accept(ModItems.SHOP_BASKET.get());
+                output.accept(ModItems.SHOP_CRATE_FRUIT_1.get());
+                output.accept(ModItems.SHOP_CRATE_FRUIT_2.get());
+                output.accept(ModItems.SHOP_CRATE_FRUIT_3.get());
+                output.accept(ModItems.SHOP_CRATE_FRUIT_4.get());
+                output.accept(ModItems.SHOP_CRATE_FRUIT_5.get());
+                output.accept(ModItems.SHOP_CRATE_FRUIT_6.get());
+                output.accept(ModItems.SHOP_CRATE_FRUIT_7.get());
+                output.accept(ModItems.SHOP_CRATE_FRUIT_8.get());
+                output.accept(ModItems.SHOP_CRATE_FRUIT_9.get());
+                output.accept(ModItems.SHOP_CRATE_FRUIT_10.get());
+                output.accept(ModItems.SHOP_PACK_BOX.get());
+                output.accept(ModItems.SHOP_SHIPPING_BIN.get());
+                output.accept(ModItems.SHOP_WINDOW_1.get());
+                output.accept(ModItems.SHOP_WINDOW_2.get());
+                // 艺术品 / 特制
+                output.accept(ModItems.LEAH_SCULPTURE.get());
+                output.accept(ModItems.EASEL.get());
+                output.accept(ModItems.LEANING_SWORD.get());
+                output.accept(ModItems.BLUE_BEAR_PLUSHIE.get());
+                output.accept(ModItems.MICROSCOPE.get());
+                output.accept(ModItems.BEAKER.get());
+                output.accept(ModItems.BOARD_GAME.get());
 
                 // 种子/作物：自动把所有已注册作物系统物品加入标签
                 java.util.List<Item> fruitItems = new java.util.ArrayList<>();
@@ -358,7 +538,7 @@ public class StardewCraft {
                     } else if ("stardewcraft.type.utility".equals(typeKey)) {
                         output.accept(item);
                     } else if ("stardewcraft.type.furniture".equals(typeKey)) {
-                        output.accept(item);
+                        // 家具已在前面按类别显式排序，跳过自动循环
                     } else if ("stardewcraft.type.cooking".equals(typeKey)) {
                         output.accept(item);
                     } else if ("stardewcraft.type.fruit".equals(typeKey)) {

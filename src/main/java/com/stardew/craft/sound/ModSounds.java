@@ -91,6 +91,13 @@ public final class ModSounds {
 	public static final DeferredHolder<SoundEvent, SoundEvent> DRUMKIT6 = register("drumkit6");
 	public static final DeferredHolder<SoundEvent, SoundEvent> NEW_RECIPE = register("new_recipe");
 	public static final DeferredHolder<SoundEvent, SoundEvent> MONEY = register("money");
+
+	// ShopMenu cues
+	public static final DeferredHolder<SoundEvent, SoundEvent> PURCHASE = register("purchase");
+	public static final DeferredHolder<SoundEvent, SoundEvent> SELL = register("sell");
+	public static final DeferredHolder<SoundEvent, SoundEvent> PURCHASE_CLICK = register("purchase_click");
+	public static final DeferredHolder<SoundEvent, SoundEvent> PURCHASE_REPEAT = register("purchase_repeat");
+
 	public static final DeferredHolder<SoundEvent, SoundEvent> CLUCK = register("cluck");
 	public static final DeferredHolder<SoundEvent, SoundEvent> DUCK = register("duck");
 	public static final DeferredHolder<SoundEvent, SoundEvent> RABBIT = register("rabbit");

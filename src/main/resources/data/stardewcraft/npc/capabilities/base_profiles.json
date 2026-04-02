@@ -4,19 +4,37 @@
       "id": "abigail",
       "implemented": true,
       "pathing_enabled": true,
-      "animation_profile": "idle_walk"
+      "animation_profile": "idle_walk",
+      "age": 0,
+      "manners": 0,
+      "social_anxiety": 0,
+      "optimism": 0,
+      "gender": 1,
+      "datable": true
     },
     {
       "id": "caroline",
       "implemented": true,
       "pathing_enabled": true,
-      "animation_profile": "idle_walk"
+      "animation_profile": "idle_walk",
+      "age": 0,
+      "manners": 1,
+      "social_anxiety": 0,
+      "optimism": 0,
+      "gender": 1,
+      "datable": false
     },
     {
       "id": "lewis",
       "implemented": true,
       "pathing_enabled": true,
-      "animation_profile": "idle_walk"
+      "animation_profile": "idle_walk",
+      "age": 0,
+      "manners": 0,
+      "social_anxiety": 0,
+      "optimism": 0,
+      "gender": 0,
+      "datable": false
     }
   ]
 }

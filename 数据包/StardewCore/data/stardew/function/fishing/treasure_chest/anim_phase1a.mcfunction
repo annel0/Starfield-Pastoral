@@ -1,7 +1,0 @@
-# 宝箱动画第一阶段a - 从玩家右后方飞到右前方(逆时针开始)
-data modify entity @e[tag=sd_treasure_item_display,limit=1,sort=nearest] transformation.translation set value [2.5f,-0.2f,-0.8f]
-data modify entity @e[tag=sd_treasure_item_display,limit=1,sort=nearest] transformation.scale set value [1.0f,1.0f,1.0f]
-data modify entity @e[tag=sd_treasure_item_display,limit=1,sort=nearest] transformation.right_rotation set value [0f,0.3827f,0f,0.9239f]
-
-data modify entity @e[tag=sd_treasure_item_display,limit=1,sort=nearest] interpolation_duration set value 3
-data modify entity @e[tag=sd_treasure_item_display,limit=1,sort=nearest] start_interpolation set value 0

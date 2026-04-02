@@ -28,11 +28,12 @@ public class JojaVendingMachineBlock extends MapDecorStaticBlock {
     @Override
     protected InteractionResult useWithoutItem(@Nonnull BlockState state, @Nonnull Level level,
             @Nonnull BlockPos pos, @Nonnull Player player, @Nonnull BlockHitResult hit) {
-        if (state.getValue(PART) != Part.MAIN) {
+        BlockPos mainPos = findMainPos(level, pos, state);
+        if (mainPos == null) {
             return InteractionResult.PASS;
         }
         if (level.isClientSide) {
-            openPurchaseDialog(pos);
+            openPurchaseDialog(mainPos);
         }
         return InteractionResult.SUCCESS;
     }

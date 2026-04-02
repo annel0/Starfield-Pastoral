@@ -1,7 +1,0 @@
-﻿{
-  "parent": "stardewcraft:decor/common/barrel_5",
-  "textures": {
-    "particle": "stardewcraft:block/deco/misc/common/barrel_5"
-  }
-}
-

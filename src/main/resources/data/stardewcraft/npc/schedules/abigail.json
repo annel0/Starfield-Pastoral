@@ -1,0 +1,123 @@
+{
+  "npc_id": "abigail",
+  "override_vanilla": true,
+  "_format": "time -> \"location @namedPointId facing [behavior]\" | \"location facing\" | {_goto: key} | {_condition: expr, ...entries}",
+
+  "GreenRain": {
+    "610": "seedshop @abigail_seedshop_indoor_target 3"
+  },
+
+  "rain": {
+    "600":  "seedshop @abigail_seedshop_indoor_target 2",
+    "900":  "seedshop @abigail_seedshop_indoor_target 0",
+    "1200": "seedshop @abigail_seedshop_gaming 1 abigail_videogames",
+    "2000": "seedshop @abigail_seedshop_sleep 3 abigail_sleep"
+  },
+
+  "spring_4": {
+    "_note": "Festival/Egg Festival day — visits clinic then goes home",
+    "600":  "seedshop @abigail_seedshop_indoor_target 2",
+    "900":  "seedshop @abigail_seedshop_indoor_target 0",
+    "1230": "hospital @abigail_clinic_indoor_stay 0",
+    "1600": "seedshop @abigail_seedshop_gaming 0 abigail_videogames",
+    "2000": "seedshop @abigail_seedshop_sleep 3 abigail_sleep"
+  },
+
+  "spring": {
+    "600":  "seedshop @abigail_seedshop_indoor_target 2",
+    "900":  "seedshop @abigail_seedshop_indoor_target 0",
+    "1300": "town @abigail_town_stay 2",
+    "1630": "seedshop @abigail_seedshop_gaming 0 abigail_videogames",
+    "1930": "seedshop @abigail_seedshop_sleep 3 abigail_sleep"
+  },
+
+  "summer": {
+    "600":  "seedshop @abigail_seedshop_indoor_target 2",
+    "900":  "seedshop @abigail_seedshop_indoor_target 0",
+    "1030": "railroad @abigail_railroad_stay 0",
+    "1400": "mountain @abigail_mountain_flute 2 abigail_flute",
+    "1740": "seedshop @abigail_seedshop_gaming 0 abigail_videogames",
+    "1930": "seedshop @abigail_seedshop_sleep 3 abigail_sleep"
+  },
+
+  "fall": {
+    "600":  "seedshop @abigail_seedshop_indoor_target 2",
+    "900":  "seedshop @abigail_seedshop_indoor_target 0",
+    "1300": "busstop @abigail_busstop_stay 2",
+    "1700": "seedshop @abigail_seedshop_gaming 0 abigail_videogames",
+    "1930": "seedshop @abigail_seedshop_sleep 3 abigail_sleep"
+  },
+
+  "fall_mon": {
+    "_note": "Fall monday: goes to beach instead",
+    "600":  "seedshop @abigail_seedshop_indoor_target 2",
+    "900":  "seedshop @abigail_seedshop_indoor_target 0",
+    "1100": "beach @abigail_beach_stay 2",
+    "1800": "seedshop @abigail_seedshop_sleep 3 abigail_sleep"
+  },
+
+  "winter": {
+    "600":  "seedshop @abigail_seedshop_indoor_target 2",
+    "900":  "seedshop @abigail_seedshop_indoor_target 0",
+    "1030": "sciencehouse @abigail_sciencehouse_indoor_stay 1",
+    "1430": "seedshop @abigail_seedshop_gaming 0 abigail_videogames",
+    "1930": "seedshop @abigail_seedshop_sleep 3 abigail_sleep"
+  },
+
+  "winter_15": {
+    "_note": "Winter 15 — Sebastian birthday: visit ScienceHouse then beach",
+    "600":  "seedshop @abigail_seedshop_indoor_target 2",
+    "900":  "seedshop @abigail_seedshop_indoor_target 0",
+    "1030": "sciencehouse @abigail_sciencehouse_indoor_stay 1",
+    "1430": "beach @abigail_beach_stay 2",
+    "2000": "seedshop @abigail_seedshop_sleep 3 abigail_sleep"
+  },
+
+  "sun": {
+    "_note": "Sunday: forest walk then home",
+    "600":  "seedshop @abigail_seedshop_indoor_target 2",
+    "900":  "seedshop @abigail_seedshop_indoor_target 0",
+    "1300": "forest @abigail_forest_stay 2",
+    "2000": "seedshop @abigail_seedshop_sleep 3 abigail_sleep"
+  },
+
+  "friday": {
+    "_note": "Friday: visits saloon in the evening",
+    "600":  "seedshop @abigail_seedshop_indoor_target 2",
+    "900":  "seedshop @abigail_seedshop_indoor_target 0",
+    "1500": "saloon @abigail_saloon_indoor_stay 2 abigail_sit_down",
+    "2100": "seedshop @abigail_seedshop_sleep 3 abigail_sleep"
+  },
+
+  "wednesday": {
+    "_note": "Wednesday: visits archaeology house then hangs in town",
+    "600":  "seedshop @abigail_seedshop_indoor_target 2",
+    "900":  "seedshop @abigail_seedshop_indoor_target 0",
+    "1000": "archaeologyhouse @abigail_museum_indoor_stay 0",
+    "1800": "town @abigail_town_stay 2",
+    "2200": "seedshop @abigail_seedshop_sleep 3 abigail_sleep"
+  },
+
+  "6": {
+    "_note": "Day 6 (Saturday): mountain flute practice",
+    "600":  "seedshop @abigail_seedshop_indoor_target 2",
+    "900":  "seedshop @abigail_seedshop_indoor_target 0",
+    "1500": "mountain @abigail_mountain_flute 2 abigail_flute",
+    "2000": "seedshop @abigail_seedshop_sleep 3 abigail_sleep"
+  },
+
+  "16": { "_goto": "6" },
+
+  "11": {
+    "_note": "Day 11: visits Sebastian (condition: friendship < 6 hearts)",
+    "_condition": "NOT friendship Sebastian 6",
+    "600":  "seedshop @abigail_seedshop_indoor_target 2",
+    "900":  "seedshop @abigail_seedshop_indoor_target 0",
+    "1000": "sciencehouse @abigail_sciencehouse_indoor_stay 2 abigail_sit_down",
+    "1700": "seedshop @abigail_seedshop_sleep 3 abigail_sleep"
+  },
+
+  "25": { "_goto": "11" },
+
+  "default": { "_goto": "spring" }
+}

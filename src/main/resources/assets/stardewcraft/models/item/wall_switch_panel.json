@@ -1,4 +1,4 @@
-﻿{
+{
     "parent":  "stardewcraft:decor/wall_decor/common/wall_switch_panel_on",
     "textures":  {
                      "particle":  "stardewcraft:block/deco/misc/pierres_shop/8_6"

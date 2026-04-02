@@ -17,14 +17,7 @@ import snownee.jade.api.ui.IElementHelper;
 
 import java.util.List;
 
-/**
- * Crab Pot (蟹笼) Jade 显示。
- * 
- * 阶段：
- * 1) 无鱼饵、无产物：显示“鱼饵：无”
- * 2) 有鱼饵、无产物：显示“鱼饵：XXX” + “明天再来看看……”
- * 3) 有产物：显示“产物：XXX” + “已完成 右键获得产物”（绿色，风格对齐 Tapper）
- */
+
 public enum CrabPotJadeProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
 	INSTANCE;
 
