@@ -144,6 +144,10 @@ public final class ArtisanRecipeDataManager {
         return recipes == null ? List.of() : recipes;
     }
 
+    public static java.util.Set<String> getAllMachineKeys() {
+        return RECIPES_BY_MACHINE.keySet();
+    }
+
     public static final class ReloadListener extends SimpleJsonResourceReloadListener {
         public ReloadListener() {
             super(GSON, "artisan");

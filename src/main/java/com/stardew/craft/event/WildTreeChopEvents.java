@@ -178,11 +178,73 @@ public final class WildTreeChopEvents {
 		if (!(event.getPlayer() instanceof ServerPlayer player)) {
 			return;
 		}
-		if (player.isCreative()) {
+		ServerLevel level = player.serverLevel();
+		BlockPos pos = event.getPos();
+		@SuppressWarnings("null")
+		BlockState state = level.getBlockState(pos);
+		WildTrees.Def def = WildTrees.findByAnyPart(state);
+		if (def == null) {
 			return;
 		}
+
+		// --- Creative mode: instant tree removal, no drops, no animation ---
+		if (player.isCreative()) {
+			if (def.isTrunk0(state)) {
+				BlockPos pivotPos = findLowestTrunk0(level, pos, def);
+				TreeSnapshot snapshot = analyzeTree(level, pivotPos, def);
+				if (snapshot != null) {
+					for (BlockPos p : snapshot.allPositions) {
+						if (p.equals(pos)) continue;
+						level.removeBlock(p, false);
+					}
+					WildTreeSeedManager.get(level).untrackTree(level, pivotPos);
+					scheduleNearbyLeafDecay(level, pivotPos, def);
+					return;
+				}
+				WildTreeSeedManager.get(level).untrackTree(level, pos);
+				return;
+			}
+			if (state.getBlock() == def.leaves().get()) {
+				return;
+			}
+			BlockPos pivot = findPivotTrunk0(level, pos, def);
+			TreeSnapshot snapshot = pivot == null ? null : analyzeTree(level, pivot, def);
+			if (snapshot != null) {
+				for (BlockPos p : snapshot.allPositions) {
+					if (p.equals(pos)) continue;
+					level.removeBlock(p, false);
+				}
+				WildTreeSeedManager.get(level).untrackTree(level, pivot);
+				scheduleNearbyLeafDecay(level, pivot, def);
+			}
+			return;
+		}
+
+		// --- Survival mode ---
 		ItemStack tool = player.getItemInHand(InteractionHand.MAIN_HAND);
+
+		// Protect non-leaf, non-trunk0 tree parts regardless of tool.
+		if (state.getBlock() != def.leaves().get() && !def.isTrunk0(state)) {
+			BlockPos pivot = findPivotTrunk0(level, pos, def);
+			TreeSnapshot snapshot = pivot == null ? null : analyzeTree(level, pivot, def);
+			if (snapshot != null) {
+				long now = level.getGameTime();
+				long last = LAST_TRUNK0_HINT_TICK.getOrDefault(player.getUUID(), 0L);
+				if (now - last >= 40) {
+					player.displayClientMessage(net.minecraft.network.chat.Component.translatable("stardewcraft.message.tree.chop_stump"), true);
+					LAST_TRUNK0_HINT_TICK.put(player.getUUID(), now);
+				}
+				event.setCanceled(true);
+				return;
+			}
+			return;
+		}
+
+		// Trunk0 requires an axe.
 		if (!isAxeLike(tool)) {
+			if (def.isTrunk0(state)) {
+				event.setCanceled(true);
+			}
 			return;
 		}
 
@@ -194,14 +256,6 @@ public final class WildTreeChopEvents {
 				return;
 			}
 		}
-		ServerLevel level = player.serverLevel();
-		BlockPos pos = event.getPos();
-		@SuppressWarnings("null")
-		BlockState state = level.getBlockState(pos);
-		WildTrees.Def def = WildTrees.findByAnyPart(state);
-		if (def == null) {
-			return;
-		}
 
 		// Main rule: only chopping trunk0 can fell the tree.
 		if (def.isTrunk0(state)) {
@@ -209,16 +263,12 @@ public final class WildTreeChopEvents {
 			TreeSnapshot snapshot = analyzeTree(level, pivotPos, def);
 			if (snapshot != null) {
 				consumeEnergyForTreeChop(player, level, pos);
-				// Align Stardew feel: drops should appear at the end of the fall animation, at the impact point.
 				java.util.ArrayList<ItemStack> fallDrops = new java.util.ArrayList<>();
-				// Seeds (Foraging >= 1, random chance)
 				ItemStack seeds = rollSeedsOnChop(level, def, player);
 				if (!seeds.isEmpty()) {
 					fallDrops.add(seeds);
 				}
-				// Sap (different from tapper products)
 				fallDrops.add(new ItemStack(ModItems.SAP.get(), 5));
-				// Wood/Hardwood
 				int dropCount = getFelledWoodDropCount(level, def, player);
 				if (dropCount > 0) {
 					var woodItem = getWoodDropItem(def);
@@ -228,17 +278,14 @@ public final class WildTreeChopEvents {
 				if (hardwoodBonus > 0) {
 					fallDrops.add(new ItemStack(ModItems.WOOD_HARD.get(), hardwoodBonus));
 				}
-				// 树倒下后只剩树桩：不再参与“每日种子/扩散”。
 				WildTreeSeedManager.get(level).untrackTree(level, snapshot.pivotTrunk0Pos);
 				Direction dir = computeFallDirection(player, snapshot.pivotTrunk0Pos);
 				fellTree(level, snapshot, dir, def, fallDrops);
 				PlayerStardewDataAPI.addExperience(player, SkillType.FORAGING, 12);
-				// Keep trunk0 in place: cancel vanilla break.
 				event.setCanceled(true);
 				return;
 			}
 
-			// After falling, only trunk0 remains. Mining it again should drop wood and remove it.
 			if (isLonelyTrunk0(level, pos, def)) {
 				consumeEnergyForTreeChop(player, level, pos);
 				level.removeBlock(pos, false);
@@ -257,28 +304,9 @@ public final class WildTreeChopEvents {
 				event.setCanceled(true);
 				return;
 			}
-
-			return; // not a valid tree and not a stump stage -> allow normal breaking
-		}
-
-		// Prevent dismantling a valid tree by breaking other parts.
-		// Leaves can always be broken normally (do not block leaf harvesting).
-		if (state.getBlock() == def.leaves().get()) {
-			return;
-		}
-		BlockPos pivot = findPivotTrunk0(level, pos, def);
-		TreeSnapshot snapshot = pivot == null ? null : analyzeTree(level, pivot, def);
-		if (snapshot != null) {
-			// Tell the player what to do instead (rate-limited). This happens after the mining bar completes.
-			long now = level.getGameTime();
-			long last = LAST_TRUNK0_HINT_TICK.getOrDefault(player.getUUID(), 0L);
-			if (now - last >= 40) {
-				player.displayClientMessage(net.minecraft.network.chat.Component.translatable("stardewcraft.message.tree.chop_stump"), true);
-				LAST_TRUNK0_HINT_TICK.put(player.getUUID(), now);
-			}
-			event.setCanceled(true);
 		}
 	}
+
 
 	@SuppressWarnings("null")
 	private static boolean isAxeLike(ItemStack tool) {

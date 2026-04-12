@@ -162,8 +162,10 @@ public class DamageCalculator {
         totalDamage *= skillMultiplier;
         
         // ==================== �?�? Buff乘区 ====================
-        float buffMultiplier = calculateBuffMultiplier(attacker, playerData, buffManager);
-        result.buffMultiplier(buffMultiplier);
+        float buffMultiplier = calculateBuffMultiplier(attacker, playerData, buffManager);        // Ring attack multiplier (Ruby Ring +10%, Iridium Band +10%)
+        if (playerData != null) {
+            buffMultiplier *= com.stardew.craft.combat.equipment.RingEffectHandler.getAttackMultiplier(playerData);
+        }        result.buffMultiplier(buffMultiplier);
         totalDamage *= buffMultiplier;
 
         // ==================== 目标易伤乘区 ====================

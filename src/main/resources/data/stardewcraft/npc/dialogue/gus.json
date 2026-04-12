@@ -1,0 +1,31 @@
+{
+  "npc_id": "gus",
+  "entries": {
+    "Introduction": "stardewcraft.npc.gus.introduction",
+    "AcceptGift_(O)StardropTea": "stardewcraft.npc.gus.acceptgift_(o)stardroptea",
+    "AcceptGift_Positive_category_cooking": "stardewcraft.npc.gus.acceptgift_positive_category_cooking",
+    "GreenRain": "stardewcraft.npc.gus.greenrain",
+    "GreenRainFinished": "stardewcraft.npc.gus.greenrainfinished",
+    "GreenRain_2": "stardewcraft.npc.gus.greenrain_2",
+    "married": "stardewcraft.npc.gus.married",
+    "dating_Emily_memory_oneweek": "stardewcraft.npc.gus.dating_emily_memory_oneweek",
+    "divorced_once": "stardewcraft.npc.gus.divorced_once",
+    "divorced_twice": "stardewcraft.npc.gus.divorced_twice",
+    "Mon": "stardewcraft.npc.gus.mon",
+    "Saloon": "stardewcraft.npc.gus.saloon",
+    "Saloon4": "stardewcraft.npc.gus.saloon4",
+    "Saloon8": "stardewcraft.npc.gus.saloon8",
+    "Saloon_Tue": "stardewcraft.npc.gus.saloon_tue",
+    "Saloon_Thu": "stardewcraft.npc.gus.saloon_thu",
+    "Saloon_Fri": "stardewcraft.npc.gus.saloon_fri",
+    "Tue": "stardewcraft.npc.gus.tue",
+    "Wed": "stardewcraft.npc.gus.wed",
+    "Thu": "stardewcraft.npc.gus.thu",
+    "Thu6": "stardewcraft.npc.gus.thu6",
+    "Thu8": "stardewcraft.npc.gus.thu8",
+    "Fri": "stardewcraft.npc.gus.fri",
+    "Fri4": "stardewcraft.npc.gus.fri4",
+    "Sat": "stardewcraft.npc.gus.sat",
+    "Sun": "stardewcraft.npc.gus.sun"
+  }
+}

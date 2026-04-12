@@ -1,0 +1,14 @@
+{
+  "npc_id": "marlon",
+  "entries": {
+    "Introduction": "stardewcraft.npc.marlon.introduction",
+    "default": "stardewcraft.npc.marlon.default",
+    "Mon": "stardewcraft.npc.marlon.mon",
+    "Tue": "stardewcraft.npc.marlon.tue",
+    "Wed": "stardewcraft.npc.marlon.wed",
+    "Thu": "stardewcraft.npc.marlon.thu",
+    "Fri": "stardewcraft.npc.marlon.fri",
+    "Sat": "stardewcraft.npc.marlon.sat",
+    "Sun": "stardewcraft.npc.marlon.sun"
+  }
+}

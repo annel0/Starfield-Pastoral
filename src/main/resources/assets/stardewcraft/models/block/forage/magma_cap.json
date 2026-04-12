@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "stardewcraft:item/forage/magma_cap",
+    "particle": "stardewcraft:item/forage/magma_cap"
+  }
+}

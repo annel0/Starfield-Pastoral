@@ -1,7 +1,9 @@
 package com.stardew.craft.client.gui;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.client.deco.PaintbrushSelectionManager;
 import com.stardew.craft.network.payload.ApplyDecorationStylePayload;
+import com.stardew.craft.network.payload.SetWallpaperSegmentPayload;
 import com.stardew.craft.network.payload.OpenDecorationScreenPayload;
 
 import net.minecraft.client.gui.GuiGraphics;
@@ -39,6 +41,11 @@ public class DecorationSelectionScreen extends Screen {
     private float showcaseAlpha = 1.0f;
     private float[] itemHoverScales;
 
+    // Segment override for wallpaper blocks (-1 = auto, 0/1/2 = bottom/middle/top)
+    private int selectedSegment;
+    private static final String[] SEGMENT_LABELS = {"下", "中", "上"};
+    private static final String SEGMENT_AUTO_LABEL = "自动";
+
     // derived constants
     private static final int COLS = 10;
     private static final int VISIBLE_ROWS = 7;
@@ -50,6 +57,7 @@ public class DecorationSelectionScreen extends Screen {
         this.options = new ArrayList<>(payload.options());
         this.isWallpaper = "WALLPAPER".equals(payload.decorationType());
         this.itemHoverScales = new float[options.size()];
+        this.selectedSegment = payload.currentSegment();
         for (int i = 0; i < itemHoverScales.length; i++) {
             itemHoverScales[i] = 1.0f;
         }
@@ -95,6 +103,16 @@ public class DecorationSelectionScreen extends Screen {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) {
+            // Check segment buttons first (wallpaper only)
+            if (isWallpaper) {
+                int segResult = checkSegmentButtonClick(mouseX, mouseY);
+                if (segResult != Integer.MIN_VALUE) {
+                    selectedSegment = segResult;
+                    PacketDistributor.sendToServer(new SetWallpaperSegmentPayload(payload.targetPos(), selectedSegment));
+                    return true;
+                }
+            }
+
             int gridX = getGridX();
             int gridY = getGridY();
             
@@ -124,8 +142,21 @@ public class DecorationSelectionScreen extends Screen {
             }
             return;
         }
-        PacketDistributor.sendToServer(new ApplyDecorationStylePayload(payload.decorationType(), payload.targetPos(), option.styleId()));
+        PacketDistributor.sendToServer(buildApplyPayload(option.styleId()));
+        // Clear selection state after applying
+        PaintbrushSelectionManager.get().clearSelection();
         onClose();
+    }
+
+    private ApplyDecorationStylePayload buildApplyPayload(String styleId) {
+        PaintbrushSelectionManager mgr = PaintbrushSelectionManager.get();
+        if (mgr.hasCompleteSelection() && mgr.getFirstPos() != null && mgr.getSecondPos() != null) {
+            return ApplyDecorationStylePayload.region(
+                payload.decorationType(), payload.targetPos(), styleId,
+                mgr.getFirstPos(), mgr.getSecondPos()
+            );
+        }
+        return new ApplyDecorationStylePayload(payload.decorationType(), payload.targetPos(), styleId);
     }
 
     private int getPanelX() {
@@ -167,6 +198,11 @@ public class DecorationSelectionScreen extends Screen {
 
         if (currentFocusIndex >= 0 && currentFocusIndex < options.size()) {
             drawElegantShowcase(g, px + 10, py + 10, currentFocusIndex);
+        }
+
+        // Segment toggle buttons for wallpaper mode
+        if (isWallpaper) {
+            drawSegmentButtons(g, px + 10, py + UI_HEIGHT - 28, 126);
         }
 
         int gridX = getGridX();
@@ -335,6 +371,64 @@ public class DecorationSelectionScreen extends Screen {
             int descY = areaY + areaH + 24;
             g.drawString(this.font, eqText, dx, descY, alphaMask | 0xFF88FF88, true);
         }
+    }
+
+    private void drawSegmentButtons(GuiGraphics g, int px, int py, int areaW) {
+        // 4 buttons: Auto, Bottom(0), Middle(1), Top(2)
+        String label = "位置:";
+        g.drawString(this.font, label, px, py + 4, 0xFFAAAAAA, true);
+        int btnX = px + this.font.width(label) + 4;
+        int btnW = 24;
+        int btnH = 14;
+        int gap = 3;
+
+        // Auto button
+        drawSegBtn(g, btnX, py, btnW, btnH, SEGMENT_AUTO_LABEL, selectedSegment == -1);
+        btnX += btnW + gap;
+
+        // Segment 0/1/2
+        for (int i = 0; i < 3; i++) {
+            drawSegBtn(g, btnX, py, btnW, btnH, SEGMENT_LABELS[i], selectedSegment == i);
+            btnX += btnW + gap;
+        }
+    }
+
+    private void drawSegBtn(GuiGraphics g, int x, int y, int w, int h, String text, boolean active) {
+        int bg = active ? 0xCC3A5A1F : 0x66333333;
+        int border = active ? 0xCC88CC44 : 0x66666666;
+        int textColor = active ? 0xFFFFFFDD : 0xFFAAAAAA;
+        g.fill(x, y, x + w, y + h, bg);
+        g.renderOutline(x, y, w, h, border);
+        int tw = this.font.width(text);
+        g.drawString(this.font, text, x + (w - tw) / 2, y + 3, textColor, false);
+    }
+
+    /**
+     * Returns the segment value if a segment button was clicked, or Integer.MIN_VALUE if not.
+     */
+    private int checkSegmentButtonClick(double mouseX, double mouseY) {
+        int px = getPanelX() + 10;
+        int py = getPanelY() + UI_HEIGHT - 28;
+        String label = "位置:";
+        int btnX = px + this.font.width(label) + 4;
+        int btnW = 24;
+        int btnH = 14;
+        int gap = 3;
+
+        // Auto button → returns -1
+        if (mouseX >= btnX && mouseX <= btnX + btnW && mouseY >= py && mouseY <= py + btnH) {
+            return -1;
+        }
+        btnX += btnW + gap;
+
+        // Segment 0, 1, 2
+        for (int i = 0; i < 3; i++) {
+            if (mouseX >= btnX && mouseX <= btnX + btnW && mouseY >= py && mouseY <= py + btnH) {
+                return i;
+            }
+            btnX += btnW + gap;
+        }
+        return Integer.MIN_VALUE;
     }
     
     private void drawTiledPreview(GuiGraphics graphics, OpenDecorationScreenPayload.DecorationOption option, int areaX, int areaY, int areaW, int areaH, int alpha) {

@@ -131,6 +131,15 @@ public class ModClientEvents {
                 } else if (typeKey.startsWith("stardewcraft.type.weapon")) {
                     // Weapons: red.
                     typeColor = net.minecraft.ChatFormatting.RED;
+                } else if ("stardewcraft.type.monster_loot".equals(typeKey)) {
+                    // 怪物掉落：红色
+                    typeColor = net.minecraft.ChatFormatting.RED;
+                } else if ("stardewcraft.type.ring".equals(typeKey)) {
+                    // 戒指：深紫色
+                    typeColor = net.minecraft.ChatFormatting.DARK_PURPLE;
+                } else if ("stardewcraft.type.boots".equals(typeKey)) {
+                    // 靴子：深绿色
+                    typeColor = net.minecraft.ChatFormatting.DARK_GREEN;
                 }
 
                 customLines.add(Component.translatable("stardewcraft.tooltip.type_prefix") // Type label in white, non-bold.
@@ -194,6 +203,10 @@ public class ModClientEvents {
                         .withStyle(ChatFormatting.GRAY));
             } else {
                 String descKey = stack.getDescriptionId() + ".desc";
+                // Fallback: BlockItem returns "block.stardewcraft.xxx" but desc may be under "item.stardewcraft.xxx.desc"
+                if (!net.minecraft.client.resources.language.I18n.exists(descKey) && descKey.startsWith("block.")) {
+                    descKey = "item." + descKey.substring("block.".length());
+                }
                 if (net.minecraft.client.resources.language.I18n.exists(descKey)) {
                     String descText = net.minecraft.client.resources.language.I18n.get(descKey);
                     String[] lines = NEWLINE_SPLIT.split(descText, -1);
@@ -209,6 +222,9 @@ public class ModClientEvents {
 
                 // 第五行：Lore描述 (深灰色细�?
                 String flavorKey = stack.getDescriptionId() + ".flavor";
+                if (!net.minecraft.client.resources.language.I18n.exists(flavorKey) && flavorKey.startsWith("block.")) {
+                    flavorKey = "item." + flavorKey.substring("block.".length());
+                }
                 if (net.minecraft.client.resources.language.I18n.exists(flavorKey)) {
                     String flavorText = net.minecraft.client.resources.language.I18n.get(flavorKey);
                     String[] lines = NEWLINE_SPLIT.split(flavorText, -1);
@@ -269,6 +285,7 @@ public class ModClientEvents {
 
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
+        com.stardew.craft.client.sound.StardewMusicManager.onClientTick();
         com.stardew.craft.client.emote.EmoteBubbleClientState.tick();
         com.stardew.craft.client.emote.EmoteWheelClient.onClientTick();
         com.stardew.craft.client.combat.DamageNumberClient.onClientTick(event);
@@ -331,6 +348,12 @@ public class ModClientEvents {
             if (mc.screen == null) {
                 PacketDistributor.sendToServer(new RequestNpcFriendshipOverviewPayload());
                 mc.setScreen(new StardewGameMenuScreen());
+            }
+        }
+
+        while (ModKeyMappings.QUEST_LOG.consumeClick()) {
+            if (mc.screen == null) {
+                mc.setScreen(new com.stardew.craft.client.gui.quest.QuestLogScreen());
             }
         }
 
@@ -403,7 +426,8 @@ public class ModClientEvents {
         com.stardew.craft.client.weapon.StarfallMeteorEffectClient.onRenderLevel(event);
         com.stardew.craft.client.weapon.BlackHolePostEffectClient.onRenderLevel(event);
         com.stardew.craft.client.weapon.StarfallShockwavePostEffectClient.onRenderLevel(event);
-        com.stardew.craft.client.weapon.EvolvedAuraEffectClient.onRenderLevel(event);
+        // com.stardew.craft.client.weapon.EvolvedAuraEffectClient.onRenderLevel(event); // 禁用：金色光环效果
+        com.stardew.craft.client.render.PortalHintRenderer.onRenderLevel(event);
     }
 
     @SubscribeEvent

@@ -25,7 +25,6 @@ import javax.annotation.Nonnull;
 public class BaitMakerBlockEntityRenderer implements BlockEntityRenderer<BaitMakerBlockEntity> {
     private static final ResourceLocation BUBBLE_TEX = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/bubble.png");
     private static final float PX = 1.0f / 32.0f;
-    private static final float BUBBLE_Y = (float) (24.2 / 16.0 + 0.05);
 
     public BaitMakerBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -64,12 +63,14 @@ public class BaitMakerBlockEntityRenderer implements BlockEntityRenderer<BaitMak
             poseStack.popPose();
         }
 
-        if (!ready || product.isEmpty()) {
+        if (!ready || product.isEmpty() || level == null) {
             return;
         }
 
+        float bubbleY = BubbleYHelper.get(state, level, be.getBlockPos());
+
         poseStack.pushPose();
-        poseStack.translate(0.5f, BUBBLE_Y, 0.5f);
+        poseStack.translate(0.5f, bubbleY, 0.5f);
         poseStack.mulPose(Minecraft.getInstance().getEntityRenderDispatcher().cameraOrientation());
 
         float w = 20 * PX;

@@ -33,6 +33,11 @@ public class ClientPlayerDataCache {
     private static int tempFarmingLevelBonus = 0;
     private static int tempForagingLevelBonus = 0;
     private static int tempMiningLevelBonus = 0;
+
+    // 装备槽
+    private static String equippedLeftRing = "";
+    private static String equippedRightRing = "";
+    private static String equippedBoots = "";
     
     /**
      * 从NBT更新缓存
@@ -134,6 +139,11 @@ public class ClientPlayerDataCache {
     public static int getMoney() {
         return money;
     }
+
+    /** Update cached money on client (e.g. immediate feedback for geode cost deduction). */
+    public static void setMoney(int value) {
+        money = value;
+    }
     
     public static int[] getExperience() {
         return experience.clone();
@@ -193,6 +203,14 @@ public class ClientPlayerDataCache {
         return new java.util.HashMap<>(recipeCraftCounts);
     }
 
+    // Equipment getters/setters
+    public static String getEquippedLeftRing() { return equippedLeftRing; }
+    public static String getEquippedRightRing() { return equippedRightRing; }
+    public static String getEquippedBoots() { return equippedBoots; }
+    public static void setEquippedLeftRing(String id) { equippedLeftRing = id == null ? "" : id; }
+    public static void setEquippedRightRing(String id) { equippedRightRing = id == null ? "" : id; }
+    public static void setEquippedBoots(String id) { equippedBoots = id == null ? "" : id; }
+
     /**
      * 重置所有缓存（用于退出世界时）
      */
@@ -213,6 +231,9 @@ public class ClientPlayerDataCache {
         tempFarmingLevelBonus = 0;
         tempForagingLevelBonus = 0;
         tempMiningLevelBonus = 0;
+        equippedLeftRing = "";
+        equippedRightRing = "";
+        equippedBoots = "";
         NpcFriendshipClientCache.reset();
     }
     

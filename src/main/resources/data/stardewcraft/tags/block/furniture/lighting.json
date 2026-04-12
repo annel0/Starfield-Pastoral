@@ -1,0 +1,15 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:light_1",
+    "stardewcraft:light_2",
+    "stardewcraft:light_3",
+    "stardewcraft:light_4",
+    "stardewcraft:light_5",
+    "stardewcraft:light_6",
+    "stardewcraft:light_7",
+    "stardewcraft:floor_lamp",
+    "stardewcraft:table_lamp",
+    "stardewcraft:table_lantern"
+  ]
+}

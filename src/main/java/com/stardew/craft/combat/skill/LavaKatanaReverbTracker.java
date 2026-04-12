@@ -150,4 +150,9 @@ public final class LavaKatanaReverbTracker {
                 && entity != owner
                 && LavaKatanaMarkTracker.isMarkedBy(entity, owner, nowTick));
     }
+
+    /** Clean up state when a player logs out to prevent memory leaks. */
+    public static void removePlayer(UUID playerId) {
+        ACTIVE.remove(playerId);
+    }
 }

@@ -1,0 +1,78 @@
+{
+  "npc_id": "sebastian",
+  "override_vanilla": true,
+  "_format": "time -> \"location @namedPointId facing [behavior]\"",
+  "_note": "Sebastian: lives in SebastianRoom (basement of ScienceHouse/Robin's). Mostly stays in room on computer. Goes to saloon Fri, Sam's house Sat, mountain/lake regularly.",
+
+  "GreenRain": {
+    "610": "sebastianroom @sebastian_room_desk 3"
+  },
+
+  "rain": {
+    "1030": "sebastianroom @sebastian_room_computer 3 sebastian_computer",
+    "1500": "saloon @sebastian_saloon_pool 0",
+    "2110": "sebastianroom @sebastian_room_bed 1 sebastian_sleep"
+  },
+
+  "Fri": {
+    "1030": "sebastianroom @sebastian_room_computer 3 sebastian_computer",
+    "1500": "saloon @sebastian_saloon_pool 0",
+    "2110": "sebastianroom @sebastian_room_bed 1 sebastian_sleep"
+  },
+
+  "Sat": {
+    "900": "town @sebastian_town_walk 1",
+    "1230": "samhouse @sebastian_samhouse_keyboard 0 sebastian_keyboard",
+    "1500": "samhouse @sebastian_samhouse_hangout 1",
+    "1800": "town @sebastian_town_smoke 1 sebastian_smoking",
+    "1930": "sebastianroom @sebastian_room_bed 1 sebastian_sleep"
+  },
+
+  "Thu": {
+    "1030": "sebastianroom @sebastian_room_computer 3 sebastian_computer",
+    "1400": "mountain @sebastian_mountain_smoke 1 sebastian_smoking",
+    "1800": "mountain @sebastian_mountain_walk 0",
+    "2130": "sebastianroom @sebastian_room_bed 1 sebastian_sleep"
+  },
+
+  "spring": {
+    "1030": "sebastianroom @sebastian_room_computer 3 sebastian_computer",
+    "1500": "sciencehouse @sebastian_sciencehouse_hall 1",
+    "1530": "sebastianroom @sebastian_room_computer 3 sebastian_computer",
+    "1830": "mountain @sebastian_mountain_smoke 1 sebastian_smoking",
+    "2130": "sebastianroom @sebastian_room_bed 1 sebastian_sleep"
+  },
+
+  "fall": {
+    "1030": "sebastianroom @sebastian_room_computer 3 sebastian_computer",
+    "1200": "mountain @sebastian_mountain_walk 2",
+    "1400": "mountain @sebastian_mountain_cliff 3",
+    "1500": "mountain @sebastian_mountain_smoke 1 sebastian_smoking",
+    "1600": "sciencehouse @sebastian_sciencehouse_hall 1",
+    "1730": "sebastianroom @sebastian_room_computer 3 sebastian_computer",
+    "2130": "sebastianroom @sebastian_room_bed 1 sebastian_sleep"
+  },
+
+  "winter": {
+    "1030": "sebastianroom @sebastian_room_computer 3 sebastian_computer",
+    "1500": "sciencehouse @sebastian_sciencehouse_hall 1",
+    "1530": "sebastianroom @sebastian_room_computer 3 sebastian_computer",
+    "2130": "sebastianroom @sebastian_room_bed 1 sebastian_sleep"
+  },
+
+  "summer": {
+    "1030": "sebastianroom @sebastian_room_computer 3 sebastian_computer",
+    "1500": "sciencehouse @sebastian_sciencehouse_hall 1",
+    "1530": "sebastianroom @sebastian_room_computer 3 sebastian_computer",
+    "1830": "mountain @sebastian_mountain_smoke 1 sebastian_smoking",
+    "2130": "sebastianroom @sebastian_room_bed 1 sebastian_sleep"
+  },
+
+  "default": {
+    "1030": "sebastianroom @sebastian_room_computer 3 sebastian_computer",
+    "1500": "sciencehouse @sebastian_sciencehouse_hall 1",
+    "1530": "sebastianroom @sebastian_room_computer 3 sebastian_computer",
+    "1830": "mountain @sebastian_mountain_smoke 1 sebastian_smoking",
+    "2130": "sebastianroom @sebastian_room_bed 1 sebastian_sleep"
+  }
+}

@@ -17,8 +17,14 @@ public record OpenDecorationScreenPayload(
     String decorationType,
     BlockPos targetPos,
     String currentStyleId,
-    List<DecorationOption> options
+    List<DecorationOption> options,
+    int currentSegment
 ) implements CustomPacketPayload {
+
+    /** Backward-compatible constructor (defaults currentSegment to -1). */
+    public OpenDecorationScreenPayload(String decorationType, BlockPos targetPos, String currentStyleId, List<DecorationOption> options) {
+        this(decorationType, targetPos, currentStyleId, options, -1);
+    }
 
     public record DecorationOption(
         String styleId,
@@ -69,16 +75,22 @@ public record OpenDecorationScreenPayload(
         new Type<>(ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "open_decoration_screen"));
 
     @SuppressWarnings("null")
-    public static final StreamCodec<RegistryFriendlyByteBuf, OpenDecorationScreenPayload> STREAM_CODEC = StreamCodec.composite(
-        ByteBufCodecs.STRING_UTF8,
-        OpenDecorationScreenPayload::decorationType,
-        BlockPos.STREAM_CODEC,
-        OpenDecorationScreenPayload::targetPos,
-        ByteBufCodecs.STRING_UTF8,
-        OpenDecorationScreenPayload::currentStyleId,
-        DecorationOption.STREAM_CODEC.apply(ByteBufCodecs.list()),
-        OpenDecorationScreenPayload::options,
-        OpenDecorationScreenPayload::new
+    public static final StreamCodec<RegistryFriendlyByteBuf, OpenDecorationScreenPayload> STREAM_CODEC = StreamCodec.of(
+        (buf, p) -> {
+            buf.writeUtf(p.decorationType());
+            buf.writeBlockPos(p.targetPos());
+            buf.writeUtf(p.currentStyleId());
+            DecorationOption.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buf, p.options());
+            buf.writeInt(p.currentSegment());
+        },
+        buf -> {
+            String decoType = buf.readUtf();
+            BlockPos pos = buf.readBlockPos();
+            String style = buf.readUtf();
+            List<DecorationOption> opts = DecorationOption.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buf);
+            int seg = buf.readInt();
+            return new OpenDecorationScreenPayload(decoType, pos, style, opts, seg);
+        }
     );
 
     @Override

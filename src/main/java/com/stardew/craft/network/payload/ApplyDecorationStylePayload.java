@@ -15,7 +15,24 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-public record ApplyDecorationStylePayload(String decorationType, BlockPos targetPos, String styleId) implements CustomPacketPayload {
+import javax.annotation.Nullable;
+
+public record ApplyDecorationStylePayload(
+    String decorationType, BlockPos targetPos, String styleId,
+    boolean regionMode, @Nullable BlockPos cornerA, @Nullable BlockPos cornerB
+) implements CustomPacketPayload {
+
+    /** Convenience constructor for flood-fill mode (backward compatible). */
+    public ApplyDecorationStylePayload(String decorationType, BlockPos targetPos, String styleId) {
+        this(decorationType, targetPos, styleId, false, null, null);
+    }
+
+    /** Convenience constructor for region-select mode. */
+    public static ApplyDecorationStylePayload region(String decorationType, BlockPos targetPos, String styleId,
+                                                      BlockPos cornerA, BlockPos cornerB) {
+        return new ApplyDecorationStylePayload(decorationType, targetPos, styleId, true, cornerA, cornerB);
+    }
+
     @SuppressWarnings("null")
     public static final Type<ApplyDecorationStylePayload> TYPE =
         new Type<>(ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "apply_decoration_style"));
@@ -26,8 +43,24 @@ public record ApplyDecorationStylePayload(String decorationType, BlockPos target
             buf.writeUtf(payload.decorationType(), 32);
             buf.writeBlockPos(payload.targetPos());
             buf.writeUtf(payload.styleId(), 64);
+            buf.writeBoolean(payload.regionMode());
+            if (payload.regionMode() && payload.cornerA() != null && payload.cornerB() != null) {
+                buf.writeBlockPos(payload.cornerA());
+                buf.writeBlockPos(payload.cornerB());
+            }
         },
-        buf -> new ApplyDecorationStylePayload(buf.readUtf(32), buf.readBlockPos(), buf.readUtf(64))
+        buf -> {
+            String decoType = buf.readUtf(32);
+            BlockPos target = buf.readBlockPos();
+            String style = buf.readUtf(64);
+            boolean region = buf.readBoolean();
+            BlockPos cA = null, cB = null;
+            if (region) {
+                cA = buf.readBlockPos();
+                cB = buf.readBlockPos();
+            }
+            return new ApplyDecorationStylePayload(decoType, target, style, region, cA, cB);
+        }
     );
 
     @Override
@@ -66,12 +99,31 @@ public record ApplyDecorationStylePayload(String decorationType, BlockPos target
                 return;
             }
 
-            if (player.distanceToSqr(payload.targetPos().getX() + 0.5, payload.targetPos().getY() + 0.5, payload.targetPos().getZ() + 0.5) > 100.0) {
+            if (player.distanceToSqr(payload.targetPos().getX() + 0.5, payload.targetPos().getY() + 0.5, payload.targetPos().getZ() + 0.5) > 4096.0) {
                 player.sendSystemMessage(Component.literal("Decoration apply failed: target is too far away."));
                 return;
             }
 
-            int changed = DecorationService.applyToConnected(player.level(), payload.targetPos(), type, payload.styleId());
+            int changed;
+            if (payload.regionMode() && payload.cornerA() != null && payload.cornerB() != null) {
+                // Validate region size (max 50x50x50 = 125000 blocks)
+                int dx = Math.abs(payload.cornerA().getX() - payload.cornerB().getX()) + 1;
+                int dy = Math.abs(payload.cornerA().getY() - payload.cornerB().getY()) + 1;
+                int dz = Math.abs(payload.cornerA().getZ() - payload.cornerB().getZ()) + 1;
+                if ((long) dx * dy * dz > 125000) {
+                    player.sendSystemMessage(Component.literal("Decoration apply failed: region too large."));
+                    return;
+                }
+                // Validate corner distance
+                if (player.distanceToSqr(payload.cornerA().getX() + 0.5, payload.cornerA().getY() + 0.5, payload.cornerA().getZ() + 0.5) > 4096.0
+                    || player.distanceToSqr(payload.cornerB().getX() + 0.5, payload.cornerB().getY() + 0.5, payload.cornerB().getZ() + 0.5) > 4096.0) {
+                    player.sendSystemMessage(Component.literal("Decoration apply failed: region corners too far away."));
+                    return;
+                }
+                changed = DecorationService.applyToRegion(player.level(), payload.cornerA(), payload.cornerB(), type, payload.styleId());
+            } else {
+                changed = DecorationService.applyToConnected(player.level(), payload.targetPos(), type, payload.styleId());
+            }
             if (changed <= 0) {
                 player.sendSystemMessage(Component.literal("Decoration apply failed: no decor block entities found in connected area."));
                 StardewCraft.LOGGER.warn("Decoration apply produced 0 changes. Player={}, pos={}, type={}, style={}",

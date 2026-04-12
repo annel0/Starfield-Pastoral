@@ -1,0 +1,83 @@
+package com.stardew.craft.totem;
+
+import com.stardew.craft.StardewCraft;
+import com.stardew.craft.block.ModBlocks;
+import com.stardew.craft.block.utility.totem.TotemPoleBlock;
+import com.stardew.craft.block.decor.MapDecorStaticBlock;
+import com.stardew.craft.block.utility.totem.TotemType;
+import com.stardew.craft.blockentity.TotemPoleBlockEntity;
+import com.stardew.craft.core.ModDimensions;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.level.LevelEvent;
+
+/**
+ * 系统图腾柱管理器 — 在星露谷维度加载时确保3根系统柱存在。
+ */
+@EventBusSubscriber(modid = StardewCraft.MODID)
+public class SystemTotemManager {
+
+    /** 系统柱固定ID：0=Farm, 1=Mountain, 2=Beach */
+    private static final int SYSTEM_ID_FARM = 0;
+    private static final int SYSTEM_ID_MOUNTAIN = 1;
+    private static final int SYSTEM_ID_BEACH = 2;
+
+    /** 系统柱坐标 */
+    private static final BlockPos POS_FARM = new BlockPos(135, -12, 136);
+    private static final BlockPos POS_MOUNTAIN = new BlockPos(-290, -14, 256);
+    private static final BlockPos POS_BEACH = new BlockPos(-189, -14, -142);
+
+    /** 系统柱全部面朝北 */
+    private static final Direction SYSTEM_FACING = Direction.NORTH;
+
+    @SubscribeEvent
+    public static void onLevelLoad(LevelEvent.Load event) {
+        if (!(event.getLevel() instanceof ServerLevel level)) return;
+        if (!level.dimension().equals(ModDimensions.STARDEW_VALLEY)) return;
+
+        ensureSystemPole(level, POS_FARM, TotemType.FARM, ModBlocks.TOTEM_POLE_FARM, SYSTEM_ID_FARM, "农场");
+        ensureSystemPole(level, POS_MOUNTAIN, TotemType.MOUNTAIN, ModBlocks.TOTEM_POLE_MOUNTAIN, SYSTEM_ID_MOUNTAIN, "山区");
+        ensureSystemPole(level, POS_BEACH, TotemType.BEACH, ModBlocks.TOTEM_POLE_BEACH, SYSTEM_ID_BEACH, "海滩");
+    }
+
+    @SuppressWarnings("null")
+    private static void ensureSystemPole(ServerLevel level, BlockPos pos, TotemType type,
+                                         net.neoforged.neoforge.registries.DeferredBlock<Block> blockHolder,
+                                         int systemId, String name) {
+        // 如果已经是该图腾柱，跳过
+        BlockState existing = level.getBlockState(pos);
+        if (existing.getBlock() instanceof TotemPoleBlock existingPole
+                && existingPole.getTotemType() == type) {
+            // 确保 BE 存在且为系统柱
+            if (level.getBlockEntity(pos) instanceof TotemPoleBlockEntity pole) {
+                if (!pole.isSystemPole()) {
+                    pole.initSystemPole(level, systemId, name);
+                }
+            }
+            return;
+        }
+
+        // 放置主块
+        Block block = blockHolder.get();
+        BlockState mainState = block.defaultBlockState()
+                .setValue(MapDecorStaticBlock.PART, MapDecorStaticBlock.Part.MAIN)
+                .setValue(MapDecorStaticBlock.FACING, SYSTEM_FACING)
+                .setValue(TotemPoleBlock.ACTIVATED, true);
+        level.setBlock(pos, mainState, 3);
+
+        // 触发 setPlacedBy 以放置扩展块（图腾柱是多格高，自动处理）
+        block.setPlacedBy(level, pos, mainState, null, net.minecraft.world.item.ItemStack.EMPTY);
+
+        // 初始化 BlockEntity 为系统柱
+        if (level.getBlockEntity(pos) instanceof TotemPoleBlockEntity pole) {
+            pole.initSystemPole(level, systemId, name);
+        }
+
+        StardewCraft.LOGGER.info("Placed system totem pole: {} at {}", type.getId(), pos);
+    }
+}

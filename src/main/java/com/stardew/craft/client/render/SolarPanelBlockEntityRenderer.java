@@ -19,7 +19,6 @@ import javax.annotation.Nonnull;
 public class SolarPanelBlockEntityRenderer implements BlockEntityRenderer<SolarPanelBlockEntity> {
     private static final ResourceLocation BUBBLE_TEX = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/bubble.png");
     private static final float PX = 1.0f / 32.0f;
-    private static final float BUBBLE_Y = (float) (5.0 / 16.0 + 0.05);
 
     public SolarPanelBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -34,8 +33,10 @@ public class SolarPanelBlockEntityRenderer implements BlockEntityRenderer<SolarP
             return;
         }
 
+        float bubbleY = BubbleYHelper.get(be.getBlockState(), be.getLevel(), be.getBlockPos());
+
         poseStack.pushPose();
-        poseStack.translate(0.5f, BUBBLE_Y, 0.5f);
+        poseStack.translate(0.5f, bubbleY, 0.5f);
         poseStack.mulPose(Minecraft.getInstance().getEntityRenderDispatcher().cameraOrientation());
 
         float w = 20 * PX;

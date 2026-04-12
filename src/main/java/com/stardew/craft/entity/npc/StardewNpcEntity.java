@@ -17,8 +17,10 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.control.LookControl;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.util.Mth;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.AnimatableManager;
@@ -36,11 +38,55 @@ public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
+    /** NPC 转向状态机 */
+    private enum FacingState { NONE, TURNING_TO, HOLDING, TURNING_BACK }
+    private FacingState facingState = FacingState.NONE;
+    /** 转向目标角度 */
+    private float facingTargetYaw;
+    /** 转向前保存的原始朝向 */
+    private float savedYaw;
+    /** 转向速度（度/tick），约 5 tick 转完 180° */
+    private static final float TURN_SPEED = 40f;
+    /** 转到位后的保持时间（tick）。单人 GUI 期间 tick 暂停，所以实际保持到对话关闭后 */
+    private int facingHoldTicks;
+    /** 转到位后执行的回调（发送对话包等） */
+    @javax.annotation.Nullable
+    private Runnable pendingFaceAction;
+
+    /** 空闲时自动看向玩家 */
+    private static final double LOOK_AT_PLAYER_RANGE = 2.0;
+    private static final float IDLE_TURN_SPEED = 15f;
+    private boolean lookingAtPlayer = false;
+    private float idleSavedYaw;
+
     public StardewNpcEntity(EntityType<? extends PathfinderMob> entityType, Level level) {
         super(entityType, level);
         this.setPersistenceRequired();
         // Keep AI loop enabled so MC navigation/pathfinder can run.
         this.setNoAi(false);
+        // Replace the default LookControl with one that yields to our facing state machine.
+        // Vanilla LookControl.tick() sets yHeadRot every tick, fighting our smooth rotation.
+        this.lookControl = new NpcLookControl(this);
+    }
+
+    /**
+     * Custom LookControl that becomes a no-op while the NPC is in a facing override
+     * (dialogue, gift, or idle-look-at-player). Without this, vanilla's LookControl.tick()
+     * overwrites yHeadRot every tick, causing the NPC to snap away from the player.
+     */
+    private static class NpcLookControl extends LookControl {
+        private final StardewNpcEntity owner;
+        NpcLookControl(StardewNpcEntity entity) {
+            super(entity);
+            this.owner = entity;
+        }
+        @Override
+        public void tick() {
+            if (owner.facingState != FacingState.NONE || owner.lookingAtPlayer) {
+                return; // Our state machine controls rotation — don't interfere.
+            }
+            super.tick();
+        }
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -135,6 +181,181 @@ public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
             }
         }
         super.tick();
+        // Run facing state machine AFTER super.tick() so that our yaw overrides
+        // whatever Mob.tick() → LookControl.tick() / body rotation logic set.
+        // This is the fix for "NPC turns briefly then snaps back" — the vanilla
+        // Mob AI loop was overwriting our rotation every tick.
+        if (!this.level().isClientSide) {
+            tickFacingState();
+        }
+    }
+
+    /**
+     * Suppress vanilla head-turn interpolation while we are controlling rotation.
+     * LivingEntity.tickHeadTurn() normally adjusts yBodyRot toward movement direction,
+     * which fights our facing override / idle-look system.
+     */
+    @Override
+    protected float tickHeadTurn(float renderYawOffset, float distance) {
+        if (facingState != FacingState.NONE || lookingAtPlayer) {
+            // Don't let vanilla adjust body rotation; return 0 delta.
+            return distance;
+        }
+        return super.tickHeadTurn(renderYawOffset, distance);
+    }
+
+    /** 每 tick 处理 NPC 平滑转向 */
+    private void tickFacingState() {
+        switch (facingState) {
+            case TURNING_TO: {
+                // 平滑转向目标角度
+                if (smoothRotateToward(facingTargetYaw)) {
+                    // 到位了，执行回调（发送对话包等）
+                    facingState = FacingState.HOLDING;
+                    if (pendingFaceAction != null) {
+                        Runnable action = pendingFaceAction;
+                        pendingFaceAction = null;
+                        action.run();
+                    }
+                }
+                break;
+            }
+            case HOLDING: {
+                // 保持面朝玩家。单人 GUI 打开后 tick 暂停，这里不执行。
+                // GUI 关闭后 tick 恢复，倒计时 → 转回去。
+                if (facingHoldTicks > 0) {
+                    facingHoldTicks--;
+                } else {
+                    facingState = FacingState.TURNING_BACK;
+                }
+                break;
+            }
+            case TURNING_BACK: {
+                // 平滑转回原始朝向
+                if (smoothRotateToward(savedYaw)) {
+                    facingState = FacingState.NONE;
+                }
+                break;
+            }
+            default:
+                break;
+        }
+
+        // 空闲时自动朝向附近玩家
+        if (facingState == FacingState.NONE) {
+            tickIdleLookAtPlayer();
+        } else if (lookingAtPlayer) {
+            // 对话系统接管了，取消 idle look 状态
+            lookingAtPlayer = false;
+        }
+    }
+
+    /** 空闲时检测附近玩家，平滑转向 */
+    private void tickIdleLookAtPlayer() {
+        // NPC 正在行走时不触发
+        if (this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-5D) {
+            if (lookingAtPlayer) {
+                lookingAtPlayer = false;
+            }
+            return;
+        }
+
+        Player nearest = this.level().getNearestPlayer(this, LOOK_AT_PLAYER_RANGE);
+        if (nearest != null && nearest.isAlive() && !nearest.isSpectator()) {
+            double dx = nearest.getX() - this.getX();
+            double dz = nearest.getZ() - this.getZ();
+            float targetYaw = (float) (Math.atan2(-dx, dz) * (180.0 / Math.PI));
+
+            if (!lookingAtPlayer) {
+                // 刚进入范围，记住当前朝向以便回头
+                idleSavedYaw = this.getYRot();
+                lookingAtPlayer = true;
+            }
+
+            // 平滑追踪玩家位置
+            idleSmoothRotateToward(targetYaw);
+        } else if (lookingAtPlayer) {
+            // 玩家离开范围，平滑转回原朝向
+            if (idleSmoothRotateToward(idleSavedYaw)) {
+                lookingAtPlayer = false;
+            }
+        }
+    }
+
+    private boolean idleSmoothRotateToward(float targetYaw) {
+        float current = this.getYRot();
+        float diff = Mth.wrapDegrees(targetYaw - current);
+        if (Math.abs(diff) < IDLE_TURN_SPEED) {
+            applyYaw(targetYaw);
+            return true;
+        }
+        float step = Math.signum(diff) * IDLE_TURN_SPEED;
+        applyYaw(current + step);
+        return false;
+    }
+
+    /**
+     * 每 tick 向 targetYaw 平滑插值。
+     * @return true 如果已经到达目标角度
+     */
+    private boolean smoothRotateToward(float targetYaw) {
+        float current = this.getYRot();
+        float diff = Mth.wrapDegrees(targetYaw - current);
+        if (Math.abs(diff) < TURN_SPEED) {
+            // 足够接近，直接对齐
+            applyYaw(targetYaw);
+            return true;
+        }
+        float step = Math.signum(diff) * TURN_SPEED;
+        applyYaw(current + step);
+        return false;
+    }
+
+    private void applyYaw(float yaw) {
+        this.setYRot(yaw);
+        this.setYHeadRot(yaw);
+        this.setYBodyRot(yaw);
+        this.hasImpulse = true;
+    }
+
+    /**
+     * 让 NPC 平滑转向玩家，转到位后执行 onComplete 回调。
+     * 对话结束（GUI 关闭、tick 恢复）后 NPC 会平滑转回原始朝向。
+     *
+     * @param target     要面对的玩家
+     * @param holdTicks  转到位后保持的 tick 数（单人 GUI 期间 tick 冻结，不消耗）
+     * @param onComplete 转到位后立即执行的回调（用于发送对话/礼物确认包），可为 null
+     */
+    /**
+     * Whether the NPC is currently in a facing override state (turning to player,
+     * holding, or turning back). External systems (e.g. NpcCentralMovementService)
+     * must NOT overwrite yaw while this returns true.
+     */
+    public boolean isFacingOverrideActive() {
+        return facingState != FacingState.NONE;
+    }
+
+    /** Whether the NPC is currently idle-looking at a nearby player. */
+    public boolean isIdleLookActive() {
+        return lookingAtPlayer;
+    }
+
+    public void facePlayerTemporarily(Player target, int holdTicks, @javax.annotation.Nullable Runnable onComplete) {
+        if (this.level().isClientSide) return;
+        // If currently idle-looking, save the original schedule yaw (not the
+        // mid-turn yaw) so TURNING_BACK returns to the correct orientation.
+        if (lookingAtPlayer) {
+            this.savedYaw = this.idleSavedYaw;
+            lookingAtPlayer = false;
+        } else {
+            this.savedYaw = this.getYRot();
+        }
+        double dx = target.getX() - this.getX();
+        double dz = target.getZ() - this.getZ();
+        this.facingTargetYaw = (float) (Math.atan2(-dx, dz) * (180.0 / Math.PI));
+        this.facingHoldTicks = holdTicks;
+        this.pendingFaceAction = onComplete;
+        this.facingState = FacingState.TURNING_TO;
     }
 
     public boolean isPathingEnabled() {
@@ -171,6 +392,15 @@ public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
 
     @Override
     public boolean hurt(DamageSource source, float amount) {
+        return false;
+    }
+
+    /**
+     * NPCs are fully managed by NpcSpawnManager — never persist to chunk NBT.
+     * This prevents the #1 source of duplicate entities (old save data reloading).
+     */
+    @Override
+    public boolean shouldBeSaved() {
         return false;
     }
 

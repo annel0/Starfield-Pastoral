@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "stardewcraft:wizard_tower_overworld",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "type": "minecraft:random_spread",
+    "spacing": 48,
+    "separation": 24,
+    "salt": 199604080
+  }
+}

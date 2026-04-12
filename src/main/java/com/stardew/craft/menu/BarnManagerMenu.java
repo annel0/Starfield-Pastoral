@@ -17,7 +17,7 @@ import net.minecraft.world.item.ItemStack;
 import java.util.Optional;
 
 @SuppressWarnings("null")
-public class BarnManagerMenu extends AbstractContainerMenu {
+public class BarnManagerMenu extends AbstractContainerMenu implements IBuildingManagerMenu {
     public static final int ACTION_BUILD_OR_UPGRADE = 0;
     public static final int ACTION_DEMOLISH = 1;
     public static final int ACTION_RELOCATE = 2;
@@ -321,5 +321,10 @@ public class BarnManagerMenu extends AbstractContainerMenu {
 
     public int getBoundAnimalCount() {
         return boundAnimalCount;
+    }
+
+    @Override
+    public String buildingFamily() {
+        return "barn";
     }
 }

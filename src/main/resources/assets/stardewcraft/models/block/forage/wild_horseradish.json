@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "stardewcraft:item/forage/wild_horseradish",
+    "particle": "stardewcraft:item/forage/wild_horseradish"
+  }
+}

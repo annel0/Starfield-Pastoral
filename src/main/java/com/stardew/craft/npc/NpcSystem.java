@@ -40,11 +40,14 @@ public final class NpcSystem {
         }
 
         boolean anyPlayerInStardew = false;
+        boolean anyPlayerInMining = false;
         for (var player : event.getServer().getPlayerList().getPlayers()) {
-            if (ModDimensions.STARDEW_VALLEY.equals(player.level().dimension())
-                || ModMiningDimensions.STARDEW_MINING.equals(player.level().dimension())) {
+            if (ModDimensions.STARDEW_VALLEY.equals(player.level().dimension())) {
                 anyPlayerInStardew = true;
-                break;
+            }
+            if (ModMiningDimensions.STARDEW_MINING.equals(player.level().dimension())) {
+                anyPlayerInStardew = true;
+                anyPlayerInMining = true;
             }
         }
 
@@ -53,6 +56,11 @@ public final class NpcSystem {
                 // Player just left — release all forced chunks and snap NPCs to schedule targets.
                 NpcSpawnManager.onAllPlayersLeft(level);
                 NpcChunkForceManager.releaseAllForcedChunks(level);
+                // Also release mining dimension forced chunks
+                ServerLevel mineLevel = event.getServer().getLevel(ModMiningDimensions.STARDEW_MINING);
+                if (mineLevel != null) {
+                    NpcChunkForceManager.releaseAllForcedChunks(mineLevel);
+                }
                 NpcScheduleRuntimeService.invalidateCache();
                 previouslyHadPlayers = false;
             }
@@ -70,6 +78,32 @@ public final class NpcSystem {
         NpcScheduleRuntimeService.tick(level);
         NpcSpawnManager.tick(level);
         NpcCentralMovementService.tick(level);
+
+        // Tick mining-dimension NPCs (e.g. Dwarf) when any player is in the mine
+        if (anyPlayerInMining) {
+            ServerLevel mineLevel = event.getServer().getLevel(ModMiningDimensions.STARDEW_MINING);
+            if (mineLevel != null) {
+                NpcSpawnManager.tickMiningDimension(mineLevel);
+            } else {
+                StardewCraft.LOGGER.warn("[NPC] anyPlayerInMining=true but getLevel(STARDEW_MINING) returned null!");
+            }
+        }
+    }
+
+    /**
+     * 强制立刻执行一次 NPC 系统 tick，用于跨维度传送后确保 NPC 立刻刷新。
+     */
+    public static void forceTickNow(ServerLevel level) {
+        if (!ModDimensions.STARDEW_VALLEY.equals(level.dimension())) return;
+        if (!previouslyHadPlayers) {
+            NpcScheduleRuntimeService.invalidateCache();
+            NpcSpawnManager.onPlayerEntered(level);
+            previouslyHadPlayers = true;
+        }
+        NpcScheduleRuntimeService.tick(level);
+        // 标记 wizard 需要立即生成，跳过 miss-count 延迟
+        NpcSpawnManager.forceSpawnNpc("wizard");
+        NpcSpawnManager.tick(level);
     }
 
     @SubscribeEvent
@@ -80,9 +114,6 @@ public final class NpcSystem {
         if (event.getLevel().isClientSide()) {
             return;
         }
-        
-        // Wait until entity is fully synchronized with clients and id is assigned
-        // cleanup of invalid NPCs is handled by their delayed validation in tick().
 
         if (event.getLevel() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
             NpcSpawnManager.onNpcJoin(serverLevel, npc);

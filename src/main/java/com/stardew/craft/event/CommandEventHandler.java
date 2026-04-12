@@ -1,6 +1,9 @@
 package com.stardew.craft.event;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.command.BilibiliRewardCommand;
+import com.stardew.craft.command.CommunityCenterCommand;
+import com.stardew.craft.command.MailDebugCommand;
 import com.stardew.craft.command.MuseumDebugCommand;
 import com.stardew.craft.command.AnimalDebugCommand;
 import com.stardew.craft.command.DecorationDebugCommand;
@@ -31,6 +34,9 @@ public class CommandEventHandler {
         OvernightDebugCommand.register(event.getDispatcher());
         NpcDebugCommand.register(event.getDispatcher());
         ShopDebugCommand.register(event.getDispatcher());
+        MailDebugCommand.register(event.getDispatcher());
+        BilibiliRewardCommand.register(event.getDispatcher());
+        CommunityCenterCommand.register(event.getDispatcher());
         StardewCraft.LOGGER.info("Registered Stardew commands");
     }
 }

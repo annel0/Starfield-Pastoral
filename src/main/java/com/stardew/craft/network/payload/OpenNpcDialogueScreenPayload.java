@@ -2,25 +2,44 @@ package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.client.gui.common.StardewNpcDialogueScreen;
+import com.stardew.craft.client.hud.HoldUpItemHandler;
+import com.stardew.craft.client.hud.StardewHudMessageManager;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Server → Client: open the NPC dialogue screen.
- * Server sends the translate key only. Client resolves via
- * {@code Component.translatable(key).getString()} — identical to TVScreen.
+ * Optionally carries an afterCloseItemId: if non-empty, the dialogue screen's
+ * close callback will trigger a hold-up animation + HUD pickup notification
+ * for that item (SDV holdUpItemThenMessage parity).
  */
 @SuppressWarnings("null")
 public record OpenNpcDialogueScreenPayload(
         String npcId,
         String translateKey,
-        int friendshipPoints
+        int friendshipPoints,
+        String afterCloseItemId,
+        boolean garbleDwarvish
 ) implements CustomPacketPayload {
+
+    /** Convenience: no afterClose action, no garble. */
+    public OpenNpcDialogueScreenPayload(String npcId, String translateKey, int friendshipPoints) {
+        this(npcId, translateKey, friendshipPoints, "", false);
+    }
 
     @SuppressWarnings("null")
     public static final Type<OpenNpcDialogueScreenPayload> TYPE =
@@ -32,9 +51,11 @@ public record OpenNpcDialogueScreenPayload(
             buf.writeUtf(payload.npcId(), 64);
             buf.writeUtf(payload.translateKey(), 512);
             buf.writeInt(payload.friendshipPoints());
+            buf.writeUtf(payload.afterCloseItemId(), 256);
+            buf.writeBoolean(payload.garbleDwarvish());
         },
         buf -> new OpenNpcDialogueScreenPayload(
-            buf.readUtf(64), buf.readUtf(512), buf.readInt())
+            buf.readUtf(64), buf.readUtf(512), buf.readInt(), buf.readUtf(256), buf.readBoolean())
     );
 
     @Override
@@ -56,17 +77,14 @@ public record OpenNpcDialogueScreenPayload(
         String rawKey = payload.translateKey();
         StringBuilder prefixBuilder = new StringBuilder();
         // Extract all $x prefixes directly mapped to the translatable key.
-        // E.g., "$h$bstardewcraft.key" -> prefix="$h$b", rawKey="stardewcraft.key"
+        // SDV emotion tokens are always $ + single letter, e.g. "$h", "$s", "$b".
+        // E.g., "$h$bstardewcraft.key" -> prefix="$h$b", trueKey="stardewcraft.key"
         int i = 0;
         while (i + 1 < rawKey.length() && rawKey.charAt(i) == '$') {
-            // Find end of token, e.g. `$h` or `$12`
-            int j = i + 1;
-            while (j < rawKey.length() && Character.isLetterOrDigit(rawKey.charAt(j))) {
-                j++;
-            }
-            if (j == i + 1) break; // Just '$' without anything after
-            prefixBuilder.append(rawKey, i, j);
-            i = j;
+            char next = rawKey.charAt(i + 1);
+            if (!Character.isLetter(next)) break; // '$' not followed by letter -> end
+            prefixBuilder.append('$').append(next);
+            i += 2;
         }
 
         String trueKey = rawKey.substring(i);
@@ -79,10 +97,460 @@ public record OpenNpcDialogueScreenPayload(
         if (playerName == null || playerName.isBlank()) playerName = "player";
         finalDisplayText = finalDisplayText.replace("@", playerName);
 
+        // Replace ${male^female}$ inline gender tokens — default to male variant
+        finalDisplayText = resolveInlineGenderTokens(finalDisplayText, true);
+
+        // Replace ^ gender split — keep male variant (text before ^), discard female variant
+        finalDisplayText = resolveGenderSplit(finalDisplayText, true);
+
+        // Resolve $ control tokens ($c, $d, $p, $1, $k, $query, $y) and # page breaks
+        finalDisplayText = resolveDialogueCommands(finalDisplayText);
+
+        // Resolve % substitution tokens (%farm, %season, %pet, etc.)
+        finalDisplayText = resolvePercentTokens(finalDisplayText, playerName);
+
+        // SDV parity: garble resolved text to Dwarvish if player can't understand
+        if (payload.garbleDwarvish()) {
+            finalDisplayText = com.stardew.craft.shop.DwarfService.convertToDwarvish(finalDisplayText);
+        }
+
         StardewCraft.LOGGER.info("[NPC_DIALOGUE_CLIENT] key={} resolved(first80)={}",
             payload.translateKey(),
             finalDisplayText.length() > 80 ? finalDisplayText.substring(0, 80) : finalDisplayText);
 
-        mc.setScreen(new StardewNpcDialogueScreen(payload.npcId(), finalDisplayText, payload.friendshipPoints()));
+        StardewNpcDialogueScreen screen = new StardewNpcDialogueScreen(
+            payload.npcId(), finalDisplayText, payload.friendshipPoints());
+
+        // If afterCloseItemId is set, trigger hold-up animation + HUD on dialogue close
+        String afterItemId = payload.afterCloseItemId();
+        if (afterItemId != null && !afterItemId.isEmpty()) {
+            screen.withAfterClose(() -> {
+                // SDV holdUpItemThenMessage: play totem animation + HUD after dialogue closes
+                HoldUpItemHandler.play(afterItemId);
+                try {
+                    ResourceLocation rl = ResourceLocation.parse(afterItemId);
+                    Item item = BuiltInRegistries.ITEM.get(rl);
+                    if (item != null && item != Items.AIR) {
+                        StardewHudMessageManager.showItemPickup(new ItemStack(item), 1, false);
+                    }
+                } catch (Exception ignored) {}
+            });
+        }
+
+        mc.setScreen(screen);
+    }
+
+    /**
+     * Resolves {@code ${male^female}$} inline gender tokens.
+     * @param text  raw dialogue text
+     * @param male  true to pick male variant, false for female
+     */
+    private static String resolveInlineGenderTokens(String text, boolean male) {
+        if (text == null || !text.contains("${")) return text;
+        StringBuilder sb = new StringBuilder();
+        int pos = 0;
+        while (pos < text.length()) {
+            int start = text.indexOf("${", pos);
+            if (start < 0) {
+                sb.append(text, pos, text.length());
+                break;
+            }
+            sb.append(text, pos, start);
+            int end = text.indexOf("}$", start + 2);
+            if (end < 0) {
+                sb.append(text, start, text.length());
+                break;
+            }
+            String inner = text.substring(start + 2, end);
+            int caret = inner.indexOf('^');
+            if (caret >= 0) {
+                sb.append(male ? inner.substring(0, caret) : inner.substring(caret + 1));
+            } else {
+                sb.append(inner);
+            }
+            pos = end + 2;
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Resolves top-level {@code ^} gender split: {@code maleText^femaleText}.
+     * Only splits on `^` that is NOT inside a {@code $q/$r} question block or
+     * a {@code ${...}$} inline token.  In practice SDV uses at most one
+     * top-level {@code ^} per dialogue string.
+     *
+     * @param text  raw dialogue text (inline tokens should already be resolved)
+     * @param male  true to keep male half
+     */
+    private static String resolveGenderSplit(String text, boolean male) {
+        if (text == null || !text.contains("^")) return text;
+        // Don't split inside $q/$r question blocks — those use ^ differently
+        // Find the first ^ that is not inside ${...}$
+        int depth = 0;
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            if (c == '$' && i + 1 < text.length() && text.charAt(i + 1) == '{') {
+                depth++;
+                i++;
+                continue;
+            }
+            if (c == '}' && i + 1 < text.length() && text.charAt(i + 1) == '$') {
+                depth = Math.max(0, depth - 1);
+                i++;
+                continue;
+            }
+            if (c == '^' && depth == 0) {
+                return male ? text.substring(0, i) : text.substring(i + 1);
+            }
+        }
+        return text;
+    }
+
+    // ── SDV word lists (from Dialogue.cs) ──────────────────────────────────
+    private static final String[] ADJECTIVES = {
+        "Purple", "Glistening", "Powerful", "Loud", "Crumbling", "Psychedelic",
+        "Greasy", "Starving", "Giggly", "Red", "Sparkling", "Rough", "Wet",
+        "Electric", "Cool", "Icy", "Slimy", "Moldy", "Dandy", "Holy"
+    };
+    private static final String[] NOUNS = {
+        "Pumpkin", "Superhero", "Octopus", "Dumpling", "Glass", "Stone",
+        "ghost", "skull", "monster", "pillow", "shirt", "candle", "bone",
+        "cloud", "fairy", "shoe", "tree", "pickle", "egg", "turtle",
+        "demon", "potato", "hippo"
+    };
+    private static final String[] PLACES = {
+        "Castle Village", "Cowboy Junction", "Glitter City", "Zuzu City",
+        "Emerald Farm", "Crystal Lake", "Grampleton", "Dusty Meadows",
+        "Lilac Ridge", "Pine Gap", "Red Point", "Fern Islands"
+    };
+    private static final String[] RANDOM_NAMES = {
+        "Abby", "Penny", "Mona", "Gerry", "Sam", "Wren", "Ruby",
+        "Kim", "Lee", "Pat", "Jamie", "Robin", "Sage", "Dana"
+    };
+
+    private static String randomFrom(String[] arr) {
+        return arr[ThreadLocalRandom.current().nextInt(arr.length)];
+    }
+
+    // ── $ Control token resolution ─────────────────────────────────────────
+
+    /**
+     * Resolves SDV dialogue control tokens: {@code $c, $d, $p, $1, $k, $query, $y}.
+     * Also converts {@code #} page separators to {@code $b} for parseChunks.
+     * Preserves {@code $q/$r} blocks untouched (parseChunks handles those).
+     */
+    private static String resolveDialogueCommands(String text) {
+        if (text == null || text.isEmpty()) return text;
+
+        // SDV || random dialogue selection: pick one alternative at random
+        if (text.contains("||")) {
+            // Preserve $q portion first (it may contain || in response text)
+            String qSafe = "";
+            int qCheck = text.indexOf("$q ");
+            if (qCheck >= 0) {
+                qSafe = text.substring(qCheck);
+                text = text.substring(0, qCheck);
+            }
+            if (text.contains("||")) {
+                String[] alternatives = text.split("\\|\\|");
+                text = alternatives[ThreadLocalRandom.current().nextInt(alternatives.length)].trim();
+            }
+            if (!qSafe.isEmpty()) {
+                text = text + qSafe;
+            }
+        }
+
+        // Handle $y (quick inline question) — uses ' delimiters, not #
+        text = resolveQuickResponse(text);
+
+        // Separate $q/$r portion (parseChunks uses # internally for $q/$r parsing)
+        String qPortion = "";
+        int qIdx = text.indexOf("$q ");
+        if (qIdx >= 0) {
+            int splitAt = qIdx;
+            if (splitAt > 0 && text.charAt(splitAt - 1) == '#') splitAt--;
+            qPortion = text.substring(splitAt);
+            text = text.substring(0, splitAt);
+        }
+
+        // Process #-delimited segments with $ commands
+        if (text.contains("#")) {
+            text = processHashSegments(text);
+        }
+
+        // Handle remaining $k (kill/truncate) within $b segments
+        if (text.contains("$k")) {
+            String[] parts = text.split("\\$b");
+            StringBuilder sb = new StringBuilder();
+            for (String part : parts) {
+                int ki = part.indexOf("$k");
+                String clean = ki >= 0 ? part.substring(0, ki) : part;
+                clean = clean.trim();
+                if (!clean.isEmpty()) {
+                    if (sb.length() > 0) sb.append("$b");
+                    sb.append(clean);
+                }
+            }
+            text = sb.toString();
+        }
+
+        // Strip remaining unhandled $ tokens as safety net
+        text = text.replaceAll("\\$1\\s+\\w+", "");
+        text = text.replaceAll("\\$c\\s+[\\d.]+", "");
+        text = text.replaceAll("\\$d\\s+\\w+", "");
+        text = text.replaceAll("\\$p\\s+[\\d,]+", "");
+        text = text.replaceAll("\\$(?:query|action)\\b[^$#|]*", "");
+        text = text.replaceAll("\\$[ktvKTV]\\b", "");
+
+        // Strip escaped pipe \| (data entry error, should be |)
+        text = text.replace("\\|", "");
+
+        // Strip any remaining || random separators that slipped through
+        text = text.replace("||", "");
+
+        // Resolve any remaining single | as branch separator (keep first branch)
+        if (text.contains("|")) {
+            // Process per-page-break ($b) segment so we don't merge pages
+            String[] pages = text.split("\\$b");
+            StringBuilder sb = new StringBuilder();
+            for (String page : pages) {
+                int pipeIdx = page.indexOf('|');
+                String clean = pipeIdx >= 0 ? page.substring(0, pipeIdx) : page;
+                if (sb.length() > 0) sb.append("$b");
+                sb.append(clean);
+            }
+            text = sb.toString();
+        }
+
+        // Re-append $q/$r portion
+        if (!qPortion.isEmpty()) {
+            if (!text.isEmpty()) text += "$b";
+            text += qPortion;
+        }
+
+        return text;
+    }
+
+    /**
+     * Process #-delimited segments, resolving $c/$d/$p/$1/$query commands.
+     * Returns text with # replaced by $b page breaks.
+     */
+    private static String processHashSegments(String text) {
+        String[] segments = text.split("#", -1);
+        List<String> output = new ArrayList<>();
+        ThreadLocalRandom rng = ThreadLocalRandom.current();
+
+        int i = 0;
+        while (i < segments.length) {
+            String seg = segments[i].trim();
+            if (seg.isEmpty()) { i++; continue; }
+
+            // ── $c <chance> — random branch ──
+            if (seg.matches("\\$c\\s+[\\d.]+")) {
+                float chance = 0.5f;
+                try { chance = Float.parseFloat(seg.substring(3).trim()); }
+                catch (NumberFormatException ignored) {}
+                i++; // move past $c to win segment
+                boolean win = rng.nextFloat() < chance;
+                if (win) {
+                    if (i < segments.length) { output.add(segments[i]); i++; }
+                    // skip lose segment (unless it's another chained $c)
+                    if (i < segments.length && !segments[i].trim().startsWith("$c ")) i++;
+                } else {
+                    if (i < segments.length) i++; // skip win segment
+                    // lose: next iteration handles next segment (might be chained $c)
+                }
+                continue;
+            }
+
+            // ── $1 <mailId> — one-time dialogue → show first-time text ──
+            if (seg.matches("\\$1\\s+\\w+")) {
+                i++; // skip $1 tag
+                while (i < segments.length) {
+                    String s = segments[i].trim();
+                    if (s.equals("$e") || s.startsWith("$e ")) { i++; break; }
+                    String clean = s;
+                    int kIdx = clean.indexOf("$k");
+                    if (kIdx >= 0) {
+                        clean = clean.substring(0, kIdx).trim();
+                        if (!clean.isEmpty()) output.add(clean);
+                        i++;
+                        // skip to $e
+                        while (i < segments.length && !segments[i].trim().startsWith("$e")) i++;
+                        if (i < segments.length) i++; // skip $e
+                        break;
+                    }
+                    if (!clean.isEmpty()) output.add(clean);
+                    i++;
+                }
+                // skip fallback text after $e (one segment)
+                if (i < segments.length) i++;
+                continue;
+            }
+
+            // ── $d <state> — world state branch ──
+            if (seg.matches("\\$d\\s+\\w+")) {
+                String state = seg.substring(3).trim().toLowerCase(Locale.ROOT);
+                i++; // skip command
+                if (i < segments.length) {
+                    // joja → false; cc/bus/kent → true
+                    boolean condTrue = !state.equals("joja");
+                    output.add(pickPipeBranch(segments[i], condTrue));
+                    i++;
+                }
+                continue;
+            }
+
+            // ── $p <ids> — prerequisite check → default to first branch ──
+            if (seg.matches("\\$p\\s+[\\d,]+")) {
+                i++; // skip command
+                if (i < segments.length) {
+                    output.add(pickPipeBranch(segments[i], true));
+                    i++;
+                }
+                continue;
+            }
+
+            // ── $query <condition> — game state query ──
+            if (seg.startsWith("$query ")) {
+                boolean condTrue = true;
+                // If condition mentions married/roommate, default false
+                if (seg.contains("married") || seg.contains("roommate")) condTrue = false;
+                i++; // skip command
+                if (i < segments.length) {
+                    output.add(pickPipeBranch(segments[i], condTrue));
+                    i++;
+                }
+                // skip $e if present
+                if (i < segments.length && segments[i].trim().equals("$e")) i++;
+                continue;
+            }
+
+            // ── $e — end marker ──
+            if (seg.equals("$e")) { i++; continue; }
+
+            // ── Normal text segment ──
+            output.add(seg);
+            i++;
+        }
+
+        return String.join("$b", output);
+    }
+
+    /**
+     * Resolves {@code $y 'question_opt1_reply1_opt2_reply2'} tokens.
+     * Shows the question text and the first reply as two pages.
+     */
+    private static String resolveQuickResponse(String text) {
+        if (text == null || !text.contains("$y ")) return text;
+        int start = text.indexOf("$y '");
+        if (start < 0) return text;
+        int end = text.indexOf("'", start + 4);
+        if (end < 0) return text;
+
+        String before = text.substring(0, start);
+        String after = end + 1 < text.length() ? text.substring(end + 1) : "";
+        String content = text.substring(start + 4, end);
+
+        String[] parts = content.split("_");
+        StringBuilder sb = new StringBuilder();
+        sb.append(before);
+        if (parts.length >= 1) sb.append(parts[0]); // question text
+        if (parts.length >= 3) sb.append("$b").append(parts[2]); // first reply
+        sb.append(after);
+        return sb.toString();
+    }
+
+    /**
+     * Picks the first or second branch from a pipe-separated string.
+     * {@code "textA|textB"} → textA if first==true, textB otherwise.
+     */
+    private static String pickPipeBranch(String text, boolean first) {
+        if (text == null) return "";
+        int pipe = text.indexOf('|');
+        if (pipe < 0) return text;
+        return first ? text.substring(0, pipe) : text.substring(pipe + 1);
+    }
+
+    // ── % Substitution token resolution ────────────────────────────────────
+
+    /**
+     * Resolves all {@code %token} substitutions in dialogue text.
+     * Tokens that require systems not yet implemented are replaced with
+     * sensible defaults or stripped.
+     */
+    private static String resolvePercentTokens(String text, String playerName) {
+        if (text == null || !text.contains("%")) return text;
+
+        // %farm → "your" (no farm name system; reads "your farm")
+        text = text.replace("%farm", "your");
+
+        // %firstnameletter → first half of player name (SDV parity)
+        if (text.contains("%firstnameletter")) {
+            String half = playerName.length() > 1
+                ? playerName.substring(0, playerName.length() / 2) : playerName;
+            text = text.replace("%firstnameletter", half);
+        }
+
+        // %season → derive from MC client level dayTime
+        if (text.contains("%season")) {
+            text = text.replace("%season", getClientSeason());
+        }
+
+        // %time → current game time
+        if (text.contains("%time")) {
+            text = text.replace("%time", getClientTime());
+        }
+
+        // %year → game year
+        if (text.contains("%year")) {
+            Minecraft mc = Minecraft.getInstance();
+            int year = mc.level != null ? (int)(mc.level.getDayTime() / 24000 / 112) + 1 : 1;
+            text = text.replace("%year", String.valueOf(year));
+        }
+
+        // Random word tokens (SDV Dialogue.cs parity)
+        if (text.contains("%adj"))   text = text.replace("%adj", randomFrom(ADJECTIVES));
+        if (text.contains("%noun"))  text = text.replace("%noun", randomFrom(NOUNS));
+        if (text.contains("%place")) text = text.replace("%place", randomFrom(PLACES));
+        if (text.contains("%name"))  text = text.replace("%name", randomFrom(RANDOM_NAMES));
+
+        // Tokens without backing systems → generic fallback text
+        text = text.replace("%pet", "your pet");
+        text = text.replace("%spouse", "your partner");
+        text = text.replace("%kid1", "your child");
+        text = text.replace("%kid2", "your child");
+        text = text.replace("%favorite", "something special");
+        text = text.replace("%band", "The Stardew Band");
+        text = text.replace("%book", "Blue Tower");
+
+        // Behaviour / event tokens → strip (no visible text)
+        text = text.replace("%noturn", "");
+        text = text.replace("%fork", "");
+        text = text.replaceAll("%revealtaste[:\\w]*", "");
+
+        return text;
+    }
+
+    private static String getClientSeason() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.level == null) return "Spring";
+        long days = mc.level.getDayTime() / 24000;
+        return switch ((int) ((days / 28) % 4)) {
+            case 1 -> "Summer"; case 2 -> "Fall"; case 3 -> "Winter"; default -> "Spring";
+        };
+    }
+
+    private static String getClientTime() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.level == null) return "12:00 PM";
+        long tick = mc.level.getDayTime() % 24000;
+        int totalMins = (int) (tick * 1440.0 / 24000.0);
+        int hour = (totalMins / 60 + 6) % 24;
+        int min = totalMins % 60;
+        String ampm = hour >= 12 ? "PM" : "AM";
+        int h12 = hour % 12;
+        if (h12 == 0) h12 = 12;
+        return h12 + ":" + String.format(Locale.ROOT, "%02d", min) + " " + ampm;
     }
 }

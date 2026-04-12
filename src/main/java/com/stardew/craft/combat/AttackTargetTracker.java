@@ -45,4 +45,9 @@ public final class AttackTargetTracker {
             this.tick = tick;
         }
     }
+
+    /** Clean up state when a player logs out to prevent memory leaks. */
+    public static void removePlayer(UUID playerId) {
+        PRIMARY.remove(playerId);
+    }
 }

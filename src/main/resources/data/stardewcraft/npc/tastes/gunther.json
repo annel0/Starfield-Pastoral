@@ -1,0 +1,18 @@
+{
+  "npc_id": "gunther",
+  "loved": [],
+  "liked": [],
+  "neutral": [],
+  "disliked": [],
+  "hated": [],
+  "loved_categories": [],
+  "liked_categories": [],
+  "disliked_categories": [],
+  "hated_categories": [],
+  "_note": "Gunther does not accept gifts in SDV (CanSocialize=FALSE). Gift taste responses are generic fallbacks.",
+  "loved_msg": "Oh! This is quite the specimen. Thank you!",
+  "liked_msg": "How thoughtful. Thank you.",
+  "neutral_msg": "Thank you for this.",
+  "disliked_msg": "I appreciate the thought...",
+  "hated_msg": "I... don't think I have a place for this."
+}

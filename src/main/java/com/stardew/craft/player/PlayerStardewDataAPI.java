@@ -261,7 +261,10 @@ public class PlayerStardewDataAPI {
     // ============ 临时 Buff（食物增益） ============
 
     public static int getLuckBuffLevel(ServerPlayer player) {
-        return getData(player).getTempLuckBonus();
+        int foodLuck = getData(player).getTempLuckBonus();
+        // 加上装备幸运加成（Lucky Ring = +1）
+        com.stardew.craft.combat.equipment.EquipmentStats eqStats = com.stardew.craft.combat.equipment.EquipmentResolver.getMergedStats(player);
+        return foodLuck + (int) eqStats.getLuck();
     }
 
     public static int getMagneticRadiusBuff(ServerPlayer player) {

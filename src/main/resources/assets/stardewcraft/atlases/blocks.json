@@ -1,0 +1,14 @@
+{
+  "sources": [
+    {
+      "type": "directory",
+      "source": "entity/bomb",
+      "prefix": "entity/bomb/"
+    },
+    {
+      "type": "directory",
+      "source": "entity/special_effect",
+      "prefix": "entity/special_effect/"
+    }
+  ]
+}

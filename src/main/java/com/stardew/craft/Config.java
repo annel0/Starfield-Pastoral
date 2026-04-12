@@ -17,6 +17,15 @@ public class Config {
             .define("client.uiInfoSuite.enabled", true);
 
     static {
+        BUILDER.push("totemPole");
+
+        TOTEM_POLE_ENFORCE_PLACEMENT_RULES = BUILDER
+                .comment("Restrict totem poles to Stardew Valley and their configured placement areas")
+                .translation("config.stardewcraft.totem_pole.enforce_placement_rules")
+                .define("enforcePlacementRules", true);
+
+        BUILDER.pop();
+
         BUILDER.push("coopManager");
 
         COOP_SCAN_RANGE_XZ = BUILDER
@@ -144,7 +153,9 @@ public class Config {
         BUILDER.pop();
     }
 
-    public static final ModConfigSpec.IntValue COOP_SCAN_RANGE_XZ;
+        public static final ModConfigSpec.BooleanValue TOTEM_POLE_ENFORCE_PLACEMENT_RULES;
+
+        public static final ModConfigSpec.IntValue COOP_SCAN_RANGE_XZ;
     public static final ModConfigSpec.IntValue COOP_SCAN_RANGE_UP;
     public static final ModConfigSpec.IntValue COOP_SCAN_RANGE_DOWN;
     public static final ModConfigSpec.BooleanValue COOP_REQUIRE_ENCLOSED;
@@ -195,6 +206,18 @@ public class Config {
         public static final ModConfigSpec.IntValue BARN_T3_HAY_HOPPER;
         public static final ModConfigSpec.IntValue BARN_T3_INCUBATOR;
                 public static final ModConfigSpec.IntValue BARN_T3_MIN_INTERIOR_BLOCKS;
+
+    // Mining
+    public static final ModConfigSpec.BooleanValue SHOW_MONSTER_HP_BAR;
+
+    static {
+        BUILDER.push("mining");
+        SHOW_MONSTER_HP_BAR = BUILDER
+                .comment("Show monster name and HP bar above their heads in the mine")
+                .translation("config.stardewcraft.mining.show_monster_hp_bar")
+                .define("showMonsterHpBar", true);
+        BUILDER.pop();
+    }
 
     static final ModConfigSpec SPEC = BUILDER.build();
 }

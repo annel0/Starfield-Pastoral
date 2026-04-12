@@ -1,0 +1,29 @@
+{
+  "npc_id": "emily",
+  "_vanilla_ref": "Loved: 60=emerald 62=aquamarine 64=ruby 66=amethyst 68=topaz 70=jade 241=survival_burger 428=cloth 440=wool ParrotEgg. Liked: 18=daffodil 82=fire_quartz 84=frozen_tear 86=earth_crystal 196=salad 200=vegetable_medley 207=bean_hotpot 230=red_plate 235=autumn_bounty 402=sweet_pea 418=crocus. Disliked: 78=cave_carrot 232=rice_pudding 233=ice_cream 225=fried_eel 226=spicy_eel. Hated: 212=salmon_dinner 213=fish_taco 227=sashimi 228=maki_roll.",
+  "loved": [
+    "stardewcraft:emerald",
+    "stardewcraft:aquamarine",
+    "stardewcraft:ruby",
+    "stardewcraft:amethyst",
+    "stardewcraft:topaz",
+    "stardewcraft:jade",
+    "stardewcraft:cloth",
+    "stardewcraft:wool"
+  ],
+  "_loved_not_yet_in_mod": ["survival_burger(241)", "ParrotEgg"],
+  "liked": [],
+  "_liked_not_yet_in_mod": ["daffodil(18)", "fire_quartz(82)", "frozen_tear(84)", "earth_crystal(86)", "salad(196)", "vegetable_medley(200)", "bean_hotpot(207)", "red_plate(230)", "autumn_bounty(235)", "sweet_pea(402)", "crocus(418)"],
+  "neutral": [],
+  "disliked": [],
+  "_disliked_not_yet_in_mod": ["cave_carrot(78)", "rice_pudding(232)", "ice_cream(233)", "fried_eel(225)", "spicy_eel(226)"],
+  "hated": [
+    "stardewcraft:fish_taco"
+  ],
+  "_hated_not_yet_in_mod": ["salmon_dinner(212)", "sashimi(227)", "maki_roll(228)"],
+  "loved_msg": "Oh my gosh! I love this! Thank you, @!$h",
+  "liked_msg": "Hey, that's really nice of you! Thanks.$h",
+  "neutral_msg": "Thanks! That's nice of you.",
+  "disliked_msg": "Oh... that's not really my thing. But thanks anyway.",
+  "hated_msg": "Eww... no offense, but I really don't want that.$s"
+}

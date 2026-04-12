@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "stardewcraft:item/forage/cactus_fruit",
+    "particle": "stardewcraft:item/forage/cactus_fruit"
+  }
+}

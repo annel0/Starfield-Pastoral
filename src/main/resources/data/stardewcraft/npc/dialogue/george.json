@@ -1,0 +1,31 @@
+{
+  "npc_id": "george",
+  "entries": {
+    "Introduction": "stardewcraft.npc.george.introduction",
+    "AcceptGift_(O)StardropTea": "stardewcraft.npc.george.acceptgift_(o)stardroptea",
+    "GreenRain": "stardewcraft.npc.george.greenrain",
+    "GreenRain_2": "stardewcraft.npc.george.greenrain_2",
+    "married_Alex": "stardewcraft.npc.george.married_alex",
+    "divorced_once": "stardewcraft.npc.george.divorced_once",
+    "Mon": "stardewcraft.npc.george.mon",
+    "Tue": "stardewcraft.npc.george.tue",
+    "Wed": "stardewcraft.npc.george.wed",
+    "Wed_inlaw_Alex": "stardewcraft.npc.george.wed_inlaw_alex",
+    "Wed8": "stardewcraft.npc.george.wed8",
+    "Wed10": "stardewcraft.npc.george.wed10",
+    "Wed10_inlaw_Alex": "stardewcraft.npc.george.wed10_inlaw_alex",
+    "Thu": "stardewcraft.npc.george.thu",
+    "Fri": "stardewcraft.npc.george.fri",
+    "Fri4": "stardewcraft.npc.george.fri4",
+    "Fri8": "stardewcraft.npc.george.fri8",
+    "Fri10": "stardewcraft.npc.george.fri10",
+    "Sat": "stardewcraft.npc.george.sat",
+    "Sun": "stardewcraft.npc.george.sun",
+    "Mon6": "stardewcraft.npc.george.mon6",
+    "Thu6": "stardewcraft.npc.george.thu6",
+    "Tue10": "stardewcraft.npc.george.tue10",
+    "Thu10": "stardewcraft.npc.george.thu10",
+    "winter_1": "stardewcraft.npc.george.winter_1",
+    "WinterStar_GiveGift_After": "stardewcraft.npc.george.winterstar_givegift_after"
+  }
+}

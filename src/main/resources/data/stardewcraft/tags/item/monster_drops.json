@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:slime_item",
+    "stardewcraft:bat_wing",
+    "stardewcraft:solar_essence",
+    "stardewcraft:void_essence",
+    "stardewcraft:bone_fragment",
+    "stardewcraft:bug_meat"
+  ]
+}

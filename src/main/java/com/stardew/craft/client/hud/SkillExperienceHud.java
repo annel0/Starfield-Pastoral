@@ -128,7 +128,7 @@ public final class SkillExperienceHud {
                 int boxW = 100;
                 int boxH = 28;
                 int boxX = 10;
-                int boxY = displayHeight - boxH - 45;
+                int boxY = displayHeight - boxH - 10;
 
                 // Main panel (Stardew UI face)
                 g.fill(boxX + 2, boxY + 2, boxX + boxW - 2, boxY + boxH - 2, 0xFFFFCC7A);

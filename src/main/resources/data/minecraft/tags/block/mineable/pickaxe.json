@@ -36,6 +36,19 @@
     "stardewcraft:frost_coal_ore",
     "stardewcraft:lava_coal_ore",
 
+    "stardewcraft:quartz",
+    "stardewcraft:earth_crystal",
+    "stardewcraft:frozen_tear",
+    "stardewcraft:fire_quartz",
+
+    "stardewcraft:amethyst_ore",
+    "stardewcraft:aquamarine_ore",
+    "stardewcraft:diamond_ore",
+    "stardewcraft:emerald_ore",
+    "stardewcraft:jade_ore",
+    "stardewcraft:ruby_ore",
+    "stardewcraft:topaz_ore",
+
     "stardewcraft:earth_shale_slab",
     "stardewcraft:earth_shale_stairs",
     "stardewcraft:earth_shale_wall",
@@ -71,6 +84,52 @@
     "stardewcraft:scoria_wall",
     "stardewcraft:salt_rock_slab",
     "stardewcraft:salt_rock_stairs",
-    "stardewcraft:salt_rock_wall"
+    "stardewcraft:salt_rock_wall",
+
+    "stardewcraft:bait_maker",
+    "stardewcraft:fish_smoker",
+    "stardewcraft:recycling_machine",
+    "stardewcraft:cooking_pot",
+    "stardewcraft:crystalarium",
+    "stardewcraft:furnace",
+    "stardewcraft:lightning_rod",
+    "stardewcraft:solar_panel",
+
+    "stardewcraft:auto_grabber",
+    "stardewcraft:auto_petter",
+    "stardewcraft:heater",
+
+    "stardewcraft:stone_chest",
+    "stardewcraft:fridge",
+    "stardewcraft:trash_bin",
+
+    "stardewcraft:sprinkler",
+    "stardewcraft:quality_sprinkler",
+    "stardewcraft:iridium_sprinkler",
+
+    "stardewcraft:fireplace_large",
+    "stardewcraft:shrine",
+    "stardewcraft:pillar",
+    "stardewcraft:museum_exhibit_stand",
+    "stardewcraft:leah_sculpture",
+
+    "stardewcraft:arcade_machine",
+    "stardewcraft:computer",
+    "stardewcraft:microwave",
+    "stardewcraft:radio",
+    "stardewcraft:joja_vending_machine",
+    "stardewcraft:wizard_cauldron",
+    "stardewcraft:microscope",
+    "stardewcraft:crab_pot",
+    "stardewcraft:sink_4",
+    "stardewcraft:leaning_sword",
+    "stardewcraft:telescope",
+
+    "stardewcraft:office_stool",
+    "stardewcraft:office_stool_top_render",
+    "stardewcraft:office_chair_2",
+    "stardewcraft:office_chair_2_top_render",
+    "stardewcraft:dining_chair_iron",
+    "stardewcraft:tv_2"
   ]
 }

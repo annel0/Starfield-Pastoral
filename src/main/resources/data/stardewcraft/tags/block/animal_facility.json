@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:feed_trough",
+    "stardewcraft:autofeed_trough",
+    "stardewcraft:hay_hopper",
+    "stardewcraft:auto_grabber",
+    "stardewcraft:auto_petter",
+    "stardewcraft:incubator",
+    "stardewcraft:coop_manager",
+    "stardewcraft:barn_manager"
+  ]
+}

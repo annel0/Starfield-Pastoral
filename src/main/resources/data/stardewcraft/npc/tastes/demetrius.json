@@ -1,0 +1,29 @@
+{
+  "npc_id": "demetrius",
+  "_vanilla_ref": "Loved: 400=strawberry 210=bean_hotpot 233=ice_cream 232=rice_pudding. Liked: eggs category. Disliked: -75=minerals_category. Hated: 283=holly",
+  "loved": [
+    "stardewcraft:strawberry",
+    "stardewcraft:bean_hotpot",
+    "stardewcraft:ice_cream",
+    "stardewcraft:rice_pudding"
+  ],
+  "_loved_not_yet_in_mod": [],
+  "liked": [
+    "stardewcraft:egg",
+    "stardewcraft:duck_egg",
+    "stardewcraft:void_egg",
+    "stardewcraft:dinosaur_egg"
+  ],
+  "_liked_not_yet_in_mod": [],
+  "neutral": [],
+  "disliked": [],
+  "_disliked_vanilla_note": "Dislikes minerals category items.",
+  "hated": [
+    "stardewcraft:holly"
+  ],
+  "loved_msg": "Oh wow, this is incredible! You really made my day.",
+  "liked_msg": "Hey, thanks! This is nice.",
+  "neutral_msg": "Thanks for thinking of me.",
+  "disliked_msg": "Hmm... this isn't really my thing.",
+  "hated_msg": "What? Why would you give me this?"
+}

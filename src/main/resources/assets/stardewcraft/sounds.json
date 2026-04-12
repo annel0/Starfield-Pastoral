@@ -1,4 +1,14 @@
 {
+  "hoe_hit": {
+    "sounds": [
+      { "name": "stardewcraft:hoe_hit", "stream": false }
+    ]
+  },
+  "stairsdown": {
+    "sounds": [
+      { "name": "stardewcraft:stairsdown", "stream": false }
+    ]
+  },
   "money_dial": {
     "subtitle": "subtitles.stardewcraft.money_dial",
     "sounds": [
@@ -320,6 +330,11 @@
       { "name": "stardewcraft:explosion", "stream": false }
     ]
   },
+  "fuse": {
+    "sounds": [
+      { "name": "stardewcraft:fuse", "stream": false }
+    ]
+  },
   "crit": {
     "sounds": [
       { "name": "stardewcraft:crit", "stream": false }
@@ -404,6 +419,197 @@
   "purchase_repeat": {
     "sounds": [
       { "name": "stardewcraft:ui/purchase_repeat", "stream": false }
+    ]
+  },
+  "stone_crack": {
+    "sounds": [
+      { "name": "stardewcraft:stonecrack1", "stream": false },
+      { "name": "stardewcraft:stonecrack2", "stream": false }
+    ]
+  },
+  "discover_mineral": {
+    "sounds": [
+      { "name": "stardewcraft:discovermineral", "stream": false }
+    ]
+  },
+  "warrior": {
+    "sounds": [
+      { "name": "stardewcraft:warrior", "stream": false }
+    ]
+  },
+  "wand": {
+    "sounds": [
+      { "name": "stardewcraft:wand", "stream": false }
+    ]
+  },
+  "rain_sound": {
+    "sounds": [
+      { "name": "stardewcraft:rain", "stream": false }
+    ]
+  },
+  "thunder": {
+    "sounds": [
+      { "name": "stardewcraft:thunder", "stream": false }
+    ]
+  },
+
+  "music_spring1": {
+    "sounds": [
+      { "name": "stardewcraft:music/spring1", "stream": true }
+    ]
+  },
+  "music_spring2": {
+    "sounds": [
+      { "name": "stardewcraft:music/spring2", "stream": true }
+    ]
+  },
+  "music_spring3": {
+    "sounds": [
+      { "name": "stardewcraft:music/spring3", "stream": true }
+    ]
+  },
+  "music_summer1": {
+    "sounds": [
+      { "name": "stardewcraft:music/summer1", "stream": true }
+    ]
+  },
+  "music_summer2": {
+    "sounds": [
+      { "name": "stardewcraft:music/summer2", "stream": true }
+    ]
+  },
+  "music_summer3": {
+    "sounds": [
+      { "name": "stardewcraft:music/summer3", "stream": true }
+    ]
+  },
+  "music_fall1": {
+    "sounds": [
+      { "name": "stardewcraft:music/fall1", "stream": true }
+    ]
+  },
+  "music_fall2": {
+    "sounds": [
+      { "name": "stardewcraft:music/fall2", "stream": true }
+    ]
+  },
+  "music_fall3": {
+    "sounds": [
+      { "name": "stardewcraft:music/fall3", "stream": true }
+    ]
+  },
+  "music_winter1": {
+    "sounds": [
+      { "name": "stardewcraft:music/winter1", "stream": true }
+    ]
+  },
+  "music_winter2": {
+    "sounds": [
+      { "name": "stardewcraft:music/winter2", "stream": true }
+    ]
+  },
+  "music_winter3": {
+    "sounds": [
+      { "name": "stardewcraft:music/winter3", "stream": true }
+    ]
+  },
+  "music_rain": {
+    "sounds": [
+      { "name": "stardewcraft:music/rain", "stream": true }
+    ]
+  },
+  "music_spring_night_ambient": {
+    "sounds": [
+      { "name": "stardewcraft:music/spring_night_ambient", "stream": true }
+    ]
+  },
+  "music_spring_day_ambient": {
+    "sounds": [
+      { "name": "stardewcraft:music/spring_day_ambient", "stream": true }
+    ]
+  },
+  "music_summer_day_ambient": {
+    "sounds": [
+      { "name": "stardewcraft:music/summer_day_ambient", "stream": true }
+    ]
+  },
+  "music_fall_day_ambient": {
+    "sounds": [
+      { "name": "stardewcraft:music/fall_day_ambient", "stream": true }
+    ]
+  },
+  "music_winter_day_ambient": {
+    "sounds": [
+      { "name": "stardewcraft:music/winter_day_ambient", "stream": true }
+    ]
+  },
+  "music_springtown": {
+    "sounds": [
+      { "name": "stardewcraft:music/springtown", "stream": true }
+    ]
+  },
+  "music_marnie_shop": {
+    "sounds": [
+      { "name": "stardewcraft:music/marnie_shop", "stream": true }
+    ]
+  },
+  "music_earth_mine": {
+    "sounds": [
+      { "name": "stardewcraft:music/crystal_bells", "stream": true },
+      { "name": "stardewcraft:music/cavern", "stream": true },
+      { "name": "stardewcraft:music/secret_gnomes", "stream": true }
+    ]
+  },
+  "music_frost_mine": {
+    "sounds": [
+      { "name": "stardewcraft:music/cloth", "stream": true },
+      { "name": "stardewcraft:music/icicles", "stream": true },
+      { "name": "stardewcraft:music/xor", "stream": true }
+    ]
+  },
+  "music_saloon": {
+    "sounds": [
+      { "name": "stardewcraft:music/saloon1", "stream": true }
+    ]
+  },
+  "music_wizard_tower": {
+    "sounds": [
+      { "name": "stardewcraft:music/wizard_song", "stream": true }
+    ]
+  },
+  "music_library": {
+    "sounds": [
+      { "name": "stardewcraft:music/library_theme", "stream": true }
+    ]
+  },
+  "music_adventurer_guild": {
+    "sounds": [
+      { "name": "stardewcraft:music/marlons_theme", "stream": true }
+    ]
+  },
+  "music_hospital": {
+    "sounds": [
+      { "name": "stardewcraft:music/hospital_ambient", "stream": true }
+    ]
+  },
+  "music_elliott_piano": {
+    "sounds": [
+      { "name": "stardewcraft:music/elliott_piano", "stream": true }
+    ]
+  },
+  "music_seed_shop": {
+    "sounds": [
+      { "name": "stardewcraft:music/seed_shop", "stream": true }
+    ]
+  },
+  "music_ocean_ambience": {
+    "sounds": [
+      { "name": "stardewcraft:music/ocean_ambience", "stream": true }
+    ]
+  },
+  "questcomplete": {
+    "sounds": [
+      { "name": "stardewcraft:questcomplete", "stream": false }
     ]
   }
 }

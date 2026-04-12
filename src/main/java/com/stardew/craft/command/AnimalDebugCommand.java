@@ -427,7 +427,7 @@ public class AnimalDebugCommand {
         ServerLevel level = requireStardewLevel(context);
         AnimalEntitySyncService.SyncResult result = AnimalEntitySyncService.syncAll(level);
         context.getSource().sendSuccess(() -> Component.literal(
-            "动物同步完成: updated=" + result.updated() + ", spawned=" + result.spawned()
+            "动物同步完成: updated=" + result.updated() + ", spawned=" + result.spawned() + ", orphansRemoved=" + result.orphansRemoved()
         ), true);
         return 1;
     }

@@ -20,6 +20,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
+@SuppressWarnings("all")
 public class FurnaceBlockEntity extends TimedProductionBlockEntity {
     private static final int EFFECTIVE_MINUTES_PER_DAY = 1260;
 
@@ -37,6 +38,11 @@ public class FurnaceBlockEntity extends TimedProductionBlockEntity {
 
     public FurnaceBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.FURNACE.get(), pos, state);
+    }
+
+    @Override
+    public net.neoforged.neoforge.items.IItemHandler getAutomationItemHandler() {
+        return super.getAutomationItemHandler();
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, FurnaceBlockEntity be) {

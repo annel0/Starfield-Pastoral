@@ -353,4 +353,9 @@ public final class WickedKrisPoisonTracker {
             new WickedKrisPoisonStatusPayload(stacks, durationTicks, detonateRemainingTicks, detonateTotalTicks)
         );
     }
+
+    /** Clean up state when a player logs out to prevent memory leaks. */
+    public static void removePlayer(UUID playerId) {
+        DETONATIONS.remove(playerId);
+    }
 }

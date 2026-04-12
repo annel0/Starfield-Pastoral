@@ -34,7 +34,7 @@ public class TapperBlockEntityRenderer implements BlockEntityRenderer<TapperBloc
 		}
 
 		poseStack.pushPose();
-		poseStack.translate(0.5f, 1.05f, 0.5f);
+		poseStack.translate(0.5f, BubbleYHelper.get(be.getBlockState(), be.getLevel(), be.getBlockPos()), 0.5f);
 		poseStack.mulPose(Minecraft.getInstance().getEntityRenderDispatcher().cameraOrientation());
 
 		float w = 20 * PX;

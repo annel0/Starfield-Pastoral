@@ -66,11 +66,13 @@ public class FarmlandMoistureHandler {
     @SuppressWarnings("null")
     private static void moistenFarmlandAroundPlayer(ServerLevel level, ServerPlayer player) {
         BlockPos playerPos = player.blockPosition();
-        // 只检查玩家周围32x32范围，高度±4
+        BlockPos.MutableBlockPos checkPos = new BlockPos.MutableBlockPos();
+        // Farmland is always at surface level — only check Y-2 to Y+2 (5 layers instead of 9)
+        // and step by 1 (need full coverage for farmland)
         for (int x = -RADIUS; x <= RADIUS; x++) {
             for (int z = -RADIUS; z <= RADIUS; z++) {
-                for (int y = -4; y <= 4; y++) {
-                    BlockPos checkPos = playerPos.offset(x, y, z);
+                for (int y = -2; y <= 2; y++) {
+                    checkPos.set(playerPos.getX() + x, playerPos.getY() + y, playerPos.getZ() + z);
                     BlockState state = level.getBlockState(checkPos);
                     
                     if (state.getBlock() instanceof FarmBlock && state.hasProperty(BlockStateProperties.MOISTURE)) {

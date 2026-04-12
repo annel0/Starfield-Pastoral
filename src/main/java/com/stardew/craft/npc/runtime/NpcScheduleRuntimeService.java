@@ -388,6 +388,14 @@ public final class NpcScheduleRuntimeService {
             current = next == null ? null : next.trim();
         }
 
+        // Detect _goto cycle
+        if (current != null && visited.contains(current)) {
+            com.stardew.craft.StardewCraft.LOGGER.warn(
+                "[NPC_SCHEDULE] _goto cycle detected for npc='{}': key='{}' visited={}",
+                npcId, current, visited
+            );
+        }
+
         return null;
     }
 
@@ -555,6 +563,7 @@ public final class NpcScheduleRuntimeService {
         return candidate;
     }
 
+    @SuppressWarnings("unused")
     private static int parseCheckpoint(String raw) {
         try {
             return Integer.parseInt(raw.trim());
@@ -569,6 +578,7 @@ public final class NpcScheduleRuntimeService {
         return hour * 100 + minute;
     }
 
+    @SuppressWarnings("unused")
     private static ScheduleNode parseNode(String scheduleKey, int checkpoint, String raw, String fallbackLocation) {
         if (raw == null || raw.isBlank()) {
             return null;

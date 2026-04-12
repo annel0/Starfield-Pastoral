@@ -197,6 +197,11 @@ public class BarnManagerBlock extends Block {
 
         maybeSendDevHints(player, targetTier, validation);
         level.playSound(null, managerPos, SoundEvents.ANVIL_USE, SoundSource.BLOCKS, 0.6f, 1.1f);
+
+        // 通知任务系统：建筑已建造/升级
+        if (player instanceof net.minecraft.server.level.ServerPlayer sp) {
+            com.stardew.craft.quest.StardewQuestEvents.fireBuildingExists(sp, "Barn");
+        }
         return true;
     }
 

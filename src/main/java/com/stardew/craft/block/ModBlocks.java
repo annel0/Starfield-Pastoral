@@ -73,6 +73,63 @@ public class ModBlocks {
                                         .instabreak()
                                         .randomTicks()));
 
+        // ---- 采集物方块 (Forage blocks with cross model, drop corresponding items) ----
+        @SuppressWarnings("null")
+        private static Block.Properties forageProps() {
+                return Block.Properties.of()
+                        .mapColor(net.minecraft.world.level.material.MapColor.PLANT)
+                        .pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY)
+                        .sound(net.minecraft.world.level.block.SoundType.GRASS)
+                        .noCollission()
+                        .noOcclusion()
+                        .instabreak();
+        }
+        @SuppressWarnings("null")
+        private static DeferredBlock<Block> forage(String name) {
+                return BLOCKS.register("forage_" + name,
+                        () -> new com.stardew.craft.block.nature.ForageBlock(forageProps())
+                                .setDrop(() -> new net.minecraft.world.item.ItemStack(
+                                        net.minecraft.core.registries.BuiltInRegistries.ITEM.get(
+                                                net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("stardewcraft", name)))));
+        }
+
+        // Spring forage
+        public static final DeferredBlock<Block> FORAGE_WILD_HORSERADISH = forage("wild_horseradish");
+        public static final DeferredBlock<Block> FORAGE_DAFFODIL          = forage("daffodil");
+        public static final DeferredBlock<Block> FORAGE_LEEK              = forage("leek");
+        public static final DeferredBlock<Block> FORAGE_DANDELION         = forage("dandelion");
+        public static final DeferredBlock<Block> FORAGE_SPRING_ONION      = forage("spring_onion");
+        // Summer forage
+        public static final DeferredBlock<Block> FORAGE_SPICE_BERRY       = forage("spice_berry");
+        public static final DeferredBlock<Block> FORAGE_SWEET_PEA         = forage("sweet_pea");
+        public static final DeferredBlock<Block> FORAGE_FIDDLEHEAD_FERN   = forage("fiddlehead_fern");
+        // Fall forage
+        public static final DeferredBlock<Block> FORAGE_WILD_PLUM         = forage("wild_plum");
+        public static final DeferredBlock<Block> FORAGE_HAZELNUT          = forage("hazelnut");
+        public static final DeferredBlock<Block> FORAGE_BLACKBERRY        = forage("blackberry");
+        // Winter forage
+        public static final DeferredBlock<Block> FORAGE_WINTER_ROOT       = forage("winter_root");
+        public static final DeferredBlock<Block> FORAGE_CRYSTAL_FRUIT     = forage("crystal_fruit");
+        public static final DeferredBlock<Block> FORAGE_CROCUS            = forage("crocus");
+        public static final DeferredBlock<Block> FORAGE_HOLLY             = forage("holly");
+        // Cave / universal
+        public static final DeferredBlock<Block> FORAGE_CAVE_CARROT       = forage("cave_carrot");
+        // Beach
+        public static final DeferredBlock<Block> FORAGE_NAUTILUS_SHELL    = forage("nautilus_shell");
+        public static final DeferredBlock<Block> FORAGE_CORAL             = forage("coral");
+        public static final DeferredBlock<Block> FORAGE_RAINBOW_SHELL     = forage("rainbow_shell");
+        public static final DeferredBlock<Block> FORAGE_SEA_URCHIN        = forage("sea_urchin");
+        // Desert / tropical
+        public static final DeferredBlock<Block> FORAGE_COCONUT           = forage("coconut");
+        public static final DeferredBlock<Block> FORAGE_CACTUS_FRUIT      = forage("cactus_fruit");
+        // Mushrooms (cave)
+        public static final DeferredBlock<Block> FORAGE_COMMON_MUSHROOM   = forage("common_mushroom");
+        public static final DeferredBlock<Block> FORAGE_RED_MUSHROOM      = forage("red_mushroom");
+        public static final DeferredBlock<Block> FORAGE_PURPLE_MUSHROOM   = forage("purple_mushroom");
+        public static final DeferredBlock<Block> FORAGE_MOREL             = forage("morel");
+        public static final DeferredBlock<Block> FORAGE_CHANTERELLE       = forage("chanterelle");
+        public static final DeferredBlock<Block> FORAGE_MAGMA_CAP         = forage("magma_cap");
+
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> ANIMAL_PRODUCE_SPOT = BLOCKS.register("animal_produce_spot",
                         () -> new com.stardew.craft.block.animal.AnimalProduceSpotBlock(Block.Properties.of()
@@ -300,6 +357,15 @@ public class ModBlocks {
                                         .lightLevel(state -> 15)
                                         .noOcclusion()));
 
+        // 矿井：木桶（仿 SDV BreakableContainer，可挖掘/武器打碎，掉落战利品）
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> MINE_BARREL = BLOCKS.register("mine_barrel",
+                        () -> new com.stardew.craft.block.mine.MineBarrelBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .strength(0.6F, 2.0F)
+                                        .noOcclusion()));
+
         // 矿井：出口（金色梯子，中心安全区，打开GUI）
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> MINE_EXIT = BLOCKS.register("mine_exit",
@@ -322,74 +388,74 @@ public class ModBlocks {
 
         // 矿井：直接采集矿物方块（洞窟表面）
         @SuppressWarnings("null")
-        private static Block.Properties mineralNodeProps() {
+        private static Block.Properties mineralNodeProps(float hardness) {
                 return Block.Properties.of()
                                 .mapColor(net.minecraft.world.level.material.MapColor.STONE)
                                 .sound(net.minecraft.world.level.block.SoundType.STONE)
                                 .requiresCorrectToolForDrops()
                                 .noOcclusion()
-                                .strength(8.0F, 6.0F);
+                                .strength(hardness, 6.0F);
         }
 
         public static final DeferredBlock<Block> QUARTZ = BLOCKS.register("quartz",
-                        () -> new com.stardew.craft.block.mine.MineralNodeBlock(mineralNodeProps()));
+                        () -> new com.stardew.craft.block.mine.MineralNodeBlock(mineralNodeProps(3.0F)));   // Earth段，tier 0
         public static final DeferredBlock<Block> EARTH_CRYSTAL = BLOCKS.register("earth_crystal",
-                        () -> new com.stardew.craft.block.mine.MineralNodeBlock(mineralNodeProps()));
+                        () -> new com.stardew.craft.block.mine.MineralNodeBlock(mineralNodeProps(3.0F)));   // Earth段，tier 0
         public static final DeferredBlock<Block> FROZEN_TEAR = BLOCKS.register("frozen_tear",
-                        () -> new com.stardew.craft.block.mine.MineralNodeBlock(mineralNodeProps()));
+                        () -> new com.stardew.craft.block.mine.MineralNodeBlock(mineralNodeProps(4.0F)));   // Frost段，tier 1
         public static final DeferredBlock<Block> FIRE_QUARTZ = BLOCKS.register("fire_quartz",
-                        () -> new com.stardew.craft.block.mine.MineralNodeBlock(mineralNodeProps()));
+                        () -> new com.stardew.craft.block.mine.MineralNodeBlock(mineralNodeProps(5.0F)));   // Lava段，tier 2
 
         @SuppressWarnings("null")
-        public static final DeferredBlock<Block> EARTH_COPPER_ORE = BLOCKS.register("earth_copper_ore", () -> new Block(oreProps(6.0F)));
+        public static final DeferredBlock<Block> EARTH_COPPER_ORE = BLOCKS.register("earth_copper_ore", () -> new Block(oreProps(4.0F)));
         @SuppressWarnings("null")
-        public static final DeferredBlock<Block> FROST_COPPER_ORE = BLOCKS.register("frost_copper_ore", () -> new Block(oreProps(6.0F)));
+        public static final DeferredBlock<Block> FROST_COPPER_ORE = BLOCKS.register("frost_copper_ore", () -> new Block(oreProps(4.0F)));
         @SuppressWarnings("null")
-        public static final DeferredBlock<Block> LAVA_COPPER_ORE = BLOCKS.register("lava_copper_ore", () -> new Block(oreProps(6.0F)));
+        public static final DeferredBlock<Block> LAVA_COPPER_ORE = BLOCKS.register("lava_copper_ore", () -> new Block(oreProps(4.0F)));
 
         @SuppressWarnings("null")
-        public static final DeferredBlock<Block> EARTH_IRON_ORE = BLOCKS.register("earth_iron_ore", () -> new Block(oreProps(8.0F)));
+        public static final DeferredBlock<Block> EARTH_IRON_ORE = BLOCKS.register("earth_iron_ore", () -> new Block(oreProps(5.0F)));
         @SuppressWarnings("null")
-        public static final DeferredBlock<Block> FROST_IRON_ORE = BLOCKS.register("frost_iron_ore", () -> new Block(oreProps(8.0F)));
+        public static final DeferredBlock<Block> FROST_IRON_ORE = BLOCKS.register("frost_iron_ore", () -> new Block(oreProps(5.0F)));
         @SuppressWarnings("null")
-        public static final DeferredBlock<Block> LAVA_IRON_ORE = BLOCKS.register("lava_iron_ore", () -> new Block(oreProps(8.0F)));
+        public static final DeferredBlock<Block> LAVA_IRON_ORE = BLOCKS.register("lava_iron_ore", () -> new Block(oreProps(5.0F)));
 
         @SuppressWarnings("null")
-        public static final DeferredBlock<Block> EARTH_GOLD_ORE = BLOCKS.register("earth_gold_ore", () -> new Block(oreProps(10.0F)));
+        public static final DeferredBlock<Block> EARTH_GOLD_ORE = BLOCKS.register("earth_gold_ore", () -> new Block(oreProps(7.0F)));
         @SuppressWarnings("null")
-        public static final DeferredBlock<Block> FROST_GOLD_ORE = BLOCKS.register("frost_gold_ore", () -> new Block(oreProps(10.0F)));
+        public static final DeferredBlock<Block> FROST_GOLD_ORE = BLOCKS.register("frost_gold_ore", () -> new Block(oreProps(7.0F)));
         @SuppressWarnings("null")
-        public static final DeferredBlock<Block> LAVA_GOLD_ORE = BLOCKS.register("lava_gold_ore", () -> new Block(oreProps(10.0F)));
+        public static final DeferredBlock<Block> LAVA_GOLD_ORE = BLOCKS.register("lava_gold_ore", () -> new Block(oreProps(7.0F)));
 
         @SuppressWarnings("null")
-        public static final DeferredBlock<Block> EARTH_IRIDIUM_ORE = BLOCKS.register("earth_iridium_ore", () -> new Block(oreProps(14.0F)));
+        public static final DeferredBlock<Block> EARTH_IRIDIUM_ORE = BLOCKS.register("earth_iridium_ore", () -> new Block(oreProps(10.0F)));
         @SuppressWarnings("null")
-        public static final DeferredBlock<Block> FROST_IRIDIUM_ORE = BLOCKS.register("frost_iridium_ore", () -> new Block(oreProps(14.0F)));
+        public static final DeferredBlock<Block> FROST_IRIDIUM_ORE = BLOCKS.register("frost_iridium_ore", () -> new Block(oreProps(10.0F)));
         @SuppressWarnings("null")
-        public static final DeferredBlock<Block> LAVA_IRIDIUM_ORE = BLOCKS.register("lava_iridium_ore", () -> new Block(oreProps(14.0F)));
+        public static final DeferredBlock<Block> LAVA_IRIDIUM_ORE = BLOCKS.register("lava_iridium_ore", () -> new Block(oreProps(10.0F)));
 
         @SuppressWarnings("null")
-        public static final DeferredBlock<Block> EARTH_COAL_ORE = BLOCKS.register("earth_coal_ore", () -> new Block(oreProps(5.0F)));
+        public static final DeferredBlock<Block> EARTH_COAL_ORE = BLOCKS.register("earth_coal_ore", () -> new Block(oreProps(3.0F)));
         @SuppressWarnings("null")
-        public static final DeferredBlock<Block> FROST_COAL_ORE = BLOCKS.register("frost_coal_ore", () -> new Block(oreProps(5.0F)));
+        public static final DeferredBlock<Block> FROST_COAL_ORE = BLOCKS.register("frost_coal_ore", () -> new Block(oreProps(3.0F)));
         @SuppressWarnings("null")
-        public static final DeferredBlock<Block> LAVA_COAL_ORE = BLOCKS.register("lava_coal_ore", () -> new Block(oreProps(5.0F)));
+        public static final DeferredBlock<Block> LAVA_COAL_ORE = BLOCKS.register("lava_coal_ore", () -> new Block(oreProps(3.0F)));
 
         // 矿井：矿物矿石节点（宝石矿，晶洞产物不做）
         @SuppressWarnings("null")
-        public static final DeferredBlock<Block> AMETHYST_ORE = BLOCKS.register("amethyst_ore", () -> new Block(oreProps(8.0F)));
+        public static final DeferredBlock<Block> AMETHYST_ORE = BLOCKS.register("amethyst_ore", () -> new Block(oreProps(4.0F)));   // tier 0
         @SuppressWarnings("null")
-        public static final DeferredBlock<Block> AQUAMARINE_ORE = BLOCKS.register("aquamarine_ore", () -> new Block(oreProps(8.0F)));
+        public static final DeferredBlock<Block> AQUAMARINE_ORE = BLOCKS.register("aquamarine_ore", () -> new Block(oreProps(5.0F))); // tier 1
         @SuppressWarnings("null")
-        public static final DeferredBlock<Block> DIAMOND_ORE = BLOCKS.register("diamond_ore", () -> new Block(oreProps(8.0F)));
+        public static final DeferredBlock<Block> DIAMOND_ORE = BLOCKS.register("diamond_ore", () -> new Block(oreProps(7.0F)));     // tier 2
         @SuppressWarnings("null")
-        public static final DeferredBlock<Block> EMERALD_ORE = BLOCKS.register("emerald_ore", () -> new Block(oreProps(8.0F)));
+        public static final DeferredBlock<Block> EMERALD_ORE = BLOCKS.register("emerald_ore", () -> new Block(oreProps(6.0F)));     // tier 2
         @SuppressWarnings("null")
-        public static final DeferredBlock<Block> JADE_ORE = BLOCKS.register("jade_ore", () -> new Block(oreProps(8.0F)));
+        public static final DeferredBlock<Block> JADE_ORE = BLOCKS.register("jade_ore", () -> new Block(oreProps(5.0F)));           // tier 1
         @SuppressWarnings("null")
-        public static final DeferredBlock<Block> RUBY_ORE = BLOCKS.register("ruby_ore", () -> new Block(oreProps(8.0F)));
+        public static final DeferredBlock<Block> RUBY_ORE = BLOCKS.register("ruby_ore", () -> new Block(oreProps(6.0F)));           // tier 2
         @SuppressWarnings("null")
-        public static final DeferredBlock<Block> TOPAZ_ORE = BLOCKS.register("topaz_ore", () -> new Block(oreProps(8.0F)));
+        public static final DeferredBlock<Block> TOPAZ_ORE = BLOCKS.register("topaz_ore", () -> new Block(oreProps(4.0F)));         // tier 0
 
     // 作物方块
     public static final DeferredBlock<Block> AMARANTH_CROP = BLOCKS.register("amaranth_crop",
@@ -556,7 +622,6 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                         () -> new com.stardew.craft.block.tree.WildOakLeavesBlock(Block.Properties.of()
                                         .mapColor(net.minecraft.world.level.material.MapColor.PLANT)
                                         .sound(net.minecraft.world.level.block.SoundType.GRASS)
-                                        .randomTicks()
                                         .strength(0.2F)
                                         .noOcclusion()));
 
@@ -623,7 +688,6 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                         () -> new com.stardew.craft.block.tree.WildOakLeavesBlock(Block.Properties.of()
                                         .mapColor(net.minecraft.world.level.material.MapColor.PLANT)
                                         .sound(net.minecraft.world.level.block.SoundType.GRASS)
-                                        .randomTicks()
                                         .strength(0.2F)
                                         .noOcclusion()));
 
@@ -689,7 +753,6 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                         () -> new com.stardew.craft.block.tree.WildOakLeavesBlock(Block.Properties.of()
                                         .mapColor(net.minecraft.world.level.material.MapColor.PLANT)
                                         .sound(net.minecraft.world.level.block.SoundType.GRASS)
-                                        .randomTicks()
                                         .strength(0.2F)
                                         .noOcclusion()));
 
@@ -755,7 +818,6 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                         () -> new com.stardew.craft.block.tree.WildOakLeavesBlock(Block.Properties.of()
                                         .mapColor(net.minecraft.world.level.material.MapColor.PLANT)
                                         .sound(net.minecraft.world.level.block.SoundType.GRASS)
-                                        .randomTicks()
                                         .strength(0.2F)
                                         .noOcclusion()));
 
@@ -821,7 +883,6 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                         () -> new com.stardew.craft.block.tree.WildOakLeavesBlock(Block.Properties.of()
                                         .mapColor(net.minecraft.world.level.material.MapColor.PLANT)
                                         .sound(net.minecraft.world.level.block.SoundType.GRASS)
-                                        .randomTicks()
                                         .strength(0.2F)
                                         .noOcclusion()));
 
@@ -900,6 +961,14 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .strength(1.5F, 3.0F)));
 
         @SuppressWarnings("null")
+        public static final DeferredBlock<Block> RECYCLING_MACHINE = BLOCKS.register("recycling_machine",
+                        () -> new com.stardew.craft.block.utility.RecyclingMachineBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.METAL)
+                                        .sound(net.minecraft.world.level.block.SoundType.METAL)
+                                        .noOcclusion()
+                                        .strength(1.5F, 3.0F)));
+
+        @SuppressWarnings("null")
         public static final DeferredBlock<Block> COOKING_POT = BLOCKS.register("cooking_pot",
                         () -> new com.stardew.craft.block.utility.CookingPotBlock(Block.Properties.of()
                                         .mapColor(net.minecraft.world.level.material.MapColor.METAL)
@@ -957,7 +1026,7 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                                                 .mapColor(net.minecraft.world.level.material.MapColor.METAL)
                                                                 .sound(net.minecraft.world.level.block.SoundType.METAL)
                                                                 .noOcclusion()
-                                                                .strength(1.5F, 3.0F)));
+                                                                .strength(1.0F, 3.0F)));
 
                 @SuppressWarnings("null")
                 public static final DeferredBlock<Block> QUALITY_SPRINKLER = BLOCKS.register("quality_sprinkler",
@@ -967,7 +1036,7 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                                                 .mapColor(net.minecraft.world.level.material.MapColor.METAL)
                                                                 .sound(net.minecraft.world.level.block.SoundType.METAL)
                                                                 .noOcclusion()
-                                                                .strength(1.5F, 3.0F)));
+                                                                .strength(1.0F, 3.0F)));
 
                 @SuppressWarnings("null")
                 public static final DeferredBlock<Block> IRIDIUM_SPRINKLER = BLOCKS.register("iridium_sprinkler",
@@ -977,7 +1046,7 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                                                 .mapColor(net.minecraft.world.level.material.MapColor.METAL)
                                                                 .sound(net.minecraft.world.level.block.SoundType.METAL)
                                                                 .noOcclusion()
-                                                                .strength(1.5F, 3.0F)));
+                                                                .strength(1.0F, 3.0F)));
 
                 @SuppressWarnings("null")
                 public static final DeferredBlock<Block> SOLAR_PANEL = BLOCKS.register("solar_panel",
@@ -1101,6 +1170,14 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .strength(1.5F, 3.0F), "stardewcraft:decor/common/fridge"));
 
         @SuppressWarnings("null")
+        public static final DeferredBlock<Block> MAILBOX = BLOCKS.register("mailbox",
+                        () -> new com.stardew.craft.block.utility.MailboxBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(1.5F, 3.0F)));
+
+        @SuppressWarnings("null")
         public static final DeferredBlock<Block> SHIPPING_BIN = BLOCKS.register("shipping_bin",
                         () -> new com.stardew.craft.block.utility.ShippingBinBlock(Block.Properties.of()
                                         .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
@@ -1134,6 +1211,13 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> BARN_MANAGER = BLOCKS.register("barn_manager",
                         () -> new com.stardew.craft.block.utility.BarnManagerBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .strength(1.5F, 3.0F)));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> SILO_MANAGER = BLOCKS.register("silo_manager",
+                        () -> new com.stardew.craft.block.utility.SiloManagerBlock(Block.Properties.of()
                                         .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
                                         .sound(net.minecraft.world.level.block.SoundType.WOOD)
                                         .strength(1.5F, 3.0F)));
@@ -1498,20 +1582,30 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
 
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> SHOP_COUNTER_1 = BLOCKS.register("shop_counter_1",
-                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).sound(net.minecraft.world.level.block.SoundType.WOOD).noOcclusion().strength(1.0F, 1.0F), "stardewcraft:decor/pierre_shop/5_1", 1, 0, 0));
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).sound(net.minecraft.world.level.block.SoundType.WOOD).noOcclusion().strength(1.0F, 1.0F), "stardewcraft:decor/pierre_shop/5_1", true));
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> SHOP_COUNTER_2 = BLOCKS.register("shop_counter_2",
-                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).sound(net.minecraft.world.level.block.SoundType.WOOD).noOcclusion().strength(1.0F, 1.0F), "stardewcraft:decor/pierre_shop/5_2", 1, 0, 0));
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).sound(net.minecraft.world.level.block.SoundType.WOOD).noOcclusion().strength(1.0F, 1.0F), "stardewcraft:decor/pierre_shop/5_2", true));
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> SHOP_COUNTER_3 = BLOCKS.register("shop_counter_3",
-                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).sound(net.minecraft.world.level.block.SoundType.WOOD).noOcclusion().strength(1.0F, 1.0F), "stardewcraft:decor/pierre_shop/5_3", 1, 0, 0));
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).sound(net.minecraft.world.level.block.SoundType.WOOD).noOcclusion().strength(1.0F, 1.0F), "stardewcraft:decor/pierre_shop/5_3", true));
 
         @SuppressWarnings("null")
-        public static final DeferredBlock<Block> SHOP_SHELF_EAST_1 = BLOCKS.register("shop_shelf_east_1",
-                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).sound(net.minecraft.world.level.block.SoundType.WOOD).noOcclusion().strength(1.0F, 1.0F), "stardewcraft:decor/pierre_shop/6_1", 1, 0, 0));
+        public static final DeferredBlock<Block> SUPERMARKET_SHELF_1 = BLOCKS.register("supermarket_shelf_1",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(1.0F, 1.0F), "stardewcraft:decor/common/supermarket_shelf_1",
+                                        0, 0, -16, 16, 25, 32));
         @SuppressWarnings("null")
-        public static final DeferredBlock<Block> SHOP_SHELF_EAST_2 = BLOCKS.register("shop_shelf_east_2",
-                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOD).sound(net.minecraft.world.level.block.SoundType.WOOD).noOcclusion().strength(1.0F, 1.0F), "stardewcraft:decor/pierre_shop/6_2", 1, 0, 0));
+        public static final DeferredBlock<Block> SUPERMARKET_SHELF_2 = BLOCKS.register("supermarket_shelf_2",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(1.0F, 1.0F), "stardewcraft:decor/common/supermarket_shelf_2",
+                                        0, 0, -16, 16, 25, 32));
 
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> SHOP_SHIPPING_BIN = BLOCKS.register("shop_shipping_bin",
@@ -1524,67 +1618,67 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
         // 地图装饰：地毯（地面）
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> CARPET_1 = BLOCKS.register("carpet_1",
-                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().strength(0.5F, 0.5F), "stardewcraft:decor/carpet/carpet_1"));
+                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().instabreak(), "stardewcraft:decor/carpet/carpet_1"));
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> CARPET_2 = BLOCKS.register("carpet_2",
-                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().strength(0.5F, 0.5F), "stardewcraft:decor/carpet/carpet_2"));
+                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().instabreak(), "stardewcraft:decor/carpet/carpet_2"));
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> CARPET_3 = BLOCKS.register("carpet_3",
-                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().strength(0.5F, 0.5F), "stardewcraft:decor/carpet/carpet_3"));
+                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().instabreak(), "stardewcraft:decor/carpet/carpet_3"));
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> CARPET_4 = BLOCKS.register("carpet_4",
-                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().strength(0.5F, 0.5F), "stardewcraft:decor/carpet/carpet_4"));
+                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().instabreak(), "stardewcraft:decor/carpet/carpet_4"));
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> CARPET_5 = BLOCKS.register("carpet_5",
-                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().strength(0.5F, 0.5F), "stardewcraft:decor/carpet/carpet_5"));
+                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().instabreak(), "stardewcraft:decor/carpet/carpet_5"));
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> CARPET_6 = BLOCKS.register("carpet_6",
-                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().strength(0.5F, 0.5F), "stardewcraft:decor/carpet/carpet_6"));
+                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().instabreak(), "stardewcraft:decor/carpet/carpet_6"));
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> CARPET_7 = BLOCKS.register("carpet_7",
-                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().strength(0.5F, 0.5F), "stardewcraft:decor/carpet/carpet_7"));
+                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().instabreak(), "stardewcraft:decor/carpet/carpet_7"));
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> CARPET_8 = BLOCKS.register("carpet_8",
-                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().strength(0.5F, 0.5F), "stardewcraft:decor/carpet/carpet_8"));
+                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().instabreak(), "stardewcraft:decor/carpet/carpet_8"));
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> CARPET_9 = BLOCKS.register("carpet_9",
-                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().strength(0.5F, 0.5F), "stardewcraft:decor/carpet/carpet_9"));
+                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().instabreak(), "stardewcraft:decor/carpet/carpet_9"));
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> CARPET_10 = BLOCKS.register("carpet_10",
-                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().strength(0.5F, 0.5F), "stardewcraft:decor/carpet/carpet_10"));
+                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().instabreak(), "stardewcraft:decor/carpet/carpet_10"));
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> CARPET_11 = BLOCKS.register("carpet_11",
-                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().strength(0.5F, 0.5F), "stardewcraft:decor/carpet/carpet_11"));
+                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().instabreak(), "stardewcraft:decor/carpet/carpet_11"));
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> CARPET_12 = BLOCKS.register("carpet_12",
-                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().strength(0.5F, 0.5F), "stardewcraft:decor/carpet/carpet_12"));
+                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().instabreak(), "stardewcraft:decor/carpet/carpet_12"));
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> CARPET_13 = BLOCKS.register("carpet_13",
-                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().strength(0.5F, 0.5F), "stardewcraft:decor/carpet/carpet_13"));
+                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().instabreak(), "stardewcraft:decor/carpet/carpet_13"));
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> CARPET_14 = BLOCKS.register("carpet_14",
-                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().strength(0.5F, 0.5F), "stardewcraft:decor/carpet/carpet_14"));
+                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().instabreak(), "stardewcraft:decor/carpet/carpet_14"));
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> CARPET_15 = BLOCKS.register("carpet_15",
-                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().strength(0.5F, 0.5F), "stardewcraft:decor/carpet/carpet_15"));
+                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().instabreak(), "stardewcraft:decor/carpet/carpet_15"));
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> CARPET_16 = BLOCKS.register("carpet_16",
-                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().strength(0.5F, 0.5F), "stardewcraft:decor/carpet/carpet_16"));
+                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().instabreak(), "stardewcraft:decor/carpet/carpet_16"));
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> CARPET_17 = BLOCKS.register("carpet_17",
-                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().strength(0.5F, 0.5F), "stardewcraft:decor/carpet/carpet_17"));
+                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().instabreak(), "stardewcraft:decor/carpet/carpet_17"));
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> CARPET_18 = BLOCKS.register("carpet_18",
-                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().strength(0.5F, 0.5F), "stardewcraft:decor/carpet/carpet_18"));
+                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().instabreak(), "stardewcraft:decor/carpet/carpet_18"));
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> CARPET_19 = BLOCKS.register("carpet_19",
-                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().strength(0.5F, 0.5F), "stardewcraft:decor/carpet/carpet_19"));
+                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().instabreak(), "stardewcraft:decor/carpet/carpet_19"));
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> CARPET_20 = BLOCKS.register("carpet_20",
-                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().strength(0.5F, 0.5F), "stardewcraft:decor/carpet/carpet_20"));
+                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().instabreak(), "stardewcraft:decor/carpet/carpet_20"));
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> CARPET_21 = BLOCKS.register("carpet_21",
-                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().strength(0.5F, 0.5F), "stardewcraft:decor/carpet/carpet_21"));
+                        () -> new com.stardew.craft.block.decor.CarpetDecorBlock(Block.Properties.of().mapColor(net.minecraft.world.level.material.MapColor.WOOL).sound(net.minecraft.world.level.block.SoundType.WOOL).noOcclusion().instabreak(), "stardewcraft:decor/carpet/carpet_21"));
 
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> WALL_HANGING_SMALL_A = BLOCKS.register("wall_hanging_small_a",
@@ -2041,6 +2135,34 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .noOcclusion()
                                         .strength(1.0F, 2.0F), "stardewcraft:decor/common/pool_table"));
         @SuppressWarnings("null")
+        public static final DeferredBlock<Block> GLOBE = BLOCKS.register("globe",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.COLOR_BROWN)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.5F, 0.5F), "stardewcraft:decor/common/globe"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> TELESCOPE = BLOCKS.register("telescope",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.METAL)
+                                        .sound(net.minecraft.world.level.block.SoundType.METAL)
+                                        .noOcclusion()
+                                        .strength(0.5F, 0.5F), "stardewcraft:decor/common/telescope"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> BEAR_FIGURINE = BLOCKS.register("bear_figurine",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.COLOR_BROWN)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.3F, 0.5F), "stardewcraft:decor/common/bear_figurine"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> FISH_SHOP_COUNTER = BLOCKS.register("fish_shop_counter",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(1.0F, 1.0F), "stardewcraft:decor/common/fish_shop_counter"));
+        @SuppressWarnings("null")
         public static final DeferredBlock<Block> HOSPITAL_COUNTER = BLOCKS.register("hospital_counter",
                         () -> new com.stardew.craft.block.utility.HospitalCounterBlock(Block.Properties.of()
                                         .mapColor(net.minecraft.world.level.material.MapColor.SNOW)
@@ -2124,7 +2246,8 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
                                         .sound(net.minecraft.world.level.block.SoundType.WOOD)
                                         .noOcclusion()
-                                        .strength(0.8F, 1.0F), "stardewcraft:decor/common/drum_set"));
+                                        .strength(0.8F, 1.0F), "stardewcraft:decor/common/drum_set",
+                                        -10, 0, -12, 30, 24, 16));
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> WINE_CABINET_1 = BLOCKS.register("wine_cabinet_1",
                         () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
@@ -2343,6 +2466,35 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .noOcclusion()
                                         .strength(0.3F, 0.5F), "stardewcraft:decor/common/blue_bear_plushie"));
 
+        // ── 图腾柱 ────────────────────────────────────────────────────────────
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> TOTEM_POLE_FARM = BLOCKS.register("totem_pole_farm",
+                        () -> new com.stardew.craft.block.utility.totem.TotemPoleBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(2.0F, 6.0F),
+                                        com.stardew.craft.block.utility.totem.TotemType.FARM,
+                                        "stardewcraft:block/utility/totem_pole_farm"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> TOTEM_POLE_MOUNTAIN = BLOCKS.register("totem_pole_mountain",
+                        () -> new com.stardew.craft.block.utility.totem.TotemPoleBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(2.0F, 6.0F),
+                                        com.stardew.craft.block.utility.totem.TotemType.MOUNTAIN,
+                                        "stardewcraft:block/utility/totem_pole_mountain"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> TOTEM_POLE_BEACH = BLOCKS.register("totem_pole_beach",
+                        () -> new com.stardew.craft.block.utility.totem.TotemPoleBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(2.0F, 6.0F),
+                                        com.stardew.craft.block.utility.totem.TotemType.BEACH,
+                                        "stardewcraft:block/utility/totem_pole_beach"));
+
         // 黄土
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> YELLOW_DIRT = BLOCKS.register("yellow_dirt",
@@ -2350,5 +2502,33 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .mapColor(net.minecraft.world.level.material.MapColor.SAND)
                                         .sound(net.minecraft.world.level.block.SoundType.GRAVEL)
                                         .strength(0.5F)));
+
+        // 远古斑点黄土（Artifact Spot）
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> ARTIFACT_SPOT_DIRT = BLOCKS.register("artifact_spot_dirt",
+                        () -> new com.stardew.craft.block.nature.ArtifactSpotBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.SAND)
+                                        .sound(net.minecraft.world.level.block.SoundType.GRAVEL)
+                                        .strength(0.5F)));
+
+        // 家具目录 (SDV Furniture Catalogue)
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> FURNITURE_CATALOGUE = BLOCKS.register("furniture_catalogue",
+                        () -> new com.stardew.craft.block.decor.FurnitureCatalogueBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(1.0F, 2.0F)));
+
+        // 公告栏 (SDV Bulletin Board)
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> BULLETIN_BOARD = BLOCKS.register("bulletin_board",
+                        () -> new com.stardew.craft.block.decor.BulletinBoardBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.COLOR_BROWN)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(-1.0F, 3600000.0F)
+                                        .noLootTable(),
+                                        "stardewcraft:block/decor/bulletin_board"));
 
         }

@@ -1,0 +1,23 @@
+{
+  "npc_id": "gus",
+  "_vanilla_ref": "Loved: 72=diamond 213=fish_taco 635=orange 729=escargot 907=tropical_curry. Liked: 348=wine_category? 303=pale_ale? -7=cooking_category 18=daffodil 430=truffle. Disliked: 16=horseradish? 330=clay. Hated: 80=quartz 167=joja_cola? 648=coleslaw?.",
+  "loved": [
+    "stardewcraft:diamond",
+    "stardewcraft:fish_taco"
+  ],
+  "_loved_not_yet_in_mod": ["orange(635)", "escargot(729)", "tropical_curry(907)"],
+  "liked": [],
+  "_liked_not_yet_in_mod": ["wine_category(348)", "pale_ale(303)", "cooking_category(-7)", "daffodil(18)", "truffle(430)"],
+  "neutral": [],
+  "disliked": [],
+  "_disliked_not_yet_in_mod": ["horseradish(16)", "clay(330)"],
+  "hated": [
+    "stardewcraft:quartz"
+  ],
+  "_hated_not_yet_in_mod": ["joja_cola(167)", "coleslaw(648)"],
+  "loved_msg": "Oh! This is wonderful! You really know what I like, @!$h",
+  "liked_msg": "Hey, thanks! I appreciate the thought.",
+  "neutral_msg": "Thanks. That's nice of you.",
+  "disliked_msg": "Hmm... this isn't really what I had in mind. But thanks.",
+  "hated_msg": "Ugh... I really don't like this. No offense."
+}

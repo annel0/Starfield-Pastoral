@@ -1,0 +1,64 @@
+{
+  "npc_id": "penny",
+  "override_vanilla": true,
+  "_format": "time -> \"location @namedPointId facing [behavior]\"",
+
+  "GreenRain": {
+    "600": "trailer @penny_trailer_sleep 0",
+    "800": "trailer @penny_trailer_kitchen 1",
+    "2200": "trailer @penny_trailer_sleep 0"
+  },
+
+  "rain": {
+    "600": "trailer @penny_trailer_sleep 0",
+    "900": "trailer @penny_trailer_reading 2",
+    "2200": "trailer @penny_trailer_sleep 0"
+  },
+
+  "spring": {
+    "600": "trailer @penny_trailer_sleep 0",
+    "900": "museum @penny_museum_tutor 3",
+    "1600": "town @penny_town_walk 3",
+    "1900": "trailer @penny_trailer_reading 2",
+    "2200": "trailer @penny_trailer_sleep 0"
+  },
+
+  "summer": {
+    "600": "trailer @penny_trailer_sleep 0",
+    "900": "museum @penny_museum_tutor 3",
+    "1600": "town @penny_town_walk 3",
+    "1900": "trailer @penny_trailer_reading 2",
+    "2200": "trailer @penny_trailer_sleep 0"
+  },
+
+  "fall": {
+    "600": "trailer @penny_trailer_sleep 0",
+    "900": "museum @penny_museum_tutor 3",
+    "1600": "town @penny_town_walk 3",
+    "1900": "trailer @penny_trailer_reading 2",
+    "2200": "trailer @penny_trailer_sleep 0"
+  },
+
+  "winter": {
+    "600": "trailer @penny_trailer_sleep 0",
+    "900": "museum @penny_museum_tutor 3",
+    "1600": "trailer @penny_trailer_reading 2",
+    "2200": "trailer @penny_trailer_sleep 0"
+  },
+
+  "tuesday": {
+    "600": "trailer @penny_trailer_sleep 0",
+    "900": "museum @penny_museum_tutor 3",
+    "1500": "town @penny_town_walk 3",
+    "1900": "trailer @penny_trailer_reading 2",
+    "2200": "trailer @penny_trailer_sleep 0"
+  },
+
+  "wednesday": {
+    "600": "trailer @penny_trailer_sleep 0",
+    "900": "museum @penny_museum_tutor 3",
+    "1500": "town @penny_town_bench 1",
+    "1900": "trailer @penny_trailer_reading 2",
+    "2200": "trailer @penny_trailer_sleep 0"
+  }
+}

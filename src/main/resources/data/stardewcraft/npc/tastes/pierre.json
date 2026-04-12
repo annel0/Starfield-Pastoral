@@ -1,0 +1,29 @@
+{
+  "npc_id": "pierre",
+  "_vanilla_ref": "202=Fried Calamari Book_PriceCatalogue=Price Catalogue",
+
+  "loved": [],
+  "_loved_not_yet_in_mod": ["fried_calamari(202)", "book_pricecatalogue"],
+
+  "liked": [
+    "stardewcraft:sweet_pea"
+  ],
+  "_liked_not_yet_in_mod": ["daffodil(18)", "dandelion(22)", "cranberries(402)", "leek(259)", "sashimi(227)"],
+  "liked_categories": ["eggs", "milk", "cooking"],
+
+  "neutral": [],
+
+  "disliked": [],
+  "_disliked_not_yet_in_mod": ["clay(330)"],
+  "disliked_categories": ["gems"],
+
+  "hated": [],
+  "_hated_not_yet_in_mod": ["joja_cola(167)", "parsnip(199)", "garlic(248)", "corn(270)", "tortilla(229)"],
+  "hated_categories": ["fish"],
+
+  "loved_msg": "This is my all-time favorite! Thank you!",
+  "liked_msg": "That's very kind of you. I like this.",
+  "neutral_msg": "A present? Thanks!",
+  "disliked_msg": "This isn't exactly my favorite...",
+  "hated_msg": "Please, never bring this to me again."
+}

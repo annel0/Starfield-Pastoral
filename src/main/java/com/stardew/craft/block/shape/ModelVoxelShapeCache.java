@@ -826,18 +826,40 @@ public final class ModelVoxelShapeCache {
                 return out;
             }
             JsonObject root = JsonParser.parseReader(new InputStreamReader(input, StandardCharsets.UTF_8)).getAsJsonObject();
+
+            // Standard "variants" block
             JsonObject variants = root.getAsJsonObject("variants");
-            if (variants == null) {
-                return out;
-            }
-            for (Map.Entry<String, JsonElement> entry : variants.entrySet()) {
-                JsonElement value = entry.getValue();
-                VariantModelRef ref = parseVariantModelRef(value);
-                if (ref == null) {
-                    continue;
+            if (variants != null) {
+                for (Map.Entry<String, JsonElement> entry : variants.entrySet()) {
+                    VariantModelRef ref = parseVariantModelRef(entry.getValue());
+                    if (ref != null) {
+                        out.put(entry.getKey(), ref);
+                    }
                 }
-                out.put(entry.getKey(), ref);
             }
+
+            // "multipart" block — synthesize pseudo-variant keys from "when" conditions
+            JsonArray multipart = root.getAsJsonArray("multipart");
+            if (multipart != null) {
+                for (JsonElement part : multipart) {
+                    if (!part.isJsonObject()) continue;
+                    JsonObject partObj = part.getAsJsonObject();
+                    JsonObject when = partObj.getAsJsonObject("when");
+                    JsonElement apply = partObj.get("apply");
+                    VariantModelRef ref = parseVariantModelRef(apply);
+                    if (ref == null) continue;
+                    if (when != null) {
+                        // Build a canonical variant key like "age=0" or "age=0,half=lower"
+                        StringBuilder keyBuilder = new StringBuilder();
+                        for (Map.Entry<String, JsonElement> prop : when.entrySet()) {
+                            if (keyBuilder.length() > 0) keyBuilder.append(',');
+                            keyBuilder.append(prop.getKey()).append('=').append(prop.getValue().getAsString());
+                        }
+                        out.putIfAbsent(keyBuilder.toString(), ref);
+                    }
+                }
+            }
+
             return out;
         } catch (Exception ignored) {
             return out;

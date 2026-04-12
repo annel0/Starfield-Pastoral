@@ -5,6 +5,10 @@
       "season": "fall",
       "day": 13
     },
+    "alex": {
+      "season": "summer",
+      "day": 13
+    },
     "caroline": {
       "season": "winter",
       "day": 7
@@ -12,6 +16,118 @@
     "lewis": {
       "season": "spring",
       "day": 7
+    },
+    "clint": {
+      "season": "winter",
+      "day": 26
+    },
+    "demetrius": {
+      "season": "summer",
+      "day": 19
+    },
+    "elliott": {
+      "season": "fall",
+      "day": 5
+    },
+    "evelyn": {
+      "season": "winter",
+      "day": 20
+    },
+    "emily": {
+      "season": "spring",
+      "day": 27
+    },
+    "george": {
+      "season": "fall",
+      "day": 24
+    },
+    "gus": {
+      "season": "summer",
+      "day": 8
+    },
+    "haley": {
+      "season": "spring",
+      "day": 14
+    },
+    "harvey": {
+      "season": "winter",
+      "day": 14
+    },
+    "jas": {
+      "season": "summer",
+      "day": 4
+    },
+    "jodi": {
+      "season": "fall",
+      "day": 11
+    },
+    "leah": {
+      "season": "winter",
+      "day": 23
+    },
+    "linus": {
+      "season": "winter",
+      "day": 3
+    },
+    "marnie": {
+      "season": "fall",
+      "day": 18
+    },
+    "maru": {
+      "season": "summer",
+      "day": 10
+    },
+    "pam": {
+      "season": "spring",
+      "day": 18
+    },
+    "penny": {
+      "season": "fall",
+      "day": 2
+    },
+    "pierre": {
+      "season": "spring",
+      "day": 26
+    },
+    "robin": {
+      "season": "fall",
+      "day": 21
+    },
+    "sam": {
+      "season": "summer",
+      "day": 17
+    },
+    "sebastian": {
+      "season": "winter",
+      "day": 10
+    },
+    "shane": {
+      "season": "spring",
+      "day": 20
+    },
+    "vincent": {
+      "season": "spring",
+      "day": 10
+    },
+    "willy": {
+      "season": "summer",
+      "day": 24
+    },
+    "gunther": {
+      "season": "_none",
+      "day": 0
+    },
+    "marlon": {
+      "season": "_none",
+      "day": 0
+    },
+    "wizard": {
+      "season": "winter",
+      "day": 17
+    },
+    "dwarf": {
+      "season": "summer",
+      "day": 22
     }
   }
 }

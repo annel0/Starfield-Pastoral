@@ -31,5 +31,14 @@
   "hated": [
     "stardewcraft:holly",
     "stardewcraft:quartz"
-  ]
+  ],
+  "loved_msg": "Well, now this is a very fine gift! Thank you!",
+  "liked_msg": "Thanks! This is quite nice.",
+  "neutral_msg": "Thank you, that's thoughtful.",
+  "disliked_msg": "Hmm, well... it's the thought that counts, I suppose.",
+  "hated_msg": "I don't know what to say... this is terrible.",
+  "loved_categories": [],
+  "liked_categories": [],
+  "disliked_categories": [],
+  "hated_categories": []
 }

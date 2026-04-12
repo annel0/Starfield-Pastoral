@@ -3,7 +3,6 @@ package com.stardew.craft.block.nature;
 import com.stardew.craft.animal.data.AnimalWorldData;
 import com.stardew.craft.block.ModBlocks;
 import com.stardew.craft.core.ModDimensions;
-import com.stardew.craft.item.ModItems;
 import com.stardew.craft.item.tool.ScytheItem;
 import com.stardew.craft.network.HayHarvestHudMessagePacket;
 import com.stardew.craft.time.StardewTimeManager;
@@ -14,7 +13,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.BushBlock;
@@ -88,11 +86,8 @@ public class PastureGrassBlock extends BushBlock {
         int stored = data.storeHay(player.getUUID(), hayCount);
         if (stored > 0) {
             HayHarvestHudMessagePacket.sendTo(player, stored, false);
-            return true;
         }
-
-        HayHarvestHudMessagePacket.sendTo(player, hayCount, true);
-        popResource(level, pos, new ItemStack(ModItems.HAY.get(), hayCount));
+        // No silo or silo full: hay is simply lost (SDV parity — no drop, no message)
         return true;
     }
 

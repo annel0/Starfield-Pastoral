@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:bait",
+    "stardewcraft:wild_bait",
+    "stardewcraft:magic_bait",
+    "stardewcraft:deluxe_bait",
+    "stardewcraft:challenge_bait",
+    "stardewcraft:targeted_bait"
+  ]
+}

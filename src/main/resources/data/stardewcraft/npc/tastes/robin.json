@@ -1,0 +1,27 @@
+{
+  "npc_id": "robin",
+  "_vanilla_ref": "224=Spaghetti 426=Goat Cheese 636=Peach Book_Woodcutting=Woody's Secret",
+
+  "loved": [
+    "stardewcraft:goat_cheese",
+    "stardewcraft:peach"
+  ],
+  "_loved_not_yet_in_mod": ["spaghetti(224)", "book_woodcutting"],
+
+  "liked": [],
+  "_liked_not_yet_in_mod": ["cheese(424)", "maple_syrup(709)", "skillbook_2"],
+  "liked_categories": ["milk"],
+
+  "neutral": [],
+
+  "disliked": [],
+  "_disliked_not_yet_in_mod": ["wild_horseradish(16)", "clay(330)"],
+
+  "hated": [],
+
+  "loved_msg": "This is for me? Wow, I absolutely love it!!",
+  "liked_msg": "Thanks! This is really nice!",
+  "neutral_msg": "Thank you. This might come in handy.",
+  "disliked_msg": "Um... why?",
+  "hated_msg": "What the...? This is terrible!"
+}

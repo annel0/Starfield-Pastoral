@@ -1,0 +1,18 @@
+{
+  "npc_id": "marlon",
+  "loved": [],
+  "liked": [],
+  "neutral": [],
+  "disliked": [],
+  "hated": [],
+  "loved_categories": [],
+  "liked_categories": [],
+  "disliked_categories": [],
+  "hated_categories": [],
+  "_note": "Marlon does not accept gifts in SDV (CanSocialize=FALSE). Gift taste responses are generic fallbacks.",
+  "loved_msg": "Well now, that's mighty generous of you.",
+  "liked_msg": "Thanks. This'll come in handy.",
+  "neutral_msg": "Hmm. Thanks.",
+  "disliked_msg": "Not sure what I'd do with this...",
+  "hated_msg": "...I'll pass on that, if you don't mind."
+}

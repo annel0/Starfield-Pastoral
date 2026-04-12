@@ -39,6 +39,10 @@ public final class ModBlockEntities {
 			BLOCK_ENTITIES.register("fish_smoker", () -> BlockEntityType.Builder.of(FishSmokerBlockEntity::new, ModBlocks.FISH_SMOKER.get()).build(null));
 
 	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<RecyclingMachineBlockEntity>> RECYCLING_MACHINE =
+			BLOCK_ENTITIES.register("recycling_machine", () -> BlockEntityType.Builder.of(RecyclingMachineBlockEntity::new, ModBlocks.RECYCLING_MACHINE.get()).build(null));
+
+	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CrystalariumBlockEntity>> CRYSTALARIUM =
 			BLOCK_ENTITIES.register("crystalarium", () -> BlockEntityType.Builder.of(CrystalariumBlockEntity::new, ModBlocks.CRYSTALARIUM.get()).build(null));
 
@@ -189,5 +193,15 @@ public final class ModBlockEntities {
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GrandfatherClockBlockEntity>> GRANDFATHER_CLOCK =
 			BLOCK_ENTITIES.register("grandfather_clock", () -> BlockEntityType.Builder.of(GrandfatherClockBlockEntity::new,
 				ModBlocks.GRANDFATHER_CLOCK.get()).build(null));
+
+	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TotemPoleBlockEntity>> TOTEM_POLE =
+			BLOCK_ENTITIES.register("totem_pole", () -> BlockEntityType.Builder.of(TotemPoleBlockEntity::new,
+				ModBlocks.TOTEM_POLE_FARM.get(), ModBlocks.TOTEM_POLE_MOUNTAIN.get(), ModBlocks.TOTEM_POLE_BEACH.get()).build(null));
+
+	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MailboxBlockEntity>> MAILBOX =
+			BLOCK_ENTITIES.register("mailbox", () -> BlockEntityType.Builder.of(MailboxBlockEntity::new,
+				ModBlocks.MAILBOX.get()).build(null));
 
 	}

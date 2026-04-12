@@ -2,6 +2,7 @@ package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.player.PlayerStardewDataAPI;
+import com.stardew.craft.player.ProfessionType;
 import com.stardew.craft.player.RecipeCatalogData;
 import com.stardew.craft.player.StardewCraftingRecipeData;
 import net.minecraft.network.FriendlyByteBuf;
@@ -57,7 +58,8 @@ public record CraftingMenuCraftSubmitPayload(String recipeItemId, int craftCount
                 return;
             }
 
-            List<Ingredient> ingredients = StardewCraftingRecipeData.toExpandedIngredients(recipePath);
+            List<Ingredient> ingredients = StardewCraftingRecipeData.toExpandedIngredients(recipePath,
+                PlayerStardewDataAPI.hasProfession(player, ProfessionType.TRAPPER));
             if (ingredients.isEmpty()) {
                 player.sendSystemMessage(Component.translatable("stardewcraft.crafting.invalid_recipe"));
                 return;
@@ -97,6 +99,9 @@ public record CraftingMenuCraftSubmitPayload(String recipeItemId, int craftCount
             moveOutputToCursor(player, oneCraftOutput, totalOutput);
 
             PlayerStardewDataAPI.recordRecipeCrafted(player, recipePath, outputPerCraft * actualCraftCount);
+
+            // Quest: recipe crafted
+            com.stardew.craft.quest.StardewQuestEvents.fireRecipeCrafted(player, recipePath);
         });
     }
 

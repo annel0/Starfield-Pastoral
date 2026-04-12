@@ -1,10 +1,17 @@
 package com.stardew.craft.block.utility;
 
 import com.stardew.craft.item.ModItems;
+import com.stardew.craft.mining.MiningDataManager;
+import com.stardew.craft.mining.MiningPlayerData;
+import com.stardew.craft.player.PlayerDataManager;
+import com.stardew.craft.player.PlayerStardewData;
+import com.stardew.craft.time.StardewTimeManager;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -33,10 +40,12 @@ public final class GarbageCanLootTable {
      * @param dailyLuck        玩家日运
      * @param trashCansChecked 玩家累计翻垃圾桶次数
      * @param daySeed          当日确定性种子
+     * @param player           服务端玩家，用于获取进度相关数据
      * @return 掉落结果，若无掉落则返回 null
      */
     @Nullable
-    public static Result tryGetItem(String canId, double dailyLuck, int trashCansChecked, long daySeed) {
+    public static Result tryGetItem(String canId, double dailyLuck, int trashCansChecked,
+                                    long daySeed, ServerPlayer player) {
         float baseChance = DEFAULT_BASE_CHANCE;
         baseChance += (float) dailyLuck;
         // 原版 Book_Trash 加成 — 暂无此物品，预留兼容
@@ -55,7 +64,7 @@ public final class GarbageCanLootTable {
         if (locationResult != null) return locationResult;
 
         // ---- AfterAll ----
-        return evaluateAfterAll(rng, baseChancePassed, trashCansChecked);
+        return evaluateAfterAll(rng, baseChancePassed, trashCansChecked, player);
     }
 
     // ==================== BeforeAll ====================
@@ -145,12 +154,13 @@ public final class GarbageCanLootTable {
     // ==================== AfterAll ====================
 
     @Nullable
-    private static Result evaluateAfterAll(Random rng, boolean baseChancePassed, int trashCansChecked) {
+    private static Result evaluateAfterAll(Random rng, boolean baseChancePassed,
+                                           int trashCansChecked, ServerPlayer player) {
         // MegaSuccess: 20+ 次, 1% 概率
         if (trashCansChecked >= 20 && rng.nextDouble() < 0.01) {
-            Item[] megaPool = getMegaSuccessPool();
-            if (megaPool.length > 0) {
-                Item item = megaPool[rng.nextInt(megaPool.length)];
+            List<Item> megaPool = buildMegaSuccessPool(player, rng);
+            if (!megaPool.isEmpty()) {
+                Item item = megaPool.get(rng.nextInt(megaPool.size()));
                 return new Result(new ItemStack(item), true, false);
             }
         }
@@ -158,9 +168,9 @@ public final class GarbageCanLootTable {
         // Fallback: 需要通过 baseChance
         if (!baseChancePassed) return null;
 
-        Item[] fallbackPool = getFallbackPool();
-        if (fallbackPool.length > 0) {
-            Item item = fallbackPool[rng.nextInt(fallbackPool.length)];
+        List<Item> fallbackPool = buildFallbackPool(player, rng);
+        if (!fallbackPool.isEmpty()) {
+            Item item = fallbackPool.get(rng.nextInt(fallbackPool.size()));
             return new Result(new ItemStack(item), false, false);
         }
 
@@ -172,38 +182,203 @@ public final class GarbageCanLootTable {
     /**
      * AfterAll MegaSuccess 随机池。
      * <p>原版: Green Algae, Bread, Field Snack, Acorn, Maple Seed, Pine Cone, RANDOM_BASE_SEASON_ITEM
-     * <p>我们有: Green Algae, Bread, Acorn, Maple Seed, Pine Cone
-     * <p>缺失: Field Snack, RANDOM_BASE_SEASON_ITEM
+     * <p>Field Snack 不存在于 mod，跳过
      */
-    private static Item[] getMegaSuccessPool() {
-        return new Item[]{
-                ModItems.GREEN_ALGAE.get(),
-                ModItems.COOKING_DISHES.get("bread").get(),
-                ModItems.ACORN.get(),
-                ModItems.MAPLE_SEED.get(),
-                ModItems.PINE_CONE.get()
-        };
+    private static List<Item> buildMegaSuccessPool(ServerPlayer player, Random rng) {
+        List<Item> pool = new ArrayList<>();
+        pool.add(ModItems.GREEN_ALGAE.get());
+        pool.add(ModItems.COOKING_DISHES.get("bread").get());
+        // Field Snack — 不存在于 mod，跳过
+        pool.add(ModItems.ACORN.get());
+        pool.add(ModItems.MAPLE_SEED.get());
+        pool.add(ModItems.PINE_CONE.get());
+        // RANDOM_BASE_SEASON_ITEM: 用当前季节的物品替代
+        Item seasonItem = getRandomItemFromSeason(player, rng);
+        if (seasonItem != null) {
+            pool.add(seasonItem);
+        }
+        return pool;
     }
 
     /**
      * AfterAll Fallback 随机池。
      * <p>原版: Green Algae, Bread, Field Snack, Acorn, Maple Seed, Pine Cone,
      *          RANDOM_BASE_SEASON_ITEM, Trash, Joja Cola, Broken Glasses, Broken CD, Soggy Newspaper
-     * <p>缺失: Field Snack, RANDOM_BASE_SEASON_ITEM
      */
-    private static Item[] getFallbackPool() {
-        return new Item[]{
-                ModItems.GREEN_ALGAE.get(),
-                ModItems.COOKING_DISHES.get("bread").get(),
-                ModItems.ACORN.get(),
-                ModItems.MAPLE_SEED.get(),
-                ModItems.PINE_CONE.get(),
-                ModItems.TRASH.get(),
-                ModItems.JOJA_COLA.get(),
-                ModItems.BROKEN_GLASSES.get(),
-                ModItems.BROKEN_CD.get(),
-                ModItems.SOGGY_NEWSPAPER.get()
-        };
+    private static List<Item> buildFallbackPool(ServerPlayer player, Random rng) {
+        List<Item> pool = new ArrayList<>();
+        pool.add(ModItems.GREEN_ALGAE.get());
+        pool.add(ModItems.COOKING_DISHES.get("bread").get());
+        // Field Snack — 不存在于 mod，跳过
+        pool.add(ModItems.ACORN.get());
+        pool.add(ModItems.MAPLE_SEED.get());
+        pool.add(ModItems.PINE_CONE.get());
+        // RANDOM_BASE_SEASON_ITEM
+        Item seasonItem = getRandomItemFromSeason(player, rng);
+        if (seasonItem != null) {
+            pool.add(seasonItem);
+        }
+        pool.add(ModItems.TRASH.get());
+        pool.add(ModItems.JOJA_COLA.get());
+        pool.add(ModItems.BROKEN_GLASSES.get());
+        pool.add(ModItems.BROKEN_CD.get());
+        pool.add(ModItems.SOGGY_NEWSPAPER.get());
+        return pool;
+    }
+
+    // ==================== RANDOM_BASE_SEASON_ITEM ====================
+
+    /**
+     * 对齐 Utility.getRandomItemFromSeason()。
+     * <p>
+     * 基础池 + 矿洞深度解锁 + 沙漠解锁 + 熔炉解锁 + 季节鱼/作物。
+     * 不存在于 mod 的物品已跳过（标注 SDV 物品ID）。
+     */
+    @Nullable
+    private static Item getRandomItemFromSeason(ServerPlayer player, Random rng) {
+        List<Item> possibleItems = new ArrayList<>();
+
+        // ---- 基础池 (SDV: 68,66,78,80,86,152,167,153,420) ----
+        possibleItems.add(ModItems.TOPAZ.get());           // 68
+        possibleItems.add(ModItems.AMETHYST.get());        // 66
+        possibleItems.add(vanillaItem("cave_carrot"));   // 78
+        possibleItems.add(ModItems.QUARTZ.get());          // 80
+        possibleItems.add(ModItems.EARTH_CRYSTAL.get());   // 86
+        possibleItems.add(ModItems.SEAWEED.get());         // 152
+        possibleItems.add(ModItems.JOJA_COLA.get());       // 167
+        possibleItems.add(ModItems.GREEN_ALGAE.get());     // 153
+        possibleItems.add(ModItems.RED_MUSHROOM.get());    // 420
+
+        // ---- 矿洞深度 > 40 (SDV: 62,70,72,84,422) ----
+        MiningPlayerData miningData = MiningDataManager.getPlayerData(player);
+        int maxMineFloor = miningData != null ? miningData.getMaxFloorReached() : 0;
+
+        if (maxMineFloor > 40) {
+            possibleItems.add(ModItems.AQUAMARINE.get());      // 62
+            possibleItems.add(ModItems.JADE.get());            // 70
+            possibleItems.add(ModItems.DIAMOND.get());         // 72
+            possibleItems.add(ModItems.FROZEN_TEAR.get());     // 84
+            possibleItems.add(ModItems.PURPLE_MUSHROOM.get()); // 422
+        }
+
+        // ---- 矿洞深度 > 80 (SDV: 64,60,82) ----
+        if (maxMineFloor > 80) {
+            possibleItems.add(ModItems.RUBY.get());        // 64
+            possibleItems.add(ModItems.EMERALD.get());     // 60
+            possibleItems.add(ModItems.FIRE_QUARTZ.get()); // 82
+        }
+
+        // ---- 沙漠解锁 ccVault (SDV: 88,90,164,165) ----
+        PlayerStardewData pData = PlayerDataManager.getPlayerData(player);
+        if (pData != null && pData.hasMailFlag("ccVault")) {
+            possibleItems.add(vanillaItem("coconut"));        // 88
+            possibleItems.add(vanillaItem("cactus_fruit"));   // 90
+            possibleItems.add(ModItems.SANDFISH.get());        // 164
+            possibleItems.add(ModItems.SCORPION_CARP.get());   // 165
+        }
+
+        // ---- 熔炉解锁 (SDV: 334,335,336,338) ----
+        if (pData != null && pData.isRecipeUnlocked("furnace")) {
+            possibleItems.add(ModItems.COPPER_BAR.get());      // 334
+            possibleItems.add(ModItems.IRON_BAR.get());        // 335
+            possibleItems.add(ModItems.GOLD_BAR.get());        // 336
+            possibleItems.add(ModItems.REFINED_QUARTZ.get());  // 338
+        }
+        // Quartz Globe (339) — 不存在于 mod
+
+        // ---- 季节物品 ----
+        int season = StardewTimeManager.get().getCurrentSeason();
+        switch (season) {
+            case 0 -> { // Spring
+                possibleItems.add(vanillaItem("wild_horseradish")); // 16
+                possibleItems.add(vanillaItem("daffodil"));         // 18
+                possibleItems.add(vanillaItem("leek"));             // 20
+                possibleItems.add(vanillaItem("dandelion"));        // 22
+                possibleItems.add(ModItems.ANCHOVY.get());         // 129
+                possibleItems.add(ModItems.SARDINE.get());         // 131
+                possibleItems.add(ModItems.BREAM.get());           // 132
+                possibleItems.add(ModItems.LARGEMOUTH_BASS.get()); // 136
+                possibleItems.add(ModItems.SMALLMOUTH_BASS.get()); // 137
+                possibleItems.add(ModItems.CARP.get());            // 142
+                possibleItems.add(ModItems.CATFISH.get());         // 143
+                possibleItems.add(ModItems.SUNFISH.get());         // 145
+                possibleItems.add(ModItems.HERRING.get());         // 147
+                possibleItems.add(ModItems.EEL.get());             // 148
+                possibleItems.add(ModItems.SEAWEED.get());         // 152
+                possibleItems.add(ModItems.JOJA_COLA.get());       // 167
+                possibleItems.add(ModItems.FLOUNDER.get());        // 267
+            }
+            case 1 -> { // Summer
+                possibleItems.add(ModItems.PUFFERFISH.get());      // 128
+                possibleItems.add(ModItems.TUNA.get());            // 130
+                possibleItems.add(ModItems.BREAM.get());           // 132
+                possibleItems.add(ModItems.LARGEMOUTH_BASS.get()); // 136
+                possibleItems.add(ModItems.RAINBOW_TROUT.get());   // 138
+                possibleItems.add(ModItems.CARP.get());            // 142
+                possibleItems.add(ModItems.PIKE.get());            // 144
+                possibleItems.add(ModItems.SUNFISH.get());         // 145
+                possibleItems.add(ModItems.RED_SNAPPER.get());     // 146
+                possibleItems.add(ModItems.OCTOPUS.get());         // 149
+                possibleItems.add(ModItems.RED_MULLET.get());      // 150
+                possibleItems.add(ModItems.SUPER_CUCUMBER.get());  // 155
+                possibleItems.add(vanillaItem("spice_berry"));     // 396
+                possibleItems.add(ModItems.GRAPE.get());           // 398
+                possibleItems.add(vanillaItem("sweet_pea"));       // 402
+                possibleItems.add(ModItems.FLOUNDER.get());        // 267
+            }
+            case 2 -> { // Fall
+                possibleItems.add(ModItems.COMMON_MUSHROOM.get()); // 404
+                possibleItems.add(vanillaItem("wild_plum"));       // 406
+                possibleItems.add(vanillaItem("hazelnut"));        // 408
+                possibleItems.add(vanillaItem("blackberry"));      // 410
+                possibleItems.add(ModItems.ANCHOVY.get());         // 129
+                possibleItems.add(ModItems.SARDINE.get());         // 131
+                possibleItems.add(ModItems.BREAM.get());           // 132
+                possibleItems.add(ModItems.LARGEMOUTH_BASS.get()); // 136
+                possibleItems.add(ModItems.SMALLMOUTH_BASS.get()); // 137
+                possibleItems.add(ModItems.SALMON.get());          // 139
+                possibleItems.add(ModItems.WALLEYE.get());         // 140
+                possibleItems.add(ModItems.CARP.get());            // 142
+                possibleItems.add(ModItems.CATFISH.get());         // 143
+                possibleItems.add(ModItems.EEL.get());             // 148
+                possibleItems.add(ModItems.RED_MULLET.get());      // 150
+                possibleItems.add(ModItems.SEA_CUCUMBER.get());    // 154
+                possibleItems.add(ModItems.SUPER_CUCUMBER.get());  // 155
+                possibleItems.add(ModItems.MIDNIGHT_CARP.get());   // 269
+                possibleItems.add(ModItems.GRAPE.get());           // SDV Fall crop
+            }
+            case 3 -> { // Winter
+                possibleItems.add(vanillaItem("winter_root"));     // 412
+                possibleItems.add(vanillaItem("crystal_fruit"));   // 414
+                possibleItems.add(vanillaItem("snow_yam"));        // 416
+                possibleItems.add(vanillaItem("crocus"));          // 418
+                possibleItems.add(ModItems.TUNA.get());            // 130
+                possibleItems.add(ModItems.SARDINE.get());         // 131
+                possibleItems.add(ModItems.BREAM.get());           // 132
+                possibleItems.add(ModItems.LARGEMOUTH_BASS.get()); // 136
+                possibleItems.add(ModItems.WALLEYE.get());         // 140
+                possibleItems.add(ModItems.PERCH.get());           // 141
+                possibleItems.add(ModItems.PIKE.get());            // 144
+                possibleItems.add(ModItems.RED_SNAPPER.get());     // 146
+                possibleItems.add(ModItems.HERRING.get());         // 147
+                possibleItems.add(ModItems.RED_MULLET.get());      // 150
+                possibleItems.add(ModItems.SQUID.get());           // 151
+                possibleItems.add(ModItems.SEA_CUCUMBER.get());    // 154
+                possibleItems.add(ModItems.MIDNIGHT_CARP.get());   // 269
+            }
+        }
+
+        if (possibleItems.isEmpty()) return null;
+        return possibleItems.get(rng.nextInt(possibleItems.size()));
+    }
+
+    // ==================== Helpers ====================
+
+    /**
+     * 从 VanillaCategoryItems 获取物品。
+     */
+    private static Item vanillaItem(String id) {
+        return ModItems.VANILLA_CATEGORY_ITEMS.get(id).get();
     }
 
     // ==================== RNG ====================

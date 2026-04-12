@@ -1,0 +1,42 @@
+{
+  "npc_id": "wizard",
+  "_vanilla_ref": "155=Prismatic Shard 422=Purple Mushroom 769=Void Essence 768=Solar Essence",
+
+  "loved": [
+    "stardewcraft:prismatic_shard",
+    "stardewcraft:purple_mushroom",
+    "stardewcraft:void_essence",
+    "stardewcraft:solar_essence"
+  ],
+  "_loved_not_yet_in_mod": ["Book_Mystery"],
+
+  "liked": [
+    "stardewcraft:diamond",
+    "stardewcraft:fire_quartz",
+    "stardewcraft:frozen_tear",
+    "stardewcraft:iridium_bar"
+  ],
+  "_liked_note": "SDV also includes all minerals category and trinkets category",
+  "liked_categories": ["mineral"],
+
+  "neutral": [],
+
+  "disliked": [
+    "stardewcraft:wild_horseradish",
+    "stardewcraft:clay",
+    "stardewcraft:slime"
+  ],
+  "_disliked_note": "SDV also includes eggs, milk, forage categories",
+  "disliked_categories": ["egg", "milk", "forage"],
+
+  "hated": [],
+
+  "loved_categories": [],
+  "hated_categories": [],
+
+  "loved_msg": "Ahh, this is imbued with potent arcane energies. It's very useful for my studies. Thank you!",
+  "liked_msg": "Many thanks. This item has some very interesting properties.",
+  "neutral_msg": "Thank you. This will prove useful, I think.",
+  "disliked_msg": "This?... I suppose I'll cast it into the flames and see what happens.",
+  "hated_msg": "Ughh... These are utterly mundane. Please refrain from bothering me with this in the future."
+}

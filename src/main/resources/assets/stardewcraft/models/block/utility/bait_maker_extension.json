@@ -1,19 +1,40 @@
 {
+  "ambientocclusion": false,
   "parent": "minecraft:block/block",
   "textures": {
     "particle": "stardewcraft:block/utility/bait_maker"
   },
   "elements": [
     {
-      "from": [2, 0, 2],
-      "to": [14, 8, 14],
+      "from": [
+        2,
+        0,
+        2
+      ],
+      "to": [
+        14,
+        8,
+        14
+      ],
       "faces": {
-        "north": { "texture": "#particle" },
-        "east": { "texture": "#particle" },
-        "south": { "texture": "#particle" },
-        "west": { "texture": "#particle" },
-        "up": { "texture": "#particle" },
-        "down": { "texture": "#particle" }
+        "north": {
+          "texture": "#particle"
+        },
+        "east": {
+          "texture": "#particle"
+        },
+        "south": {
+          "texture": "#particle"
+        },
+        "west": {
+          "texture": "#particle"
+        },
+        "up": {
+          "texture": "#particle"
+        },
+        "down": {
+          "texture": "#particle"
+        }
       }
     }
   ]

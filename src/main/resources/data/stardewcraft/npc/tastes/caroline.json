@@ -1,8 +1,27 @@
 {
   "npc_id": "caroline",
-  "loved": ["stardewcraft:summer_spangle", "stardewcraft:fish_taco"],
-  "liked": ["stardewcraft:parsnip", "stardewcraft:green_tea"],
+  "loved": [
+    "stardewcraft:summer_spangle",
+    "stardewcraft:fish_taco"
+  ],
+  "liked": [
+    "stardewcraft:parsnip",
+    "stardewcraft:green_tea"
+  ],
   "neutral": [],
-  "disliked": ["stardewcraft:salmonberry"],
-  "hated": ["stardewcraft:holly"]
+  "disliked": [
+    "stardewcraft:salmonberry"
+  ],
+  "hated": [
+    "stardewcraft:holly"
+  ],
+  "loved_msg": "Oh, this is wonderful! Thank you so much!",
+  "liked_msg": "Thanks! I appreciate it.",
+  "neutral_msg": "Thank you, dear.",
+  "disliked_msg": "Oh... this isn't really what I was hoping for.",
+  "hated_msg": "This is awful! Why would you give me this?",
+  "loved_categories": [],
+  "liked_categories": [],
+  "disliked_categories": [],
+  "hated_categories": []
 }

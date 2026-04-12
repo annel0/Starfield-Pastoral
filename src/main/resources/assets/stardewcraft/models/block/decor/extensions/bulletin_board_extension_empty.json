@@ -1,0 +1,9 @@
+{
+    "parent": "minecraft:block/block",
+    "textures": {
+        "particle": "stardewcraft:block/decor/bulletin_board"
+    },
+    "elements": [
+
+    ]
+}

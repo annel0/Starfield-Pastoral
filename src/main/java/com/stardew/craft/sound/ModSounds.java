@@ -110,6 +110,67 @@ public final class ModSounds {
     // Level up sound
     public static final DeferredHolder<SoundEvent, SoundEvent> LEVEL_UP = register("level_up");
 
+    // Geode processing
+    public static final DeferredHolder<SoundEvent, SoundEvent> STONE_CRACK = register("stone_crack");
+    public static final DeferredHolder<SoundEvent, SoundEvent> DISCOVER_MINERAL = register("discover_mineral");
+
+    // Mine sounds
+    public static final DeferredHolder<SoundEvent, SoundEvent> HOE_HIT = register("hoe_hit");
+    public static final DeferredHolder<SoundEvent, SoundEvent> STAIRS_DOWN = register("stairsdown");
+
+    // Totem sounds
+    public static final DeferredHolder<SoundEvent, SoundEvent> WARRIOR = register("warrior");
+    public static final DeferredHolder<SoundEvent, SoundEvent> WAND = register("wand");
+    public static final DeferredHolder<SoundEvent, SoundEvent> RAIN_SOUND = register("rain_sound");
+    public static final DeferredHolder<SoundEvent, SoundEvent> THUNDER = register("thunder");
+
+    // Bomb sounds
+    public static final DeferredHolder<SoundEvent, SoundEvent> FUSE = register("fuse");
+    // EXPLOSION is already registered above
+
+    // ── Music tracks ──────────────────────────────────────────────
+    // Outdoor seasonal (12)
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_SPRING1 = register("music_spring1");
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_SPRING2 = register("music_spring2");
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_SPRING3 = register("music_spring3");
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_SUMMER1 = register("music_summer1");
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_SUMMER2 = register("music_summer2");
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_SUMMER3 = register("music_summer3");
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_FALL1 = register("music_fall1");
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_FALL2 = register("music_fall2");
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_FALL3 = register("music_fall3");
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_WINTER1 = register("music_winter1");
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_WINTER2 = register("music_winter2");
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_WINTER3 = register("music_winter3");
+    // Rain ambient
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_RAIN = register("music_rain");
+    // Night ambient
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_SPRING_NIGHT_AMBIENT = register("music_spring_night_ambient");
+    // Day ambient (4)
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_SPRING_DAY_AMBIENT = register("music_spring_day_ambient");
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_SUMMER_DAY_AMBIENT = register("music_summer_day_ambient");
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_FALL_DAY_AMBIENT = register("music_fall_day_ambient");
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_WINTER_DAY_AMBIENT = register("music_winter_day_ambient");
+    // Town
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_SPRINGTOWN = register("music_springtown");
+    // Shop
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_MARNIE_SHOP = register("music_marnie_shop");
+    // Mine
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_EARTH_MINE = register("music_earth_mine");
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_FROST_MINE = register("music_frost_mine");
+    // Indoor locations
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_SALOON = register("music_saloon");
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_WIZARD_TOWER = register("music_wizard_tower");
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_LIBRARY = register("music_library");
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_ADVENTURER_GUILD = register("music_adventurer_guild");
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_HOSPITAL = register("music_hospital");
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_ELLIOTT_PIANO = register("music_elliott_piano");
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_SEED_SHOP = register("music_seed_shop");
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_OCEAN_AMBIENCE = register("music_ocean_ambience");
+
+    // ─── Quest ───
+    public static final DeferredHolder<SoundEvent, SoundEvent> QUEST_COMPLETE = register("questcomplete");
+
 	@SuppressWarnings("null")
 	private static DeferredHolder<SoundEvent, SoundEvent> register(String path) {
 		@SuppressWarnings("null")

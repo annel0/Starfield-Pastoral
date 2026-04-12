@@ -1,0 +1,7 @@
+{
+    "parent": "minecraft:block/cross",
+    "textures": {
+        "cross": "stardewcraft:block/crops/summer/sunflower_stage1_bottom",
+        "particle": "stardewcraft:block/crops/summer/sunflower_stage1_bottom"
+    }
+}

@@ -1,7 +1,9 @@
 package com.stardew.craft.manager;
 
 import com.stardew.craft.animal.data.AnimalWorldData;
+import com.stardew.craft.animal.model.AnimalAcquisitionSource;
 import com.stardew.craft.animal.model.AnimalBuildingRecord;
+import com.stardew.craft.animal.model.AnimalTypeCatalog;
 import com.stardew.craft.animal.model.FarmAnimalRecord;
 import com.stardew.craft.animal.service.AnimalProducePlacementService;
 import com.stardew.craft.animal.service.AnimalEntitySyncService;
@@ -22,6 +24,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -69,25 +72,25 @@ public class AnimalGrowthManager extends SavedData {
     }
 
     private static final AnimalProfile DEFAULT_CHICKEN = new AnimalProfile(
-        1, -1, 200, 1200.0f, 0.0f, 7, -1, -1, -1, AnimalHarvestType.DROP_OVERNIGHT,
+        1, -1, 200, 1200.0f, 0.0f, 7, -1, ProfessionType.COOPMASTER.getId(), ProfessionType.COOPMASTER.getId(), AnimalHarvestType.DROP_OVERNIGHT,
         ModItems.EGG_WHITE,
         ModItems.LARGE_EGG_WHITE
     );
 
     private static final Map<String, AnimalProfile> PROFILES = Map.ofEntries(
-        Map.entry("white_chicken", new AnimalProfile(1, -1, 200, 1200.0f, 0.0f, 7, ProfessionType.COOPMASTER.getId(), -1, -1, AnimalHarvestType.DROP_OVERNIGHT, ModItems.EGG_WHITE, ModItems.LARGE_EGG_WHITE)),
-        Map.entry("brown_chicken", new AnimalProfile(1, -1, 200, 1200.0f, 0.0f, 7, ProfessionType.COOPMASTER.getId(), -1, -1, AnimalHarvestType.DROP_OVERNIGHT, ModItems.EGG_BROWN, ModItems.LARGE_EGG_BROWN)),
-        Map.entry("blue_chicken", new AnimalProfile(1, -1, 200, 1200.0f, 0.0f, 7, ProfessionType.COOPMASTER.getId(), -1, -1, AnimalHarvestType.DROP_OVERNIGHT, ModItems.EGG_WHITE, ModItems.LARGE_EGG_WHITE)),
-        Map.entry("void_chicken", new AnimalProfile(1, -1, 200, 1200.0f, 0.0f, 5, ProfessionType.COOPMASTER.getId(), -1, -1, AnimalHarvestType.DROP_OVERNIGHT, ModItems.VOID_EGG, null)),
-        Map.entry("golden_chicken", new AnimalProfile(1, -1, 200, 1200.0f, 0.0f, 10, ProfessionType.COOPMASTER.getId(), -1, -1, AnimalHarvestType.DROP_OVERNIGHT, ModItems.GOLDEN_EGG, null)),
-        Map.entry("duck", new AnimalProfile(2, -1, 200, 4750.0f, 1.01f, 5, ProfessionType.COOPMASTER.getId(), -1, -1, AnimalHarvestType.DROP_OVERNIGHT, ModItems.DUCK_EGG, ModItems.DUCK_FEATHER)),
-        Map.entry("rabbit", new AnimalProfile(4, -1, 0, 5000.0f, 1.02f, 5, ProfessionType.COOPMASTER.getId(), -1, -1, AnimalHarvestType.DROP_OVERNIGHT, ModItems.WOOL, ModItems.RABBITS_FOOT)),
-        Map.entry("dinosaur", new AnimalProfile(7, -1, 200, 1200.0f, 0.0f, 4, ProfessionType.COOPMASTER.getId(), -1, -1, AnimalHarvestType.DROP_OVERNIGHT, ModItems.DINOSAUR_EGG, null)),
-        Map.entry("ostrich", new AnimalProfile(7, -1, 200, 1200.0f, 0.0f, 5, ProfessionType.COOPMASTER.getId(), -1, -1, AnimalHarvestType.DROP_OVERNIGHT, ModItems.OSTRICH_EGG, null)),
-        Map.entry("cow", new AnimalProfile(1, -1, 200, 1200.0f, 0.0f, 8, ProfessionType.SHEPHERD.getId(), -1, -1, AnimalHarvestType.HELD, ModItems.MILK, ModItems.LARGE_MILK)),
-        Map.entry("goat", new AnimalProfile(2, -1, 200, 1200.0f, 0.0f, 8, ProfessionType.SHEPHERD.getId(), -1, -1, AnimalHarvestType.HELD, ModItems.GOAT_MILK, ModItems.LARGE_GOAT_MILK)),
-        Map.entry("sheep", new AnimalProfile(3, -1, 0, 5000.0f, 1.02f, 8, ProfessionType.SHEPHERD.getId(), -1, ProfessionType.SHEPHERD.getId(), AnimalHarvestType.HELD, ModItems.WOOL, null)),
-        Map.entry("pig", new AnimalProfile(1, -1, 0, 1200.0f, 0.0f, 8, ProfessionType.SHEPHERD.getId(), -1, -1, AnimalHarvestType.DIG_UP, ModItems.TRUFFLE, null))
+        Map.entry("white_chicken", new AnimalProfile(1, -1, 200, 1200.0f, 0.0f, 7, ProfessionType.COOPMASTER.getId(), ProfessionType.COOPMASTER.getId(), ProfessionType.COOPMASTER.getId(), AnimalHarvestType.DROP_OVERNIGHT, ModItems.EGG_WHITE, ModItems.LARGE_EGG_WHITE)),
+        Map.entry("brown_chicken", new AnimalProfile(1, -1, 200, 1200.0f, 0.0f, 7, ProfessionType.COOPMASTER.getId(), ProfessionType.COOPMASTER.getId(), ProfessionType.COOPMASTER.getId(), AnimalHarvestType.DROP_OVERNIGHT, ModItems.EGG_BROWN, ModItems.LARGE_EGG_BROWN)),
+        Map.entry("blue_chicken", new AnimalProfile(1, -1, 200, 1200.0f, 0.0f, 7, ProfessionType.COOPMASTER.getId(), ProfessionType.COOPMASTER.getId(), ProfessionType.COOPMASTER.getId(), AnimalHarvestType.DROP_OVERNIGHT, ModItems.EGG_WHITE, ModItems.LARGE_EGG_WHITE)),
+        Map.entry("void_chicken", new AnimalProfile(1, -1, 200, 1200.0f, 0.0f, 5, ProfessionType.COOPMASTER.getId(), ProfessionType.COOPMASTER.getId(), ProfessionType.COOPMASTER.getId(), AnimalHarvestType.DROP_OVERNIGHT, ModItems.VOID_EGG, null)),
+        Map.entry("golden_chicken", new AnimalProfile(1, -1, 200, 1200.0f, 0.0f, 10, ProfessionType.COOPMASTER.getId(), ProfessionType.COOPMASTER.getId(), ProfessionType.COOPMASTER.getId(), AnimalHarvestType.DROP_OVERNIGHT, ModItems.GOLDEN_EGG, null)),
+        Map.entry("duck", new AnimalProfile(2, -1, 200, 4750.0f, 1.01f, 5, ProfessionType.COOPMASTER.getId(), ProfessionType.COOPMASTER.getId(), ProfessionType.COOPMASTER.getId(), AnimalHarvestType.DROP_OVERNIGHT, ModItems.DUCK_EGG, ModItems.DUCK_FEATHER)),
+        Map.entry("rabbit", new AnimalProfile(4, -1, 0, 5000.0f, 1.02f, 5, ProfessionType.COOPMASTER.getId(), ProfessionType.COOPMASTER.getId(), ProfessionType.COOPMASTER.getId(), AnimalHarvestType.DROP_OVERNIGHT, ModItems.WOOL, ModItems.RABBITS_FOOT)),
+        Map.entry("dinosaur", new AnimalProfile(7, -1, 200, 1200.0f, 0.0f, 4, ProfessionType.COOPMASTER.getId(), ProfessionType.COOPMASTER.getId(), ProfessionType.COOPMASTER.getId(), AnimalHarvestType.DROP_OVERNIGHT, ModItems.DINOSAUR_EGG, null)),
+        Map.entry("ostrich", new AnimalProfile(7, -1, 200, 1200.0f, 0.0f, 5, ProfessionType.COOPMASTER.getId(), ProfessionType.COOPMASTER.getId(), ProfessionType.COOPMASTER.getId(), AnimalHarvestType.DROP_OVERNIGHT, ModItems.OSTRICH_EGG, null)),
+        Map.entry("cow", new AnimalProfile(1, -1, 200, 1200.0f, 0.0f, 8, ProfessionType.SHEPHERD.getId(), ProfessionType.SHEPHERD.getId(), ProfessionType.SHEPHERD.getId(), AnimalHarvestType.HELD, ModItems.MILK, ModItems.LARGE_MILK)),
+        Map.entry("goat", new AnimalProfile(2, -1, 200, 1200.0f, 0.0f, 8, ProfessionType.SHEPHERD.getId(), ProfessionType.SHEPHERD.getId(), ProfessionType.SHEPHERD.getId(), AnimalHarvestType.HELD, ModItems.GOAT_MILK, ModItems.LARGE_GOAT_MILK)),
+        Map.entry("sheep", new AnimalProfile(3, -1, 0, 5000.0f, 1.02f, 8, ProfessionType.SHEPHERD.getId(), ProfessionType.SHEPHERD.getId(), ProfessionType.SHEPHERD.getId(), AnimalHarvestType.HELD, ModItems.WOOL, null)),
+        Map.entry("pig", new AnimalProfile(1, -1, 0, 1200.0f, 0.0f, 8, ProfessionType.SHEPHERD.getId(), ProfessionType.SHEPHERD.getId(), ProfessionType.SHEPHERD.getId(), AnimalHarvestType.DIG_UP, ModItems.TRUFFLE, null))
     );
 
     public AnimalGrowthManager() {
@@ -118,6 +121,8 @@ public class AnimalGrowthManager extends SavedData {
         for (FarmAnimalRecord record : worldData.getAnimals()) {
             applyDayUpdate(level, worldData, record, absoluteDaysPlayed);
         }
+
+        tryReproduction(level, worldData, absoluteDaysPlayed);
 
         worldData.markChanged();
         AnimalEntitySyncService.syncAll(level);
@@ -202,8 +207,15 @@ public class AnimalGrowthManager extends SavedData {
                 continue;
             }
 
-            if (!AnimalProducePlacementService.placeNearAnimal(level, worldData, record, pigEntity.blockPosition(), produce, 4)) {
+            if (!AnimalProducePlacementService.placeNearAnimal(level, worldData, record, pigEntity.blockPosition(),
+                produce, 3 + level.getRandom().nextInt(3))) {
                 continue;
+            }
+
+            // Parity: Animal Cracker doubles truffle output — place a second one nearby
+            if (record.hasEatenAnimalCracker()) {
+                AnimalProducePlacementService.placeNearAnimal(level, worldData, record, pigEntity.blockPosition(),
+                    produce.copy(), 3 + level.getRandom().nextInt(3));
             }
 
             pigEntity.triggerForageAnimation();
@@ -280,6 +292,8 @@ public class AnimalGrowthManager extends SavedData {
             } else if (animalOutdoors) {
                 // Parity: animals that remained outdoors overnight still lose happiness before being considered back home.
                 record.setHappiness(record.happiness() / 2);
+                // Force-teleport the entity back inside the building for next-day sync
+                teleportAnimalInsideBuilding(level, record, building);
                 animalOutdoors = false;
             } else if (!animalOutdoors && !doorOpen) {
                 record.addHappiness(profile.happinessDrain() * 2);
@@ -354,9 +368,6 @@ public class AnimalGrowthManager extends SavedData {
             }
 
             if (!produceStack.isEmpty()) {
-                if (record.hasEatenAnimalCracker()) {
-                    produceStack.grow(1);
-                }
                 QualityHelper.setQuality(produceStack, produceQuality);
                 produceId = getProduceId(produceStack);
             }
@@ -373,6 +384,10 @@ public class AnimalGrowthManager extends SavedData {
                 record.setProduceQuality(produceQuality);
                 produced = true;
             } else if (AnimalProducePlacementService.placeInHome(level, worldData, record, produceStack)) {
+                // Parity: Animal Cracker spawns a second item separately, not a stack of 2
+                if (record.hasEatenAnimalCracker()) {
+                    AnimalProducePlacementService.placeInHome(level, worldData, record, produceStack.copy());
+                }
                 produced = true;
             } else if (AnimalProducePlacementService.dropInHome(level, worldData, record, produceStack)) {
                 produced = true;
@@ -397,6 +412,71 @@ public class AnimalGrowthManager extends SavedData {
             record.setFullness(250);
         }
         return produced;
+    }
+
+    // --- Barn animal reproduction (SDV parity) ---
+
+    private void tryReproduction(ServerLevel level, AnimalWorldData worldData, int absoluteDaysPlayed) {
+        for (AnimalBuildingRecord building : worldData.getBuildings()) {
+            if (!"barn".equals(building.buildingType().family())) {
+                continue;
+            }
+            if (!building.hasCapacity()) {
+                continue;
+            }
+
+            // Find best candidate: adult barn animal with reproduction enabled and highest friendship
+            FarmAnimalRecord bestCandidate = null;
+            for (FarmAnimalRecord record : worldData.getAnimals()) {
+                if (!record.buildingId().equals(building.buildingId())) {
+                    continue;
+                }
+                if (!"barn".equals(AnimalTypeCatalog.resolve(record.animalTypeId()).family())) {
+                    continue;
+                }
+                if (record.isBaby() || !record.allowReproduction()) {
+                    continue;
+                }
+                if (bestCandidate == null || record.friendship() > bestCandidate.friendship()) {
+                    bestCandidate = record;
+                }
+            }
+
+            if (bestCandidate == null) {
+                continue;
+            }
+
+            // Parity: pregnancy chance = friendship / 1200.0
+            RandomSource random = randomForAnimalDay(bestCandidate.animalId(), absoluteDaysPlayed);
+            double chance = bestCandidate.friendship() / 1200.0;
+            if (random.nextDouble() >= chance) {
+                continue;
+            }
+
+            // Create baby of the same type
+            worldData.createAnimal(
+                bestCandidate.animalTypeId(),
+                "",
+                building.buildingId(),
+                AnimalAcquisitionSource.PREGNANCY
+            );
+
+            // Notify building owner
+            UUID ownerUuid;
+            try {
+                ownerUuid = UUID.fromString(building.ownerPlayerUuid());
+            } catch (IllegalArgumentException ex) {
+                continue;
+            }
+            ServerPlayer owner = level.getServer().getPlayerList().getPlayer(ownerUuid);
+            if (owner != null) {
+                String parentName = bestCandidate.customName().isBlank()
+                    ? bestCandidate.animalTypeId()
+                    : bestCandidate.customName();
+                owner.sendSystemMessage(Component.translatable(
+                    "stardewcraft.animal.pregnancy.birth_notification", parentName));
+            }
+        }
     }
 
     private int rollQuality(int friendship, int happiness, boolean hasQualityProfession, RandomSource random) {
@@ -495,6 +575,23 @@ public class AnimalGrowthManager extends SavedData {
         return true;
     }
 
+    private void teleportAnimalInsideBuilding(ServerLevel level, FarmAnimalRecord record, AnimalBuildingRecord building) {
+        if (building == null) {
+            return;
+        }
+        double cx = (building.minX() + building.maxX()) / 2.0;
+        double cy = building.minY() + 1.0;
+        double cz = (building.minZ() + building.maxZ()) / 2.0;
+
+        for (BaseCoopAnimalEntity entity : level.getEntitiesOfClass(BaseCoopAnimalEntity.class, new AABB(ENTITY_SCAN_BOX.minX, ENTITY_SCAN_BOX.minY, ENTITY_SCAN_BOX.minZ, ENTITY_SCAN_BOX.maxX, ENTITY_SCAN_BOX.maxY, ENTITY_SCAN_BOX.maxZ))) {
+            if (entity.getManagedAnimalId() != record.animalId()) {
+                continue;
+            }
+            entity.moveTo(cx, cy, cz, entity.getYRot(), entity.getXRot());
+            break;
+        }
+    }
+
     private boolean hasWorkingAutoPetter(ServerLevel level, AnimalBuildingRecord building) {
         if (building == null) {
             return false;
@@ -546,19 +643,15 @@ public class AnimalGrowthManager extends SavedData {
             return;
         }
 
-        int autoPetReduction = 7;
-        if (record.wasAutoPetToday()) {
-            record.addFriendship(autoPetReduction);
-        } else {
-            record.addFriendship(15 - autoPetReduction);
-        }
+        // Parity: auto-petter gives a fixed +7 friendship (reduced vs manual +15).
+        record.addFriendship(7);
         record.setWasAutoPetToday(true);
 
-        int happinessGain = Math.max(5, 30 + profile.happinessDrain());
         if (hasHappinessProfession) {
             record.addFriendship(15);
-            record.addHappiness(happinessGain);
         }
+
+        int happinessGain = Math.max(5, 30 + profile.happinessDrain());
         record.addHappiness(happinessGain);
     }
 

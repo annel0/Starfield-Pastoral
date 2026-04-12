@@ -85,6 +85,11 @@ public record OpenShopScreenPayload(
     private static void handleClient(OpenShopScreenPayload payload) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;
-        mc.setScreen(new com.stardew.craft.client.gui.ShopScreen(payload));
+        if ("FurnitureCatalogue".equals(payload.shopId())) {
+            mc.setScreen(new com.stardew.craft.client.gui.FurnitureCatalogueScreen(
+                payload.items(), payload.playerMoney()));
+        } else {
+            mc.setScreen(new com.stardew.craft.client.gui.ShopScreen(payload));
+        }
     }
 }

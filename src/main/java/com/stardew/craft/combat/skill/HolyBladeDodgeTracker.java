@@ -48,4 +48,9 @@ public final class HolyBladeDodgeTracker {
     public static boolean isActive(Player player, long nowTick) {
         return getDodgeChance(player, nowTick) > 0.0f;
     }
+
+    /** Clean up state when a player logs out to prevent memory leaks. */
+    public static void removePlayer(UUID playerId) {
+        ACTIVE.remove(playerId);
+    }
 }

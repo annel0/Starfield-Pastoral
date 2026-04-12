@@ -80,7 +80,7 @@ public class TrashBinBlockEntity extends net.minecraft.world.level.block.entity.
         long daySeed = stableDaySeed(today);
 
         String canId = worldPosition.getX() + "_" + worldPosition.getY() + "_" + worldPosition.getZ();
-        GarbageCanLootTable.Result result = GarbageCanLootTable.tryGetItem(canId, dailyLuck, trashCansChecked, daySeed);
+        GarbageCanLootTable.Result result = GarbageCanLootTable.tryGetItem(canId, dailyLuck, trashCansChecked, daySeed, player);
 
         // 递增统计
         data.incrementTrashCansChecked();

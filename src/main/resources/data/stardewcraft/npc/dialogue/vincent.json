@@ -1,0 +1,26 @@
+{
+  "npc_id": "vincent",
+  "entries": {
+    "Introduction": "stardewcraft.npc.vincent.introduction",
+    "AcceptBirthdayGift_Positive": "stardewcraft.npc.vincent.acceptbirthdaygift_positive",
+    "AcceptBirthdayGift_Negative": "stardewcraft.npc.vincent.acceptbirthdaygift_negative",
+    "AcceptGift_(O)StardropTea": "stardewcraft.npc.vincent.acceptgift_(o)stardroptea",
+    "AcceptGift_(TR)FrogEgg": "stardewcraft.npc.vincent.acceptgift_(tr)frogegg",
+    "GreenRain": "stardewcraft.npc.vincent.greenrain",
+    "GreenRain_2": "stardewcraft.npc.vincent.greenrain_2",
+    "married_Sam": "stardewcraft.npc.vincent.married_sam",
+    "Mon": "stardewcraft.npc.vincent.mon",
+    "Mon4": "stardewcraft.npc.vincent.mon4",
+    "Tue": "stardewcraft.npc.vincent.tue",
+    "Tue6": "stardewcraft.npc.vincent.tue6",
+    "Wed": "stardewcraft.npc.vincent.wed",
+    "Thu": "stardewcraft.npc.vincent.thu",
+    "Thu2": "stardewcraft.npc.vincent.thu2",
+    "Fri": "stardewcraft.npc.vincent.fri",
+    "Sat": "stardewcraft.npc.vincent.sat",
+    "Sat8": "stardewcraft.npc.vincent.sat8",
+    "Sun": "stardewcraft.npc.vincent.sun",
+    "Sun10": "stardewcraft.npc.vincent.sun10",
+    "default": "stardewcraft.npc.vincent.default"
+  }
+}

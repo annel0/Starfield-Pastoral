@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "stardewcraft:item/forage/fiddlehead_fern",
+    "particle": "stardewcraft:item/forage/fiddlehead_fern"
+  }
+}

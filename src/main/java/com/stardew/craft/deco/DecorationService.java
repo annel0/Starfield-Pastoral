@@ -59,11 +59,13 @@ public final class DecorationService {
             .thenComparingInt(OpenDecorationScreenPayload.DecorationOption::sortOrder));
 
         String currentStyle = DecorationStyleRegistry.getDefaultStyleId(type);
+        int currentSegment = -1;
         if (level.getBlockEntity(pos) instanceof DecorBlockEntity decorBe) {
             currentStyle = decorBe.getStyleId();
+            currentSegment = decorBe.getSegmentOverride();
         }
 
-        PacketDistributor.sendToPlayer(player, new OpenDecorationScreenPayload(type.name(), pos, currentStyle, options));
+        PacketDistributor.sendToPlayer(player, new OpenDecorationScreenPayload(type.name(), pos, currentStyle, options, currentSegment));
     }
 
     @SuppressWarnings("null")
@@ -113,6 +115,50 @@ public final class DecorationService {
         return changed;
     }
 
+    /**
+     * Apply a style to all matching blocks within an AABB region (cornerA to cornerB inclusive).
+     */
+    @SuppressWarnings("null")
+    public static int applyToRegion(Level level, BlockPos cornerA, BlockPos cornerB, DecorationType type, String styleId) {
+        Block targetBlock = type == DecorationType.WALLPAPER ? ModBlocks.WALLPAPER_BLOCK.get() : ModBlocks.FLOORING_BLOCK.get();
+
+        int minX = Math.min(cornerA.getX(), cornerB.getX());
+        int minY = Math.min(cornerA.getY(), cornerB.getY());
+        int minZ = Math.min(cornerA.getZ(), cornerB.getZ());
+        int maxX = Math.max(cornerA.getX(), cornerB.getX());
+        int maxY = Math.max(cornerA.getY(), cornerB.getY());
+        int maxZ = Math.max(cornerA.getZ(), cornerB.getZ());
+
+        int changed = 0;
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    cursor.set(x, y, z);
+                    if (!level.getBlockState(cursor).is(targetBlock)) {
+                        continue;
+                    }
+                    BlockPos immutable = cursor.immutable();
+                    BlockEntity be = level.getBlockEntity(immutable);
+                    if (be instanceof DecorBlockEntity decorBe) {
+                        decorBe.setStyleId(styleId);
+                        applyVisualState(level, immutable, type, styleId);
+                        changed++;
+                    } else if (level.getBlockState(immutable).getBlock() instanceof EntityBlock entityBlock) {
+                        BlockEntity created = entityBlock.newBlockEntity(immutable, level.getBlockState(immutable));
+                        if (created instanceof DecorBlockEntity decorCreated) {
+                            level.setBlockEntity(decorCreated);
+                            decorCreated.setStyleId(styleId);
+                            applyVisualState(level, immutable, type, styleId);
+                            changed++;
+                        }
+                    }
+                }
+            }
+        }
+        return changed;
+    }
+
     private static boolean isTargetBlock(Block block, DecorationType type) {
         return (type == DecorationType.WALLPAPER && block == ModBlocks.WALLPAPER_BLOCK.get())
             || (type == DecorationType.FLOORING && block == ModBlocks.FLOORING_BLOCK.get());
@@ -124,7 +170,13 @@ public final class DecorationService {
         int visual = DecorationStyleRegistry.getVisualIndex(type, styleId);
         BlockState updated;
         if (type == DecorationType.WALLPAPER && current.hasProperty(WallpaperBlock.STYLE)) {
-            int segment = resolveWallpaperSegment(level, pos);
+            // Respect segmentOverride from block entity if present
+            int segment;
+            if (level.getBlockEntity(pos) instanceof DecorBlockEntity decorBe && decorBe.getSegmentOverride() >= 0) {
+                segment = decorBe.getSegmentOverride();
+            } else {
+                segment = resolveWallpaperSegment(level, pos);
+            }
             updated = current.setValue(WallpaperBlock.STYLE, visual);
             if (updated.hasProperty(WallpaperBlock.SEGMENT)) {
                 updated = updated.setValue(WallpaperBlock.SEGMENT, segment);

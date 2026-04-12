@@ -40,6 +40,12 @@ public class ModMenuTypes {
         MENU_TYPES.register("barn_manager",
             () -> new MenuType<>(BarnManagerMenu::new, FeatureFlags.DEFAULT_FLAGS));
 
+    // 筒仓管理器菜单
+    @SuppressWarnings("null")
+    public static final DeferredHolder<MenuType<?>, MenuType<SiloManagerMenu>> SILO_MANAGER =
+        MENU_TYPES.register("silo_manager",
+            () -> new MenuType<>(SiloManagerMenu::new, FeatureFlags.DEFAULT_FLAGS));
+
     // 动物信息面板菜单
     @SuppressWarnings("null")
     public static final DeferredHolder<MenuType<?>, MenuType<AnimalQueryMenu>> ANIMAL_QUERY =
@@ -70,4 +76,9 @@ public class ModMenuTypes {
     public static final DeferredHolder<MenuType<?>, MenuType<ShippingBinMenu>> SHIPPING_BIN =
         MENU_TYPES.register("shipping_bin",
             () -> new MenuType<>(ShippingBinMenu::new, FeatureFlags.DEFAULT_FLAGS));
+
+    @SuppressWarnings("null")
+    public static final DeferredHolder<MenuType<?>, MenuType<com.stardew.craft.communitycenter.menu.BundleMenu>> BUNDLE =
+        MENU_TYPES.register("bundle",
+            () -> new MenuType<>(com.stardew.craft.communitycenter.menu.BundleMenu::new, FeatureFlags.DEFAULT_FLAGS));
 }

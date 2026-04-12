@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:copper_ore",
+    "stardewcraft:iron_ore",
+    "stardewcraft:gold_ore",
+    "stardewcraft:iridium_ore",
+    "stardewcraft:radioactive_ore"
+  ]
+}

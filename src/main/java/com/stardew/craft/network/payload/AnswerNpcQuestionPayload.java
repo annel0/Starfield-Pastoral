@@ -15,9 +15,11 @@ public record AnswerNpcQuestionPayload(
         int friendshipDelta
 ) implements CustomPacketPayload {
 
+    @SuppressWarnings("null")
     public static final Type<AnswerNpcQuestionPayload> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "answer_npc_question"));
 
+    @SuppressWarnings("null")
     public static final StreamCodec<FriendlyByteBuf, AnswerNpcQuestionPayload> STREAM_CODEC = StreamCodec.of(
             (buf, payload) -> {
                 buf.writeUtf(payload.npcId(), 64);

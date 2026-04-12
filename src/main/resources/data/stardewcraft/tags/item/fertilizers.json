@@ -1,0 +1,15 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:basic_fertilizer",
+    "stardewcraft:quality_fertilizer",
+    "stardewcraft:deluxe_fertilizer",
+    "stardewcraft:basic_retaining_soil",
+    "stardewcraft:quality_retaining_soil",
+    "stardewcraft:deluxe_retaining_soil",
+    "stardewcraft:speed_gro",
+    "stardewcraft:deluxe_speed_gro",
+    "stardewcraft:hyper_speed_gro",
+    "stardewcraft:tree_fertilizer"
+  ]
+}

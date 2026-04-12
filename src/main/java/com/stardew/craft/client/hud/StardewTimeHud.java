@@ -69,6 +69,9 @@ public class StardewTimeHud {
     private static int moneyShakeTimer = 0;
     @SuppressWarnings("unused")
     private static boolean moneyInitialized = false;
+    
+    // 对标 SDV DayTimeMoneyBox.timeShakeTimer — 深夜时钟抖动
+    private static int timeShakeTimer = 0;
 
     // HUD锚点边距（右上角）
     private static final int HUD_MARGIN_RIGHT = 10;
@@ -91,6 +94,14 @@ public class StardewTimeHud {
     
     public static StardewTimeManager getClientTimeCache() {
         return clientTimeCache;
+    }
+    
+    /**
+     * 触发时钟抖动效果（对标 SDV dayTimeMoneyBox.timeShakeTimer = 2000）
+     * 2000ms ≈ 40 ticks
+     */
+    public static void triggerTimeShake() {
+        timeShakeTimer = 2000;
     }
     
     /**
@@ -245,20 +256,35 @@ public class StardewTimeHud {
         graphics.drawString(font, dateStr, dateCenterX, dateY, 0x000000, false);
         graphics.pose().popPose();
         
-        // 2. 时间显示 "XX:XX" (27,28 到 65,34) 居中 黑色细体，缩小0.7倍，整10分钟显示
+        // 2. 时间显示 "XX:XX" (27,28 到 65,34) 居中，整10分钟显示
+        // 对标 SDV: timeOfDay >= 2400 时时钟文字变红 + 抖动
         int hours = (currentTime / 60) % 24;
         int minutes = currentTime % 60;
         int displayMinutes = minutes - (minutes % 10);  // 向下取整到10的倍数
         String timeStr = String.format("%02d:%02d", hours, displayMinutes);
+        
+        // 午夜(0:00)后时间文字变红，对标 SDV: (Game1.timeOfDay >= 2400) ? Color.Red : textColor
+        boolean isLateNight = currentTime >= 1440; // 1440分钟 = 24:00 = 0:00 AM
+        int timeColor = isLateNight ? 0xFF0000 : 0x000000;
+        
+        // 更新抖动计时器
+        if (timeShakeTimer > 0) {
+            timeShakeTimer -= (int)(Minecraft.getInstance().getTimer().getRealtimeDeltaTicks() * 50);
+        }
+        
+        // 计算时钟抖动偏移（对标 SDV: random ±2px）
+        int timeShakeX = (timeShakeTimer > 0) ? (int)(Math.random() * 5 - 2) : 0;
+        int timeShakeY = (timeShakeTimer > 0) ? (int)(Math.random() * 5 - 2) : 0;
+        
         graphics.pose().pushPose();
         graphics.pose().scale(0.7f, 0.7f, 1.0f);
         @SuppressWarnings("null")
         int timeWidth = font.width(timeStr);
         int timeAreaLeft = (int)((hudX + 27) / 0.7f);
         int timeAreaWidth = (int)(38 / 0.7f);  // 区域宽度 65-27=38
-        int timeCenterX = timeAreaLeft + (timeAreaWidth - timeWidth) / 2;
-        int timeY = (int)((hudY + 31) / 0.7f);  // 区域高度6像素，从28到34，中心约31
-        graphics.drawString(font, timeStr, timeCenterX, timeY, 0x000000, false);
+        int timeCenterX = timeAreaLeft + (timeAreaWidth - timeWidth) / 2 + timeShakeX;
+        int timeY = (int)((hudY + 31) / 0.7f) + timeShakeY;  // 区域高度6像素，从28到34，中心约31
+        graphics.drawString(font, timeStr, timeCenterX, timeY, timeColor, false);
         graphics.pose().popPose();
         
         // 3. 金钱显示 - 使用 MoneyDial 实现滚动和抖动效果

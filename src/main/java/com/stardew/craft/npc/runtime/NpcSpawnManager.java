@@ -3,6 +3,7 @@ package com.stardew.craft.npc.runtime;
 import com.google.gson.JsonObject;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModDimensions;
+import com.stardew.craft.core.ModMiningDimensions;
 import com.stardew.craft.entity.ModEntities;
 import com.stardew.craft.entity.npc.StardewNpcEntity;
 import com.stardew.craft.npc.data.NpcCapabilityProfile;
@@ -30,7 +31,17 @@ public final class NpcSpawnManager {
     private static final int SPAWN_CHECK_INTERVAL_TICKS = 20;
     private static final int RESPAWN_CONFIRM_MISSES = 3;
     private static final int RESPAWN_COOLDOWN_TICKS = 100;
-    private static final AABB GLOBAL_NPC_SCAN = new AABB(-30_000_000D, -2_048D, -30_000_000D, 30_000_000D, 4_096D, 30_000_000D);
+    private static final Set<String> FORCE_SPAWN_IDS = java.util.Collections.synchronizedSet(new HashSet<>());
+    private static final AABB GLOBAL_NPC_SCAN = new AABB(-3.0E7, -2048.0, -3.0E7, 3.0E7, 4096.0, 3.0E7);
+
+    /** NPCs that live in the mining dimension instead of Stardew Valley. */
+    private static final Set<String> MINING_DIM_NPC_IDS = Set.of("dwarf");
+
+    /** Dwarf spawn: mine floor, near the shop area. */
+    private static final double DWARF_SPAWN_X = 22.0;
+    private static final double DWARF_SPAWN_Y = 66.0;
+    private static final double DWARF_SPAWN_Z = -16.0;
+    private static final float  DWARF_SPAWN_YAW = 180.0F;
 
     private static int tickCounter;
     private static boolean initialSweepDone;
@@ -39,7 +50,52 @@ public final class NpcSpawnManager {
     private static final Map<String, Integer> TRACKED_MISS_COUNTS = new LinkedHashMap<>();
     private static final Map<String, Long> LAST_SPAWN_GAME_TIME = new LinkedHashMap<>();
 
+    // ── Tick-scoped caches to avoid redundant world entity scans ──
+    private static long cachedScanGameTime = Long.MIN_VALUE;
+    private static List<StardewNpcEntity> cachedAllNpcs = List.of();
+    private static Set<String> cachedImplementedIds = Set.of();
+    private static long cachedImplementedIdsVersion = -1;
+
     private NpcSpawnManager() {
+    }
+
+    /**
+     * Returns a cached list of all loaded StardewNpcEntity instances.
+     * The list is refreshed at most once every 10 ticks to avoid expensive
+     * world-scan overhead every single tick.
+     */
+    private static List<StardewNpcEntity> getCachedAllNpcs(ServerLevel level) {
+        long gameTime = level.getGameTime();
+        if (gameTime - cachedScanGameTime >= 10) {
+            cachedAllNpcs = level.getEntitiesOfClass(StardewNpcEntity.class, GLOBAL_NPC_SCAN);
+            cachedScanGameTime = gameTime;
+        }
+        return cachedAllNpcs;
+    }
+
+    /**
+     * Returns cached implemented NPC IDs, refreshed when NpcDataRegistry changes.
+     */
+    private static Set<String> getCachedImplementedIds() {
+        long version = NpcDataRegistry.capabilities().size(); // simple change detector
+        if (version != cachedImplementedIdsVersion) {
+            Set<String> ids = new HashSet<>();
+            for (Map.Entry<String, NpcCapabilityProfile> entry : NpcDataRegistry.capabilities().entrySet()) {
+                if (entry.getValue().implemented()) {
+                    ids.add(canonicalNpcId(entry.getValue().npcId()));
+                }
+            }
+            cachedImplementedIds = ids;
+            cachedImplementedIdsVersion = version;
+        }
+        return cachedImplementedIds;
+    }
+
+    /**
+     * 标记指定 NPC 下次 tick 时立即生成，跳过 miss-count 和冷却检测。
+     */
+    public static void forceSpawnNpc(String npcId) {
+        FORCE_SPAWN_IDS.add(canonicalNpcId(npcId));
     }
 
     /**
@@ -48,7 +104,7 @@ public final class NpcSpawnManager {
      * when the player returns they are at the correct position.
      */
     public static void onAllPlayersLeft(ServerLevel level) {
-        for (Map.Entry<String, UUID> entry : TRACKED_NPC_UUIDS.entrySet()) {
+        for (Map.Entry<String, UUID> entry : new LinkedHashMap<>(TRACKED_NPC_UUIDS).entrySet()) {
             String npcId = entry.getKey();
             StardewNpcEntity npc = getTrackedNpc(level, npcId);
             if (npc == null) continue;
@@ -67,18 +123,18 @@ public final class NpcSpawnManager {
      * Forces an immediate full sweep to clean up duplicates and snap NPCs.
      */
     public static void onPlayerEntered(ServerLevel level) {
-        Set<String> implementedIds = new HashSet<>();
-        for (Map.Entry<String, NpcCapabilityProfile> entry : NpcDataRegistry.capabilities().entrySet()) {
-            if (entry.getValue().implemented()) {
-                implementedIds.add(canonicalNpcId(entry.getValue().npcId()));
-            }
-        }
+        Set<String> implementedIds = getCachedImplementedIds();
         cleanupUnknownAndDuplicated(level, implementedIds);
         initialSweepDone = true;
     }
 
+    /**
+     * Called when a StardewNpcEntity is about to join the level.
+     */
     public static void onNpcJoin(ServerLevel level, StardewNpcEntity npc) {
-        if (!ModDimensions.STARDEW_VALLEY.equals(level.dimension())) {
+        boolean isStardew = ModDimensions.STARDEW_VALLEY.equals(level.dimension());
+        boolean isMining  = ModMiningDimensions.STARDEW_MINING.equals(level.dimension());
+        if (!isStardew && !isMining) {
             return;
         }
 
@@ -102,13 +158,29 @@ public final class NpcSpawnManager {
             return;
         }
 
+        // A different entity with the same npcId is joining.
+        // Check if the currently tracked entity is still alive and loaded.
         var existing = level.getEntity(tracked);
-        if (existing instanceof StardewNpcEntity existingNpc && !existingNpc.isRemoved()) {
+        if (existing instanceof StardewNpcEntity existingNpc
+                && !existingNpc.isRemoved() && existingNpc.isAlive()) {
+            // Tracked entity is alive → kill the newcomer.
             discardWithReason(npc, "join_duplicate_uuid_conflict");
-            reconcileSingletonByNpcId(level, npcId, existingNpc.getUUID());
             return;
         }
 
+        // Tracked entity is gone or unloaded. However, it might still exist
+        // serialised in an unloaded chunk. Kill this newcomer too if we spawned
+        // one very recently (within cooldown), to avoid the classic
+        // "spawn new → old chunk loads → 2 NPCs" race.
+        Long lastSpawn = LAST_SPAWN_GAME_TIME.get(npcId);
+        if (lastSpawn != null && (level.getGameTime() - lastSpawn) < RESPAWN_COOLDOWN_TICKS) {
+            // Recent spawn exists somewhere; the newcomer is likely the stale
+            // serialised copy from an old chunk load. Kill it.
+            discardWithReason(npc, "join_stale_chunk_load_during_cooldown");
+            return;
+        }
+
+        // Accept the newcomer as the canonical instance.
         TRACKED_NPC_UUIDS.put(npcId, npc.getUUID());
         reconcileSingletonByNpcId(level, npcId, npc.getUUID());
     }
@@ -125,13 +197,7 @@ public final class NpcSpawnManager {
         if (spawnRoot != null && spawnRoot.has("spawns") && spawnRoot.get("spawns").isJsonObject()) {
             spawns = spawnRoot.getAsJsonObject("spawns");
         }
-        Set<String> implementedIds = new HashSet<>();
-        for (Map.Entry<String, NpcCapabilityProfile> entry : NpcDataRegistry.capabilities().entrySet()) {
-            String canonicalId = canonicalNpcId(entry.getValue().npcId());
-            if (entry.getValue().implemented()) {
-                implementedIds.add(canonicalId);
-            }
-        }
+        Set<String> implementedIds = getCachedImplementedIds();
 
         tickCounter++;
 
@@ -142,7 +208,7 @@ public final class NpcSpawnManager {
             cleanupUnknownAndDuplicated(level, implementedIds);
         }
 
-        if (tickCounter % SPAWN_CHECK_INTERVAL_TICKS != 0) {
+        if (tickCounter % SPAWN_CHECK_INTERVAL_TICKS != 0 && FORCE_SPAWN_IDS.isEmpty()) {
             return;
         }
 
@@ -154,6 +220,10 @@ public final class NpcSpawnManager {
                 continue;
             }
             String npcId = canonicalNpcId(profile.npcId());
+            // Skip NPCs that belong in the mining dimension
+            if (MINING_DIM_NPC_IDS.contains(npcId)) {
+                continue;
+            }
             JsonObject pos = resolveSpawnPos(spawns, npcId, profile.npcId());
 
             double x = 150.0D;
@@ -185,6 +255,13 @@ public final class NpcSpawnManager {
             // Chunk forcing is fully managed by NpcChunkForceManager now.
             // SpawnManager only tracks UUID→entity mapping.
 
+            // Force-load the chunk at the NPC's expected position BEFORE checking
+            // hasTrackedNpc so that serialised-but-unloaded entities become visible
+            // to UUID / getEntitiesOfClass lookups, preventing false misses that
+            // would otherwise trigger duplicate spawns.
+            NpcChunkForceManager.ensureRouteTargetChunkForced(level, npcId,
+                new Vec3(spawnX, spawnY, spawnZ));
+
             if (hasTrackedNpc(level, npcId)) {
                 TRACKED_MISS_COUNTS.put(npcId, 0);
                 continue;
@@ -197,18 +274,21 @@ public final class NpcSpawnManager {
                 continue;
             }
 
-            int misses = TRACKED_MISS_COUNTS.getOrDefault(npcId, 0) + 1;
-            TRACKED_MISS_COUNTS.put(npcId, misses);
-            if (misses < RESPAWN_CONFIRM_MISSES) {
-                continue;
-            }
-
-            long now = level.getGameTime();
-            Long lastSpawn = LAST_SPAWN_GAME_TIME.get(npcId);
-            if (lastSpawn != null) {
-                long delta = now - lastSpawn;
-                if (delta < RESPAWN_COOLDOWN_TICKS) {
+            boolean forced = FORCE_SPAWN_IDS.remove(npcId);
+            if (!forced) {
+                int misses = TRACKED_MISS_COUNTS.getOrDefault(npcId, 0) + 1;
+                TRACKED_MISS_COUNTS.put(npcId, misses);
+                if (misses < RESPAWN_CONFIRM_MISSES) {
                     continue;
+                }
+
+                long now = level.getGameTime();
+                Long lastSpawn = LAST_SPAWN_GAME_TIME.get(npcId);
+                if (lastSpawn != null) {
+                    long delta = now - lastSpawn;
+                    if (delta < RESPAWN_COOLDOWN_TICKS) {
+                        continue;
+                    }
                 }
             }
 
@@ -220,6 +300,8 @@ public final class NpcSpawnManager {
             npc.setNpcId(npcId);
             npc.moveTo(spawnX, spawnY, spawnZ, yaw, 0.0F);
             npc.setCustomNameVisible(false);
+            // Snap to block surface (fixes floating on slabs/stairs)
+            NpcCentralMovementService.snapToSurface(level, npc);
             boolean added = level.addFreshEntity(npc);
             if (!added) {
                 TRACKED_NPC_UUIDS.remove(npcId);
@@ -234,16 +316,90 @@ public final class NpcSpawnManager {
             }
             TRACKED_NPC_UUIDS.put(npcId, npc.getUUID());
             TRACKED_MISS_COUNTS.put(npcId, 0);
-            LAST_SPAWN_GAME_TIME.put(npcId, now);
+            LAST_SPAWN_GAME_TIME.put(npcId, level.getGameTime());
+        }
+    }
+
+    /**
+     * Tick for NPCs that live in the mining dimension (currently only "dwarf").
+     * Called from NpcSystem when any player is in stardew_mining.
+     */
+    public static void tickMiningDimension(ServerLevel mineLevel) {
+        if (!ModMiningDimensions.STARDEW_MINING.equals(mineLevel.dimension())) {
+            return;
+        }
+
+        for (String npcId : MINING_DIM_NPC_IDS) {
+            NpcCapabilityProfile profile = NpcDataRegistry.capabilities().get(npcId);
+            if (profile == null || !profile.implemented()) {
+                StardewCraft.LOGGER.warn("[NPC_MINE] Skipping '{}': profile={} implemented={}",
+                    npcId, profile != null, profile != null && profile.implemented());
+                continue;
+            }
+
+            // Force-load the spawn chunk so the entity can be found
+            NpcChunkForceManager.ensureRouteTargetChunkForced(mineLevel, npcId,
+                new Vec3(DWARF_SPAWN_X, DWARF_SPAWN_Y, DWARF_SPAWN_Z));
+
+            if (hasTrackedNpc(mineLevel, npcId)) {
+                // Already alive — only log occasionally
+                continue;
+            }
+
+            // Check if already loaded
+            StardewNpcEntity existing = findLoadedNpcById(mineLevel, npcId, null);
+            if (existing != null) {
+                TRACKED_NPC_UUIDS.put(npcId, existing.getUUID());
+                TRACKED_MISS_COUNTS.put(npcId, 0);
+                StardewCraft.LOGGER.info("[NPC_MINE] Found existing '{}' entity in mine, UUID={}",
+                    npcId, existing.getUUID());
+                continue;
+            }
+
+            // Miss-count / cooldown
+            int misses = TRACKED_MISS_COUNTS.getOrDefault(npcId, 0) + 1;
+            TRACKED_MISS_COUNTS.put(npcId, misses);
+            if (misses <= RESPAWN_CONFIRM_MISSES) {
+                StardewCraft.LOGGER.debug("[NPC_MINE] '{}' not found, miss #{}/{}", npcId, misses, RESPAWN_CONFIRM_MISSES);
+            }
+            if (misses < RESPAWN_CONFIRM_MISSES) {
+                continue;
+            }
+            Long lastSpawn = LAST_SPAWN_GAME_TIME.get(npcId);
+            if (lastSpawn != null && (mineLevel.getGameTime() - lastSpawn) < RESPAWN_COOLDOWN_TICKS) {
+                continue;
+            }
+
+            StardewNpcEntity npc = ModEntities.STARDEW_NPC.get().create(mineLevel);
+            if (npc == null) continue;
+
+            npc.setNpcId(npcId);
+            npc.moveTo(DWARF_SPAWN_X, DWARF_SPAWN_Y, DWARF_SPAWN_Z, DWARF_SPAWN_YAW, 0.0F);
+            npc.setCustomNameVisible(false);
+            NpcCentralMovementService.snapToSurface(mineLevel, npc);
+            boolean added = mineLevel.addFreshEntity(npc);
+            if (added) {
+                TRACKED_NPC_UUIDS.put(npcId, npc.getUUID());
+                TRACKED_MISS_COUNTS.put(npcId, 0);
+                LAST_SPAWN_GAME_TIME.put(npcId, mineLevel.getGameTime());
+                StardewCraft.LOGGER.info("[NPC_MINE] Spawned '{}' at ({}, {}, {}), UUID={}",
+                    npcId, DWARF_SPAWN_X, DWARF_SPAWN_Y, DWARF_SPAWN_Z, npc.getUUID());
+            } else {
+                StardewCraft.LOGGER.error("[NPC_MINE] addFreshEntity FAILED for '{}' at ({}, {}, {})",
+                    npcId, DWARF_SPAWN_X, DWARF_SPAWN_Y, DWARF_SPAWN_Z);
+            }
         }
     }
 
     private static Map<String, StardewNpcEntity> collectAndDeduplicateLoaded(ServerLevel level, Set<String> implementedIds) {
-        List<StardewNpcEntity> all = level.getEntitiesOfClass(StardewNpcEntity.class, GLOBAL_NPC_SCAN);
+        List<StardewNpcEntity> all = getCachedAllNpcs(level);
         Map<String, StardewNpcEntity> byId = new LinkedHashMap<>();
         List<StardewNpcEntity> toDiscard = new ArrayList<>();
 
         for (StardewNpcEntity entity : all) {
+            if (entity.isRemoved() || !entity.isAlive()) {
+                continue;
+            }
             String id = entity.getNpcId();
             String canonicalId = canonicalNpcId(id);
             if (canonicalId == null || canonicalId.isBlank() || !implementedIds.contains(canonicalId)) {
@@ -269,10 +425,13 @@ public final class NpcSpawnManager {
     }
 
     private static void cleanupUnknownAndDuplicated(ServerLevel level, Set<String> implementedIds) {
-        List<StardewNpcEntity> all = level.getEntitiesOfClass(StardewNpcEntity.class, GLOBAL_NPC_SCAN);
+        List<StardewNpcEntity> all = getCachedAllNpcs(level);
         Set<String> seen = new HashSet<>();
 
         for (StardewNpcEntity entity : all) {
+            if (entity.isRemoved() || !entity.isAlive()) {
+                continue;
+            }
             String id = canonicalNpcId(entity.getNpcId());
             if (id == null || id.isBlank() || !implementedIds.contains(id)) {
                 discardWithReason(entity, "sweep_unknown_or_unimplemented");
@@ -335,7 +494,7 @@ public final class NpcSpawnManager {
         if (level == null || canonicalNpcId == null || canonicalNpcId.isBlank()) {
             return null;
         }
-        for (StardewNpcEntity entity : level.getEntitiesOfClass(StardewNpcEntity.class, GLOBAL_NPC_SCAN)) {
+        for (StardewNpcEntity entity : getCachedAllNpcs(level)) {
             if (entity.isRemoved() || !entity.isAlive()) {
                 continue;
             }
@@ -366,7 +525,7 @@ public final class NpcSpawnManager {
         }
 
         List<StardewNpcEntity> sameId = new ArrayList<>();
-        for (StardewNpcEntity entity : level.getEntitiesOfClass(StardewNpcEntity.class, GLOBAL_NPC_SCAN)) {
+        for (StardewNpcEntity entity : getCachedAllNpcs(level)) {
             if (!canonicalNpcId.equals(canonicalNpcId(entity.getNpcId()))) {
                 continue;
             }
@@ -470,6 +629,9 @@ public final class NpcSpawnManager {
         TRACKED_NPC_UUIDS.clear();
         TRACKED_MISS_COUNTS.clear();
         LAST_SPAWN_GAME_TIME.clear();
+        cachedScanGameTime = Long.MIN_VALUE;
+        cachedAllNpcs = List.of();
+        cachedImplementedIdsVersion = -1;
         StardewCraft.LOGGER.info("Reset NPC prototype spawn tracking for server '{}'.", server.getWorldData().getLevelName());
     }
 
@@ -477,7 +639,7 @@ public final class NpcSpawnManager {
         if (npc == null || npc.isRemoved()) {
             return;
         }
-        StardewCraft.LOGGER.info(
+        StardewCraft.LOGGER.debug(
             "Discard NPC id='{}' uuid={} reason={} pos=({}, {}, {})",
             npc.getNpcId(),
             npc.getUUID(),
@@ -486,6 +648,8 @@ public final class NpcSpawnManager {
             npc.getY(),
             npc.getZ()
         );
+        // discard() directly removes the entity from the world.
+        // kill() does NOT work here because StardewNpcEntity.hurt() returns false (invulnerable).
         npc.discard();
     }
 
@@ -519,7 +683,7 @@ public final class NpcSpawnManager {
 
         int loadedCount = 0;
         UUID firstLoadedUuid = null;
-        for (StardewNpcEntity entity : level.getEntitiesOfClass(StardewNpcEntity.class, GLOBAL_NPC_SCAN)) {
+        for (StardewNpcEntity entity : getCachedAllNpcs(level)) {
             if (!canonicalId.equals(canonicalNpcId(entity.getNpcId()))) {
                 continue;
             }

@@ -1,0 +1,31 @@
+{
+  "npc_id": "haley",
+  "_vanilla_ref": "Loved: 221=Pink Cake 421=Sunflower 610=Fruit Salad 88=Coconut. Liked: 18=daffodil 60=emerald 62=aquamarine 64=ruby 70=jade 88=coconut 222=rhubarb_pie 223=cookie 232=rice_pudding 233=ice_cream 234=blueberry_tart 402=sweet_pea 418=crocus. Disliked: category -5(eggs) -6(milk) -75(vegetables) -79(fruits) -81(forage) 80=quartz -27(artisan_goods). Hated: category -4(fish) 16=wild_horseradish 330=clay 74=prismatic_shard.",
+  "loved": [
+    "stardewcraft:coconut",
+    "stardewcraft:sunflower"
+  ],
+  "_loved_not_yet_in_mod": ["pink_cake(221)", "fruit_salad(610)"],
+  "liked": [
+    "stardewcraft:emerald",
+    "stardewcraft:aquamarine",
+    "stardewcraft:ruby",
+    "stardewcraft:jade"
+  ],
+  "_liked_not_yet_in_mod": ["daffodil(18)", "coconut(88)", "rhubarb_pie(222)", "cookie(223)", "rice_pudding(232)", "ice_cream(233)", "blueberry_tart(234)", "sweet_pea(402)", "crocus(418)"],
+  "neutral": [],
+  "disliked": [
+    "stardewcraft:quartz"
+  ],
+  "_disliked_not_yet_in_mod": ["category:-5(eggs)", "category:-6(milk)", "category:-75(vegetables)", "category:-79(fruits)", "category:-81(forage)", "category:-27(artisan_goods)"],
+  "hated": [
+    "stardewcraft:clay",
+    "stardewcraft:prismatic_shard"
+  ],
+  "_hated_not_yet_in_mod": ["category:-4(fish)", "wild_horseradish(16)"],
+  "loved_msg": "Oh my god, this is my favorite thing!!$h",
+  "liked_msg": "*gasp*...for me? Thank you!$h",
+  "neutral_msg": "Thank you. I love presents.",
+  "disliked_msg": "Ugh...that's such a stupid gift.$s",
+  "hated_msg": "Gross!$a"
+}

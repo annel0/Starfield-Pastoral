@@ -1,0 +1,47 @@
+{
+  "npc_id": "robin",
+  "override_vanilla": true,
+  "_format": "time -> \"location @namedPointId facing [behavior]\"",
+
+  "GreenRain": {
+    "600": "sciencehouse @robin_sciencehouse_counter 3",
+    "2200": "sciencehouse @robin_sciencehouse_sleep 0"
+  },
+
+  "rain": {
+    "600": "sciencehouse @robin_sciencehouse_counter 3",
+    "1800": "sciencehouse @robin_sciencehouse_living 2",
+    "2200": "sciencehouse @robin_sciencehouse_sleep 0"
+  },
+
+  "spring": {
+    "600": "sciencehouse @robin_sciencehouse_counter 3",
+    "1700": "saloon @robin_saloon_seat 3",
+    "2200": "sciencehouse @robin_sciencehouse_sleep 0"
+  },
+
+  "summer": {
+    "600": "sciencehouse @robin_sciencehouse_counter 3",
+    "1700": "saloon @robin_saloon_seat 3",
+    "2200": "sciencehouse @robin_sciencehouse_sleep 0"
+  },
+
+  "fall": {
+    "600": "sciencehouse @robin_sciencehouse_counter 3",
+    "1700": "saloon @robin_saloon_seat 3",
+    "2200": "sciencehouse @robin_sciencehouse_sleep 0"
+  },
+
+  "winter": {
+    "600": "sciencehouse @robin_sciencehouse_counter 3",
+    "1700": "saloon @robin_saloon_seat 3",
+    "2200": "sciencehouse @robin_sciencehouse_sleep 0"
+  },
+
+  "tuesday": {
+    "600": "sciencehouse @robin_sciencehouse_counter 3",
+    "1100": "town @robin_town_walk 3",
+    "1700": "saloon @robin_saloon_seat 3",
+    "2200": "sciencehouse @robin_sciencehouse_sleep 0"
+  }
+}

@@ -155,6 +155,8 @@ public class StardewTimeManager extends SavedData {
                 com.stardew.craft.manager.SprinklerManager.get(stardewLevel).waterDaily(stardewLevel);
                 com.stardew.craft.manager.PastureGrassGrowthManager.get(stardewLevel).growDaily(stardewLevel);
                 com.stardew.craft.manager.AnimalGrowthManager.get(stardewLevel).growDaily(stardewLevel);
+                com.stardew.craft.manager.ForageSpawnService.onNewDay(stardewLevel, currentSeason);
+                com.stardew.craft.manager.ArtifactSpotSpawnService.onNewDay(stardewLevel, currentSeason);
                 
                 // 预测明天的天气
                 com.stardew.craft.weather.WeatherManager.updateWeatherForNewDay(
@@ -175,8 +177,14 @@ public class StardewTimeManager extends SavedData {
                     com.stardew.craft.player.PlayerStardewDataAPI.restoreEnergy(player, com.stardew.craft.player.PlayerStardewDataAPI.getMaxEnergy(player));
                 } else {
                     com.stardew.craft.player.PlayerStardewDataAPI.sleep(player, timeWentToSleepMinutes);
+                    // 战斗死亡次日体力压到2
+                    com.stardew.craft.player.PassOutService.applyCombatDeathEnergyPenalty(player);
                 }
                 com.stardew.craft.player.PlayerStardewDataAPI.setHealth(player, com.stardew.craft.player.PlayerStardewDataAPI.getMaxHealth(player));
+
+                // SDV parity: Farmer.dayupdate → daysLeftForToolUpgrade--
+                com.stardew.craft.shop.BlacksmithService.onNewDay(player);
+                com.stardew.craft.shop.BlacksmithService.showToolUpgradeNotification(player);
 
                 OvernightSettlementPayload settlementPayload = OvernightSettlementTracker.consumePayload(player);
                 com.stardew.craft.player.PlayerStardewDataAPI.recordOvernightShippedItems(player, settlementPayload.shippedItems());
@@ -186,28 +194,130 @@ public class StardewTimeManager extends SavedData {
                 // 同步到客户端（HUD 依赖客户端缓存）
                 com.stardew.craft.player.PlayerDataEventHandler.syncPlayerData(player, com.stardew.craft.player.PlayerDataManager.getPlayerData(player));
 
+                // Quest: day started
+                com.stardew.craft.quest.StardewQuestEvents.fireDayStarted(player, currentDay);
+
                 List<OvernightSettlementPayload.LevelUpData> overnightLevelUps = new ArrayList<>(settlementPayload.levelUps());
                 for (PlayerStardewData.SkillLevelUp levelUp : appliedLevelUps) {
                     overnightLevelUps.add(new OvernightSettlementPayload.LevelUpData(levelUp.skill().getId(), levelUp.newLevel()));
                 }
 
+                // 消费该玩家的 2AM 晕倒结果（如果有的话）合并进结算包
+                com.stardew.craft.player.PassOutService.PassOutResult passOutResult =
+                    com.stardew.craft.player.PassOutService.consumePassOutResult(player.getUUID());
+                int passOutType = passOutResult != null ? passOutResult.type().getId() : -1;
+                int passOutMoneyLost = passOutResult != null ? passOutResult.moneyLost() : 0;
+                java.util.List<net.minecraft.world.item.ItemStack> passOutLostItems =
+                    passOutResult != null ? passOutResult.lostItems() : java.util.List.of();
+
                 OvernightSettlementPayload finalPayload = new OvernightSettlementPayload(
                     settlementPayload.shippedItems(),
-                    List.copyOf(overnightLevelUps)
+                    List.copyOf(overnightLevelUps),
+                    passOutType,
+                    passOutMoneyLost,
+                    passOutLostItems
                 );
 
-                if (!finalPayload.shippedItems().isEmpty() || !finalPayload.levelUps().isEmpty()) {
-                    PacketDistributor.sendToPlayer(player, finalPayload);
-                }
+                // 始终发送结算包，即使没有出货/升级，以便客户端显示夜间结算过渡画面
+                PacketDistributor.sendToPlayer(player, finalPayload);
             }
         }
 
         // Reset per-player shop stock for the new day (SDV: SynchronizedShopStock parity)
         com.stardew.craft.shop.ShopStockTracker.resetForNewDay();
 
+        // 邮件系统：将 mailForTomorrow 队列投递到 mailbox
+        if (server != null) {
+            com.stardew.craft.mail.MailService.deliverAllTomorrowMail(server);
+
+            // SDV 日期触发邮件
+            for (net.minecraft.server.level.ServerPlayer sp : server.getPlayerList().getPlayers()) {
+                scheduleMailByDate(sp, currentSeason, currentDay);
+            }
+        }
+
         setDirty();
     }
-    
+
+    /**
+     * SDV 日期触发邮件 — 根据当前季节/日期安排邮件。
+     * 模拟 SDV Game1._newDayAfterFade：优先匹配 season_day_year，再匹配 season_day。
+     * 同时处理里程碑邮件（父母信等按天数触发的邮件）。
+     */
+    private void scheduleMailByDate(net.minecraft.server.level.ServerPlayer player, int season, int day) {
+        String seasonName = switch (season) {
+            case 0 -> "spring";
+            case 1 -> "summer";
+            case 2 -> "fall";
+            case 3 -> "winter";
+            default -> "";
+        };
+
+        // SDV parity: 先检查 season_day_year（如 spring_2_1 = 春2日Y1）
+        String keyWithYear = seasonName + "_" + day + "_" + currentYear;
+        if (com.stardew.craft.mail.MailRegistry.contains(keyWithYear)) {
+            com.stardew.craft.mail.MailService.addMail(player, keyWithYear);
+        }
+
+        // 再检查 season_day（如 spring_12 = 春12日节日通知，不区分年份）
+        String keyNoYear = seasonName + "_" + day;
+        if (com.stardew.craft.mail.MailRegistry.contains(keyNoYear)) {
+            com.stardew.craft.mail.MailService.addMail(player, keyNoYear);
+        }
+
+        // 父母信件 — 按 totalDaysPlayed 里程碑触发（SDV parity）
+        scheduleParentMail(player);
+    }
+
+    /**
+     * 父母来信 — SDV 按收入/天数里程碑触发。
+     * mom1/dad1: 15天, mom2/dad2: 50天, mom3/dad3: 80天, mom4/dad4: 120天
+     */
+    private void scheduleParentMail(net.minecraft.server.level.ServerPlayer player) {
+        int days = (currentYear - 1) * (28 * 4) + currentSeason * 28 + currentDay;
+        String[][] parentMails = {
+            {"mom1", "dad1"},  // 15 days
+            {"mom2", "dad2"},  // 50 days
+            {"mom3", "dad3"},  // 80 days
+            {"mom4", "dad4"},  // 120 days
+        };
+        int[] dayThresholds = {15, 50, 80, 120};
+        for (int i = 0; i < parentMails.length; i++) {
+            if (days >= dayThresholds[i]) {
+                // SDV: randomly pick mom or dad
+                String mailId = parentMails[i][new java.util.Random(player.getUUID().hashCode() + i).nextInt(2)];
+                com.stardew.craft.mail.MailService.addMail(player, mailId);
+            }
+        }
+
+        // 里程碑提示邮件 — NPC 在特定天数给出建议
+        scheduleMilestoneMail(player, days);
+    }
+
+    /**
+     * 里程碑邮件 — NPC 在特定天数自动发送提示/建议信。
+     * SDV parity: 类似 Game1.checkForNewMail 按进度解锁。
+     */
+    private void scheduleMilestoneMail(net.minecraft.server.level.ServerPlayer player, int totalDays) {
+        // 罗宾：建筑建议
+        if (totalDays >= 7) com.stardew.craft.mail.MailService.addMail(player, "robinWell");
+        if (totalDays >= 20) com.stardew.craft.mail.MailService.addMail(player, "robinCoop");
+        if (totalDays >= 40) com.stardew.craft.mail.MailService.addMail(player, "robinBarn");
+        // 德米特里厄斯：山洞
+        if (totalDays >= 10) com.stardew.craft.mail.MailService.addMail(player, "demetriusCave");
+        // 皮埃尔：一般提示
+        if (totalDays >= 14) com.stardew.craft.mail.MailService.addMail(player, "pierreGeneral");
+        // 莱纳斯
+        if (totalDays >= 12) com.stardew.craft.mail.MailService.addMail(player, "linusTip");
+        if (totalDays >= 30) com.stardew.craft.mail.MailService.addMail(player, "linusTrash");
+        // 玛妮：动物
+        if (totalDays >= 25) com.stardew.craft.mail.MailService.addMail(player, "marnieAnimal");
+        // 格斯：烹饪
+        if (totalDays >= 35) com.stardew.craft.mail.MailService.addMail(player, "gusRecipe");
+        // 艾利奥特
+        if (totalDays >= 45) com.stardew.craft.mail.MailService.addMail(player, "elliottBook");
+    }
+
     /**
      * 重置事件标记
      */

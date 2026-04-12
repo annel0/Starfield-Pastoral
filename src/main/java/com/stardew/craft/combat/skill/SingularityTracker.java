@@ -55,4 +55,9 @@ public final class SingularityTracker {
     public static boolean isEvolved(ServerPlayer player) {
         return getStacks(player) >= EVOLVE_THRESHOLD;
     }
+
+    /** Clean up state when a player logs out to prevent memory leaks. */
+    public static void removePlayer(UUID playerId) {
+        STACKS.remove(playerId);
+    }
 }

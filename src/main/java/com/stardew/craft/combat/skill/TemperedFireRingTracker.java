@@ -124,4 +124,9 @@ public final class TemperedFireRingTracker {
             target.hurt(owner.damageSources().playerAttack(owner), 1.0F);
         }
     }
+
+    /** Clean up state when a player logs out to prevent memory leaks. */
+    public static void removePlayer(UUID playerId) {
+        ACTIVE.remove(playerId);
+    }
 }

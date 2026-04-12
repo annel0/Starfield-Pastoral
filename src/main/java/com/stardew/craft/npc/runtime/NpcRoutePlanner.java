@@ -8,6 +8,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -31,6 +32,13 @@ final class NpcRoutePlanner {
     private static final Set<String> MISSING_CONFIG_POINT_LOGGED = new HashSet<>();
     private static final Set<String> HARD_ENDPOINT_WARNED = new HashSet<>();
 
+    // ── Hot-path caches ──
+    private static final Map<String, String> CANONICAL_NPC_ID_CACHE = new HashMap<>();
+    private static List<Vec3> cachedIndoorEntryPoints = null;
+    private static Map<Vec3, Vec3> cachedIndoorToOutdoorMap = null;
+    /** Reference to the locationAnchors map at the time the indoor cache was built. */
+    private static Map<String, NpcLocationAnchor> cachedIndoorAnchorSource = null;
+
     private NpcRoutePlanner() {
     }
 
@@ -38,12 +46,25 @@ final class NpcRoutePlanner {
         UNKNOWN_LOCATION_LOGGED.clear();
         MISSING_CONFIG_POINT_LOGGED.clear();
         HARD_ENDPOINT_WARNED.clear();
+        CANONICAL_NPC_ID_CACHE.clear();
+        cachedIndoorEntryPoints = null;
+        cachedIndoorToOutdoorMap = null;
+        cachedIndoorAnchorSource = null;
     }
 
     // ---- public route resolution entry point ----
 
     static NpcRouteContext resolveRoute(ServerLevel level, String npcId, NpcRuntimeState state) {
         String canonicalNpcId = canonicalNpcId(npcId);
+        if (state != null) {
+            String namedPointId = state.namedPointId();
+            if (namedPointId != null && !namedPointId.isBlank()) {
+                NpcRouteContext directScheduleRoute = resolveGenericScheduleRoute(level, canonicalNpcId, state);
+                if (directScheduleRoute != null) {
+                    return directScheduleRoute;
+                }
+            }
+        }
         NpcRouteContext profileRoute = resolveProfileRoute(canonicalNpcId, state);
         if (profileRoute != null) {
             return profileRoute;
@@ -55,21 +76,38 @@ final class NpcRoutePlanner {
         if (npcId == null || npcId.isBlank()) {
             return "";
         }
-        return npcId.trim().toLowerCase(Locale.ROOT);
+        return CANONICAL_NPC_ID_CACHE.computeIfAbsent(npcId, k -> k.trim().toLowerCase(Locale.ROOT));
+    }
+
+    private static void ensureIndoorCaches() {
+        // Invalidate if the underlying data source has been replaced (e.g. /reload).
+        Map<String, NpcLocationAnchor> currentAnchors = NpcDataRegistry.locationAnchors();
+        if (cachedIndoorEntryPoints != null && cachedIndoorAnchorSource == currentAnchors) return;
+        List<Vec3> entries = new ArrayList<>();
+        Map<Vec3, Vec3> indoorToOutdoor = new HashMap<>();
+        for (Map.Entry<String, NpcLocationAnchor> entry : currentAnchors.entrySet()) {
+            NpcLocationAnchor anchor = entry.getValue();
+            if (anchor.indoorEntryPoint().isEmpty()) continue;
+            Vec3 entryVec = pointFromConfigStrict(anchor.indoorEntryPoint(), null, entry.getKey());
+            if (entryVec == null) continue;
+            entries.add(entryVec);
+            if (!anchor.outdoorDoorPoint().isEmpty()) {
+                Vec3 outdoor = pointFromConfigStrict(anchor.outdoorDoorPoint(), null, entry.getKey());
+                if (outdoor != null) {
+                    indoorToOutdoor.put(entryVec, outdoor);
+                }
+            }
+        }
+        cachedIndoorEntryPoints = entries;
+        cachedIndoorToOutdoorMap = indoorToOutdoor;
+        cachedIndoorAnchorSource = currentAnchors;
     }
 
     static Vec3 nearestKnownIndoorEntry(Vec3 pos) {
+        ensureIndoorCaches();
         Vec3 nearest = null;
         double best = Double.MAX_VALUE;
-        for (Map.Entry<String, NpcLocationAnchor> entry : NpcDataRegistry.locationAnchors().entrySet()) {
-            NpcLocationAnchor anchor = entry.getValue();
-            if (anchor.indoorEntryPoint().isEmpty()) {
-                continue;
-            }
-            Vec3 entryVec = pointFromConfigStrict(anchor.indoorEntryPoint(), null, entry.getKey());
-            if (entryVec == null) {
-                continue;
-            }
+        for (Vec3 entryVec : cachedIndoorEntryPoints) {
             double d = pos.distanceToSqr(entryVec);
             if (d < best) {
                 best = d;
@@ -80,13 +118,10 @@ final class NpcRoutePlanner {
             return nearest;
         }
         // Legacy fallback
-        Vec3[] entries = {pointFromConfig("seedshop_inner_entry", SEEDSHOP_INNER_ENTRY)};
-        for (Vec3 entry : entries) {
-            double d = pos.distanceToSqr(entry);
-            if (d < best) {
-                best = d;
-                nearest = entry;
-            }
+        Vec3 entry = pointFromConfig("seedshop_inner_entry", SEEDSHOP_INNER_ENTRY);
+        double d = pos.distanceToSqr(entry);
+        if (d < best) {
+            nearest = entry;
         }
         return nearest;
     }
@@ -95,17 +130,11 @@ final class NpcRoutePlanner {
         if (indoorEntry == null) {
             return null;
         }
-        for (Map.Entry<String, NpcLocationAnchor> entry : NpcDataRegistry.locationAnchors().entrySet()) {
-            NpcLocationAnchor anchor = entry.getValue();
-            if (anchor.indoorEntryPoint().isEmpty() || anchor.outdoorDoorPoint().isEmpty()) {
-                continue;
-            }
-            Vec3 entryVec = pointFromConfigStrict(anchor.indoorEntryPoint(), null, entry.getKey());
-            if (entryVec != null && indoorEntry.distanceToSqr(entryVec) < 4.0D) {
-                Vec3 doorVec = pointFromConfigStrict(anchor.outdoorDoorPoint(), null, entry.getKey());
-                if (doorVec != null) {
-                    return doorVec;
-                }
+        ensureIndoorCaches();
+        // Check cached indoor→outdoor map first
+        for (Map.Entry<Vec3, Vec3> mapped : cachedIndoorToOutdoorMap.entrySet()) {
+            if (indoorEntry.distanceToSqr(mapped.getKey()) < 4.0D) {
+                return mapped.getValue();
             }
         }
         // Legacy fallback
@@ -238,23 +267,30 @@ final class NpcRoutePlanner {
             return null;
         }
 
-        // If the active schedule provides a named point ("@point_id"), prefer it as
-        // the final indoor destination for profile routes that include a warp step.
-        // This prevents hard-coded profile endpoints from overriding per-time schedule targets
-        // such as Abigail gaming/sleep points inside SeedShop.
+        // If the active schedule provides a named point ("@point_id"), always prefer it
+        // as the final destination — both for indoor routes (after warp) and outdoor-only
+        // routes. This prevents hard-coded profile endpoints from overriding per-time
+        // schedule targets such as town hangout vs football, or indoor sleep vs gaming points.
         String namedPointId = state.namedPointId();
         if (namedPointId != null && !namedPointId.isBlank()) {
             Vec3 scheduleNamedTarget = pointFromConfigStrict(namedPointId, state, canonicalLocation);
             if (scheduleNamedTarget != null) {
-                boolean hasWarp = destination.stream().anyMatch(step -> step.mode == RouteStepMode.WARP);
-                if (hasWarp) {
-                    int last = destination.size() - 1;
-                    NpcRouteStep lastStep = destination.get(last);
-                    if (lastStep.mode == RouteStepMode.WALK) {
-                        destination.set(last, NpcRouteStep.walk(namedPointId, scheduleNamedTarget));
-                    } else {
-                        destination.add(NpcRouteStep.walk(namedPointId, scheduleNamedTarget));
-                    }
+                // If the named point is outdoor but the profile route contains a WARP step,
+                // abandon the profile route entirely — the NPC would warp indoor and then
+                // try to A* walk to unreachable outdoor coordinates, causing infinite
+                // plan rebuilds.  Fall through to resolveGenericScheduleRoute() instead.
+                boolean routeHasWarp = destination.stream()
+                        .anyMatch(s -> s.mode == RouteStepMode.WARP);
+                if (routeHasWarp && !isPointIndoor(namedPointId)) {
+                    return null;
+                }
+
+                int last = destination.size() - 1;
+                NpcRouteStep lastStep = destination.get(last);
+                if (lastStep.mode == RouteStepMode.WALK) {
+                    destination.set(last, NpcRouteStep.walk(namedPointId, scheduleNamedTarget));
+                } else {
+                    destination.add(NpcRouteStep.walk(namedPointId, scheduleNamedTarget));
                 }
             }
         }
@@ -370,6 +406,22 @@ final class NpcRoutePlanner {
         }
 
         return new Vec3(obj.get("x").getAsDouble(), obj.get("y").getAsDouble(), obj.get("z").getAsDouble());
+    }
+
+    /**
+     * Checks if the given route point has {@code "indoor": true} in npc_route_points.json.
+     */
+    private static boolean isPointIndoor(String pointId) {
+        JsonObject root = routePointsRoot();
+        if (root == null || !root.has("points") || !root.get("points").isJsonObject()) {
+            return false;
+        }
+        JsonElement element = root.getAsJsonObject("points").get(pointId);
+        if (element == null || !element.isJsonObject()) {
+            return false;
+        }
+        JsonObject obj = element.getAsJsonObject();
+        return obj.has("indoor") && obj.get("indoor").getAsBoolean();
     }
 
     private static JsonObject routePointsRoot() {

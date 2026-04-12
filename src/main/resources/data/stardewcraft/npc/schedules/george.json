@@ -1,0 +1,49 @@
+{
+  "npc_id": "george",
+  "override_vanilla": true,
+  "_format": "time -> \"location @namedPointId facing [behavior]\" | {_goto: key} | {_condition: expr}",
+
+  "GreenRain": {
+    "800": "joshhouse @george_joshhouse_stove 2"
+  },
+
+  "rain": {
+    "630":  "joshhouse @george_joshhouse_tv 1",
+    "1200": "joshhouse @george_joshhouse_kitchen 0",
+    "1500": "joshhouse @george_joshhouse_tv 1",
+    "2000": "joshhouse @george_joshhouse_sleep 0 george_sleep"
+  },
+
+  "spring": {
+    "630":  "joshhouse @george_joshhouse_tv 1",
+    "1200": "joshhouse @george_joshhouse_kitchen 0",
+    "1500": "joshhouse @george_joshhouse_tv 1",
+    "2000": "joshhouse @george_joshhouse_sleep 0 george_sleep"
+  },
+
+  "summer": {
+    "_goto": "spring"
+  },
+
+  "summer_friday": {
+    "630":  "joshhouse @george_joshhouse_tv 1",
+    "1200": "town @george_town_bench 3",
+    "1500": "joshhouse @george_joshhouse_tv 1",
+    "2000": "joshhouse @george_joshhouse_sleep 0 george_sleep"
+  },
+
+  "sunday": {
+    "630":  "joshhouse @george_joshhouse_tv 1",
+    "1000": "seedshop @george_seedshop_visit 1",
+    "1400": "joshhouse @george_joshhouse_tv 1",
+    "2000": "joshhouse @george_joshhouse_sleep 0 george_sleep"
+  },
+
+  "fall": {
+    "_goto": "spring"
+  },
+
+  "winter": {
+    "_goto": "spring"
+  }
+}

@@ -1,4 +1,5 @@
 {
+  "ambientocclusion": false,
   "parent": "block/block",
   "textures": {
     "0": "stardewcraft:block/decor/common/oak_table",

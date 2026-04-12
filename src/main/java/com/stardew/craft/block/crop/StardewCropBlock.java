@@ -387,7 +387,11 @@ public abstract class StardewCropBlock extends Block {
             String blockId = BuiltInRegistries.BLOCK.getKey(block).toString();
             VoxelShape[] resolved = new VoxelShape[MAX_AGE + 1];
             for (int age = 0; age <= MAX_AGE; age++) {
+                // Try simple key first, then compound keys for double-height crops
                 String modelId = ModelVoxelShapeCache.variantModel(blockId, "age=" + age);
+                if (modelId == null || modelId.isBlank()) {
+                    modelId = ModelVoxelShapeCache.variantModel(blockId, "age=" + age + ",half=lower");
+                }
                 if (modelId == null || modelId.isBlank()) {
                     resolved = null;
                     break;

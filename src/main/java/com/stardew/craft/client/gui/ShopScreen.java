@@ -1,6 +1,8 @@
 package com.stardew.craft.client.gui;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.platform.NativeImage;
+import com.stardew.craft.StardewCraft;
 import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
 import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.network.payload.OpenShopScreenPayload;
@@ -24,10 +26,13 @@ import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings("null")
 public class ShopScreen extends Screen {
@@ -92,6 +97,10 @@ public class ShopScreen extends Screen {
     private float closeScale = 1.0f;
     private int currencyX, currencyY;
 
+    // Portrait texture cache (dynamic dimensions, like StardewNpcDialogueScreen)
+    private record PortraitInfo(ResourceLocation texture, int sheetW, int sheetH) {}
+    private static final Map<ResourceLocation, PortraitInfo> PORTRAIT_CACHE = new ConcurrentHashMap<>();
+
     private int   currentIndex = 0;
     private int   hoveredRow   = -1;
     private int   hoveredInvSlot = -1;
@@ -134,9 +143,13 @@ public class ShopScreen extends Screen {
      * Falls back to ShopItemEntry.displayName() if the MC item is unknown.
      */
     private String resolveItemName(ShopItemEntry entry) {
-        ItemStack stack = resolveStack(entry.itemId());
+        String itemId = entry.itemId();
+        boolean isRecipe = itemId.startsWith("recipe:");
+        if (isRecipe) itemId = itemId.substring("recipe:".length());
+        ItemStack stack = resolveStack(itemId);
         if (!stack.isEmpty()) {
-            return stack.getHoverName().getString();
+            String name = stack.getHoverName().getString();
+            return isRecipe ? name + " (" + net.minecraft.client.resources.language.I18n.get("stardewcraft.shop.recipe_suffix") + ")" : name;
         }
         // fallback to whatever the server sent (may be empty for unknown items)
         return entry.displayName().isEmpty() ? entry.itemId() : entry.displayName();
@@ -149,6 +162,8 @@ public class ShopScreen extends Screen {
      */
     /** Resolves a mod item id to an ItemStack (1 unit), or EMPTY on failure. */
     private static ItemStack resolveStack(String itemId) {
+        // Strip recipe: prefix so icon shows the actual dish item
+        if (itemId.startsWith("recipe:")) itemId = itemId.substring("recipe:".length());
         try {
             ResourceLocation rl = ResourceLocation.parse(itemId);
             Item mcItem = BuiltInRegistries.ITEM.get(rl);
@@ -301,14 +316,48 @@ public class ShopScreen extends Screen {
         int cdy = closeY + closeH/2 - (int)(CLOSE_SH*cs/2);
         StardewGuiUtil.drawFromCursors(g, cdx, cdy, CLOSE_U, CLOSE_V, CLOSE_W, CLOSE_SH, cs);
 
-        // 10. Portrait
+        // 10. Portrait — SDV ShopMenu.cs L2008-L2024 parity
+        // SDV: portrait_draw_position = xPositionOnScreen - 320
+        //      Frame = 74×4 = 296 screen px; face at +20,+20; dialogue at Y+312 via drawHoverText
         int portX = panelX - ui(PORTRAIT_OFFSET);
         if (portX > 0 && !ownerNpcId.isEmpty()) {
+            // Frame background from cursors (SDV: Utility.drawWithShadow at portrait_draw_position)
             StardewGuiUtil.drawFromCursors(g, portX, panelY, PORT_U, PORT_V, PORT_W, PORT_SH, s4);
+            int portSize = (int)(PORT_W * s4);
+            // Face on top of frame — uses dynamic texture dimensions
+            drawNpcPortraitInShop(g, portX, panelY, portSize);
+
+            // Dialogue text below portrait in styled box
+            // SDV: drawHoverText at (recalculated_x, yPositionOnScreen + 312)
+            // 312 = 296 (portrait frame) + 16 (gap), all in screen pixels
             if (!ownerDialogue.isEmpty()) {
-                int dy = panelY + (int)(PORT_SH * s4) + ui(8);
-                g.drawWordWrap(font, Component.literal(ownerDialogue),
-                    portX, dy, (int)(PORT_W*s4), 0xF5DEB3);
+                String dialogueText = ownerDialogue;
+                if (ownerDialogue.startsWith("stardewcraft.")) {
+                    dialogueText = Component.translatable(ownerDialogue).getString();
+                }
+                // SDV pre-wraps text to 304 screen px width
+                int wrapWidth = ui(304);
+                List<net.minecraft.util.FormattedCharSequence> wrappedLines =
+                    font.split(Component.literal(dialogueText), wrapWidth);
+                int textH = wrappedLines.size() * font.lineHeight;
+                int boxPad = ui(16);  // padding inside the tooltip box
+                int boxW = wrapWidth + boxPad * 2;
+                int boxH = textH + boxPad * 2;
+                // SDV recalculates X: xPositionOnScreen - MeasureString(text).X - 64
+                // We center the dialogue box under the portrait frame
+                int dlgX = portX + portSize / 2 - boxW / 2;
+                int dlgY = panelY + ui(312);  // SDV: yPositionOnScreen + 312
+
+                // Draw SDV-style tooltip box (same as IClickableMenu.drawHoverText default theme)
+                StardewGuiUtil.drawTextureBox(g, dlgX, dlgY, boxW, boxH);
+
+                // Draw text inside box
+                int textX = dlgX + boxPad;
+                int textY = dlgY + boxPad;
+                for (var line : wrappedLines) {
+                    g.drawString(font, line, textX, textY, 0x5C2B00, false);
+                    textY += font.lineHeight;
+                }
             }
         }
 
@@ -330,6 +379,54 @@ public class ShopScreen extends Screen {
     // =========================================================================
     // Sub-render helpers
     // =========================================================================
+
+    /**
+     * Draw real NPC portrait texture inside the portrait frame.
+     * Uses dynamic NativeImage dimension loading (same as StardewNpcDialogueScreen)
+     * to handle varying texture atlas sizes (128×128, 128×256, 128×320, 128×384).
+     */
+    private void drawNpcPortraitInShop(GuiGraphics g, int x, int y, int size) {
+        String npcId = ownerNpcId.toLowerCase(java.util.Locale.ROOT).trim();
+        // SDV: face at (portrait_draw_position + 20, yPositionOnScreen + 20), scale 4f
+        // Frame = 74 sprite × s4; face = 64 sprite × s4. Margin = (74-64)/2 × s4 = 5×s4 = ui(20)
+        int margin = ui(20);
+        int drawX = x + margin;
+        int drawY = y + margin;
+        int drawSize = size - margin * 2;
+
+        PortraitInfo info = resolvePortraitInfo(npcId);
+        g.blit(info.texture(), drawX, drawY, drawSize, drawSize,
+            0, 0, 64, 64, info.sheetW(), info.sheetH());
+    }
+
+    /** Load portrait texture with actual NativeImage dimensions, cached. */
+    private PortraitInfo resolvePortraitInfo(String npcId) {
+        ResourceLocation portrait = ResourceLocation.fromNamespaceAndPath(
+            StardewCraft.MODID, "textures/portraits/" + npcId + ".png");
+        PortraitInfo cached = PORTRAIT_CACHE.get(portrait);
+        if (cached != null) return cached;
+
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.getResourceManager().getResource(portrait).isEmpty()) {
+            portrait = ResourceLocation.fromNamespaceAndPath(
+                StardewCraft.MODID, "textures/entity/npc/" + npcId + ".png");
+        }
+
+        int w = 128, h = 256; // safe defaults
+        try {
+            var res = mc.getResourceManager().getResource(portrait).orElse(null);
+            if (res != null) {
+                try (var stream = res.open(); NativeImage img = NativeImage.read(stream)) {
+                    w = img.getWidth();
+                    h = img.getHeight();
+                }
+            }
+        } catch (IOException ignored) {}
+
+        PortraitInfo info = new PortraitInfo(portrait, Math.max(64, w), Math.max(64, h));
+        PORTRAIT_CACHE.put(portrait, info);
+        return info;
+    }
 
     // SDV money box sprite: cursors (340,472,65,17) ×4 = background banner
     // SDV digit sprite:    cursors (286, 502-digit*8, 5, 8) ×4, color=Maroon (0x800000)
@@ -456,8 +553,11 @@ public class ShopScreen extends Screen {
         // Item icon
         int iconX = rowX + ui(24);
         int iconY = rowY + ui(24);
-        float alpha = canBuy ? 1.0f : 0.25f; // SDV: failedCanPurchaseCheck → 0.25
-        drawItemIconAt(g, item.itemId(), iconX, iconY, s4, alpha);
+        boolean isRecipeItem = item.itemId().startsWith("recipe:");
+        // SDV parity: recipes render at 0.5 transparency and 0.75 scale;
+        // non-buyable items render at 0.25 transparency.
+        float alpha = canBuy ? (isRecipeItem ? 0.5f : 1.0f) : 0.25f;
+        drawItemIconAt(g, item.itemId(), iconX, iconY, s4, alpha, isRecipeItem);
 
         // Name — resolved from MC registry (localised), not hardcoded
         String name = truncateName(resolveItemName(item), item.price() > 0);
@@ -465,7 +565,11 @@ public class ShopScreen extends Screen {
         g.drawString(font, name, rowX + ui(104), rowY + ui(28),
             canBuy ? 0x1a1a1a : 0x888888, false);
 
-        // Price + coin (SDV: right-60 text, right-52 coin at Y+40-4)
+        // Price + coin + trade (SDV ShopMenu.cs L1932-1961)
+        // SDV approach: draw price first, then shift 'right' leftward, then draw trade items.
+        int tradeRight = rowX + rowWGui; // SDV: right = forSaleButton.bounds.Right
+        int tradeIconY = rowY + ui(28);  // default (no-price) Y for trade icon
+        int tradeTextY = rowY + ui(28);  // default Y for trade count text
         if (item.price() > 0) {
             String prStr = item.price() + " ";
             int prW   = font.width(prStr);
@@ -480,6 +584,11 @@ public class ShopScreen extends Screen {
                 rowX + rowWGui - ui(52), rowY + ui(36),
                 COIN_U, COIN_V, COIN_W, COIN_SH, s4);
             if (coinA < 1f) g.setColor(1f,1f,1f,1f);
+
+            // SDV: right -= SpriteText.getWidthOfString(price + " ") + 96
+            tradeRight -= prW + ui(96);
+            tradeIconY = rowY + ui(20);
+            tradeTextY = rowY + ui(28);
         }
 
         // Trade requirement (SDV: stock.TradeItem)
@@ -487,8 +596,11 @@ public class ShopScreen extends Screen {
             ItemStack trade = resolveStack(item.tradeItemId());
             int req = Math.max(1, item.tradeItemCount());
             boolean enough = hasTrade;
-            int tx = rowX + rowWGui - ui(item.price() > 0 ? 140 : 88);
-            int ty = rowY + ui(item.price() > 0 ? 20 : 28);
+            String reqText = "x" + req;
+            int reqTextW = font.width(reqText);
+            // SDV: icon at (right - 88 - textWidth, tradeIconDrawY)
+            int tx = tradeRight - ui(88) - reqTextW;
+            int ty = tradeIconY;
 
             if (!trade.isEmpty()) {
                 if (!enough) g.setColor(1f, 1f, 1f, 0.25f);
@@ -496,30 +608,67 @@ public class ShopScreen extends Screen {
                 if (!enough) g.setColor(1f, 1f, 1f, 1f);
             }
 
-            String reqText = "x" + req;
-            g.drawString(font, reqText, tx + ui(20), ty + ui(8),
+            // SDV: text at (right - textWidth - 16, tradeTextDrawY)
+            g.drawString(font, reqText, tradeRight - reqTextW - ui(16), tradeTextY,
                 enough ? 0x404040 : 0x992222, false);
         }
 
-        // Limited stock counter
-        if (item.stock() != Integer.MAX_VALUE && item.stock() > 0) {
-            String sc = "(" + item.stock() + ")";
-            int prW = item.price() > 0 ? font.width(item.price() + " ") + ui(96) : ui(16);
-            g.drawString(font, sc, rowX + rowWGui - prW - font.width(sc) - ui(4),
-                rowY + ui(28), 0x888888, false);
+        // SDV stock count: drawn as tiny digits on item icon, NOT as freestanding text.
+        // SDV explicitly skips stock digits for "ClintUpgrade" shop and recipe items.
+        // Stock info is already shown in tooltip.
+        if (item.stock() != Integer.MAX_VALUE && item.stock() > 0
+                && !"ClintUpgrade".equals(shopId) && !isRecipeItem) {
+            String sc = String.valueOf(item.stock());
+            // SDV: Utility.drawTinyDigits at icon bottom-right (drawPos + (64-w+3, 47))
+            // MC icon is 16×16 GUI units. Scale 0.75 for small text.
+            int stockX = iconX + 16 - (int)(font.width(sc) * 0.75f) + 1;
+            int stockY = iconY + 12;
+            g.pose().pushPose();
+            g.pose().translate(stockX, stockY, 200);
+            g.pose().scale(0.75f, 0.75f, 1f);
+            g.drawString(font, sc, 0, 0, canBuy ? 0xFFFFFF : 0x888888, true);
+            g.pose().popPose();
         }
     }
 
+    /** SDV recipe overlay texture (objectSpriteSheet index 451 — the scroll/blueprint icon). */
+    private static final ResourceLocation RECIPE_OVERLAY_TEXTURE =
+        ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/recipe_overlay.png");
+
     private void drawItemIconAt(GuiGraphics g, String itemId,
-                                 int x, int y, float s4, float alpha) {
+                                 int x, int y, float s4, float alpha, boolean isRecipe) {
+        // Strip recipe: prefix so the dish icon is displayed
+        if (itemId.startsWith("recipe:")) itemId = itemId.substring("recipe:".length());
         try {
             ResourceLocation rl = ResourceLocation.parse(itemId);
             Item mcItem = BuiltInRegistries.ITEM.get(rl);
             if (mcItem == null || mcItem == Items.AIR) return;
-            if (alpha < 1f) g.setColor(1f,1f,1f,alpha);
-            // Render at native MC 16x16 size; avoid SDV-space over-scaling.
-            g.renderItem(new ItemStack(mcItem), x, y);
-            if (alpha < 1f) g.setColor(1f,1f,1f,1f);
+
+            // SDV parity: recipes draw the dish icon at 0.75× scale and semi-transparent
+            if (isRecipe) {
+                g.pose().pushPose();
+                // Scale 0.75× around the icon center (8,8 in 16×16 space)
+                float recipeScale = 0.75f;
+                float cx = x + 8f, cy = y + 8f;
+                g.pose().translate(cx, cy, 0);
+                g.pose().scale(recipeScale, recipeScale, 1f);
+                g.pose().translate(-cx, -cy, 0);
+                g.setColor(1f, 1f, 1f, alpha);
+                g.renderItem(new ItemStack(mcItem), x, y);
+                g.setColor(1f, 1f, 1f, 1f);
+                g.pose().popPose();
+
+                // SDV: draw recipe scroll overlay at location+(16,16) at 3× sprite scale
+                // = 48×48 SDV px in a 64×64 slot → 12×12 GUI px in MC's 16×16 item slot
+                int overlaySize = 12;
+                int ox = x + 16 - overlaySize;  // = x + 4
+                int oy = y + 16 - overlaySize;  // = y + 4
+                g.blit(RECIPE_OVERLAY_TEXTURE, ox, oy, overlaySize, overlaySize, 0, 0, 16, 16, 16, 16);
+            } else {
+                if (alpha < 1f) g.setColor(1f, 1f, 1f, alpha);
+                g.renderItem(new ItemStack(mcItem), x, y);
+                if (alpha < 1f) g.setColor(1f, 1f, 1f, 1f);
+            }
         } catch (Exception ignored) {}
     }
 
@@ -802,17 +951,25 @@ public class ShopScreen extends Screen {
             if (old.stock()!=Integer.MAX_VALUE) {
                 forSale.set(idx,new ShopItemEntry(old.itemId(),old.displayName(),old.description(),
                     old.price(),Math.max(0,old.stock()-r.quantity()),old.tradeItemId(),old.tradeItemCount(),
-                    old.seasons(),old.minYear()));
+                    old.seasons(),old.minYear(),old.minMineLevel(),old.mailFlag()));
             }
         }
         if (!r.itemId().isEmpty() && r.quantity() > 0) {
-            ItemStack bought = resolveStack(r.itemId());
-            if (!bought.isEmpty()) {
-                bought.setCount(r.quantity());
-                if (heldItem.isEmpty()) {
-                    heldItem = bought;
-                } else if (ItemStack.isSameItemSameComponents(heldItem, bought)) {
-                    heldItem.grow(bought.getCount());
+            // Recipe purchases are immediate unlocks — no physical item to hold.
+            // Do NOT remove the entry from forSale to keep indices in sync with server.
+            // The stock is already set to 0 above, so the item shows as out-of-stock.
+            if (r.itemId().startsWith("recipe:")) {
+                // nothing else to do — recipe is unlocked server-side,
+                // stock=0 prevents re-purchase, rendering greys it out.
+            } else {
+                ItemStack bought = resolveStack(r.itemId());
+                if (!bought.isEmpty()) {
+                    bought.setCount(r.quantity());
+                    if (heldItem.isEmpty()) {
+                        heldItem = bought;
+                    } else if (ItemStack.isSameItemSameComponents(heldItem, bought)) {
+                        heldItem.grow(bought.getCount());
+                    }
                 }
             }
         }

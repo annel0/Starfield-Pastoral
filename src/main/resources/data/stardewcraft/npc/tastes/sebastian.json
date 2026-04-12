@@ -1,0 +1,36 @@
+{
+  "npc_id": "sebastian",
+  "_vanilla_ref": "84=Frozen Tear 227=Sashimi 236=Pumpkin Soup 575=Obsidian 305=Void Egg FrogEgg=Frog Egg | Like: 267=Flounder 614=Green Tea 276=Pumpkin Book_Void SkillBook_4 | Dislike: -81(Forage Minerals) -80(Flowers) | Hate: -5(Eggs except Void/Dino) 459=Mead 195=Omelet 201=Complete Breakfast 240=Farmer's Lunch 330=Clay -26(Artisan) 873=Pirate Treasure",
+
+  "loved": [
+    "stardewcraft:frozen_tear",
+    "stardewcraft:obsidian",
+    "stardewcraft:void_egg",
+    "stardewcraft:pumpkin_soup"
+  ],
+  "_loved_not_yet_in_mod": ["sashimi(227)", "frog_egg(FrogEgg)"],
+
+  "liked": [
+    "stardewcraft:pumpkin"
+  ],
+  "_liked_not_yet_in_mod": ["flounder(267)", "green_tea(614)", "book_void(Book_Void)", "skillbook_4(SkillBook_4)"],
+
+  "neutral": [],
+
+  "disliked": [],
+  "_disliked_categories_note": "Categories -81(Forage Minerals) -80(Flowers) not yet mapped at category level",
+
+  "hated": [
+    "stardewcraft:egg",
+    "stardewcraft:duck_egg",
+    "stardewcraft:clay"
+  ],
+  "_hated_not_yet_in_mod": ["mead(459)", "omelet(195)", "complete_breakfast(201)", "farmers_lunch(240)", "pirate_treasure(873)"],
+  "_hated_categories_note": "Category -5(Eggs except Void/Dino) listed explicitly; -26(Artisan Goods) not yet mapped",
+
+  "loved_msg": "I really love this. How did you know?",
+  "liked_msg": "Thanks, I like this.",
+  "neutral_msg": "...thanks.",
+  "disliked_msg": "...?",
+  "hated_msg": "...I hate this."
+}

@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:spinner",
+    "stardewcraft:dressed_spinner",
+    "stardewcraft:trap_bobber",
+    "stardewcraft:cork_bobber",
+    "stardewcraft:lead_bobber",
+    "stardewcraft:treasure_hunter",
+    "stardewcraft:barbed_hook",
+    "stardewcraft:curiosity_lure"
+  ]
+}

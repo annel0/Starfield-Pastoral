@@ -17,8 +17,11 @@ import java.util.List;
 @SuppressWarnings("null")
 public class DecorBlockEntity extends net.minecraft.world.level.block.entity.BlockEntity {
     private static final String TAG_STYLE_ID = "StyleId";
+    private static final String TAG_SEGMENT_OVERRIDE = "SegmentOverride";
 
     private String styleId;
+    /** When >= 0, forces this segment value instead of auto-calculating from column position. */
+    private int segmentOverride = -1;
 
     public DecorBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.DECOR_BLOCK.get(), pos, state);
@@ -42,6 +45,24 @@ public class DecorBlockEntity extends net.minecraft.world.level.block.entity.Blo
         }
     }
 
+    public int getSegmentOverride() {
+        return segmentOverride;
+    }
+
+    /**
+     * Set segment override. Pass -1 for auto-mode (compute from column),
+     * or 0/1/2 for forced bottom/middle/top.
+     */
+    @SuppressWarnings("null")
+    public void setSegmentOverride(int segment) {
+        this.segmentOverride = segment;
+        setChanged();
+        if (level != null) {
+            syncVisualState();
+            level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
+        }
+    }
+
     private DecorationType resolveType(BlockState state) {
         if (state.getBlock() == com.stardew.craft.block.ModBlocks.WALLPAPER_BLOCK.get()) {
             return DecorationType.WALLPAPER;
@@ -53,6 +74,9 @@ public class DecorBlockEntity extends net.minecraft.world.level.block.entity.Blo
     protected void saveAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider provider) {
         super.saveAdditional(tag, provider);
         tag.putString(TAG_STYLE_ID, styleId);
+        if (segmentOverride >= 0) {
+            tag.putInt(TAG_SEGMENT_OVERRIDE, segmentOverride);
+        }
     }
 
     @Override
@@ -61,6 +85,7 @@ public class DecorBlockEntity extends net.minecraft.world.level.block.entity.Blo
         styleId = tag.contains(TAG_STYLE_ID)
             ? tag.getString(TAG_STYLE_ID)
             : resolveStyleIdFromBlockState(getBlockState());
+        segmentOverride = tag.contains(TAG_SEGMENT_OVERRIDE) ? tag.getInt(TAG_SEGMENT_OVERRIDE) : -1;
     }
 
     @Override
@@ -97,7 +122,7 @@ public class DecorBlockEntity extends net.minecraft.world.level.block.entity.Blo
                 updated = current.setValue(WallpaperBlock.STYLE, visual);
             }
             if (updated.hasProperty(WallpaperBlock.SEGMENT)) {
-                int segment = resolveWallpaperSegment();
+                int segment = segmentOverride >= 0 ? segmentOverride : resolveWallpaperSegment();
                 if (updated.getValue(WallpaperBlock.SEGMENT) != segment) {
                     updated = updated.setValue(WallpaperBlock.SEGMENT, segment);
                 }

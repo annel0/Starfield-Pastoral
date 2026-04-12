@@ -12,6 +12,11 @@
 
     "stardewcraft:earth_gold_ore",
     "stardewcraft:frost_gold_ore",
-    "stardewcraft:lava_gold_ore"
+    "stardewcraft:lava_gold_ore",
+
+    "stardewcraft:ruby_ore",
+    "stardewcraft:emerald_ore",
+    "stardewcraft:diamond_ore",
+    "stardewcraft:fire_quartz"
   ]
 }

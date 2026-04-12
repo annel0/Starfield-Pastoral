@@ -189,4 +189,9 @@ public final class EternalCollapseTracker {
             center.x, center.y + 0.5, center.z,
             10, state.radius * 0.35, 0.3, state.radius * 0.35, 0.02);
     }
+
+    /** Clean up state when a player logs out to prevent memory leaks. */
+    public static void removePlayer(UUID playerId) {
+        ACTIVE.remove(playerId);
+    }
 }

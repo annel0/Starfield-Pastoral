@@ -26,6 +26,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
  * 负责数据的自动保存和同步
  */
 @EventBusSubscriber(modid = StardewCraft.MODID)
+@SuppressWarnings("null")
 public class PlayerDataEventHandler {
     
     private static int tickCounter = 0;
@@ -44,6 +45,24 @@ public class PlayerDataEventHandler {
             
             // 同步数据到客户端
             syncPlayerData(player, data);
+
+            // 同步任务日志到客户端
+            com.stardew.craft.quest.QuestManager qm = data.getQuestManager();
+            net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,
+                com.stardew.craft.quest.network.QuestLogSyncPayload.fromQuests(
+                    qm.getQuestLog(), qm.getBillboardQuestsDone(), qm.getDailyQuestCompletedDays()));
+
+            // 如果玩家登录时已在星露谷维度，确保农场初始化
+            // （PlayerChangedDimensionEvent 在这种情况下不会触发）
+            if (player.serverLevel().dimension() == com.stardew.craft.core.ModDimensions.STARDEW_VALLEY) {
+                com.stardew.craft.dimension.FarmInitializer.ensureInitialized(player.serverLevel());
+            }
+
+            // 首次登录/每次登录时触发 fireDayStarted 以补偿新存档第1天没有过夜结算的情况
+            // （advanceDay 只在过夜时调用，新存档春1没有过夜，quest trigger 不会触发）
+            com.stardew.craft.time.StardewTimeManager tm = com.stardew.craft.time.StardewTimeManager.get();
+            int absDay = (tm.getCurrentYear() - 1) * 112 + tm.getCurrentSeason() * 28 + tm.getCurrentDay();
+            com.stardew.craft.quest.StardewQuestEvents.fireDayStarted(player, absDay);
         }
     }
     
@@ -53,6 +72,18 @@ public class PlayerDataEventHandler {
     @SubscribeEvent
     public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
+            // 清理动态光源
+            PlayerGlowHandler.onPlayerLeave(player);
+
+            // Clean up any pending geode treasure (prevents memory leak + item loss)
+            com.stardew.craft.shop.GeodeLootService.onPlayerLogout(player);
+
+            // Clean up all combat tracker static maps (prevents memory leak)
+            com.stardew.craft.combat.CombatTrackerCleanup.onPlayerLogout(player.getUUID());
+
+            // Clean up fishing session
+            com.stardew.craft.fishing.server.FishingSessionManager.onPlayerLogout(player);
+
             PlayerStardewData data = PlayerDataManager.getPlayerData(player);
             if (data.isDirty()) {
                 data.markClean();
@@ -72,6 +103,13 @@ public class PlayerDataEventHandler {
             if (player.level().dimension() == ModDimensions.STARDEW_VALLEY
                 || player.level().dimension() == ModMiningDimensions.STARDEW_MINING) {
                 event.setCanceled(true);
+                // 击倒状态下不再重复处理
+                if (PassOutService.isKnockedOut(player)) {
+                    player.setHealth(player.getMaxHealth());
+                    return;
+                }
+                // 兜底触发：若死因绕过了 onPlayerHurt（例如虚空、/kill），
+                // 由 PassOutService 的防重入机制保证不会和 onPlayerHurt 重复执行。
                 StardewDamageHooks.onHealthDepleted(player, event.getSource());
                 // 保险：防止已进入 dying 状态
                 player.setHealth(player.getMaxHealth());
@@ -125,22 +163,75 @@ public class PlayerDataEventHandler {
             return;
         }
 
+        // 击倒状态：完全免疫所有伤害（等待传送中）
+        if (PassOutService.isKnockedOut(player)) {
+            event.setAmount(0.0f);
+            return;
+        }
+
         // 取消 MC 原版扣血（我们用星露谷血条承载伤害）。
         event.setAmount(0.0f);
+
+        // 环境伤害无敌帧检查：invulnerableTime > 0 时跳过伤害
+        // NeoForge 的 LivingIncomingDamageEvent 在原版 invulnerableTime 检查之前触发，
+        // 因此需要在这里手动判断
+        if (player.invulnerableTime > 0 && event.getSource().getEntity() == null) {
+            player.setHealth(player.getMaxHealth());
+            return;
+        }
 
         PlayerStardewData data = PlayerDataManager.getPlayerData(player);
         int sdMax = Math.max(1, data.getMaxHealth());
         float mcMax = Math.max(1.0f, player.getMaxHealth());
-        float sdDamageFloat = amount * (sdMax / mcMax);
+
+        // 怪物攻击的 ATTACK_DAMAGE 已经是 SDV 数值，直接使用；
+        // 环境伤害（摔落、火焰等无攻击实体）是 MC 数值，需要按 HP 比例映射到 SDV。
+        net.minecraft.world.entity.Entity dmgSourceEntity = event.getSource().getEntity();
+        float sdDamageFloat = (dmgSourceEntity != null)
+                ? amount
+                : amount * (sdMax / mcMax);
 
         // 武器防御（握持生效）
         WeaponStats weaponStats = WeaponStats.fromItemStack(player.getMainHandItem());
         float weaponDefense = weaponStats.getDefense();
         float foodDefense = data.getTempDefenseBonus();
-        float totalDefense = weaponDefense + foodDefense;
+        // 装备防御（戒指+靴子）
+        com.stardew.craft.combat.equipment.EquipmentStats eqStats = com.stardew.craft.combat.equipment.EquipmentResolver.getMergedStats(player);
+        float equipDefense = eqStats.getDefense();
+        float totalDefense = weaponDefense + foodDefense + equipDefense;
         if (totalDefense > 0) {
             float reduction = DamageCalculator.calculateDefenseReductionFromDefense(sdDamageFloat, totalDefense);
             sdDamageFloat = Math.max(0.0f, sdDamageFloat - reduction);
+        }
+
+        // ── 戒指被动效果 ──
+
+        // 史莱姆克星戒指：免疫史莱姆伤害
+        net.minecraft.world.entity.Entity sourceEntity = event.getSource().getEntity();
+        if (eqStats.hasSlimeCharmer() && sourceEntity != null) {
+            net.minecraft.resources.ResourceLocation entityTypeId = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE
+                    .getKey(sourceEntity.getType());
+            String entityType = entityTypeId.toString();
+            if (entityType.contains("slime") || entityType.contains("green_slime")
+                    || entityType.contains("frost_jelly") || entityType.contains("sludge")) {
+                player.setHealth(player.getMaxHealth());
+                player.getFoodData().setFoodLevel(20);
+                player.getFoodData().setSaturation(5.0f);
+                return; // 完全免疫史莱姆伤害
+            }
+        }
+
+        // 约巴之戒：受伤时 50% 概率触发护盾（完全抵消本次伤害）
+        if (eqStats.hasYobaProtection() && player.getRandom().nextFloat() < 0.50f) {
+            player.setHealth(player.getMaxHealth());
+            player.getFoodData().setFoodLevel(20);
+            player.getFoodData().setSaturation(5.0f);
+            return; // 护盾挡住了伤害
+        }
+
+        // 保护戒指：10% 概率减少伤害
+        if (eqStats.hasProtection() && player.getRandom().nextFloat() < 0.10f) {
+            sdDamageFloat *= 0.5f;
         }
 
         int sdDamage = (int) Math.ceil(sdDamageFloat);
@@ -155,18 +246,46 @@ public class PlayerDataEventHandler {
         // 矮人剑：堡垒态受击触发地脉震波
         com.stardew.craft.combat.skill.DwarfFortressTracker.onDamageTaken(player, nowTick);
 
+        // 荆棘戒指：受伤时反射伤害给攻击者
+        if (eqStats.hasThorns() && sourceEntity instanceof net.minecraft.world.entity.LivingEntity attacker) {
+            net.minecraft.world.damagesource.DamageSource thornsDmg = player.damageSources().thorns(player);
+            attacker.hurt(thornsDmg, sdDamage * 0.5f);
+        }
+
         int oldSdHealth = data.getHealth();
         int newSdHealth = Math.max(0, oldSdHealth - sdDamage);
         data.setHealth(newSdHealth);
         syncPlayerData(player, data);
 
-        // 生命值清零：不要死，走接口（后续接“晕倒”等）。
+        // 凤凰戒指：生命值归零时复活（每天一次）
+        if (newSdHealth == 0 && eqStats.hasPhoenix()) {
+            long lastPhoenixDay = data.getLastPhoenixReviveDay();
+            long currentDay = player.level().getGameTime() / 24000L;
+            if (lastPhoenixDay < currentDay) {
+                data.setLastPhoenixReviveDay(currentDay);
+                int reviveHealth = Math.max(1, data.getMaxHealth() / 2);
+                data.setHealth(reviveHealth);
+                syncPlayerData(player, data);
+                player.setHealth(player.getMaxHealth());
+                player.getFoodData().setFoodLevel(20);
+                player.getFoodData().setSaturation(5.0f);
+                return; // 复活成功，跳过晕倒
+            }
+        }
+
+        // 生命值清零：不要死，走接口（后续接"晕倒"等）。
         if (newSdHealth == 0) {
             DamageSource source = event.getSource();
             StardewDamageHooks.onHealthDepleted(player, source);
         }
 
-        // 维持原版血/饱食度满，避免被其他机制“补刀”。
+        // 环境伤害（无攻击者）：设置无敌帧，防止每 tick 都造成伤害
+        // 原版 setAmount(0) 不会触发 MC 无敌帧，需手动补偿
+        if (dmgSourceEntity == null && player.invulnerableTime < 10) {
+            player.invulnerableTime = 10; // 0.5 秒无敌帧
+        }
+
+        // 维持原版血/饱食度满，避免被其他机制"补刀"。
         player.setHealth(player.getMaxHealth());
         player.getFoodData().setFoodLevel(20);
         player.getFoodData().setSaturation(5.0f);
@@ -345,6 +464,15 @@ public class PlayerDataEventHandler {
 
         applyMagneticPull(player, PlayerDataManager.getPlayerData(player));
 
+        // 发光戒指：动态光源
+        PlayerGlowHandler.tick(player);
+
+        // 法师塔指南针：服务端查找最近结构
+        if (player.getMainHandItem().getItem() instanceof com.stardew.craft.item.tool.WizardTowerCompassItem
+            || player.getOffhandItem().getItem() instanceof com.stardew.craft.item.tool.WizardTowerCompassItem) {
+            com.stardew.craft.item.tool.WizardTowerCompassItem.serverTick(player);
+        }
+
         if (player.level().dimension() != ModDimensions.STARDEW_VALLEY
             && player.level().dimension() != ModMiningDimensions.STARDEW_MINING) {
             return;
@@ -353,6 +481,16 @@ public class PlayerDataEventHandler {
         // 创造/旁观不强制。
         if (player.isCreative() || player.isSpectator()) {
             return;
+        }
+
+        // SDV 原版：体力 ≤ -15 时触发体力耗尽晕倒
+        {
+            PlayerStardewData tickData = PlayerDataManager.getPlayerData(player);
+            if (tickData.getEnergy() <= -15f) {
+                // 重置能量到 0（防止反复触发）
+                tickData.setEnergy(0f);
+                PassOutService.onExhaustionPassOut(player);
+            }
         }
 
         if (player.getHealth() < player.getMaxHealth()) {
@@ -408,6 +546,12 @@ public class PlayerDataEventHandler {
     public static void syncPlayerData(ServerPlayer player, PlayerStardewData data) {
         PlayerDataSyncPacket packet = PlayerDataSyncPacket.fromPlayerData(data);
         PacketDistributor.sendToPlayer(player, packet);
+        // sync equipment slots
+        PacketDistributor.sendToPlayer(player, new com.stardew.craft.network.payload.EquipmentSyncPayload(
+                data.getEquippedLeftRing(),
+                data.getEquippedRightRing(),
+                data.getEquippedBoots()
+        ));
     }
 
     /**
@@ -416,6 +560,11 @@ public class PlayerDataEventHandler {
     @SuppressWarnings("null")
     private static void applyMagneticPull(ServerPlayer player, PlayerStardewData data) {
         int radiusBonus = data.getTempMagneticRadiusBonus();
+        // Add equipment magnetic radius (rings/boots)
+        com.stardew.craft.combat.equipment.EquipmentStats eqStats = com.stardew.craft.combat.equipment.EquipmentResolver.getMergedStats(player);
+        // magneticRadius is in SDV units (64=1 tile), convert to blocks: /64 → but in RingType we use raw SDV values (64, 128)
+        // Small Magnet = +64 (1 block), Magnet Ring = +128 (2 blocks), Iridium Band = +128, Glowstone = +128
+        radiusBonus += (int) Math.round(eqStats.getMagneticRadius() / 64.0);
         if (radiusBonus <= 0) {
             return;
         }

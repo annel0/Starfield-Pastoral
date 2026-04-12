@@ -10,10 +10,19 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
+@SuppressWarnings("null")
 public class StardewPickaxeItem extends PickaxeItem implements IStardewItem {
 	private final int stardewTier;
 	private final float vanillaLikeSpeed;
 	private final float extraVanillaSpeed;
+
+	// SDV 工具没有耐久
+	@Override
+	public boolean isDamageable(ItemStack stack) { return false; }
+	@Override
+	public int getMaxDamage(ItemStack stack) { return 0; }
+	@Override
+	public void setDamage(ItemStack stack, int damage) { /* no-op */ }
 
 	/**
 	 * @param stardewTier 0..4, used for mod-specific gating.
@@ -21,7 +30,7 @@ public class StardewPickaxeItem extends PickaxeItem implements IStardewItem {
 	 * @param extraVanillaSpeed Extra speed added on vanilla pickaxe-mineable blocks (used for tier4 being "a bit faster").
 	 */
 	public StardewPickaxeItem(int stardewTier, Tier tier, float extraVanillaSpeed, Properties properties) {
-		super(tier, properties.stacksTo(1).setNoRepair());
+		super(new IndestructibleTier(tier), properties.stacksTo(1).setNoRepair());
 		this.stardewTier = stardewTier;
 		this.vanillaLikeSpeed = tier.getSpeed();
 		this.extraVanillaSpeed = extraVanillaSpeed;
@@ -38,31 +47,14 @@ public class StardewPickaxeItem extends PickaxeItem implements IStardewItem {
 		return vanillaLikeSpeed + extraVanillaSpeed;
 	}
 
-	private static void restoreDamage(ItemStack stack, int previousDamage) {
-		if (stack.isEmpty()) {
-			return;
-		}
-		if (stack.isDamageableItem() && stack.getDamageValue() != previousDamage) {
-			stack.setDamageValue(previousDamage);
-		}
-	}
-
 	@Override
 	public boolean mineBlock(@SuppressWarnings("null") ItemStack stack, @SuppressWarnings("null") Level level, @SuppressWarnings("null") BlockState state, @SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") LivingEntity entityLiving) {
-		int before = stack.getDamageValue();
-		@SuppressWarnings("null")
-		boolean result = super.mineBlock(stack, level, state, pos, entityLiving);
-		restoreDamage(stack, before);
-		return result;
+		return true; // 不调用 super 避免任何耗久逻辑
 	}
 
 	@Override
 	public boolean hurtEnemy(@SuppressWarnings("null") ItemStack stack, @SuppressWarnings("null") LivingEntity target, @SuppressWarnings("null") LivingEntity attacker) {
-		int before = stack.getDamageValue();
-		@SuppressWarnings("null")
-		boolean result = super.hurtEnemy(stack, target, attacker);
-		restoreDamage(stack, before);
-		return result;
+		return true; // 不调用 super 避免任何耗久逻辑
 	}
 
 	@Override

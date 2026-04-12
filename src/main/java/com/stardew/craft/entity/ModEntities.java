@@ -10,6 +10,7 @@ import com.stardew.craft.entity.projectile.MeowmereProjectileEntity;
 import com.stardew.craft.entity.projectile.ElfBladeLeafEntity;
 import com.stardew.craft.entity.projectile.TideAnchorProjectileEntity;
 import com.stardew.craft.entity.projectile.TemperedBilletProjectileEntity;
+import com.stardew.craft.entity.bomb.StardewBombEntity;
 import com.stardew.craft.entity.effect.IceSpineEffectEntity;
 import com.stardew.craft.entity.animal.BaseCoopAnimalEntity;
 import com.stardew.craft.entity.animal.CowEntity;
@@ -24,6 +25,7 @@ import com.stardew.craft.entity.animal.SheepEntity;
 import com.stardew.craft.entity.animal.VoidChickenEntity;
 import com.stardew.craft.entity.animal.WhiteChickenEntity;
 import com.stardew.craft.entity.npc.StardewNpcEntity;
+import com.stardew.craft.entity.junimo.JunimoEntity;
 import com.stardew.craft.entity.seat.SofaSeatEntity;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 
@@ -77,6 +79,15 @@ public final class ModEntities {
 					.clientTrackingRange(32)
 					.updateInterval(1)
 					.build("ice_spine_effect")
+	);
+
+	public static final DeferredHolder<EntityType<?>, EntityType<StardewBombEntity>> STARDEW_BOMB = ENTITY_TYPES.register(
+			"stardew_bomb",
+			() -> EntityType.Builder.<StardewBombEntity>of(StardewBombEntity::new, MobCategory.MISC)
+					.sized(0.5F, 0.5F)
+					.clientTrackingRange(16)
+					.updateInterval(1)
+					.build("stardew_bomb")
 	);
 
 	public static final DeferredHolder<EntityType<?>, EntityType<FallenOakTreeEntity>> FALLEN_OAK_TREE = ENTITY_TYPES.register(
@@ -197,6 +208,15 @@ public final class ModEntities {
 					.build("stardew_npc")
 	);
 
+	public static final DeferredHolder<EntityType<?>, EntityType<JunimoEntity>> JUNIMO = ENTITY_TYPES.register(
+			"junimo",
+			() -> EntityType.Builder.<JunimoEntity>of(JunimoEntity::new, MobCategory.CREATURE)
+					.sized(0.5F, 0.7F)
+					.clientTrackingRange(8)
+					.updateInterval(3)
+					.build("junimo")
+	);
+
 	public static final DeferredHolder<EntityType<?>, EntityType<SofaSeatEntity>> SOFA_SEAT = ENTITY_TYPES.register(
 			"sofa_seat",
 			() -> EntityType.Builder.<SofaSeatEntity>of(SofaSeatEntity::new, MobCategory.MISC)
@@ -220,6 +240,7 @@ public final class ModEntities {
 		event.put(SHEEP.get(), BaseCoopAnimalEntity.createAttributes().build());
 		event.put(PIG.get(), BaseCoopAnimalEntity.createAttributes().build());
 		event.put(STARDEW_NPC.get(), StardewNpcEntity.createAttributes().build());
+		event.put(JUNIMO.get(), JunimoEntity.createAttributes().build());
 	}
 
 }

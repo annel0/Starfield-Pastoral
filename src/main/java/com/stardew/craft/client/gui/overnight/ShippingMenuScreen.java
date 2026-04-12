@@ -110,6 +110,7 @@ public class ShippingMenuScreen extends Screen {
         super.init();
         this.lastTime = System.currentTimeMillis();
         refreshScaledLayout();
+        com.stardew.craft.StardewCraft.LOGGER.info("[OVERNIGHT_CLIENT] ShippingMenuScreen.init() items={}, introTimer={}", shippedItems.size(), introTimer);
     }
 
     private float guiScale() {
@@ -257,6 +258,8 @@ public class ShippingMenuScreen extends Screen {
     }
 
     private void closeToNextScreen() {
+        com.stardew.craft.StardewCraft.LOGGER.info("[OVERNIGHT_CLIENT] ShippingMenuScreen.closeToNextScreen() siblingCount={}",
+            this.siblingScreens != null ? this.siblingScreens.size() : -1);
         if (this.siblingScreens != null && !this.siblingScreens.isEmpty()) {
             this.minecraft.setScreen(this.siblingScreens.remove(0));
         } else {

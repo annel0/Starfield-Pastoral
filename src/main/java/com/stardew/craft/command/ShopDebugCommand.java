@@ -7,8 +7,6 @@ import com.stardew.craft.network.payload.OpenShopScreenPayload;
 import com.stardew.craft.player.PlayerStardewDataAPI;
 import com.stardew.craft.shop.ShopItemEntry;
 import com.stardew.craft.shop.ShopRegistry;
-import com.stardew.craft.shop.ShopStockTracker;
-import com.stardew.craft.time.StardewTimeManager;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
@@ -56,22 +54,8 @@ public class ShopDebugCommand {
             return 0;
         }
 
-        StardewTimeManager time = StardewTimeManager.get();
         int money = PlayerStardewDataAPI.getMoney(player);
-        List<ShopItemEntry> rawItems = shop.getAvailableItems(time.getCurrentSeason(), time.getCurrentYear());
-
-        // Apply per-player remaining stock (SDV: SynchronizedShopStock parity)
-        java.util.UUID playerId = player.getUUID();
-        List<ShopItemEntry> items = new java.util.ArrayList<>();
-        for (ShopItemEntry e : rawItems) {
-            int remaining = ShopStockTracker.getRemaining(playerId, shopId, e.itemId(), e.stock());
-            if (remaining == 0) continue; // sold out for this player today
-            items.add(remaining == e.stock() ? e : new ShopItemEntry(
-                e.itemId(), e.displayName(), e.description(),
-                e.price(), remaining, e.tradeItemId(), e.tradeItemCount(),
-                e.seasons(), e.minYear()
-            ));
-        }
+        List<ShopItemEntry> items = ShopRegistry.getFilteredItemsForPlayer(shopId, shop, player);
 
         OpenShopScreenPayload payload = new OpenShopScreenPayload(
             shopId,

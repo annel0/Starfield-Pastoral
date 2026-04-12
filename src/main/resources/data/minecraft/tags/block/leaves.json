@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:wild_oak_leaves",
+    "stardewcraft:wild_maple_leaves",
+    "stardewcraft:wild_pine_leaves",
+    "stardewcraft:wild_mahogany_leaves",
+    "stardewcraft:wild_mystic_tree_leaves"
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "npc_id": "dwarf",
+  "_vanilla_ref": "554=Lemon Stone 60=Emerald 62=Aquamarine 64=Ruby 66=Amethyst 68=Topaz 70=Jade 749=Omni Geode 162=Lava Eel",
+
+  "loved": [
+    "stardewcraft:lemon_stone",
+    "stardewcraft:emerald",
+    "stardewcraft:aquamarine",
+    "stardewcraft:ruby",
+    "stardewcraft:amethyst",
+    "stardewcraft:topaz",
+    "stardewcraft:jade",
+    "stardewcraft:omni_geode",
+    "stardewcraft:lava_eel"
+  ],
+
+  "liked": [
+    "stardewcraft:fire_quartz",
+    "stardewcraft:frozen_tear",
+    "stardewcraft:earth_crystal",
+    "stardewcraft:dwarvish_helm",
+    "stardewcraft:dwarf_gadget"
+  ],
+  "_liked_not_yet_in_mod": ["cave_carrot(78)", "dwarf_scroll_i(96)", "dwarf_scroll_ii(97)", "dwarf_scroll_iii(98)", "dwarf_scroll_iv(99)"],
+
+  "neutral": [],
+
+  "disliked": [],
+  "_disliked_vanilla_note": "SDV dislikes: eggs category, Wild Horseradish(16), fish category, Clay(330) — most not yet category-tagged in mod",
+
+  "hated": [],
+
+  "loved_msg": "Hey, I really love this stuff. You can find great things in the mines.",
+  "liked_msg": "Ah, this reminds me of home.",
+  "neutral_msg": "An offering! Thank you.",
+  "disliked_msg": "Hmm... Is this what humans like?",
+  "hated_msg": "I don't care what species you are. This is worthless garbage."
+}

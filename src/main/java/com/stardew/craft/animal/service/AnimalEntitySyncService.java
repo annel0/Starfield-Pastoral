@@ -12,7 +12,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.phys.AABB;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -23,7 +25,7 @@ public final class AnimalEntitySyncService {
     private AnimalEntitySyncService() {
     }
 
-    public record SyncResult(int updated, int spawned) {
+    public record SyncResult(int updated, int spawned, int orphansRemoved) {
     }
 
     public static SyncResult syncAll(ServerLevel level) {
@@ -31,6 +33,24 @@ public final class AnimalEntitySyncService {
         CollectionState state = collectLoaded(level);
         int updated = 0;
         int spawned = 0;
+
+        // Detect orphan animals whose building no longer exists
+        List<Long> orphanIds = new ArrayList<>();
+        for (FarmAnimalRecord record : data.getAnimals()) {
+            if (record.buildingId() != null && !record.buildingId().isBlank()
+                && data.getBuilding(record.buildingId()).isEmpty()
+                && data.getBuildingIncludingInactive(record.buildingId()).isEmpty()) {
+                orphanIds.add(record.animalId());
+            }
+        }
+        for (long orphanId : orphanIds) {
+            BaseCoopAnimalEntity orphanEntity = state.byManagedId.remove(orphanId);
+            if (orphanEntity != null) {
+                orphanEntity.discard();
+            }
+            data.removeAnimal(orphanId);
+            StardewCraft.LOGGER.info("[ANIMAL_SYNC] Removed orphan animal {} (building gone)", orphanId);
+        }
 
         for (FarmAnimalRecord record : data.getAnimals()) {
             BaseCoopAnimalEntity entity = state.byManagedId.get(record.animalId());
@@ -46,7 +66,7 @@ public final class AnimalEntitySyncService {
             updated++;
         }
 
-        return new SyncResult(updated, spawned);
+        return new SyncResult(updated, spawned, orphanIds.size());
     }
 
     public static BaseCoopAnimalEntity spawnOrSyncSingle(ServerLevel level, FarmAnimalRecord record) {

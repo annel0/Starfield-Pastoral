@@ -1,0 +1,47 @@
+{
+  "npc_id": "pierre",
+  "override_vanilla": true,
+  "_format": "time -> \"location @namedPointId facing [behavior]\"",
+
+  "GreenRain": {
+    "600": "seedshop @pierre_seedshop_counter 3",
+    "2200": "seedshop @pierre_seedshop_sleep 0"
+  },
+
+  "rain": {
+    "600": "seedshop @pierre_seedshop_counter 3",
+    "2000": "seedshop @pierre_seedshop_living 2",
+    "2200": "seedshop @pierre_seedshop_sleep 0"
+  },
+
+  "spring": {
+    "600": "seedshop @pierre_seedshop_counter 3",
+    "1700": "saloon @pierre_saloon_seat 3",
+    "2200": "seedshop @pierre_seedshop_sleep 0"
+  },
+
+  "summer": {
+    "600": "seedshop @pierre_seedshop_counter 3",
+    "1700": "saloon @pierre_saloon_seat 3",
+    "2200": "seedshop @pierre_seedshop_sleep 0"
+  },
+
+  "fall": {
+    "600": "seedshop @pierre_seedshop_counter 3",
+    "1700": "saloon @pierre_saloon_seat 3",
+    "2200": "seedshop @pierre_seedshop_sleep 0"
+  },
+
+  "winter": {
+    "600": "seedshop @pierre_seedshop_counter 3",
+    "1700": "saloon @pierre_saloon_seat 3",
+    "2200": "seedshop @pierre_seedshop_sleep 0"
+  },
+
+  "wednesday": {
+    "600": "seedshop @pierre_seedshop_sleep 0",
+    "900": "town @pierre_town_walk 3",
+    "1400": "saloon @pierre_saloon_seat 3",
+    "2200": "seedshop @pierre_seedshop_sleep 0"
+  }
+}

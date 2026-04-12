@@ -1,0 +1,7 @@
+{
+    "parent": "minecraft:block/cross",
+    "textures": {
+        "cross": "stardewcraft:block/crops/fall/fairy_rose_stage3_2_bottom",
+        "particle": "stardewcraft:block/crops/fall/fairy_rose_stage3_2_bottom"
+    }
+}

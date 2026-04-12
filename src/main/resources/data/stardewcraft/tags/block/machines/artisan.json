@@ -1,0 +1,14 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:keg",
+    "stardewcraft:preserves_jar",
+    "stardewcraft:dehydrator",
+    "stardewcraft:fish_smoker",
+    "stardewcraft:cask",
+    "stardewcraft:cheese_press",
+    "stardewcraft:mayonnaise_machine",
+    "stardewcraft:oil_maker",
+    "stardewcraft:loom"
+  ]
+}

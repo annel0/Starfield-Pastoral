@@ -299,7 +299,11 @@ public class WeaponCombatEvents {
             return;
         }
 
-        DamageResult result = DamageCalculator.calculatePlayerDamage(player, target, weapon, skillContext);
+        com.stardew.craft.combat.equipment.EquipmentStats equipStats = null;
+        if (player instanceof net.minecraft.server.level.ServerPlayer sp) {
+            equipStats = com.stardew.craft.combat.equipment.EquipmentResolver.getMergedStats(sp);
+        }
+        DamageResult result = DamageCalculator.calculatePlayerDamage(player, target, weapon, skillContext, null, equipStats);
         float finalDamage = result.getFinalDamage();
         if (spineBoost != null && !result.isDodged()) {
             finalDamage += spineBoost.bonusDamage();
@@ -437,6 +441,10 @@ public class WeaponCombatEvents {
         if (!result.isDodged() && result.getFinalDamage() > 0) {
             WeaponStats weaponStats = WeaponStats.fromItemStack(weapon);
             float strength = calculateKnockbackStrength(weaponStats);
+            // Add ring knockback bonus
+            if (equipStats != null) {
+                strength += equipStats.getKnockbackBonus();
+            }
             if (strength > 0.0f) {
                 double dx = player.getX() - target.getX();
                 double dz = player.getZ() - target.getZ();
@@ -1057,6 +1065,11 @@ public class WeaponCombatEvents {
             return false;
         }
         return msgId.contains("sweep") || "playerSweep".equals(msgId) || "player_sweep".equals(msgId);
+    }
+
+    /** Clean up state when a player logs out to prevent memory leaks. */
+    public static void removePlayer(UUID playerId) {
+        CLUB_SWEEP_DAMAGE.remove(playerId);
     }
 }
 

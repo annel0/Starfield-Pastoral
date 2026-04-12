@@ -70,6 +70,7 @@ public class FishingInfoCategory implements IRecipeCategory<SpawnFishRule> {
             .setTextureSize(SLOT_FRAME_SIZE, SLOT_FRAME_SIZE)
             .build();
         this.scaledItemRenderer = new ScaledItemStackRenderer(SLOT_FRAME_SCALE);
+        JeiDrawHelper.initGoldIcon(guiHelper);
     }
     
     @Override
@@ -128,6 +129,9 @@ public class FishingInfoCategory implements IRecipeCategory<SpawnFishRule> {
     @SuppressWarnings("null")
     @Override
     public void draw(@SuppressWarnings("null") SpawnFishRule recipe, @SuppressWarnings("null") IRecipeSlotsView recipeSlotsView, @SuppressWarnings("null") GuiGraphics guiGraphics, double mouseX, double mouseY) {
+        // Background panel
+        JeiDrawHelper.drawPanel(guiGraphics, 0, 0, GUI_WIDTH, GUI_HEIGHT);
+
         // 左侧绿色区域：整体缩放绘制（避免 blit 的UV>1 导致纹理平铺成 2x2）
         float scale = (float) SLOT_FRAME_SCALE;
         guiGraphics.pose().pushPose();
@@ -146,14 +150,22 @@ public class FishingInfoCategory implements IRecipeCategory<SpawnFishRule> {
         int maxWidth = GUI_WIDTH - x - GUI_PADDING;
         int maxY = GUI_HEIGHT - GUI_PADDING;
         
-        // 难度
+        // 难度 — 星号可视化 ★★★☆☆ + 文字
         int difficulty = recipe.difficulty();
         @SuppressWarnings("null")
         String difficultyStr = Component.translatable(getDifficultyTranslationKey(difficulty)).getString();
         int difficultyColor = getDifficultyColor(difficulty);
-        y = drawWrappedLine(guiGraphics, font,
-            Component.translatable("stardewcraft.jei.difficulty", difficultyStr, difficulty).getString(),
-            x, y, difficultyColor, maxWidth, lineHeight, maxY);
+        int starCount = getDifficultyStars(difficulty);
+        StringBuilder stars = new StringBuilder();
+        for (int s = 0; s < 5; s++) {
+            stars.append(s < starCount ? "\u2605" : "\u2606");
+        }
+        String difficultyLine = Component.translatable("stardewcraft.jei.difficulty", difficultyStr, difficulty).getString();
+        // Draw stars first, then the text label
+        guiGraphics.drawString(font, stars.toString(), x, y, difficultyColor, false);
+        int starsWidth = font.width(stars.toString());
+        String diffLabel = " " + difficultyLine;
+        guiGraphics.drawString(font, diffLabel, x + starsWidth, y, difficultyColor, false);
         y += lineHeight;
         
         // 类型
@@ -393,6 +405,14 @@ public class FishingInfoCategory implements IRecipeCategory<SpawnFishRule> {
         if (difficulty <= 100) return "stardewcraft.jei.difficulty.very_hard";
         return "stardewcraft.jei.difficulty.legendary";
     }
+
+    private int getDifficultyStars(int difficulty) {
+        if (difficulty <= 20) return 1;
+        if (difficulty <= 40) return 2;
+        if (difficulty <= 60) return 3;
+        if (difficulty <= 80) return 4;
+        return 5;
+    }
     
     private String getMotionTypeTranslationKey(int motionType) {
         return switch (motionType) {
@@ -423,26 +443,27 @@ public class FishingInfoCategory implements IRecipeCategory<SpawnFishRule> {
         };
     }
     
+    @SuppressWarnings("null")
     private String getLocationDescription(SpawnFishRule recipe) {
         List<String> tags = recipe.biomeTags();
         if (tags != null && !tags.isEmpty()) {
             String tag = tags.get(0);
-            if (tag.contains("beach")) return "Beach";
-            if (tag.contains("ocean")) return "Ocean";
-            if (tag.contains("river")) return "River";
-            if (tag.contains("mountain_lake")) return "Mountain Lake";
-            if (tag.contains("forest_pond")) return "Forest Pond";
-            if (tag.contains("secret_woods")) return "Secret Woods";
-            if (tag.contains("sewers")) return "Sewers";
-            if (tag.contains("mines_20")) return "Mines 20F";
-            if (tag.contains("mines_60")) return "Mines 60F";
-            if (tag.contains("mines_100")) return "Mines 100F";
-            if (tag.contains("desert")) return "Desert";
-            if (tag.contains("witch_swamp")) return "Witch Swamp";
-            if (tag.contains("night_market")) return "Night Market";
-            if (tag.contains("volcano")) return "Volcano";
-            if (tag.contains("ginger_island")) return "Ginger Island";
-            if (tag.contains("pirate_cove")) return "Pirate Cove";
+            if (tag.contains("beach")) return Component.translatable("stardewcraft.jei.location.beach").getString();
+            if (tag.contains("ocean")) return Component.translatable("stardewcraft.jei.location.ocean").getString();
+            if (tag.contains("river")) return Component.translatable("stardewcraft.jei.location.river").getString();
+            if (tag.contains("mountain_lake")) return Component.translatable("stardewcraft.jei.location.mountain_lake").getString();
+            if (tag.contains("forest_pond")) return Component.translatable("stardewcraft.jei.location.forest_pond").getString();
+            if (tag.contains("secret_woods")) return Component.translatable("stardewcraft.jei.location.secret_woods").getString();
+            if (tag.contains("sewers")) return Component.translatable("stardewcraft.jei.location.sewers").getString();
+            if (tag.contains("mines_20")) return Component.translatable("stardewcraft.jei.location.mines", "20F").getString();
+            if (tag.contains("mines_60")) return Component.translatable("stardewcraft.jei.location.mines", "60F").getString();
+            if (tag.contains("mines_100")) return Component.translatable("stardewcraft.jei.location.mines", "100F").getString();
+            if (tag.contains("desert")) return Component.translatable("stardewcraft.jei.location.desert").getString();
+            if (tag.contains("witch_swamp")) return Component.translatable("stardewcraft.jei.location.witch_swamp").getString();
+            if (tag.contains("night_market")) return Component.translatable("stardewcraft.jei.location.night_market").getString();
+            if (tag.contains("volcano")) return Component.translatable("stardewcraft.jei.location.volcano").getString();
+            if (tag.contains("ginger_island")) return Component.translatable("stardewcraft.jei.location.ginger_island").getString();
+            if (tag.contains("pirate_cove")) return Component.translatable("stardewcraft.jei.location.pirate_cove").getString();
             return tag.replaceAll("#stardewcraft:is_", "").replace("_", " ");
         }
         
@@ -451,13 +472,14 @@ public class FishingInfoCategory implements IRecipeCategory<SpawnFishRule> {
             return biomes.get(0).replace("stardewcraft:", "").replace("_", " ");
         }
         
-        return "Any Location";
+        return Component.translatable("stardewcraft.jei.location.any").getString();
     }
     
+    @SuppressWarnings("null")
     private String getTimeDescription(SpawnFishRule recipe) {
         List<int[]> timeRanges = recipe.timeRanges();
         if (timeRanges == null || timeRanges.isEmpty()) {
-            return "All Day";
+            return Component.translatable("stardewcraft.jei.time.all_day").getString();
         }
         
         StringBuilder sb = new StringBuilder();

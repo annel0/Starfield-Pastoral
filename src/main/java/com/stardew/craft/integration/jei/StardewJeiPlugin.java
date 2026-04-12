@@ -8,6 +8,7 @@ import com.stardew.craft.item.ModItems;
 import com.stardew.craft.item.SpecificBaitItem;
 import com.stardew.craft.item.StardewQualityItem;
 import com.stardew.craft.item.artisan.ArtisanDrinkItem;
+import com.stardew.craft.item.artisan.ArtisanRecipeDataManager;
 import com.stardew.craft.item.artisan.DehydratorIngredientHelper;
 import com.stardew.craft.item.artisan.PreserveType;
 import com.stardew.craft.item.artisan.PreservesIngredientDataManager;
@@ -24,7 +25,11 @@ import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.ISubtypeRegistration;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
@@ -47,7 +52,22 @@ public class StardewJeiPlugin implements IModPlugin {
 
     @Override
     public void registerCategories(@SuppressWarnings("null") IRecipeCategoryRegistration registration) {
-        registration.addRecipeCategories(new FishingInfoCategory(registration.getJeiHelpers().getGuiHelper()));
+        var guiHelper = registration.getJeiHelpers().getGuiHelper();
+        // Pre-load NPC portraits for shop category
+        JeiPortraitCache.preload(guiHelper, JeiPortraitCache.SHOP_NPC_IDS);
+        registration.addRecipeCategories(new FishingInfoCategory(guiHelper));
+
+        // Per-machine artisan categories
+        for (String machineKey : ArtisanRecipeDataManager.getAllMachineKeys()) {
+            ItemStack machineIcon = ArtisanRecipeCategory.getItemStack("stardewcraft:" + machineKey);
+            if (machineIcon.isEmpty()) continue;
+            var recipeType = ArtisanRecipeCategory.getRecipeType(machineKey);
+            registration.addRecipeCategories(new ArtisanRecipeCategory(guiHelper, machineKey, machineIcon, recipeType));
+        }
+
+        registration.addRecipeCategories(new ShopInfoCategory(guiHelper));
+        registration.addRecipeCategories(new GeodeProcessingCategory(guiHelper));
+        registration.addRecipeCategories(new StardewCraftingCategory(guiHelper));
     }
 
     @Override
@@ -102,6 +122,7 @@ public class StardewJeiPlugin implements IModPlugin {
     @SuppressWarnings("null")
     @Override
     public void registerRecipes(@SuppressWarnings("null") IRecipeRegistration registration) {
+        // Fishing info
         List<SpawnFishRule> allRules = FishingDataManager.get().getAllFishRules();
         
         // 按 itemId 去重，只保留第一次出现的规则
@@ -120,17 +141,72 @@ public class StardewJeiPlugin implements IModPlugin {
         } else {
             StardewCraft.LOGGER.warn("No fishing rules loaded when registering JEI recipes!");
         }
+
+        // Artisan machine recipes — per machine
+        int totalArtisan = 0;
+        for (String machineKey : ArtisanRecipeDataManager.getAllMachineKeys()) {
+            var recipes = ArtisanRecipeCategory.buildRecipesForMachine(machineKey);
+            if (!recipes.isEmpty()) {
+                registration.addRecipes(ArtisanRecipeCategory.getRecipeType(machineKey), recipes);
+                totalArtisan += recipes.size();
+            }
+        }
+        if (totalArtisan > 0) {
+            StardewCraft.LOGGER.info("Registered {} artisan machine recipes across {} machines for JEI",
+                    totalArtisan, ArtisanRecipeDataManager.getAllMachineKeys().size());
+        }
+
+        // Shop info
+        var shopEntries = ShopInfoCategory.buildAllEntries();
+        if (!shopEntries.isEmpty()) {
+            registration.addRecipes(ShopInfoCategory.RECIPE_TYPE, shopEntries);
+            StardewCraft.LOGGER.info("Registered {} shop info entries for JEI", shopEntries.size());
+        }
+
+        // Geode processing
+        var geodeEntries = GeodeProcessingCategory.buildAllEntries();
+        if (!geodeEntries.isEmpty()) {
+            registration.addRecipes(GeodeProcessingCategory.RECIPE_TYPE, geodeEntries);
+            StardewCraft.LOGGER.info("Registered {} geode processing entries for JEI", geodeEntries.size());
+        }
+
+        // Stardew crafting
+        var craftingRecipes = StardewCraftingCategory.buildAllRecipes();
+        if (!craftingRecipes.isEmpty()) {
+            registration.addRecipes(StardewCraftingCategory.RECIPE_TYPE, craftingRecipes);
+            StardewCraft.LOGGER.info("Registered {} stardew crafting recipes for JEI", craftingRecipes.size());
+        }
+
+        // Hide items tagged stardewcraft:hidden
+        hideTaggedItems(registration);
     }
 
     @SuppressWarnings("null")
     @Override
     public void registerRecipeCatalysts(@SuppressWarnings("null") IRecipeCatalystRegistration registration) {
-        // 注册所有钓竿作为催化剂，点击它们可以查看钓鱼信息
+        // Fishing rods → fishing info
         registration.addRecipeCatalyst(VanillaTypes.ITEM_STACK, new ItemStack(ModItems.FISHING_ROD.get()), FishingInfoCategory.RECIPE_TYPE);
         registration.addRecipeCatalyst(VanillaTypes.ITEM_STACK, new ItemStack(ModItems.TRAINING_ROD.get()), FishingInfoCategory.RECIPE_TYPE);
         registration.addRecipeCatalyst(VanillaTypes.ITEM_STACK, new ItemStack(ModItems.FIBERGLASS_ROD.get()), FishingInfoCategory.RECIPE_TYPE);
         registration.addRecipeCatalyst(VanillaTypes.ITEM_STACK, new ItemStack(ModItems.IRIDIUM_ROD.get()), FishingInfoCategory.RECIPE_TYPE);
         registration.addRecipeCatalyst(VanillaTypes.ITEM_STACK, new ItemStack(ModItems.ADVANCED_IRIDIUM_ROD.get()), FishingInfoCategory.RECIPE_TYPE);
+
+        // Artisan machines → per-machine categories
+        for (String machineKey : ArtisanRecipeDataManager.getAllMachineKeys()) {
+            ItemStack machineStack = ArtisanRecipeCategory.getItemStack("stardewcraft:" + machineKey);
+            if (!machineStack.isEmpty()) {
+                registration.addRecipeCatalyst(VanillaTypes.ITEM_STACK, machineStack, ArtisanRecipeCategory.getRecipeType(machineKey));
+            }
+        }
+
+        // Geode types → geode processing
+        registration.addRecipeCatalyst(VanillaTypes.ITEM_STACK, new ItemStack(ModItems.GEODE.get()), GeodeProcessingCategory.RECIPE_TYPE);
+        registration.addRecipeCatalyst(VanillaTypes.ITEM_STACK, new ItemStack(ModItems.FROZEN_GEODE.get()), GeodeProcessingCategory.RECIPE_TYPE);
+        registration.addRecipeCatalyst(VanillaTypes.ITEM_STACK, new ItemStack(ModItems.MAGMA_GEODE.get()), GeodeProcessingCategory.RECIPE_TYPE);
+        registration.addRecipeCatalyst(VanillaTypes.ITEM_STACK, new ItemStack(ModItems.OMNI_GEODE.get()), GeodeProcessingCategory.RECIPE_TYPE);
+
+        // Crafting table → stardew crafting
+        registration.addRecipeCatalyst(VanillaTypes.ITEM_STACK, new ItemStack(net.minecraft.world.item.Items.CRAFTING_TABLE), StardewCraftingCategory.RECIPE_TYPE);
     }
 
 
@@ -370,6 +446,23 @@ public class StardewJeiPlugin implements IModPlugin {
         public String getLegacyStringSubtypeInfo(@SuppressWarnings("null") ItemStack stack, @SuppressWarnings("null") UidContext context) {
             String fishId = SpecificBaitItem.getTargetFishId(stack);
             return fishId == null || fishId.isBlank() ? "target=none" : "target=" + fishId;
+        }
+    }
+
+    /**
+     * Hide items tagged with stardewcraft:hidden from JEI item list.
+     */
+    @SuppressWarnings("null")
+    private static void hideTaggedItems(IRecipeRegistration registration) {
+        TagKey<Item> hiddenTag = ItemTags.create(ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "hidden"));
+        List<ItemStack> toHide = new ArrayList<>();
+        for (var holder : BuiltInRegistries.ITEM.getTagOrEmpty(hiddenTag)) {
+            toHide.add(new ItemStack(holder.value()));
+        }
+        if (!toHide.isEmpty()) {
+            var ingredientManager = registration.getIngredientManager();
+            ingredientManager.removeIngredientsAtRuntime(VanillaTypes.ITEM_STACK, toHide);
+            StardewCraft.LOGGER.info("Hidden {} items from JEI (tag stardewcraft:hidden)", toHide.size());
         }
     }
 }

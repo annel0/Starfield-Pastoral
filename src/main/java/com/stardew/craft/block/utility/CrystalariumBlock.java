@@ -153,7 +153,7 @@ public class CrystalariumBlock extends Block implements EntityBlock {
             return null;
         }
         return defaultBlockState()
-            .setValue(FACING, context.getHorizontalDirection())
+            .setValue(FACING, context.getHorizontalDirection().getOpposite())
             .setValue(WORKING, false)
             .setValue(PART, Part.MAIN);
     }

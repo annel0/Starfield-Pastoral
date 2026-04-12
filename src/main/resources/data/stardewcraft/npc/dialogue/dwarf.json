@@ -1,0 +1,13 @@
+{
+  "npc_id": "dwarf",
+  "entries": {
+    "default": "stardewcraft.npc.dwarf.default",
+    "Mon": "stardewcraft.npc.dwarf.mon",
+    "Tue": "stardewcraft.npc.dwarf.tue",
+    "Wed": "stardewcraft.npc.dwarf.wed",
+    "Thu": "stardewcraft.npc.dwarf.thu",
+    "Fri": "stardewcraft.npc.dwarf.fri",
+    "Sat": "stardewcraft.npc.dwarf.sat",
+    "Sun": "stardewcraft.npc.dwarf.sun"
+  }
+}

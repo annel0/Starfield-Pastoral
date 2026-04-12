@@ -1,0 +1,37 @@
+{
+  "npc_id": "linus",
+  "override_vanilla": true,
+  "_format": "time -> \"location @namedPointId facing [behavior]\" | {_goto: key} | {_condition: expr}",
+  "GreenRain": {
+    "800": "mountain @linus_tent_fire 3"
+  },
+  "rain": {
+    "900": "mountain @linus_tent_inside 3",
+    "2000": "mountain @linus_tent_sleep 3 linus_sleep"
+  },
+  "spring": {
+    "800": "mountain @linus_tent_fire 3",
+    "1100": "mountain @linus_mountain_forage 1",
+    "1500": "mountain @linus_tent_fire 3",
+    "2200": "mountain @linus_tent_sleep 3 linus_sleep"
+  },
+  "summer": {
+    "800": "mountain @linus_tent_fire 3",
+    "1000": "beach @linus_beach_fish 3",
+    "1500": "mountain @linus_mountain_forage 1",
+    "2000": "mountain @linus_tent_sleep 3 linus_sleep"
+  },
+  "fall": {
+    "800": "mountain @linus_tent_fire 3",
+    "1100": "mountain @linus_mountain_forage 1",
+    "1500": "town @linus_town_dumpster 3",
+    "1800": "mountain @linus_tent_fire 3",
+    "2200": "mountain @linus_tent_sleep 3 linus_sleep"
+  },
+  "winter": {
+    "900": "mountain @linus_tent_inside 3",
+    "1200": "mountain @linus_tent_fire 3",
+    "1500": "mountain @linus_mountain_forage 1",
+    "2000": "mountain @linus_tent_sleep 3 linus_sleep"
+  }
+}

@@ -109,4 +109,9 @@ public final class TemplarJudgementTracker {
 
         ACTIVE.remove(player.getUUID());
     }
+
+    /** Clean up state when a player logs out to prevent memory leaks. */
+    public static void removePlayer(UUID playerId) {
+        ACTIVE.remove(playerId);
+    }
 }

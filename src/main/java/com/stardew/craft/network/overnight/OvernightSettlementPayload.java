@@ -12,13 +12,32 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import java.util.List;
 
 @SuppressWarnings("null")
-public record OvernightSettlementPayload(List<ShippedItem> shippedItems, List<LevelUpData> levelUps) implements CustomPacketPayload {
+public record OvernightSettlementPayload(
+        List<ShippedItem> shippedItems,
+        List<LevelUpData> levelUps,
+        int passOutType,               // -1 = 未晕倒；>=0 = PassOutService.PassOutType.getId()
+        int passOutMoneyLost,
+        List<ItemStack> passOutLostItems
+) implements CustomPacketPayload {
+
+    /** 无晕倒的便捷构造（兼容旧调用点） */
+    public OvernightSettlementPayload(List<ShippedItem> shippedItems, List<LevelUpData> levelUps) {
+        this(shippedItems, levelUps, -1, 0, List.of());
+    }
+
+    /** 是否包含晕倒数据 */
+    public boolean hasPassOut() {
+        return passOutType >= 0;
+    }
 
     public static final Type<OvernightSettlementPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "overnight_settlement"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, OvernightSettlementPayload> STREAM_CODEC = StreamCodec.composite(
             ShippedItem.STREAM_CODEC.apply(ByteBufCodecs.list()), OvernightSettlementPayload::shippedItems,
             LevelUpData.STREAM_CODEC.apply(ByteBufCodecs.list()), OvernightSettlementPayload::levelUps,
+            ByteBufCodecs.VAR_INT, OvernightSettlementPayload::passOutType,
+            ByteBufCodecs.VAR_INT, OvernightSettlementPayload::passOutMoneyLost,
+            ItemStack.OPTIONAL_STREAM_CODEC.apply(ByteBufCodecs.list()), OvernightSettlementPayload::passOutLostItems,
             OvernightSettlementPayload::new
     );
 

@@ -30,4 +30,7 @@ _tmp*
 *.log
 *.zip
 
+# macOS
+.DS_Store
+
 repo

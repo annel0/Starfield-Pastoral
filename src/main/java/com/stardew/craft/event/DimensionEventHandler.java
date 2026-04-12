@@ -27,25 +27,34 @@ import net.minecraft.network.protocol.game.ClientboundSetTimePacket;
  * 新时间系统设计：
  * - 开启原版doDaylightCycle，让MC自然推进dayTime
  * - 从MC dayTime计算星露谷时间（分钟）
- * - 当dayTime >= 20000（2:00 AM）时，跳到下一天并重置dayTime到0
+ * - dayTime >= 20000 (2:00 AM) 时强制晕倒并跳到下一天
  * 
  * MC dayTime 映射：
  * - dayTime 0 = 6:00 AM（日出）
  * - dayTime 6000 = 12:00 PM（正午）
  * - dayTime 12000 = 6:00 PM（日落）
  * - dayTime 18000 = 12:00 AM（午夜）
- * - dayTime 20000 = 2:00 AM（星露谷一天结束）
+ * - dayTime 20000 = 2:00 AM（强制晕倒，一天结束）
  * 
  * 转换公式：星露谷分钟 = (dayTime / 1000.0 + 6) * 60
  */
 @EventBusSubscriber(modid = StardewCraft.MODID)
 public class DimensionEventHandler {
-    
-    // 2:00 AM 对应的MC dayTime（这时候跳到下一天）
-    private static final long DAY_END_TIME = 20000;
+
+    // ── 深夜时间点常量（MC dayTime）──
+    // 对标 SDV: case 2400 (midnight), case 2500 (1AM), case 2600 (2AM), case 2800 (2:40AM)
+    private static final long MIDNIGHT_TIME = 18000;       // 0:00 AM
+    private static final long ONE_AM_TIME = 19000;         // 1:00 AM
+    private static final long DAY_END_TIME = 20000;        // 2:00 AM — 强制晕倒
+    @SuppressWarnings("unused")
+    private static final long DAY_HARD_END_TIME = 22000;   // 2:40 AM — 强制关菜单安全网
     
     // 防止重复触发新的一天
     private static boolean dayAdvancing = false;
+    // 深夜警告标记（每天重置一次）
+    private static boolean midnightWarned = false;   // 0:00 警告
+    private static boolean oneAMWarned = false;      // 1:00 警告
+    private static boolean twoAMWarned = false;      // 2:00 警告
     private static int lastAnimalTenMinuteDayKey = Integer.MIN_VALUE;
     private static int lastAnimalTenMinuteSlot = Integer.MIN_VALUE;
 
@@ -56,10 +65,10 @@ public class DimensionEventHandler {
         }
         dayAdvancing = true;
         try {
-            StardewTimeManager timeManager = StardewTimeManager.get();
-            timeManager.advanceDayWithSleepTime(sleepMinute);
-
             var server = sourceLevel.getServer();
+
+            // === 关键：先推进 dayTime，防止 advanceDayWithSleepTime 抛异常时
+            //     dayTime 仍 >= 20000 导致 2AM 检查每 tick 重复触发 ===
             long currentDay = sourceLevel.getDayTime() / 24000;
             long newDayTime = (currentDay + 1) * 24000;
 
@@ -76,9 +85,21 @@ public class DimensionEventHandler {
                 ));
             }
 
+            // 日结算逻辑（作物生长、天气、玩家恢复等）
+            StardewTimeManager timeManager = StardewTimeManager.get();
+            try {
+                timeManager.advanceDayWithSleepTime(sleepMinute);
+            } catch (Exception e) {
+                StardewCraft.LOGGER.error("Error during advanceDayWithSleepTime (day still advanced to prevent freeze)", e);
+            }
+
             PacketDistributor.sendToAllPlayers(TimeSyncPacket.fromTimeManager(timeManager));
             lastAnimalTenMinuteDayKey = Integer.MIN_VALUE;
             lastAnimalTenMinuteSlot = Integer.MIN_VALUE;
+            // 重置深夜警告标记（新的一天）
+            midnightWarned = false;
+            oneAMWarned = false;
+            twoAMWarned = false;
             StardewCraft.LOGGER.info("Stardew day advanced to next morning by {} (sleepMinute={})", reason, sleepMinute);
         } finally {
             dayAdvancing = false;
@@ -179,10 +200,30 @@ public class DimensionEventHandler {
             ServerPlayer player = (ServerPlayer) event.getEntity();
             ServerLevel level = player.serverLevel();
 
+            // Quest: warped to location
+            String location = event.getTo().location().toString();
+            com.stardew.craft.quest.StardewQuestEvents.fireWarped(player, location);
+
             if (ModDimensions.STARDEW_VALLEY.equals(event.getTo())) {
-                net.minecraft.core.BlockPos fixedPos = new net.minecraft.core.BlockPos(150, -13, 119);
-                preloadChunksAround(level, fixedPos, 4);
-                player.teleportTo(level, 150.0D, -13.0D, 119.0D, player.getYRot(), player.getXRot());
+                // 如果是 CrossDimensionTeleporter 主动传送（如巫师塔入口），不覆盖目标位置
+                if (!com.stardew.craft.interior.CrossDimensionTeleporter.consumeSkipAutoTeleport(player.getUUID())) {
+                    net.minecraft.core.BlockPos fixedPos = new net.minecraft.core.BlockPos(150, -12, 119);
+                    // 传送前清理
+                    player.closeContainer();
+                    player.stopUsingItem();
+
+                    preloadChunksAround(level, fixedPos, 2);
+                    player.teleportTo(level, 150.0D, -12.0D, 119.0D, player.getYRot(), player.getXRot());
+                }
+
+                // 确保农场默认方块和自然碎片已放置（在 preloadChunks 之后，
+                // FarmInitializer 内部也会预加载农场区域区块）
+                com.stardew.craft.dimension.FarmInitializer.ensureInitialized(level);
+
+                // 确保第一天有 forage / artifact spot 生成（SavedData 保证只执行一次）
+                int season = com.stardew.craft.time.StardewTimeManager.get().getCurrentSeason();
+                com.stardew.craft.manager.ForageSpawnService.ensureInitialSpawn(level, season);
+                com.stardew.craft.manager.ArtifactSpotSpawnService.ensureInitialSpawn(level, season);
             }
 
             // 开启原版昼夜循环
@@ -289,9 +330,79 @@ public class DimensionEventHandler {
             com.stardew.craft.manager.AnimalGrowthManager.get(serverLevel).updatePerTenMinutes(serverLevel, timeOfDayHHMM);
         }
         
-        // 检查是否到达2:00 AM（dayTime >= 20000）
+        // ── 午夜 0:00（对标 SDV case 2400）── 时钟抖动 + 困倦表情 + "It's getting late..." 消息
+        if (dayTime >= MIDNIGHT_TIME && !dayAdvancing && !midnightWarned) {
+            midnightWarned = true;
+            for (ServerPlayer sp : serverLevel.getServer().getPlayerList().getPlayers()) {
+                if (sp.level().dimension() == ModDimensions.STARDEW_VALLEY
+                        || sp.level().dimension() == ModMiningDimensions.STARDEW_MINING) {
+                    // 时钟抖动 + 全局消息
+                    PacketDistributor.sendToPlayer(sp, new com.stardew.craft.network.TimeWarningPayload(
+                        com.stardew.craft.network.TimeWarningPayload.MIDNIGHT));
+                    // 困倦表情气泡（sleep emote, iconIndex=24）
+                    PacketDistributor.sendToPlayersTrackingEntityAndSelf(sp,
+                        new com.stardew.craft.network.payload.EmoteBroadcastPayload(sp.getId(), 24));
+                }
+            }
+        }
+
+        // ── 凌晨 1:00（对标 SDV case 2500）── 时钟抖动 + 困倦表情（无文字消息）
+        if (dayTime >= ONE_AM_TIME && !dayAdvancing && !oneAMWarned) {
+            oneAMWarned = true;
+            for (ServerPlayer sp : serverLevel.getServer().getPlayerList().getPlayers()) {
+                if (sp.level().dimension() == ModDimensions.STARDEW_VALLEY
+                        || sp.level().dimension() == ModMiningDimensions.STARDEW_MINING) {
+                    PacketDistributor.sendToPlayer(sp, new com.stardew.craft.network.TimeWarningPayload(
+                        com.stardew.craft.network.TimeWarningPayload.ONE_AM));
+                    PacketDistributor.sendToPlayersTrackingEntityAndSelf(sp,
+                        new com.stardew.craft.network.payload.EmoteBroadcastPayload(sp.getId(), 24));
+                }
+            }
+        }
+
+        // ── 2:00 AM 强制晕倒 + 日推进（对标 SDV timeOfDay >= 2600）──
         if (dayTime >= DAY_END_TIME && !dayAdvancing) {
+            // 时钟抖动
+            if (!twoAMWarned) {
+                twoAMWarned = true;
+                for (ServerPlayer sp : serverLevel.getServer().getPlayerList().getPlayers()) {
+                    if (sp.level().dimension() == ModDimensions.STARDEW_VALLEY
+                            || sp.level().dimension() == ModMiningDimensions.STARDEW_MINING) {
+                        PacketDistributor.sendToPlayer(sp, new com.stardew.craft.network.TimeWarningPayload(
+                            com.stardew.craft.network.TimeWarningPayload.TWO_AM));
+                    }
+                }
+            }
+            // 对标 SDV case 2600: 强制下马、停止坐下、中断工具使用
+            for (ServerPlayer sp : serverLevel.getServer().getPlayerList().getPlayers()) {
+                if (sp.level().dimension() == ModDimensions.STARDEW_VALLEY
+                        || sp.level().dimension() == ModMiningDimensions.STARDEW_MINING) {
+                    // 强制下马
+                    if (sp.getVehicle() != null) {
+                        sp.stopRiding();
+                    }
+                    // 强制停止使用物品/工具
+                    if (sp.isUsingItem()) {
+                        sp.stopUsingItem();
+                    }
+                }
+            }
+            // 1. 对每个玩家执行晕倒惩罚（结果暂存，合并进 OvernightSettlementPayload）
+            for (ServerPlayer sp : serverLevel.getServer().getPlayerList().getPlayers()) {
+                if (sp.level().dimension() == ModDimensions.STARDEW_VALLEY
+                        || sp.level().dimension() == ModMiningDimensions.STARDEW_MINING) {
+                    com.stardew.craft.player.PassOutService.on2AMPassOut(sp);
+                }
+            }
+            // 2. 推进到次日（内部会消费 PassOutResult 并合并进结算包发送给客户端）
             advanceToNextMorning(serverLevel, stardewMinutes, "pass_out_2am");
+            // 3. 传送所有星露谷/矿井维度玩家回农场出生点
+            for (ServerPlayer sp : serverLevel.getServer().getPlayerList().getPlayers()) {
+                if (sp.level().dimension() == ModDimensions.STARDEW_VALLEY
+                        || sp.level().dimension() == ModMiningDimensions.STARDEW_MINING) {
+                    com.stardew.craft.player.PassOutService.teleportToFarmSpawn(sp);
+                }
+            }
         }
         
         // 每秒（20 ticks）同步UI时间到客户端

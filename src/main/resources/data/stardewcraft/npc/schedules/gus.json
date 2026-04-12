@@ -1,0 +1,65 @@
+{
+  "npc_id": "gus",
+  "override_vanilla": true,
+  "_format": "time -> \"location @namedPointId facing [behavior]\" | {_goto: key} | {_condition: expr}",
+
+  "GreenRain": {
+    "800": "saloon @gus_saloon_counter 3"
+  },
+
+  "rain": {
+    "_goto": "spring"
+  },
+
+  "spring": {
+    "800":  "saloon @gus_saloon_sit 2 gus_sit_down",
+    "1200": "saloon @gus_saloon_clean 2 gus_clean",
+    "1500": "saloon @gus_saloon_counter 3",
+    "1830": "saloon @gus_saloon_kitchen 1",
+    "1850": "saloon @gus_saloon_counter 3",
+    "1940": "saloon @gus_saloon_kitchen 1",
+    "1950": "saloon @gus_saloon_counter 3",
+    "2030": "saloon @gus_saloon_kitchen 1",
+    "2040": "saloon @gus_saloon_counter 3",
+    "2400": "saloon @gus_saloon_counter 3 gus_sleep"
+  },
+
+  "monday": {
+    "800":  "seedshop @gus_seedshop_visit 2",
+    "1100": "saloon @gus_saloon_clean 3",
+    "1500": "saloon @gus_saloon_counter 3",
+    "1830": "saloon @gus_saloon_kitchen 1",
+    "1850": "saloon @gus_saloon_counter 3",
+    "1940": "saloon @gus_saloon_kitchen 1",
+    "1950": "saloon @gus_saloon_counter 3",
+    "2030": "saloon @gus_saloon_kitchen 1",
+    "2040": "saloon @gus_saloon_counter 3",
+    "2400": "saloon @gus_saloon_counter 3 gus_sleep"
+  },
+
+  "tuesday": {
+    "800":  "saloon @gus_saloon_sit 2 gus_sit_down",
+    "830":  "communitycenter @gus_communitycenter_visit 1",
+    "1230": "saloon @gus_saloon_clean 3",
+    "1500": "saloon @gus_saloon_counter 3",
+    "1830": "saloon @gus_saloon_kitchen 1",
+    "1850": "saloon @gus_saloon_counter 3",
+    "1940": "saloon @gus_saloon_kitchen 1",
+    "1950": "saloon @gus_saloon_counter 3",
+    "2030": "saloon @gus_saloon_kitchen 1",
+    "2040": "saloon @gus_saloon_counter 3",
+    "2400": "saloon @gus_saloon_counter 3 gus_sleep"
+  },
+
+  "summer": {
+    "_goto": "spring"
+  },
+
+  "fall": {
+    "_goto": "spring"
+  },
+
+  "winter": {
+    "_goto": "spring"
+  }
+}

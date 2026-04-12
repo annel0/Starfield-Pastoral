@@ -59,11 +59,81 @@ public final class NpcInteractionService {
         NpcFriendshipDataManager.FriendshipState state = friendshipManager.getOrCreate(serverPlayer.getUUID(), npcId);
         state.normalizeGiftWeek(dayContext.weekKey());
 
+        // SDV parity: shop counter checks take priority over gift flow
+        // (player holding an item at a shop counter should open the shop, not gift)
+
+        // SDV parity: Clint blacksmith shop — triggers when both player and Clint are at the counter
+        if (npcId.equals("clint") && com.stardew.craft.shop.BlacksmithService.isPlayerAtCounter(serverPlayer)) {
+            return com.stardew.craft.shop.BlacksmithService.handleBlacksmithInteraction(serverPlayer, npc);
+        }
+
+        // SDV parity: Harvey clinic shop — triggers when player is at clinic counter
+        if (npcId.equals("harvey") && com.stardew.craft.shop.ClinicService.isPlayerAtCounter(serverPlayer)) {
+            return com.stardew.craft.shop.ClinicService.handleClinicInteraction(serverPlayer, npc);
+        }
+
+        // SDV parity: Gus saloon shop — triggers when player is at saloon counter
+        if (npcId.equals("gus") && com.stardew.craft.shop.SaloonService.isPlayerAtCounter(serverPlayer)) {
+            return com.stardew.craft.shop.SaloonService.handleSaloonInteraction(serverPlayer, npc);
+        }
+
+        // SDV parity: Pierre seed shop — triggers when player is at Pierre's counter
+        if (npcId.equals("pierre") && com.stardew.craft.shop.PierreService.isPlayerAtCounter(serverPlayer)) {
+            return com.stardew.craft.shop.PierreService.handlePierreInteraction(serverPlayer, npc);
+        }
+
+        // SDV parity: Marnie animal shop — triggers when player is at Marnie's counter
+        if (npcId.equals("marnie") && com.stardew.craft.shop.MarnieService.isPlayerAtCounter(serverPlayer)) {
+            return com.stardew.craft.shop.MarnieService.handleMarnieInteraction(serverPlayer, npc);
+        }
+
+        // SDV parity: Willy fish shop — triggers when player is at Willy's counter
+        if (npcId.equals("willy") && com.stardew.craft.shop.WillyService.isPlayerAtCounter(serverPlayer)) {
+            return com.stardew.craft.shop.WillyService.handleWillyInteraction(serverPlayer, npc);
+        }
+
+        // SDV parity: Gunther museum — triggers when player is at Gunther's counter
+        if (npcId.equals("gunther") && com.stardew.craft.shop.GuntherService.isPlayerAtCounter(serverPlayer)) {
+            return com.stardew.craft.shop.GuntherService.handleGuntherInteraction(serverPlayer, npc);
+        }
+
+        // SDV parity: Marlon adventurer's guild — triggers when player is at Marlon's counter
+        if (npcId.equals("marlon") && com.stardew.craft.shop.MarlonService.isPlayerAtCounter(serverPlayer)) {
+            return com.stardew.craft.shop.MarlonService.handleMarlonInteraction(serverPlayer, npc);
+        }
+
+        // SDV parity: Robin carpenter shop — triggers when player is at Robin's counter
+        if (npcId.equals("robin") && com.stardew.craft.shop.RobinService.isPlayerAtCounter(serverPlayer)) {
+            return com.stardew.craft.shop.RobinService.handleCarpenterInteraction(serverPlayer, npc);
+        }
+
+        // Wizard tower hub: intercept wizard NPC for quest/teleport dialogue
+        if (npcId.equals("wizard")) {
+            if (com.stardew.craft.interior.WizardQuestHandler.handleWizardInteraction(serverPlayer)) {
+                return InteractionResult.SUCCESS;
+            }
+        }
+
+        // Dwarf NPC: shop if player can understand Dwarvish, garbled dialogue otherwise
+        if (npcId.equals("dwarf")) {
+            InteractionResult dwarfResult = com.stardew.craft.shop.DwarfService.handleDwarfInteraction(serverPlayer, npc);
+            if (dwarfResult == InteractionResult.SUCCESS) {
+                return InteractionResult.SUCCESS;
+            }
+            // PASS = can't understand → show garbled dialogue below
+        }
+
+        // Gift flow: if player is holding an item, ask for confirmation before gifting
+        // SDV parity: you CAN gift Dwarf without understanding, but friendship won't increase
+        // and the response dialogue will be garbled (handled in receiveGift / response)
         if (!held.isEmpty()) {
-            String resultText = receiveGift(serverPlayer, npc, held, npcId, state, dayContext);
-            friendshipManager.setDirty();
-            syncFriendshipStatus(serverPlayer, npcId, state, dayContext);
-            sendDialoguePacket(serverPlayer, npcId, resultText, state.points());
+            // NPC smoothly turns to face the player, then opens gift confirm screen
+            String npcDisplayName = npc.getDisplayName().getString();
+            String itemDisplayName = held.getHoverName().getString();
+            npc.facePlayerTemporarily(serverPlayer, 60, () -> {
+                PacketDistributor.sendToPlayer(serverPlayer,
+                    new com.stardew.craft.network.payload.OpenGiftConfirmPayload(npcId, itemDisplayName, npcDisplayName));
+            });
             return InteractionResult.SUCCESS;
         }
 
@@ -72,12 +142,76 @@ public final class NpcInteractionService {
             return InteractionResult.SUCCESS;
         }
 
+        // NPC smoothly turns to face the player, then opens dialogue
         String dialogueText = loadCurrentDialogue(serverLevel, npcId, state, dayContext);
-        grantConversationFriendship(npcId, state, dayContext, dialogueText);
+
+        // SDV parity: Dwarf dialogue is garbled if player doesn't have translation guide
+        boolean garbleDwarvish = npcId.equals("dwarf") && !com.stardew.craft.shop.DwarfService.canUnderstandDwarves(serverPlayer);
+        if (!garbleDwarvish) {
+            grantConversationFriendship(npcId, state, dayContext, dialogueText);
+            // Don't grant friendship for unintelligible conversation
+        }
         friendshipManager.setDirty();
         syncFriendshipStatus(serverPlayer, npcId, state, dayContext);
-        sendDialoguePacket(serverPlayer, npcId, dialogueText, state.points());
+        // Quest: NPC socialized (first conversation of the day)
+        com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(serverPlayer, npcId);
+        int points = state.points();
+        final String finalDialogueText = dialogueText;
+        final boolean finalGarble = garbleDwarvish;
+        npc.facePlayerTemporarily(serverPlayer, 60, () -> {
+            sendDialoguePacket(serverPlayer, npcId, finalDialogueText, points, finalGarble);
+        });
         return InteractionResult.SUCCESS;
+    }
+
+    /**
+     * Called from ConfirmGiftPayload when the player confirms giving a gift.
+     * Re-validates that the player is still holding an item and processes the gift.
+     *
+     * SDV parity: Quest item delivery is checked FIRST (NPC.tryToReceiveActiveObject).
+     * If a delivery quest matches, the item is consumed by the quest and gift taste
+     * processing is entirely skipped.
+     */
+    public static void handleConfirmedGift(ServerPlayer player, String npcId) {
+        Level level = player.level();
+        if (!(level instanceof ServerLevel serverLevel)) return;
+
+        ItemStack held = player.getMainHandItem();
+        if (held.isEmpty()) {
+            held = player.getOffhandItem();
+        }
+        if (held.isEmpty()) return; // Player no longer holding anything
+
+        StardewNpcEntity npcEntity = NpcSpawnManager.getTrackedNpc(serverLevel, npcId);
+        if (npcEntity == null) return;
+
+        String giftItemId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(held.getItem()).toString();
+
+        // ── SDV parity: quest delivery intercept (before gift taste processing) ──
+        // In SDV NPC.tryToReceiveActiveObject, OnItemOfferedToNpc is checked first.
+        // If a delivery quest matches, the item is consumed by the quest; no gift processing.
+        boolean questConsumed = com.stardew.craft.quest.StardewQuestEvents.fireItemOfferedToNpc(player, npcId, giftItemId);
+        if (questConsumed) {
+            // Quest consumed the item — shrink held stack and send quest-specific dialogue
+            if (!player.getAbilities().instabuild) {
+                held.shrink(1);
+            }
+            boolean garbleGift = npcId.equals("dwarf") && !com.stardew.craft.shop.DwarfService.canUnderstandDwarves(player);
+            sendDialoguePacket(player, npcId, "stardewcraft.npc.generic.quest_delivery_thanks", 0, garbleGift);
+            return;
+        }
+
+        // ── Normal gift processing (no quest matched) ──
+        DayContext dayContext = currentDayContext(serverLevel);
+        NpcFriendshipDataManager friendshipManager = NpcFriendshipDataManager.get(serverLevel);
+        NpcFriendshipDataManager.FriendshipState state = friendshipManager.getOrCreate(player.getUUID(), npcId);
+        state.normalizeGiftWeek(dayContext.weekKey());
+
+        String resultText = receiveGift(player, npcEntity, held, npcId, state, dayContext);
+        friendshipManager.setDirty();
+        syncFriendshipStatus(player, npcId, state, dayContext);
+        boolean garbleGift = npcId.equals("dwarf") && !com.stardew.craft.shop.DwarfService.canUnderstandDwarves(player);
+        sendDialoguePacket(player, npcId, resultText, state.points(), garbleGift);
     }
 
     public static int getMaxFriendshipPointsFor(String npcId) {
@@ -182,6 +316,14 @@ public final class NpcInteractionService {
             }
         }
 
+        // SDV parity: gifting Dwarf without translation guide → friendship delta is 0
+        boolean dwarfNoUnderstand = npcId.equals("dwarf")
+            && player instanceof ServerPlayer sp
+            && !com.stardew.craft.shop.DwarfService.canUnderstandDwarves(sp);
+        if (dwarfNoUnderstand && finalDelta > 0) {
+            finalDelta = 0;
+        }
+
         int before = state.points();
         state.addPoints(finalDelta, getMaxFriendshipPointsFor(npcId));
         // StardropTea does NOT count toward daily/weekly gift limits (vanilla parity)
@@ -209,7 +351,9 @@ public final class NpcInteractionService {
         // Broadcast NPC emote to all players (vanilla parity)
         broadcastGiftEmote(npcEntity, taste);
 
-        return buildGiftResponseText(npcId, held, taste, birthday, finalDelta);
+        String responseText = buildGiftResponseText(npcId, held, taste, birthday, finalDelta);
+        // SDV parity: Dwarf gift response garble flag — applied client-side after translation
+        return responseText;
     }
 
     private static GiftTasteResult getGiftTasteForThisItem(ItemStack held, String npcId) {
@@ -329,7 +473,8 @@ public final class NpcInteractionService {
         String selectedKey = null;
         String selectedText = null;
 
-        for (String prefix : buildDialoguePrefixes(dayContext)) {
+        boolean isFirstMeeting = state.lastTalkDayKey() == Integer.MIN_VALUE;
+        for (String prefix : buildDialoguePrefixes(dayContext, isFirstMeeting)) {
             String heartKey = findBestHeartVariantKey(dialogueRoot, prefix, hearts);
             if (heartKey != null) {
                 selectedText = resolveDialogueTextByKey(dialogueRoot, heartKey, dayContext.dayKey());
@@ -544,8 +689,12 @@ public final class NpcInteractionService {
         return 1f;
     }
 
-    private static List<String> buildDialoguePrefixes(DayContext dayContext) {
+    private static List<String> buildDialoguePrefixes(DayContext dayContext, boolean isFirstMeeting) {
         List<String> out = new ArrayList<>();
+        // SDV parity: Introduction dialogue takes absolute priority on first meeting
+        if (isFirstMeeting) {
+            out.add("Introduction");
+        }
         String weatherToken = normalizedWeatherToken(dayContext.weatherLower());
         if (!weatherToken.isBlank()) {
             out.add(weatherToken);
@@ -559,7 +708,6 @@ public final class NpcInteractionService {
         out.add(dayContext.weekdayShort());
         out.add(String.valueOf(dayContext.dayInSeason()));
         out.add(dayContext.seasonLower());
-        out.add("Introduction");
         out.add("default");
         return out;
     }
@@ -675,15 +823,25 @@ public final class NpcInteractionService {
      * internal {@code tr::key::base64} format (strips it down to just the key).
      */
     private static void sendDialoguePacket(ServerPlayer player, String npcId, String translateKey, int points) {
+        sendDialoguePacket(player, npcId, translateKey, points, false);
+    }
+
+    private static void sendDialoguePacket(ServerPlayer player, String npcId, String translateKey, int points, boolean garbleDwarvish) {
         if (translateKey == null || translateKey.isBlank()) {
             translateKey = "...";
         }
         PacketDistributor.sendToPlayer(player,
-                new OpenNpcDialogueScreenPayload(npcId, translateKey, points));
+                new OpenNpcDialogueScreenPayload(npcId, translateKey, points, "", garbleDwarvish));
     }
 
     public static void handleClientQuestionAnswer(ServerPlayer player, String npcId, String nextDialogueNode, int friendshipDelta) {
         if (npcId == null || npcId.isBlank()) return;
+
+        // Wizard tower hub: intercept wizard-specific answer nodes (teleport commands)
+        if ("wizard".equals(npcId) && com.stardew.craft.interior.WizardQuestHandler.handleWizardQuestionAnswer(player, nextDialogueNode)) {
+            return;
+        }
+
         NpcFriendshipDataManager friendshipManager = NpcFriendshipDataManager.get((net.minecraft.server.level.ServerLevel) player.level());
         NpcFriendshipDataManager.FriendshipState state = friendshipManager.getOrCreate(player.getUUID(), npcId);
         

@@ -1,0 +1,30 @@
+{
+  "npc_id": "pam",
+  "_vanilla_ref": "24=parsnip 90=cactus_fruit 199=glazed_yams 208=??? 303=pale_ale 346=beer 459=mead 873=???",
+  "loved": [
+    "stardewcraft:parsnip",
+    "stardewcraft:pale_ale",
+    "stardewcraft:beer",
+    "stardewcraft:mead"
+  ],
+  "_loved_not_yet_in_mod": ["cactus_fruit(90)", "glazed_yams(199)", "item_208", "item_873"],
+  "liked": [],
+  "_liked_vanilla_note": "Categories -6(milk) -75(vegetables) -79(fruits). Items: 18=daffodil(?), 227-236=various_cooked, 238=cranberry_sauce, 402=sweet_pea, 418=cranberries. Most cooked items not in mod. Category tags handled by universal or item-level.",
+  "_liked_not_yet_in_mod": ["daffodil(18)", "parsnip_soup(227)", "fried_egg(228)", "bread(231)", "tortilla(232)", "complete_breakfast(233)", "maki_roll(234)", "triple_shot_espresso(235)", "stir_fry(236)", "cranberry_sauce(238)", "sweet_pea(402)", "cranberries(418)"],
+  "neutral": [
+    "stardewcraft:clay"
+  ],
+  "_neutral_vanilla_note": "-5(eggs_category) 16=wild_horseradish 80=quartz 330=clay",
+  "disliked": [],
+  "_disliked_vanilla_note": "149=squid 151=void_egg — not yet confirmed",
+  "_disliked_not_yet_in_mod": ["squid(149)", "void_egg(151)"],
+  "hated": [],
+  "_hated_vanilla_note": "-4(fish_category) 167=joja_cola — wait, joja_cola is liked by Sam? Double-check. Actually 167=Joja Cola per SDV wiki. Pam hates fish category and holly(167).",
+  "_hated_not_yet_in_mod": ["holly(167)"],
+  "hated_categories": ["fish"],
+  "loved_msg": "Well, I'll be darned... This is great! Thanks, kid!$h",
+  "liked_msg": "Hey, that's not bad at all! Thanks, kid.",
+  "neutral_msg": "Oh, thanks. I'll take it.",
+  "disliked_msg": "Hmm... that's not really my thing, kid.",
+  "hated_msg": "Ugh. Get that outta my face!$a"
+}

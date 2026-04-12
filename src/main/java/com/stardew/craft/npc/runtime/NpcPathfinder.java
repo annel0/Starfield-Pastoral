@@ -30,9 +30,11 @@ import java.util.concurrent.Executors;
 public final class NpcPathfinder {
 
     static final int ASTAR_MIN_VISITS = 2_000;
-    static final int ASTAR_MAX_VISITS = 8_000;
+    static final int ASTAR_MAX_VISITS = 4_000;
+    /** If start→goal Chebyshev distance exceeds this, skip A* entirely (caller should teleport). */
+    static final int ASTAR_MAX_WALKABLE_DIST = 200;
     private static final int ASTAR_WARN_INTERVAL_TICKS = 200;
-    static final int ASTAR_MAX_CALLS_PER_TICK = 2;
+    static final int ASTAR_MAX_CALLS_PER_TICK = 8;
 
     private static long lastAstarWarnTick = Long.MIN_VALUE;
     private static long astarCallBudgetTick = Long.MIN_VALUE;
@@ -50,6 +52,11 @@ public final class NpcPathfinder {
         {1, 1}, {1, -1}, {-1, 1}, {-1, -1}
     };
 
+    /** Cardinal direction offsets: N/E/S/W. Shared across all edge/door checks. */
+    private static final int[][] DIR4 = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+    /** Self + cardinal neighbours for door proximity checks. */
+    private static final int[][] SELF_AND_DIR4 = {{0,0},{1,0},{-1,0},{0,1},{0,-1}};
+
     /** Temporary collision penalties: packed BlockPos -> expiry gameTime. */
     private static final Map<Long, Long> COLLISION_PENALTIES = new HashMap<>();
     private static final double COLLISION_PENALTY_COST = 8.0D;
@@ -64,6 +71,12 @@ public final class NpcPathfinder {
         astarCallBudgetTick = Long.MIN_VALUE;
         astarCallsThisTick = 0;
         COLLISION_PENALTIES.clear();
+        SURFACE_CATEGORY_CACHE.clear();
+    }
+
+    /** Periodically evict expired collision penalties to prevent unbounded growth. */
+    public static void cleanupExpiredPenalties(long currentGameTime) {
+        COLLISION_PENALTIES.values().removeIf(expiry -> currentGameTime >= expiry);
     }
 
     /**
@@ -100,9 +113,27 @@ public final class NpcPathfinder {
      * Synchronous A* path search. Must be called on the server thread.
      */
     public static List<Vec3> planPath(ServerLevel level, Vec3 rawStart, Vec3 rawGoal) {
+        // Early-reject paths that are clearly too long for A* (caller should teleport)
+        double chebDist = Math.max(Math.abs(rawStart.x - rawGoal.x), Math.abs(rawStart.z - rawGoal.z));
+        if (chebDist > ASTAR_MAX_WALKABLE_DIST) {
+            return new ArrayList<>();
+        }
         BlockPos start = nearestWalkable(level, rawStart);
         BlockPos goal = nearestWalkable(level, rawGoal);
         if (start == null || goal == null) {
+            // Debug: log which endpoint failed and the block states at those positions
+            BlockPos rawStartPos = BlockPos.containing(rawStart);
+            BlockPos rawGoalPos = BlockPos.containing(rawGoal);
+            boolean startLoaded = level.isLoaded(rawStartPos);
+            boolean goalLoaded = level.isLoaded(rawGoalPos);
+            com.stardew.craft.StardewCraft.LOGGER.warn(
+                "[NPC_PATH] planPath failed: start={} goal={} rawStart={} rawGoal={} startLoaded={} goalLoaded={} startBelow={} goalBelow={}",
+                start, goal,
+                rawStartPos, rawGoalPos,
+                startLoaded, goalLoaded,
+                startLoaded ? level.getBlockState(rawStartPos.below()).toString() : "unloaded",
+                goalLoaded ? level.getBlockState(rawGoalPos.below()).toString() : "unloaded"
+            );
             return new ArrayList<>();
         }
 
@@ -125,7 +156,7 @@ public final class NpcPathfinder {
                 continue;
             }
 
-            if (current.pos.distSqr(goal) <= 1.0D) {
+            if (current.pos.equals(goal)) {
                 endNode = current;
                 break;
             }
@@ -161,9 +192,10 @@ public final class NpcPathfinder {
         List<Vec3> path = new ArrayList<>();
         Node cursor = endNode;
         while (cursor != null) {
-            path.add(0, Vec3.atCenterOf(cursor.pos));
+            path.add(Vec3.atCenterOf(cursor.pos));
             cursor = cursor.parent;
         }
+        java.util.Collections.reverse(path);
         // Tag door positions so smoothPath never removes them
         // (we must traverse the exact door block for correct approach angle).
         Set<Integer> doorIndices = new HashSet<>();
@@ -221,7 +253,7 @@ public final class NpcPathfinder {
                 continue;
             }
 
-            if (current.pos.distSqr(goal) <= 1.0D) {
+            if (current.pos.equals(goal)) {
                 endNode = current;
                 break;
             }
@@ -256,9 +288,10 @@ public final class NpcPathfinder {
         List<Vec3> path = new ArrayList<>();
         Node cursor = endNode;
         while (cursor != null) {
-            path.add(0, Vec3.atCenterOf(cursor.pos));
+            path.add(Vec3.atCenterOf(cursor.pos));
             cursor = cursor.parent;
         }
+        java.util.Collections.reverse(path);
         Set<Integer> doorIndices = new HashSet<>();
         for (int i = 0; i < path.size(); i++) {
             if (isDoorPositionSnapshot(snapshot, BlockPos.containing(path.get(i)))) {
@@ -271,29 +304,44 @@ public final class NpcPathfinder {
 
     // ──── Terrain helpers (ServerLevel - main thread) ────
 
-    static BlockPos nearestWalkable(ServerLevel level, Vec3 raw) {
+    public static BlockPos nearestWalkable(ServerLevel level, Vec3 raw) {
         int x = (int) Math.floor(raw.x);
         int z = (int) Math.floor(raw.z);
         int baseY = (int) Math.floor(raw.y);
 
-        BlockPos direct = resolveColumnStandNearY(level, x, z, baseY);
-        if (direct != null) {
-            return direct;
+        // Use a single MutableBlockPos for isLoaded probes to avoid allocations.
+        net.minecraft.core.BlockPos.MutableBlockPos probe = new net.minecraft.core.BlockPos.MutableBlockPos();
+        if (level.isLoaded(probe.set(x, baseY, z))) {
+            BlockPos direct = resolveColumnStandNearY(level, x, z, baseY);
+            if (direct != null) {
+                return direct;
+            }
         }
 
+        // Scan expanding perimeter only (skip already-checked interior).
         for (int r = 1; r <= 10; r++) {
+            // Top and bottom edges of the ring (full width)
             for (int dx = -r; dx <= r; dx++) {
-                for (int dz = -r; dz <= r; dz++) {
-                    int nx = x + dx;
-                    int nz = z + dz;
-                    BlockPos candidate = resolveColumnStandNearY(level, nx, nz, baseY);
-                    if (candidate != null) {
-                        return candidate;
-                    }
-                }
+                BlockPos c = checkWalkableAt(level, probe, x + dx, z - r, baseY);
+                if (c != null) return c;
+                c = checkWalkableAt(level, probe, x + dx, z + r, baseY);
+                if (c != null) return c;
+            }
+            // Left and right edges (excluding corners already covered)
+            for (int dz = -r + 1; dz <= r - 1; dz++) {
+                BlockPos c = checkWalkableAt(level, probe, x - r, z + dz, baseY);
+                if (c != null) return c;
+                c = checkWalkableAt(level, probe, x + r, z + dz, baseY);
+                if (c != null) return c;
             }
         }
         return null;
+    }
+
+    /** Helper for nearestWalkable perimeter scan. */
+    private static BlockPos checkWalkableAt(ServerLevel level, net.minecraft.core.BlockPos.MutableBlockPos probe, int nx, int nz, int baseY) {
+        if (!level.isLoaded(probe.set(nx, baseY, nz))) return null;
+        return resolveColumnStandNearY(level, nx, nz, baseY);
     }
 
     private static BlockPos stepTo(ServerLevel level, BlockPos from, int dx, int dz) {
@@ -349,20 +397,22 @@ public final class NpcPathfinder {
         return null;
     }
 
-    static boolean canStand(ServerLevel level, BlockPos pos) {
+    public static boolean canStand(ServerLevel level, BlockPos pos) {
+        BlockPos abovePos = pos.above();
+        BlockPos belowPos = pos.below();
         BlockState feet = level.getBlockState(pos);
-        BlockState head = level.getBlockState(pos.above());
-        BlockState below = level.getBlockState(pos.below());
+        BlockState head = level.getBlockState(abovePos);
+        BlockState below = level.getBlockState(belowPos);
         if (!feet.getCollisionShape(level, pos).isEmpty() && !isPathDoorPassable(feet)) {
             return false;
         }
-        if (!head.getCollisionShape(level, pos.above()).isEmpty() && !isPathDoorPassable(head)) {
+        if (!head.getCollisionShape(level, abovePos).isEmpty() && !isPathDoorPassable(head)) {
             return false;
         }
         if (isBarrierBlock(below)) {
             return false;
         }
-        if (below.getCollisionShape(level, pos.below()).isEmpty()) {
+        if (below.getCollisionShape(level, belowPos).isEmpty()) {
             return false;
         }
         return true;
@@ -371,23 +421,32 @@ public final class NpcPathfinder {
     /**
      * Width-aware passability: checks that the entity (0.6 wide) won't clip
      * into adjacent solid blocks when walking through this position.
-     * Returns false if TWO OPPOSITE cardinal neighbors are both solid
-     * (1-block corridor that the 0.6-wide entity cannot traverse).
+     * Returns false if TWO OPPOSITE cardinal neighbors are both solid on ANY axis
+     * (1-block corridor that the 0.6-wide entity cannot traverse without clipping).
      */
     private static boolean canStandWide(ServerLevel level, BlockPos pos) {
-        // Check X-axis corridor: if both +X and -X at feet level are solid, passage is <1 block
-        boolean solidPosX = !level.getBlockState(pos.east()).getCollisionShape(level, pos.east()).isEmpty()
-            && !isPathDoorPassable(level.getBlockState(pos.east()));
-        boolean solidNegX = !level.getBlockState(pos.west()).getCollisionShape(level, pos.west()).isEmpty()
-            && !isPathDoorPassable(level.getBlockState(pos.west()));
-        boolean solidPosZ = !level.getBlockState(pos.south()).getCollisionShape(level, pos.south()).isEmpty()
-            && !isPathDoorPassable(level.getBlockState(pos.south()));
-        boolean solidNegZ = !level.getBlockState(pos.north()).getCollisionShape(level, pos.north()).isEmpty()
-            && !isPathDoorPassable(level.getBlockState(pos.north()));
-        // If both walls on the same axis, the gap is exactly 1 block — too narrow for 0.6 entity.
-        // Allow if at least one axis is clear.
-        if (solidPosX && solidNegX && solidPosZ && solidNegZ) {
-            return false; // completely boxed in
+        // Check X-axis corridor: if both +X and -X at feet level are solid, passage is <1 block.
+        // Use explicit BlockPos to avoid .east()/.west() creating intermediates, and cache getBlockState results.
+        int px = pos.getX(), py = pos.getY(), pz = pos.getZ();
+        BlockPos eastPos = new BlockPos(px + 1, py, pz);
+        BlockState eastState = level.getBlockState(eastPos);
+        boolean solidPosX = !eastState.getCollisionShape(level, eastPos).isEmpty() && !isPathDoorPassable(eastState);
+        if (solidPosX) {
+            BlockPos westPos = new BlockPos(px - 1, py, pz);
+            BlockState westState = level.getBlockState(westPos);
+            if (!westState.getCollisionShape(level, westPos).isEmpty() && !isPathDoorPassable(westState)) {
+                return false; // X-axis corridor too narrow
+            }
+        }
+        BlockPos southPos = new BlockPos(px, py, pz + 1);
+        BlockState southState = level.getBlockState(southPos);
+        boolean solidPosZ = !southState.getCollisionShape(level, southPos).isEmpty() && !isPathDoorPassable(southState);
+        if (solidPosZ) {
+            BlockPos northPos = new BlockPos(px, py, pz - 1);
+            BlockState northState = level.getBlockState(northPos);
+            if (!northState.getCollisionShape(level, northPos).isEmpty() && !isPathDoorPassable(northState)) {
+                return false; // Z-axis corridor too narrow
+            }
         }
         return true;
     }
@@ -395,7 +454,7 @@ public final class NpcPathfinder {
     /** Check if any neighboring block (including self) is a door. */
     private static boolean hasDoorNearby(ServerLevel level, BlockPos pos) {
         if (pos == null) return false;
-        for (int[] d : new int[][]{{0,0},{1,0},{-1,0},{0,1},{0,-1}}) {
+        for (int[] d : SELF_AND_DIR4) {
             BlockPos p = pos.offset(d[0], 0, d[1]);
             BlockState s = level.getBlockState(p);
             if (s.getBlock() instanceof DoorBlock) return true;
@@ -410,6 +469,16 @@ public final class NpcPathfinder {
         base += edgePenalty(level, to);
         BlockState belowState = level.getBlockState(to.below());
         net.minecraft.world.level.block.Block belowBlock = belowState.getBlock();
+
+        // If stepping up 1+ blocks, penalize it heavily so they don't parkour over counters/tables
+        // unless it's a natural ascent via stairs or slabs.
+        if (to.getY() > from.getY()) {
+            if (!(belowBlock instanceof net.minecraft.world.level.block.StairBlock) &&
+                !(belowBlock instanceof net.minecraft.world.level.block.SlabBlock)) {
+                base += 8.0D;
+            }
+        }
+
         int surfaceCategory = classifySurface(belowBlock);
         return switch (surfaceCategory) {
             case 1 -> base * 0.35D;
@@ -419,7 +488,18 @@ public final class NpcPathfinder {
         };
     }
 
+    /** Block → surface category cache. Block instances are singletons so identity-keyed map works. */
+    private static final Map<net.minecraft.world.level.block.Block, Integer> SURFACE_CATEGORY_CACHE = new java.util.IdentityHashMap<>();
+
     static int classifySurface(net.minecraft.world.level.block.Block block) {
+        Integer cached = SURFACE_CATEGORY_CACHE.get(block);
+        if (cached != null) return cached;
+        int category = classifySurfaceUncached(block);
+        SURFACE_CATEGORY_CACHE.put(block, category);
+        return category;
+    }
+
+    private static int classifySurfaceUncached(net.minecraft.world.level.block.Block block) {
         if (block instanceof net.minecraft.world.level.block.DirtPathBlock) return 1;
         ResourceLocation blockId = BuiltInRegistries.BLOCK.getKey(block);
         String path = blockId.getPath();
@@ -462,9 +542,9 @@ public final class NpcPathfinder {
 
     private static double edgePenalty(ServerLevel level, BlockPos pos) {
         int blocked = 0;
-        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-        for (int[] d : dirs) {
-            BlockPos side = new BlockPos(pos.getX() + d[0], pos.getY(), pos.getZ() + d[1]);
+        int px = pos.getX(), py = pos.getY(), pz = pos.getZ();
+        for (int[] d : DIR4) {
+            BlockPos side = new BlockPos(px + d[0], py, pz + d[1]);
             if (!canStand(level, side)) {
                 blocked++;
             }
@@ -579,7 +659,16 @@ public final class NpcPathfinder {
         base += edgePenaltySnapshot(snap, to);
         BlockState belowState = snap.getBlockState(to.below());
         if (belowState == null) return base;
-        int surfaceCategory = classifySurface(belowState.getBlock());
+
+        net.minecraft.world.level.block.Block belowBlock = belowState.getBlock();
+        if (to.getY() > from.getY()) {
+            if (!(belowBlock instanceof net.minecraft.world.level.block.StairBlock) &&
+                !(belowBlock instanceof net.minecraft.world.level.block.SlabBlock)) {
+                base += 8.0D;
+            }
+        }
+
+        int surfaceCategory = classifySurface(belowBlock);
         return switch (surfaceCategory) {
             case 1 -> base * 0.35D;
             case 2 -> base * 2.20D;
@@ -594,7 +683,10 @@ public final class NpcPathfinder {
         boolean solidNegX = isSnapshotSolid(snap, pos.west());
         boolean solidPosZ = isSnapshotSolid(snap, pos.south());
         boolean solidNegZ = isSnapshotSolid(snap, pos.north());
-        if (solidPosX && solidNegX && solidPosZ && solidNegZ) {
+        if (solidPosX && solidNegX) {
+            return false;
+        }
+        if (solidPosZ && solidNegZ) {
             return false;
         }
         return true;
@@ -609,7 +701,7 @@ public final class NpcPathfinder {
     /** Door proximity check (snapshot parity with hasDoorNearby). */
     private static boolean hasDoorNearbySnapshot(BlockSnapshot snap, BlockPos pos) {
         if (pos == null) return false;
-        for (int[] d : new int[][]{{0,0},{1,0},{-1,0},{0,1},{0,-1}}) {
+        for (int[] d : SELF_AND_DIR4) {
             BlockPos p = pos.offset(d[0], 0, d[1]);
             BlockState s = snap.getBlockState(p);
             if (s != null && s.getBlock() instanceof DoorBlock) return true;
@@ -621,14 +713,25 @@ public final class NpcPathfinder {
 
     private static double edgePenaltySnapshot(BlockSnapshot snap, BlockPos pos) {
         int blocked = 0;
-        int[][] dirs = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-        for (int[] d : dirs) {
-            BlockPos side = new BlockPos(pos.getX() + d[0], pos.getY(), pos.getZ() + d[1]);
+        int px = pos.getX(), py = pos.getY(), pz = pos.getZ();
+        for (int[] d : DIR4) {
+            BlockPos side = new BlockPos(px + d[0], py, pz + d[1]);
             if (!canStandSnapshot(snap, side)) {
                 blocked++;
             }
         }
-        return blocked * 0.40D;
+        double penalty = blocked * 0.40D;
+
+        // Apply collision penalties (parity with sync edgePenalty)
+        long posKey = pos.asLong();
+        Long expiry = COLLISION_PENALTIES.get(posKey);
+        if (expiry != null) {
+            // Snapshot runs off-thread; use snapshot game time for expiry check.
+            // Since penalties are short-lived (200t), stale reads are acceptable.
+            penalty += COLLISION_PENALTY_COST;
+        }
+
+        return penalty;
     }
 
     // ──── Shared utilities ────
@@ -698,8 +801,12 @@ public final class NpcPathfinder {
 
     private static double heuristic(BlockPos a, BlockPos b) {
         int dx = a.getX() - b.getX();
+        int dy = a.getY() - b.getY();
         int dz = a.getZ() - b.getZ();
-        return Math.sqrt(dx * dx + dz * dz);
+        // Include vertical distance scaled by the climb penalty (0.40 per Y block)
+        // to keep the heuristic admissible while avoiding excessive exploration on
+        // multi-story paths.
+        return Math.sqrt(dx * dx + dz * dz) + Math.abs(dy) * 0.40D;
     }
 
     private static long pack(BlockPos pos) {
@@ -747,11 +854,13 @@ public final class NpcPathfinder {
             int sizeZ = maxZ - minZ + 1;
             BlockState[] states = new BlockState[sizeX * sizeY * sizeZ];
 
+            // Use a single MutableBlockPos to avoid allocating one BlockPos per block.
+            net.minecraft.core.BlockPos.MutableBlockPos probe = new net.minecraft.core.BlockPos.MutableBlockPos();
             for (int x = 0; x < sizeX; x++) {
                 for (int y = 0; y < sizeY; y++) {
                     for (int z = 0; z < sizeZ; z++) {
-                        states[x * sizeY * sizeZ + y * sizeZ + z] =
-                            level.getBlockState(new BlockPos(minX + x, minY + y, minZ + z));
+                        probe.set(minX + x, minY + y, minZ + z);
+                        states[x * sizeY * sizeZ + y * sizeZ + z] = level.getBlockState(probe);
                     }
                 }
             }

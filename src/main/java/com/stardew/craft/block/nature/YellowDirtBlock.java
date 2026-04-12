@@ -12,6 +12,7 @@ import javax.annotation.Nullable;
 /**
  * 黄土方块 — 行为与原版泥土完全一致，可被锄头翻耕为耕地。
  */
+@SuppressWarnings("null")
 public class YellowDirtBlock extends Block {
 
     public YellowDirtBlock(Properties properties) {

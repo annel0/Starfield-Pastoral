@@ -214,6 +214,47 @@ public class TreeGrowthManager extends SavedData {
 		}
 	}
 
+	/**
+	 * 树肥：立即推进到下一阶段（sapling0→sapling1，sapling1→成熟树）。
+	 * 返回 true 表示成功推进。
+	 */
+	public boolean fertilize(@Nonnull ServerLevel level, @Nonnull BlockPos pos) {
+		GlobalPos gp = GlobalPos.of(
+			Objects.requireNonNull(level.dimension(), "dimension"),
+			Objects.requireNonNull(pos.immutable(), "pos")
+		);
+		addSapling(level, pos);
+
+		BlockState state = level.getBlockState(pos);
+		if (!(state.getBlock() instanceof WildTreeSaplingBlock saplingBlock)) {
+			return false;
+		}
+
+		WildTrees.Def def = Objects.requireNonNull(saplingBlock.getDef(), "def");
+
+		if (saplingBlock.getStage() == 0) {
+			// sapling0 → sapling1
+			daysGrown.put(gp, STAGE1_DAY);
+			setDirty();
+			BlockState nextState = Objects.requireNonNull(def.sapling1().get().defaultBlockState(), "sapling1");
+			level.setBlock(pos, nextState, Block.UPDATE_ALL);
+			return true;
+		}
+
+		if (saplingBlock.getStage() == 1) {
+			// sapling1 → mature tree
+			daysGrown.put(gp, TOTAL_DAYS);
+			setDirty();
+			if (canMature(level, pos, def) && placePresetOrFallbackTree(level, pos, def)) {
+				removeSapling(level, pos);
+			}
+			// Even if placement is blocked, mark days so it matures once space is free.
+			return true;
+		}
+
+		return false;
+	}
+
 	public int getDaysGrown(@Nonnull ServerLevel level, @Nonnull BlockPos pos) {
 		GlobalPos gp = GlobalPos.of(
 			Objects.requireNonNull(level.dimension(), "dimension"),

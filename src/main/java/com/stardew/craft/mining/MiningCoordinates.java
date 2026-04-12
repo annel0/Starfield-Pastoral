@@ -14,9 +14,9 @@ import net.minecraft.server.level.ServerPlayer;
  * 
  * 示例：
  * - 大厅（0层）：中心 (0, 64, 0)
- * - 1层：中心 (0, 64, 100)
- * - 2层：中心 (0, 64, 200)
- * - 40层：中心 (0, 64, 4000)
+ * - 1层：中心 (0, 66, 214)
+ * - 2层：中心 (0, 66, 414)
+ * - 40层：中心 (0, 66, 8014)
  */
 public class MiningCoordinates {
     
@@ -25,7 +25,7 @@ public class MiningCoordinates {
     public static final int FIXED_Y = 66;
     
     // 层间距
-    public static final int FLOOR_SPACING = 500;
+    public static final int FLOOR_SPACING = 200;
     
     /**
      * 获取指定层数的中心坐标

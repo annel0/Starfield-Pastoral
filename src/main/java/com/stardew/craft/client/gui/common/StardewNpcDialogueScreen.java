@@ -61,6 +61,10 @@ public class StardewNpcDialogueScreen extends Screen {
     private int iconFrameTick;
     private long lastRenderMs;
 
+    /** Optional action to run when the dialogue screen is closed (SDV afterDialogues parity). */
+    @javax.annotation.Nullable
+    private Runnable afterCloseAction;
+
     private int boxX;
     private int boxY;
     private int boxW;
@@ -77,6 +81,17 @@ public class StardewNpcDialogueScreen extends Screen {
         this.npcId = npcId == null ? "" : npcId;
         this.rawText = text == null ? "..." : text;
         this.friendshipPoints = Math.max(0, friendshipPoints);
+    }
+
+    @Override
+    public boolean isPauseScreen() {
+        return false;
+    }
+
+    /** Set an action to run after the dialogue screen closes (SDV Game1.afterDialogues parity). */
+    public StardewNpcDialogueScreen withAfterClose(@javax.annotation.Nullable Runnable action) {
+        this.afterCloseAction = action;
+        return this;
     }
 
     @Override
@@ -330,6 +345,8 @@ public class StardewNpcDialogueScreen extends Screen {
             paginateChunk(chunk, pages);
         }
         if (pages.isEmpty()) {
+            com.stardew.craft.StardewCraft.LOGGER.warn("[NPC_DIALOGUE] rebuildPages produced 0 pages! npcId={} rawText(first120)={}",
+                npcId, rawText.length() > 120 ? rawText.substring(0, 120) : rawText);
             pages.add(new DialoguePage("...", true, 0));
         }
     }
@@ -351,7 +368,9 @@ public class StardewNpcDialogueScreen extends Screen {
             if (firstHash != -1) {
                 int nextHash = queryPart.indexOf("#$r", firstHash);
                 if (nextHash == -1) nextHash = queryPart.length();
-                String baseText = queryPart.substring(firstHash + 1, nextHash).trim();
+                String baseText = (nextHash > firstHash + 1)
+                    ? queryPart.substring(firstHash + 1, nextHash).trim()
+                    : "";
                 if (!baseText.isEmpty()) {
                     mainText += (mainText.isEmpty() ? "" : " ") + baseText;
                 }
@@ -400,33 +419,45 @@ public class StardewNpcDialogueScreen extends Screen {
                 chunk = chunk.substring(1);
             }
 
+            // Extract ALL portrait emotion codes (not just one)
             int portraitIndex = 0;
-            if (chunk.contains("$h")) {
-                portraitIndex = 1;
-                chunk = chunk.replace("$h", "");
-            } else if (chunk.contains("$s")) {
-                portraitIndex = 2;
-                chunk = chunk.replace("$s", "");
-            } else if (chunk.contains("$u")) {
-                portraitIndex = 3;
-                chunk = chunk.replace("$u", "");
-            } else if (chunk.contains("$l")) {
-                portraitIndex = 4;
-                chunk = chunk.replace("$l", "");
-            } else if (chunk.contains("$a")) {
-                portraitIndex = 5;
-                chunk = chunk.replace("$a", "");
-            } else {
-                Matcher m = NUMERIC_EMOTION.matcher(chunk);
-                if (m.find()) {
-                    try {
-                        portraitIndex = Integer.parseInt(m.group(1));
-                    } catch (NumberFormatException ignored) {
-                        portraitIndex = 0;
-                    }
-                    chunk = m.replaceFirst("");
+            // Named emotion codes
+            if (chunk.contains("$h")) { portraitIndex = 1; chunk = chunk.replace("$h", ""); }
+            if (chunk.contains("$s")) { portraitIndex = 2; chunk = chunk.replace("$s", ""); }
+            if (chunk.contains("$u")) { portraitIndex = 3; chunk = chunk.replace("$u", ""); }
+            if (chunk.contains("$l")) { portraitIndex = 4; chunk = chunk.replace("$l", ""); }
+            if (chunk.contains("$a")) { portraitIndex = 5; chunk = chunk.replace("$a", ""); }
+            // Numeric emotion codes: $8, $12, etc. — strip ALL occurrences
+            Matcher m = NUMERIC_EMOTION.matcher(chunk);
+            if (m.find()) {
+                try {
+                    portraitIndex = Integer.parseInt(m.group(1));
+                } catch (NumberFormatException ignored) {
+                    portraitIndex = 0;
                 }
+                chunk = NUMERIC_EMOTION.matcher(chunk).replaceAll("");
             }
+
+            // Safety: strip any remaining unhandled $ command tokens
+            chunk = chunk.replaceAll("\\$1\\s+\\w+", "");
+            chunk = chunk.replaceAll("\\$[cdpkvy]\\b\\s*\\S*", "");
+            chunk = chunk.replaceAll("\\$(?:query|action)\\b[^$]*?(?=\\$|$)", "");
+            // Strip remaining % tokens that slipped through
+            chunk = chunk.replaceAll("%(?:adj|noun|place|spouse|name|firstnameletter|time|band|book|pet|farm|favorite|fork|year|kid[12]|revealtaste[:\\w]*|season|noturn)\\b", "");
+            // Strip any remaining || or stray # delimiters not consumed by resolveDialogueCommands
+            chunk = chunk.replace("||", "");
+            // Resolve any remaining single | (branch separator) — keep first branch
+            int pipeIdx = chunk.indexOf('|');
+            if (pipeIdx >= 0) {
+                chunk = chunk.substring(0, pipeIdx);
+            }
+            // Remove stray # that aren't part of $b/$e/$q/$r (already handled upstream)
+            chunk = chunk.replace("#", "");
+            // Remove escaped pipe \| (data error)
+            chunk = chunk.replace("\\|", "");
+            // Strip any remaining unrecognized $ tokens as final safety net
+            chunk = chunk.replaceAll("\\$[a-zA-Z]\\b", "");
+            chunk = chunk.replaceAll("\\$[0-9]+", "");
 
             chunk = chunk.trim();
             if (!chunk.isEmpty()) {
@@ -482,6 +513,9 @@ public class StardewNpcDialogueScreen extends Screen {
     }
 
     private DialoguePage currentPage() {
+        if (pages.isEmpty()) {
+            return new DialoguePage("...", true, 0);
+        }
         return pages.get(Math.max(0, Math.min(pageIndex, pages.size() - 1)));
     }
 
@@ -732,6 +766,12 @@ public class StardewNpcDialogueScreen extends Screen {
     private void closeScreen() {
         if (this.minecraft != null) {
             this.minecraft.setScreen(null);
+        }
+        // SDV afterDialogues parity: execute pending action after dialogue closes
+        if (afterCloseAction != null) {
+            var action = afterCloseAction;
+            afterCloseAction = null;
+            action.run();
         }
     }
 

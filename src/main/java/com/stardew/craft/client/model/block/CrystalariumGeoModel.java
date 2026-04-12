@@ -1,0 +1,28 @@
+package com.stardew.craft.client.model.block;
+
+import com.stardew.craft.StardewCraft;
+import com.stardew.craft.blockentity.CrystalariumBlockEntity;
+import net.minecraft.resources.ResourceLocation;
+import software.bernie.geckolib.model.GeoModel;
+
+@SuppressWarnings("null")
+public class CrystalariumGeoModel extends GeoModel<CrystalariumBlockEntity> {
+    private static final ResourceLocation MODEL = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "geo/block/utility/crystalarium.geo.json");
+    private static final ResourceLocation ANIMATION = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "animations/block/utility/crystalarium.animation.json");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/block/utility/crystalarium.png");
+
+    @Override
+    public ResourceLocation getModelResource(CrystalariumBlockEntity animatable) {
+        return MODEL;
+    }
+
+    @Override
+    public ResourceLocation getTextureResource(CrystalariumBlockEntity animatable) {
+        return TEXTURE;
+    }
+
+    @Override
+    public ResourceLocation getAnimationResource(CrystalariumBlockEntity animatable) {
+        return ANIMATION;
+    }
+}

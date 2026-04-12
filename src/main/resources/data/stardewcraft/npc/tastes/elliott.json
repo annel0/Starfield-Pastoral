@@ -1,0 +1,29 @@
+{
+  "npc_id": "elliott",
+  "_vanilla_ref": "Loved: 444=duck_feather 218=tom_kha_soup 233=ice_cream 637=pomegranate 732=crab_cakes 728=lobster. Liked: book_item category. Disliked: 300=amaranth 80=quartz 296=salmonberry 154=sea_cucumber 128=pufferfish pizzas. Hated: 203=strange_bun",
+  "loved": [
+    "stardewcraft:duck_feather",
+    "stardewcraft:lobster",
+    "stardewcraft:pomegranate",
+    "stardewcraft:tom_kha_soup",
+    "stardewcraft:crab_cakes"
+  ],
+  "_loved_not_yet_in_mod": [],
+  "liked": [],
+  "_liked_not_yet_in_mod": ["book_item category"],
+  "neutral": [],
+  "disliked": [
+    "stardewcraft:amaranth",
+    "stardewcraft:quartz",
+    "stardewcraft:salmonberry",
+    "stardewcraft:sea_cucumber"
+  ],
+  "_disliked_vanilla_note": "Also dislikes pufferfish and pizza in vanilla.",
+  "hated": [],
+  "_hated_not_yet_in_mod": ["strange_bun(203)"],
+  "loved_msg": "This is... exquisite! My deepest thanks, @.",
+  "liked_msg": "How kind of you. Thank you.",
+  "neutral_msg": "For me? Thank you.",
+  "disliked_msg": "Hmm... I appreciate the thought, but this isn't quite my taste.",
+  "hated_msg": "I... really don't care for this. Sorry."
+}

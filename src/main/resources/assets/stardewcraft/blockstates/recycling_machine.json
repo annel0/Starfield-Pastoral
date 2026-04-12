@@ -1,0 +1,21 @@
+{
+  "variants": {
+    "facing=north,part=main,working=false": { "model": "stardewcraft:block/utility/recycling_machine" },
+    "facing=east,part=main,working=false": { "model": "stardewcraft:block/utility/recycling_machine", "y": 90 },
+    "facing=south,part=main,working=false": { "model": "stardewcraft:block/utility/recycling_machine", "y": 180 },
+    "facing=west,part=main,working=false": { "model": "stardewcraft:block/utility/recycling_machine", "y": 270 },
+    "facing=north,part=main,working=true": { "model": "stardewcraft:block/utility/recycling_machine" },
+    "facing=east,part=main,working=true": { "model": "stardewcraft:block/utility/recycling_machine", "y": 90 },
+    "facing=south,part=main,working=true": { "model": "stardewcraft:block/utility/recycling_machine", "y": 180 },
+    "facing=west,part=main,working=true": { "model": "stardewcraft:block/utility/recycling_machine", "y": 270 },
+
+    "facing=south,part=extension,working=false": { "model": "stardewcraft:block/utility/recycling_machine_extension_empty" },
+    "facing=west,part=extension,working=false": { "model": "stardewcraft:block/utility/recycling_machine_extension_empty" },
+    "facing=north,part=extension,working=false": { "model": "stardewcraft:block/utility/recycling_machine_extension_empty" },
+    "facing=east,part=extension,working=false": { "model": "stardewcraft:block/utility/recycling_machine_extension_empty" },
+    "facing=south,part=extension,working=true": { "model": "stardewcraft:block/utility/recycling_machine_extension_empty" },
+    "facing=west,part=extension,working=true": { "model": "stardewcraft:block/utility/recycling_machine_extension_empty" },
+    "facing=north,part=extension,working=true": { "model": "stardewcraft:block/utility/recycling_machine_extension_empty" },
+    "facing=east,part=extension,working=true": { "model": "stardewcraft:block/utility/recycling_machine_extension_empty" }
+  }
+}

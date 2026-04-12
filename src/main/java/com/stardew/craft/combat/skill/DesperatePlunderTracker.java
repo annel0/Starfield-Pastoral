@@ -82,4 +82,9 @@ public final class DesperatePlunderTracker {
         long now = System.currentTimeMillis();
         PENDING.entrySet().removeIf(entry -> now - entry.getValue().timestamp > 1000);
     }
+
+    /** Clean up state when a player logs out to prevent memory leaks. */
+    public static void removePlayer(UUID playerId) {
+        PENDING.remove(playerId);
+    }
 }

@@ -1,0 +1,20 @@
+{
+  "npc_id": "george",
+  "_vanilla_ref": "Loved: 20=leek 205=fried_mushroom. Liked: 18=daffodil 195=sashimi? 199=parsnip_soup? 200=vegetable_medley 214=crispy_bass? 219=trout_soup? 223=cookie 231=eggplant_parmesan? 233=ice_cream. Disliked: -80=flower_category 16=horseradish?. Hated: 22=dandelion? 80=quartz 330=clay.",
+  "loved": [],
+  "_loved_not_yet_in_mod": ["leek(20)", "fried_mushroom(205)"],
+  "liked": [],
+  "_liked_not_yet_in_mod": ["daffodil(18)", "parsnip_soup(199)", "vegetable_medley(200)", "crispy_bass(214)", "trout_soup(219)", "cookie(223)", "eggplant_parmesan(231)", "ice_cream(233)"],
+  "neutral": [],
+  "disliked": [
+    "stardewcraft:quartz"
+  ],
+  "_disliked_not_yet_in_mod": ["flower_category(-80)", "horseradish(16)"],
+  "hated": [],
+  "_hated_not_yet_in_mod": ["dandelion(22)", "clay(330)"],
+  "loved_msg": "Well, well... this is a very fine gift! Thank you.",
+  "liked_msg": "Hmmph... okay, this is actually pretty nice. Thanks.",
+  "neutral_msg": "Hmmph. Thanks, I guess.",
+  "disliked_msg": "What am I supposed to do with this? Hmmph.",
+  "hated_msg": "What?! This is awful! Get this away from me!"
+}

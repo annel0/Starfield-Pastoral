@@ -1,50 +1,252 @@
 {
-	"format_version": "1.9.0",
-	"credit": "Made with Blockbench",
-	"texture_size": [64, 64],
-	"textures": {
-		"0": "stardewcraft:block/utility/mayonnaise_machine",
-		"particle": "stardewcraft:block/utility/mayonnaise_machine"
-	},
-	"elements": [
-		{
-			"from": [3, 2, 3],
-			"to": [13, 13, 13],
-			"rotation": {"angle": 0, "axis": "y", "origin": [8, 8.25, 8]},
-			"faces": {
-				"north": {"uv": [2.5, 2.75, 5, 5.5], "texture": "#0"},
-				"east": {"uv": [0, 0, 2.5, 2.75], "texture": "#0"},
-				"south": {"uv": [2.5, 0, 0, 2.75], "texture": "#0"},
-				"west": {"uv": [0, 0, 2.5, 2.75], "texture": "#0"},
-				"up": {"uv": [7.5, 2.5, 5, 0], "rotation": 90, "texture": "#0"},
-				"down": {"uv": [7.5, 2.5, 5, 5], "rotation": 270, "texture": "#0"}
-			}
-		},
-		{
-			"from": [5, 13, 5],
-			"to": [11, 18, 11],
-			"rotation": {"angle": 0, "axis": "y", "origin": [8, 8.25, 8]},
-			"faces": {
-				"north": {"uv": [3.5, 7, 2, 8.25], "texture": "#0"},
-				"east": {"uv": [2, 7, 3.5, 8.25], "texture": "#0"},
-				"south": {"uv": [3.5, 7, 2, 8.25], "texture": "#0"},
-				"west": {"uv": [2, 7, 3.5, 8.25], "texture": "#0"},
-				"up": {"uv": [3.5, 7, 2, 5.5], "rotation": 90, "texture": "#0"},
-				"down": {"uv": [5, 5.5, 3.5, 7], "rotation": 270, "texture": "#0"}
-			}
-		},
-		{
-			"from": [4, 0, 4],
-			"to": [12, 2, 12],
-			"rotation": {"angle": 0, "axis": "y", "origin": [8, 8.25, 8]},
-			"faces": {
-				"north": {"uv": [7, 6.25, 9, 6.75], "texture": "#0"},
-				"east": {"uv": [7, 6.25, 9, 6.75], "texture": "#0"},
-				"south": {"uv": [9, 6.25, 7, 6.75], "texture": "#0"},
-				"west": {"uv": [7, 6.25, 9, 6.75], "texture": "#0"},
-				"up": {"uv": [7, 7, 5, 5], "rotation": 90, "texture": "#0"},
-				"down": {"uv": [2, 5.5, 0, 7.5], "rotation": 270, "texture": "#0"}
-			}
-		}
-	]
+  "ambientocclusion": false,
+  "format_version": "1.9.0",
+  "credit": "Made with Blockbench",
+  "texture_size": [
+    64,
+    64
+  ],
+  "textures": {
+    "0": "stardewcraft:block/utility/mayonnaise_machine",
+    "particle": "stardewcraft:block/utility/mayonnaise_machine"
+  },
+  "elements": [
+    {
+      "from": [
+        3,
+        2,
+        3
+      ],
+      "to": [
+        13,
+        13,
+        13
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          8,
+          8.25,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            2.5,
+            2.75,
+            5,
+            5.5
+          ],
+          "texture": "#0"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            2.5,
+            2.75
+          ],
+          "texture": "#0"
+        },
+        "south": {
+          "uv": [
+            2.5,
+            0,
+            0,
+            2.75
+          ],
+          "texture": "#0"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            2.5,
+            2.75
+          ],
+          "texture": "#0"
+        },
+        "up": {
+          "uv": [
+            7.5,
+            2.5,
+            5,
+            0
+          ],
+          "rotation": 90,
+          "texture": "#0"
+        },
+        "down": {
+          "uv": [
+            7.5,
+            2.5,
+            5,
+            5
+          ],
+          "rotation": 270,
+          "texture": "#0"
+        }
+      }
+    },
+    {
+      "from": [
+        5,
+        13,
+        5
+      ],
+      "to": [
+        11,
+        18,
+        11
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          8,
+          8.25,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            3.5,
+            7,
+            2,
+            8.25
+          ],
+          "texture": "#0"
+        },
+        "east": {
+          "uv": [
+            2,
+            7,
+            3.5,
+            8.25
+          ],
+          "texture": "#0"
+        },
+        "south": {
+          "uv": [
+            3.5,
+            7,
+            2,
+            8.25
+          ],
+          "texture": "#0"
+        },
+        "west": {
+          "uv": [
+            2,
+            7,
+            3.5,
+            8.25
+          ],
+          "texture": "#0"
+        },
+        "up": {
+          "uv": [
+            3.5,
+            7,
+            2,
+            5.5
+          ],
+          "rotation": 90,
+          "texture": "#0"
+        },
+        "down": {
+          "uv": [
+            5,
+            5.5,
+            3.5,
+            7
+          ],
+          "rotation": 270,
+          "texture": "#0"
+        }
+      }
+    },
+    {
+      "from": [
+        4,
+        0,
+        4
+      ],
+      "to": [
+        12,
+        2,
+        12
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          8,
+          8.25,
+          8
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            7,
+            6.25,
+            9,
+            6.75
+          ],
+          "texture": "#0"
+        },
+        "east": {
+          "uv": [
+            7,
+            6.25,
+            9,
+            6.75
+          ],
+          "texture": "#0"
+        },
+        "south": {
+          "uv": [
+            9,
+            6.25,
+            7,
+            6.75
+          ],
+          "texture": "#0"
+        },
+        "west": {
+          "uv": [
+            7,
+            6.25,
+            9,
+            6.75
+          ],
+          "texture": "#0"
+        },
+        "up": {
+          "uv": [
+            7,
+            7,
+            5,
+            5
+          ],
+          "rotation": 90,
+          "texture": "#0"
+        },
+        "down": {
+          "uv": [
+            2,
+            5.5,
+            0,
+            7.5
+          ],
+          "rotation": 270,
+          "texture": "#0"
+        }
+      }
+    }
+  ]
 }

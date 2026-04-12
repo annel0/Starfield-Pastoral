@@ -2,8 +2,12 @@ package com.stardew.craft.event;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModDimensions;
+import com.stardew.craft.core.ModMiningDimensions;
+import com.stardew.craft.interior.CrossDimensionTeleporter;
 import com.stardew.craft.interior.InteriorPortalRegistry;
 import com.stardew.craft.interior.InteriorSubspaceManager;
+import com.stardew.craft.mining.MineEntranceBootstrap;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
@@ -40,14 +44,99 @@ public class InteriorPortalInteractionEvents {
         if (event.getHand() != InteractionHand.MAIN_HAND) {
             return;
         }
-        if (!ModDimensions.STARDEW_VALLEY.equals(player.serverLevel().dimension())) {
+
+        net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> dim = player.serverLevel().dimension();
+        boolean inStardew = ModDimensions.STARDEW_VALLEY.equals(dim);
+        boolean inOverworld = net.minecraft.world.level.Level.OVERWORLD.equals(dim);
+        boolean inMine = ModMiningDimensions.STARDEW_MINING.equals(dim);
+
+        if (!inStardew && !inOverworld && !inMine) {
             return;
         }
 
         Entity target = event.getTarget();
+
+        // ---- 矿井维度：仅处理矿井出口交互实体 ----
+        if (inMine) {
+            Optional<String> targetId = findTagValue(target.getTags(), TAG_TARGET_PREFIX);
+            if (targetId.isPresent() && "mine_exit".equals(targetId.get())) {
+                handleMineExit(player);
+                event.setCanceled(true);
+            }
+            return;
+        }
+
+        // 主世界：仅处理巫师塔入口的跨维度传送
+        if (inOverworld) {
+            Optional<String> targetId = findTagValue(target.getTags(), TAG_TARGET_PREFIX);
+            if (targetId.isPresent() && "wizard_tower_overworld_enter".equals(targetId.get())) {
+                CrossDimensionTeleporter.overworldToWizardInterior(player);
+                event.setCanceled(true);
+            }
+            return;
+        }
+
+        // 以下为星露谷维度内的传送逻辑
+
+        // ---- 矿井入口：跨维度传送到矿井 ----
+        Optional<String> portalTargetIdPre = findTagValue(target.getTags(), TAG_TARGET_PREFIX);
+        if (portalTargetIdPre.isPresent() && "mine_entrance".equals(portalTargetIdPre.get())) {
+            handleMineEntrance(player);
+            event.setCanceled(true);
+            return;
+        }
+
+        // 巫师塔内部"回到主世界"交互实体 → 跨维度传送
+        if (portalTargetIdPre.isPresent() && "wizard_tower_return_overworld".equals(portalTargetIdPre.get())) {
+            CrossDimensionTeleporter.wizardInteriorToOverworld(player);
+            event.setCanceled(true);
+            return;
+        }
+
+        // 巫师塔室内出口：
+        // 任务完成后 → 总是回到星露谷室外（走原有 portal 系统）
+        // 任务未完成、且玩家从主世界进来 → 回到主世界
+        if (portalTargetIdPre.isPresent() && "wizard_tower_exit".equals(portalTargetIdPre.get())) {
+            com.stardew.craft.player.PlayerStardewData pdata = com.stardew.craft.player.PlayerDataManager.getPlayerData(player);
+            if (!pdata.isWizardQuestComplete()) {
+                net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> src = pdata.getWizardSourceDimension();
+                if (src != null && net.minecraft.world.level.Level.OVERWORLD.equals(src)) {
+                    // 任务未完成 + 玩家从主世界进来 → 回到主世界
+                    CrossDimensionTeleporter.wizardInteriorToOverworld(player);
+                    event.setCanceled(true);
+                    return;
+                }
+            }
+            // 任务已完成 或 来自星露谷 → 走原有 portal 系统传送到星露谷室外
+        }
+
+        // 从星露谷室外进入巫师塔：记录来源维度
+        if (portalTargetIdPre.isPresent() && "wizard_tower_enter".equals(portalTargetIdPre.get())) {
+            com.stardew.craft.player.PlayerStardewData pdata = com.stardew.craft.player.PlayerDataManager.getPlayerData(player);
+            pdata.setWizardSourceDimension(ModDimensions.STARDEW_VALLEY);
+        }
+
         Optional<PortalTargetSpec> spec = resolveTargetSpec(target.getTags());
         if (spec.isEmpty()) {
             return;
+        }
+
+        // Museum exit guard: block exit if donation mode is active
+        Optional<String> portalTargetId = findTagValue(target.getTags(), TAG_TARGET_PREFIX);
+        if (portalTargetId.isPresent() && "museum_exit".equals(portalTargetId.get())) {
+            com.stardew.craft.museum.MuseumDonationData museumData =
+                com.stardew.craft.museum.MuseumDonationData.get(player.serverLevel());
+            if (museumData.isDonationModeActive()) {
+                // Warn the player that donation is still in progress
+                net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,
+                    new com.stardew.craft.network.payload.OpenNpcDialogueScreenPayload(
+                        "gunther",
+                        "stardewcraft.npc.gunther.donation_exit_blocked",
+                        0
+                    ));
+                event.setCanceled(true);
+                return;
+            }
         }
 
         // 对齐矿井大厅策略：交互传送前先确保室内布局已初始化。
@@ -61,6 +150,11 @@ public class InteriorPortalInteractionEvents {
         }
 
         PortalTargetSpec targetSpec = spec.get();
+
+        // 传送前清理：关闭容器菜单、停止使用物品，防止状态卡死
+        player.closeContainer();
+        player.stopUsingItem();
+
         player.teleportTo(
             player.serverLevel(),
             targetSpec.x,
@@ -195,4 +289,55 @@ public class InteriorPortalInteractionEvents {
         float pitch,
         InteriorPortalRegistry.PortalMode mode
     ) {}
+
+    // ======================== 矿井跨维度传送 ========================
+
+    /** 矿井入口室外坐标（用于从矿井返回） */
+    private static final double MINE_OUTDOOR_X = -285.5;
+    private static final double MINE_OUTDOOR_Y = -12.0;
+    private static final double MINE_OUTDOOR_Z = 314.5;
+
+    /** 矿井内部入口大厅坐标 */
+    private static final double MINE_INDOOR_X = 21.5;
+    private static final double MINE_INDOOR_Y = 66.0;
+    private static final double MINE_INDOOR_Z = 3.5;
+
+    private static void handleMineEntrance(ServerPlayer player) {
+        ServerLevel mineLevel = player.server.getLevel(ModMiningDimensions.STARDEW_MINING);
+        if (mineLevel == null) {
+            StardewCraft.LOGGER.warn("[MINE_PORTAL] Mine dimension not available");
+            return;
+        }
+
+        long now = player.serverLevel().getGameTime();
+        long last = player.getPersistentData().getLong(PLAYER_LAST_PORTAL_TICK);
+        if (now - last < PORTAL_COOLDOWN_TICKS) return;
+
+        MineEntranceBootstrap.ensureGenerated(mineLevel);
+        player.teleportTo(mineLevel, MINE_INDOOR_X, MINE_INDOOR_Y, MINE_INDOOR_Z, 0.0F, 0.0F);
+        player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
+    }
+
+    private static void handleMineExit(ServerPlayer player) {
+        ServerLevel stardewLevel = player.server.getLevel(ModDimensions.STARDEW_VALLEY);
+        if (stardewLevel == null) {
+            StardewCraft.LOGGER.warn("[MINE_PORTAL] Stardew Valley dimension not available");
+            return;
+        }
+
+        long now = player.serverLevel().getGameTime();
+        long last = player.getPersistentData().getLong(PLAYER_LAST_PORTAL_TICK);
+        if (now - last < PORTAL_COOLDOWN_TICKS) return;
+
+        // 传送前清理
+        player.closeContainer();
+        player.stopUsingItem();
+
+        // 标记跳过 DimensionEventHandler 的自动传送，防止二次传送到农场出生点
+        com.stardew.craft.interior.CrossDimensionTeleporter.markSkipAutoTeleport(player.getUUID());
+
+        player.teleportTo(stardewLevel, MINE_OUTDOOR_X, MINE_OUTDOOR_Y, MINE_OUTDOOR_Z,
+                          180.0F, 0.0F);
+        player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
+    }
 }

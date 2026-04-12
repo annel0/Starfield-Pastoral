@@ -174,6 +174,7 @@ public class ModItems {
         // 鏂瑰潡鐗╁搧锛堥噹鐢熸爲锛氭鏍戝師鍨嬶級
         // 鐭夸簳
         public static final DeferredItem<Item> MINE_BARRIER = blockItem("mine_barrier", ModBlocks.MINE_BARRIER);
+        public static final DeferredItem<Item> MINE_BARREL = blockItem("mine_barrel", ModBlocks.MINE_BARREL);
 
         public static final DeferredItem<Item> EARTH_SHALE = blockItem("earth_shale", ModBlocks.EARTH_SHALE);
         public static final DeferredItem<Item> FROST_GNEISS = blockItem("frost_gneiss", ModBlocks.FROST_GNEISS);
@@ -392,6 +393,8 @@ public class ModItems {
 
         public static final DeferredItem<Item> FISH_SMOKER = ITEMS.register("fish_smoker",
                         () -> new StardewBlockItem(ModBlocks.FISH_SMOKER.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> RECYCLING_MACHINE = ITEMS.register("recycling_machine",
+                        () -> new StardewBlockItem(ModBlocks.RECYCLING_MACHINE.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> COOKING_POT = ITEMS.register("cooking_pot",
                         () -> new StardewBlockItem(ModBlocks.COOKING_POT.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> CRYSTALARIUM = ITEMS.register("crystalarium",
@@ -460,6 +463,9 @@ public class ModItems {
         public static final DeferredItem<Item> FRIDGE = ITEMS.register("fridge",
                         () -> new StardewBlockItem(ModBlocks.FRIDGE.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
 
+        public static final DeferredItem<Item> MAILBOX = ITEMS.register("mailbox",
+                        () -> new StardewBlockItem(ModBlocks.MAILBOX.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
+
         public static final DeferredItem<Item> SHIPPING_BIN = ITEMS.register("shipping_bin",
                         () -> new StardewBlockItem(ModBlocks.SHIPPING_BIN.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
 
@@ -477,6 +483,9 @@ public class ModItems {
 
         public static final DeferredItem<Item> BARN_MANAGER = ITEMS.register("barn_manager",
                         () -> new StardewBlockItem(ModBlocks.BARN_MANAGER.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> SILO_MANAGER = ITEMS.register("silo_manager",
+                        () -> new StardewBlockItem(ModBlocks.SILO_MANAGER.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
 
         public static final DeferredItem<Item> DELUXE_WORM_BIN = ITEMS.register("deluxe_worm_bin",
                         () -> new StardewBlockItem(ModBlocks.DELUXE_WORM_BIN.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
@@ -632,10 +641,10 @@ public class ModItems {
                         () -> new StardewBlockItem(ModBlocks.SHOP_COUNTER_2.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> SHOP_COUNTER_3 = ITEMS.register("shop_counter_3",
                         () -> new StardewBlockItem(ModBlocks.SHOP_COUNTER_3.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
-        public static final DeferredItem<Item> SHOP_SHELF_EAST_1 = ITEMS.register("shop_shelf_east_1",
-                        () -> new StardewBlockItem(ModBlocks.SHOP_SHELF_EAST_1.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
-        public static final DeferredItem<Item> SHOP_SHELF_EAST_2 = ITEMS.register("shop_shelf_east_2",
-                        () -> new StardewBlockItem(ModBlocks.SHOP_SHELF_EAST_2.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> SUPERMARKET_SHELF_1 = ITEMS.register("supermarket_shelf_1",
+                        () -> new StardewBlockItem(ModBlocks.SUPERMARKET_SHELF_1.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> SUPERMARKET_SHELF_2 = ITEMS.register("supermarket_shelf_2",
+                        () -> new StardewBlockItem(ModBlocks.SUPERMARKET_SHELF_2.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> SHOP_SHIPPING_BIN = ITEMS.register("shop_shipping_bin",
                         () -> new StardewBlockItem(ModBlocks.SHOP_SHIPPING_BIN.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> CARPET_1 = ITEMS.register("carpet_1",
@@ -895,6 +904,10 @@ public class ModItems {
     public static final DeferredItem<Item> ADVANCED_IRIDIUM_ROD = ITEMS.register("advanced_iridium_rod",
             () -> new FishingRodItem(FishingRodItem.RodTier.ADVANCED_IRIDIUM_ROD, new Item.Properties().stacksTo(1)));
 
+    // 法师塔指南针
+    public static final DeferredItem<Item> WIZARD_TOWER_COMPASS = ITEMS.register("wizard_tower_compass",
+            () -> new com.stardew.craft.item.tool.WizardTowerCompassItem(new Item.Properties().stacksTo(1)));
+
     // 閽撻奔 - 楸奸サ (stackable)
     public static final DeferredItem<Item> BAIT = ITEMS.register("bait",
             () -> new SimpleStardewItem("stardewcraft.type.fishing", 1, new Item.Properties().stacksTo(999)));
@@ -993,6 +1006,12 @@ public class ModItems {
                         () -> new SimpleStardewItem("stardewcraft.type.misc", 5000, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> PEARL = ITEMS.register("pearl",
                         () -> new SimpleStardewItem("stardewcraft.type.misc", 2500, new Item.Properties().stacksTo(999)));
+
+        // Clinic medicine items (Harvey's hospital shop)
+        public static final DeferredItem<Item> ENERGY_TONIC = ITEMS.register("energy_tonic",
+                        () -> new StardewQualityItem("stardewcraft.type.misc", 500, 200, false, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> MUSCLE_REMEDY = ITEMS.register("muscle_remedy",
+                        () -> new com.stardew.craft.item.misc.MuscleRemedyItem("stardewcraft.type.misc", 500, 20, false, new Item.Properties().stacksTo(999)));
 
         // 鍔ㄧ墿浜х墿
         public static final DeferredItem<Item> EGG_WHITE = ITEMS.register("egg_white",
@@ -1316,6 +1335,8 @@ public class ModItems {
                         () -> new SimpleStardewItem("stardewcraft.type.artifact", 1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> DWARF_SCROLL_IV = ITEMS.register("dwarf_scroll_iv",
                         () -> new SimpleStardewItem("stardewcraft.type.artifact", 1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> DWARVISH_TRANSLATION_GUIDE = ITEMS.register("dwarvish_translation_guide",
+                        () -> new DwarvishTranslationGuideItem(new Item.Properties().stacksTo(1)));
         public static final DeferredItem<Item> CHIPPED_AMPHORA = ITEMS.register("chipped_amphora",
                         () -> new SimpleStardewItem("stardewcraft.type.artifact", 40, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> ARROWHEAD = ITEMS.register("arrowhead",
@@ -1447,7 +1468,7 @@ public class ModItems {
 
     // 鑲ユ枡锛堝榻?Stardew Valley锛氭爲鑲ワ級娉ㄦ剰锛氭爲鑲ヤ笉鐢ㄤ簬鑰曞湴锛屾殏鏃朵繚鐣橲impleStardewItem
     public static final DeferredItem<Item> TREE_FERTILIZER = ITEMS.register("tree_fertilizer",
-            () -> new SimpleStardewItem("stardewcraft.type.fertilizer", 10, new Item.Properties().stacksTo(999)));
+            () -> new TreeFertilizerItem(10, new Item.Properties().stacksTo(999)));
 
     // 鎵撻€犵墿鍝?
     public static final DeferredItem<Item> FAIRY_DUST = ITEMS.register("fairy_dust",
@@ -2247,6 +2268,14 @@ public class ModItems {
             () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.WHITE_TEACUP.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
     public static final DeferredItem<Item> POOL_TABLE = ITEMS.register("pool_table",
             () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.POOL_TABLE.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+    public static final DeferredItem<Item> GLOBE = ITEMS.register("globe",
+            () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.GLOBE.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+    public static final DeferredItem<Item> TELESCOPE = ITEMS.register("telescope",
+            () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.TELESCOPE.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+    public static final DeferredItem<Item> BEAR_FIGURINE = ITEMS.register("bear_figurine",
+            () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.BEAR_FIGURINE.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+    public static final DeferredItem<Item> FISH_SHOP_COUNTER = ITEMS.register("fish_shop_counter",
+            () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.FISH_SHOP_COUNTER.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
     public static final DeferredItem<Item> HOSPITAL_COUNTER = ITEMS.register("hospital_counter",
             () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.HOSPITAL_COUNTER.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
     public static final DeferredItem<Item> HOSPITAL_POSTER_1 = ITEMS.register("hospital_poster_1",
@@ -2336,7 +2365,159 @@ public class ModItems {
     public static final DeferredItem<Item> BLUE_BEAR_PLUSHIE = ITEMS.register("blue_bear_plushie",
             () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.BLUE_BEAR_PLUSHIE.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
 
+    // ── 图腾柱方块物品 ────────────────────────────────────────────────────
+    public static final DeferredItem<Item> TOTEM_POLE_FARM = ITEMS.register("totem_pole_farm",
+            () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.TOTEM_POLE_FARM.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(64)));
+    public static final DeferredItem<Item> TOTEM_POLE_MOUNTAIN = ITEMS.register("totem_pole_mountain",
+            () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.TOTEM_POLE_MOUNTAIN.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(64)));
+    public static final DeferredItem<Item> TOTEM_POLE_BEACH = ITEMS.register("totem_pole_beach",
+            () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.TOTEM_POLE_BEACH.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(64)));
+
+    // ── 传送图腾 ────────────────────────────────────────────────────────────
+    public static final DeferredItem<Item> WARP_TOTEM_FARM = ITEMS.register("warp_totem_farm",
+            () -> new com.stardew.craft.item.totem.TeleportTotemItem(com.stardew.craft.block.utility.totem.TotemType.FARM, new Item.Properties().stacksTo(999)));
+    public static final DeferredItem<Item> WARP_TOTEM_MOUNTAIN = ITEMS.register("warp_totem_mountain",
+            () -> new com.stardew.craft.item.totem.TeleportTotemItem(com.stardew.craft.block.utility.totem.TotemType.MOUNTAIN, new Item.Properties().stacksTo(999)));
+    public static final DeferredItem<Item> WARP_TOTEM_BEACH = ITEMS.register("warp_totem_beach",
+            () -> new com.stardew.craft.item.totem.TeleportTotemItem(com.stardew.craft.block.utility.totem.TotemType.BEACH, new Item.Properties().stacksTo(999)));
+
+    // ── 雨水图腾 ────────────────────────────────────────────────────────────
+    public static final DeferredItem<Item> RAIN_TOTEM = ITEMS.register("rain_totem",
+            () -> new com.stardew.craft.item.totem.RainTotemItem(new Item.Properties().stacksTo(999)));
+
     // 黄土
     public static final DeferredItem<Item> YELLOW_DIRT = blockItem("yellow_dirt", com.stardew.craft.block.ModBlocks.YELLOW_DIRT);
+    // 远古斑点黄土
+    public static final DeferredItem<Item> ARTIFACT_SPOT_DIRT = blockItem("artifact_spot_dirt", com.stardew.craft.block.ModBlocks.ARTIFACT_SPOT_DIRT);
+
+    // ── 怪物掉落物品 (Monster Loot) ────────────────────────────────────────
+    public static final DeferredItem<Item> SLIME_ITEM = ITEMS.register("slime_item",
+            () -> new SimpleStardewItem("stardewcraft.type.monster_loot", 5, new Item.Properties().stacksTo(999)));
+    public static final DeferredItem<Item> BAT_WING = ITEMS.register("bat_wing",
+            () -> new SimpleStardewItem("stardewcraft.type.monster_loot", 15, new Item.Properties().stacksTo(999)));
+    public static final DeferredItem<Item> SOLAR_ESSENCE = ITEMS.register("solar_essence",
+            () -> new SimpleStardewItem("stardewcraft.type.monster_loot", 40, new Item.Properties().stacksTo(999)));
+    public static final DeferredItem<Item> VOID_ESSENCE = ITEMS.register("void_essence",
+            () -> new SimpleStardewItem("stardewcraft.type.monster_loot", 50, new Item.Properties().stacksTo(999)));
+    public static final DeferredItem<Item> BONE_FRAGMENT = ITEMS.register("bone_fragment",
+            () -> new SimpleStardewItem("stardewcraft.type.monster_loot", 12, new Item.Properties().stacksTo(999)));
+    public static final DeferredItem<Item> BUG_MEAT = ITEMS.register("bug_meat",
+            () -> new SimpleStardewItem("stardewcraft.type.monster_loot", 8, new Item.Properties().stacksTo(999)));
+
+    // ── 海滩拾取物 (Beach Forage) — 已由 VanillaCategoryItemRegistrar 注册 ──
+
+    // ── 资源材料 (Resource Materials) ─────────────────────────────────────
+    public static final DeferredItem<Item> MOSS = ITEMS.register("moss",
+            () -> new SimpleStardewItem("stardewcraft.type.resource", 5, new Item.Properties().stacksTo(999)));
+
+    // ── 炸弹系列 (Bombs) ──────────────────────────────────────────────────
+    public static final DeferredItem<Item> CHERRY_BOMB = ITEMS.register("cherry_bomb",
+            () -> new com.stardew.craft.item.bomb.StardewBombItem(com.stardew.craft.item.bomb.BombType.CHERRY_BOMB, 50, new Item.Properties().stacksTo(999)));
+    public static final DeferredItem<Item> BOMB_ITEM = ITEMS.register("bomb_item",
+            () -> new com.stardew.craft.item.bomb.StardewBombItem(com.stardew.craft.item.bomb.BombType.BOMB, 50, new Item.Properties().stacksTo(999)));
+    public static final DeferredItem<Item> MEGA_BOMB = ITEMS.register("mega_bomb",
+            () -> new com.stardew.craft.item.bomb.StardewBombItem(com.stardew.craft.item.bomb.BombType.MEGA_BOMB, 50, new Item.Properties().stacksTo(999)));
+
+    // ============ 戒指 (Rings) ============
+    public static final DeferredItem<Item> SMALL_GLOW_RING = ITEMS.register("small_glow_ring",
+            () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.SMALL_GLOW_RING, 100, new Item.Properties()));
+    public static final DeferredItem<Item> GLOW_RING = ITEMS.register("glow_ring",
+            () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.GLOW_RING, 200, new Item.Properties()));
+    public static final DeferredItem<Item> SMALL_MAGNET_RING = ITEMS.register("small_magnet_ring",
+            () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.SMALL_MAGNET_RING, 200, new Item.Properties()));
+    public static final DeferredItem<Item> MAGNET_RING = ITEMS.register("magnet_ring",
+            () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.MAGNET_RING, 200, new Item.Properties()));
+    public static final DeferredItem<Item> SLIME_CHARMER_RING = ITEMS.register("slime_charmer_ring",
+            () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.SLIME_CHARMER_RING, 700, new Item.Properties()));
+    public static final DeferredItem<Item> WARRIOR_RING = ITEMS.register("warrior_ring",
+            () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.WARRIOR_RING, 1500, new Item.Properties()));
+    public static final DeferredItem<Item> VAMPIRE_RING = ITEMS.register("vampire_ring",
+            () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.VAMPIRE_RING, 1500, new Item.Properties()));
+    public static final DeferredItem<Item> SAVAGE_RING = ITEMS.register("savage_ring",
+            () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.SAVAGE_RING, 1500, new Item.Properties()));
+    public static final DeferredItem<Item> RING_OF_YOBA = ITEMS.register("ring_of_yoba",
+            () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.RING_OF_YOBA, 1500, new Item.Properties()));
+    public static final DeferredItem<Item> STURDY_RING = ITEMS.register("sturdy_ring",
+            () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.STURDY_RING, 1500, new Item.Properties()));
+    public static final DeferredItem<Item> BURGLARS_RING = ITEMS.register("burglars_ring",
+            () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.BURGLARS_RING, 1500, new Item.Properties()));
+    public static final DeferredItem<Item> IRIDIUM_BAND = ITEMS.register("iridium_band",
+            () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.IRIDIUM_BAND, 2000, new Item.Properties()));
+    public static final DeferredItem<Item> AMETHYST_RING = ITEMS.register("amethyst_ring",
+            () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.AMETHYST_RING, 200, new Item.Properties()));
+    public static final DeferredItem<Item> TOPAZ_RING = ITEMS.register("topaz_ring",
+            () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.TOPAZ_RING, 200, new Item.Properties()));
+    public static final DeferredItem<Item> AQUAMARINE_RING = ITEMS.register("aquamarine_ring",
+            () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.AQUAMARINE_RING, 400, new Item.Properties()));
+    public static final DeferredItem<Item> JADE_RING = ITEMS.register("jade_ring",
+            () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.JADE_RING, 400, new Item.Properties()));
+    public static final DeferredItem<Item> EMERALD_RING = ITEMS.register("emerald_ring",
+            () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.EMERALD_RING, 600, new Item.Properties()));
+    public static final DeferredItem<Item> RUBY_RING = ITEMS.register("ruby_ring",
+            () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.RUBY_RING, 600, new Item.Properties()));
+    public static final DeferredItem<Item> CRABSHELL_RING = ITEMS.register("crabshell_ring",
+            () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.CRABSHELL_RING, 2000, new Item.Properties()));
+    public static final DeferredItem<Item> NAPALM_RING = ITEMS.register("napalm_ring",
+            () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.NAPALM_RING, 2000, new Item.Properties()));
+    public static final DeferredItem<Item> THORNS_RING = ITEMS.register("thorns_ring",
+            () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.THORNS_RING, 200, new Item.Properties()));
+    public static final DeferredItem<Item> LUCKY_RING = ITEMS.register("lucky_ring",
+            () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.LUCKY_RING, 200, new Item.Properties()));
+    public static final DeferredItem<Item> HOT_JAVA_RING = ITEMS.register("hot_java_ring",
+            () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.HOT_JAVA_RING, 200, new Item.Properties()));
+    public static final DeferredItem<Item> PROTECTION_RING = ITEMS.register("protection_ring",
+            () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.PROTECTION_RING, 200, new Item.Properties()));
+    public static final DeferredItem<Item> SOUL_SAPPER_RING = ITEMS.register("soul_sapper_ring",
+            () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.SOUL_SAPPER_RING, 200, new Item.Properties()));
+    public static final DeferredItem<Item> PHOENIX_RING = ITEMS.register("phoenix_ring",
+            () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.PHOENIX_RING, 200, new Item.Properties()));
+    public static final DeferredItem<Item> IMMUNITY_BAND = ITEMS.register("immunity_band",
+            () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.IMMUNITY_BAND, 500, new Item.Properties()));
+    public static final DeferredItem<Item> GLOWSTONE_RING = ITEMS.register("glowstone_ring",
+            () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.GLOWSTONE_RING, 200, new Item.Properties()));
+
+    // ============ 靴子 (Boots) ============
+    public static final DeferredItem<Item> SNEAKERS = ITEMS.register("sneakers",
+            () -> new com.stardew.craft.item.equipment.StardewBootsItem(com.stardew.craft.item.equipment.BootsType.SNEAKERS, new Item.Properties()));
+    public static final DeferredItem<Item> RUBBER_BOOTS = ITEMS.register("rubber_boots",
+            () -> new com.stardew.craft.item.equipment.StardewBootsItem(com.stardew.craft.item.equipment.BootsType.RUBBER_BOOTS, new Item.Properties()));
+    public static final DeferredItem<Item> LEATHER_BOOTS = ITEMS.register("leather_boots",
+            () -> new com.stardew.craft.item.equipment.StardewBootsItem(com.stardew.craft.item.equipment.BootsType.LEATHER_BOOTS, new Item.Properties()));
+    public static final DeferredItem<Item> WORK_BOOTS = ITEMS.register("work_boots",
+            () -> new com.stardew.craft.item.equipment.StardewBootsItem(com.stardew.craft.item.equipment.BootsType.WORK_BOOTS, new Item.Properties()));
+    public static final DeferredItem<Item> COMBAT_BOOTS = ITEMS.register("combat_boots",
+            () -> new com.stardew.craft.item.equipment.StardewBootsItem(com.stardew.craft.item.equipment.BootsType.COMBAT_BOOTS, new Item.Properties()));
+    public static final DeferredItem<Item> TUNDRA_BOOTS = ITEMS.register("tundra_boots",
+            () -> new com.stardew.craft.item.equipment.StardewBootsItem(com.stardew.craft.item.equipment.BootsType.TUNDRA_BOOTS, new Item.Properties()));
+    public static final DeferredItem<Item> THERMAL_BOOTS = ITEMS.register("thermal_boots",
+            () -> new com.stardew.craft.item.equipment.StardewBootsItem(com.stardew.craft.item.equipment.BootsType.THERMAL_BOOTS, new Item.Properties()));
+    public static final DeferredItem<Item> DARK_BOOTS = ITEMS.register("dark_boots",
+            () -> new com.stardew.craft.item.equipment.StardewBootsItem(com.stardew.craft.item.equipment.BootsType.DARK_BOOTS, new Item.Properties()));
+    public static final DeferredItem<Item> FIREWALKER_BOOTS = ITEMS.register("firewalker_boots",
+            () -> new com.stardew.craft.item.equipment.StardewBootsItem(com.stardew.craft.item.equipment.BootsType.FIREWALKER_BOOTS, new Item.Properties()));
+    public static final DeferredItem<Item> GENIE_SHOES = ITEMS.register("genie_shoes",
+            () -> new com.stardew.craft.item.equipment.StardewBootsItem(com.stardew.craft.item.equipment.BootsType.GENIE_SHOES, new Item.Properties()));
+    public static final DeferredItem<Item> SPACE_BOOTS = ITEMS.register("space_boots",
+            () -> new com.stardew.craft.item.equipment.StardewBootsItem(com.stardew.craft.item.equipment.BootsType.SPACE_BOOTS, new Item.Properties()));
+    public static final DeferredItem<Item> COWBOY_BOOTS = ITEMS.register("cowboy_boots",
+            () -> new com.stardew.craft.item.equipment.StardewBootsItem(com.stardew.craft.item.equipment.BootsType.COWBOY_BOOTS, new Item.Properties()));
+    public static final DeferredItem<Item> LEPRECHAUN_SHOES = ITEMS.register("leprechaun_shoes",
+            () -> new com.stardew.craft.item.equipment.StardewBootsItem(com.stardew.craft.item.equipment.BootsType.LEPRECHAUN_SHOES, new Item.Properties()));
+    public static final DeferredItem<Item> CINDERCLOWN_SHOES = ITEMS.register("cinderclown_shoes",
+            () -> new com.stardew.craft.item.equipment.StardewBootsItem(com.stardew.craft.item.equipment.BootsType.CINDERCLOWN_SHOES, new Item.Properties()));
+    public static final DeferredItem<Item> MERMAID_BOOTS = ITEMS.register("mermaid_boots",
+            () -> new com.stardew.craft.item.equipment.StardewBootsItem(com.stardew.craft.item.equipment.BootsType.MERMAID_BOOTS, new Item.Properties()));
+    public static final DeferredItem<Item> DRAGONSCALE_BOOTS = ITEMS.register("dragonscale_boots",
+            () -> new com.stardew.craft.item.equipment.StardewBootsItem(com.stardew.craft.item.equipment.BootsType.DRAGONSCALE_BOOTS, new Item.Properties()));
+    public static final DeferredItem<Item> CRYSTAL_SHOES = ITEMS.register("crystal_shoes",
+            () -> new com.stardew.craft.item.equipment.StardewBootsItem(com.stardew.craft.item.equipment.BootsType.CRYSTAL_SHOES, new Item.Properties()));
+
+    // 家具目录 (SDV Furniture Catalogue, ID 1226)
+    public static final DeferredItem<Item> FURNITURE_CATALOGUE = ITEMS.register("furniture_catalogue",
+            () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.FURNITURE_CATALOGUE.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+
+    // 公告栏 (SDV Bulletin Board)
+    public static final DeferredItem<Item> BULLETIN_BOARD = ITEMS.register("bulletin_board",
+            () -> new BlockItem(com.stardew.craft.block.ModBlocks.BULLETIN_BOARD.get(), new Item.Properties().stacksTo(1)));
 
 }

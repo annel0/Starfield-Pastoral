@@ -168,4 +168,9 @@ public final class ObsidianCrackTracker {
         t = Math.max(0.0, Math.min(1.0, t));
         return new Vec3(a.x + ab.x * t, a.y, a.z + ab.z * t);
     }
+
+    /** Clean up state when a player logs out to prevent memory leaks. */
+    public static void removePlayer(UUID playerId) {
+        ACTIVE.remove(playerId);
+    }
 }

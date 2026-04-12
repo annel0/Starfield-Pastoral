@@ -73,20 +73,6 @@ public final class NpcDataManager {
                     parseLocationMappings(root, locationMappings, locationAliases, locationAnchors);
                     continue;
                 }
-                if (lowerPath.startsWith("vanilla/characters/dialogue/")) {
-                    String npcId = extractNpcId(path, root, "npc_id");
-                    if (npcId != null) {
-                        dialogues.put(npcId, root.deepCopy());
-                    }
-                    continue;
-                }
-                if (lowerPath.startsWith("vanilla/characters/schedules/")) {
-                    String npcId = extractNpcId(path, root, "npc_id");
-                    if (npcId != null) {
-                        schedules.put(npcId, convertVanillaSchedule(root));
-                    }
-                    continue;
-                }
                 if (lowerPath.startsWith("dialogue/")) {
                     String npcId = extractNpcId(path, root, "npc_id");
                     if (npcId != null) {
@@ -97,15 +83,7 @@ public final class NpcDataManager {
                 if (lowerPath.startsWith("schedules/")) {
                     String npcId = extractNpcId(path, root, "npc_id");
                     if (npcId != null) {
-                        boolean overrideVanilla = readBoolean(root, "override_vanilla", false);
-                        if (!schedules.containsKey(npcId) || overrideVanilla) {
-                            schedules.put(npcId, root.deepCopy());
-                        } else {
-                            StardewCraft.LOGGER.info(
-                                "Ignored project schedule '{}' because vanilla schedule already exists. Set override_vanilla=true to replace it.",
-                                npcId
-                            );
-                        }
+                        schedules.put(npcId, root.deepCopy());
                     }
                     continue;
                 }
@@ -304,76 +282,6 @@ public final class NpcDataManager {
             }
         }
 
-        private static JsonObject convertVanillaSchedule(JsonObject vanillaRoot) {
-            JsonObject converted = new JsonObject();
-            for (Map.Entry<String, JsonElement> entry : vanillaRoot.entrySet()) {
-                if (!entry.getValue().isJsonPrimitive()) {
-                    continue;
-                }
-
-                String key = entry.getKey();
-                String value = entry.getValue().getAsString();
-                JsonObject daySchedule = parseVanillaDaySchedule(value);
-                if (!daySchedule.isEmpty()) {
-                    converted.add(key, daySchedule);
-                }
-            }
-            return converted;
-        }
-
-        private static JsonObject parseVanillaDaySchedule(String raw) {
-            JsonObject out = new JsonObject();
-            if (raw == null || raw.isBlank()) {
-                return out;
-            }
-
-            String normalizedRaw = raw.trim();
-            String[] segments = normalizedRaw.split("/");
-            String pendingGoto = "";
-            boolean hasRouteRows = false;
-
-            for (String segment : segments) {
-                if (segment == null || segment.isBlank()) {
-                    continue;
-                }
-                String trimmed = segment.trim();
-
-                if (trimmed.startsWith("NOT ")) {
-                    out.addProperty("_condition", trimmed);
-                    continue;
-                }
-                if (trimmed.startsWith("MAIL ")) {
-                    out.addProperty("_condition", trimmed);
-                    continue;
-                }
-                if (trimmed.startsWith("GOTO ")) {
-                    pendingGoto = trimmed.substring(5).trim();
-                    continue;
-                }
-
-                int firstSpace = trimmed.indexOf(' ');
-                if (firstSpace <= 0) {
-                    continue;
-                }
-                String timeToken = trimmed.substring(0, firstSpace).trim();
-                String routeToken = trimmed.substring(firstSpace + 1).trim();
-                Integer checkpoint = parseCheckpointToken(timeToken);
-                if (checkpoint == null) {
-                    continue;
-                }
-                if (!routeToken.isBlank()) {
-                    out.addProperty(String.valueOf(checkpoint), routeToken);
-                    hasRouteRows = true;
-                }
-            }
-
-            if (!pendingGoto.isBlank() && !hasRouteRows) {
-                out.addProperty("_goto", pendingGoto);
-            }
-
-            return out;
-        }
-
         private static JsonObject filterTastesWithDiagnostics(String npcId, JsonObject source) {
             JsonObject filtered = NpcContentFilter.filterTastes(source);
             logDroppedTasteTokens(npcId, source, filtered, "loved");
@@ -424,34 +332,6 @@ public final class NpcDataManager {
                     dropped.size(),
                     String.join(",", dropped)
                 );
-            }
-        }
-
-        private static Integer parseCheckpointToken(String raw) {
-            if (raw == null || raw.isBlank()) {
-                return null;
-            }
-
-            int start = -1;
-            for (int i = 0; i < raw.length(); i++) {
-                if (Character.isDigit(raw.charAt(i))) {
-                    start = i;
-                    break;
-                }
-            }
-            if (start < 0) {
-                return null;
-            }
-
-            int end = start;
-            while (end < raw.length() && Character.isDigit(raw.charAt(end))) {
-                end++;
-            }
-
-            try {
-                return Integer.parseInt(raw.substring(start, end));
-            } catch (NumberFormatException ignored) {
-                return null;
             }
         }
 

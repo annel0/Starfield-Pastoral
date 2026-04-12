@@ -50,4 +50,9 @@ public final class StartrailTracker {
         setStacks(player, 0);
         return current;
     }
+
+    /** Clean up state when a player logs out to prevent memory leaks. */
+    public static void removePlayer(UUID playerId) {
+        STACKS.remove(playerId);
+    }
 }

@@ -46,10 +46,8 @@ public final class NpcCentralMovementService {
     private static final int NO_PATH_FORCE_SYNC_MAX_TICKS = 120;
     private static final double NO_PATH_FORCE_SYNC_MAX_DIST_SQR = 18.0D * 18.0D;
     private static final int NO_PATH_FORCE_SYNC_FAR_TICKS = 80;
-    private static final int TIME_JUMP_THRESHOLD = 200;
 
     private static final Map<String, NpcRoutePlan> ACTIVE_PLANS = new HashMap<>();
-    private static final Map<String, Integer> LAST_CHECKPOINT = new HashMap<>();
     private static final Map<String, String> LAST_NODE_SIGNATURE = new HashMap<>();
     private static final Map<String, DebugSnapshot> DEBUG_SNAPSHOTS = new HashMap<>();
     private static MinecraftServer activeServer;
@@ -81,12 +79,20 @@ public final class NpcCentralMovementService {
 
             npc.getNavigation().stop();
 
+            // Pause movement while NPC is in a facing override (dialogue/gift interaction).
+            // The entity should stand still and face the player until the interaction completes.
+            if (npc.isFacingOverrideActive()) {
+                npc.setDeltaMovement(Vec3.ZERO);
+                DEBUG_SNAPSHOTS.computeIfAbsent(npcId, k -> new DebugSnapshot()).update("interaction_pause", "<none>", "<none>", 0, 0, false, npc.position(), npc.position(), "none", 0, "<none>");
+                continue;
+            }
+
             NpcRuntimeState state = runtimeStates.get(npcId);
             boolean pathingSuppressed = !profile.canRunPathing() || (state != null && state.pathingSuppressed());
             if (pathingSuppressed) {
                 npc.setDeltaMovement(Vec3.ZERO);
                 applyFacing(npc, state);
-                DEBUG_SNAPSHOTS.put(npcId, new DebugSnapshot("pathing_disabled", "<none>", "<none>", 0, 0, false, npc.position(), npc.position(), "none", 0, "<none>"));
+                DEBUG_SNAPSHOTS.computeIfAbsent(npcId, k -> new DebugSnapshot()).update("pathing_disabled", "<none>", "<none>", 0, 0, false, npc.position(), npc.position(), "none", 0, "<none>");
                 continue;
             }
 
@@ -94,11 +100,10 @@ public final class NpcCentralMovementService {
             if (route == null) {
                 npc.setDeltaMovement(Vec3.ZERO);
                 applyFacing(npc, state);
-                DEBUG_SNAPSHOTS.put(npcId, new DebugSnapshot("no_route", "<none>", "<none>", 0, 0, false, npc.position(), npc.position(), "none", 0, "<none>"));
+                DEBUG_SNAPSHOTS.computeIfAbsent(npcId, k -> new DebugSnapshot()).update("no_route", "<none>", "<none>", 0, 0, false, npc.position(), npc.position(), "none", 0, "<none>");
                 continue;
             }
             boolean nodeChanged = markAndCheckScheduleNodeChange(npcId, state);
-            boolean timeJump = isTimeJump(npcId, state);
             String signature = buildPlanSignature(state, route);
 
             NpcRoutePlan plan = ACTIVE_PLANS.get(npcId);
@@ -112,12 +117,15 @@ public final class NpcCentralMovementService {
             if (plan == null || plan.steps.isEmpty()) {
                 npc.setDeltaMovement(Vec3.ZERO);
                 applyFacing(npc, state);
-                DEBUG_SNAPSHOTS.put(npcId, new DebugSnapshot("empty_plan", route.canonicalLocation, "<none>", 0, 0, false, npc.position(), npc.position(), "none", 0, "<none>"));
+                DEBUG_SNAPSHOTS.computeIfAbsent(npcId, k -> new DebugSnapshot()).update("empty_plan", route.canonicalLocation, "<none>", 0, 0, false, npc.position(), npc.position(), "none", 0, "<none>");
                 continue;
             }
 
-            executePlanTick(level, npc, plan, timeJump);
-            DEBUG_SNAPSHOTS.put(npcId, new DebugSnapshot(
+            executePlanTick(level, npc, plan);
+            if ("done".equals(plan.debugStage) || "done_resync".equals(plan.debugStage)) {
+                applyFacing(npc, state);
+            }
+            DEBUG_SNAPSHOTS.computeIfAbsent(npcId, k -> new DebugSnapshot()).update(
                 plan.debugStage,
                 route.canonicalLocation,
                 plan.debugPointId,
@@ -129,10 +137,15 @@ public final class NpcCentralMovementService {
                 plan.debugRepathReason,
                 level.getGameTime() - plan.lastProgressTick,
                 NpcChunkForceManager.currentForcedTargetChunk(npcId)
-            ));
+            );
         }
 
         NpcChunkForceManager.releaseInactiveForcedChunks(level, activeNpcIds);
+
+        // Evict expired collision penalties every 200 ticks to prevent unbounded HashMap growth.
+        if (level.getGameTime() % 200 == 0) {
+            NpcPathfinder.cleanupExpiredPenalties(level.getGameTime());
+        }
 
         // Avoid mass forcing interior chunks per tick; indoor transitions are handled by
         // explicit route steps and bounded target chunk forcing.
@@ -149,7 +162,6 @@ public final class NpcCentralMovementService {
 
         activeServer = level.getServer();
         ACTIVE_PLANS.clear();
-        LAST_CHECKPOINT.clear();
         LAST_NODE_SIGNATURE.clear();
         DEBUG_SNAPSHOTS.clear();
         NpcRoutePlanner.resetState();
@@ -196,10 +208,51 @@ public final class NpcCentralMovementService {
         return plan;
     }
 
+    // ──── Plan execution helpers (de-duplicated from executePlanTick) ────
+
+    /** Teleport NPC to the current step target and advance to the next step. */
+    private static void advanceStepByTeleport(StardewNpcEntity npc, NpcRoutePlan plan, Vec3 target, long now) {
+        npc.setDeltaMovement(Vec3.ZERO);
+        npc.setPos(target.x, target.y, target.z);
+        plan.currentStepIndex++;
+        plan.path.clear();
+        plan.pathIndex = 0;
+        plan.consecutivePathFailures = 0;
+        plan.lastProgressTick = now;
+        plan.lastPos = npc.position();
+    }
+
+    /** Record a path failure and apply exponential backoff to the next retry. */
+    private static int applyPathFailureBackoff(NpcRoutePlan plan, long now) {
+        plan.consecutivePathFailures++;
+        int cooldown = Math.min(NO_PATH_MAX_COOLDOWN_TICKS,
+            NO_PATH_BASE_COOLDOWN_TICKS * (1 << Math.min(plan.consecutivePathFailures - 1, 4)));
+        plan.noPathRetryBlockedUntilTick = now + cooldown;
+        return cooldown;
+    }
+
+    /** Called when a fresh A* path was successfully computed. Resets failure counters and opens doors. */
+    private static void onPathSuccess(ServerLevel level, StardewNpcEntity npc, NpcRoutePlan plan, long now) {
+        plan.consecutivePathFailures = 0;
+        plan.noPathRetryBlockedUntilTick = now;
+        openAllDoorsOnPath(level, npc, plan.path);
+    }
+
+    /** Try to compute a new A* path. Returns true if A* was actually invoked (budget permitting). */
+    private static boolean tryRepath(ServerLevel level, StardewNpcEntity npc, NpcRoutePlan plan, Vec3 target, long now) {
+        if (!NpcPathfinder.allowAstarCall(level)) {
+            plan.debugRepathReason = "astar_tick_budget";
+            return false;
+        }
+        plan.path = NpcPathfinder.planPath(level, npc.position(), target);
+        plan.pathIndex = 0;
+        plan.lastRepathTick = now;
+        return true;
+    }
+
     private static boolean executePlanTick(ServerLevel level,
                                            StardewNpcEntity npc,
-                                           NpcRoutePlan plan,
-                                           boolean timeJump) {
+                                           NpcRoutePlan plan) {
         if (plan.currentStepIndex >= plan.steps.size()) {
             Vec3 finalTarget = plan.steps.isEmpty() ? null : plan.steps.get(plan.steps.size() - 1).target;
             if (finalTarget != null) {
@@ -224,154 +277,97 @@ public final class NpcCentralMovementService {
         plan.debugPointId = step.pointId;
         plan.debugTarget = step.target;
         plan.debugNextWaypoint = step.target;
+        long now = level.getGameTime();
 
         if (step.mode == NpcRoutePlanner.RouteStepMode.WARP) {
             NpcChunkForceManager.ensureRouteTargetChunkForced(level, npc.getNpcId(), step.target);
             plan.debugStage = "warp";
-            npc.setDeltaMovement(Vec3.ZERO);
-            npc.setPos(step.target.x, step.target.y, step.target.z);
-            plan.currentStepIndex++;
-            plan.path.clear();
-            plan.pathIndex = 0;
-            plan.lastProgressTick = level.getGameTime();
-            plan.lastRepathTick = level.getGameTime();
-            plan.lastPos = npc.position();
+            advanceStepByTeleport(npc, plan, step.target, now);
+            plan.lastRepathTick = now;
             return false;
         }
 
         NpcChunkForceManager.ensureRouteTargetChunkForced(level, npc.getNpcId(), step.target);
         NpcChunkForceManager.ensureRouteCorridorChunksForced(level, npc.getNpcId(), npc.position(), step.target);
-        long now = level.getGameTime();
 
+        // ── Phase 1: Acquire a path if we don't have one ──
         if ((plan.path.isEmpty() || plan.pathIndex >= plan.path.size())
             && now - plan.lastRepathTick >= REPATH_COOLDOWN_TICKS
             && now >= plan.noPathRetryBlockedUntilTick) {
-            boolean attemptedAstar = false;
-            if (NpcPathfinder.allowAstarCall(level)) {
-                plan.path = NpcPathfinder.planPath(level, npc.position(), step.target);
-                attemptedAstar = true;
-            } else {
-                plan.debugRepathReason = "astar_tick_budget";
-            }
-            plan.pathIndex = 0;
-            plan.lastRepathTick = now;
-            if (attemptedAstar) {
+            boolean attempted = tryRepath(level, npc, plan, step.target, now);
+            if (attempted) {
                 plan.debugRepathReason = "path_init_or_exhausted";
             }
             if (plan.path.isEmpty()) {
                 plan.debugStage = "no_path_repath";
-                plan.consecutivePathFailures++;
-                int cooldown = Math.min(NO_PATH_MAX_COOLDOWN_TICKS,
-                    NO_PATH_BASE_COOLDOWN_TICKS * (1 << Math.min(plan.consecutivePathFailures - 1, 4)));
-                plan.noPathRetryBlockedUntilTick = now + cooldown;
+                int cooldown = applyPathFailureBackoff(plan, now);
                 plan.debugRepathReason = "no_path_backoff_" + cooldown + "t_fail" + plan.consecutivePathFailures;
             } else {
-                plan.consecutivePathFailures = 0;
-                plan.noPathRetryBlockedUntilTick = now;
-                // Open every door on the freshly-built path immediately so
-                // the entity never physically collides with a closed door.
-                openAllDoorsOnPath(level, npc, plan.path);
+                onPathSuccess(level, npc, plan, now);
             }
         }
 
+        // ── Phase 2: Handle empty path (no route to target) ──
         if (plan.path.isEmpty()) {
             plan.debugStage = "no_path";
             npc.setDeltaMovement(Vec3.ZERO);
 
-            // Fast teleport: if pathfinding has failed N consecutive times, give up and teleport.
+            // Fast teleport after N consecutive failures
             if (plan.consecutivePathFailures >= NO_PATH_CONSECUTIVE_FAIL_TELEPORT) {
                 plan.debugStage = "no_path_consecutive_fail_tp";
                 plan.lastFallbackTeleportUsed = true;
-                npc.setPos(step.target.x, step.target.y, step.target.z);
-                plan.currentStepIndex++;
-                plan.path.clear();
-                plan.pathIndex = 0;
-                plan.consecutivePathFailures = 0;
-                plan.lastProgressTick = level.getGameTime();
-                plan.lastPos = npc.position();
+                advanceStepByTeleport(npc, plan, step.target, now);
                 plan.debugRepathReason = "consecutive_fail_teleport_" + NO_PATH_CONSECUTIVE_FAIL_TELEPORT;
                 return false;
             }
 
+            // Retry A* while stuck with no path
             if (now - plan.lastProgressTick > STUCK_REPATH_TICKS
                 && now >= plan.noPathRetryBlockedUntilTick) {
-                if (NpcPathfinder.allowAstarCall(level)) {
-                    plan.path = NpcPathfinder.planPath(level, npc.position(), step.target);
-                } else {
-                    plan.debugRepathReason = "astar_tick_budget";
-                }
-                plan.pathIndex = 0;
-                plan.lastRepathTick = now;
+                tryRepath(level, npc, plan, step.target, now);
                 if (plan.path.isEmpty()) {
-                    plan.consecutivePathFailures++;
-                    int cooldown = Math.min(NO_PATH_MAX_COOLDOWN_TICKS,
-                        NO_PATH_BASE_COOLDOWN_TICKS * (1 << Math.min(plan.consecutivePathFailures - 1, 4)));
-                    plan.noPathRetryBlockedUntilTick = now + cooldown;
+                    int cooldown = applyPathFailureBackoff(plan, now);
                     plan.debugRepathReason = "no_path_stuck_backoff_" + cooldown + "t_fail" + plan.consecutivePathFailures;
                 } else {
-                    plan.consecutivePathFailures = 0;
-                    plan.noPathRetryBlockedUntilTick = now;
+                    onPathSuccess(level, npc, plan, now);
                     plan.debugRepathReason = "no_path_stuck_repath";
                 }
             } else if (now < plan.noPathRetryBlockedUntilTick) {
                 plan.debugRepathReason = "no_path_cooldown";
             }
 
-            long noPathDuration = level.getGameTime() - plan.lastProgressTick;
-            double toTarget = npc.position().distanceToSqr(step.target);
-            boolean nearQuickFallback = noPathDuration > NO_PATH_NEAR_QUICK_SYNC_TICKS
-                && toTarget <= NO_PATH_NEAR_QUICK_SYNC_DIST_SQR;
-            boolean nearTarget = toTarget <= NO_PATH_FORCE_SYNC_MAX_DIST_SQR;
-            boolean shortWindowFallback = noPathDuration > NO_PATH_FORCE_SYNC_TICKS && toTarget > NO_PATH_FORCE_SYNC_DIST_SQR;
-            boolean maxWindowFallback = noPathDuration > NO_PATH_FORCE_SYNC_MAX_TICKS;
-            boolean farWindowFallback = noPathDuration > NO_PATH_FORCE_SYNC_FAR_TICKS;
-            if (nearQuickFallback
-                || (nearTarget && (shortWindowFallback || maxWindowFallback))
-                || (!nearTarget && farWindowFallback)) {
+            // Timed fallback teleport (escalating windows based on distance)
+            if (shouldNoPathFallbackTeleport(plan, npc, step.target, now)) {
                 plan.debugStage = "no_path_fallback_tp";
                 plan.lastFallbackTeleportUsed = true;
-                npc.setPos(step.target.x, step.target.y, step.target.z);
-                plan.currentStepIndex++;
-                plan.path.clear();
-                plan.pathIndex = 0;
-                plan.consecutivePathFailures = 0;
-                plan.lastProgressTick = level.getGameTime();
-                plan.lastPos = npc.position();
-                if (nearQuickFallback) {
-                    plan.debugRepathReason = "no_path_near_quick_sync";
-                } else {
-                    plan.debugRepathReason = nearTarget ? "no_path_near_fallback" : "no_path_far_timeout_fallback";
-                }
+                advanceStepByTeleport(npc, plan, step.target, now);
             }
             return false;
         }
 
+        // ── Phase 3: Walk along the path ──
         Vec3 waypoint = plan.path.get(Math.min(plan.pathIndex, plan.path.size() - 1));
         plan.debugNextWaypoint = waypoint;
+
+        // Open doors ahead of the NPC
         tryOpenNearbyDoors(level, npc, waypoint, step.target);
-        // Look-ahead: open doors along the upcoming path BEFORE the NPC reaches them.
-        // A door must be open before the entity's physics volume touches it.
         for (int ahead = 1; ahead <= 5 && plan.pathIndex + ahead < plan.path.size(); ahead++) {
             Vec3 futureWp = plan.path.get(plan.pathIndex + ahead);
             BlockPos futurePos = BlockPos.containing(futureWp);
             tryOpenDoorAt(level, npc, futurePos);
             tryOpenDoorAt(level, npc, futurePos.above());
         }
+
         Vec3 horizontal = new Vec3(waypoint.x - npc.getX(), 0.0D, waypoint.z - npc.getZ());
 
+        // Advance waypoint if reached
         if (horizontal.lengthSqr() <= WAYPOINT_REACH_SQR) {
             plan.pathIndex++;
-            plan.collisionRetpathCount = 0; // made forward progress
-            plan.lastProgressTick = level.getGameTime();
+            plan.collisionRetpathCount = 0;
+            plan.lastProgressTick = now;
             plan.lastPos = npc.position();
             if (plan.pathIndex >= plan.path.size()) {
-                npc.setDeltaMovement(Vec3.ZERO);
-                npc.setPos(step.target.x, step.target.y, step.target.z);
-                plan.currentStepIndex++;
-                plan.path.clear();
-                plan.pathIndex = 0;
-                plan.lastProgressTick = level.getGameTime();
-                plan.lastPos = npc.position();
+                advanceStepByTeleport(npc, plan, step.target, now);
                 return false;
             }
             waypoint = plan.path.get(plan.pathIndex);
@@ -385,11 +381,10 @@ public final class NpcCentralMovementService {
             double vz = (horizontal.z / length) * WALK_SPEED;
             double vy = npc.getDeltaMovement().y;
 
+            // Force axis-aligned movement near doors to prevent collision stutter
             if (shouldAxisLockNearOpenDoor(level, npc, waypoint)
                 && Math.abs(vx) > 1.0E-4D
                 && Math.abs(vz) > 1.0E-4D) {
-                // In 1-block narrow doorways, diagonal motion rubs collision and causes stutter.
-                // Force axis-aligned movement for stable door traversal.
                 if (Math.abs(vx) >= Math.abs(vz)) {
                     vx = Math.signum(vx) * WALK_SPEED;
                     vz = 0.0D;
@@ -400,44 +395,31 @@ public final class NpcCentralMovementService {
                 plan.debugRepathReason = "door_axis_lock";
             }
 
-            // Path nodes use block-center Y, so flat-ground rise is often around 0.5.
-            // Only jump when we actually need to climb a higher step.
             double verticalRise = waypoint.y - npc.getY();
             boolean stepUpNeeded = verticalRise > 1.05D;
             boolean needsToJump = stepUpNeeded || (npc.horizontalCollision && verticalRise > 0.55D);
 
+            // ── Collision handling ──
             if (npc.horizontalCollision && !needsToJump
-                && level.getGameTime() - plan.lastRepathTick > REPATH_COOLDOWN_TICKS) {
+                && now - plan.lastRepathTick > REPATH_COOLDOWN_TICKS) {
                 plan.collisionRetpathCount++;
                 if (plan.collisionRetpathCount >= MAX_COLLISION_RETPATHS) {
-                    // Stuck against the same obstacle after multiple retries.
-                    // Micro-teleport to the current waypoint to bypass it and
-                    // continue along the rest of the path normally.
+                    // Micro-teleport past the obstacle
                     npc.setPos(waypoint.x, waypoint.y, waypoint.z);
                     plan.pathIndex++;
                     plan.collisionRetpathCount = 0;
                     plan.consecutivePathFailures = 0;
-                    plan.lastProgressTick = level.getGameTime();
-                    plan.lastRepathTick = level.getGameTime();
+                    plan.lastProgressTick = now;
+                    plan.lastRepathTick = now;
                     plan.lastPos = npc.position();
                     plan.debugStage = "collision_micro_tp";
                     plan.debugRepathReason = "collision_max_skip_waypoint";
                 } else {
-                    // Penalise the block we are walking INTO (not the block we’re standing on)
-                    // so A* genuinely routes around the obstacle next attempt.
-                    Vec3 penaltyPos = npc.position().add(vx * 4, 0, vz * 4);
+                    Vec3 penaltyPos = npc.position().add(Math.signum(vx), 0, Math.signum(vz));
                     NpcPathfinder.addCollisionPenalty(level, penaltyPos);
-                    if (NpcPathfinder.allowAstarCall(level)) {
-                        plan.path = NpcPathfinder.planPath(level, npc.position(), step.target);
-                        if (!plan.path.isEmpty()) {
-                            openAllDoorsOnPath(level, npc, plan.path);
-                            // Reset progress clock so the force-TP gate doesn't fire
-                            // in the same tick as (or immediately after) a successful repath.
-                            plan.lastProgressTick = level.getGameTime();
-                        }
+                    if (tryRepath(level, npc, plan, step.target, now) && !plan.path.isEmpty()) {
+                        openAllDoorsOnPath(level, npc, plan.path);
                     }
-                    plan.pathIndex = 0;
-                    plan.lastRepathTick = level.getGameTime();
                     plan.debugStage = "collision_repath";
                     plan.debugRepathReason = (NpcPathfinder.isBarrierAhead(level, npc.position(), vx, vz)
                         ? "barrier_repath_" : "collision_repath_") + plan.collisionRetpathCount;
@@ -445,12 +427,10 @@ public final class NpcCentralMovementService {
             }
 
             if (needsToJump && npc.onGround()) {
-                vy = 0.42D; // Standard Minecraft jump velocity
+                vy = 0.42D;
                 plan.debugStage = "walk_jump";
             }
 
-            // When NPC is at or adjacent to a door, snap perpendicular axis to
-            // exact block centre so it never clips the door's collision strip.
             trySnapToDoorCenter(level, npc, waypoint);
 
             npc.setDeltaMovement(vx, vy, vz);
@@ -460,38 +440,27 @@ public final class NpcCentralMovementService {
             npc.hurtMarked = true;
         }
 
+        // ── Phase 4: Progress detection and stuck escalation ──
         double moved = npc.position().distanceToSqr(plan.lastPos);
-        // Use distance to the CURRENT WAYPOINT (not the step target) to detect forward
-        // progress; winding paths can move away from the target while still advancing.
         double currentToWaypoint = npc.position().distanceToSqr(waypoint);
         double lastToWaypoint = plan.lastPos.distanceToSqr(waypoint);
         boolean waypointProgressed = currentToWaypoint + PROGRESS_TARGET_GAIN_EPSILON_SQR < lastToWaypoint;
         if (moved > PROGRESS_MOVE_DIST_SQR && waypointProgressed) {
             plan.lastPos = npc.position();
-            plan.lastProgressTick = level.getGameTime();
+            plan.lastProgressTick = now;
             plan.collisionRetpathCount = 0;
         }
 
-        if (level.getGameTime() - plan.lastProgressTick > STUCK_REPATH_TICKS
-            && level.getGameTime() - plan.lastRepathTick > REPATH_COOLDOWN_TICKS
-            && level.getGameTime() >= plan.noPathRetryBlockedUntilTick) {
-            if (NpcPathfinder.allowAstarCall(level)) {
-                plan.path = NpcPathfinder.planPath(level, npc.position(), step.target);
-                if (!plan.path.isEmpty()) {
-                    openAllDoorsOnPath(level, npc, plan.path);
-                    // Reset progress clock so the force-TP gate doesn't fire
-                    // in the same tick as (or immediately after) a successful repath.
-                    plan.lastProgressTick = level.getGameTime();
-                }
+        // Stuck repath
+        if (now - plan.lastProgressTick > STUCK_REPATH_TICKS
+            && now - plan.lastRepathTick > REPATH_COOLDOWN_TICKS
+            && now >= plan.noPathRetryBlockedUntilTick) {
+            if (tryRepath(level, npc, plan, step.target, now) && !plan.path.isEmpty()) {
+                openAllDoorsOnPath(level, npc, plan.path);
             }
-            plan.pathIndex = 0;
-            plan.lastRepathTick = level.getGameTime();
             plan.debugStage = "stuck_repath";
             if (plan.path.isEmpty()) {
-                plan.consecutivePathFailures++;
-                int cooldown = Math.min(NO_PATH_MAX_COOLDOWN_TICKS,
-                    NO_PATH_BASE_COOLDOWN_TICKS * (1 << Math.min(plan.consecutivePathFailures - 1, 4)));
-                plan.noPathRetryBlockedUntilTick = level.getGameTime() + cooldown;
+                int cooldown = applyPathFailureBackoff(plan, now);
                 plan.debugRepathReason = "stuck_repath_backoff_" + cooldown + "t";
             } else {
                 plan.consecutivePathFailures = 0;
@@ -499,34 +468,41 @@ public final class NpcCentralMovementService {
             }
         }
 
-        if (level.getGameTime() - plan.lastProgressTick > STUCK_FORCE_SYNC_TICKS) {
-            // Force teleport after being stuck too long, regardless of distance.
+        // Force teleport after being stuck too long
+        if (now - plan.lastProgressTick > STUCK_FORCE_SYNC_TICKS) {
             plan.debugStage = "fallback_tp";
             plan.lastFallbackTeleportUsed = true;
-            npc.setDeltaMovement(Vec3.ZERO);
-            npc.setPos(step.target.x, step.target.y, step.target.z);
-            plan.currentStepIndex++;
-            plan.path.clear();
-            plan.pathIndex = 0;
-            plan.consecutivePathFailures = 0;
-            plan.lastProgressTick = level.getGameTime();
-            plan.lastPos = npc.position();
+            advanceStepByTeleport(npc, plan, step.target, now);
             plan.debugRepathReason = "stuck_force_teleport";
         }
 
         return false;
     }
 
-    private static boolean isTimeJump(String npcId, NpcRuntimeState state) {
-        if (npcId == null || state == null) {
-            return false;
+    /** Determine if the no-path fallback teleport should fire based on distance and time thresholds. */
+    private static boolean shouldNoPathFallbackTeleport(NpcRoutePlan plan, StardewNpcEntity npc, Vec3 target, long now) {
+        long noPathDuration = now - plan.lastProgressTick;
+        double toTarget = npc.position().distanceToSqr(target);
+        boolean nearQuickFallback = noPathDuration > NO_PATH_NEAR_QUICK_SYNC_TICKS
+            && toTarget <= NO_PATH_NEAR_QUICK_SYNC_DIST_SQR;
+        boolean nearTarget = toTarget <= NO_PATH_FORCE_SYNC_MAX_DIST_SQR;
+        boolean shortWindowFallback = noPathDuration > NO_PATH_FORCE_SYNC_TICKS && toTarget > NO_PATH_FORCE_SYNC_DIST_SQR;
+        boolean maxWindowFallback = noPathDuration > NO_PATH_FORCE_SYNC_MAX_TICKS;
+        boolean farWindowFallback = noPathDuration > NO_PATH_FORCE_SYNC_FAR_TICKS;
+
+        if (nearQuickFallback) {
+            plan.debugRepathReason = "no_path_near_quick_sync";
+            return true;
         }
-        int current = state.scheduleCheckpoint();
-        Integer previous = LAST_CHECKPOINT.put(npcId, current);
-        if (previous == null) {
-            return false;
+        if (nearTarget && (shortWindowFallback || maxWindowFallback)) {
+            plan.debugRepathReason = "no_path_near_fallback";
+            return true;
         }
-        return current - previous >= TIME_JUMP_THRESHOLD;
+        if (!nearTarget && farWindowFallback) {
+            plan.debugRepathReason = "no_path_far_timeout_fallback";
+            return true;
+        }
+        return false;
     }
 
     private static String buildPlanSignature(NpcRuntimeState state, NpcRoutePlanner.NpcRouteContext route) {
@@ -710,16 +686,24 @@ public final class NpcCentralMovementService {
         if (state == null) {
             return;
         }
+        // Don't override yaw while the NPC is turning to face a player (dialogue / gift)
+        // or idle-looking at a nearby player.
+        if (npc.isFacingOverrideActive() || npc.isIdleLookActive()) {
+            return;
+        }
 
+        // SDV facing: 0=north(up), 1=east(right), 2=south(down), 3=west(left)
+        // MC yaw:     0°=south, 90°=west, 180°=north, -90°=east
         float yaw = switch (state.facing()) {
-            case 1 -> 180.0F;
-            case 2 -> 0.0F;
-            case 3 -> 90.0F;
-            case 0 -> -90.0F;
+            case 0 -> 180.0F;   // north
+            case 1 -> -90.0F;   // east
+            case 2 -> 0.0F;     // south
+            case 3 -> 90.0F;    // west
             default -> npc.getYRot();
         };
         npc.setYRot(yaw);
         npc.setYHeadRot(yaw);
+        npc.setYBodyRot(yaw);
     }
 
     private static final class NpcRoutePlan {
@@ -764,18 +748,52 @@ public final class NpcCentralMovementService {
         }
     }
 
-    public record DebugSnapshot(
-        String stage,
-        String location,
-        String pointId,
-        int pathSize,
-        int pathIndex,
-        boolean fallbackTeleportUsed,
-        Vec3 target,
-        Vec3 nextWaypoint,
-        String repathReason,
-        long noPathTicks,
-        String forcedTargetChunk
-    ) {
+    public static final class DebugSnapshot {
+        public String stage;
+        public String location;
+        public String pointId;
+        public int pathSize;
+        public int pathIndex;
+        public boolean fallbackTeleportUsed;
+        public Vec3 target;
+        public Vec3 nextWaypoint;
+        public String repathReason;
+        public long noPathTicks;
+        public String forcedTargetChunk;
+
+        public DebugSnapshot() {}
+
+        public void update(String stage, String location, String pointId,
+                           int pathSize, int pathIndex, boolean fallbackTeleportUsed,
+                           Vec3 target, Vec3 nextWaypoint, String repathReason,
+                           long noPathTicks, String forcedTargetChunk) {
+            this.stage = stage;
+            this.location = location;
+            this.pointId = pointId;
+            this.pathSize = pathSize;
+            this.pathIndex = pathIndex;
+            this.fallbackTeleportUsed = fallbackTeleportUsed;
+            this.target = target;
+            this.nextWaypoint = nextWaypoint;
+            this.repathReason = repathReason;
+            this.noPathTicks = noPathTicks;
+            this.forcedTargetChunk = forcedTargetChunk;
+        }
+    }
+
+    /**
+     * Snap an NPC entity down to the top of the block surface below it,
+     * fixing floating on slabs/stairs after spawn or warp.
+     */
+    public static void snapToSurface(ServerLevel level, net.minecraft.world.entity.Mob npc) {
+        BlockPos below = npc.blockPosition().below();
+        net.minecraft.world.level.block.state.BlockState state = level.getBlockState(below);
+        if (!state.isAir()) {
+            net.minecraft.world.phys.shapes.VoxelShape shape = state.getCollisionShape(level, below);
+            if (!shape.isEmpty()) {
+                double surfaceY = below.getY() + shape.max(net.minecraft.core.Direction.Axis.Y);
+                npc.setPos(npc.getX(), surfaceY, npc.getZ());
+            }
+        }
     }
 }

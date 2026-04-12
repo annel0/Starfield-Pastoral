@@ -225,6 +225,17 @@ public class WeatherManager {
         // 同步到客户端
         syncToAllPlayers(level, state);
     }
+
+    /**
+     * 设置明天的天气（用于求雨图腾等）。
+     * 严格复刻 SDV rainTotem：默认维度检查节日日，非节日设为 Rain。
+     */
+    public static void setTomorrowWeather(ServerLevel level, String weatherType) {
+        WeatherState state = getWeatherState(level);
+        state.weatherForTomorrow = weatherType;
+        WeatherSavedData.get(level).setDirty();
+        syncToAllPlayers(level, state);
+    }
     
     /**
      * 同步天气到所有玩家
@@ -315,7 +326,10 @@ public class WeatherManager {
          */
         @SuppressWarnings("null")
         public void applyToLevel(ServerLevel level) {
-            level.getGameRules().getRule(GameRules.RULE_WEATHER_CYCLE).set(true, level.getServer());
+            // 禁用原版天气循环——天气完全由 WeatherManager 控制。
+            // rainLevel/thunderLevel 的插值和广播在 advanceWeatherCycle 中
+            // 不受此 game rule 限制，所以客户端仍能收到 RAIN_LEVEL_CHANGE 包。
+            level.getGameRules().getRule(GameRules.RULE_WEATHER_CYCLE).set(false, level.getServer());
             int durationTicks = 24000 * 365;
             boolean raining = false;
             boolean thundering = false;

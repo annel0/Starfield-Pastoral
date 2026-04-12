@@ -1,0 +1,48 @@
+{
+  "npc_id": "willy",
+  "_vanilla_ref": "72=Diamond 143=Catfish 149=Octopus 154=Sea Cucumber 276=Pumpkin 337=Iridium Bar 698=Sturgeon 459=Mead 336=Gold Bar",
+
+  "loved": [
+    "stardewcraft:diamond",
+    "stardewcraft:catfish",
+    "stardewcraft:octopus",
+    "stardewcraft:sea_cucumber",
+    "stardewcraft:pumpkin",
+    "stardewcraft:iridium_bar",
+    "stardewcraft:sturgeon",
+    "stardewcraft:mead",
+    "stardewcraft:gold_bar"
+  ],
+  "_loved_not_yet_in_mod": ["book_crabbing", "book_roe"],
+
+  "liked": [
+    "stardewcraft:crab",
+    "stardewcraft:lobster",
+    "stardewcraft:shrimp",
+    "stardewcraft:crayfish",
+    "stardewcraft:snail",
+    "stardewcraft:periwinkle"
+  ],
+  "_liked_not_yet_in_mod": ["66=amethyst? 340=honey 699=tiger_trout 707=lingcod many_cooked_fish_items 265=seafoam_pudding 395=coffee 729=escargot skillbook_1"],
+
+  "neutral": [],
+
+  "disliked": [
+    "stardewcraft:clay"
+  ],
+  "_disliked_not_yet_in_mod": ["cooking_category(-7) fish_category(-81) 330=clay"],
+
+  "hated": [],
+  "_hated_not_yet_in_mod": ["227=sashimi 228=maki_roll 242=dish_o_the_sea"],
+
+  "loved_categories": [],
+  "liked_categories": [],
+  "disliked_categories": [],
+  "hated_categories": [],
+
+  "loved_msg": "This is great! If only me ol' Pappy was around. He'd go nuts for this.",
+  "liked_msg": "This looks great. Thank you!",
+  "neutral_msg": "A gift! Thanks.",
+  "disliked_msg": "Hmmm... You like stuff like this? Huh.",
+  "hated_msg": "... *sniff*... Well I guess I can toss it into the chum bucket."
+}

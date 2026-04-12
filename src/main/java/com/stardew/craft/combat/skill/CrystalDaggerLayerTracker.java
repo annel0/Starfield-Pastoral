@@ -106,4 +106,9 @@ public final class CrystalDaggerLayerTracker {
         ServerPlayer target = Objects.requireNonNull(player, "player");
         PacketDistributor.sendToPlayer(target, new CrystalDaggerLayerPayload(stacks, durationTicks, playChime));
     }
+
+    /** Clean up state when a player logs out to prevent memory leaks. */
+    public static void removePlayer(UUID playerId) {
+        STATES.remove(playerId);
+    }
 }

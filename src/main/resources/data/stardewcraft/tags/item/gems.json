@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:emerald",
+    "stardewcraft:aquamarine",
+    "stardewcraft:ruby",
+    "stardewcraft:amethyst",
+    "stardewcraft:topaz",
+    "stardewcraft:jade",
+    "stardewcraft:diamond",
+    "stardewcraft:prismatic_shard"
+  ]
+}

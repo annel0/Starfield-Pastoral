@@ -2,7 +2,6 @@ package com.stardew.craft.block.tv;
 
 import com.stardew.craft.block.decor.MapDecorStaticBlock;
 import com.stardew.craft.network.payload.OpenTVScreenPayload;
-import com.stardew.craft.player.PlayerStardewData;
 import com.stardew.craft.player.PlayerStardewDataAPI;
 import com.stardew.craft.time.StardewTimeManager;
 import com.stardew.craft.weather.WeatherManager;
@@ -52,8 +51,7 @@ public class TVBlock extends MapDecorStaticBlock {
 
         String tomorrowWeather = WeatherManager.getTomorrowWeather(serverLevel);
 
-        PlayerStardewData data = PlayerStardewDataAPI.getData(serverPlayer);
-        double dailyLuck = data.getDailyLuck();
+        double dailyLuck = PlayerStardewDataAPI.getDailyLuck(serverPlayer);
 
         // Resolve main block position (player may have clicked an extension part)
         BlockPos mainPos = findMainPos(level, pos, state);

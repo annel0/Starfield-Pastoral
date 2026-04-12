@@ -4,8 +4,7 @@ import com.stardew.craft.StardewCraft;
 import com.stardew.craft.blockentity.ModBlockEntities;
 import com.stardew.craft.client.gui.ElevatorScreen;
 import com.stardew.craft.client.gui.MineExitScreen;
-import com.stardew.craft.client.gui.CoopManagerScreen;
-import com.stardew.craft.client.gui.BarnManagerScreen;
+import com.stardew.craft.client.gui.BuildingManagerScreen;
 import com.stardew.craft.client.gui.AnimalQueryScreen;
 import com.stardew.craft.client.gui.ShippingBinScreen;
 import com.stardew.craft.client.gui.StoneChestScreen;
@@ -34,6 +33,7 @@ import com.stardew.craft.client.render.HeaterBlockEntityRenderer;
 import com.stardew.craft.client.render.LargeFireplaceBlockEntityRenderer;
 import com.stardew.craft.client.render.ShrineBlockEntityRenderer;
 import com.stardew.craft.client.render.PillarGeoBlockEntityRenderer;
+import com.stardew.craft.client.render.RecyclingMachineBlockEntityRenderer;
 import com.stardew.craft.client.render.ShippingBinBlockEntityRenderer;
 import com.stardew.craft.client.render.StoneChestBlockEntityRenderer;
 import com.stardew.craft.client.render.TrashBinBlockEntityRenderer;
@@ -63,6 +63,7 @@ import com.stardew.craft.client.renderer.entity.TemperedBilletProjectileRenderer
 import com.stardew.craft.client.renderer.entity.IceSpineEffectRenderer;
 import com.stardew.craft.client.renderer.entity.CoopAnimalGeoRenderer;
 import com.stardew.craft.client.renderer.entity.NpcGeoRenderer;
+import com.stardew.craft.client.renderer.entity.JunimoGeoRenderer;
 import com.stardew.craft.client.renderer.layer.YetiFreezeLayer;
 
 @SuppressWarnings("removal")
@@ -84,6 +85,7 @@ public final class ModClientSetup {
 		event.registerEntityRenderer(ModEntities.TEMPERED_BILLET_PROJECTILE.get(), TemperedBilletProjectileRenderer::new);
 		event.registerEntityRenderer(ModEntities.ELF_BLADE_LEAF.get(), ElfBladeLeafRenderer::new);
 		event.registerEntityRenderer(ModEntities.ICE_SPINE_EFFECT.get(), IceSpineEffectRenderer::new);
+		event.registerEntityRenderer(ModEntities.STARDEW_BOMB.get(), com.stardew.craft.client.renderer.entity.StardewBombEntityRenderer::new);
 		event.registerEntityRenderer(ModEntities.DUCK.get(), CoopAnimalGeoRenderer::new);
 		event.registerEntityRenderer(ModEntities.WHITE_CHICKEN.get(), CoopAnimalGeoRenderer::new);
 		event.registerEntityRenderer(ModEntities.GOLDEN_CHICKEN.get(), CoopAnimalGeoRenderer::new);
@@ -96,6 +98,7 @@ public final class ModClientSetup {
 		event.registerEntityRenderer(ModEntities.SHEEP.get(), CoopAnimalGeoRenderer::new);
 		event.registerEntityRenderer(ModEntities.PIG.get(), CoopAnimalGeoRenderer::new);
 		event.registerEntityRenderer(ModEntities.STARDEW_NPC.get(), NpcGeoRenderer::new);
+		event.registerEntityRenderer(ModEntities.JUNIMO.get(), JunimoGeoRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.TAPPER.get(), TapperBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.KEG.get(), KegBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.PRESERVES_JAR.get(), PreservesJarBlockEntityRenderer::new);
@@ -108,6 +111,7 @@ public final class ModClientSetup {
 		event.registerBlockEntityRenderer(ModBlockEntities.CRAB_POT.get(), CrabPotBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.MUSEUM_EXHIBIT_STAND.get(), MuseumExhibitStandBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.FISH_SMOKER.get(), FishSmokerBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(ModBlockEntities.RECYCLING_MACHINE.get(), RecyclingMachineBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.CRYSTALARIUM.get(), CrystalariumBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.SEED_MAKER.get(), SeedMakerBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.FURNACE.get(), FurnaceBlockEntityRenderer::new);
@@ -135,21 +139,25 @@ public final class ModClientSetup {
 		event.registerBlockEntityRenderer(ModBlockEntities.GRANDFATHER_CLOCK.get(), com.stardew.craft.client.render.GrandfatherClockBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.TABLE_DISPLAY.get(), TableDisplayBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.OFFICE_STOOL.get(), OfficeStoolBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(ModBlockEntities.TOTEM_POLE.get(), com.stardew.craft.client.render.TotemPoleBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(ModBlockEntities.MAILBOX.get(), com.stardew.craft.client.render.MailboxBlockEntityRenderer::new);
 			}
 
-	@SuppressWarnings("null")
+	@SuppressWarnings({"null", "unchecked", "rawtypes"})
 	@SubscribeEvent
 	public static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {
 		event.register(ModMenuTypes.MINE_EXIT.get(), MineExitScreen::new);
 		event.register(ModMenuTypes.ELEVATOR.get(), ElevatorScreen::new);
-		event.register(ModMenuTypes.COOP_MANAGER.get(), CoopManagerScreen::new);
-		event.register(ModMenuTypes.BARN_MANAGER.get(), BarnManagerScreen::new);
+		event.register((net.minecraft.world.inventory.MenuType) ModMenuTypes.COOP_MANAGER.get(), BuildingManagerScreen::new);
+		event.register((net.minecraft.world.inventory.MenuType) ModMenuTypes.BARN_MANAGER.get(), BuildingManagerScreen::new);
+		event.register(ModMenuTypes.SILO_MANAGER.get(), com.stardew.craft.client.gui.SiloManagerScreen::new);
 		event.register(ModMenuTypes.ANIMAL_QUERY.get(), AnimalQueryScreen::new);
 		event.register(ModMenuTypes.TREASURE_CHEST.get(), com.stardew.craft.client.fishing.TreasureChestScreen::new);
 		event.register(ModMenuTypes.COOKING_POT.get(), com.stardew.craft.client.gui.CookingPotScreen::new);
 		event.register(ModMenuTypes.WOODEN_CHEST.get(), WoodenChestScreen::new);
 		event.register(ModMenuTypes.STONE_CHEST.get(), StoneChestScreen::new);
 		event.register(ModMenuTypes.SHIPPING_BIN.get(), ShippingBinScreen::new);
+		event.register(ModMenuTypes.BUNDLE.get(), com.stardew.craft.communitycenter.client.BundleScreen::new);
 	}
 
 	@SuppressWarnings("null")

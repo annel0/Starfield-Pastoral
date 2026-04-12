@@ -28,10 +28,12 @@ public class MuseumDonationData extends SavedData {
     private static final String TAG_DONATION_MODE = "donation_mode";
     private static final String TAG_SESSION_PENDING = "session_pending";
     private static final String TAG_STAND_ITEMS = "stand_items";
+    private static final String TAG_CLAIMED_REWARDS = "claimed_rewards";
 
     private final Set<String> donatedItems = new HashSet<>();
     private final Set<String> sessionPendingItems = new HashSet<>();
     private final Map<String, String> standDisplayItems = new HashMap<>();
+    private final Set<String> claimedMuseumRewards = new HashSet<>();
     private boolean donationModeActive;
 
     public static MuseumDonationData get(ServerLevel level) {
@@ -68,6 +70,15 @@ public class MuseumDonationData extends SavedData {
                 data.standDisplayItems.put(key, itemId);
             }
         }
+
+        if (tag.contains(TAG_CLAIMED_REWARDS, CompoundTag.TAG_LIST)) {
+            ListTag rewardList = tag.getList(TAG_CLAIMED_REWARDS, CompoundTag.TAG_STRING);
+            for (int i = 0; i < rewardList.size(); i++) {
+                String id = rewardList.getString(i);
+                if (!id.isBlank()) data.claimedMuseumRewards.add(id);
+            }
+        }
+
         return data;
     }
 
@@ -98,6 +109,13 @@ public class MuseumDonationData extends SavedData {
             }
         }
         tag.put(TAG_STAND_ITEMS, standTag);
+
+        ListTag rewardList = new ListTag();
+        for (String id : claimedMuseumRewards) {
+            if (id != null) rewardList.add(StringTag.valueOf(id));
+        }
+        tag.put(TAG_CLAIMED_REWARDS, rewardList);
+
         return tag;
     }
 
@@ -205,5 +223,21 @@ public class MuseumDonationData extends SavedData {
     }
 
     public record EndSessionResult(boolean success, Set<String> missingItems) {
+    }
+
+    // ── Museum Reward tracking ──
+
+    public Set<String> getClaimedMuseumRewards() {
+        return Collections.unmodifiableSet(claimedMuseumRewards);
+    }
+
+    public boolean isRewardClaimed(String rewardId) {
+        return claimedMuseumRewards.contains(rewardId);
+    }
+
+    public void claimReward(String rewardId) {
+        if (claimedMuseumRewards.add(rewardId)) {
+            setDirty();
+        }
     }
 }

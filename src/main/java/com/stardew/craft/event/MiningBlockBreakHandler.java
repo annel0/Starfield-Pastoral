@@ -3,16 +3,22 @@ package com.stardew.craft.event;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.block.ModBlocks;
 import com.stardew.craft.core.ModMiningDimensions;
+import com.stardew.craft.mining.LadderProbabilityCalculator;
 import com.stardew.craft.mining.MineFloorData;
 import com.stardew.craft.mining.MineFloorDataManager;
+import com.stardew.craft.network.LadderSyncPacket;
+import com.stardew.craft.sound.ModSounds;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
  * 矿井方块破坏事件处理器
@@ -87,6 +93,38 @@ public class MiningBlockBreakHandler {
 
         StardewCraft.LOGGER.debug("[MINE] Stone broken by {} on floor {}, stones left: {}",
             player.getName().getString(), floorNumber, floorData.getStonesLeft());
+
+        // 动态楼梯生成：每次挖石后判断概率
+        if (!floorData.hasLadderFound()) {
+            boolean shouldSpawn = LadderProbabilityCalculator.shouldGenerateLadder(
+                    floorData.getStonesLeft(), player, floorData, serverLevel.getRandom());
+            if (shouldSpawn) {
+                // 先标记数据，避免重复生成
+                floorData.setLadderFound(true);
+                floorData.setLadderPos(pos);
+                manager.setFloorData(floorNumber, floorData);
+
+                StardewCraft.LOGGER.info("[MINE] Ladder spawned at {} on floor {} by {}",
+                        pos, floorNumber, player.getName().getString());
+
+                // 延迟 1 tick 放置楼梯方块：BreakEvent 在方块移除之前触发，
+                // 如果在这里直接 setBlock，随后的破坏逻辑会把它覆盖成空气。
+                final BlockPos ladderPos = pos.immutable();
+                serverLevel.getServer().execute(() -> {
+                    serverLevel.setBlock(ladderPos, ModBlocks.MINE_LADDER.get().defaultBlockState(), 3);
+
+                    // SDV 原版：发现楼梯播放 "hoeHit" 音效
+                    serverLevel.playSound(null, ladderPos, ModSounds.HOE_HIT.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
+
+                    // SDV 原版：显示全局消息提示楼梯已出现（仿 MineShaft.cs:9484）
+                    for (ServerPlayer p : serverLevel.players()) {
+                        PacketDistributor.sendToPlayer(p, new LadderSyncPacket(floorNumber, true, ladderPos));
+                        p.displayClientMessage(
+                                Component.translatable("message.stardewcraft.ladder_found"), false);
+                    }
+                });
+            }
+        }
     }
     
     /**

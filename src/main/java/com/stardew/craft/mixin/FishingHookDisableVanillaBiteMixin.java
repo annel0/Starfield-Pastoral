@@ -18,6 +18,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  */
 @Mixin(FishingHook.class)
 public abstract class FishingHookDisableVanillaBiteMixin {
+	/** 让鱼钩在岩浆中不受伤害，支持岩浆钓鱼 */
+	@Inject(method = "lavaHurt", at = @At("HEAD"), cancellable = true, require = 0)
+	private void stardewcraft$preventLavaDamage(CallbackInfo ci) {
+		ci.cancel();
+	}
+
 	@Inject(method = "catchingFish", at = @At("HEAD"), cancellable = true, require = 0)
 	private void stardewcraft$disableVanillaCatchingFish(BlockPos pos, CallbackInfo ci) {
 		FishingHook self = (FishingHook) (Object) this;

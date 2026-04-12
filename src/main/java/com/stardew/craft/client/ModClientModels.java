@@ -23,6 +23,11 @@ public final class ModClientModels {
         );
         event.register(model);
 
+        // 炸弹实体 3D 模型
+        registerStandalone(event, "entity/bomb/cherry_bomb");
+        registerStandalone(event, "entity/bomb/bomb");
+        registerStandalone(event, "entity/bomb/mega_bomb");
+
         for (var id : BuiltInRegistries.ITEM.keySet()) {
             if (!StardewCraft.MODID.equals(id.getNamespace())) {
                 continue;
@@ -39,9 +44,13 @@ public final class ModClientModels {
     }
 
     private static void registerSmokedBase(ModelEvent.RegisterAdditional event, String path) {
-        @SuppressWarnings("null")
+        registerStandalone(event, "item/" + path);
+    }
+
+    @SuppressWarnings("null")
+    private static void registerStandalone(ModelEvent.RegisterAdditional event, String path) {
         ModelResourceLocation model = new ModelResourceLocation(
-            ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "item/" + path),
+            ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, path),
             "standalone"
         );
         event.register(model);

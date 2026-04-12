@@ -55,4 +55,9 @@ public final class DragonBreathTracker {
     public static boolean canCastMajor(ServerPlayer player) {
         return getStacks(player) >= MAJOR_THRESHOLD;
     }
+
+    /** Clean up state when a player logs out to prevent memory leaks. */
+    public static void removePlayer(UUID playerId) {
+        STACKS.remove(playerId);
+    }
 }

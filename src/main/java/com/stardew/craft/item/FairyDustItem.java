@@ -10,6 +10,7 @@ import com.stardew.craft.blockentity.FishSmokerBlockEntity;
 import com.stardew.craft.blockentity.KegBlockEntity;
 import com.stardew.craft.blockentity.MayonnaiseMachineBlockEntity;
 import com.stardew.craft.blockentity.OilMakerBlockEntity;
+import com.stardew.craft.blockentity.RecyclingMachineBlockEntity;
 import com.stardew.craft.blockentity.CaskBlockEntity;
 import com.stardew.craft.blockentity.PreservesJarBlockEntity;
 import com.stardew.craft.blockentity.SeedMakerBlockEntity;
@@ -54,6 +55,7 @@ public class FairyDustItem extends SimpleStardewItem {
                 || be instanceof CharcoalKilnBlockEntity
                 || be instanceof FurnaceBlockEntity
                 || be instanceof FishSmokerBlockEntity
+                || be instanceof RecyclingMachineBlockEntity
                 || be instanceof SeedMakerBlockEntity
                 || be instanceof OilMakerBlockEntity
                 || be instanceof BeeHouseBlockEntity
@@ -86,6 +88,8 @@ public class FairyDustItem extends SimpleStardewItem {
             canApply = furnace.canApplyFairyDust();
         } else if (be instanceof FishSmokerBlockEntity fishSmoker) {
             canApply = fishSmoker.canApplyFairyDust();
+        } else if (be instanceof RecyclingMachineBlockEntity recyclingMachine) {
+            canApply = recyclingMachine.canApplyFairyDust();
         } else if (be instanceof SeedMakerBlockEntity seedMaker) {
             canApply = seedMaker.canApplyFairyDust();
         } else if (be instanceof OilMakerBlockEntity oilMaker) {
@@ -131,6 +135,8 @@ public class FairyDustItem extends SimpleStardewItem {
                 applied = furnace.applyFairyDust();
             } else if (be instanceof FishSmokerBlockEntity fishSmoker) {
                 applied = fishSmoker.applyFairyDust();
+            } else if (be instanceof RecyclingMachineBlockEntity recyclingMachine) {
+                applied = recyclingMachine.applyFairyDust();
             } else if (be instanceof SeedMakerBlockEntity seedMaker) {
                 applied = seedMaker.applyFairyDust();
             } else if (be instanceof OilMakerBlockEntity oilMaker) {

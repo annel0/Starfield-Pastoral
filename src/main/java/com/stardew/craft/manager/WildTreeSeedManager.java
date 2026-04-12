@@ -209,7 +209,11 @@ public class WildTreeSeedManager extends SavedData {
 		}
 
 		BlockState saplingState = def.sapling0().get().defaultBlockState();
-		return saplingState.canSurvive(level, saplingPos);
+		if (!saplingState.canSurvive(level, saplingPos)) {
+			return false;
+		}
+		level.setBlock(saplingPos, saplingState, Block.UPDATE_ALL);
+		return true;
 	}
 
 	@SuppressWarnings("null")

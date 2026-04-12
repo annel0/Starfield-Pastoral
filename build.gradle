@@ -31,6 +31,10 @@ repositories {
         name = "GeckoLib"
         url = "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
     }
+    maven {
+        name = "Curios"
+        url = "https://maven.theillusivec4.top/"
+    }
 }
 
 base {
@@ -157,6 +161,9 @@ dependencies {
     // GeckoLib (embedded via JarJar like ConfluenceOtherworld)
     implementation "software.bernie.geckolib:geckolib-neoforge-1.21.1:${geckolib_version}"
     jarJar "software.bernie.geckolib:geckolib-neoforge-1.21.1:${geckolib_version}"
+
+    // Curios API (optional soft dependency — rings/boots can go in curios slots if present)
+    compileOnly "top.theillusivec4.curios:curios-neoforge:9.2.2+1.21.1"
 
     // Example mod dependency using a mod jar from ./libs with a flat dir repository
     // This maps to ./libs/coolmod-${mc_version}-${coolmod_version}.jar

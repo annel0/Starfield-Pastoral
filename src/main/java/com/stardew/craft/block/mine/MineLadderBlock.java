@@ -13,7 +13,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
@@ -126,6 +125,11 @@ public class MineLadderBlock extends Block {
         int currentFloor = playerData.getCurrentFloor();
         int nextFloor = currentFloor + 1;
 
+        if (nextFloor > 120) {
+            player.displayClientMessage(net.minecraft.network.chat.Component.literal("你已经到达矿井最深处！"), true);
+            return InteractionResult.FAIL;
+        }
+
         StardewCraft.LOGGER.info("[MINE] Player {} descending from floor {} to floor {}", 
             player.getName().getString(), currentFloor, nextFloor);
 
@@ -137,8 +141,11 @@ public class MineLadderBlock extends Block {
         MiningDataManager.savePlayerData(serverPlayer, playerData);
         PlayerStardewDataAPI.applyStardewCraftingConditionUnlocks(serverPlayer);
 
-        // 播放传送音效
-        level.playSound(null, pos, SoundEvents.ENDERMAN_TELEPORT, SoundSource.BLOCKS, 1.0F, 1.0F);
+        // 触发矿井层数到达事件（任务系统）
+        com.stardew.craft.quest.StardewQuestEvents.fireMineFloorReached(serverPlayer, nextFloor);
+
+        // 播放传送音效 — SDV 原版：stairsdown
+        level.playSound(null, pos, com.stardew.craft.sound.ModSounds.STAIRS_DOWN.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
 
         // 传送到下一层
         MiningCoordinates.teleportPlayerToFloor(serverPlayer, (ServerLevel) level, nextFloor);

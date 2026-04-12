@@ -1,0 +1,6 @@
+{
+    "parent": "minecraft:item/generated",
+    "textures": {
+        "layer0": "stardewcraft:item/tool/misc/wizard_tower_compass_17"
+    }
+}

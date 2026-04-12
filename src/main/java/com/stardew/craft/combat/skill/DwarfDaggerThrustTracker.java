@@ -298,4 +298,9 @@ public final class DwarfDaggerThrustTracker {
             pos.x, y, pos.z,
             3, 0.2, 0.1, 0.2, 0.03);
     }
+
+    /** Clean up state when a player logs out to prevent memory leaks. */
+    public static void removePlayer(UUID playerId) {
+        ACTIVE.remove(playerId);
+    }
 }

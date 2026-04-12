@@ -1,0 +1,39 @@
+{
+  "npc_id": "clint",
+  "_vanilla_ref": "60=Emerald 62=Aquamarine 64=Ruby 66=Amethyst 68=Topaz 70=Jade 336=GoldBar 337=IridiumBar 605=Artichoke_Dip 649=Fiddlehead_Risotto 749=OmniGeode",
+  "loved": [
+    "stardewcraft:emerald",
+    "stardewcraft:aquamarine",
+    "stardewcraft:ruby",
+    "stardewcraft:amethyst",
+    "stardewcraft:topaz",
+    "stardewcraft:jade",
+    "stardewcraft:gold_bar",
+    "stardewcraft:iridium_bar",
+    "stardewcraft:omni_geode"
+  ],
+  "_loved_not_yet_in_mod": [
+    "artichoke_dip(605)",
+    "fiddlehead_risotto(649)"
+  ],
+  "liked": [
+    "stardewcraft:copper_bar",
+    "stardewcraft:iron_bar",
+    "stardewcraft:gold_ore"
+  ],
+  "neutral": [],
+  "disliked": [
+    "stardewcraft:quartz",
+    "stardewcraft:holly"
+  ],
+  "hated": [],
+  "loved_categories": [],
+  "liked_categories": [],
+  "disliked_categories": [],
+  "hated_categories": [],
+  "loved_msg": "Yes! This is exactly what I've been looking for!",
+  "liked_msg": "This is a fun gift. Thanks!",
+  "neutral_msg": "Thanks.",
+  "disliked_msg": "*Sigh*...",
+  "hated_msg": "This makes me depressed."
+}

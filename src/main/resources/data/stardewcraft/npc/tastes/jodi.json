@@ -1,0 +1,51 @@
+{
+  "npc_id": "jodi",
+  "loved": [
+    "stardewcraft:diamond",
+    "stardewcraft:vegetable_medley",
+    "stardewcraft:chocolate_cake"
+  ],
+  "_loved_not_yet_in_mod": [
+    "pancakes(211)",
+    "crispy_bass(214)",
+    "rhubarb_pie(222)",
+    "fried_mushroom(225)",
+    "eggplant_parmesan(231)"
+  ],
+  "liked": [
+    "stardewcraft:egg",
+    "stardewcraft:milk",
+    "stardewcraft:large_milk",
+    "stardewcraft:duck_egg",
+    "stardewcraft:void_egg"
+  ],
+  "_liked_not_yet_in_mod": [
+    "daffodil(18)",
+    "sweet_gem_berry(402)",
+    "cranberries(418) - category fruits/eggs/milk"
+  ],
+  "neutral": [],
+  "disliked": [
+    "stardewcraft:quartz",
+    "stardewcraft:garlic",
+    "stardewcraft:clay"
+  ],
+  "_disliked_not_yet_in_mod": [],
+  "hated": [
+    "stardewcraft:wild_horseradish"
+  ],
+  "_hated_not_yet_in_mod": [
+    "daffodil(18) - only if not in liked category",
+    "dandelion(22)",
+    "spice_berry(396)"
+  ],
+  "loved_categories": [],
+  "liked_categories": [],
+  "disliked_categories": [],
+  "hated_categories": [],
+  "loved_msg": "Oh, you're such a sweetheart! I really love this!",
+  "liked_msg": "Thank you! This makes my day really special.",
+  "neutral_msg": "That's so nice of you! Thanks.",
+  "disliked_msg": "Hmm, well I guess I could always put this in the compost...",
+  "hated_msg": "*Blech*... I hate this..."
+}

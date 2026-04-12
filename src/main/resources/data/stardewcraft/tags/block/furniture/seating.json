@@ -1,0 +1,15 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:chair_1",
+    "stardewcraft:chair_2",
+    "stardewcraft:chair_3",
+    "stardewcraft:sofa",
+    "stardewcraft:cushion",
+    "stardewcraft:office_stool",
+    "stardewcraft:office_chair_2",
+    "stardewcraft:stool",
+    "stardewcraft:dining_chair_wood",
+    "stardewcraft:dining_chair_iron"
+  ]
+}

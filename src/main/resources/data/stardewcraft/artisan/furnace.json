@@ -8,6 +8,7 @@
     { "input": "stardewcraft:quartz", "output": "stardewcraft:refined_quartz", "minutes": 90 },
     { "input": "stardewcraft:fire_quartz", "output": "stardewcraft:refined_quartz", "minutes": 90, "outputCount": 3 },
     { "input": "stardewcraft:bouquet", "output": "stardewcraft:wilted_bouquet", "minutes": 10 },
-    { "input": "stardewcraft:radioactive_ore", "output": "stardewcraft:radioactive_bar", "minutes": 560, "consume": 5 }
+    { "input": "stardewcraft:radioactive_ore", "output": "stardewcraft:radioactive_bar", "minutes": 560, "consume": 5 },
+    { "input": "stardewcraft:clay", "output": "minecraft:bricks", "minutes": 30, "consume": 5, "outputCount": 5 }
   ]
 }

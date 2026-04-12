@@ -41,7 +41,7 @@ public class BlueberryCropBlock extends StardewCropBlock {
         super(Properties.of()
                 .mapColor(MapColor.PLANT)
                 .pushReaction(PushReaction.DESTROY)
-                .sound(SoundType.CROP), true);
+                .sound(SoundType.CROP), false);
         this.registerDefaultState(this.defaultBlockState().setValue(AGE, 0).setValue(HALF, DoubleBlockHalf.LOWER));
     }
 

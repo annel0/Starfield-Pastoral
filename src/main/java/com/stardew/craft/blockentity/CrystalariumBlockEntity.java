@@ -14,10 +14,16 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import software.bernie.geckolib.animatable.GeoBlockEntity;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 import javax.annotation.Nullable;
 
-public class CrystalariumBlockEntity extends TimedProductionBlockEntity {
+@SuppressWarnings("all")
+public class CrystalariumBlockEntity extends TimedProductionBlockEntity implements GeoBlockEntity {
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private static final int EFFECTIVE_MINUTES_PER_DAY = 1260;
     private static final int TIME_DEFAULT = 5000;
 
@@ -31,6 +37,11 @@ public class CrystalariumBlockEntity extends TimedProductionBlockEntity {
 
     public CrystalariumBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.CRYSTALARIUM.get(), pos, state);
+    }
+
+    @Override
+    public net.neoforged.neoforge.items.IItemHandler getAutomationItemHandler() {
+        return super.getAutomationItemHandler();
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, CrystalariumBlockEntity be) {
@@ -288,5 +299,17 @@ public class CrystalariumBlockEntity extends TimedProductionBlockEntity {
         product = tag.contains(TAG_PRODUCT) ? ItemStack.parse(registries, tag.getCompound(TAG_PRODUCT)).orElse(ItemStack.EMPTY) : ItemStack.EMPTY;
         readyAtAbsMinute = tag.getLong(TAG_READY_AT);
         ready = tag.getBoolean(TAG_READY);
+    }
+
+    // ==================== GeckoLib ====================
+
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        // No animations — static geo model
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return cache;
     }
 }

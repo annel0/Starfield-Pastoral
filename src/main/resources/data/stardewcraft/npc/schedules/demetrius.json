@@ -1,0 +1,49 @@
+ {
+  "npc_id": "demetrius",
+  "override_vanilla": true,
+  "_format": "time -> \"location @namedPointId facing [behavior]\" | {_goto: key} | {_condition: expr}",
+
+  "GreenRain": {
+    "750": "sciencehouse @demetrius_sciencehouse_lab 3"
+  },
+
+  "rain": {
+    "750":  "sciencehouse @demetrius_sciencehouse_notes 1",
+    "1100": "sciencehouse @demetrius_sciencehouse_lab 3",
+    "1500": "sciencehouse @demetrius_sciencehouse_kitchen 2",
+    "1800": "sciencehouse @demetrius_sciencehouse_bedroom 0",
+    "2230": "sciencehouse @demetrius_sciencehouse_sleep 3 demetrius_sleep"
+  },
+
+  "spring": {
+    "750":  "sciencehouse @demetrius_sciencehouse_lab 3",
+    "1100": "sciencehouse @demetrius_sciencehouse_notes 1",
+    "1430": "mountain @demetrius_mountain_research 3",
+    "1900": "sciencehouse @demetrius_sciencehouse_kitchen 2",
+    "2230": "sciencehouse @demetrius_sciencehouse_sleep 3 demetrius_sleep"
+  },
+
+  "summer": {
+    "750":  "sciencehouse @demetrius_sciencehouse_lab 3",
+    "1100": "town @demetrius_town_square 3",
+    "1900": "sciencehouse @demetrius_sciencehouse_kitchen 2",
+    "2230": "sciencehouse @demetrius_sciencehouse_sleep 3 demetrius_sleep"
+  },
+
+  "fall": {
+    "750":  "sciencehouse @demetrius_sciencehouse_lab 3",
+    "1100": "mountain @demetrius_mountain_research 3",
+    "1900": "sciencehouse @demetrius_sciencehouse_kitchen 2",
+    "2230": "sciencehouse @demetrius_sciencehouse_sleep 3 demetrius_sleep"
+  },
+
+  "winter": {
+    "_goto": "rain"
+  },
+
+  "friday": {
+    "750":  "sciencehouse @demetrius_sciencehouse_notes 1",
+    "1600": "saloon @demetrius_saloon_seat 3",
+    "2100": "sciencehouse @demetrius_sciencehouse_sleep 3 demetrius_sleep"
+  }
+}

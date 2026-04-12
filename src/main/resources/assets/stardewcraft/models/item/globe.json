@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/common/globe",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/globe"
+	}
+}

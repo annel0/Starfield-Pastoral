@@ -3,8 +3,10 @@ package com.stardew.craft.client;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.item.tool.FishingRodItem;
+import com.stardew.craft.item.tool.WizardTowerCompassItem;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 
 public final class ModItemProperties {
@@ -42,5 +44,51 @@ public final class ModItemProperties {
 		ItemProperties.register(ModItems.FIBERGLASS_ROD.get(), CAST, castProperty);
 		ItemProperties.register(ModItems.IRIDIUM_ROD.get(), CAST, castProperty);
 		ItemProperties.register(ModItems.ADVANCED_IRIDIUM_ROD.get(), CAST, castProperty);
+
+		// ── 法师塔指南针角度 ──
+		var compassAngle = ResourceLocation.fromNamespaceAndPath("minecraft", "angle");
+		final float[] lastAngle = {0f};
+
+		var compassProperty = (net.minecraft.client.renderer.item.ClampedItemPropertyFunction)
+				(stack, level, entity, seed) -> {
+			if (entity == null || level == null) return 0f;
+
+			// 只在主世界且有目标时指向；否则随机旋转
+			boolean hasTarget = level.dimension() == net.minecraft.world.level.Level.OVERWORLD
+					&& WizardTowerCompassItem.hasClientTarget();
+			if (!hasTarget) {
+				return hash(seed + (int)(level.getGameTime() / 20)) / 2147483647.0f * 0.5f + 0.5f;
+			}
+
+			double dx = WizardTowerCompassItem.getClientTargetX() + 0.5 - entity.getX();
+			double dz = WizardTowerCompassItem.getClientTargetZ() + 0.5 - entity.getZ();
+			// MC 坐标系：+X=东, +Z=南。atan2(-dx, dz) 使 0=南，顺时针增长，匹配 YRot。
+			double targetAngle = Math.atan2(-dx, dz);
+			// 玩家朝向（弧度，0=南，顺时针）
+			double playerAngle = Math.toRadians(entity.getYRot());
+			// 相对角度（目标相对于玩家视角的偏转）
+			double relative = targetAngle - playerAngle;
+			// 归一化到 [0, 1)：0=指前方（南），0.5=指背后（北）
+			float angle = (float) Mth.positiveModulo(relative / (2.0 * Math.PI), 1.0);
+			// 平滑
+			float current = lastAngle[0];
+			float diff = angle - current;
+			if (diff > 0.5f) diff -= 1.0f;
+			if (diff < -0.5f) diff += 1.0f;
+			current += diff * 0.1f;
+			current = (float) Mth.positiveModulo(current, 1.0);
+			lastAngle[0] = current;
+			return current;
+		};
+
+		ItemProperties.register(ModItems.WIZARD_TOWER_COMPASS.get(), compassAngle, compassProperty);
+	}
+
+	/** 简单的整数哈希（用于非星露谷维度时的随机旋转） */
+	private static int hash(int x) {
+		x = ((x >> 16) ^ x) * 0x45d9f3b;
+		x = ((x >> 16) ^ x) * 0x45d9f3b;
+		x = (x >> 16) ^ x;
+		return x & 0x7FFFFFFF;
 	}
 }

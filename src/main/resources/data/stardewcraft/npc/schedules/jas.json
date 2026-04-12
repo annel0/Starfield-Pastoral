@@ -1,0 +1,64 @@
+{
+  "npc_id": "jas",
+  "override_vanilla": true,
+  "_format": "time -> \"location @namedPointId facing [behavior]\" | {_goto: key} | {_condition: expr}",
+
+  "GreenRain": {
+    "610": "animalshop @jas_animalshop_kitchen 3"
+  },
+
+  "rain": {
+    "900":  "animalshop @jas_animalshop_kitchen 1",
+    "1100": "animalshop @jas_animalshop_living 3",
+    "1500": "animalshop @jas_animalshop_read 3 jas_read",
+    "1900": "animalshop @jas_animalshop_bedroom 3",
+    "2100": "animalshop @jas_animalshop_sleep 3 jas_sleep"
+  },
+
+  "tuesday": {
+    "900":  "archaeologyhouse @jas_museum_read 3 jas_read",
+    "1400": "town @jas_town_playground 3",
+    "1620": "town @jas_town_walk 1",
+    "1750": "animalshop @jas_animalshop_sleep 3 jas_sleep"
+  },
+
+  "wednesday": {
+    "_goto": "tuesday"
+  },
+
+  "friday": {
+    "_goto": "tuesday"
+  },
+
+  "saturday": {
+    "1000": "town @jas_town_walk 2",
+    "1200": "town @jas_town_jumprope 0 jas_jumprope",
+    "1700": "town @jas_town_playground 2",
+    "2000": "animalshop @jas_animalshop_sleep 3 jas_sleep"
+  },
+
+  "spring": {
+    "900":  "animalshop @jas_animalshop_kitchen 1",
+    "1100": "forest @jas_forest_jumprope 2 jas_jumprope",
+    "1500": "animalshop @jas_animalshop_read 3 jas_read",
+    "1900": "animalshop @jas_animalshop_bedroom 3",
+    "2100": "animalshop @jas_animalshop_sleep 3 jas_sleep"
+  },
+
+  "summer": {
+    "900":  "animalshop @jas_animalshop_kitchen 1",
+    "1100": "forest @jas_forest_jumprope 2",
+    "1320": "beach @jas_beach_play 0 jas_jumprope",
+    "1600": "animalshop @jas_animalshop_read 3 jas_read",
+    "1900": "animalshop @jas_animalshop_bedroom 3",
+    "2100": "animalshop @jas_animalshop_sleep 3 jas_sleep"
+  },
+
+  "fall": {
+    "_goto": "spring"
+  },
+
+  "winter": {
+    "_goto": "rain"
+  }
+}

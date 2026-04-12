@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:wood_normal",
+    "stardewcraft:stone",
+    "stardewcraft:wood_hard",
+    "stardewcraft:fiber",
+    "stardewcraft:clay",
+    "stardewcraft:coal",
+    "stardewcraft:sap"
+  ]
+}

@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/common/supermarket_shelf_2",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/supermarket_shelf_2"
+	}
+}

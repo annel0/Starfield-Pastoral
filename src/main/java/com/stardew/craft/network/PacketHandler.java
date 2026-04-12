@@ -145,12 +145,24 @@ public class PacketHandler {
             ApplySofaColorPayload.STREAM_CODEC,
             ApplySofaColorPayload::handle
         );
+
+        registrar.playToServer(
+            com.stardew.craft.network.payload.PassOutAckPayload.TYPE,
+            com.stardew.craft.network.payload.PassOutAckPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.PassOutAckPayload::handle
+        );
         
         // 服务端 -> 客户端
         registrar.playToClient(
             PlayerDataSyncPacket.TYPE,
             PlayerDataSyncPacket.STREAM_CODEC,
             PlayerDataSyncPacket::handle
+        );
+
+        registrar.playToClient(
+            com.stardew.craft.network.payload.PassOutPayload.TYPE,
+            com.stardew.craft.network.payload.PassOutPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.PassOutPayload::handle
         );
         
         registrar.playToClient(
@@ -166,6 +178,12 @@ public class PacketHandler {
         );
 
         registrar.playToClient(
+            LadderSyncPacket.TYPE,
+            LadderSyncPacket.STREAM_CODEC,
+            LadderSyncPacket::handle
+        );
+
+        registrar.playToClient(
             MissingItemHudMessagePacket.TYPE,
             MissingItemHudMessagePacket.STREAM_CODEC,
             MissingItemHudMessagePacket::handle
@@ -175,6 +193,12 @@ public class PacketHandler {
             HayHarvestHudMessagePacket.TYPE,
             HayHarvestHudMessagePacket.STREAM_CODEC,
             HayHarvestHudMessagePacket::handle
+        );
+
+        registrar.playToClient(
+            com.stardew.craft.network.payload.CompassTargetPayload.TYPE,
+            com.stardew.craft.network.payload.CompassTargetPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.CompassTargetPayload::handle
         );
 
         registrar.playToClient(
@@ -672,6 +696,13 @@ public class PacketHandler {
             }
         );
 
+        // 深夜时间警告（时钟抖动 + 消息）
+        registrar.playToClient(
+            TimeWarningPayload.TYPE,
+            TimeWarningPayload.STREAM_CODEC,
+            TimeWarningPayload::handle
+        );
+
         // 矿井出口传送操作
         registrar.playToServer(
             com.stardew.craft.network.payload.MineExitActionPayload.TYPE,
@@ -760,6 +791,33 @@ public class PacketHandler {
             com.stardew.craft.network.payload.ShopPickupPayload::handle
         );
 
+        // Carpenter menu (Robin)
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenRobinMenuPayload.TYPE,
+            com.stardew.craft.network.payload.OpenRobinMenuPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenRobinMenuPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.RobinActionPayload.TYPE,
+            com.stardew.craft.network.payload.RobinActionPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.RobinActionPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenCarpenterMenuPayload.TYPE,
+            com.stardew.craft.network.payload.OpenCarpenterMenuPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenCarpenterMenuPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.CarpenterPurchasePayload.TYPE,
+            com.stardew.craft.network.payload.CarpenterPurchasePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.CarpenterPurchasePayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.CarpenterPurchaseResultPayload.TYPE,
+            com.stardew.craft.network.payload.CarpenterPurchaseResultPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.CarpenterPurchaseResultPayload::handle
+        );
+
         registrar.playToServer(
             com.stardew.craft.network.payload.AnimalPurchaseSubmitPayload.TYPE,
             com.stardew.craft.network.payload.AnimalPurchaseSubmitPayload.STREAM_CODEC,
@@ -788,6 +846,12 @@ public class PacketHandler {
             com.stardew.craft.network.payload.ApplyDecorationStylePayload.TYPE,
             com.stardew.craft.network.payload.ApplyDecorationStylePayload.STREAM_CODEC,
             com.stardew.craft.network.payload.ApplyDecorationStylePayload::handle
+        );
+
+        registrar.playToServer(
+            com.stardew.craft.network.payload.SetWallpaperSegmentPayload.TYPE,
+            com.stardew.craft.network.payload.SetWallpaperSegmentPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.SetWallpaperSegmentPayload::handle
         );
 
         registrar.playToServer(
@@ -838,6 +902,40 @@ public class PacketHandler {
             com.stardew.craft.network.payload.OpenNpcDialogueScreenPayload::handle
         );
 
+        // Blacksmith (Clint)
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenBlacksmithMenuPayload.TYPE,
+            com.stardew.craft.network.payload.OpenBlacksmithMenuPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenBlacksmithMenuPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.BlacksmithActionPayload.TYPE,
+            com.stardew.craft.network.payload.BlacksmithActionPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.BlacksmithActionPayload::handle
+        );
+
+        // Geode Processing
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenGeodeMenuPayload.TYPE,
+            com.stardew.craft.network.payload.OpenGeodeMenuPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenGeodeMenuPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.GeodeCrackPayload.TYPE,
+            com.stardew.craft.network.payload.GeodeCrackPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.GeodeCrackPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.GeodeClaimPayload.TYPE,
+            com.stardew.craft.network.payload.GeodeClaimPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.GeodeClaimPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.GeodeCrackResultPayload.TYPE,
+            com.stardew.craft.network.payload.GeodeCrackResultPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.GeodeCrackResultPayload::handle
+        );
+
         registrar.playToClient(
             com.stardew.craft.network.payload.SyncNpcFriendshipOverviewPayload.TYPE,
             com.stardew.craft.network.payload.SyncNpcFriendshipOverviewPayload.STREAM_CODEC,
@@ -885,6 +983,189 @@ public class PacketHandler {
             com.stardew.craft.network.payload.JojaVendingPurchasePayload.TYPE,
             com.stardew.craft.network.payload.JojaVendingPurchasePayload.STREAM_CODEC,
             com.stardew.craft.network.payload.JojaVendingPurchasePayload::handle
+        );
+
+        // Item pickup HUD notification (S→C)
+        registrar.playToClient(
+            com.stardew.craft.network.ItemPickupHudPacket.TYPE,
+            com.stardew.craft.network.ItemPickupHudPacket.STREAM_CODEC,
+            com.stardew.craft.network.ItemPickupHudPacket::handle
+        );
+
+        // Hold up item animation (S→C)
+        registrar.playToClient(
+            com.stardew.craft.network.payload.HoldUpItemPayload.TYPE,
+            com.stardew.craft.network.payload.HoldUpItemPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.HoldUpItemPayload::handle
+        );
+
+        // Totem naming screen (S→C)
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenTotemNamingScreenPayload.TYPE,
+            com.stardew.craft.network.payload.OpenTotemNamingScreenPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenTotemNamingScreenPayload::handle
+        );
+
+        // Totem naming submit (C→S)
+        registrar.playToServer(
+            com.stardew.craft.network.payload.TotemNamingSubmitPayload.TYPE,
+            com.stardew.craft.network.payload.TotemNamingSubmitPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.TotemNamingSubmitPayload::handle
+        );
+
+        // Gift confirmation dialog (S→C) and response (C→S)
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenGiftConfirmPayload.TYPE,
+            com.stardew.craft.network.payload.OpenGiftConfirmPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenGiftConfirmPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.ConfirmGiftPayload.TYPE,
+            com.stardew.craft.network.payload.ConfirmGiftPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.ConfirmGiftPayload::handle
+        );
+
+        // Marnie menu dialog (S→C) and choice response (C→S)
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenMarnieMenuPayload.TYPE,
+            com.stardew.craft.network.payload.OpenMarnieMenuPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenMarnieMenuPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.MarnieMenuChoicePayload.TYPE,
+            com.stardew.craft.network.payload.MarnieMenuChoicePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.MarnieMenuChoicePayload::handle
+        );
+
+        // Gunther museum dialog (S→C) and choice response (C→S)
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenGuntherMenuPayload.TYPE,
+            com.stardew.craft.network.payload.OpenGuntherMenuPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenGuntherMenuPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.GuntherMenuChoicePayload.TYPE,
+            com.stardew.craft.network.payload.GuntherMenuChoicePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.GuntherMenuChoicePayload::handle
+        );
+
+        // Marlon adventure guild dialog (S→C) and choice response (C→S)
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenMarlonMenuPayload.TYPE,
+            com.stardew.craft.network.payload.OpenMarlonMenuPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenMarlonMenuPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.MarlonMenuChoicePayload.TYPE,
+            com.stardew.craft.network.payload.MarlonMenuChoicePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.MarlonMenuChoicePayload::handle
+        );
+
+        // Gil monster slayer goals (S→C) and reward claim (C→S)
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenGilGoalsPayload.TYPE,
+            com.stardew.craft.network.payload.OpenGilGoalsPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenGilGoalsPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.GilClaimRewardPayload.TYPE,
+            com.stardew.craft.network.payload.GilClaimRewardPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.GilClaimRewardPayload::handle
+        );
+
+        // Equipment system
+        registrar.playToServer(
+            com.stardew.craft.network.payload.EquipmentActionPayload.TYPE,
+            com.stardew.craft.network.payload.EquipmentActionPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.EquipmentActionPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.EquipmentSyncPayload.TYPE,
+            com.stardew.craft.network.payload.EquipmentSyncPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.EquipmentSyncPayload::handle
+        );
+
+        // Furniture Catalogue
+        registrar.playToServer(
+            com.stardew.craft.network.payload.FurnitureCataloguePurchasePayload.TYPE,
+            com.stardew.craft.network.payload.FurnitureCataloguePurchasePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FurnitureCataloguePurchasePayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.FurnitureCatalogueResultPayload.TYPE,
+            com.stardew.craft.network.payload.FurnitureCatalogueResultPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FurnitureCatalogueResultPayload::handle
+        );
+
+        // ── Mailbox System ──
+        registrar.playToServer(
+            com.stardew.craft.network.payload.CheckMailboxPayload.TYPE,
+            com.stardew.craft.network.payload.CheckMailboxPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.CheckMailboxPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenMailPayload.TYPE,
+            com.stardew.craft.network.payload.OpenMailPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenMailPayload::handle
+        );
+
+        // ─── Quest System ───
+        registrar.playToServer(
+            com.stardew.craft.quest.network.AcceptQuestPayload.TYPE,
+            com.stardew.craft.quest.network.AcceptQuestPayload.STREAM_CODEC,
+            com.stardew.craft.quest.network.AcceptQuestPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.quest.network.CancelQuestPayload.TYPE,
+            com.stardew.craft.quest.network.CancelQuestPayload.STREAM_CODEC,
+            com.stardew.craft.quest.network.CancelQuestPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.quest.network.ClaimRewardPayload.TYPE,
+            com.stardew.craft.quest.network.ClaimRewardPayload.STREAM_CODEC,
+            com.stardew.craft.quest.network.ClaimRewardPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.quest.network.MarkQuestViewedPayload.TYPE,
+            com.stardew.craft.quest.network.MarkQuestViewedPayload.STREAM_CODEC,
+            com.stardew.craft.quest.network.MarkQuestViewedPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.quest.network.QuestCompletePayload.TYPE,
+            com.stardew.craft.quest.network.QuestCompletePayload.STREAM_CODEC,
+            com.stardew.craft.quest.network.QuestCompletePayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.quest.network.QuestLogSyncPayload.TYPE,
+            com.stardew.craft.quest.network.QuestLogSyncPayload.STREAM_CODEC,
+            com.stardew.craft.quest.network.QuestLogSyncPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.quest.network.DailyQuestSyncPayload.TYPE,
+            com.stardew.craft.quest.network.DailyQuestSyncPayload.STREAM_CODEC,
+            com.stardew.craft.quest.network.DailyQuestSyncPayload::handle
+        );
+
+        // ── Community Center ──
+        registrar.playToServer(
+            com.stardew.craft.communitycenter.network.BundleDepositPayload.TYPE,
+            com.stardew.craft.communitycenter.network.BundleDepositPayload.STREAM_CODEC,
+            com.stardew.craft.communitycenter.network.BundleDepositPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.communitycenter.network.BundlePurchasePayload.TYPE,
+            com.stardew.craft.communitycenter.network.BundlePurchasePayload.STREAM_CODEC,
+            com.stardew.craft.communitycenter.network.BundlePurchasePayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.communitycenter.network.BundleSyncPayload.TYPE,
+            com.stardew.craft.communitycenter.network.BundleSyncPayload.STREAM_CODEC,
+            com.stardew.craft.communitycenter.network.BundleSyncPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.communitycenter.network.BundleClaimRewardPayload.TYPE,
+            com.stardew.craft.communitycenter.network.BundleClaimRewardPayload.STREAM_CODEC,
+            com.stardew.craft.communitycenter.network.BundleClaimRewardPayload::handle
         );
 
     }

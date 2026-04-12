@@ -2,74 +2,71 @@ package com.stardew.craft.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.block.utility.CrystalariumBlock;
 import com.stardew.craft.blockentity.CrystalariumBlockEntity;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import com.stardew.craft.client.model.block.CrystalariumGeoModel;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.block.ModelBlockRenderer;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import software.bernie.geckolib.renderer.GeoBlockRenderer;
 
 import javax.annotation.Nonnull;
 
-public class CrystalariumBlockEntityRenderer implements BlockEntityRenderer<CrystalariumBlockEntity> {
+@SuppressWarnings("null")
+public class CrystalariumBlockEntityRenderer extends GeoBlockRenderer<CrystalariumBlockEntity> {
     private static final ResourceLocation BUBBLE_TEX = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/bubble.png");
     private static final float PX = 1.0f / 32.0f;
-    private static final float BUBBLE_Y = (float) (21.2 / 16.0 + 0.05);
 
     public CrystalariumBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
+        super(new CrystalariumGeoModel());
     }
 
-    @SuppressWarnings({ "null", "deprecation" })
     @Override
-    public void render(@Nonnull CrystalariumBlockEntity be, float partialTick, @Nonnull PoseStack poseStack, @Nonnull MultiBufferSource buffer, int packedLight, int packedOverlay) {
-        boolean ready = be.isReady();
-        ItemStack product = be.getProduct();
-
+    public void render(CrystalariumBlockEntity be, float partialTick, PoseStack poseStack,
+                       MultiBufferSource buffer, int packedLight, int packedOverlay) {
         BlockState state = be.getBlockState();
-        Level level = be.getLevel();
-        if (level != null) {
-            poseStack.pushPose();
-            if (be.isWorking() && !ready) {
-                UtilityWorkingAnimation.applyKegWorkingPose(poseStack, level, be.getBlockPos(), partialTick);
-            }
-
-            Minecraft mc = Minecraft.getInstance();
-            BakedModel model = mc.getBlockRenderer().getBlockModel(state);
-            ModelBlockRenderer renderer = mc.getBlockRenderer().getModelRenderer();
-            RenderType renderType = ItemBlockRenderTypes.getRenderType(state, false);
-            RandomSource rand = RandomSource.create(0L);
-            renderer.tesselateBlock(
-                level,
-                model,
-                state,
-                be.getBlockPos(),
-                poseStack,
-                buffer.getBuffer(renderType),
-                true,
-                rand,
-                0L,
-                packedOverlay
-            );
-            poseStack.popPose();
-        }
-
-        if (!ready || product.isEmpty()) {
+        if (state.hasProperty(CrystalariumBlock.PART)
+            && state.getValue(CrystalariumBlock.PART) != CrystalariumBlock.Part.MAIN) {
             return;
         }
 
+        Level level = be.getLevel();
+        boolean ready = be.isReady();
+        ItemStack product = be.getProduct();
+
+        // Apply working shake before geo render
         poseStack.pushPose();
-        poseStack.translate(0.5f, BUBBLE_Y, 0.5f);
+        if (level != null && be.isWorking() && !ready) {
+            UtilityWorkingAnimation.applyKegWorkingPose(poseStack, level, be.getBlockPos(), partialTick);
+        }
+
+        // Apply facing rotation manually
+        Direction facing = state.hasProperty(CrystalariumBlock.FACING)
+            ? state.getValue(CrystalariumBlock.FACING) : Direction.NORTH;
+        poseStack.translate(0.5D, 0.0D, 0.5D);
+        poseStack.mulPose(Axis.YP.rotationDegrees(-facing.toYRot() + 180f));
+        poseStack.translate(-0.5D, 0.0D, -0.5D);
+
+        super.render(be, partialTick, poseStack, buffer, packedLight, packedOverlay);
+        poseStack.popPose();
+
+        // Bubble + product icon when ready
+        if (!ready || product.isEmpty() || level == null) return;
+
+        float bubbleY = BubbleYHelper.get(state, level, be.getBlockPos());
+
+        poseStack.pushPose();
+        poseStack.translate(0.5f, bubbleY, 0.5f);
         poseStack.mulPose(Minecraft.getInstance().getEntityRenderDispatcher().cameraOrientation());
 
         float w = 20 * PX;
@@ -110,6 +107,11 @@ public class CrystalariumBlockEntityRenderer implements BlockEntityRenderer<Crys
         BubbleItemCountRenderer.renderCount(poseStack, buffer, packedLight, product, x0 + (3 * PX), y1 - (3 * PX), PX);
 
         poseStack.popPose();
+    }
+
+    @Override
+    protected void rotateBlock(@Nonnull Direction facing, @Nonnull PoseStack poseStack) {
+        // Rotation handled in render()
     }
 }
 

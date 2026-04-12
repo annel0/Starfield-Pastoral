@@ -1,0 +1,43 @@
+{
+  "npc_id": "sam",
+  "_vanilla_ref": "90=Cactus Fruit 206=Pizza 562=Tiger's Eye 731=Maple Bar | Like: 167=Joja Cola -5(Eggs) misc cooking | Dislike: -81(Forage) 80=Quartz 152=Seaweed 330=Clay -75(Vegetables) | Hate: 306=Mayonnaise 307=Duck Mayo 342=Pickles -15(Metal/Ore)",
+
+  "loved": [
+    "stardewcraft:cactus_fruit",
+    "stardewcraft:pizza",
+    "stardewcraft:tigerseye"
+  ],
+  "_loved_not_yet_in_mod": ["maple_bar(731)"],
+
+  "liked": [
+    "stardewcraft:joja_cola",
+    "stardewcraft:egg",
+    "stardewcraft:void_egg",
+    "stardewcraft:duck_egg",
+    "stardewcraft:dinosaur_egg"
+  ],
+  "_liked_not_yet_in_mod": ["various cooking items (210,213,220,223,224,228,232,233,239)"],
+  "_liked_categories_note": "Category -5(Eggs): eggs listed explicitly",
+
+  "neutral": [],
+
+  "disliked": [
+    "stardewcraft:quartz",
+    "stardewcraft:seaweed",
+    "stardewcraft:clay"
+  ],
+  "_disliked_categories_note": "Categories -81(Forage) -75(Vegetables) not yet mapped at category level",
+
+  "hated": [
+    "stardewcraft:mayonnaise",
+    "stardewcraft:duck_mayonnaise",
+    "stardewcraft:pickles"
+  ],
+  "_hated_categories_note": "Category -15(Metal Resources) not yet mapped at category level",
+
+  "loved_msg": "Aw, yea! This is my absolute favorite!",
+  "liked_msg": "Thanks! I really like this.",
+  "neutral_msg": "You got that for me? Thanks!",
+  "disliked_msg": "Hmm.. this is... interesting.",
+  "hated_msg": "You really don't get it, huh?"
+}

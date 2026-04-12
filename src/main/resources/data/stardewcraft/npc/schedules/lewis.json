@@ -1,163 +1,134 @@
 {
   "npc_id": "lewis",
   "override_vanilla": true,
-  "_format": "time -> \"location @namedPointId facing [behavior]\" | \"location facing\" | {_goto: key} | {_condition: expr, ...entries}",
-
+  "_format": "time -> \"location @namedPointId facing [behavior]\"",
   "GreenRain": {
-    "600":  "manorhouse @lewis_manorhouse_indoor_stay 2",
-    "800":  "manorhouse @lewis_manorhouse_indoor_stay 0",
-    "1400": "saloon @lewis_saloon_indoor_stay 3 lewis_drink",
-    "2200": "manorhouse @lewis_manorhouse_bedroom 1 lewis_sleep"
+    "0": "saloon @lewis_saloon_seat 3"
   },
-
   "rain": {
-    "600":  "manorhouse @lewis_manorhouse_indoor_stay 2",
-    "800":  "manorhouse @lewis_manorhouse_indoor_stay 0",
-    "1400": "saloon @lewis_saloon_indoor_stay 3 lewis_drink",
-    "1950": "manorhouse @lewis_manorhouse_indoor_stay 0",
+    "800": "manorhouse @lewis_manorhouse_living 0",
+    "1000": "manorhouse @lewis_manorhouse_living 1",
+    "1400": "saloon @lewis_saloon_seat 1 lewis_drink",
+    "1950": "manorhouse @lewis_manorhouse_living 1",
     "2200": "manorhouse @lewis_manorhouse_bedroom 1 lewis_sleep"
   },
-
-  "spring": {
-    "_note": "Spring: TownGarden -> CommunityCenter inspection -> home",
-    "600":  "manorhouse @lewis_manorhouse_indoor_stay 2",
-    "800":  "manorhouse @lewis_manorhouse_indoor_stay 0",
-    "900":  "town @lewis_towngarden 3 lewis_garden",
-    "1040": "communitycenter @lewis_communitycenter_outdoor 0",
-    "1830": "manorhouse @lewis_manorhouse_indoor_stay 0",
-    "2300": "manorhouse @lewis_manorhouse_bedroom 1 lewis_sleep"
-  },
-
-  "summer": {
-    "600":  "manorhouse @lewis_manorhouse_indoor_stay 2",
-    "800":  "manorhouse @lewis_manorhouse_indoor_stay 0",
-    "1000": "town @lewis_towngarden 3 lewis_garden",
-    "1600": "manorhouse @lewis_manorhouse_indoor_stay 0",
+  "tuesday": {
+    "_note": "Tuesday: garden, visit Pierre, home",
+    "800": "manorhouse @lewis_manorhouse_living 0",
+    "1000": "town @lewis_towngarden 1 lewis_garden",
+    "1140": "seedshop @lewis_seedshop_visit 1",
+    "1600": "manorhouse @lewis_manorhouse_living 1",
+    "2100": "manorhouse @lewis_manorhouse_evening 1",
     "2200": "manorhouse @lewis_manorhouse_bedroom 1 lewis_sleep"
   },
-
-  "fall": {
-    "600":  "manorhouse @lewis_manorhouse_indoor_stay 2",
-    "800":  "manorhouse @lewis_manorhouse_indoor_stay 0",
-    "1000": "town @lewis_towngarden 3 lewis_garden",
-    "1600": "manorhouse @lewis_manorhouse_indoor_stay 0",
-    "2200": "manorhouse @lewis_manorhouse_bedroom 1 lewis_sleep"
-  },
-
-  "winter": {
-    "600":  "manorhouse @lewis_manorhouse_indoor_stay 2",
-    "800":  "manorhouse @lewis_manorhouse_indoor_stay 0",
-    "1000": "town @lewis_towngarden 3 lewis_garden",
-    "1600": "manorhouse @lewis_manorhouse_indoor_stay 0",
-    "2200": "manorhouse @lewis_manorhouse_bedroom 1 lewis_sleep"
-  },
-
   "friday": {
-    "_note": "Friday: TownGarden morning, Saloon evening",
-    "600":  "manorhouse @lewis_manorhouse_indoor_stay 2",
-    "800":  "manorhouse @lewis_manorhouse_indoor_stay 0",
-    "1000": "town @lewis_towngarden 3 lewis_garden",
-    "1700": "saloon @lewis_saloon_indoor_stay 3 lewis_drink",
+    "_note": "Friday: garden, town walk, saloon",
+    "800": "manorhouse @lewis_manorhouse_living 0",
+    "1000": "town @lewis_towngarden 1 lewis_garden",
+    "1140": "town @lewis_town_bench 3",
+    "1400": "town @lewis_town_statue 0",
+    "1700": "saloon @lewis_saloon_seat 1 lewis_drink",
     "2300": "manorhouse @lewis_manorhouse_bedroom 1 lewis_sleep"
   },
-
-  "tue": {
-    "_note": "Tuesday: visits Pierre's shop to discuss produce",
-    "600":  "manorhouse @lewis_manorhouse_indoor_stay 2",
-    "800":  "manorhouse @lewis_manorhouse_indoor_stay 0",
-    "1000": "town @lewis_towngarden 3 lewis_garden",
-    "1140": "seedshop @lewis_seedshop_counter 0",
-    "1600": "manorhouse @lewis_manorhouse_indoor_stay 0",
-    "2200": "manorhouse @lewis_manorhouse_bedroom 1 lewis_sleep"
-  },
-
   "1": {
-    "_note": "Day 1 of each month: visits fish shop",
-    "600":  "manorhouse @lewis_manorhouse_indoor_stay 2",
-    "800":  "manorhouse @lewis_manorhouse_indoor_stay 0",
-    "1000": "fishshop @lewis_fishshop_outdoor 3",
-    "1600": "manorhouse @lewis_manorhouse_indoor_stay 0",
+    "_note": "Day 1: visit fish shop",
+    "800": "manorhouse @lewis_manorhouse_living 0",
+    "1000": "fishshop @lewis_fishshop_visit 1",
+    "1600": "manorhouse @lewis_manorhouse_living 1",
+    "2100": "manorhouse @lewis_manorhouse_evening 1",
     "2200": "manorhouse @lewis_manorhouse_bedroom 1 lewis_sleep"
   },
-
   "3": {
-    "_note": "Day 3: visits animal shop (Marnie's Ranch)",
-    "600":  "manorhouse @lewis_manorhouse_indoor_stay 2",
-    "800":  "manorhouse @lewis_manorhouse_indoor_stay 0",
-    "1000": "animalshop @lewis_animalshop_outdoor 0",
-    "1600": "manorhouse @lewis_manorhouse_indoor_stay 0",
+    "_note": "Day 3: visit Marnie's ranch",
+    "800": "manorhouse @lewis_manorhouse_living 0",
+    "1000": "animalshop @lewis_animalshop_visit 3",
+    "1600": "manorhouse @lewis_manorhouse_living 1",
+    "2100": "manorhouse @lewis_manorhouse_evening 1",
     "2200": "manorhouse @lewis_manorhouse_bedroom 1 lewis_sleep"
   },
-
-  "24": { "_goto": "3" },
-
+  "24": {
+    "_goto": "3"
+  },
   "6": {
-    "_note": "Day 6 (Saturday): Blacksmith -> Museum inspection tour",
-    "600":  "manorhouse @lewis_manorhouse_indoor_stay 2",
-    "800":  "manorhouse @lewis_manorhouse_indoor_stay 0",
-    "1000": "blacksmith @lewis_blacksmith_indoor_stay 0",
-    "1300": "archaeologyhouse @lewis_museum_indoor_stay 0",
-    "1600": "manorhouse @lewis_manorhouse_indoor_stay 0",
+    "_note": "Day 6: blacksmith -> museum inspection",
+    "800": "manorhouse @lewis_manorhouse_living 0",
+    "1000": "blacksmith @lewis_blacksmith_visit 1",
+    "1300": "archaeologyhouse @lewis_museum_visit 1",
+    "1600": "manorhouse @lewis_manorhouse_living 1",
+    "2100": "manorhouse @lewis_manorhouse_evening 1",
     "2200": "manorhouse @lewis_manorhouse_bedroom 1 lewis_sleep"
   },
-
-  "20": { "_goto": "6" },
-
+  "20": {
+    "_goto": "6"
+  },
   "15": {
-    "_note": "Day 15: visits Carpenter Shop",
-    "600":  "manorhouse @lewis_manorhouse_indoor_stay 2",
-    "800":  "manorhouse @lewis_manorhouse_indoor_stay 0",
-    "1000": "sciencehouse @lewis_sciencehouse_indoor_stay 0",
-    "1600": "manorhouse @lewis_manorhouse_indoor_stay 0",
+    "_note": "Day 15: visit science house",
+    "800": "manorhouse @lewis_manorhouse_living 0",
+    "1000": "sciencehouse @lewis_sciencehouse_visit 1",
+    "1600": "manorhouse @lewis_manorhouse_living 1",
+    "2100": "manorhouse @lewis_manorhouse_evening 1",
     "2200": "manorhouse @lewis_manorhouse_bedroom 1 lewis_sleep"
   },
-
-  "fall_9": {
-    "_note": "Fall 9: annual health checkup, then Saloon, then visits Marnie",
-    "600":  "manorhouse @lewis_manorhouse_indoor_stay 2",
-    "800":  "manorhouse @lewis_manorhouse_indoor_stay 0",
-    "1030": "hospital @lewis_clinic_indoor_stay 0",
-    "1700": "saloon @lewis_saloon_indoor_stay 3 lewis_drink",
-    "2100": "animalshop @lewis_animalshop_outdoor 3"
-  },
-
-  "summer_sun": {
-    "_note": "Summer Sunday: TownGarden -> beach",
-    "600":  "manorhouse @lewis_manorhouse_indoor_stay 2",
-    "800":  "manorhouse @lewis_manorhouse_indoor_stay 0",
-    "1000": "town @lewis_towngarden 3 lewis_garden",
-    "1140": "beach @lewis_beach_outdoor 2",
-    "1600": "manorhouse @lewis_manorhouse_indoor_stay 0",
-    "2200": "manorhouse @lewis_manorhouse_bedroom 1 lewis_sleep"
-  },
-
-  "fall_sun": {
-    "_note": "Fall Sunday: TownGarden -> forest",
-    "600":  "manorhouse @lewis_manorhouse_indoor_stay 2",
-    "800":  "manorhouse @lewis_manorhouse_indoor_stay 0",
-    "930":  "town @lewis_towngarden 3 lewis_garden",
-    "1110": "forest @lewis_forest_outdoor 2",
-    "1600": "manorhouse @lewis_manorhouse_indoor_stay 0",
-    "2200": "manorhouse @lewis_manorhouse_bedroom 1 lewis_sleep"
-  },
-
-  "winter_sun": {
-    "_note": "Winter Sunday: visits archaeology house",
-    "600":  "manorhouse @lewis_manorhouse_indoor_stay 2",
-    "800":  "manorhouse @lewis_manorhouse_indoor_stay 0",
-    "1100": "archaeologyhouse @lewis_museum_indoor_stay 3",
-    "1600": "manorhouse @lewis_manorhouse_indoor_stay 0",
-    "2200": "manorhouse @lewis_manorhouse_bedroom 1 lewis_sleep"
-  },
-
-  "winter_16": {
-    "_note": "Winter 16: evening stroll to beach (lights festival area)",
-    "600":  "manorhouse @lewis_manorhouse_indoor_stay 2",
-    "800":  "manorhouse @lewis_manorhouse_indoor_stay 0",
-    "1000": "town @lewis_towngarden 3 lewis_garden",
-    "1620": "beach @lewis_beach_outdoor 2",
+  "spring": {
+    "_note": "Spring: garden, community center inspection",
+    "800": "manorhouse @lewis_manorhouse_living 0",
+    "900": "town @lewis_towngarden 1 lewis_garden",
+    "1040": "communitycenter @lewis_communitycenter_stay 1",
+    "1830": "manorhouse @lewis_manorhouse_evening 1",
     "2300": "manorhouse @lewis_manorhouse_bedroom 1 lewis_sleep"
   },
-
-  "default": { "_goto": "fall" }
+  "summer": {
+    "_note": "Summer: garden, home afternoon",
+    "800": "manorhouse @lewis_manorhouse_living 0",
+    "1000": "town @lewis_towngarden 1 lewis_garden",
+    "1600": "manorhouse @lewis_manorhouse_living 1",
+    "2200": "manorhouse @lewis_manorhouse_bedroom 1 lewis_sleep"
+  },
+  "fall": {
+    "_goto": "summer"
+  },
+  "winter": {
+    "_note": "Winter: shorter outdoor, more indoor",
+    "800": "manorhouse @lewis_manorhouse_living 0",
+    "1000": "town @lewis_towngarden 1 lewis_garden",
+    "1600": "manorhouse @lewis_manorhouse_living 1",
+    "2200": "manorhouse @lewis_manorhouse_bedroom 1 lewis_sleep"
+  },
+  "summer_sunday": {
+    "_note": "Summer Sunday: garden then beach",
+    "800": "manorhouse @lewis_manorhouse_living 0",
+    "1000": "town @lewis_towngarden 1 lewis_garden",
+    "1140": "beach @lewis_beach_stay 1",
+    "1600": "manorhouse @lewis_manorhouse_living 1",
+    "2000": "manorhouse @lewis_manorhouse_evening 1",
+    "2200": "manorhouse @lewis_manorhouse_bedroom 1 lewis_sleep"
+  },
+  "fall_sunday": {
+    "_note": "Fall Sunday: garden then forest",
+    "800": "manorhouse @lewis_manorhouse_living 0",
+    "930": "town @lewis_towngarden 1 lewis_garden",
+    "1110": "forest @lewis_forest_stay 3",
+    "1600": "manorhouse @lewis_manorhouse_living 1",
+    "2000": "manorhouse @lewis_manorhouse_evening 1",
+    "2200": "manorhouse @lewis_manorhouse_bedroom 1 lewis_sleep"
+  },
+  "winter_sunday": {
+    "_note": "Winter Sunday: museum visit",
+    "800": "manorhouse @lewis_manorhouse_living 0",
+    "900": "manorhouse @lewis_manorhouse_living 1",
+    "1100": "archaeologyhouse @lewis_museum_visit 0",
+    "1600": "manorhouse @lewis_manorhouse_living 1",
+    "2000": "manorhouse @lewis_manorhouse_evening 1",
+    "2200": "manorhouse @lewis_manorhouse_bedroom 1 lewis_sleep"
+  },
+  "default": {
+    "_note": "Default: garden, town walk, home",
+    "800": "manorhouse @lewis_manorhouse_living 0",
+    "1000": "town @lewis_towngarden 1 lewis_garden",
+    "1140": "town @lewis_town_bench 3",
+    "1400": "town @lewis_town_plaza 1",
+    "1600": "manorhouse @lewis_manorhouse_living 1",
+    "2000": "manorhouse @lewis_manorhouse_evening 1",
+    "2200": "manorhouse @lewis_manorhouse_bedroom 1 lewis_sleep"
+  }
 }

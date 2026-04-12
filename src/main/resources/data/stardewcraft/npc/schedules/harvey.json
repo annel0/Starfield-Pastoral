@@ -1,0 +1,82 @@
+{
+  "npc_id": "harvey",
+  "override_vanilla": true,
+  "_format": "time -> \"location @namedPointId facing [behavior]\" | {_goto: key} | {_condition: expr}",
+
+  "GreenRain": {
+    "800": "saloon @saloon_indoor_entry 3"
+  },
+
+  "rain": {
+    "_goto": "winter"
+  },
+
+  "tuesday": {
+    "730":  "hospital @harvey_clinic_desk 3",
+    "1250": "hospital @harvey_clinic_exam 3",
+    "1330": "hospital @harvey_clinic_lobby 3",
+    "1410": "hospital @harvey_clinic_exam 0",
+    "1550": "hospital @harvey_clinic_lobby 3",
+    "1630": "hospital @harvey_clinic_desk 3",
+    "1800": "hospital @harvey_room_main 1",
+    "2300": "hospital @harvey_room_sleep 1 harvey_sleep"
+  },
+
+  "thursday": {
+    "_goto": "tuesday"
+  },
+
+  "friday": {
+    "700":  "hospital @harvey_room_radio 1",
+    "830":  "hospital @harvey_clinic_lobby 3",
+    "1200": "seedshop @harvey_seedshop_browse 0",
+    "1500": "hospital @harvey_room_radio 1",
+    "1630": "hospital @harvey_room_main 1",
+    "1900": "hospital @harvey_room_main 1",
+    "2200": "hospital @harvey_room_sleep 1 harvey_sleep"
+  },
+
+  "saturday": {
+    "700":  "hospital @harvey_room_radio 1",
+    "830":  "archaeologyhouse @harvey_museum_browse 1",
+    "1500": "hospital @harvey_room_radio 1",
+    "1630": "hospital @harvey_room_main 1",
+    "1900": "hospital @harvey_room_main 1",
+    "2200": "hospital @harvey_room_sleep 1 harvey_sleep"
+  },
+
+  "winter": {
+    "800":  "hospital @harvey_room_radio 1",
+    "840":  "hospital @harvey_clinic_lobby 3",
+    "1200": "hospital @harvey_room_radio 2",
+    "1600": "hospital @harvey_room_read 0",
+    "1730": "saloon @harvey_saloon_seat 1",
+    "2200": "hospital @harvey_room_sleep 1 harvey_sleep"
+  },
+
+  "spring": {
+    "700":  "hospital @harvey_room_radio 1",
+    "830":  "hospital @harvey_clinic_lobby 3",
+    "1200": "town @harvey_town_walk 3",
+    "1730": "hospital @harvey_clinic_lobby 0",
+    "1840": "hospital @harvey_room_read 0",
+    "2200": "hospital @harvey_room_sleep 1 harvey_sleep"
+  },
+
+  "summer": {
+    "700":  "hospital @harvey_room_radio 1",
+    "830":  "hospital @harvey_clinic_lobby 3",
+    "1200": "town @harvey_town_bench 3",
+    "1730": "hospital @harvey_clinic_lobby 0",
+    "1840": "hospital @harvey_room_read 0",
+    "2200": "hospital @harvey_room_sleep 1 harvey_sleep"
+  },
+
+  "fall": {
+    "700":  "hospital @harvey_room_radio 1",
+    "830":  "hospital @harvey_clinic_lobby 3",
+    "1200": "town @harvey_town_walk 3",
+    "1700": "hospital @harvey_room_radio 2",
+    "2200": "hospital @harvey_room_sleep 1 harvey_sleep"
+  }
+}

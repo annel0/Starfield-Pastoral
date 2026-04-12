@@ -26,15 +26,17 @@ public class EquipmentStats {
     private float critPower = 0;      // 暴击伤害加成
     private int magneticRadius = 0;   // 磁力半径
     private float knockbackBonus = 0; // 击退加成
-    private int lightRadius = 0;      // 光照半径
     private float luck = 0;           // 幸运加成
+    private int lightLevel = 0;       // 光源等级 (SDV Glow Ring)
     
     // 特殊效果标记
     private boolean hasYobaProtection = false;  // 约巴之戒保护
     private boolean hasThorns = false;          // 荆棘戒指反伤
-    private boolean hasVampiric = false;        // 吸血效果
-    private boolean hasGlowRing = false;        // 发光戒指
-    private boolean hasMagnetRing = false;      // 磁力戒指
+    private boolean hasSlimeCharmer = false;    // 史莱姆免伤
+    private boolean hasSturdy = false;          // 减半负面持续时间
+    private boolean hasBurglar = false;         // 怪物掉落×2
+    private boolean hasProtection = false;      // 减伤保护
+    private boolean hasPhoenix = false;         // 死亡复活
     
     private EquipmentStats() {}
     
@@ -46,14 +48,16 @@ public class EquipmentStats {
     public float getCritPower() { return critPower; }
     public int getMagneticRadius() { return magneticRadius; }
     public float getKnockbackBonus() { return knockbackBonus; }
-    public int getLightRadius() { return lightRadius; }
     public float getLuck() { return luck; }
+    public int getLightLevel() { return lightLevel; }
     
     public boolean hasYobaProtection() { return hasYobaProtection; }
     public boolean hasThorns() { return hasThorns; }
-    public boolean hasVampiric() { return hasVampiric; }
-    public boolean hasGlowRing() { return hasGlowRing; }
-    public boolean hasMagnetRing() { return hasMagnetRing; }
+    public boolean hasSlimeCharmer() { return hasSlimeCharmer; }
+    public boolean hasSturdy() { return hasSturdy; }
+    public boolean hasBurglar() { return hasBurglar; }
+    public boolean hasProtection() { return hasProtection; }
+    public boolean hasPhoenix() { return hasPhoenix; }
     
     public static Builder builder() {
         return new Builder();
@@ -69,14 +73,16 @@ public class EquipmentStats {
         public Builder critPower(float val) { stats.critPower = val; return this; }
         public Builder magneticRadius(int val) { stats.magneticRadius = val; return this; }
         public Builder knockbackBonus(float val) { stats.knockbackBonus = val; return this; }
-        public Builder lightRadius(int val) { stats.lightRadius = val; return this; }
         public Builder luck(float val) { stats.luck = val; return this; }
+        public Builder lightLevel(int val) { stats.lightLevel = val; return this; }
         
         public Builder yobaProtection(boolean val) { stats.hasYobaProtection = val; return this; }
         public Builder thorns(boolean val) { stats.hasThorns = val; return this; }
-        public Builder vampiric(boolean val) { stats.hasVampiric = val; return this; }
-        public Builder glowRing(boolean val) { stats.hasGlowRing = val; return this; }
-        public Builder magnetRing(boolean val) { stats.hasMagnetRing = val; return this; }
+        public Builder slimeCharmer(boolean val) { stats.hasSlimeCharmer = val; return this; }
+        public Builder sturdy(boolean val) { stats.hasSturdy = val; return this; }
+        public Builder burglar(boolean val) { stats.hasBurglar = val; return this; }
+        public Builder protection(boolean val) { stats.hasProtection = val; return this; }
+        public Builder phoenix(boolean val) { stats.hasPhoenix = val; return this; }
         
         /**
          * 合并另一个装备的属性
@@ -89,14 +95,16 @@ public class EquipmentStats {
             stats.critPower += other.critPower;
             stats.magneticRadius += other.magneticRadius;
             stats.knockbackBonus += other.knockbackBonus;
-            stats.lightRadius = Math.max(stats.lightRadius, other.lightRadius);
             stats.luck += other.luck;
+            stats.lightLevel = Math.max(stats.lightLevel, other.lightLevel);
             
             stats.hasYobaProtection |= other.hasYobaProtection;
             stats.hasThorns |= other.hasThorns;
-            stats.hasVampiric |= other.hasVampiric;
-            stats.hasGlowRing |= other.hasGlowRing;
-            stats.hasMagnetRing |= other.hasMagnetRing;
+            stats.hasSlimeCharmer |= other.hasSlimeCharmer;
+            stats.hasSturdy |= other.hasSturdy;
+            stats.hasBurglar |= other.hasBurglar;
+            stats.hasProtection |= other.hasProtection;
+            stats.hasPhoenix |= other.hasPhoenix;
             
             return this;
         }

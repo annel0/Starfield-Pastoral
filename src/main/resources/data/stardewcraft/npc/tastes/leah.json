@@ -1,0 +1,61 @@
+{
+  "npc_id": "leah",
+  "loved": [
+    "stardewcraft:vegetable_medley",
+    "stardewcraft:goat_cheese",
+    "stardewcraft:truffle_oil"
+  ],
+  "_loved_not_yet_in_mod": [
+    "salad(196)",
+    "wine(348)",
+    "stardrop_tea(606)",
+    "poppyseed_muffin(651)"
+  ],
+  "liked": [
+    "stardewcraft:earth_crystal",
+    "stardewcraft:egg",
+    "stardewcraft:milk",
+    "stardewcraft:large_milk",
+    "stardewcraft:duck_egg"
+  ],
+  "_liked_not_yet_in_mod": [
+    "spring_onion(169)",
+    "wild_plum(406)",
+    "hazelnut(408)",
+    "cranberries(418)",
+    "sweet_gem_berry(402) - category fruits/eggs/milk/forage"
+  ],
+  "neutral": [],
+  "disliked": [
+    "stardewcraft:seaweed",
+    "stardewcraft:clay",
+    "stardewcraft:complete_breakfast",
+    "stardewcraft:rice_pudding",
+    "stardewcraft:ice_cream"
+  ],
+  "_disliked_not_yet_in_mod": [
+    "cookie(223)",
+    "tortilla(229)",
+    "survival_burger(241)",
+    "carp_surprise(209)",
+    "fried_egg(194) - category cooking disliked"
+  ],
+  "hated": [
+    "stardewcraft:void_egg",
+    "stardewcraft:pizza",
+    "stardewcraft:glazed_yams"
+  ],
+  "_hated_not_yet_in_mod": [
+    "hashbrowns(210)",
+    "bread(216)"
+  ],
+  "loved_categories": [],
+  "liked_categories": [],
+  "disliked_categories": [],
+  "hated_categories": [],
+  "loved_msg": "Oh! This is exactly what I wanted! Thank you!",
+  "liked_msg": "This is a really nice gift! Thank you!",
+  "neutral_msg": "Thank you.",
+  "disliked_msg": "Hmm... I guess everyone has different tastes.",
+  "hated_msg": "This is a pretty terrible gift, isn't it?"
+}

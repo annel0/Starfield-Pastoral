@@ -4,17 +4,13 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.blockentity.LightningRodBlockEntity;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.block.ModelBlockRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -25,51 +21,29 @@ import javax.annotation.Nonnull;
 public class LightningRodBlockEntityRenderer implements BlockEntityRenderer<LightningRodBlockEntity> {
     private static final ResourceLocation BUBBLE_TEX = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/bubble.png");
     private static final float PX = 1.0f / 32.0f;
-    private static final float BUBBLE_Y = (float) (26.6 / 16.0 + 0.05);
 
     public LightningRodBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
 
-    @SuppressWarnings({ "null", "deprecation" })
+    @SuppressWarnings("null")
     @Override
     public void render(@Nonnull LightningRodBlockEntity be, float partialTick, @Nonnull PoseStack poseStack, @Nonnull MultiBufferSource buffer, int packedLight, int packedOverlay) {
         boolean ready = be.isReady();
         ItemStack product = be.getProduct();
-
         BlockState state = be.getBlockState();
         Level level = be.getLevel();
-        if (level != null) {
-            poseStack.pushPose();
-            if (be.isWorking() && !ready) {
-                UtilityWorkingAnimation.applyKegWorkingPose(poseStack, level, be.getBlockPos(), partialTick);
-            }
 
-            Minecraft mc = Minecraft.getInstance();
-            BakedModel model = mc.getBlockRenderer().getBlockModel(state);
-            ModelBlockRenderer renderer = mc.getBlockRenderer().getModelRenderer();
-            RenderType renderType = ItemBlockRenderTypes.getRenderType(state, false);
-            RandomSource rand = RandomSource.create(0L);
-            renderer.tesselateBlock(
-                level,
-                model,
-                state,
-                be.getBlockPos(),
-                poseStack,
-                buffer.getBuffer(renderType),
-                true,
-                rand,
-                0L,
-                packedOverlay
-            );
-            poseStack.popPose();
-        }
+        // Block model is rendered by vanilla (RenderShape.MODEL)
+        // BER only handles bubble + product icon when ready
 
-        if (!ready || product.isEmpty()) {
+        if (!ready || product.isEmpty() || level == null) {
             return;
         }
 
+        float bubbleY = BubbleYHelper.get(state, level, be.getBlockPos());
+
         poseStack.pushPose();
-        poseStack.translate(0.5f, BUBBLE_Y, 0.5f);
+        poseStack.translate(0.5f, bubbleY, 0.5f);
         poseStack.mulPose(Minecraft.getInstance().getEntityRenderDispatcher().cameraOrientation());
 
         float w = 20 * PX;

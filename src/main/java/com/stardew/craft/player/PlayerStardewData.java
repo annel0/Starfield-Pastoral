@@ -5,7 +5,14 @@ import com.stardew.craft.deco.DecorationType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.level.Level;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -13,10 +20,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.stardew.craft.quest.QuestManager;
+
 /**
  * 玩家星露谷数据
  * 存储玩家的所有星露谷相关数据（生命、能量、技能、金币等）
  */
+@SuppressWarnings("null")
 public class PlayerStardewData {
     
     // 玩家UUID
@@ -104,6 +114,56 @@ public class PlayerStardewData {
 
     // ============ 垃圾桶统计 ============
     private int trashCansChecked;
+
+    // ============ 邮件标记（SDV mailReceived parity） ============
+    private final Set<String> mailFlags = new HashSet<>();
+
+    // ============ 邮箱系统（SDV mailbox / mailForTomorrow parity） ============
+    // mailbox: 当前可读的邮件ID队列（SDV Farmer.mailbox）
+    private final List<String> mailbox = new ArrayList<>();
+    // mailForTomorrow: 明天投递的邮件ID队列（SDV Farmer.mailForTomorrow）
+    private final List<String> mailForTomorrow = new ArrayList<>();
+
+    // ============ 任务系统 ============
+    private final QuestManager questManager = new QuestManager();
+
+    // ============ 怪物讨伐（SDV MonsterSlayerQuests parity） ============
+    private final Map<String, Integer> monsterKillCounts = new HashMap<>(); // goalKey → kills
+    private final Set<String> claimedSlayerRewards = new HashSet<>();      // goalKeys already claimed
+
+    // ============ 特殊物品去重（SDV Farmer.specialItems parity） ============
+    // Tracks unique items already obtained (e.g. Neptune's Glaive from fishing treasure)
+    private final Set<String> specialItems = new HashSet<>();
+
+    // ============ 巫师塔枢纽（维度传送） ============
+    private boolean wizardQuestComplete;          // 末影之眼已交付，星露谷入口已解锁
+    private boolean wizardFirstMet;               // 是否已经看过巫师的初次剧情
+    private boolean starterToolsGiven;            // 是否已给予新手工具六件套
+    private boolean bilibiliRewardClaimed;          // 是否已领取B站关注奖励（彩虹猫之刃）
+    @Nullable
+    private BlockPos overworldReturnPos;           // 玩家从主世界进入巫师塔时记录的返回坐标
+    @Nullable
+    private ResourceKey<Level> wizardSourceDimension;  // 进入巫师塔内部时的来源维度
+
+    // ============ 装备系统（戒指 + 靴子） ============
+    // SDV parity: Farmer.leftRing + Farmer.rightRing + Farmer.boots
+    // 存储物品注册ID，如 "stardewcraft:vampire_ring"，空字符串表示未装备
+    private String equippedLeftRing = "";
+    private String equippedRightRing = "";
+    private String equippedBoots = "";
+    private long lastPhoenixReviveDay = -1;  // 凤凰戒指：上次复活的游戏日（每天只能复活一次）
+
+    // ============ 工具升级（铁匠铺） ============
+    // SDV parity: Farmer.toolBeingUpgraded + Farmer.daysLeftForToolUpgrade
+    private String toolBeingUpgraded = "";   // item ID e.g. "stardewcraft:copper_axe", empty = none
+    private int daysLeftForToolUpgrade;      // 0 = ready for pickup
+    private boolean toolUpgradeNotified;     // true = already notified player this morning
+
+    // ============ 晕倒/死亡系统 ============
+    // 战斗死亡标志：次日 sleep() 后压体力到 2
+    private boolean passedOutFromCombat;
+    // 上次死亡丢失的物品（供 Marlon 物品找回商店使用）
+    private final List<net.minecraft.world.item.ItemStack> itemsLostLastDeath = new ArrayList<>();
     
     // 经验值升级表（根据星露谷物语）
     private static final int[] EXP_TO_LEVEL = {
@@ -173,6 +233,21 @@ public class PlayerStardewData {
         data.maxEnergy = tag.contains("MaxEnergy") ? tag.getInt("MaxEnergy") : 270;
         data.exhausted = tag.getBoolean("Exhausted");
         data.money = tag.contains("Money") ? tag.getInt("Money") : 500;
+
+        // 晕倒/死亡系统
+        data.passedOutFromCombat = tag.getBoolean("PassedOutFromCombat");
+        data.itemsLostLastDeath.clear();
+        if (tag.contains("ItemsLostLastDeath")) {
+            ListTag lostItemsTag = tag.getList("ItemsLostLastDeath", 10); // 10 = CompoundTag
+            for (int li = 0; li < lostItemsTag.size(); li++) {
+                CompoundTag itemTag = lostItemsTag.getCompound(li);
+                var itemRL = ResourceLocation.tryParse(itemTag.getString("Id"));
+                if (itemRL != null && net.minecraft.core.registries.BuiltInRegistries.ITEM.containsKey(itemRL)) {
+                    net.minecraft.world.item.Item item = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(itemRL);
+                    data.itemsLostLastDeath.add(new net.minecraft.world.item.ItemStack(item, itemTag.getInt("Count")));
+                }
+            }
+        }
         
         // 技能等级
         if (tag.contains("SkillLevels")) {
@@ -333,6 +408,92 @@ public class PlayerStardewData {
 
         data.trashCansChecked = tag.contains("TrashCansChecked") ? tag.getInt("TrashCansChecked") : 0;
 
+        // 邮件标记
+        if (tag.contains("MailFlags", 9)) { // 9 = TAG_List
+            ListTag mailList = tag.getList("MailFlags", 8); // 8 = TAG_String
+            for (int i = 0; i < mailList.size(); i++) {
+                String flag = mailList.getString(i);
+                if (!flag.isBlank()) data.mailFlags.add(flag);
+            }
+        }
+
+        // 邮箱队列
+        if (tag.contains("Mailbox", 9)) {
+            ListTag mboxList = tag.getList("Mailbox", 8);
+            for (int i = 0; i < mboxList.size(); i++) {
+                String mid = mboxList.getString(i);
+                if (!mid.isBlank()) data.mailbox.add(mid);
+            }
+        }
+        if (tag.contains("MailForTomorrow", 9)) {
+            ListTag mftList = tag.getList("MailForTomorrow", 8);
+            for (int i = 0; i < mftList.size(); i++) {
+                String mid = mftList.getString(i);
+                if (!mid.isBlank()) data.mailForTomorrow.add(mid);
+            }
+        }
+
+        // 怪物讨伐击杀计数
+        if (tag.contains("MonsterKillCounts", 10)) { // 10 = TAG_Compound
+            CompoundTag kills = tag.getCompound("MonsterKillCounts");
+            for (String key : kills.getAllKeys()) {
+                data.monsterKillCounts.put(key, kills.getInt(key));
+            }
+        }
+        // 已领取的讨伐奖励
+        if (tag.contains("ClaimedSlayerRewards", 9)) {
+            ListTag claimed = tag.getList("ClaimedSlayerRewards", 8);
+            for (int i = 0; i < claimed.size(); i++) {
+                String key = claimed.getString(i);
+                if (!key.isBlank()) data.claimedSlayerRewards.add(key);
+            }
+        }
+        // 特殊物品去重
+        if (tag.contains("SpecialItems", 9)) {
+            ListTag specials = tag.getList("SpecialItems", 8);
+            for (int i = 0; i < specials.size(); i++) {
+                String id = specials.getString(i);
+                if (!id.isBlank()) data.specialItems.add(id);
+            }
+        }
+
+        // 工具升级
+        // 装备
+        data.equippedLeftRing = tag.contains("EquippedLeftRing") ? tag.getString("EquippedLeftRing") : "";
+        data.equippedRightRing = tag.contains("EquippedRightRing") ? tag.getString("EquippedRightRing") : "";
+        data.equippedBoots = tag.contains("EquippedBoots") ? tag.getString("EquippedBoots") : "";
+        data.lastPhoenixReviveDay = tag.contains("LastPhoenixReviveDay") ? tag.getLong("LastPhoenixReviveDay") : -1;
+
+        data.toolBeingUpgraded = tag.contains("ToolBeingUpgraded") ? tag.getString("ToolBeingUpgraded") : "";
+        data.daysLeftForToolUpgrade = tag.contains("DaysLeftForToolUpgrade") ? tag.getInt("DaysLeftForToolUpgrade") : 0;
+        data.toolUpgradeNotified = tag.getBoolean("ToolUpgradeNotified");
+
+        // 巫师塔枢纽
+        // 任务系统
+        if (tag.contains("QuestManager", 10)) {
+            data.questManager.load(tag.getCompound("QuestManager"));
+        }
+
+        data.wizardQuestComplete = tag.getBoolean("WizardQuestComplete");
+        data.wizardFirstMet = tag.getBoolean("WizardFirstMet");
+        data.starterToolsGiven = tag.getBoolean("StarterToolsGiven");
+        data.bilibiliRewardClaimed = tag.getBoolean("BilibiliRewardClaimed");
+        if (tag.contains("OverworldReturnX")) {
+            data.overworldReturnPos = new BlockPos(
+                tag.getInt("OverworldReturnX"),
+                tag.getInt("OverworldReturnY"),
+                tag.getInt("OverworldReturnZ")
+            );
+        }
+        if (tag.contains("WizardSourceDim")) {
+            String dimStr = tag.getString("WizardSourceDim");
+            if (!dimStr.isBlank()) {
+                @SuppressWarnings("null")
+                var parsedKey = ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(dimStr));
+                data.wizardSourceDimension = parsedKey;
+            }
+        }
+
         // 安全钳制：避免异常值导致越界（Buff 允许 maxEnergy 临时上升）
         data.maxHealth = Math.max(100, data.maxHealth);
         data.maxEnergy = Math.max(270, data.maxEnergy);
@@ -361,6 +522,19 @@ public class PlayerStardewData {
         tag.putInt("MaxEnergy", maxEnergy);
         tag.putBoolean("Exhausted", exhausted);
         tag.putInt("Money", money);
+
+        // 晕倒/死亡系统
+        tag.putBoolean("PassedOutFromCombat", passedOutFromCombat);
+        if (!itemsLostLastDeath.isEmpty()) {
+            ListTag lostItemsTag = new ListTag();
+            for (net.minecraft.world.item.ItemStack stack : itemsLostLastDeath) {
+                CompoundTag itemTag = new CompoundTag();
+                itemTag.putString("Id", net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
+                itemTag.putInt("Count", stack.getCount());
+                lostItemsTag.add(itemTag);
+            }
+            tag.put("ItemsLostLastDeath", lostItemsTag);
+        }
         
         // 技能等级
         tag.putIntArray("SkillLevels", skillLevels);
@@ -485,6 +659,84 @@ public class PlayerStardewData {
         tag.put("ActiveSpecialOrderRules", activeRules);
 
         tag.putInt("TrashCansChecked", trashCansChecked);
+
+        // 邮件标记
+        if (!mailFlags.isEmpty()) {
+            ListTag mailList = new ListTag();
+            for (String flag : mailFlags) {
+                mailList.add(StringTag.valueOf(flag));
+            }
+            tag.put("MailFlags", mailList);
+        }
+
+        // 邮箱队列
+        if (!mailbox.isEmpty()) {
+            ListTag mboxList = new ListTag();
+            for (String mid : mailbox) {
+                mboxList.add(StringTag.valueOf(mid));
+            }
+            tag.put("Mailbox", mboxList);
+        }
+        if (!mailForTomorrow.isEmpty()) {
+            ListTag mftList = new ListTag();
+            for (String mid : mailForTomorrow) {
+                mftList.add(StringTag.valueOf(mid));
+            }
+            tag.put("MailForTomorrow", mftList);
+        }
+
+        // 怪物讨伐击杀计数
+        if (!monsterKillCounts.isEmpty()) {
+            CompoundTag kills = new CompoundTag();
+            for (var entry : monsterKillCounts.entrySet()) {
+                kills.putInt(entry.getKey(), entry.getValue());
+            }
+            tag.put("MonsterKillCounts", kills);
+        }
+        // 已领取的讨伐奖励
+        if (!claimedSlayerRewards.isEmpty()) {
+            ListTag claimed = new ListTag();
+            for (String key : claimedSlayerRewards) {
+                claimed.add(StringTag.valueOf(key));
+            }
+            tag.put("ClaimedSlayerRewards", claimed);
+        }
+        // 特殊物品去重
+        if (!specialItems.isEmpty()) {
+            ListTag specials = new ListTag();
+            for (String id : specialItems) {
+                specials.add(StringTag.valueOf(id));
+            }
+            tag.put("SpecialItems", specials);
+        }
+
+        // 装备
+        if (!equippedLeftRing.isEmpty()) tag.putString("EquippedLeftRing", equippedLeftRing);
+        if (!equippedRightRing.isEmpty()) tag.putString("EquippedRightRing", equippedRightRing);
+        if (!equippedBoots.isEmpty()) tag.putString("EquippedBoots", equippedBoots);
+        if (lastPhoenixReviveDay >= 0) tag.putLong("LastPhoenixReviveDay", lastPhoenixReviveDay);
+
+        // 工具升级
+        tag.putString("ToolBeingUpgraded", toolBeingUpgraded != null ? toolBeingUpgraded : "");
+        tag.putInt("DaysLeftForToolUpgrade", daysLeftForToolUpgrade);
+        tag.putBoolean("ToolUpgradeNotified", toolUpgradeNotified);
+
+        // 任务系统
+        tag.put("QuestManager", questManager.save());
+
+        // 巫师塔枢纽
+        tag.putBoolean("WizardQuestComplete", wizardQuestComplete);
+        tag.putBoolean("WizardFirstMet", wizardFirstMet);
+        tag.putBoolean("StarterToolsGiven", starterToolsGiven);
+        tag.putBoolean("BilibiliRewardClaimed", bilibiliRewardClaimed);
+        if (overworldReturnPos != null) {
+            tag.putInt("OverworldReturnX", overworldReturnPos.getX());
+            tag.putInt("OverworldReturnY", overworldReturnPos.getY());
+            tag.putInt("OverworldReturnZ", overworldReturnPos.getZ());
+        }
+        if (wizardSourceDimension != null) {
+            tag.putString("WizardSourceDim", wizardSourceDimension.location().toString());
+        }
         
         return tag;
     }
@@ -783,19 +1035,12 @@ public class PlayerStardewData {
     public boolean consumeEnergy(float amount) {
         if (amount <= 0) return true;
 
-        // 对齐需求：能量到 0 后不再继续扣到负数。
-        // exhausted 仍然保留，用于“次日恢复减半”等逻辑。
-        if (energy <= 0) {
-            exhausted = true;
-            markDirty();
-            return false;
-        }
-
+        // SDV 原版：能量可以扣到负数（≤ -15 时触发体力耗尽晕倒）。
+        // exhausted 在能量 ≤ 0 时设置，用于次日恢复减半等逻辑。
         boolean enough = energy >= amount;
         energy = energy - amount;
 
         if (energy <= 0) {
-            energy = 0;
             exhausted = true;
         }
 
@@ -890,6 +1135,18 @@ public class PlayerStardewData {
     }
     
     // ============ Getters & Setters ============
+
+    // ---- 晕倒/死亡系统 ----
+    public boolean isPassedOutFromCombat() { return passedOutFromCombat; }
+    public void setPassedOutFromCombat(boolean value) { passedOutFromCombat = value; markDirty(); }
+
+    public List<net.minecraft.world.item.ItemStack> getItemsLostLastDeath() { return itemsLostLastDeath; }
+    public void setItemsLostLastDeath(List<net.minecraft.world.item.ItemStack> items) {
+        itemsLostLastDeath.clear();
+        itemsLostLastDeath.addAll(items);
+        markDirty();
+    }
+    public void clearItemsLostLastDeath() { itemsLostLastDeath.clear(); markDirty(); }
     
     public UUID getPlayerUUID() { return playerUUID; }
     
@@ -1149,6 +1406,123 @@ public class PlayerStardewData {
         trashCansChecked++;
         markDirty();
     }
+
+    // ──── Mail Flags (SDV mailReceived parity) ────
+    public Set<String> getMailFlags() { return Collections.unmodifiableSet(mailFlags); }
+    public boolean hasMailFlag(String flag) { return mailFlags.contains(flag); }
+    public void addMailFlag(String flag) { if (mailFlags.add(flag)) markDirty(); }
+    public void removeMailFlag(String flag) { if (mailFlags.remove(flag)) markDirty(); }
+
+    // ──── Mailbox Queue (SDV Farmer.mailbox parity) ────
+    public List<String> getMailbox() { return Collections.unmodifiableList(mailbox); }
+    public boolean hasMailInMailbox() { return !mailbox.isEmpty(); }
+    /**
+     * 从队列头部取出一封邮件（SDV Farmer.mailbox 的 pop 语义）。
+     */
+    @Nullable
+    public String popMailFromMailbox() {
+        if (mailbox.isEmpty()) return null;
+        String id = mailbox.remove(0);
+        markDirty();
+        return id;
+    }
+    public void addToMailbox(String mailId) {
+        if (!mailbox.contains(mailId)) {
+            mailbox.add(mailId);
+            markDirty();
+        }
+    }
+
+    // ──── Mail For Tomorrow (SDV Farmer.mailForTomorrow parity) ────
+    public List<String> getMailForTomorrow() { return Collections.unmodifiableList(mailForTomorrow); }
+    public void addMailForTomorrow(String mailId) {
+        if (!mailForTomorrow.contains(mailId)) {
+            mailForTomorrow.add(mailId);
+            markDirty();
+        }
+    }
+    /**
+     * 夜间结算时调用：把 mailForTomorrow 全部移入 mailbox。
+     */
+    public void deliverTomorrowMail() {
+        if (mailForTomorrow.isEmpty()) return;
+        for (String mid : mailForTomorrow) {
+            if (!mailbox.contains(mid)) {
+                mailbox.add(mid);
+            }
+        }
+        mailForTomorrow.clear();
+        markDirty();
+    }
+
+    // ──── Monster Slayer (Gil Goals) ────
+    public int getMonsterKills(String goalKey) { return monsterKillCounts.getOrDefault(goalKey, 0); }
+    public Map<String, Integer> getAllMonsterKills() { return Collections.unmodifiableMap(monsterKillCounts); }
+    public void addMonsterKills(String goalKey, int count) {
+        monsterKillCounts.merge(goalKey, count, Integer::sum);
+        markDirty();
+    }
+    public boolean hasClaimedSlayerReward(String goalKey) { return claimedSlayerRewards.contains(goalKey); }
+    public Set<String> getClaimedSlayerRewards() { return Collections.unmodifiableSet(claimedSlayerRewards); }
+    public void claimSlayerReward(String goalKey) { if (claimedSlayerRewards.add(goalKey)) markDirty(); }
+
+    // ──── Special Items (unique treasure dedup) ────
+    public boolean hasSpecialItem(String itemId) { return specialItems.contains(itemId); }
+    public void addSpecialItem(String itemId) { if (specialItems.add(itemId)) markDirty(); }
+
+    // ──── Equipment (Rings + Boots) ────
+    public String getEquippedLeftRing() { return equippedLeftRing; }
+    public void setEquippedLeftRing(String id) { this.equippedLeftRing = id != null ? id : ""; markDirty(); }
+    public String getEquippedRightRing() { return equippedRightRing; }
+    public void setEquippedRightRing(String id) { this.equippedRightRing = id != null ? id : ""; markDirty(); }
+    public String getEquippedBoots() { return equippedBoots; }
+    public void setEquippedBoots(String id) { this.equippedBoots = id != null ? id : ""; markDirty(); }
+    public long getLastPhoenixReviveDay() { return lastPhoenixReviveDay; }
+    public void setLastPhoenixReviveDay(long day) { this.lastPhoenixReviveDay = day; markDirty(); }
+
+    /**
+     * 检查玩家是否装备了指定类型的戒指（左或右）
+     */
+    public boolean hasRingEquipped(String itemId) {
+        return itemId.equals(equippedLeftRing) || itemId.equals(equippedRightRing);
+    }
+
+    /**
+     * 获取所有装备的戒指ID列表
+     */
+    public java.util.List<String> getEquippedRingIds() {
+        java.util.List<String> rings = new java.util.ArrayList<>(2);
+        if (!equippedLeftRing.isEmpty()) rings.add(equippedLeftRing);
+        if (!equippedRightRing.isEmpty()) rings.add(equippedRightRing);
+        return rings;
+    }
+
+    // ──── Quest System ────
+    public QuestManager getQuestManager() { return questManager; }
+
+    // ──── Tool Upgrade (Blacksmith) ────
+    public String getToolBeingUpgraded() { return toolBeingUpgraded; }
+    public void setToolBeingUpgraded(String id) { this.toolBeingUpgraded = id != null ? id : ""; markDirty(); }
+    public int getDaysLeftForToolUpgrade() { return daysLeftForToolUpgrade; }
+    public void setDaysLeftForToolUpgrade(int days) { this.daysLeftForToolUpgrade = days; markDirty(); }
+    public boolean isToolUpgradeNotified() { return toolUpgradeNotified; }
+    public void setToolUpgradeNotified(boolean notified) { this.toolUpgradeNotified = notified; markDirty(); }
+
+    // ──── Wizard Tower Hub (Cross-dimension) ────
+    public boolean isWizardQuestComplete() { return wizardQuestComplete; }
+    public void setWizardQuestComplete(boolean complete) { this.wizardQuestComplete = complete; markDirty(); }
+    public boolean isWizardFirstMet() { return wizardFirstMet; }
+    public void setWizardFirstMet(boolean met) { this.wizardFirstMet = met; markDirty(); }
+    @Nullable
+    public BlockPos getOverworldReturnPos() { return overworldReturnPos; }
+    public void setOverworldReturnPos(@Nullable BlockPos pos) { this.overworldReturnPos = pos; markDirty(); }
+    @Nullable
+    public ResourceKey<Level> getWizardSourceDimension() { return wizardSourceDimension; }
+    public void setWizardSourceDimension(@Nullable ResourceKey<Level> dim) { this.wizardSourceDimension = dim; markDirty(); }
+    public boolean isStarterToolsGiven() { return starterToolsGiven; }
+    public void setStarterToolsGiven(boolean given) { this.starterToolsGiven = given; markDirty(); }
+    public boolean isBilibiliRewardClaimed() { return bilibiliRewardClaimed; }
+    public void setBilibiliRewardClaimed(boolean claimed) { this.bilibiliRewardClaimed = claimed; markDirty(); }
 
     public void setDailyLuckForDate(double dailyLuck, int dateKey) {
         this.dailyLuck = dailyLuck;

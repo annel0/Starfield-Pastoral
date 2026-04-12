@@ -86,10 +86,28 @@ public final class StardewCraftingRecipeData {
     }
 
     public static List<IngredientEntry> getIngredientEntries(String id) {
+        return getIngredientEntries(id, false);
+    }
+
+    /**
+     * Get ingredient entries, with optional Trapper profession modifier.
+     * SDV: CraftingRecipe constructor checks profession 7 (Trapper) and reduces
+     * Crab Pot recipe from (40 wood + 3 iron bar) to (25 wood + 2 iron bar).
+     */
+    public static List<IngredientEntry> getIngredientEntries(String id, boolean hasTrapper) {
         Optional<RecipeEntry> recipe = getRecipe(id);
-        if (recipe.isEmpty() || recipe.get().ingredients == null) {
+        if (recipe.isEmpty() || recipe.get().ingredients() == null) {
             return List.of();
         }
+
+        // SDV parity: Trapper profession reduces crab pot crafting cost
+        if (hasTrapper && "crab_pot".equals(id)) {
+            return List.of(
+                new IngredientEntry("stardewcraft:wood_normal", 25),
+                new IngredientEntry("stardewcraft:iron_bar", 2)
+            );
+        }
+
         List<IngredientEntry> list = new ArrayList<>();
         for (IngredientEntry entry : recipe.get().ingredients) {
             if (entry == null || entry.item() == null || entry.item().isBlank() || entry.count() <= 0) {
@@ -102,7 +120,12 @@ public final class StardewCraftingRecipeData {
 
     @SuppressWarnings("null")
     public static List<Ingredient> toExpandedIngredients(String id) {
-        List<IngredientEntry> entries = getIngredientEntries(id);
+        return toExpandedIngredients(id, false);
+    }
+
+    @SuppressWarnings("null")
+    public static List<Ingredient> toExpandedIngredients(String id, boolean hasTrapper) {
+        List<IngredientEntry> entries = getIngredientEntries(id, hasTrapper);
         if (entries.isEmpty()) {
             return List.of();
         }

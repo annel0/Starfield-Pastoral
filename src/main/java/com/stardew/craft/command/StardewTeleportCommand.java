@@ -27,8 +27,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
@@ -136,7 +139,9 @@ public class StardewTeleportCommand {
                     .then(Commands.literal("tomorrow")
                         .executes(StardewTeleportCommand::getTomorrowWeather))
                     .then(Commands.literal("test")
-                        .executes(StardewTeleportCommand::testWeatherProbability)))
+                        .executes(StardewTeleportCommand::testWeatherProbability))
+                    .then(Commands.literal("diagnose")
+                        .executes(StardewTeleportCommand::diagnoseRain)))
         );
     }
 
@@ -384,6 +389,10 @@ public class StardewTeleportCommand {
         try {
             ServerPlayer player = context.getSource().getPlayerOrException();
             int targetFloor = IntegerArgumentType.getInteger(context, "floor");
+            if (targetFloor > 120) {
+                sendFailureMsg(context, "矿井最多只有 120 层！");
+                return 0;
+            }
 
             @SuppressWarnings("null")
             ServerLevel mineLevel = context.getSource().getServer().getLevel(ModMiningDimensions.STARDEW_MINING);
@@ -736,6 +745,65 @@ public class StardewTeleportCommand {
         return 1;
     }
     
+    @SuppressWarnings("null")
+    private static int diagnoseRain(CommandContext<CommandSourceStack> context) {
+        ServerLevel level = context.getSource().getLevel();
+        ServerPlayer player = context.getSource().getPlayer();
+        if (player == null) {
+            context.getSource().sendFailure(Component.literal("\u00a7c\u6b64\u547d\u4ee4\u9700\u8981\u73a9\u5bb6\u6267\u884c"));
+            return 0;
+        }
+
+        BlockPos playerPos = player.blockPosition();
+        int hmMotionBlocking = level.getHeight(Heightmap.Types.MOTION_BLOCKING, playerPos.getX(), playerPos.getZ());
+        int hmWorldSurface = level.getHeight(Heightmap.Types.WORLD_SURFACE, playerPos.getX(), playerPos.getZ());
+        boolean canSeeSky = level.canSeeSky(playerPos);
+        boolean isRaining = level.isRaining();
+        boolean isRainingAtPlayer = level.isRainingAt(playerPos);
+        boolean isRainingAtAbove = level.isRainingAt(playerPos.above());
+        float rainLevel = level.getRainLevel(0f);
+        float thunderLevel = level.getThunderLevel(0f);
+
+        var biomeHolder = level.getBiome(playerPos);
+        String biomeName = biomeHolder.unwrapKey()
+                .map(k -> k.location().toString())
+                .orElse("unknown");
+        boolean hasPrecip = biomeHolder.value().hasPrecipitation();
+        Biome.Precipitation precipType = biomeHolder.value().getPrecipitationAt(playerPos);
+
+        String stardewWeather = WeatherManager.getCurrentWeather(level);
+        boolean weatherCycleEnabled = level.getGameRules().getBoolean(GameRules.RULE_WEATHER_CYCLE);
+
+        String msg = String.format(
+            "\u00a7e=== \u5929\u6c14\u6e32\u67d3\u8bca\u65ad ===\n" +
+            "\u00a7bStardew\u5929\u6c14: \u00a7f%s\n" +
+            "\u00a7bMC isRaining: \u00a7f%s  \u00a7bthundering: \u00a7f%s\n" +
+            "\u00a7brainLevel: \u00a7f%.3f  \u00a7bthunderLevel: \u00a7f%.3f\n" +
+            "\u00a7bdoWeatherCycle: \u00a7f%s\n" +
+            "\u00a77--- \u73a9\u5bb6\u4f4d\u7f6e ---\n" +
+            "\u00a7bPos: \u00a7f%d, %d, %d\n" +
+            "\u00a7bHeightmap MOTION_BLOCKING: \u00a7f%d  \u00a7bWORLD_SURFACE: \u00a7f%d\n" +
+            "\u00a7bcanSeeSky: \u00a7f%s\n" +
+            "\u00a7bisRainingAt(pos): \u00a7f%s  \u00a7bisRainingAt(pos.above): \u00a7f%s\n" +
+            "\u00a77--- \u751f\u7269\u7fa4\u7cfb ---\n" +
+            "\u00a7bBiome: \u00a7f%s\n" +
+            "\u00a7bhasPrecipitation: \u00a7f%s  \u00a7bprecipType: \u00a7f%s",
+            stardewWeather,
+            isRaining, level.isThundering(),
+            rainLevel, thunderLevel,
+            weatherCycleEnabled,
+            playerPos.getX(), playerPos.getY(), playerPos.getZ(),
+            hmMotionBlocking, hmWorldSurface,
+            canSeeSky,
+            isRainingAtPlayer, isRainingAtAbove,
+            biomeName,
+            hasPrecip, precipType
+        );
+
+        context.getSource().sendSuccess(() -> Component.literal(msg), false);
+        return 1;
+    }
+
     private static String getWeatherDisplayName(String weatherType) {
         return switch (weatherType) {
             case "Sun" -> "晴天";

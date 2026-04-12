@@ -53,15 +53,16 @@ public class FarmBlockMixin {
             // 1. 下雨时会自动湿润 (原版逻辑) -> 我们保留这个逻辑？
             //    原版Stardew下雨天不需要浇水。Minecraft randomTick里会检查 isRainingAt(pos.above())
             
-            if (!level.isRainingAt(pos.above())) {
-                // 如果不下雨，禁止任何随机刻导致的湿度变化 (保持当前湿度)
-                // 原版逻辑是如果不下雨且不是isNearWater，moisture会慢慢减
+            // 星露谷规则：雨天无条件湿润所有耕地（不检查天空遮挡）
+            if (!level.isRaining()) {
+                // 非雨天，禁止随机刻改变湿度（保持当前湿度）
                 ci.cancel(); 
             } else {
-                // 如果下雨，允许原版逻辑执行（原版逻辑会将湿度设为7）
-                // FarmBlock.java: 
-                // if (isRainingAt) { level.setBlock(pos, state.setValue(MOISTURE, 7), 2); }
-                // 所以不cancel
+                // 雨天，允许原版逻辑执行（会将 moisture 设为 7）
+                // 注意：原版 randomTick 内部还会调用 isRainingAt 检查天空，
+                // 为保证无遮挡要求也能湿润，直接手动设置 moisture=7 并 cancel。
+                level.setBlock(pos, state.setValue(net.minecraft.world.level.block.FarmBlock.MOISTURE, 7), 2);
+                ci.cancel();
             }
         }
     }

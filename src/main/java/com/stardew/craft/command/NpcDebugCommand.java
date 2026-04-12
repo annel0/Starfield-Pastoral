@@ -8,12 +8,15 @@ import com.stardew.craft.entity.npc.StardewNpcEntity;
 import com.stardew.craft.npc.runtime.NpcRuntimeDataManager;
 import com.stardew.craft.npc.runtime.NpcRuntimeState;
 import com.stardew.craft.npc.runtime.NpcCentralMovementService;
+import com.stardew.craft.npc.runtime.NpcPathfinder;
 import com.stardew.craft.npc.runtime.NpcSpawnManager;
 import com.stardew.craft.npc.runtime.NpcScheduleRuntimeService;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
@@ -197,21 +200,21 @@ public final class NpcDebugCommand {
             source.sendSuccess(() -> Component.literal(String.format(
                 Locale.ROOT,
                 "  stage=%s loc=%s point=%s path=%d/%d fallbackTp=%s",
-                movement.stage(),
-                movement.location(),
-                movement.pointId(),
-                movement.pathIndex(),
-                movement.pathSize(),
-                movement.fallbackTeleportUsed()
+                movement.stage,
+                movement.location,
+                movement.pointId,
+                movement.pathIndex,
+                movement.pathSize,
+                movement.fallbackTeleportUsed
             )), false);
             source.sendSuccess(() -> Component.literal(String.format(
                 Locale.ROOT,
                 "  target=%s next=%s repath=%s noPathTicks=%d forcedChunk=%s",
-                formatVec(movement.target()),
-                formatVec(movement.nextWaypoint()),
-                movement.repathReason(),
-                movement.noPathTicks(),
-                movement.forcedTargetChunk()
+                formatVec(movement.target),
+                formatVec(movement.nextWaypoint),
+                movement.repathReason,
+                movement.noPathTicks,
+                movement.forcedTargetChunk
             )), false);
         }
 
@@ -246,6 +249,55 @@ public final class NpcDebugCommand {
                 spawn.spawnAgeTicks(),
                 spawn.forcedChunk()
             )), false);
+        }
+
+        // Pathfinding diagnostic: check canStand at entity pos and target pos
+        if (entity != null && target.position() != null) {
+            BlockPos entityBP = entity.blockPosition();
+            BlockPos targetBP = BlockPos.containing(target.position());
+            boolean entityLoaded = level.isLoaded(entityBP);
+            boolean targetLoaded = level.isLoaded(targetBP);
+            boolean entityCanStand = entityLoaded && NpcPathfinder.canStand(level, entityBP);
+            boolean targetCanStand = targetLoaded && NpcPathfinder.canStand(level, targetBP);
+            BlockPos entityWalkable = NpcPathfinder.nearestWalkable(level, entity.position());
+            BlockPos targetWalkable = NpcPathfinder.nearestWalkable(level, target.position());
+            source.sendSuccess(() -> Component.literal("- 寻路诊断"), false);
+            source.sendSuccess(() -> Component.literal(String.format(
+                Locale.ROOT,
+                "  entityPos=%s loaded=%s canStand=%s walkable=%s",
+                entityBP.toShortString(), entityLoaded, entityCanStand,
+                entityWalkable == null ? "null" : entityWalkable.toShortString()
+            )), false);
+            source.sendSuccess(() -> Component.literal(String.format(
+                Locale.ROOT,
+                "  targetPos=%s loaded=%s canStand=%s walkable=%s",
+                targetBP.toShortString(), targetLoaded, targetCanStand,
+                targetWalkable == null ? "null" : targetWalkable.toShortString()
+            )), false);
+            if (entityLoaded) {
+                BlockState eFeet = level.getBlockState(entityBP);
+                BlockState eHead = level.getBlockState(entityBP.above());
+                BlockState eBelow = level.getBlockState(entityBP.below());
+                source.sendSuccess(() -> Component.literal(String.format(
+                    Locale.ROOT,
+                    "  entity blocks: feet=%s head=%s below=%s",
+                    eFeet.getBlock().getDescriptionId(),
+                    eHead.getBlock().getDescriptionId(),
+                    eBelow.getBlock().getDescriptionId()
+                )), false);
+            }
+            if (targetLoaded) {
+                BlockState tFeet = level.getBlockState(targetBP);
+                BlockState tHead = level.getBlockState(targetBP.above());
+                BlockState tBelow = level.getBlockState(targetBP.below());
+                source.sendSuccess(() -> Component.literal(String.format(
+                    Locale.ROOT,
+                    "  target blocks: feet=%s head=%s below=%s",
+                    tFeet.getBlock().getDescriptionId(),
+                    tHead.getBlock().getDescriptionId(),
+                    tBelow.getBlock().getDescriptionId()
+                )), false);
+            }
         }
     }
 

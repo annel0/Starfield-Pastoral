@@ -1,0 +1,31 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:wall_hanging_small_a",
+    "stardewcraft:wall_hanging_small_b",
+    "stardewcraft:wall_notice_board_small",
+    "stardewcraft:wall_notice_board_medium",
+    "stardewcraft:wall_bulletin_notes",
+    "stardewcraft:wall_hanging_strip",
+    "stardewcraft:wall_hanging_ornament",
+    "stardewcraft:wall_hanging_triptych",
+    "stardewcraft:wall_switch_panel",
+    "stardewcraft:wall_frame_wide",
+    "stardewcraft:wall_frame_double",
+    "stardewcraft:wall_sticky_notes",
+    "stardewcraft:wall_poster_gamepad",
+    "stardewcraft:wall_poster_dolphin",
+    "stardewcraft:wall_poster_game_character",
+    "stardewcraft:wall_outlet",
+    "stardewcraft:wall_photo_white_hall",
+    "stardewcraft:wall_photo_frame",
+    "stardewcraft:wall_blacksmith_sign",
+    "stardewcraft:wall_blacksmith_hammers",
+    "stardewcraft:wall_bone_decor",
+    "stardewcraft:wall_kitchen_cabinet",
+    "stardewcraft:wall_adventurer_map",
+    "stardewcraft:wall_buoy",
+    "stardewcraft:wall_fish_sign",
+    "stardewcraft:wall_island_map"
+  ]
+}

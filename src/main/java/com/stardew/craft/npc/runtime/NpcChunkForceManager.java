@@ -67,7 +67,6 @@ public final class NpcChunkForceManager {
         }
 
         level.setChunkForced(chunkX, chunkZ, true);
-        level.getChunk(chunkX, chunkZ);
         FORCED_TARGET_CHUNK_BY_NPC.put(npcId, newKey);
     }
 
@@ -124,7 +123,6 @@ public final class NpcChunkForceManager {
             int chunkX = (int) (key >> 32);
             int chunkZ = (int) (long) key;
             level.setChunkForced(chunkX, chunkZ, true);
-            level.getChunk(chunkX, chunkZ);
         }
 
         FORCED_ROUTE_CHUNKS_BY_NPC.put(npcId, next);

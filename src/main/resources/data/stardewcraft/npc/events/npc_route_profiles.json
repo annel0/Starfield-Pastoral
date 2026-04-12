@@ -184,7 +184,7 @@
         },
         {
           "mode": "walk",
-          "point": "lewis_manorhouse_indoor_stay"
+          "point": "lewis_manorhouse_living"
         }
       ],
       "saloon": [
@@ -198,91 +198,7 @@
         },
         {
           "mode": "walk",
-          "point": "lewis_saloon_indoor_stay"
-        }
-      ],
-      "blacksmith": [
-        {
-          "mode": "walk",
-          "point": "blacksmith_outdoor_door"
-        },
-        {
-          "mode": "warp",
-          "point": "blacksmith_indoor_entry"
-        },
-        {
-          "mode": "walk",
-          "point": "lewis_blacksmith_indoor_stay"
-        }
-      ],
-      "archaeologyhouse": [
-        {
-          "mode": "walk",
-          "point": "museum_outdoor_door"
-        },
-        {
-          "mode": "warp",
-          "point": "museum_indoor_entry"
-        },
-        {
-          "mode": "walk",
-          "point": "lewis_museum_indoor_stay"
-        }
-      ],
-      "museum": [
-        {
-          "mode": "walk",
-          "point": "museum_outdoor_door"
-        },
-        {
-          "mode": "warp",
-          "point": "museum_indoor_entry"
-        },
-        {
-          "mode": "walk",
-          "point": "lewis_museum_indoor_stay"
-        }
-      ],
-      "sciencehouse": [
-        {
-          "mode": "walk",
-          "point": "sciencehouse_outdoor_door"
-        },
-        {
-          "mode": "warp",
-          "point": "sciencehouse_indoor_entry"
-        },
-        {
-          "mode": "walk",
-          "point": "lewis_sciencehouse_indoor_stay"
-        }
-      ],
-      "carpenter": [
-        {
-          "mode": "walk",
-          "point": "sciencehouse_outdoor_door"
-        },
-        {
-          "mode": "warp",
-          "point": "sciencehouse_indoor_entry"
-        },
-        {
-          "mode": "walk",
-          "point": "lewis_sciencehouse_indoor_stay"
-        }
-      ],
-      "hospital": [
-        {
-          "mode": "walk",
-          "point": "clinic_outdoor_door"
-        },
-        {
-          "mode": "warp",
-          "point": "clinic_indoor_entry"
-        },
-        {
-          "mode": "walk",
-          "point": "lewis_clinic_indoor_stay"
+          "point": "lewis_saloon_seat"
         }
       ],
       "seedshop": [
@@ -296,7 +212,7 @@
         },
         {
           "mode": "walk",
-          "point": "lewis_seedshop_counter"
+          "point": "lewis_seedshop_visit"
         }
       ],
       "pierreshop": [
@@ -310,7 +226,91 @@
         },
         {
           "mode": "walk",
-          "point": "lewis_seedshop_counter"
+          "point": "lewis_seedshop_visit"
+        }
+      ],
+      "blacksmith": [
+        {
+          "mode": "walk",
+          "point": "blacksmith_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "blacksmith_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "lewis_blacksmith_visit"
+        }
+      ],
+      "archaeologyhouse": [
+        {
+          "mode": "walk",
+          "point": "museum_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "museum_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "lewis_museum_visit"
+        }
+      ],
+      "museum": [
+        {
+          "mode": "walk",
+          "point": "museum_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "museum_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "lewis_museum_visit"
+        }
+      ],
+      "sciencehouse": [
+        {
+          "mode": "walk",
+          "point": "sciencehouse_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "sciencehouse_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "lewis_sciencehouse_visit"
+        }
+      ],
+      "carpenter": [
+        {
+          "mode": "walk",
+          "point": "sciencehouse_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "sciencehouse_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "lewis_sciencehouse_visit"
+        }
+      ],
+      "hospital": [
+        {
+          "mode": "walk",
+          "point": "clinic_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "clinic_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "lewis_clinic_visit"
         }
       ],
       "town": [
@@ -328,43 +328,1608 @@
       "communitycenter": [
         {
           "mode": "walk",
-          "point": "lewis_communitycenter_outdoor"
+          "point": "lewis_communitycenter_stay"
         }
       ],
       "fishshop": [
         {
           "mode": "walk",
-          "point": "lewis_fishshop_outdoor"
+          "point": "lewis_fishshop_visit"
         }
       ],
       "willyshop": [
         {
           "mode": "walk",
-          "point": "lewis_fishshop_outdoor"
+          "point": "lewis_fishshop_visit"
         }
       ],
       "animalshop": [
         {
           "mode": "walk",
-          "point": "lewis_animalshop_outdoor"
+          "point": "lewis_animalshop_visit"
         }
       ],
       "marnieranch": [
         {
           "mode": "walk",
-          "point": "lewis_animalshop_outdoor"
+          "point": "lewis_animalshop_visit"
         }
       ],
       "beach": [
         {
           "mode": "walk",
-          "point": "lewis_beach_outdoor"
+          "point": "lewis_beach_stay"
         }
       ],
       "forest": [
         {
           "mode": "walk",
-          "point": "lewis_forest_outdoor"
+          "point": "lewis_forest_stay"
+        }
+      ]
+    },
+    "alex": {
+      "joshhouse": [
+        {
+          "mode": "walk",
+          "point": "joshhouse_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "joshhouse_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "alex_joshhouse_kitchen"
+        }
+      ],
+      "haleyhouse": [
+        {
+          "mode": "walk",
+          "point": "haleyhouse_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "haleyhouse_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "alex_haleyhouse_visit"
+        }
+      ],
+      "saloon": [
+        {
+          "mode": "walk",
+          "point": "saloon_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "saloon_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "alex_saloon_seat"
+        }
+      ],
+      "town": [
+        {
+          "mode": "walk",
+          "point": "alex_town_football"
+        }
+      ],
+      "beach": [
+        {
+          "mode": "walk",
+          "point": "alex_beach_swim"
+        }
+      ]
+    },
+    "clint": {
+      "blacksmith": [
+        {
+          "mode": "walk",
+          "point": "blacksmith_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "blacksmith_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "clint_blacksmith_anvil"
+        }
+      ],
+      "saloon": [
+        {
+          "mode": "walk",
+          "point": "saloon_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "saloon_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "clint_saloon_seat"
+        }
+      ],
+      "communitycenter": [
+        {
+          "mode": "walk",
+          "point": "clint_town_cc"
+        }
+      ],
+      "town": [
+        {
+          "mode": "walk",
+          "point": "clint_town_cc"
+        }
+      ],
+      "beach": [
+        {
+          "mode": "walk",
+          "point": "clint_beach_stay"
+        }
+      ],
+      "hospital": [
+        {
+          "mode": "walk",
+          "point": "clinic_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "clinic_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "clinic_indoor_entry"
+        }
+      ]
+    },
+    "caroline": {
+      "seedshop": [
+        {
+          "mode": "walk",
+          "point": "seedshop_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "seedshop_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "caroline_seedshop_kitchen"
+        }
+      ],
+      "pierreshop": [
+        {
+          "mode": "walk",
+          "point": "seedshop_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "seedshop_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "caroline_seedshop_kitchen"
+        }
+      ],
+      "town": [
+        {
+          "mode": "walk",
+          "point": "caroline_town_walk"
+        }
+      ],
+      "archaeologyhouse": [
+        {
+          "mode": "walk",
+          "point": "museum_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "museum_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "caroline_museum_read"
+        }
+      ],
+      "museum": [
+        {
+          "mode": "walk",
+          "point": "museum_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "museum_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "caroline_museum_read"
+        }
+      ],
+      "hospital": [
+        {
+          "mode": "walk",
+          "point": "clinic_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "clinic_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "clinic_indoor_entry"
+        }
+      ],
+      "communitycenter": [
+        {
+          "mode": "walk",
+          "point": "communitycenter_outer"
+        }
+      ],
+      "beach": [
+        {
+          "mode": "walk",
+          "point": "caroline_beach_stay"
+        }
+      ]
+    },
+    "demetrius": {
+      "sciencehouse": [
+        {
+          "mode": "walk",
+          "point": "sciencehouse_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "sciencehouse_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "demetrius_sciencehouse_lab"
+        }
+      ],
+      "carpenter": [
+        {
+          "mode": "walk",
+          "point": "sciencehouse_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "sciencehouse_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "demetrius_sciencehouse_lab"
+        }
+      ],
+      "saloon": [
+        {
+          "mode": "walk",
+          "point": "saloon_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "saloon_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "demetrius_saloon_seat"
+        }
+      ],
+      "mountain": [
+        {
+          "mode": "walk",
+          "point": "demetrius_mountain_research"
+        }
+      ],
+      "town": [
+        {
+          "mode": "walk",
+          "point": "demetrius_town_square"
+        }
+      ]
+    },
+    "elliott": {
+      "elliotthouse": [
+        {
+          "mode": "walk",
+          "point": "elliotthouse_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "elliotthouse_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "elliott_house_piano"
+        }
+      ],
+      "saloon": [
+        {
+          "mode": "walk",
+          "point": "saloon_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "saloon_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "elliott_saloon_seat"
+        }
+      ],
+      "archaeologyhouse": [
+        {
+          "mode": "walk",
+          "point": "museum_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "museum_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "elliott_museum_read"
+        }
+      ],
+      "museum": [
+        {
+          "mode": "walk",
+          "point": "museum_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "museum_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "elliott_museum_read"
+        }
+      ],
+      "seedshop": [
+        {
+          "mode": "walk",
+          "point": "seedshop_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "seedshop_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "elliott_seedshop_visit"
+        }
+      ],
+      "pierreshop": [
+        {
+          "mode": "walk",
+          "point": "seedshop_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "seedshop_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "elliott_seedshop_visit"
+        }
+      ],
+      "beach": [
+        {
+          "mode": "walk",
+          "point": "elliott_beach_walk"
+        }
+      ],
+      "town": [
+        {
+          "mode": "walk",
+          "point": "elliott_town_walk"
+        }
+      ],
+      "forest": [
+        {
+          "mode": "walk",
+          "point": "elliott_forest_walk"
+        }
+      ]
+    },
+    "evelyn": {
+      "joshhouse": [
+        {
+          "mode": "walk",
+          "point": "joshhouse_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "joshhouse_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "evelyn_joshhouse_stove"
+        }
+      ],
+      "saloon": [
+        {
+          "mode": "walk",
+          "point": "saloon_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "saloon_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "evelyn_joshhouse_stove"
+        }
+      ],
+      "town": [
+        {
+          "mode": "walk",
+          "point": "evelyn_town_bench"
+        }
+      ],
+      "communitycenter": [
+        {
+          "mode": "walk",
+          "point": "evelyn_communitycenter_visit"
+        }
+      ]
+    },
+    "emily": {
+      "haleyhouse": [
+        {
+          "mode": "walk",
+          "point": "haleyhouse_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "haleyhouse_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "emily_haleyhouse_room"
+        }
+      ],
+      "saloon": [
+        {
+          "mode": "walk",
+          "point": "saloon_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "saloon_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "emily_saloon_work"
+        }
+      ],
+      "seedshop": [
+        {
+          "mode": "walk",
+          "point": "seedshop_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "seedshop_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "emily_seedshop_browse"
+        }
+      ],
+      "communitycenter": [
+        {
+          "mode": "walk",
+          "point": "emily_communitycenter_visit"
+        }
+      ],
+      "town": [
+        {
+          "mode": "walk",
+          "point": "emily_town_walk"
+        }
+      ],
+      "beach": [
+        {
+          "mode": "walk",
+          "point": "emily_beach_relax"
+        }
+      ]
+    },
+    "george": {
+      "joshhouse": [
+        {
+          "mode": "walk",
+          "point": "joshhouse_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "joshhouse_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "george_joshhouse_tv"
+        }
+      ],
+      "saloon": [
+        {
+          "mode": "walk",
+          "point": "saloon_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "saloon_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "george_saloon_visit"
+        }
+      ],
+      "seedshop": [
+        {
+          "mode": "walk",
+          "point": "seedshop_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "seedshop_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "george_seedshop_visit"
+        }
+      ],
+      "town": [
+        {
+          "mode": "walk",
+          "point": "george_town_bench"
+        }
+      ],
+      "beach": [
+        {
+          "mode": "walk",
+          "point": "george_beach_spot"
+        }
+      ]
+    },
+    "gus": {
+      "saloon": [
+        {
+          "mode": "walk",
+          "point": "saloon_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "saloon_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "gus_saloon_counter"
+        }
+      ],
+      "seedshop": [
+        {
+          "mode": "walk",
+          "point": "seedshop_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "seedshop_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "gus_seedshop_visit"
+        }
+      ],
+      "communitycenter": [
+        {
+          "mode": "walk",
+          "point": "gus_communitycenter_visit"
+        }
+      ],
+      "town": [
+        {
+          "mode": "walk",
+          "point": "gus_town_walk"
+        }
+      ],
+      "beach": [
+        {
+          "mode": "walk",
+          "point": "gus_beach_spot"
+        }
+      ]
+    },
+    "haley": {
+      "haleyhouse": [
+        {
+          "mode": "walk",
+          "point": "haleyhouse_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "haleyhouse_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "haley_haleyhouse_living"
+        }
+      ],
+      "town": [
+        {
+          "mode": "walk",
+          "point": "haley_town_square"
+        }
+      ],
+      "beach": [
+        {
+          "mode": "walk",
+          "point": "haley_beach_sunbathe"
+        }
+      ],
+      "forest": [
+        {
+          "mode": "walk",
+          "point": "haley_forest_photo"
+        }
+      ],
+      "saloon": [
+        {
+          "mode": "walk",
+          "point": "saloon_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "saloon_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "saloon_indoor_entry"
+        }
+      ]
+    },
+    "harvey": {
+      "hospital": [
+        {
+          "mode": "walk",
+          "point": "clinic_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "clinic_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "harvey_clinic_desk"
+        }
+      ],
+      "clinic": [
+        {
+          "mode": "walk",
+          "point": "clinic_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "clinic_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "harvey_clinic_desk"
+        }
+      ],
+      "harveyroom": [
+        {
+          "mode": "walk",
+          "point": "clinic_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "clinic_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "harvey_room_main"
+        }
+      ],
+      "seedshop": [
+        {
+          "mode": "walk",
+          "point": "seedshop_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "seedshop_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "harvey_seedshop_browse"
+        }
+      ],
+      "museum": [
+        {
+          "mode": "walk",
+          "point": "museum_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "museum_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "harvey_museum_browse"
+        }
+      ],
+      "archaeologyhouse": [
+        {
+          "mode": "walk",
+          "point": "museum_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "museum_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "harvey_museum_browse"
+        }
+      ],
+      "saloon": [
+        {
+          "mode": "walk",
+          "point": "saloon_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "saloon_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "harvey_saloon_seat"
+        }
+      ],
+      "town": [
+        {
+          "mode": "walk",
+          "point": "harvey_town_walk"
+        }
+      ]
+    },
+    "jas": {
+      "animalshop": [
+        {
+          "mode": "walk",
+          "point": "animalshop_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "animalshop_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "jas_animalshop_living"
+        }
+      ],
+      "museum": [
+        {
+          "mode": "walk",
+          "point": "museum_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "museum_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "jas_museum_read"
+        }
+      ],
+      "archaeologyhouse": [
+        {
+          "mode": "walk",
+          "point": "museum_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "museum_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "jas_museum_read"
+        }
+      ],
+      "town": [
+        {
+          "mode": "walk",
+          "point": "jas_town_walk"
+        }
+      ],
+      "forest": [
+        {
+          "mode": "walk",
+          "point": "jas_forest_jumprope"
+        }
+      ],
+      "beach": [
+        {
+          "mode": "walk",
+          "point": "jas_beach_play"
+        }
+      ]
+    },
+    "jodi": {
+      "samhouse": [
+        {
+          "mode": "walk",
+          "point": "samhouse_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "samhouse_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "jodi_samhouse_kitchen"
+        }
+      ],
+      "seedshop": [
+        {
+          "mode": "walk",
+          "point": "seedshop_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "seedshop_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "jodi_seedshop_browse"
+        }
+      ],
+      "pierreshop": [
+        {
+          "mode": "walk",
+          "point": "seedshop_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "seedshop_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "jodi_seedshop_browse"
+        }
+      ],
+      "saloon": [
+        {
+          "mode": "walk",
+          "point": "saloon_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "saloon_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "saloon_indoor_entry"
+        }
+      ],
+      "town": [
+        {
+          "mode": "walk",
+          "point": "jodi_town_walk"
+        }
+      ]
+    },
+    "leah": {
+      "leahhouse": [
+        {
+          "mode": "walk",
+          "point": "leahhouse_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "leahhouse_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "leah_house_easel"
+        }
+      ],
+      "saloon": [
+        {
+          "mode": "walk",
+          "point": "saloon_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "saloon_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "leah_saloon_seat"
+        }
+      ],
+      "museum": [
+        {
+          "mode": "walk",
+          "point": "museum_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "museum_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "leah_museum_browse"
+        }
+      ],
+      "archaeologyhouse": [
+        {
+          "mode": "walk",
+          "point": "museum_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "museum_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "leah_museum_browse"
+        }
+      ],
+      "forest": [
+        {
+          "mode": "walk",
+          "point": "leah_forest_forage"
+        }
+      ],
+      "beach": [
+        {
+          "mode": "walk",
+          "point": "leah_beach_sketch"
+        }
+      ],
+      "town": [
+        {
+          "mode": "walk",
+          "point": "leah_forest_forage"
+        }
+      ]
+    },
+    "linus": {
+      "mountain": [
+        {
+          "mode": "walk",
+          "point": "linus_tent_fire"
+        }
+      ],
+      "tent": [
+        {
+          "mode": "walk",
+          "point": "linus_tent_fire"
+        }
+      ],
+      "beach": [
+        {
+          "mode": "walk",
+          "point": "linus_beach_fish"
+        }
+      ],
+      "town": [
+        {
+          "mode": "walk",
+          "point": "linus_town_dumpster"
+        }
+      ]
+    },
+    "marnie": {
+      "animalshop": [
+        {
+          "mode": "walk",
+          "point": "animalshop_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "animalshop_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "marnie_animalshop_counter"
+        }
+      ],
+      "marnieranch": [
+        {
+          "mode": "walk",
+          "point": "animalshop_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "animalshop_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "marnie_animalshop_counter"
+        }
+      ],
+      "saloon": [
+        {
+          "mode": "walk",
+          "point": "saloon_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "saloon_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "marnie_saloon_seat"
+        }
+      ],
+      "seedshop": [
+        {
+          "mode": "walk",
+          "point": "seedshop_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "seedshop_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "marnie_seedshop_visit"
+        }
+      ],
+      "pierreshop": [
+        {
+          "mode": "walk",
+          "point": "seedshop_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "seedshop_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "marnie_seedshop_visit"
+        }
+      ],
+      "town": [
+        {
+          "mode": "walk",
+          "point": "marnie_town_walk"
+        }
+      ],
+      "forest": [
+        {
+          "mode": "walk",
+          "point": "marnie_forest_walk"
+        }
+      ]
+    },
+    "maru": {
+      "sciencehouse": [
+        {
+          "mode": "walk",
+          "point": "sciencehouse_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "sciencehouse_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "maru_sciencehouse_tinker"
+        }
+      ],
+      "carpenter": [
+        {
+          "mode": "walk",
+          "point": "sciencehouse_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "sciencehouse_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "maru_sciencehouse_tinker"
+        }
+      ],
+      "hospital": [
+        {
+          "mode": "walk",
+          "point": "clinic_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "clinic_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "maru_clinic_work"
+        }
+      ],
+      "clinic": [
+        {
+          "mode": "walk",
+          "point": "clinic_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "clinic_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "maru_clinic_work"
+        }
+      ],
+      "saloon": [
+        {
+          "mode": "walk",
+          "point": "saloon_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "saloon_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "maru_saloon_visit"
+        }
+      ],
+      "town": [
+        {
+          "mode": "walk",
+          "point": "maru_town_walk"
+        }
+      ]
+    },
+    "pam": {
+      "trailer": [
+        {
+          "mode": "walk",
+          "point": "trailer_outdoor_door"
+        }
+      ],
+      "saloon": [
+        {
+          "mode": "walk",
+          "point": "saloon_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "saloon_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "pam_saloon_seat"
+        }
+      ],
+      "busstop": [
+        {
+          "mode": "walk",
+          "point": "pam_busstop_bench"
+        }
+      ],
+      "town": [
+        {
+          "mode": "walk",
+          "point": "pam_town_walk"
+        }
+      ]
+    },
+    "penny": {
+      "trailer": [
+        {
+          "mode": "walk",
+          "point": "penny_trailer_sleep"
+        }
+      ],
+      "museum": [
+        {
+          "mode": "walk",
+          "point": "museum_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "museum_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "penny_museum_tutor"
+        }
+      ],
+      "archaeologyhouse": [
+        {
+          "mode": "walk",
+          "point": "museum_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "museum_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "penny_museum_tutor"
+        }
+      ],
+      "town": [
+        {
+          "mode": "walk",
+          "point": "penny_town_walk"
+        }
+      ]
+    },
+    "pierre": {
+      "seedshop": [
+        {
+          "mode": "walk",
+          "point": "seedshop_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "seedshop_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "pierre_seedshop_counter"
+        }
+      ],
+      "pierreshop": [
+        {
+          "mode": "walk",
+          "point": "seedshop_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "seedshop_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "pierre_seedshop_counter"
+        }
+      ],
+      "saloon": [
+        {
+          "mode": "walk",
+          "point": "saloon_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "saloon_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "pierre_saloon_seat"
+        }
+      ],
+      "town": [
+        {
+          "mode": "walk",
+          "point": "pierre_town_walk"
+        }
+      ]
+    },
+    "robin": {
+      "sciencehouse": [
+        {
+          "mode": "walk",
+          "point": "sciencehouse_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "sciencehouse_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "robin_sciencehouse_counter"
+        }
+      ],
+      "carpenter": [
+        {
+          "mode": "walk",
+          "point": "sciencehouse_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "sciencehouse_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "robin_sciencehouse_counter"
+        }
+      ],
+      "saloon": [
+        {
+          "mode": "walk",
+          "point": "saloon_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "saloon_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "robin_saloon_seat"
+        }
+      ],
+      "town": [
+        {
+          "mode": "walk",
+          "point": "robin_town_walk"
+        }
+      ]
+    },
+    "sam": {
+      "samhouse": [
+        {
+          "mode": "walk",
+          "point": "samhouse_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "samhouse_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "sam_samhouse_guitar"
+        }
+      ],
+      "archaeologyhouse": [
+        {
+          "mode": "walk",
+          "point": "museum_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "museum_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "sam_museum_work"
+        }
+      ],
+      "saloon": [
+        {
+          "mode": "walk",
+          "point": "saloon_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "saloon_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "sam_saloon_pool"
+        }
+      ],
+      "town": [
+        {
+          "mode": "walk",
+          "point": "sam_town_walk"
+        }
+      ],
+      "beach": [
+        {
+          "mode": "walk",
+          "point": "sam_beach_hangout"
+        }
+      ],
+      "forest": [
+        {
+          "mode": "walk",
+          "point": "sam_forest_walk"
+        }
+      ]
+    },
+    "sebastian": {
+      "sebastianroom": [
+        {
+          "mode": "walk",
+          "point": "sciencehouse_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "sciencehouse_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "sebastian_room_computer"
+        }
+      ],
+      "sciencehouse": [
+        {
+          "mode": "walk",
+          "point": "sciencehouse_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "sciencehouse_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "sebastian_sciencehouse_hall"
+        }
+      ],
+      "saloon": [
+        {
+          "mode": "walk",
+          "point": "saloon_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "saloon_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "sebastian_saloon_pool"
+        }
+      ],
+      "samhouse": [
+        {
+          "mode": "walk",
+          "point": "samhouse_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "samhouse_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "sebastian_samhouse_keyboard"
+        }
+      ],
+      "mountain": [
+        {
+          "mode": "walk",
+          "point": "sebastian_mountain_smoke"
+        }
+      ],
+      "town": [
+        {
+          "mode": "walk",
+          "point": "sebastian_town_walk"
+        }
+      ]
+    },
+
+    "shane": {
+      "animalshop": [
+        {
+          "mode": "walk",
+          "point": "animalshop_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "animalshop_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "shane_animalshop_room"
+        }
+      ],
+      "saloon": [
+        {
+          "mode": "walk",
+          "point": "saloon_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "saloon_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "shane_saloon_drink"
+        }
+      ],
+      "seedshop": [
+        {
+          "mode": "walk",
+          "point": "seedshop_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "seedshop_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "shane_seedshop_browse"
+        }
+      ]
+    },
+
+    "vincent": {
+      "samhouse": [
+        {
+          "mode": "walk",
+          "point": "samhouse_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "samhouse_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "vincent_samhouse_play"
+        }
+      ],
+      "museum": [
+        {
+          "mode": "walk",
+          "point": "museum_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "museum_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "vincent_museum_read"
+        }
+      ],
+      "town": [
+        {
+          "mode": "walk",
+          "point": "vincent_town_playground"
+        }
+      ],
+      "beach": [
+        {
+          "mode": "walk",
+          "point": "vincent_beach_play"
+        }
+      ]
+    },
+
+    "willy": {
+      "fishshop": [
+        {
+          "mode": "walk",
+          "point": "fishshop_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "fishshop_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "willy_fishshop_counter"
+        }
+      ],
+      "beach": [
+        {
+          "mode": "walk",
+          "point": "willy_beach_fishing"
+        }
+      ],
+      "saloon": [
+        {
+          "mode": "walk",
+          "point": "saloon_outdoor_door"
+        },
+        {
+          "mode": "warp",
+          "point": "saloon_indoor_entry"
+        },
+        {
+          "mode": "walk",
+          "point": "willy_saloon_seat"
+        }
+      ],
+      "forest": [
+        {
+          "mode": "walk",
+          "point": "willy_forest_walk"
+        }
+      ],
+      "town": [
+        {
+          "mode": "walk",
+          "point": "willy_town_bench"
         }
       ]
     }

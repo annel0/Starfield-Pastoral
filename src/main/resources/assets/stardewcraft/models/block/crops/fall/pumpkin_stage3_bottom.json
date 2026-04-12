@@ -1,0 +1,7 @@
+{
+    "parent": "minecraft:block/cross",
+    "textures": {
+        "cross": "stardewcraft:block/crops/fall/pumpkin_stage3_bottom",
+        "particle": "stardewcraft:block/crops/fall/pumpkin_stage3_bottom"
+    }
+}

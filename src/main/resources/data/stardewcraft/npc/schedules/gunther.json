@@ -1,0 +1,9 @@
+{
+  "npc_id": "gunther",
+  "override_vanilla": true,
+  "_format": "time -> \"location @namedPointId facing [behavior]\"",
+  "_note": "Gunther is a stationary NPC. He stands behind the museum counter all day.",
+  "default": {
+    "600": "archaeologyhouse @gunther_counter 3"
+  }
+}

@@ -18,7 +18,6 @@ import net.minecraft.world.item.ItemStack;
 public class DeluxeWormBinBlockEntityRenderer implements BlockEntityRenderer<DeluxeWormBinBlockEntity> {
     private static final ResourceLocation BUBBLE_TEX = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/bubble.png");
     private static final float PX = 1.0f / 32.0f;
-    private static final float BUBBLE_Y = (float) (13.0 / 16.0 + 0.05);
 
     public DeluxeWormBinBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -36,7 +35,7 @@ public class DeluxeWormBinBlockEntityRenderer implements BlockEntityRenderer<Del
         }
 
         poseStack.pushPose();
-        poseStack.translate(0.5f, BUBBLE_Y, 0.5f);
+        poseStack.translate(0.5f, BubbleYHelper.get(be.getBlockState(), be.getLevel(), be.getBlockPos()), 0.5f);
         poseStack.mulPose(Minecraft.getInstance().getEntityRenderDispatcher().cameraOrientation());
 
         float w = 20 * PX;

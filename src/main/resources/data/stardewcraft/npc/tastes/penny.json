@@ -1,0 +1,29 @@
+{
+  "npc_id": "penny",
+  "_vanilla_ref": "60=Emerald 376=Poppy 651=Poppyseed Muffin 72=Diamond 164=Sandfish 218=Tom Kha Soup 230=Red Plate 244=Roots Platter 254=Melon book_item=any book",
+
+  "loved": [
+    "stardewcraft:diamond",
+    "stardewcraft:melon"
+  ],
+  "_loved_not_yet_in_mod": ["emerald(60)", "poppy(376)", "poppyseed_muffin(651)", "sandfish(164)", "tom_kha_soup(218)", "red_plate(230)", "roots_platter(244)", "book_item"],
+
+  "liked": [],
+  "_liked_not_yet_in_mod": ["dandelion(22)", "leek(20)", "ancient_item"],
+  "liked_categories": ["milk"],
+
+  "neutral": [],
+
+  "disliked": [],
+  "_disliked_not_yet_in_mod": ["quartz(80)", "clay(330)", "algae_soup(456)", "pale_broth(457)", "duck_mayonnaise(444)", "mayonnaise_gold(440)", "mayonnaise(422)", "red_plate_leftovers(420)"],
+  "disliked_categories": ["fish"],
+
+  "hated": [],
+  "_hated_not_yet_in_mod": ["rabbits_foot(446)", "beer(346)", "pale_ale(348)", "mead(303)", "wine(304)", "hops(398)", "cactus_fruit(459)", "pina_colada(873)"],
+
+  "loved_msg": "Thank you! I really love this!",
+  "liked_msg": "Thank you! This looks special.",
+  "neutral_msg": "Thanks, this looks nice.",
+  "disliked_msg": "Uh, it's for me? ...Thanks.",
+  "hated_msg": "Ugh...I'm sorry, but I absolutely hate this."
+}

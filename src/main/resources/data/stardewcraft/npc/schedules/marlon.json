@@ -1,0 +1,9 @@
+{
+  "npc_id": "marlon",
+  "override_vanilla": true,
+  "_format": "time -> \"location @namedPointId facing [behavior]\"",
+  "_note": "Marlon is a stationary NPC. He stands at the Adventurer's Guild counter all day.",
+  "default": {
+    "600": "adventurer_guild @marlon_counter 3"
+  }
+}

@@ -25,7 +25,9 @@
     "haleyhouse",
     "joshhouse",
     "trailer",
-    "leahhouse"
+    "leahhouse",
+    "adventurer_guild",
+    "wizard_tower"
   ],
   "aliases": {
     "pierreshop": "seedshop",
@@ -34,7 +36,8 @@
     "museum": "archaeologyhouse",
     "carpenter": "sciencehouse",
     "marnieranch": "animalshop",
-    "willyshop": "fishshop"
+    "willyshop": "fishshop",
+    "wizardhouse": "wizard_tower"
   },
   "anchors": {
     "town": {
@@ -93,6 +96,13 @@
       "outdoor_door_point": "museum_outdoor_door",
       "indoor_entry_point": "museum_indoor_entry"
     },
+    "adventurer_guild": {
+      "x": 17664.5,
+      "y": 71.0,
+      "z": 17088.5,
+      "indoor": true,
+      "use_ground_height": false
+    },
     "sciencehouse": {
       "x": 16525.5,
       "y": 75.0,
@@ -137,8 +147,8 @@
     },
     "beach": {
       "x": -196.0,
-      "y": -163.0,
-      "z": -15.0,
+      "y": -15.0,
+      "z": -158.0,
       "indoor": false,
       "use_ground_height": true
     },
@@ -189,25 +199,34 @@
       "indoor_entry_point": "blacksmith_indoor_entry"
     },
     "elliotthouse": {
-      "x": -266.0,
-      "y": -13.0,
-      "z": -153.0,
-      "indoor": false,
-      "use_ground_height": true
+      "x": 17666.5,
+      "y": 71.0,
+      "z": 18243.5,
+      "indoor": true,
+      "portal_target": "elliott_cabin_enter",
+      "use_ground_height": false,
+      "outdoor_door_point": "elliotthouse_outdoor_door",
+      "indoor_entry_point": "elliotthouse_indoor_entry"
     },
     "haleyhouse": {
-      "x": -108.0,
-      "y": -17.0,
-      "z": -27.0,
-      "indoor": false,
-      "use_ground_height": true
+      "x": 17092.5,
+      "y": 71.0,
+      "z": 17666.5,
+      "indoor": true,
+      "portal_target": "2_willow_lane_enter",
+      "use_ground_height": false,
+      "outdoor_door_point": "haleyhouse_outdoor_door",
+      "indoor_entry_point": "haleyhouse_indoor_entry"
     },
     "joshhouse": {
-      "x": -195.0,
-      "y": -18.0,
-      "z": 32.0,
-      "indoor": false,
-      "use_ground_height": true
+      "x": 15939.5,
+      "y": 71.0,
+      "z": 15948.5,
+      "indoor": true,
+      "portal_target": "1_river_road_enter",
+      "use_ground_height": false,
+      "outdoor_door_point": "joshhouse_outdoor_door",
+      "indoor_entry_point": "joshhouse_indoor_entry"
     },
     "trailer": {
       "x": -231.0,
@@ -222,6 +241,13 @@
       "z": -59.0,
       "indoor": false,
       "use_ground_height": true
+    },
+    "wizard_tower": {
+      "x": 18249.5,
+      "y": 71.0,
+      "z": 17095.5,
+      "indoor": true,
+      "use_ground_height": false
     }
   }
 }

@@ -1,0 +1,37 @@
+package com.stardew.craft.network.payload;
+
+import com.stardew.craft.StardewCraft;
+import com.stardew.craft.player.PassOutService;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+
+/**
+ * C→S: 客户端渐黑完成确认。
+ * 服务端收到后传送玩家回农场。
+ */
+@SuppressWarnings("null")
+public record PassOutAckPayload() implements CustomPacketPayload {
+
+    public static final Type<PassOutAckPayload> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "pass_out_ack"));
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, PassOutAckPayload> STREAM_CODEC =
+            StreamCodec.unit(new PassOutAckPayload());
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    public static void handle(PassOutAckPayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer sp) {
+                PassOutService.teleportToFarmSpawn(sp);
+            }
+        });
+    }
+}

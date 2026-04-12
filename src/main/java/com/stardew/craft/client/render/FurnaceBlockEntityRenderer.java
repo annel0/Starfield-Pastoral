@@ -4,7 +4,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.blockentity.FurnaceBlockEntity;
-import net.minecraft.client.Minecraft;
+import net.minecraft.client.Minecraft;
+
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -25,7 +26,6 @@ import javax.annotation.Nonnull;
 public class FurnaceBlockEntityRenderer implements BlockEntityRenderer<FurnaceBlockEntity> {
     private static final ResourceLocation BUBBLE_TEX = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/bubble.png");
     private static final float PX = 1.0f / 32.0f;
-    private static final float BUBBLE_Y = (float) (21.5 / 16.0 + 0.05);
 
     public FurnaceBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -64,12 +64,14 @@ public class FurnaceBlockEntityRenderer implements BlockEntityRenderer<FurnaceBl
             poseStack.popPose();
         }
 
-        if (!ready || product.isEmpty()) {
+        if (!ready || product.isEmpty() || level == null) {
             return;
         }
 
+        float bubbleY = BubbleYHelper.get(state, level, be.getBlockPos());
+
         poseStack.pushPose();
-        poseStack.translate(0.5f, BUBBLE_Y, 0.5f);
+        poseStack.translate(0.5f, bubbleY, 0.5f);
         poseStack.mulPose(Minecraft.getInstance().getEntityRenderDispatcher().cameraOrientation());
 
         float w = 20 * PX;

@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:oak_table",
+    "stardewcraft:spruce_table",
+    "stardewcraft:birch_table",
+    "stardewcraft:oak_round_table",
+    "stardewcraft:spruce_counter",
+    "stardewcraft:kitchen_counter"
+  ]
+}

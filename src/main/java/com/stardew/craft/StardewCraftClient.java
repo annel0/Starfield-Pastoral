@@ -67,6 +67,35 @@ public class StardewCraftClient {
                 ModBlocks.WILD_WEEDS.get(),
                 ModBlocks.PASTURE_GRASS.get(),
                 ModBlocks.BLUE_PASTURE_GRASS.get(),
+                // Forage blocks (cross model, cutout render)
+                ModBlocks.FORAGE_WILD_HORSERADISH.get(),
+                ModBlocks.FORAGE_DAFFODIL.get(),
+                ModBlocks.FORAGE_LEEK.get(),
+                ModBlocks.FORAGE_DANDELION.get(),
+                ModBlocks.FORAGE_SPRING_ONION.get(),
+                ModBlocks.FORAGE_SPICE_BERRY.get(),
+                ModBlocks.FORAGE_SWEET_PEA.get(),
+                ModBlocks.FORAGE_FIDDLEHEAD_FERN.get(),
+                ModBlocks.FORAGE_WILD_PLUM.get(),
+                ModBlocks.FORAGE_HAZELNUT.get(),
+                ModBlocks.FORAGE_BLACKBERRY.get(),
+                ModBlocks.FORAGE_WINTER_ROOT.get(),
+                ModBlocks.FORAGE_CRYSTAL_FRUIT.get(),
+                ModBlocks.FORAGE_CROCUS.get(),
+                ModBlocks.FORAGE_HOLLY.get(),
+                ModBlocks.FORAGE_CAVE_CARROT.get(),
+                ModBlocks.FORAGE_NAUTILUS_SHELL.get(),
+                ModBlocks.FORAGE_CORAL.get(),
+                ModBlocks.FORAGE_RAINBOW_SHELL.get(),
+                ModBlocks.FORAGE_SEA_URCHIN.get(),
+                ModBlocks.FORAGE_COCONUT.get(),
+                ModBlocks.FORAGE_CACTUS_FRUIT.get(),
+                ModBlocks.FORAGE_COMMON_MUSHROOM.get(),
+                ModBlocks.FORAGE_RED_MUSHROOM.get(),
+                ModBlocks.FORAGE_PURPLE_MUSHROOM.get(),
+                ModBlocks.FORAGE_MOREL.get(),
+                ModBlocks.FORAGE_CHANTERELLE.get(),
+                ModBlocks.FORAGE_MAGMA_CAP.get(),
                 ModBlocks.WILD_OAK_TRUNK0.get(),
                 ModBlocks.WILD_OAK_TRUNK1.get(),
                 ModBlocks.WILD_OAK_BRANCH1.get(),
@@ -215,6 +244,12 @@ public class StardewCraftClient {
                 ModBlocks.JOJA_VENDING_MACHINE.get(),
                 ModBlocks.WHITE_TEACUP.get(),
                 ModBlocks.POOL_TABLE.get(),
+                ModBlocks.GLOBE.get(),
+                ModBlocks.TELESCOPE.get(),
+                ModBlocks.BEAR_FIGURINE.get(),
+                ModBlocks.FISH_SHOP_COUNTER.get(),
+                ModBlocks.SUPERMARKET_SHELF_1.get(),
+                ModBlocks.SUPERMARKET_SHELF_2.get(),
                 ModBlocks.HOSPITAL_COUNTER.get(),
                 ModBlocks.HOSPITAL_POSTER_1.get(),
                 ModBlocks.HOSPITAL_POSTER_2.get(),
@@ -254,7 +289,8 @@ public class StardewCraftClient {
                 ModBlocks.LEANING_SWORD.get(),
                 ModBlocks.LEAH_SCULPTURE.get(),
                 ModBlocks.EASEL.get(),
-                ModBlocks.BLUE_BEAR_PLUSHIE.get()
+                ModBlocks.BLUE_BEAR_PLUSHIE.get(),
+                ModBlocks.FURNITURE_CATALOGUE.get()
             ));
 
             // Negative-volume models with mixed opaque/transparent faces.
@@ -276,6 +312,10 @@ public class StardewCraftClient {
             );
             net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
                 ModBlocks.BEAKER.get(),
+                net.minecraft.client.renderer.RenderType.translucent()
+            );
+            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
+                ModBlocks.LIGHTNING_ROD.get(),
                 net.minecraft.client.renderer.RenderType.translucent()
             );
             

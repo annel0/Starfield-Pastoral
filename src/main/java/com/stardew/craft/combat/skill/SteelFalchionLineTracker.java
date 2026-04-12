@@ -427,4 +427,9 @@ public final class SteelFalchionLineTracker {
         double dz = p.z - cz;
         return dx * dx + dz * dz;
     }
+
+    /** Clean up state when a player logs out to prevent memory leaks. */
+    public static void removePlayer(UUID playerId) {
+        ACTIVE.remove(playerId);
+    }
 }

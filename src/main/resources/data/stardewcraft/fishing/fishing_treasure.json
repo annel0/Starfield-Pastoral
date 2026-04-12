@@ -181,6 +181,167 @@
       "maxCount": 1,
       "weight": 14,
       "minFishingLevel": 2
+    },
+    {
+      "item": "stardewcraft:skeletal_tail",
+      "minCount": 1,
+      "maxCount": 1,
+      "weight": 10,
+      "minFishingLevel": 2
+    },
+    {
+      "item": "stardewcraft:nautilus_fossil",
+      "minCount": 1,
+      "maxCount": 1,
+      "weight": 10,
+      "minFishingLevel": 2
+    },
+    {
+      "item": "stardewcraft:amphibian_fossil",
+      "minCount": 1,
+      "maxCount": 1,
+      "weight": 10,
+      "minFishingLevel": 2
+    },
+    {
+      "item": "stardewcraft:ancient_doll",
+      "minCount": 1,
+      "maxCount": 1,
+      "weight": 5,
+      "minFishingLevel": 2
+    },
+    {
+      "item": "stardewcraft:elvish_jewelry",
+      "minCount": 1,
+      "maxCount": 1,
+      "weight": 5,
+      "minFishingLevel": 2
+    },
+    {
+      "item": "stardewcraft:chewing_stick",
+      "minCount": 1,
+      "maxCount": 1,
+      "weight": 5,
+      "minFishingLevel": 2
+    },
+    {
+      "item": "stardewcraft:ornamental_fan",
+      "minCount": 1,
+      "maxCount": 1,
+      "weight": 5,
+      "minFishingLevel": 2
+    },
+    {
+      "item": "stardewcraft:ancient_sword",
+      "minCount": 1,
+      "maxCount": 1,
+      "weight": 5,
+      "minFishingLevel": 2
+    },
+    {
+      "item": "stardewcraft:rusty_spoon",
+      "minCount": 1,
+      "maxCount": 1,
+      "weight": 5,
+      "minFishingLevel": 2
+    },
+    {
+      "item": "stardewcraft:rusty_spur",
+      "minCount": 1,
+      "maxCount": 1,
+      "weight": 5,
+      "minFishingLevel": 2
+    },
+    {
+      "item": "stardewcraft:rusty_cog",
+      "minCount": 1,
+      "maxCount": 1,
+      "weight": 5,
+      "minFishingLevel": 2
+    },
+    {
+      "item": "stardewcraft:chicken_statue",
+      "minCount": 1,
+      "maxCount": 1,
+      "weight": 5,
+      "minFishingLevel": 2
+    },
+    {
+      "item": "stardewcraft:ancient_seed",
+      "minCount": 1,
+      "maxCount": 1,
+      "weight": 5,
+      "minFishingLevel": 2
+    },
+    {
+      "item": "stardewcraft:prehistoric_tool",
+      "minCount": 1,
+      "maxCount": 1,
+      "weight": 5,
+      "minFishingLevel": 2
+    },
+    {
+      "item": "stardewcraft:dried_starfish",
+      "minCount": 1,
+      "maxCount": 1,
+      "weight": 5,
+      "minFishingLevel": 2
+    },
+    {
+      "item": "stardewcraft:anchor",
+      "minCount": 1,
+      "maxCount": 1,
+      "weight": 5,
+      "minFishingLevel": 2
+    },
+    {
+      "item": "stardewcraft:glass_shards",
+      "minCount": 1,
+      "maxCount": 1,
+      "weight": 5,
+      "minFishingLevel": 2
+    },
+    {
+      "item": "stardewcraft:bone_flute",
+      "minCount": 1,
+      "maxCount": 1,
+      "weight": 5,
+      "minFishingLevel": 2
+    },
+    {
+      "item": "stardewcraft:prehistoric_handaxe",
+      "minCount": 1,
+      "maxCount": 1,
+      "weight": 5,
+      "minFishingLevel": 2
+    },
+    {
+      "item": "stardewcraft:rare_disc",
+      "minCount": 1,
+      "maxCount": 1,
+      "weight": 3,
+      "minFishingLevel": 2
+    },
+    {
+      "item": "stardewcraft:dinosaur_egg",
+      "minCount": 1,
+      "maxCount": 1,
+      "weight": 1,
+      "minFishingLevel": 6
+    },
+    {
+      "item": "stardewcraft:strange_doll_green",
+      "minCount": 1,
+      "maxCount": 1,
+      "weight": 2,
+      "minFishingLevel": 2
+    },
+    {
+      "item": "stardewcraft:strange_doll_yellow",
+      "minCount": 1,
+      "maxCount": 1,
+      "weight": 2,
+      "minFishingLevel": 2
     }
   ],
   "goldenLoot": [

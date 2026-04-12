@@ -1,0 +1,16 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:lightning_rod",
+    "stardewcraft:solar_panel",
+    "stardewcraft:bee_house",
+    "stardewcraft:recycling_machine",
+    "stardewcraft:seed_maker",
+    "stardewcraft:crystalarium",
+    "stardewcraft:furnace",
+    "stardewcraft:charcoal_kiln",
+    "stardewcraft:tapper",
+    "stardewcraft:worm_bin",
+    "stardewcraft:deluxe_worm_bin"
+  ]
+}

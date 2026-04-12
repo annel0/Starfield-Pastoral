@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "stardewcraft:item/forage/spice_berry",
+    "particle": "stardewcraft:item/forage/spice_berry"
+  }
+}

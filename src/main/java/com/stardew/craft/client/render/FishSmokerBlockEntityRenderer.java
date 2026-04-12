@@ -63,12 +63,14 @@ public class FishSmokerBlockEntityRenderer implements BlockEntityRenderer<FishSm
             poseStack.popPose();
         }
 
-        if (!ready || product.isEmpty()) {
+        if (!ready || product.isEmpty() || level == null) {
             return;
         }
 
+        float bubbleY = BubbleYHelper.get(state, level, be.getBlockPos());
+
         poseStack.pushPose();
-        poseStack.translate(0.5f, 1.8f, 0.5f);
+        poseStack.translate(0.5f, bubbleY, 0.5f);
         poseStack.mulPose(Minecraft.getInstance().getEntityRenderDispatcher().cameraOrientation());
 
         float w = 20 * PX;

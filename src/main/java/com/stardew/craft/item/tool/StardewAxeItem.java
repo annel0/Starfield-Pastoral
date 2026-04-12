@@ -13,7 +13,16 @@ import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.common.ItemAbility;
 
+@SuppressWarnings("null")
 public class StardewAxeItem extends AxeItem implements IStardewItem {
+
+	// SDV 工具没有耐久
+	@Override
+	public boolean isDamageable(ItemStack stack) { return false; }
+	@Override
+	public int getMaxDamage(ItemStack stack) { return 0; }
+	@Override
+	public void setDamage(ItemStack stack, int damage) { /* no-op */ }
 
 	public enum Tier {
 		STARTER(0),
@@ -36,7 +45,7 @@ public class StardewAxeItem extends AxeItem implements IStardewItem {
 	private final Tier tier;
 
 	public StardewAxeItem(Tier tier, Properties properties) {
-		super(toVanillaTier(tier), properties.stacksTo(1).setNoRepair());
+		super(new IndestructibleTier(toVanillaTier(tier)), properties.stacksTo(1).setNoRepair());
 		this.tier = tier;
 	}
 
@@ -51,14 +60,9 @@ public class StardewAxeItem extends AxeItem implements IStardewItem {
 		};
 	}
 
-	private static void restoreDamage(ItemStack stack, int previousDamage) {
-		if (stack.isEmpty()) {
-			return;
-		}
-		// If super() consumed durability, roll it back.
-		if (stack.isDamageableItem() && stack.getDamageValue() != previousDamage) {
-			stack.setDamageValue(previousDamage);
-		}
+	@Override
+	public boolean mineBlock(@SuppressWarnings("null") ItemStack stack, @SuppressWarnings("null") Level level, @SuppressWarnings("null") BlockState state, @SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") LivingEntity entityLiving) {
+		return true;
 	}
 
 	public Tier getStardewTier() {
@@ -71,34 +75,24 @@ public class StardewAxeItem extends AxeItem implements IStardewItem {
 
 	@Override
 	public boolean canPerformAction(@SuppressWarnings("null") ItemStack stack, @SuppressWarnings("null") ItemAbility ability) {
-		// 关键：让方块/系统能识别这是“斧头能力”（包括砍/去皮/刮蜡等）。
+		// 关键：让方块/系统能识别这是"斧头能力"（包括砍/去皮/刮蜡等）。
 		return ItemAbilities.DEFAULT_AXE_ACTIONS.contains(ability);
 	}
 
 	@Override
-	public boolean mineBlock(@SuppressWarnings("null") ItemStack stack, @SuppressWarnings("null") Level level, @SuppressWarnings("null") BlockState state, @SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") LivingEntity entityLiving) {
-		int before = stack.getDamageValue();
-		@SuppressWarnings("null")
-		boolean result = super.mineBlock(stack, level, state, pos, entityLiving);
-		restoreDamage(stack, before);
-		return result;
-	}
-
-	@Override
 	public boolean hurtEnemy(@SuppressWarnings("null") ItemStack stack, @SuppressWarnings("null") LivingEntity target, @SuppressWarnings("null") LivingEntity attacker) {
-		int before = stack.getDamageValue();
-		@SuppressWarnings("null")
-		boolean result = super.hurtEnemy(stack, target, attacker);
-		restoreDamage(stack, before);
-		return result;
+		return true;
 	}
 
 	@Override
 	public InteractionResult useOn(@SuppressWarnings("null") UseOnContext context) {
+		// 保留斧头功能（去皮/刮蜡等）但不允许耗久
 		ItemStack stack = context.getItemInHand();
 		int before = stack.getDamageValue();
 		InteractionResult result = super.useOn(context);
-		restoreDamage(stack, before);
+		if (!stack.isEmpty() && stack.getDamageValue() != before) {
+			stack.setDamageValue(before);
+		}
 		return result;
 	}
 

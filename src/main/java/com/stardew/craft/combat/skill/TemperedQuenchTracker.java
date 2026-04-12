@@ -104,4 +104,9 @@ public final class TemperedQuenchTracker {
 
         target.addEffect(new MobEffectInstance(ModMobEffects.VULNERABLE, 60, 1, false, true, true));
     }
+
+    /** Clean up state when a player logs out to prevent memory leaks. */
+    public static void removePlayer(UUID playerId) {
+        PENDING.remove(playerId);
+    }
 }

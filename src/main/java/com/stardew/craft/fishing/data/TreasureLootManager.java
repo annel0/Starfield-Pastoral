@@ -4,8 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.stardew.craft.player.PlayerDataManager;
+import com.stardew.craft.player.PlayerStardewData;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
@@ -15,6 +18,7 @@ import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +35,7 @@ import java.util.Map;
  *
  * Config path: data/stardewcraft/fishing/fishing_treasure.json
  */
+@SuppressWarnings("null")
 public class TreasureLootManager extends SimplePreparableReloadListener<TreasureLootManager.TreasureData> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TreasureLootManager.class);
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -135,7 +140,24 @@ public class TreasureLootManager extends SimplePreparableReloadListener<Treasure
 	}
 
 	public List<ItemStack> generateTreasure(int fishingLevel, boolean golden, RandomSource random, int clearWaterDistance, double dailyLuck) {
+		return generateTreasure(fishingLevel, golden, random, clearWaterDistance, dailyLuck, null);
+	}
+
+	/**
+	 * Generate treasure with player context for specialItem dedup and equipment drops.
+	 * SDV parity: FishingRod.openTreasureMenuEndFunction
+	 */
+	public List<ItemStack> generateTreasure(int fishingLevel, boolean golden, RandomSource random,
+			int clearWaterDistance, double dailyLuck, @Nullable ServerPlayer player) {
 		List<ItemStack> treasures = new ArrayList<>();
+
+		// SDV: luckModifier = (1 + dailyLuck) * (clearWaterDistance / 5)
+		float luckModifier = (1f + (float) dailyLuck) * ((float) clearWaterDistance / 5f);
+
+		// ---- Special equipment rolls (SDV: case 3 → sub-case 2, prob 1/12 per round) ----
+		if (random.nextInt(12) == 0) {
+			rollSpecialEquipment(treasures, fishingLevel, random, luckModifier, player);
+		}
 
 		double chance = data.rollChanceStart;
 		double chanceDecay = golden ? data.rollChanceDecayGolden : data.rollChanceDecayNormal;
@@ -170,6 +192,80 @@ public class TreasureLootManager extends SimplePreparableReloadListener<Treasure
 		}
 
 		return treasures;
+	}
+
+	/**
+	 * SDV parity: FishingRod.openTreasureMenuEndFunction case 3 → sub-case 2.
+	 * Independent probability checks for weapons, rings, boots, Prismatic Shard.
+	 */
+	@SuppressWarnings("null")
+	private void rollSpecialEquipment(List<ItemStack> treasures, int fishingLevel,
+			RandomSource random, float luckModifier, @Nullable ServerPlayer player) {
+		PlayerStardewData data = player != null ? PlayerDataManager.getPlayerData(player) : null;
+
+		// Neptune's Glaive — 5% × luckModifier, once per save
+		if (random.nextFloat() < 0.05f * luckModifier) {
+			if (data == null || !data.hasSpecialItem("stardewcraft:neptunes_glaive")) {
+				addItem(treasures, "stardewcraft:neptunes_glaive", 1);
+				if (data != null) data.addSpecialItem("stardewcraft:neptunes_glaive");
+			}
+		}
+
+		// Broken Trident — 5% × luckModifier, once per save
+		if (random.nextFloat() < 0.05f * luckModifier) {
+			if (data == null || !data.hasSpecialItem("stardewcraft:broken_trident")) {
+				addItem(treasures, "stardewcraft:broken_trident", 1);
+				if (data != null) data.addSpecialItem("stardewcraft:broken_trident");
+			}
+		}
+
+		// Rings — 7% × luckModifier
+		if (random.nextFloat() < 0.07f * luckModifier) {
+			String[] rings;
+			int sub = random.nextInt(3);
+			if (sub == 0) {
+				rings = new String[]{"stardewcraft:small_glow_ring", "stardewcraft:glow_ring"};
+			} else if (sub == 1) {
+				rings = new String[]{"stardewcraft:small_magnet_ring", "stardewcraft:magnet_ring"};
+			} else {
+				rings = new String[]{
+					"stardewcraft:amethyst_ring", "stardewcraft:topaz_ring",
+					"stardewcraft:aquamarine_ring", "stardewcraft:jade_ring",
+					"stardewcraft:emerald_ring", "stardewcraft:ruby_ring"
+				};
+			}
+			String ring = rings[random.nextInt(rings.length)];
+			addItem(treasures, ring, 1);
+		}
+
+		// Boots — 1% × luckModifier
+		if (random.nextFloat() < 0.01f * luckModifier) {
+			String[] boots = {
+				"stardewcraft:sneakers", "stardewcraft:rubber_boots",
+				"stardewcraft:leather_boots", "stardewcraft:work_boots",
+				"stardewcraft:combat_boots", "stardewcraft:tundra_boots",
+				"stardewcraft:thermal_boots", "stardewcraft:dark_boots",
+				"stardewcraft:firewalker_boots", "stardewcraft:space_boots"
+			};
+			addItem(treasures, boots[random.nextInt(boots.length)], 1);
+		}
+
+		// Prismatic Shard — 0.1% × luckModifier, fishing level > 5
+		if (fishingLevel > 5 && random.nextFloat() < 0.001f * luckModifier) {
+			addItem(treasures, "stardewcraft:prismatic_shard", 1);
+		}
+
+		// Iridium Band — 1% × luckModifier
+		if (random.nextFloat() < 0.01f * luckModifier) {
+			addItem(treasures, "stardewcraft:iridium_band", 1);
+		}
+	}
+
+	private void addItem(List<ItemStack> treasures, String itemId, int count) {
+		ResourceLocation rl = ResourceLocation.tryParse(itemId);
+		if (rl != null && BuiltInRegistries.ITEM.containsKey(rl)) {
+			treasures.add(new ItemStack(BuiltInRegistries.ITEM.get(rl), count));
+		}
 	}
 
 	public List<ItemStack> generateTreasure(int fishingLevel, boolean golden, RandomSource random) {

@@ -128,4 +128,9 @@ public final class StarfallTracker {
         PacketDistributor.sendToPlayersInDimension(level,
             new StarfallShockwavePostPayload((float) center.x, (float) center.y + 0.2f, (float) center.z, 0.28f, 0.9f, 8));
     }
+
+    /** Clean up state when a player logs out to prevent memory leaks. */
+    public static void removePlayer(UUID playerId) {
+        ACTIVE.remove(playerId);
+    }
 }

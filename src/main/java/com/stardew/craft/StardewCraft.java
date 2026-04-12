@@ -249,6 +249,9 @@ public class StardewCraft {
                 output.accept(ModItems.IRIDIUM_ROD.get());
                 output.accept(ModItems.ADVANCED_IRIDIUM_ROD.get());
 
+                // 法师塔指南针
+                output.accept(ModItems.WIZARD_TOWER_COMPASS.get());
+
                 // 武器 - 剑类
                 output.accept(ModItems.RUSTY_SWORD.get());
                 output.accept(ModItems.STEEL_SMALLSWORD.get());
@@ -314,6 +317,8 @@ public class StardewCraft {
                 output.accept(ModItems.KITCHEN_COUNTER.get());
                 output.accept(ModItems.TABLEWARE_PINK.get());
                 output.accept(ModItems.TABLEWARE_BLUE.get());
+                output.accept(ModItems.PINK_TABLECLOTH.get());
+                output.accept(ModItems.SKY_BLUE_TABLECLOTH.get());
                 // 灯具
                 output.accept(ModItems.LIGHT_1.get());
                 output.accept(ModItems.LIGHT_2.get());
@@ -365,8 +370,14 @@ public class StardewCraft {
                 output.accept(ModItems.PHOTO_FRAME.get());
                 output.accept(ModItems.WHITE_TEACUP.get());
                 output.accept(ModItems.POOL_TABLE.get());
+                output.accept(ModItems.GLOBE.get());
+                output.accept(ModItems.TELESCOPE.get());
+                output.accept(ModItems.BEAR_FIGURINE.get());
+                output.accept(ModItems.FISH_SHOP_COUNTER.get());
                 output.accept(ModItems.HOSPITAL_COUNTER.get());
                 output.accept(ModItems.JOJA_VENDING_MACHINE.get());
+                output.accept(ModItems.FURNITURE_CATALOGUE.get());
+                output.accept(ModItems.BULLETIN_BOARD.get());
                 // 植物
                 output.accept(ModItems.BONSAI_1.get());
                 output.accept(ModItems.BONSAI_2.get());
@@ -453,8 +464,8 @@ public class StardewCraft {
                 output.accept(ModItems.SHOP_COUNTER_1.get());
                 output.accept(ModItems.SHOP_COUNTER_2.get());
                 output.accept(ModItems.SHOP_COUNTER_3.get());
-                output.accept(ModItems.SHOP_SHELF_EAST_1.get());
-                output.accept(ModItems.SHOP_SHELF_EAST_2.get());
+                output.accept(ModItems.SUPERMARKET_SHELF_1.get());
+                output.accept(ModItems.SUPERMARKET_SHELF_2.get());
                 output.accept(ModItems.SHOP_BASKET.get());
                 output.accept(ModItems.SHOP_CRATE_FRUIT_1.get());
                 output.accept(ModItems.SHOP_CRATE_FRUIT_2.get());
@@ -599,6 +610,12 @@ public class StardewCraft {
                         output.accept(item);
                     } else if ("stardewcraft.type.trash".equals(typeKey)) {
                         // 垃圾物品不支持品质
+                        output.accept(item);
+                    } else if ("stardewcraft.type.ring".equals(typeKey)) {
+                        // 戒指：不支持品质
+                        output.accept(item);
+                    } else if ("stardewcraft.type.boots".equals(typeKey)) {
+                        // 靴子：不支持品质
                         output.accept(item);
                     }
                 }
@@ -828,7 +845,7 @@ public class StardewCraft {
         // 手动注册事件（确保事件被正确注册）
         NeoForge.EVENT_BUS.register(com.stardew.craft.event.MinePickaxeEvents.class);
         NeoForge.EVENT_BUS.register(WildTreeChopEvents.class);
-        NeoForge.EVENT_BUS.register(com.stardew.craft.combat.WeaponCombatEvents.class);
+        // WeaponCombatEvents 已有 @EventBusSubscriber 自动注册，不需要手动注册
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             NeoForge.EVENT_BUS.register(com.stardew.craft.client.ModClientEvents.class);
@@ -847,7 +864,43 @@ public class StardewCraft {
         event.enqueueWork(() -> {
             com.stardew.craft.core.ModDimensions.register();
 
+            // 注入晕倒/死亡系统
+            com.stardew.craft.player.StardewDamageHooks.setKnockoutHandler(
+                    com.stardew.craft.player.PassOutService::onCombatDeath);
         });
+
+        // Curios 可选兼容：如果安装了 Curios，注册戒指/靴子到 Curios 槽位
+        event.enqueueWork(() -> {
+            if (com.stardew.craft.compat.CuriosCompatBridge.isCuriosLoaded()) {
+                LOGGER.info("[Curios] Curios detected, registering ring/boots items as curio-compatible");
+                com.stardew.craft.item.ModItems.ITEMS.getEntries().forEach(entry -> {
+                    net.minecraft.world.item.Item item = entry.get();
+                    if (item instanceof com.stardew.craft.item.equipment.StardewRingItem
+                            || item instanceof com.stardew.craft.item.equipment.StardewBootsItem) {
+                        com.stardew.craft.compat.CuriosCompatBridge.registerItem(item);
+                    }
+                });
+            }
+        });
+    }
+
+    /**
+     * 在 createLevels() 之前安装预烘焙区域文件。
+     * ServerAboutToStartEvent 在 initServer() 早期触发，早于 LevelEvent.Load，
+     * 确保 .mca 文件在维度首次加载前就位。
+     */
+    @SuppressWarnings("null")
+    @SubscribeEvent
+    public void onServerAboutToStart(net.neoforged.neoforge.event.server.ServerAboutToStartEvent event) {
+        var server = event.getServer();
+        LOGGER.info("[VALLEY_MAP] Startup: trying prebuilt region install (ServerAboutToStart)");
+        var result = com.stardew.craft.dimension.StardewValleyPrebuiltRegionInstaller.installIfAvailable(server);
+        if (result == com.stardew.craft.dimension.StardewValleyPrebuiltRegionInstaller.InstallResult.INSTALLED
+            || result == com.stardew.craft.dimension.StardewValleyPrebuiltRegionInstaller.InstallResult.ALREADY_PRESENT) {
+            LOGGER.info("[VALLEY_MAP] Prebuilt regions ready ({}).", result);
+        } else {
+            LOGGER.error("[VALLEY_MAP] Prebuilt region package missing or invalid. Stardew Valley travel will be blocked until fixed.");
+        }
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call
@@ -856,19 +909,18 @@ public class StardewCraft {
     public void onServerStarting(ServerStartingEvent event) {
         LOGGER.info("HELLO from server starting");
 
+        // 加载任务数据
+        com.stardew.craft.quest.QuestDataLoader.load();
+
         var server = event.getServer();
-        LOGGER.info("[VALLEY_MAP] Startup: trying prebuilt region install");
-        var result = com.stardew.craft.dimension.StardewValleyPrebuiltRegionInstaller.installIfAvailable(server);
-        if (result == com.stardew.craft.dimension.StardewValleyPrebuiltRegionInstaller.InstallResult.INSTALLED
-            || result == com.stardew.craft.dimension.StardewValleyPrebuiltRegionInstaller.InstallResult.ALREADY_PRESENT) {
+        // markAsPreGenerated 需要在 level 可用之后执行
+        if (com.stardew.craft.dimension.StardewValleyPrebuiltRegionInstaller.hasInstalledPrebuilt(server)) {
             var stardewLevel = server.getLevel(com.stardew.craft.core.ModDimensions.STARDEW_VALLEY);
             if (stardewLevel != null) {
                 com.stardew.craft.dimension.StardewValleyMapBootstrap.markAsPreGenerated(stardewLevel);
             } else {
                 LOGGER.info("[VALLEY_MAP] Stardew level not loaded at startup, will mark pre-generated on first travel.");
             }
-        } else {
-            LOGGER.error("[VALLEY_MAP] Prebuilt region package missing or invalid. Stardew Valley travel will be blocked until fixed.");
         }
     }
 }

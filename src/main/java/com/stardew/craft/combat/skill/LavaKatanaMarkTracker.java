@@ -266,4 +266,9 @@ public final class LavaKatanaMarkTracker {
             SoundEvents.FIRE_AMBIENT,
             SoundSource.PLAYERS, 0.5f, 1.2f);
     }
+
+    /** Clean up state when a player logs out to prevent memory leaks. */
+    public static void removePlayer(UUID playerId) {
+        MARKED_BY_OWNER.remove(playerId);
+    }
 }

@@ -1,4 +1,5 @@
 {
+  "ambientocclusion": false,
   "parent": "block/block",
   "textures": {
     "1": "stardewcraft:block/decor/common/tablecloth_sky_edge_2_ne",

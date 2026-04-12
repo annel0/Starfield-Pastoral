@@ -150,9 +150,10 @@ public class HoeItem extends Item implements IStardewItem {
             }
 
             if (!level.isClientSide && level instanceof ServerLevel serverLevel) {
+                BlockState preTillState = level.getBlockState(pos);
                 boolean tilled = tillTile(serverLevel, player, hand, pos);
                 if (tilled) {
-                    rollBuriedDrops(serverLevel, pos);
+                    rollBuriedDrops(serverLevel, pos, preTillState);
                     applyStaminaAndCooldown(player, 0);
                 }
             }
@@ -255,9 +256,10 @@ public class HoeItem extends Item implements IStardewItem {
         if (!level.isClientSide) {
             boolean tilledAny = false;
             for (BlockPos pos : targets) {
+                BlockState preTillState = level.getBlockState(pos);
                 if (tillTile((ServerLevel) level, player, usedHand, pos)) {
                     tilledAny = true;
-                    rollBuriedDrops((ServerLevel) level, pos);
+                    rollBuriedDrops((ServerLevel) level, pos, preTillState);
                 }
             }
 
@@ -444,20 +446,28 @@ public class HoeItem extends Item implements IStardewItem {
     }
 
     /**
-     * 先实现“黏土/混合种子”这种可落地逻辑；虫点(古物点)后续再做。
+     * SDV-parity：
+     * - 远古斑点方块 → ArtifactDropService（古物/矿石/粘土等）
+     * - 普通黄土/泥土 → 仅粘土 3% / 混合种子 1%
      */
     @SuppressWarnings("null")
-    private void rollBuriedDrops(ServerLevel level, BlockPos tilledPos) {
-        // Stardew：锄地经常能挖到黏土；这里先给一个较保守的概率
-        double clayChance = 0.03;
-        if (level.random.nextDouble() < clayChance) {
+    private void rollBuriedDrops(ServerLevel level, BlockPos tilledPos, BlockState preTillState) {
+        if (preTillState.is(com.stardew.craft.block.ModBlocks.ARTIFACT_SPOT_DIRT.get())) {
+            // 远古斑点：完整古物掉落表（SDV ContinueOnDrop 可产出多个物品）
+            List<ItemStack> drops = com.stardew.craft.manager.ArtifactDropService.rollAllDrops(level, tilledPos);
+            for (ItemStack drop : drops) {
+                if (!drop.isEmpty()) {
+                    Block.popResource(level, tilledPos.above(), drop);
+                }
+            }
+            return;
+        }
+        // 普通锄地：少量概率出粘土/混合种子
+        if (level.random.nextDouble() < 0.03) {
             Block.popResource(level, tilledPos.above(), new ItemStack(ModItems.CLAY.get()));
             return;
         }
-
-        // 少量概率出混合种子
-        double mixedSeedsChance = 0.01;
-        if (level.random.nextDouble() < mixedSeedsChance) {
+        if (level.random.nextDouble() < 0.01) {
             Block.popResource(level, tilledPos.above(), new ItemStack(ModItems.MIXED_SEEDS.get()));
         }
     }

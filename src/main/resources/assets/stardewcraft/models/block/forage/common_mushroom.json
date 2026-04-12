@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "stardewcraft:item/forage/common_mushroom",
+    "particle": "stardewcraft:item/forage/common_mushroom"
+  }
+}

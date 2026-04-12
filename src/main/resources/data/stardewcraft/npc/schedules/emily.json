@@ -1,0 +1,53 @@
+{
+  "npc_id": "emily",
+  "override_vanilla": true,
+  "_format": "time -> \"location @namedPointId facing [behavior]\" | {_goto: key} | {_condition: expr}",
+
+  "GreenRain": {
+    "800": "saloon @emily_saloon_work 3"
+  },
+
+  "rain": {
+    "_goto": "spring"
+  },
+
+  "spring": {
+    "900":  "haleyhouse @emily_haleyhouse_sewing 3",
+    "1200": "haleyhouse @emily_haleyhouse_room 1",
+    "1530": "saloon @emily_saloon_work 3",
+    "2430": "haleyhouse @emily_haleyhouse_sleep 1 emily_sleep"
+  },
+
+  "tuesday": {
+    "900":  "haleyhouse @emily_haleyhouse_sewing 3",
+    "1000": "seedshop @emily_seedshop_browse 3",
+    "1300": "seedshop @emily_seedshop_exercise 2 emily_exercise",
+    "1600": "saloon @emily_saloon_work 3",
+    "2430": "haleyhouse @emily_haleyhouse_sleep 1 emily_sleep"
+  },
+
+  "friday": {
+    "900":  "haleyhouse @emily_haleyhouse_sewing 3",
+    "1000": "communitycenter @emily_communitycenter_visit 3",
+    "1530": "saloon @emily_saloon_work 3",
+    "2430": "haleyhouse @emily_haleyhouse_sleep 1 emily_sleep"
+  },
+
+  "summer": {
+    "900":  "haleyhouse @emily_haleyhouse_sewing 3",
+    "1200": "haleyhouse @emily_haleyhouse_kitchen 1",
+    "1530": "saloon @emily_saloon_work 3",
+    "2430": "haleyhouse @emily_haleyhouse_sleep 1 emily_sleep"
+  },
+
+  "fall": {
+    "_goto": "spring"
+  },
+
+  "winter": {
+    "900":  "haleyhouse @emily_haleyhouse_sewing 3",
+    "1200": "haleyhouse @emily_haleyhouse_kitchen 1",
+    "1530": "saloon @emily_saloon_work 3",
+    "2430": "haleyhouse @emily_haleyhouse_sleep 1 emily_sleep"
+  }
+}

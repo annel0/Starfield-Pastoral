@@ -1,0 +1,58 @@
+{
+  "variants": {
+    "activated=true,facing=north,part=main": {
+      "model": "stardewcraft:block/utility/totem_pole_beach"
+    },
+    "activated=true,facing=north,part=extension": {
+      "model": "stardewcraft:block/utility/totem_pole_extension_empty"
+    },
+    "activated=true,facing=east,part=main": {
+      "model": "stardewcraft:block/utility/totem_pole_beach",
+      "y": 90
+    },
+    "activated=true,facing=east,part=extension": {
+      "model": "stardewcraft:block/utility/totem_pole_extension_empty"
+    },
+    "activated=true,facing=south,part=main": {
+      "model": "stardewcraft:block/utility/totem_pole_beach",
+      "y": 180
+    },
+    "activated=true,facing=south,part=extension": {
+      "model": "stardewcraft:block/utility/totem_pole_extension_empty"
+    },
+    "activated=true,facing=west,part=main": {
+      "model": "stardewcraft:block/utility/totem_pole_beach",
+      "y": 270
+    },
+    "activated=true,facing=west,part=extension": {
+      "model": "stardewcraft:block/utility/totem_pole_extension_empty"
+    },
+    "activated=false,facing=north,part=main": {
+      "model": "stardewcraft:block/utility/totem_pole_beach_deactivated"
+    },
+    "activated=false,facing=north,part=extension": {
+      "model": "stardewcraft:block/utility/totem_pole_extension_empty"
+    },
+    "activated=false,facing=east,part=main": {
+      "model": "stardewcraft:block/utility/totem_pole_beach_deactivated",
+      "y": 90
+    },
+    "activated=false,facing=east,part=extension": {
+      "model": "stardewcraft:block/utility/totem_pole_extension_empty"
+    },
+    "activated=false,facing=south,part=main": {
+      "model": "stardewcraft:block/utility/totem_pole_beach_deactivated",
+      "y": 180
+    },
+    "activated=false,facing=south,part=extension": {
+      "model": "stardewcraft:block/utility/totem_pole_extension_empty"
+    },
+    "activated=false,facing=west,part=main": {
+      "model": "stardewcraft:block/utility/totem_pole_beach_deactivated",
+      "y": 270
+    },
+    "activated=false,facing=west,part=extension": {
+      "model": "stardewcraft:block/utility/totem_pole_extension_empty"
+    }
+  }
+}

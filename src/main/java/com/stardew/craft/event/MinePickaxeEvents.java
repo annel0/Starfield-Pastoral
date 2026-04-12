@@ -79,8 +79,15 @@ public final class MinePickaxeEvents {
 		ItemStack tool = player.getMainHandItem();
 		int stardewTier = getStardewPickaxeTier(tool);
 		int requiredTier = getRequiredTier(state);
-		if (requiredTier > 0 && stardewTier < requiredTier) {
-			// Treat as unmineable when below required tier.
+
+		// 非模组镐子：只能挖 tier 0 的石头和煤矿，不能挖铁矿及以上、宝石矿、矿物节点
+		if (stardewTier < 0) {
+			if (requiredTier > 0 || isStardewOre(state) || isMineralBlock(state)) {
+				event.setNewSpeed(0.0F);
+				return;
+			}
+		} else if (requiredTier > 0 && stardewTier < requiredTier) {
+			// 模组镐子等级不足
 			event.setNewSpeed(0.0F);
 			return;
 		}
@@ -136,6 +143,14 @@ public final class MinePickaxeEvents {
 
 		if (!isPickaxeLike(tool)) {
 			event.setCanceled(true); // 不是镐子，阻止破坏
+			return;
+		}
+
+		// 非模组镐子：只能挖 tier 0 的石头和煤矿，不能挖铁矿及以上、宝石矿、矿物节点
+		if (stardewTier < 0 && (requiredTier > 0 || isStardewOre(state) || isMineralBlock(state))) {
+			event.setCanceled(true);
+			StardewCraft.LOGGER.info("[MinePickaxe] Blocked non-mod pickaxe on ore/mineral: {}", 
+				net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()));
 			return;
 		}
 
@@ -394,9 +409,7 @@ public final class MinePickaxeEvents {
 
 	@SuppressWarnings("null")
 	private static int getRequiredTier(BlockState state) {
-		if (isMineralBlock(state)) {
-			return 0;
-		}
+		// 通过 tag 统一管理所有方块的挖掘等级（矿石 + 宝石 + 矿物节点 + 石头）
 		if (state.is(ModTags.Blocks.REQUIRES_STARDEW_PICKAXE_TIER3)) {
 			return 3;
 		}
@@ -438,6 +451,9 @@ public final class MinePickaxeEvents {
 	@SuppressWarnings("null")
 	private static boolean isStardewMineBlock(BlockState state) {
 		if (state.is(ModTags.Blocks.STARDEW_STONES) || state.is(ModTags.Blocks.STARDEW_ORES)) {
+			return true;
+		}
+		if (isMineralBlock(state)) {
 			return true;
 		}
 		@SuppressWarnings("null")

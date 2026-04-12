@@ -1,9 +1,8 @@
-﻿{
-    "parent":  "block/block",
-    "elements":  [
-
-                 ],
-    "textures":  {
-                     "particle":  "stardewcraft:block/utility/museum_exhibit_stand"
-                 }
+{
+  "ambientocclusion": false,
+  "parent": "block/block",
+  "elements": [],
+  "textures": {
+    "particle": "stardewcraft:block/utility/museum_exhibit_stand"
+  }
 }

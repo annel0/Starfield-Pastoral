@@ -20,7 +20,9 @@ public record ShopItemEntry(
     String tradeItemId,   // null = no trade requirement
     int tradeItemCount,   // trade item quantity (irrelevant when tradeItemId=null)
     Set<Integer> seasons, // empty = all seasons; 0=spring,1=summer,2=fall,3=winter
-    int minYear           // minimum year to appear in shop (1 = year 1+)
+    int minYear,          // minimum year to appear in shop (1 = year 1+)
+    int minMineLevel,     // minimum mine floor reached to unlock (0 = no requirement)
+    String mailFlag       // required player mail flag (null = no requirement)
 ) {
     public boolean isFree() {
         return price <= 0 && (tradeItemId == null || tradeItemId.isEmpty());
@@ -41,6 +43,16 @@ public record ShopItemEntry(
     }
 
     /**
+     * Returns true when this item should appear given the player's mine progress
+     * and mail flags. Call after isAvailableIn().
+     */
+    public boolean meetsPlayerConditions(int playerMineLevel, java.util.Set<String> playerMailFlags) {
+        if (minMineLevel > 0 && playerMineLevel < minMineLevel) return false;
+        if (mailFlag != null && !mailFlag.isEmpty() && !playerMailFlags.contains(mailFlag)) return false;
+        return true;
+    }
+
+    /**
      * Factory used by the network codec — no seasons/minYear needed on the client
      * because the server already filtered the list before sending.
      */
@@ -48,6 +60,6 @@ public record ShopItemEntry(
             String itemId, String displayName, String description,
             int price, int stock, String tradeItemId, int tradeItemCount) {
         return new ShopItemEntry(itemId, displayName, description,
-                price, stock, tradeItemId, tradeItemCount, Set.of(), 1);
+                price, stock, tradeItemId, tradeItemCount, Set.of(), 1, 0, null);
     }
 }

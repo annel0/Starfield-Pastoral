@@ -9,7 +9,7 @@
           "height": 1
         }
       ],
-      "biome": "minecraft:plains",
+      "biome": "stardewcraft:stardew_default",
       "lakes": false,
       "features": false,
       "structures": {

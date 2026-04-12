@@ -5,6 +5,8 @@ import com.stardew.craft.client.ClientPlayerDataCache;
 import com.stardew.craft.client.NpcFriendshipClientCache;
 import com.stardew.craft.client.gui.common.StardewRenderMapping;
 import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
+import com.stardew.craft.player.ProfessionType;
+import com.stardew.craft.player.SkillType;
 import com.stardew.craft.network.payload.RequestNpcFriendshipOverviewPayload;
 import com.stardew.craft.network.payload.CraftingMenuCraftSubmitPayload;
 import com.stardew.craft.network.payload.CraftingMenuInventoryActionPayload;
@@ -57,11 +59,11 @@ public class StardewGameMenuScreen extends Screen {
     private static final int INVENTORY_ROWS = 4;
     private static final int INVENTORY_SLOT_SDV = 64;
     private static final int INVENTORY_GAP_SDV = 4;
-    private static final int INVENTORY_TOP_SDV = 368;
+    private static final int INVENTORY_TOP_SDV = 440;
 
     private static final int BORDER_WIDTH = 32;
     private static final int MENU_WIDTH_SDV = 800 + BORDER_WIDTH * 2;
-    private static final int MENU_HEIGHT_SDV = 600 + BORDER_WIDTH * 2;
+    private static final int MENU_HEIGHT_SDV = 700 + BORDER_WIDTH * 2;
     private static final int TAB_Y_OFFSET_SDV = -56;
     private static final int TAB_START_X_SDV = 64;
     private static final int TAB_STEP_SDV = 64;
@@ -238,13 +240,26 @@ public class StardewGameMenuScreen extends Screen {
 
         if (currentTab == 4) {
             updateCraftingHoverState(mouseX, mouseY);
-            updateVisualFocus();
         }
 
         StardewGuiUtil.drawDialogueBoxFrame(graphics, menuX, menuY, activeMenuWidth(), menuHeight);
         drawTabs(graphics);
         drawCloseButton(graphics);
         drawCurrentPage(graphics, mouseX, mouseY);
+
+        if (currentTab == 0) {
+            drawInventoryPageTooltips(graphics, mouseX, mouseY);
+            ItemStack carried = currentCarriedItem();
+            if (!carried.isEmpty()) {
+                int drawX = mouseX - 8;
+                int drawY = mouseY - 8;
+                graphics.pose().pushPose();
+                graphics.pose().translate(0, 0, 500);
+                graphics.renderItem(carried, drawX, drawY);
+                graphics.renderItemDecorations(this.font, carried, drawX, drawY);
+                graphics.pose().popPose();
+            }
+        }
 
         if (currentTab == 4) {
             if (craftingPages.size() > 1) {
@@ -571,6 +586,16 @@ public class StardewGameMenuScreen extends Screen {
             return;
         }
 
+        if (currentTab == 0) {
+            drawInventoryPage(graphics, mouseX, mouseY);
+            return;
+        }
+
+        if (currentTab == 1) {
+            drawSkillsPage(graphics, mouseX, mouseY);
+            return;
+        }
+
         if (currentTab == 4) {
             drawCraftingPage(graphics, mouseX, mouseY);
             return;
@@ -586,6 +611,799 @@ public class StardewGameMenuScreen extends Screen {
 
         graphics.drawString(this.font, title, titleX, centerY - 10, 0xFFF3E6C6, false);
         graphics.drawString(this.font, line, lineX, centerY + 8, 0xFFD8C9A8, false);
+    }
+
+    // ============ Tab 1: Skills Page (SDV SkillsPage 1:1 parity) ============
+
+    // SDV skill row order: Farming(0), Mining(3), Foraging(2), Fishing(1), Combat(4)
+    private static final SkillType[] SKILLS_PAGE_ROW_ORDER = {
+        SkillType.FARMING, SkillType.MINING, SkillType.FORAGING, SkillType.FISHING, SkillType.COMBAT
+    };
+
+    // SDV skill icon source rects from cursors.png (10x10 each, y=428)
+    private static final int[][] SKILL_ICON_SOURCES = {
+        {10, 428, 10, 10},   // Farming
+        {30, 428, 10, 10},   // Mining
+        {60, 428, 10, 10},   // Foraging
+        {20, 428, 10, 10},   // Fishing
+        {120, 428, 10, 10},  // Combat
+    };
+
+    // SDV skill name i18n keys (matching SDV row order)
+    private static final String[] SKILL_NAME_KEYS = {
+        "stardewcraft.skills_page.farming",
+        "stardewcraft.skills_page.mining",
+        "stardewcraft.skills_page.foraging",
+        "stardewcraft.skills_page.fishing",
+        "stardewcraft.skills_page.combat",
+    };
+
+    // SDV skill hover description i18n keys
+    private static final String[][] SKILL_HOVER_KEYS = {
+        {"stardewcraft.skills_page.farming_hover1", "stardewcraft.skills_page.farming_hover2"}, // Farming: hoe + watercan
+        {"stardewcraft.skills_page.mining_hover"},   // Mining: pickaxe
+        {"stardewcraft.skills_page.foraging_hover"},  // Foraging: axe
+        {"stardewcraft.skills_page.fishing_hover"},   // Fishing: rod
+        {"stardewcraft.skills_page.combat_hover"},    // Combat: health
+    };
+
+    // Profession IDs at level 5 and 10 per skill row (SDV order: farming, mining, foraging, fishing, combat)
+    private static final ProfessionType[][] SKILL_ROW_LV5_PROFS = {
+        {ProfessionType.RANCHER, ProfessionType.TILLER},
+        {ProfessionType.MINER, ProfessionType.GEOLOGIST},
+        {ProfessionType.FORESTER, ProfessionType.GATHERER},
+        {ProfessionType.FISHER, ProfessionType.TRAPPER},
+        {ProfessionType.FIGHTER, ProfessionType.SCOUT},
+    };
+
+    private static final int SKILLS_VERTICAL_SPACING = 68; // SDV px between rows
+
+    // SDV Farmer title level thresholds (based on sum of all 5 skill levels / 2... actually just sum)
+    // SDV: Farmer.Level = (farming + mining + foraging + fishing + combat) / 2
+    private static final String[] FARMER_TITLE_KEYS = {
+        "stardewcraft.farmer_title.farm_king",      // 30+
+        "stardewcraft.farmer_title.cropmaster",      // 29
+        "stardewcraft.farmer_title.agriculturist",   // 27-28
+        "stardewcraft.farmer_title.farmer",          // 25-26
+        "stardewcraft.farmer_title.rancher",         // 23-24
+        "stardewcraft.farmer_title.planter",         // 21-22
+        "stardewcraft.farmer_title.granger",         // 19-20
+        "stardewcraft.farmer_title.farmboy",         // 17-18 (male)
+        "stardewcraft.farmer_title.sodbuster",       // 15-16
+        "stardewcraft.farmer_title.smallholder",     // 13-14
+        "stardewcraft.farmer_title.tiller",          // 11-12
+        "stardewcraft.farmer_title.farmhand",        // 9-10
+        "stardewcraft.farmer_title.cowpoke",         // 7-8
+        "stardewcraft.farmer_title.bumpkin",         // 5-6
+        "stardewcraft.farmer_title.greenhorn",       // 3-4
+        "stardewcraft.farmer_title.newcomer",        // 0-2
+    };
+    private static final int[] FARMER_TITLE_MIN_LEVELS = {
+        30, 29, 27, 25, 23, 21, 19, 17, 15, 13, 11, 9, 7, 5, 3, 0
+    };
+
+    private String getFarmerTitle() {
+        int totalLevel = 0;
+        for (SkillType skill : SkillType.values()) {
+            totalLevel += ClientPlayerDataCache.getSkillLevel(skill);
+        }
+        // SDV: Farmer.Level = totalLevel / 2
+        int farmerLevel = totalLevel / 2;
+        for (int i = 0; i < FARMER_TITLE_MIN_LEVELS.length; i++) {
+            if (farmerLevel >= FARMER_TITLE_MIN_LEVELS[i]) {
+                return Component.translatable(FARMER_TITLE_KEYS[i]).getString();
+            }
+        }
+        return Component.translatable("stardewcraft.farmer_title.newcomer").getString();
+    }
+
+    // Hover state for skills page
+    private String skillsHoverText = "";
+    private String skillsHoverTitle = "";
+    private int skillsHoveredProfessionId = -1;
+    private int skillsHoveredBarX = 0;
+    private int skillsHoveredBarY = 0;
+
+    /**
+     * SDV NumberSprite.draw equivalent.
+     * Draws a number using digit sprites from cursors.png at (512,128), 8x8 per digit, 6 per row (48px wide).
+     */
+    private void drawNumberSprite(GuiGraphics graphics, int number, int posX, int posY, int color, float alpha) {
+        float scale = mapping.s4();
+        int digitCount = 0;
+        int n = number;
+        // Count digits
+        do { digitCount++; n /= 10; } while (n > 0);
+
+        // Draw from right to left (least significant digit first)
+        int drawX = posX;
+        n = number;
+        // SDV draws right-to-left from the position, so we need to adjust
+        // Actually SDV uses position as the rightmost digit's center, let's replicate exactly
+        int tempNumber = number;
+        do {
+            int currentDigit = tempNumber % 10;
+            tempNumber /= 10;
+            int texU = 512 + (currentDigit * 8) % 48;
+            int texV = 128 + (currentDigit * 8) / 48 * 8;
+
+            // Draw the digit - SDV draws centered on (4,4) origin
+            graphics.pose().pushPose();
+            graphics.pose().translate(drawX, posY, 0);
+            graphics.pose().scale(scale, scale, 1.0f);
+            // Apply color tint
+            float r = ((color >> 16) & 0xFF) / 255.0f;
+            float g = ((color >> 8) & 0xFF) / 255.0f;
+            float b = (color & 0xFF) / 255.0f;
+            graphics.setColor(r, g, b, alpha);
+            graphics.blit(StardewGuiUtil.CURSORS, -4, -4, texU, texV, 8, 8,
+                StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT);
+            graphics.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+            graphics.pose().popPose();
+
+            // Move left for next digit: SDV spacing = 8*1*4 - 4 = 28 SDV px
+            drawX -= ui(28);
+        } while (tempNumber > 0);
+    }
+
+    private void drawSkillsPage(GuiGraphics graphics, int mouseX, int mouseY) {
+        float s4 = mapping.s4();
+        int borderWidth = ui(BORDER_WIDTH);
+        int spaceSide = ui(32);   // IClickableMenu.spaceToClearSideBorder
+        int spaceTop = ui(96);    // IClickableMenu.spaceToClearTopBorder
+
+        // --- Player Panel (left side) ---
+        int playerPanelX = menuX + ui(64);
+        int playerPanelY = menuY + borderWidth + spaceTop;
+        // Draw day/night background (same as inventory page)
+        int bgX = playerPanelX - ui(8);
+        int bgY = playerPanelY - ui(20);
+        Minecraft mc = this.minecraft;
+        if (mc != null && mc.player != null) {
+            long dayTime = mc.level != null ? mc.level.getDayTime() % 24000 : 0;
+            boolean isNight = dayTime >= 13000;
+            ResourceLocation bgTex = isNight ? NIGHTBG : DAYBG;
+            int bgW = ui(131);
+            int bgH = ui(190);
+            graphics.blit(bgTex, bgX, bgY, 0, 0, bgW, bgH, bgW, bgH);
+
+            // Draw MC player entity
+            int margin = ui(8);
+            net.minecraft.client.gui.screens.inventory.InventoryScreen
+                .renderEntityInInventoryFollowsMouse(
+                    graphics,
+                    bgX + margin, bgY + margin,
+                    bgX + bgW - margin, bgY + bgH - margin,
+                    ui(30), 0.0625F,
+                    (float) mouseX, (float) mouseY,
+                    mc.player
+                );
+
+            // Player name (centered under the panel)
+            String playerName = mc.player.getName().getString();
+            int nameX = playerPanelX + ui(64) - this.font.width(playerName) / 2;
+            int nameY = playerPanelY + ui(192 - 17);
+            graphics.drawString(this.font, playerName, nameX, nameY, 0xFF5B3A1A, false);
+
+            // Player title (centered below name) - SDV: y + 256 - 32 - 19 = y + 205
+            String playerTitle = getFarmerTitle();
+            int titleX = playerPanelX + ui(64) - this.font.width(playerTitle) / 2;
+            int titleY = playerPanelY + ui(256 - 32 - 19);
+            graphics.drawString(this.font, playerTitle, titleX, titleY, 0xFF5B3A1A, false);
+        }
+
+        // --- Horizontal separator ---
+        int sepY = menuY + spaceTop + ui((int)(menuHeight * guiScale() / 2f) + 21);
+        int sepX = menuX + spaceSide * 2;
+        int sepW = menuWidth - spaceSide * 4 - ui(8);
+        graphics.fill(sepX, sepY, sepX + sepW, sepY + ui(4), 0xFFD68F54);
+
+        // --- Skill bars ---
+        int drawX = menuX + borderWidth + spaceTop + ui(256 - 8);
+        int drawY = menuY + spaceTop + borderWidth - ui(8);
+        int verticalSpacing = ui(SKILLS_VERTICAL_SPACING);
+        int addedX = 0;
+
+        // Reset hover state
+        skillsHoverText = "";
+        skillsHoverTitle = "";
+        skillsHoveredProfessionId = -1;
+
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 5; j++) {
+                SkillType skill = SKILLS_PAGE_ROW_ORDER[j];
+                int skillLevel = ClientPlayerDataCache.getSkillLevel(skill);
+                boolean drawRed = skillLevel > i;
+
+                // Draw skill name + icon on the first column only
+                if (i == 0) {
+                    String skillName = Component.translatable(SKILL_NAME_KEYS[j]).getString();
+                    int nameX = drawX - this.font.width(skillName) + ui(4) - ui(64);
+                    int nameY = drawY + ui(4) + j * verticalSpacing;
+                    graphics.drawString(this.font, skillName, nameX, nameY, 0xFF5B3A1A, false);
+
+                    // Skill icon - shadow first, then normal
+                    int[] iconSrc = SKILL_ICON_SOURCES[j];
+                    int iconShadowX = drawX - ui(56);
+                    int iconShadowY = drawY + j * verticalSpacing;
+                    StardewGuiUtil.drawFromCursorsTint(graphics, iconShadowX, iconShadowY,
+                        iconSrc[0], iconSrc[1], iconSrc[2], iconSrc[3], s4,
+                        0.0f, 0.0f, 0.0f, 0.3f);
+                    int iconX = drawX - ui(52);
+                    int iconY = drawY - ui(4) + j * verticalSpacing;
+                    StardewGuiUtil.drawFromCursors(graphics, iconX, iconY,
+                        iconSrc[0], iconSrc[1], iconSrc[2], iconSrc[3], s4);
+
+                    // Hover detection for skill name area
+                    int areaX = drawX - ui(128) - ui(48);
+                    int areaY = drawY + j * verticalSpacing;
+                    int areaW = ui(148);
+                    int areaH = ui(36);
+                    if (mouseX >= areaX && mouseX < areaX + areaW && mouseY >= areaY && mouseY < areaY + areaH) {
+                        if (skillLevel > 0) {
+                            skillsHoverTitle = skillName;
+                            String[] hoverKeys = SKILL_HOVER_KEYS[j];
+                            StringBuilder sb = new StringBuilder();
+                            for (int h = 0; h < hoverKeys.length; h++) {
+                                if (h > 0) sb.append("\n");
+                                sb.append(Component.translatable(hoverKeys[h], skillLevel).getString());
+                            }
+                            skillsHoverText = sb.toString();
+                        }
+                    }
+                }
+
+                // Draw bar
+                if ((i + 1) % 5 != 0) {
+                    // Small bar (non-5th): unlit=(129,338,8,9), lit=(137,338,8,9)
+                    // Shadow
+                    StardewGuiUtil.drawFromCursorsTint(graphics,
+                        addedX + drawX - ui(4) + i * ui(36),
+                        drawY + j * verticalSpacing,
+                        129, 338, 8, 9, s4, 0.0f, 0.0f, 0.0f, 0.35f);
+                    // Bar
+                    StardewGuiUtil.drawFromCursors(graphics,
+                        addedX + drawX + i * ui(36),
+                        drawY - ui(4) + j * verticalSpacing,
+                        drawRed ? 137 : 129, 338, 8, 9, s4,
+                        drawRed ? 1.0f : 0.65f);
+                } else {
+                    // Big bar (every 5th): unlit=(145,338,14,9), lit=(159,338,14,9)
+                    if (!drawRed) {
+                        // Shadow for unlit big bar
+                        StardewGuiUtil.drawFromCursorsTint(graphics,
+                            addedX + drawX - ui(4) + i * ui(36),
+                            drawY + j * verticalSpacing,
+                            145, 338, 14, 9, s4, 0.0f, 0.0f, 0.0f, 0.35f);
+                        // Unlit big bar
+                        StardewGuiUtil.drawFromCursors(graphics,
+                            addedX + drawX + i * ui(36),
+                            drawY - ui(4) + j * verticalSpacing,
+                            145, 338, 14, 9, s4, 0.65f);
+                    } else {
+                        // Lit big bar (profession unlocked) - shadow first (SDV skillBars drawShadow:true)
+                        StardewGuiUtil.drawFromCursorsTint(graphics,
+                            addedX + drawX - ui(4) + i * ui(36),
+                            drawY + j * verticalSpacing,
+                            145, 338, 14, 9, s4, 0.0f, 0.0f, 0.0f, 0.35f);
+                        StardewGuiUtil.drawFromCursors(graphics,
+                            addedX + drawX + i * ui(36),
+                            drawY - ui(4) + j * verticalSpacing,
+                            159, 338, 14, 9, s4);
+
+                        // Profession hover detection for boxes at level 5 and 10
+                        int boxX = addedX + drawX - ui(4) + i * ui(36);
+                        int boxY = drawY + j * verticalSpacing;
+                        int boxW = ui(56);
+                        int boxH = ui(36);
+                        if (mouseX >= boxX && mouseX < boxX + boxW && mouseY >= boxY && mouseY < boxY + boxH) {
+                            // Find which profession the player chose at this level
+                            int profLevel = i + 1; // 5 or 10
+                            ProfessionType chosenProf = getChosenProfessionForRow(j, profLevel);
+                            if (chosenProf != null) {
+                                skillsHoverTitle = chosenProf.getDisplayName();
+                                skillsHoverText = Component.translatable(
+                                    "stardewcraft.profession." + chosenProf.getName() + ".desc").getString();
+                                skillsHoveredProfessionId = chosenProf.getId();
+                                skillsHoveredBarX = boxX;
+                                skillsHoveredBarY = boxY;
+                            }
+                        }
+                    }
+                }
+
+                // Draw level number after the last bar (i==9)
+                if (i == 9) {
+                    int numX = addedX + drawX + (i + 2) * ui(36) + ui(12) + (skillLevel >= 10 ? ui(12) : 0);
+                    int numY = drawY + ui(16) + j * verticalSpacing;
+                    // Shadow (offset: 0, +4 relative)
+                    drawNumberSprite(graphics, skillLevel, numX, numY, 0x000000, 0.35f);
+                    // Number (offset: +4, 0 relative to shadow base)
+                    int numColor = 0xF4A460; // SandyBrown
+                    float numAlpha = (skillLevel == 0) ? 0.75f : 1.0f;
+                    drawNumberSprite(graphics, skillLevel,
+                        numX + ui(4), numY - ui(4), numColor, numAlpha);
+                }
+            }
+            if ((i + 1) % 5 == 0) {
+                addedX += ui(24);
+            }
+        }
+
+        // --- Profession icon popup on hover ---
+        if (skillsHoveredProfessionId >= 0) {
+            // SDV: IClickableMenu.drawTextureBox at (c.bounds.X - 16 - 8, c.bounds.Y - 16 - 16, 96, 96)
+            int popupX = skillsHoveredBarX - ui(16) - ui(8);
+            int popupY = skillsHoveredBarY - ui(16) - ui(16);
+            StardewGuiUtil.drawTextureBox(graphics, popupX, popupY, ui(96), ui(96));
+            // SDV: profession icon at (c.bounds.X - 8, c.bounds.Y - 32 + 16)
+            int profIconU = (skillsHoveredProfessionId % 6) * 16;
+            int profIconV = 624 + (skillsHoveredProfessionId / 6) * 16;
+            StardewGuiUtil.drawFromCursors(graphics,
+                skillsHoveredBarX - ui(8),
+                skillsHoveredBarY - ui(32) + ui(16),
+                profIconU, profIconV, 16, 16, s4);
+        }
+
+        // --- Lower section: horizontal separator already drawn above ---
+
+        // --- Hover tooltip ---
+        if (!skillsHoverText.isEmpty()) {
+            drawSkillsTooltip(graphics, mouseX, mouseY, skillsHoverTitle, skillsHoverText);
+        }
+    }
+
+    /**
+     * Get the profession a player chose for a given skill row and level.
+     * Row order: 0=Farming, 1=Mining, 2=Foraging, 3=Fishing, 4=Combat
+     */
+    private ProfessionType getChosenProfessionForRow(int rowIndex, int level) {
+        SkillType skill = SKILLS_PAGE_ROW_ORDER[rowIndex];
+        if (level == 5) {
+            ProfessionType[] options = ProfessionType.getLevel5Options(skill);
+            for (ProfessionType opt : options) {
+                if (ClientPlayerDataCache.hasProfession(opt)) return opt;
+            }
+        } else if (level == 10) {
+            // Need to know the lv5 choice to get lv10 options
+            ProfessionType[] lv5Options = ProfessionType.getLevel5Options(skill);
+            for (ProfessionType lv5 : lv5Options) {
+                if (ClientPlayerDataCache.hasProfession(lv5)) {
+                    ProfessionType[] lv10Options = ProfessionType.getLevel10Options(skill, lv5);
+                    for (ProfessionType opt : lv10Options) {
+                        if (ClientPlayerDataCache.hasProfession(opt)) return opt;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Draw SDV-style hover tooltip (matching IClickableMenu.drawHoverText)
+     */
+    private void drawSkillsTooltip(GuiGraphics graphics, int mouseX, int mouseY, String title, String text) {
+        if (text.isEmpty() && title.isEmpty()) return;
+
+        int padding = ui(16);
+        int maxWidth = ui(300);
+
+        // Calculate text dimensions
+        List<String> textLines = new ArrayList<>();
+        if (!text.isEmpty()) {
+            for (String line : text.split("\n")) {
+                textLines.add(line);
+            }
+        }
+
+        int textWidth = 0;
+        for (String line : textLines) {
+            textWidth = Math.max(textWidth, this.font.width(line));
+        }
+        if (!title.isEmpty()) {
+            textWidth = Math.max(textWidth, this.font.width(title));
+        }
+        textWidth = Math.min(textWidth, maxWidth);
+
+        int textHeight = textLines.size() * (this.font.lineHeight + 2);
+        if (!title.isEmpty()) {
+            textHeight += this.font.lineHeight + 4;
+        }
+
+        int boxW = textWidth + padding * 2;
+        int boxH = textHeight + padding * 2;
+        int boxX = mouseX + ui(32);
+        int boxY = mouseY + ui(32);
+
+        // Keep on screen
+        if (boxX + boxW > this.width) boxX = mouseX - boxW;
+        if (boxY + boxH > this.height) boxY = mouseY - boxH;
+        if (boxX < 0) boxX = 0;
+        if (boxY < 0) boxY = 0;
+
+        // Draw tooltip background using SDV textureBox
+        graphics.pose().pushPose();
+        graphics.pose().translate(0, 0, 400);
+        StardewGuiUtil.drawTextureBox(graphics, boxX, boxY, boxW, boxH);
+
+        int contentX = boxX + padding;
+        int contentY = boxY + padding;
+
+        if (!title.isEmpty()) {
+            graphics.drawString(this.font, title, contentX, contentY, 0xFF5B3A1A, false);
+            contentY += this.font.lineHeight + 4;
+        }
+
+        for (String line : textLines) {
+            graphics.drawString(this.font, line, contentX, contentY, 0xFF5B3A1A, false);
+            contentY += this.font.lineHeight + 2;
+        }
+        graphics.pose().popPose();
+    }
+
+    // ============ Tab 0: Inventory Page (SDV InventoryPage 1:1 parity) ============
+
+    // --- Grid layout (top section, SDV pixels from menu origin) ---
+    private static final int INV_PAGE_ROW0_Y = 36;      // First main-inventory row
+    private static final int INV_PAGE_ROW_STEP = 68;     // 64 slot + 4 gap
+    private static final int INV_PAGE_HOTBAR_Y = 252;    // Hotbar row (extra gap above)
+    private static final int INV_PAGE_PARTITION_Y = 324;  // Horizontal partition
+
+    // --- Equipment slots (lower-left) ---
+    private static final int INV_PAGE_EQUIP_X = 48;
+    private static final int INV_PAGE_EQUIP_SIZE = 64;
+    private static final int INV_PAGE_EQUIP_Y0 = 356;    // Left Ring
+    private static final int INV_PAGE_EQUIP_Y1 = 420;    // Right Ring
+    private static final int INV_PAGE_EQUIP_Y2 = 484;    // Boots
+
+    // Empty-slot placeholder tiles (from menu_tiles.png, SDV: getSourceRectForStandardTileSheet)
+    private static final int EMPTY_RING_TILE = 41;
+    private static final int EMPTY_BOOTS_TILE = 40;
+
+    // --- Player model area (lower-center, SDV: x=120, y=296 from menu origin) ---
+    private static final int INV_PAGE_PLAYER_BG_X = 120;
+    private static final int INV_PAGE_PLAYER_BG_Y = 356;
+    private static final int PLAYER_BG_TEX_W = 128;
+    private static final int PLAYER_BG_TEX_H = 192;
+    private static final int INV_PAGE_PLAYER_NAME_Y = 556;
+
+    // --- Right info panel (lower-right, text centered at this X) ---
+    private static final int INV_PAGE_INFO_CENTER_X = 576;
+    private static final int INV_PAGE_INFO_Y0 = 364;     // Farm name
+    private static final int INV_PAGE_INFO_Y1 = 428;     // Current funds
+    private static final int INV_PAGE_INFO_Y2 = 492;     // Season / day
+
+    // SDV text color: new Color(86, 22, 12)
+    private static final int SDV_TEXT_COLOR = 0xFF56160C;
+    private static final int SDV_TEXT_SHADOW = 0xFF2D0B06;
+    private static final int SDV_TEXT_COLOR_DIM = 0xFF45120A; // textColor * 0.8
+
+    // Day/night player backgrounds (extracted from SDV LooseSprites)
+    private static final ResourceLocation DAYBG =
+            ResourceLocation.fromNamespaceAndPath("stardewcraft", "textures/gui/daybg.png");
+    private static final ResourceLocation NIGHTBG =
+            ResourceLocation.fromNamespaceAndPath("stardewcraft", "textures/gui/nightbg.png");
+
+    // Organize button (cursors.png UV)
+    private static final int ORGANIZE_U = 162;
+    private static final int ORGANIZE_V = 440;
+    private static final int ORGANIZE_ICON_SIZE = 16;
+
+    // ────────────────────────────────────────────────────────────────
+
+    private void drawInventoryPage(GuiGraphics graphics, int mouseX, int mouseY) {
+        Minecraft mc = this.minecraft;
+        if (mc == null || mc.player == null) return;
+
+        // ── 1. Inventory grid (top section, SDV-like) ──
+        drawInvPageGrid(graphics, mouseX, mouseY);
+
+        // ── 2. Horizontal partition (SDV: drawHorizontalPartition) ──
+        StardewGuiUtil.drawHorizontalPartition(graphics, menuX, menuY + ui(INV_PAGE_PARTITION_Y),
+                menuWidth, mapping.s4());
+
+        // ── 3. Equipment slots (lower-left, SDV placeholder icons) ──
+        String leftRingId = ClientPlayerDataCache.getEquippedLeftRing();
+        String rightRingId = ClientPlayerDataCache.getEquippedRightRing();
+        String bootsId = ClientPlayerDataCache.getEquippedBoots();
+        drawInvEquipSlot(graphics, 0, leftRingId, mouseX, mouseY);
+        drawInvEquipSlot(graphics, 1, rightRingId, mouseX, mouseY);
+        drawInvEquipSlot(graphics, 2, bootsId, mouseX, mouseY);
+
+        // ── 4. Player model with day/night background ──
+        drawPlayerModelArea(graphics, mouseX, mouseY);
+
+        // ── 5. Right info panel (farm name / money / date) ──
+        drawInfoPanel(graphics);
+
+        // ── 6. Organize button (SDV: organizeButton) ──
+        drawOrganizeButton(graphics, mouseX, mouseY);
+
+        // ── 7. Trash can ──
+        drawTrashCan(graphics, mouseX, mouseY);
+    }
+
+    // ------------- Inventory grid (top section) -------------
+
+    private void drawInvPageGrid(GuiGraphics graphics, int mouseX, int mouseY) {
+        Minecraft mc = this.minecraft;
+        if (mc == null || mc.player == null) return;
+
+        // 3 main rows (MC slots 9-35)
+        for (int row = 0; row < 3; row++) {
+            int rowY = menuY + ui(INV_PAGE_ROW0_Y + row * INV_PAGE_ROW_STEP);
+            for (int col = 0; col < INVENTORY_COLS; col++) {
+                int invIndex = col + row * 9 + 9;
+                int x = invPageSlotX(col);
+                boolean hovered = mouseX >= x && mouseX < x + ui(INVENTORY_SLOT_SDV)
+                        && mouseY >= rowY && mouseY < rowY + ui(INVENTORY_SLOT_SDV);
+                drawInventorySlot(graphics, x, rowY,
+                        mc.player.getInventory().getItem(invIndex), hovered);
+            }
+        }
+
+        // Hotbar row (MC slots 0-8, with extra gap — matches SDV's separated toolbar)
+        int hotbarY = menuY + ui(INV_PAGE_HOTBAR_Y);
+        for (int col = 0; col < INVENTORY_COLS; col++) {
+            int x = invPageSlotX(col);
+            boolean hovered = mouseX >= x && mouseX < x + ui(INVENTORY_SLOT_SDV)
+                    && mouseY >= hotbarY && mouseY < hotbarY + ui(INVENTORY_SLOT_SDV);
+            drawInventorySlot(graphics, x, hotbarY,
+                    mc.player.getInventory().getItem(col), hovered);
+        }
+    }
+
+    private int invPageSlotX(int col) {
+        int startX = menuX + (menuWidth - inventoryGridWidth()) / 2;
+        return startX + col * ui(INVENTORY_SLOT_SDV + INVENTORY_GAP_SDV);
+    }
+
+    private int invPageHoveredSlot(double mouseX, double mouseY) {
+        for (int row = 0; row < 3; row++) {
+            int rowY = menuY + ui(INV_PAGE_ROW0_Y + row * INV_PAGE_ROW_STEP);
+            for (int col = 0; col < INVENTORY_COLS; col++) {
+                int x = invPageSlotX(col);
+                if (mouseX >= x && mouseX < x + ui(INVENTORY_SLOT_SDV)
+                        && mouseY >= rowY && mouseY < rowY + ui(INVENTORY_SLOT_SDV)) {
+                    return col + row * 9 + 9;
+                }
+            }
+        }
+        int hotbarY = menuY + ui(INV_PAGE_HOTBAR_Y);
+        for (int col = 0; col < INVENTORY_COLS; col++) {
+            int x = invPageSlotX(col);
+            if (mouseX >= x && mouseX < x + ui(INVENTORY_SLOT_SDV)
+                    && mouseY >= hotbarY && mouseY < hotbarY + ui(INVENTORY_SLOT_SDV)) {
+                return col;
+            }
+        }
+        return -1;
+    }
+
+    // ------------- Equipment slots (lower-left) -------------
+
+    private int invEquipSlotY(int index) {
+        return menuY + ui(index == 0 ? INV_PAGE_EQUIP_Y0
+                : index == 1 ? INV_PAGE_EQUIP_Y1 : INV_PAGE_EQUIP_Y2);
+    }
+
+    private void drawInvEquipSlot(GuiGraphics graphics, int index, String itemId,
+                                   int mouseX, int mouseY) {
+        int x = menuX + ui(INV_PAGE_EQUIP_X);
+        int y = invEquipSlotY(index);
+        int size = ui(INV_PAGE_EQUIP_SIZE);
+        boolean hasItem = !itemId.isEmpty();
+        boolean hovered = mouseX >= x && mouseX < x + size
+                && mouseY >= y && mouseY < y + size;
+
+        if (hasItem) {
+            // SDV: filled slot uses tile 10 + item drawn on top
+            StardewGuiUtil.drawMenuTileIndex(graphics, x, y, size, size, 10);
+            ResourceLocation rl = ResourceLocation.tryParse(itemId);
+            if (rl != null) {
+                Item item = BuiltInRegistries.ITEM.get(rl);
+                ItemStack stack = new ItemStack(item);
+                if (!stack.isEmpty()) {
+                    int mcSize = 16;
+                    int ox = (size - mcSize) / 2;
+                    int oy = (size - mcSize) / 2;
+                    graphics.renderItem(stack, x + ox, y + oy);
+                }
+            }
+        } else {
+            // SDV: empty ring → tile 41, empty boots → tile 40
+            int placeholderTile = (index <= 1) ? EMPTY_RING_TILE : EMPTY_BOOTS_TILE;
+            StardewGuiUtil.drawMenuTileIndex(graphics, x, y, size, size, placeholderTile);
+        }
+
+        if (hovered) {
+            graphics.pose().pushPose();
+            graphics.pose().translate(0, 0, 100);
+            graphics.fill(x, y, x + size, y + size, 0x35FFFFFF);
+            graphics.pose().popPose();
+        }
+    }
+
+    private int invPageHoveredEquip(double mouseX, double mouseY) {
+        int size = ui(INV_PAGE_EQUIP_SIZE);
+        int x = menuX + ui(INV_PAGE_EQUIP_X);
+        for (int i = 0; i < 3; i++) {
+            int y = invEquipSlotY(i);
+            if (mouseX >= x && mouseX < x + size && mouseY >= y && mouseY < y + size) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    // ------------- Player model area (lower-center) -------------
+
+    private void drawPlayerModelArea(GuiGraphics graphics, int mouseX, int mouseY) {
+        Minecraft mc = this.minecraft;
+        if (mc == null || mc.player == null) return;
+
+        int bgX = menuX + ui(INV_PAGE_PLAYER_BG_X);
+        int bgY = menuY + ui(INV_PAGE_PLAYER_BG_Y);
+        int bgW = ui(PLAYER_BG_TEX_W);
+        int bgH = ui(PLAYER_BG_TEX_H);
+
+        // SDV: Game1.timeOfDay >= 1900 → nightbg, else daybg
+        long dayTime = mc.level != null ? mc.level.getDayTime() % 24000 : 0;
+        boolean isNight = dayTime >= 13000;
+        ResourceLocation bgTex = isNight ? NIGHTBG : DAYBG;
+        graphics.blit(bgTex, bgX, bgY, 0, 0, bgW, bgH, bgW, bgH);
+
+        // Render MC player entity inside the background frame
+        int margin = ui(8);
+        net.minecraft.client.gui.screens.inventory.InventoryScreen
+                .renderEntityInInventoryFollowsMouse(
+                        graphics,
+                        bgX + margin, bgY + margin,
+                        bgX + bgW - margin, bgY + bgH - margin,
+                        ui(30), 0.0625F,
+                        (float) mouseX, (float) mouseY,
+                        mc.player
+                );
+
+        // SDV: player name centered below
+        String playerName = mc.player.getName().getString();
+        int nameW = this.font.width(playerName);
+        int nameX = bgX + (bgW - nameW) / 2;
+        int nameY = menuY + ui(INV_PAGE_PLAYER_NAME_Y);
+        graphics.drawString(this.font, playerName, nameX, nameY, SDV_TEXT_COLOR, true);
+    }
+
+    // ------------- Right info panel (lower-right) -------------
+
+    private void drawInfoPanel(GuiGraphics graphics) {
+        Minecraft mc = this.minecraft;
+        if (mc == null || mc.player == null) return;
+
+        int centerX = menuX + ui(INV_PAGE_INFO_CENTER_X);
+
+        // SDV: "{farmName} Farm" — we use player name + "Farm"
+        String farmName = net.minecraft.client.resources.language.I18n.get(
+                "stardewcraft.game_menu.inventory.farm_name", mc.player.getName().getString());
+        drawCenteredShadowText(graphics, farmName, centerX,
+                menuY + ui(INV_PAGE_INFO_Y0), SDV_TEXT_COLOR);
+
+        // SDV: "Current Funds: {amount}g"
+        int money = ClientPlayerDataCache.getMoney();
+        String fundsStr = net.minecraft.client.resources.language.I18n.get(
+                "stardewcraft.game_menu.inventory.current_funds",
+                String.format("%,d", money));
+        drawCenteredShadowText(graphics, fundsStr, centerX,
+                menuY + ui(INV_PAGE_INFO_Y1), SDV_TEXT_COLOR);
+
+        // SDV: date string (season + day)
+        com.stardew.craft.time.StardewTimeManager time =
+                com.stardew.craft.client.hud.StardewTimeHud.getClientTimeCache();
+        String dateStr = net.minecraft.client.resources.language.I18n.get(
+                "stardewcraft.game_menu.inventory.date",
+                time.getSeasonName(), time.getCurrentDay(), time.getCurrentYear());
+        drawCenteredShadowText(graphics, dateStr, centerX,
+                menuY + ui(INV_PAGE_INFO_Y2), SDV_TEXT_COLOR_DIM);
+    }
+
+    /** Centered text with MC's built-in shadow (cleaner than manual offset). */
+    private void drawCenteredShadowText(GuiGraphics graphics, String text,
+                                         int centerX, int y, int color) {
+        int w = this.font.width(text);
+        int x = centerX - w / 2;
+        graphics.drawString(this.font, text, x, y, color, true);
+    }
+
+    // ------------- Organize button -------------
+
+    private int organizeButtonX() {
+        return menuX + menuWidth;
+    }
+
+    private int organizeButtonY() {
+        return menuY + ui(INV_PAGE_PARTITION_Y) + ui(20);
+    }
+
+    private void drawOrganizeButton(GuiGraphics graphics, int mouseX, int mouseY) {
+        int x = organizeButtonX();
+        int y = organizeButtonY();
+        // SDV: ClickableTextureComponent draws at scale 4, icon 16×16
+        StardewGuiUtil.drawFromCursors(graphics, x, y,
+                ORGANIZE_U, ORGANIZE_V, ORGANIZE_ICON_SIZE, ORGANIZE_ICON_SIZE,
+                mapping.s4());
+    }
+
+    private boolean organizeButtonContains(double mouseX, double mouseY) {
+        int x = organizeButtonX();
+        int y = organizeButtonY();
+        int size = ui(64); // 16 * 4 = 64 SDV pixels
+        return mouseX >= x && mouseX < x + size && mouseY >= y && mouseY < y + size;
+    }
+
+    // ------------- Inventory Page Tooltips -------------
+
+    private void drawInventoryPageTooltips(GuiGraphics graphics, int mouseX, int mouseY) {
+        // Equipment slot tooltips
+        int equipSlot = invPageHoveredEquip(mouseX, mouseY);
+        if (equipSlot >= 0) {
+            String itemId = switch (equipSlot) {
+                case 0 -> ClientPlayerDataCache.getEquippedLeftRing();
+                case 1 -> ClientPlayerDataCache.getEquippedRightRing();
+                case 2 -> ClientPlayerDataCache.getEquippedBoots();
+                default -> "";
+            };
+            if (!itemId.isEmpty()) {
+                ResourceLocation rl = ResourceLocation.tryParse(itemId);
+                if (rl != null) {
+                    Item item = BuiltInRegistries.ITEM.get(rl);
+                    ItemStack stack = new ItemStack(item);
+                    if (!stack.isEmpty()) {
+                        graphics.renderTooltip(this.font, stack, mouseX, mouseY);
+                        return;
+                    }
+                }
+            }
+            Component label = switch (equipSlot) {
+                case 0 -> Component.translatable("stardewcraft.equipment.slot.left_ring");
+                case 1 -> Component.translatable("stardewcraft.equipment.slot.right_ring");
+                case 2 -> Component.translatable("stardewcraft.equipment.slot.boots");
+                default -> Component.empty();
+            };
+            graphics.renderTooltip(this.font, label, mouseX, mouseY);
+            return;
+        }
+
+        // Inventory item tooltips (use invPage positions)
+        int invSlot = invPageHoveredSlot(mouseX, mouseY);
+        if (invSlot >= 0 && this.minecraft != null && this.minecraft.player != null) {
+            ItemStack stack = this.minecraft.player.getInventory().getItem(invSlot);
+            if (!stack.isEmpty()) {
+                graphics.renderTooltip(this.font, stack, mouseX, mouseY);
+                return;
+            }
+        }
+
+        // Organize button tooltip
+        if (organizeButtonContains(mouseX, mouseY)) {
+            graphics.renderTooltip(this.font,
+                    Component.translatable("stardewcraft.game_menu.inventory.organize"),
+                    mouseX, mouseY);
+            return;
+        }
+
+        // Trash can tooltip
+        if (trashCanContains(mouseX, mouseY)) {
+            ItemStack carried = currentCarriedItem();
+            if (!carried.isEmpty()) {
+                List<Component> lines = new ArrayList<>();
+                lines.add(Component.translatable("stardewcraft.game_menu.crafting.trash_can").withStyle(ChatFormatting.WHITE));
+                lines.add(carried.getHoverName().copy().withStyle(ChatFormatting.GRAY));
+                graphics.renderTooltip(this.font, lines, java.util.Optional.empty(), mouseX, mouseY);
+                return;
+            }
+            graphics.renderTooltip(this.font,
+                    Component.translatable("stardewcraft.game_menu.crafting.trash_can"),
+                    mouseX, mouseY);
+        }
     }
 
     private void drawSocialPage(GuiGraphics graphics, int mouseX, int mouseY) {
@@ -1152,7 +1970,7 @@ public class StardewGameMenuScreen extends Screen {
         }
 
         List<RecipeCell> currentPage = new ArrayList<>();
-        int capacity = 30;
+        int capacity = 40;
         int currentCount = 0;
 
         for (int recipeIndex = 0; recipeIndex < craftingRecipeIds.size(); recipeIndex++) {
@@ -1253,17 +2071,11 @@ public class StardewGameMenuScreen extends Screen {
     }
 
     private void drawCraftingPage(GuiGraphics graphics, int mouseX, int mouseY) {
-        StardewGuiUtil.drawHorizontalPartition(graphics, menuX, menuY + ui(312), menuWidth, ui(64));
+        StardewGuiUtil.drawHorizontalPartition(graphics, menuX, menuY + ui(400), menuWidth, mapping.s4());
 
         drawPlayerInventory(graphics, mouseX, mouseY);
         drawTrashCan(graphics, mouseX, mouseY);
         drawRecipeGrid(graphics, mouseX, mouseY);
-
-        if (this.showcaseAlpha > 0.01f && this.currentFocusIndex >= 0 && this.currentFocusIndex < craftingRecipeIds.size()) {
-            int px = menuX - ui(260);
-            int py = menuY + ui(32);
-            drawElegantShowcase(graphics, px, py, currentFocusIndex);
-        }
     }
 
     private void drawRecipeGrid(GuiGraphics graphics, int mouseX, int mouseY) {
@@ -1505,7 +2317,7 @@ public class StardewGameMenuScreen extends Screen {
     }
 
     private int pageDownButtonY() {
-        return craftingGridY() + ui(224);
+        return craftingGridY() + ui(280);
     }
 
     private int craftingGridX() {
@@ -1613,7 +2425,8 @@ public class StardewGameMenuScreen extends Screen {
     }
 
     private List<Ingredient> getRecipeIngredients(String recipePath) {
-        return StardewCraftingRecipeData.toExpandedIngredients(recipePath);
+        return StardewCraftingRecipeData.toExpandedIngredients(recipePath,
+            ClientPlayerDataCache.hasProfession(ProfessionType.TRAPPER));
     }
 
     private List<RecipeRequirement> getRecipeRequirements(String recipePath) {
@@ -1737,19 +2550,10 @@ public class StardewGameMenuScreen extends Screen {
 
             ItemStack output = craftingRecipeStacks.get(hoveredCraftingIndex);
             List<RecipeRequirement> requirements = getRecipeRequirements(recipeId);
+
+            // Build tooltip lines using MC's native renderTooltip
             List<Component> lines = new ArrayList<>();
-            lines.add(Component.literal("需要").withStyle(ChatFormatting.GOLD));
-            for (RecipeRequirement requirement : requirements) {
-                int have = countMatchingClient(requirement.ingredient());
-                int need = requirement.need();
-                ChatFormatting countColor = have >= need ? ChatFormatting.GREEN : ChatFormatting.RED;
-                Component line = Component.literal((have >= need ? "✔   " : "✖   "))
-                        .append(Component.literal("   ")) // Extra space for icon
-                        .append(requirement.icon().getHoverName().copy().withStyle(ChatFormatting.GRAY))
-                        .append(Component.literal(" x" + need).withStyle(countColor));
-                lines.add(line);
-            }
-            lines.add(Component.literal(" "));
+            // Item tooltip lines (name, category, description, etc.)
             if (this.minecraft != null && this.minecraft.player != null) {
                 Item.TooltipContext context = Item.TooltipContext.of(this.minecraft.level);
                 TooltipFlag flag = this.minecraft.options.advancedItemTooltips ? TooltipFlag.ADVANCED : TooltipFlag.NORMAL;
@@ -1757,41 +2561,93 @@ public class StardewGameMenuScreen extends Screen {
             } else {
                 lines.add(output.getHoverName().copy());
             }
+            // Separator + Ingredients section
+            lines.add(Component.empty());
+            lines.add(Component.literal("原料:").withStyle(ChatFormatting.GOLD));
+            int ingredientStartLine = lines.size();
+            for (RecipeRequirement requirement : requirements) {
+                int have = countMatchingClient(requirement.ingredient());
+                int need = requirement.need();
+                boolean enough = have >= need;
+                ChatFormatting color = enough ? ChatFormatting.WHITE : ChatFormatting.RED;
+                // "  " prefix = space for icon overlay (about 10px)
+                Component line = Component.literal("  ")
+                        .append(Component.literal(" " + need + "× ").withStyle(color))
+                        .append(requirement.icon().getHoverName().copy().withStyle(color));
+                lines.add(line);
+            }
+
+            // Render tooltip using MC's native method
             graphics.renderTooltip(this.font, lines, java.util.Optional.empty(), mouseX, mouseY);
 
-            // Now draw the icons on top!
-            // Tooltip box calculation based on DefaultTooltipPositioner:
-            int boxX = mouseX + 12;
-            int boxY = mouseY - 12;
+            // --- Overlay ingredient icons ---
+            // MC tooltip positioning: starts at (mouseX+12, mouseY-12), then clamped
             int tooltipWidth = 0;
             for (Component line : lines) {
                 int w = this.font.width(line);
                 if (w > tooltipWidth) tooltipWidth = w;
             }
-            int tooltipHeight = lines.size() * 10;
-            if (boxX + tooltipWidth > this.width) {
-                boxX = mouseX - 16 - tooltipWidth;
+            // MC adds 4px padding on each side inside the tooltip
+            int frameWidth = tooltipWidth + 8;
+            // Height: first line is 10px tall (lineH + 2px gap), rest are lineH(9) each.
+            // But empty lines are only 2px + lineH. MC uses: if line index == 0, height += 2 extra.
+            // Actually MC tooltip: first line adds (lineH+2), subsequent lines add lineH each,
+            // except if a line is empty it adds lineH/2 instead.
+            int tooltipHeight = 8; // top+bottom padding
+            for (int i = 0; i < lines.size(); i++) {
+                if (i == 0) {
+                    tooltipHeight += this.font.lineHeight + 2;
+                } else if (lines.get(i).getString().isEmpty()) {
+                    tooltipHeight += this.font.lineHeight / 2;
+                } else {
+                    tooltipHeight += this.font.lineHeight + 1;
+                }
             }
-            if (boxY + tooltipHeight + 24 > this.height) {
-                boxY = this.height - tooltipHeight - 24;
+
+            int boxX = mouseX + 12;
+            int boxY = mouseY - 12;
+            // MC clamping logic
+            if (boxX + frameWidth > this.width) {
+                boxX -= 28 + frameWidth;
             }
-            if (boxY < 0) {
-                boxY = 0;
+            if (boxY + tooltipHeight + 6 > this.height) {
+                boxY = this.height - tooltipHeight - 6;
             }
-            
+            if (boxY < 4) {
+                boxY = 4;
+            }
+
+            // Calculate text start position (4px padding inside box)
+            int textX = boxX + 4;
+            int textY = boxY + 4;
+            // Advance past rendered lines to reach ingredient lines
+            for (int i = 0; i < ingredientStartLine; i++) {
+                if (i == 0) {
+                    textY += this.font.lineHeight + 2;
+                } else if (lines.get(i).getString().isEmpty()) {
+                    textY += this.font.lineHeight / 2;
+                } else {
+                    textY += this.font.lineHeight + 1;
+                }
+            }
+
+            // Draw icons at each ingredient line
             for (int i = 0; i < requirements.size(); i++) {
                 RecipeRequirement req = requirements.get(i);
-                float s = 0.65f; // Similar height to text
-                int iconW = Math.round(16 * s);
-                int iconX = boxX + this.font.width("✔ ");
-                int iconY = boxY + 10 * (i + 1) + (10 - iconW) / 2 - 1; // Center with the line
+                int lineY = textY;
+                // Advance for previous ingredient lines
+                for (int j = 0; j < i; j++) {
+                    lineY += this.font.lineHeight + 1;
+                }
+                float s = 0.5f; // 16*0.5=8px, fits in line height of 9
+                int iconDrawY = lineY + (this.font.lineHeight - 8) / 2;
                 graphics.pose().pushPose();
-                graphics.pose().translate(iconX, iconY, 800.0f);
+                graphics.pose().translate(textX, iconDrawY, 400.0f);
                 graphics.pose().scale(s, s, 1.0f);
                 graphics.renderItem(req.icon(), 0, 0);
                 graphics.pose().popPose();
             }
-            
+
             return;
         }
 
@@ -1909,6 +2765,41 @@ public class StardewGameMenuScreen extends Screen {
                 }
             }
 
+            if (currentTab == 0) {
+                // Equipment slot click
+                int equipSlot = invPageHoveredEquip(mouseX, mouseY);
+                if (equipSlot >= 0) {
+                    PacketDistributor.sendToServer(new com.stardew.craft.network.payload.EquipmentActionPayload(equipSlot));
+                    playUiSound(ModSounds.SMALL_SELECT.get(), 1.0f, 1.0f);
+                    return true;
+                }
+                // Inventory slot click
+                int invSlot = invPageHoveredSlot(mouseX, mouseY);
+                if (invSlot >= 0) {
+                    submitInventoryClickRequest(invSlot, false);
+                    playUiSound(ModSounds.SMALL_SELECT.get(), 1.0f, 1.0f);
+                    return true;
+                }
+                // Organize button
+                if (organizeButtonContains(mouseX, mouseY)) {
+                    // SDV: ItemGrabMenu.organizeItemsInList
+                    playUiSound(ModSounds.SHIP.get(), 1.0f, 1.0f);
+                    return true;
+                }
+                // Trash can click
+                if (trashCanContains(mouseX, mouseY) && hasCarriedItem()) {
+                    submitTrashCarriedRequest();
+                    playUiSound(ModSounds.THROW_DOWN_ITEM.get(), 1.0f, 1.0f);
+                    return true;
+                }
+                // Drop outside
+                if (!pointInsideMainMenu(mouseX, mouseY) && hasCarriedItem()) {
+                    submitDropCarriedRequest();
+                    playUiSound(ModSounds.THROW_DOWN_ITEM.get(), 1.0f, 1.0f);
+                    return true;
+                }
+            }
+
             if (currentTab == 4) {
                 int invSlot = hoveredInventorySlot(mouseX, mouseY);
                 if (invSlot >= 0) {
@@ -1958,6 +2849,15 @@ public class StardewGameMenuScreen extends Screen {
                     submitCraftRequest(vanillaLikeCraftAmountOnLeftClick());
                     playUiSound(ModSounds.COIN.get(), 1.0f, 1.0f);
                 }
+                return true;
+            }
+        }
+
+        if (button == 1 && currentTab == 0) {
+            int invSlot = invPageHoveredSlot(mouseX, mouseY);
+            if (invSlot >= 0) {
+                submitInventoryClickRequest(invSlot, true);
+                playUiSound(ModSounds.SMALL_SELECT.get(), 1.0f, 1.0f);
                 return true;
             }
         }

@@ -1,0 +1,15 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:wild_oak_sapling0",
+    "stardewcraft:wild_oak_sapling1",
+    "stardewcraft:wild_maple_sapling0",
+    "stardewcraft:wild_maple_sapling1",
+    "stardewcraft:wild_pine_sapling0",
+    "stardewcraft:wild_pine_sapling1",
+    "stardewcraft:wild_mahogany_sapling0",
+    "stardewcraft:wild_mahogany_sapling1",
+    "stardewcraft:wild_mystic_tree_sapling0",
+    "stardewcraft:wild_mystic_tree_sapling1"
+  ]
+}

@@ -268,8 +268,9 @@ public class TVScreen extends Screen {
 
     private Component getFortuneForecast() {
         double luck = data.dailyLuck();
-        if (luck == -0.12) {
-            return Component.translatable("stardewcraft.tv.fortune.worst");
+        // Original TV.cs: DailyLuck == 0.0 has its own special text (13201), overrides all
+        if (luck == 0.0) {
+            return Component.translatable("stardewcraft.tv.fortune.zero");
         } else if (luck < -0.07) {
             return Component.translatable("stardewcraft.tv.fortune.bad_2");
         } else if (luck < -0.02) {
@@ -282,7 +283,7 @@ public class TVScreen extends Screen {
             else return Component.translatable("stardewcraft.tv.fortune.neutral_3");
         } else if (luck < 0.07) {
             return Component.translatable("stardewcraft.tv.fortune.good_1");
-        } else if (luck < 0.12) {
+        } else if (luck >= 0.07) {
             return Component.translatable("stardewcraft.tv.fortune.good_2");
         } else {
             return Component.translatable("stardewcraft.tv.fortune.best");

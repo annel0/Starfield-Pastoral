@@ -73,10 +73,15 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 	private static final int EMOTE_STABLE_FRAME_COUNT = 4;
 	private static final int EMOTE_FADE_TICKS = 4;
 	private static final int EMOTE_TOTAL_TICKS = EMOTE_POP_IN_TICKS + EMOTE_STABLE_FRAME_COUNT * EMOTE_FRAME_HOLD_TICKS + EMOTE_FADE_TICKS;
-	private static final int RETURN_HOME_TIMEOUT_TICKS = 220;
-	private static final int LEAVE_HOME_TIMEOUT_TICKS = 160;
-	private static final int RETURN_HOME_STUCK_TICKS = 80;
-	private static final int LEAVE_HOME_STUCK_TICKS = 70;
+	private static final int RETURN_HOME_TIMEOUT_TICKS = 160;
+	private static final int LEAVE_HOME_TIMEOUT_TICKS = 120;
+	private static final int RETURN_HOME_STUCK_TICKS = 50;
+	private static final int LEAVE_HOME_STUCK_TICKS = 45;
+	private static final int DOOR_PUSH_STUCK_TICKS = 25;
+	private static final double DOOR_PUSH_RANGE_SQR = 4.0D;
+	private static final double DOOR_PUSH_SPEED = 0.18D;
+	private static final int STAGGER_LEAVE_RANGE_MINUTES = 80;
+	private static final int STAGGER_RETURN_RANGE_MINUTES = 60;
 	private static final int MINUTES_0600 = 6 * 60;
 	private static final int MINUTES_1700 = 17 * 60;
 	private static final int MINUTES_2000 = 20 * 60;
@@ -629,6 +634,7 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 	private final class ReturnHomeAtEveningGoal extends Goal {
 		private AnimalBuildingRecord homeBuilding;
 		private BlockPos targetInside;
+		private BlockPos doorPos;
 		private int timeoutTicks;
 		private int stuckTicks;
 		private int repathCooldown;
@@ -644,7 +650,8 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 				return false;
 			}
 			int currentMinutes = StardewTimeManager.get().getCurrentTime();
-			if (currentMinutes < MINUTES_1700) {
+			int staggerDelay = (int) (Math.abs(BaseCoopAnimalEntity.this.managedAnimalId % 8) * (STAGGER_RETURN_RANGE_MINUTES / 8.0));
+			if (currentMinutes < MINUTES_1700 + staggerDelay) {
 				return false;
 			}
 
@@ -659,6 +666,7 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 
 			DoorTarget doorTarget = resolveNearestDoorTarget(homeBuilding, true);
 			targetInside = doorTarget != null ? doorTarget.insidePos() : findSafeInteriorPosition(homeBuilding, homeBuilding.managerPos().above());
+			doorPos = doorTarget != null ? doorTarget.doorPos() : null;
 			if (targetInside == null) {
 				BaseCoopAnimalEntity.this.logAiDiag("return.canUse.blocked", "no_inside_target");
 				return false;
@@ -740,6 +748,8 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 				BaseCoopAnimalEntity.this.logAiDiagNow("return.tick", "fallback: stuck timeoutTicks=" + timeoutTicks + " stuckTicks=" + stuckTicks);
 				forceMoveInsideHome(homeBuilding);
 				timeoutTicks = 0;
+			} else if (stuckTicks >= DOOR_PUSH_STUCK_TICKS && doorPos != null) {
+				pushThroughDoor(doorPos, targetInside);
 			}
 		}
 
@@ -748,6 +758,7 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 			BaseCoopAnimalEntity.this.getNavigation().stop();
 			homeBuilding = null;
 			targetInside = null;
+			doorPos = null;
 			timeoutTicks = 0;
 			stuckTicks = 0;
 			repathCooldown = 0;
@@ -758,6 +769,7 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 	private final class LeaveHomeInDayGoal extends Goal {
 		private AnimalBuildingRecord homeBuilding;
 		private BlockPos targetPos;
+		private BlockPos doorPos;
 		private int timeoutTicks;
 		private int stuckTicks;
 		private int repathCooldown;
@@ -773,7 +785,8 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 				return false;
 			}
 			int current = StardewTimeManager.get().getCurrentTime();
-			if (current < MINUTES_0600 || current >= MINUTES_1700) {
+			int staggerDelay = (int) (Math.abs(BaseCoopAnimalEntity.this.managedAnimalId % 8) * (STAGGER_LEAVE_RANGE_MINUTES / 8.0));
+			if (current < MINUTES_0600 + staggerDelay || current >= MINUTES_1700) {
 				return false;
 			}
 
@@ -788,6 +801,7 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 
 			DoorTarget doorTarget = resolveNearestDoorTarget(homeBuilding, true);
 			targetPos = doorTarget != null ? doorTarget.outsidePos() : null;
+			doorPos = doorTarget != null ? doorTarget.doorPos() : null;
 			if (targetPos == null) {
 				logNoOutsideTargetDiagnostics(homeBuilding, doorTarget);
 				BaseCoopAnimalEntity.this.logAiDiag("leave.canUse.blocked", "no_outside_target");
@@ -850,6 +864,8 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 				BaseCoopAnimalEntity.this.logAiDiagNow("leave.tick", "fallback: stuck timeoutTicks=" + timeoutTicks + " stuckTicks=" + stuckTicks);
 				forceMoveOutsideHome(homeBuilding);
 				timeoutTicks = 0;
+			} else if (stuckTicks >= DOOR_PUSH_STUCK_TICKS && doorPos != null && targetPos != null) {
+				pushThroughDoor(doorPos, targetPos);
 			}
 		}
 
@@ -858,6 +874,7 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 			BaseCoopAnimalEntity.this.getNavigation().stop();
 			homeBuilding = null;
 			targetPos = null;
+			doorPos = null;
 			timeoutTicks = 0;
 			stuckTicks = 0;
 			repathCooldown = 0;
@@ -1343,6 +1360,26 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 		return this.level().noCollision(this, movedBox);
 	}
 
+	/**
+	 * When stuck near a door, apply a velocity push toward the target instead of instantly teleporting.
+	 * This creates a smoother visual transition through the doorway.
+	 */
+	private void pushThroughDoor(BlockPos door, BlockPos target) {
+		Vec3 animalPos = this.position();
+		double distToDoorSqr = animalPos.distanceToSqr(door.getX() + 0.5D, animalPos.y, door.getZ() + 0.5D);
+		if (distToDoorSqr > DOOR_PUSH_RANGE_SQR) {
+			return;
+		}
+		double dx = (target.getX() + 0.5D) - animalPos.x;
+		double dz = (target.getZ() + 0.5D) - animalPos.z;
+		double len = Math.sqrt(dx * dx + dz * dz);
+		if (len < 0.01D) {
+			return;
+		}
+		this.setDeltaMovement(dx / len * DOOR_PUSH_SPEED, this.getDeltaMovement().y, dz / len * DOOR_PUSH_SPEED);
+		this.hurtMarked = true;
+	}
+
 	private void forceMoveInsideHome(AnimalBuildingRecord building) {
 		DoorTarget doorTarget = resolveNearestDoorTarget(building, false);
 		BlockPos preferred = doorTarget != null ? doorTarget.insidePos() : building.managerPos().above();
@@ -1583,7 +1620,7 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 				double dist = resolvedInside.distSqr(selfPos);
 				if (dist < bestDist) {
 					bestDist = dist;
-					bestTarget = new DoorTarget(resolvedInside.immutable(), resolvedOutside.immutable());
+					bestTarget = new DoorTarget(resolvedInside.immutable(), resolvedOutside.immutable(), doorPos.immutable());
 				}
 			}
 		}
@@ -1668,7 +1705,7 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 			return null;
 		}
 
-		for (int step = 2; step <= 5; step++) {
+		for (int step = 3; step <= 5; step++) {
 			BlockPos lineBase = doorPos.offset(dx * step, 0, dz * step);
 			for (int lateral = -1; lateral <= 1; lateral++) {
 				int ox = dx == 0 ? lateral : 0;
@@ -1690,6 +1727,6 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 		return null;
 	}
 
-	private record DoorTarget(BlockPos insidePos, BlockPos outsidePos) {
+	private record DoorTarget(BlockPos insidePos, BlockPos outsidePos, BlockPos doorPos) {
 	}
 }

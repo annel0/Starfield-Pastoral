@@ -57,4 +57,9 @@ public final class IridiumNeedleFrenzyTracker {
         ACTIVE.remove(player.getUUID());
         PacketDistributor.sendToPlayer(player, new IridiumNeedleFrenzyPayload(false, 0));
     }
+
+    /** Clean up state when a player logs out to prevent memory leaks. */
+    public static void removePlayer(UUID playerId) {
+        ACTIVE.remove(playerId);
+    }
 }

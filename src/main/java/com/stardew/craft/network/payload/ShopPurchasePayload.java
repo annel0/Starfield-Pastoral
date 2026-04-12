@@ -46,12 +46,26 @@ public record ShopPurchasePayload(
         context.enqueueWork(() -> {
             if (!(context.player() instanceof ServerPlayer player)) return;
 
+            // Special handling for Clint's tool upgrade shop (dynamic, per-player)
+            if (payload.shopId().equals("ClintUpgrade")) {
+                com.stardew.craft.shop.BlacksmithService.handleToolUpgradePurchaseFromShop(
+                    player, payload.itemIndex(), payload.quantity());
+                return;
+            }
+
+            // Special handling for Furniture Catalogue (dynamic item list, all free)
+            if (payload.shopId().equals(com.stardew.craft.block.decor.FurnitureCatalogueBlock.SHOP_ID)) {
+                handleFurnitureCataloguePurchase(player, payload.itemIndex(), payload.quantity());
+                return;
+            }
+
             ShopRegistry.ShopDefinition shop = ShopRegistry.get(payload.shopId());
             if (shop == null) return;
 
-            // Use the same season/year-filtered list that was sent to this client
-            com.stardew.craft.time.StardewTimeManager time = com.stardew.craft.time.StardewTimeManager.get();
-            List<ShopItemEntry> items = shop.getAvailableItems(time.getCurrentSeason(), time.getCurrentYear());
+            // Rebuild the EXACT same filtered list that was sent to this client when the shop opened.
+            // This ensures itemIndex maps to the correct item (recipes/sold-out items are excluded).
+            List<ShopItemEntry> items = ShopRegistry.getFilteredItemsForPlayer(
+                payload.shopId(), shop, player);
             if (payload.itemIndex() < 0 || payload.itemIndex() >= items.size()) return;
 
             ShopItemEntry entry = items.get(payload.itemIndex());
@@ -69,6 +83,35 @@ public record ShopPurchasePayload(
             }
 
             int cost = entry.price() * qty;
+
+            // Recipe purchases: check if already learned BEFORE deducting money
+            if (entry.itemId().startsWith("recipe:")) {
+                String recipeId = com.stardew.craft.shop.SaloonService.extractRecipeId(entry.itemId());
+                com.stardew.craft.player.PlayerStardewData data =
+                    com.stardew.craft.player.PlayerDataManager.getPlayerData(player);
+                if (data.isRecipeUnlocked(recipeId)) {
+                    // Already learned — reject without charging
+                    sendResult(player, false, com.stardew.craft.player.PlayerStardewDataAPI.getMoney(player), "", 0, payload.itemIndex());
+                    return;
+                }
+                // Deduct money
+                if (cost > 0) {
+                    boolean ok = com.stardew.craft.player.PlayerStardewDataAPI.removeMoney(player, cost);
+                    if (!ok) {
+                        sendResult(player, false, com.stardew.craft.player.PlayerStardewDataAPI.getMoney(player), "", 0, payload.itemIndex());
+                        return;
+                    }
+                }
+                // Unlock the recipe
+                data.unlockRecipe(recipeId);
+                com.stardew.craft.player.PlayerDataEventHandler.syncPlayerData(player, data);
+                int newMoneyRecipe = com.stardew.craft.player.PlayerStardewDataAPI.getMoney(player);
+                if (entry.stock() != Integer.MAX_VALUE) {
+                    ShopStockTracker.recordPurchase(player.getUUID(), payload.shopId(), entry.itemId(), qty);
+                }
+                sendResult(player, true, newMoneyRecipe, entry.itemId(), qty, payload.itemIndex());
+                return;
+            }
 
             // Trade-item requirement (SDV stock.TradeItem)
             if (entry.requiresTrade()) {
@@ -164,5 +207,35 @@ public record ShopPurchasePayload(
     private static void sendResult(ServerPlayer player, boolean ok, int money, String itemId, int qty, int idx) {
         net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,
             new com.stardew.craft.network.payload.ShopPurchaseResultPayload(ok, money, itemId, qty, idx));
+    }
+
+    /**
+     * Handles purchases from the Furniture Catalogue.
+     * All items are free and unlimited — just validate the index and send success.
+     */
+    private static void handleFurnitureCataloguePurchase(ServerPlayer player, int itemIndex, int quantity) {
+        List<ShopItemEntry> items = com.stardew.craft.block.decor.FurnitureCatalogueBlock.buildCatalogueItems();
+        if (itemIndex < 0 || itemIndex >= items.size()) return;
+
+        ShopItemEntry entry = items.get(itemIndex);
+        int qty = Math.max(1, quantity);
+        int money = com.stardew.craft.player.PlayerStardewDataAPI.getMoney(player);
+
+        // Validate the item exists in MC registry
+        try {
+            net.minecraft.resources.ResourceLocation rl = net.minecraft.resources.ResourceLocation.parse(entry.itemId());
+            net.minecraft.world.item.Item mcItem =
+                    net.minecraft.core.registries.BuiltInRegistries.ITEM.get(rl);
+            if (mcItem == null || mcItem == net.minecraft.world.item.Items.AIR) {
+                sendResult(player, false, money, "", 0, itemIndex);
+                return;
+            }
+        } catch (Exception e) {
+            sendResult(player, false, money, "", 0, itemIndex);
+            return;
+        }
+
+        // Free purchase — no money deduction, no stock tracking
+        sendResult(player, true, money, entry.itemId(), qty, itemIndex);
     }
 }

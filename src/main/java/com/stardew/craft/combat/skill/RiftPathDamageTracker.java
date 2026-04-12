@@ -144,4 +144,9 @@ public final class RiftPathDamageTracker {
         double z = Math.cos(rad);
         return new Vec3(x, 0.0, z).normalize();
     }
+
+    /** Clean up state when a player logs out to prevent memory leaks. */
+    public static void removePlayer(UUID playerId) {
+        ACTIVE.remove(playerId);
+    }
 }

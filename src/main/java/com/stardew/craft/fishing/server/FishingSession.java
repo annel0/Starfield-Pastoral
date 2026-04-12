@@ -135,7 +135,8 @@ public final class FishingSession {
 			if (e != null) {
 				BlockPos hookPos = e.blockPosition();
 				this.bobberPos = hookPos;
-				boolean inWater = level.getFluidState(hookPos).is(net.minecraft.tags.FluidTags.WATER);
+				boolean inWater = level.getFluidState(hookPos).is(net.minecraft.tags.FluidTags.WATER)
+					|| level.getFluidState(hookPos).is(net.minecraft.tags.FluidTags.LAVA);
 				if (inWater && !hookInWater) {
 					hookInWater = true;
 					this.waterDepth = com.stardew.craft.fishing.server.FishingSessionManager.estimateWaterDepth(level, hookPos, 8);

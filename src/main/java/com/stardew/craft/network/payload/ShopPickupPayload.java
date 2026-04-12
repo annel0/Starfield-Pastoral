@@ -52,6 +52,8 @@ public record ShopPickupPayload(
         context.enqueueWork(() -> {
             if (!(context.player() instanceof ServerPlayer player)) return;
             if (payload.itemId() == null || payload.itemId().isEmpty()) return;
+            // Recipe purchases are handled at purchase time, no pickup needed.
+            if (payload.itemId().startsWith("recipe:")) return;
             int qty = payload.quantity();
             if (qty <= 0) return;
 

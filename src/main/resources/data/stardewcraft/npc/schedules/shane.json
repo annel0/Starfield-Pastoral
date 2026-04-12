@@ -1,0 +1,47 @@
+{
+  "npc_id": "shane",
+  "override_vanilla": true,
+  "_format": "time -> \"location @namedPointId facing [behavior]\"",
+
+  "GreenRain": {
+    "610": "animalshop @shane_animalshop_room 0"
+  },
+
+  "rain": {
+    "900": "animalshop @shane_animalshop_room 3",
+    "1700": "saloon @shane_saloon_drink 3",
+    "2300": "animalshop @shane_animalshop_sleep 2"
+  },
+
+  "Sat": {
+    "700": "animalshop @shane_animalshop_outside 1",
+    "1200": "seedshop @shane_seedshop_browse 0",
+    "1700": "saloon @shane_saloon_drink 3",
+    "2300": "animalshop @shane_animalshop_sleep 2"
+  },
+
+  "Sun": {
+    "700": "animalshop @shane_animalshop_outside 1",
+    "1100": "animalshop @shane_animalshop_chickens 1",
+    "1450": "animalshop @shane_animalshop_room 3",
+    "1800": "saloon @shane_saloon_drink 3",
+    "2400": "animalshop @shane_animalshop_sleep 2"
+  },
+
+  "spring": {
+    "700": "animalshop @shane_animalshop_outside 1",
+    "1700": "saloon @shane_saloon_drink 3",
+    "2300": "animalshop @shane_animalshop_sleep 2"
+  },
+
+  "default": {
+    "900": "animalshop @shane_animalshop_outside 2",
+    "1000": "animalshop @shane_animalshop_outside 1",
+    "1100": "animalshop @shane_animalshop_chickens 1",
+    "1200": "animalshop @shane_animalshop_room 3",
+    "1400": "saloon @shane_saloon_seat 1",
+    "1630": "saloon @shane_saloon_drink 3",
+    "2100": "saloon @shane_saloon_drink 3",
+    "2300": "animalshop @shane_animalshop_sleep 2"
+  }
+}

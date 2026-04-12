@@ -3,6 +3,7 @@ package com.stardew.craft.menu;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModMiningDimensions;
 import com.stardew.craft.mining.MiningCoordinates;
+import com.stardew.craft.mining.MineFloorGenerator;
 import com.stardew.craft.mining.MiningDataManager;
 import com.stardew.craft.mining.MiningPlayerData;
 import net.minecraft.server.level.ServerLevel;
@@ -104,11 +105,18 @@ public class ElevatorMenu extends AbstractContainerMenu {
             return;
         }
 
+        if (targetFloor > 0) {
+            MineFloorGenerator.generateFloor(mineLevel, targetFloor);
+        }
+
         MiningCoordinates.teleportPlayerToFloor(serverPlayer, mineLevel, targetFloor);
 
         if (playerData != null) {
             playerData.setCurrentFloor(targetFloor);
             MiningDataManager.savePlayerData(serverPlayer, playerData);
+
+            // 触发矿井层数到达事件（任务系统）
+            com.stardew.craft.quest.StardewQuestEvents.fireMineFloorReached(serverPlayer, targetFloor);
         }
 
         serverPlayer.closeContainer();

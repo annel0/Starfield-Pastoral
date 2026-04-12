@@ -43,6 +43,13 @@ public final class ModKeyMappings {
             CATEGORY
     );
 
+    public static final KeyMapping QUEST_LOG = new KeyMapping(
+            "key.stardewcraft.quest_log",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_U,
+            CATEGORY
+    );
+
     private ModKeyMappings() {}
 
     @SuppressWarnings("null")
@@ -52,5 +59,6 @@ public final class ModKeyMappings {
         event.register(SKILL_MAJOR);
         event.register(EMOTE_WHEEL);
         event.register(GAME_MENU);
+        event.register(QUEST_LOG);
     }
 }

@@ -1,0 +1,29 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:tapper",
+    "stardewcraft:keg",
+    "stardewcraft:preserves_jar",
+    "stardewcraft:dehydrator",
+    "stardewcraft:fish_smoker",
+    "stardewcraft:recycling_machine",
+    "stardewcraft:crystalarium",
+    "stardewcraft:seed_maker",
+    "stardewcraft:furnace",
+    "stardewcraft:charcoal_kiln",
+    "stardewcraft:lightning_rod",
+    "stardewcraft:solar_panel",
+    "stardewcraft:cask",
+    "stardewcraft:cheese_press",
+    "stardewcraft:mayonnaise_machine",
+    "stardewcraft:incubator",
+    "stardewcraft:oil_maker",
+    "stardewcraft:loom",
+    "stardewcraft:worm_bin",
+    "stardewcraft:deluxe_worm_bin",
+    "stardewcraft:bee_house",
+    "stardewcraft:auto_grabber",
+    "stardewcraft:auto_petter",
+    "stardewcraft:hay_hopper"
+  ]
+}

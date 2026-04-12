@@ -53,4 +53,9 @@ public final class IridiumNeedleCritTracker {
         ServerPlayer target = Objects.requireNonNull(player, "player");
         PacketDistributor.sendToPlayer(target, new IridiumNeedleCritPayload(stacks));
     }
+
+    /** Clean up state when a player logs out to prevent memory leaks. */
+    public static void removePlayer(UUID playerId) {
+        STACKS.remove(playerId);
+    }
 }

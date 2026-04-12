@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/common/fish_shop_counter",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/fish_shop_counter"
+	}
+}

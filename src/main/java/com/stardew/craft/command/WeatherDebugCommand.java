@@ -7,8 +7,12 @@ import com.stardew.craft.time.StardewTimeManager;
 import com.stardew.craft.weather.WeatherManager;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.levelgen.Heightmap;
 
 /**
  * 天气调试命令
@@ -51,6 +55,11 @@ public class WeatherDebugCommand {
                 // 显示帮助
                 .then(Commands.literal("help")
                     .executes(WeatherDebugCommand::showHelp)
+                )
+                
+                // MC层面诊断（雨粒子/heightmap/biome）
+                .then(Commands.literal("diagnose")
+                    .executes(WeatherDebugCommand::diagnoseRain)
                 )
         );
     }
@@ -195,6 +204,69 @@ public class WeatherDebugCommand {
     }
     
     /**
+     * MC层面的雨渲染诊断：显示 rainLevel、heightmap、biome、isRainingAt 等
+     */
+    @SuppressWarnings("null")
+    private static int diagnoseRain(CommandContext<CommandSourceStack> context) {
+        ServerLevel level = context.getSource().getLevel();
+        ServerPlayer player = context.getSource().getPlayer();
+        if (player == null) {
+            context.getSource().sendFailure(Component.literal("§c此命令需要玩家执行"));
+            return 0;
+        }
+
+        BlockPos playerPos = player.blockPosition();
+        int hmMotionBlocking = level.getHeight(Heightmap.Types.MOTION_BLOCKING, playerPos.getX(), playerPos.getZ());
+        int hmWorldSurface = level.getHeight(Heightmap.Types.WORLD_SURFACE, playerPos.getX(), playerPos.getZ());
+        boolean canSeeSky = level.canSeeSky(playerPos);
+        boolean isRaining = level.isRaining();
+        boolean isRainingAtPlayer = level.isRainingAt(playerPos);
+        boolean isRainingAtAbove = level.isRainingAt(playerPos.above());
+        float rainLevel = level.getRainLevel(0f);
+        float thunderLevel = level.getThunderLevel(0f);
+
+        var biomeHolder = level.getBiome(playerPos);
+        String biomeName = biomeHolder.unwrapKey()
+                .map(k -> k.location().toString())
+                .orElse("unknown");
+        boolean hasPrecip = biomeHolder.value().hasPrecipitation();
+        Biome.Precipitation precipType = biomeHolder.value().getPrecipitationAt(playerPos);
+
+        String stardewWeather = WeatherManager.getCurrentWeather(level);
+        boolean weatherCycleEnabled = level.getGameRules()
+                .getBoolean(net.minecraft.world.level.GameRules.RULE_WEATHER_CYCLE);
+
+        String msg = String.format(
+            "§e=== 天气渲染诊断 ===\n" +
+            "§bStardew天气: §f%s\n" +
+            "§bMC isRaining: §f%s  §bthundering: §f%s\n" +
+            "§brainLevel: §f%.3f  §bthunderLevel: §f%.3f\n" +
+            "§bdoWeatherCycle: §f%s\n" +
+            "§7--- 玩家位置 ---\n" +
+            "§bPos: §f%d, %d, %d\n" +
+            "§bHeightmap MOTION_BLOCKING: §f%d  §bWORLD_SURFACE: §f%d\n" +
+            "§bcanSeeSky: §f%s\n" +
+            "§bisRainingAt(pos): §f%s  §bisRainingAt(pos.above): §f%s\n" +
+            "§7--- 生物群系 ---\n" +
+            "§bBiome: §f%s\n" +
+            "§bhasPrecipitation: §f%s  §bprecipType: §f%s",
+            stardewWeather,
+            isRaining, level.isThundering(),
+            rainLevel, thunderLevel,
+            weatherCycleEnabled,
+            playerPos.getX(), playerPos.getY(), playerPos.getZ(),
+            hmMotionBlocking, hmWorldSurface,
+            canSeeSky,
+            isRainingAtPlayer, isRainingAtAbove,
+            biomeName,
+            hasPrecip, precipType
+        );
+
+        context.getSource().sendSuccess(() -> Component.literal(msg), false);
+        return 1;
+    }
+
+    /**
      * 显示帮助信息
      */
     @SuppressWarnings("null")
@@ -207,6 +279,7 @@ public class WeatherDebugCommand {
                 "  §7可用天气: sun, rain, storm, snow, windspring, windfall, festival\n" +
                 "§b/stardewweather tomorrow §f- 查看明天的天气预测\n" +
                 "§b/stardewweather test §f- 测试当前季节的天气概率分布\n" +
+                "§b/stardewweather diagnose §f- MC层面雨渲染诊断\n" +
                 "§b/stardewweather help §f- 显示此帮助信息\n\n" +
                 "§7天气类型说明:\n" +
                 "§f- Sun (晴天): 默认天气\n" +

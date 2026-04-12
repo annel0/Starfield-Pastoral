@@ -398,6 +398,8 @@ public final class FishingSessionManager {
 				@SuppressWarnings("null")
 				String itemId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(fish.getItem()).toString();
 				PlayerStardewDataAPI.addFishCatchCount(player, itemId, finalNumCaught);
+				// Quest: fish caught
+				com.stardew.craft.quest.StardewQuestEvents.fireFishCaught(player, itemId, finalNumCaught);
 			}
 			
 			// Give multiple fish if applicable.
@@ -628,7 +630,8 @@ public final class FishingSessionManager {
 					continue;
 				}
 				BlockPos p = pos.offset(dx, 0, dz);
-				if (!level.getFluidState(p).is(net.minecraft.tags.FluidTags.WATER)) {
+				var fs = level.getFluidState(p);
+				if (!fs.is(net.minecraft.tags.FluidTags.WATER) && !fs.is(net.minecraft.tags.FluidTags.LAVA)) {
 					best = dist;
 				}
 			}
@@ -652,7 +655,8 @@ public final class FishingSessionManager {
 				session.isGoldenTreasure(),
 				player.getRandom(),
 				session.waterDepth(),
-				dailyLuck
+				dailyLuck,
+				player
 		);
 
 		// 保存战利品到session
@@ -684,5 +688,24 @@ public final class FishingSessionManager {
 		com.stardew.craft.fishing.data.TreasureLootManager manager = new com.stardew.craft.fishing.data.TreasureLootManager();
 		manager.loadFromBundledData();
 		return manager;
+	}
+
+	/**
+	 * Called on player logout to clean up any active session and pending treasure.
+	 * Prevents memory leaks from UUID-keyed maps accumulating entries.
+	 */
+	public static void onPlayerLogout(ServerPlayer player) {
+		FishingSessionManager mgr = BY_SERVER.get(player.getServer());
+		if (mgr != null) {
+			mgr.cancel(player);
+			mgr.pendingTreasureByPlayer.remove(player.getUUID());
+		}
+	}
+
+	/**
+	 * Called when a server stops to remove its entry from BY_SERVER.
+	 */
+	public static void onServerStopped(MinecraftServer server) {
+		BY_SERVER.remove(server);
 	}
 }

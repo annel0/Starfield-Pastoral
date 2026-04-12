@@ -126,4 +126,9 @@ public final class GalaxyDaggerThrustTracker {
 
         return hit != null ? (LivingEntity) hit.getEntity() : null;
     }
+
+    /** Clean up state when a player logs out to prevent memory leaks. */
+    public static void removePlayer(UUID playerId) {
+        ACTIVE.remove(playerId);
+    }
 }

@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/common/furniture_catalogue",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/furniture_catalogue"
+	}
+}

@@ -1,6 +1,7 @@
-﻿{
-    "parent":  "stardewcraft:decor/common/cushion",
-    "textures":  {
-                     "particle":  "stardewcraft:block/decor/common/cushion"
-                 }
+{
+  "ambientocclusion": false,
+  "parent": "stardewcraft:decor/common/cushion",
+  "textures": {
+    "particle": "stardewcraft:block/decor/common/cushion"
+  }
 }

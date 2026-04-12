@@ -1,0 +1,30 @@
+{
+  "npc_id": "alex",
+  "_vanilla_ref": "201=complete_breakfast 212=salmon_dinner Book_Defense=defense_book. Liked: -5(eggs category) 403=field_snack 107=dinosaur_egg ParrotEgg=parrot_egg. Disliked: 16=wild_horseradish 330=clay books. Hated: 80=quartz",
+  "loved": [
+    "stardewcraft:complete_breakfast",
+    "stardewcraft:salmon_dinner"
+  ],
+  "_loved_not_yet_in_mod": ["book_defense(Book_Defense)"],
+  "liked": [
+    "stardewcraft:egg",
+    "stardewcraft:duck_egg",
+    "stardewcraft:void_egg",
+    "stardewcraft:dinosaur_egg"
+  ],
+  "_liked_not_yet_in_mod": ["field_snack(403)", "parrot_egg(ParrotEgg)"],
+  "neutral": [],
+  "disliked": [
+    "stardewcraft:wild_horseradish",
+    "stardewcraft:clay"
+  ],
+  "_disliked_vanilla_note": "Also dislikes books but no book items in mod yet.",
+  "hated": [
+    "stardewcraft:quartz"
+  ],
+  "loved_msg": "Hey, awesome! I love this stuff! Thanks, @!",
+  "liked_msg": "This is cool! Thanks.",
+  "neutral_msg": "Um... Okay. Thanks.",
+  "disliked_msg": "Hmm... I'm not sure I like this...",
+  "hated_msg": "Are you serious? This is garbage."
+}

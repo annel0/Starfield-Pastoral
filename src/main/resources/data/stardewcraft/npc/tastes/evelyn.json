@@ -1,0 +1,29 @@
+{
+  "npc_id": "evelyn",
+  "_vanilla_ref": "Loved: 220=chocolate_cake 72=diamond 595=fairy_rose 239=stuffing 591=tulip. Liked: 170=pale_broccoli(beet). Disliked: 372=clam 393=coral 245=garlic 149=octopus 154=sea_cucumber 151=squid. Hated: 284=fried_mushroom",
+  "loved": [
+    "stardewcraft:chocolate_cake",
+    "stardewcraft:diamond",
+    "stardewcraft:fairy_rose",
+    "stardewcraft:tulip"
+  ],
+  "_loved_not_yet_in_mod": ["stuffing(239)"],
+  "liked": [],
+  "_liked_not_yet_in_mod": ["beet(170)"],
+  "neutral": [],
+  "disliked": [
+    "stardewcraft:clam",
+    "stardewcraft:coral",
+    "stardewcraft:duck_egg",
+    "stardewcraft:garlic",
+    "stardewcraft:sea_cucumber"
+  ],
+  "_disliked_vanilla_note": "Also dislikes octopus(149) and squid(151).",
+  "hated": [],
+  "_hated_not_yet_in_mod": ["fried_mushroom(284)"],
+  "loved_msg": "Oh my! This is wonderful, dear. Thank you so much!",
+  "liked_msg": "How sweet of you, dear. Thank you.",
+  "neutral_msg": "That's nice, dear. Thank you.",
+  "disliked_msg": "Oh... I don't really like this, dear.",
+  "hated_msg": "Oh my... I really don't want this, dear."
+}

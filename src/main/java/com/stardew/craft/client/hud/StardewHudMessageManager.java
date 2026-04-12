@@ -33,18 +33,12 @@ public final class StardewHudMessageManager {
 
 	private static final int TEX_WIDTH = 64;
 	private static final int TEX_HEIGHT = 64;
-	private static final int LEFT_U = 0;
-	private static final int LEFT_V = 0;
-	private static final int LEFT_W = 26;
-	private static final int LEFT_H = 24;
-	private static final int MID_U = 26;
-	private static final int MID_V = 0;
-	private static final int MID_W = 1;
-	private static final int MID_H = 24;
-	private static final int RIGHT_U = 27;
-	private static final int RIGHT_V = 0;
-	private static final int RIGHT_W = 6;
-	private static final int RIGHT_H = 24;
+	// hud_message.png layout: normal left(0,0) mid(26,0) right(27,0) expensive left(33,0) error(0,24)
+	private static final int NORMAL_LEFT_U = 0, NORMAL_LEFT_V = 0;
+	private static final int EXPENSIVE_LEFT_U = 33, EXPENSIVE_LEFT_V = 0;
+	private static final int BOX_W = 26, BOX_H = 24;
+	private static final int MID_U = 26, MID_V = 0, MID_W = 1, MID_H = 24;
+	private static final int RIGHT_U = 27, RIGHT_V = 0, RIGHT_W = 6, RIGHT_H = 24;
 	private static final int ERROR_U = 0;
 	private static final int ERROR_V = 24;
 	private static final int ERROR_W = 16;
@@ -95,6 +89,18 @@ public final class StardewHudMessageManager {
 
 	public static void showInfo(Component message) {
 		addMessage(new HudMessage(message, MessageKind.INFO));
+	}
+
+	@SuppressWarnings("null")
+	public static void showItemPickup(ItemStack stack, int count, boolean expensive) {
+		if (stack.isEmpty() || count <= 0) return;
+		HudMessage message = new HudMessage(stack.getHoverName(), MessageKind.ITEM_PICKUP);
+		message.messageSubject = stack.copy();
+		message.typeKey = "pickup_" + net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
+		message.number = count;
+		message.expensive = expensive;
+		addMessage(message);
+		playPickupSound();
 	}
 
 	public static void showHayHarvest(int deltaHay) {
@@ -184,25 +190,30 @@ public final class StardewHudMessageManager {
 		int alphaInt = Math.max(0, Math.min(255, Math.round(255f * alpha)));
 
 		RenderSystem.enableBlend();
-		RenderSystem.setShaderColor(1f, 1f, 1f, alpha);
 
-		int leftW = Math.round(LEFT_W * UI_SCALE);
-		int messageWidth = Math.max(1, Math.round(font.width(message.messageText) * TEXT_SCALE) + 2);
-		int baseX = Math.round(boxLeft);
-		int baseY = Math.round(boxTop);
+		   // SDV: expensive/normal use different box regions from cursors.png
+		   int leftU = message.expensive ? EXPENSIVE_LEFT_U : NORMAL_LEFT_U;
+		   int leftV = message.expensive ? EXPENSIVE_LEFT_V : NORMAL_LEFT_V;
+		   int leftW = Math.round(BOX_W * UI_SCALE);
+		   int messageWidth = Math.max(1, Math.round(font.width(message.messageText) * TEXT_SCALE) + 2);
+		   int baseX = Math.round(boxLeft);
+		   int baseY = Math.round(boxTop);
 
-		int midX = baseX + leftW - SEGMENT_OVERLAP;
-		int midW = messageWidth + SEGMENT_OVERLAP;
-		int rightX = midX + midW - SEGMENT_OVERLAP;
+		   int midX = baseX + leftW - SEGMENT_OVERLAP;
+		   int midW = messageWidth + SEGMENT_OVERLAP;
+		   int rightX = midX + midW - SEGMENT_OVERLAP;
 
-		drawScaledRegion(graphics, baseX, baseY, LEFT_U, LEFT_V, LEFT_W, LEFT_H, UI_SCALE, UI_SCALE);
-		drawScaledRegion(graphics, midX, baseY, MID_U, MID_V, MID_W, MID_H, midW, UI_SCALE);
-		drawScaledRegion(graphics, rightX, baseY, RIGHT_U, RIGHT_V, RIGHT_W, RIGHT_H, UI_SCALE, UI_SCALE);
+		   drawScaledRegion(graphics, baseX, baseY, leftU, leftV, BOX_W, BOX_H, UI_SCALE, UI_SCALE);
+		   drawScaledRegion(graphics, midX, baseY, MID_U, MID_V, MID_W, MID_H, midW, UI_SCALE);
+		   drawScaledRegion(graphics, rightX, baseY, RIGHT_U, RIGHT_V, RIGHT_W, RIGHT_H, UI_SCALE, UI_SCALE);
+
+		   // Reset color after box drawing
+		   RenderSystem.setShaderColor(1f, 1f, 1f, alpha);
 
 		float iconAreaX = boxLeft;
 		float iconAreaY = boxTop;
 		float iconAreaW = leftW;
-		float iconAreaH = Math.round(LEFT_H * UI_SCALE);
+		float iconAreaH = Math.round(BOX_H * UI_SCALE);
 		float iconCenterX = iconAreaX + iconAreaW * 0.5f + ICON_NUDGE_X;
 		float iconCenterY = iconAreaY + iconAreaH * 0.5f + ICON_NUDGE_Y;
 		float popScale = UI_SCALE + Math.max(0f, (message.timeLeftMs - POP_START_MS) / POP_DURATION_MS);
@@ -240,7 +251,7 @@ public final class StardewHudMessageManager {
 		}
 
 		float textX = Math.round(boxLeft) + TEXT_OFFSET_X;
-		float textY = Math.round(boxTop + (Math.round(LEFT_H * UI_SCALE) - font.lineHeight * TEXT_SCALE) * 0.5f);
+		float textY = Math.round(boxTop + (Math.round(BOX_H * UI_SCALE) - font.lineHeight * TEXT_SCALE) * 0.5f);
 		int textColor = (alphaInt << 24) | (TEXT_COLOR & 0xFFFFFF);
 		graphics.pose().pushPose();
 		graphics.pose().translate(textX, textY, 0f);
@@ -295,6 +306,14 @@ public final class StardewHudMessageManager {
 		player.playSound(sound, 1.0f, 1.0f);
 	}
 
+	@SuppressWarnings("null")
+	private static void playPickupSound() {
+		Minecraft mc = Minecraft.getInstance();
+		if (mc.player != null) {
+			mc.player.playSound(net.minecraft.sounds.SoundEvents.ITEM_PICKUP, 0.4f, 1.0f);
+		}
+	}
+
 	private static final class HudMessage {
 		private final Component message;
 		private final String messageText;
@@ -304,6 +323,7 @@ public final class StardewHudMessageManager {
 		private ItemStack messageSubject;
 		private float timeLeftMs = DEFAULT_TIME_MS;
 		private float transparency = 1f;
+		private boolean expensive;
 
 		private HudMessage(Component message, MessageKind kind) {
 			this.message = Objects.requireNonNull(message, "message");
@@ -332,6 +352,7 @@ public final class StardewHudMessageManager {
 	private enum MessageKind {
 		ERROR,
 		INFO,
-		HAY_HARVEST
+		HAY_HARVEST,
+		ITEM_PICKUP
 	}
 }

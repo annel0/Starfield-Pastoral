@@ -13,6 +13,7 @@ import com.stardew.craft.blockentity.FishSmokerBlockEntity;
 import com.stardew.craft.blockentity.FurnaceBlockEntity;
 import com.stardew.craft.blockentity.KegBlockEntity;
 import com.stardew.craft.blockentity.LightningRodBlockEntity;
+import com.stardew.craft.blockentity.RecyclingMachineBlockEntity;
 import com.stardew.craft.blockentity.MayonnaiseMachineBlockEntity;
 import com.stardew.craft.blockentity.OilMakerBlockEntity;
 import com.stardew.craft.blockentity.PreservesJarBlockEntity;
@@ -99,6 +100,8 @@ public record AdvanceUtilitiesPayload() implements CustomPacketPayload {
 							rod.advanceDays(1);
 						} else if (be instanceof SolarPanelBlockEntity panel) {
 							panel.advanceDays(1);
+						} else if (be instanceof RecyclingMachineBlockEntity recyclingMachine) {
+							recyclingMachine.advanceDays(1);
 						} else if (be instanceof WormBinBlockEntity wormBin) {
 							wormBin.advanceDays(1);
 						} else if (be instanceof DeluxeWormBinBlockEntity wormBin) {

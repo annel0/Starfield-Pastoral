@@ -1,0 +1,40 @@
+{
+  "npc_id": "linus",
+  "loved": [
+    "stardewcraft:coconut",
+    "stardewcraft:cactus_fruit",
+    "stardewcraft:yam"
+  ],
+  "_loved_not_yet_in_mod": [
+    "blueberry_tart(234)",
+    "dish_o_the_sea(242)",
+    "280(?)",
+    "Book_Trash"
+  ],
+  "liked": [
+    "stardewcraft:egg",
+    "stardewcraft:milk",
+    "stardewcraft:large_milk"
+  ],
+  "_liked_not_yet_in_mod": [
+    "category: eggs(-5), milk(-6), fruits(-79), forage(-81)"
+  ],
+  "neutral": [],
+  "disliked": [
+    "stardewcraft:clay"
+  ],
+  "_disliked_not_yet_in_mod": [
+    "treasure_chest(166)"
+  ],
+  "hated": [],
+  "_hated_not_yet_in_mod": [],
+  "loved_categories": [],
+  "liked_categories": [],
+  "disliked_categories": [],
+  "hated_categories": [],
+  "loved_msg": "This is wonderful! You've really made my day special.",
+  "liked_msg": "This is a great gift. Thank you!",
+  "neutral_msg": "A gift? How nice.",
+  "disliked_msg": "Hmm... This doesn't really do much for me.",
+  "hated_msg": "Why would you give this to me? Do you think I like junk just because I live in a tent? That's terrible."
+}

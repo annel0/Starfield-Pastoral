@@ -1,0 +1,26 @@
+{
+  "npc_id": "wizard",
+  "entries": {
+    "Introduction": "stardewcraft.npc.wizard.introduction",
+    "Mon": "stardewcraft.npc.wizard.mon",
+    "Mon4": "stardewcraft.npc.wizard.mon4",
+    "Mon8": "stardewcraft.npc.wizard.mon8",
+    "Tue": "stardewcraft.npc.wizard.tue",
+    "Tue4": "stardewcraft.npc.wizard.tue4",
+    "Tue8": "stardewcraft.npc.wizard.tue8",
+    "Tue10": "stardewcraft.npc.wizard.tue10",
+    "Wed": "stardewcraft.npc.wizard.wed",
+    "Thu": "stardewcraft.npc.wizard.thu",
+    "Thu10": "stardewcraft.npc.wizard.thu10",
+    "Fri": "stardewcraft.npc.wizard.fri",
+    "Fri6": "stardewcraft.npc.wizard.fri6",
+    "Sat": "stardewcraft.npc.wizard.sat",
+    "Sat2": "stardewcraft.npc.wizard.sat2",
+    "Sat6": "stardewcraft.npc.wizard.sat6",
+    "Sun": "stardewcraft.npc.wizard.sun",
+    "GreenRain": "stardewcraft.npc.wizard.greenrain",
+    "GreenRain_2": "stardewcraft.npc.wizard.greenrain_2",
+    "married": "stardewcraft.npc.wizard.married",
+    "default": "stardewcraft.npc.wizard.default"
+  }
+}

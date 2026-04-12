@@ -1,0 +1,74 @@
+{
+  "npc_id": "maru",
+  "override_vanilla": true,
+  "_format": "time -> \"location @namedPointId facing [behavior]\"",
+
+  "GreenRain": {
+    "610": "sciencehouse @maru_sciencehouse_tinker 3"
+  },
+
+  "rain": {
+    "600":  "sciencehouse @maru_sciencehouse_tinker 3",
+    "1000": "hospital @maru_clinic_work 0",
+    "1600": "sciencehouse @maru_sciencehouse_tinker 2",
+    "2200": "sciencehouse @maru_sciencehouse_sleep 3 maru_sleep"
+  },
+
+  "spring": {
+    "_note": "Default spring: tinker -> walk -> clinic -> home",
+    "600":  "sciencehouse @maru_sciencehouse_tinker 3",
+    "1000": "town @maru_town_walk 3",
+    "1400": "sciencehouse @maru_sciencehouse_tinker 2",
+    "2000": "sciencehouse @maru_sciencehouse_sleep 3 maru_sleep"
+  },
+
+  "summer": {
+    "_note": "Default summer: tinker -> town -> telescope",
+    "600":  "sciencehouse @maru_sciencehouse_tinker 3",
+    "1000": "town @maru_town_walk 3",
+    "1400": "sciencehouse @maru_sciencehouse_telescope 1",
+    "2000": "sciencehouse @maru_sciencehouse_sleep 3 maru_sleep"
+  },
+
+  "fall": {
+    "_note": "Default fall: similar to spring",
+    "600":  "sciencehouse @maru_sciencehouse_tinker 3",
+    "1000": "town @maru_town_walk 3",
+    "1400": "sciencehouse @maru_sciencehouse_tinker 2",
+    "2000": "sciencehouse @maru_sciencehouse_sleep 3 maru_sleep"
+  },
+
+  "winter": {
+    "_note": "Default winter: stays indoors more, tinker heavy",
+    "600":  "sciencehouse @maru_sciencehouse_tinker 3",
+    "1200": "sciencehouse @maru_sciencehouse_telescope 1",
+    "1500": "sciencehouse @maru_sciencehouse_tinker 2",
+    "2000": "sciencehouse @maru_sciencehouse_sleep 3 maru_sleep"
+  },
+
+  "tuesday": {
+    "_note": "Tuesday: works at clinic (Harvey's)",
+    "600":  "sciencehouse @maru_sciencehouse_tinker 3",
+    "1000": "hospital @maru_clinic_work 0",
+    "1600": "sciencehouse @maru_sciencehouse_tinker 2",
+    "2200": "sciencehouse @maru_sciencehouse_sleep 3 maru_sleep"
+  },
+
+  "thursday": {
+    "_note": "Thursday: works at clinic (Harvey's)",
+    "600":  "sciencehouse @maru_sciencehouse_tinker 3",
+    "1000": "hospital @maru_clinic_work 0",
+    "1600": "sciencehouse @maru_sciencehouse_tinker 2",
+    "2200": "sciencehouse @maru_sciencehouse_sleep 3 maru_sleep"
+  },
+
+  "sunday": {
+    "_note": "Sunday: relaxed day, town walk",
+    "600":  "sciencehouse @maru_sciencehouse_tinker 3",
+    "1100": "town @maru_town_walk 3",
+    "1500": "saloon @maru_saloon_visit 3",
+    "2000": "sciencehouse @maru_sciencehouse_sleep 3 maru_sleep"
+  },
+
+  "default": { "_goto": "spring" }
+}
