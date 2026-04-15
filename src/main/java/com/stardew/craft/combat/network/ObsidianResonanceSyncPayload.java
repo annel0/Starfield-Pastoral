@@ -1,7 +1,6 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.ObsidianResonanceClientState;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -44,9 +43,9 @@ public record ObsidianResonanceSyncPayload(boolean active, int remainingTicks, i
         if (mc.level == null) return;
         long nowTick = mc.level.getGameTime();
         if (payload.active()) {
-            ObsidianResonanceClientState.sync(nowTick, payload.remainingTicks(), payload.totalTicks());
+            com.stardew.craft.client.weapon.ObsidianResonanceClientState.sync(nowTick, payload.remainingTicks(), payload.totalTicks());
         } else {
-            ObsidianResonanceClientState.clear();
+            com.stardew.craft.client.weapon.ObsidianResonanceClientState.clear();
         }
     }
 }

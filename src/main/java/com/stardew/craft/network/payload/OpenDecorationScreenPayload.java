@@ -1,8 +1,6 @@
 package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.gui.DecorationSelectionScreen;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -104,10 +102,10 @@ public record OpenDecorationScreenPayload(
 
     @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
     private static void handleClient(OpenDecorationScreenPayload payload) {
-        Minecraft minecraft = Minecraft.getInstance();
+        net.minecraft.client.Minecraft minecraft = net.minecraft.client.Minecraft.getInstance();
         if (minecraft.player == null) {
             return;
         }
-        minecraft.setScreen(new DecorationSelectionScreen(payload));
+        minecraft.setScreen(new com.stardew.craft.client.gui.DecorationSelectionScreen(payload));
     }
 }

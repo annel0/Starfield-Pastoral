@@ -1095,6 +1095,58 @@
                             { "item":  "stardewcraft:wood_normal", "count":  40 },
                             { "item":  "stardewcraft:stone", "count":  20 }
                         ]
+                    },
+                    {
+                        "id":  "wild_seeds_spring",
+                        "unlockCondition":  "s Foraging 1",
+                        "output":  { "item":  "stardewcraft:spring_seeds", "count":  10 },
+                        "ingredients":  [
+                            { "item":  "stardewcraft:wild_horseradish", "count":  1 },
+                            { "item":  "stardewcraft:daffodil", "count":  1 },
+                            { "item":  "stardewcraft:leek", "count":  1 },
+                            { "item":  "stardewcraft:dandelion", "count":  1 }
+                        ]
+                    },
+                    {
+                        "id":  "wild_seeds_summer",
+                        "unlockCondition":  "s Foraging 4",
+                        "output":  { "item":  "stardewcraft:summer_seeds", "count":  10 },
+                        "ingredients":  [
+                            { "item":  "stardewcraft:spice_berry", "count":  1 },
+                            { "item":  "stardewcraft:grape", "count":  1 },
+                            { "item":  "stardewcraft:sweet_pea", "count":  1 }
+                        ]
+                    },
+                    {
+                        "id":  "wild_seeds_fall",
+                        "unlockCondition":  "s Foraging 6",
+                        "output":  { "item":  "stardewcraft:fall_seeds", "count":  10 },
+                        "ingredients":  [
+                            { "item":  "stardewcraft:common_mushroom", "count":  1 },
+                            { "item":  "stardewcraft:wild_plum", "count":  1 },
+                            { "item":  "stardewcraft:hazelnut", "count":  1 },
+                            { "item":  "stardewcraft:blackberry", "count":  1 }
+                        ]
+                    },
+                    {
+                        "id":  "wild_seeds_winter",
+                        "unlockCondition":  "s Foraging 7",
+                        "output":  { "item":  "stardewcraft:winter_seeds", "count":  10 },
+                        "ingredients":  [
+                            { "item":  "stardewcraft:winter_root", "count":  1 },
+                            { "item":  "stardewcraft:crystal_fruit", "count":  1 },
+                            { "item":  "stardewcraft:snow_yam", "count":  1 },
+                            { "item":  "stardewcraft:crocus", "count":  1 }
+                        ]
+                    },
+                    {
+                        "id":  "mini_jukebox",
+                        "unlockCondition":  "default",
+                        "output":  { "item":  "stardewcraft:jukebox", "count":  1 },
+                        "ingredients":  [
+                            { "item":  "stardewcraft:iron_bar", "count":  2 },
+                            { "item":  "stardewcraft:battery_pack", "count":  1 }
+                        ]
                     }
                 ]
 }

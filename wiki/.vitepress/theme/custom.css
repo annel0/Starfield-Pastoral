@@ -1,5 +1,5 @@
 /* ============================================================
-   StardewCraft Wiki — Nuxt-UI-inspired modern dark theme
+   星野牧歌 Wiki — Nuxt-UI-inspired modern dark theme
    ============================================================ */
 
 /* ---------- Design tokens ---------- */
@@ -351,4 +351,20 @@
   .nav-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* ---------- Inline Item Icons ---------- */
+.item-icon {
+  width: 24px;
+  height: 24px;
+  vertical-align: middle;
+  image-rendering: pixelated;
+  margin-right: 4px;
+}
+
+/* ---------- MathJax overrides ---------- */
+mjx-container {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
 }

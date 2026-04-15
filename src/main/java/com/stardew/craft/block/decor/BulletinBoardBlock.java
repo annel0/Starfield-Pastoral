@@ -1,6 +1,5 @@
 package com.stardew.craft.block.decor;
 
-import com.stardew.craft.client.gui.quest.BillboardScreen;
 import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.PlayerStardewData;
 import com.stardew.craft.quest.QuestManager;
@@ -13,7 +12,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.client.Minecraft;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import javax.annotation.Nonnull;
@@ -69,6 +67,7 @@ public class BulletinBoardBlock extends MapDecorWallStaticBlock {
 
     @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
     private void openBillboardScreen() {
-        Minecraft.getInstance().setScreen(new BillboardScreen());
+        net.minecraft.client.Minecraft.getInstance().setScreen(
+            new com.stardew.craft.client.gui.quest.BillboardScreen());
     }
 }

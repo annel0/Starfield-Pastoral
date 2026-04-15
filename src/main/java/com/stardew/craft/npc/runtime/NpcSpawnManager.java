@@ -14,7 +14,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.ArrayList;
@@ -36,6 +35,11 @@ public final class NpcSpawnManager {
 
     /** NPCs that live in the mining dimension instead of Stardew Valley. */
     private static final Set<String> MINING_DIM_NPC_IDS = Set.of("dwarf");
+
+    /** Public accessor for other services that need to skip mining-dimension NPCs. */
+    public static boolean isMiningDimensionNpc(String npcId) {
+        return MINING_DIM_NPC_IDS.contains(npcId);
+    }
 
     /** Dwarf spawn: mine floor, near the shop area. */
     private static final double DWARF_SPAWN_X = 22.0;
@@ -106,6 +110,9 @@ public final class NpcSpawnManager {
     public static void onAllPlayersLeft(ServerLevel level) {
         for (Map.Entry<String, UUID> entry : new LinkedHashMap<>(TRACKED_NPC_UUIDS).entrySet()) {
             String npcId = entry.getKey();
+            // Mining-dimension NPCs don't live in the main level; skip to avoid
+            // getTrackedNpc evicting their tracked UUID.
+            if (MINING_DIM_NPC_IDS.contains(npcId)) continue;
             StardewNpcEntity npc = getTrackedNpc(level, npcId);
             if (npc == null) continue;
             NpcRuntimeState state = NpcRuntimeDataManager.get(level).states().get(npcId);
@@ -206,6 +213,14 @@ public final class NpcSpawnManager {
             initialSweepDone = true;
         } else if (tickCounter % FULL_SWEEP_INTERVAL_TICKS == 0) {
             cleanupUnknownAndDuplicated(level, implementedIds);
+            // Proactively evict stale UUID mappings pointing to removed/dead entities.
+            // Skip mining-dimension NPCs — they live in a different level so
+            // level.getEntity() would return null and incorrectly evict them.
+            TRACKED_NPC_UUIDS.entrySet().removeIf(e -> {
+                if (MINING_DIM_NPC_IDS.contains(e.getKey())) return false;
+                net.minecraft.world.entity.Entity ent = level.getEntity(e.getValue());
+                return ent == null || ent.isRemoved() || !ent.isAlive();
+            });
         }
 
         if (tickCounter % SPAWN_CHECK_INTERVAL_TICKS != 0 && FORCE_SPAWN_IDS.isEmpty()) {
@@ -614,7 +629,8 @@ public final class NpcSpawnManager {
         if (npcId == null) {
             return null;
         }
-        return npcId.trim().toLowerCase(Locale.ROOT);
+        String result = NpcRoutePlanner.canonicalNpcId(npcId);
+        return result.isEmpty() ? null : result;
     }
 
     private static void ensureServerContext(ServerLevel level) {

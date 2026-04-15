@@ -1,8 +1,6 @@
 package com.stardew.craft.item.weapon;
 
-import com.stardew.craft.client.ModKeyMappings;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.ItemStack;
@@ -229,7 +227,7 @@ public class WeaponTooltipBuilder {
 
     @SuppressWarnings({ "null", "unused" })
     private MutableComponent mergeSkillTitles(MutableComponent left, MutableComponent right) {
-        Minecraft mc = Minecraft.getInstance();
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
         if (mc == null || mc.font == null) {
             return left.append(Component.literal("  ")).append(right);
         }
@@ -262,9 +260,9 @@ public class WeaponTooltipBuilder {
     private String getKeyLabel(boolean minor) {
         try {
             if (minor) {
-                return ModKeyMappings.SKILL_MINOR.getTranslatedKeyMessage().getString();
+                return com.stardew.craft.client.ModKeyMappings.SKILL_MINOR.getTranslatedKeyMessage().getString();
             }
-            return ModKeyMappings.SKILL_MAJOR.getTranslatedKeyMessage().getString();
+            return com.stardew.craft.client.ModKeyMappings.SKILL_MAJOR.getTranslatedKeyMessage().getString();
         } catch (Throwable ignored) {
             return minor ? "RMB" : "Z";
         }

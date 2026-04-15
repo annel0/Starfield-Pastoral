@@ -40,16 +40,34 @@ public class MiningCoordinates {
     
     /**
       * 传送玩家到指定层数
-      * 传送到安全区中心
+      * 传送到安全区中心，并给予短暂无敌帧防止传送伤害
      */
     @SuppressWarnings("null")
     public static void teleportPlayerToFloor(ServerPlayer player, ServerLevel level, int floor) {
-    double x = 0.5;
-    double y = (floor == 0) ? 66.0 : 66.0;
-    int z = (floor == 0) ? -8 : floor * FLOOR_SPACING + 14;
-          double z_pos = z + 0.5;
-        
+        double x = 0.5;
+        double y = (floor == 0) ? 66.0 : 66.0;
+        int z = (floor == 0) ? -8 : floor * FLOOR_SPACING + 14;
+        double z_pos = z + 0.5;
+
+        // 传送前给予无敌帧（防止 fall damage / 撞击伤害）
+        player.setInvulnerable(true);
+
         player.teleportTo(level, x, y, z_pos, 180.0f, 0.0f);
+
+        // 清除速度，防止残留 momentum 造成摔落伤害
+        player.setDeltaMovement(0, 0, 0);
+        player.fallDistance = 0;
+        player.hurtMarked = true; // 同步到客户端
+
+        // 延迟 10 tick（0.5秒）后取消无敌
+        level.getServer().tell(new net.minecraft.server.TickTask(
+            level.getServer().getTickCount() + 10,
+            () -> {
+                if (!player.isCreative()) {
+                    player.setInvulnerable(false);
+                }
+            }
+        ));
 
         StardewCraft.LOGGER.info("[MINE] Teleported player {} to floor {} at ({}, {}, {})", 
             player.getName().getString(), floor, x, y, z);

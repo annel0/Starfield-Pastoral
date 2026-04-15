@@ -1,9 +1,7 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.DashMovementClientState;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -47,12 +45,12 @@ public record DashMovementPayload(boolean active, int durationTicks, double endX
     @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
     private static void handleClient(DashMovementPayload payload) {
         if (payload.active()) {
-            Minecraft mc = Minecraft.getInstance();
+            net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
             long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
             Vec3 end = new Vec3(payload.endX(), payload.endY(), payload.endZ());
-            DashMovementClientState.start(nowTick, payload.durationTicks(), end);
+            com.stardew.craft.client.weapon.DashMovementClientState.start(nowTick, payload.durationTicks(), end);
         } else {
-            DashMovementClientState.clear();
+            com.stardew.craft.client.weapon.DashMovementClientState.clear();
         }
     }
 }

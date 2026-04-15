@@ -44,7 +44,7 @@ import java.util.List;
 public class MineFloorGenerator {
 
     private static final int GENERATION_VERSION = 19;
-    private static final double ORE_RATE_MULTIPLIER = 0.25;
+    private static final double ORE_RATE_MULTIPLIER = 0.15;
     // A类矿（直接采集）在洞窟表面的概率（比原版略高）
     private static final double SURFACE_MINERAL_RATE = 0.006;
     // B类矿（宝石矿石节点）生成概率倍率（比原版略高）
@@ -174,7 +174,34 @@ public class MineFloorGenerator {
         
         StardewCraft.LOGGER.info("[MINE] Floor {} generation complete, stonesLeft: {}", floorNumber, stonesLeft);
     }
-    
+
+    /**
+     * 强制刷新楼层光照 — 向客户端重新发送所有光源方块的更新包
+     * <p>
+     * 解决生成楼层时光照引擎尚未完成传播、客户端收到的 chunk 数据里光照不正确的问题。
+     * 应在玩家传送到新楼层后延迟几 tick 调用，此时玩家已在追踪对应 chunk。
+     */
+    public static void forceClientLightRefresh(ServerLevel level, int floorNumber) {
+        BlockPos center = MiningCoordinates.getFloorCenter(floorNumber);
+        int halfSize = MAX_SIZE / 2 + 2;
+
+        int count = 0;
+        for (int x = center.getX() - halfSize; x <= center.getX() + halfSize; x++) {
+            for (int z = center.getZ() - halfSize; z <= center.getZ() + halfSize; z++) {
+                for (int y = FLOOR_Y_START; y <= FLOOR_Y_END; y++) {
+                    BlockPos pos = new BlockPos(x, y, z);
+                    BlockState state = level.getBlockState(pos);
+                    if (state.getLightEmission(level, pos) > 0) {
+                        level.getLightEngine().checkBlock(pos);
+                        level.getChunkSource().blockChanged(pos);
+                        count++;
+                    }
+                }
+            }
+        }
+        StardewCraft.LOGGER.debug("[MINE] forceClientLightRefresh floor {} — re-sent {} light sources", floorNumber, count);
+    }
+
     /**
      * 统计楼层中可计数的石头数量
      */
@@ -790,16 +817,16 @@ public class MineFloorGenerator {
     private static double getTotalOreProbabilityForFloor(int floor) {
         if (floor >= 1 && floor <= 39) {
             double depthFactor = getThemeDepthFactor(floor);
-            return (0.0164 + 0.0020) * depthFactor * ORE_RATE_MULTIPLIER; // copper + coal
+            return (0.0164 + 0.0060) * depthFactor * ORE_RATE_MULTIPLIER; // copper + coal
         }
         if (floor >= 40 && floor <= 79) {
             double depthFactor = getThemeDepthFactor(floor);
-            return (0.0140 + 0.0090 + 0.0022) * depthFactor * ORE_RATE_MULTIPLIER; // iron + copper + coal
+            return (0.0140 + 0.0090 + 0.0066) * depthFactor * ORE_RATE_MULTIPLIER; // iron + copper + coal
         }
         if (floor >= 80 && floor <= 119) {
             double depthFactor = getThemeDepthFactor(floor);
             double iridium = (floor >= 100) ? 0.004 : 0.0024;
-            return (iridium + 0.0136 + 0.0084 + 0.0084 + 0.0026) * depthFactor * ORE_RATE_MULTIPLIER; // iridium + gold + iron + copper + coal
+            return (iridium + 0.0136 + 0.0084 + 0.0084 + 0.0078) * depthFactor * ORE_RATE_MULTIPLIER; // iridium + gold + iron + copper + coal
         }
         return 0.0;
     }
@@ -813,7 +840,7 @@ public class MineFloorGenerator {
         // 基于 MINING_IMPLEMENTATION_PLAN.md 概率 * 4（作为权重），并随深度提升
         if (floor >= 1 && floor <= 39) {
             double copper = 0.0164 * commonFactor * ORE_RATE_MULTIPLIER;
-            double coal = 0.0020 * commonFactor * ORE_RATE_MULTIPLIER;
+            double coal = 0.0060 * commonFactor * ORE_RATE_MULTIPLIER;
             double total = copper + coal;
             double roll = random.nextDouble() * total;
             cumulative += copper;
@@ -824,7 +851,7 @@ public class MineFloorGenerator {
         if (floor >= 40 && floor <= 79) {
             double iron = 0.0140 * rareFactor * ORE_RATE_MULTIPLIER;
             double copper = 0.0090 * commonFactor * ORE_RATE_MULTIPLIER;
-            double coal = 0.0022 * commonFactor * ORE_RATE_MULTIPLIER;
+            double coal = 0.0066 * commonFactor * ORE_RATE_MULTIPLIER;
             double total = iron + copper + coal;
             double roll = random.nextDouble() * total;
             cumulative += iron;
@@ -839,7 +866,7 @@ public class MineFloorGenerator {
             double gold = 0.0136;
             double iron = 0.0084;
             double copper = 0.0084;
-            double coal = 0.0026;
+            double coal = 0.0078;
             iridium *= rareFactor * ORE_RATE_MULTIPLIER;
             gold *= rareFactor * ORE_RATE_MULTIPLIER;
             iron *= commonFactor * ORE_RATE_MULTIPLIER;
@@ -3128,7 +3155,7 @@ public class MineFloorGenerator {
         // 4. 电梯（每 5 层放一个，0层由结构放置）
         if (floorNumber > 0 && floorNumber % 5 == 0) {
             Block elevator = ModBlocks.ELEVATOR.get();
-            BlockPos elevatorPos = new BlockPos(centerX + 1, SAFE_ZONE_Y_START - 1, wallZ); // 封印石旁边一格
+            BlockPos elevatorPos = new BlockPos(centerX + 1, SAFE_ZONE_Y_START, wallZ); // 封印石旁边一格，地面高度
             @SuppressWarnings("null")
             BlockState elevatorState = elevator.defaultBlockState()
                 .setValue(com.stardew.craft.block.mine.ElevatorBlock.FACING, Direction.SOUTH);

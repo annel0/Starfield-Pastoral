@@ -17,7 +17,7 @@ import java.util.function.Supplier;
  */
 public class HotPepperCropBlock extends StardewCropBlock {
 
-    private static final int[] PHASE_DAYS = new int[]{1, 1, 1, 1};
+    private static final int[] PHASE_DAYS = new int[]{1, 1, 1, 2}; // SDV: 5 days
 
     @SuppressWarnings("null")
     public HotPepperCropBlock() {

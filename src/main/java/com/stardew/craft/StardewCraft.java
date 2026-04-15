@@ -15,7 +15,6 @@ import com.stardew.craft.sound.ModSounds;
 import com.stardew.craft.item.artisan.ArtisanDrinkItem;
 import com.stardew.craft.item.artisan.DehydratorIngredientHelper;
 import com.stardew.craft.item.artisan.SmokedFishItem;
-import com.stardew.craft.client.weapon.WeaponShaderRegistry;
 import com.stardew.craft.blockentity.ModBlockEntities;
 import com.stardew.craft.network.PacketHandler;
 import com.stardew.craft.event.WildTreeChopEvents;
@@ -290,6 +289,7 @@ public class StardewCraft {
                 output.accept(ModItems.DARK_SWORD.get());
                 output.accept(ModItems.LAVA_KATANA.get());
                 output.accept(ModItems.DRAGONTOOTH_CUTLASS.get());
+                output.accept(ModItems.DRAGONTOOTH_SHIV.get());
                 output.accept(ModItems.DWARF_SWORD.get());
                 output.accept(ModItems.GALAXY_SWORD.get());
                 output.accept(ModItems.INFINITY_BLADE.get());
@@ -366,6 +366,15 @@ public class StardewCraft {
                 output.accept(ModItems.COOKING_POT.get());
                 output.accept(ModItems.PILLAR.get());
                 output.accept(ModItems.SHRINE.get());
+                output.accept(ModItems.JUNIMO_HUT_DECOR.get());
+                output.accept(ModItems.SAFE_BOX.get());
+                output.accept(ModItems.BROKEN_SAFE_BOX.get());
+                output.accept(ModItems.LOOM_MACHINE.get());
+                output.accept(ModItems.BOILER_DECOR.get());
+                output.accept(ModItems.BROKEN_BOILER.get());
+                output.accept(ModItems.YARN_CABINET.get());
+                output.accept(ModItems.BROKEN_CHAIR.get());
+                output.accept(ModItems.COAL_BASKET.get());
                 output.accept(ModItems.SAILBOAT.get());
                 output.accept(ModItems.PHOTO_FRAME.get());
                 output.accept(ModItems.WHITE_TEACUP.get());
@@ -378,6 +387,14 @@ public class StardewCraft {
                 output.accept(ModItems.JOJA_VENDING_MACHINE.get());
                 output.accept(ModItems.FURNITURE_CATALOGUE.get());
                 output.accept(ModItems.BULLETIN_BOARD.get());
+                // 社区中心献祭卷轴 (7 areas)
+                for (int area = 0; area <= 6; area++) {
+                    net.minecraft.world.item.ItemStack stack = new net.minecraft.world.item.ItemStack(ModItems.JUNIMO_NOTE.get());
+                    stack.set(net.minecraft.core.component.DataComponents.BLOCK_STATE,
+                            new net.minecraft.world.item.component.BlockItemStateProperties(
+                                    java.util.Map.of("area", String.valueOf(area))));
+                    output.accept(stack);
+                }
                 // 植物
                 output.accept(ModItems.BONSAI_1.get());
                 output.accept(ModItems.BONSAI_2.get());
@@ -617,6 +634,9 @@ public class StardewCraft {
                     } else if ("stardewcraft.type.boots".equals(typeKey)) {
                         // 靴子：不支持品质
                         output.accept(item);
+                    } else if ("stardewcraft.type.monster_loot".equals(typeKey)) {
+                        // 怪物掉落物：不支持品质
+                        output.accept(item);
                     }
                 }
 
@@ -813,7 +833,6 @@ public class StardewCraft {
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(PacketHandler::register);
-        modEventBus.addListener(WeaponShaderRegistry::onRegisterShadersSafe);
         modEventBus.addListener(UtilityAutomationCapabilities::registerCapabilities);
         modEventBus.addListener(ModEntities::onEntityAttributeCreation);
 

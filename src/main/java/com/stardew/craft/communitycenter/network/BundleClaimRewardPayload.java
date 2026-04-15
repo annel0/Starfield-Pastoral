@@ -74,6 +74,7 @@ public record BundleClaimRewardPayload(
         String[] parts = rewardString.trim().split("\\s+");
         if (parts.length < 3) return ItemStack.EMPTY;
 
+        String type = parts[0];   // "O", "BO", or "R"
         String sdvId = parts[1];
         int count;
         try {
@@ -82,10 +83,20 @@ public record BundleClaimRewardPayload(
             return ItemStack.EMPTY;
         }
 
+        // Prefix BigCraftable / Ring IDs to avoid numeric collision with Object IDs
+        String lookupKey = switch (type) {
+            case "BO" -> "BO_" + sdvId;
+            case "R"  -> "R_"  + sdvId;
+            default   -> sdvId;          // "O" — plain Object
+        };
+
         // Resolve SDV ID to mod item
-        ItemStack stack = BundleItemResolver.resolveItemStack(
-                BundleItemResolver.resolve(sdvId) != null ? BundleItemResolver.resolve(sdvId) : sdvId
-        );
+        String modPath = BundleItemResolver.resolve(lookupKey);
+        if (modPath == null) {
+            // Fallback: try unprefixed key (backwards compat for R items already in map)
+            modPath = BundleItemResolver.resolve(sdvId);
+        }
+        ItemStack stack = BundleItemResolver.resolveItemStack(modPath != null ? modPath : sdvId);
         if (stack.isEmpty()) return ItemStack.EMPTY;
 
         stack.setCount(count);

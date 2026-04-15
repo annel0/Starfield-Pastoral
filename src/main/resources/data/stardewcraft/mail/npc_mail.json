@@ -1,5 +1,10 @@
 [
   {
+    "id": "wizardJunimoNote",
+    "text": "stardewcraft.mail.wizardJunimoNote",
+    "background": 2
+  },
+  {
     "id": "robinWell",
     "text": "@你好：\n\n如果你有兴趣的话，我可以帮你在农场建一口水井。\n\n有了水井就不用大老远跑去湖边取水浇地了。来我这儿看看吧！\n\n——罗宾",
     "background": 0

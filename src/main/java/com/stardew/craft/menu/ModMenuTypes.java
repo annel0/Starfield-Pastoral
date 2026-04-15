@@ -81,4 +81,9 @@ public class ModMenuTypes {
     public static final DeferredHolder<MenuType<?>, MenuType<com.stardew.craft.communitycenter.menu.BundleMenu>> BUNDLE =
         MENU_TYPES.register("bundle",
             () -> new MenuType<>(com.stardew.craft.communitycenter.menu.BundleMenu::new, FeatureFlags.DEFAULT_FLAGS));
+
+    @SuppressWarnings("null")
+    public static final DeferredHolder<MenuType<?>, MenuType<com.stardew.craft.communitycenter.menu.BundleRewardMenu>> BUNDLE_REWARD =
+        MENU_TYPES.register("bundle_reward",
+            () -> new MenuType<>(com.stardew.craft.communitycenter.menu.BundleRewardMenu::new, FeatureFlags.DEFAULT_FLAGS));
 }

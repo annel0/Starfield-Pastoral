@@ -255,7 +255,7 @@ public final class NpcScheduleRuntimeService {
         String season = timeManager.getSeasonName().toLowerCase(Locale.ROOT);
         String weekday = WEEKDAY_NAMES[(day - 1) % WEEKDAY_NAMES.length];
         String weather = activeWeather == null ? "" : activeWeather.toLowerCase(Locale.ROOT);
-        int hearts = Math.max(0, friendship.getPointsForNpc(schedulePlayerId, canonicalNpcId(npcId)) / 250);
+        int hearts = Math.max(0, friendship.getPointsForNpc(schedulePlayerId, canonicalNpcId(npcId)) / NpcInteractionService.POINTS_PER_HEART);
 
         // 1) <season>_<day>
         candidates.add(season + "_" + day);
@@ -269,10 +269,17 @@ public final class NpcScheduleRuntimeService {
         // 4) bus (Pam special key, kept in chain for parity completeness)
         candidates.add("bus");
 
-        // 5/6) rain2 -> rain
+        // 5/6/7) Weather overrides: GreenRain > rain2 > rain > snow
+        if (weather.contains("greenrain")) {
+            candidates.add("GreenRain");
+            candidates.add("greenrain");
+        }
         if (weather.contains("rain") || weather.contains("storm")) {
             candidates.add("rain2");
             candidates.add("rain");
+        }
+        if (weather.contains("snow")) {
+            candidates.add("snow");
         }
 
         // 7) <season>_<dayOfWeek>_<hearts>
@@ -298,14 +305,6 @@ public final class NpcScheduleRuntimeService {
 
         // 14) default
         candidates.add("default");
-
-        if (weather.contains("greenrain")) {
-            candidates.add("greenrain");
-            candidates.add("GreenRain");
-        }
-        if (weather.contains("snow")) {
-            candidates.add("snow");
-        }
 
         List<String> traceCandidates = new ArrayList<>();
         List<String> traceRejects = new ArrayList<>();
@@ -359,10 +358,7 @@ public final class NpcScheduleRuntimeService {
     }
 
     private static String canonicalNpcId(String npcId) {
-        if (npcId == null) {
-            return "";
-        }
-        return npcId.trim().toLowerCase(Locale.ROOT);
+        return NpcRoutePlanner.canonicalNpcId(npcId);
     }
 
     private static JsonObject resolveScheduleObjectWithGoto(ServerLevel level, String npcId, JsonObject scheduleRoot, String scheduleKey) {
@@ -496,7 +492,7 @@ public final class NpcScheduleRuntimeService {
                 continue;
             }
 
-            int thresholdPoints = hearts * 250;
+            int thresholdPoints = hearts * NpcInteractionService.POINTS_PER_HEART;
             int currentPoints = friendship.getPointsForNpc(schedulePlayerId, targetNpc);
             if (currentPoints < thresholdPoints) {
                 allMatched = false;

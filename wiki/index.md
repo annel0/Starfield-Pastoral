@@ -1,8 +1,8 @@
 ---
 layout: home
 hero:
-  name: StardewCraft
-  text: 模组百科
+  name: 星野牧歌
+  text: Starfield Pastoral 模组百科
   tagline: 在 Minecraft 中重现星露谷物语的一切 — 作物、矿洞、钓鱼、NPC 与更多
   actions:
     - theme: brand

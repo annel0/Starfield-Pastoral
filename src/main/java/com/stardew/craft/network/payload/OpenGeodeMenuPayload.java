@@ -1,8 +1,6 @@
 package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.gui.GeodeMenuScreen;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -38,8 +36,8 @@ public record OpenGeodeMenuPayload() implements CustomPacketPayload {
 
     @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
     private static void handleClient() {
-        Minecraft mc = Minecraft.getInstance();
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
         if (mc.player == null) return;
-        mc.setScreen(new GeodeMenuScreen());
+        mc.setScreen(new com.stardew.craft.client.gui.GeodeMenuScreen());
     }
 }

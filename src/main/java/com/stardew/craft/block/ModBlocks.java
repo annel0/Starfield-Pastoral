@@ -575,6 +575,16 @@ public class ModBlocks {
     public static final DeferredBlock<Block> YAM_CROP = BLOCKS.register("yam_crop",
             () -> new com.stardew.craft.block.crop.YamCropBlock());
 
+    // Wild Seed Crops (grow 7 days then transform into forage blocks)
+    public static final DeferredBlock<Block> SPRING_WILD_SEED_CROP = BLOCKS.register("spring_wild_seed_crop",
+            () -> new com.stardew.craft.block.crop.WildSeedCropBlock(0, com.stardew.craft.item.ModItems.SPRING_SEEDS));
+    public static final DeferredBlock<Block> SUMMER_WILD_SEED_CROP = BLOCKS.register("summer_wild_seed_crop",
+            () -> new com.stardew.craft.block.crop.WildSeedCropBlock(1, com.stardew.craft.item.ModItems.SUMMER_SEEDS));
+    public static final DeferredBlock<Block> FALL_WILD_SEED_CROP = BLOCKS.register("fall_wild_seed_crop",
+            () -> new com.stardew.craft.block.crop.WildSeedCropBlock(2, com.stardew.craft.item.ModItems.FALL_SEEDS));
+    public static final DeferredBlock<Block> WINTER_WILD_SEED_CROP = BLOCKS.register("winter_wild_seed_crop",
+            () -> new com.stardew.craft.block.crop.WildSeedCropBlock(3, com.stardew.craft.item.ModItems.WINTER_SEEDS));
+
     @SuppressWarnings("null")
 public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop",
             () -> new com.stardew.craft.block.crop.DeadCropBlock(Block.Properties.of()
@@ -1519,7 +1529,6 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .noOcclusion()
                                         .strength(0.2F), "stardewcraft:decor/common/table_lantern"));
 
-        // TODO: 唱片机播放逻辑（原版 Jukebox 功能）暂未实现
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> JUKEBOX = BLOCKS.register("jukebox",
                         () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
@@ -1981,6 +1990,13 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .sound(net.minecraft.world.level.block.SoundType.STONE)
                                         .noOcclusion()
                                         .strength(1.5F, 6.0F), "stardewcraft:geo/block/decor/shrine_7.geo.json"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> JUNIMO_HUT_DECOR = BLOCKS.register("junimo_hut_decor",
+                        () -> new com.stardew.craft.block.decor.JunimoHutDecorBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.PLANT)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(1.5F, 6.0F), "stardewcraft:geo/block/decor/junimo_hut_decor.geo.json"));
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> PILLAR = BLOCKS.register("pillar",
                         () -> new com.stardew.craft.block.decor.PillarGeoDecorBlock(Block.Properties.of()
@@ -2511,6 +2527,64 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .sound(net.minecraft.world.level.block.SoundType.GRAVEL)
                                         .strength(0.5F)));
 
+        // 临时模型室内装饰（自动 extension + 自动碰撞）
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> SAFE_BOX = BLOCKS.register("safe_box",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.METAL)
+                                        .sound(net.minecraft.world.level.block.SoundType.METAL)
+                                        .noOcclusion()
+                                        .strength(1.2F, 4.0F), "stardewcraft:decor/tmp_models/1_1"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> BROKEN_SAFE_BOX = BLOCKS.register("broken_safe_box",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.METAL)
+                                        .sound(net.minecraft.world.level.block.SoundType.METAL)
+                                        .noOcclusion()
+                                        .strength(1.0F, 3.0F), "stardewcraft:decor/tmp_models/1_2"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> LOOM_MACHINE = BLOCKS.register("loom_machine",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.8F, 1.2F), "stardewcraft:decor/tmp_models/2"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> BOILER_DECOR = BLOCKS.register("boiler_decor",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.COLOR_GRAY)
+                                        .sound(net.minecraft.world.level.block.SoundType.METAL)
+                                        .noOcclusion()
+                                        .strength(1.2F, 3.0F), "stardewcraft:decor/tmp_models/3_1"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> BROKEN_BOILER = BLOCKS.register("broken_boiler",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.COLOR_GRAY)
+                                        .sound(net.minecraft.world.level.block.SoundType.METAL)
+                                        .noOcclusion()
+                                        .strength(1.0F, 2.0F), "stardewcraft:decor/tmp_models/3_2"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> YARN_CABINET = BLOCKS.register("yarn_cabinet",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.8F, 1.2F), "stardewcraft:decor/tmp_models/4"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> BROKEN_CHAIR = BLOCKS.register("broken_chair",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.4F, 0.8F), "stardewcraft:decor/tmp_models/5"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> COAL_BASKET = BLOCKS.register("coal_basket",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.6F, 1.0F), "stardewcraft:decor/tmp_models/6"));
+
         // 家具目录 (SDV Furniture Catalogue)
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> FURNITURE_CATALOGUE = BLOCKS.register("furniture_catalogue",
@@ -2530,5 +2604,25 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .strength(-1.0F, 3600000.0F)
                                         .noLootTable(),
                                         "stardewcraft:block/decor/bulletin_board"));
+
+        // 社区中心献祭卷轴 (SDV Junimo Note)
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> JUNIMO_NOTE = BLOCKS.register("junimo_note",
+                        () -> new com.stardew.craft.communitycenter.block.JunimoNoteBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.GOLD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(-1.0F, 3600000.0F)
+                                        .noLootTable()));
+
+        // 社区中心星盘 (Star Plaque)
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> STAR_PLAQUE = BLOCKS.register("star_plaque",
+                        () -> new com.stardew.craft.communitycenter.block.StarPlaqueBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.STONE)
+                                        .sound(net.minecraft.world.level.block.SoundType.STONE)
+                                        .noOcclusion()
+                                        .strength(-1.0F, 3600000.0F)
+                                        .noLootTable()));
 
         }

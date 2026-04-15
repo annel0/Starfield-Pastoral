@@ -1,9 +1,7 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.IridiumNeedleCritClientState;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -36,14 +34,14 @@ public record IridiumNeedleCritPayload(int stacks) implements CustomPacketPayloa
 
     @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
     private static void handleClient(IridiumNeedleCritPayload payload) {
-        Minecraft mc = Minecraft.getInstance();
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
         if (mc.player == null) {
             return;
         }
         if (payload.stacks() > 0) {
-            IridiumNeedleCritClientState.setStacks(payload.stacks());
+            com.stardew.craft.client.weapon.IridiumNeedleCritClientState.setStacks(payload.stacks());
         } else {
-            IridiumNeedleCritClientState.clear();
+            com.stardew.craft.client.weapon.IridiumNeedleCritClientState.clear();
         }
     }
 }

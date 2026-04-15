@@ -52,6 +52,9 @@ public class PlayerStardewData {
     // 职业选择
     private final List<Integer> professions = new ArrayList<>();
     private final List<ProfessionChoicePrompt> pendingProfessionChoices = new ArrayList<>();
+
+    // SDV parity: newLevels — 白天获得的等级提升列表，睡觉时消费（用于升级动画 + 职业选择）
+    private final List<SkillLevelUp> pendingNewLevels = new ArrayList<>();
     
     // ============ 其他数据 ============
     private long lastSyncTime;       // 最后一次同步时间
@@ -283,6 +286,18 @@ public class PlayerStardewData {
                 if ((level == 5 || level == 10) && !data.hasPendingProfessionChoice(skill, level)) {
                     data.pendingProfessionChoices.add(new ProfessionChoicePrompt(skill, level));
                 }
+            }
+        }
+
+        // pendingNewLevels
+        data.pendingNewLevels.clear();
+        if (tag.contains("PendingNewLevels")) {
+            ListTag nlList = tag.getList("PendingNewLevels", 10);
+            for (int i = 0; i < nlList.size(); i++) {
+                CompoundTag entry = nlList.getCompound(i);
+                if (!entry.contains("SkillId") || !entry.contains("Level")) continue;
+                SkillType skill = SkillType.fromId(entry.getInt("SkillId"));
+                data.pendingNewLevels.add(new SkillLevelUp(skill, entry.getInt("Level")));
             }
         }
         
@@ -554,6 +569,16 @@ public class PlayerStardewData {
             pendingChoicesTag.add(entry);
         }
         tag.put("PendingProfessionChoices", pendingChoicesTag);
+
+        // pendingNewLevels（白天获得的升级，睡觉时消费）
+        ListTag newLevelsTag = new ListTag();
+        for (SkillLevelUp levelUp : pendingNewLevels) {
+            CompoundTag entry = new CompoundTag();
+            entry.putInt("SkillId", levelUp.skill().getId());
+            entry.putInt("Level", levelUp.newLevel());
+            newLevelsTag.add(entry);
+        }
+        tag.put("PendingNewLevels", newLevelsTag);
         
         // 元数据
         tag.putLong("LastSyncTime", lastSyncTime);
@@ -744,56 +769,58 @@ public class PlayerStardewData {
     // ============ 经验和等级相关方法 ============
     
     /**
-     * 添加经验值
+     * 添加经验值 — SDV parity: 等级立即生效（Farmer.gainExperience）
      * @return 是否升级
      */
     public boolean addExperience(SkillType skill, int amount) {
         if (amount <= 0) return false;
 
         int skillId = skill.getId();
-        int oldLevelByExp = calculateLevel(experiencePoints[skillId]);
+        int oldLevel = skillLevels[skillId];
 
         experiencePoints[skillId] += amount;
-        int newLevelByExp = calculateLevel(experiencePoints[skillId]);
+        int newLevel = Math.min(10, calculateLevel(experiencePoints[skillId]));
+
+        if (newLevel > oldLevel) {
+            skillLevels[skillId] = newLevel;
+            for (int lvl = oldLevel + 1; lvl <= newLevel; lvl++) {
+                pendingNewLevels.add(new SkillLevelUp(skill, lvl));
+                // 战斗升级立即加血上限（SDV parity）
+                if (skill == SkillType.COMBAT && lvl != 5 && lvl != 10) {
+                    maxHealth += 5;
+                    health = Math.min(health + 5, maxHealth);
+                }
+            }
+        }
 
         markDirty();
-        return newLevelByExp > oldLevelByExp;
+        return newLevel > oldLevel;
     }
 
     public int getLevelByExperience(SkillType skill) {
         return calculateLevel(experiencePoints[skill.getId()]);
     }
 
+    /**
+     * 消费白天积累的 pendingNewLevels（睡觉时调用）。
+     * SDV parity: skillLevels 已在 addExperience 中实时更新，
+     * 此方法只处理职业选择提示并返回列表供升级动画使用。
+     */
     public List<SkillLevelUp> applyPendingSkillLevelUps() {
-        List<SkillLevelUp> applied = new ArrayList<>();
+        List<SkillLevelUp> applied = new ArrayList<>(pendingNewLevels);
 
-        for (SkillType skill : SkillType.values()) {
-            int skillId = skill.getId();
-            int oldLevel = skillLevels[skillId];
-            int targetLevel = Math.min(10, calculateLevel(experiencePoints[skillId]));
-            if (targetLevel <= oldLevel) {
-                continue;
+        for (SkillLevelUp levelUp : applied) {
+            SkillType skill = levelUp.skill();
+            int level = levelUp.newLevel();
+            if (level == 5 && !hasLevel5Profession(skill) && !hasPendingProfessionChoice(skill, 5)) {
+                pendingProfessionChoices.add(new ProfessionChoicePrompt(skill, 5));
             }
-
-            for (int level = oldLevel + 1; level <= targetLevel; level++) {
-                if (level == 5 && !hasLevel5Profession(skill) && !hasPendingProfessionChoice(skill, 5)) {
-                    pendingProfessionChoices.add(new ProfessionChoicePrompt(skill, 5));
-                }
-                if (level == 10 && hasLevel5Profession(skill) && !hasLevel10Profession(skill) && !hasPendingProfessionChoice(skill, 10)) {
-                    pendingProfessionChoices.add(new ProfessionChoicePrompt(skill, 10));
-                }
-
-                if (skill == SkillType.COMBAT && level != 5 && level != 10) {
-                    maxHealth += 5;
-                    health = Math.min(health + 5, maxHealth);
-                }
-
-                applied.add(new SkillLevelUp(skill, level));
+            if (level == 10 && hasLevel5Profession(skill) && !hasLevel10Profession(skill) && !hasPendingProfessionChoice(skill, 10)) {
+                pendingProfessionChoices.add(new ProfessionChoicePrompt(skill, 10));
             }
-
-            skillLevels[skillId] = targetLevel;
         }
 
+        pendingNewLevels.clear();
         if (!applied.isEmpty()) {
             markDirty();
         }

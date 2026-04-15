@@ -1,7 +1,6 @@
 package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.hud.SkillExperienceHud;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -45,6 +44,6 @@ public record SkillExperienceGainPayload(
     }
 
     public static void handle(SkillExperienceGainPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> SkillExperienceHud.onExperienceGained(payload));
+        context.enqueueWork(() -> com.stardew.craft.client.hud.SkillExperienceHud.onExperienceGained(payload));
     }
 }

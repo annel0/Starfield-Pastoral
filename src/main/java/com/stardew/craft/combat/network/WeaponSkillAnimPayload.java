@@ -1,7 +1,6 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.WeaponSkillAnimationClient;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -33,6 +32,6 @@ public record WeaponSkillAnimPayload(String weaponId, String skillId, int durati
     }
 
     public static void handle(WeaponSkillAnimPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> WeaponSkillAnimationClient.start(payload.weaponId(), payload.skillId(), payload.durationTicks()));
+        context.enqueueWork(() -> com.stardew.craft.client.weapon.WeaponSkillAnimationClient.start(payload.weaponId(), payload.skillId(), payload.durationTicks()));
     }
 }

@@ -59,11 +59,7 @@ public final class GarbageCanLootTable {
         Result beforeAll = evaluateBeforeAll(rng, baseChancePassed, trashCansChecked);
         if (beforeAll != null) return beforeAll;
 
-        // ---- 位置特定物品 ----
-        Result locationResult = evaluateLocation(canId, rng, baseChancePassed, dailyLuck);
-        if (locationResult != null) return locationResult;
-
-        // ---- AfterAll ----
+        // ---- AfterAll (所有垃圾桶共享同一掉落池) ----
         return evaluateAfterAll(rng, baseChancePassed, trashCansChecked, player);
     }
 
@@ -74,80 +70,6 @@ public final class GarbageCanLootTable {
         // Garbage Hat: 20+ 次, 0.2% 概率, DoubleMega — 我们没有此物品，跳过
         // Trash Catalogue: 50+ 次, 0.2% 概率, DoubleMega — 我们没有此物品，跳过
         // Qi Bean: 需要特殊订单规则 DROP_QI_BEANS, 25% 概率 — 我们没有此物品，跳过
-        return null;
-    }
-
-    // ==================== 位置特定 ====================
-
-    @Nullable
-    private static Result evaluateLocation(String canId, Random rng, boolean baseChancePassed, double dailyLuck) {
-        if (!baseChancePassed) return null;
-
-        return switch (canId) {
-            case "Blacksmith" -> evaluateBlacksmith(rng, dailyLuck);
-            case "Evelyn" -> evaluateEvelyn(rng, dailyLuck);
-            case "JojaMart" -> evaluateJojaMart(rng);
-            case "Museum" -> evaluateMuseum(rng, dailyLuck);
-            // Saloon：DISH_OF_THE_DAY — 暂无此系统，跳过
-            // EmilyAndHaley, JodiAndKent, Mayor：无特定物品
-            default -> null;
-        };
-    }
-
-    @Nullable
-    private static Result evaluateBlacksmith(Random rng, double dailyLuck) {
-        // RANDOM 0.2 @addDailyLuck
-        if (rng.nextDouble() >= 0.2 + dailyLuck) return null;
-
-        List<Item> ores = List.of(
-                ModItems.EARTH_COPPER_ORE.get(),
-                ModItems.EARTH_IRON_ORE.get(),
-                ModItems.EARTH_GOLD_ORE.get()
-        );
-        Item ore = ores.get(rng.nextInt(ores.size()));
-        // 数量乘数 1-4
-        int count = 1 + rng.nextInt(4);
-        return new Result(new ItemStack(ore, count), false, false);
-    }
-
-    @Nullable
-    private static Result evaluateEvelyn(Random rng, double dailyLuck) {
-        // RANDOM 0.2 @addDailyLuck
-        if (rng.nextDouble() >= 0.2 + dailyLuck) return null;
-
-        Item cookie = ModItems.COOKING_DISHES.get("cookie").get();
-        return new Result(new ItemStack(cookie), false, false);
-    }
-
-    @Nullable
-    private static Result evaluateJojaMart(Random rng) {
-        // SYNCED_RANDOM day garbage_joja 0.2 — 简化为直接 0.2 判定
-        if (rng.nextDouble() >= 0.2) return null;
-
-        // 原版：Movie Ticket 25% / Corn 75% — 我们没有 Movie Ticket，直接给 Corn
-        // 原版还有 Joja Cola 条目，但有额外条件，这里简化
-        List<Item> items = List.of(
-                ModItems.CORN.get(),
-                ModItems.CORN.get(),
-                ModItems.CORN.get(),
-                ModItems.JOJA_COLA.get()
-        );
-        Item item = items.get(rng.nextInt(items.size()));
-        return new Result(new ItemStack(item), false, false);
-    }
-
-    @Nullable
-    private static Result evaluateMuseum(Random rng, double dailyLuck) {
-        // 先尝试 Omni Geode (需两个条件都通过)
-        boolean geodeBasePass = rng.nextDouble() < 0.2 + dailyLuck;
-        boolean omniPass = rng.nextDouble() < 0.05;
-        if (geodeBasePass && omniPass) {
-            return new Result(new ItemStack(ModItems.OMNI_GEODE.get()), false, false);
-        }
-        // 普通 Geode
-        if (geodeBasePass) {
-            return new Result(new ItemStack(ModItems.GEODE.get()), false, false);
-        }
         return null;
     }
 
@@ -202,22 +124,33 @@ public final class GarbageCanLootTable {
 
     /**
      * AfterAll Fallback 随机池。
-     * <p>原版: Green Algae, Bread, Field Snack, Acorn, Maple Seed, Pine Cone,
+     * <p>合并原版位置特定好物品（矿石/饼干/晶球等）到通用池，所有垃圾桶共享。
+     * <p>原版通用: Green Algae, Bread, Acorn, Maple Seed, Pine Cone,
      *          RANDOM_BASE_SEASON_ITEM, Trash, Joja Cola, Broken Glasses, Broken CD, Soggy Newspaper
+     * <p>原版位置特定（已合并）: 矿石(铜/铁/金), Cookie, Geode, Omni Geode, Corn
      */
     private static List<Item> buildFallbackPool(ServerPlayer player, Random rng) {
         List<Item> pool = new ArrayList<>();
+        // 通用好物品
         pool.add(ModItems.GREEN_ALGAE.get());
         pool.add(ModItems.COOKING_DISHES.get("bread").get());
-        // Field Snack — 不存在于 mod，跳过
         pool.add(ModItems.ACORN.get());
         pool.add(ModItems.MAPLE_SEED.get());
         pool.add(ModItems.PINE_CONE.get());
+        // 原位置特定物品 — 合并进通用池
+        pool.add(ModItems.EARTH_COPPER_ORE.get());
+        pool.add(ModItems.EARTH_IRON_ORE.get());
+        pool.add(ModItems.EARTH_GOLD_ORE.get());
+        pool.add(ModItems.COOKING_DISHES.get("cookie").get());
+        pool.add(ModItems.GEODE.get());
+        pool.add(ModItems.OMNI_GEODE.get());
+        pool.add(ModItems.CORN.get());
         // RANDOM_BASE_SEASON_ITEM
         Item seasonItem = getRandomItemFromSeason(player, rng);
         if (seasonItem != null) {
             pool.add(seasonItem);
         }
+        // 垃圾（保留，但占比降低了）
         pool.add(ModItems.TRASH.get());
         pool.add(ModItems.JOJA_COLA.get());
         pool.add(ModItems.BROKEN_GLASSES.get());

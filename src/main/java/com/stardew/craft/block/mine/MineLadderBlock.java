@@ -123,6 +123,7 @@ public class MineLadderBlock extends Block {
         // 获取玩家矿井数据
         MiningPlayerData playerData = MiningDataManager.getPlayerData(serverPlayer);
         int currentFloor = playerData.getCurrentFloor();
+        int previousMaxFloor = playerData.getMaxFloorReached();
         int nextFloor = currentFloor + 1;
 
         if (nextFloor > 120) {
@@ -155,6 +156,28 @@ public class MineLadderBlock extends Block {
             serverPlayer, 
             new MiningFloorSyncPacket(nextFloor)
         );
+
+        // 延迟 3 tick 强制刷新客户端光照（等 chunk 发送完毕后再触发）
+        final int floor = nextFloor;
+        ((ServerLevel) level).getServer().tell(new net.minecraft.server.TickTask(
+            ((ServerLevel) level).getServer().getTickCount() + 3,
+            () -> com.stardew.craft.mining.MineFloorGenerator.forceClientLightRefresh((ServerLevel) level, floor)
+        ));
+
+        // SDV: elevatorShouldDing — 到达新的电梯层（5的倍数）且是首次到达时，
+        // 延迟 1.5 秒 (30 ticks) 播放 crystal 音效
+        if (nextFloor % 5 == 0 && nextFloor > previousMaxFloor) {
+            ((ServerLevel) level).getServer().tell(new net.minecraft.server.TickTask(
+                ((ServerLevel) level).getServer().getTickCount() + 30,
+                () -> {
+                    if (serverPlayer.isAlive() && serverPlayer.level().dimension() == com.stardew.craft.core.ModMiningDimensions.STARDEW_MINING) {
+                        level.playSound(null, serverPlayer.blockPosition(),
+                            com.stardew.craft.sound.ModSounds.CRYSTAL.get(),
+                            SoundSource.BLOCKS, 1.0F, 1.0F);
+                    }
+                }
+            ));
+        }
 
         return InteractionResult.SUCCESS;
     }

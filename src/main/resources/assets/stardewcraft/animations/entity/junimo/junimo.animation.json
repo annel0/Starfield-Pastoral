@@ -863,6 +863,14 @@
 							"vector": [0, 0, -0.9]
 						}
 					}
+				},
+				"right_item": {
+					"rotation": {
+						"vector": [0, 0, -145]
+					},
+					"position": {
+						"vector": [-3, -1, 0]
+					}
 				}
 			}
 		},

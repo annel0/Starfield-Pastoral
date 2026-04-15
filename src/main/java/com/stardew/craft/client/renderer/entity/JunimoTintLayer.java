@@ -34,8 +34,10 @@ public class JunimoTintLayer extends GeoRenderLayer<JunimoEntity> {
                        @Nullable VertexConsumer buffer, float partialTick,
                        int packedLight, int packedOverlay) {
         float[] rgb = animatable.getColorComponents();
+        float alpha = animatable.getAlpha();
         RenderType tintRenderType = RenderType.entityTranslucent(TINT_TEXTURE);
-        int colour = Color.ofRGB(rgb[0], rgb[1], rgb[2]).argbInt();
+        int a = Math.round(alpha * 255);
+        int colour = Color.ofARGB(a, (int)(rgb[0] * 255), (int)(rgb[1] * 255), (int)(rgb[2] * 255)).argbInt();
         getRenderer().reRender(bakedModel, poseStack, bufferSource, animatable, tintRenderType,
                 bufferSource.getBuffer(tintRenderType), partialTick, packedLight, packedOverlay, colour);
     }

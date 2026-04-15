@@ -1,9 +1,11 @@
 package com.stardew.craft.item.tool;
 
 import com.stardew.craft.item.IStardewItem;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Tiers;
+import net.minecraft.world.item.component.Unbreakable;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -15,14 +17,6 @@ import net.neoforged.neoforge.common.ItemAbility;
 
 @SuppressWarnings("null")
 public class StardewAxeItem extends AxeItem implements IStardewItem {
-
-	// SDV 工具没有耐久
-	@Override
-	public boolean isDamageable(ItemStack stack) { return false; }
-	@Override
-	public int getMaxDamage(ItemStack stack) { return 0; }
-	@Override
-	public void setDamage(ItemStack stack, int damage) { /* no-op */ }
 
 	public enum Tier {
 		STARTER(0),
@@ -45,7 +39,8 @@ public class StardewAxeItem extends AxeItem implements IStardewItem {
 	private final Tier tier;
 
 	public StardewAxeItem(Tier tier, Properties properties) {
-		super(new IndestructibleTier(toVanillaTier(tier)), properties.stacksTo(1).setNoRepair());
+		super(toVanillaTier(tier), properties.stacksTo(1)
+				.component(DataComponents.UNBREAKABLE, new Unbreakable(false)));
 		this.tier = tier;
 	}
 
@@ -86,14 +81,7 @@ public class StardewAxeItem extends AxeItem implements IStardewItem {
 
 	@Override
 	public InteractionResult useOn(@SuppressWarnings("null") UseOnContext context) {
-		// 保留斧头功能（去皮/刮蜡等）但不允许耗久
-		ItemStack stack = context.getItemInHand();
-		int before = stack.getDamageValue();
-		InteractionResult result = super.useOn(context);
-		if (!stack.isEmpty() && stack.getDamageValue() != before) {
-			stack.setDamageValue(before);
-		}
-		return result;
+		return super.useOn(context);
 	}
 
 	@Override

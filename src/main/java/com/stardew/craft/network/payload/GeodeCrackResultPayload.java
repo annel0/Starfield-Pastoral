@@ -1,8 +1,6 @@
 package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.gui.GeodeMenuScreen;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -43,8 +41,8 @@ public record GeodeCrackResultPayload(
 
     @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
     private static void handleClient(GeodeCrackResultPayload payload) {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.screen instanceof GeodeMenuScreen screen) {
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+        if (mc.screen instanceof com.stardew.craft.client.gui.GeodeMenuScreen screen) {
             screen.onCrackResult(payload.treasureItemId(), payload.geodeType(), payload.newMoney());
         }
     }

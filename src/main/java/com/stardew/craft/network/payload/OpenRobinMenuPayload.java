@@ -1,9 +1,6 @@
 package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.gui.common.StardewConfirmDialogScreen;
-import com.stardew.craft.client.gui.common.StardewQuestionDialogSpec;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
@@ -40,7 +37,7 @@ public record OpenRobinMenuPayload() implements CustomPacketPayload {
 
     @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
     private static void handleClient(OpenRobinMenuPayload payload) {
-        Minecraft mc = Minecraft.getInstance();
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
         if (mc.player == null) return;
 
         // SDV Robin menu: 建造农场建筑 / 商店 / 离开
@@ -52,13 +49,13 @@ public record OpenRobinMenuPayload() implements CustomPacketPayload {
 
         Component question = Component.translatable("stardewcraft.robin.menu.question");
 
-        StardewQuestionDialogSpec spec = StardewQuestionDialogSpec.of(
+        com.stardew.craft.client.gui.common.StardewQuestionDialogSpec spec = com.stardew.craft.client.gui.common.StardewQuestionDialogSpec.of(
             question,
             responses,
             choiceIndex -> PacketDistributor.sendToServer(new RobinActionPayload(choiceIndex)),
             2 // default = Leave
         );
 
-        mc.setScreen(StardewConfirmDialogScreen.createQuestionDialog(spec));
+        mc.setScreen(com.stardew.craft.client.gui.common.StardewConfirmDialogScreen.createQuestionDialog(spec));
     }
 }

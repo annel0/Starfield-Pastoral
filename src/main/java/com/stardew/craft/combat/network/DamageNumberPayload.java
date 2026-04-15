@@ -1,7 +1,6 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.combat.DamageNumberClient;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -44,7 +43,7 @@ public record DamageNumberPayload(float x, float y, float z, int damage, boolean
             if (skill != null && skill.isEmpty()) {
                 skill = null;
             }
-            DamageNumberClient.add(payload.x(), payload.y(), payload.z(), payload.damage(), payload.crit(), skill);
+            com.stardew.craft.client.combat.DamageNumberClient.add(payload.x(), payload.y(), payload.z(), payload.damage(), payload.crit(), skill);
         });
     }
 }

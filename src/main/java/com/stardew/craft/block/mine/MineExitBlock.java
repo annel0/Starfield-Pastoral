@@ -111,17 +111,14 @@ public class MineExitBlock extends Block {
     }
 
     /**
-     * 右键交互 - 打开GUI
+     * 右键交互 — 映射自 SDV MineShaft.checkAction case 115 (梯子)：
+     * createQuestionDialogue(" ", { "Leave", "Do nothing" }, "ExitMine");
      */
     @SuppressWarnings("null")
     @Override
     protected InteractionResult useWithoutItem(@SuppressWarnings("null") BlockState state, @SuppressWarnings("null") Level level, @SuppressWarnings("null") BlockPos pos, 
                                                @SuppressWarnings("null")    Player player, @SuppressWarnings("null")    BlockHitResult hitResult) {
-        // 检查是否在矿井维度
         if (level.dimension() != com.stardew.craft.core.ModMiningDimensions.STARDEW_MINING) {
-            player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                "矿井出口只能在矿井维度使用！"
-            ));
             return InteractionResult.FAIL;
         }
 
@@ -129,13 +126,14 @@ public class MineExitBlock extends Block {
             return InteractionResult.SUCCESS;
         }
 
-        // 服务端：打开Menu（使用SimpleMenuProvider）
         if (player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.openMenu(new net.minecraft.world.SimpleMenuProvider(
-                (containerId, playerInventory, playerEntity) -> 
-                    new com.stardew.craft.menu.MineExitMenu(containerId, playerInventory),
-                net.minecraft.network.chat.Component.translatable("container.stardew_craft.mine_exit")
-            ));
+            com.stardew.craft.mining.MiningPlayerData playerData = 
+                com.stardew.craft.mining.MiningDataManager.getPlayerData(serverPlayer);
+            int currentFloor = playerData != null ? playerData.getCurrentFloor() : 0;
+            net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(
+                serverPlayer,
+                new com.stardew.craft.network.payload.OpenMineExitDialogPayload(currentFloor)
+            );
         }
 
         return InteractionResult.CONSUME;

@@ -39,6 +39,15 @@ public final class SleepInteractionHandler {
             return;
         }
 
+        // 只能在农场区域睡觉
+        if (!com.stardew.craft.core.FarmAreaHelper.isInFarmArea(player.level(), event.getPos())) {
+            player.displayClientMessage(
+                    net.minecraft.network.chat.Component.translatable("stardewcraft.farm.sleep_farm_only"), true);
+            event.setCanceled(true);
+            event.setCancellationResult(InteractionResult.SUCCESS);
+            return;
+        }
+
         int currentMinute = StardewTimeManager.get().getCurrentTime();
         PacketDistributor.sendToPlayer(player, new OpenSleepConfirmScreenPayload(currentMinute));
         event.setCanceled(true);

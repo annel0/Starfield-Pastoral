@@ -65,7 +65,7 @@
                 },
     "foraging":  {
                      "1":  [
-
+                               "wild_seeds_spring"
                            ],
                      "2":  [
                                "survival_burger"
@@ -74,16 +74,17 @@
                                "moss_soup"
                            ],
                      "4":  [
-
+                               "wild_seeds_summer"
                            ],
                      "5":  [
 
                            ],
                      "6":  [
-                               "lightning_rod"
+                               "lightning_rod",
+                               "wild_seeds_fall"
                            ],
                      "7":  [
-
+                               "wild_seeds_winter"
                            ],
                      "8":  [
 

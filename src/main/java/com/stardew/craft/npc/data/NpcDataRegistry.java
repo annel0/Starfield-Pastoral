@@ -10,81 +10,111 @@ import java.util.Set;
 
 /**
  * Central in-memory registry for NPC data-driven resources.
+ * All data is packed into an immutable snapshot and atomically swapped
+ * so readers never see a half-updated state.
  */
 public final class NpcDataRegistry {
-    private static volatile Map<String, NpcCapabilityProfile> CAPABILITIES = Collections.emptyMap();
-    private static volatile Map<String, JsonObject> DIALOGUES = Collections.emptyMap();
-    private static volatile Map<String, JsonObject> SCHEDULES = Collections.emptyMap();
-    private static volatile Map<String, JsonObject> TASTES = Collections.emptyMap();
-    private static volatile Map<String, JsonObject> EVENTS = Collections.emptyMap();
-    private static volatile Set<String> LOCATION_MAPPINGS = Collections.emptySet();
-    private static volatile Map<String, String> LOCATION_ALIASES = Collections.emptyMap();
-    private static volatile Map<String, NpcLocationAnchor> LOCATION_ANCHORS = Collections.emptyMap();
+
+    /** Immutable snapshot of all NPC data. */
+    private record Snapshot(
+        Map<String, NpcCapabilityProfile> capabilities,
+        Map<String, JsonObject> dialogues,
+        Map<String, JsonObject> schedules,
+        Map<String, JsonObject> tastes,
+        Map<String, JsonObject> events,
+        Set<String> locationMappings,
+        Map<String, String> locationAliases,
+        Map<String, NpcLocationAnchor> locationAnchors
+    ) {
+        static final Snapshot EMPTY = new Snapshot(
+            Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(),
+            Collections.emptyMap(), Collections.emptyMap(), Collections.emptySet(),
+            Collections.emptyMap(), Collections.emptyMap()
+        );
+    }
+
+    private static volatile Snapshot CURRENT = Snapshot.EMPTY;
 
     private NpcDataRegistry() {
     }
 
     public static void replaceCapabilities(Map<String, NpcCapabilityProfile> capabilities) {
-        CAPABILITIES = Collections.unmodifiableMap(new LinkedHashMap<>(capabilities));
+        Snapshot s = CURRENT;
+        CURRENT = new Snapshot(Collections.unmodifiableMap(new LinkedHashMap<>(capabilities)),
+            s.dialogues, s.schedules, s.tastes, s.events, s.locationMappings, s.locationAliases, s.locationAnchors);
     }
 
     public static void replaceDialogues(Map<String, JsonObject> dialogues) {
-        DIALOGUES = Collections.unmodifiableMap(new LinkedHashMap<>(dialogues));
+        Snapshot s = CURRENT;
+        CURRENT = new Snapshot(s.capabilities, Collections.unmodifiableMap(new LinkedHashMap<>(dialogues)),
+            s.schedules, s.tastes, s.events, s.locationMappings, s.locationAliases, s.locationAnchors);
     }
 
     public static void replaceSchedules(Map<String, JsonObject> schedules) {
-        SCHEDULES = Collections.unmodifiableMap(new LinkedHashMap<>(schedules));
+        Snapshot s = CURRENT;
+        CURRENT = new Snapshot(s.capabilities, s.dialogues, Collections.unmodifiableMap(new LinkedHashMap<>(schedules)),
+            s.tastes, s.events, s.locationMappings, s.locationAliases, s.locationAnchors);
     }
 
     public static void replaceTastes(Map<String, JsonObject> tastes) {
-        TASTES = Collections.unmodifiableMap(new LinkedHashMap<>(tastes));
+        Snapshot s = CURRENT;
+        CURRENT = new Snapshot(s.capabilities, s.dialogues, s.schedules,
+            Collections.unmodifiableMap(new LinkedHashMap<>(tastes)), s.events, s.locationMappings, s.locationAliases, s.locationAnchors);
     }
 
     public static void replaceEvents(Map<String, JsonObject> events) {
-        EVENTS = Collections.unmodifiableMap(new LinkedHashMap<>(events));
+        Snapshot s = CURRENT;
+        CURRENT = new Snapshot(s.capabilities, s.dialogues, s.schedules, s.tastes,
+            Collections.unmodifiableMap(new LinkedHashMap<>(events)), s.locationMappings, s.locationAliases, s.locationAnchors);
     }
 
     public static void replaceLocationMappings(Set<String> locations) {
-        LOCATION_MAPPINGS = Collections.unmodifiableSet(new LinkedHashSet<>(locations));
+        Snapshot s = CURRENT;
+        CURRENT = new Snapshot(s.capabilities, s.dialogues, s.schedules, s.tastes, s.events,
+            Collections.unmodifiableSet(new LinkedHashSet<>(locations)), s.locationAliases, s.locationAnchors);
     }
 
     public static void replaceLocationAliases(Map<String, String> aliases) {
-        LOCATION_ALIASES = Collections.unmodifiableMap(new LinkedHashMap<>(aliases));
+        Snapshot s = CURRENT;
+        CURRENT = new Snapshot(s.capabilities, s.dialogues, s.schedules, s.tastes, s.events,
+            s.locationMappings, Collections.unmodifiableMap(new LinkedHashMap<>(aliases)), s.locationAnchors);
     }
 
     public static void replaceLocationAnchors(Map<String, NpcLocationAnchor> anchors) {
-        LOCATION_ANCHORS = Collections.unmodifiableMap(new LinkedHashMap<>(anchors));
+        Snapshot s = CURRENT;
+        CURRENT = new Snapshot(s.capabilities, s.dialogues, s.schedules, s.tastes, s.events,
+            s.locationMappings, s.locationAliases, Collections.unmodifiableMap(new LinkedHashMap<>(anchors)));
     }
 
     public static Map<String, NpcCapabilityProfile> capabilities() {
-        return CAPABILITIES;
+        return CURRENT.capabilities;
     }
 
     public static Map<String, JsonObject> dialogues() {
-        return DIALOGUES;
+        return CURRENT.dialogues;
     }
 
     public static Map<String, JsonObject> schedules() {
-        return SCHEDULES;
+        return CURRENT.schedules;
     }
 
     public static Map<String, JsonObject> tastes() {
-        return TASTES;
+        return CURRENT.tastes;
     }
 
     public static Map<String, JsonObject> events() {
-        return EVENTS;
+        return CURRENT.events;
     }
 
     public static Set<String> locationMappings() {
-        return LOCATION_MAPPINGS;
+        return CURRENT.locationMappings;
     }
 
     public static Map<String, String> locationAliases() {
-        return LOCATION_ALIASES;
+        return CURRENT.locationAliases;
     }
 
     public static Map<String, NpcLocationAnchor> locationAnchors() {
-        return LOCATION_ANCHORS;
+        return CURRENT.locationAnchors;
     }
 }

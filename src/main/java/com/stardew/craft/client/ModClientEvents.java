@@ -58,8 +58,9 @@ public class ModClientEvents {
             if (stack.getItem() instanceof com.stardew.craft.item.tool.WateringCanItem
                     || stack.getItem() instanceof IStardewWeapon) {
                 tooltip.removeIf(ModClientEvents::isDurabilityTooltipLine);
-                tooltip.removeIf(ModClientEvents::isUnbreakableTooltipLine);
             }
+            // 所有 Stardew 物品都隐藏 "Unbreakable" 提示行
+            tooltip.removeIf(ModClientEvents::isUnbreakableTooltipLine);
             
             // 插入位置：紧跟在名字后面 (index 1)
             // 原版tooltip至少包含名字(index 0)
@@ -288,6 +289,7 @@ public class ModClientEvents {
         com.stardew.craft.client.sound.StardewMusicManager.onClientTick();
         com.stardew.craft.client.emote.EmoteBubbleClientState.tick();
         com.stardew.craft.client.emote.EmoteWheelClient.onClientTick();
+        com.stardew.craft.communitycenter.cutscene.ScreenFade.tick();
         com.stardew.craft.client.combat.DamageNumberClient.onClientTick(event);
         com.stardew.craft.client.weapon.SkillFailShakeState.tick();
         com.stardew.craft.client.weapon.CameraShakeState.tick();
@@ -428,6 +430,8 @@ public class ModClientEvents {
         com.stardew.craft.client.weapon.StarfallShockwavePostEffectClient.onRenderLevel(event);
         // com.stardew.craft.client.weapon.EvolvedAuraEffectClient.onRenderLevel(event); // 禁用：金色光环效果
         com.stardew.craft.client.render.PortalHintRenderer.onRenderLevel(event);
+        com.stardew.craft.client.render.JunimoNoteOutlineRenderer.onRenderLevel(event);
+        com.stardew.craft.client.render.StarPlaqueRenderer.onRenderLevel(event);
     }
 
     @SubscribeEvent
@@ -435,6 +439,9 @@ public class ModClientEvents {
         if (!event.getName().equals(VanillaGuiLayers.HOTBAR)) {
             return;
         }
+
+        // CC 过场全屏 overlay (淡入淡出 / 闪白)
+        com.stardew.craft.communitycenter.cutscene.ScreenFade.render(event.getGuiGraphics());
 
         Minecraft mc = Minecraft.getInstance();
         Player player = mc.player;

@@ -1,7 +1,6 @@
 package com.stardew.craft.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.hud.StardewHudMessageManager;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -37,9 +36,9 @@ public record HayHarvestHudMessagePacket(int hayCount, boolean siloFull) impleme
     public static void handle(HayHarvestHudMessagePacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (packet.siloFull()) {
-                StardewHudMessageManager.showInfo(Component.translatable("stardewcraft.hud.hay_silo_full"));
+                com.stardew.craft.client.hud.StardewHudMessageManager.showInfo(Component.translatable("stardewcraft.hud.hay_silo_full"));
             } else {
-                StardewHudMessageManager.showHayHarvest(packet.hayCount());
+                com.stardew.craft.client.hud.StardewHudMessageManager.showHayHarvest(packet.hayCount());
             }
         });
     }

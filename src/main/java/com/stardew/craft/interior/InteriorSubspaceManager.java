@@ -36,7 +36,7 @@ public final class InteriorSubspaceManager {
     public static final int REGION_MAX_Z = 19000;
 
     // 结构布局版本：当结构清单或坐标大改时 +1，可触发重新装载。
-    private static final int LAYOUT_VERSION = 22;
+    private static final int LAYOUT_VERSION = 27;
 
     private static final String PIERRE_HOUSE_STRUCTURE_PATH = "data/stardewcraft/structures/interior/pierre_house.schem";
     private static final BlockPos PIERRE_HOUSE_ORIGIN = new BlockPos(12032, 70, 12032);
@@ -198,6 +198,21 @@ public final class InteriorSubspaceManager {
     private static final String TAG_PORTAL_MARKER_WIZARD_TOWER_RETURN_OVERWORLD = "sdv_portal_marker:wizard_tower_return_overworld";
     private static final BlockPos WIZARD_TOWER_RETURN_OVERWORLD_BASE = new BlockPos(18249, 71, 17100);
 
+    // ---- 社区中心 ----
+    private static final String CC_RUINS_STRUCTURE_PATH = "data/stardewcraft/structures/interior/community_center_ruins.schem";
+    @SuppressWarnings("unused")
+    private static final String CC_REFURBISHED_STRUCTURE_PATH = "data/stardewcraft/structures/interior/community_center_refurbished.schem";
+    public static final BlockPos CC_ORIGIN = new BlockPos(18816, 69, 18816);
+    /** schem 的 pos1（建造世界绝对坐标），用于偏移换算：relative = absolute - SCHEM_POS1 */
+    public static final BlockPos CC_SCHEM_POS1 = new BlockPos(-146, 101, -1333);
+    public static final BlockPos CC_INDOOR_SPAWN_OFFSET = new BlockPos(16, 1, 37);   // 玩家室内出生点 → 18832,70,18853
+    public static final BlockPos CC_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(17, 1, 37); // 室内出口交互实体基点 → (18833,70,18853)~(18833,71,18854)
+    private static final BlockPos CC_OUTDOOR_ENTRY_POS = new BlockPos(-190, -10, 138); // 出门后玩家传送目标
+    private static final BlockPos CC_OUTDOOR_INTERACTION_BASE = new BlockPos(-191, -9, 141); // 室外入口交互实体基点 → (-191,-9,141)~(-189,-8,141)
+
+    private static final String TAG_PORTAL_MARKER_CC_OUTSIDE = "sdv_portal_marker:cc_outside";
+    private static final String TAG_PORTAL_MARKER_CC_INSIDE  = "sdv_portal_marker:cc_inside";
+
     // ---- 矿井入口（室外） ----
     private static final String TAG_PORTAL_MARKER_MINE_OUTSIDE = "sdv_portal_marker:mine_entrance";
     private static final BlockPos MINE_OUTDOOR_ENTRY_POS = new BlockPos(-287, -13, 314);
@@ -226,6 +241,7 @@ public final class InteriorSubspaceManager {
         register("fish_shop", FISH_SHOP_STRUCTURE_PATH, FISH_SHOP_ORIGIN.getX(), FISH_SHOP_ORIGIN.getY(), FISH_SHOP_ORIGIN.getZ());
         register("elliott_cabin", ELLIOTT_CABIN_STRUCTURE_PATH, ELLIOTT_CABIN_ORIGIN.getX(), ELLIOTT_CABIN_ORIGIN.getY(), ELLIOTT_CABIN_ORIGIN.getZ());
         register("wizard_tower", WIZARD_TOWER_STRUCTURE_PATH, WIZARD_TOWER_ORIGIN.getX(), WIZARD_TOWER_ORIGIN.getY(), WIZARD_TOWER_ORIGIN.getZ());
+        register("community_center", CC_RUINS_STRUCTURE_PATH, CC_ORIGIN.getX(), CC_ORIGIN.getY(), CC_ORIGIN.getZ());
 
         BlockPos indoorSpawn = PIERRE_HOUSE_ORIGIN.offset(PIERRE_INDOOR_SPAWN_OFFSET);
         BlockPos indoorExitPortal = PIERRE_HOUSE_ORIGIN.offset(PIERRE_INDOOR_EXIT_PORTAL_OFFSET);
@@ -718,6 +734,38 @@ public final class InteriorSubspaceManager {
         );
 
         StardewCraft.LOGGER.info("[INTERIOR] wizard_tower indoor exit interaction anchor = {}", wizardTowerIndoorExitPortal);
+
+        // ---- 社区中心（CC）门户 ----
+        BlockPos ccIndoorSpawn = CC_ORIGIN.offset(CC_INDOOR_SPAWN_OFFSET);
+        BlockPos ccIndoorExitPortal = CC_ORIGIN.offset(CC_INDOOR_EXIT_PORTAL_OFFSET);
+
+        // 进社区中心：传送到大厅中央
+        InteriorPortalRegistry.register(
+            "community_center_enter",
+            new InteriorPortalRegistry.PortalTarget(
+                ccIndoorSpawn.getX() + 0.5D,
+                ccIndoorSpawn.getY(),
+                ccIndoorSpawn.getZ() + 0.5D,
+                -90.0F,
+                0.0F,
+                InteriorPortalRegistry.PortalMode.ENTRANCE
+            )
+        );
+
+        // 出社区中心：传送到室外 -190 -10 138，朝向正北
+        InteriorPortalRegistry.register(
+            "community_center_exit",
+            new InteriorPortalRegistry.PortalTarget(
+                CC_OUTDOOR_ENTRY_POS.getX() + 0.5D,
+                CC_OUTDOOR_ENTRY_POS.getY(),
+                CC_OUTDOOR_ENTRY_POS.getZ() + 0.5D,
+                180.0F,
+                0.0F,
+                InteriorPortalRegistry.PortalMode.EXIT
+            )
+        );
+
+        StardewCraft.LOGGER.info("[INTERIOR] community_center indoor exit interaction anchor = {}", ccIndoorExitPortal);
     }
 
     public static void register(String id, String structurePath, int x, int y, int z) {
@@ -767,6 +815,9 @@ public final class InteriorSubspaceManager {
         }
 
         ensurePortalInteractions(level);
+
+        // CC: 动态放置 JunimoNote 方块
+        com.stardew.craft.communitycenter.JunimoNotePlacer.ensureJunimoNotes(level);
 
         data.layoutVersion = LAYOUT_VERSION;
         data.initialized = true;
@@ -1206,6 +1257,28 @@ public final class InteriorSubspaceManager {
             TAG_PORTAL_MARKER_MINE_OUTSIDE,
             "sdv_portal_target:mine_entrance"
         );
+
+        // ---- 社区中心室外入口：(-191,-9,141) 到 (-189,-8,141)，3宽 x 2高 ----
+        spawnOrReplaceInteractionArea(
+            level,
+            CC_OUTDOOR_INTERACTION_BASE,
+            3,       // widthBlocksX
+            2,       // heightBlocks
+            TAG_PORTAL_MARKER_CC_OUTSIDE,
+            "sdv_portal_target:community_center_enter"
+        );
+
+        // 社区中心室内出口：相对偏移 (17,1,37) 起，1宽 x 2深 x 2高 → (18833,70,18853)~(18833,71,18854)
+        BlockPos ccIndoorExitPortal = CC_ORIGIN.offset(CC_INDOOR_EXIT_PORTAL_OFFSET);
+        spawnOrReplaceInteractionArea(
+            level,
+            ccIndoorExitPortal,
+            2,       // heightBlocks
+            1,       // xBlocks
+            2,       // zBlocks
+            TAG_PORTAL_MARKER_CC_INSIDE,
+            "sdv_portal_target:community_center_exit"
+        );
     }
 
     private static void spawnOrReplaceInteractionArea(ServerLevel level,
@@ -1225,10 +1298,13 @@ public final class InteriorSubspaceManager {
                                                       String markerTag,
                                                       String targetTag) {
         AABB searchBox = new AABB(basePos).inflate(6.0D);
+        int removed = 0;
         for (Interaction interaction : level.getEntitiesOfClass(Interaction.class, searchBox, e -> e.getTags().contains(markerTag))) {
             interaction.discard();
+            removed++;
         }
 
+        int spawned = 0;
         for (int dx = 0; dx < xBlocks; dx++) {
             for (int dz = 0; dz < zBlocks; dz++) {
                 for (int dy = 0; dy < heightBlocks; dy++) {
@@ -1244,9 +1320,12 @@ public final class InteriorSubspaceManager {
                     interaction.addTag(markerTag);
                     interaction.addTag(targetTag);
                     level.addFreshEntity(interaction);
+                    spawned++;
                 }
             }
         }
+        StardewCraft.LOGGER.info("[INTERIOR] Interaction area '{}': base={}, x={} z={} h={}, removed={}, spawned={}",
+                markerTag, basePos, xBlocks, zBlocks, heightBlocks, removed, spawned);
     }
 
     private static final class InteriorSubspaceSavedData extends SavedData {

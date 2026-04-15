@@ -1,7 +1,6 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.SteelFalchionLineEffectClient;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -37,7 +36,7 @@ public record SteelFalchionLinePointPayload(int lineId, float x, float y, float 
     }
 
     public static void handle(SteelFalchionLinePointPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> SteelFalchionLineEffectClient.addPoint(
+        context.enqueueWork(() -> com.stardew.craft.client.weapon.SteelFalchionLineEffectClient.addPoint(
             payload.lineId(), payload.x(), payload.y(), payload.z()
         ));
     }

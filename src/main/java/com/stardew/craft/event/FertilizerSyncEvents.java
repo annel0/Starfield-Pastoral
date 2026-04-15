@@ -1,7 +1,6 @@
 package com.stardew.craft.event;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.ClientFertilizerCache;
 import com.stardew.craft.manager.FertilizerManager;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -60,7 +59,7 @@ public class FertilizerSyncEvents {
          */
         @SubscribeEvent
         public static void onClientDisconnect(PlayerEvent.PlayerLoggedOutEvent event) {
-            ClientFertilizerCache.clear();
+            com.stardew.craft.client.ClientFertilizerCache.clear();
             StardewCraft.LOGGER.info("Client disconnected, clearing fertilizer cache");
         }
     }

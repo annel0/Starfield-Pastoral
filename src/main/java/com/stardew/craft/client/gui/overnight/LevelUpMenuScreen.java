@@ -8,6 +8,7 @@ import com.stardew.craft.network.payload.OvernightProfessionChoicePayload;
 import com.stardew.craft.player.ProfessionType;
 import com.stardew.craft.player.SkillLevelRecipeUnlocks;
 import com.stardew.craft.player.SkillType;
+import com.stardew.craft.player.StardewCraftingRecipeData;
 import com.stardew.craft.player.UnlockSourceData;
 import com.stardew.craft.sound.ModSounds;
 import net.minecraft.client.gui.GuiGraphics;
@@ -368,18 +369,35 @@ public class LevelUpMenuScreen extends Screen {
     private List<Component> getUnlockedRecipeLines() {
         List<Component> lines = new ArrayList<>();
         SkillType skillType = mapSkill(currentSkill);
+        java.util.Set<String> seen = new java.util.LinkedHashSet<>();
 
+        // 1) unlock_sources.json (新系统)
         UnlockSourceData.UnlockBundle sourceBundle = UnlockSourceData.getSkillLevelUnlocks(skillType, currentLevel);
-        List<String> unlocks = sourceBundle.recipes();
-        if (unlocks.isEmpty()) {
-            // Legacy fallback for levels not migrated into unlock_sources yet.
-            unlocks = SkillLevelRecipeUnlocks.getUnlocks(skillType, currentLevel);
+        seen.addAll(sourceBundle.recipes());
+
+        // 2) skill_level_recipe_unlocks.json (遗留系统)
+        for (String id : SkillLevelRecipeUnlocks.getUnlocks(skillType, currentLevel)) {
+            seen.add(id);
         }
 
-        for (String recipeId : unlocks) {
-            if (recipeId == null || recipeId.isBlank()) {
-                continue;
+        // 3) vanilla_crafting_recipes.json — 匹配 "s <skill> <level>" 条件
+        String skillName = skillType.getName().toLowerCase(java.util.Locale.ROOT);
+        for (StardewCraftingRecipeData.RecipeEntry recipe : StardewCraftingRecipeData.getRecipes()) {
+            String cond = recipe.unlockCondition();
+            if (cond == null || cond.isBlank()) continue;
+            String[] parts = cond.trim().split("\\s+");
+            if (parts.length >= 3 && "s".equalsIgnoreCase(parts[0])
+                    && skillName.equalsIgnoreCase(parts[1])) {
+                try {
+                    if (Integer.parseInt(parts[2]) == currentLevel) {
+                        seen.add(recipe.id());
+                    }
+                } catch (NumberFormatException ignored) {}
             }
+        }
+
+        for (String recipeId : seen) {
+            if (recipeId == null || recipeId.isBlank()) continue;
             lines.add(Component.translatable("recipe.stardewcraft." + recipeId));
         }
         return lines;

@@ -1,7 +1,6 @@
 package com.stardew.craft.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.hud.StardewHudMessageManager;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -46,7 +45,7 @@ public record MissingItemHudMessagePacket(@NotNull String itemId, int requiredCo
 			if (itemKey != null && BuiltInRegistries.ITEM.containsKey(itemKey)) {
 				item = BuiltInRegistries.ITEM.get(itemKey);
 			}
-			StardewHudMessageManager.showMissingItem(item, itemId, packet.requiredCount());
+			com.stardew.craft.client.hud.StardewHudMessageManager.showMissingItem(item, itemId, packet.requiredCount());
 		});
 	}
 

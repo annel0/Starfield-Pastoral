@@ -1,8 +1,6 @@
 package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.gui.SofaColorSelectionScreen;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -35,10 +33,10 @@ public record OpenSofaColorScreenPayload(BlockPos targetPos, int currentColor) i
 
     @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
     private static void handleClient(OpenSofaColorScreenPayload payload) {
-        Minecraft minecraft = Minecraft.getInstance();
+        net.minecraft.client.Minecraft minecraft = net.minecraft.client.Minecraft.getInstance();
         if (minecraft.player == null) {
             return;
         }
-        minecraft.setScreen(new SofaColorSelectionScreen(payload.targetPos(), payload.currentColor()));
+        minecraft.setScreen(new com.stardew.craft.client.gui.SofaColorSelectionScreen(payload.targetPos(), payload.currentColor()));
     }
 }

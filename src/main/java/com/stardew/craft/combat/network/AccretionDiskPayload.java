@@ -1,7 +1,6 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.AccretionDiskEffectClient;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -41,7 +40,7 @@ public record AccretionDiskPayload(float x, float y, float z, float radius, int 
     }
 
     public static void handle(AccretionDiskPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> AccretionDiskEffectClient.add(
+        context.enqueueWork(() -> com.stardew.craft.client.weapon.AccretionDiskEffectClient.add(
             payload.x(), payload.y(), payload.z(), payload.radius(), payload.durationTicks(), payload.color()
         ));
     }

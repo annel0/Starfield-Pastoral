@@ -1,9 +1,7 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.LavaKatanaReverbClientState;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -39,11 +37,11 @@ public record LavaKatanaReverbPayload(boolean active, int durationTicks) impleme
     @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
     private static void handleClient(LavaKatanaReverbPayload payload) {
         if (payload.active()) {
-            Minecraft mc = Minecraft.getInstance();
+            net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
             long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
-            LavaKatanaReverbClientState.start(nowTick, payload.durationTicks());
+            com.stardew.craft.client.weapon.LavaKatanaReverbClientState.start(nowTick, payload.durationTicks());
         } else {
-            LavaKatanaReverbClientState.clear();
+            com.stardew.craft.client.weapon.LavaKatanaReverbClientState.clear();
         }
     }
 }

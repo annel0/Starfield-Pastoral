@@ -1,9 +1,6 @@
 package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.gui.common.StardewConfirmDialogScreen;
-import com.stardew.craft.client.gui.common.StardewQuestionDialogSpec;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
@@ -39,11 +36,11 @@ public record OpenMarlonMenuPayload() implements CustomPacketPayload {
 
     @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
     private static void handleClient(OpenMarlonMenuPayload payload) {
-        Minecraft mc = Minecraft.getInstance();
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
         if (mc.player == null) return;
 
-        mc.setScreen(StardewConfirmDialogScreen.createQuestionDialog(
-            StardewQuestionDialogSpec.of(
+        mc.setScreen(com.stardew.craft.client.gui.common.StardewConfirmDialogScreen.createQuestionDialog(
+            com.stardew.craft.client.gui.common.StardewQuestionDialogSpec.of(
                 Component.translatable("stardewcraft.npc.marlon.menu.question"),
                 List.of(
                     Component.translatable("stardewcraft.npc.marlon.menu.shop"),

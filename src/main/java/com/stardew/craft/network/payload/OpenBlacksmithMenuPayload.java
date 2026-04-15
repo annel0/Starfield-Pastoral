@@ -1,9 +1,6 @@
 package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.gui.common.StardewConfirmDialogScreen;
-import com.stardew.craft.client.gui.common.StardewQuestionDialogSpec;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
@@ -43,7 +40,7 @@ public record OpenBlacksmithMenuPayload(
 
     @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
     private static void handleClient(OpenBlacksmithMenuPayload payload) {
-        Minecraft mc = Minecraft.getInstance();
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
         if (mc.player == null) return;
 
         // Build responses list matching SDV: Shop / Upgrade / Process (conditional) / Leave
@@ -57,7 +54,7 @@ public record OpenBlacksmithMenuPayload(
 
         Component question = Component.translatable("stardewcraft.blacksmith.menu.question");
 
-        StardewQuestionDialogSpec spec = StardewQuestionDialogSpec.of(
+        com.stardew.craft.client.gui.common.StardewQuestionDialogSpec spec = com.stardew.craft.client.gui.common.StardewQuestionDialogSpec.of(
             question,
             responses,
             choiceIndex -> {
@@ -73,6 +70,6 @@ public record OpenBlacksmithMenuPayload(
             responses.size() - 1 // default = Leave
         );
 
-        mc.setScreen(StardewConfirmDialogScreen.createQuestionDialog(spec));
+        mc.setScreen(com.stardew.craft.client.gui.common.StardewConfirmDialogScreen.createQuestionDialog(spec));
     }
 }

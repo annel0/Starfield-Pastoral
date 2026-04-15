@@ -1,11 +1,13 @@
 package com.stardew.craft.item.tool;
 
 import com.stardew.craft.item.IStardewItem;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.PickaxeItem;
 import net.minecraft.world.item.Tier;
+import net.minecraft.world.item.component.Unbreakable;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -16,21 +18,14 @@ public class StardewPickaxeItem extends PickaxeItem implements IStardewItem {
 	private final float vanillaLikeSpeed;
 	private final float extraVanillaSpeed;
 
-	// SDV 工具没有耐久
-	@Override
-	public boolean isDamageable(ItemStack stack) { return false; }
-	@Override
-	public int getMaxDamage(ItemStack stack) { return 0; }
-	@Override
-	public void setDamage(ItemStack stack, int damage) { /* no-op */ }
-
 	/**
 	 * @param stardewTier 0..4, used for mod-specific gating.
 	 * @param tier        Vanilla tier (WOOD/STONE/IRON/DIAMOND/NETHERITE) for normal MC mining.
 	 * @param extraVanillaSpeed Extra speed added on vanilla pickaxe-mineable blocks (used for tier4 being "a bit faster").
 	 */
 	public StardewPickaxeItem(int stardewTier, Tier tier, float extraVanillaSpeed, Properties properties) {
-		super(new IndestructibleTier(tier), properties.stacksTo(1).setNoRepair());
+		super(tier, properties.stacksTo(1)
+				.component(DataComponents.UNBREAKABLE, new Unbreakable(false)));
 		this.stardewTier = stardewTier;
 		this.vanillaLikeSpeed = tier.getSpeed();
 		this.extraVanillaSpeed = extraVanillaSpeed;

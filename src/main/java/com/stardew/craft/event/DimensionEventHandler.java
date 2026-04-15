@@ -268,6 +268,27 @@ public class DimensionEventHandler {
             com.stardew.craft.network.MiningFloorSyncPacket packet = 
                 new com.stardew.craft.network.MiningFloorSyncPacket(currentFloor);
             net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player, packet);
+
+            // 首次进入矿井赠送矿洞图腾
+            if (!playerData.hasReceivedMineTotem()) {
+                net.minecraft.world.item.ItemStack totem = new net.minecraft.world.item.ItemStack(
+                    com.stardew.craft.item.ModItems.MINE_TOTEM.get());
+                if (!player.getInventory().add(totem)) {
+                    player.drop(totem, false);
+                }
+                playerData.setReceivedMineTotem(true);
+                com.stardew.craft.mining.MiningDataManager.savePlayerData(player, playerData);
+                player.displayClientMessage(
+                    net.minecraft.network.chat.Component.translatable("item.stardewcraft.mine_totem.gift")
+                        .withStyle(net.minecraft.ChatFormatting.GOLD), false);
+            }
+
+            // 延迟 3 tick 强制刷新客户端光照
+            final int floor = currentFloor;
+            level.getServer().tell(new net.minecraft.server.TickTask(
+                level.getServer().getTickCount() + 3,
+                () -> com.stardew.craft.mining.MineFloorGenerator.forceClientLightRefresh(level, floor)
+            ));
         }
     }
     

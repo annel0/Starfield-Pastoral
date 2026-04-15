@@ -1,7 +1,6 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.InfinityDaggerMarkClientState;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -32,6 +31,6 @@ public record InfinityDaggerMarkPayload(int entityId, int durationTicks) impleme
     }
 
     public static void handle(InfinityDaggerMarkPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> InfinityDaggerMarkClientState.apply(payload.entityId(), payload.durationTicks()));
+        context.enqueueWork(() -> com.stardew.craft.client.weapon.InfinityDaggerMarkClientState.apply(payload.entityId(), payload.durationTicks()));
     }
 }

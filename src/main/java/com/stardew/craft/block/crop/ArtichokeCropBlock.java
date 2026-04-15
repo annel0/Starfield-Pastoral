@@ -17,7 +17,7 @@ import java.util.function.Supplier;
  */
 public class ArtichokeCropBlock extends StardewCropBlock {
 
-    private static final int[] PHASE_DAYS = new int[]{2, 2, 1, 2};
+    private static final int[] PHASE_DAYS = new int[]{2, 2, 2, 2}; // SDV: 8 days
 
     @SuppressWarnings("null")
     public ArtichokeCropBlock() {

@@ -146,5 +146,12 @@ public final class PortalHintPositions {
             HintStyle.EXIT,
             "mine"
         ));
+
+        // ---- Community Center outdoor entry ----
+        enter(new BlockPos(-191, -9, 141), 3, 2, 1, "community_center");
+
+        // ---- Community Center indoor exit ----
+        BlockPos ccOrigin = new BlockPos(18816, 69, 18816);
+        exit(ccOrigin, new BlockPos(17, 1, 37), 1, 2, 2, "community_center");
     }
 }

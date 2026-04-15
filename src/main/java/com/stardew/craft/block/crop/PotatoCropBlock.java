@@ -17,7 +17,7 @@ import java.util.function.Supplier;
  */
 public class PotatoCropBlock extends StardewCropBlock {
 
-    private static final int[] PHASE_DAYS = new int[]{1, 1, 1, 2};
+    private static final int[] PHASE_DAYS = new int[]{1, 1, 2, 2}; // SDV: 6 days
     private static final int[] OUTLINE_HEIGHTS = new int[]{7, 8, 10, 15};
     private static final int[] OUTLINE_WIDTHS = new int[]{6, 6, 8, 8};
 

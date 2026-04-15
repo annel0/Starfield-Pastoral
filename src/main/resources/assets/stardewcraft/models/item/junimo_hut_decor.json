@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "stardewcraft:item/junimo_hut_decor",
+    "particle": "stardewcraft:item/junimo_hut_decor"
+  }
+}

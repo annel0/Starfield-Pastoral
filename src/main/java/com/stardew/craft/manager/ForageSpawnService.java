@@ -8,6 +8,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.TallGrassBlock;
+import net.minecraft.world.level.block.FlowerBlock;
+import net.minecraft.world.level.block.DoublePlantBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.neoforged.neoforge.registries.DeferredBlock;
@@ -211,8 +214,9 @@ public final class ForageSpawnService {
 
             int spawned = 0;
             for (int i = 0; i < numberToSpawn; i++) {
-                // SDV: up to 11 attempts per spawn
-                for (int attempt = 0; attempt < 11; attempt++) {
+                // SDV: up to 30 attempts per spawn (raised from 11 to compensate for
+                // densely decorated terrain with grass/flowers occupying positions)
+                for (int attempt = 0; attempt < 30; attempt++) {
                     // Pick random rect (with weight for beach second rect)
                     ZoneRect rect = pickRandomRect(zone, random);
 
@@ -223,13 +227,20 @@ public final class ForageSpawnService {
                     // Skip if chunk not loaded
                     if (!level.hasChunk(x >> 4, z >> 4)) continue;
 
-                    // Use heightmap for O(1) surface Y lookup
-                    int surfaceY = level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z) - 1;
+                    // Use heightmap that ignores leaves to find surface quickly
+                    int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z) - 1;
                     BlockPos surfacePos = new BlockPos(x, surfaceY, z);
+
+                    // If the heightmap surface is a replaceable plant (weeds, flowers, etc.),
+                    // look below it for the real solid ground (e.g. grass_block).
+                    BlockState surfaceState = level.getBlockState(surfacePos);
+                    if (isReplaceablePlant(surfaceState)) {
+                        surfacePos = surfacePos.below();
+                        surfaceState = level.getBlockState(surfacePos);
+                    }
                     BlockPos placePos = surfacePos.above();
 
                     // Validate surface block
-                    BlockState surfaceState = level.getBlockState(surfacePos);
                     if (surfaceState.isAir() || surfaceState.getFluidState().isSource()) continue;
 
                     // Check placement conditions
@@ -238,6 +249,12 @@ public final class ForageSpawnService {
                     // Pick a random forage entry and apply chance
                     ForageEntry chosen = possibleForage.get(random.nextInt(possibleForage.size()));
                     if (random.nextDouble() > chosen.chance) continue;
+
+                    // Remove any replaceable plant at the placement position before placing forage
+                    BlockState existing = level.getBlockState(placePos);
+                    if (!existing.isAir() && isReplaceablePlant(existing)) {
+                        level.destroyBlock(placePos, false);
+                    }
 
                     // Place the block
                     level.setBlock(placePos, chosen.block.get().defaultBlockState(), Block.UPDATE_ALL);
@@ -278,9 +295,10 @@ public final class ForageSpawnService {
     private static boolean canPlaceForage(ServerLevel level, BlockPos surfacePos, BlockPos placePos,
                                           boolean requireGrass) {
         BlockState surfaceState = level.getBlockState(surfacePos);
+        BlockState placeState = level.getBlockState(placePos);
 
-        // Must not already have a block at placement position
-        if (!level.getBlockState(placePos).isAir()) return false;
+        // Must be air or a replaceable plant (grass, flowers, ferns) at placement position
+        if (!placeState.isAir() && !isReplaceablePlant(placeState)) return false;
 
         // Must see sky (outdoors check)
         if (!level.canSeeSky(placePos)) return false;
@@ -295,6 +313,28 @@ public final class ForageSpawnService {
     }
 
     /**
+     * Returns true if the block state is a weak decorative plant that forage can replace.
+     * Includes short grass, tall grass, flowers, ferns, and double-tall plants.
+     */
+    private static boolean isReplaceablePlant(BlockState state) {
+        Block block = state.getBlock();
+        // Our mod's wild weeds (杂草)
+        if (block instanceof com.stardew.craft.block.nature.WildWeedsBlock) return true;
+        // Short grass and fern
+        if (block == Blocks.SHORT_GRASS || block == Blocks.FERN) return true;
+        // Tall grass and large fern
+        if (block == Blocks.TALL_GRASS || block == Blocks.LARGE_FERN) return true;
+        // All vanilla small flowers (poppy, dandelion, cornflower, etc.)
+        if (block instanceof FlowerBlock) return true;
+        // Double-tall flowers (sunflower, lilac, rose bush, peony)
+        if (block instanceof DoublePlantBlock) return true;
+        // Generic bush check for any modded short plants
+        if (block instanceof TallGrassBlock) return true;
+        // Check if the block is replaceable by world generation (covers most decorative plants)
+        return state.canBeReplaced();
+    }
+
+    /**
      * Count existing ForageBlock instances in a zone using heightmap for fast surface lookup.
      * Only scans loaded chunks. Samples every other block to reduce cost.
      */
@@ -306,11 +346,9 @@ public final class ForageSpawnService {
                     // Skip unloaded chunks
                     if (!level.hasChunk(x >> 4, z >> 4)) continue;
 
-                    // Heightmap gives the Y of the first non-air block from the top + 1
+                    // Heightmap gives the Y of the first motion-blocking block from the top + 1
                     int surfaceY = level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z);
-                    // The forage block would be AT surfaceY - 1 (since heightmap returns the Y above the surface)
-                    // Actually, WORLD_SURFACE heightmap returns the Y of the highest non-air block + 1
-                    // So the topmost non-air block is at surfaceY - 1
+                    // Check at surfaceY - 1 (topmost non-air) and surfaceY (in case forage is above a decoration)
                     BlockPos topPos = new BlockPos(x, surfaceY - 1, z);
                     BlockState state = level.getBlockState(topPos);
                     if (state.getBlock() instanceof ForageBlock) {

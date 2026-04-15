@@ -15,19 +15,40 @@ public final class BundleClientData {
     private final Map<Integer, boolean[]> bundleSlots = new HashMap<>();
     private final boolean[] areasComplete = new boolean[7];
     private final Map<Integer, Boolean> bundleRewards = new HashMap<>();
+    private boolean canReadJunimoText = false;
     private int version = 0;
+
+    /**
+     * 星盘显示用的星星数，由 StarPlacedPayload 驱动。
+     * 和 areasComplete 分离，这样区域完成时不会立刻改变星盘纹理，
+     * 要等 Junimo 走到星盘放完星之后才递增。
+     */
+    private int displayStarCount = 0;
+    private boolean displayStarsInitialized = false;
 
     private BundleClientData() {}
 
-    public void update(Map<Integer, boolean[]> newSlots, boolean[] newAreas, Map<Integer, Boolean> newRewards) {
+    public void update(Map<Integer, boolean[]> newSlots, boolean[] newAreas, Map<Integer, Boolean> newRewards, boolean canRead) {
         bundleSlots.clear();
         bundleSlots.putAll(newSlots);
 
         System.arraycopy(newAreas, 0, areasComplete, 0, Math.min(newAreas.length, 7));
 
+        // 首次同步（登录）：displayStarCount 追平到实际完成数
+        // 后续同步（存入物品）：不动 displayStarCount，等 Junimo 放星的包来递增
+        if (!displayStarsInitialized) {
+            displayStarsInitialized = true;
+            int count = 0;
+            for (int i = 0; i <= 5; i++) {
+                if (areasComplete[i]) count++;
+            }
+            displayStarCount = count;
+        }
+
         bundleRewards.clear();
         bundleRewards.putAll(newRewards);
 
+        this.canReadJunimoText = canRead;
         version++;
     }
 
@@ -79,14 +100,35 @@ public final class BundleClientData {
         return count;
     }
 
+    public boolean canReadJunimoText() {
+        return canReadJunimoText;
+    }
+
     public int getVersion() {
         return version;
+    }
+
+    /** 星盘渲染器使用: 获取当前应显示的星星数 */
+    public int getDisplayStarCount() {
+        return displayStarCount;
+    }
+
+    /** Junimo 放完一颗星后调用 (由 StarPlacedPayload 触发) */
+    public void incrementDisplayStars() {
+        displayStarCount = Math.min(6, displayStarCount + 1);
+    }
+
+    /** 登录时从服务端同步当前已完成区域数作为初始值 */
+    public void setDisplayStarCount(int count) {
+        displayStarCount = Math.max(0, Math.min(6, count));
     }
 
     public void clear() {
         bundleSlots.clear();
         bundleRewards.clear();
         for (int i = 0; i < 7; i++) areasComplete[i] = false;
+        displayStarCount = 0;
+        displayStarsInitialized = false;
         version++;
     }
 }

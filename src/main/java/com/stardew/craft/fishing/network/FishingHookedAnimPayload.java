@@ -1,9 +1,7 @@
 package com.stardew.craft.fishing.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.fishing.FishingBiteVisuals;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -37,10 +35,10 @@ public record FishingHookedAnimPayload(int durationTicks) implements CustomPacke
 
 	@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
 	private static void handleClient(FishingHookedAnimPayload payload) {
-		Minecraft mc = Minecraft.getInstance();
+		net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
 		if (mc == null || mc.player == null) {
 			return;
 		}
-		FishingBiteVisuals.startHookedAnim(payload.durationTicks());
+		com.stardew.craft.client.fishing.FishingBiteVisuals.startHookedAnim(payload.durationTicks());
 	}
 }

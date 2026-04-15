@@ -1,7 +1,6 @@
 package com.stardew.craft.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.ClientMuseumDonationCache;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -52,6 +51,6 @@ public record MuseumDonationSyncPacket(List<String> donatedIds) implements Custo
     }
 
     public static void handle(MuseumDonationSyncPacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> ClientMuseumDonationCache.setDonated(packet.donatedIds()));
+        context.enqueueWork(() -> com.stardew.craft.client.ClientMuseumDonationCache.setDonated(packet.donatedIds()));
     }
 }

@@ -1,17 +1,23 @@
 package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.menu.MineExitMenu;
+import com.stardew.craft.core.ModMiningDimensions;
+import com.stardew.craft.mining.MiningCoordinates;
+import com.stardew.craft.mining.MiningDataManager;
+import com.stardew.craft.mining.MiningPlayerData;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 /**
- * 矿井出口传送操作数据包
- * 客户端 -> 服务端
+ * 矿井出口操作数据包 — 客户端 → 服务端。
+ * 
+ * 不再依赖 MineExitMenu 容器，直接在服务端处理传送逻辑。
+ * 映射自 SDV "ExitMine" 对话回调。
  */
 public record MineExitActionPayload(Action action) implements CustomPacketPayload {
 	
@@ -30,35 +36,53 @@ public record MineExitActionPayload(Action action) implements CustomPacketPayloa
 		return TYPE;
 	}
 	
-	/**
-	 * 传送操作类型
-	 */
 	public enum Action {
-		GO_UP_FLOOR,  // 返回上一层
-		GO_TO_FLOOR_0, // 返回第0层
-		EXIT_MINE      // 退出矿井
+		GO_UP_FLOOR,
+		GO_TO_FLOOR_0,
+		EXIT_MINE
 	}
 	
-	/**
-	 * 服务端处理逻辑
-	 */
 	public static void handle(MineExitActionPayload payload, IPayloadContext context) {
 		context.enqueueWork(() -> {
-			if (context.player() instanceof ServerPlayer serverPlayer) {
-				// 获取玩家当前打开的Menu
-				if (serverPlayer.containerMenu instanceof MineExitMenu mineExitMenu) {
-					switch (payload.action) {
-						case GO_UP_FLOOR -> {
-							int currentFloor = mineExitMenu.getCurrentFloor();
-							if (currentFloor > 0) {
-								mineExitMenu.teleportToFloor(currentFloor - 1);
-							}
-						}
-						case GO_TO_FLOOR_0 -> mineExitMenu.teleportToFloor(0);
-						case EXIT_MINE -> mineExitMenu.exitMine();
+			if (!(context.player() instanceof ServerPlayer serverPlayer)) return;
+			if (serverPlayer.level().dimension() != ModMiningDimensions.STARDEW_MINING) return;
+
+			MiningPlayerData playerData = MiningDataManager.getPlayerData(serverPlayer);
+			if (playerData == null) return;
+
+			switch (payload.action) {
+				case EXIT_MINE -> {
+					// SDV ExitMine_Leave: Game1.warpFarmer("Mine", 23, 8) → 传送到矿井入口大厅（0层）
+					teleportToFloor(serverPlayer, playerData, 0);
+					StardewCraft.LOGGER.info("Player {} exited to mine entrance (floor 0)", serverPlayer.getName().getString());
+				}
+				case GO_UP_FLOOR -> {
+					int currentFloor = playerData.getCurrentFloor();
+					if (currentFloor > 0) {
+						teleportToFloor(serverPlayer, playerData, currentFloor - 1);
 					}
 				}
+				case GO_TO_FLOOR_0 -> teleportToFloor(serverPlayer, playerData, 0);
 			}
 		});
+	}
+
+	private static void teleportToFloor(ServerPlayer serverPlayer, MiningPlayerData playerData, int targetFloor) {
+		@SuppressWarnings("null")
+		ServerLevel mineLevel = serverPlayer.server.getLevel(ModMiningDimensions.STARDEW_MINING);
+		if (mineLevel == null) return;
+
+		if (targetFloor > 0) {
+			com.stardew.craft.mining.MineFloorGenerator.generateFloor(mineLevel, targetFloor);
+		}
+
+		MiningCoordinates.teleportPlayerToFloor(serverPlayer, mineLevel, targetFloor);
+		playerData.setCurrentFloor(targetFloor);
+		MiningDataManager.savePlayerData(serverPlayer, playerData);
+
+		net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(
+			serverPlayer,
+			new com.stardew.craft.network.MiningFloorSyncPacket(targetFloor)
+		);
 	}
 }

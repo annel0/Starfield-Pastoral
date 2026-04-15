@@ -1,7 +1,6 @@
 package com.stardew.craft.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.hud.StardewTimeHud;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -43,7 +42,7 @@ public record TimeWarningPayload(int warningType) implements CustomPacketPayload
     public static void handle(TimeWarningPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             // 触发时钟抖动（2秒 = 40 ticks）
-            StardewTimeHud.triggerTimeShake();
+            com.stardew.craft.client.hud.StardewTimeHud.triggerTimeShake();
 
             if (payload.warningType() == MIDNIGHT) {
                 // 午夜：显示全局消息 "It's getting late..."

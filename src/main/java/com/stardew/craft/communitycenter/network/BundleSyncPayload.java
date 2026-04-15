@@ -3,6 +3,7 @@ package com.stardew.craft.communitycenter.network;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.communitycenter.data.BundleDataManager;
 import com.stardew.craft.communitycenter.data.BundleDefinition;
+import com.stardew.craft.communitycenter.state.CCStoryFlags;
 import com.stardew.craft.communitycenter.state.CommunityCenterSavedData;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -29,7 +30,8 @@ import java.util.Map;
 public record BundleSyncPayload(
         Map<Integer, boolean[]> bundleSlots,
         boolean[] areasComplete,
-        Map<Integer, Boolean> bundleRewards
+        Map<Integer, Boolean> bundleRewards,
+        boolean canReadJunimoText
 ) implements CustomPacketPayload {
 
     public static final Type<BundleSyncPayload> TYPE = new Type<>(
@@ -63,7 +65,8 @@ public record BundleSyncPayload(
                 rewards.put(bundleId, true);
             }
 
-            return new BundleSyncPayload(slots, areas, rewards);
+            boolean canRead = buf.readBoolean();
+            return new BundleSyncPayload(slots, areas, rewards, canRead);
         }
 
         @Override
@@ -93,6 +96,8 @@ public record BundleSyncPayload(
                     ByteBufCodecs.VAR_INT.encode(buf, entry.getKey());
                 }
             }
+
+            buf.writeBoolean(payload.canReadJunimoText);
         }
     };
 
@@ -106,7 +111,7 @@ public record BundleSyncPayload(
      */
     public static void handle(BundleSyncPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
-            BundleClientData.INSTANCE.update(payload.bundleSlots, payload.areasComplete, payload.bundleRewards);
+            BundleClientData.INSTANCE.update(payload.bundleSlots, payload.areasComplete, payload.bundleRewards, payload.canReadJunimoText);
         });
     }
 
@@ -137,6 +142,7 @@ public record BundleSyncPayload(
             }
         }
 
-        PacketDistributor.sendToPlayer(player, new BundleSyncPayload(slots, areas, rewards));
+        boolean canRead = CCStoryFlags.canReadJunimoText(player);
+        PacketDistributor.sendToPlayer(player, new BundleSyncPayload(slots, areas, rewards, canRead));
     }
 }

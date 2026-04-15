@@ -1,10 +1,6 @@
 package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.gui.common.StardewNpcDialogueScreen;
-import com.stardew.craft.client.hud.HoldUpItemHandler;
-import com.stardew.craft.client.hud.StardewHudMessageManager;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -69,7 +65,7 @@ public record OpenNpcDialogueScreenPayload(
 
     @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
     private static void handleClient(OpenNpcDialogueScreenPayload payload) {
-        Minecraft mc = Minecraft.getInstance();
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
         if (mc.player == null) {
             return;
         }
@@ -118,7 +114,7 @@ public record OpenNpcDialogueScreenPayload(
             payload.translateKey(),
             finalDisplayText.length() > 80 ? finalDisplayText.substring(0, 80) : finalDisplayText);
 
-        StardewNpcDialogueScreen screen = new StardewNpcDialogueScreen(
+        com.stardew.craft.client.gui.common.StardewNpcDialogueScreen screen = new com.stardew.craft.client.gui.common.StardewNpcDialogueScreen(
             payload.npcId(), finalDisplayText, payload.friendshipPoints());
 
         // If afterCloseItemId is set, trigger hold-up animation + HUD on dialogue close
@@ -126,12 +122,12 @@ public record OpenNpcDialogueScreenPayload(
         if (afterItemId != null && !afterItemId.isEmpty()) {
             screen.withAfterClose(() -> {
                 // SDV holdUpItemThenMessage: play totem animation + HUD after dialogue closes
-                HoldUpItemHandler.play(afterItemId);
+                com.stardew.craft.client.hud.HoldUpItemHandler.play(afterItemId);
                 try {
                     ResourceLocation rl = ResourceLocation.parse(afterItemId);
                     Item item = BuiltInRegistries.ITEM.get(rl);
                     if (item != null && item != Items.AIR) {
-                        StardewHudMessageManager.showItemPickup(new ItemStack(item), 1, false);
+                        com.stardew.craft.client.hud.StardewHudMessageManager.showItemPickup(new ItemStack(item), 1, false);
                     }
                 } catch (Exception ignored) {}
             });
@@ -504,7 +500,7 @@ public record OpenNpcDialogueScreenPayload(
 
         // %year → game year
         if (text.contains("%year")) {
-            Minecraft mc = Minecraft.getInstance();
+            net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
             int year = mc.level != null ? (int)(mc.level.getDayTime() / 24000 / 112) + 1 : 1;
             text = text.replace("%year", String.valueOf(year));
         }
@@ -533,7 +529,7 @@ public record OpenNpcDialogueScreenPayload(
     }
 
     private static String getClientSeason() {
-        Minecraft mc = Minecraft.getInstance();
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
         if (mc.level == null) return "Spring";
         long days = mc.level.getDayTime() / 24000;
         return switch ((int) ((days / 28) % 4)) {
@@ -542,7 +538,7 @@ public record OpenNpcDialogueScreenPayload(
     }
 
     private static String getClientTime() {
-        Minecraft mc = Minecraft.getInstance();
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
         if (mc.level == null) return "12:00 PM";
         long tick = mc.level.getDayTime() % 24000;
         int totalMins = (int) (tick * 1440.0 / 24000.0);

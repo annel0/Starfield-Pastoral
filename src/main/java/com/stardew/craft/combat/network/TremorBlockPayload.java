@@ -2,7 +2,6 @@ package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -47,7 +46,7 @@ public record TremorBlockPayload(float x, float y, float z, int blockStateId, fl
 
     @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
     private static void handleClient(TremorBlockPayload payload) {
-        var mc = Minecraft.getInstance();
+        var mc = net.minecraft.client.Minecraft.getInstance();
         if (mc == null || mc.level == null) {
             return;
         }

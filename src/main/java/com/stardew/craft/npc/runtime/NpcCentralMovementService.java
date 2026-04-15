@@ -33,19 +33,28 @@ public final class NpcCentralMovementService {
     private static final int REPATH_COOLDOWN_TICKS = 10;
     private static final int NO_PATH_BASE_COOLDOWN_TICKS = 60;
     private static final int NO_PATH_MAX_COOLDOWN_TICKS = 800;
-    private static final int NO_PATH_CONSECUTIVE_FAIL_TELEPORT = 3;
+    private static final int NO_PATH_CONSECUTIVE_FAIL_TELEPORT = 8;
     private static final int NO_PATH_NEAR_QUICK_SYNC_TICKS = 30;
     private static final double NO_PATH_NEAR_QUICK_SYNC_DIST_SQR = 4.0D * 4.0D;
     private static final int STUCK_REPATH_TICKS = 20;
-    private static final int STUCK_FORCE_SYNC_TICKS = 60;
-    private static final int MAX_COLLISION_RETPATHS = 4;
+    private static final int STUCK_FORCE_SYNC_TICKS = 80;
+    private static final int MAX_COLLISION_RETPATHS = 2;
     private static final double PROGRESS_MOVE_DIST_SQR = 0.16D;
     private static final double PROGRESS_TARGET_GAIN_EPSILON_SQR = 0.04D;
-    private static final int NO_PATH_FORCE_SYNC_TICKS = 20;
+    /** XZ-stuck: if XZ displacement < this threshold, NPC is considered stuck.
+     *  0.25 blocks covers wall-jitter bounce-back oscillation. */
+    private static final double XZ_STUCK_THRESHOLD_SQR = 0.25D * 0.25D;
+    /** XZ-stuck: ticks before triggering repath (~0.5s). */
+    private static final int XZ_STUCK_REPATH_TICKS = 10;
+    /** XZ-stuck: ticks before skipping waypoint (~1.0s). */
+    private static final int XZ_STUCK_SKIP_TICKS = 20;
+    /** After this many consecutive XZ-stuck repath cycles, teleport to step target. */
+    private static final int XZ_STUCK_MAX_CYCLES = 3;
+    private static final int NO_PATH_FORCE_SYNC_TICKS = 100;
     private static final double NO_PATH_FORCE_SYNC_DIST_SQR = 8.0D * 8.0D;
-    private static final int NO_PATH_FORCE_SYNC_MAX_TICKS = 120;
+    private static final int NO_PATH_FORCE_SYNC_MAX_TICKS = 400;
     private static final double NO_PATH_FORCE_SYNC_MAX_DIST_SQR = 18.0D * 18.0D;
-    private static final int NO_PATH_FORCE_SYNC_FAR_TICKS = 80;
+    private static final int NO_PATH_FORCE_SYNC_FAR_TICKS = 300;
 
     private static final Map<String, NpcRoutePlan> ACTIVE_PLANS = new HashMap<>();
     private static final Map<String, String> LAST_NODE_SIGNATURE = new HashMap<>();
@@ -72,6 +81,8 @@ public final class NpcCentralMovementService {
 
             String npcId = NpcRoutePlanner.canonicalNpcId(profile.npcId());
             activeNpcIds.add(npcId);
+            // Skip NPCs that live in a different dimension (e.g. dwarf in mining)
+            if (NpcSpawnManager.isMiningDimensionNpc(npcId)) continue;
             StardewNpcEntity npc = NpcSpawnManager.getTrackedNpc(level, npcId);
             if (npc == null) {
                 continue;
@@ -182,8 +193,53 @@ public final class NpcCentralMovementService {
         boolean destIndoors = InteriorSubspaceManager.isInteriorRegion(level, BlockPos.containing(finalTarget));
 
         if (npcIndoors && destIndoors) {
-            // Both in interior — walk directly to final target without exiting.
-            expanded.add(NpcRoutePlanner.NpcRouteStep.walk("indoor_direct", finalTarget));
+            // Check if both are in the SAME interior (close enough for direct walk).
+            double indoorDist = npc.position().distanceToSqr(finalTarget);
+            if (indoorDist < 80.0D * 80.0D) {
+                // Same interior — walk directly to final target without exiting.
+                expanded.add(NpcRoutePlanner.NpcRouteStep.walk("indoor_direct", finalTarget));
+            } else {
+                // DIFFERENT interiors — must exit current, walk outdoor, enter destination.
+                Vec3 exitIndoor = NpcRoutePlanner.nearestKnownIndoorEntry(npc.position());
+                Vec3 exitOutdoor = (exitIndoor != null) ? NpcRoutePlanner.linkedOutdoorDoor(exitIndoor) : null;
+                if (exitIndoor != null && exitOutdoor != null) {
+                    expanded.add(NpcRoutePlanner.NpcRouteStep.walk("indoor_exit", exitIndoor));
+                    expanded.add(NpcRoutePlanner.NpcRouteStep.warp("outdoor_door", exitOutdoor));
+                    // Then follow the destination steps (skip the outdoor door we already warped to)
+                    for (NpcRoutePlanner.NpcRouteStep ds : route.destinationSteps) {
+                        if (ds.mode == NpcRoutePlanner.RouteStepMode.WALK
+                            && ds.target.distanceToSqr(exitOutdoor) < 4.0D) {
+                            continue;
+                        }
+                        expanded.add(ds);
+                    }
+                } else {
+                    // Cannot resolve proper exit — warp directly to destination's first WALK target
+                    // to avoid generating impossible cross-interior WALK steps.
+                    Vec3 warpTarget = null;
+                    for (NpcRoutePlanner.NpcRouteStep ds : route.destinationSteps) {
+                        if (ds.mode == NpcRoutePlanner.RouteStepMode.WALK) {
+                            warpTarget = ds.target;
+                            break;
+                        }
+                    }
+                    if (warpTarget == null) {
+                        warpTarget = finalTarget;
+                    }
+                    expanded.add(NpcRoutePlanner.NpcRouteStep.warp("cross_interior_emergency", warpTarget));
+                    // Add remaining steps after the warp target
+                    boolean past = false;
+                    for (NpcRoutePlanner.NpcRouteStep ds : route.destinationSteps) {
+                        if (!past && ds.target.distanceToSqr(warpTarget) < 4.0D) {
+                            past = true;
+                            continue;
+                        }
+                        if (past) {
+                            expanded.add(ds);
+                        }
+                    }
+                }
+            }
         } else if (npcIndoors) {
             // Need to exit interior first, then follow outdoor route.
             Vec3 exitIndoor = NpcRoutePlanner.nearestKnownIndoorEntry(npc.position());
@@ -191,6 +247,22 @@ public final class NpcCentralMovementService {
             if (exitIndoor != null && exitOutdoor != null) {
                 expanded.add(NpcRoutePlanner.NpcRouteStep.walk("indoor_exit", exitIndoor));
                 expanded.add(NpcRoutePlanner.NpcRouteStep.warp("outdoor_door", exitOutdoor));
+            } else {
+                // Cannot resolve exit path — find the first outdoor WALK target
+                // or any WALK target in the destination steps and warp there.
+                Vec3 emergencyTarget = null;
+                for (NpcRoutePlanner.NpcRouteStep ds : route.destinationSteps) {
+                    if (ds.mode == NpcRoutePlanner.RouteStepMode.WALK) {
+                        emergencyTarget = ds.target;
+                        if (!InteriorSubspaceManager.isInteriorRegion(level, BlockPos.containing(ds.target))) {
+                            break; // prefer outdoor target
+                        }
+                    }
+                }
+                if (emergencyTarget == null) {
+                    emergencyTarget = finalTarget;
+                }
+                expanded.add(NpcRoutePlanner.NpcRouteStep.warp("indoor_exit_emergency", emergencyTarget));
             }
             // Skip destination steps that duplicate the outdoor door we already warped to.
             for (NpcRoutePlanner.NpcRouteStep ds : route.destinationSteps) {
@@ -205,7 +277,27 @@ public final class NpcCentralMovementService {
         }
         NpcRoutePlan plan = new NpcRoutePlan(signature, npc.getUUID(), expanded, gameTime);
         plan.lastPos = npc.position();
+
+        // ── Diagnostic: log plan steps once per new plan ──
+        StringBuilder sb = new StringBuilder();
+        sb.append("[NPC_PLAN] npc=").append(npc.getNpcId())
+          .append(" indoor=").append(npcIndoors)
+          .append(" destIndoor=").append(destIndoors)
+          .append(" pos=").append(fmt(npc.position()))
+          .append(" steps=[");
+        for (int i = 0; i < expanded.size(); i++) {
+            NpcRoutePlanner.NpcRouteStep s = expanded.get(i);
+            if (i > 0) sb.append(", ");
+            sb.append(s.mode).append(':').append(s.pointId).append('@').append(fmt(s.target));
+        }
+        sb.append(']');
+        com.stardew.craft.StardewCraft.LOGGER.info(sb.toString());
+
         return plan;
+    }
+
+    private static String fmt(Vec3 v) {
+        return v == null ? "null" : String.format(java.util.Locale.ROOT, "(%.1f,%.1f,%.1f)", v.x, v.y, v.z);
     }
 
     // ──── Plan execution helpers (de-duplicated from executePlanTick) ────
@@ -250,6 +342,23 @@ public final class NpcCentralMovementService {
         return true;
     }
 
+    /**
+     * Penalize a 3×3 area in the direction the NPC was heading.
+     * This prevents A* from finding nearly-identical paths that hit the same wall.
+     */
+    private static void addAreaCollisionPenalty(ServerLevel level, Vec3 npcPos, double dirX, double dirZ) {
+        int cx = (int) Math.floor(npcPos.x + Math.signum(dirX));
+        int cy = (int) Math.floor(npcPos.y);
+        int cz = (int) Math.floor(npcPos.z + Math.signum(dirZ));
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                NpcPathfinder.addCollisionPenalty(level, new Vec3(cx + dx + 0.5D, cy, cz + dz + 0.5D));
+            }
+        }
+        // Also penalize the NPC's own position
+        NpcPathfinder.addCollisionPenalty(level, npcPos);
+    }
+
     private static boolean executePlanTick(ServerLevel level,
                                            StardewNpcEntity npc,
                                            NpcRoutePlan plan) {
@@ -282,6 +391,7 @@ public final class NpcCentralMovementService {
         if (step.mode == NpcRoutePlanner.RouteStepMode.WARP) {
             NpcChunkForceManager.ensureRouteTargetChunkForced(level, npc.getNpcId(), step.target);
             plan.debugStage = "warp";
+            com.stardew.craft.StardewCraft.LOGGER.info("[NPC_EXEC] npc={} WARP step={} target={}", npc.getNpcId(), step.pointId, fmt(step.target));
             advanceStepByTeleport(npc, plan, step.target, now);
             plan.lastRepathTick = now;
             return false;
@@ -297,13 +407,18 @@ public final class NpcCentralMovementService {
             boolean attempted = tryRepath(level, npc, plan, step.target, now);
             if (attempted) {
                 plan.debugRepathReason = "path_init_or_exhausted";
-            }
-            if (plan.path.isEmpty()) {
-                plan.debugStage = "no_path_repath";
-                int cooldown = applyPathFailureBackoff(plan, now);
-                plan.debugRepathReason = "no_path_backoff_" + cooldown + "t_fail" + plan.consecutivePathFailures;
+                if (plan.path.isEmpty()) {
+                    plan.debugStage = "no_path_repath";
+                    int cooldown = applyPathFailureBackoff(plan, now);
+                    plan.debugRepathReason = "no_path_backoff_" + cooldown + "t_fail" + plan.consecutivePathFailures;
+                    if (plan.consecutivePathFailures <= 2) {
+                        com.stardew.craft.StardewCraft.LOGGER.warn("[NPC_ASTAR_FAIL] npc={} step={} pos={} target={} fail#{}", npc.getNpcId(), step.pointId, fmt(npc.position()), fmt(step.target), plan.consecutivePathFailures);
+                    }
+                } else {
+                    onPathSuccess(level, npc, plan, now);
+                }
             } else {
-                onPathSuccess(level, npc, plan, now);
+                plan.debugRepathReason = "astar_tick_budget";
             }
         }
 
@@ -316,6 +431,7 @@ public final class NpcCentralMovementService {
             if (plan.consecutivePathFailures >= NO_PATH_CONSECUTIVE_FAIL_TELEPORT) {
                 plan.debugStage = "no_path_consecutive_fail_tp";
                 plan.lastFallbackTeleportUsed = true;
+                com.stardew.craft.StardewCraft.LOGGER.warn("[NPC_TELEPORT] npc={} reason=consecutive_fail step={} pos={} target={}", npc.getNpcId(), step.pointId, fmt(npc.position()), fmt(step.target));
                 advanceStepByTeleport(npc, plan, step.target, now);
                 plan.debugRepathReason = "consecutive_fail_teleport_" + NO_PATH_CONSECUTIVE_FAIL_TELEPORT;
                 return false;
@@ -324,13 +440,15 @@ public final class NpcCentralMovementService {
             // Retry A* while stuck with no path
             if (now - plan.lastProgressTick > STUCK_REPATH_TICKS
                 && now >= plan.noPathRetryBlockedUntilTick) {
-                tryRepath(level, npc, plan, step.target, now);
-                if (plan.path.isEmpty()) {
-                    int cooldown = applyPathFailureBackoff(plan, now);
-                    plan.debugRepathReason = "no_path_stuck_backoff_" + cooldown + "t_fail" + plan.consecutivePathFailures;
-                } else {
-                    onPathSuccess(level, npc, plan, now);
-                    plan.debugRepathReason = "no_path_stuck_repath";
+                boolean retryAttempted = tryRepath(level, npc, plan, step.target, now);
+                if (retryAttempted) {
+                    if (plan.path.isEmpty()) {
+                        int cooldown = applyPathFailureBackoff(plan, now);
+                        plan.debugRepathReason = "no_path_stuck_backoff_" + cooldown + "t_fail" + plan.consecutivePathFailures;
+                    } else {
+                        onPathSuccess(level, npc, plan, now);
+                        plan.debugRepathReason = "no_path_stuck_repath";
+                    }
                 }
             } else if (now < plan.noPathRetryBlockedUntilTick) {
                 plan.debugRepathReason = "no_path_cooldown";
@@ -340,6 +458,7 @@ public final class NpcCentralMovementService {
             if (shouldNoPathFallbackTeleport(plan, npc, step.target, now)) {
                 plan.debugStage = "no_path_fallback_tp";
                 plan.lastFallbackTeleportUsed = true;
+                com.stardew.craft.StardewCraft.LOGGER.warn("[NPC_TELEPORT] npc={} reason=no_path_timeout step={} pos={} target={}", npc.getNpcId(), step.pointId, fmt(npc.position()), fmt(step.target));
                 advanceStepByTeleport(npc, plan, step.target, now);
             }
             return false;
@@ -396,15 +515,24 @@ public final class NpcCentralMovementService {
             }
 
             double verticalRise = waypoint.y - npc.getY();
-            boolean stepUpNeeded = verticalRise > 1.05D;
-            boolean needsToJump = stepUpNeeded || (npc.horizontalCollision && verticalRise > 0.55D);
+            // Only jump for genuine step-ups; never jump just because of horizontal collision.
+            boolean needsToJump = verticalRise > 0.7D;
 
-            // ── Collision handling ──
+            // ── ALWAYS stop pushing into walls, even during repath cooldown ──
+            if (npc.horizontalCollision && !needsToJump) {
+                vx = 0.0D;
+                vz = 0.0D;
+            }
+
+            // ── Collision handling — repath when cooldown allows ──
             if (npc.horizontalCollision && !needsToJump
                 && now - plan.lastRepathTick > REPATH_COOLDOWN_TICKS) {
                 plan.collisionRetpathCount++;
+                // Penalize a 3x3 area around the obstacle to prevent repath finding
+                // nearly-identical routes that also hit the same wall.
+                addAreaCollisionPenalty(level, npc.position(), horizontal.x, horizontal.z);
                 if (plan.collisionRetpathCount >= MAX_COLLISION_RETPATHS) {
-                    // Micro-teleport past the obstacle
+                    // Micro-teleport past the obstacle after 2 failed retries
                     npc.setPos(waypoint.x, waypoint.y, waypoint.z);
                     plan.pathIndex++;
                     plan.collisionRetpathCount = 0;
@@ -412,21 +540,22 @@ public final class NpcCentralMovementService {
                     plan.lastProgressTick = now;
                     plan.lastRepathTick = now;
                     plan.lastPos = npc.position();
+                    plan.xzStuckTicks = 0;
+                    plan.xzLastPos = npc.position();
+                    plan.xzStuckCycles = 0;
                     plan.debugStage = "collision_micro_tp";
                     plan.debugRepathReason = "collision_max_skip_waypoint";
                 } else {
-                    Vec3 penaltyPos = npc.position().add(Math.signum(vx), 0, Math.signum(vz));
-                    NpcPathfinder.addCollisionPenalty(level, penaltyPos);
+                    // Repath immediately on first collision
                     if (tryRepath(level, npc, plan, step.target, now) && !plan.path.isEmpty()) {
                         openAllDoorsOnPath(level, npc, plan.path);
                     }
                     plan.debugStage = "collision_repath";
-                    plan.debugRepathReason = (NpcPathfinder.isBarrierAhead(level, npc.position(), vx, vz)
-                        ? "barrier_repath_" : "collision_repath_") + plan.collisionRetpathCount;
+                    plan.debugRepathReason = "collision_repath_" + plan.collisionRetpathCount;
                 }
             }
 
-            if (needsToJump && npc.onGround()) {
+            if (needsToJump && npc.onGround() && !npc.horizontalCollision) {
                 vy = 0.42D;
                 plan.debugStage = "walk_jump";
             }
@@ -449,9 +578,62 @@ public final class NpcCentralMovementService {
             plan.lastPos = npc.position();
             plan.lastProgressTick = now;
             plan.collisionRetpathCount = 0;
+            plan.xzStuckCycles = 0;
         }
 
-        // Stuck repath
+        // ── Phase 4a: Rapid XZ-stuck detection ──
+        // If XZ position barely changed for a short window, the NPC is physically
+        // blocked. React within ~0.75s instead of waiting for the general stuck timer.
+        double xzDx = npc.getX() - plan.xzLastPos.x;
+        double xzDz = npc.getZ() - plan.xzLastPos.z;
+        double xzMovedSqr = xzDx * xzDx + xzDz * xzDz;
+        if (xzMovedSqr < XZ_STUCK_THRESHOLD_SQR) {
+            plan.xzStuckTicks++;
+        } else {
+            plan.xzStuckTicks = 0;
+            plan.xzLastPos = npc.position();
+        }
+
+        if (plan.xzStuckTicks >= XZ_STUCK_SKIP_TICKS) {
+            // Stuck for ~1.0s — skip this waypoint entirely
+            npc.setDeltaMovement(Vec3.ZERO);
+            addAreaCollisionPenalty(level, npc.position(), waypoint.x - npc.getX(), waypoint.z - npc.getZ());
+            plan.pathIndex++;
+            plan.xzStuckTicks = 0;
+            plan.xzLastPos = npc.position();
+            plan.collisionRetpathCount = 0;
+            plan.lastRepathTick = now;
+            plan.xzStuckCycles++;
+            // After repeated stuck cycles, just teleport — the area is impassable
+            if (plan.xzStuckCycles >= XZ_STUCK_MAX_CYCLES) {
+                plan.debugStage = "xz_stuck_teleport";
+                plan.debugRepathReason = "xz_stuck_cycles_" + plan.xzStuckCycles;
+                plan.lastFallbackTeleportUsed = true;
+                com.stardew.craft.StardewCraft.LOGGER.warn("[NPC_TELEPORT] npc={} reason=xz_stuck_cycles step={} pos={} target={}", npc.getNpcId(), step.pointId, fmt(npc.position()), fmt(step.target));
+                advanceStepByTeleport(npc, plan, step.target, now);
+                return false;
+            }
+            plan.debugStage = "xz_stuck_skip";
+            plan.debugRepathReason = "xz_stuck_skip_cycle" + plan.xzStuckCycles;
+            // Try to repath from current pos to step target
+            if (tryRepath(level, npc, plan, step.target, now) && !plan.path.isEmpty()) {
+                openAllDoorsOnPath(level, npc, plan.path);
+            }
+        } else if (plan.xzStuckTicks >= XZ_STUCK_REPATH_TICKS
+                   && now - plan.lastRepathTick > REPATH_COOLDOWN_TICKS) {
+            // Stuck for ~0.5s — penalize wide area and repath immediately
+            npc.setDeltaMovement(Vec3.ZERO);
+            addAreaCollisionPenalty(level, npc.position(), waypoint.x - npc.getX(), waypoint.z - npc.getZ());
+            if (tryRepath(level, npc, plan, step.target, now) && !plan.path.isEmpty()) {
+                openAllDoorsOnPath(level, npc, plan.path);
+                plan.xzStuckTicks = 0;
+                plan.xzLastPos = npc.position();
+            }
+            plan.debugStage = "xz_stuck_repath";
+            plan.debugRepathReason = "xz_stuck_" + plan.xzStuckTicks + "t";
+        }
+
+        // Stuck repath (general fallback — longer window)
         if (now - plan.lastProgressTick > STUCK_REPATH_TICKS
             && now - plan.lastRepathTick > REPATH_COOLDOWN_TICKS
             && now >= plan.noPathRetryBlockedUntilTick) {
@@ -472,6 +654,7 @@ public final class NpcCentralMovementService {
         if (now - plan.lastProgressTick > STUCK_FORCE_SYNC_TICKS) {
             plan.debugStage = "fallback_tp";
             plan.lastFallbackTeleportUsed = true;
+            com.stardew.craft.StardewCraft.LOGGER.warn("[NPC_TELEPORT] npc={} reason=stuck_force step={} pos={} target={} stuckTicks={}", npc.getNpcId(), step.pointId, fmt(npc.position()), fmt(step.target), now - plan.lastProgressTick);
             advanceStepByTeleport(npc, plan, step.target, now);
             plan.debugRepathReason = "stuck_force_teleport";
         }
@@ -725,6 +908,12 @@ public final class NpcCentralMovementService {
         private Vec3 debugTarget;
         private Vec3 debugNextWaypoint;
         private String debugRepathReason;
+        /** XZ-stuck tracker: ticks with negligible XZ movement. */
+        private int xzStuckTicks;
+        /** XZ-stuck tracker: reference position for XZ comparison. */
+        private Vec3 xzLastPos;
+        /** How many times the XZ-stuck repath cycle has fired without real progress. */
+        private int xzStuckCycles;
 
         private NpcRoutePlan(String signature, UUID boundEntityUuid, List<NpcRoutePlanner.NpcRouteStep> steps, long now) {
             this.signature = signature;
@@ -745,6 +934,9 @@ public final class NpcCentralMovementService {
             this.debugTarget = Vec3.ZERO;
             this.debugNextWaypoint = Vec3.ZERO;
             this.debugRepathReason = "none";
+            this.xzStuckTicks = 0;
+            this.xzLastPos = Vec3.ZERO;
+            this.xzStuckCycles = 0;
         }
     }
 

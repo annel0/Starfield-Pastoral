@@ -1,19 +1,33 @@
 import { defineConfig } from 'vitepress'
+import mathjax3 from 'markdown-it-mathjax3'
 
 export default defineConfig({
   lang: 'zh-CN',
-  title: 'StardewCraft Wiki',
-  description: 'StardewCraft 模组百科 — Stardew Valley × Minecraft',
-  base: '/Starfield-Pastoral/',
+  title: '星野牧歌 Wiki',
+  description: '星野牧歌（Starfield Pastoral）模组百科 — Stardew Valley × Minecraft',
   head: [
     ['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
     ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
     ['link', { href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700&display=swap', rel: 'stylesheet' }],
   ],
 
+  markdown: {
+    config: (md) => {
+      md.use(mathjax3)
+    },
+  },
+
+  vue: {
+    template: {
+      compilerOptions: {
+        isCustomElement: (tag) => tag.startsWith('mjx-'),
+      },
+    },
+  },
+
   themeConfig: {
     logo: '/logo.svg',
-    siteTitle: 'StardewCraft',
+    siteTitle: '星野牧歌',
 
     nav: [
       { text: '首页', link: '/' },
@@ -79,7 +93,19 @@ export default defineConfig({
         {
           text: '钓鱼',
           items: [
-            { text: '钓鱼总览', link: '/wiki/fishing/' },
+            { text: '钓鱼系统总览', link: '/wiki/fishing/' },
+            { text: '钓鱼小游戏', link: '/wiki/fishing/minigame' },
+            { text: '鱼饵系统', link: '/wiki/fishing/bait' },
+            { text: '渔具与浮标', link: '/wiki/fishing/tackle' },
+          ],
+        },
+        {
+          text: '按地点查鱼',
+          items: [
+            { text: '海洋鱼类', link: '/wiki/fishing/ocean' },
+            { text: '河流鱼类', link: '/wiki/fishing/river' },
+            { text: '湖泊鱼类', link: '/wiki/fishing/lake' },
+            { text: '传说鱼', link: '/wiki/fishing/legendary' },
           ],
         },
       ],
@@ -120,8 +146,8 @@ export default defineConfig({
     ],
 
     footer: {
-      message: 'StardewCraft 是一个粉丝制作的 Minecraft 模组，与 ConcernedApe 无关。',
-      copyright: '© 2024-2026 StardewCraft Team',
+      message: '星野牧歌（Starfield Pastoral）是一个粉丝制作的 Minecraft 模组，与 ConcernedApe 无关。',
+      copyright: '© 2024-2026 Starfield Pastoral Team',
     },
 
     outline: { label: '本页目录', level: [2, 3] },

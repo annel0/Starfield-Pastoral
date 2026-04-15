@@ -1,8 +1,6 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.BlackHolePostEffectClient;
-import com.stardew.craft.client.weapon.CameraShakeState;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -43,10 +41,10 @@ public record BlackHolePostPayload(float x, float y, float z, float radiusNorm, 
 
     public static void handle(BlackHolePostPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
-            BlackHolePostEffectClient.add(
+            com.stardew.craft.client.weapon.BlackHolePostEffectClient.add(
                 payload.x(), payload.y(), payload.z(), payload.radiusNorm(), payload.strength(), payload.durationTicks()
             );
-            CameraShakeState.kick(0.4f, 8, 2.5f);
+            com.stardew.craft.client.weapon.CameraShakeState.kick(0.4f, 8, 2.5f);
         });
     }
 }

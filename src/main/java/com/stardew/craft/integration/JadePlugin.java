@@ -200,7 +200,8 @@ public class JadePlugin implements IWailaPlugin {
                 
                 if (regrowing) {
                     totalDays = cropBlock.getRegrowDaysForDisplay();
-                    daysGrown = Math.min(dayInPhase, totalDays);
+                    daysGrown = totalDays - dayInPhase;
+                    mature = dayInPhase <= 0;
                 } else {
                     for (int pd : phaseDays) {
                         totalDays += pd;

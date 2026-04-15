@@ -1,7 +1,6 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.StarfallMeteorEffectClient;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -41,7 +40,7 @@ public record StarfallMeteorPayload(float x, float y, float z, float height, int
     }
 
     public static void handle(StarfallMeteorPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> StarfallMeteorEffectClient.add(
+        context.enqueueWork(() -> com.stardew.craft.client.weapon.StarfallMeteorEffectClient.add(
             payload.x(), payload.y(), payload.z(), payload.height(), payload.durationTicks(), payload.color()
         ));
     }

@@ -1,7 +1,5 @@
 package com.stardew.craft.block.decor;
 
-import com.stardew.craft.client.gui.common.StardewConfirmDialogScreen;
-import com.stardew.craft.client.gui.common.StardewQuestionDialogSpec;
 import com.stardew.craft.network.payload.JojaVendingPurchasePayload;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -47,8 +45,8 @@ public class JojaVendingMachineBlock extends MapDecorStaticBlock {
     private static final class ClientHelper {
         static void openDialog(BlockPos pos) {
             net.minecraft.client.Minecraft.getInstance().setScreen(
-                StardewConfirmDialogScreen.createQuestionDialog(
-                    StardewQuestionDialogSpec.of(
+                com.stardew.craft.client.gui.common.StardewConfirmDialogScreen.createQuestionDialog(
+                    com.stardew.craft.client.gui.common.StardewQuestionDialogSpec.of(
                         Component.translatable("stardewcraft.joja_vending.question"),
                         List.of(
                             Component.translatable("stardewcraft.joja_vending.yes"),

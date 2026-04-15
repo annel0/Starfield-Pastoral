@@ -1,9 +1,7 @@
 package com.stardew.craft.fishing.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.fishing.FishingCatchVisuals;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
@@ -29,10 +27,10 @@ public record FishingFailVisualPayload() implements CustomPacketPayload {
 
 	@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
 	private static void handleClient(FishingFailVisualPayload payload) {
-		Minecraft mc = Minecraft.getInstance();
+		net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
 		if (mc.player == null) {
 			return;
 		}
-		FishingCatchVisuals.startFail();
+		com.stardew.craft.client.fishing.FishingCatchVisuals.startFail();
 	}
 }

@@ -95,19 +95,19 @@ public class StardewConfirmDialogScreen extends Screen {
         return spec.question().getString();
     }
 
-    private int getQuestionWrapWidth() {
-        return Math.max(1, boxWidth - px(16));
+    private boolean isQuestionBlank() {
+        return getCurrentString().isBlank();
     }
 
-    private int measureQuestionHeight() {
-        return measureWrappedHeight(this.font.split(spec.question(), getQuestionWrapWidth()));
+    private int getQuestionWrapWidth() {
+        return Math.max(1, boxWidth - px(16));
     }
 
     private void recomputeLayout() {
         mapping = new StardewRenderMapping(this.width, this.height, guiScale());
         boxWidth = px(spec.dialogWidth());
         int questionWrapWidth = getQuestionWrapWidth();
-        questionHeight = measureWrappedHeight(this.font.split(spec.question(), questionWrapWidth));
+        questionHeight = isQuestionBlank() ? 0 : measureWrappedHeight(this.font.split(spec.question(), questionWrapWidth));
 
         wrappedResponses.clear();
         int totalHeight = questionHeight;
@@ -125,6 +125,9 @@ public class StardewConfirmDialogScreen extends Screen {
     }
 
     private int optionStartY() {
+        if (isQuestionBlank()) {
+            return boxDrawY + px(12);
+        }
         return boxDrawY + questionHeight + px(48);
     }
 
@@ -193,7 +196,7 @@ public class StardewConfirmDialogScreen extends Screen {
         recomputeLayout();
         lastUpdateMs = Util.getMillis();
         lastRenderMs = Util.getMillis();
-        characterIndexInDialogue = 0;
+        characterIndexInDialogue = isQuestionBlank() ? getCurrentString().length() : 0;
         characterAdvanceTimer = 90;
         safetyTimer = 750;
     }
@@ -325,11 +328,13 @@ public class StardewConfirmDialogScreen extends Screen {
         StardewGuiUtil.drawFromCursors16(graphics, boxX + boxWidth - px(52), boxDrawY - px(72), 470 + arrowFrame * 7, 447, 7, 12, s4);
 
         int textX = boxX + px(8);
-        List<net.minecraft.util.FormattedCharSequence> questionLines = this.font.split(Component.literal(getVisibleQuestionText()), getQuestionWrapWidth());
-        drawWrappedLeftAligned(graphics, questionLines, textX, boxDrawY + px(12), 0x3A2A1A);
+        if (!isQuestionBlank()) {
+            List<net.minecraft.util.FormattedCharSequence> questionLines = this.font.split(Component.literal(getVisibleQuestionText()), getQuestionWrapWidth());
+            drawWrappedLeftAligned(graphics, questionLines, textX, boxDrawY + px(12), 0x3A2A1A);
+        }
 
         if (showOptions) {
-            int responseY = boxDrawY + measureQuestionHeight() + px(48);
+            int responseY = optionStartY();
             for (int i = 0; i < wrappedResponses.size(); i++) {
                 WrappedResponse response = wrappedResponses.get(i);
                 if (i == selected) {

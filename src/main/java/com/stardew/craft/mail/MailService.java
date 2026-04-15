@@ -1,6 +1,7 @@
 package com.stardew.craft.mail;
 
 import com.stardew.craft.network.payload.OpenMailPayload;
+import com.stardew.craft.player.PlayerDataEventHandler;
 import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.PlayerStardewData;
 import net.minecraft.network.chat.Component;
@@ -100,10 +101,11 @@ public class MailService {
             }
         }
 
-        // 处理金钱附件（服务端直接加钱）
+        // 处理金钱附件（服务端直接加钱 + 同步客户端）
         int money = entry.getMoney();
         if (money > 0) {
             data.addMoney(money);
+            PlayerDataEventHandler.syncPlayerData(player, data);
         }
 
         // 配方学习

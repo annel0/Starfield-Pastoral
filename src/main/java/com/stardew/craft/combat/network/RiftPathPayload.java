@@ -1,7 +1,6 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.RiftPathEffectClient;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -50,7 +49,7 @@ public record RiftPathPayload(float x, float y, float z, float yaw, float length
     }
 
     public static void handle(RiftPathPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> RiftPathEffectClient.add(
+        context.enqueueWork(() -> com.stardew.craft.client.weapon.RiftPathEffectClient.add(
             payload.x(), payload.y(), payload.z(), payload.yaw(), payload.length(), payload.durationTicks(), payload.color()
         ));
     }

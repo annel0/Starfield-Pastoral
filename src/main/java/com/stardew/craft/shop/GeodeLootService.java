@@ -145,7 +145,7 @@ public class GeodeLootService {
     }
 
     /**
-     * SDV Utility.getTreasureFromGeode() parity (excluding mystery boxes / artifact trove).
+     * SDV Utility.getTreasureFromGeode() parity.
      */
     private static ItemStack getTreasureFromGeode(String geodeType, ServerPlayer player) {
         Random r = new Random();
@@ -154,6 +154,11 @@ public class GeodeLootService {
         for (int i = 0; i < prewarm; i++) r.nextDouble();
         prewarm = r.nextInt(9) + 1;
         for (int i = 0; i < prewarm; i++) r.nextDouble();
+
+        // ── Mystery Box / Golden Mystery Box ──
+        if (geodeType.contains("mystery_box")) {
+            return getMysteryBoxTreasure(geodeType, r, player);
+        }
 
         // ── Omni geode: 0.8 % prismatic shard ──
         // SDV: requires ≥ 16 geodes cracked; we always allow for simplicity
@@ -190,6 +195,153 @@ public class GeodeLootService {
 
         // SDV: ore fallback (differs by geode type)
         return getOreByType(geodeType, r, amount);
+    }
+
+    // ────────────────────────────────────────────────────────────────────
+    //  Mystery Box loot — SDV Utility.getTreasureFromGeode() parity
+    // ────────────────────────────────────────────────────────────────────
+
+    /**
+     * SDV Mystery Box loot table. Golden mystery box has double rare chance (rareMod=2)
+     * and an exclusive rare roll. Items we don't have are skipped (re-rolled to next check).
+     */
+    private static ItemStack getMysteryBoxTreasure(String geodeType, Random r, ServerPlayer player) {
+        boolean isGolden = "golden_mystery_box".equals(geodeType);
+        double rareMod = isGolden ? 2.0 : 1.0;
+
+        // SDV: rare pool only if opened > 10 or golden
+        // We simplify: always enable for golden, require some usage otherwise
+        boolean rarePoolEnabled = isGolden || r.nextDouble() < 0.8; // 模拟 opened > 10
+
+        if (rarePoolEnabled) {
+            // SDV Golden-only: Golden Animal Cracker (farming mastery + 0.5%)
+            if (isGolden && r.nextDouble() < 0.005) {
+                return makeItem("stardewcraft:golden_animal_cracker", 1);
+            }
+            // SDV Golden-only: Auto-Petter (0.5%)
+            if (isGolden && r.nextDouble() < 0.005) {
+                return makeItem("stardewcraft:auto_petter", 1);
+            }
+
+            // SDV: 0.2% × rareMod → Lucky Lunch (我们没有，跳过)
+            // SDV: 0.4% × rareMod → Prismatic Shard
+            if (r.nextDouble() < 0.004 * rareMod) {
+                return new ItemStack(ModItems.PRISMATIC_SHARD.get());
+            }
+            // SDV: 0.8% × rareMod → Treasure Chest
+            if (r.nextDouble() < 0.008 * rareMod) {
+                return new ItemStack(ModItems.TREASURE_CHEST.get());
+            }
+            // SDV: 1% × rareMod → Pearl / Golden Pumpkin (我们没有golden_pumpkin，只给pearl)
+            if (r.nextDouble() < 0.01 * rareMod) {
+                return new ItemStack(ModItems.PEARL.get());
+            }
+            // SDV: 1% × rareMod → MysteryHat (我们没有，跳过)
+            // SDV: 1% × rareMod → MysteryShirt (我们没有，跳过)
+            // SDV: 1% × rareMod → Wallpaper (我们没有，跳过)
+
+            // SDV: 10% (always for golden) → medium-rare pool
+            if (r.nextDouble() < 0.1 || isGolden) {
+                return rollMysteryBoxMediumRare(r, player);
+            }
+        }
+
+        // SDV: common pool (always available) — switch(14)
+        return rollMysteryBoxCommon(r);
+    }
+
+    /** SDV mystery box medium-rare: switch(r.Next(15)), 跳过不存在的物品用替代 */
+    private static ItemStack rollMysteryBoxMediumRare(Random r, ServerPlayer player) {
+        switch (r.nextInt(12)) { // 我们可用的有12项
+            case 0: // SDV case 0: Mega Bomb ×5
+                return new ItemStack(ModItems.MEGA_BOMB.get(), 5);
+            case 1: // SDV case 2: fishing≥6 → Dressed Spinner / Cork Bobber
+            {
+                int fishingLevel = PlayerStardewDataAPI.getSkillLevel(player, com.stardew.craft.player.SkillType.FISHING);
+                if (fishingLevel >= 6 && r.nextBoolean()) {
+                    return r.nextBoolean()
+                        ? new ItemStack(ModItems.DRESSED_SPINNER.get())
+                        : new ItemStack(ModItems.CORK_BOBBER.get());
+                }
+                // Fallback: Sprinkler
+                return new ItemStack(ModItems.SPRINKLER.get());
+            }
+            case 2: // SDV case 4: Melon Seeds ×20
+                return new ItemStack(ModItems.MELON_SEEDS.get(), 20);
+            case 3: // SDV case 5: Pumpkin Seeds ×20
+                return new ItemStack(ModItems.PUMPKIN_SEEDS.get(), 20);
+            case 4: // SDV case 7: Warp Totem: Farm ×3
+                return new ItemStack(ModItems.WARP_TOTEM_FARM.get(), 3);
+            case 5: // SDV case 9: Random low-grade crop ×20 → mixed seeds
+                return new ItemStack(ModItems.MIXED_SEEDS.get(), 20);
+            case 6: // SDV case 10: Ossified Blade / Slingshot → Ossified Blade
+                return makeItem("stardewcraft:ossified_blade", 1);
+            case 7: // SDV case 11: Sprinkler
+                return new ItemStack(ModItems.SPRINKLER.get());
+            case 8: // SDV case 12: MysteryBox ×3-5
+                return new ItemStack(ModItems.MYSTERY_BOX.get(), r.nextInt(3) + 3);
+            case 9: // Quality Sprinkler (替代 SkillBook)
+                return new ItemStack(ModItems.QUALITY_SPRINKLER.get());
+            case 10: // Iridium Sprinkler (替代 raccoon seeds)
+                return new ItemStack(ModItems.IRIDIUM_SPRINKLER.get());
+            case 11: // Wild Bait ×10 (额外替代项)
+                return new ItemStack(ModItems.WILD_BAIT.get(), 10);
+            default:
+                return new ItemStack(ModItems.COAL.get(), 5);
+        }
+    }
+
+    /** SDV mystery box common pool: switch(14), 跳过不存在的用替代 */
+    private static ItemStack rollMysteryBoxCommon(Random r) {
+        switch (r.nextInt(14)) {
+            case 0: // SDV: Coffee Bean ×3
+                return new ItemStack(ModItems.COFFEE_BEAN.get(), 3);
+            case 1: // SDV: Bomb ×5 → Mega Bomb ×2 (我们没bomb)
+                return new ItemStack(ModItems.MEGA_BOMB.get(), 2);
+            case 2: // SDV: Random low-grade crop ×8 → Mixed Seeds ×8
+                return new ItemStack(ModItems.MIXED_SEEDS.get(), 8);
+            case 3: // SDV: Random season seed → Melon Seeds ×5
+                return new ItemStack(ModItems.MELON_SEEDS.get(), 5);
+            case 4: // SDV: Random cooked food → Warp Totem: Farm
+                return new ItemStack(ModItems.WARP_TOTEM_FARM.get());
+            case 5: // SDV: Hardwood ×10 → Stone ×10
+                return new ItemStack(ModItems.STONE.get(), 10);
+            case 6: // SDV: Melon Seeds ×10
+                return new ItemStack(ModItems.MELON_SEEDS.get(), 10);
+            case 7: // SDV: Pumpkin Seeds ×10
+                return new ItemStack(ModItems.PUMPKIN_SEEDS.get(), 10);
+            case 8: // SDV: Warp Totem: Farm
+                return new ItemStack(ModItems.WARP_TOTEM_FARM.get());
+            case 9: // SDV: Warp Totem: Mountains
+                return new ItemStack(ModItems.WARP_TOTEM_MOUNTAIN.get());
+            case 10: // SDV: 40% Ring, else MysteryBox ×2
+                if (r.nextDouble() < 0.4) {
+                    return switch (r.nextInt(4)) {
+                        case 0 -> makeItem("stardewcraft:small_glow_ring", 1);
+                        case 1 -> makeItem("stardewcraft:warrior_ring", 1);
+                        case 2 -> makeItem("stardewcraft:ring_of_yoba", 1);
+                        default -> makeItem("stardewcraft:amethyst_ring", 1);
+                    };
+                }
+                return new ItemStack(ModItems.MYSTERY_BOX.get(), 2);
+            case 11: // SDV: MixedFlowerSeeds ×10 → Mixed Seeds ×10
+                return new ItemStack(ModItems.MIXED_SEEDS.get(), 10);
+            case 12: // SDV: Warp Totem: Beach
+                return new ItemStack(ModItems.WARP_TOTEM_BEACH.get());
+            case 13: // SDV default: Coal
+                return new ItemStack(ModItems.COAL.get());
+            default:
+                return new ItemStack(ModItems.COAL.get());
+        }
+    }
+
+    /** 按物品ID创建ItemStack，找不到返回coal兜底 */
+    private static ItemStack makeItem(String itemId, int count) {
+        ResourceLocation rl = ResourceLocation.tryParse(itemId);
+        if (rl != null && BuiltInRegistries.ITEM.containsKey(rl)) {
+            return new ItemStack(BuiltInRegistries.ITEM.get(rl), count);
+        }
+        return new ItemStack(ModItems.COAL.get(), count);
     }
 
     /** SDV type-specific gem: geode→earth_crystal, frozen→frozen_tear, magma→fire_quartz, omni→random */
@@ -252,6 +404,8 @@ public class GeodeLootService {
             case "frozen_geode" -> "frozen_geode";
             case "magma_geode" -> "magma_geode";
             case "omni_geode" -> "omni_geode";
+            case "mystery_box" -> "mystery_box";
+            case "golden_mystery_box" -> "golden_mystery_box";
             default -> null;
         };
     }

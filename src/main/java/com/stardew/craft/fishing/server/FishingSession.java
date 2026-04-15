@@ -47,6 +47,7 @@ public final class FishingSession {
 	// 鱼品质相关
 	private double fishSize;  // 0.0-1.0，决定初始品质
 	private int initialQuality;  // 基础品质（0-2）
+	private float castPower;  // 0.0-1.0，抛竿力度（对应SDV clearWaterDistance/5）
 
 	public FishingSession(UUID id, BlockPos bobberPos, int waterDepth, int ticksUntilBite) {
 		this.id = id;
@@ -65,6 +66,15 @@ public final class FishingSession {
 		this.treasureLoot = List.of();
 		this.fishSize = 0.0;
 		this.initialQuality = 0;
+		this.castPower = 0.0f;
+	}
+
+	public float castPower() {
+		return castPower;
+	}
+
+	public void setCastPower(float castPower) {
+		this.castPower = castPower;
 	}
 
 	public UUID id() {
@@ -173,10 +183,46 @@ public final class FishingSession {
 				this.initialQuality = 0;
 			} else {
 				// 找到鱼了！计算鱼的大小和初始品质
-				// fishSize受钓鱼等级影响：等级越高，鱼越大
+				// SDV原版公式：fishSize = (clearWaterDistance/5) * random(min,max)/5 * favBait * ±10%
+				// MC中用castPower替代clearWaterDistance/5，下限0.2（SDV短抛至少戉1格离岸距离=0.2）
 				int fishingLevel = com.stardew.craft.player.PlayerStardewDataAPI.getSkillLevel(player, SkillType.FISHING);
-				this.fishSize = random.nextDouble() * (0.2 + fishingLevel * 0.04);  // 0.0-1.0范围
-				this.fishSize = Math.min(1.0, this.fishSize);  // 限制在1.0以内
+
+				// 1. 抛竿力度因子（SDV: clearWaterDistance/5，范围0.2-1.0）
+				this.fishSize = Math.max(0.2, (double) this.castPower);
+
+				// 2. 钓鱼等级随机项：random(1+level/2, max(6, 1+level/2)) / 5
+				int minimumSizeContribution = 1 + fishingLevel / 2;
+				int upperBound = Math.max(6, minimumSizeContribution);
+				if (upperBound <= minimumSizeContribution) {
+					this.fishSize *= (double) minimumSizeContribution / 5.0;
+				} else {
+					this.fishSize *= (double) (minimumSizeContribution + random.nextInt(upperBound - minimumSizeContribution)) / 5.0;
+				}
+
+				// 3. 偏爱饵料加成（Targeted Bait匹配目标鱼时×1.2）
+				ItemStack rod = player.getMainHandItem();
+				if (rod.isEmpty() || !(rod.getItem() instanceof com.stardew.craft.item.tool.FishingRodItem)) {
+					rod = player.getOffhandItem();
+				}
+				if (rod != null && rod.getItem() instanceof com.stardew.craft.item.tool.FishingRodItem fishingRodItem) {
+					ItemStack baitStack = fishingRodItem.getAttachmentsForTooltip(rod).bait();
+					if (!baitStack.isEmpty() && baitStack.getItem() instanceof com.stardew.craft.item.SpecificBaitItem) {
+						String targetFishId = com.stardew.craft.item.SpecificBaitItem.getTargetFishId(baitStack);
+						if (targetFishId != null) {
+							@SuppressWarnings("null")
+							String caughtFishId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(selected.get().stack().getItem()).toString();
+							if (targetFishId.equals(caughtFishId)) {
+								this.fishSize *= 1.2;
+							}
+						}
+					}
+				}
+
+				// 4. ±10%随机波动
+				this.fishSize *= 1.0 + (double) (random.nextInt(21) - 10) / 100.0;
+
+				// 5. Clamp到[0,1]
+				this.fishSize = Math.max(0.0, Math.min(1.0, this.fishSize));
 				
 				// 根据fishSize决定初始品质（星露谷原版逻辑）
 				if (this.fishSize < 0.33) {

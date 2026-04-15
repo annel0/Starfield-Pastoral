@@ -1,9 +1,7 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.CrystalDaggerLayerClientState;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -43,7 +41,7 @@ public record CrystalDaggerLayerPayload(int stacks, int durationTicks, boolean p
 
     @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
     private static void handleClient(CrystalDaggerLayerPayload payload) {
-        Minecraft mc = Minecraft.getInstance();
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
         if (mc.player == null || mc.level == null) {
             return;
         }
@@ -51,9 +49,9 @@ public record CrystalDaggerLayerPayload(int stacks, int durationTicks, boolean p
         var player = Objects.requireNonNull(mc.player, "player");
         long nowTick = level.getGameTime();
         if (payload.stacks() > 0) {
-            CrystalDaggerLayerClientState.start(nowTick, payload.durationTicks(), payload.stacks());
+            com.stardew.craft.client.weapon.CrystalDaggerLayerClientState.start(nowTick, payload.durationTicks(), payload.stacks());
         } else {
-            CrystalDaggerLayerClientState.clear();
+            com.stardew.craft.client.weapon.CrystalDaggerLayerClientState.clear();
         }
         if (payload.playChime() && payload.stacks() > 0) {
             float pitch = 1.0f + 0.2f * Math.max(0, payload.stacks() - 1);

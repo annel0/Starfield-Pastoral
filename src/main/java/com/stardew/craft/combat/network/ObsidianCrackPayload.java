@@ -1,7 +1,6 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.ObsidianCrackEffectClient;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -41,7 +40,7 @@ public record ObsidianCrackPayload(float x, float y, float z, float yaw, float l
     }
 
     public static void handle(ObsidianCrackPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> ObsidianCrackEffectClient.add(
+        context.enqueueWork(() -> com.stardew.craft.client.weapon.ObsidianCrackEffectClient.add(
             payload.x(), payload.y(), payload.z(), payload.yaw(), payload.length(), payload.durationTicks()
         ));
     }

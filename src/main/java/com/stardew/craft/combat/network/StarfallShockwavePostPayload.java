@@ -1,8 +1,6 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.CameraShakeState;
-import com.stardew.craft.client.weapon.StarfallShockwavePostEffectClient;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -43,10 +41,10 @@ public record StarfallShockwavePostPayload(float x, float y, float z, float radi
 
     public static void handle(StarfallShockwavePostPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
-            StarfallShockwavePostEffectClient.add(
+            com.stardew.craft.client.weapon.StarfallShockwavePostEffectClient.add(
                 payload.x(), payload.y(), payload.z(), payload.radiusNorm(), payload.strength(), payload.durationTicks()
             );
-            CameraShakeState.kick(0.7f, 6, 4.0f);
+            com.stardew.craft.client.weapon.CameraShakeState.kick(0.7f, 6, 4.0f);
         });
     }
 }

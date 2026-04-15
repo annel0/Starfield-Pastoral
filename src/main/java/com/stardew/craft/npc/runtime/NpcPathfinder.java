@@ -29,12 +29,12 @@ import java.util.concurrent.Executors;
 @SuppressWarnings("null")
 public final class NpcPathfinder {
 
-    static final int ASTAR_MIN_VISITS = 2_000;
-    static final int ASTAR_MAX_VISITS = 4_000;
+    static final int ASTAR_MIN_VISITS = 4_000;
+    static final int ASTAR_MAX_VISITS = 12_000;
     /** If start→goal Chebyshev distance exceeds this, skip A* entirely (caller should teleport). */
     static final int ASTAR_MAX_WALKABLE_DIST = 200;
     private static final int ASTAR_WARN_INTERVAL_TICKS = 200;
-    static final int ASTAR_MAX_CALLS_PER_TICK = 8;
+    static final int ASTAR_MAX_CALLS_PER_TICK = 16;
 
     private static long lastAstarWarnTick = Long.MIN_VALUE;
     private static long astarCallBudgetTick = Long.MIN_VALUE;
@@ -58,7 +58,7 @@ public final class NpcPathfinder {
     private static final int[][] SELF_AND_DIR4 = {{0,0},{1,0},{-1,0},{0,1},{0,-1}};
 
     /** Temporary collision penalties: packed BlockPos -> expiry gameTime. */
-    private static final Map<Long, Long> COLLISION_PENALTIES = new HashMap<>();
+    private static final Map<Long, Long> COLLISION_PENALTIES = new java.util.concurrent.ConcurrentHashMap<>();
     private static final double COLLISION_PENALTY_COST = 8.0D;
     private static final long COLLISION_PENALTY_DURATION_TICKS = 200;
 
@@ -227,6 +227,10 @@ public final class NpcPathfinder {
 
         // Build a snapshot of the relevant region.
         BlockSnapshot snapshot = BlockSnapshot.capture(level, start, goal);
+        if (snapshot == null) {
+            // Snapshot too large — fall back to sync path (caller should handle empty result).
+            return CompletableFuture.completedFuture(new ArrayList<>());
+        }
 
         return CompletableFuture.supplyAsync(() -> planPathOnSnapshot(snapshot, start, goal), ASYNC_EXECUTOR);
     }
@@ -369,12 +373,6 @@ public final class NpcPathfinder {
         if (!canStand(level, next)) {
             return null;
         }
-        // Width check: entity is 0.6 wide, centered on block center.
-        // If any cardinal neighbor at this Y has a solid collision shape,
-        // the entity may clip it. Penalize via canStandWide.
-        if (!canStandWide(level, next)) {
-            return null;
-        }
         if (Math.abs(next.getY() - from.getY()) > 2) {
             return null;
         }
@@ -418,15 +416,10 @@ public final class NpcPathfinder {
         return true;
     }
 
-    /**
-     * Width-aware passability: checks that the entity (0.6 wide) won't clip
-     * into adjacent solid blocks when walking through this position.
-     * Returns false if TWO OPPOSITE cardinal neighbors are both solid on ANY axis
-     * (1-block corridor that the 0.6-wide entity cannot traverse without clipping).
-     */
-    private static boolean canStandWide(ServerLevel level, BlockPos pos) {
-        // Check X-axis corridor: if both +X and -X at feet level are solid, passage is <1 block.
-        // Use explicit BlockPos to avoid .east()/.west() creating intermediates, and cache getBlockState results.
+
+
+    /** 检查某位置是否为狭窄走廊（两侧对向都是实心方块），用于 cost 惩罚。 */
+    private static boolean isNarrowCorridor(ServerLevel level, BlockPos pos) {
         int px = pos.getX(), py = pos.getY(), pz = pos.getZ();
         BlockPos eastPos = new BlockPos(px + 1, py, pz);
         BlockState eastState = level.getBlockState(eastPos);
@@ -435,7 +428,7 @@ public final class NpcPathfinder {
             BlockPos westPos = new BlockPos(px - 1, py, pz);
             BlockState westState = level.getBlockState(westPos);
             if (!westState.getCollisionShape(level, westPos).isEmpty() && !isPathDoorPassable(westState)) {
-                return false; // X-axis corridor too narrow
+                return true;
             }
         }
         BlockPos southPos = new BlockPos(px, py, pz + 1);
@@ -445,10 +438,10 @@ public final class NpcPathfinder {
             BlockPos northPos = new BlockPos(px, py, pz - 1);
             BlockState northState = level.getBlockState(northPos);
             if (!northState.getCollisionShape(level, northPos).isEmpty() && !isPathDoorPassable(northState)) {
-                return false; // Z-axis corridor too narrow
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     /** Check if any neighboring block (including self) is a door. */
@@ -467,6 +460,9 @@ public final class NpcPathfinder {
     static double transitionCost(ServerLevel level, BlockPos from, BlockPos to, int dx, int dz) {
         double base = ((dx != 0 && dz != 0) ? 1.41421356237D : 1.0D) + Math.abs(to.getY() - from.getY()) * 0.40D;
         base += edgePenalty(level, to);
+        if (isNarrowCorridor(level, to)) {
+            base += 6.0D; // 重罚狭窄走廊，实体宽度很可能过不去
+        }
         BlockState belowState = level.getBlockState(to.below());
         net.minecraft.world.level.block.Block belowBlock = belowState.getBlock();
 
@@ -551,7 +547,7 @@ public final class NpcPathfinder {
         }
         // Heavy penalty near walls to avoid tight wall-hugging paths that
         // the entity hitbox cannot physically follow.
-        double penalty = blocked * 0.40D;
+        double penalty = blocked * 1.5D;
 
         // Add temporary collision penalty if this position was marked
         long posKey = pos.asLong();
@@ -611,10 +607,6 @@ public final class NpcPathfinder {
         if (!canStandSnapshot(snap, next)) {
             return null;
         }
-        // Width check: parity with sync stepTo
-        if (!canStandWideSnapshot(snap, next)) {
-            return null;
-        }
         if (Math.abs(next.getY() - from.getY()) > 2) {
             return null;
         }
@@ -657,6 +649,9 @@ public final class NpcPathfinder {
     private static double transitionCostSnapshot(BlockSnapshot snap, BlockPos from, BlockPos to, int dx, int dz) {
         double base = ((dx != 0 && dz != 0) ? 1.41421356237D : 1.0D) + Math.abs(to.getY() - from.getY()) * 0.40D;
         base += edgePenaltySnapshot(snap, to);
+        if (isNarrowCorridorSnapshot(snap, to)) {
+            base += 6.0D;
+        }
         BlockState belowState = snap.getBlockState(to.below());
         if (belowState == null) return base;
 
@@ -677,19 +672,15 @@ public final class NpcPathfinder {
         };
     }
 
-    /** Width check (snapshot parity with canStandWide). */
-    private static boolean canStandWideSnapshot(BlockSnapshot snap, BlockPos pos) {
+
+
+    /** 检查快照中某位置是否为狭窄走廊，用于 cost 惩罚。 */
+    private static boolean isNarrowCorridorSnapshot(BlockSnapshot snap, BlockPos pos) {
         boolean solidPosX = isSnapshotSolid(snap, pos.east());
         boolean solidNegX = isSnapshotSolid(snap, pos.west());
         boolean solidPosZ = isSnapshotSolid(snap, pos.south());
         boolean solidNegZ = isSnapshotSolid(snap, pos.north());
-        if (solidPosX && solidNegX) {
-            return false;
-        }
-        if (solidPosZ && solidNegZ) {
-            return false;
-        }
-        return true;
+        return (solidPosX && solidNegX) || (solidPosZ && solidNegZ);
     }
 
     private static boolean isSnapshotSolid(BlockSnapshot snap, BlockPos pos) {
@@ -720,7 +711,7 @@ public final class NpcPathfinder {
                 blocked++;
             }
         }
-        double penalty = blocked * 0.40D;
+        double penalty = blocked * 1.5D;
 
         // Apply collision penalties (parity with sync edgePenalty)
         long posKey = pos.asLong();
@@ -852,6 +843,13 @@ public final class NpcPathfinder {
             int sizeX = maxX - minX + 1;
             int sizeY = maxY - minY + 1;
             int sizeZ = maxZ - minZ + 1;
+
+            // Cap snapshot volume to avoid excessive memory (64+24=88 per axis → ~93K blocks max).
+            // Beyond this, fall back to sync A* which reads blocks directly.
+            if (sizeX > 88 || sizeZ > 88) {
+                return null;
+            }
+
             BlockState[] states = new BlockState[sizeX * sizeY * sizeZ];
 
             // Use a single MutableBlockPos to avoid allocating one BlockPos per block.

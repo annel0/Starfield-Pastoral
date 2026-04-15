@@ -364,6 +364,12 @@ public final class PassOutService {
         data.setHealth(data.getMaxHealth());
         PlayerDataEventHandler.syncPlayerData(player, data);
         PlayerDataManager.get().setDirty();
+
+        // 重置矿井层数到 0（SDV 原版：晕倒后回到大厅）
+        com.stardew.craft.mining.MiningPlayerData miningData =
+            com.stardew.craft.mining.MiningDataManager.getPlayerData(player);
+        miningData.setCurrentFloor(0);
+        com.stardew.craft.mining.MiningDataManager.savePlayerData(player, miningData);
     }
 
     // ──────────────────────────────────────

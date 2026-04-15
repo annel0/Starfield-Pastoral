@@ -1,7 +1,6 @@
 package com.stardew.craft.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.hud.StardewTimeHud;
 import com.stardew.craft.time.StardewTimeManager;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -63,7 +62,7 @@ public record TimeSyncPacket(
             clientTime.setCurrentDay(packet.currentDay());
             clientTime.setCurrentSeason(packet.currentSeason());
             
-            StardewTimeHud.updateClientTime(clientTime);
+            com.stardew.craft.client.hud.StardewTimeHud.updateClientTime(clientTime);
         });
     }
 }

@@ -1,9 +1,7 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.SteelSpineFuryClientState;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -39,11 +37,11 @@ public record SteelSpineFuryPayload(boolean active, int durationTicks) implement
     @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
     private static void handleClient(SteelSpineFuryPayload payload) {
         if (payload.active()) {
-            Minecraft mc = Minecraft.getInstance();
+            net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
             long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
-            SteelSpineFuryClientState.start(nowTick, payload.durationTicks());
+            com.stardew.craft.client.weapon.SteelSpineFuryClientState.start(nowTick, payload.durationTicks());
         } else {
-            SteelSpineFuryClientState.clear();
+            com.stardew.craft.client.weapon.SteelSpineFuryClientState.clear();
         }
     }
 }

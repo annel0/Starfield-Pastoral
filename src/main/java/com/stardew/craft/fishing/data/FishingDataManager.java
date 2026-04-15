@@ -473,38 +473,16 @@ public final class FishingDataManager {
 
 	/**
 	 * 获取随机垃圾物品
+	 * SDV原版：当所有鱼规则都未命中时，回退只返回Trash(168)。
+	 * 海草/藻类/Joja可乐等应作为独立鱼规则配置在位置数据中，不属于回退垃圾池。
 	 */
 	@SuppressWarnings("null")
 	public ItemStack getRandomJunk(RandomSource random) {
-		// 垃圾物品列表（对应星露谷的168-172、167、2046）
-		// 使用mod的垃圾物品代替原版物品
 		try {
+			// SDV原版回退：只返回Trash(168)
 			Item trash = BuiltInRegistries.ITEM.get(ResourceLocation.parse("stardewcraft:trash"));
-			Item driftwood = BuiltInRegistries.ITEM.get(ResourceLocation.parse("stardewcraft:driftwood"));
-			Item soggyNewspaper = BuiltInRegistries.ITEM.get(ResourceLocation.parse("stardewcraft:soggy_newspaper"));
-			Item brokenCd = BuiltInRegistries.ITEM.get(ResourceLocation.parse("stardewcraft:broken_cd"));
-			Item brokenGlasses = BuiltInRegistries.ITEM.get(ResourceLocation.parse("stardewcraft:broken_glasses"));
-			Item jojaCola = BuiltInRegistries.ITEM.get(ResourceLocation.parse("stardewcraft:joja_cola"));
-			Item rottenPlant = BuiltInRegistries.ITEM.get(ResourceLocation.parse("stardewcraft:rotten_plant"));
-			Item seaweed = BuiltInRegistries.ITEM.get(ResourceLocation.parse("stardewcraft:seaweed"));
-			Item greenAlgae = BuiltInRegistries.ITEM.get(ResourceLocation.parse("stardewcraft:green_algae"));
-			Item whiteAlgae = BuiltInRegistries.ITEM.get(ResourceLocation.parse("stardewcraft:white_algae"));
-			
-			Item[] junkItems = {
-				trash,            // 垃圾 (168)
-				driftwood,        // 浮木 (169)
-				soggyNewspaper,   // 湿透的报纸 (170)
-				brokenCd,         // 破损的CD (171)
-				brokenGlasses,    // 破损的眼镜 (172)
-				jojaCola,         // Joja可乐 (167)
-				rottenPlant,      // 腐烂的植物 (2046)
-				seaweed,          // 海草 (152)
-				greenAlgae,       // 绿藻 (153)
-				whiteAlgae        // 白藻 (157)
-			};
-			return new ItemStack(junkItems[random.nextInt(junkItems.length)]);
+			return new ItemStack(trash);
 		} catch (Exception e) {
-			// Fallback to vanilla junk
 			StardewCraft.LOGGER.error("Failed to get trash item", e);
 			return new ItemStack(Items.STICK);
 		}

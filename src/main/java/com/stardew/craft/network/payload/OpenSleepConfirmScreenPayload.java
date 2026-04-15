@@ -1,8 +1,6 @@
 package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.gui.common.StardewConfirmDialogScreen;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -31,10 +29,10 @@ public record OpenSleepConfirmScreenPayload(int currentMinute) implements Custom
 
     @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
     private static void handleClient(OpenSleepConfirmScreenPayload payload) {
-        Minecraft mc = Minecraft.getInstance();
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
         if (mc.player == null) {
             return;
         }
-        mc.setScreen(StardewConfirmDialogScreen.createSleepConfirm(payload.currentMinute()));
+        mc.setScreen(com.stardew.craft.client.gui.common.StardewConfirmDialogScreen.createSleepConfirm(payload.currentMinute()));
     }
 }

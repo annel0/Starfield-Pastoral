@@ -3,7 +3,6 @@ package com.stardew.craft.network.payload;
 import org.jetbrains.annotations.NotNull;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.emote.EmoteBubbleClientState;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -34,6 +33,6 @@ public record EmoteBroadcastPayload(int entityId, int baseIndex) implements Cust
 	}
 
 	public static void handle(EmoteBroadcastPayload payload, IPayloadContext context) {
-		context.enqueueWork(() -> EmoteBubbleClientState.trigger(payload.entityId(), payload.baseIndex()));
+		context.enqueueWork(() -> com.stardew.craft.client.emote.EmoteBubbleClientState.trigger(payload.entityId(), payload.baseIndex()));
 	}
 }

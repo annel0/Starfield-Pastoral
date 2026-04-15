@@ -9,10 +9,12 @@ public class MiningPlayerData {
     
     private int currentFloor = 0;  // 当前所在层数（0=大厅）
     private int maxFloorReached = 0;  // 最深到达的层数
+    private boolean receivedMineTotem = false; // 是否已领取矿洞图腾
     
     public MiningPlayerData() {
         this.currentFloor = 0;
         this.maxFloorReached = 0;
+        this.receivedMineTotem = false;
     }
     
     /**
@@ -38,6 +40,14 @@ public class MiningPlayerData {
     public int getMaxFloorReached() {
         return maxFloorReached;
     }
+
+    public boolean hasReceivedMineTotem() {
+        return receivedMineTotem;
+    }
+
+    public void setReceivedMineTotem(boolean received) {
+        this.receivedMineTotem = received;
+    }
     
     /**
      * 保存到 NBT
@@ -46,6 +56,7 @@ public class MiningPlayerData {
         CompoundTag tag = new CompoundTag();
         tag.putInt("currentFloor", currentFloor);
         tag.putInt("maxFloorReached", maxFloorReached);
+        tag.putBoolean("receivedMineTotem", receivedMineTotem);
         return tag;
     }
     
@@ -55,6 +66,7 @@ public class MiningPlayerData {
     public void load(CompoundTag tag) {
         this.currentFloor = tag.getInt("currentFloor");
         this.maxFloorReached = tag.getInt("maxFloorReached");
+        this.receivedMineTotem = tag.getBoolean("receivedMineTotem");
     }
     
     /**

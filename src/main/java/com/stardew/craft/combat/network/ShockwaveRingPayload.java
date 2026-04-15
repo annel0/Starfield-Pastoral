@@ -1,7 +1,6 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.ShockwaveRingEffectClient;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -41,7 +40,7 @@ public record ShockwaveRingPayload(float x, float y, float z, float radius, int 
     }
 
     public static void handle(ShockwaveRingPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> ShockwaveRingEffectClient.add(
+        context.enqueueWork(() -> com.stardew.craft.client.weapon.ShockwaveRingEffectClient.add(
             payload.x(), payload.y(), payload.z(), payload.radius(), payload.durationTicks(), payload.color()
         ));
     }

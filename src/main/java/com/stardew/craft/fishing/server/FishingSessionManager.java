@@ -108,6 +108,7 @@ public final class FishingSessionManager {
 
 		// Placeholder pos/depth; the session will update them once the hook actually lands in water.
 		FishingSession session = new FishingSession(UUID.randomUUID(), player.blockPosition(), 1, ticksUntilBite);
+		session.setCastPower(castPower01);
 
 		// 使用原版 FishingHook：直接获得原版鱼线/鱼钩渲染。
 		FishingHook hook = spawnVanillaHook(player, castPower01);
@@ -369,18 +370,23 @@ public final class FishingSessionManager {
 				int fishQuality = session.initialQuality();  // 初始品质（0-2）
 				boolean wasPerfect = (catchProgress >= 1.0f);  // 完美捕获（进度条100%）
 				
-				// 1. Quality Bobber效果：每个+1品质等级
+				// 1. Quality Bobber效果：每个+1品质等级（SDV: >2直接跳到铱星）
 				if (rod != null && rod.getItem() instanceof FishingRodItem) {
 					if (FishingRodItem.hasTackle(rod, "stardewcraft:quality_bobber")) {
 						fishQuality++;
-						// 品质上限是3（铱星）
-						if (fishQuality > 3) {
-							fishQuality = 3;
+						if (fishQuality > 2) {
+							fishQuality = 3;  // 铱星（mod内部值3=SDV的4）
 						}
 					}
 				}
 				
-				// 2. Perfect效果：额外提升品质
+				// 2. 训练竿强制普通品质（SDV: beginnersRod → quality=0）
+				if (rod != null && rod.getItem() instanceof FishingRodItem fishingRodItem2
+						&& fishingRodItem2.getTier() == FishingRodItem.RodTier.TRAINING_ROD) {
+					fishQuality = 0;
+				}
+				
+				// 3. Perfect效果：额外提升品质（在训练竿检查之后，所以训练竿不受perfect影响）
 				if (fishQuality >= 2 && wasPerfect) {
 					fishQuality = 3;  // 金星 → 铱星
 				} else if (fishQuality >= 1 && wasPerfect) {

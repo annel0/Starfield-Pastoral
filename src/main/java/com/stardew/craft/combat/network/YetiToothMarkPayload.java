@@ -1,7 +1,6 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.YetiMarkClientState;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -32,6 +31,6 @@ public record YetiToothMarkPayload(int entityId, int durationTicks) implements C
     }
 
     public static void handle(YetiToothMarkPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> YetiMarkClientState.apply(payload.entityId(), payload.durationTicks()));
+        context.enqueueWork(() -> com.stardew.craft.client.weapon.YetiMarkClientState.apply(payload.entityId(), payload.durationTicks()));
     }
 }

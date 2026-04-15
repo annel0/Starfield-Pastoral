@@ -1,9 +1,7 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.SkillEffectsClient;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
@@ -31,9 +29,9 @@ public record CrystalDaggerBurstPayload() implements CustomPacketPayload {
 
     @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
     private static void handleClient(CrystalDaggerBurstPayload payload) {
-        Minecraft mc = Minecraft.getInstance();
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
         if (mc.player != null) {
-            SkillEffectsClient.playSkillEffects("crystal_dagger_burst", mc.player);
+            com.stardew.craft.client.weapon.SkillEffectsClient.playSkillEffects("crystal_dagger_burst", mc.player);
         }
     }
 }

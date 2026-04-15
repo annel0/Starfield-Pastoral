@@ -30,13 +30,7 @@ import net.neoforged.neoforge.common.ItemAbility;
 public class FishingRodItem extends net.minecraft.world.item.FishingRodItem implements IStardewItem {
 	private static final int CAST_COOLDOWN_TICKS = 10;
 
-	// SDV 鱼竿没有耐久
-	@Override
-	public boolean isDamageable(ItemStack stack) { return false; }
-	@Override
-	public int getMaxDamage(ItemStack stack) { return 0; }
-	@Override
-	public void setDamage(ItemStack stack, int damage) { /* no-op */ }
+	// SDV 鱼竿没有耐久 —— 通过 Unbreakable 组件在构造时设置
 	private static final String TAG_ROOT = "StardewFishingRod";
 	private static final String TAG_BAIT = "Bait";
 	private static final String TAG_TACKLE_1 = "Tackle1";
@@ -80,6 +74,10 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 	public FishingRodItem(RodTier tier, Properties properties) {
 		super(properties);
 		this.tier = tier;
+	}
+
+	public RodTier getTier() {
+		return tier;
 	}
 
 	public boolean canUseBait() {

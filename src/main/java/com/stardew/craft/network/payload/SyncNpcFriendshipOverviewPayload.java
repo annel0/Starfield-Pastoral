@@ -1,7 +1,6 @@
 package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.NpcFriendshipClientCache;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -58,10 +57,10 @@ public record SyncNpcFriendshipOverviewPayload(List<Entry> entries) implements C
 
     public static void handle(SyncNpcFriendshipOverviewPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
-            List<NpcFriendshipClientCache.Entry> rows = payload.entries().stream()
-                .map(entry -> new NpcFriendshipClientCache.Entry(entry.npcId(), entry.points(), entry.hearts(), entry.giftsThisWeek(), entry.giftedToday(), entry.talkedToday(), entry.metOrder()))
+            List<com.stardew.craft.client.NpcFriendshipClientCache.Entry> rows = payload.entries().stream()
+                .map(entry -> new com.stardew.craft.client.NpcFriendshipClientCache.Entry(entry.npcId(), entry.points(), entry.hearts(), entry.giftsThisWeek(), entry.giftedToday(), entry.talkedToday(), entry.metOrder()))
                 .toList();
-            NpcFriendshipClientCache.update(rows);
+            com.stardew.craft.client.NpcFriendshipClientCache.update(rows);
         });
     }
 }

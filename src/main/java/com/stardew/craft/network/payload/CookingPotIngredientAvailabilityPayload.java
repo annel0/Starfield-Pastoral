@@ -4,7 +4,6 @@ import com.stardew.craft.StardewCraft;
 import com.stardew.craft.block.ModBlocks;
 import com.stardew.craft.block.utility.CookingPotBlock;
 import com.stardew.craft.blockentity.FridgeBlockEntity;
-import com.stardew.craft.client.CookingIngredientAvailabilityCache;
 import com.stardew.craft.cooking.service.CookingPotService;
 import com.stardew.craft.cooking.service.VanillaCookingRecipeData;
 import com.stardew.craft.item.ModItems;
@@ -60,7 +59,7 @@ public record CookingPotIngredientAvailabilityPayload(Map<String, Integer> fridg
     }
 
     public static void handle(CookingPotIngredientAvailabilityPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> CookingIngredientAvailabilityCache.setFridgeTokenCounts(payload.fridgeTokenCounts));
+        context.enqueueWork(() -> com.stardew.craft.client.CookingIngredientAvailabilityCache.setFridgeTokenCounts(payload.fridgeTokenCounts));
     }
 
     public static CookingPotIngredientAvailabilityPayload fromPlayer(ServerPlayer player) {

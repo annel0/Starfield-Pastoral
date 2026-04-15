@@ -2,9 +2,7 @@ package com.stardew.craft.integration.jade;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.entity.npc.StardewNpcEntity;
-import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import snownee.jade.api.EntityAccessor;
 import snownee.jade.api.IEntityComponentProvider;
@@ -37,15 +35,7 @@ public enum StardewNpcJadeProvider implements IEntityComponentProvider, IServerD
 
     @Override
     public void appendTooltip(ITooltip tooltip, EntityAccessor accessor, IPluginConfig config) {
-        CompoundTag data = accessor.getServerData();
-        if (data == null || !data.contains(NBT_NPC_ID)) {
-            return;
-        }
-        String npcId = data.getString(NBT_NPC_ID);
-        if (npcId.isBlank()) {
-            return;
-        }
-        Component name = Component.translatable("entity.stardewcraft.npc." + npcId);
-        tooltip.add(name.copy().withStyle(ChatFormatting.WHITE));
+        // getName() already provides the NPC-specific name as Jade header;
+        // no extra tooltip lines needed to avoid duplicate names.
     }
 }

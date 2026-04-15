@@ -1,7 +1,6 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.DragonBreathClientState;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -29,6 +28,6 @@ public record DragonBreathPayload(int stacks) implements CustomPacketPayload {
     }
 
     public static void handle(DragonBreathPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> DragonBreathClientState.setStacks(payload.stacks()));
+        context.enqueueWork(() -> com.stardew.craft.client.weapon.DragonBreathClientState.setStacks(payload.stacks()));
     }
 }

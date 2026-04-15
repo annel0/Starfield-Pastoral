@@ -11,6 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.AbstractSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.client.resources.sounds.TickableSoundInstance;
+import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -18,7 +19,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Client-side music manager that replicates Stardew Valley's music system.
@@ -86,9 +90,47 @@ public final class StardewMusicManager {
     private static int fadeOutTicks = 0;
     private static final int FADE_OUT_DURATION = 40; // 2 seconds fade
 
+    // ────────────────────────── Jukebox suppression ──────────────────────────
+
+    /** 唱片机有效抑制范围（方块距离的平方）。与 vanilla Jukebox 一致 ~65 blocks。 */
+    private static final double JUKEBOX_RANGE_SQ = 65.0 * 65.0;
+
+    /** 客户端跟踪的活跃唱片机。 */
+    private static final Map<BlockPos, JukeboxPlayback> activeJukeboxes = new HashMap<>();
+
+    private record JukeboxPlayback(String trackId, StardewMusicInstance sound) {}
+
     private StardewMusicManager() {}
 
     // ────────────────────────── Public API ──────────────────────────
+
+    /**
+     * 客户端收到唱片机状态广播时调用。
+     * trackId 为空表示停止。
+     */
+    public static void setJukeboxState(BlockPos pos, String trackId) {
+        // 停止该位置旧的播放
+        JukeboxPlayback old = activeJukeboxes.remove(pos);
+        if (old != null && old.sound() != null) {
+            old.sound().stopNow();
+            Minecraft.getInstance().getSoundManager().stop(old.sound());
+        }
+
+        if (trackId == null || trackId.isEmpty()) {
+            return; // 停止，不创建新实例
+        }
+
+        // 查找曲目并播放
+        com.stardew.craft.sound.JukeboxTrackRegistry.Track track =
+                com.stardew.craft.sound.JukeboxTrackRegistry.getTrack(trackId);
+        if (track == null) return;
+
+        SoundEvent soundEvent = track.sound().get();
+        StardewMusicInstance instance = new StardewMusicInstance(soundEvent, pos);
+        Minecraft.getInstance().getSoundManager().play(instance);
+        activeJukeboxes.put(pos, new JukeboxPlayback(trackId, instance));
+        LOG.info("[StardewMusic] Jukebox at {} playing: {}", pos, trackId);
+    }
 
     /**
      * Called every client tick from ModClientEvents.
@@ -110,6 +152,18 @@ public final class StardewMusicManager {
 
         // Suppress vanilla MC music when in Stardew dimensions
         mc.getMusicManager().stopPlaying();
+
+        // 清除已停止的唱片机条目
+        cleanupStoppedJukeboxes();
+
+        // 如果附近有唱片机在播放 → 抑制背景音乐
+        if (isNearActiveJukebox(mc)) {
+            if (currentMusic != null) {
+                crossfadeTo(null);
+            }
+            tickFadeOut();
+            return;
+        }
 
         // Process fade-out
         tickFadeOut();
@@ -137,7 +191,45 @@ public final class StardewMusicManager {
             Minecraft.getInstance().getSoundManager().stop(fadingOut);
             fadingOut = null;
         }
+        // 清除所有唱片机播放
+        for (JukeboxPlayback pb : activeJukeboxes.values()) {
+            if (pb.sound() != null) {
+                pb.sound().stopNow();
+                Minecraft.getInstance().getSoundManager().stop(pb.sound());
+            }
+        }
+        activeJukeboxes.clear();
         tickCounter = 0;
+    }
+
+    // ────────────────────────── Jukebox helpers ──────────────────────────
+
+    /** 移除已停止播放的唱片机条目。 */
+    private static void cleanupStoppedJukeboxes() {
+        Iterator<Map.Entry<BlockPos, JukeboxPlayback>> it = activeJukeboxes.entrySet().iterator();
+        while (it.hasNext()) {
+            JukeboxPlayback pb = it.next().getValue();
+            if (pb.sound() != null && pb.sound().isStopped()) {
+                it.remove();
+            }
+        }
+    }
+
+    /** 玩家是否在某个活跃唱片机的有效范围内。 */
+    private static boolean isNearActiveJukebox(Minecraft mc) {
+        if (activeJukeboxes.isEmpty() || mc.player == null) return false;
+        double px = mc.player.getX();
+        double py = mc.player.getY();
+        double pz = mc.player.getZ();
+        for (BlockPos pos : activeJukeboxes.keySet()) {
+            double dx = pos.getX() + 0.5 - px;
+            double dy = pos.getY() + 0.5 - py;
+            double dz = pos.getZ() + 0.5 - pz;
+            if (dx * dx + dy * dy + dz * dz <= JUKEBOX_RANGE_SQ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // ────────────────────────── Core Logic ──────────────────────────
@@ -157,8 +249,7 @@ public final class StardewMusicManager {
         if (currentTrackEvent != null && currentTrackEvent.equals(desired)) {
             // Check if it actually stopped (e.g. finished or error)
             if (currentMusic != null && currentMusic.isStopped()) {
-                LOG.debug("[StardewMusic] Restarting stopped track: {}", desired.getLocation());
-                // Restart
+                LOG.info("[StardewMusic] Restarting stopped track: {}", desired.getLocation());
                 startPlaying(desired);
             }
             return;
@@ -340,6 +431,7 @@ public final class StardewMusicManager {
         private volatile boolean stopped;
         private float fadeVolume = 1.0f;
 
+        /** 背景音乐模式（跟随玩家）。 */
         public StardewMusicInstance(SoundEvent sound) {
             super(sound, SoundSource.MUSIC, SoundInstance.createUnseededRandom());
             this.looping = true;
@@ -350,6 +442,20 @@ public final class StardewMusicManager {
             this.x = 0.0;
             this.y = 0.0;
             this.z = 0.0;
+        }
+
+        /** 唱片机模式（定位在方块位置，RECORDS 声道）。 */
+        public StardewMusicInstance(SoundEvent sound, BlockPos pos) {
+            super(sound, SoundSource.RECORDS, SoundInstance.createUnseededRandom());
+            this.looping = true;
+            this.delay = 0;
+            this.volume = 4.0f;
+            this.pitch = 1.0f;
+            this.relative = false;
+            this.x = pos.getX() + 0.5;
+            this.y = pos.getY() + 0.5;
+            this.z = pos.getZ() + 0.5;
+            this.attenuation = Attenuation.LINEAR;
         }
 
         void setFadeVolume(float fade) {

@@ -46,6 +46,9 @@ public class PlayerDataEventHandler {
             // 同步数据到客户端
             syncPlayerData(player, data);
 
+            // 同步社区中心 bundle 数据到客户端 (星盘渲染等需要)
+            com.stardew.craft.communitycenter.network.BundleSyncPayload.sendFullSync(player);
+
             // 同步任务日志到客户端
             com.stardew.craft.quest.QuestManager qm = data.getQuestManager();
             net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,

@@ -1,10 +1,7 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.BrokenTridentCatchClientState;
-import com.stardew.craft.client.weapon.SkillEffectsClient;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -40,15 +37,15 @@ public record BrokenTridentCatchPayload(boolean active, int durationTicks) imple
     @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
     private static void handleClient(BrokenTridentCatchPayload payload) {
         if (payload.active()) {
-            Minecraft mc = Minecraft.getInstance();
+            net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
             long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
-            boolean wasActive = mc.player != null && BrokenTridentCatchClientState.isActive(mc.player);
-            BrokenTridentCatchClientState.start(nowTick, payload.durationTicks());
+            boolean wasActive = mc.player != null && com.stardew.craft.client.weapon.BrokenTridentCatchClientState.isActive(mc.player);
+            com.stardew.craft.client.weapon.BrokenTridentCatchClientState.start(nowTick, payload.durationTicks());
             if (!wasActive && mc.player != null) {
-                SkillEffectsClient.playFishcatchReady(mc.player);
+                com.stardew.craft.client.weapon.SkillEffectsClient.playFishcatchReady(mc.player);
             }
         } else {
-            BrokenTridentCatchClientState.clear();
+            com.stardew.craft.client.weapon.BrokenTridentCatchClientState.clear();
         }
     }
 }

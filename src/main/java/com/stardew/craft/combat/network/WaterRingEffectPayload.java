@@ -1,7 +1,6 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.WaterRingEffectClient;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -38,6 +37,6 @@ public record WaterRingEffectPayload(float x, float y, float z, float maxRadius,
     }
 
     public static void handle(WaterRingEffectPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> WaterRingEffectClient.add(payload.x(), payload.y(), payload.z(), payload.maxRadius(), payload.durationTicks()));
+        context.enqueueWork(() -> com.stardew.craft.client.weapon.WaterRingEffectClient.add(payload.x(), payload.y(), payload.z(), payload.maxRadius(), payload.durationTicks()));
     }
 }

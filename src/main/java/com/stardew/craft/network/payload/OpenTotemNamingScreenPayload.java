@@ -1,8 +1,6 @@
 package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.gui.TotemNamingScreen;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -43,8 +41,8 @@ public record OpenTotemNamingScreenPayload(
 
     @OnlyIn(Dist.CLIENT)
     private static void handleClient(OpenTotemNamingScreenPayload payload) {
-        Minecraft mc = Minecraft.getInstance();
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
         if (mc.player == null) return;
-        mc.setScreen(new TotemNamingScreen(payload));
+        mc.setScreen(new com.stardew.craft.client.gui.TotemNamingScreen(payload));
     }
 }

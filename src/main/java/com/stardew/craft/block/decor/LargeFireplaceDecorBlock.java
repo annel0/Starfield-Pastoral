@@ -11,6 +11,7 @@ import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nonnull;
@@ -32,6 +33,12 @@ public class LargeFireplaceDecorBlock extends MapDecorStaticBlock implements Ent
     @Override
     public RenderShape getRenderShape(@Nonnull BlockState state) {
         return RenderShape.ENTITYBLOCK_ANIMATED;
+    }
+
+    /** 壁炉所有格都不可通行，防止 Junimo 等实体寻路穿过 */
+    @Override
+    protected boolean isPathfindable(@Nonnull BlockState state, @Nonnull PathComputationType type) {
+        return false;
     }
 
     @Override

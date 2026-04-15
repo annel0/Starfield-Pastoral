@@ -1,6 +1,5 @@
 package com.stardew.craft.item.artisan;
 
-import com.stardew.craft.client.render.SmokedFishItemRenderer;
 import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.item.quality.QualityHelper;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
@@ -42,10 +41,10 @@ public class SmokedFishItem extends Item implements IStardewItem {
     @Override
     public void initializeClient(Consumer<IClientItemExtensions> consumer) {
         consumer.accept(new IClientItemExtensions() {
-            private final SmokedFishItemRenderer renderer = new SmokedFishItemRenderer();
+            private final com.stardew.craft.client.render.SmokedFishItemRenderer renderer = new com.stardew.craft.client.render.SmokedFishItemRenderer();
 
             @Override
-            public SmokedFishItemRenderer getCustomRenderer() {
+            public com.stardew.craft.client.render.SmokedFishItemRenderer getCustomRenderer() {
                 return renderer;
             }
         });

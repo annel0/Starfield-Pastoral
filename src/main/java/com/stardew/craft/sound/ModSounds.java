@@ -49,6 +49,7 @@ public final class ModSounds {
 	public static final DeferredHolder<SoundEvent, SoundEvent> BREATHIN = register("breathin");
 	public static final DeferredHolder<SoundEvent, SoundEvent> BREATHOUT = register("breathout");
 	public static final DeferredHolder<SoundEvent, SoundEvent> COWBOY_GUNSHOT = register("cowboy_gunshot");
+	public static final DeferredHolder<SoundEvent, SoundEvent> COWBOY_MONSTERHIT = register("cowboy_monsterhit");
 	public static final DeferredHolder<SoundEvent, SoundEvent> DIALOGUE_CHARACTER = register("dialogue_character");
 	public static final DeferredHolder<SoundEvent, SoundEvent> DIALOGUE_CHARACTER_CLOSE = register("dialogue_character_close");
 	public static final DeferredHolder<SoundEvent, SoundEvent> SHADOW_DIE = register("shadow_die");
@@ -87,6 +88,7 @@ public final class ModSounds {
 
 	// AnimalQueryMenu / FarmAnimal original cues
 	public static final DeferredHolder<SoundEvent, SoundEvent> SMALL_SELECT = register("small_select");
+	public static final DeferredHolder<SoundEvent, SoundEvent> CRYSTAL = register("crystal");
 	public static final DeferredHolder<SoundEvent, SoundEvent> GIVE_GIFT = register("give_gift");
 	public static final DeferredHolder<SoundEvent, SoundEvent> DRUMKIT6 = register("drumkit6");
 	public static final DeferredHolder<SoundEvent, SoundEvent> NEW_RECIPE = register("new_recipe");
@@ -170,6 +172,9 @@ public final class ModSounds {
 
     // ─── Quest ───
     public static final DeferredHolder<SoundEvent, SoundEvent> QUEST_COMPLETE = register("questcomplete");
+
+    // ─── Community Center ───
+    public static final DeferredHolder<SoundEvent, SoundEvent> REWARD = register("reward");
 
 	@SuppressWarnings("null")
 	private static DeferredHolder<SoundEvent, SoundEvent> register(String path) {

@@ -1,9 +1,6 @@
 package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.gui.common.StardewConfirmDialogScreen;
-import com.stardew.craft.client.gui.common.StardewQuestionDialogSpec;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
@@ -46,7 +43,7 @@ public record OpenGuntherMenuPayload(boolean donationActive, boolean hasDonatabl
 
     @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
     private static void handleClient(OpenGuntherMenuPayload payload) {
-        Minecraft mc = Minecraft.getInstance();
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
         if (mc.player == null) return;
 
         List<Component> options = new ArrayList<>();
@@ -56,8 +53,8 @@ public record OpenGuntherMenuPayload(boolean donationActive, boolean hasDonatabl
             options.add(Component.translatable("stardewcraft.npc.gunther.menu.end_donation"));
             options.add(Component.translatable("stardewcraft.npc.gunther.menu.leave"));
 
-            mc.setScreen(StardewConfirmDialogScreen.createQuestionDialog(
-                StardewQuestionDialogSpec.of(
+            mc.setScreen(com.stardew.craft.client.gui.common.StardewConfirmDialogScreen.createQuestionDialog(
+                com.stardew.craft.client.gui.common.StardewQuestionDialogSpec.of(
                     Component.translatable("stardewcraft.npc.gunther.menu.question_donating"),
                     options,
                     index -> {
@@ -75,8 +72,8 @@ public record OpenGuntherMenuPayload(boolean donationActive, boolean hasDonatabl
             options.add(Component.translatable("stardewcraft.npc.gunther.menu.donate"));
             options.add(Component.translatable("stardewcraft.npc.gunther.menu.leave"));
 
-            mc.setScreen(StardewConfirmDialogScreen.createQuestionDialog(
-                StardewQuestionDialogSpec.of(
+            mc.setScreen(com.stardew.craft.client.gui.common.StardewConfirmDialogScreen.createQuestionDialog(
+                com.stardew.craft.client.gui.common.StardewQuestionDialogSpec.of(
                     Component.translatable("stardewcraft.npc.gunther.menu.question"),
                     options,
                     index -> {

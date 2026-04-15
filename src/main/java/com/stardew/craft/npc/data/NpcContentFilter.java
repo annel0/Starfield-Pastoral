@@ -6,7 +6,9 @@ import com.google.gson.JsonObject;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -14,6 +16,9 @@ import java.util.Set;
  */
 @SuppressWarnings("null")
 public final class NpcContentFilter {
+    /** Cache resolved item lookups so each raw string is only resolved once per session. */
+    private static final Map<String, ResourceLocation> RESOLVED_ITEM_CACHE = new HashMap<>();
+
     private NpcContentFilter() {
     }
 
@@ -102,22 +107,32 @@ public final class NpcContentFilter {
         }
 
         String normalized = raw.trim().toLowerCase(Locale.ROOT).replace(' ', '_');
+        if (RESOLVED_ITEM_CACHE.containsKey(normalized)) {
+            return RESOLVED_ITEM_CACHE.get(normalized);
+        }
+
+        ResourceLocation result = null;
         ResourceLocation direct = ResourceLocation.tryParse(normalized);
         if (direct != null && BuiltInRegistries.ITEM.containsKey(direct)) {
-            return direct;
+            result = direct;
         }
 
-        ResourceLocation stardewId = ResourceLocation.tryParse("stardewcraft:" + normalized);
-        if (stardewId != null && BuiltInRegistries.ITEM.containsKey(stardewId)) {
-            return stardewId;
+        if (result == null) {
+            ResourceLocation stardewId = ResourceLocation.tryParse("stardewcraft:" + normalized);
+            if (stardewId != null && BuiltInRegistries.ITEM.containsKey(stardewId)) {
+                result = stardewId;
+            }
         }
 
-        ResourceLocation minecraftId = ResourceLocation.tryParse("minecraft:" + normalized);
-        if (minecraftId != null && BuiltInRegistries.ITEM.containsKey(minecraftId)) {
-            return minecraftId;
+        if (result == null) {
+            ResourceLocation minecraftId = ResourceLocation.tryParse("minecraft:" + normalized);
+            if (minecraftId != null && BuiltInRegistries.ITEM.containsKey(minecraftId)) {
+                result = minecraftId;
+            }
         }
 
-        return null;
+        RESOLVED_ITEM_CACHE.put(normalized, result);
+        return result;
     }
 
     private static String firstToken(String route) {

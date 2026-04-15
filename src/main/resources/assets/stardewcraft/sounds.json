@@ -1,12 +1,18 @@
 {
   "hoe_hit": {
     "sounds": [
-      { "name": "stardewcraft:hoe_hit", "stream": false }
+      {
+        "name": "stardewcraft:hoe_hit",
+        "stream": false
+      }
     ]
   },
   "stairsdown": {
     "sounds": [
-      { "name": "stardewcraft:stairsdown", "stream": false }
+      {
+        "name": "stardewcraft:stairsdown",
+        "stream": false
+      }
     ]
   },
   "money_dial": {
@@ -20,596 +26,1021 @@
   },
   "sin_wave": {
     "sounds": [
-      { "name": "stardewcraft:fishing/sin_wave", "stream": false }
+      {
+        "name": "stardewcraft:fishing/sin_wave",
+        "stream": false
+      }
     ]
   },
   "cast": {
     "sounds": [
-      { "name": "stardewcraft:fishing/cast", "stream": false }
+      {
+        "name": "stardewcraft:fishing/cast",
+        "stream": false
+      }
     ]
   },
   "fish_bite": {
     "sounds": [
-      { "name": "stardewcraft:fishing/fish_bite", "stream": false }
+      {
+        "name": "stardewcraft:fishing/fish_bite",
+        "stream": false
+      }
     ]
   },
   "fish_bite_alternate_0": {
     "sounds": [
-      { "name": "stardewcraft:fishing/fish_bite", "stream": false }
+      {
+        "name": "stardewcraft:fishing/fish_bite",
+        "stream": false
+      }
     ]
   },
   "fish_bite_alternate_1": {
     "sounds": [
-      { "name": "stardewcraft:fishing/fish_bite", "stream": false }
+      {
+        "name": "stardewcraft:fishing/fish_bite",
+        "stream": false
+      }
     ]
   },
   "fish_bite_alternate_2": {
     "sounds": [
-      { "name": "stardewcraft:fishing/fish_bite", "stream": false }
+      {
+        "name": "stardewcraft:fishing/fish_bite",
+        "stream": false
+      }
     ]
   },
   "fish_hit": {
     "sounds": [
-      { "name": "stardewcraft:fishing/fish_hit", "stream": false }
+      {
+        "name": "stardewcraft:fishing/fish_hit",
+        "stream": false
+      }
     ]
   },
   "fishing_rod_bend": {
     "sounds": [
-      { "name": "stardewcraft:fishing/fishing_rod_bend1", "stream": false },
-      { "name": "stardewcraft:fishing/fishing_rod_bend2", "stream": false },
-      { "name": "stardewcraft:fishing/fishing_rod_bend3", "stream": false }
+      {
+        "name": "stardewcraft:fishing/fishing_rod_bend1",
+        "stream": false
+      },
+      {
+        "name": "stardewcraft:fishing/fishing_rod_bend2",
+        "stream": false
+      },
+      {
+        "name": "stardewcraft:fishing/fishing_rod_bend3",
+        "stream": false
+      }
     ]
   },
   "shiny4": {
     "sounds": [
-      { "name": "stardewcraft:fishing/shiny4", "stream": false }
+      {
+        "name": "stardewcraft:fishing/shiny4",
+        "stream": false
+      }
     ]
   },
   "fast_reel": {
     "sounds": [
-      { "name": "stardewcraft:fishing/fast_reel", "stream": false }
+      {
+        "name": "stardewcraft:fishing/fast_reel",
+        "stream": false
+      }
     ]
   },
   "slow_reel": {
     "sounds": [
-      { "name": "stardewcraft:fishing/slow_reel", "stream": false }
+      {
+        "name": "stardewcraft:fishing/slow_reel",
+        "stream": false
+      }
     ]
   },
   "jingle1": {
     "sounds": [
-      { "name": "stardewcraft:fishing/jingle1", "stream": false }
+      {
+        "name": "stardewcraft:fishing/jingle1",
+        "stream": false
+      }
     ]
   },
   "fish_escape": {
     "sounds": [
-      { "name": "stardewcraft:fishing/fish_escape", "stream": false }
+      {
+        "name": "stardewcraft:fishing/fish_escape",
+        "stream": false
+      }
     ]
   },
   "tiny_whip": {
     "sounds": [
-      { "name": "stardewcraft:fishing/tiny_whip", "stream": false }
+      {
+        "name": "stardewcraft:fishing/tiny_whip",
+        "stream": false
+      }
     ]
   },
   "water_slosh": {
     "sounds": [
-      { "name": "stardewcraft:fishing/water_slosh1", "stream": false },
-      { "name": "stardewcraft:fishing/water_slosh2", "stream": false },
-      { "name": "stardewcraft:fishing/water_slosh3", "stream": false }
+      {
+        "name": "stardewcraft:fishing/water_slosh1",
+        "stream": false
+      },
+      {
+        "name": "stardewcraft:fishing/water_slosh2",
+        "stream": false
+      },
+      {
+        "name": "stardewcraft:fishing/water_slosh3",
+        "stream": false
+      }
     ]
   },
   "dwop": {
     "sounds": [
-      { "name": "stardewcraft:fishing/dwop", "stream": false }
+      {
+        "name": "stardewcraft:fishing/dwop",
+        "stream": false
+      }
     ]
   },
   "pull_item_from_water": {
     "sounds": [
-      { "name": "stardewcraft:fishing/pull_item_from_water", "stream": false }
+      {
+        "name": "stardewcraft:fishing/pull_item_from_water",
+        "stream": false
+      }
     ]
   },
   "drop_item_in_water": {
     "sounds": [
-      { "name": "stardewcraft:fishing/drop_item_in_water", "stream": false }
+      {
+        "name": "stardewcraft:fishing/drop_item_in_water",
+        "stream": false
+      }
     ]
   },
   "open_chest": {
     "sounds": [
-      { "name": "stardewcraft:utility/open_chest", "stream": false },
-      { "name": "stardewcraft:fishing/open_chest", "stream": false }
+      {
+        "name": "stardewcraft:utility/open_chest",
+        "stream": false
+      },
+      {
+        "name": "stardewcraft:fishing/open_chest",
+        "stream": false
+      }
     ]
   },
   "door_creak_reverse": {
     "sounds": [
-      { "name": "stardewcraft:utility/door_creak_reverse", "stream": false }
+      {
+        "name": "stardewcraft:utility/door_creak_reverse",
+        "stream": false
+      }
     ]
   },
   "door_creak": {
     "sounds": [
-      { "name": "stardewcraft:utility/door_creak", "stream": false }
+      {
+        "name": "stardewcraft:utility/door_creak",
+        "stream": false
+      }
     ]
   },
   "woody_step": {
     "sounds": [
-      { "name": "stardewcraft:woody_step", "stream": false }
+      {
+        "name": "stardewcraft:woody_step",
+        "stream": false
+      }
     ]
   },
   "backpack_in": {
     "sounds": [
-      { "name": "stardewcraft:backpack_in", "stream": false }
+      {
+        "name": "stardewcraft:backpack_in",
+        "stream": false
+      }
     ]
   },
   "shwip": {
     "sounds": [
-      { "name": "stardewcraft:shwip", "stream": false }
+      {
+        "name": "stardewcraft:shwip",
+        "stream": false
+      }
     ]
   },
   "big_select": {
     "sounds": [
-      { "name": "stardewcraft:big_select", "stream": false }
+      {
+        "name": "stardewcraft:big_select",
+        "stream": false
+      }
     ]
   },
   "big_deselect": {
     "sounds": [
-      { "name": "stardewcraft:big_deselect", "stream": false }
+      {
+        "name": "stardewcraft:big_deselect",
+        "stream": false
+      }
     ]
   },
   "breathin": {
     "sounds": [
-      { "name": "stardewcraft:breathin", "stream": false }
+      {
+        "name": "stardewcraft:breathin",
+        "stream": false
+      }
     ]
   },
   "breathout": {
     "sounds": [
-      { "name": "stardewcraft:breathout", "stream": false }
+      {
+        "name": "stardewcraft:breathout",
+        "stream": false
+      }
     ]
   },
   "cowboy_gunshot": {
     "sounds": [
-      { "name": "stardewcraft:cowboy_gunshot", "stream": false }
+      {
+        "name": "stardewcraft:cowboy_gunshot",
+        "stream": false
+      }
+    ]
+  },
+  "cowboy_monsterhit": {
+    "sounds": [
+      {
+        "name": "stardewcraft:cowboy_gunshot",
+        "stream": false
+      }
     ]
   },
   "dialogue_character": {
     "sounds": [
-      { "name": "stardewcraft:dialogue_character", "stream": false }
+      {
+        "name": "stardewcraft:dialogue_character",
+        "stream": false
+      }
     ]
   },
   "dialogue_character_close": {
     "sounds": [
-      { "name": "stardewcraft:dialogue_character_close", "stream": false }
+      {
+        "name": "stardewcraft:dialogue_character_close",
+        "stream": false
+      }
     ]
   },
   "shadow_die": {
     "sounds": [
-      { "name": "stardewcraft:shadow_die", "stream": false }
+      {
+        "name": "stardewcraft:shadow_die",
+        "stream": false
+      }
     ]
   },
   "thud_step": {
     "sounds": [
-      { "name": "stardewcraft:thud_step", "stream": false }
+      {
+        "name": "stardewcraft:thud_step",
+        "stream": false
+      }
     ]
   },
   "stone_step": {
     "sounds": [
-      { "name": "stardewcraft:stone_step", "stream": false }
+      {
+        "name": "stardewcraft:stone_step",
+        "stream": false
+      }
     ]
   },
   "harvest": {
     "sounds": [
-      { "name": "stardewcraft:utility/select", "stream": false }
+      {
+        "name": "stardewcraft:utility/select",
+        "stream": false
+      }
     ]
   },
   "leafrustle": {
     "sounds": [
-      { "name": "stardewcraft:woody_step", "stream": false }
+      {
+        "name": "stardewcraft:woody_step",
+        "stream": false
+      }
     ]
   },
   "button1": {
     "sounds": [
-      { "name": "stardewcraft:utility/select", "stream": false }
+      {
+        "name": "stardewcraft:utility/select",
+        "stream": false
+      }
     ]
   },
   "hammer": {
     "sounds": [
-      { "name": "stardewcraft:thud_step", "stream": false }
+      {
+        "name": "stardewcraft:thud_step",
+        "stream": false
+      }
     ]
   },
   "coin": {
     "sounds": [
-      { "name": "stardewcraft:ui/money", "stream": false }
+      {
+        "name": "stardewcraft:ui/money",
+        "stream": false
+      }
     ]
   },
   "weapon.meow": {
     "sounds": [
-      { "name": "stardewcraft:weapon/meow_1", "stream": false },
-      { "name": "stardewcraft:weapon/meow_2", "stream": false },
-      { "name": "stardewcraft:weapon/meow_3", "stream": false }
+      {
+        "name": "stardewcraft:weapon/meow_1",
+        "stream": false
+      },
+      {
+        "name": "stardewcraft:weapon/meow_2",
+        "stream": false
+      },
+      {
+        "name": "stardewcraft:weapon/meow_3",
+        "stream": false
+      }
     ]
   },
   "tree_crack": {
     "subtitle": "subtitles.stardewcraft.tree_crack",
     "sounds": [
-      { "name": "stardewcraft:tree/tree_crack", "stream": false }
+      {
+        "name": "stardewcraft:tree/tree_crack",
+        "stream": false
+      }
     ]
   },
   "tree_thud": {
     "subtitle": "subtitles.stardewcraft.tree_thud",
     "sounds": [
-      { "name": "stardewcraft:tree/tree_thud", "stream": false }
+      {
+        "name": "stardewcraft:tree/tree_thud",
+        "stream": false
+      }
     ]
   },
   "cancel": {
     "subtitle": "subtitles.stardewcraft.cancel",
     "sounds": [
-      { "name": "stardewcraft:ui/cancel", "stream": false }
+      {
+        "name": "stardewcraft:ui/cancel",
+        "stream": false
+      }
     ]
   },
   "ship": {
     "sounds": [
-      { "name": "stardewcraft:utility/ship1", "stream": false },
-      { "name": "stardewcraft:utility/ship2", "stream": false }
+      {
+        "name": "stardewcraft:utility/ship1",
+        "stream": false
+      },
+      {
+        "name": "stardewcraft:utility/ship2",
+        "stream": false
+      }
     ]
   },
   "bubbles": {
     "sounds": [
-      { "name": "stardewcraft:utility/bubbles1", "stream": false },
-      { "name": "stardewcraft:utility/bubbles2", "stream": false }
+      {
+        "name": "stardewcraft:utility/bubbles1",
+        "stream": false
+      },
+      {
+        "name": "stardewcraft:utility/bubbles2",
+        "stream": false
+      }
     ]
   },
   "siptea": {
     "sounds": [
-      { "name": "stardewcraft:utility/siptea", "stream": false }
+      {
+        "name": "stardewcraft:utility/siptea",
+        "stream": false
+      }
     ]
   },
   "yoba": {
     "sounds": [
-      { "name": "stardewcraft:utility/yoba", "stream": false }
+      {
+        "name": "stardewcraft:utility/yoba",
+        "stream": false
+      }
     ]
   },
   "fishslap": {
     "sounds": [
-      { "name": "stardewcraft:utility/fishslap", "stream": false }
+      {
+        "name": "stardewcraft:utility/fishslap",
+        "stream": false
+      }
     ]
   },
   "furnace": {
     "sounds": [
-      { "name": "stardewcraft:utility/furnace", "stream": false }
+      {
+        "name": "stardewcraft:utility/furnace",
+        "stream": false
+      }
     ]
   },
   "openbox": {
     "sounds": [
-      { "name": "stardewcraft:utility/openbox", "stream": false }
+      {
+        "name": "stardewcraft:utility/openbox",
+        "stream": false
+      }
     ]
   },
   "fireball": {
     "sounds": [
-      { "name": "stardewcraft:utility/fireball", "stream": false }
+      {
+        "name": "stardewcraft:utility/fireball",
+        "stream": false
+      }
     ]
   },
   "select": {
     "sounds": [
-      { "name": "stardewcraft:utility/select", "stream": false }
+      {
+        "name": "stardewcraft:utility/select",
+        "stream": false
+      }
     ]
   },
   "small_select": {
     "sounds": [
-      { "name": "stardewcraft:ui/small_select", "stream": false }
+      {
+        "name": "stardewcraft:ui/small_select",
+        "stream": false
+      }
+    ]
+  },
+  "crystal": {
+    "sounds": [
+      {
+        "name": "stardewcraft:crystal",
+        "stream": false
+      }
     ]
   },
   "give_gift": {
     "sounds": [
-      { "name": "stardewcraft:give_gift", "stream": false }
+      {
+        "name": "stardewcraft:give_gift",
+        "stream": false
+      }
     ]
   },
   "drumkit6": {
     "sounds": [
-      { "name": "stardewcraft:ui/drumkit6", "stream": false }
+      {
+        "name": "stardewcraft:ui/drumkit6",
+        "stream": false
+      }
     ]
   },
   "new_recipe": {
     "sounds": [
-      { "name": "stardewcraft:ui/new_recipe", "stream": false }
+      {
+        "name": "stardewcraft:ui/new_recipe",
+        "stream": false
+      }
     ]
   },
   "money": {
     "sounds": [
-      { "name": "stardewcraft:ui/money", "stream": false }
+      {
+        "name": "stardewcraft:ui/money",
+        "stream": false
+      }
     ]
   },
   "trashcanlid": {
     "sounds": [
-      { "name": "stardewcraft:trashcanlid", "stream": false }
+      {
+        "name": "stardewcraft:trashcanlid",
+        "stream": false
+      }
     ]
   },
   "trashcan": {
     "sounds": [
-      { "name": "stardewcraft:trashcan", "stream": false }
+      {
+        "name": "stardewcraft:trashcan",
+        "stream": false
+      }
     ]
   },
   "explosion": {
     "sounds": [
-      { "name": "stardewcraft:explosion", "stream": false }
+      {
+        "name": "stardewcraft:explosion",
+        "stream": false
+      }
     ]
   },
   "fuse": {
     "sounds": [
-      { "name": "stardewcraft:fuse", "stream": false }
+      {
+        "name": "stardewcraft:fuse",
+        "stream": false
+      }
     ]
   },
   "crit": {
     "sounds": [
-      { "name": "stardewcraft:crit", "stream": false }
+      {
+        "name": "stardewcraft:crit",
+        "stream": false
+      }
     ]
   },
   "throw_down_item": {
     "sounds": [
-      { "name": "stardewcraft:throw_down_item", "stream": false }
+      {
+        "name": "stardewcraft:throw_down_item",
+        "stream": false
+      }
     ]
   },
   "cluck": {
     "sounds": [
-      { "name": "stardewcraft:animals/cluck_1", "stream": false },
-      { "name": "stardewcraft:animals/cluck_2", "stream": false },
-      { "name": "stardewcraft:animals/cluck_3", "stream": false }
+      {
+        "name": "stardewcraft:animals/cluck_1",
+        "stream": false
+      },
+      {
+        "name": "stardewcraft:animals/cluck_2",
+        "stream": false
+      },
+      {
+        "name": "stardewcraft:animals/cluck_3",
+        "stream": false
+      }
     ]
   },
   "duck": {
     "sounds": [
-      { "name": "stardewcraft:animals/duck", "stream": false }
+      {
+        "name": "stardewcraft:animals/duck",
+        "stream": false
+      }
     ]
   },
   "rabbit": {
     "sounds": [
-      { "name": "stardewcraft:animals/rabbit", "stream": false }
+      {
+        "name": "stardewcraft:animals/rabbit",
+        "stream": false
+      }
     ]
   },
   "ostrich": {
     "sounds": [
-      { "name": "stardewcraft:animals/ostrich", "stream": false }
+      {
+        "name": "stardewcraft:animals/ostrich",
+        "stream": false
+      }
     ]
   },
   "cow": {
     "sounds": [
-      { "name": "stardewcraft:animals/cow_1", "stream": false },
-      { "name": "stardewcraft:animals/cow_2", "stream": false },
-      { "name": "stardewcraft:animals/cow_3", "stream": false }
+      {
+        "name": "stardewcraft:animals/cow_1",
+        "stream": false
+      },
+      {
+        "name": "stardewcraft:animals/cow_2",
+        "stream": false
+      },
+      {
+        "name": "stardewcraft:animals/cow_3",
+        "stream": false
+      }
     ]
   },
   "goat": {
     "sounds": [
-      { "name": "stardewcraft:animals/goat_1", "stream": false },
-      { "name": "stardewcraft:animals/goat_2", "stream": false }
+      {
+        "name": "stardewcraft:animals/goat_1",
+        "stream": false
+      },
+      {
+        "name": "stardewcraft:animals/goat_2",
+        "stream": false
+      }
     ]
   },
   "sheep": {
     "sounds": [
-      { "name": "stardewcraft:animals/sheep", "stream": false }
+      {
+        "name": "stardewcraft:animals/sheep",
+        "stream": false
+      }
     ]
   },
   "pig": {
     "sounds": [
-      { "name": "stardewcraft:animals/pig_1", "stream": false },
-      { "name": "stardewcraft:animals/pig_2", "stream": false }
+      {
+        "name": "stardewcraft:animals/pig_1",
+        "stream": false
+      },
+      {
+        "name": "stardewcraft:animals/pig_2",
+        "stream": false
+      }
     ]
   },
   "level_up": {
     "sounds": [
-      { "name": "stardewcraft:level_up", "stream": false }
+      {
+        "name": "stardewcraft:level_up",
+        "stream": false
+      }
     ]
   },
   "new_artifact": {
     "sounds": [
-      { "name": "stardewcraft:new_artifact", "stream": false }
+      {
+        "name": "stardewcraft:new_artifact",
+        "stream": false
+      }
     ]
   },
   "purchase": {
     "sounds": [
-      { "name": "stardewcraft:purchase", "stream": false }
+      {
+        "name": "stardewcraft:purchase",
+        "stream": false
+      }
     ]
   },
   "sell": {
     "sounds": [
-      { "name": "stardewcraft:sell", "stream": false }
+      {
+        "name": "stardewcraft:sell",
+        "stream": false
+      }
     ]
   },
   "purchase_click": {
     "sounds": [
-      { "name": "stardewcraft:ui/purchase_click", "stream": false }
+      {
+        "name": "stardewcraft:ui/purchase_click",
+        "stream": false
+      }
     ]
   },
   "purchase_repeat": {
     "sounds": [
-      { "name": "stardewcraft:ui/purchase_repeat", "stream": false }
+      {
+        "name": "stardewcraft:ui/purchase_repeat",
+        "stream": false
+      }
     ]
   },
   "stone_crack": {
     "sounds": [
-      { "name": "stardewcraft:stonecrack1", "stream": false },
-      { "name": "stardewcraft:stonecrack2", "stream": false }
+      {
+        "name": "stardewcraft:stonecrack1",
+        "stream": false
+      },
+      {
+        "name": "stardewcraft:stonecrack2",
+        "stream": false
+      }
     ]
   },
   "discover_mineral": {
     "sounds": [
-      { "name": "stardewcraft:discovermineral", "stream": false }
+      {
+        "name": "stardewcraft:discovermineral",
+        "stream": false
+      }
     ]
   },
   "warrior": {
     "sounds": [
-      { "name": "stardewcraft:warrior", "stream": false }
+      {
+        "name": "stardewcraft:warrior",
+        "stream": false
+      }
     ]
   },
   "wand": {
     "sounds": [
-      { "name": "stardewcraft:wand", "stream": false }
+      {
+        "name": "stardewcraft:wand",
+        "stream": false
+      }
     ]
   },
   "rain_sound": {
     "sounds": [
-      { "name": "stardewcraft:rain", "stream": false }
+      {
+        "name": "stardewcraft:rain",
+        "stream": false
+      }
     ]
   },
   "thunder": {
     "sounds": [
-      { "name": "stardewcraft:thunder", "stream": false }
+      {
+        "name": "stardewcraft:thunder",
+        "stream": false
+      }
     ]
   },
-
   "music_spring1": {
     "sounds": [
-      { "name": "stardewcraft:music/spring1", "stream": true }
+      {
+        "name": "stardewcraft:music/spring1",
+        "stream": false
+      }
     ]
   },
   "music_spring2": {
     "sounds": [
-      { "name": "stardewcraft:music/spring2", "stream": true }
+      {
+        "name": "stardewcraft:music/spring2",
+        "stream": false
+      }
     ]
   },
   "music_spring3": {
     "sounds": [
-      { "name": "stardewcraft:music/spring3", "stream": true }
+      {
+        "name": "stardewcraft:music/spring3",
+        "stream": false
+      }
     ]
   },
   "music_summer1": {
     "sounds": [
-      { "name": "stardewcraft:music/summer1", "stream": true }
+      {
+        "name": "stardewcraft:music/summer1",
+        "stream": false
+      }
     ]
   },
   "music_summer2": {
     "sounds": [
-      { "name": "stardewcraft:music/summer2", "stream": true }
+      {
+        "name": "stardewcraft:music/summer2",
+        "stream": false
+      }
     ]
   },
   "music_summer3": {
     "sounds": [
-      { "name": "stardewcraft:music/summer3", "stream": true }
+      {
+        "name": "stardewcraft:music/summer3",
+        "stream": false
+      }
     ]
   },
   "music_fall1": {
     "sounds": [
-      { "name": "stardewcraft:music/fall1", "stream": true }
+      {
+        "name": "stardewcraft:music/fall1",
+        "stream": false
+      }
     ]
   },
   "music_fall2": {
     "sounds": [
-      { "name": "stardewcraft:music/fall2", "stream": true }
+      {
+        "name": "stardewcraft:music/fall2",
+        "stream": false
+      }
     ]
   },
   "music_fall3": {
     "sounds": [
-      { "name": "stardewcraft:music/fall3", "stream": true }
+      {
+        "name": "stardewcraft:music/fall3",
+        "stream": false
+      }
     ]
   },
   "music_winter1": {
     "sounds": [
-      { "name": "stardewcraft:music/winter1", "stream": true }
+      {
+        "name": "stardewcraft:music/winter1",
+        "stream": false
+      }
     ]
   },
   "music_winter2": {
     "sounds": [
-      { "name": "stardewcraft:music/winter2", "stream": true }
+      {
+        "name": "stardewcraft:music/winter2",
+        "stream": false
+      }
     ]
   },
   "music_winter3": {
     "sounds": [
-      { "name": "stardewcraft:music/winter3", "stream": true }
+      {
+        "name": "stardewcraft:music/winter3",
+        "stream": false
+      }
     ]
   },
   "music_rain": {
     "sounds": [
-      { "name": "stardewcraft:music/rain", "stream": true }
+      {
+        "name": "stardewcraft:music/rain",
+        "stream": false
+      }
     ]
   },
   "music_spring_night_ambient": {
     "sounds": [
-      { "name": "stardewcraft:music/spring_night_ambient", "stream": true }
+      {
+        "name": "stardewcraft:music/spring_night_ambient",
+        "stream": false
+      }
     ]
   },
   "music_spring_day_ambient": {
     "sounds": [
-      { "name": "stardewcraft:music/spring_day_ambient", "stream": true }
+      {
+        "name": "stardewcraft:music/spring_day_ambient",
+        "stream": false
+      }
     ]
   },
   "music_summer_day_ambient": {
     "sounds": [
-      { "name": "stardewcraft:music/summer_day_ambient", "stream": true }
+      {
+        "name": "stardewcraft:music/summer_day_ambient",
+        "stream": false
+      }
     ]
   },
   "music_fall_day_ambient": {
     "sounds": [
-      { "name": "stardewcraft:music/fall_day_ambient", "stream": true }
+      {
+        "name": "stardewcraft:music/fall_day_ambient",
+        "stream": false
+      }
     ]
   },
   "music_winter_day_ambient": {
     "sounds": [
-      { "name": "stardewcraft:music/winter_day_ambient", "stream": true }
+      {
+        "name": "stardewcraft:music/winter_day_ambient",
+        "stream": false
+      }
     ]
   },
   "music_springtown": {
     "sounds": [
-      { "name": "stardewcraft:music/springtown", "stream": true }
+      {
+        "name": "stardewcraft:music/springtown",
+        "stream": false
+      }
     ]
   },
   "music_marnie_shop": {
     "sounds": [
-      { "name": "stardewcraft:music/marnie_shop", "stream": true }
+      {
+        "name": "stardewcraft:music/marnie_shop",
+        "stream": false
+      }
     ]
   },
   "music_earth_mine": {
     "sounds": [
-      { "name": "stardewcraft:music/crystal_bells", "stream": true },
-      { "name": "stardewcraft:music/cavern", "stream": true },
-      { "name": "stardewcraft:music/secret_gnomes", "stream": true }
+      {
+        "name": "stardewcraft:music/crystal_bells",
+        "stream": false
+      },
+      {
+        "name": "stardewcraft:music/cavern",
+        "stream": false
+      },
+      {
+        "name": "stardewcraft:music/secret_gnomes",
+        "stream": false
+      }
     ]
   },
   "music_frost_mine": {
     "sounds": [
-      { "name": "stardewcraft:music/cloth", "stream": true },
-      { "name": "stardewcraft:music/icicles", "stream": true },
-      { "name": "stardewcraft:music/xor", "stream": true }
+      {
+        "name": "stardewcraft:music/cloth",
+        "stream": false
+      },
+      {
+        "name": "stardewcraft:music/icicles",
+        "stream": false
+      },
+      {
+        "name": "stardewcraft:music/xor",
+        "stream": false
+      }
     ]
   },
   "music_saloon": {
     "sounds": [
-      { "name": "stardewcraft:music/saloon1", "stream": true }
+      {
+        "name": "stardewcraft:music/saloon1",
+        "stream": false
+      }
     ]
   },
   "music_wizard_tower": {
     "sounds": [
-      { "name": "stardewcraft:music/wizard_song", "stream": true }
+      {
+        "name": "stardewcraft:music/wizard_song",
+        "stream": false
+      }
     ]
   },
   "music_library": {
     "sounds": [
-      { "name": "stardewcraft:music/library_theme", "stream": true }
+      {
+        "name": "stardewcraft:music/library_theme",
+        "stream": false
+      }
     ]
   },
   "music_adventurer_guild": {
     "sounds": [
-      { "name": "stardewcraft:music/marlons_theme", "stream": true }
+      {
+        "name": "stardewcraft:music/marlons_theme",
+        "stream": false
+      }
     ]
   },
   "music_hospital": {
     "sounds": [
-      { "name": "stardewcraft:music/hospital_ambient", "stream": true }
+      {
+        "name": "stardewcraft:music/hospital_ambient",
+        "stream": false
+      }
     ]
   },
   "music_elliott_piano": {
     "sounds": [
-      { "name": "stardewcraft:music/elliott_piano", "stream": true }
+      {
+        "name": "stardewcraft:music/elliott_piano",
+        "stream": false
+      }
     ]
   },
   "music_seed_shop": {
     "sounds": [
-      { "name": "stardewcraft:music/seed_shop", "stream": true }
+      {
+        "name": "stardewcraft:music/seed_shop",
+        "stream": false
+      }
     ]
   },
   "music_ocean_ambience": {
     "sounds": [
-      { "name": "stardewcraft:music/ocean_ambience", "stream": true }
+      {
+        "name": "stardewcraft:music/ocean_ambience",
+        "stream": false
+      }
     ]
   },
   "questcomplete": {
     "sounds": [
-      { "name": "stardewcraft:questcomplete", "stream": false }
+      {
+        "name": "stardewcraft:questcomplete",
+        "stream": false
+      }
+    ]
+  },
+  "reward": {
+    "sounds": [
+      {
+        "name": "stardewcraft:new_artifact",
+        "stream": false
+      }
     ]
   }
 }

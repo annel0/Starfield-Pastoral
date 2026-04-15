@@ -1,7 +1,6 @@
 package com.stardew.craft.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.hud.MiningFloorHud;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -36,7 +35,7 @@ public record MiningFloorSyncPacket(int currentFloor) implements CustomPacketPay
      */
     public static void handle(MiningFloorSyncPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
-            MiningFloorHud.setCurrentFloor(packet.currentFloor());
+            com.stardew.craft.client.hud.MiningFloorHud.setCurrentFloor(packet.currentFloor());
         });
     }
 }

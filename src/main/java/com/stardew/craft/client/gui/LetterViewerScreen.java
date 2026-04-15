@@ -130,6 +130,17 @@ public class LetterViewerScreen extends Screen {
     private void paginateText() {
         pages.clear();
         String text = payload.text();
+        // 如果文本看起来是翻译键（不含空格但含点号），在客户端翻译
+        if (text != null && !text.contains(" ") && text.contains(".")) {
+            String translated = net.minecraft.network.chat.Component.translatable(text).getString();
+            if (!translated.equals(text)) {
+                text = translated;
+            }
+        }
+        // 将 literal "\n" 转化为真换行（JSON lang 文件中 \\n 会变成字面 \n）
+        if (text != null) {
+            text = text.replace("\\n", "\n");
+        }
         if (text == null || text.isEmpty()) {
             pages.add("");
             return;

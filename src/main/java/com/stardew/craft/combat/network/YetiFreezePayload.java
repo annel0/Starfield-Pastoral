@@ -1,7 +1,6 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.YetiFreezeClientState;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -32,6 +31,6 @@ public record YetiFreezePayload(int entityId, int durationTicks) implements Cust
     }
 
     public static void handle(YetiFreezePayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> YetiFreezeClientState.apply(payload.entityId(), payload.durationTicks()));
+        context.enqueueWork(() -> com.stardew.craft.client.weapon.YetiFreezeClientState.apply(payload.entityId(), payload.durationTicks()));
     }
 }

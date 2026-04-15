@@ -1,6 +1,6 @@
 # 快速开始
 
-欢迎来到 **StardewCraft** — 一个在 Minecraft 中重现 Stardew Valley 的模组。
+欢迎来到 **星野牧歌**（Starfield Pastoral）— 一个在 Minecraft 中重现 Stardew Valley 的模组。
 
 ## 安装要求
 
@@ -13,7 +13,7 @@
 ## 安装步骤
 
 1. 安装 [NeoForge](https://neoforged.net/) 对应版本
-2. 下载 StardewCraft 最新 `.jar` 文件
+2. 下载星野牧歌最新 `.jar` 文件
 3. 将 `.jar` 放入 `.minecraft/mods/` 目录
 4. 启动游戏，选择 NeoForge 配置
 

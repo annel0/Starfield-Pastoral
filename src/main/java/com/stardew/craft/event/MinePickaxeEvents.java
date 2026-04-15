@@ -44,22 +44,30 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @SuppressWarnings("null")
 public final class MinePickaxeEvents {
-	private static final int BLOCKS_PER_ENERGY = 5;
-	private static final float ENERGY_PER_BLOCK_GROUP = 1.0f;
-	private static final Map<UUID, Integer> MINED_BLOCK_COUNTER = new ConcurrentHashMap<>();
+	// SDV parity: Pickaxe.DoFunction → Stamina -= 2*(power+1) - MiningLevel*0.1
+	// MC 没有蓄力，power 固定=0，所以基础=2。镐子越好越省力。
+	private static final float[] TIER_ENERGY_COSTS = {
+		2.0f,   // tier0: 基础镐
+		1.8f,   // tier1: 铜镐
+		1.5f,   // tier2: 钢镐
+		1.2f,   // tier3: 金镐
+		1.0f    // tier4: 铱镐
+	};
+	private static final float MINING_LEVEL_ENERGY_REDUCTION = 0.05f; // 每级采矿减免
+	private static final float MIN_ENERGY_COST = 0.5f; // 下限
 	private static final double GEODE_BASE_CHANCE = 0.013; // 低于原版 0.022
 	private static final double OMNI_GEODE_EXTRA_CHANCE = 0.0025; // 低于原版 0.005
 
 	// 星露谷风格挖掘速度：tier0很慢，每升一级明显加快
 	private static final float[] STARDEW_TIER_SPEEDS = {
-		2.0F,   // tier0: 基础镐（很慢）
-		4.5F,   // tier1: 铜镐（明显加快）
-		8.0F,   // tier2: 钢镐（快）
-		12.0F,  // tier3: 金镐（很快）
-		18.0F   // tier4: 铱镐（极快）
+		4.0F,   // tier0: 基础镐（慢）
+		10.0F,  // tier1: 铜镐（中等）
+		18.0F,  // tier2: 钢镐（快）
+		28.0F,  // tier3: 金镐（很快）
+		45.0F   // tier4: 铱镐（极快，配合石头加成可秒破地页岩）
 	};
-	private static final float TIER0_BASE_SPEED = 2.0F; // 非模组镐子使用这个速度
-	private static final float STONE_BONUS_MULTIPLIER = 1.3F; // 挖石头额外加成
+	private static final float TIER0_BASE_SPEED = 4.0F; // 非模组镐子使用这个速度
+	private static final float STONE_BONUS_MULTIPLIER = 1.4F; // 挖石头额外加成
 
 	private MinePickaxeEvents() {
 	}
@@ -292,23 +300,23 @@ public final class MinePickaxeEvents {
 
 	@SubscribeEvent
 	public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
-		MINED_BLOCK_COUNTER.remove(event.getEntity().getUUID());
+		// No per-player state to clean up after energy rework
 	}
 
+	/**
+	 * SDV parity: 每挖一块消耗体力，按镐子等级和采矿等级计算。
+	 * 公式: cost = TIER_ENERGY_COSTS[tier] - miningLevel × 0.05, 下限 0.5
+	 */
 	private static void consumeMiningEnergy(ServerPlayer player, ServerLevel level) {
 		if (level.dimension() != ModMiningDimensions.STARDEW_MINING) {
 			return;
 		}
-		UUID id = player.getUUID();
-		int count = MINED_BLOCK_COUNTER.getOrDefault(id, 0) + 1;
-		int energyTicks = count / BLOCKS_PER_ENERGY;
-		if (energyTicks > 0) {
-			for (int i = 0; i < energyTicks; i++) {
-				PlayerStardewDataAPI.consumeEnergy(player, ENERGY_PER_BLOCK_GROUP);
-			}
-			count = count % BLOCKS_PER_ENERGY;
-		}
-		MINED_BLOCK_COUNTER.put(id, count);
+		int tier = getStardewPickaxeTier(player.getMainHandItem());
+		float baseCost = (tier >= 0 && tier < TIER_ENERGY_COSTS.length)
+				? TIER_ENERGY_COSTS[tier] : TIER_ENERGY_COSTS[0];
+		int miningLevel = PlayerStardewDataAPI.getSkillLevel(player, SkillType.MINING);
+		float cost = Math.max(MIN_ENERGY_COST, baseCost - miningLevel * MINING_LEVEL_ENERGY_REDUCTION);
+		PlayerStardewDataAPI.consumeEnergy(player, cost);
 	}
 
 	private static Item getOreDropItem(BlockState state) {
@@ -359,22 +367,33 @@ public final class MinePickaxeEvents {
 		return count;
 	}
 
+	/**
+	 * SDV parity: MineShaft.checkStoneForItems
+	 * 挖普通石头时 5% 基础概率触发「矿石掉落」，在该 5% 内 25% 概率掉煤炭。
+	 * 有效煤炭掉率 ≈ 1.25%。Prospector 职业使煤炭子概率 ×2 (50%)。
+	 */
 	private static void tryDropCoalFromStone(ServerLevel level, ServerPlayer player, BlockPos pos, BlockState state) {
-		if (level.dimension() != ModMiningDimensions.STARDEW_MINING || !isMineralBlock(state)) {
+		if (level.dimension() != ModMiningDimensions.STARDEW_MINING) {
+			return;
+		}
+		// 只对普通石头生效，矿石和宝石矿物节点不走这条路径
+		if (isStardewOre(state) || isMineralBlock(state)) {
 			return;
 		}
 		int miningLevel = PlayerStardewDataAPI.getSkillLevel(player, SkillType.MINING);
 		double dailyLuck = PlayerStardewDataAPI.getDailyLuck(player);
-		double luckBuff = PlayerStardewDataAPI.getLuckBuffLevel(player);
+		int luckLevel = PlayerStardewDataAPI.getLuckBuffLevel(player);
+		double chanceModifier = dailyLuck / 2.0 + miningLevel * 0.005 + luckLevel * 0.001;
 
-		double chance = 0.035 + miningLevel * 0.001 + dailyLuck * 0.10 + luckBuff * 0.001;
-		if (PlayerStardewDataAPI.hasProfession(player, ProfessionType.PROSPECTOR)) {
-			chance *= 2.0;
-		}
-		chance = Mth.clamp(chance, 0.0, 0.95);
-
-		if (level.getRandom().nextDouble() < chance) {
-			Block.popResource(level, pos, new ItemStack(ModItems.COAL.get(), 1));
+		// SDV: 5% × (1 + chanceModifier) × oreModifier(0.8~1.2, 我们统一用1.0)
+		double oreDropChance = 0.05 * (1.0 + chanceModifier);
+		RandomSource r = level.getRandom();
+		if (r.nextDouble() < oreDropChance) {
+			// SDV: 在矿石掉落内，25% 概率额外掉煤炭；Prospector(Burrower) ×2
+			int burrowerMultiplier = PlayerStardewDataAPI.hasProfession(player, ProfessionType.PROSPECTOR) ? 2 : 1;
+			if (r.nextDouble() < 0.25 * burrowerMultiplier) {
+				Block.popResource(level, pos, new ItemStack(ModItems.COAL.get(), 1));
+			}
 		}
 	}
 

@@ -1,7 +1,6 @@
 package com.stardew.craft.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.hud.StardewHudMessageManager;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -45,7 +44,7 @@ public record ItemPickupHudPacket(String itemId, int count, boolean expensive) i
                 Item item = BuiltInRegistries.ITEM.get(rl);
                 if (item != null && item != Items.AIR) {
                     ItemStack stack = new ItemStack(item, packet.count());
-                    StardewHudMessageManager.showItemPickup(stack, packet.count(), packet.expensive());
+                    com.stardew.craft.client.hud.StardewHudMessageManager.showItemPickup(stack, packet.count(), packet.expensive());
                 }
             } catch (Exception ignored) {}
         });

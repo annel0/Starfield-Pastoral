@@ -1,9 +1,7 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.ElfBladeClientState;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -39,11 +37,11 @@ public record ElfBladePayload(boolean active, int durationTicks) implements Cust
     @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
     private static void handleClient(ElfBladePayload payload) {
         if (payload.active()) {
-            Minecraft mc = Minecraft.getInstance();
+            net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
             long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
-            ElfBladeClientState.start(nowTick, payload.durationTicks());
+            com.stardew.craft.client.weapon.ElfBladeClientState.start(nowTick, payload.durationTicks());
         } else {
-            ElfBladeClientState.clear();
+            com.stardew.craft.client.weapon.ElfBladeClientState.clear();
         }
     }
 }

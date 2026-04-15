@@ -1,0 +1,23 @@
+{
+  "format_version": "1.12.0",
+  "credit": "Collision proxy for junimo hut decor occupancy",
+  "texture_size": [128, 128],
+  "textures": {
+    "0": "stardewcraft:block/deco/misc/tmp_models/junimo_hut_decor",
+    "particle": "stardewcraft:block/deco/misc/tmp_models/junimo_hut_decor"
+  },
+  "elements": [
+    {
+      "from": [-15, 0, -10],
+      "to": [31, 48, 28],
+      "faces": {
+        "north": { "uv": [0, 0, 16, 16], "texture": "#0" },
+        "east": { "uv": [0, 0, 16, 16], "texture": "#0" },
+        "south": { "uv": [0, 0, 16, 16], "texture": "#0" },
+        "west": { "uv": [0, 0, 16, 16], "texture": "#0" },
+        "up": { "uv": [0, 0, 16, 16], "texture": "#0" },
+        "down": { "uv": [0, 0, 16, 16], "texture": "#0" }
+      }
+    }
+  ]
+}

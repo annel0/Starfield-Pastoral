@@ -1,7 +1,6 @@
 package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.hud.HoldUpItemHandler;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -37,7 +36,7 @@ public record HoldUpItemPayload(String itemId) implements CustomPacketPayload {
     @SuppressWarnings("null")
     public static void handle(HoldUpItemPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
-            HoldUpItemHandler.play(payload.itemId());
+            com.stardew.craft.client.hud.HoldUpItemHandler.play(payload.itemId());
         });
     }
 

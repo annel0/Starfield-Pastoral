@@ -77,20 +77,27 @@ public final class DwarfService {
 
         // Detect locale: zh → CJK branch, else → English branch
         boolean isZh = false;
-        try {
-            String lang = net.minecraft.client.Minecraft.getInstance()
-                    .getLanguageManager().getSelected();
-            if (lang != null && lang.startsWith("zh")) {
-                isZh = true;
-            }
-        } catch (Exception ignored) {
-            // Server-side or pre-init — default to en
+        if (net.neoforged.fml.loading.FMLEnvironment.dist.isClient()) {
+            isZh = ClientLangHelper.isZhLocale();
         }
 
         if (isZh) {
             return convertToDwarvishZh(text);
         } else {
             return convertToDwarvishEn(text);
+        }
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static final class ClientLangHelper {
+        static boolean isZhLocale() {
+            try {
+                String lang = net.minecraft.client.Minecraft.getInstance()
+                        .getLanguageManager().getSelected();
+                return lang != null && lang.startsWith("zh");
+            } catch (Exception ignored) {
+                return false;
+            }
         }
     }
 

@@ -1,9 +1,7 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.WickedKrisPoisonClientState;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -43,25 +41,25 @@ public record WickedKrisPoisonStatusPayload(int stacks, int durationTicks, int d
 
     @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
     private static void handleClient(WickedKrisPoisonStatusPayload payload) {
-        Minecraft mc = Minecraft.getInstance();
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
         if (mc.level == null) {
             return;
         }
         long nowTick = mc.level.getGameTime();
         if (payload.stacks() > 0 && payload.durationTicks() > 0) {
-            WickedKrisPoisonClientState.updatePoison(nowTick, payload.durationTicks(), payload.stacks());
+            com.stardew.craft.client.weapon.WickedKrisPoisonClientState.updatePoison(nowTick, payload.durationTicks(), payload.stacks());
         } else if (payload.stacks() <= 0) {
-            WickedKrisPoisonClientState.clearPoison();
+            com.stardew.craft.client.weapon.WickedKrisPoisonClientState.clearPoison();
         }
         if (payload.detonateRemainingTicks() >= 0) {
             if (payload.detonateRemainingTicks() > 0) {
-                WickedKrisPoisonClientState.updateDetonation(
+                com.stardew.craft.client.weapon.WickedKrisPoisonClientState.updateDetonation(
                     nowTick,
                     payload.detonateRemainingTicks(),
                     payload.detonateTotalTicks()
                 );
             } else {
-                WickedKrisPoisonClientState.clearDetonation();
+                com.stardew.craft.client.weapon.WickedKrisPoisonClientState.clearDetonation();
             }
         }
     }

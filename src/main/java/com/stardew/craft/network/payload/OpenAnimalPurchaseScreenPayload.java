@@ -1,9 +1,7 @@
 package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.gui.AnimalPurchaseScreen;
 import net.minecraft.core.BlockPos;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -121,10 +119,10 @@ public record OpenAnimalPurchaseScreenPayload(
 
     @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
     private static void handleClient(OpenAnimalPurchaseScreenPayload payload) {
-        Minecraft minecraft = Minecraft.getInstance();
+        net.minecraft.client.Minecraft minecraft = net.minecraft.client.Minecraft.getInstance();
         if (minecraft.player == null) {
             return;
         }
-        minecraft.setScreen(new AnimalPurchaseScreen(payload));
+        minecraft.setScreen(new com.stardew.craft.client.gui.AnimalPurchaseScreen(payload));
     }
 }

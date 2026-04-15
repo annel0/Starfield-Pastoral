@@ -1,7 +1,6 @@
 package com.stardew.craft.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.ClientPlayerDataCache;
 import com.stardew.craft.player.PlayerStardewData;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.nbt.CompoundTag;
@@ -49,7 +48,7 @@ public record PlayerDataSyncPacket(CompoundTag data) implements CustomPacketPayl
     public static void handle(PlayerDataSyncPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             // 更新客户端缓存
-            ClientPlayerDataCache.updateFromNBT(packet.data());
+            com.stardew.craft.client.ClientPlayerDataCache.updateFromNBT(packet.data());
         });
     }
 }

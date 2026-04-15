@@ -1,7 +1,6 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.LavaKatanaMarkClientState;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -34,7 +33,7 @@ public record LavaKatanaMarkPayload(int entityId, int remainingTicks, int heat) 
     }
 
     public static void handle(LavaKatanaMarkPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> LavaKatanaMarkClientState.apply(
+        context.enqueueWork(() -> com.stardew.craft.client.weapon.LavaKatanaMarkClientState.apply(
             payload.entityId(), payload.remainingTicks(), payload.heat()
         ));
     }

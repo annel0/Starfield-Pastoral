@@ -85,13 +85,6 @@ public class QuestIconHud {
         render(event.getGuiGraphics(), mc);
     }
 
-    private static boolean hasVisibleQuests() {
-        for (StardewQuest q : ClientQuestData.getQuestLog()) {
-            if (!q.isCompleted() || q.hasReward()) return true;
-        }
-        return false;
-    }
-
     private static boolean hasNewQuestActivity() {
         for (StardewQuest q : ClientQuestData.getQuestLog()) {
             if (q.isShowNew()) return true;

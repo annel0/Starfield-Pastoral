@@ -1,7 +1,6 @@
 package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -43,7 +42,7 @@ public record OpenTreasureChestPayload(
 
 	@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
 	private static void handleClient(OpenTreasureChestPayload payload) {
-		Minecraft mc = Minecraft.getInstance();
+		net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
 		if (mc.player != null && mc.level != null) {
 			// 客户端仅缓存 chestId 与外观类型；真正开箱由客户端请求服务端打开。
 			com.stardew.craft.client.fishing.FishingCatchVisuals.setPendingTreasure(payload.chestId(), payload.isGolden());

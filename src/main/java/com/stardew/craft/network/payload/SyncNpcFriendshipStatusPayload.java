@@ -1,7 +1,6 @@
 package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.NpcFriendshipClientCache;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -50,7 +49,7 @@ public record SyncNpcFriendshipStatusPayload(
     }
 
     public static void handle(SyncNpcFriendshipStatusPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> NpcFriendshipClientCache.updateNpcState(
+        context.enqueueWork(() -> com.stardew.craft.client.NpcFriendshipClientCache.updateNpcState(
             payload.npcId(),
             payload.points(),
             payload.hearts(),

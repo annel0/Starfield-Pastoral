@@ -4,10 +4,18 @@ import com.stardew.craft.communitycenter.data.BundleDataManager;
 import com.stardew.craft.communitycenter.data.BundleDefinition;
 import com.stardew.craft.communitycenter.data.BundleIngredient;
 import com.stardew.craft.communitycenter.data.BundleItemResolver;
+import com.stardew.craft.communitycenter.junimo.JunimoSpawner;
+import com.stardew.craft.communitycenter.network.BundleSyncPayload;
+import com.stardew.craft.communitycenter.restore.CCAreaRegistry;
+import com.stardew.craft.communitycenter.state.CCStoryFlags;
 import com.stardew.craft.communitycenter.state.CommunityCenterSavedData;
 import com.stardew.craft.item.quality.QualityHelper;
+import com.stardew.craft.mail.MailService;
 import com.stardew.craft.menu.ModMenuTypes;
 import com.stardew.craft.player.PlayerStardewDataAPI;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -17,6 +25,8 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,6 +42,15 @@ public class BundleMenu extends AbstractContainerMenu {
 
     /** Which area this menu was opened for (0-6). */
     private int areaId;
+
+    // ── Partial Donation State (SDV parity: JunimoNoteMenu.partialDonationItem) ──
+    // Tracks items deposited partially when player doesn't have enough for the full count.
+    // Items are held temporarily until the full required count is reached, then the deposit completes.
+    // On menu close, partial items are returned to the player.
+    @Nullable private ItemStack partialDonationItem = null;
+    private final List<ItemStack> partialDonationComponents = new ArrayList<>();
+    private int partialBundleId = -1;
+    private int partialIngredientIndex = -1;
 
     // ── Client-side constructor (from network) ──
     public BundleMenu(int containerId, Inventory playerInventory) {
@@ -49,24 +68,18 @@ public class BundleMenu extends AbstractContainerMenu {
             @Override public void set(int value) { BundleMenu.this.areaId = value; }
         });
 
-        // SDV JunimoNoteMenu: inventory at (xPositionOnScreen + 128, yPositionOnScreen + 140)
-        // In MC, slot positions are in GUI coords relative to screen top-left.
-        // We use standard inventory layout; BundleScreen positions visually.
+        // SDV JunimoNoteMenu: InventoryMenu(x+128, y+140, capacity=36, rows=6, hGap=8, vGap=8)
+        // → 6 columns × 6 rows, all 36 player slots shown sequentially.
+        // Slot positions are placeholders; BundleScreen repositions dynamically.
         int xOffset = 32;
-        int yOffset = 140;
+        int yOffset = 35;
 
-        // Player inventory (3 rows of 9)
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 9; col++) {
-                this.addSlot(new Slot(playerInventory, col + row * 9 + 9,
-                        xOffset + col * 18, yOffset + row * 18));
-            }
-        }
-
-        // Hotbar (1 row of 9)
-        for (int col = 0; col < 9; col++) {
-            this.addSlot(new Slot(playerInventory, col,
-                    xOffset + col * 18, yOffset + 58));
+        // Add all 36 inventory slots sequentially (0-35) → SDV's flat 6×6 grid
+        for (int j = 0; j < 36; j++) {
+            int col = j % 6;
+            int row = j / 6;
+            this.addSlot(new Slot(playerInventory, j,
+                    xOffset + col * 18, yOffset + row * 18));
         }
     }
 
@@ -81,7 +94,7 @@ public class BundleMenu extends AbstractContainerMenu {
 
     @Override
     public @Nonnull ItemStack quickMoveStack(@Nonnull Player player, int index) {
-        // Shift-click moves between inventory rows (identical to CookingPotMenu pattern)
+        // Shift-click: move between top half (0-17) and bottom half (18-35) of the 6×6 grid
         ItemStack result = ItemStack.EMPTY;
         Slot slot = this.slots.get(index);
 
@@ -89,12 +102,12 @@ public class BundleMenu extends AbstractContainerMenu {
             ItemStack stackInSlot = slot.getItem();
             result = stackInSlot.copy();
 
-            if (index < 27) {
-                if (!this.moveItemStackTo(stackInSlot, 27, 36, false)) {
+            if (index < 18) {
+                if (!this.moveItemStackTo(stackInSlot, 18, 36, false)) {
                     return ItemStack.EMPTY;
                 }
             } else {
-                if (!this.moveItemStackTo(stackInSlot, 0, 27, false)) {
+                if (!this.moveItemStackTo(stackInSlot, 0, 18, false)) {
                     return ItemStack.EMPTY;
                 }
             }
@@ -142,23 +155,15 @@ public class BundleMenu extends AbstractContainerMenu {
         stack.shrink(toConsume);
         data.markSlotComplete(bundleId, slotIndex);
 
-        // Check bundle completion
-        if (data.isBundleComplete(bundleId)) {
-            data.setRewardAvailable(bundleId, true);
-            data.markBundleAllSlotsComplete(bundleId);
-
-            // Check area completion
-            boolean allDone = true;
-            for (BundleDefinition bd : BundleDataManager.getBundlesForArea(this.areaId)) {
-                if (!data.isBundleComplete(bd.bundleId())) {
-                    allDone = false;
-                    break;
-                }
-            }
-            if (allDone) {
-                data.markAreaComplete(this.areaId);
-            }
+        // SDV parity: multiplayer chat message — "BundleDonate" with player name + item name
+        if (player instanceof ServerPlayer sp) {
+            ItemStack displayItem = BundleItemResolver.resolveItemStack(ingredient.itemId());
+            Component itemName = displayItem.isEmpty() ? Component.literal("???") : displayItem.getHoverName();
+            broadcastBundleDonateMessage(sp, itemName);
         }
+
+        // Check bundle completion
+        checkBundleCompletion(player, bundleId, def, data);
 
         return true;
     }
@@ -176,13 +181,11 @@ public class BundleMenu extends AbstractContainerMenu {
         CommunityCenterSavedData data = CommunityCenterSavedData.get();
         if (data.isBundleComplete(bundleId)) return false;
 
-        // Vault bundles: first ingredient is money
         BundleIngredient moneyIngredient = def.ingredients().get(0);
         if (!moneyIngredient.isMoneyIngredient()) return false;
 
         int cost = moneyIngredient.moneyRequired();
 
-        // Deduct gold via PlayerStardewDataAPI
         if (!(player instanceof ServerPlayer sp)) return false;
         int currentMoney = PlayerStardewDataAPI.getMoney(sp);
         if (currentMoney < cost) return false;
@@ -191,7 +194,15 @@ public class BundleMenu extends AbstractContainerMenu {
         data.markBundleAllSlotsComplete(bundleId);
         data.setRewardAvailable(bundleId, true);
 
-        // Check area completion
+        // SDV parity: multiplayer chat — "Bundle" (no item name for vault)
+        broadcastBundleCompleteMessage(sp);
+
+        spawnBundleCarrierJunimo(player, 4, def.color());
+
+        if (player.level() instanceof net.minecraft.server.level.ServerLevel sl) {
+            com.stardew.craft.communitycenter.JunimoNotePlacer.ensureJunimoNotes(sl);
+        }
+
         boolean allDone = true;
         for (BundleDefinition bd : BundleDataManager.getBundlesForArea(4)) {
             if (!data.isBundleComplete(bd.bundleId())) {
@@ -201,16 +212,63 @@ public class BundleMenu extends AbstractContainerMenu {
         }
         if (allDone) {
             data.markAreaComplete(4);
+            onAreaComplete(player, 4);
         }
 
         return true;
     }
 
     /**
+     * 区域完成后的处理：设置邮件标记 + 发送完成通知邮件
+     */
+    private void onAreaComplete(Player player, int areaId) {
+        if (!(player instanceof ServerPlayer sp)) return;
+
+        // 添加区域完成标记 (ccPantry, ccCraftsRoom, ...)
+        String flag = CCStoryFlags.areaFlag(areaId);
+        if (!flag.isEmpty()) {
+            CCStoryFlags.addFlag(sp, flag);
+        }
+
+        // 发送区域完成邮件通知
+        String mailId = "cc_area_complete_" + areaId;
+        MailService.addMail(sp, mailId);
+
+        // 检查是否全部完成
+        CommunityCenterSavedData data = CommunityCenterSavedData.get();
+        if (data.areAllAreasComplete()) {
+            CCStoryFlags.addFlag(sp, CCStoryFlags.CC_IS_COMPLETE);
+        }
+
+        // 启动区域修复过场动画
+        if (sp.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+            com.stardew.craft.communitycenter.cutscene.AreaRestoreCutscene.start(serverLevel, areaId);
+            // T3.2: If ALL areas now complete, schedule goodbye dance after restore cutscene
+            if (data.areAllAreasComplete()) {
+                // The goodbye dance will be triggered after AreaRestoreCutscene finishes
+                // (handled in AreaRestoreCutscene.advancePhase default case)
+            }
+        }
+    }
+
+    /**
      * Mirrors SDV Bundle.IsValidItemForThisIngredientDescription().
-     * Checks if an ItemStack matches an ingredient requirement.
+     * Checks item type + quality match. Does NOT check stack count
+     * (SDV separates type match from stack count check).
+     * Used for highlighting AND deposit validation.
      */
     public static boolean isValidItem(ItemStack stack, BundleIngredient ingredient) {
+        if (!isItemTypeMatch(stack, ingredient)) return false;
+        // Stack size check for deposit
+        return stack.getCount() >= ingredient.stack();
+    }
+
+    /**
+     * Checks if an item matches an ingredient by type + quality only.
+     * Mirrors SDV HighlightObjects logic — no stack count check.
+     * Used for inventory dimming.
+     */
+    public static boolean isItemTypeMatch(ItemStack stack, BundleIngredient ingredient) {
         if (stack.isEmpty()) return false;
         if (ingredient.isMoneyIngredient()) return false;
 
@@ -218,12 +276,7 @@ public class BundleMenu extends AbstractContainerMenu {
         int itemQuality = QualityHelper.getQuality(stack);
         if (itemQuality < ingredient.quality()) return false;
 
-        // Stack size check
-        if (stack.getCount() < ingredient.stack()) return false;
-
         // Category match (negative IDs like -4=fish, -5=egg, etc.)
-        // Currently no category-based ingredients in bundle data (only -1=money handled above).
-        // If added later, would need item tag matching here.
         if (ingredient.category() < -1) {
             return false;
         }
@@ -235,5 +288,285 @@ public class BundleMenu extends AbstractContainerMenu {
         if (required.isEmpty()) return false;
 
         return ItemStack.isSameItem(stack, required);
+    }
+
+    /**
+     * 在 bundle 完成后，从 CCAreaRegistry 查找 JunimoNote 位置并生成搬运 Junimo。
+     */
+    private void spawnBundleCarrierJunimo(Player player, int areaId, int bundleColorIndex) {
+        if (!(player.level() instanceof ServerLevel serverLevel)) return;
+        CCAreaRegistry.AreaBounds bounds = CCAreaRegistry.getArea(areaId);
+        if (bounds == null) return;
+        BlockPos notePos = bounds.noteWorldPos();
+        JunimoSpawner.spawnBundleCarrier(serverLevel, notePos, areaId, bundleColorIndex);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  Partial Donation System (SDV parity: HandlePartialDonation)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Handle a partial deposit from the client.
+     * SDV parity: HandlePartialDonation — takes partial items from cursor,
+     * accumulates until full count is reached, then completes the deposit.
+     */
+    public boolean handlePartialDeposit(ServerPlayer player, int bundleId, int ingredientIndex, int amount, ItemStack carried) {
+        BundleDefinition def = BundleDataManager.getBundle(bundleId);
+        if (def == null || def.areaId() != this.areaId || def.isVaultBundle()) return false;
+
+        List<BundleIngredient> ingredients = def.ingredients();
+        if (ingredientIndex < 0 || ingredientIndex >= ingredients.size()) return false;
+
+        CommunityCenterSavedData data = CommunityCenterSavedData.get();
+        if (data.isSlotComplete(bundleId, ingredientIndex)) return false;
+
+        BundleIngredient ingredient = ingredients.get(ingredientIndex);
+        if (!isItemTypeMatch(carried, ingredient)) return false;
+
+        // SDV: can only have one partial donation at a time; must be same ingredient
+        if (partialDonationItem != null && (partialBundleId != bundleId || partialIngredientIndex != ingredientIndex)) {
+            return false;
+        }
+
+        // SDV: CanBePartiallyOrFullyDonated check — ensure total available >= required
+        int totalAvailable = carried.getCount();
+        if (partialDonationItem != null) {
+            totalAvailable += partialDonationItem.getCount();
+        }
+        // Also count matching items in player inventory
+        for (ItemStack invStack : player.getInventory().items) {
+            if (!invStack.isEmpty() && isItemTypeMatch(invStack, ingredient)) {
+                totalAvailable += invStack.getCount();
+            }
+        }
+        if (totalAvailable < ingredient.stack()) return false;
+
+        int actualAmount = Math.min(amount, carried.getCount());
+        if (actualAmount <= 0) return false;
+
+        if (partialDonationItem == null) {
+            // Start new partial
+            int toTake = Math.min(ingredient.stack(), actualAmount);
+            partialDonationItem = carried.copyWithCount(toTake);
+            carried.shrink(toTake);
+            partialBundleId = bundleId;
+            partialIngredientIndex = ingredientIndex;
+
+            // Track component for return
+            ItemStack component = partialDonationItem.copyWithCount(toTake);
+            partialDonationComponents.add(component);
+        } else {
+            // Add to existing partial
+            int remaining = ingredient.stack() - partialDonationItem.getCount();
+            int toTake = Math.min(remaining, actualAmount);
+            if (toTake <= 0) return false;
+            partialDonationItem.grow(toTake);
+            carried.shrink(toTake);
+
+            // Track component
+            // Try to merge with existing components
+            boolean merged = false;
+            for (ItemStack existing : partialDonationComponents) {
+                if (ItemStack.isSameItemSameComponents(existing, carried)) {
+                    existing.grow(toTake);
+                    merged = true;
+                    break;
+                }
+            }
+            if (!merged && toTake > 0) {
+                partialDonationComponents.add(carried.copyWithCount(toTake));
+            }
+        }
+
+        // SDV: if partial reaches required count, complete the deposit
+        if (partialDonationItem.getCount() >= ingredient.stack()) {
+            // Complete the deposit
+            data.markSlotComplete(bundleId, ingredientIndex);
+
+            // SDV parity: multiplayer chat
+            ItemStack displayItem = BundleItemResolver.resolveItemStack(ingredient.itemId());
+            Component itemName = displayItem.isEmpty() ? Component.literal("???") : displayItem.getHoverName();
+            broadcastBundleDonateMessage(player, itemName);
+
+            // Return any excess to player
+            int excess = partialDonationItem.getCount() - ingredient.stack();
+            if (excess > 0) {
+                ItemStack returnStack = partialDonationItem.copyWithCount(excess);
+                if (!player.getInventory().add(returnStack)) {
+                    player.drop(returnStack, false);
+                }
+            }
+
+            resetPartialDonation();
+
+            checkBundleCompletion(player, bundleId, def, data);
+            BundleSyncPayload.sendFullSync(player);
+        }
+
+        return true;
+    }
+
+    /**
+     * SDV parity: right-click on partial donation slot → retrieve 1 item to cursor.
+     */
+    public void retrieveOneFromPartial(ServerPlayer player, int bundleId) {
+        if (partialDonationItem == null || partialBundleId != bundleId) return;
+        if (partialDonationComponents.isEmpty()) return;
+
+        ItemStack cursor = this.getCarried();
+        ItemStack firstComponent = partialDonationComponents.get(0);
+        ItemStack oneItem = firstComponent.copyWithCount(1);
+
+        if (cursor.isEmpty()) {
+            this.setCarried(oneItem);
+        } else if (ItemStack.isSameItemSameComponents(cursor, oneItem)) {
+            cursor.grow(1);
+        } else {
+            return; // Can't merge with current cursor item
+        }
+
+        firstComponent.shrink(1);
+        if (firstComponent.isEmpty()) {
+            partialDonationComponents.remove(0);
+        }
+
+        // Update partial total
+        int newTotal = 0;
+        for (ItemStack comp : partialDonationComponents) {
+            newTotal += comp.getCount();
+        }
+        if (newTotal <= 0) {
+            resetPartialDonation();
+        } else {
+            partialDonationItem.setCount(newTotal);
+        }
+    }
+
+    /**
+     * SDV parity: ReturnPartialDonations — return all partial items to player.
+     * Called when closing the bundle page or the menu.
+     *
+     * @param toCursor if true, first item goes to cursor (SDV: to_hand parameter)
+     */
+    public void returnAllPartials(Player player, boolean toCursor) {
+        if (partialDonationComponents.isEmpty()) {
+            resetPartialDonation();
+            return;
+        }
+
+        for (ItemStack component : partialDonationComponents) {
+            if (component.isEmpty()) continue;
+            if (toCursor && this.getCarried().isEmpty()) {
+                this.setCarried(component.copy());
+                toCursor = false;
+            } else {
+                if (!player.getInventory().add(component.copy())) {
+                    player.drop(component.copy(), false);
+                }
+            }
+        }
+        resetPartialDonation();
+    }
+
+    /**
+     * SDV parity: ResetPartialDonation — clear all partial donation state.
+     */
+    private void resetPartialDonation() {
+        partialDonationComponents.clear();
+        partialDonationItem = null;
+        partialBundleId = -1;
+        partialIngredientIndex = -1;
+    }
+
+    /** Whether there is an active partial donation. */
+    public boolean hasPartialDonation() {
+        return partialDonationItem != null;
+    }
+
+    /** The bundle ID of the current partial donation, or -1. */
+    public int getPartialBundleId() { return partialBundleId; }
+
+    /** The ingredient index of the current partial donation, or -1. */
+    public int getPartialIngredientIndex() { return partialIngredientIndex; }
+
+    /** The current partial stack count, or 0. */
+    public int getPartialCount() {
+        return partialDonationItem != null ? partialDonationItem.getCount() : 0;
+    }
+
+    /**
+     * SDV parity: on menu close, return partial donations to player.
+     */
+    @Override
+    public void removed(@Nonnull Player player) {
+        super.removed(player);
+        if (!player.level().isClientSide()) {
+            returnAllPartials(player, false);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  Bundle Completion Helper
+    // ═══════════════════════════════════════════════════════════════════
+
+    private void checkBundleCompletion(Player player, int bundleId, BundleDefinition def, CommunityCenterSavedData data) {
+        if (data.isBundleComplete(bundleId)) {
+            com.stardew.craft.StardewCraft.LOGGER.info("[REWARD-DEBUG] Bundle {} COMPLETE! Setting reward available.", bundleId);
+            data.setRewardAvailable(bundleId, true);
+            data.markBundleAllSlotsComplete(bundleId);
+
+            spawnBundleCarrierJunimo(player, def.areaId(), def.color());
+
+            if (player.level() instanceof ServerLevel sl) {
+                com.stardew.craft.communitycenter.JunimoNotePlacer.ensureJunimoNotes(sl);
+            }
+
+            // SDV: multiplayer "Bundle" complete message
+            if (player instanceof ServerPlayer sp) {
+                broadcastBundleCompleteMessage(sp);
+            }
+
+            boolean allDone = true;
+            for (BundleDefinition bd : BundleDataManager.getBundlesForArea(def.areaId())) {
+                if (!data.isBundleComplete(bd.bundleId())) {
+                    allDone = false;
+                    break;
+                }
+            }
+            if (allDone) {
+                data.markAreaComplete(def.areaId());
+                onAreaComplete(player, def.areaId());
+            }
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  Multiplayer Chat Messages (SDV parity)
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * SDV: Game1.multiplayer.globalChatInfoMessage("BundleDonate", playerName, itemName)
+     * Broadcasts to all players on the server.
+     */
+    private void broadcastBundleDonateMessage(ServerPlayer player, Component itemName) {
+        if (!(player.level() instanceof ServerLevel serverLevel)) return;
+        Component msg = Component.translatable("stardewcraft.chat.bundleDonate",
+                player.getDisplayName(), itemName);
+        for (ServerPlayer sp : serverLevel.getServer().getPlayerList().getPlayers()) {
+            sp.sendSystemMessage(msg);
+        }
+    }
+
+    /**
+     * SDV: Game1.multiplayer.globalChatInfoMessage("Bundle")
+     * Broadcasts bundle completion to all players.
+     */
+    private void broadcastBundleCompleteMessage(ServerPlayer player) {
+        if (!(player.level() instanceof ServerLevel serverLevel)) return;
+        Component msg = Component.translatable("stardewcraft.chat.bundleComplete",
+                player.getDisplayName());
+        for (ServerPlayer sp : serverLevel.getServer().getPlayerList().getPlayers()) {
+            sp.sendSystemMessage(msg);
+        }
     }
 }

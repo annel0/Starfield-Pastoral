@@ -30,6 +30,15 @@ import java.util.Map;
 
 @SuppressWarnings("null")
 public final class NpcInteractionService {
+    /** Friendship points per heart level (Stardew Valley canonical value). */
+    static final int POINTS_PER_HEART = 250;
+    /** Number of days per season. */
+    static final int DAYS_PER_SEASON = 28;
+    /** Number of seasons per year. */
+    static final int SEASONS_PER_YEAR = 4;
+    /** Total days per year (4 seasons × 28 days). */
+    static final int DAYS_PER_YEAR = SEASONS_PER_YEAR * DAYS_PER_SEASON;
+
     private static final String[] WEEKDAY_SHORT = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
     private static final String STARDROP_TEA_ID = "stardewcraft:stardrop_tea";
 
@@ -219,9 +228,9 @@ public final class NpcInteractionService {
         boolean datable = profile != null && profile.datable();
         // Since we don't have a dating/bouquet system yet, datable NPCs are capped at 8 hearts.
         int maxHearts = datable ? 8 : 10;
-        // Vanilla formula: (maxHearts + 1) * 250 - 1
+        // Vanilla formula: (maxHearts + 1) * POINTS_PER_HEART - 1
         // Thus 8 hearts -> 9 * 250 - 1 = 2249 points (which safely renders as 8 hearts and no more)
-        return (maxHearts + 1) * 250 - 1;
+        return (maxHearts + 1) * POINTS_PER_HEART - 1;
     }
 
     private static void syncFriendshipStatus(ServerPlayer player,
@@ -229,7 +238,7 @@ public final class NpcInteractionService {
                                              NpcFriendshipDataManager.FriendshipState state,
                                              DayContext dayContext) {
         int points = Math.max(0, state.points());
-        int hearts = Math.max(0, Math.min(14, points / 250));
+        int hearts = Math.max(0, Math.min(14, points / POINTS_PER_HEART));
         int giftsThisWeek = Math.max(0, Math.min(2, state.giftsThisWeek()));
         boolean giftedToday = state.lastGiftDayKey() == dayContext.dayKey();
         boolean talkedToday = state.lastTalkDayKey() == dayContext.dayKey();
@@ -468,7 +477,7 @@ public final class NpcInteractionService {
             return "...";
         }
 
-        int hearts = Math.max(0, Math.min(14, state.points() / 250));
+        int hearts = Math.max(0, Math.min(14, state.points() / POINTS_PER_HEART));
         List<String> trace = new ArrayList<>();
         String selectedKey = null;
         String selectedText = null;
@@ -930,6 +939,7 @@ public final class NpcInteractionService {
 
     private static DayContext currentDayContext(ServerLevel level) {
         StardewTimeManager tm = StardewTimeManager.get();
+        if (tm == null) return new DayContext(1, 1, 0, "spring", "Mon", "sunny");
         int dayInSeason = tm.getCurrentDay();
         int dayKey = currentDayKey();
         int weekKey = dayKey / 7;
@@ -941,7 +951,8 @@ public final class NpcInteractionService {
 
     private static int currentDayKey() {
         StardewTimeManager tm = StardewTimeManager.get();
-        return (tm.getCurrentYear() - 1) * 112 + tm.getCurrentSeason() * 28 + tm.getCurrentDay();
+        if (tm == null) return 1;
+        return (tm.getCurrentYear() - 1) * DAYS_PER_YEAR + tm.getCurrentSeason() * DAYS_PER_SEASON + tm.getCurrentDay();
     }
 
     private enum GiftTaste {

@@ -1,9 +1,7 @@
 package com.stardew.craft.fishing.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.fishing.FishingMinigameScreen;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -58,7 +56,7 @@ public record FishingStartPayload(UUID sessionId, int difficulty, int motionType
 
 	@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
 	private static void handleClient(FishingStartPayload payload) {
-		Minecraft mc = Minecraft.getInstance();
+		net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
 		var player = mc.player;
 		if (player == null) {
 			return;
@@ -68,7 +66,7 @@ public record FishingStartPayload(UUID sessionId, int difficulty, int motionType
 				&& !(player.getOffhandItem().getItem() instanceof com.stardew.craft.item.tool.FishingRodItem)) {
 			return;
 		}
-		mc.setScreen(new FishingMinigameScreen(
+		mc.setScreen(new com.stardew.craft.client.fishing.FishingMinigameScreen(
 				payload.sessionId(),
 				payload.difficulty(),
 				payload.motionTypeId(),

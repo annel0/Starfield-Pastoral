@@ -1,7 +1,6 @@
 package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.ClientPlayerDataCache;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -33,9 +32,9 @@ public record EquipmentSyncPayload(String leftRing, String rightRing, String boo
 
     public static void handle(EquipmentSyncPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
-            ClientPlayerDataCache.setEquippedLeftRing(payload.leftRing);
-            ClientPlayerDataCache.setEquippedRightRing(payload.rightRing);
-            ClientPlayerDataCache.setEquippedBoots(payload.boots);
+            com.stardew.craft.client.ClientPlayerDataCache.setEquippedLeftRing(payload.leftRing);
+            com.stardew.craft.client.ClientPlayerDataCache.setEquippedRightRing(payload.rightRing);
+            com.stardew.craft.client.ClientPlayerDataCache.setEquippedBoots(payload.boots);
         });
     }
 }

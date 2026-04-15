@@ -1,7 +1,6 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.TemplarJudgementImpactClient;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -30,6 +29,6 @@ public record TemplarJudgementImpactPayload(int entityId) implements CustomPacke
     }
 
     public static void handle(TemplarJudgementImpactPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> TemplarJudgementImpactClient.playImpact(payload.entityId()));
+        context.enqueueWork(() -> com.stardew.craft.client.weapon.TemplarJudgementImpactClient.playImpact(payload.entityId()));
     }
 }

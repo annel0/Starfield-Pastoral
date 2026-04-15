@@ -17,7 +17,7 @@ import java.util.function.Supplier;
  */
 public class AncientFruitCropBlock extends StardewCropBlock {
 
-    private static final int[] PHASE_DAYS = new int[]{2, 7, 7, 7};
+    private static final int[] PHASE_DAYS = new int[]{2, 9, 9, 8}; // SDV: 28 days
     private static final int[] OUTLINE_HEIGHTS = new int[]{5, 8, 16, 16};
     private static final float INV_SQRT_2 = 0.70710677f;
 

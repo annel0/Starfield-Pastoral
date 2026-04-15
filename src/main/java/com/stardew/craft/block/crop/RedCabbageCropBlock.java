@@ -17,7 +17,7 @@ import java.util.function.Supplier;
  */
 public class RedCabbageCropBlock extends StardewCropBlock {
 
-    private static final int[] PHASE_DAYS = new int[]{2, 1, 2, 2};
+    private static final int[] PHASE_DAYS = new int[]{2, 2, 2, 3}; // SDV: 9 days
 
     @SuppressWarnings("null")
     public RedCabbageCropBlock() {

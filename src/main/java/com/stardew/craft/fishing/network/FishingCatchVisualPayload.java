@@ -1,10 +1,8 @@
 package com.stardew.craft.fishing.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.fishing.FishingCatchVisuals;
 import com.stardew.craft.sound.ModSounds;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -63,7 +61,7 @@ public record FishingCatchVisualPayload(ResourceLocation itemId, int count) impl
 	@SuppressWarnings("null")
 	@net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
 	private static void handleClient(FishingCatchVisualPayload payload) {
-		Minecraft mc = Minecraft.getInstance();
+		net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
 		var player = mc.player;
 		if (player == null) {
 			return;
@@ -82,6 +80,6 @@ public record FishingCatchVisualPayload(ResourceLocation itemId, int count) impl
 		// Stardew FishingRod.cs: on pullFishFromWater it plays pullItemFromWater + dwop.
 		// Use playLocalSound for reliable client playback (mirrors SV's location.playSound semantics).
 		player.displayClientMessage(Component.translatable("stardewcraft.fishing.caught", stack.getHoverName()), true);
-		FishingCatchVisuals.start(stack);
+		com.stardew.craft.client.fishing.FishingCatchVisuals.start(stack);
 	}
 }

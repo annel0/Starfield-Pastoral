@@ -31,7 +31,7 @@ import java.util.function.Supplier;
  */
 public class StarfruitCropBlock extends StardewCropBlock {
 
-    private static final int[] PHASE_DAYS = new int[]{2, 3, 2, 3};
+    private static final int[] PHASE_DAYS = new int[]{2, 4, 3, 4}; // SDV: 13 days
     private static final int[] OUTLINE_HEIGHTS = new int[]{25, 25, 29, 29};
     private static final int[] OUTLINE_WIDTHS = new int[]{8, 9, 9, 9};
     public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;

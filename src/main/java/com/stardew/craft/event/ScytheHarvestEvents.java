@@ -11,7 +11,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.DeadBushBlock;
+import net.minecraft.world.level.block.TallGrassBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -147,7 +151,14 @@ public final class ScytheHarvestEvents {
 		if (state.getBlock() instanceof PastureGrassBlock) {
 			return PastureGrassBlock.cutWithScythe(level, pos, player, scythe);
 		}
-
+		// 原版杂草/草丛：short_grass, fern, tall_grass, large_fern, dead_bush
+		Block block = state.getBlock();
+		if (block == Blocks.SHORT_GRASS || block == Blocks.FERN
+				|| block == Blocks.TALL_GRASS || block == Blocks.LARGE_FERN
+				|| block instanceof TallGrassBlock || block instanceof DeadBushBlock) {
+			level.destroyBlock(pos, true, player);
+			return true;
+		}
 		// 原版差异：铱镰刀（66）能更广泛地“用镰刀收割作物”。
 		if (scythe.getTier() != ScytheItem.Tier.IRIDIUM) {
 			return false;

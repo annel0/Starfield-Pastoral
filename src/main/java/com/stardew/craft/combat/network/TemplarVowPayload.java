@@ -1,8 +1,6 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.TemplarVowClientState;
-import com.stardew.craft.client.weapon.WeaponSkillAnimationClient;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -42,10 +40,10 @@ public record TemplarVowPayload(boolean active, int durationTicks) implements Cu
         if (mc.level == null) return;
         long nowTick = mc.level.getGameTime();
         if (payload.active()) {
-            TemplarVowClientState.start(nowTick, payload.durationTicks());
+            com.stardew.craft.client.weapon.TemplarVowClientState.start(nowTick, payload.durationTicks());
         } else {
-            TemplarVowClientState.clear();
-            WeaponSkillAnimationClient.stop();
+            com.stardew.craft.client.weapon.TemplarVowClientState.clear();
+            com.stardew.craft.client.weapon.WeaponSkillAnimationClient.stop();
         }
     }
 }

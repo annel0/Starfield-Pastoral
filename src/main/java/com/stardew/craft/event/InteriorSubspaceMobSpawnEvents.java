@@ -1,6 +1,7 @@
 package com.stardew.craft.event;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.entity.junimo.JunimoEntity;
 import com.stardew.craft.entity.npc.StardewNpcEntity;
 import com.stardew.craft.interior.InteriorSubspaceManager;
 import net.minecraft.server.level.ServerLevel;
@@ -26,6 +27,11 @@ public final class InteriorSubspaceMobSpawnEvents {
 
         // Stardew NPC 也属于 Mob，不能被室内禁刷逻辑误伤。
         if (mob instanceof StardewNpcEntity) {
+            return;
+        }
+
+        // Junimo 在社区中心室内需要正常生成（搬运动画、闲置、过场）
+        if (mob instanceof JunimoEntity) {
             return;
         }
 

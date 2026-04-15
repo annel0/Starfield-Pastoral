@@ -1,7 +1,6 @@
 package com.stardew.craft.event;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.ClientMuseumDonationCache;
 import com.stardew.craft.museum.MuseumDonationData;
 import com.stardew.craft.network.MuseumDonationSyncPacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -36,7 +35,7 @@ public class MuseumDonationSyncEvents {
     public static class ClientEvents {
         @SubscribeEvent
         public static void onClientDisconnect(PlayerEvent.PlayerLoggedOutEvent event) {
-            ClientMuseumDonationCache.clear();
+            com.stardew.craft.client.ClientMuseumDonationCache.clear();
         }
     }
 }

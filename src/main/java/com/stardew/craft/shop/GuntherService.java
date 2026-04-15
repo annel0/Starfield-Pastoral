@@ -44,10 +44,6 @@ public final class GuntherService {
         boolean result = px >= COUNTER_MIN_X && px <= COUNTER_MAX_X
             && py >= COUNTER_MIN_Y && py <= COUNTER_MAX_Y
             && pz >= COUNTER_MIN_Z && pz <= COUNTER_MAX_Z;
-        System.out.println("[GuntherService] Player pos: " + px + "," + py + "," + pz
-            + " | Counter: X[" + COUNTER_MIN_X + "-" + COUNTER_MAX_X
-            + "] Y[" + COUNTER_MIN_Y + "-" + COUNTER_MAX_Y
-            + "] Z[" + COUNTER_MIN_Z + "-" + COUNTER_MAX_Z + "] | result=" + result);
         return result;
     }
 

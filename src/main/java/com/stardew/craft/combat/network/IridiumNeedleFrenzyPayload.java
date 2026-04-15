@@ -1,10 +1,7 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.IridiumNeedleFrenzyClientState;
-import com.stardew.craft.client.weapon.SkillEffectsClient;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -40,14 +37,14 @@ public record IridiumNeedleFrenzyPayload(boolean active, int durationTicks) impl
     @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
     private static void handleClient(IridiumNeedleFrenzyPayload payload) {
         if (payload.active()) {
-            Minecraft mc = Minecraft.getInstance();
+            net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
             long nowTick = mc.level != null ? mc.level.getGameTime() : 0L;
-            IridiumNeedleFrenzyClientState.start(nowTick, payload.durationTicks());
+            com.stardew.craft.client.weapon.IridiumNeedleFrenzyClientState.start(nowTick, payload.durationTicks());
             if (mc.player != null) {
-                SkillEffectsClient.playSkillEffects("iridium_needle_frenzy", mc.player);
+                com.stardew.craft.client.weapon.SkillEffectsClient.playSkillEffects("iridium_needle_frenzy", mc.player);
             }
         } else {
-            IridiumNeedleFrenzyClientState.clear();
+            com.stardew.craft.client.weapon.IridiumNeedleFrenzyClientState.clear();
         }
     }
 }

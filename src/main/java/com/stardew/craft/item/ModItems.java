@@ -773,6 +773,8 @@ public class ModItems {
                         () -> new StardewBlockItem(ModBlocks.POTTED_PLANT_6.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> SHRINE = ITEMS.register("shrine",
                         () -> new StardewBlockItem(ModBlocks.SHRINE.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> JUNIMO_HUT_DECOR = ITEMS.register("junimo_hut_decor",
+                        () -> new StardewBlockItem(ModBlocks.JUNIMO_HUT_DECOR.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> PILLAR = ITEMS.register("pillar",
                         () -> new StardewBlockItem(ModBlocks.PILLAR.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> RADIO = ITEMS.register("radio",
@@ -814,6 +816,9 @@ public class ModItems {
 
     public static final DeferredItem<Item> PAINTBRUSH = ITEMS.register("paintbrush",
             () -> new PaintbrushItem(new Item.Properties().stacksTo(1)));
+
+    public static final DeferredItem<Item> MINE_TOTEM = ITEMS.register("mine_totem",
+            () -> new com.stardew.craft.item.tool.MineTotemItem(new Item.Properties().stacksTo(1)));
 
     // Decoration icons are standalone items for shop/catalog usage.
     // They are intentionally hidden from creative tab population by using a non-listed type key.
@@ -1416,6 +1421,18 @@ public class ModItems {
 
     public static final DeferredItem<Item> MIXED_SEEDS = ITEMS.register("mixed_seeds",
                         () -> new MixedSeedsItem(new Item.Properties().stacksTo(999)));
+
+        // SDV Wild Seeds (seasonal forage seeds) — IDs 495-498
+        // SDV: Spring Seeds sell=35, Summer=55, Fall=45, Winter=30
+        public static final DeferredItem<Item> SPRING_SEEDS = ITEMS.register("spring_seeds",
+                        () -> new WildSeedsItem(0, 35, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> SUMMER_SEEDS = ITEMS.register("summer_seeds",
+                        () -> new WildSeedsItem(1, 55, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> FALL_SEEDS = ITEMS.register("fall_seeds",
+                        () -> new WildSeedsItem(2, 45, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> WINTER_SEEDS = ITEMS.register("winter_seeds",
+                        () -> new WildSeedsItem(3, 30, new Item.Properties().stacksTo(999)));
+
         public static final DeferredItem<Item> GRASS_STARTER = ITEMS.register("grass_starter",
                                                 () -> new GrassStarterItem(ModBlocks.PASTURE_GRASS, 50, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> BLUE_GRASS_STARTER = ITEMS.register("blue_grass_starter",
@@ -2512,6 +2529,24 @@ public class ModItems {
     public static final DeferredItem<Item> CRYSTAL_SHOES = ITEMS.register("crystal_shoes",
             () -> new com.stardew.craft.item.equipment.StardewBootsItem(com.stardew.craft.item.equipment.BootsType.CRYSTAL_SHOES, new Item.Properties()));
 
+    // tmp_models 室内装饰家具
+    public static final DeferredItem<Item> SAFE_BOX = ITEMS.register("safe_box",
+            () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.SAFE_BOX.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+    public static final DeferredItem<Item> BROKEN_SAFE_BOX = ITEMS.register("broken_safe_box",
+            () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.BROKEN_SAFE_BOX.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+    public static final DeferredItem<Item> LOOM_MACHINE = ITEMS.register("loom_machine",
+            () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.LOOM_MACHINE.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+    public static final DeferredItem<Item> BOILER_DECOR = ITEMS.register("boiler_decor",
+            () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.BOILER_DECOR.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+    public static final DeferredItem<Item> BROKEN_BOILER = ITEMS.register("broken_boiler",
+            () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.BROKEN_BOILER.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+    public static final DeferredItem<Item> YARN_CABINET = ITEMS.register("yarn_cabinet",
+            () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.YARN_CABINET.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+    public static final DeferredItem<Item> BROKEN_CHAIR = ITEMS.register("broken_chair",
+            () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.BROKEN_CHAIR.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+    public static final DeferredItem<Item> COAL_BASKET = ITEMS.register("coal_basket",
+            () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.COAL_BASKET.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+
     // 家具目录 (SDV Furniture Catalogue, ID 1226)
     public static final DeferredItem<Item> FURNITURE_CATALOGUE = ITEMS.register("furniture_catalogue",
             () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.FURNITURE_CATALOGUE.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
@@ -2519,5 +2554,17 @@ public class ModItems {
     // 公告栏 (SDV Bulletin Board)
     public static final DeferredItem<Item> BULLETIN_BOARD = ITEMS.register("bulletin_board",
             () -> new BlockItem(com.stardew.craft.block.ModBlocks.BULLETIN_BOARD.get(), new Item.Properties().stacksTo(1)));
+
+    // 社区中心献祭卷轴 (SDV Junimo Note)
+    public static final DeferredItem<Item> JUNIMO_NOTE = ITEMS.register("junimo_note",
+            () -> new BlockItem(com.stardew.craft.block.ModBlocks.JUNIMO_NOTE.get(), new Item.Properties().stacksTo(1)));
+
+    // ---- Junimo 专用持有物 (不进创造物品栏) ----
+    /** SDV: Junimo holdingBundle 时头上的彩色 bundle 包裹 (Characters/Junimo.png 0,96 16×13) */
+    public static final DeferredItem<Item> JUNIMO_BUNDLE = ITEMS.register("junimo_bundle",
+            () -> new Item(new Item.Properties().stacksTo(1)));
+    /** SDV: Junimo holdingStar 时头上的金色星星 (Characters/Junimo.png 0,109 16×19) */
+    public static final DeferredItem<Item> JUNIMO_STAR = ITEMS.register("junimo_star",
+            () -> new Item(new Item.Properties().stacksTo(1)));
 
 }

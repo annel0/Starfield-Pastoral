@@ -171,6 +171,10 @@ public final class ModBlockEntities {
 			BLOCK_ENTITIES.register("shrine", () -> BlockEntityType.Builder.of(ShrineBlockEntity::new, ModBlocks.SHRINE.get()).build(null));
 
 	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<JunimoHutDecorBlockEntity>> JUNIMO_HUT_DECOR =
+			BLOCK_ENTITIES.register("junimo_hut_decor", () -> BlockEntityType.Builder.of(JunimoHutDecorBlockEntity::new, ModBlocks.JUNIMO_HUT_DECOR.get()).build(null));
+
+	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BookshelfGeoBlockEntity>> BOOKSHELF_GEO =
 			BLOCK_ENTITIES.register("bookshelf_geo", () -> BlockEntityType.Builder.of(BookshelfGeoBlockEntity::new,
 				ModBlocks.BOOKSHELF_TALL_1.get(), ModBlocks.BOOKSHELF_TALL_2.get()).build(null));
@@ -203,5 +207,11 @@ public final class ModBlockEntities {
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MailboxBlockEntity>> MAILBOX =
 			BLOCK_ENTITIES.register("mailbox", () -> BlockEntityType.Builder.of(MailboxBlockEntity::new,
 				ModBlocks.MAILBOX.get()).build(null));
+
+	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<com.stardew.craft.communitycenter.block.StarPlaqueBlockEntity>> STAR_PLAQUE =
+			BLOCK_ENTITIES.register("star_plaque", () -> BlockEntityType.Builder.of(
+				com.stardew.craft.communitycenter.block.StarPlaqueBlockEntity::new,
+				ModBlocks.STAR_PLAQUE.get()).build(null));
 
 	}

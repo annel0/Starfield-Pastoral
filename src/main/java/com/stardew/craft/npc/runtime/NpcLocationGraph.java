@@ -37,7 +37,7 @@ public final class NpcLocationGraph {
         static final GraphRoute EMPTY = new GraphRoute(Collections.emptyList());
     }
 
-    private static Map<String, List<Edge>> adjacency = Collections.emptyMap();
+    private static volatile Map<String, List<Edge>> adjacency = Collections.emptyMap();
 
     private NpcLocationGraph() {
     }

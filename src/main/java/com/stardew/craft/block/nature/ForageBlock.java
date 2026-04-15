@@ -14,6 +14,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.BushBlock;
+import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -58,7 +59,8 @@ public class ForageBlock extends BushBlock {
     @SuppressWarnings("null")
     @Override
     protected boolean mayPlaceOn(BlockState state, BlockGetter level, BlockPos pos) {
-        return state.is(BlockTags.DIRT) || state.is(BlockTags.SAND)
+        return state.getBlock() instanceof FarmBlock
+                || state.is(BlockTags.DIRT) || state.is(BlockTags.SAND)
                 || state.is(BlockTags.BASE_STONE_OVERWORLD)
                 || state.isFaceSturdy(level, pos, Direction.UP);
     }

@@ -25,6 +25,7 @@ import com.stardew.craft.block.utility.WoodenChestColorPalette;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -44,11 +45,13 @@ import java.util.List;
 // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
 @EventBusSubscriber(modid = StardewCraft.MODID, value = Dist.CLIENT)
 public class StardewCraftClient {
-    public StardewCraftClient(ModContainer container) {
+    public StardewCraftClient(IEventBus modEventBus, ModContainer container) {
         // Allows NeoForge to create a config screen for this mod's configs.
         // The config screen is accessed by going to the Mods screen > clicking on your mod > clicking on config.
         // Do not forget to add translations for your config options to the en_us.json file.
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
+        // Weapon shader registration — client only (moved from StardewCraft main class)
+        modEventBus.addListener(com.stardew.craft.client.weapon.WeaponShaderRegistry::onRegisterShadersSafe);
     NeoForge.EVENT_BUS.register(FertilizerOverlayRenderer.class);
     NeoForge.EVENT_BUS.register(TVScreenOverlayRenderer.class);
     NeoForge.EVENT_BUS.register(SprinklerOverlayRenderer.class);
@@ -174,6 +177,10 @@ public class StardewCraftClient {
                 ModBlocks.TULIP_CROP.get(),
                 ModBlocks.WHEAT_CROP.get(),
                 ModBlocks.YAM_CROP.get(),
+                ModBlocks.SPRING_WILD_SEED_CROP.get(),
+                ModBlocks.SUMMER_WILD_SEED_CROP.get(),
+                ModBlocks.FALL_WILD_SEED_CROP.get(),
+                ModBlocks.WINTER_WILD_SEED_CROP.get(),
                 ModBlocks.DEAD_CROP.get(),
                 ModBlocks.WALL_HANGING_SMALL_A.get(),
                 ModBlocks.WALL_NOTICE_BOARD_SMALL.get(),
@@ -290,6 +297,14 @@ public class StardewCraftClient {
                 ModBlocks.LEAH_SCULPTURE.get(),
                 ModBlocks.EASEL.get(),
                 ModBlocks.BLUE_BEAR_PLUSHIE.get(),
+                ModBlocks.SAFE_BOX.get(),
+                ModBlocks.BROKEN_SAFE_BOX.get(),
+                ModBlocks.LOOM_MACHINE.get(),
+                ModBlocks.BOILER_DECOR.get(),
+                ModBlocks.BROKEN_BOILER.get(),
+                ModBlocks.YARN_CABINET.get(),
+                ModBlocks.BROKEN_CHAIR.get(),
+                ModBlocks.COAL_BASKET.get(),
                 ModBlocks.FURNITURE_CATALOGUE.get()
             ));
 
@@ -402,6 +417,13 @@ public class StardewCraftClient {
                 int rgb = color >= 0 ? color : 0xFFFFFF;
                 return 0xFF000000 | (rgb & 0xFFFFFF);
             }, ModItems.TARGETED_BAIT.get());
+
+        // SDV parity: Junimo bundle held item — tinted by JunimoBundleLayer.currentRenderBundleColor
+        event.register((stack, tintIndex) -> {
+            if (tintIndex != 0) return 0xFFFFFFFF;
+            int rgb = com.stardew.craft.client.renderer.entity.JunimoBundleLayer.currentRenderBundleColor;
+            return 0xFF000000 | (rgb & 0xFFFFFF);
+        }, ModItems.JUNIMO_BUNDLE.get());
     }
 
     @SubscribeEvent

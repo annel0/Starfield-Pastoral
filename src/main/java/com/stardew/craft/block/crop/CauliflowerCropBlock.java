@@ -17,7 +17,7 @@ import java.util.function.Supplier;
  */
 public class CauliflowerCropBlock extends StardewCropBlock {
 
-    private static final int[] PHASE_DAYS = new int[]{1, 2, 4, 4};
+    private static final int[] PHASE_DAYS = new int[]{1, 3, 4, 4}; // SDV: 12 days
 
     @SuppressWarnings("null")
     public CauliflowerCropBlock() {

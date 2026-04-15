@@ -890,6 +890,12 @@ public class PacketHandler {
             com.stardew.craft.network.payload.OpenSleepConfirmScreenPayload::handle
         );
 
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenMineExitDialogPayload.TYPE,
+            com.stardew.craft.network.payload.OpenMineExitDialogPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenMineExitDialogPayload::handle
+        );
+
         registrar.playToServer(
             com.stardew.craft.network.payload.AnswerNpcQuestionPayload.TYPE,
             com.stardew.craft.network.payload.AnswerNpcQuestionPayload.STREAM_CODEC,
@@ -1153,6 +1159,16 @@ public class PacketHandler {
             com.stardew.craft.communitycenter.network.BundleDepositPayload::handle
         );
         registrar.playToServer(
+            com.stardew.craft.communitycenter.network.BundlePartialDepositPayload.TYPE,
+            com.stardew.craft.communitycenter.network.BundlePartialDepositPayload.STREAM_CODEC,
+            com.stardew.craft.communitycenter.network.BundlePartialDepositPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.communitycenter.network.BundlePartialRetrievePayload.TYPE,
+            com.stardew.craft.communitycenter.network.BundlePartialRetrievePayload.STREAM_CODEC,
+            com.stardew.craft.communitycenter.network.BundlePartialRetrievePayload::handle
+        );
+        registrar.playToServer(
             com.stardew.craft.communitycenter.network.BundlePurchasePayload.TYPE,
             com.stardew.craft.communitycenter.network.BundlePurchasePayload.STREAM_CODEC,
             com.stardew.craft.communitycenter.network.BundlePurchasePayload::handle
@@ -1162,10 +1178,44 @@ public class PacketHandler {
             com.stardew.craft.communitycenter.network.BundleSyncPayload.STREAM_CODEC,
             com.stardew.craft.communitycenter.network.BundleSyncPayload::handle
         );
+        registrar.playToClient(
+            com.stardew.craft.communitycenter.network.StarPlacedPayload.TYPE,
+            com.stardew.craft.communitycenter.network.StarPlacedPayload.STREAM_CODEC,
+            com.stardew.craft.communitycenter.network.StarPlacedPayload::handle
+        );
         registrar.playToServer(
             com.stardew.craft.communitycenter.network.BundleClaimRewardPayload.TYPE,
             com.stardew.craft.communitycenter.network.BundleClaimRewardPayload.STREAM_CODEC,
             com.stardew.craft.communitycenter.network.BundleClaimRewardPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.communitycenter.network.OpenBundleRewardsPayload.TYPE,
+            com.stardew.craft.communitycenter.network.OpenBundleRewardsPayload.STREAM_CODEC,
+            com.stardew.craft.communitycenter.network.OpenBundleRewardsPayload::handle
+        );
+
+        // CC Cutscene
+        registrar.playToClient(
+            com.stardew.craft.communitycenter.cutscene.CutscenePayload.TYPE,
+            com.stardew.craft.communitycenter.cutscene.CutscenePayload.STREAM_CODEC,
+            com.stardew.craft.communitycenter.cutscene.CutscenePayload::handle
+        );
+
+        // Jukebox
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenJukeboxPayload.TYPE,
+            com.stardew.craft.network.payload.OpenJukeboxPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenJukeboxPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.JukeboxPlayPayload.TYPE,
+            com.stardew.craft.network.payload.JukeboxPlayPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.JukeboxPlayPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.JukeboxSelectPayload.TYPE,
+            com.stardew.craft.network.payload.JukeboxSelectPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.JukeboxSelectPayload::handle
         );
 
     }

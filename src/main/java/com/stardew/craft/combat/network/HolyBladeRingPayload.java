@@ -1,7 +1,6 @@
 package com.stardew.craft.combat.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.weapon.HolyBladeRingEffectClient;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -38,7 +37,7 @@ public record HolyBladeRingPayload(float x, float y, float z, float maxRadius, i
     }
 
     public static void handle(HolyBladeRingPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> HolyBladeRingEffectClient.add(
+        context.enqueueWork(() -> com.stardew.craft.client.weapon.HolyBladeRingEffectClient.add(
             payload.x(), payload.y(), payload.z(), payload.maxRadius(), payload.durationTicks()
         ));
     }

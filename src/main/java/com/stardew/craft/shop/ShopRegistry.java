@@ -395,7 +395,8 @@ public final class ShopRegistry {
                 // Bombs (SDV exact prices)
                 entryAllSeasons("stardewcraft:cherry_bomb",   450),   // SDV: 450g
                 entryAllSeasons("stardewcraft:bomb_item",    1000),   // SDV: 1000g
-                entryAllSeasons("stardewcraft:mega_bomb",    1600)    // SDV: 1600g
+                entryAllSeasons("stardewcraft:mega_bomb",    1600),   // SDV: 1600g
+                entryAllSeasons("stardewcraft:mine_totem",   1000)    // Mine Totem: 1000g
                 // Life Elixir, Oil of Garlic, Miner's Treat → not yet implemented
                 // Rarecrow #6, Cobblestone Path, Weathered Floor recipe → not yet implemented
             ),
