@@ -32,8 +32,8 @@ $$
 |------|------|
 | 基础 | 96 px |
 | 每级钓鱼 | +8 px |
-| 软木塞浮标 | +24 px / 个 |
-| 高级鱼饵 | +12 px |
+| <img src="/img/tackle/cork_bobber.png" class="item-icon"> [软木塞浮标](/wiki/fishing/tackle#软木塞浮标-cork-bobber) | +24 px / 个 |
+| <img src="/img/bait/deluxe_bait.png" class="item-icon"> [高级鱼饵](/wiki/fishing/bait#高级鱼饵-deluxe-bait) | +12 px |
 
 | 等级 | 裸装 | +软木塞 | +软木塞+高级鱼饵 |
 |------|------|---------|----------------|
@@ -51,8 +51,8 @@ $$
 |------|------|------|
 | 鱼在钓鱼条内 | **+0.002/帧** | 每帧（16ms）增加 0.2% |
 | 鱼离开钓鱼条 | **−0.003/帧** | 默认逃脱速率 |
-| 使用陷阱浮标（1个） | −0.002/帧 | 逃脱减缓 33% |
-| 使用陷阱浮标（2个） | −0.0015/帧 | 逃脱减缓 50% |
+| 使用 <img src="/img/tackle/trap_bobber.png" class="item-icon"> [陷阱浮标](/wiki/fishing/tackle#陷阱浮标-trap-bobber)（1个） | −0.002/帧 | 逃脱减缓 33% |
+| 使用 <img src="/img/tackle/trap_bobber.png" class="item-icon"> [陷阱浮标](/wiki/fishing/tackle#陷阱浮标-trap-bobber)（2个） | −0.0015/帧 | 逃脱减缓 50% |
 
 - 进度 ≥ 1.0 → 捕获成功
 - 进度 ≤ 0.0 → 鱼逃脱
@@ -63,10 +63,10 @@ $$
 |------|--------|
 | 按住鼠标 | −0.25（上升） |
 | 松开鼠标 | +0.25（下降） |
-| 鱼在条内（无倒刺钩） | 重力 ×0.6 |
-| 鱼在条内（有倒刺钩） | 重力 ×0.3 |
+| 鱼在条内（无 <img src="/img/tackle/barbed_hook.png" class="item-icon"> [倒刺钩](/wiki/fishing/tackle#倒刺钩-barbed-hook)） | 重力 ×0.6 |
+| 鱼在条内（有 <img src="/img/tackle/barbed_hook.png" class="item-icon"> [倒刺钩](/wiki/fishing/tackle#倒刺钩-barbed-hook)） | 重力 ×0.3 |
 
-铅制浮标效果：钓鱼条触底时反弹强度 = bounceMultiplier × 默认反弹。1 个铅制浮标 = 0.1（几乎不弹）。
+<img src="/img/tackle/lead_bobber.png" class="item-icon"> [铅制浮标](/wiki/fishing/tackle#铅制浮标-lead-bobber)效果：钓鱼条触底时反弹强度 = bounceMultiplier × 默认反弹。1 个铅制浮标 = 0.1（几乎不弹）。
 
 ---
 
@@ -132,7 +132,7 @@ $$
 
 | 步骤 | 条件 | 效果 |
 |------|------|------|
-| 1 | 装备品质浮标 | 品质 +1（上限铱星） |
+| 1 | 装备 <img src="/img/tackle/quality_bobber.png" class="item-icon"> [品质浮标](/wiki/fishing/tackle#品质浮标-quality-bobber) | 品质 +1（上限铱星） |
 | 2 | 训练竿 | 强制品质 = 0（覆盖一切） |
 | 3 | 完美钓鱼且品质 ≥ 金星 | 品质 → 铱星 |
 | 3 | 完美钓鱼且品质 ≥ 银星 | 品质 → 金星 |
@@ -172,8 +172,8 @@ $$
 | 钓鱼等级 | +0.5% / 级 |
 | 日运气 | dailyLuck ÷ 2 |
 | 海盗职业 | +15% |
-| 磁铁鱼饵 | +15% |
-| 寻宝者渔具 | +5% / 个 |
+| <img src="/img/bait/magnet.png" class="item-icon"> [磁铁](/wiki/fishing/bait#磁铁-magnet) | +15% |
+| <img src="/img/tackle/curiosity_lure.png" class="item-icon"> [寻宝者](/wiki/fishing/tackle#寻宝者-treasure-hunter)渔具 | +5% / 个 |
 
 ::: details 概率计算示例
 钓鱼 10 级 + 海盗职业 + 寻宝者 + 日运气 0.1：

@@ -212,16 +212,16 @@
 
 | 渔具 | 购买价格 | 合成配方 | 解锁等级 |
 |------|---------|---------|---------|
-| 品质浮标 | 2,000g | — | — |
-| 铅制浮标 | 200g | — | — |
-| 软木塞浮标 | 750g | — | — |
-| 声纳浮漂 | **无法购买** | — | 宝箱掉落（≥6 级） |
-| 陷阱浮标 | 500g | 1×铜锭 + 10×树液 | 钓鱼 6 |
-| 倒刺钩 | 1,000g | 1×铜锭 + 1×铁锭 + 1×金锭 | 钓鱼 8 |
-| 旋式鱼饵 | 500g | 2×铁锭 | 钓鱼 6 |
-| 精装旋式鱼饵 | 1,000g | 2×铁锭 + 1×布料 | 钓鱼 8 |
-| 寻宝者 | 750g | 2×金锭 | 钓鱼 7 |
-| 珍稀诱钩 | **无法购买** | — | 特殊途径 |
+| <img src="/img/tackle/quality_bobber.png" class="item-icon"> [品质浮标](#品质浮标-quality-bobber) | 2,000g | — | — |
+| <img src="/img/tackle/lead_bobber.png" class="item-icon"> [铅制浮标](#铅制浮标-lead-bobber) | 200g | — | — |
+| <img src="/img/tackle/cork_bobber.png" class="item-icon"> [软木塞浮标](#软木塞浮标-cork-bobber) | 750g | — | — |
+| <img src="/img/tackle/sonar_bobber.png" class="item-icon"> [声纳浮漂](#声纳浮漂-sonar-bobber) | **无法购买** | — | 宝箱掉落（≥6 级） |
+| <img src="/img/tackle/trap_bobber.png" class="item-icon"> [陷阱浮标](#陷阱浮标-trap-bobber) | 500g | 1×铜锭 + 10×树液 | 钓鱼 6 |
+| <img src="/img/tackle/barbed_hook.png" class="item-icon"> [倒刺钩](#倒刺钩-barbed-hook) | 1,000g | 1×铜锭 + 1×铁锭 + 1×金锭 | 钓鱼 8 |
+| <img src="/img/tackle/spinner.png" class="item-icon"> [旋式鱼饵](#旋式鱼饵-spinner) | 500g | 2×铁锭 | 钓鱼 6 |
+| <img src="/img/tackle/dressed_spinner.png" class="item-icon"> [精装旋式鱼饵](#精装旋式鱼饵-dressed-spinner) | 1,000g | 2×铁锭 + 1×布料 | 钓鱼 8 |
+| <img src="/img/tackle/curiosity_lure.png" class="item-icon"> [寻宝者](#寻宝者-treasure-hunter) | 750g | 2×金锭 | 钓鱼 7 |
+| <img src="/img/tackle/curiosity_lure.png" class="item-icon"> [珍稀诱钩](#珍稀诱钩-curiosity-lure) | **无法购买** | — | 特殊途径 |
 
 ---
 
@@ -237,8 +237,8 @@ $$
 |------|------|
 | 基础 | 96 px |
 | 每级钓鱼 | +8 px |
-| 软木塞浮标 | +24 px / 个 |
-| 高级鱼饵 | +12 px |
+| <img src="/img/tackle/cork_bobber.png" class="item-icon"> [软木塞浮标](#软木塞浮标-cork-bobber) | +24 px / 个 |
+| <img src="/img/bait/deluxe_bait.png" class="item-icon"> [高级鱼饵](/wiki/fishing/bait#高级鱼饵-deluxe-bait) | +12 px |
 
 ::: details 不同等级的钓鱼条长度
 | 等级 | 裸装 | +软木塞 | +软木塞+高级鱼饵 |
@@ -256,13 +256,13 @@ $$
 
 | 渔具 | 类型 | 核心数值 | 价格 | 推荐场景 |
 |------|------|---------|------|---------|
-| 品质浮标 | 浮标 | 品质 +1 档 | 2,000g | 刷金币、铱星鱼 |
-| 铅制浮标 | 浮标 | 反弹 ×0.1 | 200g | 下沉型鱼 |
-| 软木塞浮标 | 浮标 | 钓鱼条 +24px | 750g | 通用新手 |
-| 声纳浮漂 | 浮标 | 显示鱼种 | 宝箱限定 | 收集图鉴 |
-| 陷阱浮标 | 浮标 | 逃脱 −33% | 500g | 高难度鱼 |
-| 倒刺钩 | 钩子 | 重力 ×0.3 + 自动跟随 | 1,000g | 慢速鱼 |
-| 旋式鱼饵 | 旋饵 | 咬钩 −5s | 500g | 刷鱼量 |
-| 精装旋式鱼饵 | 旋饵 | 咬钩 −10s | 1,000g | 刷鱼量 |
-| 寻宝者 | 特殊 | 宝箱 +5%，不逃鱼 | 750g | 刷宝箱 |
-| 珍稀诱钩 | 特殊 | 稀有鱼率↑ | 特殊获取 | 传说鱼 |
+| <img src="/img/tackle/quality_bobber.png" class="item-icon"> [品质浮标](#品质浮标-quality-bobber) | 浮标 | 品质 +1 档 | 2,000g | 刷金币、铱星鱼 |
+| <img src="/img/tackle/lead_bobber.png" class="item-icon"> [铅制浮标](#铅制浮标-lead-bobber) | 浮标 | 反弹 ×0.1 | 200g | 下沉型鱼 |
+| <img src="/img/tackle/cork_bobber.png" class="item-icon"> [软木塞浮标](#软木塞浮标-cork-bobber) | 浮标 | 钓鱼条 +24px | 750g | 通用新手 |
+| <img src="/img/tackle/sonar_bobber.png" class="item-icon"> [声纳浮漂](#声纳浮漂-sonar-bobber) | 浮标 | 显示鱼种 | 宝箱限定 | 收集图鉴 |
+| <img src="/img/tackle/trap_bobber.png" class="item-icon"> [陷阱浮标](#陷阱浮标-trap-bobber) | 浮标 | 逃脱 −33% | 500g | 高难度鱼 |
+| <img src="/img/tackle/barbed_hook.png" class="item-icon"> [倒刺钩](#倒刺钩-barbed-hook) | 钩子 | 重力 ×0.3 + 自动跟随 | 1,000g | 慢速鱼 |
+| <img src="/img/tackle/spinner.png" class="item-icon"> [旋式鱼饵](#旋式鱼饵-spinner) | 旋饵 | 咬钩 −5s | 500g | 刷鱼量 |
+| <img src="/img/tackle/dressed_spinner.png" class="item-icon"> [精装旋式鱼饵](#精装旋式鱼饵-dressed-spinner) | 旋饵 | 咬钩 −10s | 1,000g | 刷鱼量 |
+| <img src="/img/tackle/curiosity_lure.png" class="item-icon"> [寻宝者](#寻宝者-treasure-hunter) | 特殊 | 宝箱 +5%，不逃鱼 | 750g | 刷宝箱 |
+| <img src="/img/tackle/curiosity_lure.png" class="item-icon"> [珍稀诱钩](#珍稀诱钩-curiosity-lure) | 特殊 | 稀有鱼率↑ | 特殊获取 | 传说鱼 |

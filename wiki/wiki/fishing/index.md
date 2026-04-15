@@ -13,11 +13,11 @@
 
 | 钓竿 | 鱼饵槽 | 渔具槽 | 购买价格 | 购买地点 | 说明 |
 |------|--------|--------|---------|---------|------|
-| 竹钓竿 | — | — | — | 初始拥有 | 基础钓竿 |
-| 训练竿 | — | — | 25g | 威利鱼店 | 强制普通品质，练习用 |
-| 玻璃纤维钓竿 | ✅ | — | 1,800g | 威利鱼店 | 可装鱼饵 |
-| 铱制钓竿 | ✅ | 1 | 7,500g | 威利鱼店 | 可装鱼饵 + 渔具 |
-| 高级铱制钓竿 | ✅ | 2 | — | 特殊获取 | 可装鱼饵 + 两个渔具 |
+| <img src="/img/tools/fishing_rod/bamboo_pole.png" class="item-icon"> 竹钓竿 | — | — | — | 初始拥有 | 基础钓竿 |
+| <img src="/img/tools/fishing_rod/training_rod.png" class="item-icon"> 训练竿 | — | — | 25g | 威利鱼店 | 强制普通品质，练习用 |
+| <img src="/img/tools/fishing_rod/fiberglass_rod.png" class="item-icon"> 玻璃纤维钓竿 | ✅ | — | 1,800g | 威利鱼店 | 可装[鱼饵](/wiki/fishing/bait) |
+| <img src="/img/tools/fishing_rod/iridium_rod.png" class="item-icon"> 铱制钓竿 | ✅ | 1 | 7,500g | 威利鱼店 | 可装[鱼饵](/wiki/fishing/bait) + [渔具](/wiki/fishing/tackle) |
+| <img src="/img/tools/fishing_rod/advanced_iridium_rod.png" class="item-icon"> 高级铱制钓竿 | ✅ | 2 | — | 特殊获取 | 可装[鱼饵](/wiki/fishing/bait) + 两个[渔具](/wiki/fishing/tackle) |
 
 ::: warning 训练竿
 训练竿不能装鱼饵和渔具，且钓到的鱼**强制普通品质**（完美钓鱼也不会提升品质）。适合新手练习小游戏操作。
@@ -82,12 +82,12 @@
 | 参数 | 数值 |
 |------|------|
 | 基础垃圾率 | 20% |
-| 高级/万能鱼饵 | 垃圾率减半（10%） |
+| <img src="/img/bait/deluxe_bait.png" class="item-icon"> [高级鱼饵](/wiki/fishing/bait#高级鱼饵-deluxe-bait) / <img src="/img/bait/wild_bait.png" class="item-icon"> [万能鱼饵](/wiki/fishing/bait#万能鱼饵-wild-bait) | 垃圾率减半（10%） |
 | 水手职业（Mariner） | 垃圾率 0%（100% 鱼类） |
 | 诱鱼大师（Luremaster） | 鱼饵无消耗 |
-| 万能鱼饵 | 25% 概率数量翻倍 |
-| 高级鱼饵 | 品质 +1 档，50% 概率双倍产出 |
-| 魔法鱼饵 | 无视季节/天气限制 |
+| <img src="/img/bait/wild_bait.png" class="item-icon"> [万能鱼饵](/wiki/fishing/bait#万能鱼饵-wild-bait) | 25% 概率数量翻倍 |
+| <img src="/img/bait/deluxe_bait.png" class="item-icon"> [高级鱼饵](/wiki/fishing/bait#高级鱼饵-deluxe-bait) | 品质 +1 档，50% 概率双倍产出 |
+| <img src="/img/bait/magic_bait.png" class="item-icon"> [魔法鱼饵](/wiki/fishing/bait#魔法鱼饵-magic-bait) | 无视季节/天气限制 |
 
 ---
 
