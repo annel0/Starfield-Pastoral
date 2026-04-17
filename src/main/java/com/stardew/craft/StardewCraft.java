@@ -637,6 +637,9 @@ public class StardewCraft {
                     } else if ("stardewcraft.type.monster_loot".equals(typeKey)) {
                         // 怪物掉落物：不支持品质
                         output.accept(item);
+                    } else if ("stardewcraft.type.magic".equals(typeKey)) {
+                        // 魔法物品：不支持品质
+                        output.accept(item);
                     }
                 }
 
@@ -855,6 +858,9 @@ public class StardewCraft {
 		// 注册菜单类型
 		com.stardew.craft.menu.ModMenuTypes.MENU_TYPES.register(modEventBus);
 
+		// 注册自定义 GameRules（睡眠比例、AFK 超时等）
+		com.stardew.craft.core.ModGameRules.init();
+
 
         // Register ourselves for server and other game events we are interested in.
         // Note that this is necessary if and only if we want *this* class (StardewCraft) to respond directly to events.
@@ -930,6 +936,12 @@ public class StardewCraft {
 
         // 加载任务数据
         com.stardew.craft.quest.QuestDataLoader.load();
+
+        // 注册温室季节豁免规则
+        com.stardew.craft.greenhouse.GreenhouseManager.registerSeasonRule();
+
+        // 注册祝尼魔温室符文季节豁免规则
+        com.stardew.craft.manager.JunimoGreenhouseRuneManager.registerSeasonRule();
 
         var server = event.getServer();
         // markAsPreGenerated 需要在 level 可用之后执行

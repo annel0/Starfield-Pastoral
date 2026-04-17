@@ -58,7 +58,7 @@ public final class PortalHintPositions {
 
     static {
         // ---- Outdoor entry portals (enter) ----
-        // Sizes match spawnOrReplaceInteractionArea calls in InteriorSubspaceManager
+        // Sizes match placePortalTriggerArea calls in InteriorSubspaceManager
         enter(new BlockPos(-160, -18, 54),   3, 3, 1, "pierre_shop");
         enter(new BlockPos(-309, -17, -36),  2, 2, 1, "museum");
         enter(new BlockPos(-288, -18, -17),  1, 2, 1, "blacksmith");
@@ -153,5 +153,13 @@ public final class PortalHintPositions {
         // ---- Community Center indoor exit ----
         BlockPos ccOrigin = new BlockPos(18816, 69, 18816);
         exit(ccOrigin, new BlockPos(17, 1, 37), 1, 2, 2, "community_center");
+
+        // ---- Farm entry portals (outdoor, fixed coordinates) ----
+        // South entry (toward town): interaction area (199,-14,161)→(210,-12,161)
+        enter(new BlockPos(199, -14, 161), 12, 3, 1, "farm_south");
+        // East entry: interaction area (209,-15,26)→(216,-13,26)
+        enter(new BlockPos(209, -15, 26), 8, 3, 1, "farm_east");
+        // West entry (toward forest): interaction area (70,-12,116)→(70,-10,123)
+        enter(new BlockPos(70, -12, 116), 1, 3, 8, "farm_west");
     }
 }

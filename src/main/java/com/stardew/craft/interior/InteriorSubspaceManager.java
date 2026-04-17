@@ -6,16 +6,15 @@ import com.stardew.craft.mining.StructureLoader;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.Interaction;
-import net.minecraft.world.phys.AABB;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.saveddata.SavedData;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 室内亚空间管理器：
@@ -36,7 +35,7 @@ public final class InteriorSubspaceManager {
     public static final int REGION_MAX_Z = 19000;
 
     // 结构布局版本：当结构清单或坐标大改时 +1，可触发重新装载。
-    private static final int LAYOUT_VERSION = 27;
+    private static final int LAYOUT_VERSION = 29;
 
     private static final String PIERRE_HOUSE_STRUCTURE_PATH = "data/stardewcraft/structures/interior/pierre_house.schem";
     private static final BlockPos PIERRE_HOUSE_ORIGIN = new BlockPos(12032, 70, 12032);
@@ -199,19 +198,27 @@ public final class InteriorSubspaceManager {
     private static final BlockPos WIZARD_TOWER_RETURN_OVERWORLD_BASE = new BlockPos(18249, 71, 17100);
 
     // ---- 社区中心 ----
-    private static final String CC_RUINS_STRUCTURE_PATH = "data/stardewcraft/structures/interior/community_center_ruins.schem";
+    static final String CC_RUINS_PATH = "data/stardewcraft/structures/interior/community_center_ruins.schem";
     @SuppressWarnings("unused")
-    private static final String CC_REFURBISHED_STRUCTURE_PATH = "data/stardewcraft/structures/interior/community_center_refurbished.schem";
+    static final String CC_REFURBISHED_PATH = "data/stardewcraft/structures/interior/community_center_refurbished.schem";
     public static final BlockPos CC_ORIGIN = new BlockPos(18816, 69, 18816);
     /** schem 的 pos1（建造世界绝对坐标），用于偏移换算：relative = absolute - SCHEM_POS1 */
     public static final BlockPos CC_SCHEM_POS1 = new BlockPos(-146, 101, -1333);
     public static final BlockPos CC_INDOOR_SPAWN_OFFSET = new BlockPos(16, 1, 37);   // 玩家室内出生点 → 18832,70,18853
     public static final BlockPos CC_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(17, 1, 37); // 室内出口交互实体基点 → (18833,70,18853)~(18833,71,18854)
-    private static final BlockPos CC_OUTDOOR_ENTRY_POS = new BlockPos(-190, -10, 138); // 出门后玩家传送目标
-    private static final BlockPos CC_OUTDOOR_INTERACTION_BASE = new BlockPos(-191, -9, 141); // 室外入口交互实体基点 → (-191,-9,141)~(-189,-8,141)
+    /** CC 出门后传送目标（全体共享） */
+    public static final BlockPos CC_OUTDOOR_EXIT_POS = new BlockPos(-190, -10, 138);
+    private static final BlockPos CC_OUTDOOR_INTERACTION_BASE = new BlockPos(-191, -9, 141); // 室外入口交互实体基点
 
     private static final String TAG_PORTAL_MARKER_CC_OUTSIDE = "sdv_portal_marker:cc_outside";
-    private static final String TAG_PORTAL_MARKER_CC_INSIDE  = "sdv_portal_marker:cc_inside";
+
+    // ---- 温室 ----
+    static final String GREENHOUSE_INTERIOR_PATH = "data/stardewcraft/structures/greenhouse/green_house_interior.schem";
+    public static final BlockPos GREENHOUSE_INTERIOR_ORIGIN = new BlockPos(18816, 70, 19392);
+    public static final BlockPos GREENHOUSE_INDOOR_SPAWN_OFFSET = new BlockPos(2, 1, 10);
+    static final BlockPos GREENHOUSE_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(1, 1, 10);
+
+    private static final String TAG_PORTAL_MARKER_GREENHOUSE_OUTSIDE = "sdv_portal_marker:greenhouse_outside";
 
     // ---- 矿井入口（室外） ----
     private static final String TAG_PORTAL_MARKER_MINE_OUTSIDE = "sdv_portal_marker:mine_entrance";
@@ -241,7 +248,7 @@ public final class InteriorSubspaceManager {
         register("fish_shop", FISH_SHOP_STRUCTURE_PATH, FISH_SHOP_ORIGIN.getX(), FISH_SHOP_ORIGIN.getY(), FISH_SHOP_ORIGIN.getZ());
         register("elliott_cabin", ELLIOTT_CABIN_STRUCTURE_PATH, ELLIOTT_CABIN_ORIGIN.getX(), ELLIOTT_CABIN_ORIGIN.getY(), ELLIOTT_CABIN_ORIGIN.getZ());
         register("wizard_tower", WIZARD_TOWER_STRUCTURE_PATH, WIZARD_TOWER_ORIGIN.getX(), WIZARD_TOWER_ORIGIN.getY(), WIZARD_TOWER_ORIGIN.getZ());
-        register("community_center", CC_RUINS_STRUCTURE_PATH, CC_ORIGIN.getX(), CC_ORIGIN.getY(), CC_ORIGIN.getZ());
+        // CC 和温室不再注册为 FIXED_STRUCTURES — 由 PlayerInteriorAllocator 按玩家独立加载
 
         BlockPos indoorSpawn = PIERRE_HOUSE_ORIGIN.offset(PIERRE_INDOOR_SPAWN_OFFSET);
         BlockPos indoorExitPortal = PIERRE_HOUSE_ORIGIN.offset(PIERRE_INDOOR_EXIT_PORTAL_OFFSET);
@@ -735,37 +742,7 @@ public final class InteriorSubspaceManager {
 
         StardewCraft.LOGGER.info("[INTERIOR] wizard_tower indoor exit interaction anchor = {}", wizardTowerIndoorExitPortal);
 
-        // ---- 社区中心（CC）门户 ----
-        BlockPos ccIndoorSpawn = CC_ORIGIN.offset(CC_INDOOR_SPAWN_OFFSET);
-        BlockPos ccIndoorExitPortal = CC_ORIGIN.offset(CC_INDOOR_EXIT_PORTAL_OFFSET);
-
-        // 进社区中心：传送到大厅中央
-        InteriorPortalRegistry.register(
-            "community_center_enter",
-            new InteriorPortalRegistry.PortalTarget(
-                ccIndoorSpawn.getX() + 0.5D,
-                ccIndoorSpawn.getY(),
-                ccIndoorSpawn.getZ() + 0.5D,
-                -90.0F,
-                0.0F,
-                InteriorPortalRegistry.PortalMode.ENTRANCE
-            )
-        );
-
-        // 出社区中心：传送到室外 -190 -10 138，朝向正北
-        InteriorPortalRegistry.register(
-            "community_center_exit",
-            new InteriorPortalRegistry.PortalTarget(
-                CC_OUTDOOR_ENTRY_POS.getX() + 0.5D,
-                CC_OUTDOOR_ENTRY_POS.getY(),
-                CC_OUTDOOR_ENTRY_POS.getZ() + 0.5D,
-                180.0F,
-                0.0F,
-                InteriorPortalRegistry.PortalMode.EXIT
-            )
-        );
-
-        StardewCraft.LOGGER.info("[INTERIOR] community_center indoor exit interaction anchor = {}", ccIndoorExitPortal);
+        // CC 和温室门户不再静态注册 — 由 InteriorPortalInteractionEvents 动态解析
     }
 
     public static void register(String id, String structurePath, int x, int y, int z) {
@@ -795,6 +772,186 @@ public final class InteriorSubspaceManager {
         return data.layoutVersion == LAYOUT_VERSION && data.initialized;
     }
 
+    // ──────────────── 分批放置状态 ────────────────
+    /** 是否正在分批放置中 */
+    private static boolean batchPlacementInProgress = false;
+    /** 下一个要放置的结构索引 */
+    private static int batchPlacementIndex = 0;
+    /** 当前结构的 chunk 是否已全部加载 */
+    private static boolean currentChunksReady = false;
+    /** 当前结构已强制加载的 chunk 集合（仅用于 Phase 2 检查） */
+    private static final Set<ChunkPos> currentForcedChunks = new HashSet<>();
+    /** 整个批量过程中所有强制加载过的 chunk（放置结束后逐步释放） */
+    private static final Set<ChunkPos> allBatchForcedChunks = new HashSet<>();
+    /** 等待 chunk 加载的 tick 计数 */
+    private static int chunkWaitTicks = 0;
+    /** chunk 加载超时上限（200 tick = 10 秒） */
+    private static final int MAX_CHUNK_WAIT_TICKS = 200;
+    /** 批量完成后是否正在逐步释放 chunk */
+    private static boolean gradualReleaseInProgress = false;
+    /** 逐步释放用的列表 */
+    private static final List<ChunkPos> chunksToRelease = new ArrayList<>();
+    /** 每批释放的 chunk 数量 */
+    private static final int CHUNKS_RELEASE_PER_BATCH = 2;
+    /** 每隔多少 tick 释放一批（给 IO 线程喘息时间） */
+    private static final int RELEASE_TICK_INTERVAL = 5;
+    /** 结构放置完成后延迟多少 tick 再开始释放（等 IO 线程把结构数据写完） */
+    private static final int RELEASE_DELAY_TICKS = 100;
+    /** 释放 tick 计数器 */
+    private static int releaseTickCounter = 0;
+
+    /**
+     * 每 tick 调用一次（由 InteriorSubspaceLifecycleEvents.onLevelTick 调用）。
+     * 分阶段工作：
+     * Phase 1: 非阻塞 force-load 当前结构所需的 chunk
+     * Phase 2: 等待 chunk 全部就绪
+     * Phase 3: 放置结构（不释放 chunk，避免 unload 队列压力）
+     * Phase 4: 所有结构完成后，等待 IO 冷却，再逐步释放 chunk
+     */
+    public static void tickBatchPlacement(ServerLevel level) {
+        // ── Phase 4: 逐步释放 chunk ──
+        if (gradualReleaseInProgress) {
+            releaseTickCounter++;
+            // 延迟阶段：等 IO 线程把结构数据写完再开始释放
+            if (releaseTickCounter <= RELEASE_DELAY_TICKS) {
+                return;
+            }
+            // 每隔 RELEASE_TICK_INTERVAL tick 才释放一批
+            if ((releaseTickCounter - RELEASE_DELAY_TICKS) % RELEASE_TICK_INTERVAL != 0) {
+                return;
+            }
+            int toRelease = Math.min(CHUNKS_RELEASE_PER_BATCH, chunksToRelease.size());
+            for (int i = 0; i < toRelease; i++) {
+                ChunkPos cp = chunksToRelease.remove(chunksToRelease.size() - 1);
+                level.setChunkForced(cp.x, cp.z, false);
+            }
+            if (chunksToRelease.isEmpty()) {
+                gradualReleaseInProgress = false;
+                releaseTickCounter = 0;
+                StardewCraft.LOGGER.info("[INTERIOR] Finished gradual chunk release");
+            }
+            return;
+        }
+
+        if (!batchPlacementInProgress) {
+            return;
+        }
+        if (batchPlacementIndex >= FIXED_STRUCTURES.size()) {
+            // 所有建筑放置完成，执行后续初始化
+            batchPlacementInProgress = false;
+            batchPlacementIndex = 0;
+            resetChunkPreloadState();
+
+            ensurePortalInteractions(level);
+            migrateFarmAndGreenhousePortals(level);
+            PlayerInteriorAllocator.get(level).reloadAllPlaced(level);
+            restoreMuseumExhibitStands(level);
+
+            InteriorSubspaceSavedData data = InteriorSubspaceSavedData.get(level);
+            data.layoutVersion = LAYOUT_VERSION;
+            data.initialized = true;
+            data.setDirty();
+
+            StardewCraft.LOGGER.info("[INTERIOR] Interior subspace load complete (batched). version={}", LAYOUT_VERSION);
+
+            // 启动逐步释放
+            if (!allBatchForcedChunks.isEmpty()) {
+                chunksToRelease.addAll(allBatchForcedChunks);
+                allBatchForcedChunks.clear();
+                gradualReleaseInProgress = true;
+                StardewCraft.LOGGER.info("[INTERIOR] Starting gradual chunk release: {} chunks", chunksToRelease.size());
+            }
+            return;
+        }
+
+        FixedStructure structure = FIXED_STRUCTURES.get(batchPlacementIndex);
+
+        // ── Phase 1: 非阻塞地 force-load 当前结构所需的 chunk ──
+        if (currentForcedChunks.isEmpty()) {
+            BlockPos origin = structure.origin();
+            int cxCenter = origin.getX() >> 4;
+            int czCenter = origin.getZ() >> 4;
+            // 结构最大 ~73 格 ≈ 5 chunk，向正方向多加载几个 chunk
+            for (int dx = -1; dx <= 5; dx++) {
+                for (int dz = -1; dz <= 5; dz++) {
+                    ChunkPos cp = new ChunkPos(cxCenter + dx, czCenter + dz);
+                    currentForcedChunks.add(cp);
+                    if (allBatchForcedChunks.add(cp)) {
+                        // 只对新 chunk 设置 force（避免重复）
+                        level.setChunkForced(cp.x, cp.z, true);
+                    }
+                }
+            }
+            chunkWaitTicks = 0;
+            currentChunksReady = false;
+            return; // 等下个 tick 检查
+        }
+
+        // ── Phase 2: 等待所有 chunk 加载完成（非阻塞检查） ──
+        if (!currentChunksReady) {
+            chunkWaitTicks++;
+            boolean allLoaded = true;
+            for (ChunkPos cp : currentForcedChunks) {
+                if (level.getChunkSource().getChunkNow(cp.x, cp.z) == null) {
+                    allLoaded = false;
+                    break;
+                }
+            }
+            if (!allLoaded) {
+                if (chunkWaitTicks < MAX_CHUNK_WAIT_TICKS) {
+                    return; // 继续等待
+                }
+                // 超时仍未加载 → 中止批量放置，启动逐步释放
+                StardewCraft.LOGGER.error("[INTERIOR] Chunk preload timeout for {} after {} ticks, aborting batch",
+                        structure.id(), chunkWaitTicks);
+                batchPlacementInProgress = false;
+                batchPlacementIndex = 0;
+                resetChunkPreloadState();
+                if (!allBatchForcedChunks.isEmpty()) {
+                    chunksToRelease.addAll(allBatchForcedChunks);
+                    allBatchForcedChunks.clear();
+                    gradualReleaseInProgress = true;
+                }
+                return;
+            }
+            currentChunksReady = true;
+            // 不 return，本 tick 直接放置
+        }
+
+        // ── Phase 3: chunk 已就绪，放置结构（不释放 chunk） ──
+        boolean placed = StructureLoader.loadAndPlaceWithResult(level, structure.structurePath(), structure.origin());
+
+        // 清理当前结构状态，但不释放 chunk（留到最后逐步释放）
+        currentForcedChunks.clear();
+        currentChunksReady = false;
+
+        if (!placed) {
+            StardewCraft.LOGGER.error("[INTERIOR] Failed to place structure {} at {}, will retry next load",
+                    structure.id(), structure.origin());
+            batchPlacementInProgress = false;
+            batchPlacementIndex = 0;
+            resetChunkPreloadState();
+            if (!allBatchForcedChunks.isEmpty()) {
+                chunksToRelease.addAll(allBatchForcedChunks);
+                allBatchForcedChunks.clear();
+                gradualReleaseInProgress = true;
+            }
+            return;
+        }
+        batchPlacementIndex++;
+    }
+
+    private static void resetChunkPreloadState() {
+        currentForcedChunks.clear();
+        currentChunksReady = false;
+        chunkWaitTicks = 0;
+    }
+
+    /** 分批放置（包括逐步释放 chunk）是否正在进行中 */
+    public static boolean isBatchPlacementInProgress() {
+        return batchPlacementInProgress || gradualReleaseInProgress;
+    }
+
     public static void ensureLoaded(ServerLevel level, String reason) {
         if (!ModDimensions.STARDEW_VALLEY.equals(level.dimension())) {
             return;
@@ -805,25 +962,16 @@ public final class InteriorSubspaceManager {
             return;
         }
 
-        StardewCraft.LOGGER.info("[INTERIOR] Loading interior subspace structures. reason={}, version={}, count={}",
-            reason, LAYOUT_VERSION, FIXED_STRUCTURES.size());
-
-        boolean ok = placeAllStructures(level);
-        if (!ok) {
-            StardewCraft.LOGGER.error("[INTERIOR] Structure placement failed; keep layout uninitialized for retry. reason={}", reason);
+        // 如果已经在分批放置中，不要重复启动
+        if (batchPlacementInProgress) {
             return;
         }
 
-        ensurePortalInteractions(level);
+        StardewCraft.LOGGER.info("[INTERIOR] Starting batched interior structure placement. reason={}, version={}, count={}",
+            reason, LAYOUT_VERSION, FIXED_STRUCTURES.size());
 
-        // CC: 动态放置 JunimoNote 方块
-        com.stardew.craft.communitycenter.JunimoNotePlacer.ensureJunimoNotes(level);
-
-        data.layoutVersion = LAYOUT_VERSION;
-        data.initialized = true;
-        data.setDirty();
-
-        StardewCraft.LOGGER.info("[INTERIOR] Interior subspace load complete. version={}", LAYOUT_VERSION);
+        batchPlacementInProgress = true;
+        batchPlacementIndex = 0;
     }
 
     public static void forceReload(ServerLevel level, String reason) {
@@ -854,9 +1002,6 @@ public final class InteriorSubspaceManager {
                     int chunkX = centerChunkX + dx;
                     int chunkZ = centerChunkZ + dz;
                     level.setChunkForced(chunkX, chunkZ, force);
-                    if (force) {
-                        level.getChunk(chunkX, chunkZ);
-                    }
                 }
             }
         }
@@ -865,15 +1010,51 @@ public final class InteriorSubspaceManager {
         StardewCraft.LOGGER.info("[INTERIOR] Interior structure chunk forcing toggled: {} (reason={})", force, reason);
     }
 
-    private static boolean placeAllStructures(ServerLevel level) {
-        boolean allSuccess = true;
-        for (FixedStructure structure : FIXED_STRUCTURES) {
-            boolean placed = StructureLoader.loadAndPlaceWithResult(level, structure.structurePath(), structure.origin());
-            if (!placed) {
-                allSuccess = false;
-            }
+    /**
+     * 布局重建后，从 MuseumDonationData 中恢复展示柜的陈列物品。
+     * standKey 格式: "dimension|x,y,z"，解析出 BlockPos 后对展示柜方块实体还原 displayItem。
+     */
+    private static void restoreMuseumExhibitStands(ServerLevel level) {
+        com.stardew.craft.museum.MuseumDonationData data = com.stardew.craft.museum.MuseumDonationData.get(level);
+        java.util.Map<String, String> stands = data.getStandDisplayItems();
+        if (stands.isEmpty()) return;
+
+        String dimPrefix = level.dimension().location().toString() + "|";
+        int restored = 0;
+        for (java.util.Map.Entry<String, String> entry : stands.entrySet()) {
+            String key = entry.getKey();
+            String itemId = entry.getValue();
+            if (key == null || itemId == null || itemId.isBlank()) continue;
+            if (!key.startsWith(dimPrefix)) continue;
+
+            // 解析 "x,y,z" 部分
+            String coordPart = key.substring(dimPrefix.length());
+            String[] parts = coordPart.split(",");
+            if (parts.length != 3) continue;
+
+            try {
+                int x = Integer.parseInt(parts[0]);
+                int y = Integer.parseInt(parts[1]);
+                int z = Integer.parseInt(parts[2]);
+                BlockPos pos = new BlockPos(x, y, z);
+
+                net.minecraft.world.level.block.entity.BlockEntity be = level.getBlockEntity(pos);
+                if (be instanceof com.stardew.craft.blockentity.MuseumExhibitStandBlockEntity stand) {
+                    net.minecraft.resources.ResourceLocation rl = net.minecraft.resources.ResourceLocation.tryParse(itemId);
+                    if (rl != null) {
+                        net.minecraft.world.item.Item item = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(rl);
+                        if (item != null && item != net.minecraft.world.item.Items.AIR) {
+                            stand.setDisplayItem(new net.minecraft.world.item.ItemStack(item));
+                            restored++;
+                        }
+                    }
+                }
+            } catch (NumberFormatException ignored) {}
         }
-        return allSuccess;
+
+        if (restored > 0) {
+            StardewCraft.LOGGER.info("[INTERIOR] Restored {} museum exhibit stand(s) after layout rebuild", restored);
+        }
     }
 
     public record FixedStructure(
@@ -890,442 +1071,363 @@ public final class InteriorSubspaceManager {
         BlockPos mayorHouseIndoorExitPortal = MAYOR_HOUSE_ORIGIN.offset(MAYOR_HOUSE_INDOOR_EXIT_PORTAL_OFFSET);
         BlockPos clinicIndoorExitPortal = CLINIC_ORIGIN.offset(CLINIC_INDOOR_EXIT_PORTAL_OFFSET);
 
-        // 室外入口：固定点，隐形交互体，3 宽 x 3 高。(-160,-18,54) → (-158,-16,54)
-        spawnOrReplaceInteractionArea(
-            level,
-            PIERRE_OUTDOOR_INTERACTION_BASE,
-            3,
-            3,
-            TAG_PORTAL_MARKER_OUTSIDE,
-            "sdv_portal_target:pierre_house_enter"
-        );
+        // 室外入口：固定点，3 宽 x 3 高。(-160,-18,54) → (-158,-16,54)
+        placePortalTriggerArea(level, PIERRE_OUTDOOR_INTERACTION_BASE, 3, 3, 1,
+            TAG_PORTAL_MARKER_OUTSIDE, "sdv_portal_target:pierre_house_enter");
 
-        // 室内出口：结构相对点，2 高 x 1 宽，与结构一并加载。
-        spawnOrReplaceInteractionArea(
-            level,
-            indoorExitPortal,
-            1,
-            2,
-            TAG_PORTAL_MARKER_INSIDE,
-            "sdv_portal_target:pierre_house_exit"
-        );
+        // 室内出口：结构相对点，2 高 x 1 宽。
+        placePortalTriggerArea(level, indoorExitPortal, 2, 1, 1,
+            TAG_PORTAL_MARKER_INSIDE, "sdv_portal_target:pierre_house_exit");
 
-        // 博物馆室外入口：(-309,-17,-36) 与 (-308,-17,-36)，2 高 x 2 宽。
-        spawnOrReplaceInteractionArea(
-            level,
-            MUSEUM_OUTDOOR_ENTRY_POS,
-            2,
-            2,
-            TAG_PORTAL_MARKER_MUSEUM_OUTSIDE,
-            "sdv_portal_target:museum_enter"
-        );
+        // 博物馆室外入口：2 高 x 2 宽。
+        placePortalTriggerArea(level, MUSEUM_OUTDOOR_ENTRY_POS, 2, 2, 1,
+            TAG_PORTAL_MARKER_MUSEUM_OUTSIDE, "sdv_portal_target:museum_enter");
 
-        // 博物馆室内出口：结构相对点 X+9,Y+1,Z+5，2 高 x 1 宽。
-        spawnOrReplaceInteractionArea(
-            level,
-            museumIndoorExitPortal,
-            1,
-            2,
-            TAG_PORTAL_MARKER_MUSEUM_INSIDE,
-            "sdv_portal_target:museum_exit"
-        );
+        // 博物馆室内出口：2 高 x 1 宽。
+        placePortalTriggerArea(level, museumIndoorExitPortal, 2, 1, 1,
+            TAG_PORTAL_MARKER_MUSEUM_INSIDE, "sdv_portal_target:museum_exit");
 
-        // 铁匠铺室外入口：(-288,-18,-17)，2 高 x 1 宽。
-        spawnOrReplaceInteractionArea(
-            level,
-            BLACKSMITH_OUTDOOR_ENTRY_POS,
-            1,
-            2,
-            TAG_PORTAL_MARKER_BLACKSMITH_OUTSIDE,
-            "sdv_portal_target:blacksmith_enter"
-        );
+        // 铁匠铺室外入口：2 高 x 1 宽。
+        placePortalTriggerArea(level, BLACKSMITH_OUTDOOR_ENTRY_POS, 2, 1, 1,
+            TAG_PORTAL_MARKER_BLACKSMITH_OUTSIDE, "sdv_portal_target:blacksmith_enter");
 
-        // 铁匠铺室内出口：结构相对点 X+1,Y+1,Z+8，2 高 x 1 宽。
-        spawnOrReplaceInteractionArea(
-            level,
-            blacksmithIndoorExitPortal,
-            1,
-            2,
-            TAG_PORTAL_MARKER_BLACKSMITH_INSIDE,
-            "sdv_portal_target:blacksmith_exit"
-        );
+        // 铁匠铺室内出口：2 高 x 1 宽。
+        placePortalTriggerArea(level, blacksmithIndoorExitPortal, 2, 1, 1,
+            TAG_PORTAL_MARKER_BLACKSMITH_INSIDE, "sdv_portal_target:blacksmith_exit");
 
-        // 酒馆室外入口：(-164,-17,15) 到 (-163,-16,15)，2 长 x 1 宽 x 2 高。
-        spawnOrReplaceInteractionArea(
-            level,
-            SALOON_OUTDOOR_ENTRY_POS,
-            2,
-            2,
-            TAG_PORTAL_MARKER_SALOON_OUTSIDE,
-            "sdv_portal_target:saloon_enter"
-        );
+        // 酒馆室外入口：2 高 x 2 宽。
+        placePortalTriggerArea(level, SALOON_OUTDOOR_ENTRY_POS, 2, 2, 1,
+            TAG_PORTAL_MARKER_SALOON_OUTSIDE, "sdv_portal_target:saloon_enter");
 
-        // 酒馆室内出口：结构相对点 X+1,Y+1,Z+17，1 宽 x 2 高。
-        spawnOrReplaceInteractionArea(
-            level,
-            saloonIndoorExitPortal,
-            1,
-            2,
-            TAG_PORTAL_MARKER_SALOON_INSIDE,
-            "sdv_portal_target:saloon_exit"
-        );
+        // 酒馆室内出口：2 高 x 1 宽。
+        placePortalTriggerArea(level, saloonIndoorExitPortal, 2, 1, 1,
+            TAG_PORTAL_MARKER_SALOON_INSIDE, "sdv_portal_target:saloon_exit");
 
-        // 市长家室外入口：(-197,-17,-22) 到 (-196,-17,-22)，2 长 x 1 宽 x 2 高。
-        spawnOrReplaceInteractionArea(
-            level,
-            MAYOR_HOUSE_OUTDOOR_ENTRY_POS,
-            2,
-            2,
-            TAG_PORTAL_MARKER_MAYOR_HOUSE_OUTSIDE,
-            "sdv_portal_target:mayor_house_enter"
-        );
+        // 市长家室外入口：2 高 x 2 宽。
+        placePortalTriggerArea(level, MAYOR_HOUSE_OUTDOOR_ENTRY_POS, 2, 2, 1,
+            TAG_PORTAL_MARKER_MAYOR_HOUSE_OUTSIDE, "sdv_portal_target:mayor_house_enter");
 
-        // 市长家室内出口：结构相对点 X+1,Y+1,Z+5 到 Z+6，沿 Z 轴延伸 2 格 x 2 高。
-        spawnOrReplaceInteractionArea(
-            level,
-            mayorHouseIndoorExitPortal,
-            2,
-            1,
-            2,
-            TAG_PORTAL_MARKER_MAYOR_HOUSE_INSIDE,
-            "sdv_portal_target:mayor_house_exit"
-        );
+        // 市长家室内出口：2 高 x 1 宽 x 2 深。
+        placePortalTriggerArea(level, mayorHouseIndoorExitPortal, 2, 1, 2,
+            TAG_PORTAL_MARKER_MAYOR_HOUSE_INSIDE, "sdv_portal_target:mayor_house_exit");
 
-        // 诊所室外入口：(-146,-18,60) 到 (-144,-17,60)，3 长 x 1 宽 x 2 高。
-        spawnOrReplaceInteractionArea(
-            level,
-            CLINIC_OUTDOOR_ENTRY_POS,
-            3,
-            2,
-            TAG_PORTAL_MARKER_CLINIC_OUTSIDE,
-            "sdv_portal_target:clinic_enter"
-        );
+        // 诊所室外入口：2 高 x 3 宽。
+        placePortalTriggerArea(level, CLINIC_OUTDOOR_ENTRY_POS, 2, 3, 1,
+            TAG_PORTAL_MARKER_CLINIC_OUTSIDE, "sdv_portal_target:clinic_enter");
 
-        // 诊所室内出口：结构相对点 X+1,Y+1,Z+11，1 宽 x 1 深 x 2 高。
-        spawnOrReplaceInteractionArea(
-            level,
-            clinicIndoorExitPortal,
-            1,
-            2,
-            TAG_PORTAL_MARKER_CLINIC_INSIDE,
-            "sdv_portal_target:clinic_exit"
-        );
+        // 诊所室内出口：2 高 x 1 宽。
+        placePortalTriggerArea(level, clinicIndoorExitPortal, 2, 1, 1,
+            TAG_PORTAL_MARKER_CLINIC_INSIDE, "sdv_portal_target:clinic_exit");
 
         BlockPos riverRoad1IndoorExitPortal = RIVER_ROAD_1_ORIGIN.offset(RIVER_ROAD_1_INDOOR_EXIT_PORTAL_OFFSET);
 
-        // 1号河路室外入口：(-195,-18,32)，1 宽 x 1 深 x 2 高。
-        spawnOrReplaceInteractionArea(
-            level,
-            RIVER_ROAD_1_OUTDOOR_ENTRY_POS,
-            1,
-            2,
-            TAG_PORTAL_MARKER_RIVER_ROAD_1_OUTSIDE,
-            "sdv_portal_target:1_river_road_enter"
-        );
+        // 1号河路室外入口：2 高 x 1 宽。
+        placePortalTriggerArea(level, RIVER_ROAD_1_OUTDOOR_ENTRY_POS, 2, 1, 1,
+            TAG_PORTAL_MARKER_RIVER_ROAD_1_OUTSIDE, "sdv_portal_target:1_river_road_enter");
 
-        // 1号河路室内出口：结构相对点 X+1,Y+1,Z+12，1 宽 x 1 深 x 2 高。
-        spawnOrReplaceInteractionArea(
-            level,
-            riverRoad1IndoorExitPortal,
-            1,
-            2,
-            TAG_PORTAL_MARKER_RIVER_ROAD_1_INSIDE,
-            "sdv_portal_target:1_river_road_exit"
-        );
+        // 1号河路室内出口：2 高 x 1 宽。
+        placePortalTriggerArea(level, riverRoad1IndoorExitPortal, 2, 1, 1,
+            TAG_PORTAL_MARKER_RIVER_ROAD_1_INSIDE, "sdv_portal_target:1_river_road_exit");
 
         BlockPos carpenterShopIndoorExitPortal = CARPENTER_SHOP_ORIGIN.offset(CARPENTER_SHOP_INDOOR_EXIT_PORTAL_OFFSET);
 
-        // 木匠铺室外入口：(-212,-12,219)到(-213,-11,219)，2 长 x 1 宽 x 2 高。
-        spawnOrReplaceInteractionArea(
-            level,
-            CARPENTER_SHOP_OUTDOOR_ENTRY_POS,
-            2,
-            2,
-            TAG_PORTAL_MARKER_CARPENTER_SHOP_OUTSIDE,
-            "sdv_portal_target:carpenter_shop_enter"
-        );
+        // 木匠铺室外入口：2 高 x 2 宽。
+        placePortalTriggerArea(level, CARPENTER_SHOP_OUTDOOR_ENTRY_POS, 2, 2, 1,
+            TAG_PORTAL_MARKER_CARPENTER_SHOP_OUTSIDE, "sdv_portal_target:carpenter_shop_enter");
 
-        // 木匠铺室内出口：结构相对点 X+12,Y+5,Z+7，1 宽 x 1 深 x 2 高。
-        spawnOrReplaceInteractionArea(
-            level,
-            carpenterShopIndoorExitPortal,
-            1,
-            2,
-            TAG_PORTAL_MARKER_CARPENTER_SHOP_INSIDE,
-            "sdv_portal_target:carpenter_shop_exit"
-        );
+        // 木匠铺室内出口：2 高 x 1 宽。
+        placePortalTriggerArea(level, carpenterShopIndoorExitPortal, 2, 1, 1,
+            TAG_PORTAL_MARKER_CARPENTER_SHOP_INSIDE, "sdv_portal_target:carpenter_shop_exit");
 
         BlockPos willowLane1IndoorExitPortal = WILLOW_LANE_1_ORIGIN.offset(WILLOW_LANE_1_INDOOR_EXIT_PORTAL_OFFSET);
 
-        // 1号柳巷室外入口：(-85,-16,-25)到(-84,-15,-25)，2 长 x 1 宽 x 2 高。
-        spawnOrReplaceInteractionArea(
-            level,
-            WILLOW_LANE_1_OUTDOOR_ENTRY_POS,
-            2,
-            2,
-            TAG_PORTAL_MARKER_WILLOW_LANE_1_OUTSIDE,
-            "sdv_portal_target:1_willow_lane_enter"
-        );
+        // 1号柳巷室外入口：2 高 x 2 宽。
+        placePortalTriggerArea(level, WILLOW_LANE_1_OUTDOOR_ENTRY_POS, 2, 2, 1,
+            TAG_PORTAL_MARKER_WILLOW_LANE_1_OUTSIDE, "sdv_portal_target:1_willow_lane_enter");
 
-        // 1号柳巷室内出口：结构相对点 X+1,Y+1,Z+5，1 宽 x 1 深 x 2 高。
-        spawnOrReplaceInteractionArea(
-            level,
-            willowLane1IndoorExitPortal,
-            1,
-            2,
-            TAG_PORTAL_MARKER_WILLOW_LANE_1_INSIDE,
-            "sdv_portal_target:1_willow_lane_exit"
-        );
+        // 1号柳巷室内出口：2 高 x 1 宽。
+        placePortalTriggerArea(level, willowLane1IndoorExitPortal, 2, 1, 1,
+            TAG_PORTAL_MARKER_WILLOW_LANE_1_INSIDE, "sdv_portal_target:1_willow_lane_exit");
 
         BlockPos willowLane2IndoorExitPortal = WILLOW_LANE_2_ORIGIN.offset(WILLOW_LANE_2_INDOOR_EXIT_PORTAL_OFFSET);
 
-        // 2号柳巷室外入口：(-115,-17,-27)到(-114,-16,-27)，2 长 x 1 宽 x 2 高。
-        spawnOrReplaceInteractionArea(
-            level,
-            WILLOW_LANE_2_OUTDOOR_ENTRY_POS,
-            2,
-            2,
-            TAG_PORTAL_MARKER_WILLOW_LANE_2_OUTSIDE,
-            "sdv_portal_target:2_willow_lane_enter"
-        );
+        // 2号柳巷室外入口：2 高 x 2 宽。
+        placePortalTriggerArea(level, WILLOW_LANE_2_OUTDOOR_ENTRY_POS, 2, 2, 1,
+            TAG_PORTAL_MARKER_WILLOW_LANE_2_OUTSIDE, "sdv_portal_target:2_willow_lane_enter");
 
-        // 2号柳巷室内出口：结构相对点 X+3,Y+1,Z+2，1 宽 x 1 深 x 2 高。
-        spawnOrReplaceInteractionArea(
-            level,
-            willowLane2IndoorExitPortal,
-            1,
-            2,
-            TAG_PORTAL_MARKER_WILLOW_LANE_2_INSIDE,
-            "sdv_portal_target:2_willow_lane_exit"
-        );
+        // 2号柳巷室内出口：2 高 x 1 宽。
+        placePortalTriggerArea(level, willowLane2IndoorExitPortal, 2, 1, 1,
+            TAG_PORTAL_MARKER_WILLOW_LANE_2_INSIDE, "sdv_portal_target:2_willow_lane_exit");
 
         BlockPos marnieRanchIndoorExitPortal = MARNIE_RANCH_ORIGIN.offset(MARNIE_RANCH_INDOOR_EXIT_PORTAL_OFFSET);
 
-        // 马尼牧场室外入口：178,-14,-4 到 179,-14,-4，2长 x 1宽 x 2高。
-        spawnOrReplaceInteractionArea(
-            level,
-            MARNIE_RANCH_OUTDOOR_ENTRY_POS,
-            2,
-            2,
-            1,
-            TAG_PORTAL_MARKER_MARNIE_RANCH_OUTSIDE,
-            "sdv_portal_target:marnie_ranch_enter"
-        );
+        // 马尼牧场室外入口：2高 x 2宽 x 1深。
+        placePortalTriggerArea(level, MARNIE_RANCH_OUTDOOR_ENTRY_POS, 2, 2, 1,
+            TAG_PORTAL_MARKER_MARNIE_RANCH_OUTSIDE, "sdv_portal_target:marnie_ranch_enter");
 
-        // 马尼牧场室内出口：结构相对点 X+1,Y+1,Z+15，1宽 x 1深 x 2高。
-        spawnOrReplaceInteractionArea(
-            level,
-            marnieRanchIndoorExitPortal,
-            1,
-            2,
-            TAG_PORTAL_MARKER_MARNIE_RANCH_INSIDE,
-            "sdv_portal_target:marnie_ranch_exit"
-        );
+        // 马尼牧场室内出口：2高 x 1宽。
+        placePortalTriggerArea(level, marnieRanchIndoorExitPortal, 2, 1, 1,
+            TAG_PORTAL_MARKER_MARNIE_RANCH_INSIDE, "sdv_portal_target:marnie_ranch_exit");
 
         BlockPos leahCottageIndoorExitPortal = LEAH_COTTAGE_ORIGIN.offset(LEAH_COTTAGE_INDOOR_EXIT_PORTAL_OFFSET);
 
-        // 莉亚小屋室外入口：155,-13,-58 到 156,-13,-58，2长 x 1宽 x 2高。
-        spawnOrReplaceInteractionArea(
-            level,
-            LEAH_COTTAGE_OUTDOOR_ENTRY_POS,
-            2,
-            2,
-            1,
-            TAG_PORTAL_MARKER_LEAH_COTTAGE_OUTSIDE,
-            "sdv_portal_target:leah_cottage_enter"
-        );
+        // 莉亚小屋室外入口：2高 x 2宽 x 1深。
+        placePortalTriggerArea(level, LEAH_COTTAGE_OUTDOOR_ENTRY_POS, 2, 2, 1,
+            TAG_PORTAL_MARKER_LEAH_COTTAGE_OUTSIDE, "sdv_portal_target:leah_cottage_enter");
 
-        // 莉亚小屋室内出口：结构相对点 X+4,Y+1,Z+7，1宽 x 1深 x 2高。
-        spawnOrReplaceInteractionArea(
-            level,
-            leahCottageIndoorExitPortal,
-            1,
-            2,
-            TAG_PORTAL_MARKER_LEAH_COTTAGE_INSIDE,
-            "sdv_portal_target:leah_cottage_exit"
-        );
+        // 莉亚小屋室内出口：2高 x 1宽。
+        placePortalTriggerArea(level, leahCottageIndoorExitPortal, 2, 1, 1,
+            TAG_PORTAL_MARKER_LEAH_COTTAGE_INSIDE, "sdv_portal_target:leah_cottage_exit");
 
         BlockPos adventurerGuildIndoorExitPortal = ADVENTURER_GUILD_ORIGIN.offset(ADVENTURER_GUILD_INDOOR_EXIT_PORTAL_OFFSET);
 
-        // 冒险家公会室外入口：-335,-13,312 到 -333,-13,312，3长 x 1宽 x 2高。
-        spawnOrReplaceInteractionArea(
-            level,
-            ADVENTURER_GUILD_OUTDOOR_ENTRY_POS,
-            2,
-            3,
-            1,
-            TAG_PORTAL_MARKER_ADVENTURER_GUILD_OUTSIDE,
-            "sdv_portal_target:adventurer_guild_enter"
-        );
+        // 冒险家公会室外入口：2高 x 3宽 x 1深。
+        placePortalTriggerArea(level, ADVENTURER_GUILD_OUTDOOR_ENTRY_POS, 2, 3, 1,
+            TAG_PORTAL_MARKER_ADVENTURER_GUILD_OUTSIDE, "sdv_portal_target:adventurer_guild_enter");
 
-        // 冒险家公会室内出口：结构相对点 X+1,Y+1,Z+6，1宽 x 1深 x 2高。
-        spawnOrReplaceInteractionArea(
-            level,
-            adventurerGuildIndoorExitPortal,
-            1,
-            2,
-            TAG_PORTAL_MARKER_ADVENTURER_GUILD_INSIDE,
-            "sdv_portal_target:adventurer_guild_exit"
-        );
+        // 冒险家公会室内出口：2高 x 1宽。
+        placePortalTriggerArea(level, adventurerGuildIndoorExitPortal, 2, 1, 1,
+            TAG_PORTAL_MARKER_ADVENTURER_GUILD_INSIDE, "sdv_portal_target:adventurer_guild_exit");
 
         BlockPos fishShopIndoorExitPortal = FISH_SHOP_ORIGIN.offset(FISH_SHOP_INDOOR_EXIT_PORTAL_OFFSET);
 
-        // 鱼店室外入口：-238,-15,-211 到 -237,-14,-211，2长 x 1宽 x 2高。
-        spawnOrReplaceInteractionArea(
-            level,
-            FISH_SHOP_OUTDOOR_ENTRY_POS,
-            2,
-            2,
-            1,
-            TAG_PORTAL_MARKER_FISH_SHOP_OUTSIDE,
-            "sdv_portal_target:fish_shop_enter"
-        );
+        // 鱼店室外入口：2高 x 2宽 x 1深。
+        placePortalTriggerArea(level, FISH_SHOP_OUTDOOR_ENTRY_POS, 2, 2, 1,
+            TAG_PORTAL_MARKER_FISH_SHOP_OUTSIDE, "sdv_portal_target:fish_shop_enter");
 
-        // 鱼店室内出口：结构相对点 X+1,Y+1,Z+6，1宽 x 1深 x 2高。
-        spawnOrReplaceInteractionArea(
-            level,
-            fishShopIndoorExitPortal,
-            1,
-            2,
-            TAG_PORTAL_MARKER_FISH_SHOP_INSIDE,
-            "sdv_portal_target:fish_shop_exit"
-        );
+        // 鱼店室内出口：2高 x 1宽。
+        placePortalTriggerArea(level, fishShopIndoorExitPortal, 2, 1, 1,
+            TAG_PORTAL_MARKER_FISH_SHOP_INSIDE, "sdv_portal_target:fish_shop_exit");
 
         BlockPos elliottCabinIndoorExitPortal = ELLIOTT_CABIN_ORIGIN.offset(ELLIOTT_CABIN_INDOOR_EXIT_PORTAL_OFFSET);
 
-        // 艾利欧特小屋室外入口：-267,-13,-152 到 -265,-12,-152，3长 x 1宽 x 2高。
-        spawnOrReplaceInteractionArea(
-            level,
-            ELLIOTT_CABIN_OUTDOOR_ENTRY_POS,
-            2,
-            3,
-            1,
-            TAG_PORTAL_MARKER_ELLIOTT_CABIN_OUTSIDE,
-            "sdv_portal_target:elliott_cabin_enter"
-        );
+        // 艾利欧特小屋室外入口：2高 x 3宽 x 1深。
+        placePortalTriggerArea(level, ELLIOTT_CABIN_OUTDOOR_ENTRY_POS, 2, 3, 1,
+            TAG_PORTAL_MARKER_ELLIOTT_CABIN_OUTSIDE, "sdv_portal_target:elliott_cabin_enter");
 
-        // 艾利欧特小屋室内出口：结构相对点 X+1,Y+1,Z+3，1宽 x 1深 x 2高。
-        spawnOrReplaceInteractionArea(
-            level,
-            elliottCabinIndoorExitPortal,
-            1,
-            2,
-            TAG_PORTAL_MARKER_ELLIOTT_CABIN_INSIDE,
-            "sdv_portal_target:elliott_cabin_exit"
-        );
+        // 艾利欧特小屋室内出口：2高 x 1宽。
+        placePortalTriggerArea(level, elliottCabinIndoorExitPortal, 2, 1, 1,
+            TAG_PORTAL_MARKER_ELLIOTT_CABIN_INSIDE, "sdv_portal_target:elliott_cabin_exit");
 
         BlockPos wizardTowerIndoorExitPortal = WIZARD_TOWER_ORIGIN.offset(WIZARD_TOWER_INDOOR_EXIT_PORTAL_OFFSET);
 
-        // 巫师塔室外入口：340,-1,-42，1宽 x 1深 x 2高。
-        spawnOrReplaceInteractionArea(
-            level,
-            WIZARD_TOWER_OUTDOOR_ENTRY_POS,
-            1,
-            2,
-            TAG_PORTAL_MARKER_WIZARD_TOWER_OUTSIDE,
-            "sdv_portal_target:wizard_tower_enter"
-        );
+        // 巫师塔室外入口：2高 x 1宽。
+        placePortalTriggerArea(level, WIZARD_TOWER_OUTDOOR_ENTRY_POS, 2, 1, 1,
+            TAG_PORTAL_MARKER_WIZARD_TOWER_OUTSIDE, "sdv_portal_target:wizard_tower_enter");
 
-        // 巫师塔室内出口：结构相对点 X+1,Y+1,Z+9，1宽 x 1深 x 2高。
-        spawnOrReplaceInteractionArea(
-            level,
-            wizardTowerIndoorExitPortal,
-            1,
-            2,
-            TAG_PORTAL_MARKER_WIZARD_TOWER_INSIDE,
-            "sdv_portal_target:wizard_tower_exit"
-        );
+        // 巫师塔室内出口：2高 x 1宽。
+        placePortalTriggerArea(level, wizardTowerIndoorExitPortal, 2, 1, 1,
+            TAG_PORTAL_MARKER_WIZARD_TOWER_INSIDE, "sdv_portal_target:wizard_tower_exit");
 
-        // 巫师塔内部"回到主世界"交互区域：(18249,71,17100) 到 (18251,72,17102)，3宽 x 3深 x 2高。
-        spawnOrReplaceInteractionArea(
-            level,
-            WIZARD_TOWER_RETURN_OVERWORLD_BASE,
-            2,       // heightBlocks
-            3,       // xBlocks
-            3,       // zBlocks
-            TAG_PORTAL_MARKER_WIZARD_TOWER_RETURN_OVERWORLD,
-            "sdv_portal_target:wizard_tower_return_overworld"
-        );
+        // 巫师塔内部"回到主世界"：2高 x 3宽 x 3深。
+        placePortalTriggerArea(level, WIZARD_TOWER_RETURN_OVERWORLD_BASE, 2, 3, 3,
+            TAG_PORTAL_MARKER_WIZARD_TOWER_RETURN_OVERWORLD, "sdv_portal_target:wizard_tower_return_overworld");
 
-        // ---- 矿井室外入口：(-287,-13,314) 到 (-284,-11,314)，4宽 x 1深 x 3高 ----
-        spawnOrReplaceInteractionArea(
-            level,
-            MINE_OUTDOOR_ENTRY_POS,
-            3,       // heightBlocks
-            4,       // xBlocks
-            1,       // zBlocks
-            TAG_PORTAL_MARKER_MINE_OUTSIDE,
-            "sdv_portal_target:mine_entrance"
-        );
+        // 矿井室外入口：3高 x 4宽 x 1深。
+        placePortalTriggerArea(level, MINE_OUTDOOR_ENTRY_POS, 3, 4, 1,
+            TAG_PORTAL_MARKER_MINE_OUTSIDE, "sdv_portal_target:mine_entrance");
 
-        // ---- 社区中心室外入口：(-191,-9,141) 到 (-189,-8,141)，3宽 x 2高 ----
-        spawnOrReplaceInteractionArea(
-            level,
-            CC_OUTDOOR_INTERACTION_BASE,
-            3,       // widthBlocksX
-            2,       // heightBlocks
-            TAG_PORTAL_MARKER_CC_OUTSIDE,
-            "sdv_portal_target:community_center_enter"
-        );
+        // 社区中心室外入口：2高 x 3宽。
+        placePortalTriggerArea(level, CC_OUTDOOR_INTERACTION_BASE, 2, 3, 1,
+            TAG_PORTAL_MARKER_CC_OUTSIDE, "sdv_portal_target:community_center_enter");
 
-        // 社区中心室内出口：相对偏移 (17,1,37) 起，1宽 x 2深 x 2高 → (18833,70,18853)~(18833,71,18854)
-        BlockPos ccIndoorExitPortal = CC_ORIGIN.offset(CC_INDOOR_EXIT_PORTAL_OFFSET);
-        spawnOrReplaceInteractionArea(
-            level,
-            ccIndoorExitPortal,
-            2,       // heightBlocks
-            1,       // xBlocks
-            2,       // zBlocks
-            TAG_PORTAL_MARKER_CC_INSIDE,
-            "sdv_portal_target:community_center_exit"
-        );
+        // CC 室内出口由 PlayerInteriorAllocator 在每位玩家的 CC 实例中动态放置
+
+        // 温室室内出口由 PlayerInteriorAllocator 在每位玩家的温室实例中动态放置
+
+        // 温室室外入口：仅在温室修复后才放置（由 GreenhouseManager.repair() 调用 spawnGreenhouseOutdoorPortal）
     }
 
-    private static void spawnOrReplaceInteractionArea(ServerLevel level,
-                                                      BlockPos basePos,
-                                                      int widthBlocksX,
-                                                      int heightBlocks,
-                                                      String markerTag,
-                                                      String targetTag) {
-        spawnOrReplaceInteractionArea(level, basePos, heightBlocks, widthBlocksX, 1, markerTag, targetTag);
-    }
+    /**
+     * 版本升级时为老存档的农场、温室、农场入口屏障补放 PortalTriggerBlock。
+     * <p>
+     * 老存档中这些区域使用 Interaction 实体，升级后实体被
+     * {@link com.stardew.craft.event.InteriorSubspaceLifecycleEvents#onEntityJoinLevel} 拦截取消加载，
+     * 此方法负责在对应位置补放方块，确保传送门可用。
+     */
+    private static void migrateFarmAndGreenhousePortals(ServerLevel level) {
+        // ── 1. 农场入口屏障：重置 barriersPlaced 让其重新放置 ──
+        com.stardew.craft.farm.FarmEntryBarrierManager barrierMgr =
+                com.stardew.craft.farm.FarmEntryBarrierManager.get(level);
+        barrierMgr.resetForMigration();
+        barrierMgr.ensureBarriersPlaced(level);
 
-    private static void spawnOrReplaceInteractionArea(ServerLevel level,
-                                                      BlockPos basePos,
-                                                      int heightBlocks,
-                                                      int xBlocks,
-                                                      int zBlocks,
-                                                      String markerTag,
-                                                      String targetTag) {
-        AABB searchBox = new AABB(basePos).inflate(6.0D);
-        int removed = 0;
-        for (Interaction interaction : level.getEntitiesOfClass(Interaction.class, searchBox, e -> e.getTags().contains(markerTag))) {
-            interaction.discard();
-            removed++;
+        // ── 2. 所有已初始化农场的出口传送门 ──
+        com.stardew.craft.farm.FarmInstanceRegistry registry =
+                com.stardew.craft.farm.FarmInstanceRegistry.get();
+        int farmPortals = 0;
+        for (com.stardew.craft.farm.FarmInstance farm : registry.getAllFarms()) {
+            if (!farm.isInitialized()) continue;
+            com.stardew.craft.farm.FarmType.FarmLayout layout = farm.getFarmType().getLayout();
+            if (layout == null) continue;
+
+            BlockPos origin = farm.getOrigin();
+
+            // 南出口
+            placeExitRegion(level, origin, layout.entrySouth(),
+                    "sdv_portal_target:farm_exit_south", "sdv_portal_marker:farm_exit");
+            // 东出口
+            placeExitRegion(level, origin, layout.entryEast(),
+                    "sdv_portal_target:farm_exit_east", "sdv_portal_marker:farm_exit");
+            // 西出口
+            placeExitRegion(level, origin, layout.entryWest(),
+                    "sdv_portal_target:farm_exit_west", "sdv_portal_marker:farm_exit");
+            farmPortals++;
         }
 
-        int spawned = 0;
+        // ── 3. 已修复温室的室外入口传送门 ──
+        com.stardew.craft.greenhouse.GreenhouseManager ghMgr =
+                com.stardew.craft.greenhouse.GreenhouseManager.get(level);
+        int ghPortals = 0;
+        for (com.stardew.craft.farm.FarmInstance farm : registry.getAllFarms()) {
+            if (!farm.isInitialized()) continue;
+            if (!ghMgr.isRepairedForPlayer(farm.getOwnerUUID())) continue;
+
+            // 温室入口位置 = 农场温室位置 + (8,0,0)（CW90 旋转后的门口偏移）
+            BlockPos ghPos = farm.getGreenhousePos();
+            BlockPos portalPos = ghPos.offset(8, 0, 0);
+            spawnGreenhouseOutdoorPortalAt(level, portalPos);
+            ghPortals++;
+        }
+
+        StardewCraft.LOGGER.info("[PORTAL_MIGRATION] Migrated portals: {} farm exit sets, {} greenhouse outdoor portals",
+                farmPortals, ghPortals);
+    }
+
+    /**
+     * 为单个农场出口方向放置 PortalTriggerBlock 区域。
+     * 逻辑与 FarmInstanceInitializer.spawnExitEntityRegion 一致。
+     */
+    private static void placeExitRegion(ServerLevel level, BlockPos origin,
+                                         com.stardew.craft.farm.FarmType.EntryData entry,
+                                         String targetTag, String markerTag) {
+        BlockPos min = origin.offset(entry.exitMin());
+        BlockPos max = origin.offset(entry.exitMax());
+
+        int minX = Math.min(min.getX(), max.getX());
+        int maxX = Math.max(min.getX(), max.getX());
+        int minY = Math.min(min.getY(), max.getY());
+        int maxY = Math.max(min.getY(), max.getY());
+        int minZ = Math.min(min.getZ(), max.getZ());
+        int maxZ = Math.max(min.getZ(), max.getZ());
+
+        int xBlocks = maxX - minX + 1;
+        int yBlocks = maxY - minY + 1;
+        int zBlocks = maxZ - minZ + 1;
+
+        placePortalTriggerArea(level, new BlockPos(minX, minY, minZ),
+                yBlocks, xBlocks, zBlocks, markerTag, targetTag);
+    }
+
+    /**
+     * 由 PlayerInteriorAllocator 等调用：在指定位置放置 PortalTriggerBlock 区域。
+     */
+    static void spawnInteractionArea(ServerLevel level, BlockPos basePos,
+                                     int heightBlocks, int xBlocks, int zBlocks,
+                                     String markerTag, String targetTag) {
+        placePortalTriggerArea(level, basePos, heightBlocks, xBlocks, zBlocks, markerTag, targetTag);
+    }
+
+    /**
+     * 在指定区域放置 PortalTriggerBlock（替代旧版 Interaction 实体）。
+     * <p>
+     * 如果目标区块尚未加载，会先 force-load 并延迟到下一 tick 重试，
+     * 放置完成后自动释放 force-load，确保不阻塞主线程。
+     * <p>
+     * targetTag 格式："sdv_portal_target:xxx" — 自动提取 "xxx" 作为 BlockEntity 的 targetId。
+     */
+    public static void placePortalTriggerArea(ServerLevel level,
+                                               BlockPos basePos,
+                                               int heightBlocks,
+                                               int xBlocks,
+                                               int zBlocks,
+                                               String markerTag,
+                                               String targetTag) {
+        // ── 区块预加载检查 ──
+        java.util.Set<Long> neededChunks = new java.util.HashSet<>();
+        for (int dx = 0; dx < xBlocks; dx++) {
+            for (int dz = 0; dz < zBlocks; dz++) {
+                BlockPos pos = basePos.offset(dx, 0, dz);
+                neededChunks.add(ChunkPos.asLong(pos.getX() >> 4, pos.getZ() >> 4));
+            }
+        }
+
+        boolean allLoaded = true;
+        for (long chunkKey : neededChunks) {
+            int cx = ChunkPos.getX(chunkKey);
+            int cz = ChunkPos.getZ(chunkKey);
+            if (level.getChunkSource().getChunkNow(cx, cz) == null) {
+                allLoaded = false;
+                level.setChunkForced(cx, cz, true);
+            }
+        }
+        if (!allLoaded) {
+            // 区块尚未加载，延迟到下一 tick 重试
+            level.getServer().tell(new net.minecraft.server.TickTask(
+                level.getServer().getTickCount() + 1,
+                () -> placePortalTriggerArea(level, basePos, heightBlocks, xBlocks, zBlocks, markerTag, targetTag)
+            ));
+            StardewCraft.LOGGER.info("[INTERIOR] Deferred portal trigger '{}' at {} — waiting for chunks",
+                    markerTag, basePos);
+            return;
+        }
+
+        // 释放 force-load（方块是持久化数据，放完即可释放）
+        for (long chunkKey : neededChunks) {
+            int cx = ChunkPos.getX(chunkKey);
+            int cz = ChunkPos.getZ(chunkKey);
+            level.setChunkForced(cx, cz, false);
+        }
+
+        // ── 放置方块 ──
+        String targetId = targetTag;
+        if (targetTag.startsWith("sdv_portal_target:")) {
+            targetId = targetTag.substring("sdv_portal_target:".length());
+        }
+
+        int placed = 0;
         for (int dx = 0; dx < xBlocks; dx++) {
             for (int dz = 0; dz < zBlocks; dz++) {
                 for (int dy = 0; dy < heightBlocks; dy++) {
                     BlockPos pos = basePos.offset(dx, dy, dz);
-                    level.getChunk(pos.getX() >> 4, pos.getZ() >> 4);
-                    Entity entity = EntityType.INTERACTION.create(level);
-                    if (!(entity instanceof Interaction interaction)) {
-                        StardewCraft.LOGGER.warn("[INTERIOR] Failed to create interaction entity at {}", pos);
-                        continue;
+                    level.setBlock(pos,
+                            com.stardew.craft.block.ModBlocks.PORTAL_TRIGGER.get().defaultBlockState(),
+                            net.minecraft.world.level.block.Block.UPDATE_ALL);
+                    if (level.getBlockEntity(pos) instanceof
+                            com.stardew.craft.blockentity.PortalTriggerBlockEntity be) {
+                        be.configure(targetId, markerTag);
                     }
-
-                    interaction.moveTo(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D, 0.0F, 0.0F);
-                    interaction.addTag(markerTag);
-                    interaction.addTag(targetTag);
-                    level.addFreshEntity(interaction);
-                    spawned++;
+                    placed++;
                 }
             }
         }
-        StardewCraft.LOGGER.info("[INTERIOR] Interaction area '{}': base={}, x={} z={} h={}, removed={}, spawned={}",
-                markerTag, basePos, xBlocks, zBlocks, heightBlocks, removed, spawned);
+        StardewCraft.LOGGER.info("[INTERIOR] Portal trigger area '{}': base={}, x={} z={} h={}, placed={}",
+                markerTag, basePos, xBlocks, zBlocks, heightBlocks, placed);
+    }
+
+    /**
+     * 在温室修复后，在农场维度放置室外入口交互实体。
+     * 由 GreenhouseManager.repair() 调用。
+     */
+    public static void spawnGreenhouseOutdoorPortal(ServerLevel level) {
+        spawnGreenhouseOutdoorPortalAt(level, com.stardew.craft.greenhouse.GreenhouseManager.OUTDOOR_INTERACTION_BASE);
+    }
+
+    /**
+     * 在指定位置放置温室室外入口传送触发方块（用于多人农场每玩家温室）。
+     * @param pos 温室外观的入口传送触发方块位置
+     */
+    public static void spawnGreenhouseOutdoorPortalAt(ServerLevel level, BlockPos pos) {
+        placePortalTriggerArea(
+            level,
+            pos,
+            2,       // heightBlocks
+            1,       // xBlocks
+            1,       // zBlocks
+            TAG_PORTAL_MARKER_GREENHOUSE_OUTSIDE,
+            "sdv_portal_target:greenhouse_enter"
+        );
+        StardewCraft.LOGGER.info("[INTERIOR] Greenhouse outdoor portal placed at {}", pos);
     }
 
     private static final class InteriorSubspaceSavedData extends SavedData {

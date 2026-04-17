@@ -6,11 +6,11 @@
 
 | 物品 | 售价 | 能量 | 生命 | 刷新区域 | 生成概率 |
 |------|------|------|------|---------|---------|
-| 野山葵 | 50g | 13 | 5 | 森林 90%、山地 50% | 高 |
-| 黄水仙 | 30g | — | — | 城镇 90% | 高 |
-| 韭葱 | 60g | 40 | 18 | 山地 70% | 中 |
-| 蒲公英 | 40g | 25 | 11 | 森林 90% | 高 |
-| 大葱 | 8g | 13 | 5 | 不自然刷新 | — |
+| <img src="/img/forage/wild_horseradish.png" class="item-icon"> [野山葵](#野山葵-wild-horseradish) | 50g | 13 | 5 | 森林 90%、山地 50% | 高 |
+| <img src="/img/forage/daffodil.png" class="item-icon"> [黄水仙](#黄水仙-daffodil) | 30g | — | — | 城镇 90% | 高 |
+| <img src="/img/forage/leek.png" class="item-icon"> [韭葱](#韭葱-leek) | 60g | 40 | 18 | 山地 70% | 中 |
+| <img src="/img/forage/dandelion.png" class="item-icon"> [蒲公英](#蒲公英-dandelion) | 40g | 25 | 11 | 森林 90% | 高 |
+| <img src="/img/forage/spring_onion.png" class="item-icon"> [大葱](#大葱-spring-onion) | 8g | 13 | 5 | 不自然刷新 | — |
 
 ---
 

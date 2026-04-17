@@ -27,7 +27,7 @@ public class ShopDebugCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
             Commands.literal("stardew")
-                .requires(source -> source.hasPermission(0))
+                .requires(source -> source.hasPermission(2))
                 .then(Commands.literal("shop")
                     .then(Commands.argument("shopId", StringArgumentType.word())
                         .suggests((ctx, builder) ->

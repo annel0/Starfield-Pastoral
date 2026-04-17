@@ -116,7 +116,9 @@ public final class NpcSystem {
         }
 
         if (event.getLevel() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
-            NpcSpawnManager.onNpcJoin(serverLevel, npc);
+            if (NpcSpawnManager.onNpcJoin(serverLevel, npc)) {
+                event.setCanceled(true);
+            }
         }
     }
 }

@@ -25,6 +25,7 @@ import java.util.Map;
  * Ages artisan goods to higher quality over time.
  */
 public class CaskBlockEntity extends BlockEntity implements UtilityAutomationAccess {
+    private static final int EFFECTIVE_MINUTES_PER_DAY = 1260;
     private static final float DAYS_NORMAL = 56f;
     private static final float DAYS_SILVER = 42f;
     private static final float DAYS_GOLD = 28f;
@@ -134,8 +135,11 @@ public class CaskBlockEntity extends BlockEntity implements UtilityAutomationAcc
     public RemainingTime getRemainingTime() {
         float remainingDays = getRemainingDaysToNextQuality();
         int days = (int) Math.floor(remainingDays);
-        int hours = (int) Math.floor((remainingDays - days) * 24f);
-        int minutes = (int) Math.floor((remainingDays - days) * 24f * StardewTimeManager.MINUTES_PER_HOUR) % StardewTimeManager.MINUTES_PER_HOUR;
+        // Stardew day = 21 effective hours (6:00-27:00 = 1260 minutes)
+        float effectiveHoursPerDay = (float) EFFECTIVE_MINUTES_PER_DAY / StardewTimeManager.MINUTES_PER_HOUR;
+        float fractionalHours = (remainingDays - days) * effectiveHoursPerDay;
+        int hours = (int) Math.floor(fractionalHours);
+        int minutes = (int) Math.floor((fractionalHours - hours) * StardewTimeManager.MINUTES_PER_HOUR);
         return new RemainingTime(days, hours, minutes);
     }
 

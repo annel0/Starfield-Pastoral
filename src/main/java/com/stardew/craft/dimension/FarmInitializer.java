@@ -74,6 +74,9 @@ public class FarmInitializer {
     public static void ensureInitialized(ServerLevel level) {
         if (level.dimension() != ModDimensions.STARDEW_VALLEY) return;
 
+        // 温室：独立于农场初始化，已有存档也需放置
+        ensureGreenhousePlaced(level);
+
         FarmInitData data = level.getDataStorage().computeIfAbsent(
                 FarmInitData.factory(), DATA_ID);
 
@@ -91,6 +94,16 @@ public class FarmInitializer {
         } else {
             StardewCraft.LOGGER.warn("[FARM_INIT] No debris placed — will retry on next entry");
         }
+    }
+
+    /**
+     * 确保温室已放置。独立于农场初始化，已有存档新加模组后也会执行。
+     * 如果 Pantry 已完成，放置修复版；否则放置破损版。
+     */
+    private static void ensureGreenhousePlaced(ServerLevel level) {
+        com.stardew.craft.greenhouse.GreenhouseManager greenhouse =
+            com.stardew.craft.greenhouse.GreenhouseManager.get(level);
+        greenhouse.ensurePlaced(level);
     }
 
     /**
@@ -256,6 +269,12 @@ public class FarmInitializer {
         }
         // 出货箱附近
         if (Math.abs(x - SHIPPING_BIN_POS.getX()) <= 2 && Math.abs(z - SHIPPING_BIN_POS.getZ()) <= 2) {
+            return true;
+        }
+        // 温室区域（含 2 格缓冲）
+        BlockPos ghOrigin = com.stardew.craft.greenhouse.GreenhouseManager.FARM_ORIGIN;
+        if (x >= ghOrigin.getX() - 2 && x <= ghOrigin.getX() + 19
+         && z >= ghOrigin.getZ() - 2 && z <= ghOrigin.getZ() + 19) {
             return true;
         }
         return false;

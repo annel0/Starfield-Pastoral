@@ -141,6 +141,9 @@ public class ModClientEvents {
                 } else if ("stardewcraft.type.boots".equals(typeKey)) {
                     // 靴子：深绿色
                     typeColor = net.minecraft.ChatFormatting.DARK_GREEN;
+                } else if ("stardewcraft.type.magic".equals(typeKey)) {
+                    // 魔法：紫色
+                    typeColor = net.minecraft.ChatFormatting.LIGHT_PURPLE;
                 }
 
                 customLines.add(Component.translatable("stardewcraft.tooltip.type_prefix") // Type label in white, non-bold.
@@ -1055,6 +1058,15 @@ public class ModClientEvents {
     private static boolean isMuseumDonated(ItemStack stack) {
         ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
         return ClientMuseumDonationCache.isDonated(id.toString());
+    }
+
+    /**
+     * 客户端断开连接时清理 per-player NPC visibility 状态
+     */
+    @SubscribeEvent
+    public static void onPlayerLogout(net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedOutEvent event) {
+        com.stardew.craft.network.payload.ClientNpcVisibilityState.clear();
+        com.stardew.craft.client.render.ClientStarterChestState.clear();
     }
 }
 

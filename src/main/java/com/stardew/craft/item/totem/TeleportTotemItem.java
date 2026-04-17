@@ -58,7 +58,7 @@ public class TeleportTotemItem extends Item implements IStardewItem {
 
     @Override
     public String getItemTypeKey() {
-        return "stardewcraft.type.misc";
+        return "stardewcraft.type.magic";
     }
 
     /* ---------- 绑定 ---------- */
@@ -235,7 +235,7 @@ public class TeleportTotemItem extends Item implements IStardewItem {
         int boundId = getBoundPoleId(stack);
         ServerLevel stardewLevel = player.server.getLevel(ModDimensions.STARDEW_VALLEY);
         if (stardewLevel == null) {
-            return getDefaultPosition();
+            return getDefaultPosition(player);
         }
 
         TotemPoleTracker tracker = TotemPoleTracker.get(stardewLevel);
@@ -248,6 +248,15 @@ public class TeleportTotemItem extends Item implements IStardewItem {
             }
         }
 
+        // FARM 类型未绑定时 → 优先使用玩家自己农场的图腾柱位置
+        if (totemType == TotemType.FARM) {
+            com.stardew.craft.farm.FarmInstance farm =
+                    com.stardew.craft.farm.FarmInstanceRegistry.get().getFarm(player.getUUID());
+            if (farm != null) {
+                return farm.getFarmTotemPos();
+            }
+        }
+
         // 未绑定或柱子不存在 → 使用系统柱
         TotemPoleTracker.PoleEntry defaultPole = tracker.getDefaultPole(totemType);
         if (defaultPole != null) {
@@ -255,7 +264,7 @@ public class TeleportTotemItem extends Item implements IStardewItem {
         }
 
         // 终极 fallback
-        return getDefaultPosition();
+        return getDefaultPosition(player);
     }
 
     /** 优先传送到图腾柱周围可站立的位置，而不是柱子正上方。 */
@@ -266,7 +275,7 @@ public class TeleportTotemItem extends Item implements IStardewItem {
             return nearby;
         }
 
-        BlockPos fallback = findNearbyStandablePosition(stardewLevel, getDefaultPosition(), true);
+        BlockPos fallback = findNearbyStandablePosition(stardewLevel, getDefaultPosition(player), true);
         if (fallback != null) {
             return fallback;
         }
@@ -324,7 +333,14 @@ public class TeleportTotemItem extends Item implements IStardewItem {
     }
 
     /** SDV 原版默认传送位置（作为 fallback） */
-    private BlockPos getDefaultPosition() {
+    private BlockPos getDefaultPosition(ServerPlayer player) {
+        if (totemType == TotemType.FARM) {
+            com.stardew.craft.farm.FarmInstance farm =
+                    com.stardew.craft.farm.FarmInstanceRegistry.get().getFarm(player.getUUID());
+            if (farm != null) {
+                return farm.getFarmTotemPos();
+            }
+        }
         return switch (totemType) {
             case FARM -> new BlockPos(135, -12, 136);
             case MOUNTAIN -> new BlockPos(-290, -14, 256);

@@ -17,11 +17,17 @@ public class WeaponTooltipBuilder {
     @SuppressWarnings("unused")
     private final ItemStack stack;
     private final WeaponData data;
+    private final boolean expanded;
     private final List<Component> lines = new ArrayList<>();
     
     public WeaponTooltipBuilder(ItemStack stack, WeaponData data) {
+        this(stack, data, false);
+    }
+
+    public WeaponTooltipBuilder(ItemStack stack, WeaponData data, boolean expanded) {
         this.stack = stack;
         this.data = data;
+        this.expanded = expanded;
     }
     
     /**
@@ -30,17 +36,30 @@ public class WeaponTooltipBuilder {
     public List<Component> build() {
         lines.clear();
         
-        addEmptyLine();
-        addWeaponLevel();
-        addAttributes();
-        addEmptyLine();
-        addSeparator();
-        addEmptyLine();
-        addSkills();
-        addEmptyLine();
-        addSeparator();
+        if (expanded) {
+            // Shift held: show only skill details
+            if (hasSkills()) {
+                addSkills();
+            }
+        } else {
+            // Default: attributes + compact skill summary
+            addEmptyLine();
+            addWeaponLevel();
+            addAttributes();
+            addEmptyLine();
+            addSeparator();
+            addSkillsCompact();
+            if (hasSkills()) {
+                lines.add(Component.translatable("stardewcraft.weapon.tooltip.hold_shift")
+                        .withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC));
+            }
+        }
         
         return lines;
+    }
+
+    private boolean hasSkills() {
+        return data.getSkill1() != null || data.getSkill2() != null;
     }
     
     /**
@@ -165,6 +184,60 @@ public class WeaponTooltipBuilder {
             lines.add(buildSkillTitle(skill2, majorKeyLabel));
             addSkillDetails(skill2);
         }
+    }
+
+    /**
+     * 紧凑版技能信息（默认显示）
+     * 每个技能一行：图标 + 名称 [按键] — 伤害% · CD秒
+     */
+    @SuppressWarnings("null")
+    private void addSkillsCompact() {
+        WeaponSkillData skill1 = data.getSkill1();
+        WeaponSkillData skill2 = data.getSkill2();
+        if (skill1 == null && skill2 == null) return;
+
+        String minorKeyLabel = getKeyLabel(true);
+        String majorKeyLabel = getKeyLabel(false);
+
+        if (skill1 != null) {
+            lines.add(buildCompactSkillLine(skill1, minorKeyLabel));
+        }
+        if (skill2 != null) {
+            lines.add(buildCompactSkillLine(skill2, majorKeyLabel));
+        }
+    }
+
+    @SuppressWarnings("null")
+    private MutableComponent buildCompactSkillLine(WeaponSkillData skill, String keyLabel) {
+        MutableComponent line = Component.empty();
+
+        // Icon
+        if (skill.getIconChar() != null) {
+            line.append(WeaponIcons.icon(skill.getIconChar()));
+        } else {
+            line.append(WeaponIcons.icon(WeaponIcons.ICON_SKILL));
+        }
+        line.append(Component.literal(" "));
+
+        // Name [key]
+        line.append(Component.translatable(skill.getNameKey()).withStyle(ChatFormatting.YELLOW));
+        line.append(Component.translatable("stardewcraft.weapon.tooltip.trigger_format",
+                Component.literal(keyLabel)).withStyle(ChatFormatting.DARK_GRAY));
+
+        // Damage%
+        if (skill.getDamagePercent() > 0) {
+            line.append(Component.literal(" ").withStyle(ChatFormatting.DARK_GRAY));
+            line.append(Component.translatable("stardewcraft.weapon.tooltip.skill_damage", skill.getDamagePercent())
+                    .withStyle(ChatFormatting.AQUA));
+        }
+
+        // Cooldown
+        line.append(Component.literal(" ").withStyle(ChatFormatting.DARK_GRAY));
+        line.append(WeaponIcons.icon(WeaponIcons.ICON_COOLDOWN));
+        line.append(Component.translatable("stardewcraft.weapon.tooltip.cooldown_seconds", skill.getCooldown())
+                .withStyle(ChatFormatting.BLUE));
+
+        return line;
     }
     
     /**

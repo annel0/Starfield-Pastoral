@@ -55,6 +55,11 @@ public final class JunimoSpawner {
      */
     @Nullable
     public static JunimoEntity spawnBundleCarrier(ServerLevel level, BlockPos noteBlockPos, int areaId, int bundleColorIndex) {
+        return spawnBundleCarrier(level, noteBlockPos, areaId, bundleColorIndex, null);
+    }
+
+    @Nullable
+    public static JunimoEntity spawnBundleCarrier(ServerLevel level, BlockPos noteBlockPos, int areaId, int bundleColorIndex, BlockPos ccOrigin) {
         JunimoEntity junimo = new JunimoEntity(ModEntities.JUNIMO.get(), level);
         junimo.setJunimoColor(getColorForArea(areaId));
         junimo.setHoldingType(JunimoEntity.HOLDING_BUNDLE);
@@ -69,7 +74,8 @@ public final class JunimoSpawner {
         level.playSound(null, spawnPos, ModSounds.TINY_WHIP.get(), SoundSource.NEUTRAL, 1.0f, 1.2f);
 
         // SDV: pathfind to Point(25, 10) = Junimo Hut entrance
-        BlockPos hutPos = InteriorSubspaceManager.CC_ORIGIN.offset(CCAreaRegistry.JUNIMO_HUT_ENTRANCE_OFFSET);
+        BlockPos baseOrigin = ccOrigin != null ? ccOrigin : InteriorSubspaceManager.CC_ORIGIN;
+        BlockPos hutPos = baseOrigin.offset(CCAreaRegistry.JUNIMO_HUT_ENTRANCE_OFFSET);
         junimo.setTarget(hutPos, () -> {
             // SDV: junimoReachedHutToReturnBundle → playSound("Ship"), holdingBundle = false
             level.playSound(null, hutPos, ModSounds.SHIP.get(), SoundSource.NEUTRAL, 0.8f, 1.0f);
@@ -115,19 +121,27 @@ public final class JunimoSpawner {
      * @param friendly if true, Junimos follow player (canReadJunimoText); if false, they flee
      */
     public static void spawnIdleJunimos(ServerLevel level, boolean friendly) {
-        CommunityCenterSavedData data = CommunityCenterSavedData.get();
-        if (data.areAllAreasComplete()) return;
+        spawnIdleJunimos(level, friendly, null, null);
+    }
 
-        // Remove any existing idle Junimos in CC area to avoid duplicates
-        removeIdleJunimos(level);
+    /**
+     * Per-player 版本，指定玩家 UUID 和 CC 原点。
+     */
+    public static void spawnIdleJunimos(ServerLevel level, boolean friendly, java.util.UUID playerUUID, BlockPos ccOrigin) {
+        CommunityCenterSavedData data = CommunityCenterSavedData.get();
+        java.util.UUID uid = playerUUID != null ? playerUUID : new java.util.UUID(0L, 0L);
+        if (data.areAllAreasComplete(uid)) return;
+
+        // Remove any existing idle Junimos in this player's CC to avoid duplicates
+        removeIdleJunimos(level, ccOrigin);
 
         for (var entry : CCAreaRegistry.ALL_AREAS.entrySet()) {
             int areaId = entry.getKey();
-            if (!CommunityCenterProgress.shouldNoteAppearInArea(areaId)) continue;
-            if (data.isAreaComplete(areaId)) continue;
+            if (!CommunityCenterProgress.shouldNoteAppearInArea(areaId, uid)) continue;
+            if (data.isAreaComplete(uid, areaId)) continue;
 
             CCAreaRegistry.AreaBounds bounds = entry.getValue();
-            BlockPos notePos = bounds.noteWorldPos();
+            BlockPos notePos = ccOrigin != null ? bounds.noteWorldPos(ccOrigin) : bounds.noteWorldPos();
             // SDV: new Junimo(new Vector2(notePos.X, notePos.Y + 2) * 64f, area)
             // In 3D: 2 blocks south (+Z) from note
             BlockPos idlePos = notePos.south(2);
@@ -155,10 +169,10 @@ public final class JunimoSpawner {
     }
 
     /**
-     * Remove all idle Junimos from the CC interior.
+     * Remove all idle Junimos from a specific CC interior.
      */
-    public static void removeIdleJunimos(ServerLevel level) {
-        BlockPos origin = InteriorSubspaceManager.CC_ORIGIN;
+    public static void removeIdleJunimos(ServerLevel level, BlockPos ccOrigin) {
+        BlockPos origin = ccOrigin != null ? ccOrigin : InteriorSubspaceManager.CC_ORIGIN;
         AABB ccBox = new AABB(
                 origin.getX(), origin.getY(), origin.getZ(),
                 origin.getX() + 23, origin.getY() + 8, origin.getZ() + 69
@@ -168,5 +182,12 @@ public final class JunimoSpawner {
         for (JunimoEntity j : existing) {
             j.discard();
         }
+    }
+
+    /**
+     * Remove all idle Junimos from the default CC interior.
+     */
+    public static void removeIdleJunimos(ServerLevel level) {
+        removeIdleJunimos(level, null);
     }
 }

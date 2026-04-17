@@ -106,17 +106,20 @@ public final class StardewMusicManager {
 
     /**
      * 客户端收到唱片机状态广播时调用。
-     * trackId 为空表示停止。
+     * trackId 为空表示停止。切换制：同一位置的旧曲目会被立即停止。
      */
     public static void setJukeboxState(BlockPos pos, String trackId) {
+        Minecraft mc = Minecraft.getInstance();
+
         // 停止该位置旧的播放
         JukeboxPlayback old = activeJukeboxes.remove(pos);
         if (old != null && old.sound() != null) {
             old.sound().stopNow();
-            Minecraft.getInstance().getSoundManager().stop(old.sound());
+            mc.getSoundManager().stop(old.sound());
         }
 
         if (trackId == null || trackId.isEmpty()) {
+            LOG.info("[StardewMusic] Jukebox at {} stopped", pos);
             return; // 停止，不创建新实例
         }
 
@@ -127,8 +130,8 @@ public final class StardewMusicManager {
 
         SoundEvent soundEvent = track.sound().get();
         StardewMusicInstance instance = new StardewMusicInstance(soundEvent, pos);
-        Minecraft.getInstance().getSoundManager().play(instance);
         activeJukeboxes.put(pos, new JukeboxPlayback(trackId, instance));
+        mc.getSoundManager().play(instance);
         LOG.info("[StardewMusic] Jukebox at {} playing: {}", pos, trackId);
     }
 
@@ -156,12 +159,19 @@ public final class StardewMusicManager {
         // 清除已停止的唱片机条目
         cleanupStoppedJukeboxes();
 
-        // 如果附近有唱片机在播放 → 抑制背景音乐
+        // 如果附近有唱片机在播放 → 立即停止背景音乐（不做渐变，避免叠加）
         if (isNearActiveJukebox(mc)) {
             if (currentMusic != null) {
-                crossfadeTo(null);
+                currentMusic.stopNow();
+                mc.getSoundManager().stop(currentMusic);
+                currentMusic = null;
+                currentTrackEvent = null;
             }
-            tickFadeOut();
+            if (fadingOut != null) {
+                fadingOut.stopNow();
+                mc.getSoundManager().stop(fadingOut);
+                fadingOut = null;
+            }
             return;
         }
 
@@ -204,13 +214,31 @@ public final class StardewMusicManager {
 
     // ────────────────────────── Jukebox helpers ──────────────────────────
 
-    /** 移除已停止播放的唱片机条目。 */
+    /** 移除已停止播放的唱片机条目，同时清理超出范围的唱片机声音。 */
     private static void cleanupStoppedJukeboxes() {
+        Minecraft mc = Minecraft.getInstance();
         Iterator<Map.Entry<BlockPos, JukeboxPlayback>> it = activeJukeboxes.entrySet().iterator();
         while (it.hasNext()) {
-            JukeboxPlayback pb = it.next().getValue();
+            Map.Entry<BlockPos, JukeboxPlayback> entry = it.next();
+            JukeboxPlayback pb = entry.getValue();
             if (pb.sound() != null && pb.sound().isStopped()) {
+                mc.getSoundManager().stop(pb.sound());
                 it.remove();
+                continue;
+            }
+            // 超出最大范围 → 主动停止声音并移除
+            if (mc.player != null) {
+                BlockPos pos = entry.getKey();
+                double dx = pos.getX() + 0.5 - mc.player.getX();
+                double dy = pos.getY() + 0.5 - mc.player.getY();
+                double dz = pos.getZ() + 0.5 - mc.player.getZ();
+                if (dx * dx + dy * dy + dz * dz > JUKEBOX_RANGE_SQ) {
+                    if (pb.sound() != null) {
+                        pb.sound().stopNow();
+                        mc.getSoundManager().stop(pb.sound());
+                    }
+                    it.remove();
+                }
             }
         }
     }
@@ -455,7 +483,7 @@ public final class StardewMusicManager {
             this.x = pos.getX() + 0.5;
             this.y = pos.getY() + 0.5;
             this.z = pos.getZ() + 0.5;
-            this.attenuation = Attenuation.LINEAR;
+            this.attenuation = Attenuation.NONE;
         }
 
         void setFadeVolume(float fade) {
@@ -468,6 +496,22 @@ public final class StardewMusicManager {
 
         @Override
         public float getVolume() {
+            // 唱片机模式：根据与玩家距离衰减音量
+            if (!this.relative) {
+                Minecraft mc = Minecraft.getInstance();
+                if (mc.player != null) {
+                    double dx = this.x - mc.player.getX();
+                    double dy = this.y - mc.player.getY();
+                    double dz = this.z - mc.player.getZ();
+                    double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                    double maxDist = 64.0;
+                    if (dist >= maxDist) {
+                        return 0.0f;
+                    }
+                    float distFactor = 1.0f - (float)(dist / maxDist);
+                    return this.volume * this.fadeVolume * distFactor;
+                }
+            }
             return this.volume * this.fadeVolume;
         }
 
@@ -478,7 +522,18 @@ public final class StardewMusicManager {
 
         @Override
         public void tick() {
-            // Volume fade is handled via getVolume() override
+            // 唱片机模式：超出范围自动停止
+            if (!this.relative) {
+                Minecraft mc = Minecraft.getInstance();
+                if (mc.player != null) {
+                    double dx = this.x - mc.player.getX();
+                    double dy = this.y - mc.player.getY();
+                    double dz = this.z - mc.player.getZ();
+                    if (dx * dx + dy * dy + dz * dz > 65.0 * 65.0) {
+                        this.stopped = true;
+                    }
+                }
+            }
         }
     }
 }

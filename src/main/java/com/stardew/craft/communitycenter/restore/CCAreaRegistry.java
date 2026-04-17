@@ -46,9 +46,14 @@ public final class CCAreaRegistry {
             return boundsMin != null && boundsMax != null;
         }
 
-        /** 获取 JunimoNote 在服务端远坐标系的绝对位置 */
+        /** 获取 JunimoNote 在服务端远坐标系的绝对位置 (默认使用全局 CC_ORIGIN) */
         public BlockPos noteWorldPos() {
             return InteriorSubspaceManager.CC_ORIGIN.offset(noteOffset);
+        }
+
+        /** 获取 JunimoNote 在指定 CC 原点下的绝对位置 */
+        public BlockPos noteWorldPos(BlockPos ccOrigin) {
+            return ccOrigin.offset(noteOffset);
         }
 
         /** 获取区域最小角在服务端远坐标系的绝对位置 */
@@ -57,10 +62,22 @@ public final class CCAreaRegistry {
             return boundsMin == null ? null : InteriorSubspaceManager.CC_ORIGIN.offset(boundsMin);
         }
 
+        /** 获取区域最小角在指定 CC 原点下的绝对位置 */
+        @Nullable
+        public BlockPos boundsMinWorld(BlockPos ccOrigin) {
+            return boundsMin == null ? null : ccOrigin.offset(boundsMin);
+        }
+
         /** 获取区域最大角在服务端远坐标系的绝对位置 */
         @Nullable
         public BlockPos boundsMaxWorld() {
             return boundsMax == null ? null : InteriorSubspaceManager.CC_ORIGIN.offset(boundsMax);
+        }
+
+        /** 获取区域最大角在指定 CC 原点下的绝对位置 */
+        @Nullable
+        public BlockPos boundsMaxWorld(BlockPos ccOrigin) {
+            return boundsMax == null ? null : ccOrigin.offset(boundsMax);
         }
     }
 

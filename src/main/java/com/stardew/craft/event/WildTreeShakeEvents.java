@@ -55,6 +55,15 @@ public final class WildTreeShakeEvents {
 			return;
 		}
 
+		// 农场保护：在别人农场上无权操作
+		if (level.dimension() == com.stardew.craft.core.ModDimensions.STARDEW_VALLEY
+				&& !player.isCreative()
+				&& !FarmAreaProtectionEvents.canModifyAt(player, trunk0Pos)) {
+			player.displayClientMessage(
+					net.minecraft.network.chat.Component.translatable("stardewcraft.farm.build_farm_only"), true);
+			return;
+		}
+
 		// 记录/确保跟踪
 		WildTreeSeedManager mgr = WildTreeSeedManager.get(level);
 		mgr.trackTree(level, trunk0Pos, def);

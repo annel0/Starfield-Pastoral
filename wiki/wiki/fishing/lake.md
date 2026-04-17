@@ -6,15 +6,15 @@
 
 | 鱼 | 售价 | 难度 | 行为 | 概率 | 季节 | 时间 | 最低等级 |
 |----|------|------|------|------|------|------|---------|
-| <img src="/img/fish/carp.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> 鲤鱼 | 30g | 15 | 混合 | 0.40 | 全季 | 全天 | 0 |
-| <img src="/img/fish/chub.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> 鲢鱼 | 30g | 35 | 混合 | 0.40 | 全季 | 全天 | 0 |
-| <img src="/img/fish/perch.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> 河鲈 | 30g | 35 | 平滑 | 0.35 | 冬 | 全天 | 0 |
-| <img src="/img/fish/bullhead.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> 大头鱼 | 45g | 46 | 冲刺 | 0.40 | 全季 | 全天 | 0 |
-| <img src="/img/fish/rainbow_trout.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> 虹鳟鱼 | 65g | 45 | 混合 | 0.30 | 夏 | 6:00-19:00 | 0 |
-| <img src="/img/fish/walleye.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> 大眼鱼 | 45g | 45 | 平滑 | 0.25 | 秋、冬 | 全天 | 0 |
-| <img src="/img/fish/largemouth_bass.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> 大嘴鲈鱼 | 80g | 50 | 混合 | 0.25 | 全季 | 全天 | 0 |
-| <img src="/img/fish/midnight_carp.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> 午夜鲤鱼 | 100g | 55 | 混合 | 0.20 | 全季 | 22:00-2:00 | 0 |
-| <img src="/img/fish/sturgeon.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> 鲟鱼 | 200g | 78 | 混合 | 0.10 | 夏、冬 | 全天 | 6 |
+| <img src="/img/fish/carp.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> <span id="鲤鱼-carp-lake"></span>[鲤鱼](#鲤鱼-carp-lake) | 30g | 15 | 混合 | 0.40 | 全季 | 全天 | 0 |
+| <img src="/img/fish/chub.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> <span id="鲢鱼-chub-lake"></span>[鲢鱼](#鲢鱼-chub-lake) | 30g | 35 | 混合 | 0.40 | 全季 | 全天 | 0 |
+| <img src="/img/fish/perch.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> <span id="河鲈-perch-lake"></span>[河鲈](#河鲈-perch-lake) | 30g | 35 | 平滑 | 0.35 | 冬 | 全天 | 0 |
+| <img src="/img/fish/bullhead.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> <span id="大头鱼-bullhead"></span>[大头鱼](#大头鱼-bullhead) | 45g | 46 | 冲刺 | 0.40 | 全季 | 全天 | 0 |
+| <img src="/img/fish/rainbow_trout.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> <span id="虹鳟鱼-rainbow-trout-lake"></span>[虹鳟鱼](#虹鳟鱼-rainbow-trout-lake) | 65g | 45 | 混合 | 0.30 | 夏 | 6:00-19:00 | 0 |
+| <img src="/img/fish/walleye.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> <span id="大眼鱼-walleye-lake"></span>[大眼鱼](#大眼鱼-walleye-lake) | 45g | 45 | 平滑 | 0.25 | 秋、冬 | 全天 | 0 |
+| <img src="/img/fish/largemouth_bass.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> <span id="大嘴鲈鱼-largemouth-bass-lake"></span>[大嘴鲈鱼](#大嘴鲈鱼-largemouth-bass-lake) | 80g | 50 | 混合 | 0.25 | 全季 | 全天 | 0 |
+| <img src="/img/fish/midnight_carp.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> <span id="午夜鲤鱼-midnight-carp-lake"></span>[午夜鲤鱼](#午夜鲤鱼-midnight-carp-lake) | 100g | 55 | 混合 | 0.20 | 全季 | 22:00-2:00 | 0 |
+| <img src="/img/fish/sturgeon.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> <span id="鲟鱼-sturgeon-lake"></span>[鲟鱼](#鲟鱼-sturgeon-lake) | 200g | 78 | 混合 | 0.10 | 夏、冬 | 全天 | 6 |
 
 ---
 
@@ -22,8 +22,8 @@
 
 | 鱼 | 售价 | 难度 | 概率 | 季节 | 时间 | 最低等级 |
 |----|------|------|------|------|------|---------|
-| <img src="/img/fish/legend.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> **传说之鱼** | 1300g | 110 | 0.10 | 春 | 全天 | 10 |
-| <img src="/img/fish/legend_ii.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> **传说之鱼 II** | 1300g | 110 | 0.05 | 春 | 全天 | 15 |
+| <img src="/img/fish/legend.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> [**传说之鱼**](/wiki/fishing/legendary#传说之鱼-legend) | 1300g | 110 | 0.10 | 春 | 全天 | 10 |
+| <img src="/img/fish/legend_ii.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> [**传说之鱼 II**](/wiki/fishing/legendary#传说鱼二代) | 1300g | 110 | 0.05 | 春 | 全天 | 15 |
 
 ::: warning 传说鱼
 传说之鱼是全游戏最高难度（110），需钓鱼 ≥10 级才有机会出现。每个存档只能钓到一次。

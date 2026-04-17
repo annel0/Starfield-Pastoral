@@ -256,7 +256,9 @@ public class FallenOakTreeEntity extends Entity {
 		List<net.minecraft.world.item.ItemStack> out = new ArrayList<>(list.size());
 		for (int i = 0; i < list.size(); i++) {
 			CompoundTag t = list.getCompound(i);
-			out.add(net.minecraft.world.item.ItemStack.parse(level.registryAccess(), t).orElse(net.minecraft.world.item.ItemStack.EMPTY));
+			if (t.contains("id")) {
+				out.add(net.minecraft.world.item.ItemStack.parse(level.registryAccess(), t).orElse(net.minecraft.world.item.ItemStack.EMPTY));
+			}
 		}
 		return out;
 	}

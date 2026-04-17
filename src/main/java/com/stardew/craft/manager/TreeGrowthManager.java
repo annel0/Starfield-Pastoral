@@ -33,6 +33,11 @@ public class TreeGrowthManager extends SavedData {
 	private static final int STAGE1_DAY = 14;
 
 	private final Set<GlobalPos> saplingPositions = new HashSet<>();
+
+	/** 返回所有已注册树苗位置的不可变快照。 */
+	public java.util.List<GlobalPos> getAllSaplingPositions() {
+		return new java.util.ArrayList<>(saplingPositions);
+	}
 	private final Map<GlobalPos, Integer> daysGrown = new ConcurrentHashMap<>();
 
 	private boolean isProcessing = false;
@@ -111,6 +116,12 @@ public class TreeGrowthManager extends SavedData {
 					continue;
 				}
 				BlockPos pos = Objects.requireNonNull(gp.pos(), "pos");
+
+				// 多人农场优化：跳过离线玩家农场中的树苗
+				if (!com.stardew.craft.farm.FarmDailyProcessHelper.shouldProcessPosition(level, pos)) {
+					continue;
+				}
+
 				if (!level.isLoaded(pos)) {
 					continue;
 				}

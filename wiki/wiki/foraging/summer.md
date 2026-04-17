@@ -6,9 +6,9 @@
 
 | 物品 | 售价 | 能量 | 生命 | 刷新区域 | 生成概率 |
 |------|------|------|------|---------|--------|
-| 香味浆果 | 80g | 25 | 11 | 森林 60%、山地 50% | 中 |
-| 甜豌豆 | 50g | — | — | 城镇 90%、森林 90%、山地 80% | 高 |
-| 蕨菜 | 90g | 25 | 11 | 不自然刷新（秘密森林） | — |
+| <img src="/img/forage/spice_berry.png" class="item-icon"> [香味浆果](#香味浆果-spice-berry) | 80g | 25 | 11 | 森林 60%、山地 50% | 中 |
+| <img src="/img/forage/sweet_pea.png" class="item-icon"> [甜豌豆](#甜豌豆-sweet-pea) | 50g | — | — | 城镇 90%、森林 90%、山地 80% | 高 |
+| <img src="/img/forage/fiddlehead_fern.png" class="item-icon"> [蕨菜](#蕨菜-fiddlehead-fern) | 90g | 25 | 11 | 不自然刷新（秘密森林） | — |
 
 ---
 

@@ -209,9 +209,19 @@ public final class ModBlockEntities {
 				ModBlocks.MAILBOX.get()).build(null));
 
 	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MineChestBlockEntity>> MINE_CHEST =
+			BLOCK_ENTITIES.register("mine_chest", () -> BlockEntityType.Builder.of(MineChestBlockEntity::new, ModBlocks.MINE_CHEST.get()).build(null));
+
+	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<com.stardew.craft.communitycenter.block.StarPlaqueBlockEntity>> STAR_PLAQUE =
 			BLOCK_ENTITIES.register("star_plaque", () -> BlockEntityType.Builder.of(
 				com.stardew.craft.communitycenter.block.StarPlaqueBlockEntity::new,
 				ModBlocks.STAR_PLAQUE.get()).build(null));
+
+	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PortalTriggerBlockEntity>> PORTAL_TRIGGER =
+			BLOCK_ENTITIES.register("portal_trigger", () -> BlockEntityType.Builder.of(
+				PortalTriggerBlockEntity::new,
+				ModBlocks.PORTAL_TRIGGER.get()).build(null));
 
 	}

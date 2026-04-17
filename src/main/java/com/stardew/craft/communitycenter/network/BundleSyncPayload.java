@@ -120,8 +120,9 @@ public record BundleSyncPayload(
      */
     public static void sendFullSync(ServerPlayer player) {
         CommunityCenterSavedData data = CommunityCenterSavedData.get();
+        java.util.UUID uuid = player.getUUID();
 
-        Map<Integer, boolean[]> allSlots = data.getBundleSlotsView();
+        Map<Integer, boolean[]> allSlots = data.getBundleSlotsView(uuid);
         Map<Integer, boolean[]> slots = new HashMap<>();
         for (BundleDefinition def : BundleDataManager.getAllBundles()) {
             boolean[] bundleSlots = allSlots.get(def.bundleId());
@@ -132,17 +133,33 @@ public record BundleSyncPayload(
 
         boolean[] areas = new boolean[7];
         for (int i = 0; i < 7; i++) {
-            areas[i] = data.isAreaComplete(i);
+            areas[i] = data.isAreaComplete(uuid, i);
         }
 
         Map<Integer, Boolean> rewards = new HashMap<>();
         for (BundleDefinition def : BundleDataManager.getAllBundles()) {
-            if (data.isRewardAvailable(def.bundleId())) {
+            if (data.isRewardAvailable(uuid, def.bundleId())) {
                 rewards.put(def.bundleId(), true);
             }
         }
 
         boolean canRead = CCStoryFlags.canReadJunimoText(player);
+
+        // 获取该玩家的 CC 原点
+        net.minecraft.core.BlockPos ccOrigin = com.stardew.craft.interior.InteriorSubspaceManager.CC_ORIGIN;
+        if (player.level() instanceof net.minecraft.server.level.ServerLevel sl) {
+            ccOrigin = com.stardew.craft.interior.PlayerInteriorAllocator.get(sl).getCCOrigin(uuid);
+        }
+
         PacketDistributor.sendToPlayer(player, new BundleSyncPayload(slots, areas, rewards, canRead));
+
+        // 同步 CC 原点到客户端（通过 BundleClientData）
+        final net.minecraft.core.BlockPos origin = ccOrigin;
+        // 用一个额外的轻量 payload 或直接在 handle 中设置
+        // 这里直接通过在 BundleSyncPayload handle 后设置 — 需要额外的同步机制
+        // 暂时方案：让 sendFullSync 后发送一个 CcOriginPayload
+        // TODO: 可以在 BundleSyncPayload record 添加 ccOrigin 字段来优化
+        PacketDistributor.sendToPlayer(player,
+            new com.stardew.craft.communitycenter.network.CcOriginPayload(origin));
     }
 }

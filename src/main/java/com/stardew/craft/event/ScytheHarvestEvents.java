@@ -139,16 +139,31 @@ public final class ScytheHarvestEvents {
 		if (state.isAir()) {
 			return false;
 		}
+		// 农场保护
+		boolean inStardew = level.dimension() == com.stardew.craft.core.ModDimensions.STARDEW_VALLEY;
+		boolean canModify = player.isCreative() || !inStardew || FarmAreaProtectionEvents.canModifyAt(player, pos);
+		// 公共区域（小镇等）：允许砍杂草类方块，但不允许其他操作
+		boolean isPublicArea = inStardew && !player.isCreative()
+				&& com.stardew.craft.core.FarmAreaResolver.isInStardewButNotFarm(level, pos);
+
+		if (!canModify && !isPublicArea) {
+			return false;
+		}
 
 		if (state.getBlock() instanceof StardewCropBlock crop) {
+			if (!canModify) return false; // 公共区域不允许收割作物
 			return crop.tryHarvestByTool(level, pos, state, player, forceScytheHarvest);
 		}
 
 		if (state.getBlock() instanceof WildWeedsBlock) {
+			if (isPublicArea) {
+				com.stardew.craft.farm.PublicAreaBlockTracker.get().recordRemoval(pos, state);
+			}
 			return WildWeedsBlock.cutWithScythe(level, pos, player);
 		}
 
 		if (state.getBlock() instanceof PastureGrassBlock) {
+			if (!canModify) return false; // 公共区域不允许砍牧草
 			return PastureGrassBlock.cutWithScythe(level, pos, player, scythe);
 		}
 		// 原版杂草/草丛：short_grass, fern, tall_grass, large_fern, dead_bush
@@ -156,6 +171,9 @@ public final class ScytheHarvestEvents {
 		if (block == Blocks.SHORT_GRASS || block == Blocks.FERN
 				|| block == Blocks.TALL_GRASS || block == Blocks.LARGE_FERN
 				|| block instanceof TallGrassBlock || block instanceof DeadBushBlock) {
+			if (isPublicArea) {
+				com.stardew.craft.farm.PublicAreaBlockTracker.get().recordRemoval(pos, state);
+			}
 			level.destroyBlock(pos, true, player);
 			return true;
 		}

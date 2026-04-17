@@ -159,25 +159,34 @@ public final class AnimalProducePlacementService {
     private static BlockPos findAvailableTile(ServerLevel level, AnimalBuildingRecord building) {
         List<BlockPos> candidates = new ArrayList<>();
 
-        for (int y = building.minY() + 1; y <= building.maxY(); y++) {
-            for (int z = building.minZ(); z <= building.maxZ(); z++) {
-                for (int x = building.minX(); x <= building.maxX(); x++) {
-                    BlockPos pos = new BlockPos(x, y, z);
-                    BlockPos below = pos.below();
-
-                    if (!level.isEmptyBlock(pos)) {
-                        continue;
+        if (!building.interiorAirCells().isEmpty()) {
+            // Use precise interior air cells for placement
+            for (Long cell : building.interiorAirCells()) {
+                BlockPos pos = BlockPos.of(cell);
+                if (!level.isEmptyBlock(pos)) {
+                    continue;
+                }
+                BlockPos below = pos.below();
+                if (!hasValidProduceSupport(level, below)) {
+                    continue;
+                }
+                candidates.add(pos.immutable());
+            }
+        } else {
+            // Fallback to bounding box scan
+            for (int y = building.minY(); y <= building.maxY(); y++) {
+                for (int z = building.minZ(); z <= building.maxZ(); z++) {
+                    for (int x = building.minX(); x <= building.maxX(); x++) {
+                        BlockPos pos = new BlockPos(x, y, z);
+                        if (!level.isEmptyBlock(pos)) {
+                            continue;
+                        }
+                        BlockPos below = pos.below();
+                        if (!hasValidProduceSupport(level, below)) {
+                            continue;
+                        }
+                        candidates.add(pos.immutable());
                     }
-                    if (!hasValidProduceSupport(level, below)) {
-                        continue;
-                    }
-                    if (level.getBlockState(pos).is(ModBlocks.ANIMAL_PRODUCE_SPOT.get())) {
-                        continue;
-                    }
-                    if (isDisallowedSupportBlock(level.getBlockState(below).getBlock())) {
-                        continue;
-                    }
-                    candidates.add(pos.immutable());
                 }
             }
         }

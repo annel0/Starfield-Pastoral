@@ -405,4 +405,127 @@ public final class ForageSpawnService {
             return new SavedData.Factory<>(ForageInitData::new, (tag, provider) -> new ForageInitData(tag));
         }
     }
+
+    // ======================== Forest Farm Forage ========================
+
+    /**
+     * SDV parity: Forest farm spawns seasonal forage in its dedicated forage zone daily.
+     * Called once per day from StardewTimeManager, after the public-area onNewDay().
+     *
+     * <p>Items per season (equal 25% weight each):
+     * <ul>
+     *   <li>Spring: Wild Horseradish, Daffodil, Leek, Dandelion</li>
+     *   <li>Summer: Spice Berry, Sweet Pea, Fiddlehead Fern, Common Mushroom</li>
+     *   <li>Fall: Wild Plum, Hazelnut, Blackberry, Chanterelle</li>
+     *   <li>Winter: no spawning</li>
+     * </ul>
+     */
+    private static final List<List<DeferredBlock<Block>>> FOREST_FARM_FORAGE = List.of(
+            // Spring
+            List.of(ModBlocks.FORAGE_WILD_HORSERADISH, ModBlocks.FORAGE_DAFFODIL,
+                    ModBlocks.FORAGE_LEEK, ModBlocks.FORAGE_DANDELION),
+            // Summer
+            List.of(ModBlocks.FORAGE_SPICE_BERRY, ModBlocks.FORAGE_SWEET_PEA,
+                    ModBlocks.FORAGE_FIDDLEHEAD_FERN, ModBlocks.FORAGE_COMMON_MUSHROOM),
+            // Fall
+            List.of(ModBlocks.FORAGE_WILD_PLUM, ModBlocks.FORAGE_HAZELNUT,
+                    ModBlocks.FORAGE_BLACKBERRY, ModBlocks.FORAGE_CHANTERELLE)
+    );
+
+    private static final int FOREST_FARM_MIN_SPAWN = 1;
+    private static final int FOREST_FARM_MAX_SPAWN = 4;
+    private static final int FOREST_FARM_MAX_AT_ONCE = 6;
+
+    /**
+     * Spawns seasonal forage on all forest-type farms (public area + each player's farm instance).
+     * Called from StardewTimeManager.advanceDayWithSleepTime().
+     */
+    public static void onNewDayForestFarms(ServerLevel level, int season) {
+        if (season == WINTER || season < 0 || season > 2) return;
+
+        List<DeferredBlock<Block>> possibleForage = FOREST_FARM_FORAGE.get(season);
+        if (possibleForage.isEmpty()) return;
+
+        com.stardew.craft.farm.FarmInstanceRegistry registry = com.stardew.craft.farm.FarmInstanceRegistry.get();
+        int totalSpawned = 0;
+
+        for (com.stardew.craft.farm.FarmInstance farm : registry.getAllFarms()) {
+            if (farm.getFarmType() != com.stardew.craft.farm.FarmType.FOREST) continue;
+            com.stardew.craft.farm.FarmType.FarmLayout layout = farm.getFarmType().getLayout();
+            if (layout == null || layout.forageZoneMin() == null || layout.forageZoneMax() == null) continue;
+
+            BlockPos origin = farm.getOrigin();
+            BlockPos zoneMin = origin.offset(layout.forageZoneMin());
+            BlockPos zoneMax = origin.offset(layout.forageZoneMax());
+
+            int minX = Math.min(zoneMin.getX(), zoneMax.getX());
+            int maxX = Math.max(zoneMin.getX(), zoneMax.getX());
+            int minZ = Math.min(zoneMin.getZ(), zoneMax.getZ());
+            int maxZ = Math.max(zoneMin.getZ(), zoneMax.getZ());
+
+            // Count existing forage in zone
+            int existing = countForageInRect(level, minX, minZ, maxX, maxZ);
+            if (existing >= FOREST_FARM_MAX_AT_ONCE) continue;
+
+            RandomSource random = level.getRandom();
+            int toSpawn = FOREST_FARM_MIN_SPAWN + random.nextInt(
+                    FOREST_FARM_MAX_SPAWN - FOREST_FARM_MIN_SPAWN + 1);
+            toSpawn = Math.min(toSpawn, FOREST_FARM_MAX_AT_ONCE - existing);
+
+            int spawned = 0;
+            for (int i = 0; i < toSpawn; i++) {
+                for (int attempt = 0; attempt < 30; attempt++) {
+                    int x = minX + random.nextInt(maxX - minX + 1);
+                    int z = minZ + random.nextInt(maxZ - minZ + 1);
+                    if (!level.hasChunk(x >> 4, z >> 4)) continue;
+
+                    int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z) - 1;
+                    BlockPos surfacePos = new BlockPos(x, surfaceY, z);
+                    BlockState surfaceState = level.getBlockState(surfacePos);
+                    if (isReplaceablePlant(surfaceState)) {
+                        surfacePos = surfacePos.below();
+                        surfaceState = level.getBlockState(surfacePos);
+                    }
+                    BlockPos placePos = surfacePos.above();
+
+                    if (surfaceState.isAir() || surfaceState.getFluidState().isSource()) continue;
+                    if (!canPlaceForage(level, surfacePos, placePos, true)) continue;
+
+                    // Equal probability among 4 items
+                    DeferredBlock<Block> chosen = possibleForage.get(random.nextInt(possibleForage.size()));
+
+                    BlockState existingState = level.getBlockState(placePos);
+                    if (!existingState.isAir() && isReplaceablePlant(existingState)) {
+                        level.destroyBlock(placePos, false);
+                    }
+
+                    level.setBlock(placePos, chosen.get().defaultBlockState(), Block.UPDATE_ALL);
+                    spawned++;
+                    break;
+                }
+            }
+            totalSpawned += spawned;
+            StardewCraft.LOGGER.info("[ForageSpawn] Forest farm ({}): spawned {} forage in zone",
+                    farm.getOwnerName(), spawned);
+        }
+
+        if (totalSpawned > 0) {
+            StardewCraft.LOGGER.info("[ForageSpawn] Forest farms total: {} forage spawned", totalSpawned);
+        }
+    }
+
+    private static int countForageInRect(ServerLevel level, int minX, int minZ, int maxX, int maxZ) {
+        int count = 0;
+        for (int x = minX; x <= maxX; x += 2) {
+            for (int z = minZ; z <= maxZ; z += 2) {
+                if (!level.hasChunk(x >> 4, z >> 4)) continue;
+                int surfaceY = level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z);
+                BlockPos topPos = new BlockPos(x, surfaceY - 1, z);
+                if (level.getBlockState(topPos).getBlock() instanceof ForageBlock) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
 }

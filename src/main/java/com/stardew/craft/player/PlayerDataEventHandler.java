@@ -38,6 +38,8 @@ public class PlayerDataEventHandler {
     @SubscribeEvent
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
+            // 初始化 AFK 跟踪
+            com.stardew.craft.event.SleepVoteTracker.markActive(player);
             // 获取或创建玩家数据（会自动从NBT加载）
             PlayerStardewData data = PlayerDataManager.getPlayerData(player);
             PlayerStardewDataAPI.applyStardewCraftingConditionUnlocks(player);
@@ -58,7 +60,20 @@ public class PlayerDataEventHandler {
             // 如果玩家登录时已在星露谷维度，确保农场初始化
             // （PlayerChangedDimensionEvent 在这种情况下不会触发）
             if (player.serverLevel().dimension() == com.stardew.craft.core.ModDimensions.STARDEW_VALLEY) {
-                com.stardew.craft.dimension.FarmInitializer.ensureInitialized(player.serverLevel());
+                // 旧 FarmInitializer 已废弃，内置农场区域不再初始化（玩家现在有自己的个人农场）
+                // com.stardew.craft.dimension.FarmInitializer.ensureInitialized(player.serverLevel());
+                // 确保农场入口屏障墙和交互实体已放置（老存档升级兼容）
+                com.stardew.craft.farm.FarmEntryBarrierManager.get(player.serverLevel())
+                        .ensureBarriersPlaced(player.serverLevel());
+            }
+
+            // 多人农场：离线追赶——批量推进离线期间的作物/树苗生长
+            {
+                net.minecraft.server.level.ServerLevel stardewLevel =
+                        player.server.getLevel(com.stardew.craft.core.ModDimensions.STARDEW_VALLEY);
+                if (stardewLevel != null) {
+                    com.stardew.craft.farm.OfflineFarmCatchUp.catchUp(stardewLevel, player.getUUID());
+                }
             }
 
             // 首次登录/每次登录时触发 fireDayStarted 以补偿新存档第1天没有过夜结算的情况
@@ -86,6 +101,44 @@ public class PlayerDataEventHandler {
 
             // Clean up fishing session
             com.stardew.craft.fishing.server.FishingSessionManager.onPlayerLogout(player);
+
+            // Clean up E112 wizard cutscene state (remove per-player Junimo + timer)
+            com.stardew.craft.interior.WizardQuestHandler.onPlayerLogout(player);
+
+            // 多人农场：更新最后在线天数 + 卸载农场区块
+            {
+                com.stardew.craft.farm.FarmInstanceRegistry registry =
+                        com.stardew.craft.farm.FarmInstanceRegistry.get();
+                com.stardew.craft.farm.FarmInstance farm = registry.getFarm(player.getUUID());
+                if (farm != null) {
+                    int absDay = com.stardew.craft.farm.OfflineFarmCatchUp.computeAbsoluteDay();
+                    com.stardew.craft.time.StardewTimeManager tm = com.stardew.craft.time.StardewTimeManager.get();
+                    farm.setLastOnlineDay(absDay);
+                    farm.setLastOnlineSeason(tm.getCurrentSeason());
+                    registry.setDirty();
+
+                    // 通知 FarmChunkManager 玩家离开农场
+                    net.minecraft.server.level.ServerLevel stardewLevel =
+                            player.server.getLevel(com.stardew.craft.core.ModDimensions.STARDEW_VALLEY);
+                    if (stardewLevel != null) {
+                        com.stardew.craft.farm.FarmChunkManager.get().onPlayerLeaveFarm(
+                                stardewLevel, player, farm);
+                    }
+                }
+            }
+
+            // 睡眠投票：玩家登出后如果剩余人全部已投票，推进日期
+            if (com.stardew.craft.event.SleepVoteTracker.hasAnyVotes()) {
+                if (com.stardew.craft.event.SleepVoteTracker.onPlayerLogout(player)) {
+                    net.minecraft.server.level.ServerLevel stardewLevel =
+                            player.server.getLevel(com.stardew.craft.core.ModDimensions.STARDEW_VALLEY);
+                    if (stardewLevel != null) {
+                        int sleepMinute = com.stardew.craft.event.SleepVoteTracker.getLatestSleepMinute();
+                        com.stardew.craft.event.SleepVoteTracker.clearVotes();
+                        com.stardew.craft.event.DimensionEventHandler.triggerAdvance(stardewLevel, sleepMinute, "sleep_vote_logout");
+                    }
+                }
+            }
 
             PlayerStardewData data = PlayerDataManager.getPlayerData(player);
             if (data.isDirty()) {
@@ -174,6 +227,17 @@ public class PlayerDataEventHandler {
 
         // 取消 MC 原版扣血（我们用星露谷血条承载伤害）。
         event.setAmount(0.0f);
+
+        // 虚空坠落：直接触发击倒，无需慢慢扣血。
+        // 原版虚空伤害有 bypasses_invulnerability 标签每 tick 命中，
+        // 但我们的无敌帧逻辑会错误地阻挡它，导致死亡极慢。
+        if (event.getSource().is(net.minecraft.world.damagesource.DamageTypes.FELL_OUT_OF_WORLD)) {
+            StardewDamageHooks.onHealthDepleted(player, event.getSource());
+            player.setHealth(player.getMaxHealth());
+            player.getFoodData().setFoodLevel(20);
+            player.getFoodData().setSaturation(5.0f);
+            return;
+        }
 
         // 环境伤害无敌帧检查：invulnerableTime > 0 时跳过伤害
         // NeoForge 的 LivingIncomingDamageEvent 在原版 invulnerableTime 检查之前触发，
@@ -303,6 +367,12 @@ public class PlayerDataEventHandler {
             return;
         }
 
+        // AFK 检测：每 20 tick（1秒）检查一次玩家是否移动/旋转
+        if (player.tickCount % 20 == 0
+                && com.stardew.craft.event.SleepVoteTracker.isInStardewDimension(player)) {
+            updateAfkTracking(player);
+        }
+
         // Buff同步/过期驱动（不依赖维度）：
         // - MobEffect 负责 UI/持续时间（也支持 /effect 指令）
         // - PlayerStardewData 负责把加成落到星露谷数值体系里
@@ -412,58 +482,59 @@ public class PlayerDataEventHandler {
         }
 
         // 森林赐福：持续治疗
-        com.stardew.craft.combat.skill.ForestBlessingTracker.tick(player, player.level().getGameTime());
+        long gameTime = player.level().getGameTime();
+        com.stardew.craft.combat.skill.ForestBlessingTracker.tick(player, gameTime);
         // 钢脊之怒：姿态过期转为弱势命中
-        com.stardew.craft.combat.skill.SteelSpineFuryState.tick(player, player.level().getGameTime());
+        com.stardew.craft.combat.skill.SteelSpineFuryState.tick(player, gameTime);
         // 双刃大剑：回刃折返二段斩击
-        com.stardew.craft.combat.skill.ClaymoreFoldbackTracker.tick(player, player.level().getGameTime());
+        com.stardew.craft.combat.skill.ClaymoreFoldbackTracker.tick(player, gameTime);
         // 股骨：震骨横砸蓄力
-        com.stardew.craft.combat.skill.FemurSlamTracker.tick(player, player.level().getGameTime());
+        com.stardew.craft.combat.skill.FemurSlamTracker.tick(player, gameTime);
         // 圣堂之刃：誓约架势与裁决结算
-        com.stardew.craft.combat.skill.TemplarVowTracker.tick(player, player.level().getGameTime());
-        com.stardew.craft.combat.skill.TemplarJudgementTracker.tick(player, player.level().getGameTime());
+        com.stardew.craft.combat.skill.TemplarVowTracker.tick(player, gameTime);
+        com.stardew.craft.combat.skill.TemplarJudgementTracker.tick(player, gameTime);
         // 刻刀：刻痕连刺
-        com.stardew.craft.combat.skill.CarvingKnifeThrustTracker.tick(player, player.level().getGameTime());
+        com.stardew.craft.combat.skill.CarvingKnifeThrustTracker.tick(player, gameTime);
         // 铱针：三针连斩
-        com.stardew.craft.combat.skill.IridiumNeedleThrustTracker.tick(player, player.level().getGameTime());
+        com.stardew.craft.combat.skill.IridiumNeedleThrustTracker.tick(player, gameTime);
         // 银河匕首：星轨裂刺
-        com.stardew.craft.combat.skill.GalaxyDaggerThrustTracker.tick(player, player.level().getGameTime());
+        com.stardew.craft.combat.skill.GalaxyDaggerThrustTracker.tick(player, gameTime);
         // 无限匕首：奇点连刺
-        com.stardew.craft.combat.skill.InfinityDaggerThrustTracker.tick(player, player.level().getGameTime());
+        com.stardew.craft.combat.skill.InfinityDaggerThrustTracker.tick(player, gameTime);
         // 残破的三叉戟：鱼获试刺 + 鱼获状态
-        com.stardew.craft.combat.skill.BrokenTridentThrustTracker.tick(player, player.level().getGameTime());
-        com.stardew.craft.combat.skill.BrokenTridentCatchTracker.tick(player, player.level().getGameTime());
+        com.stardew.craft.combat.skill.BrokenTridentThrustTracker.tick(player, gameTime);
+        com.stardew.craft.combat.skill.BrokenTridentCatchTracker.tick(player, gameTime);
         // 水晶匕首：晶层持续
-        com.stardew.craft.combat.skill.CrystalDaggerLayerTracker.tick(player, player.level().getGameTime());
+        com.stardew.craft.combat.skill.CrystalDaggerLayerTracker.tick(player, gameTime);
         // 精灵之刃：月露萤刃
-        com.stardew.craft.combat.skill.ElfBladeTracker.tick(player, player.level().getGameTime());
+        com.stardew.craft.combat.skill.ElfBladeTracker.tick(player, gameTime);
         // 昆虫头部：复眼架势
-        com.stardew.craft.combat.skill.InsectEyeStanceTracker.tick(player, player.level().getGameTime());
+        com.stardew.craft.combat.skill.InsectEyeStanceTracker.tick(player, gameTime);
         // 黑曜石之刃：玄刃共鸣 + 裂界一线
-        com.stardew.craft.combat.skill.ObsidianResonanceTracker.tick(player, player.level().getGameTime());
-        com.stardew.craft.combat.skill.ObsidianCrackTracker.tick(player, player.level().getGameTime());
+        com.stardew.craft.combat.skill.ObsidianResonanceTracker.tick(player, gameTime);
+        com.stardew.craft.combat.skill.ObsidianCrackTracker.tick(player, gameTime);
         // 骨化剑：白骨行刑
-        com.stardew.craft.combat.skill.OssifiedExecutionTracker.tick(player, player.level().getGameTime());
+        com.stardew.craft.combat.skill.OssifiedExecutionTracker.tick(player, gameTime);
         // 圣剑：晨曦圣域
-        com.stardew.craft.combat.skill.HolyBladeSanctuaryTracker.tick(player, player.level().getGameTime());
+        com.stardew.craft.combat.skill.HolyBladeSanctuaryTracker.tick(player, gameTime);
         // 淬火阔剑：回炉淬火延迟爆鸣 + 熔锻飞坯火环
-        com.stardew.craft.combat.skill.TemperedQuenchTracker.tick(player, player.level().getGameTime());
-        com.stardew.craft.combat.skill.TemperedFireRingTracker.tick(player, player.level().getGameTime());
+        com.stardew.craft.combat.skill.TemperedQuenchTracker.tick(player, gameTime);
+        com.stardew.craft.combat.skill.TemperedFireRingTracker.tick(player, gameTime);
         // 钢刀：疾锋刻线 / 斩迹回响
-        com.stardew.craft.combat.skill.SteelFalchionLineTracker.tick(player, player.level().getGameTime());
+        com.stardew.craft.combat.skill.SteelFalchionLineTracker.tick(player, gameTime);
         // 黑暗剑：祭血斩 / 血月收割
-        com.stardew.craft.combat.skill.DarkSwordBloodDebtTracker.tick(player, player.level().getGameTime());
-        com.stardew.craft.combat.skill.DarkSwordBloodMoonTracker.tick(player, player.level().getGameTime());
+        com.stardew.craft.combat.skill.DarkSwordBloodDebtTracker.tick(player, gameTime);
+        com.stardew.craft.combat.skill.DarkSwordBloodMoonTracker.tick(player, gameTime);
         // 熔岩武士刀：熔潮回鸣
-        com.stardew.craft.combat.skill.LavaKatanaReverbTracker.tick(player, player.level().getGameTime());
+        com.stardew.craft.combat.skill.LavaKatanaReverbTracker.tick(player, gameTime);
         // 矮人剑：地脉堡垒
-        com.stardew.craft.combat.skill.DwarfFortressTracker.tick(player, player.level().getGameTime());
+        com.stardew.craft.combat.skill.DwarfFortressTracker.tick(player, gameTime);
         // 银河剑：星落打击
-        com.stardew.craft.combat.skill.StarfallTracker.tick(player, player.level().getGameTime());
+        com.stardew.craft.combat.skill.StarfallTracker.tick(player, gameTime);
         // 无限之刃：奇点进化 / 永恒坍缩
-        com.stardew.craft.combat.skill.SingularityEvolveTracker.tick(player, player.level().getGameTime());
-        com.stardew.craft.combat.skill.EternalCollapseTracker.tick(player, player.level().getGameTime());
-            com.stardew.craft.combat.skill.RiftPathDamageTracker.tick(player, player.level().getGameTime());
+        com.stardew.craft.combat.skill.SingularityEvolveTracker.tick(player, gameTime);
+        com.stardew.craft.combat.skill.EternalCollapseTracker.tick(player, gameTime);
+            com.stardew.craft.combat.skill.RiftPathDamageTracker.tick(player, gameTime);
 
         applyMagneticPull(player, PlayerDataManager.getPlayerData(player));
 
@@ -525,6 +596,11 @@ public class PlayerDataEventHandler {
             } catch (Exception e) {
                 StardewCraft.LOGGER.error("Error during player data auto-save", e);
             }
+        }
+
+        // 多人睡眠等待时缓慢恢复体力
+        if (event.getServer() != null) {
+            com.stardew.craft.event.SleepVoteTracker.tickSleepEnergyRegen(event.getServer());
         }
     }
     
@@ -604,5 +680,38 @@ public class PlayerDataEventHandler {
             item.hasImpulse = true;
             item.hurtMarked = true;
         }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // AFK 检测（用于睡眠投票排除挂机玩家）
+    // ═══════════════════════════════════════════════════════════
+
+    /** 上次检测时的 (x,y,z,yRot,xRot) 快照，用 persistentData 存储避免额外 Map */
+    private static final String TAG_AFK_X = "stardewcraft_afk_x";
+    private static final String TAG_AFK_Z = "stardewcraft_afk_z";
+    private static final String TAG_AFK_YROT = "stardewcraft_afk_yrot";
+
+    private static void updateAfkTracking(ServerPlayer player) {
+        var data = player.getPersistentData();
+        double prevX = data.getDouble(TAG_AFK_X);
+        double prevZ = data.getDouble(TAG_AFK_Z);
+        float prevYRot = data.getFloat(TAG_AFK_YROT);
+
+        double curX = player.getX();
+        double curZ = player.getZ();
+        float curYRot = player.getYRot();
+
+        // 检测是否有实质性移动或转向
+        boolean moved = Math.abs(curX - prevX) > 0.05
+                || Math.abs(curZ - prevZ) > 0.05
+                || Math.abs(curYRot - prevYRot) > 1.0f;
+
+        if (moved) {
+            com.stardew.craft.event.SleepVoteTracker.markActive(player);
+        }
+
+        data.putDouble(TAG_AFK_X, curX);
+        data.putDouble(TAG_AFK_Z, curZ);
+        data.putFloat(TAG_AFK_YROT, curYRot);
     }
 }

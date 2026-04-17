@@ -6,11 +6,11 @@
 
 | 物品 | 售价 | 能量 | 生命 | 刷新区域 | 备注 |
 |------|------|------|------|---------|------|
-| 番红花 | 60g | 0 | 0 | 城镇 70%、森林 90%、山地 90% | 观赏性花卉 |
-| 冬根 | 70g | 25 | 11 | 不自然刷新（锄头挖掘） | 矿洞物品 |
-| 冬青树 | 80g | -38 | -17 | 城镇/森林/山地 各 50% | ⚠️ 有毒 |
-| 雪山药 | 100g | 30 | 13 | 不自然刷新（锄头挖掘） | — |
-| 水晶果 | 150g | 63 | 28 | 城镇 10%、森林 90%、山地 85% | 最珍贵 |
+| <img src="/img/forage/crocus.png" class="item-icon"> [番红花](#番红花-crocus) | 60g | 0 | 0 | 城镇 70%、森林 90%、山地 90% | 观赏性花卉 |
+| <img src="/img/forage/winter_root.png" class="item-icon"> [冬根](#冬根-winter-root) | 70g | 25 | 11 | 不自然刷新（锄头挖掘） | 矿洞物品 |
+| <img src="/img/forage/holly.png" class="item-icon"> [冬青树](#冬青树-holly) | 80g | -38 | -17 | 城镇/森林/山地 各 50% | ⚠️ 有毒 |
+| <img src="/img/forage/snow_yam.png" class="item-icon"> [雪山药](#雪山药-snow-yam) | 100g | 30 | 13 | 不自然刷新（锄头挖掘） | — |
+| <img src="/img/forage/crystal_fruit.png" class="item-icon"> [水晶果](#水晶果-crystal-fruit) | 150g | 63 | 28 | 城镇 10%、森林 90%、山地 85% | 最珍贵 |
 
 ---
 

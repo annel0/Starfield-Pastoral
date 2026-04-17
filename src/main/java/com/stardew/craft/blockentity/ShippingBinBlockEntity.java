@@ -45,10 +45,13 @@ import java.util.UUID;
 public class ShippingBinBlockEntity extends net.minecraft.world.level.block.entity.BlockEntity implements Container, MenuProvider, GeoBlockEntity {
     private static final String TAG_ITEMS = "items";
     private static final int SLOT_COUNT = 1;
-    private static final int PROXIMITY_CHECK_INTERVAL = 5;
+    private static final int PROXIMITY_CHECK_INTERVAL = 10;
 
     private static final RawAnimation OPEN_ANIM = RawAnimation.begin().thenPlayAndHold("open");
     private static final RawAnimation CLOSE_ANIM = RawAnimation.begin().thenPlayAndHold("close");
+
+    /** 所有已加载的出货箱实例，用于夜间结算时统一 flush buffer */
+    private static final java.util.Set<ShippingBinBlockEntity> LOADED_BINS = java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>());
 
     private final NonNullList<ItemStack> items = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -63,6 +66,16 @@ public class ShippingBinBlockEntity extends net.minecraft.world.level.block.enti
 
     public ShippingBinBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.SHIPPING_BIN.get(), pos, state);
+        LOADED_BINS.add(this);
+    }
+
+    /**
+     * 夜间结算时调用：将所有出货箱 buffer 中剩余物品记录到出货追踪器。
+     */
+    public static void flushAllForOvernight() {
+        for (ShippingBinBlockEntity bin : new java.util.ArrayList<>(LOADED_BINS)) {
+            bin.flushBufferForOvernight();
+        }
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, ShippingBinBlockEntity be) {
@@ -133,10 +146,10 @@ public class ShippingBinBlockEntity extends net.minecraft.world.level.block.enti
         if (level == null || level.isClientSide) return;
         ItemStack oldStack = items.get(0);
         if (!oldStack.isEmpty()) {
+            // SDV parity: 不立即结算，只记录到夜间结算追踪器
             ServerPlayer payer = resolvePayoutPlayer();
             if (payer != null) {
                 SellQuote quote = ProfessionSellPriceService.quoteItem(payer, oldStack, SellSource.SHIPPING_BIN);
-                ProfessionSellPriceService.payout(payer, quote);
                 if (quote.sellable() && quote.finalUnitPrice() > 0) {
                     OvernightSettlementTracker.recordShipping(payer, oldStack, quote.finalUnitPrice());
                 }
@@ -154,6 +167,26 @@ public class ShippingBinBlockEntity extends net.minecraft.world.level.block.enti
             return false;
         }
         return stardewItem.getSellPrice(stack) > 0;
+    }
+
+    /**
+     * 夜间结算前将 buffer 中剩余的物品记录到出货追踪器。
+     * 由 StardewTimeManager 在 advanceDay 时调用。
+     */
+    public void flushBufferForOvernight() {
+        if (level == null || level.isClientSide) return;
+        ItemStack remaining = items.get(0);
+        if (remaining.isEmpty()) return;
+        ServerPlayer payer = resolvePayoutPlayer();
+        if (payer != null) {
+            SellQuote quote = ProfessionSellPriceService.quoteItem(payer, remaining, SellSource.SHIPPING_BIN);
+            if (quote.sellable() && quote.finalUnitPrice() > 0) {
+                OvernightSettlementTracker.recordShipping(payer, remaining, quote.finalUnitPrice());
+            }
+        }
+        items.set(0, ItemStack.EMPTY);
+        setChanged();
+        syncToClient();
     }
 
     public void dropAllContents(Level level, BlockPos pos) {

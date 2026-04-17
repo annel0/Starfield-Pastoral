@@ -577,15 +577,24 @@ public class PlayerStardewDataAPI {
 
         PlayerStardewData data = getData(player);
         boolean changed = false;
+        int totalGold = 0;
         for (OvernightSettlementPayload.ShippedItem shippedItem : shippedItems) {
             if (shippedItem == null || shippedItem.stack().isEmpty() || shippedItem.stack().getCount() <= 0) {
                 continue;
             }
 
+            // SDV parity: 夜间结算时统一发放金币
+            totalGold += shippedItem.pricePerItem() * shippedItem.stack().getCount();
+
             String itemId = BuiltInRegistries.ITEM.getKey(shippedItem.stack().getItem()).toString();
             if (data.recordShippedItem(itemId, shippedItem.stack().getCount())) {
                 changed = true;
             }
+        }
+
+        if (totalGold > 0) {
+            data.addMoney(totalGold);
+            changed = true;
         }
 
         if (changed) {

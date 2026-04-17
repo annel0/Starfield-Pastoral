@@ -108,6 +108,16 @@ public class StoneChestBlock extends Block implements EntityBlock {
             return InteractionResult.SUCCESS;
         }
 
+        // 农场保护：在别人农场上无权打开箱子
+        if (player instanceof net.minecraft.server.level.ServerPlayer sp
+                && level.dimension() == com.stardew.craft.core.ModDimensions.STARDEW_VALLEY
+                && !sp.isCreative()
+                && !com.stardew.craft.event.FarmAreaProtectionEvents.canModifyAt(sp, pos)) {
+            sp.displayClientMessage(
+                    net.minecraft.network.chat.Component.translatable("stardewcraft.farm.build_farm_only"), true);
+            return InteractionResult.CONSUME;
+        }
+
         BlockEntity be = level.getBlockEntity(pos);
         if (!(be instanceof StoneChestBlockEntity chest)) {
             return InteractionResult.PASS;

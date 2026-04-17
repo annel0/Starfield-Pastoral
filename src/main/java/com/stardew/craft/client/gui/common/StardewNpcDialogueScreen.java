@@ -196,7 +196,8 @@ public class StardewNpcDialogueScreen extends Screen {
             return true;
         }
         if (keyCode == 256) {
-            beginOutro();
+            // ESC 不能直接关闭对话，必须走正常流程，否则问答类对话会卡死任务
+            receiveAdvanceClick();
             return true;
         }
         if (keyCode == 257 || keyCode == 32) {

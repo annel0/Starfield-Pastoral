@@ -161,6 +161,21 @@ public class MuseumDonationData extends SavedData {
         return new EndSessionResult(true, Collections.emptySet());
     }
 
+    /**
+     * 强制结束捐赠模式（不检查缺失物品）。
+     * 用于室内布局版本升级时：展示柜可能被重置，继续检查 missing 会永远失败。
+     * 已放置在展示柜上的物品视为已捐赠；sessionPending 中未放置的不计入。
+     */
+    public void forceEndDonationMode() {
+        for (String itemId : standDisplayItems.values()) {
+            donatedItems.add(itemId);
+        }
+        donationModeActive = false;
+        sessionPendingItems.clear();
+        standDisplayItems.clear();
+        setDirty();
+    }
+
     public boolean isItemDonated(String itemId) {
         return donatedItems.contains(itemId);
     }
@@ -172,6 +187,13 @@ public class MuseumDonationData extends SavedData {
         // Allow rearranging already-donated items as long as the same item
         // is not currently displayed on another stand.
         return !standDisplayItems.containsValue(itemId);
+    }
+
+    /**
+     * 返回展示柜位置→物品ID的只读副本（用于布局重建后恢复展示柜内容）。
+     */
+    public Map<String, String> getStandDisplayItems() {
+        return Collections.unmodifiableMap(standDisplayItems);
     }
 
     public void setStandDisplayedItem(String standKey, String itemId) {

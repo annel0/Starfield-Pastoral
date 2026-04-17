@@ -41,7 +41,16 @@ public final class NpcRuntimeManager {
         }
     }
 
+    private static int lastCapabilitiesVersion = -1;
+
     private static void refreshFromData(RuntimeSnapshot snapshot) {
+        // NPC 能力数据只在 datapack reload 时变化，用版本号避免每 tick 重建
+        int currentVersion = NpcDataRegistry.capabilities().size();
+        if (currentVersion == lastCapabilitiesVersion && !snapshot.implementedNpcIds.isEmpty()) {
+            return;
+        }
+        lastCapabilitiesVersion = currentVersion;
+
         snapshot.implementedNpcIds.clear();
         snapshot.pathingNpcIds.clear();
 

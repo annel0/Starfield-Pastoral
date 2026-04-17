@@ -149,15 +149,17 @@ public class BundleScreen extends AbstractContainerScreen<BundleMenu> {
         this.topPos = menuY;
 
         // Reposition MC inventory slots to match SDV InventoryMenu(x+128, y+140, capacity=36, rows=6).
-        // SDV: 6 columns × 6 rows, slot spacing 72 screen px = 18 GUI px at 4× scale.
+        // SDV: 6 columns × 6 rows, slot spacing 72 screen px.
+        // Slot spacing must scale with guiScale to match the texture grid at all GUI scales.
         int invOffX = mapping.ui(128);
         int invOffY = mapping.ui(140);
+        int slotSpacing = mapping.ui(72);  // 72 SDV screen px → matches texture grid
         for (int i = 0; i < this.menu.slots.size(); i++) {
             net.minecraft.world.inventory.Slot slot = this.menu.slots.get(i);
             int col = i % 6;
             int row = i / 6;
-            slot.x = invOffX + col * 18;
-            slot.y = invOffY + row * 18;
+            slot.x = invOffX + col * slotSpacing;
+            slot.y = invOffY + row * slotSpacing;
         }
 
         buildBundleOrbs();
@@ -484,9 +486,13 @@ public class BundleScreen extends AbstractContainerScreen<BundleMenu> {
         // SDV: SpriteText.drawStringHorizontallyCenteredAt(b, areaName, xPos + width/2 + 16, yPos + 12, ...)
         // width = 1280, so xPos + 640 + 16 = xPos + 656
         String displayKey = BundleDataManager.getAreaDisplayNameKey(areaId);
-        Component displayName = (displayKey != null)
-                ? Component.translatable(displayKey)
-                : Component.literal(BundleDataManager.getAreaName(areaId));
+        Component displayName;
+        if (displayKey != null) {
+            displayName = Component.translatable(displayKey);
+        } else {
+            String areaName = BundleDataManager.getAreaName(areaId);
+            displayName = Component.literal(areaName != null ? areaName : "Area " + areaId);
+        }
 
         int titleX = menuX + mapping.ui(656);
         int titleY = menuY + mapping.ui(12);
@@ -989,9 +995,6 @@ public class BundleScreen extends AbstractContainerScreen<BundleMenu> {
         slot.depositedItem = BundleItemResolver.resolveItemStack(ing.itemId());
         if (!slot.depositedItem.isEmpty()) {
             slot.depositedItem.setCount(ing.stack());
-            if (ing.quality() > 0) {
-                QualityHelper.setQuality(slot.depositedItem, ing.quality());
-            }
         }
 
         // SDV: ingredientDepositAnimation(slot, ...)

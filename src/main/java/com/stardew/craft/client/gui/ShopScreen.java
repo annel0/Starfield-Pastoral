@@ -969,11 +969,20 @@ public class ShopScreen extends Screen {
                         heldItem = bought;
                     } else if (ItemStack.isSameItemSameComponents(heldItem, bought)) {
                         heldItem.grow(bought.getCount());
+                    } else {
+                        // Different item on cursor — stash old one first
+                        placeHeldItemInInventory();
+                        heldItem = bought;
                     }
                 }
             }
         }
         try { if (ModSounds.COIN!=null) playSound(ModSounds.COIN.get()); } catch(Exception ignored){}
+
+        // SDV parity: Marlon Recovery — after buying 1 item, close shop (all lost items cleared)
+        if ("MarlonRecovery".equals(shopId) && r.success()) {
+            this.onClose();
+        }
     }
 
     public void onSellResult(ShopSellResultPayload r) {

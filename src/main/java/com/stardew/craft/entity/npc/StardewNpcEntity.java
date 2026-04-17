@@ -33,6 +33,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
     private static final int INVALID_ID_GRACE_TICKS = 40;
     private static final EntityDataAccessor<String> DATA_NPC_ID = SynchedEntityData.defineId(StardewNpcEntity.class, EntityDataSerializers.STRING);
+    private static final EntityDataAccessor<Boolean> DATA_IS_WALKING = SynchedEntityData.defineId(StardewNpcEntity.class, EntityDataSerializers.BOOLEAN);
     private static final RawAnimation IDLE = RawAnimation.begin().thenLoop("idle");
     private static final RawAnimation WALK = RawAnimation.begin().thenLoop("walk");
 
@@ -101,6 +102,7 @@ public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(DATA_NPC_ID, "");
+        builder.define(DATA_IS_WALKING, false);
     }
 
     @Override
@@ -181,6 +183,13 @@ public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
             }
         }
         super.tick();
+        if (!this.level().isClientSide) {
+            // 同步行走状态到客户端（用于 GeckoLib 动画控制器）
+            boolean walking = this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-5D;
+            if (walking != isWalking()) {
+                setWalking(walking);
+            }
+        }
         // Run facing state machine AFTER super.tick() so that our yaw overrides
         // whatever Mob.tick() → LookControl.tick() / body rotation logic set.
         // This is the fix for "NPC turns briefly then snaps back" — the vanilla
@@ -363,10 +372,20 @@ public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
         return profile != null && profile.canRunPathing();
     }
 
+    /** 服务端设置行走状态，通过 SynchedEntityData 自动同步到客户端。 */
+    public void setWalking(boolean walking) {
+        this.entityData.set(DATA_IS_WALKING, walking);
+    }
+
+    /** 客户端/服务端均可读取的行走状态。 */
+    public boolean isWalking() {
+        return this.entityData.get(DATA_IS_WALKING);
+    }
+
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "main", 5, state -> {
-            if (this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-5D && isPathingEnabled()) {
+            if (isWalking() && isPathingEnabled()) {
                 state.setAndContinue(WALK);
                 return PlayState.CONTINUE;
             }

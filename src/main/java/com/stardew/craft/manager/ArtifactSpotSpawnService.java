@@ -102,6 +102,14 @@ public final class ArtifactSpotSpawnService {
         int totalRemoved = 0;
 
         for (SpawnZone zone : ZONES) {
+            // 0. Revert farmland back to yellow_dirt in non-farm zones
+            //    (artifact spots dug by players become farmland, should reset daily)
+            if (!"Farm".equals(zone.name)) {
+                for (ZoneRect rect : zone.rects) {
+                    revertFarmlandInRect(level, rect);
+                }
+            }
+
             // 1. Count & remove existing spots (SDV: 15% removal per spot per day)
             int existingCount = 0;
             for (ZoneRect rect : zone.rects) {
@@ -254,6 +262,24 @@ public final class ArtifactSpotSpawnService {
             }
         }
         return count;
+    }
+
+    /**
+     * Revert any farmland in a non-farm zone rect back to yellow_dirt.
+     * This handles artifact spots that were dug by players — they become farmland,
+     * and should reset to yellow_dirt the next day so new artifact spots can spawn.
+     */
+    private static void revertFarmlandInRect(ServerLevel level, ZoneRect rect) {
+        for (int x = rect.minX; x <= rect.maxX; x++) {
+            for (int z = rect.minZ; z <= rect.maxZ; z++) {
+                if (!level.hasChunk(x >> 4, z >> 4)) continue;
+                int surfaceY = level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z) - 1;
+                BlockPos pos = new BlockPos(x, surfaceY, z);
+                if (level.getBlockState(pos).is(net.minecraft.world.level.block.Blocks.FARMLAND)) {
+                    level.setBlock(pos, ModBlocks.YELLOW_DIRT.get().defaultBlockState(), Block.UPDATE_ALL);
+                }
+            }
+        }
     }
 
     // ======================== First-Day Initial Spawn ========================

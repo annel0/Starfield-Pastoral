@@ -196,7 +196,6 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 			int happinessGain = Math.max(5, 30 + happinessDrain);
 			if (player instanceof ServerPlayer serverPlayer && hasHappinessBoostProfession(serverPlayer, record.animalTypeId())) {
 				record.addFriendship(15);
-				record.addHappiness(happinessGain);
 			}
 			record.addHappiness(happinessGain);
 			data.markChanged();

@@ -1,7 +1,6 @@
 package com.stardew.craft.communitycenter.cutscene;
 
 import com.stardew.craft.communitycenter.junimo.JunimoSpawner;
-import com.stardew.craft.communitycenter.restore.CCAreaRegistry;
 import com.stardew.craft.entity.ModEntities;
 import com.stardew.craft.entity.junimo.JunimoEntity;
 import com.stardew.craft.interior.InteriorSubspaceManager;
@@ -36,6 +35,7 @@ public final class GoodbyeDanceCutscene {
     private static int phase = -1;
     private static int phaseTicksRemaining = 0;
     private static ServerLevel activeLevel;
+    private static BlockPos activeCcOrigin;
     private static final List<JunimoEntity> dancingJunimos = new ArrayList<>();
 
     // Phase durations
@@ -51,10 +51,18 @@ public final class GoodbyeDanceCutscene {
      * Should be called after the LAST area's restore cutscene completes.
      */
     public static void start(ServerLevel level) {
+        start(level, null);
+    }
+
+    /**
+     * Per-player 版本，指定 CC 原点。
+     */
+    public static void start(ServerLevel level, BlockPos ccOrigin) {
         if (running) return;
 
         running = true;
         activeLevel = level;
+        activeCcOrigin = ccOrigin != null ? ccOrigin : InteriorSubspaceManager.CC_ORIGIN;
         phase = -1;
         dancingJunimos.clear();
 
@@ -72,7 +80,7 @@ public final class GoodbyeDanceCutscene {
 
         // During dance phase, spawn particles periodically
         if (phase == 1 && phaseTicksRemaining % 10 == 0) {
-            BlockPos center = InteriorSubspaceManager.CC_ORIGIN.offset(DANCE_CENTER_OFFSET);
+            BlockPos center = activeCcOrigin.offset(DANCE_CENTER_OFFSET);
             activeLevel.sendParticles(ParticleTypes.END_ROD,
                     center.getX() + 0.5, center.getY() + 1.5, center.getZ() + 0.5,
                     5, 2.0, 1.0, 2.0, 0.02);
@@ -85,7 +93,7 @@ public final class GoodbyeDanceCutscene {
 
     private static void advancePhase() {
         phase++;
-        BlockPos center = InteriorSubspaceManager.CC_ORIGIN.offset(DANCE_CENTER_OFFSET);
+        BlockPos center = activeCcOrigin.offset(DANCE_CENTER_OFFSET);
 
         switch (phase) {
             case 0 -> {
@@ -165,8 +173,14 @@ public final class GoodbyeDanceCutscene {
     private static void broadcastToCC(CutscenePayload payload) {
         if (activeLevel == null) return;
         for (ServerPlayer player : activeLevel.players()) {
-            if (CCAreaRegistry.isInsideCC(player.blockPosition())) {
-                PacketDistributor.sendToPlayer(player, payload);
+            // 只广播给位于本 CC 实例内的玩家
+            java.util.UUID posOwner = com.stardew.craft.interior.PlayerInteriorAllocator.get(activeLevel).findCCOwner(player.blockPosition());
+            if (posOwner != null) {
+                // 检查是否属于 activeCcOrigin 对应的 CC
+                BlockPos playerCCOrigin = com.stardew.craft.interior.PlayerInteriorAllocator.get(activeLevel).getCCOrigin(posOwner);
+                if (playerCCOrigin.equals(activeCcOrigin)) {
+                    PacketDistributor.sendToPlayer(player, payload);
+                }
             }
         }
     }

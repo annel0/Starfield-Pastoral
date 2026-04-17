@@ -210,7 +210,8 @@ public class StardewDaggerItem extends Item implements IStardewItem, IStardewWea
         // 这里只添加武器特有的详细信息
         if (weaponData != null) {
             ensureWeaponStats(stack);
-            WeaponTooltipBuilder builder = new WeaponTooltipBuilder(stack, weaponData);
+            boolean expanded = net.minecraft.client.gui.screens.Screen.hasShiftDown();
+            WeaponTooltipBuilder builder = new WeaponTooltipBuilder(stack, weaponData, expanded);
             tooltipComponents.addAll(builder.build());
         }
     }

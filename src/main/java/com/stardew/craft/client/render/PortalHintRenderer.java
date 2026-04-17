@@ -6,6 +6,9 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.block.ModBlocks;
+import com.stardew.craft.blockentity.PortalTriggerBlockEntity;
+import com.stardew.craft.client.render.ClientStarterChestState;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModMiningDimensions;
 import com.stardew.craft.interior.PortalHintPositions;
@@ -14,10 +17,11 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.Interaction;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
@@ -38,6 +42,8 @@ public final class PortalHintRenderer {
 
     private static final double HINT_RANGE = 5.0;
     private static final double HINT_RANGE_SQ = HINT_RANGE * HINT_RANGE;
+    /** Scan radius for dynamic entity hints — must be large enough to cover the longest portal area. */
+    private static final double ENTITY_SCAN_RANGE = 20.0;
 
     // Edge half-width for the glow outline (world units)
     private static final float EDGE_HALF = 0.02f;
@@ -65,6 +71,7 @@ public final class PortalHintRenderer {
     private static final String ENTER_KEY = "stardewcraft.portal.hint.enter";
     private static final String EXIT_KEY = "stardewcraft.portal.hint.exit";
     private static final String RETURN_KEY = "stardewcraft.portal.hint.return";
+    private static final String CLAIM_KEY = "stardewcraft.portal.hint.claim";
 
     @SuppressWarnings("null")
     private static final RenderType QUAD_TYPE = makeQuadType("stardew_portal_hint", false);
@@ -111,7 +118,7 @@ public final class PortalHintRenderer {
         ps.translate(-cam.x, -cam.y, -cam.z);
 
         for (PortalHint hint : hints) {
-            float alpha = calcFadeAlpha(player, hint.pos);
+            float alpha = calcFadeAlpha(player, hint);
             if (alpha < 0.01f) continue;
             renderGlowOutline(buf, ps, cam, hint, alpha);
         }
@@ -120,7 +127,7 @@ public final class PortalHintRenderer {
 
         // ---- Phase 2: Floating bubbles with text (billboard per hint) ----
         for (PortalHint hint : hints) {
-            float alpha = calcFadeAlpha(player, hint.pos);
+            float alpha = calcFadeAlpha(player, hint);
             if (alpha < 0.01f) continue;
             renderBubble(event, ps, buf, cam, hint, alpha, mc.font);
         }
@@ -135,37 +142,126 @@ public final class PortalHintRenderer {
         List<PortalHint> result = new ArrayList<>();
         Vec3 playerPos = player.position();
         for (PortalHintPositions.HintInfo info : PortalHintPositions.all()) {
-            if (playerPos.distanceToSqr(info.pos()) <= HINT_RANGE_SQ) {
+            if (distSqToHintArea(playerPos, info.pos(), info.xBlocks(), info.heightBlocks(), info.zBlocks()) <= HINT_RANGE_SQ) {
                 result.add(new PortalHint(info.pos(), info.isEnter(),
                     info.xBlocks(), info.heightBlocks(), info.zBlocks(), info.hintStyle(),
                     info.destinationKey()));
             }
         }
+
+        // Dynamic hints: scan nearby Interaction entities with CustomName "sdv_portal_target:..."
+        // Farm exit portals are at per-player dynamic coordinates and cannot be static.
+        findDynamicEntityHints(player, playerPos, result);
+
+        // Dynamic starter chest hint — 箱子模型比 1 格高，气泡上移 0.4 避免嵌入模型
+        Vec3 chestVec = ClientStarterChestState.getHintVec();
+        if (chestVec != null && playerPos.distanceToSqr(chestVec) <= HINT_RANGE_SQ) {
+            result.add(new PortalHint(chestVec.add(0, 0.4, 0), true, 1, 1, 1,
+                    PortalHintPositions.HintStyle.ENTER, "starter_chest"));
+        }
+
         return result;
     }
 
+    private static final String PORTAL_TAG_PREFIX = "sdv_portal_target:";
+
     /**
-     * 主世界：扫描附近的 Interaction 实体来生成 Portal Hint。
+     * Scan nearby PortalTriggerBlockEntity blocks for dynamic portal hints.
+     * Groups contiguous blocks with the same targetId into a single hint.
+     */
+    @SuppressWarnings("null")
+    private static void findDynamicEntityHints(Player player, Vec3 playerPos, List<PortalHint> result) {
+        Level level = player.level();
+        if (level == null) return;
+
+        BlockPos center = player.blockPosition();
+        int range = (int) ENTITY_SCAN_RANGE;
+
+        java.util.Map<String, double[]> portalBounds = new java.util.LinkedHashMap<>();
+        for (int dx = -range; dx <= range; dx++) {
+            for (int dy = -4; dy <= 4; dy++) {
+                for (int dz = -range; dz <= range; dz++) {
+                    BlockPos pos = center.offset(dx, dy, dz);
+                    if (!level.getBlockState(pos).is(ModBlocks.PORTAL_TRIGGER.get())) continue;
+                    BlockEntity be = level.getBlockEntity(pos);
+                    if (!(be instanceof PortalTriggerBlockEntity ptbe)) continue;
+                    String targetId = ptbe.getTargetId();
+                    if (targetId == null || !isDynamicHintTarget(targetId)) continue;
+
+                    double ex = pos.getX() + 0.5, ey = pos.getY(), ez = pos.getZ() + 0.5;
+                    double[] bounds = portalBounds.computeIfAbsent(targetId,
+                            k -> new double[]{ex, ey, ez, ex, ey, ez});
+                    bounds[0] = Math.min(bounds[0], ex);
+                    bounds[1] = Math.min(bounds[1], ey);
+                    bounds[2] = Math.min(bounds[2], ez);
+                    bounds[3] = Math.max(bounds[3], ex);
+                    bounds[4] = Math.max(bounds[4], ey);
+                    bounds[5] = Math.max(bounds[5], ez);
+                }
+            }
+        }
+
+        for (var entry : portalBounds.entrySet()) {
+            String targetId = entry.getKey();
+            double[] b = entry.getValue();
+            boolean isEnter = "greenhouse_enter".equals(targetId);
+            String locKey = targetId.startsWith("farm_exit_") ? targetId : "greenhouse";
+            Vec3 minPos = new Vec3(b[0], b[1], b[2]);
+            int xBlocks = Math.max(1, (int) Math.round(b[3] - b[0]) + 1);
+            int zBlocks = Math.max(1, (int) Math.round(b[5] - b[2]) + 1);
+            int heightBlocks = Math.max(2, (int) Math.round(b[4] - b[1]) + 1);
+            if (distSqToHintArea(playerPos, minPos, xBlocks, heightBlocks, zBlocks) > HINT_RANGE_SQ) continue;
+            result.add(new PortalHint(minPos, isEnter, xBlocks, heightBlocks, zBlocks,
+                    isEnter ? PortalHintPositions.HintStyle.ENTER : PortalHintPositions.HintStyle.EXIT,
+                    locKey));
+        }
+    }
+
+    private static boolean isDynamicHintTarget(String targetId) {
+        return targetId.startsWith("farm_exit_")
+                || "greenhouse_enter".equals(targetId)
+                || "greenhouse_exit".equals(targetId);
+    }
+
+    /**
+     * 主世界：扫描附近的 PortalTriggerBlock 来生成巫师塔 Portal Hint。
      */
     @SuppressWarnings("null")
     private static List<PortalHint> findOverworldWizardPortals(Player player) {
         List<PortalHint> result = new ArrayList<>();
-        if (player.level() == null) return result;
-        AABB scan = player.getBoundingBox().inflate(HINT_RANGE);
-        List<Interaction> entities = player.level().getEntitiesOfClass(Interaction.class, scan);
-        if (entities.isEmpty()) return result;
-        Interaction lowest = entities.stream().min((a, b) -> Double.compare(a.getY(), b.getY())).orElse(null);
-        if (lowest == null) return result;
-        Vec3 pos = new Vec3(lowest.getX(), lowest.getY(), lowest.getZ());
-        result.add(new PortalHint(pos, true, 1, 2, 1, PortalHintPositions.HintStyle.ENTER, "wizard_tower"));
+        Level level = player.level();
+        if (level == null) return result;
+
+        BlockPos center = player.blockPosition();
+        int range = (int) HINT_RANGE;
+        BlockPos lowestPortal = null;
+        int lowestY = Integer.MAX_VALUE;
+
+        for (int dx = -range; dx <= range; dx++) {
+            for (int dy = -4; dy <= 4; dy++) {
+                for (int dz = -range; dz <= range; dz++) {
+                    BlockPos pos = center.offset(dx, dy, dz);
+                    if (!level.getBlockState(pos).is(ModBlocks.PORTAL_TRIGGER.get())) continue;
+                    if (pos.getY() < lowestY) {
+                        lowestY = pos.getY();
+                        lowestPortal = pos;
+                    }
+                }
+            }
+        }
+
+        if (lowestPortal != null) {
+            Vec3 pos = new Vec3(lowestPortal.getX() + 0.5, lowestPortal.getY(), lowestPortal.getZ() + 0.5);
+            result.add(new PortalHint(pos, true, 1, 2, 1, PortalHintPositions.HintStyle.ENTER, "wizard_tower"));
+        }
         return result;
     }
 
     // ======================== fade based on distance ========================
 
     @SuppressWarnings("null")
-    private static float calcFadeAlpha(Player player, Vec3 portalPos) {
-        double distSq = player.position().distanceToSqr(portalPos);
+    private static float calcFadeAlpha(Player player, PortalHint hint) {
+        double distSq = distSqToHintArea(player.position(), hint.pos, hint.xBlocks, hint.heightBlocks, hint.zBlocks);
         if (distSq > HINT_RANGE_SQ) return 0.0f;
 
         double dist = Math.sqrt(distSq);
@@ -173,6 +269,21 @@ public final class PortalHintRenderer {
             return (float) ((HINT_RANGE - dist));
         }
         return 1.0f;
+    }
+
+    /**
+     * Squared distance from a point to the nearest point on a hint's AABB.
+     * pos is atBottomCenterOf(min block), so the box spans
+     * [pos.x-0.5 .. pos.x-0.5+xBlocks] etc.
+     */
+    private static double distSqToHintArea(Vec3 point, Vec3 pos, int xBlocks, int heightBlocks, int zBlocks) {
+        double minX = pos.x - 0.5, maxX = minX + xBlocks;
+        double minY = pos.y,        maxY = minY + heightBlocks;
+        double minZ = pos.z - 0.5, maxZ = minZ + zBlocks;
+        double dx = Math.max(0, Math.max(minX - point.x, point.x - maxX));
+        double dy = Math.max(0, Math.max(minY - point.y, point.y - maxY));
+        double dz = Math.max(0, Math.max(minZ - point.z, point.z - maxZ));
+        return dx * dx + dy * dy + dz * dz;
     }
 
     // ======================== glow outline ========================
@@ -246,7 +357,9 @@ public final class PortalHintRenderer {
 
         // Two-line layout: action text + destination name
         String hintKey;
-        if (hint.hintStyle == PortalHintPositions.HintStyle.RETURN_OVERWORLD) {
+        if ("starter_chest".equals(hint.destinationKey)) {
+            hintKey = CLAIM_KEY;
+        } else if (hint.hintStyle == PortalHintPositions.HintStyle.RETURN_OVERWORLD) {
             hintKey = RETURN_KEY;
         } else if (hint.isEnter) {
             hintKey = ENTER_KEY;

@@ -151,7 +151,8 @@ public class StardewClubItem extends Item implements IStardewItem, IStardewWeapo
     public void appendHoverText(@SuppressWarnings("null") ItemStack stack, @SuppressWarnings("null") Item.TooltipContext context, @SuppressWarnings("null") List<Component> tooltipComponents, @SuppressWarnings("null") TooltipFlag tooltipFlag) {
         if (weaponData != null) {
             ensureWeaponStats(stack);
-            WeaponTooltipBuilder builder = new WeaponTooltipBuilder(stack, weaponData);
+            boolean expanded = net.minecraft.client.gui.screens.Screen.hasShiftDown();
+            WeaponTooltipBuilder builder = new WeaponTooltipBuilder(stack, weaponData, expanded);
             tooltipComponents.addAll(builder.build());
         }
     }

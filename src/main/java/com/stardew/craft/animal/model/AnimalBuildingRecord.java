@@ -71,7 +71,7 @@ public class AnimalBuildingRecord {
         this.doorOpen = doorOpen;
         this.interiorAirCells = interiorAirCells == null ? new LinkedHashSet<>() : new LinkedHashSet<>(interiorAirCells);
         this.boundaryDoorCells = boundaryDoorCells == null ? new LinkedHashSet<>() : new LinkedHashSet<>(boundaryDoorCells);
-        this.memberAnimalIds = memberAnimalIds;
+        this.memberAnimalIds = memberAnimalIds == null ? new LinkedHashSet<>() : new LinkedHashSet<>(memberAnimalIds);
     }
 
     public String buildingId() {
@@ -151,7 +151,7 @@ public class AnimalBuildingRecord {
     }
 
     public Set<Long> memberAnimalIds() {
-        return memberAnimalIds;
+        return Collections.unmodifiableSet(memberAnimalIds);
     }
 
     public Set<Long> interiorAirCells() {

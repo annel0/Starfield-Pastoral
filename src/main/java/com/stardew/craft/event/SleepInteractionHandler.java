@@ -40,7 +40,7 @@ public final class SleepInteractionHandler {
         }
 
         // 只能在农场区域睡觉
-        if (!com.stardew.craft.core.FarmAreaHelper.isInFarmArea(player.level(), event.getPos())) {
+        if (!com.stardew.craft.core.FarmAreaResolver.isInFarmArea(player.level(), event.getPos())) {
             player.displayClientMessage(
                     net.minecraft.network.chat.Component.translatable("stardewcraft.farm.sleep_farm_only"), true);
             event.setCanceled(true);

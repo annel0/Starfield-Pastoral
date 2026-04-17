@@ -137,32 +137,33 @@ public final class NpcSpawnManager {
 
     /**
      * Called when a StardewNpcEntity is about to join the level.
+     * @return true if the entity should be rejected (event should be cancelled)
      */
-    public static void onNpcJoin(ServerLevel level, StardewNpcEntity npc) {
+    public static boolean onNpcJoin(ServerLevel level, StardewNpcEntity npc) {
         boolean isStardew = ModDimensions.STARDEW_VALLEY.equals(level.dimension());
         boolean isMining  = ModMiningDimensions.STARDEW_MINING.equals(level.dimension());
         if (!isStardew && !isMining) {
-            return;
+            return false;
         }
 
         ensureServerContext(level);
 
         String npcId = canonicalNpcId(npc.getNpcId());
         if (npcId == null || npcId.isBlank()) {
-            discardWithReason(npc, "join_invalid_blank_id");
-            return;
+            StardewCraft.LOGGER.debug("Rejecting NPC join: blank id, uuid={}", npc.getUUID());
+            return true;
         }
 
         UUID tracked = TRACKED_NPC_UUIDS.get(npcId);
         if (tracked == null) {
             TRACKED_NPC_UUIDS.put(npcId, npc.getUUID());
             reconcileSingletonByNpcId(level, npcId, npc.getUUID());
-            return;
+            return false;
         }
 
         if (tracked.equals(npc.getUUID())) {
             reconcileSingletonByNpcId(level, npcId, npc.getUUID());
-            return;
+            return false;
         }
 
         // A different entity with the same npcId is joining.
@@ -170,26 +171,29 @@ public final class NpcSpawnManager {
         var existing = level.getEntity(tracked);
         if (existing instanceof StardewNpcEntity existingNpc
                 && !existingNpc.isRemoved() && existingNpc.isAlive()) {
-            // Tracked entity is alive → kill the newcomer.
-            discardWithReason(npc, "join_duplicate_uuid_conflict");
-            return;
+            // Tracked entity is alive → reject the newcomer entirely.
+            StardewCraft.LOGGER.debug(
+                "Rejecting duplicate NPC '{}' uuid={} (tracked uuid={} is alive)",
+                npcId, npc.getUUID(), tracked);
+            return true;
         }
 
         // Tracked entity is gone or unloaded. However, it might still exist
-        // serialised in an unloaded chunk. Kill this newcomer too if we spawned
+        // serialised in an unloaded chunk. Reject this newcomer too if we spawned
         // one very recently (within cooldown), to avoid the classic
         // "spawn new → old chunk loads → 2 NPCs" race.
         Long lastSpawn = LAST_SPAWN_GAME_TIME.get(npcId);
         if (lastSpawn != null && (level.getGameTime() - lastSpawn) < RESPAWN_COOLDOWN_TICKS) {
-            // Recent spawn exists somewhere; the newcomer is likely the stale
-            // serialised copy from an old chunk load. Kill it.
-            discardWithReason(npc, "join_stale_chunk_load_during_cooldown");
-            return;
+            StardewCraft.LOGGER.debug(
+                "Rejecting stale NPC '{}' uuid={} (within cooldown)",
+                npcId, npc.getUUID());
+            return true;
         }
 
         // Accept the newcomer as the canonical instance.
         TRACKED_NPC_UUIDS.put(npcId, npc.getUUID());
         reconcileSingletonByNpcId(level, npcId, npc.getUUID());
+        return false;
     }
 
     public static void tick(ServerLevel level) {

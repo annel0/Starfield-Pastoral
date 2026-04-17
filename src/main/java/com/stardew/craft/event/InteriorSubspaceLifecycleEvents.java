@@ -5,8 +5,10 @@ import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.interior.InteriorSubspaceManager;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Interaction;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
@@ -29,6 +31,25 @@ public class InteriorSubspaceLifecycleEvents {
         InteriorSubspaceManager.ensureLoaded(stardew, "server_started");
     }
 
+    /**
+     * 拦截旧版 Interaction 传送实体加入世界——无论何时加载区块，
+     * 只要实体带有 sdv_portal_marker: 或 sdv_portal_target: 标签就直接取消加载。
+     */
+    @SubscribeEvent
+    public static void onEntityJoinLevel(EntityJoinLevelEvent event) {
+        if (event.getLevel().isClientSide()) return;
+        if (!(event.getEntity() instanceof Interaction interaction)) return;
+
+        for (String tag : interaction.getTags()) {
+            if (tag.startsWith("sdv_portal_marker:") || tag.startsWith("sdv_portal_target:")) {
+                event.setCanceled(true);
+                StardewCraft.LOGGER.debug("[PORTAL_CLEANUP] Blocked legacy portal Interaction entity at {}",
+                    interaction.blockPosition());
+                return;
+            }
+        }
+    }
+
     @SubscribeEvent
     public static void onPlayerChangeDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) {
@@ -49,6 +70,9 @@ public class InteriorSubspaceLifecycleEvents {
         if (!ModDimensions.STARDEW_VALLEY.equals(level.dimension())) {
             return;
         }
+
+        // 驱动分批建筑放置（每 tick 放一个，避免 watchdog 超时）
+        InteriorSubspaceManager.tickBatchPlacement(level);
 
         tickCounter++;
         if (tickCounter < 20) {

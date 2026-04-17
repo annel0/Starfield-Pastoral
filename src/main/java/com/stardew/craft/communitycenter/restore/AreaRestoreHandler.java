@@ -31,6 +31,13 @@ public final class AreaRestoreHandler {
      * @return 替换的方块数量，-1 表示失败
      */
     public static int restoreArea(ServerLevel level, int areaId) {
+        return restoreArea(level, areaId, null);
+    }
+
+    /**
+     * Per-player 版本，指定 CC 原点。
+     */
+    public static int restoreArea(ServerLevel level, int areaId, BlockPos ccOrigin) {
         CCAreaRegistry.AreaBounds bounds = CCAreaRegistry.getArea(areaId);
         if (bounds == null) {
             StardewCraft.LOGGER.warn("[CC] Unknown area ID for restore: {}", areaId);
@@ -43,7 +50,10 @@ public final class AreaRestoreHandler {
             return 0;
         }
 
-        return restoreRegion(level, bounds.boundsMinWorld(), bounds.boundsMaxWorld());
+        BlockPos minWorld = ccOrigin != null ? bounds.boundsMinWorld(ccOrigin) : bounds.boundsMinWorld();
+        BlockPos maxWorld = ccOrigin != null ? bounds.boundsMaxWorld(ccOrigin) : bounds.boundsMaxWorld();
+        BlockPos origin = ccOrigin != null ? ccOrigin : InteriorSubspaceManager.CC_ORIGIN;
+        return restoreRegion(level, minWorld, maxWorld, origin);
     }
 
     /**
@@ -51,19 +61,20 @@ public final class AreaRestoreHandler {
      * 将整个 ruins 替换为 refurbished。
      */
     public static int restoreAllRemaining(ServerLevel level) {
-        BlockPos origin = InteriorSubspaceManager.CC_ORIGIN;
+        return restoreAllRemaining(level, null);
+    }
+
+    public static int restoreAllRemaining(ServerLevel level, BlockPos ccOrigin) {
+        BlockPos origin = ccOrigin != null ? ccOrigin : InteriorSubspaceManager.CC_ORIGIN;
         CCRefurbishedCache cache = CCRefurbishedCache.get();
         if (cache.getWidth() == 0) return -1;
 
         BlockPos min = origin;
         BlockPos max = origin.offset(cache.getWidth() - 1, cache.getHeight() - 1, cache.getLength() - 1);
-        return restoreRegion(level, min, max);
+        return restoreRegion(level, min, max, origin);
     }
 
-    /**
-     * 通用区域替换：从 refurbished 缓存覆盖指定区域。
-     */
-    private static int restoreRegion(ServerLevel level, @Nullable BlockPos worldMin, @Nullable BlockPos worldMax) {
+    private static int restoreRegion(ServerLevel level, @Nullable BlockPos worldMin, @Nullable BlockPos worldMax, BlockPos origin) {
         if (worldMin == null || worldMax == null) return -1;
 
         CCRefurbishedCache cache = CCRefurbishedCache.get();
@@ -72,7 +83,6 @@ public final class AreaRestoreHandler {
             return -1;
         }
 
-        BlockPos origin = InteriorSubspaceManager.CC_ORIGIN;
         int count = 0;
 
         // 确保 min/max 正确排列

@@ -140,7 +140,8 @@ public class BundleMenu extends AbstractContainerMenu {
         if (def == null || def.areaId() != this.areaId) return false;
 
         CommunityCenterSavedData data = CommunityCenterSavedData.get();
-        if (data.isSlotComplete(bundleId, slotIndex)) return false;
+        java.util.UUID uuid = player.getUUID();
+        if (data.isSlotComplete(uuid, bundleId, slotIndex)) return false;
 
         List<BundleIngredient> ingredients = def.ingredients();
         if (slotIndex < 0 || slotIndex >= ingredients.size()) return false;
@@ -153,7 +154,7 @@ public class BundleMenu extends AbstractContainerMenu {
         if (stack.getCount() < toConsume) return false;
 
         stack.shrink(toConsume);
-        data.markSlotComplete(bundleId, slotIndex);
+        data.markSlotComplete(uuid, bundleId, slotIndex);
 
         // SDV parity: multiplayer chat message — "BundleDonate" with player name + item name
         if (player instanceof ServerPlayer sp) {
@@ -179,7 +180,8 @@ public class BundleMenu extends AbstractContainerMenu {
         if (def == null || !def.isVaultBundle()) return false;
 
         CommunityCenterSavedData data = CommunityCenterSavedData.get();
-        if (data.isBundleComplete(bundleId)) return false;
+        java.util.UUID uuid = player.getUUID();
+        if (data.isBundleComplete(uuid, bundleId)) return false;
 
         BundleIngredient moneyIngredient = def.ingredients().get(0);
         if (!moneyIngredient.isMoneyIngredient()) return false;
@@ -191,8 +193,8 @@ public class BundleMenu extends AbstractContainerMenu {
         if (currentMoney < cost) return false;
         PlayerStardewDataAPI.removeMoney(sp, cost);
 
-        data.markBundleAllSlotsComplete(bundleId);
-        data.setRewardAvailable(bundleId, true);
+        data.markBundleAllSlotsComplete(uuid, bundleId);
+        data.setRewardAvailable(uuid, bundleId, true);
 
         // SDV parity: multiplayer chat — "Bundle" (no item name for vault)
         broadcastBundleCompleteMessage(sp);
@@ -200,18 +202,19 @@ public class BundleMenu extends AbstractContainerMenu {
         spawnBundleCarrierJunimo(player, 4, def.color());
 
         if (player.level() instanceof net.minecraft.server.level.ServerLevel sl) {
-            com.stardew.craft.communitycenter.JunimoNotePlacer.ensureJunimoNotes(sl);
+            net.minecraft.core.BlockPos ccOrigin = com.stardew.craft.interior.PlayerInteriorAllocator.get(sl).getCCOrigin(uuid);
+            com.stardew.craft.communitycenter.JunimoNotePlacer.ensureJunimoNotes(sl, uuid, ccOrigin);
         }
 
         boolean allDone = true;
         for (BundleDefinition bd : BundleDataManager.getBundlesForArea(4)) {
-            if (!data.isBundleComplete(bd.bundleId())) {
+            if (!data.isBundleComplete(uuid, bd.bundleId())) {
                 allDone = false;
                 break;
             }
         }
         if (allDone) {
-            data.markAreaComplete(4);
+            data.markAreaComplete(uuid, 4);
             onAreaComplete(player, 4);
         }
 
@@ -236,19 +239,55 @@ public class BundleMenu extends AbstractContainerMenu {
 
         // 检查是否全部完成
         CommunityCenterSavedData data = CommunityCenterSavedData.get();
-        if (data.areAllAreasComplete()) {
+        if (data.areAllAreasComplete(sp.getUUID())) {
             CCStoryFlags.addFlag(sp, CCStoryFlags.CC_IS_COMPLETE);
         }
 
         // 启动区域修复过场动画
         if (sp.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
-            com.stardew.craft.communitycenter.cutscene.AreaRestoreCutscene.start(serverLevel, areaId);
+            com.stardew.craft.communitycenter.cutscene.AreaRestoreCutscene.start(serverLevel, areaId, sp.getUUID());
+
+            // 区域修复后祝尼魔卷轴会被移除，自动发放该区域未领取的 bundle 奖励
+            deliverUnclaimedRewards(sp, areaId);
+
+            // Pantry (area 0) 完成 → 修复该玩家的温室
+            if (areaId == 0) {
+                com.stardew.craft.greenhouse.GreenhouseManager greenhouse =
+                    com.stardew.craft.greenhouse.GreenhouseManager.get(serverLevel);
+                greenhouse.repairForPlayer(serverLevel, sp.getUUID());
+            }
+
             // T3.2: If ALL areas now complete, schedule goodbye dance after restore cutscene
-            if (data.areAllAreasComplete()) {
+            if (data.areAllAreasComplete(sp.getUUID())) {
                 // The goodbye dance will be triggered after AreaRestoreCutscene finishes
                 // (handled in AreaRestoreCutscene.advancePhase default case)
             }
         }
+    }
+
+    /**
+     * 区域完成时，自动将该区域所有未领取的 bundle 奖励发到玩家背包。
+     * 修复后祝尼魔卷轴被移除，玩家无法再通过 UI 领取。
+     */
+    private void deliverUnclaimedRewards(ServerPlayer sp, int areaId) {
+        CommunityCenterSavedData data = CommunityCenterSavedData.get();
+        java.util.UUID uuid = sp.getUUID();
+
+        for (BundleDefinition def : BundleDataManager.getBundlesForArea(areaId)) {
+            if (!data.isRewardAvailable(uuid, def.bundleId())) continue;
+
+            ItemStack reward = com.stardew.craft.communitycenter.network.BundleClaimRewardPayload
+                    .parseRewardString(def.rewardString());
+            if (!reward.isEmpty()) {
+                if (!sp.getInventory().add(reward)) {
+                    sp.drop(reward, false);
+                }
+            }
+            data.setRewardAvailable(uuid, def.bundleId(), false);
+        }
+
+        // 同步到客户端
+        com.stardew.craft.communitycenter.network.BundleSyncPayload.sendFullSync(sp);
     }
 
     /**
@@ -297,7 +336,8 @@ public class BundleMenu extends AbstractContainerMenu {
         if (!(player.level() instanceof ServerLevel serverLevel)) return;
         CCAreaRegistry.AreaBounds bounds = CCAreaRegistry.getArea(areaId);
         if (bounds == null) return;
-        BlockPos notePos = bounds.noteWorldPos();
+        net.minecraft.core.BlockPos ccOrigin = com.stardew.craft.interior.PlayerInteriorAllocator.get(serverLevel).getCCOrigin(player.getUUID());
+        BlockPos notePos = bounds.noteWorldPos(ccOrigin);
         JunimoSpawner.spawnBundleCarrier(serverLevel, notePos, areaId, bundleColorIndex);
     }
 
@@ -318,7 +358,8 @@ public class BundleMenu extends AbstractContainerMenu {
         if (ingredientIndex < 0 || ingredientIndex >= ingredients.size()) return false;
 
         CommunityCenterSavedData data = CommunityCenterSavedData.get();
-        if (data.isSlotComplete(bundleId, ingredientIndex)) return false;
+        java.util.UUID uuid = player.getUUID();
+        if (data.isSlotComplete(uuid, bundleId, ingredientIndex)) return false;
 
         BundleIngredient ingredient = ingredients.get(ingredientIndex);
         if (!isItemTypeMatch(carried, ingredient)) return false;
@@ -381,7 +422,7 @@ public class BundleMenu extends AbstractContainerMenu {
         // SDV: if partial reaches required count, complete the deposit
         if (partialDonationItem.getCount() >= ingredient.stack()) {
             // Complete the deposit
-            data.markSlotComplete(bundleId, ingredientIndex);
+            data.markSlotComplete(uuid, bundleId, ingredientIndex);
 
             // SDV parity: multiplayer chat
             ItemStack displayItem = BundleItemResolver.resolveItemStack(ingredient.itemId());
@@ -510,15 +551,17 @@ public class BundleMenu extends AbstractContainerMenu {
     // ═══════════════════════════════════════════════════════════════════
 
     private void checkBundleCompletion(Player player, int bundleId, BundleDefinition def, CommunityCenterSavedData data) {
-        if (data.isBundleComplete(bundleId)) {
+        java.util.UUID uuid = player.getUUID();
+        if (data.isBundleComplete(uuid, bundleId)) {
             com.stardew.craft.StardewCraft.LOGGER.info("[REWARD-DEBUG] Bundle {} COMPLETE! Setting reward available.", bundleId);
-            data.setRewardAvailable(bundleId, true);
-            data.markBundleAllSlotsComplete(bundleId);
+            data.setRewardAvailable(uuid, bundleId, true);
+            data.markBundleAllSlotsComplete(uuid, bundleId);
 
             spawnBundleCarrierJunimo(player, def.areaId(), def.color());
 
             if (player.level() instanceof ServerLevel sl) {
-                com.stardew.craft.communitycenter.JunimoNotePlacer.ensureJunimoNotes(sl);
+                net.minecraft.core.BlockPos ccOrigin = com.stardew.craft.interior.PlayerInteriorAllocator.get(sl).getCCOrigin(uuid);
+                com.stardew.craft.communitycenter.JunimoNotePlacer.ensureJunimoNotes(sl, uuid, ccOrigin);
             }
 
             // SDV: multiplayer "Bundle" complete message
@@ -528,13 +571,13 @@ public class BundleMenu extends AbstractContainerMenu {
 
             boolean allDone = true;
             for (BundleDefinition bd : BundleDataManager.getBundlesForArea(def.areaId())) {
-                if (!data.isBundleComplete(bd.bundleId())) {
+                if (!data.isBundleComplete(uuid, bd.bundleId())) {
                     allDone = false;
                     break;
                 }
             }
             if (allDone) {
-                data.markAreaComplete(def.areaId());
+                data.markAreaComplete(uuid, def.areaId());
                 onAreaComplete(player, def.areaId());
             }
         }

@@ -66,7 +66,14 @@ public class StardewConfirmDialogScreen extends Screen {
                     Component.translatable("stardewcraft.sleep.confirm.yes"),
                     Component.translatable("stardewcraft.sleep.confirm.no")
                 ),
-                index -> PacketDistributor.sendToServer(new SleepConfirmChoicePayload(index == 0, currentMinute)),
+                index -> {
+                    PacketDistributor.sendToServer(new SleepConfirmChoicePayload(index == 0, currentMinute));
+                    if (index == 0) {
+                        // 确认睡觉 → 打开等待界面（进度将由 SleepVoteUpdatePayload 更新）
+                        net.minecraft.client.Minecraft.getInstance().setScreen(
+                            new com.stardew.craft.client.gui.overnight.SleepWaitingOverlayScreen(1, 1));
+                    }
+                },
                 -1
             )
         );

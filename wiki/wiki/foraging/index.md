@@ -58,12 +58,12 @@
 
 | 物品 | 季节 | 生成概率 |
 |------|------|---------|
-| 黄水仙 | 春 | 90% |
-| 甜豌豆 | 夏 | 90% |
-| 黑莓 | 秋 | 60% |
-| 番红花 | 冬 | 70% |
-| 冬青树 | 冬 | 50% |
-| 水晶果 | 冬 | 10% |
+| <img src="/img/forage/daffodil.png" class="item-icon"> [黄水仙](/wiki/foraging/spring#黄水仙-daffodil) | 春 | 90% |
+| <img src="/img/forage/sweet_pea.png" class="item-icon"> [甜豌豆](/wiki/foraging/summer#甜豌豆-sweet-pea) | 夏 | 90% |
+| <img src="/img/forage/blackberry.png" class="item-icon"> [黑莓](/wiki/foraging/fall#黑莓-blackberry) | 秋 | 60% |
+| <img src="/img/forage/crocus.png" class="item-icon"> [番红花](/wiki/foraging/winter#番红花-crocus) | 冬 | 70% |
+| <img src="/img/forage/holly.png" class="item-icon"> [冬青树](/wiki/foraging/winter#冬青树-holly) | 冬 | 50% |
+| <img src="/img/forage/crystal_fruit.png" class="item-icon"> [水晶果](/wiki/foraging/winter#水晶果-crystal-fruit) | 冬 | 10% |
 
 ### 🌲 森林 Cindersap Forest
 
@@ -77,14 +77,14 @@
 
 | 物品 | 季节 | 生成概率 |
 |------|------|---------|
-| 野山葵 | 春 | 90% |
-| 蒲公英 | 春 | 90% |
-| 香味浆果 | 夏 | 60% |
-| 甜豌豆 | 夏 | 90% |
-| 黑莓 | 秋 | 90% |
-| 番红花 | 冬 | 90% |
-| 水晶果 | 冬 | 90% |
-| 冬青树 | 冬 | 50% |
+| <img src="/img/forage/wild_horseradish.png" class="item-icon"> [野山葵](/wiki/foraging/spring#野山葵-wild-horseradish) | 春 | 90% |
+| <img src="/img/forage/dandelion.png" class="item-icon"> [蒲公英](/wiki/foraging/spring#蒲公英-dandelion) | 春 | 90% |
+| <img src="/img/forage/spice_berry.png" class="item-icon"> [香味浆果](/wiki/foraging/summer#香味浆果-spice-berry) | 夏 | 60% |
+| <img src="/img/forage/sweet_pea.png" class="item-icon"> [甜豌豆](/wiki/foraging/summer#甜豌豆-sweet-pea) | 夏 | 90% |
+| <img src="/img/forage/blackberry.png" class="item-icon"> [黑莓](/wiki/foraging/fall#黑莓-blackberry) | 秋 | 90% |
+| <img src="/img/forage/crocus.png" class="item-icon"> [番红花](/wiki/foraging/winter#番红花-crocus) | 冬 | 90% |
+| <img src="/img/forage/crystal_fruit.png" class="item-icon"> [水晶果](/wiki/foraging/winter#水晶果-crystal-fruit) | 冬 | 90% |
+| <img src="/img/forage/holly.png" class="item-icon"> [冬青树](/wiki/foraging/winter#冬青树-holly) | 冬 | 50% |
 
 ### ⛰️ 山地 Mountain
 
@@ -99,15 +99,15 @@
 
 | 物品 | 季节 | 生成概率 |
 |------|------|---------|
-| 韭葱 | 春 | 70% |
-| 野山葵 | 春 | 50% |
-| 香味浆果 | 夏 | 50% |
-| 甜豌豆 | 夏 | 80% |
-| 野梅 | 秋 | 40% |
-| 榛子 | 秋 | 90% |
-| 水晶果 | 冬 | 85% |
-| 番红花 | 冬 | 90% |
-| 冬青树 | 冬 | 50% |
+| <img src="/img/forage/leek.png" class="item-icon"> [韭葱](/wiki/foraging/spring#韭葱-leek) | 春 | 70% |
+| <img src="/img/forage/wild_horseradish.png" class="item-icon"> [野山葵](/wiki/foraging/spring#野山葵-wild-horseradish) | 春 | 50% |
+| <img src="/img/forage/spice_berry.png" class="item-icon"> [香味浆果](/wiki/foraging/summer#香味浆果-spice-berry) | 夏 | 50% |
+| <img src="/img/forage/sweet_pea.png" class="item-icon"> [甜豌豆](/wiki/foraging/summer#甜豌豆-sweet-pea) | 夏 | 80% |
+| <img src="/img/forage/wild_plum.png" class="item-icon"> [野梅](/wiki/foraging/fall#野梅-wild-plum) | 秋 | 40% |
+| <img src="/img/forage/hazelnut.png" class="item-icon"> [榛子](/wiki/foraging/fall#榛子-hazelnut) | 秋 | 90% |
+| <img src="/img/forage/crystal_fruit.png" class="item-icon"> [水晶果](/wiki/foraging/winter#水晶果-crystal-fruit) | 冬 | 85% |
+| <img src="/img/forage/crocus.png" class="item-icon"> [番红花](/wiki/foraging/winter#番红花-crocus) | 冬 | 90% |
+| <img src="/img/forage/holly.png" class="item-icon"> [冬青树](/wiki/foraging/winter#冬青树-holly) | 冬 | 50% |
 
 ### 🏖️ 海滩 Beach
 
@@ -120,10 +120,10 @@
 
 | 物品 | 季节 | 生成概率 |
 |------|------|---------|
-| 珊瑚 | 全年 | 80% |
-| 海胆 | 全年 | 50% |
-| 彩虹贝壳 | 夏 | 50% |
-| 鹦鹉螺 | 冬 | 80% |
+| <img src="/img/forage/coral.png" class="item-icon"> 珊瑚 | 全年 | 80% |
+| <img src="/img/forage/sea_urchin.png" class="item-icon"> 海胆 | 全年 | 50% |
+| <img src="/img/forage/rainbow_shell.png" class="item-icon"> 彩虹贝壳 | 夏 | 50% |
+| <img src="/img/forage/nautilus_shell.png" class="item-icon"> 鹦鹉螺 | 冬 | 80% |
 
 ---
 
@@ -162,30 +162,30 @@
 
 | 物品 | 售价 | 能量 | 来源标签 | 出现季节 |
 |------|------|------|---------|---------|
-| 普通蘑菇 | 40g | 38 | 矿洞 | 春、秋 |
-| 红蘑菇 | 75g | -50 | ⚠️ 矿洞 / 洞穴 | 夏、秋 |
-| 紫蘑菇 | 250g | 125 | 矿洞 | 全季节 |
-| 羊肚菌 | 150g | 20 | 洞穴 | 仅春季 |
-| 鸡油菌 | 160g | 75 | 洞穴 | 仅秋季 |
-| 熔岩菇 | 400g | 175 | 特殊 | 生长在熔岩池旁 |
+| <img src="/img/forage/common_mushroom.png" class="item-icon"> 普通蘑菇 | 40g | 38 | 矿洞 | 春、秋 |
+| <img src="/img/forage/red_mushroom.png" class="item-icon"> 红蘑菇 | 75g | -50 | ⚠️ 矿洞 / 洞穴 | 夏、秋 |
+| <img src="/img/forage/purple_mushroom.png" class="item-icon"> 紫蘑菇 | 250g | 125 | 矿洞 | 全季节 |
+| <img src="/img/forage/morel.png" class="item-icon"> 羊肚菌 | 150g | 20 | 洞穴 | 仅春季 |
+| <img src="/img/forage/chanterelle.png" class="item-icon"> 鸡油菌 | 160g | 75 | 洞穴 | 仅秋季 |
+| <img src="/img/forage/magma_cap.png" class="item-icon"> 熔岩菇 | 400g | 175 | 特殊 | 生长在熔岩池旁 |
 
 ### 🏜️ 沙漠物品
 
 | 物品 | 售价 | 能量 | 出现季节 |
 |------|------|------|---------|
-| 椰子 | 100g | 不可食用 | 全季节 |
-| 仙人掌果子 | 75g | 38 | 全季节 |
+| <img src="/img/forage/coconut.png" class="item-icon"> 椰子 | 100g | 不可食用 | 全季节 |
+| <img src="/img/forage/cactus_fruit.png" class="item-icon"> 仙人掌果子 | 75g | 38 | 全季节 |
 
 ### ⛏️ 矿洞物品
 
 | 物品 | 售价 | 能量 | 出现季节 |
 |------|------|------|---------|
-| 山洞萝卜 | 25g | 18 | 全季节 |
-| 冬根 | 70g | 25 | 仅冬季 |
+| <img src="/img/forage/cave_carrot.png" class="item-icon"> 山洞萝卜 | 25g | 18 | 全季节 |
+| <img src="/img/forage/winter_root.png" class="item-icon"> [冬根](/wiki/foraging/winter#冬根-winter-root) | 70g | 25 | 仅冬季 |
 
 ### 🌿 秘密森林物品
 
 | 物品 | 售价 | 能量 | 出现季节 |
 |------|------|------|---------|
-| 蕨菜 | 90g | 25 | 仅夏季 |
-| 姜 | 60g | 25 | 全季节 |
+| <img src="/img/forage/fiddlehead_fern.png" class="item-icon"> [蕨菜](/wiki/foraging/summer#蕨菜-fiddlehead-fern) | 90g | 25 | 仅夏季 |
+| <img src="/img/forage/ginger.png" class="item-icon"> 姜 | 60g | 25 | 全季节 |

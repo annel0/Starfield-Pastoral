@@ -28,6 +28,7 @@ import java.util.UUID;
 public final class NpcCentralMovementService {
     private static final double WALK_SPEED = 0.14D;
     private static final double WAYPOINT_REACH_SQR = 0.45D * 0.45D;
+    private static final double WAYPOINT_REACH_TURN_SQR = 0.20D * 0.20D;  // tighter threshold on sharp turns
     private static final double DONE_RESYNC_DIST_SQR = 9.0D * 9.0D;
     private static final double DOOR_AXIS_LOCK_DIST_SQR = 4.0D;
     private static final int REPATH_COOLDOWN_TICKS = 10;
@@ -37,19 +38,15 @@ public final class NpcCentralMovementService {
     private static final int NO_PATH_NEAR_QUICK_SYNC_TICKS = 30;
     private static final double NO_PATH_NEAR_QUICK_SYNC_DIST_SQR = 4.0D * 4.0D;
     private static final int STUCK_REPATH_TICKS = 20;
-    private static final int STUCK_FORCE_SYNC_TICKS = 80;
     private static final int MAX_COLLISION_RETPATHS = 2;
-    private static final double PROGRESS_MOVE_DIST_SQR = 0.16D;
-    private static final double PROGRESS_TARGET_GAIN_EPSILON_SQR = 0.04D;
-    /** XZ-stuck: if XZ displacement < this threshold, NPC is considered stuck.
-     *  0.25 blocks covers wall-jitter bounce-back oscillation. */
-    private static final double XZ_STUCK_THRESHOLD_SQR = 0.25D * 0.25D;
-    /** XZ-stuck: ticks before triggering repath (~0.5s). */
-    private static final int XZ_STUCK_REPATH_TICKS = 10;
-    /** XZ-stuck: ticks before skipping waypoint (~1.0s). */
-    private static final int XZ_STUCK_SKIP_TICKS = 20;
-    /** After this many consecutive XZ-stuck repath cycles, teleport to step target. */
-    private static final int XZ_STUCK_MAX_CYCLES = 3;
+    /** Block-level stationary: ticks at same block before repath + penalty (~1.0s). */
+    private static final int STATIONARY_REPATH_TICKS = 20;
+    /** Block-level stationary: ticks before skipping waypoint + repath (~2.0s). */
+    private static final int STATIONARY_SKIP_TICKS = 40;
+    /** Block-level stationary: ticks before teleport — absolute last resort (~3.0s). */
+    private static final int STATIONARY_TELEPORT_TICKS = 60;
+    /** Proactive repath interval (ticks) even when making progress (~3.0s). */
+    private static final int PERIODIC_REPATH_TICKS = 60;
     private static final int NO_PATH_FORCE_SYNC_TICKS = 100;
     private static final double NO_PATH_FORCE_SYNC_DIST_SQR = 8.0D * 8.0D;
     private static final int NO_PATH_FORCE_SYNC_MAX_TICKS = 400;
@@ -276,7 +273,6 @@ public final class NpcCentralMovementService {
             expanded.addAll(route.destinationSteps);
         }
         NpcRoutePlan plan = new NpcRoutePlan(signature, npc.getUUID(), expanded, gameTime);
-        plan.lastPos = npc.position();
 
         // ── Diagnostic: log plan steps once per new plan ──
         StringBuilder sb = new StringBuilder();
@@ -311,7 +307,11 @@ public final class NpcCentralMovementService {
         plan.pathIndex = 0;
         plan.consecutivePathFailures = 0;
         plan.lastProgressTick = now;
-        plan.lastPos = npc.position();
+        plan.stationaryTicks = 0;
+        BlockPos tpBlock = npc.blockPosition();
+        plan.lastBlockX = tpBlock.getX();
+        plan.lastBlockY = tpBlock.getY();
+        plan.lastBlockZ = tpBlock.getZ();
     }
 
     /** Record a path failure and apply exponential backoff to the next retry. */
@@ -369,7 +369,6 @@ public final class NpcCentralMovementService {
                 double d2dSqr = delta.x * delta.x + delta.z * delta.z;
                 if (d2dSqr > DONE_RESYNC_DIST_SQR) {
                     npc.setPos(finalTarget.x, finalTarget.y, finalTarget.z);
-                    plan.lastPos = npc.position();
                     plan.lastProgressTick = level.getGameTime();
                     plan.debugStage = "done_resync";
                     return false;
@@ -479,12 +478,24 @@ public final class NpcCentralMovementService {
 
         Vec3 horizontal = new Vec3(waypoint.x - npc.getX(), 0.0D, waypoint.z - npc.getZ());
 
-        // Advance waypoint if reached
-        if (horizontal.lengthSqr() <= WAYPOINT_REACH_SQR) {
+        // Advance waypoint if reached.
+        // Use a tighter threshold when the path turns sharply at this point,
+        // so the NPC reaches the center of the corridor before changing direction.
+        double reachSqr = WAYPOINT_REACH_SQR;
+        if (plan.pathIndex + 1 < plan.path.size()) {
+            Vec3 nextWp = plan.path.get(plan.pathIndex + 1);
+            Vec3 toNext = new Vec3(nextWp.x - waypoint.x, 0, nextWp.z - waypoint.z);
+            Vec3 toCur = horizontal; // direction FROM npc TO current waypoint
+            double dot = toCur.normalize().dot(toNext.normalize());
+            // dot < 0.5 means > 60° turn — tighten reach to prevent corner cutting
+            if (dot < 0.5D) {
+                reachSqr = WAYPOINT_REACH_TURN_SQR;
+            }
+        }
+        if (horizontal.lengthSqr() <= reachSqr) {
             plan.pathIndex++;
             plan.collisionRetpathCount = 0;
             plan.lastProgressTick = now;
-            plan.lastPos = npc.position();
             if (plan.pathIndex >= plan.path.size()) {
                 advanceStepByTeleport(npc, plan, step.target, now);
                 return false;
@@ -532,19 +543,16 @@ public final class NpcCentralMovementService {
                 // nearly-identical routes that also hit the same wall.
                 addAreaCollisionPenalty(level, npc.position(), horizontal.x, horizontal.z);
                 if (plan.collisionRetpathCount >= MAX_COLLISION_RETPATHS) {
-                    // Micro-teleport past the obstacle after 2 failed retries
-                    npc.setPos(waypoint.x, waypoint.y, waypoint.z);
+                    // Skip this waypoint and repath (no teleport — NPC must walk)
                     plan.pathIndex++;
                     plan.collisionRetpathCount = 0;
-                    plan.consecutivePathFailures = 0;
-                    plan.lastProgressTick = now;
                     plan.lastRepathTick = now;
-                    plan.lastPos = npc.position();
-                    plan.xzStuckTicks = 0;
-                    plan.xzLastPos = npc.position();
-                    plan.xzStuckCycles = 0;
-                    plan.debugStage = "collision_micro_tp";
-                    plan.debugRepathReason = "collision_max_skip_waypoint";
+                    addAreaCollisionPenalty(level, npc.position(), horizontal.x, horizontal.z);
+                    if (tryRepath(level, npc, plan, step.target, now) && !plan.path.isEmpty()) {
+                        openAllDoorsOnPath(level, npc, plan.path);
+                    }
+                    plan.debugStage = "collision_skip_waypoint";
+                    plan.debugRepathReason = "collision_skip_repath";
                 } else {
                     // Repath immediately on first collision
                     if (tryRepath(level, npc, plan, step.target, now) && !plan.path.isEmpty()) {
@@ -563,100 +571,77 @@ public final class NpcCentralMovementService {
             trySnapToDoorCenter(level, npc, waypoint);
 
             npc.setDeltaMovement(vx, vy, vz);
-            float moveYaw = (float) (Math.toDegrees(Math.atan2(-vx, vz)));
-            npc.setYRot(moveYaw);
-            npc.setYHeadRot(moveYaw);
+            // Only update facing when actually moving; avoids snapping to south
+            // (atan2(0,0)=0) during collision frames, which caused visual jitter.
+            if (vx != 0.0D || vz != 0.0D) {
+                float moveYaw = (float) (Math.toDegrees(Math.atan2(-vx, vz)));
+                npc.setYRot(moveYaw);
+                npc.setYHeadRot(moveYaw);
+            }
             npc.hurtMarked = true;
         }
 
-        // ── Phase 4: Progress detection and stuck escalation ──
-        double moved = npc.position().distanceToSqr(plan.lastPos);
-        double currentToWaypoint = npc.position().distanceToSqr(waypoint);
-        double lastToWaypoint = plan.lastPos.distanceToSqr(waypoint);
-        boolean waypointProgressed = currentToWaypoint + PROGRESS_TARGET_GAIN_EPSILON_SQR < lastToWaypoint;
-        if (moved > PROGRESS_MOVE_DIST_SQR && waypointProgressed) {
-            plan.lastPos = npc.position();
+        // ── Phase 4: Block-level stationary detection (Citizens2-inspired) ──
+        // Integer block coordinates are immune to sub-block jitter/oscillation
+        // that fooled the old XZ-displacement detection.
+        int curBlockX = npc.blockPosition().getX();
+        int curBlockY = npc.blockPosition().getY();
+        int curBlockZ = npc.blockPosition().getZ();
+
+        if (curBlockX != plan.lastBlockX || curBlockY != plan.lastBlockY || curBlockZ != plan.lastBlockZ) {
+            // NPC moved to a different block — genuine progress
+            plan.lastBlockX = curBlockX;
+            plan.lastBlockY = curBlockY;
+            plan.lastBlockZ = curBlockZ;
+            plan.stationaryTicks = 0;
             plan.lastProgressTick = now;
             plan.collisionRetpathCount = 0;
-            plan.xzStuckCycles = 0;
-        }
-
-        // ── Phase 4a: Rapid XZ-stuck detection ──
-        // If XZ position barely changed for a short window, the NPC is physically
-        // blocked. React within ~0.75s instead of waiting for the general stuck timer.
-        double xzDx = npc.getX() - plan.xzLastPos.x;
-        double xzDz = npc.getZ() - plan.xzLastPos.z;
-        double xzMovedSqr = xzDx * xzDx + xzDz * xzDz;
-        if (xzMovedSqr < XZ_STUCK_THRESHOLD_SQR) {
-            plan.xzStuckTicks++;
         } else {
-            plan.xzStuckTicks = 0;
-            plan.xzLastPos = npc.position();
+            plan.stationaryTicks++;
         }
 
-        if (plan.xzStuckTicks >= XZ_STUCK_SKIP_TICKS) {
-            // Stuck for ~1.0s — skip this waypoint entirely
+        // ── Stuck escalation ladder (single unified system) ──
+        if (plan.stationaryTicks >= STATIONARY_TELEPORT_TICKS) {
+            // TIER 3 (3.0s): Absolute last resort — teleport to step target
+            plan.debugStage = "stationary_teleport";
+            plan.lastFallbackTeleportUsed = true;
+            com.stardew.craft.StardewCraft.LOGGER.warn("[NPC_TELEPORT] npc={} reason=stationary step={} pos={} target={} ticks={}",
+                npc.getNpcId(), step.pointId, fmt(npc.position()), fmt(step.target), plan.stationaryTicks);
+            advanceStepByTeleport(npc, plan, step.target, now);
+            plan.debugRepathReason = "stationary_teleport";
+        } else if (plan.stationaryTicks >= STATIONARY_SKIP_TICKS
+                   && now - plan.lastRepathTick > REPATH_COOLDOWN_TICKS) {
+            // TIER 2 (2.0s): Skip current waypoint, penalize area, repath
             npc.setDeltaMovement(Vec3.ZERO);
             addAreaCollisionPenalty(level, npc.position(), waypoint.x - npc.getX(), waypoint.z - npc.getZ());
             plan.pathIndex++;
-            plan.xzStuckTicks = 0;
-            plan.xzLastPos = npc.position();
             plan.collisionRetpathCount = 0;
-            plan.lastRepathTick = now;
-            plan.xzStuckCycles++;
-            // After repeated stuck cycles, just teleport — the area is impassable
-            if (plan.xzStuckCycles >= XZ_STUCK_MAX_CYCLES) {
-                plan.debugStage = "xz_stuck_teleport";
-                plan.debugRepathReason = "xz_stuck_cycles_" + plan.xzStuckCycles;
-                plan.lastFallbackTeleportUsed = true;
-                com.stardew.craft.StardewCraft.LOGGER.warn("[NPC_TELEPORT] npc={} reason=xz_stuck_cycles step={} pos={} target={}", npc.getNpcId(), step.pointId, fmt(npc.position()), fmt(step.target));
-                advanceStepByTeleport(npc, plan, step.target, now);
-                return false;
-            }
-            plan.debugStage = "xz_stuck_skip";
-            plan.debugRepathReason = "xz_stuck_skip_cycle" + plan.xzStuckCycles;
-            // Try to repath from current pos to step target
             if (tryRepath(level, npc, plan, step.target, now) && !plan.path.isEmpty()) {
                 openAllDoorsOnPath(level, npc, plan.path);
             }
-        } else if (plan.xzStuckTicks >= XZ_STUCK_REPATH_TICKS
+            plan.debugStage = "stationary_skip";
+            plan.debugRepathReason = "stationary_skip_" + plan.stationaryTicks + "t";
+        } else if (plan.stationaryTicks >= STATIONARY_REPATH_TICKS
                    && now - plan.lastRepathTick > REPATH_COOLDOWN_TICKS) {
-            // Stuck for ~0.5s — penalize wide area and repath immediately
+            // TIER 1 (1.0s): Penalize obstacle area and repath
             npc.setDeltaMovement(Vec3.ZERO);
             addAreaCollisionPenalty(level, npc.position(), waypoint.x - npc.getX(), waypoint.z - npc.getZ());
             if (tryRepath(level, npc, plan, step.target, now) && !plan.path.isEmpty()) {
                 openAllDoorsOnPath(level, npc, plan.path);
-                plan.xzStuckTicks = 0;
-                plan.xzLastPos = npc.position();
             }
-            plan.debugStage = "xz_stuck_repath";
-            plan.debugRepathReason = "xz_stuck_" + plan.xzStuckTicks + "t";
+            plan.debugStage = "stationary_repath";
+            plan.debugRepathReason = "stationary_repath_" + plan.stationaryTicks + "t";
         }
 
-        // Stuck repath (general fallback — longer window)
-        if (now - plan.lastProgressTick > STUCK_REPATH_TICKS
-            && now - plan.lastRepathTick > REPATH_COOLDOWN_TICKS
-            && now >= plan.noPathRetryBlockedUntilTick) {
+        // ── Phase 5: Periodic proactive repath ──
+        // Even if making progress, periodically recompute path to catch stale
+        // routes that may lead to obstacles the world has changed around.
+        if (plan.stationaryTicks == 0
+            && now - plan.lastRepathTick >= PERIODIC_REPATH_TICKS) {
             if (tryRepath(level, npc, plan, step.target, now) && !plan.path.isEmpty()) {
                 openAllDoorsOnPath(level, npc, plan.path);
+                plan.debugRepathReason = "periodic_repath";
             }
-            plan.debugStage = "stuck_repath";
-            if (plan.path.isEmpty()) {
-                int cooldown = applyPathFailureBackoff(plan, now);
-                plan.debugRepathReason = "stuck_repath_backoff_" + cooldown + "t";
-            } else {
-                plan.consecutivePathFailures = 0;
-                plan.debugRepathReason = "stuck_timeout_repath";
-            }
-        }
-
-        // Force teleport after being stuck too long
-        if (now - plan.lastProgressTick > STUCK_FORCE_SYNC_TICKS) {
-            plan.debugStage = "fallback_tp";
-            plan.lastFallbackTeleportUsed = true;
-            com.stardew.craft.StardewCraft.LOGGER.warn("[NPC_TELEPORT] npc={} reason=stuck_force step={} pos={} target={} stuckTicks={}", npc.getNpcId(), step.pointId, fmt(npc.position()), fmt(step.target), now - plan.lastProgressTick);
-            advanceStepByTeleport(npc, plan, step.target, now);
-            plan.debugRepathReason = "stuck_force_teleport";
         }
 
         return false;
@@ -901,19 +886,16 @@ public final class NpcCentralMovementService {
         private long noPathRetryBlockedUntilTick;
         private int consecutivePathFailures;
         private int collisionRetpathCount;
-        private Vec3 lastPos;
         private String debugStage;
         private String debugPointId;
         private boolean lastFallbackTeleportUsed;
         private Vec3 debugTarget;
         private Vec3 debugNextWaypoint;
         private String debugRepathReason;
-        /** XZ-stuck tracker: ticks with negligible XZ movement. */
-        private int xzStuckTicks;
-        /** XZ-stuck tracker: reference position for XZ comparison. */
-        private Vec3 xzLastPos;
-        /** How many times the XZ-stuck repath cycle has fired without real progress. */
-        private int xzStuckCycles;
+        /** Block-level stationary tick counter (Citizens2-style). */
+        private int stationaryTicks;
+        /** Last known block coordinates for stationary detection. */
+        private int lastBlockX, lastBlockY, lastBlockZ;
 
         private NpcRoutePlan(String signature, UUID boundEntityUuid, List<NpcRoutePlanner.NpcRouteStep> steps, long now) {
             this.signature = signature;
@@ -927,16 +909,16 @@ public final class NpcCentralMovementService {
             this.noPathRetryBlockedUntilTick = now;
             this.consecutivePathFailures = 0;
             this.collisionRetpathCount = 0;
-            this.lastPos = Vec3.ZERO;
             this.debugStage = "init";
             this.debugPointId = "<none>";
             this.lastFallbackTeleportUsed = false;
             this.debugTarget = Vec3.ZERO;
             this.debugNextWaypoint = Vec3.ZERO;
             this.debugRepathReason = "none";
-            this.xzStuckTicks = 0;
-            this.xzLastPos = Vec3.ZERO;
-            this.xzStuckCycles = 0;
+            this.stationaryTicks = 0;
+            this.lastBlockX = Integer.MIN_VALUE;
+            this.lastBlockY = Integer.MIN_VALUE;
+            this.lastBlockZ = Integer.MIN_VALUE;
         }
     }
 

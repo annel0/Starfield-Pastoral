@@ -1,0 +1,108 @@
+package com.stardew.craft.command;
+
+import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.context.CommandContext;
+import com.stardew.craft.StardewCraft;
+import com.stardew.craft.interior.InteriorSubspaceManager;
+import com.stardew.craft.mining.StructureLoader;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.DoorBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+
+/**
+ * /stardew debug spawn_wizard_tower
+ * 在玩家当前位置放置一座完整的巫师塔（含入口传送方块）。
+ */
+@SuppressWarnings("null")
+public final class StructureDebugCommand {
+
+    private static final String WIZARD_TOWER_SCHEM = "data/stardewcraft/structures/wizard_tower_exterior.schem";
+    private static final String MARKER_TAG = "sdv_portal_marker:wizard_tower_overworld";
+    private static final String TARGET_TAG = "sdv_portal_target:wizard_tower_overworld_enter";
+    private static final int PORTAL_HEIGHT = 2;
+
+    private StructureDebugCommand() {}
+
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+        dispatcher.register(Commands.literal("stardew")
+            .requires(source -> source.hasPermission(2))
+            .then(Commands.literal("debug")
+                .then(Commands.literal("spawn_wizard_tower")
+                    .executes(StructureDebugCommand::spawnWizardTower))));
+    }
+
+    private static int spawnWizardTower(CommandContext<CommandSourceStack> ctx) {
+        CommandSourceStack source = ctx.getSource();
+        ServerPlayer player = source.getPlayer();
+        if (player == null) {
+            source.sendFailure(Component.literal("该命令仅限玩家使用"));
+            return 0;
+        }
+
+        ServerLevel level = player.serverLevel();
+        BlockPos placePos = player.blockPosition().relative(player.getDirection(), 3);
+
+        // 放置结构
+        boolean success = StructureLoader.loadAndPlaceWithResult(level, WIZARD_TOWER_SCHEM, placePos);
+        if (!success) {
+            source.sendFailure(Component.literal("巫师塔结构文件加载失败！"));
+            return 0;
+        }
+
+        // 确保巫师塔内部亚空间已加载（传送需要）
+        ServerLevel stardewLevel = player.server.getLevel(com.stardew.craft.core.ModDimensions.STARDEW_VALLEY);
+        if (stardewLevel != null) {
+            InteriorSubspaceManager.ensureLoaded(stardewLevel, "wizard_tower");
+        }
+
+        // 在门口放置传送方块
+        BlockPos doorPos = findLowestDarkOakDoor(level, placePos, 32, 32, 32);
+        if (doorPos != null) {
+            InteriorSubspaceManager.placePortalTriggerArea(
+                level, doorPos, PORTAL_HEIGHT, 1, 1,
+                MARKER_TAG, TARGET_TAG
+            );
+            source.sendSuccess(() -> Component.literal(
+                "巫师塔已生成于 " + placePos.toShortString() + "，传送门已放置于门口 " + doorPos.toShortString()),
+                true);
+        } else {
+            source.sendSuccess(() -> Component.literal(
+                "巫师塔已生成于 " + placePos.toShortString() + "（未找到门，传送门需手动放置）"),
+                true);
+        }
+
+        StardewCraft.LOGGER.info("[DEBUG] Player {} spawned wizard tower at {}", player.getName().getString(), placePos);
+        return 1;
+    }
+
+    /**
+     * 在给定区域内搜索最低的深色橡木门（下半部分）。
+     */
+    private static BlockPos findLowestDarkOakDoor(ServerLevel level, BlockPos origin, int sx, int sy, int sz) {
+        BlockPos lowestDoor = null;
+        int lowestY = Integer.MAX_VALUE;
+
+        for (int x = origin.getX(); x < origin.getX() + sx; x++) {
+            for (int z = origin.getZ(); z < origin.getZ() + sz; z++) {
+                for (int y = origin.getY(); y < origin.getY() + sy; y++) {
+                    BlockPos pos = new BlockPos(x, y, z);
+                    BlockState state = level.getBlockState(pos);
+                    if (state.is(Blocks.DARK_OAK_DOOR)
+                        && state.getValue(DoorBlock.HALF) == DoubleBlockHalf.LOWER
+                        && y < lowestY) {
+                        lowestY = y;
+                        lowestDoor = pos;
+                    }
+                }
+            }
+        }
+        return lowestDoor;
+    }
+}

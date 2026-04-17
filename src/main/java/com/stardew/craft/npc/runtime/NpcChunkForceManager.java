@@ -21,6 +21,8 @@ public final class NpcChunkForceManager {
 
     private static final Map<String, Long> FORCED_TARGET_CHUNK_BY_NPC = new HashMap<>();
     private static final Map<String, Set<Long>> FORCED_ROUTE_CHUNKS_BY_NPC = new HashMap<>();
+    /** Cache: packed (startChunk, endChunk) for corridor diff skip */
+    private static final Map<String, Long> CORRIDOR_ENDPOINT_CACHE = new HashMap<>();
 
     private NpcChunkForceManager() {
     }
@@ -29,6 +31,7 @@ public final class NpcChunkForceManager {
     public static void resetState() {
         FORCED_TARGET_CHUNK_BY_NPC.clear();
         FORCED_ROUTE_CHUNKS_BY_NPC.clear();
+        CORRIDOR_ENDPOINT_CACHE.clear();
     }
 
     /** Release ALL forced chunks (call when no player is in dimension). */
@@ -44,6 +47,7 @@ public final class NpcChunkForceManager {
             }
         }
         FORCED_ROUTE_CHUNKS_BY_NPC.clear();
+        CORRIDOR_ENDPOINT_CACHE.clear();
     }
 
     public static void ensureRouteTargetChunkForced(ServerLevel level, String rawNpcId, Vec3 target) {
@@ -94,6 +98,14 @@ public final class NpcChunkForceManager {
         int endX = ((int) Math.floor(to.x)) >> 4;
         int endZ = ((int) Math.floor(to.z)) >> 4;
 
+        // 快速跳过：NPC 仍在同一 chunk 端点对中
+        long compositeKey = (((long)(startX & 0xFFFF)) << 48) | (((long)(startZ & 0xFFFF)) << 32)
+                          | (((long)(endX & 0xFFFF)) << 16) | ((long)(endZ & 0xFFFF));
+        Long cachedKey = CORRIDOR_ENDPOINT_CACHE.get(npcId);
+        if (cachedKey != null && cachedKey == compositeKey) {
+            return;
+        }
+
         if (Math.abs(endX - startX) > MAX_FORCED_CORRIDOR_CHUNK_DELTA
             || Math.abs(endZ - startZ) > MAX_FORCED_CORRIDOR_CHUNK_DELTA) {
             Set<Long> prev = FORCED_ROUTE_CHUNKS_BY_NPC.remove(npcId);
@@ -126,6 +138,7 @@ public final class NpcChunkForceManager {
         }
 
         FORCED_ROUTE_CHUNKS_BY_NPC.put(npcId, next);
+        CORRIDOR_ENDPOINT_CACHE.put(npcId, compositeKey);
     }
 
     public static void releaseInactiveForcedChunks(ServerLevel level, Set<String> activeNpcIds) {
@@ -157,6 +170,7 @@ public final class NpcChunkForceManager {
         }
         for (String npcId : staleCorridors) {
             Set<Long> chunks = FORCED_ROUTE_CHUNKS_BY_NPC.remove(npcId);
+            CORRIDOR_ENDPOINT_CACHE.remove(npcId);
             if (chunks == null) {
                 continue;
             }

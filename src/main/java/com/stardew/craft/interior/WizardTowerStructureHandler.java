@@ -1,6 +1,7 @@
 package com.stardew.craft.interior;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.block.ModBlocks;
 import net.minecraft.core.BlockPos;
 
 import net.minecraft.core.registries.Registries;
@@ -8,9 +9,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.Interaction;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -22,12 +20,10 @@ import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
-import net.minecraft.world.phys.AABB;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Collections;
@@ -56,6 +52,8 @@ public final class WizardTowerStructureHandler {
 
     /** 已完成地形融合的结构（按包围盒中心 key），避免重复处理 */
     private static final Set<Long> processedTerrainKeys = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    /** 已放置传送方块的结构 key */
+    private static final Set<Long> portalPlacedKeys = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     // 每 100 tick（~5 秒）检测一次
     private static final int CHECK_INTERVAL = 100;
@@ -82,12 +80,15 @@ public final class WizardTowerStructureHandler {
             convertExposedDirtToGrass(level, bb);
         }
 
-        // ── 交互实体放置（仅一次） ──
-        AABB searchBox = new AABB(bb.minX() - 1, bb.minY(), bb.minZ() - 1,
-                                   bb.maxX() + 2, bb.maxY() + 1, bb.maxZ() + 2);
-        List<Interaction> existing = level.getEntitiesOfClass(
-            Interaction.class, searchBox, e -> e.getTags().contains(MARKER_TAG));
-        if (!existing.isEmpty()) return;
+        // ── 传送方块放置（仅一次） ──
+        long portalKey = packBBKey(bb);
+        if (portalPlacedKeys.contains(portalKey)) return;
+
+        // 检查是否已有传送方块（老存档恢复后）
+        if (hasPortalBlockInBounds(level, bb)) {
+            portalPlacedKeys.add(portalKey);
+            return;
+        }
 
         BlockPos doorPos = findLowestDarkOakDoor(level, bb);
         if (doorPos == null) {
@@ -95,16 +96,12 @@ public final class WizardTowerStructureHandler {
             return;
         }
 
-        for (int dy = 0; dy < PORTAL_HEIGHT; dy++) {
-            BlockPos pos = doorPos.offset(0, dy, 0);
-            Entity entity = EntityType.INTERACTION.create(level);
-            if (!(entity instanceof Interaction interaction)) continue;
-            interaction.moveTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 0.0F, 0.0F);
-            interaction.addTag(MARKER_TAG);
-            interaction.addTag(TARGET_TAG);
-            level.addFreshEntity(interaction);
-        }
-        StardewCraft.LOGGER.info("[WIZARD_STRUCT] Spawned portal interaction entities at door pos {}", doorPos);
+        InteriorSubspaceManager.placePortalTriggerArea(
+            level, doorPos, PORTAL_HEIGHT, 1, 1,
+            MARKER_TAG, TARGET_TAG
+        );
+        portalPlacedKeys.add(portalKey);
+        StardewCraft.LOGGER.info("[WIZARD_STRUCT] Placed portal trigger blocks at door pos {}", doorPos);
     }
 
     // ====================== 地形融合 ======================
@@ -137,6 +134,20 @@ public final class WizardTowerStructureHandler {
     }
 
     // ====================== 工具方法 ======================
+
+    private static boolean hasPortalBlockInBounds(ServerLevel level, BoundingBox bb) {
+        for (int x = bb.minX(); x <= bb.maxX(); x++) {
+            for (int z = bb.minZ(); z <= bb.maxZ(); z++) {
+                for (int y = bb.minY(); y <= bb.maxY(); y++) {
+                    BlockPos pos = new BlockPos(x, y, z);
+                    if (level.getBlockState(pos).is(ModBlocks.PORTAL_TRIGGER.get())) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
 
     private static BlockPos findLowestDarkOakDoor(ServerLevel level, BoundingBox bb) {
         BlockPos lowestDoor = null;

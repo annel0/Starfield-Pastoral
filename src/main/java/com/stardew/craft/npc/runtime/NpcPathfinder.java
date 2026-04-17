@@ -418,9 +418,17 @@ public final class NpcPathfinder {
 
 
 
-    /** 检查某位置是否为狭窄走廊（两侧对向都是实心方块），用于 cost 惩罚。 */
+    /** 检查某位置是否为狭窄走廊（两侧对向都是实心方块），用于 cost 惩罚。
+     *  Also checks head-level (Y+1) since the entity is ~1.8 blocks tall. */
     private static boolean isNarrowCorridor(ServerLevel level, BlockPos pos) {
         int px = pos.getX(), py = pos.getY(), pz = pos.getZ();
+        // Check at feet level
+        if (isNarrowAxis(level, px, py, pz)) return true;
+        // Check at head level (entity height ~1.8)
+        return isNarrowAxis(level, px, py + 1, pz);
+    }
+
+    private static boolean isNarrowAxis(ServerLevel level, int px, int py, int pz) {
         BlockPos eastPos = new BlockPos(px + 1, py, pz);
         BlockState eastState = level.getBlockState(eastPos);
         boolean solidPosX = !eastState.getCollisionShape(level, eastPos).isEmpty() && !isPathDoorPassable(eastState);
@@ -547,7 +555,9 @@ public final class NpcPathfinder {
         }
         // Heavy penalty near walls to avoid tight wall-hugging paths that
         // the entity hitbox cannot physically follow.
-        double penalty = blocked * 1.5D;
+        // Entity width is 0.6; block center is 0.5 from each edge.
+        // With only 0.2 margin on each side, wall proximity causes frequent clips.
+        double penalty = blocked * 4.0D;
 
         // Add temporary collision penalty if this position was marked
         long posKey = pos.asLong();
@@ -676,6 +686,12 @@ public final class NpcPathfinder {
 
     /** 检查快照中某位置是否为狭窄走廊，用于 cost 惩罚。 */
     private static boolean isNarrowCorridorSnapshot(BlockSnapshot snap, BlockPos pos) {
+        // Check at feet and head level
+        if (isNarrowAxisSnapshot(snap, pos)) return true;
+        return isNarrowAxisSnapshot(snap, pos.above());
+    }
+
+    private static boolean isNarrowAxisSnapshot(BlockSnapshot snap, BlockPos pos) {
         boolean solidPosX = isSnapshotSolid(snap, pos.east());
         boolean solidNegX = isSnapshotSolid(snap, pos.west());
         boolean solidPosZ = isSnapshotSolid(snap, pos.south());
@@ -707,11 +723,12 @@ public final class NpcPathfinder {
         int px = pos.getX(), py = pos.getY(), pz = pos.getZ();
         for (int[] d : DIR4) {
             BlockPos side = new BlockPos(px + d[0], py, pz + d[1]);
-            if (!canStandSnapshot(snap, side)) {
+            BlockState sideState = snap.getBlockState(side);
+            if (sideState == null || !canStandSnapshot(snap, side)) {
                 blocked++;
             }
         }
-        double penalty = blocked * 1.5D;
+        double penalty = blocked * 4.0D;
 
         // Apply collision penalties (parity with sync edgePenalty)
         long posKey = pos.asLong();
@@ -781,7 +798,10 @@ public final class NpcPathfinder {
             Vec3 next = path.get(i + 1);
             Vec3 a = cur.subtract(prev);
             Vec3 b = next.subtract(cur);
-            if (a.normalize().dot(b.normalize()) > 0.995D) {
+            // Only remove points that are PERFECTLY collinear (threshold tightened
+            // from 0.995 to 0.9999). The old threshold removed points on long
+            // straight segments, creating shortcuts that angled into walls.
+            if (a.normalize().dot(b.normalize()) > 0.9999D) {
                 continue;
             }
             out.add(cur);

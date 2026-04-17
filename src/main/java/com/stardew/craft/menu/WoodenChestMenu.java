@@ -12,6 +12,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
+import java.util.function.IntConsumer;
 
 @SuppressWarnings("null")
 public class WoodenChestMenu extends AbstractContainerMenu {
@@ -22,6 +23,9 @@ public class WoodenChestMenu extends AbstractContainerMenu {
     private final Container container;
     @Nullable
     private final WoodenChestBlockEntity chestEntity;
+    /** 通用颜色变更处理器，供非 WoodenChestBlockEntity 的箱子使用 */
+    @Nullable
+    private final IntConsumer colorHandler;
     private int colorSelection;
 
     public WoodenChestMenu(int containerId, Inventory playerInventory) {
@@ -29,10 +33,23 @@ public class WoodenChestMenu extends AbstractContainerMenu {
     }
 
     public WoodenChestMenu(int containerId, Inventory playerInventory, Container container, @Nullable WoodenChestBlockEntity chestEntity) {
+        this(containerId, playerInventory, container, chestEntity, null, chestEntity != null ? chestEntity.getColorSelection() : 0);
+    }
+
+    /** 带通用颜色处理器的构造函数，供 MineChest 等非 WoodenChest 使用 */
+    public WoodenChestMenu(int containerId, Inventory playerInventory, Container container,
+                           @Nullable IntConsumer colorHandler, int initialColor) {
+        this(containerId, playerInventory, container, null, colorHandler, initialColor);
+    }
+
+    private WoodenChestMenu(int containerId, Inventory playerInventory, Container container,
+                            @Nullable WoodenChestBlockEntity chestEntity,
+                            @Nullable IntConsumer colorHandler, int initialColor) {
         super(ModMenuTypes.WOODEN_CHEST.get(), containerId);
         this.container = container;
         this.chestEntity = chestEntity;
-        this.colorSelection = chestEntity != null ? chestEntity.getColorSelection() : 0;
+        this.colorHandler = colorHandler;
+        this.colorSelection = initialColor;
 
         checkContainerSize(container, CHEST_SIZE);
         container.startOpen(playerInventory.player);
@@ -77,10 +94,11 @@ public class WoodenChestMenu extends AbstractContainerMenu {
     }
 
     public void setColorSelectionFromClient(int selection) {
-        if (chestEntity == null) {
-            return;
+        if (chestEntity != null) {
+            chestEntity.setColorSelection(selection);
+        } else if (colorHandler != null) {
+            colorHandler.accept(selection);
         }
-        chestEntity.setColorSelection(selection);
     }
 
     @Override

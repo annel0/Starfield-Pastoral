@@ -15,7 +15,6 @@ import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -492,48 +491,6 @@ public class TreasureLootManager extends SimplePreparableReloadListener<Treasure
 		return generateTreasure(fishingLevel, golden, random, 50, 0.0);
 	}
 
-	@SuppressWarnings("null")
-	private ItemStack rollOne(List<TreasureLootEntry> source, int fishingLevel, RandomSource random) {
-		List<TreasureLootEntry> eligible = new ArrayList<>();
-		int totalWeight = 0;
-		for (TreasureLootEntry entry : source) {
-			if (entry == null || entry.item == null || entry.item.isBlank()) {
-				continue;
-			}
-			if (entry.minFishingLevel > fishingLevel) {
-				continue;
-			}
-			int w = Math.max(0, entry.weight);
-			if (w == 0) {
-				continue;
-			}
-			eligible.add(entry);
-			totalWeight += w;
-		}
-		if (eligible.isEmpty() || totalWeight <= 0) {
-			return ItemStack.EMPTY;
-		}
-
-		int roll = random.nextInt(totalWeight);
-		for (TreasureLootEntry entry : eligible) {
-			roll -= Math.max(0, entry.weight);
-			if (roll >= 0) {
-				continue;
-			}
-			ResourceLocation id = ResourceLocation.tryParse(entry.item);
-			if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) {
-				return ItemStack.EMPTY;
-			}
-			Item item = BuiltInRegistries.ITEM.get(id);
-			int min = Math.max(1, entry.minCount);
-			int max = Math.max(min, entry.maxCount);
-			int count = min + random.nextInt(max - min + 1);
-			return new ItemStack(item, count);
-		}
-
-		return ItemStack.EMPTY;
-	}
-
 	private TreasureData createDefaultData() {
 		TreasureData d = new TreasureData();
 
@@ -561,18 +518,6 @@ public class TreasureLootManager extends SimplePreparableReloadListener<Treasure
 
 		d.fallbackLoot.add(createEntry("stardewcraft:bait", 5, 15, 100));
 		return d;
-	}
-
-	private ItemStack createHardFallback(RandomSource random) {
-		ResourceLocation baitId = ResourceLocation.tryParse("stardewcraft:bait");
-		if (baitId != null && BuiltInRegistries.ITEM.containsKey(baitId)) {
-			return new ItemStack(BuiltInRegistries.ITEM.get(baitId), 5 + random.nextInt(11));
-		}
-		ResourceLocation stoneId = ResourceLocation.tryParse("stardewcraft:stone");
-		if (stoneId != null && BuiltInRegistries.ITEM.containsKey(stoneId)) {
-			return new ItemStack(BuiltInRegistries.ITEM.get(stoneId), 10 + random.nextInt(11));
-		}
-		return ItemStack.EMPTY;
 	}
 
 	private TreasureLootEntry createEntry(String item, int minCount, int maxCount, int weight) {

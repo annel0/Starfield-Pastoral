@@ -140,7 +140,7 @@ public class AnimalProduceSpotBlock extends BaseEntityBlock {
                 return;
             }
 
-            AnimalBuildingRecord building = AnimalWorldData.get(serverLevel).getBuilding(buildingId).orElse(null);
+            AnimalBuildingRecord building = AnimalWorldData.get(serverLevel).getBuildingIncludingInactive(buildingId).orElse(null);
             if (building == null) {
                 lvl.removeBlock(p, false);
                 return;

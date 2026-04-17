@@ -6,9 +6,9 @@
 
 | 物品 | 售价 | 能量 | 生命 | 刷新区域 | 生成概率 |
 |------|------|------|------|---------|--------|
-| 黑莓 | 20g | 25 | 11 | 城镇 60%、森林 90% | 高 |
-| 野梅 | 80g | 25 | 11 | 山地 40% | 低 |
-| 槛子 | 90g | 30 | 13 | 山地 90% | 高 |
+| <img src="/img/forage/blackberry.png" class="item-icon"> [黑莓](#黑莓-blackberry) | 20g | 25 | 11 | 城镇 60%、森林 90% | 高 |
+| <img src="/img/forage/wild_plum.png" class="item-icon"> [野梅](#野梅-wild-plum) | 80g | 25 | 11 | 山地 40% | 低 |
+| <img src="/img/forage/hazelnut.png" class="item-icon"> [榛子](#榛子-hazelnut) | 90g | 30 | 13 | 山地 90% | 高 |
 
 ---
 

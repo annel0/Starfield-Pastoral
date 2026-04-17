@@ -76,12 +76,19 @@ public class PastureGrassGrowthManager extends SavedData {
         Set<Long> scannedChunks = new HashSet<>();
         List<BlockPos> results = new ArrayList<>();
 
-        level.players().forEach(player -> {
-            int centerChunkX = player.blockPosition().getX() >> 4;
-            int centerChunkZ = player.blockPosition().getZ() >> 4;
-            int radius = 6;
-            for (int cx = centerChunkX - radius; cx <= centerChunkX + radius; cx++) {
-                for (int cz = centerChunkZ - radius; cz <= centerChunkZ + radius; cz++) {
+        // 只扫描在线玩家农场边界内的区块，而非玩家视距半径
+        com.stardew.craft.farm.FarmInstanceRegistry farmReg = com.stardew.craft.farm.FarmInstanceRegistry.get();
+        for (net.minecraft.server.level.ServerPlayer player : level.players()) {
+            com.stardew.craft.farm.FarmInstance farm = farmReg.getFarm(player.getUUID());
+            if (farm == null) continue;
+            BlockPos min = farm.getFarmBoundsMin();
+            BlockPos max = farm.getFarmBoundsMax();
+            int minCX = min.getX() >> 4;
+            int maxCX = max.getX() >> 4;
+            int minCZ = min.getZ() >> 4;
+            int maxCZ = max.getZ() >> 4;
+            for (int cx = minCX; cx <= maxCX; cx++) {
+                for (int cz = minCZ; cz <= maxCZ; cz++) {
                     long key = (((long) cx) << 32) ^ (cz & 0xFFFFFFFFL);
                     if (!scannedChunks.add(key) || !level.hasChunk(cx, cz)) {
                         continue;
@@ -104,7 +111,7 @@ public class PastureGrassGrowthManager extends SavedData {
                     }
                 }
             }
-        });
+        }
 
         return results;
     }

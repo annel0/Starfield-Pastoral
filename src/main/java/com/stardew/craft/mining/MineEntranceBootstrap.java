@@ -2,13 +2,10 @@ package com.stardew.craft.mining;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModMiningDimensions;
+import com.stardew.craft.interior.InteriorSubspaceManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.Interaction;
 import net.minecraft.world.level.saveddata.SavedData;
-import net.minecraft.world.phys.AABB;
 import javax.annotation.Nonnull;
 
 /**
@@ -81,27 +78,12 @@ public final class MineEntranceBootstrap {
 	private static final String MINE_EXIT_TARGET = "sdv_portal_target:mine_exit";
 
 	private static void spawnMineExitPortal(ServerLevel level) {
-		// 清理已有出口交互实体
-		AABB searchBox = new AABB(MINE_EXIT_POS).inflate(6.0D);
-		for (Interaction existing : level.getEntitiesOfClass(Interaction.class, searchBox,
-				e -> e.getTags().contains(MINE_EXIT_MARKER))) {
-			existing.discard();
-		}
-		// 生成 1x2 交互区域
-		for (int dy = 0; dy < 2; dy++) {
-			BlockPos pos = MINE_EXIT_POS.above(dy);
-			level.getChunk(pos.getX() >> 4, pos.getZ() >> 4);
-			Entity entity = EntityType.INTERACTION.create(level);
-			if (!(entity instanceof Interaction interaction)) {
-				StardewCraft.LOGGER.warn("[MINE] Failed to create mine exit interaction at {}", pos);
-				continue;
-			}
-			interaction.moveTo(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D, 0.0F, 0.0F);
-			interaction.addTag(MINE_EXIT_MARKER);
-			interaction.addTag(MINE_EXIT_TARGET);
-			level.addFreshEntity(interaction);
-		}
-		StardewCraft.LOGGER.info("[MINE] Mine exit portal spawned at {}", MINE_EXIT_POS);
+		// 放置 1x1x2 传送触发方块区域
+		InteriorSubspaceManager.placePortalTriggerArea(
+			level, MINE_EXIT_POS, 2, 1, 1,
+			MINE_EXIT_MARKER, MINE_EXIT_TARGET
+		);
+		StardewCraft.LOGGER.info("[MINE] Mine exit portal placed at {}", MINE_EXIT_POS);
 	}
 
 	/** 保存矿井生成状态的数据 */

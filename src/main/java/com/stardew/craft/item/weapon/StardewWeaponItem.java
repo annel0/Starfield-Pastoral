@@ -236,7 +236,8 @@ public class StardewWeaponItem extends SwordItem implements IStardewItem, IStard
         // 这里只添加武器特有的详细信息
         if (weaponData != null) {
             ensureWeaponStats(stack);
-            WeaponTooltipBuilder builder = new WeaponTooltipBuilder(stack, weaponData);
+            boolean expanded = net.minecraft.client.gui.screens.Screen.hasShiftDown();
+            WeaponTooltipBuilder builder = new WeaponTooltipBuilder(stack, weaponData, expanded);
             tooltipComponents.addAll(builder.build());
         }
     }

@@ -18,6 +18,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -191,18 +192,28 @@ public class LevelUpMenuScreen extends Screen {
             graphics.drawString(this.font, title, xPos + guiWidth / 2 - this.font.width(title) / 2, yPos + px(SPACE_TOP + 16), 0x3A2A1A, false);
 
             Component proficiency = Component.translatable("stardewcraft.levelup.proficiency", getSkillName(currentSkill));
-            graphics.drawString(this.font, proficiency, xPos + guiWidth / 2 - px(92), yPos + px(SPACE_TOP + 82), 0x3A2A1A, false);
-            graphics.drawString(this.font, Component.translatable("stardewcraft.levelup.new_recipes"), xPos + guiWidth / 2 - px(76), yPos + px(SPACE_TOP + 130), 0x3A2A1A, false);
+            graphics.drawString(this.font, proficiency, xPos + guiWidth / 2 - this.font.width(proficiency) / 2, yPos + px(SPACE_TOP + 82), 0x3A2A1A, false);
+            Component newRecipesHeader = Component.translatable("stardewcraft.levelup.new_recipes");
+            graphics.drawString(this.font, newRecipesHeader, xPos + guiWidth / 2 - this.font.width(newRecipesHeader) / 2, yPos + px(SPACE_TOP + 130), 0x3A2A1A, false);
 
-            List<Component> unlockedRecipeLines = getUnlockedRecipeLines();
+            List<RecipeDisplayEntry> unlockedRecipes = getUnlockedRecipeEntries();
             int lineY = yPos + px(SPACE_TOP + 160);
-            if (unlockedRecipeLines.isEmpty()) {
-                graphics.drawString(this.font, Component.translatable("stardewcraft.levelup.new_recipes.none"), xPos + guiWidth / 2 - px(84), lineY, 0x5A4A3A, false);
+            if (unlockedRecipes.isEmpty()) {
+                Component noneText = Component.translatable("stardewcraft.levelup.new_recipes.none");
+                graphics.drawString(this.font, noneText, xPos + guiWidth / 2 - this.font.width(noneText) / 2, lineY, 0x5A4A3A, false);
             } else {
-                int maxLines = Math.min(4, unlockedRecipeLines.size());
-                for (int i = 0; i < maxLines; i++) {
-                    Component line = unlockedRecipeLines.get(i);
-                    graphics.drawString(this.font, line, xPos + guiWidth / 2 - px(140), lineY + i * px(20), 0x3A2A1A, false);
+                int centerX = xPos + guiWidth / 2;
+                for (int i = 0; i < unlockedRecipes.size(); i++) {
+                    RecipeDisplayEntry entry = unlockedRecipes.get(i);
+                    Component message = entry.displayName();
+                    int textW = this.font.width(message);
+                    // SDV parity: 文本居中偏左（留出图标空间），图标在文本右侧
+                    int textX = centerX - textW / 2 - 10;
+                    int itemY = lineY + i * px(20);
+                    graphics.drawString(this.font, message, textX, itemY + 4, 0x3A2A1A, false);
+                    if (!entry.icon().isEmpty()) {
+                        graphics.renderItem(entry.icon(), textX + textW + 4, itemY - 4);
+                    }
                 }
             }
 
@@ -366,8 +377,10 @@ public class LevelUpMenuScreen extends Screen {
         return Component.translatable("stardewcraft.levelup.profession." + profession + ".desc");
     }
 
-    private List<Component> getUnlockedRecipeLines() {
-        List<Component> lines = new ArrayList<>();
+    private record RecipeDisplayEntry(Component displayName, ItemStack icon) {}
+
+    private List<RecipeDisplayEntry> getUnlockedRecipeEntries() {
+        List<RecipeDisplayEntry> entries = new ArrayList<>();
         SkillType skillType = mapSkill(currentSkill);
         java.util.Set<String> seen = new java.util.LinkedHashSet<>();
 
@@ -398,9 +411,11 @@ public class LevelUpMenuScreen extends Screen {
 
         for (String recipeId : seen) {
             if (recipeId == null || recipeId.isBlank()) continue;
-            lines.add(Component.translatable("recipe.stardewcraft." + recipeId));
+            Component name = Component.translatable("recipe.stardewcraft." + recipeId);
+            ItemStack icon = StardewCraftingRecipeData.getOutputStack(recipeId);
+            entries.add(new RecipeDisplayEntry(name, icon));
         }
-        return lines;
+        return entries;
     }
 
     private void drawWrappedText(GuiGraphics graphics, Component text, int x, int y, int maxWidth, int color, int lineStep) {

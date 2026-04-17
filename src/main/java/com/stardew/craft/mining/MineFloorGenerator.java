@@ -45,10 +45,10 @@ public class MineFloorGenerator {
 
     private static final int GENERATION_VERSION = 19;
     private static final double ORE_RATE_MULTIPLIER = 0.15;
-    // A类矿（直接采集）在洞窟表面的概率（比原版略高）
-    private static final double SURFACE_MINERAL_RATE = 0.006;
-    // B类矿（宝石矿石节点）生成概率倍率（比原版略高）
-    private static final double GEM_NODE_RATE_MULTIPLIER = 1.4;
+    // A类矿（直接采集）在洞窟表面的概率
+    private static final double SURFACE_MINERAL_RATE = 0.012;
+    // B类矿（宝石矿石节点）生成概率倍率
+    private static final double GEM_NODE_RATE_MULTIPLIER = 0.14;
     // B类矿更偏向洞窟表面
     private static final double GEM_SURFACE_BIAS = 0.7;
 
@@ -74,11 +74,39 @@ public class MineFloorGenerator {
     // 洞窟与地板/天花板的最小间距（至少留 1-2 层）
     private static final int CAVE_VERTICAL_PADDING = 2;
     private static final String LADDER_HIGHLIGHT_TAG = "stardewcraft_mine_ladder_highlight";
+
+    // ── 缓存 DeferredHolder.get() 结果，避免热路径上重复解引用 ──
+    private static Block EARTH_SHALE, DARK_EARTH_SHALE;
+    private static Block FROST_GNEISS, DARK_FROST_GNEISS;
+    private static Block LAVA_BASALT, DARK_LAVA_BASALT;
+    private static Block BANDED_MARBLE, LIMESTONE, MOSSY_SANDSTONE;
+    private static Block CRACKED_SLATE, SCORIA, SALT_ROCK;
+    private static Block MINE_BARRIER;
+    private static boolean blocksCached = false;
+
+    private static void ensureBlocksCached() {
+        if (blocksCached) return;
+        EARTH_SHALE      = ModBlocks.EARTH_SHALE.get();
+        DARK_EARTH_SHALE  = ModBlocks.DARK_EARTH_SHALE.get();
+        FROST_GNEISS     = ModBlocks.FROST_GNEISS.get();
+        DARK_FROST_GNEISS = ModBlocks.DARK_FROST_GNEISS.get();
+        LAVA_BASALT      = ModBlocks.LAVA_BASALT.get();
+        DARK_LAVA_BASALT  = ModBlocks.DARK_LAVA_BASALT.get();
+        BANDED_MARBLE    = ModBlocks.BANDED_MARBLE.get();
+        LIMESTONE        = ModBlocks.LIMESTONE.get();
+        MOSSY_SANDSTONE  = ModBlocks.MOSSY_SANDSTONE.get();
+        CRACKED_SLATE    = ModBlocks.CRACKED_SLATE.get();
+        SCORIA           = ModBlocks.SCORIA.get();
+        SALT_ROCK        = ModBlocks.SALT_ROCK.get();
+        MINE_BARRIER     = ModBlocks.MINE_BARRIER.get();
+        blocksCached = true;
+    }
     
     /**
      * 生成指定楼层
      */
     public static void generateFloor(ServerLevel level, int floorNumber) {
+        ensureBlocksCached();
         RandomSource random = level.getRandom();
 
         // 每天只生成一次：同一天内进入不刷新
@@ -184,16 +212,17 @@ public class MineFloorGenerator {
     public static void forceClientLightRefresh(ServerLevel level, int floorNumber) {
         BlockPos center = MiningCoordinates.getFloorCenter(floorNumber);
         int halfSize = MAX_SIZE / 2 + 2;
+        BlockPos.MutableBlockPos mpos = new BlockPos.MutableBlockPos();
 
         int count = 0;
         for (int x = center.getX() - halfSize; x <= center.getX() + halfSize; x++) {
             for (int z = center.getZ() - halfSize; z <= center.getZ() + halfSize; z++) {
                 for (int y = FLOOR_Y_START; y <= FLOOR_Y_END; y++) {
-                    BlockPos pos = new BlockPos(x, y, z);
-                    BlockState state = level.getBlockState(pos);
-                    if (state.getLightEmission(level, pos) > 0) {
-                        level.getLightEngine().checkBlock(pos);
-                        level.getChunkSource().blockChanged(pos);
+                    mpos.set(x, y, z);
+                    BlockState state = level.getBlockState(mpos);
+                    if (state.getLightEmission(level, mpos) > 0) {
+                        level.getLightEngine().checkBlock(mpos);
+                        level.getChunkSource().blockChanged(mpos);
                         count++;
                     }
                 }
@@ -208,12 +237,12 @@ public class MineFloorGenerator {
     private static int countStones(ServerLevel level, int centerX, int centerZ, int size) {
         int halfSize = size / 2;
         int count = 0;
+        BlockPos.MutableBlockPos mpos = new BlockPos.MutableBlockPos();
         
         for (int x = centerX - halfSize + 1; x < centerX + halfSize; x++) {
             for (int z = centerZ - halfSize + 1; z < centerZ + halfSize; z++) {
                 for (int y = FLOOR_Y_START; y <= FLOOR_Y_END; y++) {
-                    BlockPos pos = new BlockPos(x, y, z);
-                    Block block = level.getBlockState(pos).getBlock();
+                    Block block = level.getBlockState(mpos.set(x, y, z)).getBlock();
                     
                     // 检查是否是可计数的主石头
                     if (isCountableStone(block)) {
@@ -230,17 +259,10 @@ public class MineFloorGenerator {
      * 检查方块是否是可计数的主石头
      */
     private static boolean isCountableStone(Block block) {
-        // 主石头（6种）
-        return block == ModBlocks.EARTH_SHALE.get() ||
-               block == ModBlocks.FROST_GNEISS.get() ||
-               block == ModBlocks.LAVA_BASALT.get() ||
-               // 装饰石头也计数
-               block == ModBlocks.BANDED_MARBLE.get() ||
-               block == ModBlocks.LIMESTONE.get() ||
-               block == ModBlocks.MOSSY_SANDSTONE.get() ||
-               block == ModBlocks.CRACKED_SLATE.get() ||
-               block == ModBlocks.SCORIA.get() ||
-               block == ModBlocks.SALT_ROCK.get();
+        // 主石头（6种）+ 装饰石头也计数
+        return block == EARTH_SHALE || block == FROST_GNEISS || block == LAVA_BASALT
+            || block == BANDED_MARBLE || block == LIMESTONE || block == MOSSY_SANDSTONE
+            || block == CRACKED_SLATE || block == SCORIA || block == SALT_ROCK;
     }
 
     /**
@@ -456,22 +478,23 @@ public class MineFloorGenerator {
     @SuppressWarnings("null")
     private static void generateShell(ServerLevel level, int centerX, int centerZ, int size) {
         int halfSize = size / 2;
-        Block barrier = ModBlocks.MINE_BARRIER.get();
+        BlockState barrierState = ModBlocks.MINE_BARRIER.get().defaultBlockState();
+        BlockPos.MutableBlockPos mpos = new BlockPos.MutableBlockPos();
         
         // 遍历整个房间范围
         for (int x = centerX - halfSize; x <= centerX + halfSize; x++) {
             for (int z = centerZ - halfSize; z <= centerZ + halfSize; z++) {
                 // 底层（Y=63，比地板低1格）
-                level.setBlock(new BlockPos(x, FLOOR_Y_START - 1, z), barrier.defaultBlockState(), 2);
+                level.setBlock(mpos.set(x, FLOOR_Y_START - 1, z), barrierState, 2);
                 
                 // 顶层（Y=70，比天花板高1格）
-                level.setBlock(new BlockPos(x, FLOOR_Y_END + 1, z), barrier.defaultBlockState(), 2);
+                level.setBlock(mpos.set(x, FLOOR_Y_END + 1, z), barrierState, 2);
                 
                 // 四周墙壁（只在边缘）
                 if (x == centerX - halfSize || x == centerX + halfSize || 
                     z == centerZ - halfSize || z == centerZ + halfSize) {
                     for (int y = FLOOR_Y_START; y <= FLOOR_Y_END; y++) {
-                        level.setBlock(new BlockPos(x, y, z), barrier.defaultBlockState(), 2);
+                        level.setBlock(mpos.set(x, y, z), barrierState, 2);
                     }
                 }
             }
@@ -494,6 +517,8 @@ public class MineFloorGenerator {
                                      FloorTheme theme, boolean isDark, int floorNumber) {
         int halfSize = size / 2;
         Block mainStone = getMainStone(theme, false);
+        BlockState mainStoneState = mainStone.defaultBlockState();
+        BlockPos.MutableBlockPos mpos = new BlockPos.MutableBlockPos();
         
         // Phase 1: 用主石头填满整个房间
         for (int x = centerX - halfSize + 1; x < centerX + halfSize; x++) {
@@ -505,7 +530,7 @@ public class MineFloorGenerator {
                         && y >= SAFE_ZONE_Y_START && y <= SAFE_ZONE_Y_END) {
                         continue;
                     }
-                    level.setBlock(new BlockPos(x, y, z), mainStone.defaultBlockState(), 2);
+                    level.setBlock(mpos.set(x, y, z), mainStoneState, 2);
                 }
             }
         }
@@ -593,6 +618,9 @@ public class MineFloorGenerator {
         double bz = startZ - Math.sin(angle) * span;
         double by = startY - Math.sin(angleV) * span;
         
+        BlockState blockState = block.defaultBlockState();
+        BlockPos.MutableBlockPos mpos = new BlockPos.MutableBlockPos();
+        
         for (int i = 0; i < size; i++) {
             float t = (float)i / (float)size;
             // 插值位置
@@ -628,11 +656,11 @@ public class MineFloorGenerator {
                             && Math.abs(z - centerZ) <= SAFE_ZONE_RADIUS
                             && y >= SAFE_ZONE_Y_START && y <= SAFE_ZONE_Y_END) continue;
                         
-                        BlockPos pos = new BlockPos(x, y, z);
-                        BlockState current = level.getBlockState(pos);
+                        BlockPos pos = mpos.set(x, y, z);
+                        BlockState current = level.getBlockState(mpos);
                         // 只替换主石头类方块（不替换 barrier、安全区方块等）
                         if (isMainStone(current)) {
-                            level.setBlock(pos, block.defaultBlockState(), 2);
+                            level.setBlock(mpos, blockState, 2);
                         }
                     }
                 }
@@ -671,6 +699,10 @@ public class MineFloorGenerator {
         int halfSize = size / 2;
         boolean changed = true;
         int passes = 0;
+        BlockPos.MutableBlockPos mpos = new BlockPos.MutableBlockPos();
+        BlockPos.MutableBlockPos neighborPos = new BlockPos.MutableBlockPos();
+        BlockState airState = Blocks.AIR.defaultBlockState();
+        Block barrierBlock = ModBlocks.MINE_BARRIER.get();
         
         while (changed && passes < 3) {
             changed = false;
@@ -679,10 +711,10 @@ public class MineFloorGenerator {
             for (int x = centerX - halfSize + 2; x < centerX + halfSize - 1; x++) {
                 for (int z = centerZ - halfSize + 2; z < centerZ + halfSize - 1; z++) {
                     for (int y = FLOOR_Y_START + 1; y <= FLOOR_Y_END - 1; y++) {
-                        BlockPos pos = new BlockPos(x, y, z);
-                        BlockState state = level.getBlockState(pos);
+                        mpos.set(x, y, z);
+                        BlockState state = level.getBlockState(mpos);
                         if (state.isAir()) continue;
-                        if (state.is(ModBlocks.MINE_BARRIER.get())) continue;
+                        if (state.is(barrierBlock)) continue;
                         // 跳过安全区
                         if (Math.abs(x - centerX) <= SAFE_ZONE_RADIUS + 1
                             && Math.abs(z - centerZ) <= SAFE_ZONE_RADIUS + 1
@@ -690,15 +722,16 @@ public class MineFloorGenerator {
                         
                         // 统计空气邻居数
                         int airNeighbors = 0;
-                        for (Direction dir : Direction.values()) {
-                            if (level.getBlockState(pos.relative(dir)).isAir()) {
-                                airNeighbors++;
-                            }
-                        }
+                        if (level.getBlockState(neighborPos.set(x + 1, y, z)).isAir()) airNeighbors++;
+                        if (level.getBlockState(neighborPos.set(x - 1, y, z)).isAir()) airNeighbors++;
+                        if (level.getBlockState(neighborPos.set(x, y + 1, z)).isAir()) airNeighbors++;
+                        if (level.getBlockState(neighborPos.set(x, y - 1, z)).isAir()) airNeighbors++;
+                        if (level.getBlockState(neighborPos.set(x, y, z + 1)).isAir()) airNeighbors++;
+                        if (level.getBlockState(neighborPos.set(x, y, z - 1)).isAir()) airNeighbors++;
                         
                         // 5+ 面暴露在空气中 = 悬空碎片，移除
                         if (airNeighbors >= 5) {
-                            level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2);
+                            level.setBlock(mpos, airState, 2);
                             changed = true;
                         }
                     }
@@ -1108,22 +1141,16 @@ public class MineFloorGenerator {
      */
     private static boolean isMainStone(BlockState state) {
         Block block = state.getBlock();
-        return block == ModBlocks.EARTH_SHALE.get() || 
-               block == ModBlocks.DARK_EARTH_SHALE.get() ||
-               block == ModBlocks.FROST_GNEISS.get() || 
-               block == ModBlocks.DARK_FROST_GNEISS.get() ||
-               block == ModBlocks.LAVA_BASALT.get() || 
-               block == ModBlocks.DARK_LAVA_BASALT.get();
+        return block == EARTH_SHALE || block == DARK_EARTH_SHALE
+            || block == FROST_GNEISS || block == DARK_FROST_GNEISS
+            || block == LAVA_BASALT || block == DARK_LAVA_BASALT;
     }
 
     private static boolean isDecorStone(BlockState state) {
         Block block = state.getBlock();
-        return block == ModBlocks.BANDED_MARBLE.get()
-                || block == ModBlocks.LIMESTONE.get()
-                || block == ModBlocks.MOSSY_SANDSTONE.get()
-                || block == ModBlocks.CRACKED_SLATE.get()
-                || block == ModBlocks.SCORIA.get()
-                || block == ModBlocks.SALT_ROCK.get();
+        return block == BANDED_MARBLE || block == LIMESTONE
+            || block == MOSSY_SANDSTONE || block == CRACKED_SLATE
+            || block == SCORIA || block == SALT_ROCK;
     }
 
     private static boolean isStoneForMineral(BlockState state) {
@@ -1141,6 +1168,7 @@ public class MineFloorGenerator {
     private static List<BlockPos> collectStonePositions(ServerLevel level, int centerX, int centerZ, int size) {
         int halfSize = size / 2;
         List<BlockPos> positions = new ArrayList<>();
+        BlockPos.MutableBlockPos mpos = new BlockPos.MutableBlockPos();
 
         for (int x = centerX - halfSize + 1; x < centerX + halfSize; x++) {
             for (int z = centerZ - halfSize + 1; z < centerZ + halfSize; z++) {
@@ -1148,9 +1176,9 @@ public class MineFloorGenerator {
                     if (isInSafeZone(x, y, z, centerX, centerZ)) {
                         continue;
                     }
-                    BlockPos pos = new BlockPos(x, y, z);
-                    if (isStoneForMineral(level.getBlockState(pos))) {
-                        positions.add(pos);
+                    mpos.set(x, y, z);
+                    if (isStoneForMineral(level.getBlockState(mpos))) {
+                        positions.add(mpos.immutable());
                     }
                 }
             }
@@ -1162,20 +1190,20 @@ public class MineFloorGenerator {
     private static List<BlockPos> collectSurfaceStonePositions(ServerLevel level, int centerX, int centerZ, int size) {
         int halfSize = size / 2;
         List<BlockPos> positions = new ArrayList<>();
+        BlockPos.MutableBlockPos mpos = new BlockPos.MutableBlockPos();
 
         for (int x = centerX - halfSize + 1; x < centerX + halfSize; x++) {
             for (int z = centerZ - halfSize + 1; z < centerZ + halfSize; z++) {
                 for (int y = FLOOR_Y_START; y <= FLOOR_Y_END - 1; y++) {
                     if (isInSafeZone(x, y, z, centerX, centerZ)) continue;
 
-                    BlockPos stonePos = new BlockPos(x, y, z);
-                    BlockPos airPos = stonePos.above();
-
-                    BlockState stoneState = level.getBlockState(stonePos);
-                    BlockState airState = level.getBlockState(airPos);
+                    mpos.set(x, y, z);
+                    BlockState stoneState = level.getBlockState(mpos);
+                    mpos.set(x, y + 1, z);
+                    BlockState airState = level.getBlockState(mpos);
 
                     if (isStoneForMineral(stoneState) && airState.isAir()) {
-                        positions.add(airPos); // Store the AIR position where the mineral will go
+                        positions.add(mpos.immutable()); // Store the AIR position where the mineral will go
                     }
                 }
             }
@@ -1717,33 +1745,36 @@ public class MineFloorGenerator {
 
         // floorLevel: 低于此高度不雕刻（-0.85 比之前的 -0.7 更宽松）
         double floorLevel = -0.85;
+        BlockPos.MutableBlockPos mpos = new BlockPos.MutableBlockPos();
+        BlockState airState = Blocks.AIR.defaultBlockState();
+        Block barrierBlock = ModBlocks.MINE_BARRIER.get();
 
         for (int x = minX; x <= maxX; x++) {
             if (Math.abs(x - roomCenterX) >= halfSize - 2) continue;
-            double dx = (x + 0.5 - cx) / rx;
+            double ddx = (x + 0.5 - cx) / rx;
             for (int z = minZ; z <= maxZ; z++) {
                 if (Math.abs(z - roomCenterZ) >= halfSize - 2) continue;
-                double dz = (z + 0.5 - cz) / rz;
-                if (dx * dx + dz * dz >= 1.0) continue;
+                double ddz = (z + 0.5 - cz) / rz;
+                if (ddx * ddx + ddz * ddz >= 1.0) continue;
 
                 for (int y = maxY; y >= minY; y--) {
-                    double dy = (y + 0.5 - cy) / ry;
-                    if (dy <= floorLevel) continue;
-                    double distSq = dx * dx + dy * dy + dz * dz;
+                    double ddy = (y + 0.5 - cy) / ry;
+                    if (ddy <= floorLevel) continue;
+                    double distSq = ddx * ddx + ddy * ddy + ddz * ddz;
                     if (distSq >= 1.0) continue;
 
                     if (isInSafeZone(x, y, z, roomCenterX, roomCenterZ)) continue;
 
-                    BlockPos pos = new BlockPos(x, y, z);
-                    BlockState st = level.getBlockState(pos);
-                    if (st.isAir() || st.getBlock() == ModBlocks.MINE_BARRIER.get()) continue;
+                    mpos.set(x, y, z);
+                    BlockState st = level.getBlockState(mpos);
+                    if (st.isAir() || st.getBlock() == barrierBlock) continue;
 
                     // 边缘装饰（12% 概率）
                     if (distSq > 0.75 && random.nextFloat() < 0.12f) {
                         Block decor = decorBlocks.get(random.nextInt(decorBlocks.size()));
-                        level.setBlock(pos, decor.defaultBlockState(), 2);
+                        level.setBlock(mpos, decor.defaultBlockState(), 2);
                     } else {
-                        level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2);
+                        level.setBlock(mpos, airState, 2);
                     }
                 }
             }
@@ -3163,6 +3194,17 @@ public class MineFloorGenerator {
         }
         
     StardewCraft.LOGGER.info("[MINE] Generated safe zone (3×3×3) with 3 exits at center ({}, {}, {})", centerX, SAFE_ZONE_Y_START, centerZ);
+
+        // 5. 宝箱层：在安全区南侧（玩家面前）放置矿井宝箱
+        if (MineChestLootTable.isChestFloor(floorNumber)) {
+            BlockPos chestPos = new BlockPos(centerX, SAFE_ZONE_Y_START, centerZ + 1);
+            @SuppressWarnings("null")
+            net.minecraft.world.level.block.state.BlockState chestState =
+                    com.stardew.craft.block.ModBlocks.MINE_CHEST.get().defaultBlockState()
+                            .setValue(com.stardew.craft.block.mine.MineChestBlock.FACING, Direction.NORTH);
+            level.setBlock(chestPos, chestState, 2);
+            StardewCraft.LOGGER.info("[MINE] Placed mine chest on floor {} at {}", floorNumber, chestPos);
+        }
     }
     
     /**

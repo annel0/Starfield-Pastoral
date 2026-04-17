@@ -41,7 +41,7 @@ public record BundleClaimRewardPayload(
             if (!(sp.containerMenu instanceof BundleMenu)) return;
 
             CommunityCenterSavedData data = CommunityCenterSavedData.get();
-            if (!data.isRewardAvailable(payload.bundleId)) return;
+            if (!data.isRewardAvailable(sp.getUUID(), payload.bundleId)) return;
 
             BundleDefinition def = BundleDataManager.getBundle(payload.bundleId);
             if (def == null) return;
@@ -56,7 +56,7 @@ public record BundleClaimRewardPayload(
             }
 
             // Mark reward as claimed
-            data.setRewardAvailable(payload.bundleId, false);
+            data.setRewardAvailable(sp.getUUID(), payload.bundleId, false);
 
             // Sync to client
             BundleSyncPayload.sendFullSync(sp);

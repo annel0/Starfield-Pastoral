@@ -30,7 +30,7 @@ public class RainTotemItem extends Item implements IStardewItem {
 
     @Override
     public String getItemTypeKey() {
-        return "stardewcraft.type.misc";
+        return "stardewcraft.type.magic";
     }
 
     @SuppressWarnings("null")

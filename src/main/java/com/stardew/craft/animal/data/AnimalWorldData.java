@@ -330,7 +330,7 @@ public class AnimalWorldData extends SavedData {
             existing.maxZ(),
             existing.capacity(),
             existing.hayCapacity(),
-            false,
+            true,
             existing.doorOpen(),
             Collections.emptySet(),
             Collections.emptySet(),

@@ -1,24 +1,24 @@
 package com.stardew.craft.event;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.command.BilibiliRewardCommand;
 import com.stardew.craft.command.CommunityCenterCommand;
+import com.stardew.craft.command.FarmAdminCommand;
 import com.stardew.craft.command.MailDebugCommand;
 import com.stardew.craft.command.MuseumDebugCommand;
 import com.stardew.craft.command.AnimalDebugCommand;
 import com.stardew.craft.command.DecorationDebugCommand;
 import com.stardew.craft.command.PlayerDataCommand;
 import com.stardew.craft.command.StardewTeleportCommand;
-import com.stardew.craft.command.TimeDebugCommand;
 import com.stardew.craft.command.OvernightDebugCommand;
 import com.stardew.craft.command.NpcDebugCommand;
 import com.stardew.craft.command.ShopDebugCommand;
+import com.stardew.craft.command.StructureDebugCommand;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
 /**
- * 命令注册事件
+ * 命令注册事件 — 所有命令统一挂在 /stardew 主指令下
  */
 @EventBusSubscriber(modid = StardewCraft.MODID)
 public class CommandEventHandler {
@@ -26,7 +26,6 @@ public class CommandEventHandler {
     @SubscribeEvent
     public static void onRegisterCommands(RegisterCommandsEvent event) {
         StardewTeleportCommand.register(event.getDispatcher());
-        TimeDebugCommand.register(event.getDispatcher());
         PlayerDataCommand.register(event.getDispatcher());
         MuseumDebugCommand.register(event.getDispatcher(), event.getBuildContext());
         AnimalDebugCommand.register(event.getDispatcher());
@@ -35,8 +34,9 @@ public class CommandEventHandler {
         NpcDebugCommand.register(event.getDispatcher());
         ShopDebugCommand.register(event.getDispatcher());
         MailDebugCommand.register(event.getDispatcher());
-        BilibiliRewardCommand.register(event.getDispatcher());
         CommunityCenterCommand.register(event.getDispatcher());
+        FarmAdminCommand.register(event.getDispatcher());
+        StructureDebugCommand.register(event.getDispatcher());
         StardewCraft.LOGGER.info("Registered Stardew commands");
     }
 }

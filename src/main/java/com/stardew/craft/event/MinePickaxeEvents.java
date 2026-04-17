@@ -34,10 +34,6 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * 矿石挖掘事件处理器 - 实现星露谷风格的镐子tier系统
  * 事件在 StardewCraft 主类中手动注册
@@ -82,6 +78,15 @@ public final class MinePickaxeEvents {
 		BlockState state = event.getState();
 		if (!isStardewMineBlock(state)) {
 			return;
+		}
+
+		// SDV parity: 非矿井非农场区域的装饰性石头不可被玩家挖掘
+		if (player.level() instanceof ServerLevel sl) {
+			if (sl.dimension() != ModMiningDimensions.STARDEW_MINING
+					&& !com.stardew.craft.core.FarmAreaResolver.isInFarmArea(sl, event.getPosition().orElse(BlockPos.ZERO))) {
+				event.setNewSpeed(0.0F);
+				return;
+			}
 		}
 
 		ItemStack tool = player.getMainHandItem();
@@ -138,6 +143,16 @@ public final class MinePickaxeEvents {
 		BlockState state = event.getState();
 		if (!isStardewMineBlock(state)) {
 			return;
+		}
+
+		// SDV parity: 模组石头/矿石只能在矿井维度和农场区域破坏
+		// 小镇等非农场区域的装饰性石头不可被玩家破坏
+		if (event.getLevel() instanceof ServerLevel sl) {
+			if (sl.dimension() != ModMiningDimensions.STARDEW_MINING
+					&& !com.stardew.craft.core.FarmAreaResolver.isInFarmArea(sl, event.getPos())) {
+				event.setCanceled(true);
+				return;
+			}
 		}
 
 		ItemStack tool = player.getMainHandItem();

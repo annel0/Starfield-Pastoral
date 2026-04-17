@@ -52,7 +52,7 @@ public record OpenBundleRewardsPayload(
             CommunityCenterSavedData data = CommunityCenterSavedData.get();
             boolean hasRewards = false;
             for (BundleDefinition def : BundleDataManager.getBundlesForArea(areaId)) {
-                if (data.isRewardAvailable(def.bundleId())) {
+                if (data.isRewardAvailable(sp.getUUID(), def.bundleId())) {
                     hasRewards = true;
                     break;
                 }

@@ -112,6 +112,11 @@ public class StardewGameMenuScreen extends Screen {
 
     private int currentCraftingPage;
     private int selectedCraftingIndex = -1;
+
+    // ---- Farm Management Tab (tab 3) ----
+    private int farmMgmtScroll = 0;
+    private int farmMgmtSelectedPlayer = -1;  // 选中的在线玩家索引
+    private int farmMgmtVisibleRows = 5;      // 动态计算的可见行数
     private List<ItemStack> craftingRecipeStacks = List.of();
     private List<String> craftingRecipeIds = List.of();
     private List<List<RecipeCell>> craftingPages = List.of();
@@ -601,6 +606,11 @@ public class StardewGameMenuScreen extends Screen {
             return;
         }
 
+        if (currentTab == 3) {
+            drawFarmManagementPage(graphics, mouseX, mouseY);
+            return;
+        }
+
         Component tabName = Component.translatable(TAB_KEYS[currentTab]);
         Component title = Component.translatable("stardewcraft.game_menu.placeholder_title", tabName);
         Component line = Component.translatable("stardewcraft.game_menu.placeholder_body");
@@ -611,6 +621,260 @@ public class StardewGameMenuScreen extends Screen {
 
         graphics.drawString(this.font, title, titleX, centerY - 10, 0xFFF3E6C6, false);
         graphics.drawString(this.font, line, lineX, centerY + 8, 0xFFD8C9A8, false);
+    }
+
+    // ============ Tab 3: Farm Management Page (农场管理) ============
+
+    private static final int FARM_MGMT_ROW_HEIGHT_SDV = 84;
+    private static final int FARM_MGMT_VISIBLE_ROWS = 5;
+    private static final String[] PERM_KEYS = {
+        "gui.stardewcraft.farm_mgmt.perm_0",
+        "gui.stardewcraft.farm_mgmt.perm_1",
+        "gui.stardewcraft.farm_mgmt.perm_2"
+    };
+
+    private void drawFarmManagementPage(GuiGraphics graphics, int mouseX, int mouseY) {
+        if (!com.stardew.craft.client.gui.FarmPermissionClientCache.hasData()) {
+            Component loading = Component.translatable("gui.stardewcraft.farm_mgmt.loading");
+            int lx = menuX + menuWidth / 2 - this.font.width(loading) / 2;
+            graphics.drawString(this.font, loading, lx, menuY + menuHeight / 2, 0x582A11, false);
+            return;
+        }
+
+        int spaceSide = ui(64);
+        int spaceTop = ui(64);
+        int contentX = menuX + spaceSide;
+        int contentW = menuWidth - spaceSide * 2;
+        int y = menuY + spaceTop;
+
+        int rowHGui = ui(FARM_MGMT_ROW_HEIGHT_SDV);
+
+        // 标题
+        Component title = Component.translatable("gui.stardewcraft.farm_mgmt.title")
+                .withStyle(ChatFormatting.BOLD);
+        int titleX = menuX + menuWidth / 2 - this.font.width(title) / 2;
+        graphics.drawString(this.font, title, titleX, y, 0x582A11, false);
+        y += this.font.lineHeight + ui(12);
+
+        // 默认权限标签
+        int defaultPerm = com.stardew.craft.client.gui.FarmPermissionClientCache.getDefaultPerm();
+        Component defaultLabel = Component.translatable("gui.stardewcraft.farm_mgmt.default_perm");
+        graphics.drawString(this.font, defaultLabel, contentX, y, 0x582A11, false);
+        y += this.font.lineHeight + ui(4);
+
+        // 默认权限描述
+        Component defaultDesc = Component.translatable("gui.stardewcraft.farm_mgmt.default_perm.desc");
+        graphics.drawString(this.font, defaultDesc, contentX, y, 0x8D6E63, false);
+        y += this.font.lineHeight + ui(8);
+
+        // 默认权限按钮组 — 等宽按钮，居中排列
+        int btnH = this.font.lineHeight + ui(8);
+        int btnGap = ui(8);
+        // 计算按钮统一宽度（取最宽 + padding）
+        int maxLblW = 0;
+        for (int lvl = 0; lvl <= 2; lvl++) {
+            maxLblW = Math.max(maxLblW, this.font.width(Component.translatable(PERM_KEYS[lvl])));
+        }
+        int defBtnW = maxLblW + ui(20);
+        int totalBtnsW = defBtnW * 3 + btnGap * 2;
+        int defBtnStartX = contentX + (contentW - totalBtnsW) / 2;
+        for (int lvl = 0; lvl <= 2; lvl++) {
+            Component lbl = Component.translatable(PERM_KEYS[lvl]);
+            int btnX = defBtnStartX + lvl * (defBtnW + btnGap);
+            boolean active = (lvl == defaultPerm);
+            int btnColor = active ? 0xFF4CAF50 : 0xFF757575;
+            graphics.fill(btnX + 1, y, btnX + defBtnW - 1, y + btnH, btnColor);
+            graphics.fill(btnX, y + 1, btnX + defBtnW, y + btnH - 1, btnColor);
+            int textX = btnX + (defBtnW - this.font.width(lbl)) / 2;
+            int textY = y + (btnH - this.font.lineHeight) / 2;
+            graphics.drawString(this.font, lbl, textX, textY, 0xFFFFFFFF, false);
+        }
+        farmMgmtDefaultPermY = y;
+        farmMgmtDefBtnW = defBtnW;
+        farmMgmtDefBtnStartX = defBtnStartX;
+        y += btnH + ui(16);
+
+        // 分隔线
+        StardewGuiUtil.drawHorizontalPartitionSmall(graphics, contentX, y, contentW, mapping.s4());
+        y += ui(36);
+
+        // 在线玩家列表标题
+        Component playerTitle = Component.translatable("gui.stardewcraft.farm_mgmt.online_players")
+                .withStyle(ChatFormatting.BOLD);
+        graphics.drawString(this.font, playerTitle, contentX, y, 0x582A11, false);
+        y += this.font.lineHeight + ui(8);
+
+        var players = com.stardew.craft.client.gui.FarmPermissionClientCache.getPlayers();
+        if (players.isEmpty()) {
+            Component noPlayers = Component.translatable("gui.stardewcraft.farm_mgmt.no_players");
+            graphics.drawString(this.font, noPlayers, contentX + ui(16), y, 0x8D6E63, false);
+            return;
+        }
+
+        farmMgmtPlayerListY = y;
+        // 动态计算可见行数：剩余空间 / 行高，至少 1 行
+        int availableH = (menuY + menuHeight - ui(32)) - y;
+        farmMgmtVisibleRows = Math.max(1, availableH / rowHGui);
+        // clamp scroll 防止 resize 后越界
+        int maxScrollClamp = Math.max(0, players.size() - farmMgmtVisibleRows);
+        farmMgmtScroll = Math.min(farmMgmtScroll, maxScrollClamp);
+        int maxVisible = Math.min(farmMgmtVisibleRows, players.size() - farmMgmtScroll);
+
+        // 玩家行按钮统一宽度
+        int maxPermW = 0;
+        for (int lvl = 0; lvl <= 2; lvl++) {
+            maxPermW = Math.max(maxPermW, this.font.width(Component.translatable(PERM_KEYS[lvl])));
+        }
+        int playerBtnW = maxPermW + ui(16);
+        int playerBtnGap = ui(6);
+
+        // scissor 裁剪列表区域（clamp 到面板底部）
+        int listBottom = Math.min(y + farmMgmtVisibleRows * rowHGui, menuY + menuHeight - ui(16));
+        graphics.enableScissor(contentX, y, contentX + contentW, listBottom);
+
+        for (int i = 0; i < maxVisible; i++) {
+            int idx = farmMgmtScroll + i;
+            var entry = players.get(idx);
+            int rowY = y + i * rowHGui;
+
+            // 选中行高亮
+            if (idx == farmMgmtSelectedPlayer) {
+                graphics.fill(contentX, rowY, contentX + contentW, rowY + rowHGui - 2, 0x33EADB8C);
+            }
+
+            // 第一行：玩家名 + "(使用默认)" 标注
+            int currentPerm = entry.permission();
+            boolean isDefault = (currentPerm == -1);
+            int nameY = rowY + ui(6);
+            graphics.drawString(this.font, Component.literal(entry.name()),
+                    contentX + ui(8), nameY, 0x582A11, false);
+            if (isDefault) {
+                Component usingDefault = Component.translatable("gui.stardewcraft.farm_mgmt.using_default");
+                int udX = contentX + ui(8) + this.font.width(entry.name()) + ui(12);
+                graphics.drawString(this.font, usingDefault, udX, nameY, 0x8D6E63, false);
+            }
+
+            // 第二行：3 个权限按钮（左对齐，在名字下方）
+            int effectivePerm = isDefault ? defaultPerm : currentPerm;
+            int btnRowH = this.font.lineHeight + ui(6);
+            int btnRowY = nameY + this.font.lineHeight + ui(6);
+            for (int lvl = 0; lvl <= 2; lvl++) {
+                Component lbl = Component.translatable(PERM_KEYS[lvl]);
+                int bX = contentX + ui(8) + lvl * (playerBtnW + playerBtnGap);
+                int bColor;
+                if (lvl == effectivePerm) {
+                    bColor = isDefault ? 0xFF5588AA : 0xFF4CAF50;
+                } else {
+                    bColor = 0xFF616161;
+                }
+                graphics.fill(bX + 1, btnRowY, bX + playerBtnW - 1, btnRowY + btnRowH, bColor);
+                graphics.fill(bX, btnRowY + 1, bX + playerBtnW, btnRowY + btnRowH - 1, bColor);
+                int tX = bX + (playerBtnW - this.font.width(lbl)) / 2;
+                int tY = btnRowY + (btnRowH - this.font.lineHeight) / 2;
+                graphics.drawString(this.font, lbl, tX, tY, 0xFFFFFFFF, false);
+            }
+        }
+
+        graphics.disableScissor();
+
+        // 滚动条
+        if (players.size() > farmMgmtVisibleRows) {
+            int barX = contentX + contentW - ui(6);
+            int barTotalH = farmMgmtVisibleRows * rowHGui;
+            int thumbH = Math.max(ui(16), barTotalH * farmMgmtVisibleRows / players.size());
+            int maxScroll = Math.max(1, players.size() - farmMgmtVisibleRows);
+            int thumbY = y + (barTotalH - thumbH) * farmMgmtScroll / maxScroll;
+            graphics.fill(barX, y, barX + ui(3), y + barTotalH, 0x22000000);
+            graphics.fill(barX, thumbY, barX + ui(3), thumbY + thumbH, 0x66582A11);
+        }
+    }
+
+    /** 用于 mouseClicked 时定位默认权限按钮的 Y 坐标 */
+    private int farmMgmtDefaultPermY = 0;
+    /** 默认权限按钮统一宽度和起始 X */
+    private int farmMgmtDefBtnW = 0;
+    private int farmMgmtDefBtnStartX = 0;
+    /** 在线玩家列表起始 Y 坐标 */
+    private int farmMgmtPlayerListY = 0;
+
+    private boolean handleFarmMgmtClick(int mouseX, int mouseY) {
+        int spaceSide = ui(64);
+        int contentX = menuX + spaceSide;
+        int contentW = menuWidth - spaceSide * 2;
+        int btnH = this.font.lineHeight + ui(8);
+        int btnGap = ui(8);
+        int rowHGui = ui(FARM_MGMT_ROW_HEIGHT_SDV);
+        int defaultPerm = com.stardew.craft.client.gui.FarmPermissionClientCache.getDefaultPerm();
+        var players = com.stardew.craft.client.gui.FarmPermissionClientCache.getPlayers();
+
+        // 默认权限按钮点击（等宽按钮，居中排列）
+        if (mouseY >= farmMgmtDefaultPermY && mouseY < farmMgmtDefaultPermY + btnH) {
+            for (int lvl = 0; lvl <= 2; lvl++) {
+                int btnX = farmMgmtDefBtnStartX + lvl * (farmMgmtDefBtnW + btnGap);
+                if (mouseX >= btnX && mouseX < btnX + farmMgmtDefBtnW) {
+                    if (lvl != defaultPerm) {
+                        PacketDistributor.sendToServer(
+                            new com.stardew.craft.network.payload.FarmPermissionUpdatePayload(
+                                2, new java.util.UUID(0, 0), lvl));
+                        com.stardew.craft.client.gui.FarmPermissionClientCache.update(
+                            lvl, players);
+                        playUiSound(ModSounds.SMALL_SELECT.get(), 1.0f, 1.0f);
+                    }
+                    return true;
+                }
+            }
+        }
+
+        // 在线玩家权限按钮点击（2-line layout）
+        if (!players.isEmpty() && mouseY >= farmMgmtPlayerListY) {
+            int maxVisible = Math.min(farmMgmtVisibleRows, players.size() - farmMgmtScroll);
+            // 玩家行按钮统一宽度
+            int maxPermW = 0;
+            for (int lvl = 0; lvl <= 2; lvl++) {
+                maxPermW = Math.max(maxPermW, this.font.width(Component.translatable(PERM_KEYS[lvl])));
+            }
+            int playerBtnW = maxPermW + ui(16);
+            int playerBtnGap = ui(6);
+            int btnRowH = this.font.lineHeight + ui(6);
+
+            for (int i = 0; i < maxVisible; i++) {
+                int idx = farmMgmtScroll + i;
+                var entry = players.get(idx);
+                int rowY = farmMgmtPlayerListY + i * rowHGui;
+
+                if (mouseY < rowY || mouseY >= rowY + rowHGui) continue;
+
+                // 第二行按钮的 Y 坐标
+                int nameY = rowY + ui(6);
+                int btnRowY = nameY + this.font.lineHeight + ui(6);
+                if (mouseY >= btnRowY && mouseY < btnRowY + btnRowH) {
+                    for (int lvl = 0; lvl <= 2; lvl++) {
+                        int bX = contentX + ui(8) + lvl * (playerBtnW + playerBtnGap);
+                        if (mouseX >= bX && mouseX < bX + playerBtnW) {
+                            int currentPerm = entry.permission();
+                            int effectivePerm = (currentPerm == -1) ? defaultPerm : currentPerm;
+                            if (lvl != effectivePerm || currentPerm == -1) {
+                                PacketDistributor.sendToServer(
+                                    new com.stardew.craft.network.payload.FarmPermissionUpdatePayload(
+                                        0, entry.uuid(), lvl));
+                                var newPlayers = new java.util.ArrayList<>(players);
+                                newPlayers.set(idx, new com.stardew.craft.network.payload.FarmPermSyncPayload.PlayerPermEntry(
+                                    entry.uuid(), entry.name(), lvl));
+                                com.stardew.craft.client.gui.FarmPermissionClientCache.update(
+                                    com.stardew.craft.client.gui.FarmPermissionClientCache.getDefaultPerm(), newPlayers);
+                                playUiSound(ModSounds.SMALL_SELECT.get(), 1.0f, 1.0f);
+                            }
+                            return true;
+                        }
+                    }
+                }
+
+                // 点击行选中
+                farmMgmtSelectedPlayer = idx;
+                return true;
+            }
+        }
+        return false;
     }
 
     // ============ Tab 1: Skills Page (SDV SkillsPage 1:1 parity) ============
@@ -781,15 +1045,40 @@ public class StardewGameMenuScreen extends Screen {
 
             // Player name (centered under the panel)
             String playerName = mc.player.getName().getString();
-            int nameX = playerPanelX + ui(64) - this.font.width(playerName) / 2;
+            Component boldPlayerName = Component.literal(playerName).withStyle(ChatFormatting.BOLD);
+            float nameScale = sdvTextScale();
+            int nameRawW = this.font.width(boldPlayerName);
+            float nameEffScale = nameScale;
+            int namePanelW = ui(128);
+            if (nameRawW * nameEffScale > namePanelW) {
+                nameEffScale = (float) namePanelW / nameRawW;
+            }
+            int nameScaledW = Math.round(nameRawW * nameEffScale);
+            int nameX = playerPanelX + ui(64) - nameScaledW / 2;
             int nameY = playerPanelY + ui(192 - 17);
-            graphics.drawString(this.font, playerName, nameX, nameY, 0xFF5B3A1A, false);
+            graphics.pose().pushPose();
+            graphics.pose().translate(nameX, nameY, 0);
+            graphics.pose().scale(nameEffScale, nameEffScale, 1.0f);
+            graphics.drawString(this.font, boldPlayerName, 0, 0, 0xFF5B3A1A, false);
+            graphics.pose().popPose();
 
-            // Player title (centered below name) - SDV: y + 256 - 32 - 19 = y + 205
+            // Player title (centered below name)
             String playerTitle = getFarmerTitle();
-            int titleX = playerPanelX + ui(64) - this.font.width(playerTitle) / 2;
+            float titleScale = sdvTextScale() * 0.85f;
+            Component boldTitle = Component.literal(playerTitle).withStyle(ChatFormatting.BOLD);
+            int titleRawW = this.font.width(boldTitle);
+            float titleEffScale = titleScale;
+            if (titleRawW * titleEffScale > namePanelW) {
+                titleEffScale = (float) namePanelW / titleRawW;
+            }
+            int titleScaledW = Math.round(titleRawW * titleEffScale);
+            int titleX = playerPanelX + ui(64) - titleScaledW / 2;
             int titleY = playerPanelY + ui(256 - 32 - 19);
-            graphics.drawString(this.font, playerTitle, titleX, titleY, 0xFF5B3A1A, false);
+            graphics.pose().pushPose();
+            graphics.pose().translate(titleX, titleY, 0);
+            graphics.pose().scale(titleEffScale, titleEffScale, 1.0f);
+            graphics.drawString(this.font, boldTitle, 0, 0, 0xFF5B3A1A, false);
+            graphics.pose().popPose();
         }
 
         // --- Horizontal separator ---
@@ -818,9 +1107,22 @@ public class StardewGameMenuScreen extends Screen {
                 // Draw skill name + icon on the first column only
                 if (i == 0) {
                     String skillName = Component.translatable(SKILL_NAME_KEYS[j]).getString();
-                    int nameX = drawX - this.font.width(skillName) + ui(4) - ui(64);
+                    Component boldSkillName = Component.literal(skillName).withStyle(ChatFormatting.BOLD);
+                    float skillNameScale = sdvTextScale() * 0.9f;
+                    int skillNameRawW = this.font.width(boldSkillName);
+                    int skillNameMaxW = ui(100); // max width for skill name area
+                    float skillNameEffScale = skillNameScale;
+                    if (skillNameRawW * skillNameEffScale > skillNameMaxW) {
+                        skillNameEffScale = (float) skillNameMaxW / skillNameRawW;
+                    }
+                    int skillNameScaledW = Math.round(skillNameRawW * skillNameEffScale);
+                    int nameX = drawX - skillNameScaledW + ui(4) - ui(64);
                     int nameY = drawY + ui(4) + j * verticalSpacing;
-                    graphics.drawString(this.font, skillName, nameX, nameY, 0xFF5B3A1A, false);
+                    graphics.pose().pushPose();
+                    graphics.pose().translate(nameX, nameY, 0);
+                    graphics.pose().scale(skillNameEffScale, skillNameEffScale, 1.0f);
+                    graphics.drawString(this.font, boldSkillName, 0, 0, 0xFF5B3A1A, false);
+                    graphics.pose().popPose();
 
                     // Skill icon - shadow first, then normal
                     int[] iconSrc = SKILL_ICON_SOURCES[j];
@@ -985,10 +1287,12 @@ public class StardewGameMenuScreen extends Screen {
     private void drawSkillsTooltip(GuiGraphics graphics, int mouseX, int mouseY, String title, String text) {
         if (text.isEmpty() && title.isEmpty()) return;
 
+        float ttScale = sdvTextScale();
         int padding = ui(16);
         int maxWidth = ui(300);
+        int scaledLineH = Math.round(this.font.lineHeight * ttScale);
 
-        // Calculate text dimensions
+        // Calculate text dimensions (at scaled size)
         List<String> textLines = new ArrayList<>();
         if (!text.isEmpty()) {
             for (String line : text.split("\n")) {
@@ -998,16 +1302,16 @@ public class StardewGameMenuScreen extends Screen {
 
         int textWidth = 0;
         for (String line : textLines) {
-            textWidth = Math.max(textWidth, this.font.width(line));
+            textWidth = Math.max(textWidth, Math.round(this.font.width(line) * ttScale));
         }
         if (!title.isEmpty()) {
-            textWidth = Math.max(textWidth, this.font.width(title));
+            textWidth = Math.max(textWidth, Math.round(this.font.width(title) * ttScale));
         }
         textWidth = Math.min(textWidth, maxWidth);
 
-        int textHeight = textLines.size() * (this.font.lineHeight + 2);
+        int textHeight = textLines.size() * (scaledLineH + 2);
         if (!title.isEmpty()) {
-            textHeight += this.font.lineHeight + 4;
+            textHeight += scaledLineH + 4;
         }
 
         int boxW = textWidth + padding * 2;
@@ -1030,13 +1334,21 @@ public class StardewGameMenuScreen extends Screen {
         int contentY = boxY + padding;
 
         if (!title.isEmpty()) {
-            graphics.drawString(this.font, title, contentX, contentY, 0xFF5B3A1A, false);
-            contentY += this.font.lineHeight + 4;
+            graphics.pose().pushPose();
+            graphics.pose().translate(contentX, contentY, 0);
+            graphics.pose().scale(ttScale, ttScale, 1.0f);
+            graphics.drawString(this.font, Component.literal(title).withStyle(ChatFormatting.BOLD), 0, 0, 0xFF5B3A1A, false);
+            graphics.pose().popPose();
+            contentY += scaledLineH + 4;
         }
 
         for (String line : textLines) {
-            graphics.drawString(this.font, line, contentX, contentY, 0xFF5B3A1A, false);
-            contentY += this.font.lineHeight + 2;
+            graphics.pose().pushPose();
+            graphics.pose().translate(contentX, contentY, 0);
+            graphics.pose().scale(ttScale, ttScale, 1.0f);
+            graphics.drawString(this.font, Component.literal(line).withStyle(ChatFormatting.BOLD), 0, 0, 0xFF5B3A1A, false);
+            graphics.pose().popPose();
+            contentY += scaledLineH + 2;
         }
         graphics.pose().popPose();
     }
@@ -1267,50 +1579,84 @@ public class StardewGameMenuScreen extends Screen {
 
         // SDV: player name centered below
         String playerName = mc.player.getName().getString();
-        int nameW = this.font.width(playerName);
-        int nameX = bgX + (bgW - nameW) / 2;
+        Component boldName = Component.literal(playerName).withStyle(ChatFormatting.BOLD);
+        float nameScale = sdvTextScale();
+        int nameRawW = this.font.width(boldName);
+        float nameEffScale = nameScale;
+        if (nameRawW * nameEffScale > bgW) {
+            nameEffScale = (float) bgW / nameRawW;
+        }
+        int nameScaledW = Math.round(nameRawW * nameEffScale);
+        int nameX = bgX + (bgW - nameScaledW) / 2;
         int nameY = menuY + ui(INV_PAGE_PLAYER_NAME_Y);
-        graphics.drawString(this.font, playerName, nameX, nameY, SDV_TEXT_COLOR, true);
+        graphics.pose().pushPose();
+        graphics.pose().translate(nameX, nameY, 0);
+        graphics.pose().scale(nameEffScale, nameEffScale, 1.0f);
+        graphics.drawString(this.font, boldName, 0, 0, SDV_TEXT_COLOR, false);
+        graphics.pose().popPose();
     }
 
     // ------------- Right info panel (lower-right) -------------
+
+    /** Compute text scale that makes MC font (9px) match SDV SpriteText proportions. */
+    private float sdvTextScale() {
+        return Math.max(1.0f, (float) ui(24) / 9.0f);
+    }
 
     private void drawInfoPanel(GuiGraphics graphics) {
         Minecraft mc = this.minecraft;
         if (mc == null || mc.player == null) return;
 
         int centerX = menuX + ui(INV_PAGE_INFO_CENTER_X);
+        float textScale = sdvTextScale();
+        // Available width: from player model right edge to menu right border
+        int maxHalfWidth = menuX + menuWidth - ui(BORDER_WIDTH) - centerX;
+        int maxWidth = maxHalfWidth * 2;
 
-        // SDV: "{farmName} Farm" — we use player name + "Farm"
+        // SDV: "{farmName} Farm"
         String farmName = net.minecraft.client.resources.language.I18n.get(
                 "stardewcraft.game_menu.inventory.farm_name", mc.player.getName().getString());
-        drawCenteredShadowText(graphics, farmName, centerX,
-                menuY + ui(INV_PAGE_INFO_Y0), SDV_TEXT_COLOR);
+        drawScaledCenteredSdvText(graphics, farmName, centerX,
+                menuY + ui(INV_PAGE_INFO_Y0), textScale, maxWidth, SDV_TEXT_COLOR);
 
         // SDV: "Current Funds: {amount}g"
         int money = ClientPlayerDataCache.getMoney();
         String fundsStr = net.minecraft.client.resources.language.I18n.get(
                 "stardewcraft.game_menu.inventory.current_funds",
                 String.format("%,d", money));
-        drawCenteredShadowText(graphics, fundsStr, centerX,
-                menuY + ui(INV_PAGE_INFO_Y1), SDV_TEXT_COLOR);
+        drawScaledCenteredSdvText(graphics, fundsStr, centerX,
+                menuY + ui(INV_PAGE_INFO_Y1), textScale, maxWidth, SDV_TEXT_COLOR);
 
-        // SDV: date string (season + day)
+        // SDV: date string
         com.stardew.craft.time.StardewTimeManager time =
                 com.stardew.craft.client.hud.StardewTimeHud.getClientTimeCache();
         String dateStr = net.minecraft.client.resources.language.I18n.get(
                 "stardewcraft.game_menu.inventory.date",
                 time.getSeasonName(), time.getCurrentDay(), time.getCurrentYear());
-        drawCenteredShadowText(graphics, dateStr, centerX,
-                menuY + ui(INV_PAGE_INFO_Y2), SDV_TEXT_COLOR_DIM);
+        drawScaledCenteredSdvText(graphics, dateStr, centerX,
+                menuY + ui(INV_PAGE_INFO_Y2), textScale, maxWidth, SDV_TEXT_COLOR_DIM);
     }
 
-    /** Centered text with MC's built-in shadow (cleaner than manual offset). */
-    private void drawCenteredShadowText(GuiGraphics graphics, String text,
-                                         int centerX, int y, int color) {
-        int w = this.font.width(text);
-        int x = centerX - w / 2;
-        graphics.drawString(this.font, text, x, y, color, true);
+    /**
+     * Draw text centered at {@code centerX}, scaled up to SDV proportions.
+     * Auto-shrinks if the text would exceed {@code maxWidth} pixels.
+     */
+    private void drawScaledCenteredSdvText(GuiGraphics graphics, String text,
+                                            int centerX, int y, float scale,
+                                            int maxWidth, int color) {
+        Component bold = Component.literal(text).withStyle(ChatFormatting.BOLD);
+        int rawWidth = this.font.width(bold);
+        float effectiveScale = scale;
+        if (rawWidth * effectiveScale > maxWidth) {
+            effectiveScale = (float) maxWidth / rawWidth;
+        }
+        int scaledWidth = Math.round(rawWidth * effectiveScale);
+        int x = centerX - scaledWidth / 2;
+        graphics.pose().pushPose();
+        graphics.pose().translate(x, y, 0);
+        graphics.pose().scale(effectiveScale, effectiveScale, 1.0f);
+        graphics.drawString(this.font, bold, 0, 0, color, false);
+        graphics.pose().popPose();
     }
 
     // ------------- Organize button -------------
@@ -2731,6 +3077,10 @@ public class StardewGameMenuScreen extends Screen {
                             socialScroll = 0;
                             PacketDistributor.sendToServer(new RequestNpcFriendshipOverviewPayload());
                         }
+                        if (currentTab == 3) {
+                            farmMgmtScroll = 0;
+                            PacketDistributor.sendToServer(new com.stardew.craft.network.payload.RequestFarmPermPayload());
+                        }
                         playUiSound(ModSounds.SMALL_SELECT.get(), 1.0f, 1.0f);
                     }
                     return true;
@@ -2761,6 +3111,13 @@ public class StardewGameMenuScreen extends Screen {
                     if (before != socialScroll) {
                         playUiSound(ModSounds.SHWIP.get(), 1.0f, 1.0f);
                     }
+                    return true;
+                }
+            }
+
+            // Farm management tab click handling
+            if (currentTab == 3 && com.stardew.craft.client.gui.FarmPermissionClientCache.hasData()) {
+                if (handleFarmMgmtClick((int) mouseX, (int) mouseY)) {
                     return true;
                 }
             }
@@ -2911,6 +3268,18 @@ public class StardewGameMenuScreen extends Screen {
 
             if (before != socialScroll) {
                 playUiSound(ModSounds.SHWIP.get(), 1.0f, 1.0f);
+            }
+            return true;
+        }
+
+        if (currentTab == 3) {
+            var players = com.stardew.craft.client.gui.FarmPermissionClientCache.getPlayers();
+            int maxScroll = Math.max(0, players.size() - farmMgmtVisibleRows);
+            if (maxScroll > 0) {
+                int before = farmMgmtScroll;
+                if (scrollY > 0) farmMgmtScroll = Math.max(0, farmMgmtScroll - 1);
+                else if (scrollY < 0) farmMgmtScroll = Math.min(maxScroll, farmMgmtScroll + 1);
+                if (before != farmMgmtScroll) playUiSound(ModSounds.SHWIP.get(), 1.0f, 1.0f);
             }
             return true;
         }

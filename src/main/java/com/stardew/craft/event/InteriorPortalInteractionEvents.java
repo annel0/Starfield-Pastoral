@@ -6,6 +6,7 @@ import com.stardew.craft.core.ModMiningDimensions;
 import com.stardew.craft.interior.CrossDimensionTeleporter;
 import com.stardew.craft.interior.InteriorPortalRegistry;
 import com.stardew.craft.interior.InteriorSubspaceManager;
+import com.stardew.craft.interior.PlayerInteriorAllocator;
 import com.stardew.craft.mining.MineEntranceBootstrap;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -18,7 +19,6 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
-import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 
@@ -27,193 +27,173 @@ import java.util.Set;
 public class InteriorPortalInteractionEvents {
 
     private static final String TAG_TARGET_PREFIX = "sdv_portal_target:";
-    private static final String TAG_TO_PREFIX = "sdv_portal_to:";
-    private static final String TAG_ROT_PREFIX = "sdv_portal_rot:";
-    private static final String TAG_MODE_PREFIX = "sdv_portal_mode:";
 
     private static final String PLAYER_FLAG_INTERIOR = "stardewcraft_interior_space";
     private static final String PLAYER_LAST_PORTAL_TICK = "stardewcraft_last_portal_tick";
 
     private static final long PORTAL_COOLDOWN_TICKS = 8L;
 
+    // ======================== 旧实体兼容入口（已废弃，Interaction 实体由 InteriorSubspaceLifecycleEvents 拦截取消加载） ========================
+
     @SubscribeEvent
     public static void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
-        if (!(event.getEntity() instanceof ServerPlayer player)) {
-            return;
-        }
-        if (event.getHand() != InteractionHand.MAIN_HAND) {
-            return;
-        }
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        if (event.getHand() != InteractionHand.MAIN_HAND) return;
 
+        Entity target = event.getTarget();
+        Optional<String> targetId = findTagValue(target.getTags(), TAG_TARGET_PREFIX);
+        if (targetId.isEmpty()) return;
+
+        handlePortalInteraction(player, targetId.get());
+        event.setCanceled(true);
+    }
+
+    // ======================== 公共入口（Block 和 Entity 共用） ========================
+
+    /**
+     * 统一的传送门交互处理入口。
+     * 由 PortalTriggerBlock 和旧 Interaction 实体共同调用。
+     *
+     * @param player   触发交互的玩家
+     * @param targetId 传送目标 ID（如 "pierre_house_enter", "farm_exit_south" 等）
+     */
+    public static void handlePortalInteraction(ServerPlayer player, String targetId) {
         net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> dim = player.serverLevel().dimension();
         boolean inStardew = ModDimensions.STARDEW_VALLEY.equals(dim);
         boolean inOverworld = net.minecraft.world.level.Level.OVERWORLD.equals(dim);
         boolean inMine = ModMiningDimensions.STARDEW_MINING.equals(dim);
 
-        if (!inStardew && !inOverworld && !inMine) {
-            return;
-        }
+        if (!inStardew && !inOverworld && !inMine) return;
 
-        Entity target = event.getTarget();
-
-        // ---- 矿井维度：仅处理矿井出口交互实体 ----
+        // ── 矿井维度：仅处理矿井出口 ──
         if (inMine) {
-            Optional<String> targetId = findTagValue(target.getTags(), TAG_TARGET_PREFIX);
-            if (targetId.isPresent() && "mine_exit".equals(targetId.get())) {
+            if ("mine_exit".equals(targetId)) {
                 handleMineExit(player);
-                event.setCanceled(true);
             }
             return;
         }
 
-        // 主世界：仅处理巫师塔入口的跨维度传送
+        // ── 主世界：巫师塔入口 ──
         if (inOverworld) {
-            Optional<String> targetId = findTagValue(target.getTags(), TAG_TARGET_PREFIX);
-            if (targetId.isPresent() && "wizard_tower_overworld_enter".equals(targetId.get())) {
+            if ("wizard_tower_overworld_enter".equals(targetId)) {
                 CrossDimensionTeleporter.overworldToWizardInterior(player);
-                event.setCanceled(true);
             }
             return;
         }
 
-        // 以下为星露谷维度内的传送逻辑
+        // ── 星露谷维度 ──
 
-        // ---- 矿井入口：跨维度传送到矿井 ----
-        Optional<String> portalTargetIdPre = findTagValue(target.getTags(), TAG_TARGET_PREFIX);
-        if (portalTargetIdPre.isPresent() && "mine_entrance".equals(portalTargetIdPre.get())) {
+        // 矿井入口
+        if ("mine_entrance".equals(targetId)) {
             handleMineEntrance(player);
-            event.setCanceled(true);
             return;
         }
 
-        // 巫师塔内部"回到主世界"交互实体 → 跨维度传送
-        if (portalTargetIdPre.isPresent() && "wizard_tower_return_overworld".equals(portalTargetIdPre.get())) {
+        // 农场入口
+        if (targetId.startsWith("farm_entry_")) {
+            handleFarmEntry(player, targetId);
+            return;
+        }
+
+        // 农场出口
+        if (targetId.startsWith("farm_exit_")) {
+            handleFarmExit(player, targetId);
+            return;
+        }
+
+        // 社区中心入口
+        if ("community_center_enter".equals(targetId)) {
+            handleCCEntry(player);
+            return;
+        }
+
+        // 社区中心出口
+        if ("community_center_exit".equals(targetId)) {
+            handleCCExit(player);
+            return;
+        }
+
+        // 温室入口
+        if ("greenhouse_enter".equals(targetId)) {
+            handleGreenhouseEntry(player);
+            return;
+        }
+
+        // 温室出口
+        if ("greenhouse_exit".equals(targetId)) {
+            handleGreenhouseExit(player);
+            return;
+        }
+
+        // 巫师塔 → 回主世界
+        if ("wizard_tower_return_overworld".equals(targetId)) {
             CrossDimensionTeleporter.wizardInteriorToOverworld(player);
-            event.setCanceled(true);
             return;
         }
 
-        // 巫师塔室内出口：
-        // 任务完成后 → 总是回到星露谷室外（走原有 portal 系统）
-        // 任务未完成、且玩家从主世界进来 → 回到主世界
-        if (portalTargetIdPre.isPresent() && "wizard_tower_exit".equals(portalTargetIdPre.get())) {
+        // 巫师塔出口（基于任务状态路由）
+        if ("wizard_tower_exit".equals(targetId)) {
             com.stardew.craft.player.PlayerStardewData pdata = com.stardew.craft.player.PlayerDataManager.getPlayerData(player);
             if (!pdata.isWizardQuestComplete()) {
                 net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> src = pdata.getWizardSourceDimension();
                 if (src != null && net.minecraft.world.level.Level.OVERWORLD.equals(src)) {
-                    // 任务未完成 + 玩家从主世界进来 → 回到主世界
                     CrossDimensionTeleporter.wizardInteriorToOverworld(player);
-                    event.setCanceled(true);
                     return;
                 }
             }
-            // 任务已完成 或 来自星露谷 → 走原有 portal 系统传送到星露谷室外
+            // 任务已完成 或 来自星露谷 → 走下面的通用 portal 逻辑
         }
 
-        // 从星露谷室外进入巫师塔：记录来源维度
-        if (portalTargetIdPre.isPresent() && "wizard_tower_enter".equals(portalTargetIdPre.get())) {
+        // 巫师塔入口（记录来源维度）
+        if ("wizard_tower_enter".equals(targetId)) {
             com.stardew.craft.player.PlayerStardewData pdata = com.stardew.craft.player.PlayerDataManager.getPlayerData(player);
             pdata.setWizardSourceDimension(ModDimensions.STARDEW_VALLEY);
         }
 
-        Optional<PortalTargetSpec> spec = resolveTargetSpec(target.getTags());
-        if (spec.isEmpty()) {
-            return;
-        }
+        // ── 通用 Portal Registry 查找 ──
+        Optional<InteriorPortalRegistry.PortalTarget> resolved = InteriorPortalRegistry.resolve(targetId);
+        if (resolved.isEmpty()) return;
 
-        // Museum exit guard: block exit if donation mode is active
-        Optional<String> portalTargetId = findTagValue(target.getTags(), TAG_TARGET_PREFIX);
-        if (portalTargetId.isPresent() && "museum_exit".equals(portalTargetId.get())) {
+        // Museum exit guard
+        if ("museum_exit".equals(targetId)) {
             com.stardew.craft.museum.MuseumDonationData museumData =
                 com.stardew.craft.museum.MuseumDonationData.get(player.serverLevel());
             if (museumData.isDonationModeActive()) {
-                // Warn the player that donation is still in progress
                 net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,
                     new com.stardew.craft.network.payload.OpenNpcDialogueScreenPayload(
                         "gunther",
                         "stardewcraft.npc.gunther.donation_exit_blocked",
                         0
                     ));
-                event.setCanceled(true);
                 return;
             }
         }
 
-        // 对齐矿井大厅策略：交互传送前先确保室内布局已初始化。
+        // 确保室内布局已初始化
         InteriorSubspaceManager.ensureLoaded(player.serverLevel(), "portal_interaction");
 
+        // 冷却检查
         long now = player.serverLevel().getGameTime();
         long last = player.getPersistentData().getLong(PLAYER_LAST_PORTAL_TICK);
-        if (now - last < PORTAL_COOLDOWN_TICKS) {
-            event.setCanceled(true);
-            return;
-        }
+        if (now - last < PORTAL_COOLDOWN_TICKS) return;
 
-        PortalTargetSpec targetSpec = spec.get();
+        InteriorPortalRegistry.PortalTarget t = resolved.get();
 
-        // 传送前清理：关闭容器菜单、停止使用物品，防止状态卡死
+        // 传送前清理
         player.closeContainer();
         player.stopUsingItem();
 
         player.teleportTo(
             player.serverLevel(),
-            targetSpec.x,
-            targetSpec.y,
-            targetSpec.z,
-            targetSpec.yaw,
-            targetSpec.pitch
+            t.x(), t.y(), t.z(),
+            t.yaw(), t.pitch()
         );
 
-        applyInteriorFlag(player, targetSpec.mode);
+        applyInteriorFlag(player, t.mode());
         player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
-        event.setCanceled(true);
     }
 
-    private static Optional<PortalTargetSpec> resolveTargetSpec(Set<String> tags) {
-        Optional<String> targetId = findTagValue(tags, TAG_TARGET_PREFIX);
-        if (targetId.isPresent()) {
-            Optional<InteriorPortalRegistry.PortalTarget> resolved = InteriorPortalRegistry.resolve(targetId.get());
-            if (resolved.isPresent()) {
-                InteriorPortalRegistry.PortalTarget t = resolved.get();
-                return Optional.of(new PortalTargetSpec(t.x(), t.y(), t.z(), t.yaw(), t.pitch(), t.mode()));
-            }
-            return Optional.empty();
-        }
-
-        Optional<String> toValue = findTagValue(tags, TAG_TO_PREFIX);
-        if (toValue.isEmpty()) {
-            return Optional.empty();
-        }
-
-        double[] xyz = parseDoubles(toValue.get(), 3);
-        if (xyz == null) {
-            return Optional.empty();
-        }
-
-        float yaw = 0.0F;
-        float pitch = 0.0F;
-        Optional<String> rotValue = findTagValue(tags, TAG_ROT_PREFIX);
-        if (rotValue.isPresent()) {
-            double[] rot = parseDoubles(rotValue.get(), 2);
-            if (rot != null) {
-                yaw = (float) rot[0];
-                pitch = (float) rot[1];
-            }
-        }
-
-        InteriorPortalRegistry.PortalMode mode = findTagValue(tags, TAG_MODE_PREFIX)
-            .map(InteriorPortalInteractionEvents::parseMode)
-            .orElse(InteriorPortalRegistry.PortalMode.NONE);
-
-        return Optional.of(new PortalTargetSpec(
-            xyz[0] + 0.5D,
-            xyz[1],
-            xyz[2] + 0.5D,
-            yaw,
-            pitch,
-            mode
-        ));
-    }
+    // ======================== 工具方法 ========================
 
     private static Optional<String> findTagValue(Set<String> tags, String prefix) {
         for (String tag : tags) {
@@ -222,34 +202,6 @@ public class InteriorPortalInteractionEvents {
             }
         }
         return Optional.empty();
-    }
-
-    private static double[] parseDoubles(String value, int expectedParts) {
-        String[] parts = value.split(",");
-        if (parts.length != expectedParts) {
-            return null;
-        }
-        double[] parsed = new double[expectedParts];
-        try {
-            for (int i = 0; i < expectedParts; i++) {
-                parsed[i] = Double.parseDouble(parts[i].trim());
-            }
-            return parsed;
-        } catch (NumberFormatException ex) {
-            return null;
-        }
-    }
-
-    private static InteriorPortalRegistry.PortalMode parseMode(String raw) {
-        if (raw == null) {
-            return InteriorPortalRegistry.PortalMode.NONE;
-        }
-        String normalized = raw.trim().toLowerCase(Locale.ROOT);
-        return switch (normalized) {
-            case "entrance", "enter", "in" -> InteriorPortalRegistry.PortalMode.ENTRANCE;
-            case "exit", "out" -> InteriorPortalRegistry.PortalMode.EXIT;
-            default -> InteriorPortalRegistry.PortalMode.NONE;
-        };
     }
 
     private static void applyInteriorFlag(ServerPlayer player, InteriorPortalRegistry.PortalMode mode) {
@@ -281,26 +233,65 @@ public class InteriorPortalInteractionEvents {
         }
     }
 
-    private record PortalTargetSpec(
-        double x,
-        double y,
-        double z,
-        float yaw,
-        float pitch,
-        InteriorPortalRegistry.PortalMode mode
-    ) {}
-
     // ======================== 矿井跨维度传送 ========================
 
-    /** 矿井入口室外坐标（用于从矿井返回） */
     private static final double MINE_OUTDOOR_X = -285.5;
     private static final double MINE_OUTDOOR_Y = -12.0;
     private static final double MINE_OUTDOOR_Z = 314.5;
-
-    /** 矿井内部入口大厅坐标 */
     private static final double MINE_INDOOR_X = 21.5;
     private static final double MINE_INDOOR_Y = 66.0;
     private static final double MINE_INDOOR_Z = 3.5;
+
+    private static void handleFarmEntry(ServerPlayer player, String entryTag) {
+        long now = player.serverLevel().getGameTime();
+        long last = player.getPersistentData().getLong(PLAYER_LAST_PORTAL_TICK);
+        if (now - last < PORTAL_COOLDOWN_TICKS) return;
+        player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
+
+        com.stardew.craft.farm.FarmInstanceRegistry registry = com.stardew.craft.farm.FarmInstanceRegistry.get();
+        com.stardew.craft.farm.FarmInstance myFarm = registry.getFarm(player.getUUID());
+
+        if (myFarm == null) {
+            net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,
+                    new com.stardew.craft.network.payload.OpenFarmSelectionPayload());
+            StardewCraft.LOGGER.info("[FARM_ENTRY] {} has no farm, opening selection screen",
+                    player.getName().getString());
+            return;
+        }
+
+        com.stardew.craft.network.payload.FarmListSyncPayload.sendToPlayer(player, entryTag);
+        StardewCraft.LOGGER.info("[FARM_ENTRY] {} opening farm entry GUI via {}",
+                player.getName().getString(), entryTag);
+    }
+
+    private static final net.minecraft.core.BlockPos EXIT_SOUTH_TARGET = new net.minecraft.core.BlockPos(200, -14, 162);
+    private static final net.minecraft.core.BlockPos EXIT_EAST_TARGET = new net.minecraft.core.BlockPos(212, -14, 24);
+    private static final net.minecraft.core.BlockPos EXIT_WEST_TARGET = new net.minecraft.core.BlockPos(68, -12, 119);
+
+    private static void handleFarmExit(ServerPlayer player, String exitId) {
+        long now = player.serverLevel().getGameTime();
+        long last = player.getPersistentData().getLong(PLAYER_LAST_PORTAL_TICK);
+        if (now - last < PORTAL_COOLDOWN_TICKS) return;
+        player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
+
+        com.stardew.craft.farm.FarmInstance farm = com.stardew.craft.farm.FarmInstanceRegistry.get()
+                .getFarm(player.getUUID());
+        if (farm != null) {
+            com.stardew.craft.farm.FarmChunkManager.get().onPlayerLeaveFarm(
+                    player.serverLevel(), player, farm);
+        }
+
+        net.minecraft.core.BlockPos target = switch (exitId) {
+            case "farm_exit_south" -> EXIT_SOUTH_TARGET;
+            case "farm_exit_east" -> EXIT_EAST_TARGET;
+            case "farm_exit_west" -> EXIT_WEST_TARGET;
+            default -> EXIT_SOUTH_TARGET;
+        };
+
+        player.teleportTo(target.getX() + 0.5, target.getY(), target.getZ() + 0.5);
+        StardewCraft.LOGGER.info("[FARM_EXIT] {} exited farm via {} to {}",
+                player.getName().getString(), exitId, target);
+    }
 
     private static void handleMineEntrance(ServerPlayer player) {
         ServerLevel mineLevel = player.server.getLevel(ModMiningDimensions.STARDEW_MINING);
@@ -329,15 +320,99 @@ public class InteriorPortalInteractionEvents {
         long last = player.getPersistentData().getLong(PLAYER_LAST_PORTAL_TICK);
         if (now - last < PORTAL_COOLDOWN_TICKS) return;
 
-        // 传送前清理
         player.closeContainer();
         player.stopUsingItem();
 
-        // 标记跳过 DimensionEventHandler 的自动传送，防止二次传送到农场出生点
         com.stardew.craft.interior.CrossDimensionTeleporter.markSkipAutoTeleport(player.getUUID());
 
         player.teleportTo(stardewLevel, MINE_OUTDOOR_X, MINE_OUTDOOR_Y, MINE_OUTDOOR_Z,
                           180.0F, 0.0F);
         player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    //  社区中心 / 温室 — 玩家独立室内空间
+    // ════════════════════════════════════════════════════════════════
+
+    private static void handleCCEntry(ServerPlayer player) {
+        long now = player.serverLevel().getGameTime();
+        long last = player.getPersistentData().getLong(PLAYER_LAST_PORTAL_TICK);
+        if (now - last < PORTAL_COOLDOWN_TICKS) return;
+
+        ServerLevel level = player.serverLevel();
+        InteriorSubspaceManager.ensureLoaded(level, "cc_entry");
+
+        PlayerInteriorAllocator alloc = PlayerInteriorAllocator.get(level);
+        net.minecraft.core.BlockPos ccOrigin = alloc.ensureCCLoaded(level, player.getUUID());
+        net.minecraft.core.BlockPos spawnPos = ccOrigin.offset(InteriorSubspaceManager.CC_INDOOR_SPAWN_OFFSET);
+
+        player.closeContainer();
+        player.stopUsingItem();
+
+        player.teleportTo(level,
+            spawnPos.getX() + 0.5D, spawnPos.getY(), spawnPos.getZ() + 0.5D,
+            -90.0F, 0.0F);
+        player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
+        applyInteriorFlag(player, InteriorPortalRegistry.PortalMode.ENTRANCE);
+
+        StardewCraft.LOGGER.debug("[CC-PORTAL] Player {} entered their CC at {}", player.getName().getString(), ccOrigin);
+    }
+
+    private static void handleCCExit(ServerPlayer player) {
+        long now = player.serverLevel().getGameTime();
+        long last = player.getPersistentData().getLong(PLAYER_LAST_PORTAL_TICK);
+        if (now - last < PORTAL_COOLDOWN_TICKS) return;
+
+        net.minecraft.core.BlockPos exitPos = InteriorSubspaceManager.CC_OUTDOOR_EXIT_POS;
+
+        player.closeContainer();
+        player.stopUsingItem();
+
+        player.teleportTo(player.serverLevel(),
+            exitPos.getX() + 0.5D, exitPos.getY(), exitPos.getZ() + 0.5D,
+            180.0F, 0.0F);
+        player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
+        applyInteriorFlag(player, InteriorPortalRegistry.PortalMode.EXIT);
+    }
+
+    private static void handleGreenhouseEntry(ServerPlayer player) {
+        long now = player.serverLevel().getGameTime();
+        long last = player.getPersistentData().getLong(PLAYER_LAST_PORTAL_TICK);
+        if (now - last < PORTAL_COOLDOWN_TICKS) return;
+
+        ServerLevel level = player.serverLevel();
+        InteriorSubspaceManager.ensureLoaded(level, "greenhouse_entry");
+
+        PlayerInteriorAllocator alloc = PlayerInteriorAllocator.get(level);
+        net.minecraft.core.BlockPos ghOrigin = alloc.ensureGreenhouseLoaded(level, player.getUUID());
+        net.minecraft.core.BlockPos spawnPos = ghOrigin.offset(InteriorSubspaceManager.GREENHOUSE_INDOOR_SPAWN_OFFSET);
+
+        player.closeContainer();
+        player.stopUsingItem();
+
+        player.teleportTo(level,
+            spawnPos.getX() + 0.5D, spawnPos.getY(), spawnPos.getZ() + 0.5D,
+            -90.0F, 0.0F);
+        player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
+        applyInteriorFlag(player, InteriorPortalRegistry.PortalMode.ENTRANCE);
+
+        StardewCraft.LOGGER.debug("[GH-PORTAL] Player {} entered their greenhouse at {}", player.getName().getString(), ghOrigin);
+    }
+
+    private static void handleGreenhouseExit(ServerPlayer player) {
+        long now = player.serverLevel().getGameTime();
+        long last = player.getPersistentData().getLong(PLAYER_LAST_PORTAL_TICK);
+        if (now - last < PORTAL_COOLDOWN_TICKS) return;
+
+        player.closeContainer();
+        player.stopUsingItem();
+
+        net.minecraft.core.BlockPos exitPos = com.stardew.craft.greenhouse.GreenhouseManager.getExitPosForPlayer(player);
+
+        player.teleportTo(player.serverLevel(),
+            exitPos.getX() + 0.5D, exitPos.getY(), exitPos.getZ() + 0.5D,
+            -90.0F, 0.0F);
+        player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
+        applyInteriorFlag(player, InteriorPortalRegistry.PortalMode.EXIT);
     }
 }

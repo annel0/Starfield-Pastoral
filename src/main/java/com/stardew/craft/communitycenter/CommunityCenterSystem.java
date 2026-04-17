@@ -5,8 +5,8 @@ import com.stardew.craft.communitycenter.cutscene.AreaRestoreCutscene;
 import com.stardew.craft.communitycenter.cutscene.GoodbyeDanceCutscene;
 import com.stardew.craft.communitycenter.data.BundleDataManager;
 import com.stardew.craft.communitycenter.junimo.JunimoSpawner;
-import com.stardew.craft.communitycenter.restore.CCAreaRegistry;
 import com.stardew.craft.communitycenter.state.CCStoryFlags;
+import com.stardew.craft.interior.PlayerInteriorAllocator;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -50,18 +50,22 @@ public final class CommunityCenterSystem {
         // Only check every 20 ticks (1 second) for performance
         if (sp.tickCount % 20 != 0) return;
 
-        boolean insideNow = CCAreaRegistry.isInsideCC(sp.blockPosition());
+        boolean insideNow = false;
+        // 检查玩家是否在自己的 CC 内（通过 PlayerInteriorAllocator）
+        PlayerInteriorAllocator alloc = PlayerInteriorAllocator.get(serverLevel);
+        if (alloc.isInsideAnyCC(sp.blockPosition())) {
+            insideNow = true;
+        }
         boolean wasInside = playersInsideCC.contains(sp.getUUID());
 
         if (insideNow && !wasInside) {
             // Player just entered CC — spawn idle Junimos (SDV resetSharedState parity)
             playersInsideCC.add(sp.getUUID());
-            // SDV parity: Idle Junimos are friendly (follow) if canReadJunimoText,
-            // otherwise they flee when player gets close.
             boolean friendly = CCStoryFlags.canReadJunimoText(sp);
-            JunimoSpawner.spawnIdleJunimos(serverLevel, friendly);
-            // Also ensure JunimoNotes are placed
-            JunimoNotePlacer.ensureJunimoNotes(serverLevel);
+            net.minecraft.core.BlockPos ccOrigin = alloc.getCCOrigin(sp.getUUID());
+            JunimoSpawner.spawnIdleJunimos(serverLevel, friendly, sp.getUUID(), ccOrigin);
+            // Also ensure JunimoNotes are placed for this player's CC
+            JunimoNotePlacer.ensureJunimoNotes(serverLevel, sp.getUUID(), ccOrigin);
         } else if (!insideNow && wasInside) {
             // Player left CC
             playersInsideCC.remove(sp.getUUID());

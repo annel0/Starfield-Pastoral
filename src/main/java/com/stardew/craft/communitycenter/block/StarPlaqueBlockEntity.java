@@ -72,9 +72,15 @@ public class StarPlaqueBlockEntity extends BlockEntity {
             // Junimo 搬运中不自动同步, 等放完星再更新
             if (level.getGameTime() < placementSuppressUntil) return;
             CommunityCenterSavedData data = CommunityCenterSavedData.get();
+            // 找到这个 StarPlaque 所在的 CC 属于哪个玩家
+            java.util.UUID owner = null;
+            if (level instanceof net.minecraft.server.level.ServerLevel sl) {
+                owner = com.stardew.craft.interior.PlayerInteriorAllocator.get(sl).findCCOwner(pos);
+            }
+            if (owner == null) owner = new java.util.UUID(0L, 0L);
             int completed = 0;
             for (int i = 0; i <= 5; i++) {
-                if (data.isAreaComplete(i)) completed++;
+                if (data.isAreaComplete(owner, i)) completed++;
             }
             be.setNumberOfStars(completed);
         }

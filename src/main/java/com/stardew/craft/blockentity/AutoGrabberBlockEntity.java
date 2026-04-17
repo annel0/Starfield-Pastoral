@@ -103,36 +103,48 @@ public class AutoGrabberBlockEntity extends BlockEntity implements UtilityAutoma
 
     private int collectBuildingProduce(ServerLevel level, AnimalBuildingRecord building) {
         int collected = 0;
-        int y = building.minY() + 1;
-        for (int z = building.minZ(); z <= building.maxZ(); z++) {
-            for (int x = building.minX(); x <= building.maxX(); x++) {
-                BlockPos targetPos = new BlockPos(x, y, z);
-                BlockState targetState = level.getBlockState(targetPos);
-                if (!(targetState.getBlock() instanceof AnimalProduceSpotBlock)) {
-                    continue;
-                }
-
-                BlockEntity be = level.getBlockEntity(targetPos);
-                if (!(be instanceof AnimalProduceSpotBlockEntity produceBe)) {
-                    continue;
-                }
-
-                ItemStack produce = produceBe.getProduceStack();
-                if (produce.isEmpty()) {
-                    continue;
-                }
-                if (!Objects.equals(produceBe.getBuildingId(), building.buildingId())) {
-                    continue;
-                }
-
-                ItemStack remainder = insertIntoStorage(produce, false);
-                if (remainder.isEmpty()) {
-                    level.removeBlock(targetPos, false);
-                    collected += produce.getCount();
+        if (!building.interiorAirCells().isEmpty()) {
+            for (Long cell : building.interiorAirCells()) {
+                BlockPos targetPos = BlockPos.of(cell);
+                collected += tryCollectAt(level, targetPos, building);
+            }
+        } else {
+            for (int y = building.minY(); y <= building.maxY(); y++) {
+                for (int z = building.minZ(); z <= building.maxZ(); z++) {
+                    for (int x = building.minX(); x <= building.maxX(); x++) {
+                        collected += tryCollectAt(level, new BlockPos(x, y, z), building);
+                    }
                 }
             }
         }
         return collected;
+    }
+
+    private int tryCollectAt(ServerLevel level, BlockPos targetPos, AnimalBuildingRecord building) {
+        BlockState targetState = level.getBlockState(targetPos);
+        if (!(targetState.getBlock() instanceof AnimalProduceSpotBlock)) {
+            return 0;
+        }
+
+        BlockEntity be = level.getBlockEntity(targetPos);
+        if (!(be instanceof AnimalProduceSpotBlockEntity produceBe)) {
+            return 0;
+        }
+
+        ItemStack produce = produceBe.getProduceStack();
+        if (produce.isEmpty()) {
+            return 0;
+        }
+        if (!Objects.equals(produceBe.getBuildingId(), building.buildingId())) {
+            return 0;
+        }
+
+        ItemStack remainder = insertIntoStorage(produce, false);
+        if (remainder.isEmpty()) {
+            level.removeBlock(targetPos, false);
+            return produce.getCount();
+        }
+        return 0;
     }
 
     private ItemStack extractUpTo(int amount, boolean simulate) {

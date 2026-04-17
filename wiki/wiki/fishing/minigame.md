@@ -222,11 +222,11 @@ $$
 | 铜矿石 | 2~7 | 120 | 16.6% |
 | 铁矿石 | 2~6 | 100 | 13.8% |
 | 石头 | 5~15 | 80 | 11.0% |
-| 石英 | 1~4 | 60 | 8.3% |
+| <img src="/img/minerals/quartz.png" class="item-icon"> 石英 | 1~4 | 60 | 8.3% |
 | 晶洞 | 1~2 | 55 | 7.6% |
-| 大地水晶 | 1~3 | 45 | 6.2% |
-| 冰泪石 | 1~3 | 35 | 4.8% |
-| 火石英 | 1~3 | 35 | 4.8% |
+| <img src="/img/minerals/earth_crystal.png" class="item-icon"> 大地水晶 | 1~3 | 45 | 6.2% |
+| <img src="/img/minerals/frozen_tear.png" class="item-icon"> 冰泪石 | 1~3 | 35 | 4.8% |
+| <img src="/img/minerals/fire_quartz.png" class="item-icon"> 火石英 | 1~3 | 35 | 4.8% |
 | 冰封晶洞 | 1~2 | 35 | 4.8% |
 | 岩浆晶洞 | 1~2 | 25 | 3.4% |
 
@@ -237,17 +237,17 @@ $$
 | 物品 | 数量 | 权重 | 最低等级 |
 |------|------|------|---------|
 | 金矿石 | 1~3 | 90 | 0 |
-| 钻石 | 1~2 | 50 | 0 |
-| 紫水晶 | 1~3 | 45 | 0 |
-| 黄玉 | 1~3 | 45 | 0 |
+| <img src="/img/minerals/diamond.png" class="item-icon"> 钻石 | 1~2 | 50 | 0 |
+| <img src="/img/minerals/amethyst.png" class="item-icon"> 紫水晶 | 1~3 | 45 | 0 |
+| <img src="/img/minerals/topaz.png" class="item-icon"> 黄玉 | 1~3 | 45 | 0 |
 | 万象晶洞 | 1 | 45 | 0 |
-| 翡翠 | 1~3 | 40 | 0 |
-| 海蓝宝石 | 1~2 | 35 | 0 |
-| 红宝石 | 1~2 | 35 | 0 |
-| 绿宝石 | 1~2 | 35 | 0 |
-| 万能鱼饵 | 2~6 | 35 | 4 |
-| 高级鱼饵 | 5 | 35 | 6 |
-| 声纳浮漂 | 1 | 25 | 6 |
+| <img src="/img/minerals/jade.png" class="item-icon"> 翡翠 | 1~3 | 40 | 0 |
+| <img src="/img/minerals/aquamarine.png" class="item-icon"> 海蓝宝石 | 1~2 | 35 | 0 |
+| <img src="/img/minerals/ruby.png" class="item-icon"> 红宝石 | 1~2 | 35 | 0 |
+| <img src="/img/minerals/emerald.png" class="item-icon"> 绿宝石 | 1~2 | 35 | 0 |
+| <img src="/img/bait/wild_bait.png" class="item-icon"> [万能鱼饵](/wiki/fishing/bait#万能鱼饵-wild-bait) | 2~6 | 35 | 4 |
+| <img src="/img/bait/deluxe_bait.png" class="item-icon"> [高级鱼饵](/wiki/fishing/bait#高级鱼饵-deluxe-bait) | 5 | 35 | 6 |
+| <img src="/img/tackle/sonar_bobber.png" class="item-icon"> [声纳浮漂](/wiki/fishing/tackle#声纳浮漂-sonar-bobber) | 1 | 25 | 6 |
 | 鱼汤 | 1 | 16 | 2 |
 | 虾鸡尾酒 | 1 | 14 | 2 |
 | 古董/化石类 | 各 1 | 1~10 | 2 |
@@ -261,12 +261,12 @@ $$
 
 | 物品 | 数量 | 权重 | 概率 | 最低等级 |
 |------|------|------|------|---------|
-| 钻石 | 2~5 | 100 | 26.2% | 0 |
-| 挑战鱼饵 | 3~6 | 45 | 11.8% | 0 |
+| <img src="/img/minerals/diamond.png" class="item-icon"> 钻石 | 2~5 | 100 | 26.2% | 0 |
+| <img src="/img/bait/challenge_bait.png" class="item-icon"> [挑战鱼饵](/wiki/fishing/bait#挑战鱼饵-challenge-bait) | 3~6 | 45 | 11.8% | 0 |
 | 仙尘 | 3~6 | 40 | 10.5% | 0 |
 | 铱矿石 | 2~6 | 40 | 10.5% | 6 |
-| 棱彩碎片 | 1~2 | 35 | 9.2% | 0 |
-| 磁铁 | 3~6 | 30 | 7.9% | 0 |
+| <img src="/img/minerals/prismatic_shard.png" class="item-icon"> 棱彩碎片 | 1~2 | 35 | 9.2% | 0 |
+| <img src="/img/bait/magnet.png" class="item-icon"> [磁铁](/wiki/fishing/bait#磁铁-magnet) | 3~6 | 30 | 7.9% | 0 |
 | 金色动物饼干 | 1 | 20 | 5.2% | 8 |
 | 铱锭 | 1~2 | 18 | 4.7% | 8 |
 | 鱼汤 | 1~2 | 18 | 4.7% | 2 |

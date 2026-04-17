@@ -143,12 +143,19 @@ public class StardewTimeManager extends SavedData {
             ServerLevel stardewLevel = server.getLevel(ModDimensions.STARDEW_VALLEY);
             if (stardewLevel != null) {
                 if (seasonChanged) {
+                    // 先恢复公共区域被砍的杂草，再刷新季节外观
+                    com.stardew.craft.farm.PublicAreaBlockTracker.get().restoreAll(stardewLevel);
                     com.stardew.craft.block.nature.WildWeedsBlock.refreshLoadedWeedsForSeason(stardewLevel, currentSeason);
+                    com.stardew.craft.manager.JunimoGreenhouseRuneManager.get(stardewLevel).removeExpiredRunes(stardewLevel, currentSeason);
                 }
 
                 // 对齐 Stardew 的日结算语义：先确定“今天”的天气，再结算昨夜生长。
                 com.stardew.craft.weather.WeatherManager.applyWeatherForNewDay(stardewLevel, currentDay);
-
+                // 确保所有室内区块（含温室）在日结算期间已加载，
+                // 否则 growDaily / waterDaily 会因 isLoaded(pos)==false 跳过温室作物。
+                com.stardew.craft.interior.InteriorSubspaceManager.setInteriorChunksForced(stardewLevel, true, "daily_settlement");
+                com.stardew.craft.farm.FarmDailyProcessHelper.beginDailyProcess(stardewLevel);
+                try {
                 com.stardew.craft.manager.CropGrowthManager.get(stardewLevel).growDaily(stardewLevel);
 				com.stardew.craft.manager.TreeGrowthManager.get(stardewLevel).growDaily(stardewLevel);
                 com.stardew.craft.manager.WildTreeSeedManager.get(stardewLevel).onNewDay(stardewLevel, absDay);
@@ -156,8 +163,28 @@ public class StardewTimeManager extends SavedData {
                 com.stardew.craft.manager.PastureGrassGrowthManager.get(stardewLevel).growDaily(stardewLevel);
                 com.stardew.craft.manager.AnimalGrowthManager.get(stardewLevel).growDaily(stardewLevel);
                 com.stardew.craft.manager.ForageSpawnService.onNewDay(stardewLevel, currentSeason);
+                com.stardew.craft.manager.ForageSpawnService.onNewDayForestFarms(stardewLevel, currentSeason);
                 com.stardew.craft.manager.ArtifactSpotSpawnService.onNewDay(stardewLevel, currentSeason);
+                } finally {
+                    // 日结算完成后立即释放室内区块，避免 784 区块永久 force-loaded
+                    com.stardew.craft.interior.InteriorSubspaceManager.setInteriorChunksForced(stardewLevel, false, "daily_settlement_done");
+                    com.stardew.craft.farm.FarmDailyProcessHelper.endDailyProcess();
+                }
                 
+                // 多人农场：更新所有在线玩家的 lastOnlineDay
+                {
+                    com.stardew.craft.farm.FarmInstanceRegistry farmReg =
+                            com.stardew.craft.farm.FarmInstanceRegistry.get();
+                    for (net.minecraft.server.level.ServerPlayer sp : server.getPlayerList().getPlayers()) {
+                        com.stardew.craft.farm.FarmInstance fi = farmReg.getFarm(sp.getUUID());
+                        if (fi != null) {
+                            fi.setLastOnlineDay(absDay);
+                            fi.setLastOnlineSeason(currentSeason);
+                        }
+                    }
+                    farmReg.setDirty();
+                }
+
                 // 预测明天的天气
                 com.stardew.craft.weather.WeatherManager.updateWeatherForNewDay(
                     stardewLevel, currentDay, getSeasonName(), totalDaysPlayed
@@ -165,7 +192,8 @@ public class StardewTimeManager extends SavedData {
             }
 
             // 次日恢复：生命回满；能量按 SV 原版 dayupdate 规则恢复（疲惫则减半）。
-            // 目前没有“上床睡觉”系统，因此统一以触发 advanceDay 时的时间作为 timeWentToSleep。
+            // SDV parity: 结算前先将所有出货箱 buffer 里剩余的物品记录到出货追踪器
+            com.stardew.craft.blockentity.ShippingBinBlockEntity.flushAllForOvernight();
             for (var player : server.getPlayerList().getPlayers()) {
                 if (player.level().dimension() != ModDimensions.STARDEW_VALLEY
                     && player.level().dimension() != ModMiningDimensions.STARDEW_MINING) {
@@ -190,6 +218,12 @@ public class StardewTimeManager extends SavedData {
                 com.stardew.craft.player.PlayerStardewDataAPI.recordOvernightShippedItems(player, settlementPayload.shippedItems());
                 List<PlayerStardewData.SkillLevelUp> appliedLevelUps = com.stardew.craft.player.PlayerStardewDataAPI.applyPendingSkillLevelUps(player);
                 com.stardew.craft.player.PlayerStardewDataAPI.applySkillLevelRecipeUnlocks(player, appliedLevelUps);
+
+                // SDV parity: getLevelPerk — 升级后回满体力和生命值
+                if (!appliedLevelUps.isEmpty()) {
+                    com.stardew.craft.player.PlayerStardewDataAPI.restoreEnergy(player, com.stardew.craft.player.PlayerStardewDataAPI.getMaxEnergy(player));
+                    com.stardew.craft.player.PlayerStardewDataAPI.setHealth(player, com.stardew.craft.player.PlayerStardewDataAPI.getMaxHealth(player));
+                }
 
                 // 同步到客户端（HUD 依赖客户端缓存）
                 com.stardew.craft.player.PlayerDataEventHandler.syncPlayerData(player, com.stardew.craft.player.PlayerDataManager.getPlayerData(player));

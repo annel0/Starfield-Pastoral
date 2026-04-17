@@ -17,6 +17,8 @@ public final class BundleClientData {
     private final Map<Integer, Boolean> bundleRewards = new HashMap<>();
     private boolean canReadJunimoText = false;
     private int version = 0;
+    /** 玩家的 CC 内部原点，由服务端同步 */
+    private net.minecraft.core.BlockPos ccOrigin = com.stardew.craft.interior.InteriorSubspaceManager.CC_ORIGIN;
 
     /**
      * 星盘显示用的星星数，由 StarPlacedPayload 驱动。
@@ -27,6 +29,11 @@ public final class BundleClientData {
     private boolean displayStarsInitialized = false;
 
     private BundleClientData() {}
+
+    public void update(Map<Integer, boolean[]> newSlots, boolean[] newAreas, Map<Integer, Boolean> newRewards, boolean canRead, net.minecraft.core.BlockPos origin) {
+        update(newSlots, newAreas, newRewards, canRead);
+        if (origin != null) this.ccOrigin = origin;
+    }
 
     public void update(Map<Integer, boolean[]> newSlots, boolean[] newAreas, Map<Integer, Boolean> newRewards, boolean canRead) {
         bundleSlots.clear();
@@ -111,6 +118,16 @@ public final class BundleClientData {
     /** 星盘渲染器使用: 获取当前应显示的星星数 */
     public int getDisplayStarCount() {
         return displayStarCount;
+    }
+
+    /** 获取玩家的 CC 内部原点 (用于客户端渲染) */
+    public net.minecraft.core.BlockPos getCCOrigin() {
+        return ccOrigin;
+    }
+
+    /** 设置玩家的 CC 内部原点 (由 CcOriginPayload 调用) */
+    public void setCCOrigin(net.minecraft.core.BlockPos origin) {
+        if (origin != null) this.ccOrigin = origin;
     }
 
     /** Junimo 放完一颗星后调用 (由 StarPlacedPayload 触发) */

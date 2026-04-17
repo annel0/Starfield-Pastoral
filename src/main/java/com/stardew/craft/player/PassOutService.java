@@ -352,10 +352,17 @@ public final class PassOutService {
         var stardewLevel = server.getLevel(ModDimensions.STARDEW_VALLEY);
         if (stardewLevel == null) return;
 
+        // 查询玩家的农场出生点
+        com.stardew.craft.farm.FarmInstanceRegistry registry = com.stardew.craft.farm.FarmInstanceRegistry.get();
+        net.minecraft.core.BlockPos spawnPos = registry.getFarmSpawnPoint(player.getUUID());
+        double sx = spawnPos != null ? spawnPos.getX() + 0.5 : 150.5;
+        double sy = spawnPos != null ? spawnPos.getY() : -12;
+        double sz = spawnPos != null ? spawnPos.getZ() + 0.5 : 119.5;
+
         if (player.level().dimension() != ModDimensions.STARDEW_VALLEY) {
-            player.teleportTo(stardewLevel, 150.5, -12, 119.5, player.getYRot(), player.getXRot());
+            player.teleportTo(stardewLevel, sx, sy, sz, player.getYRot(), player.getXRot());
         } else {
-            player.teleportTo(150.5, -12, 119.5);
+            player.teleportTo(sx, sy, sz);
         }
 
         // 传送完成：清除击倒状态，恢复满血

@@ -8,6 +8,7 @@ import com.stardew.craft.communitycenter.restore.CCAreaRegistry;
 import com.stardew.craft.communitycenter.state.CommunityCenterSavedData;
 import com.stardew.craft.entity.junimo.JunimoEntity;
 import com.stardew.craft.interior.InteriorSubspaceManager;
+import com.stardew.craft.interior.PlayerInteriorAllocator;
 import com.stardew.craft.sound.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -39,6 +40,7 @@ public final class AreaRestoreCutscene {
     private static int phase = -1;
     private static int phaseTicksRemaining = 0;
     private static ServerLevel activeLevel;
+    private static java.util.UUID ownerUUID;
     private static final List<JunimoEntity> spawnedJunimos = new ArrayList<>();
 
     // Phase durations (ticks) — matches SDV millisecond timings
@@ -53,6 +55,13 @@ public final class AreaRestoreCutscene {
      * @param areaId 完成的区域 ID
      */
     public static void start(ServerLevel level, int areaId) {
+        start(level, areaId, null);
+    }
+
+    /**
+     * 启动区域修复过场，指定拥有者 UUID。
+     */
+    public static void start(ServerLevel level, int areaId, java.util.UUID owner) {
         if (running) {
             StardewCraft.LOGGER.warn("[CC-CUTSCENE] Already running, ignoring area {}", areaId);
             return;
@@ -68,6 +77,7 @@ public final class AreaRestoreCutscene {
         running = true;
         currentAreaId = areaId;
         activeLevel = level;
+        ownerUUID = owner;
         phase = -1;
         spawnedJunimos.clear();
 
@@ -161,7 +171,7 @@ public final class AreaRestoreCutscene {
                 spawnedJunimos.clear();
 
                 // 执行方块替换
-                int replaced = AreaRestoreHandler.restoreArea(activeLevel, currentAreaId);
+                int replaced = AreaRestoreHandler.restoreArea(activeLevel, currentAreaId, getCCOrigin());
                 StardewCraft.LOGGER.info("[CC-CUTSCENE] Area {} restored, {} blocks replaced", currentAreaId, replaced);
 
                 // SDV: localSound("wand") + localSound("woodyHit") + Game1.flashAlpha = 1f
@@ -171,15 +181,17 @@ public final class AreaRestoreCutscene {
             default -> {
                 // 过场结束 — spawn star carrier Junimo (T3.1)
                 if (activeLevel != null) {
-                    StarPlacementAnimator.spawnStarCarrier(activeLevel, currentAreaId);
+                    BlockPos ccOrig = getCCOrigin();
+                    StarPlacementAnimator.spawnStarCarrier(activeLevel, currentAreaId, ccOrig);
                     // T3.2: If all areas now complete, trigger goodbye dance
                     CommunityCenterSavedData data = CommunityCenterSavedData.get();
-                    if (data.areAllAreasComplete()) {
+                    java.util.UUID uid = ownerUUID != null ? ownerUUID : new java.util.UUID(0L, 0L);
+                    if (data.areAllAreasComplete(uid)) {
                         // Delay slightly to let star carrier finish (40 ticks = 2s)
                         final ServerLevel level = activeLevel;
                         activeLevel.getServer().tell(new net.minecraft.server.TickTask(
                                 activeLevel.getServer().getTickCount() + 80,
-                                () -> GoodbyeDanceCutscene.start(level)));
+                                () -> GoodbyeDanceCutscene.start(level, ccOrig)));
                     }
                 }
                 stop();
@@ -206,7 +218,7 @@ public final class AreaRestoreCutscene {
         CCAreaRegistry.AreaBounds bounds = CCAreaRegistry.getArea(currentAreaId);
         if (bounds == null || !bounds.hasRoomBounds()) return;
 
-        BlockPos notePos = bounds.noteWorldPos();
+        BlockPos notePos = bounds.noteWorldPos(getCCOrigin());
         JunimoEntity junimo = new JunimoEntity(
                 com.stardew.craft.entity.ModEntities.JUNIMO.get(), activeLevel);
         junimo.setJunimoColor(JunimoSpawner.getColorForArea(currentAreaId));
@@ -226,12 +238,22 @@ public final class AreaRestoreCutscene {
     }
 
     /**
+     * 获取当前过场的 CC 原点（per-player 或默认）
+     */
+    private static BlockPos getCCOrigin() {
+        if (ownerUUID != null && activeLevel != null) {
+            return PlayerInteriorAllocator.get(activeLevel).getCCOrigin(ownerUUID);
+        }
+        return InteriorSubspaceManager.CC_ORIGIN;
+    }
+
+    /**
      * 获取当前区域的中心位置 (用于音效/效果)
      */
     private static BlockPos getCenterPos() {
         CCAreaRegistry.AreaBounds bounds = CCAreaRegistry.getArea(currentAreaId);
         if (bounds != null) {
-            return bounds.noteWorldPos();
+            return bounds.noteWorldPos(getCCOrigin());
         }
         return InteriorSubspaceManager.CC_ORIGIN;
     }
@@ -242,7 +264,9 @@ public final class AreaRestoreCutscene {
     private static void broadcastToCC(CutscenePayload payload) {
         if (activeLevel == null) return;
         for (ServerPlayer player : activeLevel.players()) {
-            if (CCAreaRegistry.isInsideCC(player.blockPosition())) {
+            // 只广播给位于当前 owner CC 实例内的玩家
+            java.util.UUID posOwner = PlayerInteriorAllocator.get(activeLevel).findCCOwner(player.blockPosition());
+            if (posOwner != null && posOwner.equals(ownerUUID != null ? ownerUUID : posOwner)) {
                 PacketDistributor.sendToPlayer(player, payload);
             }
         }
@@ -253,6 +277,7 @@ public final class AreaRestoreCutscene {
         currentAreaId = -1;
         phase = -1;
         activeLevel = null;
+        ownerUUID = null;
         // 清理残留 Junimo
         for (JunimoEntity junimo : spawnedJunimos) {
             if (junimo.isAlive() && !junimo.isRemoved()) {

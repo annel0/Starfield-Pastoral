@@ -65,8 +65,11 @@ public record CutscenePayload(
      * 客户端处理：转交给 ScreenFade 执行视觉效果。
      */
     public static void handle(CutscenePayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            ScreenFade.onCutscenePacket(payload);
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(CutscenePayload payload) {
+        ScreenFade.onCutscenePacket(payload);
     }
 }

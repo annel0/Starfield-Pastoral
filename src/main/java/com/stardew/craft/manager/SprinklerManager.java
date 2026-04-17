@@ -22,6 +22,11 @@ public class SprinklerManager extends SavedData {
 
     private final Set<GlobalPos> sprinklerPositions = new HashSet<>();
 
+    /** 返回所有已注册洒水器位置的不可变快照。 */
+    public java.util.List<GlobalPos> getAllSprinklerPositions() {
+        return new java.util.ArrayList<>(sprinklerPositions);
+    }
+
     private boolean isProcessing = false;
     private final Set<GlobalPos> pendingAdds = new HashSet<>();
     private final Set<GlobalPos> pendingRemoves = new HashSet<>();
@@ -84,6 +89,12 @@ public class SprinklerManager extends SavedData {
                     continue;
                 }
                 BlockPos pos = gp.pos();
+
+                // 多人农场优化：跳过离线玩家农场中的喷头
+                if (!com.stardew.craft.farm.FarmDailyProcessHelper.shouldProcessPosition(level, pos)) {
+                    continue;
+                }
+
                 if (!level.isLoaded(pos)) {
                     continue;
                 }
@@ -93,7 +104,7 @@ public class SprinklerManager extends SavedData {
                     continue;
                 }
 
-                SprinklerBlock.waterNow(level, pos, sprinkler.getTier());
+                SprinklerBlock.waterNow(level, pos, sprinkler.getTier(), false);
             }
         } finally {
             isProcessing = false;

@@ -1,16 +1,16 @@
 package com.stardew.craft.interior;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.block.ModBlocks;
+import com.stardew.craft.blockentity.WoodenChestBlockEntity;
+import com.stardew.craft.network.payload.StarterChestHintPayload;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.PlayerStardewData;
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -18,6 +18,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.Set;
 import java.util.UUID;
@@ -151,7 +154,8 @@ public final class CrossDimensionTeleporter {
     }
 
     /**
-     * 从巫师塔内部前往星露谷室外世界原点（通过巫师对话触发）。
+     * 从巫师塔内部前往星露谷室外。
+     * 如果玩家已有农场实例，传送到自己的农场出生点；否则传送到公共出生点。
      */
     public static void wizardInteriorToStardewOutdoor(ServerPlayer player) {
         if (checkCooldown(player)) return;
@@ -166,10 +170,20 @@ public final class CrossDimensionTeleporter {
         player.closeContainer();
         player.stopUsingItem();
 
+        // 查询玩家的农场出生点
+        BlockPos spawnTarget = STARDEW_WORLD_ORIGIN;
+        com.stardew.craft.farm.FarmInstanceRegistry registry = com.stardew.craft.farm.FarmInstanceRegistry.get();
+        com.stardew.craft.farm.FarmInstance farm = registry.getFarm(player.getUUID());
+        if (farm != null) {
+            spawnTarget = farm.getSpawnPoint();
+            StardewCraft.LOGGER.info("[WIZARD] {} teleporting to personal farm spawn at {}",
+                    player.getName().getString(), spawnTarget);
+        }
+
         player.teleportTo(stardewLevel,
-            STARDEW_WORLD_ORIGIN.getX() + 0.5,
-            STARDEW_WORLD_ORIGIN.getY(),
-            STARDEW_WORLD_ORIGIN.getZ() + 0.5,
+            spawnTarget.getX() + 0.5,
+            spawnTarget.getY(),
+            spawnTarget.getZ() + 0.5,
             180.0F, 0.0F);
 
         applyInteriorExit(player);
@@ -202,37 +216,69 @@ public final class CrossDimensionTeleporter {
     // ──── Internal helpers ────
 
     /**
-     * 首次到达星露谷时给予基础工具六件套（SDV 新游戏初始装备）。
+     * 首次到达星露谷时在玩家面前放置一个装有初始物资的木箱。
+     * 箱子面朝玩家，并发送 hint 提示"点击领取初始物资"。
      */
     private static void giveStarterToolsIfNeeded(ServerPlayer player) {
         PlayerStardewData data = PlayerDataManager.getPlayerData(player);
         if (data.isStarterToolsGiven()) return;
 
-        ItemStack[] starterTools = {
-            new ItemStack(ModItems.PICKAXE.get()),
-            new ItemStack(ModItems.AXE.get()),
-            new ItemStack(ModItems.HOE.get()),
-            new ItemStack(ModItems.WATERING_CAN.get()),
-            new ItemStack(ModItems.SCYTHE.get()),
-            new ItemStack(ModItems.FISHING_ROD.get()),
-            new ItemStack(ModItems.RUSTY_SWORD.get()),
-            new ItemStack(ModItems.PARSNIP_SEEDS.get(), 15),
-            new ItemStack(ModItems.MAILBOX.get()),
-            new ItemStack(ModItems.SHIPPING_BIN.get()),
-            new ItemStack(ModItems.BED_1.get()),
-        };
-        for (ItemStack tool : starterTools) {
-            if (!player.getInventory().add(tool)) {
-                player.drop(tool, false);
+        ServerLevel level = player.serverLevel();
+
+        // 玩家传送时面朝南（yaw=180），面前一格 = +Z
+        BlockPos chestPos = player.blockPosition().relative(Direction.SOUTH);
+
+        // 放置木箱，面朝玩家（即面朝北）
+        BlockState chestState = ModBlocks.WOODEN_CHEST.get().defaultBlockState()
+                .setValue(com.stardew.craft.block.utility.WoodenChestBlock.FACING, Direction.NORTH);
+        level.setBlock(chestPos, chestState, 3);
+
+        // 填充初始物资
+        BlockEntity be = level.getBlockEntity(chestPos);
+        if (be instanceof WoodenChestBlockEntity chest) {
+            ItemStack[] starterTools = {
+                new ItemStack(ModItems.PICKAXE.get()),
+                new ItemStack(ModItems.AXE.get()),
+                new ItemStack(ModItems.HOE.get()),
+                new ItemStack(ModItems.WATERING_CAN.get()),
+                new ItemStack(ModItems.SCYTHE.get()),
+                new ItemStack(ModItems.FISHING_ROD.get()),
+                new ItemStack(ModItems.RUSTY_SWORD.get()),
+                new ItemStack(ModItems.PARSNIP_SEEDS.get(), 15),
+                new ItemStack(ModItems.MAILBOX.get()),
+                new ItemStack(ModItems.SHIPPING_BIN.get()),
+                new ItemStack(ModItems.BED_1.get()),
+            };
+            for (int i = 0; i < starterTools.length && i < chest.getContainerSize(); i++) {
+                chest.setItem(i, starterTools[i]);
             }
+            // 冬天到达的新玩家：额外赠送温室符文
+            boolean isWinter = com.stardew.craft.time.StardewTimeManager.get().getCurrentSeason() == 3;
+            if (isWinter) {
+                for (int i = 0; i < chest.getContainerSize(); i++) {
+                    if (chest.getItem(i).isEmpty()) {
+                        chest.setItem(i, new ItemStack(ModItems.JUNIMO_GREENHOUSE_RUNE.get()));
+                        break;
+                    }
+                }
+            }
+            chest.setChanged();
         }
 
+        // 发送 hint 到客户端
+        PacketDistributor.sendToPlayer(player, new StarterChestHintPayload(chestPos, true));
+
         data.setStarterToolsGiven(true);
-        StardewCraft.LOGGER.info("[WIZARD] Gave starter tools to {}", player.getName().getString());
+        StardewCraft.LOGGER.info("[WIZARD] Placed starter chest for {} at {}", player.getName().getString(), chestPos);
 
         // 延迟 1 秒发送欢迎公告（让玩家先加载完场景）
         player.server.execute(() ->
-            player.server.execute(() -> sendWelcomeAnnouncement(player))
+            player.server.execute(() -> {
+                sendWelcomeAnnouncement(player);
+                if (com.stardew.craft.time.StardewTimeManager.get().getCurrentSeason() == 3) {
+                    sendRuneAnnouncement(player);
+                }
+            })
         );
     }
 
@@ -250,19 +296,30 @@ public final class CrossDimensionTeleporter {
         player.sendSystemMessage(Component.literal("§a§l📖 §f模组目前没有教程，主界面按 §e§lV §f键（可在按键设置中更改）打开。"));
         player.sendSystemMessage(Component.literal("§7   可以根据游玩星露谷物语的直觉来游玩本模组。"));
         player.sendSystemMessage(Component.literal(""));
-
-        // B 站关注链接 — 点击后暗中执行领奖命令，给玩家惊喜
-        MutableComponent bilibiliLink = Component.literal("§d§l★ §e欢迎关注作者B站：")
-            .append(Component.literal("§b§n[点击访问B站主页]")
-                .setStyle(Style.EMPTY
-                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/stardewcraft bilibili"))
-                    .withUnderlined(true)
-                    .withColor(ChatFormatting.AQUA)))
-            .append(Component.literal(" §6§l⬅ §e§o点击领取神秘奖励！"));
-        player.sendSystemMessage(bilibiliLink);
-
-        player.sendSystemMessage(Component.literal(""));
         player.sendSystemMessage(Component.literal("§6§l═══════════════════════════════════"));
+        player.sendSystemMessage(Component.literal(""));
+    }
+
+    /**
+     * 冬季新玩家到达时的温室符文公告。
+     */
+    private static void sendRuneAnnouncement(ServerPlayer player) {
+        player.sendSystemMessage(Component.literal(""));
+        player.sendSystemMessage(Component.literal("§a§l🌿 §a═══════ §e§l祝尼魔的馈赠 §a═══════"));
+        player.sendSystemMessage(Component.literal(""));
+        player.sendSystemMessage(Component.literal("§f  你感受到了一股温暖而神秘的魔力……"));
+        player.sendSystemMessage(Component.literal(""));
+        player.sendSystemMessage(Component.literal("§f  森林深处的§a祝尼魔§f们感应到了你在寒冬中的到来。"));
+        player.sendSystemMessage(Component.literal("§f  它们不忍看你的第一个冬天颗粒无收，"));
+        player.sendSystemMessage(Component.literal("§f  悄悄在你的木箱中放入了一枚§e温室符文§f。"));
+        player.sendSystemMessage(Component.literal(""));
+        player.sendSystemMessage(Component.literal("§7  将符文放置在农田中央，7×7 范围内的作物"));
+        player.sendSystemMessage(Component.literal("§7  将不受季节限制，安然生长整个冬天。"));
+        player.sendSystemMessage(Component.literal("§7  符文的魔力会在下个季节来临时自然消散。"));
+        player.sendSystemMessage(Component.literal(""));
+        player.sendSystemMessage(Component.literal("§a  ——愿星之果实庇佑你度过这个隆冬 §e❄"));
+        player.sendSystemMessage(Component.literal(""));
+        player.sendSystemMessage(Component.literal("§a═══════════════════════════════════"));
         player.sendSystemMessage(Component.literal(""));
     }
 

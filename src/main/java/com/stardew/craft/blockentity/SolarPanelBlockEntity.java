@@ -51,11 +51,14 @@ public class SolarPanelBlockEntity extends BlockEntity implements UtilityAutomat
             startCycle(level);
         }
 
-        boolean newPaused = computePaused(level, pos);
-        if (newPaused != paused) {
-            paused = newPaused;
-            setChanged();
-            syncToClient();
+        // 每 20 tick 检查一次天气/天空，无需每 tick
+        if (level.getGameTime() % 20 == 0) {
+            boolean newPaused = computePaused(level, pos);
+            if (newPaused != paused) {
+                paused = newPaused;
+                setChanged();
+                syncToClient();
+            }
         }
 
         long currentDayIndex = getCurrentDayIndex();

@@ -59,6 +59,15 @@ public class DimensionEventHandler {
     private static int lastAnimalTenMinuteSlot = Integer.MIN_VALUE;
 
     @SuppressWarnings("null")
+    /**
+     * Public entry point for triggering day advance from outside this class
+     * (e.g. from logout handler when sleep votes are satisfied).
+     */
+    public static void triggerAdvance(ServerLevel stardewLevel, int sleepMinute, String reason) {
+        advanceToNextMorning(stardewLevel, sleepMinute, reason);
+    }
+
+    @SuppressWarnings("null")
     private static void advanceToNextMorning(ServerLevel sourceLevel, int sleepMinute, String reason) {
         if (dayAdvancing) {
             return;
@@ -72,17 +81,21 @@ public class DimensionEventHandler {
             long currentDay = sourceLevel.getDayTime() / 24000;
             long newDayTime = (currentDay + 1) * 24000;
 
-            for (ServerLevel level : server.getAllLevels()) {
-                level.setDayTime(newDayTime);
-            }
+            // 必须在主世界（overworld）上调用 setDayTime —— 非主世界维度使用
+            // DerivedLevelData，其 setDayTime() 是空操作（no-op）。
+            // 所有维度的 getDayTime() 都委托给主世界的 PrimaryLevelData，
+            // 所以在 overworld 上设置一次即可影响所有维度。
+            server.overworld().setDayTime(newDayTime);
 
             for (ServerPlayer player : server.getPlayerList().getPlayers()) {
                 ServerLevel playerLevel = player.serverLevel();
-                player.connection.send(new ClientboundSetTimePacket(
-                    playerLevel.getGameTime(),
-                    newDayTime,
-                    playerLevel.getGameRules().getBoolean(GameRules.RULE_DAYLIGHT)
-                ));
+                if (isStardewDimension(playerLevel)) {
+                    player.connection.send(new ClientboundSetTimePacket(
+                        playerLevel.getGameTime(),
+                        newDayTime,
+                        playerLevel.getGameRules().getBoolean(GameRules.RULE_DAYLIGHT)
+                    ));
+                }
             }
 
             // 日结算逻辑（作物生长、天气、玩家恢复等）
@@ -119,7 +132,13 @@ public class DimensionEventHandler {
         if (stardewLevel == null) {
             return;
         }
-        advanceToNextMorning(stardewLevel, sleepMinute, "sleep_confirm");
+
+        // 多人投票：只有所有 Stardew 维度玩家都投票后才推进
+        if (SleepVoteTracker.castVote(player, sleepMinute)) {
+            int effectiveSleepMinute = SleepVoteTracker.getLatestSleepMinute();
+            SleepVoteTracker.clearVotes();
+            advanceToNextMorning(stardewLevel, effectiveSleepMinute, "sleep_confirm");
+        }
     }
 
     /**
@@ -207,18 +226,25 @@ public class DimensionEventHandler {
             if (ModDimensions.STARDEW_VALLEY.equals(event.getTo())) {
                 // 如果是 CrossDimensionTeleporter 主动传送（如巫师塔入口），不覆盖目标位置
                 if (!com.stardew.craft.interior.CrossDimensionTeleporter.consumeSkipAutoTeleport(player.getUUID())) {
-                    net.minecraft.core.BlockPos fixedPos = new net.minecraft.core.BlockPos(150, -12, 119);
+                    // 查询玩家的农场出生点
+                    com.stardew.craft.farm.FarmInstanceRegistry registry = com.stardew.craft.farm.FarmInstanceRegistry.get();
+                    net.minecraft.core.BlockPos spawnPos = registry.getFarmSpawnPoint(player.getUUID());
+                    if (spawnPos == null) {
+                        spawnPos = new net.minecraft.core.BlockPos(150, -12, 119);
+                    }
                     // 传送前清理
                     player.closeContainer();
                     player.stopUsingItem();
 
-                    preloadChunksAround(level, fixedPos, 2);
-                    player.teleportTo(level, 150.0D, -12.0D, 119.0D, player.getYRot(), player.getXRot());
+                    preloadChunksAround(level, spawnPos, 2);
+                    player.teleportTo(level, spawnPos.getX() + 0.5D, spawnPos.getY(), spawnPos.getZ() + 0.5D, player.getYRot(), player.getXRot());
                 }
 
-                // 确保农场默认方块和自然碎片已放置（在 preloadChunks 之后，
-                // FarmInitializer 内部也会预加载农场区域区块）
-                com.stardew.craft.dimension.FarmInitializer.ensureInitialized(level);
+                // 旧 FarmInitializer 已废弃，内置农场区域不再初始化（玩家现在有自己的个人农场）
+                // com.stardew.craft.dimension.FarmInitializer.ensureInitialized(level);
+
+                // 确保农场入口屏障墙和交互实体已放置
+                com.stardew.craft.farm.FarmEntryBarrierManager.get(level).ensureBarriersPlaced(level);
 
                 // 确保第一天有 forage / artifact spot 生成（SavedData 保证只执行一次）
                 int season = com.stardew.craft.time.StardewTimeManager.get().getCurrentSeason();
@@ -309,27 +335,27 @@ public class DimensionEventHandler {
 
         // 检查是否有玩家在星露谷相关维度
         var server = serverLevel.getServer();
-        boolean anyPlayerInStardew = false;
-        for (var player : server.getPlayerList().getPlayers()) {
+        var allPlayers = server.getPlayerList().getPlayers();
+        // 预收集星露谷维度内的玩家列表（后续警告/晕倒复用，避免多轮遍历）
+        java.util.List<ServerPlayer> stardewPlayers = new java.util.ArrayList<>();
+        for (var player : allPlayers) {
             if (ModDimensions.STARDEW_VALLEY.equals(player.level().dimension())
                 || ModMiningDimensions.STARDEW_MINING.equals(player.level().dimension())) {
-                anyPlayerInStardew = true;
-                break;
+                stardewPlayers.add(player);
             }
         }
+        boolean anyPlayerInStardew = !stardewPlayers.isEmpty();
         
-        // 根据是否有玩家在维度内控制昼夜循环
-        boolean daylightEnabled = serverLevel.getGameRules().getBoolean(GameRules.RULE_DAYLIGHT);
-        if (anyPlayerInStardew && !daylightEnabled) {
-            // 有玩家在维度内，开启昼夜循环
-            serverLevel.getGameRules().getRule(GameRules.RULE_DAYLIGHT).set(true, server);
-        } else if (!anyPlayerInStardew && daylightEnabled) {
-            // 没有玩家在维度内，关闭昼夜循环（时间静止）
-            serverLevel.getGameRules().getRule(GameRules.RULE_DAYLIGHT).set(false, server);
-            return; // 时间静止时不需要后续处理
-        } else if (!anyPlayerInStardew) {
-            // 没有玩家且已经关闭，直接返回
+        // 没有玩家在星露谷相关维度时，跳过时间处理（但不关闭全局 doDaylightCycle，
+        // 否则主世界时间也会被冻结）
+        if (!anyPlayerInStardew) {
             return;
+        }
+
+        // 确保昼夜循环开启（可能被其他逻辑/命令关闭过）
+        boolean daylightEnabled = serverLevel.getGameRules().getBoolean(GameRules.RULE_DAYLIGHT);
+        if (!daylightEnabled) {
+            serverLevel.getGameRules().getRule(GameRules.RULE_DAYLIGHT).set(true, server);
         }
         
         // 获取当前MC dayTime
@@ -354,30 +380,24 @@ public class DimensionEventHandler {
         // ── 午夜 0:00（对标 SDV case 2400）── 时钟抖动 + 困倦表情 + "It's getting late..." 消息
         if (dayTime >= MIDNIGHT_TIME && !dayAdvancing && !midnightWarned) {
             midnightWarned = true;
-            for (ServerPlayer sp : serverLevel.getServer().getPlayerList().getPlayers()) {
-                if (sp.level().dimension() == ModDimensions.STARDEW_VALLEY
-                        || sp.level().dimension() == ModMiningDimensions.STARDEW_MINING) {
+            for (ServerPlayer sp : stardewPlayers) {
                     // 时钟抖动 + 全局消息
                     PacketDistributor.sendToPlayer(sp, new com.stardew.craft.network.TimeWarningPayload(
                         com.stardew.craft.network.TimeWarningPayload.MIDNIGHT));
                     // 困倦表情气泡（sleep emote, iconIndex=24）
                     PacketDistributor.sendToPlayersTrackingEntityAndSelf(sp,
                         new com.stardew.craft.network.payload.EmoteBroadcastPayload(sp.getId(), 24));
-                }
             }
         }
 
         // ── 凌晨 1:00（对标 SDV case 2500）── 时钟抖动 + 困倦表情（无文字消息）
         if (dayTime >= ONE_AM_TIME && !dayAdvancing && !oneAMWarned) {
             oneAMWarned = true;
-            for (ServerPlayer sp : serverLevel.getServer().getPlayerList().getPlayers()) {
-                if (sp.level().dimension() == ModDimensions.STARDEW_VALLEY
-                        || sp.level().dimension() == ModMiningDimensions.STARDEW_MINING) {
+            for (ServerPlayer sp : stardewPlayers) {
                     PacketDistributor.sendToPlayer(sp, new com.stardew.craft.network.TimeWarningPayload(
                         com.stardew.craft.network.TimeWarningPayload.ONE_AM));
                     PacketDistributor.sendToPlayersTrackingEntityAndSelf(sp,
                         new com.stardew.craft.network.payload.EmoteBroadcastPayload(sp.getId(), 24));
-                }
             }
         }
 
@@ -386,18 +406,13 @@ public class DimensionEventHandler {
             // 时钟抖动
             if (!twoAMWarned) {
                 twoAMWarned = true;
-                for (ServerPlayer sp : serverLevel.getServer().getPlayerList().getPlayers()) {
-                    if (sp.level().dimension() == ModDimensions.STARDEW_VALLEY
-                            || sp.level().dimension() == ModMiningDimensions.STARDEW_MINING) {
+                for (ServerPlayer sp : stardewPlayers) {
                         PacketDistributor.sendToPlayer(sp, new com.stardew.craft.network.TimeWarningPayload(
                             com.stardew.craft.network.TimeWarningPayload.TWO_AM));
-                    }
                 }
             }
             // 对标 SDV case 2600: 强制下马、停止坐下、中断工具使用
-            for (ServerPlayer sp : serverLevel.getServer().getPlayerList().getPlayers()) {
-                if (sp.level().dimension() == ModDimensions.STARDEW_VALLEY
-                        || sp.level().dimension() == ModMiningDimensions.STARDEW_MINING) {
+            for (ServerPlayer sp : stardewPlayers) {
                     // 强制下马
                     if (sp.getVehicle() != null) {
                         sp.stopRiding();
@@ -406,29 +421,32 @@ public class DimensionEventHandler {
                     if (sp.isUsingItem()) {
                         sp.stopUsingItem();
                     }
-                }
             }
-            // 1. 对每个玩家执行晕倒惩罚（结果暂存，合并进 OvernightSettlementPayload）
-            for (ServerPlayer sp : serverLevel.getServer().getPlayerList().getPlayers()) {
-                if (sp.level().dimension() == ModDimensions.STARDEW_VALLEY
-                        || sp.level().dimension() == ModMiningDimensions.STARDEW_MINING) {
-                    com.stardew.craft.player.PassOutService.on2AMPassOut(sp);
-                }
+            // 关键：先保存已投票玩家快照，再清空投票
+            java.util.Set<java.util.UUID> votedPlayers = SleepVoteTracker.getVotedPlayerSnapshot();
+            // 1. 对每个玩家执行晕倒惩罚（跳过已投睡觉票的玩家——他们选择了睡觉，不算晕倒）
+            for (ServerPlayer sp : stardewPlayers) {
+                    if (!votedPlayers.contains(sp.getUUID())) {
+                        com.stardew.craft.player.PassOutService.on2AMPassOut(sp);
+                    }
             }
             // 2. 推进到次日（内部会消费 PassOutResult 并合并进结算包发送给客户端）
+            SleepVoteTracker.clearVotes(); // 2AM 强制推进，清空所有未完成的投票
             advanceToNextMorning(serverLevel, stardewMinutes, "pass_out_2am");
-            // 3. 传送所有星露谷/矿井维度玩家回农场出生点
-            for (ServerPlayer sp : serverLevel.getServer().getPlayerList().getPlayers()) {
-                if (sp.level().dimension() == ModDimensions.STARDEW_VALLEY
-                        || sp.level().dimension() == ModMiningDimensions.STARDEW_MINING) {
-                    com.stardew.craft.player.PassOutService.teleportToFarmSpawn(sp);
-                }
+            // 3. 只传送未投票的玩家回农场出生点（已投票玩家正常过夜，不惩罚不传送）
+            for (ServerPlayer sp : stardewPlayers) {
+                    if (!votedPlayers.contains(sp.getUUID())) {
+                        com.stardew.craft.player.PassOutService.teleportToFarmSpawn(sp);
+                    }
             }
         }
         
-        // 每秒（20 ticks）同步UI时间到客户端
+        // 每秒（20 ticks）同步UI时间到客户端（仅发给星露谷维度玩家）
         if (serverLevel.getGameTime() % 20 == 0) {
-            PacketDistributor.sendToAllPlayers(TimeSyncPacket.fromTimeManager(timeManager));
+            var syncPacket = TimeSyncPacket.fromTimeManager(timeManager);
+            for (ServerPlayer sp : stardewPlayers) {
+                PacketDistributor.sendToPlayer(sp, syncPacket);
+            }
         }
     }
     
@@ -440,6 +458,7 @@ public class DimensionEventHandler {
     public static void onSleepFinished(SleepFinishedTimeEvent event) {
         if (event.getLevel() instanceof ServerLevel level && level.dimension() == ModDimensions.STARDEW_VALLEY) {
             StardewTimeManager timeManager = StardewTimeManager.get();
+            SleepVoteTracker.clearVotes();
             advanceToNextMorning(level, timeManager.getCurrentTime(), "vanilla_sleep_finished");
         }
     }
@@ -458,19 +477,19 @@ public class DimensionEventHandler {
             long currentDay = overworld.getDayTime() / 24000;
             long newDayTime = currentDay * 24000 + mcTimeOfDay;
             
-            // 设置所有维度的时间（MC dayTime是全局共享的）
-            for (ServerLevel level : server.getAllLevels()) {
-                level.setDayTime(newDayTime);
-            }
+            // 必须在 overworld 上调用 setDayTime（DerivedLevelData.setDayTime 是 no-op）
+            overworld.setDayTime(newDayTime);
             
-            // 发送时间包到所有玩家
+            // 发送时间包给星露谷维度的玩家
             for (ServerPlayer player : server.getPlayerList().getPlayers()) {
                 ServerLevel playerLevel = player.serverLevel();
-                player.connection.send(new ClientboundSetTimePacket(
-                    playerLevel.getGameTime(),
-                    newDayTime,
-                    playerLevel.getGameRules().getBoolean(GameRules.RULE_DAYLIGHT)
-                ));
+                if (isStardewDimension(playerLevel)) {
+                    player.connection.send(new ClientboundSetTimePacket(
+                        playerLevel.getGameTime(),
+                        newDayTime,
+                        playerLevel.getGameRules().getBoolean(GameRules.RULE_DAYLIGHT)
+                    ));
+                }
             }
             
         }
@@ -484,6 +503,11 @@ public class DimensionEventHandler {
                 level.getChunk(centerChunkX + dx, centerChunkZ + dz);
             }
         }
+    }
+
+    private static boolean isStardewDimension(ServerLevel level) {
+        return ModDimensions.STARDEW_VALLEY.equals(level.dimension())
+                || ModMiningDimensions.STARDEW_MINING.equals(level.dimension());
     }
 
     private static int stardewMinutesToTimeOfDay(int stardewMinutes) {

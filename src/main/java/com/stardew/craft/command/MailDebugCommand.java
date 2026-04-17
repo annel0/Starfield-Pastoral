@@ -34,7 +34,8 @@ public class MailDebugCommand {
     @SuppressWarnings("null")
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
-            Commands.literal("stardewmail")
+            Commands.literal("stardew")
+                .then(Commands.literal("mail")
                 .requires(source -> source.hasPermission(2))
                 .then(Commands.literal("send")
                     .then(Commands.argument("mailId", StringArgumentType.word())
@@ -54,6 +55,7 @@ public class MailDebugCommand {
                 .then(Commands.literal("clear")
                     .executes(MailDebugCommand::clearMailbox)
                 )
+            )
         );
     }
 

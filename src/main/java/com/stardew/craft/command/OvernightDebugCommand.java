@@ -17,9 +17,10 @@ import java.util.List;
 public class OvernightDebugCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-        dispatcher.register(Commands.literal("stardewnight")
+        dispatcher.register(Commands.literal("stardew")
+                .then(Commands.literal("night")
                 .requires(source -> source.hasPermission(2))
-                .executes(OvernightDebugCommand::testNight));
+                .executes(OvernightDebugCommand::testNight)));
     }
 
     private static int testNight(CommandContext<CommandSourceStack> context) {

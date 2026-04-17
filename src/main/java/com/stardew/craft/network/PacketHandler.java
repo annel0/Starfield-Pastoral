@@ -961,6 +961,18 @@ public class PacketHandler {
         );
 
         registrar.playToServer(
+            com.stardew.craft.network.payload.SleepCancelPayload.TYPE,
+            com.stardew.craft.network.payload.SleepCancelPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.SleepCancelPayload::handle
+        );
+
+        registrar.playToClient(
+            com.stardew.craft.network.payload.SleepVoteUpdatePayload.TYPE,
+            com.stardew.craft.network.payload.SleepVoteUpdatePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.SleepVoteUpdatePayload::handle
+        );
+
+        registrar.playToServer(
             com.stardew.craft.network.payload.OvernightProfessionChoicePayload.TYPE,
             com.stardew.craft.network.payload.OvernightProfessionChoicePayload.STREAM_CODEC,
             com.stardew.craft.network.payload.OvernightProfessionChoicePayload::handle
@@ -1017,6 +1029,69 @@ public class PacketHandler {
             com.stardew.craft.network.payload.TotemNamingSubmitPayload.TYPE,
             com.stardew.craft.network.payload.TotemNamingSubmitPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.TotemNamingSubmitPayload::handle
+        );
+
+        // Farm selection screen (S→C)
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenFarmSelectionPayload.TYPE,
+            com.stardew.craft.network.payload.OpenFarmSelectionPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenFarmSelectionPayload::handle
+        );
+
+        // Farm selection submit (C→S)
+        registrar.playToServer(
+            com.stardew.craft.network.payload.FarmSelectionSubmitPayload.TYPE,
+            com.stardew.craft.network.payload.FarmSelectionSubmitPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FarmSelectionSubmitPayload::handle
+        );
+
+        // Farm list sync (S→C) — 打开农场入口选择 GUI
+        registrar.playToClient(
+            com.stardew.craft.network.payload.FarmListSyncPayload.TYPE,
+            com.stardew.craft.network.payload.FarmListSyncPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FarmListSyncPayload::handle
+        );
+
+        // Farm entry request (C→S) — 玩家选择进入某个农场
+        registrar.playToServer(
+            com.stardew.craft.network.payload.FarmEntryRequestPayload.TYPE,
+            com.stardew.craft.network.payload.FarmEntryRequestPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FarmEntryRequestPayload::handle
+        );
+
+        // Farm permission update (C→S) — 玩家修改农场权限
+        registrar.playToServer(
+            com.stardew.craft.network.payload.FarmPermissionUpdatePayload.TYPE,
+            com.stardew.craft.network.payload.FarmPermissionUpdatePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FarmPermissionUpdatePayload::handle
+        );
+
+        // Request farm permission data (C→S) — 请求在线玩家权限数据
+        registrar.playToServer(
+            com.stardew.craft.network.payload.RequestFarmPermPayload.TYPE,
+            com.stardew.craft.network.payload.RequestFarmPermPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.RequestFarmPermPayload::handle
+        );
+
+        // Farm permission sync (S→C) — 发送权限数据到客户端
+        registrar.playToClient(
+            com.stardew.craft.network.payload.FarmPermSyncPayload.TYPE,
+            com.stardew.craft.network.payload.FarmPermSyncPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FarmPermSyncPayload::handle
+        );
+
+        // Farm admin action (C→S) — OP 管理农场操作
+        registrar.playToServer(
+            com.stardew.craft.network.payload.FarmAdminPayload.TYPE,
+            com.stardew.craft.network.payload.FarmAdminPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FarmAdminPayload::handle
+        );
+
+        // Farm admin sync (S→C) — 发送农场列表到管理员客户端
+        registrar.playToClient(
+            com.stardew.craft.network.payload.FarmAdminSyncPayload.TYPE,
+            com.stardew.craft.network.payload.FarmAdminSyncPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FarmAdminSyncPayload::handle
         );
 
         // Gift confirmation dialog (S→C) and response (C→S)
@@ -1179,6 +1254,11 @@ public class PacketHandler {
             com.stardew.craft.communitycenter.network.BundleSyncPayload::handle
         );
         registrar.playToClient(
+            com.stardew.craft.communitycenter.network.CcOriginPayload.TYPE,
+            com.stardew.craft.communitycenter.network.CcOriginPayload.STREAM_CODEC,
+            com.stardew.craft.communitycenter.network.CcOriginPayload::handle
+        );
+        registrar.playToClient(
             com.stardew.craft.communitycenter.network.StarPlacedPayload.TYPE,
             com.stardew.craft.communitycenter.network.StarPlacedPayload.STREAM_CODEC,
             com.stardew.craft.communitycenter.network.StarPlacedPayload::handle
@@ -1212,10 +1292,54 @@ public class PacketHandler {
             com.stardew.craft.network.payload.JukeboxPlayPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.JukeboxPlayPayload::handle
         );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.NpcVisibilityPayload.TYPE,
+            com.stardew.craft.network.payload.NpcVisibilityPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.NpcVisibilityPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.StarterChestHintPayload.TYPE,
+            com.stardew.craft.network.payload.StarterChestHintPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.StarterChestHintPayload::handle
+        );
         registrar.playToServer(
             com.stardew.craft.network.payload.JukeboxSelectPayload.TYPE,
             com.stardew.craft.network.payload.JukeboxSelectPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.JukeboxSelectPayload::handle
+        );
+
+        // ── Workbench ────────────────────────────────────────
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenWorkbenchPayload.TYPE,
+            com.stardew.craft.network.payload.OpenWorkbenchPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenWorkbenchPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.WorkbenchCraftPayload.TYPE,
+            com.stardew.craft.network.payload.WorkbenchCraftPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.WorkbenchCraftPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.WorkbenchCraftResultPayload.TYPE,
+            com.stardew.craft.network.payload.WorkbenchCraftResultPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.WorkbenchCraftResultPayload::handle
+        );
+
+        // ── Warp Wand ────────────────────────────────────────
+        registrar.playToClient(
+            com.stardew.craft.network.payload.WarpWandSyncPayload.TYPE,
+            com.stardew.craft.network.payload.WarpWandSyncPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.WarpWandSyncPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.WarpWandTeleportPayload.TYPE,
+            com.stardew.craft.network.payload.WarpWandTeleportPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.WarpWandTeleportPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.WarpWandUnlockPayload.TYPE,
+            com.stardew.craft.network.payload.WarpWandUnlockPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.WarpWandUnlockPayload::handle
         );
 
     }

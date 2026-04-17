@@ -441,7 +441,10 @@ public final class ShopRegistry {
                 entryAllSeasons("stardewcraft:autofeed_trough_upgrader", 10000),
                 // Catalogue & tools
                 entryAllSeasons("stardewcraft:furniture_catalogue", 200000),
-                entryAllSeasons("stardewcraft:paintbrush",   0)
+                entryAllSeasons("stardewcraft:paintbrush",   0),
+                // Workbenches
+                entryAllSeasons("stardewcraft:wood_workbench",  500),
+                entryAllSeasons("stardewcraft:stone_workbench", 500)
             ),
             Set.of("stardewcraft.type.resource")
         ));

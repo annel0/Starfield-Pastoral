@@ -55,8 +55,10 @@ public final class JunimoNoteOutlineRenderer {
         Player player = mc.player;
         if (player == null || mc.level == null) return;
 
-        // 只在 CC 内部渲染
-        if (!CCAreaRegistry.isInsideCC(player.blockPosition())) return;
+        // 只在 stardew 维度的 CC 内部区域渲染
+        if (mc.level.dimension() != com.stardew.craft.core.ModDimensions.STARDEW_VALLEY) return;
+        // 粗略检查: CC 内部在 X >= 18000 的高坐标区域
+        if (player.blockPosition().getX() < 18000) return;
 
         PoseStack ps = event.getPoseStack();
         Vec3 cam = event.getCamera().getPosition();
@@ -74,7 +76,7 @@ public final class JunimoNoteOutlineRenderer {
             // 已完成的区域不显示高光
             if (BundleClientData.INSTANCE.isAreaComplete(areaId)) continue;
 
-            BlockPos notePos = bounds.noteWorldPos();
+            BlockPos notePos = bounds.noteWorldPos(BundleClientData.INSTANCE.getCCOrigin());
 
             // 只对实际存在的 JunimoNote 方块显示高光（分步解锁）
             if (!(mc.level.getBlockState(notePos).getBlock() instanceof JunimoNoteBlock)) continue;

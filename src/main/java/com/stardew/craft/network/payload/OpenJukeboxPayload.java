@@ -31,13 +31,15 @@ public record OpenJukeboxPayload(BlockPos pos, String currentTrack) implements C
 
     @SuppressWarnings("null")
     public static void handle(OpenJukeboxPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            // 客户端打开 GUI
-            net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
-            if (mc.player != null) {
-                mc.setScreen(new com.stardew.craft.client.gui.JukeboxScreen(
-                        payload.pos(), payload.currentTrack()));
-            }
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(OpenJukeboxPayload payload) {
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+        if (mc.player != null) {
+            mc.setScreen(new com.stardew.craft.client.gui.JukeboxScreen(
+                    payload.pos(), payload.currentTrack()));
+        }
     }
 }

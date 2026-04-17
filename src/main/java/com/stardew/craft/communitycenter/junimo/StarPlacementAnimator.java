@@ -36,8 +36,16 @@ public final class StarPlacementAnimator {
      * @param areaId the completed area (determines Junimo color)
      */
     public static void spawnStarCarrier(ServerLevel level, int areaId) {
-        BlockPos hutPos = InteriorSubspaceManager.CC_ORIGIN.offset(CCAreaRegistry.JUNIMO_HUT_ENTRANCE_OFFSET);
-        BlockPos plaquePos = InteriorSubspaceManager.CC_ORIGIN.offset(STAR_PLAQUE_OFFSET);
+        spawnStarCarrier(level, areaId, null);
+    }
+
+    /**
+     * Per-player 版本，指定 CC 原点。
+     */
+    public static void spawnStarCarrier(ServerLevel level, int areaId, BlockPos ccOrigin) {
+        BlockPos baseOrigin = ccOrigin != null ? ccOrigin : InteriorSubspaceManager.CC_ORIGIN;
+        BlockPos hutPos = baseOrigin.offset(CCAreaRegistry.JUNIMO_HUT_ENTRANCE_OFFSET);
+        BlockPos plaquePos = baseOrigin.offset(STAR_PLAQUE_OFFSET);
 
         JunimoEntity junimo = new JunimoEntity(ModEntities.JUNIMO.get(), level);
         junimo.setJunimoColor(JunimoSpawner.getColorForArea(areaId));

@@ -2384,11 +2384,11 @@ public class ModItems {
 
     // ── 图腾柱方块物品 ────────────────────────────────────────────────────
     public static final DeferredItem<Item> TOTEM_POLE_FARM = ITEMS.register("totem_pole_farm",
-            () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.TOTEM_POLE_FARM.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(64)));
+            () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.TOTEM_POLE_FARM.get(), "stardewcraft.type.magic", -1, new Item.Properties().stacksTo(64)));
     public static final DeferredItem<Item> TOTEM_POLE_MOUNTAIN = ITEMS.register("totem_pole_mountain",
-            () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.TOTEM_POLE_MOUNTAIN.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(64)));
+            () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.TOTEM_POLE_MOUNTAIN.get(), "stardewcraft.type.magic", -1, new Item.Properties().stacksTo(64)));
     public static final DeferredItem<Item> TOTEM_POLE_BEACH = ITEMS.register("totem_pole_beach",
-            () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.TOTEM_POLE_BEACH.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(64)));
+            () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.TOTEM_POLE_BEACH.get(), "stardewcraft.type.magic", -1, new Item.Properties().stacksTo(64)));
 
     // ── 传送图腾 ────────────────────────────────────────────────────────────
     public static final DeferredItem<Item> WARP_TOTEM_FARM = ITEMS.register("warp_totem_farm",
@@ -2566,5 +2566,22 @@ public class ModItems {
     /** SDV: Junimo holdingStar 时头上的金色星星 (Characters/Junimo.png 0,109 16×19) */
     public static final DeferredItem<Item> JUNIMO_STAR = ITEMS.register("junimo_star",
             () -> new Item(new Item.Properties().stacksTo(1)));
+
+    // ── 加工台 (Workbenches) ──────────────────────────────────────────────
+    public static final DeferredItem<Item> WOOD_WORKBENCH = ITEMS.register("wood_workbench",
+            () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.WOOD_WORKBENCH.get(),
+                    "stardewcraft.type.utility", 500, new Item.Properties().stacksTo(999)));
+    public static final DeferredItem<Item> STONE_WORKBENCH = ITEMS.register("stone_workbench",
+            () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.STONE_WORKBENCH.get(),
+                    "stardewcraft.type.utility", 500, new Item.Properties().stacksTo(999)));
+
+    // ── 祝尼魔温室符文 (Junimo Greenhouse Rune) ──────────────────────────
+    public static final DeferredItem<Item> JUNIMO_GREENHOUSE_RUNE = ITEMS.register("junimo_greenhouse_rune",
+            () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.JUNIMO_GREENHOUSE_RUNE.get(),
+                    "stardewcraft.type.magic", -1, new Item.Properties().stacksTo(1)));
+
+    // ── 传送魔杖 (Warp Wand) ──────────────────────────
+    public static final DeferredItem<Item> WARP_WAND = ITEMS.register("warp_wand",
+            () -> new com.stardew.craft.item.tool.WarpWandItem(new Item.Properties().stacksTo(1)));
 
 }

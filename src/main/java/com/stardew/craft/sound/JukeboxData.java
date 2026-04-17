@@ -50,7 +50,7 @@ public class JukeboxData extends SavedData {
     // ── 序列化 ──
 
     @Override
-    public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
+    public CompoundTag save(@javax.annotation.Nonnull CompoundTag tag, @javax.annotation.Nonnull HolderLookup.Provider registries) {
         ListTag list = new ListTag();
         for (var entry : tracks.entrySet()) {
             CompoundTag e = new CompoundTag();

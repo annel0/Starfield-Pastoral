@@ -175,6 +175,9 @@ public final class WildTreeChopEvents {
 	@SuppressWarnings("null")
 	@SubscribeEvent
 	public static void onBlockBreak(BlockEvent.BreakEvent event) {
+		if (event.isCanceled()) {
+			return;
+		}
 		if (!(event.getPlayer() instanceof ServerPlayer player)) {
 			return;
 		}

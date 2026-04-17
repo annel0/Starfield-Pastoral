@@ -59,6 +59,14 @@ public record ShopPurchasePayload(
                 return;
             }
 
+            // Special handling for Marlon's item recovery shop (SDV parity)
+            // SDV: player buys ONE item → that item is returned → ALL lost items cleared
+            if (payload.shopId().equals("MarlonRecovery")) {
+                com.stardew.craft.shop.MarlonService.handleRecoveryPurchaseFromShop(
+                    player, payload.itemIndex());
+                return;
+            }
+
             ShopRegistry.ShopDefinition shop = ShopRegistry.get(payload.shopId());
             if (shop == null) return;
 

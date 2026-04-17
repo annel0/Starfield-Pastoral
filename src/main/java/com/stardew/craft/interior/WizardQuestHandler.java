@@ -23,6 +23,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
+import com.stardew.craft.network.payload.NpcVisibilityPayload;
 
 /**
  * 巫师塔枢纽任务逻辑：
@@ -66,16 +67,29 @@ public final class WizardQuestHandler {
 
     /** 巫师塔内的 Junimo 展示位置（巫师附近） */
     private static final BlockPos JUNIMO_CAGE_POS = WIZARD_POS.offset(0, 0, 2);
-    /** Event 112 过程中生成的临时 Junimo 的 tag */
-    private static final String TAG_E112_JUNIMO = "stardewcraft_e112_junimo";
+    /** Event 112 过程中生成的临时 Junimo 的 tag 前缀（后跟玩家UUID） */
+    private static final String TAG_E112_JUNIMO_PREFIX = "stardewcraft_e112_junimo_";
     /** 巫师离开后的等待倒计 tag（存 tick 数） */
     private static final String TAG_E112_WIZARD_AWAY_TICK = "stardewcraft_e112_wizard_away";
     /** 巫师消失到返回的等待时间（tick），约4秒 */
     private static final int WIZARD_AWAY_DURATION = 80;
-    /** 巫师消失时传送到的远处 Y（世界外） */
-    private static final BlockPos WIZARD_HIDDEN_POS = WIZARD_POS.offset(0, -200, 0);
 
     private WizardQuestHandler() {}
+
+    /**
+     * 玩家退出时清理 E112 状态：移除 per-player Junimo + 取消倒计时。
+     */
+    public static void onPlayerLogout(ServerPlayer player) {
+        // 移除倒计时
+        player.getPersistentData().remove(TAG_E112_WIZARD_AWAY_TICK);
+        // 移除该玩家专属的 Junimo
+        String junimoTag = TAG_E112_JUNIMO_PREFIX + player.getStringUUID();
+        ServerLevel level = player.serverLevel();
+        level.getEntitiesOfClass(com.stardew.craft.entity.junimo.JunimoEntity.class,
+                new net.minecraft.world.phys.AABB(JUNIMO_CAGE_POS).inflate(3.0),
+                e -> e.getTags().contains(junimoTag)
+        ).forEach(net.minecraft.world.entity.Entity::discard);
+    }
 
     /**
      * 玩家靠近巫师时自动触发对话。
@@ -158,6 +172,8 @@ public final class WizardQuestHandler {
         // 已见过但未完成任务：检查背包是否有末影之眼
         ItemStack eyeSlot = findEyeOfEnder(player);
         if (eyeSlot != null) {
+            StardewCraft.LOGGER.info("[WIZARD] {} has Eye of Ender, consuming from THEIR inventory (UUID={})",
+                    player.getName().getString(), player.getStringUUID());
             eyeSlot.shrink(1);
             data.setWizardQuestComplete(true);
             sendDialogue(player, "stardewcraft.npc.wizard.has_eye", 0);
@@ -184,7 +200,7 @@ public final class WizardQuestHandler {
 
         return switch (nextDialogueNode) {
             case NODE_GO_STARDEW -> {
-                CrossDimensionTeleporter.wizardInteriorToStardewOutdoor(player);
+                handleGoStardew(player);
                 yield true;
             }
             case NODE_GO_OVERWORLD -> {
@@ -202,7 +218,7 @@ public final class WizardQuestHandler {
             }
             case NODE_FIRST_TELEPORT -> {
                 // 首次解锁后传送到星露谷室外（农场门前）
-                CrossDimensionTeleporter.wizardInteriorToStardewOutdoor(player);
+                handleGoStardew(player);
                 yield true;
             }
             case NODE_GALAXY_CONFIRM -> {
@@ -251,18 +267,19 @@ public final class WizardQuestHandler {
     private static void handleE112Reveal(ServerPlayer player) {
         ServerLevel level = player.serverLevel();
         // 闪白 + wand 音效
-        playSound(player, ModSounds.WAND.get());
+        playSoundToPlayer(player, ModSounds.WAND.get());
         sendScreenFlash(player);
-        // 生成临时 Junimo（绿色，笼中展示）
+        // 生成临时 Junimo（绿色，笼中展示），用玩家UUID标记以支持多人
+        String junimoTag = TAG_E112_JUNIMO_PREFIX + player.getStringUUID();
         JunimoEntity junimo = new JunimoEntity(ModEntities.JUNIMO.get(), level);
         junimo.setJunimoColor(0x32CD32); // SDV 默认绿色 (LimeGreen)
         junimo.moveTo(JUNIMO_CAGE_POS.getX() + 0.5, JUNIMO_CAGE_POS.getY(), JUNIMO_CAGE_POS.getZ() + 0.5, 0, 0);
         junimo.setNoAi(true);
         junimo.setNoTimeout(true);
-        junimo.addTag(TAG_E112_JUNIMO);
+        junimo.addTag(junimoTag);
         level.addFreshEntity(junimo);
-        // junimoMeep1 音效 (SDV: shake Junimo + junimoMeep1 × 4)
-        playSound(player, ModSounds.DWOP.get());
+        // junimoMeep1 音效
+        playSoundToPlayer(player, ModSounds.DWOP.get());
         // Phase 1 对话：Junimo 笼
         sendDialogue(player, "stardewcraft.npc.wizard.e112_cage", 0);
     }
@@ -274,12 +291,13 @@ public final class WizardQuestHandler {
     private static void handleE112Dismiss(ServerPlayer player) {
         ServerLevel level = player.serverLevel();
         // 闪白 + wand 音效
-        playSound(player, ModSounds.WAND.get());
+        playSoundToPlayer(player, ModSounds.WAND.get());
         sendScreenFlash(player);
-        // 移除笼中 Junimo
+        // 移除该玩家专属的笼中 Junimo（不影响其他玩家的E112）
+        String junimoTag = TAG_E112_JUNIMO_PREFIX + player.getStringUUID();
         level.getEntitiesOfClass(JunimoEntity.class,
                 new net.minecraft.world.phys.AABB(JUNIMO_CAGE_POS).inflate(3.0),
-                e -> e.getTags().contains(TAG_E112_JUNIMO)
+                e -> e.getTags().contains(junimoTag)
         ).forEach(net.minecraft.world.entity.Entity::discard);
         // Phase 2 对话：巫师解释 CC + "你留在这，我去看看"
         sendDialogue(player, "stardewcraft.npc.wizard.e112_note", 0);
@@ -290,20 +308,15 @@ public final class WizardQuestHandler {
      * SDV: showFrame Wizard 16/playSound wand/warp Wizard -3000/specificTemporarySprite wizardWarp
      */
     private static void handleE112WizardLeave(ServerPlayer player) {
-        ServerLevel level = player.serverLevel();
-        // 闪白 + wand 音效
-        playSound(player, ModSounds.WAND.get());
+        // 闪白 + wand 音效（仅发给该玩家）
+        playSoundToPlayer(player, ModSounds.WAND.get());
         sendScreenFlash(player);
-        // 把巫师传送到远处（隐藏）
-        findWizardNpc(level).ifPresent(wizard -> {
-            wizard.setInvisible(true);
-            wizard.moveTo(WIZARD_HIDDEN_POS.getX() + 0.5,
-                    WIZARD_HIDDEN_POS.getY(),
-                    WIZARD_HIDDEN_POS.getZ() + 0.5, 0, 0);
-        });
+        // 通过客户端包隐藏巫师（仅对该玩家），不移动实体 → 多人安全
+        PacketDistributor.sendToPlayer(player, new NpcVisibilityPayload(NPC_ID, true));
         // 启动倒计时（onPlayerTick 中递增）
         player.getPersistentData().putInt(TAG_E112_WIZARD_AWAY_TICK, 0);
-        StardewCraft.LOGGER.debug("[WIZARD] E112: wizard leaves, timer started");
+        StardewCraft.LOGGER.debug("[WIZARD] E112: wizard hidden for {} (client-side), timer started",
+                player.getName().getString());
     }
 
     /**
@@ -311,21 +324,13 @@ public final class WizardQuestHandler {
      * SDV: playSound doorClose/warp Wizard 8 24/"I found the note..."
      */
     private static void handleE112WizardReturn(ServerPlayer player) {
-        ServerLevel level = player.serverLevel();
-        // 门声
-        player.level().playSound(null, player.blockPosition(),
-                net.minecraft.sounds.SoundEvents.WOODEN_DOOR_CLOSE,
-                SoundSource.BLOCKS, 1.0f, 1.0f);
-        // 巫师回到原位
-        findWizardNpc(level).ifPresent(wizard -> {
-            wizard.setInvisible(false);
-            wizard.moveTo(WIZARD_POS.getX() + 0.5,
-                    WIZARD_POS.getY(),
-                    WIZARD_POS.getZ() + 0.5,
-                    wizard.getYRot(), 0);
-        });
-        playSound(player, ModSounds.DWOP.get());
-        StardewCraft.LOGGER.debug("[WIZARD] E112: wizard returns");
+        // 门声（仅发给该玩家）
+        playSoundToPlayer(player, net.minecraft.sounds.SoundEvents.WOODEN_DOOR_CLOSE);
+        // 通过客户端包恢复巫师可见（仅对该玩家）
+        PacketDistributor.sendToPlayer(player, new NpcVisibilityPayload(NPC_ID, false));
+        playSoundToPlayer(player, ModSounds.DWOP.get());
+        StardewCraft.LOGGER.debug("[WIZARD] E112: wizard shown again for {}",
+                player.getName().getString());
         // 自动弹出对话（无需玩家再次交互）
         sendDialogue(player, "stardewcraft.npc.wizard.e112_return", 0);
     }
@@ -363,8 +368,8 @@ public final class WizardQuestHandler {
 
     /** 在巫师塔附近（含隐藏位置）搜索巫师 NPC 实体 */
     private static java.util.Optional<StardewNpcEntity> findWizardNpc(ServerLevel level) {
-        // 搜索 WIZARD_POS 周围大范围（包含 WIZARD_HIDDEN_POS）
-        net.minecraft.world.phys.AABB searchBox = new net.minecraft.world.phys.AABB(WIZARD_POS).inflate(250);
+        // 搜索 WIZARD_POS 周围范围
+        net.minecraft.world.phys.AABB searchBox = new net.minecraft.world.phys.AABB(WIZARD_POS).inflate(10);
         return level.getEntitiesOfClass(StardewNpcEntity.class, searchBox,
                 e -> NPC_ID.equals(e.getNpcId())
         ).stream().findFirst();
@@ -379,12 +384,39 @@ public final class WizardQuestHandler {
                         -1, player.blockPosition()));
     }
 
-    /** 播放音效给附近玩家 */
+    /** 播放音效给附近玩家（旧方法，向后兼容） */
     private static void playSound(ServerPlayer player, net.minecraft.sounds.SoundEvent sound) {
         player.level().playSound(null, player.blockPosition(), sound, SoundSource.MASTER, 1.0f, 1.0f);
     }
 
+    /** 仅对指定玩家播放音效（不广播给附近其他人），用于per-player剧情 */
+    private static void playSoundToPlayer(ServerPlayer player, net.minecraft.sounds.SoundEvent sound) {
+        player.connection.send(new net.minecraft.network.protocol.game.ClientboundSoundPacket(
+                net.minecraft.core.registries.BuiltInRegistries.SOUND_EVENT.wrapAsHolder(sound),
+                SoundSource.MASTER,
+                player.getX(), player.getY(), player.getZ(),
+                1.0f, 1.0f,
+                player.level().random.nextLong()));
+    }
+
     // ═══════════════════════════════════════════════════════════
+
+    /**
+     * 前往星露谷室外：如果玩家还没有农场，先弹出农场选择界面。
+     */
+    private static void handleGoStardew(ServerPlayer player) {
+        com.stardew.craft.farm.FarmInstanceRegistry registry = com.stardew.craft.farm.FarmInstanceRegistry.get();
+        if (registry.hasFarm(player.getUUID())) {
+            // 已有农场，直接传送
+            CrossDimensionTeleporter.wizardInteriorToStardewOutdoor(player);
+        } else {
+            // 没有农场 → 发送打开农场选择界面的包
+            net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,
+                    new com.stardew.craft.network.payload.OpenFarmSelectionPayload());
+            StardewCraft.LOGGER.info("[WIZARD] {} has no farm, opening farm selection screen",
+                    player.getName().getString());
+        }
+    }
 
     /**
      * 玩家确认交出棱彩碎片 → 消耗碎片 → 给予 Galaxy Sword → 设置 galaxySword 标记。

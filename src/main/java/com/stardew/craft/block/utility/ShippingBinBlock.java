@@ -123,7 +123,7 @@ public class ShippingBinBlock extends Block implements EntityBlock {
         }
 
         // 出货箱只能在农场区域使用
-        if (!com.stardew.craft.core.FarmAreaHelper.isInFarmArea(level, pos)) {
+        if (!com.stardew.craft.core.FarmAreaResolver.isInFarmArea(level, pos)) {
             player.displayClientMessage(
                     net.minecraft.network.chat.Component.translatable("stardewcraft.farm.shipping_bin_farm_only"), true);
             return InteractionResult.CONSUME;

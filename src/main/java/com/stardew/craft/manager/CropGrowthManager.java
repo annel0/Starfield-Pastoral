@@ -49,6 +49,16 @@ public class CropGrowthManager extends SavedData {
 
     public CropGrowthManager() {}
 
+    /** 返回所有已注册作物位置的不可变快照。 */
+    public java.util.List<GlobalPos> getAllCropPositions() {
+        return new java.util.ArrayList<>(cropPositions);
+    }
+
+    /** 获取或创建某个作物位置的生长状态。 */
+    public CropGrowthState getOrCreateGrowthState(GlobalPos gp) {
+        return cropStates.computeIfAbsent(gp, k -> new CropGrowthState());
+    }
+
     public static class CropGrowthState {
         public int dayInPhase;
         /**
@@ -201,6 +211,11 @@ public class CropGrowthManager extends SavedData {
 
                 BlockPos pos = globalPos.pos();
 
+                // 多人农场优化：跳过离线玩家农场中的作物
+                if (!com.stardew.craft.farm.FarmDailyProcessHelper.shouldProcessPosition(serverLevel, pos)) {
+                    continue;
+                }
+
                 // 检查区块是否加载 (避免加载未加载的区块造成卡顿)
                 if (serverLevel.isLoaded(pos)) {
                     @SuppressWarnings("null")
@@ -285,28 +300,40 @@ public class CropGrowthManager extends SavedData {
     @SuppressWarnings("null")
     private void dryAllFarmland(ServerLevel level) {
             FertilizerManager fertilizerManager = FertilizerManager.get(level);
-         // 使用 Set 去重
-         java.util.Set<net.minecraft.world.level.chunk.LevelChunk> chunksToProcess = new java.util.HashSet<>();
-         
-         // 1. 获取玩家周围的区块
-         int radius = level.getServer().getPlayerList().getViewDistance();
+         // 收集需要扫描的区块：只扫描在线玩家农场边界 + 温室内的区块
+         java.util.Set<Long> chunkKeys = new java.util.HashSet<>();
+
+         // 1. 在线玩家农场区块
+         com.stardew.craft.farm.FarmInstanceRegistry farmReg = com.stardew.craft.farm.FarmInstanceRegistry.get();
          for (net.minecraft.server.level.ServerPlayer player : level.players()) {
-             net.minecraft.world.level.ChunkPos center = player.chunkPosition();
-             for (int dx = -radius; dx <= radius; dx++) {
-                 for (int dz = -radius; dz <= radius; dz++) {
-                     // getChunk with false returns null if not loaded
-                     net.minecraft.world.level.chunk.LevelChunk chunk = level.getChunkSource().getChunk(center.x + dx, center.z + dz, false);
-                     if (chunk != null) {
-                         chunksToProcess.add(chunk);
-                     }
+             com.stardew.craft.farm.FarmInstance farm = farmReg.getFarm(player.getUUID());
+             if (farm == null) continue;
+             BlockPos min = farm.getFarmBoundsMin();
+             BlockPos max = farm.getFarmBoundsMax();
+             int minCX = min.getX() >> 4;
+             int maxCX = max.getX() >> 4;
+             int minCZ = min.getZ() >> 4;
+             int maxCZ = max.getZ() >> 4;
+             for (int cx = minCX; cx <= maxCX; cx++) {
+                 for (int cz = minCZ; cz <= maxCZ; cz++) {
+                     chunkKeys.add(net.minecraft.world.level.ChunkPos.asLong(cx, cz));
                  }
              }
          }
-         
-         // 2. 获取强制加载的区块 (Forced Chunks)
-         for (long chunkLong : level.getForcedChunks()) {
-             net.minecraft.world.level.ChunkPos pos = new net.minecraft.world.level.ChunkPos(chunkLong);
-             net.minecraft.world.level.chunk.LevelChunk chunk = level.getChunkSource().getChunk(pos.x, pos.z, false);
+
+         // 2. 已注册作物所在区块（覆盖温室等区域）
+         for (GlobalPos gp : cropPositions) {
+             if (gp.dimension() != level.dimension()) continue;
+             BlockPos pos = gp.pos();
+             chunkKeys.add(net.minecraft.world.level.ChunkPos.asLong(pos.getX() >> 4, pos.getZ() >> 4));
+         }
+
+         // 3. 加载并处理
+         java.util.Set<net.minecraft.world.level.chunk.LevelChunk> chunksToProcess = new java.util.HashSet<>();
+         for (long key : chunkKeys) {
+             int cx = net.minecraft.world.level.ChunkPos.getX(key);
+             int cz = net.minecraft.world.level.ChunkPos.getZ(key);
+             net.minecraft.world.level.chunk.LevelChunk chunk = level.getChunkSource().getChunk(cx, cz, false);
              if (chunk != null) {
                  chunksToProcess.add(chunk);
              }
@@ -329,14 +356,42 @@ public class CropGrowthManager extends SavedData {
                         for (int z = 0; z < 16; z++) {
                             BlockState state = section.getBlockState(x, y, z);
                             if (state.getBlock() instanceof net.minecraft.world.level.block.FarmBlock) {
+                                BlockPos realPos = new BlockPos(
+                                        chunk.getPos().getMinBlockX() + x,
+                                        bottomY + y,
+                                        chunk.getPos().getMinBlockZ() + z
+                                );
+
+                                // SDV parity: 非农场区域的耕地过夜恢复为泥土
+                                // 仅当上方没有作物时才恢复（有作物说明是合法种植区）
+                                // 温室内部豁免 — 温室是合法种植区域
+                                if (com.stardew.craft.core.FarmAreaResolver.isInStardewButNotFarm(level, realPos)
+                                    && !com.stardew.craft.greenhouse.GreenhouseManager.isInGreenhouseInterior(level, realPos)) {
+                                    BlockState above = level.getBlockState(realPos.above());
+                                    if (!(above.getBlock() instanceof StardewCropBlock)) {
+                                        level.setBlock(realPos,
+                                            com.stardew.craft.block.ModBlocks.YELLOW_DIRT.get().defaultBlockState(), Block.UPDATE_ALL);
+                                        continue;
+                                    }
+                                }
+
+                                // SDV parity: 农场区域的空耕地每日 10% 概率回退为黄土
+                                // SDV GameLocation.GetDirtDecayChance: Farm/IslandWest → 0.1
+                                // 温室 0%（已在上面豁免），有作物不衰退
+                                if (!com.stardew.craft.core.FarmAreaResolver.isInStardewButNotFarm(level, realPos)
+                                    && !com.stardew.craft.greenhouse.GreenhouseManager.isInGreenhouseInterior(level, realPos)) {
+                                    BlockState above = level.getBlockState(realPos.above());
+                                    if (!(above.getBlock() instanceof StardewCropBlock)
+                                            && level.random.nextFloat() < 0.1f) {
+                                        level.setBlock(realPos,
+                                            com.stardew.craft.block.ModBlocks.YELLOW_DIRT.get().defaultBlockState(), Block.UPDATE_ALL);
+                                        continue;
+                                    }
+                                }
+
                                 @SuppressWarnings("null")
                                 int moisture = state.getValue(net.minecraft.world.level.block.FarmBlock.MOISTURE);
                                 if (moisture > 0) {
-                                    BlockPos realPos = new BlockPos(
-                                            chunk.getPos().getMinBlockX() + x,
-                                            bottomY + y,
-                                            chunk.getPos().getMinBlockZ() + z
-                                    );
                                     // 保水土壤：按概率过夜保留水分（对齐 Stardew 的 retaining soil 概念）
                                     float retain = fertilizerManager.getWaterRetention(level, realPos);
                                     if (retain > 0f && level.random.nextFloat() < retain) {

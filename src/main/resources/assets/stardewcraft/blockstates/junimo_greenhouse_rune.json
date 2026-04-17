@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "stardewcraft:block/junimo_greenhouse_rune" },
+    "facing=south": { "model": "stardewcraft:block/junimo_greenhouse_rune", "y": 180 },
+    "facing=west":  { "model": "stardewcraft:block/junimo_greenhouse_rune", "y": 270 },
+    "facing=east":  { "model": "stardewcraft:block/junimo_greenhouse_rune", "y": 90 }
+  }
+}

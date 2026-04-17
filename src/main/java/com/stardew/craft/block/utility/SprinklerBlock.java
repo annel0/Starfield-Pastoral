@@ -150,12 +150,24 @@ public class SprinklerBlock extends Block {
 
     @SuppressWarnings("null")
     public static void waterNow(ServerLevel level, BlockPos sprinklerPos, SprinklerTier tier) {
+        waterNow(level, sprinklerPos, tier, true);
+    }
+
+    /**
+     * 浇水。quiet=true 时跳过粒子和音效（用于日结算，无人可见）。
+     */
+    @SuppressWarnings("null")
+    public static void waterNow(ServerLevel level, BlockPos sprinklerPos, SprinklerTier tier, boolean withEffects) {
         for (BlockPos target : getWateredPositions(sprinklerPos, tier)) {
             waterTile(level, target);
-            spawnWaterParticles(level, target);
+            if (withEffects) {
+                spawnWaterParticles(level, target);
+            }
         }
-        level.playSound(null, sprinklerPos, net.minecraft.sounds.SoundEvents.GENERIC_SPLASH,
-                net.minecraft.sounds.SoundSource.PLAYERS, 0.5f, 1.5f);
+        if (withEffects) {
+            level.playSound(null, sprinklerPos, net.minecraft.sounds.SoundEvents.GENERIC_SPLASH,
+                    net.minecraft.sounds.SoundSource.PLAYERS, 0.5f, 1.5f);
+        }
     }
 
     @SuppressWarnings("null")

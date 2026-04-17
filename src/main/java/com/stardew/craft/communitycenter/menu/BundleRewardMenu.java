@@ -29,6 +29,8 @@ public class BundleRewardMenu extends AbstractContainerMenu {
     private int areaId;
     /** bundleId for each reward slot (-1 if empty) */
     private final int[] slotBundleIds = new int[MAX_REWARD_SLOTS];
+    /** 记录菜单拥有者的UUID，用于per-player CC数据访问 */
+    private java.util.UUID playerUUID;
 
     /** Client-side constructor (from MenuType factory) */
     public BundleRewardMenu(int containerId, Inventory playerInventory) {
@@ -50,6 +52,7 @@ public class BundleRewardMenu extends AbstractContainerMenu {
 
         // Populate reward items (server-side only; client sees via slot sync)
         if (!playerInventory.player.level().isClientSide) {
+            this.playerUUID = playerInventory.player.getUUID();
             populateRewards(areaId);
         }
 
@@ -79,7 +82,7 @@ public class BundleRewardMenu extends AbstractContainerMenu {
         int slot = 0;
         for (BundleDefinition def : bundles) {
             if (slot >= MAX_REWARD_SLOTS) break;
-            if (data.isRewardAvailable(def.bundleId())) {
+            if (data.isRewardAvailable(playerUUID, def.bundleId())) {
                 ItemStack reward = BundleClaimRewardPayload.parseRewardString(def.rewardString());
                 if (!reward.isEmpty()) {
                     rewardContainer.setItem(slot, reward);
@@ -132,7 +135,7 @@ public class BundleRewardMenu extends AbstractContainerMenu {
         int bundleId = slotBundleIds[slotIndex];
         if (bundleId >= 0) {
             CommunityCenterSavedData data = CommunityCenterSavedData.get();
-            data.setRewardAvailable(bundleId, false);
+            data.setRewardAvailable(playerUUID, bundleId, false);
             slotBundleIds[slotIndex] = -1;
         }
     }

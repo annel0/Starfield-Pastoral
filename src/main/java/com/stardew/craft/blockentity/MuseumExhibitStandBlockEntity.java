@@ -82,16 +82,20 @@ public class MuseumExhibitStandBlockEntity extends BlockEntity {
             if (saved != null) {
                 tag.put(TAG_DISPLAY_ITEM, saved);
             }
-        } else {
-            tag.put(TAG_DISPLAY_ITEM, new CompoundTag());
         }
+        // Empty item: simply omit the tag so loadAdditional falls through to EMPTY.
     }
 
     @Override
     protected void loadAdditional(@Nonnull CompoundTag tag, @Nonnull net.minecraft.core.HolderLookup.Provider provider) {
         super.loadAdditional(tag, provider);
         if (tag.contains(TAG_DISPLAY_ITEM, CompoundTag.TAG_COMPOUND)) {
-            displayItem = ItemStack.parse(provider, Objects.requireNonNull(tag.getCompound(TAG_DISPLAY_ITEM))).orElse(ItemStack.EMPTY);
+            CompoundTag itemTag = tag.getCompound(TAG_DISPLAY_ITEM);
+            if (itemTag != null && itemTag.contains("id")) {
+                displayItem = ItemStack.parse(provider, itemTag).orElse(ItemStack.EMPTY);
+            } else {
+                displayItem = ItemStack.EMPTY;
+            }
         } else {
             displayItem = ItemStack.EMPTY;
         }

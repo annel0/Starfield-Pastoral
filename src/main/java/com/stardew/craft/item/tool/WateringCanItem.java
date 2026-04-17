@@ -233,7 +233,19 @@ public class WateringCanItem extends Item implements IStardewItem {
             }
 
             List<BlockPos> targetPositions = getAffectedBlocks(level, hitPos, player, chargeLevel);
-            
+
+            // 农场保护：在别人农场上无权操作
+            if (!level.isClientSide && player instanceof ServerPlayer sp
+                    && level.dimension() == ModDimensions.STARDEW_VALLEY
+                    && !sp.isCreative()) {
+                // 仅检查命中位置（同一蓄力范围内不会跨农场）
+                if (!com.stardew.craft.event.FarmAreaProtectionEvents.canModifyAt(sp, hitPos)) {
+                    sp.displayClientMessage(
+                            Component.translatable("stardewcraft.farm.build_farm_only"), true);
+                    return;
+                }
+            }
+
             boolean wateredAny = false;
 
             // 原版(星露谷)手感：每“浇到一格”消耗 1 点水；蓄力只是改变浇到的格子数量。

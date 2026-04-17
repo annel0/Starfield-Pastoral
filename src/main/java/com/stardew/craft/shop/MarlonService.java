@@ -45,7 +45,8 @@ public final class MarlonService {
         marlon.setYRot(90f);
         marlon.setYHeadRot(90f);
 
-        PacketDistributor.sendToPlayer(player, new OpenMarlonMenuPayload());
+        boolean hasLost = hasLostItems(player);
+        PacketDistributor.sendToPlayer(player, new OpenMarlonMenuPayload(hasLost));
         return InteractionResult.SUCCESS;
     }
 
@@ -130,7 +131,9 @@ public final class MarlonService {
 
     /**
      * 打开物品找回商店。
-     * SDV parity: 每件物品售价 = 原价 × 5（最低 250g），只能买回 1 件。
+     * SDV parity: 每件物品售价 = getSellToStorePrice × 1（有 Book_Marlon 则 ×0.5），
+     * 实际我们用 sellPrice × 5（最低 250g），只能买回 1 件。
+     * stock = 1，每件物品只显示 1 个。
      */
     private static void openRecoveryShop(ServerPlayer player) {
         PlayerStardewData data = PlayerDataManager.getPlayerData(player);
@@ -143,13 +146,16 @@ public final class MarlonService {
 
         int money = com.stardew.craft.player.PlayerStardewDataAPI.getMoney(player);
         List<ShopItemEntry> items = new ArrayList<>();
-        for (ItemStack lost : lostItems) {
+        for (int i = 0; i < lostItems.size(); i++) {
+            ItemStack lost = lostItems.get(i);
             int price = Math.max(250, getItemSellPrice(lost) * 5);
             var rl = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(lost.getItem());
+            // 用真实物品ID显示图标，购买逻辑通过 itemIndex 定位原始 ItemStack
+            String realItemId = rl.toString();
             String displayName = lost.getHoverName().getString();
             items.add(new ShopItemEntry(
-                rl.toString(), displayName, "",
-                price, 1,
+                realItemId, displayName, "",
+                price, lost.getCount(),
                 null, 0,
                 java.util.Set.of(), 1, 0, null
             ));
@@ -165,12 +171,51 @@ public final class MarlonService {
     }
 
     /**
-     * 处理物品找回购买。当玩家从找回商店买回一件物品后调用。
+     * 服务端处理物品找回购买（从 ShopPurchasePayload 调用）。
+     * SDV parity: 买回 1 件 → 原始 ItemStack（含 NBT/附魔/数量）还给玩家 → 清空整个 lostItems 列表。
      */
-    public static void handleRecoveryPurchase(ServerPlayer player, ItemStack purchased) {
+    public static void handleRecoveryPurchaseFromShop(ServerPlayer player, int itemIndex) {
         PlayerStardewData data = PlayerDataManager.getPlayerData(player);
-        // 清空所有丢失物品（SDV：买回1件后列表清空）
+        List<ItemStack> lostItems = data.getItemsLostLastDeath();
+
+        if (itemIndex < 0 || itemIndex >= lostItems.size()) {
+            sendRecoveryResult(player, false);
+            return;
+        }
+
+        // 计算价格
+        ItemStack chosen = lostItems.get(itemIndex);
+        int price = Math.max(250, getItemSellPrice(chosen) * 5);
+
+        // 扣钱
+        int currentMoney = com.stardew.craft.player.PlayerStardewDataAPI.getMoney(player);
+        if (currentMoney < price) {
+            sendRecoveryResult(player, false);
+            return;
+        }
+        com.stardew.craft.player.PlayerStardewDataAPI.removeMoney(player, price);
+
+        // 把原始 ItemStack 还给玩家（保留所有 NBT）
+        ItemStack recovered = chosen.copy();
+        if (!player.getInventory().add(recovered)) {
+            player.drop(recovered, false);
+        }
+
+        // SDV parity: 买回 1 件后清空全部
         data.clearItemsLostLastDeath();
+
+        sendRecoveryResult(player, true);
+
+        com.stardew.craft.StardewCraft.LOGGER.info("[MarlonRecovery] {} recovered '{}' for {}g",
+                player.getName().getString(), recovered.getHoverName().getString(), price);
+    }
+
+    private static void sendRecoveryResult(ServerPlayer player, boolean success) {
+        int newMoney = com.stardew.craft.player.PlayerStardewDataAPI.getMoney(player);
+        // Reuse ShopPurchaseResultPayload: success, new money, empty item (already delivered), qty 0, idx 0
+        PacketDistributor.sendToPlayer(player,
+            new com.stardew.craft.network.payload.ShopPurchaseResultPayload(
+                success, newMoney, "", success ? 1 : 0, 0));
     }
 
     /**

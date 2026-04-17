@@ -45,7 +45,8 @@ import javax.annotation.Nonnull;
 @SuppressWarnings("null")
 public class AnimalGrowthManager extends SavedData {
     private static final String DATA_NAME = "stardew_animal_growth_manager";
-    private static final AABB ENTITY_SCAN_BOX = new AABB(-30_000_000, -64, -30_000_000, 30_000_000, 320, 30_000_000);
+    /** 动物搜索范围：建筑边界外扩 64 格（覆盖牧场区域） */
+    private static final int ENTITY_SEARCH_EXPAND = 64;
     private static final double PIG_TRUFFLE_FIND_CHANCE_PER_TICK = 0.0002D;
     private static final int APPROX_TICKS_PER_TEN_MINUTE_SLOT = 167;
     private static final double PIG_TRUFFLE_FIND_CHANCE_PER_SLOT = 1.0D
@@ -155,7 +156,7 @@ public class AnimalGrowthManager extends SavedData {
             if (outdoors) {
                 // Parity: outdoors animals lose happiness in rain, winter, or after 19:00.
                 change = (timeOfDay > 1900 || isRaining || isWinter) ? -profile.happinessDrain() : profile.happinessDrain();
-            } else if (isWinter && record.happiness() > 150) {
+            } else if (isWinter && building != null) {
                 change = hasWorkingHeater(level, building) ? profile.happinessDrain() : -profile.happinessDrain();
             }
 
@@ -197,7 +198,7 @@ public class AnimalGrowthManager extends SavedData {
                 continue;
             }
 
-            BaseCoopAnimalEntity pigEntity = findEntityByManagedId(level, record.animalId());
+            BaseCoopAnimalEntity pigEntity = findEntityByManagedId(level, record.animalId(), building);
             if (pigEntity == null) {
                 continue;
             }
@@ -256,19 +257,37 @@ public class AnimalGrowthManager extends SavedData {
     private boolean shouldConsumePigCurrentProduce(FarmAnimalRecord record, int absoluteDaysPlayed, int timeOfDay) {
         long seed = record.animalId() / 2L + absoluteDaysPlayed + timeOfDay;
         RandomSource random = RandomSource.create(seed);
-        return random.nextDouble() > (record.friendship() / 1500.0D);
+        return random.nextDouble() < (record.friendship() / 1500.0D);
     }
 
-    private BaseCoopAnimalEntity findEntityByManagedId(ServerLevel level, long animalId) {
+    private BaseCoopAnimalEntity findEntityByManagedId(ServerLevel level, long animalId, AnimalBuildingRecord building) {
         if (animalId <= 0L) {
             return null;
         }
-        for (BaseCoopAnimalEntity entity : level.getEntitiesOfClass(BaseCoopAnimalEntity.class, ENTITY_SCAN_BOX)) {
+        AABB searchBox = buildingSearchBox(building);
+        for (BaseCoopAnimalEntity entity : level.getEntitiesOfClass(BaseCoopAnimalEntity.class, searchBox)) {
             if (entity.getManagedAnimalId() == animalId) {
                 return entity;
             }
         }
         return null;
+    }
+
+    /**
+     * 根据建筑边界构造搜索 AABB。如果 building 为 null，退回到全世界搜索。
+     */
+    private static AABB buildingSearchBox(AnimalBuildingRecord building) {
+        if (building == null) {
+            return new AABB(-30_000_000, -64, -30_000_000, 30_000_000, 320, 30_000_000);
+        }
+        return new AABB(
+            building.minX() - ENTITY_SEARCH_EXPAND,
+            building.minY() - 4,
+            building.minZ() - ENTITY_SEARCH_EXPAND,
+            building.maxX() + ENTITY_SEARCH_EXPAND,
+            building.maxY() + 4,
+            building.maxZ() + ENTITY_SEARCH_EXPAND
+        );
     }
 
     private boolean applyDayUpdate(ServerLevel level, AnimalWorldData worldData, FarmAnimalRecord record, int absoluteDaysPlayed) {
@@ -304,7 +323,7 @@ public class AnimalGrowthManager extends SavedData {
         record.incrementDaysOwned();
 
         if (!record.wasPetToday() && !record.wasAutoPetToday()) {
-            int friendshipPenalty = 10 - record.friendship() / 200;
+            int friendshipPenalty = (int) (10 - record.friendship() / 200.0);
             record.addFriendship(-Math.max(0, friendshipPenalty));
             record.addHappiness(-50);
         }
@@ -351,23 +370,26 @@ public class AnimalGrowthManager extends SavedData {
                 produceStack = new ItemStack(defaultProduce);
             }
 
-            if (!produceStack.isEmpty() && random.nextDouble() < record.happiness() / 150.0) {
-                float happinessModifier = record.happiness() > 200
-                    ? record.happiness() * 1.5f
-                    : (record.happiness() <= 100 ? record.happiness() - 100 : 0f);
+            if (!produceStack.isEmpty()) {
+                // Always reset cooldown when producing — regardless of quality/deluxe rolls
+                record.resetDaysSinceLastProduce();
+                produceQuality = 0; // Default to normal quality
 
-                Item deluxeProduce = profile.deluxeProduceSupplier() == null ? null : profile.deluxeProduceSupplier().get();
-                if (deluxeProduce != null
-                    && record.friendship() >= profile.deluxeProduceMinimumFriendship()
-                    && random.nextDouble() < ((record.friendship() + happinessModifier) / profile.deluxeProduceCareDivisor()) + averageDailyLuck * profile.deluxeProduceLuckMultiplier()) {
-                    produceStack = new ItemStack(deluxeProduce);
+                if (random.nextDouble() < record.happiness() / 150.0) {
+                    float happinessModifier = record.happiness() > 200
+                        ? record.happiness() * 1.5f
+                        : (record.happiness() <= 100 ? record.happiness() - 100 : 0f);
+
+                    Item deluxeProduce = profile.deluxeProduceSupplier() == null ? null : profile.deluxeProduceSupplier().get();
+                    if (deluxeProduce != null
+                        && record.friendship() >= profile.deluxeProduceMinimumFriendship()
+                        && random.nextDouble() < ((record.friendship() + happinessModifier) / profile.deluxeProduceCareDivisor()) + averageDailyLuck * profile.deluxeProduceLuckMultiplier()) {
+                        produceStack = new ItemStack(deluxeProduce);
+                    }
+
+                    produceQuality = rollQuality(record.friendship(), record.happiness(), hasQualityProfession, random);
                 }
 
-                record.resetDaysSinceLastProduce();
-                produceQuality = rollQuality(record.friendship(), record.happiness(), hasQualityProfession, random);
-            }
-
-            if (!produceStack.isEmpty()) {
                 QualityHelper.setQuality(produceStack, produceQuality);
                 produceId = getProduceId(produceStack);
             }
@@ -484,13 +506,16 @@ public class AnimalGrowthManager extends SavedData {
         if (hasQualityProfession) {
             chance += 0.33;
         }
-        if (chance >= 0.95f && random.nextFloat() < chance * 0.5f) {
+        chance = Math.max(0.0, Math.min(1.0, chance));
+
+        double roll = random.nextDouble();
+        if (roll < chance * 0.25) {
             return QualityHelper.IRIDIUM;
         }
-        if (random.nextFloat() < chance * 0.5f) {
+        if (roll < chance * 0.5) {
             return QualityHelper.GOLD;
         }
-        if (random.nextFloat() < chance) {
+        if (roll < chance) {
             return QualityHelper.SILVER;
         }
         return QualityHelper.NORMAL;
@@ -565,31 +590,25 @@ public class AnimalGrowthManager extends SavedData {
             return true;
         }
 
-        for (BaseCoopAnimalEntity entity : level.getEntitiesOfClass(BaseCoopAnimalEntity.class, new AABB(ENTITY_SCAN_BOX.minX, ENTITY_SCAN_BOX.minY, ENTITY_SCAN_BOX.minZ, ENTITY_SCAN_BOX.maxX, ENTITY_SCAN_BOX.maxY, ENTITY_SCAN_BOX.maxZ))) {
-            if (entity.getManagedAnimalId() != record.animalId()) {
-                continue;
-            }
-            return !isEntityInsideBuilding(entity, building);
+        BaseCoopAnimalEntity entity = findEntityByManagedId(level, record.animalId(), building);
+        if (entity == null) {
+            return true;
         }
-
-        return true;
+        return !isEntityInsideBuilding(entity, building);
     }
 
     private void teleportAnimalInsideBuilding(ServerLevel level, FarmAnimalRecord record, AnimalBuildingRecord building) {
         if (building == null) {
             return;
         }
+        BaseCoopAnimalEntity entity = findEntityByManagedId(level, record.animalId(), building);
+        if (entity == null) {
+            return;
+        }
         double cx = (building.minX() + building.maxX()) / 2.0;
         double cy = building.minY() + 1.0;
         double cz = (building.minZ() + building.maxZ()) / 2.0;
-
-        for (BaseCoopAnimalEntity entity : level.getEntitiesOfClass(BaseCoopAnimalEntity.class, new AABB(ENTITY_SCAN_BOX.minX, ENTITY_SCAN_BOX.minY, ENTITY_SCAN_BOX.minZ, ENTITY_SCAN_BOX.maxX, ENTITY_SCAN_BOX.maxY, ENTITY_SCAN_BOX.maxZ))) {
-            if (entity.getManagedAnimalId() != record.animalId()) {
-                continue;
-            }
-            entity.moveTo(cx, cy, cz, entity.getYRot(), entity.getXRot());
-            break;
-        }
+        entity.moveTo(cx, cy, cz, entity.getYRot(), entity.getXRot());
     }
 
     private boolean hasWorkingAutoPetter(ServerLevel level, AnimalBuildingRecord building) {
@@ -647,11 +666,10 @@ public class AnimalGrowthManager extends SavedData {
         record.addFriendship(7);
         record.setWasAutoPetToday(true);
 
-        if (hasHappinessProfession) {
-            record.addFriendship(15);
-        }
-
         int happinessGain = Math.max(5, 30 + profile.happinessDrain());
+        if (hasHappinessProfession) {
+            happinessGain += 15;
+        }
         record.addHappiness(happinessGain);
     }
 

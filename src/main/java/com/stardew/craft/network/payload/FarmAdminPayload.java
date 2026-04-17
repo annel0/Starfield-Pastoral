@@ -1,0 +1,133 @@
+package com.stardew.craft.network.payload;
+
+import com.stardew.craft.StardewCraft;
+import com.stardew.craft.command.FarmAdminCommand;
+import com.stardew.craft.farm.FarmInstanceRegistry;
+import com.stardew.craft.farm.FarmPermissionManager;
+import com.stardew.craft.farm.FarmInstance;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+
+import java.util.UUID;
+
+/**
+ * C→S: GUI 中执行管理操作。
+ * action:
+ *   0 — 请求刷新农场列表
+ *   1 — 删除农场 (targetUUID)
+ *   2 — 重命名农场 (targetUUID, extraString=新名称)
+ *   3 — 传送到农场 (targetUUID)
+ *   4 — 转移农场 (targetUUID=原主人, extraString=目标玩家名)
+ */
+@SuppressWarnings("null")
+public record FarmAdminPayload(
+        int action,
+        UUID targetUUID,
+        String extraString
+) implements CustomPacketPayload {
+
+    public static final Type<FarmAdminPayload> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "farm_admin"));
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, FarmAdminPayload> STREAM_CODEC =
+            new StreamCodec<>() {
+                @Override
+                public FarmAdminPayload decode(RegistryFriendlyByteBuf buf) {
+                    int action = buf.readByte();
+                    UUID uuid = buf.readUUID();
+                    String extra = buf.readUtf(256);
+                    return new FarmAdminPayload(action, uuid, extra);
+                }
+
+                @Override
+                public void encode(RegistryFriendlyByteBuf buf, FarmAdminPayload payload) {
+                    buf.writeByte(payload.action);
+                    buf.writeUUID(payload.targetUUID);
+                    buf.writeUtf(payload.extraString, 256);
+                }
+            };
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    public static void handle(FarmAdminPayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (!(context.player() instanceof ServerPlayer player)) return;
+            if (!FarmAdminCommand.isStardewOp(player)) return; // 星露谷 OP 权限检查
+
+            FarmInstanceRegistry registry = FarmInstanceRegistry.get();
+
+            switch (payload.action) {
+                case 0 -> { // 刷新列表
+                    PacketDistributor.sendToPlayer(player, FarmAdminSyncPayload.fromRegistry(registry));
+                }
+                case 1 -> { // 删除农场
+                    FarmInstance farm = registry.deleteFarm(payload.targetUUID);
+                    if (farm != null) {
+                        FarmPermissionManager.get().clearAllForOwner(payload.targetUUID);
+                        player.displayClientMessage(
+                                Component.literal("§a已删除 " + farm.getOwnerName() + " 的农场"), false);
+                    } else {
+                        player.displayClientMessage(Component.literal("§c农场不存在"), false);
+                    }
+                    // 刷新列表
+                    PacketDistributor.sendToPlayer(player, FarmAdminSyncPayload.fromRegistry(registry));
+                }
+                case 2 -> { // 重命名
+                    boolean ok = registry.renameFarm(payload.targetUUID, payload.extraString);
+                    if (ok) {
+                        player.displayClientMessage(
+                                Component.literal("§a已重命名为: " + payload.extraString), false);
+                    } else {
+                        player.displayClientMessage(Component.literal("§c农场不存在"), false);
+                    }
+                    PacketDistributor.sendToPlayer(player, FarmAdminSyncPayload.fromRegistry(registry));
+                }
+                case 3 -> { // 传送
+                    FarmInstance farm = registry.getFarm(payload.targetUUID);
+                    if (farm != null) {
+                        net.minecraft.core.BlockPos tp = farm.getOrigin().offset(128, 10, 128);
+                        player.teleportTo(
+                                player.serverLevel(),
+                                tp.getX() + 0.5, tp.getY(), tp.getZ() + 0.5,
+                                0, 0);
+                        player.displayClientMessage(
+                                Component.literal("§a已传送到 " + farm.getOwnerName() + " 的农场"), true);
+                    } else {
+                        player.displayClientMessage(Component.literal("§c农场不存在"), false);
+                    }
+                }
+                case 4 -> { // 转移农场
+                    String targetName = payload.extraString.trim();
+                    if (targetName.isEmpty()) {
+                        player.displayClientMessage(Component.literal("§c请输入目标玩家名"), false);
+                        return;
+                    }
+                    ServerPlayer targetPlayer = player.getServer().getPlayerList().getPlayerByName(targetName);
+                    if (targetPlayer == null) {
+                        player.displayClientMessage(Component.literal("§c玩家 " + targetName + " 不在线"), false);
+                        return;
+                    }
+                    boolean ok = registry.transferFarm(payload.targetUUID, targetPlayer.getUUID(), targetName);
+                    if (ok) {
+                        FarmPermissionManager.get().transferPermissions(payload.targetUUID, targetPlayer.getUUID());
+                        player.displayClientMessage(
+                                Component.literal("§a已转移给 " + targetName), false);
+                    } else {
+                        player.displayClientMessage(
+                                Component.literal("§c转移失败：源农场不存在或目标玩家已有农场"), false);
+                    }
+                    PacketDistributor.sendToPlayer(player, FarmAdminSyncPayload.fromRegistry(registry));
+                }
+            }
+        });
+    }
+}

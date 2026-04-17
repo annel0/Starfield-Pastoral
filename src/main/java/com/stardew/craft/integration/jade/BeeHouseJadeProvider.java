@@ -130,6 +130,32 @@ public enum BeeHouseJadeProvider implements IBlockComponentProvider, IServerData
 			return;
 		}
 
+		// Working: show what honey type is being produced + remaining time
+		ItemStack flowerStack = stackFromId(flowerItemId);
+		if (!flowerStack.isEmpty()) {
+			Component productName = Component.translatable("stardewcraft.tooltip.bee_house.product.flavored", flowerStack.getHoverName());
+			tooltip.add(List.of(
+				helper.item(flowerStack, 1.0f),
+				helper.spacer(4, 0),
+				helper.text(Component.translatable("stardewcraft.tooltip.bee_house.product")
+					.append(": ")
+					.append(productName)
+					.withStyle(ChatFormatting.WHITE))
+			));
+		} else {
+			ItemStack productStack = stackFromId(productItemId);
+			if (!productStack.isEmpty()) {
+				tooltip.add(List.of(
+					helper.item(productStack, 1.0f),
+					helper.spacer(4, 0),
+					helper.text(Component.translatable("stardewcraft.tooltip.bee_house.product")
+						.append(": ")
+						.append(productStack.getHoverName())
+						.withStyle(ChatFormatting.WHITE))
+				));
+			}
+		}
+
 		int days = data.getInt(NBT_DAYS);
 		int hours = data.getInt(NBT_HOURS);
 		int minutes = data.getInt(NBT_MINUTES);

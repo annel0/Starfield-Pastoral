@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * 负责在 CC 结构加载后放置 / 移除 JunimoNote 方块。
@@ -28,22 +29,22 @@ public final class JunimoNotePlacer {
     private JunimoNotePlacer() {}
 
     /**
-     * 为应该出现（但未完成）的区域放置 JunimoNote，移除已完成或不应出现的。
-     * 在 CC 结构加载后调用，也应在 bundle 完成后调用刷新。
-     * <p>
-     * SDV parity: doCheckForNewJunimoNotes() → addJunimoNote() + sound "reward" + burst particles
+     * 为指定玩家的 CC 实例放置/移除 JunimoNote 方块。
      *
+     * @param level      服务端维度
+     * @param player     玩家 UUID (用于查询进度)
+     * @param ccOrigin   该玩家的 CC 原点
      * @return list of area IDs for newly placed notes (empty if none)
      */
-    public static List<Integer> ensureJunimoNotes(ServerLevel level) {
+    public static List<Integer> ensureJunimoNotes(ServerLevel level, UUID player, BlockPos ccOrigin) {
         List<Integer> newlyPlaced = new ArrayList<>();
 
         for (var entry : CCAreaRegistry.ALL_AREAS.entrySet()) {
             int areaId = entry.getKey();
             CCAreaRegistry.AreaBounds bounds = entry.getValue();
-            BlockPos worldPos = bounds.noteWorldPos();
+            BlockPos worldPos = bounds.noteWorldPos(ccOrigin);
 
-            boolean shouldExist = CommunityCenterProgress.shouldNoteAppearInArea(areaId);
+            boolean shouldExist = CommunityCenterProgress.shouldNoteAppearInArea(areaId, player);
 
             if (shouldExist) {
                 // 未完成且已解锁：放置 note 方块

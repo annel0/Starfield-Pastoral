@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "up":       "stardewcraft:block/junimo_greenhouse_rune_top",
+    "down":     "stardewcraft:block/junimo_greenhouse_rune_bottom",
+    "north":    "stardewcraft:block/junimo_greenhouse_rune_side1",
+    "east":     "stardewcraft:block/junimo_greenhouse_rune_side2",
+    "south":    "stardewcraft:block/junimo_greenhouse_rune_side3",
+    "west":     "stardewcraft:block/junimo_greenhouse_rune_side4",
+    "particle": "stardewcraft:block/junimo_greenhouse_rune_top"
+  }
+}

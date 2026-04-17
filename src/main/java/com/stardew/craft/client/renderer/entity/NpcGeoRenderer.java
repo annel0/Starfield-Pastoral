@@ -4,6 +4,7 @@ import com.stardew.craft.client.model.entity.NpcGeoModel;
 import com.stardew.craft.client.renderer.entity.indicator.NpcOverheadIndicator;
 import com.stardew.craft.client.renderer.entity.indicator.NpcOverheadIndicatorRegistry;
 import com.stardew.craft.entity.npc.StardewNpcEntity;
+import com.stardew.craft.network.payload.ClientNpcVisibilityState;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
@@ -29,6 +30,11 @@ public class NpcGeoRenderer extends GeoEntityRenderer<StardewNpcEntity> {
                        PoseStack poseStack,
                        MultiBufferSource bufferSource,
                        int packedLight) {
+        // Per-player cutscene visibility: skip rendering if hidden for this client
+        String npcId = entity.getNpcId();
+        if (npcId != null && ClientNpcVisibilityState.isHidden(npcId)) {
+            return;
+        }
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
         renderOverheadIndicator(entity, poseStack, bufferSource, packedLight);
     }

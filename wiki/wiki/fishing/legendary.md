@@ -6,11 +6,11 @@
 
 | 鱼 | 售价 | 难度 | 地点 | 季节 | 时间 | 天气 | 最低等级 |
 |----|------|------|------|------|------|------|---------|
-| <img src="/img/fish/legend.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> 传说之鱼 | 1300g | 110 | 河流/湖泊 | 春 | 6:00-19:00 | 雨天 | 10 |
-| <img src="/img/fish/crimsonfish.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> 绯红鱼 | 1500g | 95 | 海洋 | 夏 | 6:00-20:00 | 任意 | 10 |
-| <img src="/img/fish/angler.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> 琵琶鱼 | 900g | 85 | 河流 | 秋 | 6:00-19:00 | 任意 | 10 |
-| <img src="/img/fish/mutant_carp.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> 变种鲤鱼 | 100g | 85 | 下水道 | 全季 | 全天 | 任意 | — |
-| <img src="/img/fish/scorpion_carp.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> 蝎鲤鱼 | 150g | 90 | 沙漠 | 全季 | 6:00-20:00 | 任意 | — |
+| <img src="/img/fish/legend.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> [传说之鱼](#传说之鱼-legend) | 1300g | 110 | 河流/湖泊 | 春 | 6:00-19:00 | 雨天 | 10 |
+| <img src="/img/fish/crimsonfish.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> [绯红鱼](#绯红鱼-crimsonfish) | 1500g | 95 | 海洋 | 夏 | 6:00-20:00 | 任意 | 10 |
+| <img src="/img/fish/angler.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> [琵琶鱼](#琵琶鱼-angler) | 900g | 85 | 河流 | 秋 | 6:00-19:00 | 任意 | 10 |
+| <img src="/img/fish/mutant_carp.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> [变种鲤鱼](#变种鲤鱼-mutant-carp) | 100g | 85 | 下水道 | 全季 | 全天 | 任意 | — |
+| <img src="/img/fish/scorpion_carp.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> [蝎鲤鱼](#蝎鲤鱼-scorpion-carp) | 150g | 90 | 沙漠 | 全季 | 6:00-20:00 | 任意 | — |
 
 ## 传说鱼二代
 
@@ -18,9 +18,9 @@
 
 | 鱼 | 售价 | 难度 | 地点 | 季节 | 最低等级 |
 |----|------|------|------|------|---------|
-| <img src="/img/fish/legend.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> 小传说之鱼 | 1300g | 110 | 河流/湖泊 | 春 | 10 |
-| <img src="/img/fish/son_of_crimsonfish.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> 绯红鱼之子 | 1500g | 95 | 海洋 | 夏 | 15 |
-| <img src="/img/fish/angler.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> 女琵琶鱼 | 900g | 85 | 河流 | 秋 | 15 |
+| <img src="/img/fish/legend.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> [小传说之鱼](#传说鱼二代) | 1300g | 110 | 河流/湖泊 | 春 | 10 |
+| <img src="/img/fish/son_of_crimsonfish.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> [绯红鱼之子](#传说鱼二代) | 1500g | 95 | 海洋 | 夏 | 15 |
+| <img src="/img/fish/angler.png" style="width:24px;height:24px;vertical-align:middle;image-rendering:pixelated"> [女琵琶鱼](#传说鱼二代) | 900g | 85 | 河流 | 秋 | 15 |
 
 ---
 
@@ -38,7 +38,7 @@
 - **行为**：混合型（频繁高速变向）
 
 ::: danger 挑战
-难度 110 是所有鱼中最高的。强烈建议使用陷阱浮标 + 高级鱼饵，并确保钓鱼等级满级。
+难度 110 是所有鱼中最高的。强烈建议使用 <img src="/img/tackle/trap_bobber.png" class="item-icon"> [陷阱浮标](/wiki/fishing/tackle#陷阱浮标-trap-bobber) + <img src="/img/bait/deluxe_bait.png" class="item-icon"> [高级鱼饵](/wiki/fishing/bait#高级鱼饵-deluxe-bait)，并确保钓鱼等级满级。
 :::
 
 ### 绯红鱼 Crimsonfish
@@ -69,6 +69,24 @@
 - **行为**：混合型
 
 ### 蝎鲤鱼 Scorpion Carp
+
+### 冰川鱼 Glacierfish
+
+- **地点**：森林河流
+- **季节**：仅冬季
+- **天气**：任意
+- **时间**：全天
+- **最低等级**：钓鱼 10 级
+- **行为**：混合型
+
+### 传说鱼二代
+
+二代传说鱼对应一代传说鱼的地点和季节限制，但需要更高钓鱼等级才会出现：
+
+- **小传说之鱼**：春季，河流或湖泊，钓鱼 15 级
+- **绯红鱼之子**：夏季，海洋，钓鱼 15 级
+- **女琵琶鱼**：秋季，河流，钓鱼 15 级
+- **小冰川鱼**：冬季，森林河流，钓鱼 15 级
 
 - **地点**：沙漠
 - **季节**：全年

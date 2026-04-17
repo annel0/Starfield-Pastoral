@@ -37,7 +37,7 @@ public class MineTotemItem extends Item implements IStardewItem {
 
     @Override
     public String getItemTypeKey() {
-        return "stardewcraft.type.tool";
+        return "stardewcraft.type.magic";
     }
 
     @Override

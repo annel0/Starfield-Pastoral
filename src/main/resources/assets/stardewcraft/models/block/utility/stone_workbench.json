@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top":    "stardewcraft:block/utility/stone_workbench_top",
+    "bottom": "stardewcraft:block/utility/stone_workbench_bottom",
+    "side":   "stardewcraft:block/utility/stone_workbench_side"
+  }
+}

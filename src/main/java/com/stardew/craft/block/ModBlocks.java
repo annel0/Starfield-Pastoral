@@ -366,6 +366,15 @@ public class ModBlocks {
                                         .strength(0.6F, 2.0F)
                                         .noOcclusion()));
 
+        // 矿井：宝箱（per-player 独立库存，不可破坏）
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> MINE_CHEST = BLOCKS.register("mine_chest",
+                        () -> new com.stardew.craft.block.mine.MineChestBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .strength(-1.0F, 3600000.0F) // 不可破坏
+                                        .noOcclusion()));
+
         // 矿井：出口（金色梯子，中心安全区，打开GUI）
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> MINE_EXIT = BLOCKS.register("mine_exit",
@@ -2527,6 +2536,18 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .sound(net.minecraft.world.level.block.SoundType.GRAVEL)
                                         .strength(0.5F)));
 
+        // 传送触发方块（隐形，无碰撞，不可破坏）— 替代 Interaction 实体
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> PORTAL_TRIGGER = BLOCKS.register("portal_trigger",
+                        () -> new com.stardew.craft.block.portal.PortalTriggerBlock(Block.Properties.of()
+                                        .noCollission()
+                                        .noOcclusion()
+                                        .noLootTable()
+                                        .strength(-1.0f, 3600000.0f)
+                                        .replaceable()
+                                        .sound(net.minecraft.world.level.block.SoundType.EMPTY)
+                                        .pushReaction(net.minecraft.world.level.material.PushReaction.BLOCK)));
+
         // 临时模型室内装饰（自动 extension + 自动碰撞）
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> SAFE_BOX = BLOCKS.register("safe_box",
@@ -2624,5 +2645,30 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .noOcclusion()
                                         .strength(-1.0F, 3600000.0F)
                                         .noLootTable()));
+
+        // ── 加工台 (Workbenches) ──────────────────────────────────────────
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WOOD_WORKBENCH = BLOCKS.register("wood_workbench",
+                        () -> new com.stardew.craft.block.utility.WoodWorkbenchBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .strength(2.5F, 3.0F)));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> STONE_WORKBENCH = BLOCKS.register("stone_workbench",
+                        () -> new com.stardew.craft.block.utility.StoneWorkbenchBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.STONE)
+                                        .sound(net.minecraft.world.level.block.SoundType.STONE)
+                                        .strength(3.5F, 3.0F)));
+
+        // ── 祝尼魔温室符文 (Junimo Greenhouse Rune) ──────────────────────────
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> JUNIMO_GREENHOUSE_RUNE = BLOCKS.register("junimo_greenhouse_rune",
+                        () -> new com.stardew.craft.block.utility.JunimoGreenhouseRuneBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.EMERALD)
+                                        .sound(net.minecraft.world.level.block.SoundType.AMETHYST)
+                                        .strength(-1.0F, 3600000.0F)
+                                        .pushReaction(net.minecraft.world.level.material.PushReaction.BLOCK)
+                                        .lightLevel(state -> 7)));
 
         }
