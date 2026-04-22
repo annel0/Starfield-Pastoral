@@ -3,7 +3,6 @@ package com.stardew.craft.npc.runtime;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.stardew.craft.StardewCraft;
 import com.stardew.craft.emote.EmoteCatalog;
 import com.stardew.craft.emote.EmoteType;
 import com.stardew.craft.entity.npc.StardewNpcEntity;
@@ -68,52 +67,81 @@ public final class NpcInteractionService {
         NpcFriendshipDataManager.FriendshipState state = friendshipManager.getOrCreate(serverPlayer.getUUID(), npcId);
         state.normalizeGiftWeek(dayContext.weekKey());
 
+        // ═══════════════════════════════════════════════════════════════
+        // SDV parity: QUEST DELIVERY 最高优先级 —
+        // 玩家拿着正好匹配「已接受的交付任务」的物品 + 右键 target NPC，
+        // 直接弹出 "确定要把 X 交给 Y 来完成 Z 吗？" 对话框，
+        // **优先于** 店铺柜台 / 送礼流程。不符合则走下面的正常逻辑。
+        // ═══════════════════════════════════════════════════════════════
+        if (!held.isEmpty()) {
+            com.stardew.craft.quest.ItemDeliveryQuest matchingQuest =
+                findMatchingDeliveryQuest(serverPlayer, npcId, held);
+            if (matchingQuest != null) {
+                npc.facePlayerTemporarily(serverPlayer, 60, () -> {
+                    String questTitleJson;
+                    try {
+                        questTitleJson = net.minecraft.network.chat.Component.Serializer.toJson(
+                            matchingQuest.getTitleComponent(), serverLevel.registryAccess());
+                    } catch (Exception e) {
+                        questTitleJson = "\"" + matchingQuest.getTitleComponent().getString() + "\"";
+                    }
+                    PacketDistributor.sendToPlayer(serverPlayer,
+                        new com.stardew.craft.network.payload.OpenQuestDeliveryConfirmPayload(
+                            npcId,
+                            matchingQuest.getId(),
+                            held.getDescriptionId(),
+                            npc.getDisplayName().getString(),
+                            questTitleJson
+                        ));
+                });
+                return InteractionResult.SUCCESS;
+            }
+        }
+
         // SDV parity: shop counter checks take priority over gift flow
         // (player holding an item at a shop counter should open the shop, not gift)
 
-        // SDV parity: Clint blacksmith shop — triggers when both player and Clint are at the counter
+        // SDV parity: shop counter checks take priority over gift flow.
+        // 柜台交互同时触发任务事件（SDV: 杀怪任务找 NPC 复命也可以在商店柜台完成）。
         if (npcId.equals("clint") && com.stardew.craft.shop.BlacksmithService.isPlayerAtCounter(serverPlayer)) {
+            com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(serverPlayer, npcId);
             return com.stardew.craft.shop.BlacksmithService.handleBlacksmithInteraction(serverPlayer, npc);
         }
-
-        // SDV parity: Harvey clinic shop — triggers when player is at clinic counter
         if (npcId.equals("harvey") && com.stardew.craft.shop.ClinicService.isPlayerAtCounter(serverPlayer)) {
+            com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(serverPlayer, npcId);
             return com.stardew.craft.shop.ClinicService.handleClinicInteraction(serverPlayer, npc);
         }
-
-        // SDV parity: Gus saloon shop — triggers when player is at saloon counter
         if (npcId.equals("gus") && com.stardew.craft.shop.SaloonService.isPlayerAtCounter(serverPlayer)) {
+            com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(serverPlayer, npcId);
             return com.stardew.craft.shop.SaloonService.handleSaloonInteraction(serverPlayer, npc);
         }
-
-        // SDV parity: Pierre seed shop — triggers when player is at Pierre's counter
         if (npcId.equals("pierre") && com.stardew.craft.shop.PierreService.isPlayerAtCounter(serverPlayer)) {
+            com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(serverPlayer, npcId);
             return com.stardew.craft.shop.PierreService.handlePierreInteraction(serverPlayer, npc);
         }
-
-        // SDV parity: Marnie animal shop — triggers when player is at Marnie's counter
         if (npcId.equals("marnie") && com.stardew.craft.shop.MarnieService.isPlayerAtCounter(serverPlayer)) {
+            com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(serverPlayer, npcId);
             return com.stardew.craft.shop.MarnieService.handleMarnieInteraction(serverPlayer, npc);
         }
-
-        // SDV parity: Willy fish shop — triggers when player is at Willy's counter
         if (npcId.equals("willy") && com.stardew.craft.shop.WillyService.isPlayerAtCounter(serverPlayer)) {
+            com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(serverPlayer, npcId);
             return com.stardew.craft.shop.WillyService.handleWillyInteraction(serverPlayer, npc);
         }
-
-        // SDV parity: Gunther museum — triggers when player is at Gunther's counter
         if (npcId.equals("gunther") && com.stardew.craft.shop.GuntherService.isPlayerAtCounter(serverPlayer)) {
+            com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(serverPlayer, npcId);
             return com.stardew.craft.shop.GuntherService.handleGuntherInteraction(serverPlayer, npc);
         }
-
-        // SDV parity: Marlon adventurer's guild — triggers when player is at Marlon's counter
         if (npcId.equals("marlon") && com.stardew.craft.shop.MarlonService.isPlayerAtCounter(serverPlayer)) {
+            com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(serverPlayer, npcId);
             return com.stardew.craft.shop.MarlonService.handleMarlonInteraction(serverPlayer, npc);
         }
-
-        // SDV parity: Robin carpenter shop — triggers when player is at Robin's counter
         if (npcId.equals("robin") && com.stardew.craft.shop.RobinService.isPlayerAtCounter(serverPlayer)) {
+            com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(serverPlayer, npcId);
             return com.stardew.craft.shop.RobinService.handleCarpenterInteraction(serverPlayer, npc);
+        }
+        if (npcId.equals("sandy") && com.stardew.craft.shop.SandyService.isPlayerAtCounter(serverPlayer)) {
+            com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(serverPlayer, npcId);
+            return com.stardew.craft.shop.SandyService.handleSandyInteraction(serverPlayer, npc);
         }
 
         // Wizard tower hub: intercept wizard NPC for quest/teleport dialogue
@@ -132,22 +160,41 @@ public final class NpcInteractionService {
             // PASS = can't understand → show garbled dialogue below
         }
 
+        // ═══════════════════════════════════════════════════════════════
+        // SDV parity: HEART EVENT CHECK — before gifts/dialogue, check
+        // if this NPC has a pending interact_npc cutscene event.
+        // If so, trigger it instead of opening normal dialogue.
+        // ═══════════════════════════════════════════════════════════════
+        {
+            String pendingEvent = com.stardew.craft.cutscene.server.ServerPreconditionEvaluator
+                    .findPendingNpcEvent(serverPlayer, npcId);
+            if (pendingEvent != null) {
+                com.stardew.craft.cutscene.server.ServerCutsceneTracker.startEvent(serverPlayer, pendingEvent);
+                return InteractionResult.SUCCESS;
+            }
+        }
+
         // Gift flow: if player is holding an item, ask for confirmation before gifting
         // SDV parity: you CAN gift Dwarf without understanding, but friendship won't increase
         // and the response dialogue will be garbled (handled in receiveGift / response)
         if (!held.isEmpty()) {
             // NPC smoothly turns to face the player, then opens gift confirm screen
             String npcDisplayName = npc.getDisplayName().getString();
-            String itemDisplayName = held.getHoverName().getString();
+            // 发送物品的翻译键（而不是服务端解析后的字符串）。服务端语言文件通常只有 en_us，
+            // 对其他语种会直接返回 "item.stardewcraft.xxx" 这种 key。由客户端按本地语言解析。
+            String itemDescriptionId = held.getDescriptionId();
             npc.facePlayerTemporarily(serverPlayer, 60, () -> {
                 PacketDistributor.sendToPlayer(serverPlayer,
-                    new com.stardew.craft.network.payload.OpenGiftConfirmPayload(npcId, itemDisplayName, npcDisplayName));
+                    new com.stardew.craft.network.payload.OpenGiftConfirmPayload(npcId, itemDescriptionId, npcDisplayName));
             });
             return InteractionResult.SUCCESS;
         }
 
         if (state.lastTalkDayKey() == dayContext.dayKey()) {
             syncFriendshipStatus(serverPlayer, npcId, state, dayContext);
+            // 当天已对话过不再加好感，但仍要触发任务事件
+            // （SDV: 杀完怪/做完条件后回来找 NPC 复命的场景）
+            com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(serverPlayer, npcId);
             return InteractionResult.SUCCESS;
         }
 
@@ -171,6 +218,65 @@ public final class NpcInteractionService {
             sendDialoguePacket(serverPlayer, npcId, finalDialogueText, points, finalGarble);
         });
         return InteractionResult.SUCCESS;
+    }
+
+    /**
+     * 找到当前玩家已接受、未完成、未销毁、且 target NPC + itemId 与手上物品匹配的
+     * 交付任务。返回第一个匹配，没有则返回 null。
+     */
+    @javax.annotation.Nullable
+    private static com.stardew.craft.quest.ItemDeliveryQuest findMatchingDeliveryQuest(
+            ServerPlayer player, String npcId, ItemStack held) {
+        if (held.isEmpty()) return null;
+        String itemId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(held.getItem()).toString();
+        com.stardew.craft.quest.QuestManager mgr = com.stardew.craft.quest.QuestManager.of(player);
+        if (mgr == null) return null;
+        for (com.stardew.craft.quest.StardewQuest q : mgr.getQuestLog()) {
+            if (!(q instanceof com.stardew.craft.quest.ItemDeliveryQuest dq)) continue;
+            if (!dq.isAccepted() || dq.isCompleted() || dq.isDestroy()) continue;
+            if (!npcId.equalsIgnoreCase(dq.getTargetNpc())) continue;
+            if (!itemId.equalsIgnoreCase(dq.getItemId())) continue;
+            return dq;
+        }
+        return null;
+    }
+
+    /**
+     * 玩家在 "送X给Y完成任务?" 对话框点"是"后，服务端执行交付。
+     * 重新校验（手上还拿着、任务还在）后消耗物品 + 完成任务 + 播 SDV questComplete 音效。
+     */
+    public static void handleConfirmedQuestDelivery(ServerPlayer player, String npcId, String questId) {
+        Level level = player.level();
+        if (!(level instanceof ServerLevel serverLevel)) return;
+
+        ItemStack held = player.getMainHandItem();
+        if (held.isEmpty()) held = player.getOffhandItem();
+        if (held.isEmpty()) return;
+
+        com.stardew.craft.quest.ItemDeliveryQuest matching = findMatchingDeliveryQuest(player, npcId, held);
+        if (matching == null || !matching.getId().equals(questId)) {
+            // 玩家在等对话框期间换了物品 / 改了任务 — 静默丢弃
+            return;
+        }
+
+        String itemId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(held.getItem()).toString();
+        // 消耗 1 个（SDV parity: 交付任务每次 1 个）
+        if (!player.getAbilities().instabuild) {
+            held.shrink(1);
+        }
+        // 走 onItemOfferedToNpc → questComplete（带友好度加成）
+        com.stardew.craft.quest.StardewQuestEvents.fireItemOfferedToNpc(player, npcId, itemId);
+
+        // SDV parity: "questComplete" — QuestCompletePayload.handleClient 会广播给
+        // 完成任务的玩家自己（在 QuestManager.cleanupDestroyed 发包时触发），
+        // 这里不再额外播声。
+
+        // 让 NPC 说一句感谢台词
+        StardewNpcEntity npcEntity = NpcSpawnManager.getTrackedNpc(serverLevel, npcId);
+        if (npcEntity != null) {
+            boolean garbleGift = npcId.equals("dwarf") && !com.stardew.craft.shop.DwarfService.canUnderstandDwarves(player);
+            sendDialoguePacket(player, npcId, "stardewcraft.npc.generic.quest_delivery_thanks", 0, garbleGift);
+        }
     }
 
     /**
@@ -260,23 +366,10 @@ public final class NpcInteractionService {
             return;
         }
         if (dialogueText == null || dialogueText.isBlank() || "...".equals(dialogueText)) {
-            StardewCraft.LOGGER.info(
-                "[NPC_FRIENDSHIP_TRACE] npc={} source=talk dayKey={} delta=0 reason=no-valid-dialogue",
-                npcId,
-                dayContext.dayKey()
-            );
             return;
         }
-        int before = state.points();
         state.setLastTalkDayKey(dayContext.dayKey());
         state.addPoints(20, getMaxFriendshipPointsFor(npcId));
-        StardewCraft.LOGGER.info(
-            "[NPC_FRIENDSHIP_TRACE] npc={} source=talk dayKey={} delta=20 before={} after={}",
-            npcId,
-            dayContext.dayKey(),
-            before,
-            state.points()
-        );
     }
 
     private static boolean isStardropTea(ItemStack held) {
@@ -333,25 +426,12 @@ public final class NpcInteractionService {
             finalDelta = 0;
         }
 
-        int before = state.points();
         state.addPoints(finalDelta, getMaxFriendshipPointsFor(npcId));
         // StardropTea does NOT count toward daily/weekly gift limits (vanilla parity)
         if (!stardropTea) {
             state.applyGiftCounters(dayContext.dayKey(), dayContext.weekKey());
         }
 
-        StardewCraft.LOGGER.info(
-            "[NPC_GIFT_TRACE] npc={} item={} taste={} tasteSource={} birthday={} finalDelta={} weekGifts={} before={} after={}",
-            npcId,
-            normalizeItemId(held),
-            taste,
-            tasteResult.source(),
-            birthday,
-            finalDelta,
-            state.giftsThisWeek(),
-            before,
-            state.points()
-        );
 
         if (!player.getAbilities().instabuild) {
             held.shrink(1);
@@ -479,7 +559,6 @@ public final class NpcInteractionService {
 
         int hearts = Math.max(0, Math.min(14, state.points() / POINTS_PER_HEART));
         List<String> trace = new ArrayList<>();
-        String selectedKey = null;
         String selectedText = null;
 
         boolean isFirstMeeting = state.lastTalkDayKey() == Integer.MIN_VALUE;
@@ -489,7 +568,6 @@ public final class NpcInteractionService {
                 selectedText = resolveDialogueTextByKey(dialogueRoot, heartKey, dayContext.dayKey());
                 trace.add(traceEntry(heartKey, selectedText));
                 if (selectedText != null && !selectedText.isBlank()) {
-                    selectedKey = heartKey;
                     break;
                 }
             } else {
@@ -499,7 +577,6 @@ public final class NpcInteractionService {
             selectedText = resolveDialogueTextByKey(dialogueRoot, prefix, dayContext.dayKey());
             trace.add(traceEntry(prefix, selectedText));
             if (selectedText != null && !selectedText.isBlank()) {
-                selectedKey = prefix;
                 break;
             }
         }
@@ -508,26 +585,13 @@ public final class NpcInteractionService {
             String fallback = findFirstPrimitiveDialogue(dialogueRoot, dayContext.dayKey());
             if (fallback != null && !fallback.isBlank()) {
                 selectedText = fallback;
-                selectedKey = "<first_primitive_fallback>";
             }
         }
 
         if (selectedText == null || selectedText.isBlank()) {
             selectedText = "...";
-            selectedKey = "<ellipsis_fallback>";
         }
 
-        StardewCraft.LOGGER.info(
-            "[NPC_DIALOGUE_TRACE] npc={} season={} day={} weekday={} weather={} hearts={} selectedKey={} probes={}",
-            npcId,
-            dayContext.seasonLower(),
-            dayContext.dayInSeason(),
-            dayContext.weekdayShort(),
-            dayContext.weatherLower(),
-            hearts,
-            selectedKey,
-            String.join("|", trace)
-        );
 
         return selectedText;
     }

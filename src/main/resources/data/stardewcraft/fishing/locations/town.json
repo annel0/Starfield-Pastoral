@@ -1,103 +1,402 @@
-﻿{
-    "location":  "Town",
-    "fish":  [
-                 {
-                     "id":  "sunfish",
-                     "precedence":  100,
-                     "item":  "stardewcraft:sunfish",
-                     "chance":  0.35,
-                     "difficulty":  24,
-                     "motionType":  2,
-                     "minFishingLevel":  0,
-                     "seasons":  [
-                                     "spring",
-                                     "summer"
-                                 ],
-                     "timeRanges":  [
-                                        [
-                                            600,
-                                            1900
-                                        ]
-                                    ],
-                     "weather":  "sunny",
-                     "maxDepth":  3,
-                     "depthMultiplier":  0.1,
-                     "biomeTags":  [
-                                       "#stardewcraft:is_river",
-                                       "#stardewcraft:is_town_river"
-                                   ],
-                     "isTutorialFish":  true
-                 },
-                 {
-                     "id":  "smallmouth_bass",
-                     "precedence":  100,
-                     "item":  "stardewcraft:smallmouth_bass",
-                     "chance":  0.25,
-                     "difficulty":  28,
-                     "motionType":  0,
-                     "minFishingLevel":  0,
-                     "seasons":  [
-                                     "spring",
-                                     "fall"
-                                 ],
-                     "maxDepth":  3,
-                     "depthMultiplier":  0.1,
-                     "biomeTags":  [
-                                       "#stardewcraft:is_river",
-                                       "#stardewcraft:is_town_river"
-                                   ]
-                 },
-                 {
-                     "id":  "angler",
-                     "precedence":  500,
-                     "item":  "stardewcraft:angler",
-                     "chance":  0.1,
-                     "difficulty":  85,
-                     "motionType":  2,
-                     "minFishingLevel":  10,
-                     "seasons":  [
-                                     "fall"
-                                 ],
-                     "timeRanges":  [
-                                        [
-                                            600,
-                                            1900
-                                        ]
-                                    ],
-                     "maxDepth":  5,
-                     "depthMultiplier":  0.05,
-                     "biomeTags":  [
-                                       "#stardewcraft:is_town_river"
-                                   ],
-                     "condition":  "!PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
-                     "catchLimit":  1,
-                     "isBossFish":  true
-                 },
-                 {
-                     "id":  "ms_angler",
-                     "precedence":  500,
-                     "item":  "stardewcraft:ms_angler",
-                     "chance":  0.05,
-                     "difficulty":  85,
-                     "motionType":  2,
-                     "minFishingLevel":  15,
-                     "seasons":  [
-                                     "fall"
-                                 ],
-                     "timeRanges":  [
-                                        [
-                                            600,
-                                            1900
-                                        ]
-                                    ],
-                     "maxDepth":  5,
-                     "depthMultiplier":  0.05,
-                     "biomeTags":  [
-                                       "#stardewcraft:is_town_river"
-                                   ],
-                     "condition":  "PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
-                     "catchLimit":  1,
-                     "isBossFish":  true
-                 }
-             ]
+{
+  "location": "Town",
+  "fish": [
+    {
+      "id": "sunfish",
+      "precedence": 0,
+      "item": "stardewcraft:sunfish",
+      "chance": 1.0,
+      "difficulty": 30,
+      "motionType": 2,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          1900
+        ]
+      ],
+      "weather": "sunny",
+      "maxDepth": 1,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_town_river"
+      ],
+      "isTutorialFish": true,
+      "spawnRate": 0.45
+    },
+    {
+      "id": "smallmouth_bass",
+      "precedence": 0,
+      "item": "stardewcraft:smallmouth_bass",
+      "chance": 1.0,
+      "difficulty": 28,
+      "motionType": 0,
+      "minFishingLevel": 0,
+      "maxDepth": 1,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_town_river"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.45
+    },
+    {
+      "id": "angler",
+      "precedence": -100,
+      "item": "stardewcraft:angler",
+      "chance": 0.2,
+      "difficulty": 85,
+      "motionType": 2,
+      "minFishingLevel": 3,
+      "seasons": [
+        "fall"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "maxDepth": 4,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_town_river"
+      ],
+      "condition": "!PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
+      "catchLimit": 1,
+      "isBossFish": true,
+      "weather": "any",
+      "spawnRate": 0.05,
+      "curiosityLureBuff": 0.05,
+      "canBeInherited": false
+    },
+    {
+      "id": "ms_angler",
+      "precedence": -100,
+      "item": "stardewcraft:ms_angler",
+      "chance": 0.2,
+      "difficulty": 85,
+      "motionType": 2,
+      "minFishingLevel": 3,
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "maxDepth": 4,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_town_river"
+      ],
+      "condition": "PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
+      "catchLimit": 1,
+      "isBossFish": true,
+      "weather": "any",
+      "spawnRate": 0.05,
+      "curiosityLureBuff": 0.05,
+      "canBeInherited": false
+    },
+    {
+      "id": "bream",
+      "precedence": 0,
+      "item": "stardewcraft:bream",
+      "chance": 1.0,
+      "difficulty": 35,
+      "motionType": 2,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          1800,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 1,
+      "depthMultiplier": 0.1,
+      "spawnRate": 0.45,
+      "biomeTags": [
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_town_river"
+      ]
+    },
+    {
+      "id": "catfish",
+      "precedence": 0,
+      "item": "stardewcraft:catfish",
+      "chance": 1.0,
+      "difficulty": 75,
+      "motionType": 0,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          2400
+        ]
+      ],
+      "weather": "rainy",
+      "maxDepth": 4,
+      "depthMultiplier": 0.1,
+      "spawnRate": 0.4,
+      "biomeTags": [
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_town_river"
+      ],
+      "condition": "LOCATION_SEASON Here spring fall winter"
+    },
+    {
+      "id": "green_algae",
+      "precedence": 0,
+      "item": "stardewcraft:green_algae",
+      "chance": 1.0,
+      "difficulty": 5,
+      "motionType": 4,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 0,
+      "depthMultiplier": 0.0,
+      "spawnRate": 0.3,
+      "biomeTags": [
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_town_river"
+      ]
+    },
+    {
+      "id": "shad",
+      "precedence": 0,
+      "item": "stardewcraft:shad",
+      "chance": 1.0,
+      "difficulty": 45,
+      "motionType": 2,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          900,
+          2600
+        ]
+      ],
+      "weather": "rainy",
+      "maxDepth": 2,
+      "depthMultiplier": 0.2,
+      "spawnRate": 0.35,
+      "biomeTags": [
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_town_river"
+      ],
+      "condition": "LOCATION_SEASON Here spring summer fall"
+    },
+    {
+      "id": "rainbow_trout",
+      "precedence": 0,
+      "item": "stardewcraft:rainbow_trout",
+      "chance": 1.0,
+      "difficulty": 45,
+      "motionType": 0,
+      "minFishingLevel": 0,
+      "seasons": [
+        "summer"
+      ],
+      "timeRanges": [
+        [
+          600,
+          1900
+        ]
+      ],
+      "weather": "sunny",
+      "maxDepth": 2,
+      "depthMultiplier": 0.3,
+      "spawnRate": 0.35,
+      "biomeTags": [
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_town_river"
+      ]
+    },
+    {
+      "id": "pike",
+      "precedence": 0,
+      "item": "stardewcraft:pike",
+      "chance": 1.0,
+      "difficulty": 60,
+      "motionType": 1,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 3,
+      "depthMultiplier": 0.15,
+      "spawnRate": 0.4,
+      "biomeTags": [
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_town_river"
+      ],
+      "condition": "LOCATION_SEASON Here summer winter"
+    },
+    {
+      "id": "salmon",
+      "precedence": 0,
+      "item": "stardewcraft:salmon",
+      "chance": 1.0,
+      "difficulty": 50,
+      "motionType": 0,
+      "minFishingLevel": 0,
+      "seasons": [
+        "fall"
+      ],
+      "timeRanges": [
+        [
+          600,
+          1900
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 3,
+      "depthMultiplier": 0.2,
+      "spawnRate": 0.4,
+      "biomeTags": [
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_town_river"
+      ]
+    },
+    {
+      "id": "walleye",
+      "precedence": 0,
+      "item": "stardewcraft:walleye",
+      "chance": 1.0,
+      "difficulty": 45,
+      "motionType": 2,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          1200,
+          2600
+        ]
+      ],
+      "weather": "rainy",
+      "maxDepth": 2,
+      "depthMultiplier": 0.15,
+      "spawnRate": 0.4,
+      "biomeTags": [
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_town_river"
+      ],
+      "condition": "LOCATION_SEASON Here fall winter"
+    },
+    {
+      "id": "tiger_trout",
+      "precedence": 0,
+      "item": "stardewcraft:tiger_trout",
+      "chance": 1.0,
+      "difficulty": 60,
+      "motionType": 1,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          1900
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 3,
+      "depthMultiplier": 0.1,
+      "spawnRate": 0.2,
+      "biomeTags": [
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_town_river"
+      ],
+      "condition": "LOCATION_SEASON Here fall winter"
+    },
+    {
+      "id": "perch",
+      "precedence": 0,
+      "item": "stardewcraft:perch",
+      "chance": 1.0,
+      "difficulty": 35,
+      "motionType": 1,
+      "minFishingLevel": 0,
+      "seasons": [
+        "winter"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 1,
+      "depthMultiplier": 0.1,
+      "spawnRate": 0.45,
+      "biomeTags": [
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_town_river"
+      ]
+    },
+    {
+      "id": "lingcod",
+      "precedence": 0,
+      "item": "stardewcraft:lingcod",
+      "chance": 1.0,
+      "difficulty": 85,
+      "motionType": 0,
+      "minFishingLevel": 0,
+      "seasons": [
+        "winter"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 3,
+      "depthMultiplier": 0.05,
+      "spawnRate": 0.3,
+      "biomeTags": [
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_town_river"
+      ]
+    },
+    {
+      "id": "river_jelly",
+      "precedence": 0,
+      "item": "stardewcraft:river_jelly",
+      "chance": 0.1,
+      "difficulty": 20,
+      "motionType": 0,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 4,
+      "depthMultiplier": 0.0,
+      "spawnRate": 1.0,
+      "biomeTags": [
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_town_river"
+      ]
+    }
+  ]
 }

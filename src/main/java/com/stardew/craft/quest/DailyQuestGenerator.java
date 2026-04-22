@@ -1,12 +1,16 @@
 package com.stardew.craft.quest;
 
 import com.stardew.craft.item.IStardewItem;
+import com.stardew.craft.mining.MiningDataManager;
+import com.stardew.craft.mining.MiningPlayerData;
 import com.stardew.craft.time.StardewTimeManager;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
+import javax.annotation.Nullable;
 import java.util.Random;
 
 /**
@@ -23,7 +27,7 @@ public final class DailyQuestGenerator {
         "sam", "sebastian", "abigail", "shane", "emily", "leah",
         "maru", "elliott", "harvey", "caroline", "demetrius",
         "pierre", "robin", "gus", "clint", "willy", "marnie",
-        "pam", "george", "jodi", "linus"
+        "pam", "george", "jodi", "linus", "sandy"
     };
 
     // ─── 交付物品池 (按季节) ───
@@ -73,39 +77,117 @@ public final class DailyQuestGenerator {
         "sd_mob_slime", "sd_mob_bat", "sd_mob_skeleton", "sd_mob_dust_sprite",
         "sd_mob_ghost", "sd_mob_crab", "sd_mob_shadow", "sd_mob_fly"
     };
-    private static final String[] MONSTER_DISPLAY_NAMES = {
-        "Slime", "Bat", "Skeleton", "Dust Sprite",
-        "Ghost", "Rock Crab", "Shadow Brute", "Fly"
-    };
     private static final int[] MONSTER_KILL_COUNTS = {10, 10, 8, 15, 5, 5, 5, 12};
     private static final int[] MONSTER_REWARDS = {100, 100, 150, 100, 200, 150, 150, 100};
 
     /**
-     * 根据游戏日和世界种子生成当日公告栏任务
-     * @param gameDay 绝对天数 (从 StardewTimeManager 获取)
+     * SDV parity Utility.getQuestOfTheDay (Utility.cs:3195).
+     *
+     * 概率表（按顺序，首个命中即返回）：
+     * <ul>
+     *   <li>gameDay ≤ 1 → null（首日无任务）</li>
+     *   <li>d < 0.08 → ResourceCollection</li>
+     *   <li>d < 0.20 AND 玩家已到达矿井任一层 AND daysPlayed > 5 → SlayMonster</li>
+     *   <li>d < 0.50 → null（30% 天数不给任务）</li>
+     *   <li>d < 0.60 → Fishing</li>
+     *   <li>d < 0.66 AND 今天周一 AND 此玩家本存档没做过 SocializeQuest → Socialize</li>
+     *   <li>else → ItemDelivery</li>
+     * </ul>
+     *
+     * @param gameDay   绝对天数（从 1 开始）
      * @param worldSeed 世界种子
-     * @return 生成的每日任务
+     * @param player    要为其生成的玩家（用于读取矿井进度 / 社交任务历史）；可为 null，此时按"最宽松"对待
+     * @return 生成的每日任务；可能为 null（玩家今天没任务）
      */
-    public static StardewQuest generate(int gameDay, long worldSeed) {
-        Random rng = new Random(worldSeed + gameDay * 77L);
-        int season = getCurrentSeason();
-        int questType = rng.nextInt(4); // 0=delivery, 1=fishing, 2=resource, 3=monster
-
-        String questId = "daily_" + gameDay;
-        StardewQuest quest;
-
-        switch (questType) {
-            case 0 -> quest = generateDeliveryQuest(rng, questId, season);
-            case 1 -> quest = generateFishingQuest(rng, questId, season);
-            case 2 -> quest = generateResourceQuest(rng, questId);
-            case 3 -> quest = generateMonsterQuest(rng, questId);
-            default -> quest = generateDeliveryQuest(rng, questId, season);
+    @Nullable
+    public static StardewQuest generate(int gameDay, long worldSeed, @Nullable ServerPlayer player) {
+        // 首日无任务（SDV: DaysPlayed <= 1 → return null）
+        if (gameDay <= 1) {
+            return null;
         }
+
+        // SDV: CreateDaySaveRandom(100.0, DaysPlayed * 777).NextDouble()
+        // 确定性：同一 gameDay + 同一 worldSeed → 同一随机数。多玩家独立生成可以用玩家 UUID 加入种子。
+        long baseSeed = worldSeed + gameDay * 777L;
+        if (player != null) {
+            baseSeed ^= player.getUUID().getLeastSignificantBits();
+        }
+        Random rng = new Random(baseSeed);
+        double d = rng.nextDouble();
+
+        int season = getCurrentSeason();
+        String questId = "daily_" + gameDay;
+
+        // 是否已进过矿井（等价 SDV MineShaft.lowestLevelReached > 0）
+        boolean everEnteredMine = false;
+        if (player != null) {
+            MiningPlayerData md = MiningDataManager.getPlayerData(player);
+            everEnteredMine = md != null && md.getMaxFloorReached() > 0;
+        }
+
+        StardewQuest quest = null;
+
+        if (d < 0.08) {
+            quest = generateResourceQuest(rng, questId);
+        } else if (d < 0.20 && everEnteredMine && gameDay > 5) {
+            quest = generateMonsterQuest(rng, questId);
+        } else if (d < 0.50) {
+            // 30% 天数没任务
+            return null;
+        } else if (d < 0.60) {
+            quest = generateFishingQuest(rng, questId, season);
+        } else if (d < 0.66 && isMonday(gameDay) && !playerHasDoneSocializeQuest(player)) {
+            // 周一 + 本存档还没做过 → 社交任务
+            quest = generateSocializeQuest(rng, questId, player);
+        } else {
+            quest = generateDeliveryQuest(rng, questId, season);
+        }
+
+        if (quest == null) return null;
 
         quest.setDailyQuest(true);
         quest.setCanBeCancelled(true);
         quest.setDaysLeft(2);
         return quest;
+    }
+
+    /** 兼容老代码的无 player 重载 — 等价于 SDV 的"宽松"模式。 */
+    @Nullable
+    public static StardewQuest generate(int gameDay, long worldSeed) {
+        return generate(gameDay, worldSeed, null);
+    }
+
+    /** gameDay 对应的"周一"判定（SDV 周一起，7 天一周）。
+     *  约定 gameDay=1 是春1 = Monday（与 SDV Game1.shortDayNameFromDayOfSeason 同步）。 */
+    private static boolean isMonday(int gameDay) {
+        return ((gameDay - 1) % 7) == 0;
+    }
+
+    /** 该玩家本存档是否做过任何社交任务。用 QuestManager 的 completed 集合查询。 */
+    private static boolean playerHasDoneSocializeQuest(@Nullable ServerPlayer player) {
+        if (player == null) return false;
+        QuestManager qm = QuestManager.of(player);
+        if (qm == null) return false;
+        // 已完成
+        for (String id : qm.getCompletedQuestIds()) {
+            if (id != null && id.startsWith("socialize_")) return true;
+        }
+        // 或已在任务栏里（避免一周重复接）
+        for (StardewQuest q : qm.getQuestLog()) {
+            if (q instanceof SocializeQuest) return true;
+        }
+        return false;
+    }
+
+    /** SDV parity: SocializeQuest（和所有 NPC 打招呼）— 没数据驱动，只是新建实例。 */
+    private static SocializeQuest generateSocializeQuest(Random rng, String id, @Nullable ServerPlayer player) {
+        SocializeQuest q = new SocializeQuest();
+        q.setId(id);
+        q.setTitle("Socialization");
+        q.setDescription("Introduce yourself to everyone in the valley.");
+        q.setObjectiveText("Meet every villager");
+        q.setMoneyReward(500);
+        return q;
     }
 
     private static ItemDeliveryQuest generateDeliveryQuest(Random rng, String id, int season) {
@@ -115,15 +197,16 @@ public final class DailyQuestGenerator {
         String npc = DELIVERY_NPCS[rng.nextInt(DELIVERY_NPCS.length)];
         String[] items = DELIVERY_ITEMS_BY_SEASON[Math.min(season, 3)];
         String item = items[rng.nextInt(items.length)];
-        String itemName = item.substring(item.indexOf(':') + 1).replace('_', ' ');
-        String npcName = npc.substring(0, 1).toUpperCase() + npc.substring(1);
 
         q.setTargetNpc(npc);
         q.setItemId(item);
         q.setNumber(1);
-        q.setTitle(npcName + "'s Request");
-        q.setDescription(npcName + " needs a " + itemName + ". Can you bring one?");
-        q.setObjectiveText("Bring " + itemName + " to " + npcName);
+        // 本地化：NPC 名走 entity.stardewcraft.npc.<id>，物品名走 item.<namespace>.<path>
+        String npcKey = "entity.stardewcraft.npc." + npc;
+        String itemKey = itemDescriptionId(item);
+        q.setLocalizedTitle("stardewcraft.quest.delivery.title", npcKey);
+        q.setLocalizedDescription("stardewcraft.quest.delivery.desc", npcKey, itemKey);
+        q.setLocalizedObjective("stardewcraft.quest.delivery.objective", itemKey, npcKey);
         q.setMoneyReward(Math.max(75, getItemPrice(item) * 3));
         return q;
     }
@@ -134,16 +217,17 @@ public final class DailyQuestGenerator {
 
         String[] fishes = FISH_BY_SEASON[Math.min(season, 3)];
         String fish = fishes[rng.nextInt(fishes.length)];
-        String fishName = fish.substring(fish.indexOf(':') + 1).replace('_', ' ');
         int count = 1 + rng.nextInt(3); // 1-3 fish
 
         q.setTargetNpc("willy");
         q.setItemId(fish);
         q.setNumberToFish(count);
-        q.setTitle("Willy's Fishing Request");
-        q.setDescription("Willy needs " + count + " " + fishName + " for a customer order.");
-        q.setObjectiveText("Catch " + count + " " + fishName);
-        // SDV two-phase: reward stored in subclass field, transferred to moneyReward on NPC report
+        String fishKey = itemDescriptionId(fish);
+        String willyKey = "entity.stardewcraft.npc.willy";
+        q.setLocalizedTitle("stardewcraft.quest.fishing.title", willyKey);
+        q.setLocalizedDescription("stardewcraft.quest.fishing.desc", willyKey, String.valueOf(count), fishKey);
+        // objective: "钓 {count} 条 {fish}（{progress}/{count}）" — 进度在 FishingQuest.getObjectiveComponents 动态生成
+        q.setLocalizedObjective("stardewcraft.quest.fishing.objective", String.valueOf(count), fishKey, "0");
         q.setReward(Math.max(100, count * (int)(getItemPrice(fish) * 1.5)));
         return q;
     }
@@ -154,18 +238,17 @@ public final class DailyQuestGenerator {
 
         int idx = rng.nextInt(RESOURCE_ITEMS.length);
         String item = RESOURCE_ITEMS[idx];
-        String itemName = item.substring(item.indexOf(':') + 1).replace('_', ' ');
         int amount = RESOURCE_AMOUNTS[idx];
-        // SDV: reward = item.Price * number (dynamic)
         int reward = Math.max(100, getItemPrice(item) * amount);
 
         q.setTargetNpc(RESOURCE_NPC);
         q.setItemId(item);
         q.setNumber(amount);
-        q.setTitle("Resource Collection");
-        q.setDescription("Clint needs " + amount + " " + itemName + " for the forge.");
-        q.setObjectiveText("Collect " + amount + " " + itemName);
-        // SDV two-phase: reward stored in subclass field, transferred to moneyReward on NPC report
+        String itemKey = itemDescriptionId(item);
+        String clintKey = "entity.stardewcraft.npc." + RESOURCE_NPC;
+        q.setLocalizedTitle("stardewcraft.quest.resource.title");
+        q.setLocalizedDescription("stardewcraft.quest.resource.desc", clintKey, String.valueOf(amount), itemKey);
+        q.setLocalizedObjective("stardewcraft.quest.resource.objective", String.valueOf(amount), itemKey, "0");
         q.setReward(reward);
         return q;
     }
@@ -176,17 +259,17 @@ public final class DailyQuestGenerator {
 
         int idx = rng.nextInt(MONSTER_TYPES.length);
         String monsterTag = MONSTER_TYPES[idx];
-        String monsterName = MONSTER_DISPLAY_NAMES[idx];
         int killCount = MONSTER_KILL_COUNTS[idx];
         int reward = MONSTER_REWARDS[idx];
 
         q.setMonsterName(monsterTag);
-        q.setTargetNpc("lewis"); // SDV: Lewis/Demetrius/Wizard depending on monster type
+        q.setTargetNpc("lewis");
         q.setNumberToKill(killCount);
-        q.setTitle("Monster Eradication");
-        q.setDescription("The adventurer's guild needs someone to slay " + killCount + " " + monsterName + "s.");
-        q.setObjectiveText("Slay " + killCount + " " + monsterName + "s (" + 0 + "/" + killCount + ")");
-        // SDV two-phase: reward stored in subclass field, transferred to moneyReward on NPC report
+        // 怪物名：走翻译键 stardewcraft.monster.<id>（我们在 lang 里加上对应条目）
+        String monsterKey = "stardewcraft.monster." + monsterTag;
+        q.setLocalizedTitle("stardewcraft.quest.monster.title");
+        q.setLocalizedDescription("stardewcraft.quest.monster.desc", String.valueOf(killCount), monsterKey);
+        q.setLocalizedObjective("stardewcraft.quest.monster.objective", String.valueOf(killCount), monsterKey, "0");
         q.setReward(reward);
         return q;
     }
@@ -198,6 +281,17 @@ public final class DailyQuestGenerator {
         } catch (Exception e) {
             return 0;
         }
+    }
+
+    /**
+     * 把 registry id（如 "stardewcraft:carp"）转成物品描述翻译键（"item.stardewcraft.carp"）。
+     * 客户端的 lang 文件里登记这个键 → Component.translatable 会自动解析为对应语言的物品名。
+     */
+    private static String itemDescriptionId(String registryId) {
+        if (registryId == null || registryId.isEmpty()) return "";
+        int colon = registryId.indexOf(':');
+        if (colon < 0) return "item." + registryId;
+        return "item." + registryId.substring(0, colon) + "." + registryId.substring(colon + 1);
     }
 
     /** Look up the sell price of a stardew item by registry id. Falls back to 50 if not found. */

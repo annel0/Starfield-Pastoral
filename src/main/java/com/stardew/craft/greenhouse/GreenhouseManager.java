@@ -267,7 +267,7 @@ public class GreenhouseManager extends SavedData {
      */
     public static BlockPos getExitPosForPlayer(net.minecraft.server.level.ServerPlayer player) {
         com.stardew.craft.farm.FarmInstance farm =
-            com.stardew.craft.farm.FarmInstanceRegistry.get().getFarm(player.getUUID());
+            com.stardew.craft.farm.FarmInstanceRegistry.get().getFarmForPlayer(player.getUUID());
         if (farm != null) {
             // 农场温室门口（CW90后门偏移 (8,0,0)）
             return farm.getGreenhousePos().offset(8, 0, 0);

@@ -1,0 +1,47 @@
+package com.stardew.craft.cutscene.network;
+
+import com.stardew.craft.StardewCraft;
+import com.stardew.craft.cutscene.server.EventSeenData;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+
+import java.util.ArrayList;
+
+/**
+ * Client → Server: notify that the player finished watching an event.
+ */
+public record MarkEventSeenPayload(String eventId) implements CustomPacketPayload {
+
+    public static final Type<MarkEventSeenPayload> TYPE = new Type<>(
+            ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "mark_event_seen"));
+
+    public static final StreamCodec<ByteBuf, MarkEventSeenPayload> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.STRING_UTF8, MarkEventSeenPayload::eventId,
+            MarkEventSeenPayload::new);
+
+    @SuppressWarnings("null")
+    public static void handle(MarkEventSeenPayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            ServerPlayer player = (ServerPlayer) context.player();
+            // Cutscene ended client-side: release server-side action lock
+            com.stardew.craft.cutscene.server.ServerCutsceneTracker.clear(player.getUUID());
+            EventSeenData data = EventSeenData.get(player.serverLevel());
+            data.markSeen(player.getUUID(), payload.eventId);
+
+            // Sync back full list to confirm
+            var seen = data.getSeenEvents(player.getUUID());
+            PacketDistributor.sendToPlayer(player, new SyncEventSeenPayload(new ArrayList<>(seen)));
+        });
+    }
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+}

@@ -93,18 +93,30 @@ public class MineMonsterSpawnHandler {
             assignSilverfish(mob, floor);
         } else if (type == EntityType.ENDERMITE) {
             assignEndermite(mob, floor);
-        } else if (type == EntityType.VEX) {
-            assignVex(mob, floor);
+        } else if (type == EntityType.SPIDER) {
+            assignBug(mob, floor);
+        } else if (type == EntityType.CAVE_SPIDER) {
+            assignFly(mob, floor);
+        } else if (type == EntityType.HUSK) {
+            assignGhost(mob, floor);
         } else if (type == EntityType.SKELETON) {
             assignSkeleton(mob, floor);
         } else if (type == EntityType.ZOMBIE) {
             assignZombie(mob, floor);
         } else if (type == EntityType.WITHER_SKELETON) {
             assignWitherSkeleton(mob, floor);
-        } else if (type == EntityType.EVOKER) {
-            assignEvoker(mob, floor);
+        } else if (type == EntityType.STRAY) {
+            assignStray(mob, floor);
         } else if (type == EntityType.BLAZE) {
             assignBlaze(mob, floor);
+        } else if (type == EntityType.DROWNED) {
+            assignMummy(mob, floor);
+        } else if (type == EntityType.VEX) {
+            assignSerpent(mob, floor);
+        } else if (type == EntityType.HOGLIN) {
+            assignDino(mob, floor);
+        } else if (type == EntityType.MAGMA_CUBE) {
+            assignBigSlime(mob, floor);
         } else {
             // 不属于矿井怪物映射表：取消生成
             event.setCanceled(true);
@@ -112,129 +124,232 @@ public class MineMonsterSpawnHandler {
     }
 
     // ======================== 怪物分配 ========================
-    // 所有数值严格匹配 SDV 原版 (MINE_MONSTER_SYSTEM_DESIGN.md §2.2)
+    // 数值基于 SDV Monsters.json，加入楼层缩放（zone 起始 0.8x → zone 末尾 1.0x）
+
+    /**
+     * 楼层难度缩放：每个 zone 内部从 0.8 逐渐升到 1.0
+     * 让同一 zone 前几层更轻松，后几层接近 SDV 原值
+     */
+    private static float getFloorScaling(int floor) {
+        float progress;
+        if (floor <= 40) {
+            progress = Math.max(0f, floor / 40f);
+        } else if (floor <= 79) {
+            progress = (floor - 40) / 40f;
+        } else if (floor <= 119) {
+            progress = (floor - 80) / 40f;
+        } else if (floor > 120) {
+            // 骷髅矿：1.0 + (floor-120) * 0.008，上限 2.5
+            float skullScaling = 1.0f + (floor - 120) * 0.008f;
+            return Math.min(2.5f, skullScaling);
+        } else {
+            progress = 1.0f;
+        }
+        return 0.8f + 0.2f * progress;
+    }
 
     private static void assignSlime(Mob mob, int floor) {
+        float s = getFloorScaling(floor);
         mob.addTag("sd_mob_slime");
         if (floor >= 80) {
             mob.addTag("sd_tier_3");
-            setStats(mob, 205, 16, 0, 0.25);   // Sludge (SDV 原版)
+            setStats(mob, 205 * s, 16 * s, 0, 0.25);
             setSDVName(mob, "Sludge");
         } else if (floor >= 40) {
             mob.addTag("sd_tier_2");
-            setStats(mob, 106, 7, 0, 0.25);    // Frost Jelly
+            setStats(mob, 106 * s, 7 * s, 0, 0.25);
             setSDVName(mob, "Frost Jelly");
         } else {
-            setStats(mob, 24, 5, 0, 0.25);     // Green Slime
+            setStats(mob, 24 * s, 5 * s, 0, 0.25);
             setSDVName(mob, "Green Slime");
         }
     }
 
     private static void assignBat(Mob mob, int floor) {
+        float s = getFloorScaling(floor);
         mob.addTag("sd_mob_bat");
         if (floor >= 120) {
             mob.addTag("sd_tier_4");
-            setStats(mob, 300, 25, 0, 0.40);    // Iridium Bat (SDV 原版)
+            setStats(mob, 300 * s, 25 * s, 0, 0.40); // Iridium Bat — 按楼层缩放
             setSDVName(mob, "Iridium Bat");
         } else if (floor >= 80) {
             mob.addTag("sd_tier_3");
-            setStats(mob, 80, 15, 0, 0.35);    // Lava Bat
+            setStats(mob, 80 * s, 15 * s, 0, 0.35);
             setSDVName(mob, "Lava Bat");
         } else if (floor >= 40) {
             mob.addTag("sd_tier_2");
-            setStats(mob, 36, 7, 0, 0.30);     // Frost Bat
+            setStats(mob, 36 * s, 7 * s, 0, 0.30);
             setSDVName(mob, "Frost Bat");
         } else {
-            setStats(mob, 24, 6, 0, 0.30);     // Bat
+            setStats(mob, 24 * s, 6 * s, 0, 0.30);
             setSDVName(mob, "Bat");
         }
     }
 
     private static void assignSilverfish(Mob mob, int floor) {
-        if (floor >= 80) {
-            // Lava Crab (80-119)
+        float s = getFloorScaling(floor);
+        if (floor > 120) {
+            // 骷髅矿：Iridium Crab
+            mob.addTag("sd_mob_crab");
+            mob.addTag("sd_tier_4");
+            mob.addTag("sd_tier_skull");
+            setStats(mob, 300 * s, 28 * s, 16, 0.20);
+            setSDVName(mob, "Iridium Crab");
+        } else if (floor >= 80) {
             mob.addTag("sd_mob_crab");
             mob.addTag("sd_tier_2");
-            setStats(mob, 120, 15, 12, 0.25);
+            setStats(mob, 120 * s, 15 * s, 12, 0.25);
             setSDVName(mob, "Lava Crab");
         } else if (floor >= 40) {
-            // 40-79 层无 Silverfish 类怪物，按 Duggy 处理
             mob.addTag("sd_mob_duggy");
-            setStats(mob, 40, 6, 0, 0.20);
+            setStats(mob, 40 * s, 6 * s, 0, 0.20);
             setSDVName(mob, "Duggy");
         } else {
-            // Rock Crab (1-39) 或 Duggy (1-39) — 随机分配
+            // 1-39: Rock Crab 或 Duggy（随机）
             if (mob.getRandom().nextBoolean()) {
                 mob.addTag("sd_mob_crab");
-                setStats(mob, 30, 5, 8, 0.20);     // Rock Crab
+                setStats(mob, 30 * s, 5 * s, 8, 0.20);
                 setSDVName(mob, "Rock Crab");
             } else {
                 mob.addTag("sd_mob_duggy");
-                setStats(mob, 40, 6, 0, 0.20);     // Duggy
+                setStats(mob, 40 * s, 6 * s, 0, 0.20);
                 setSDVName(mob, "Duggy");
             }
         }
     }
 
     private static void assignEndermite(Mob mob, int floor) {
+        float s = getFloorScaling(floor);
         if (floor >= 40) {
             mob.addTag("sd_mob_dust_sprite");
-            setStats(mob, 40, 6, 2, 0.35);     // Dust Spirit (SDV 原版)
+            setStats(mob, 40 * s, 6 * s, 2, 0.35);
             setSDVName(mob, "Dust Spirit");
         } else {
             mob.addTag("sd_mob_grub");
-            setStats(mob, 20, 4, 0, 0.15);     // Grub
+            setStats(mob, 20 * s, 4 * s, 0, 0.15);
             setSDVName(mob, "Grub");
         }
     }
 
-    private static void assignVex(Mob mob, int floor) {
-        if (floor >= 40) {
+    /** Bug（SDV 装甲飞虫）— MC Spider 映射 */
+    private static void assignBug(Mob mob, int floor) {
+        float s = getFloorScaling(floor);
+        mob.addTag("sd_mob_bug");
+        setStats(mob, 1, 8 * s, 0, 0.30);  // SDV Bug: 1HP 但 8ATK，一碰就死
+        setSDVName(mob, "Bug");
+    }
+
+    /** Fly（SDV 苍蝇）— MC Cave Spider 映射 */
+    private static void assignFly(Mob mob, int floor) {
+        float s = getFloorScaling(floor);
+        mob.addTag("sd_mob_fly");
+        setStats(mob, 22 * s, 6 * s, 0, 0.30);
+        setSDVName(mob, "Fly");
+    }
+
+    /** Ghost — MC Husk 映射（缓慢肉搏型，每层限 1 只） */
+    private static void assignGhost(Mob mob, int floor) {
+        float s = getFloorScaling(floor);
+        if (floor > 120) {
+            // 骷髅矿：Carbon Ghost
             mob.addTag("sd_mob_ghost");
-            setStats(mob, 96, 10, 2, 0.30);    // Ghost (SDV 原版)
-            setSDVName(mob, "Ghost");
+            mob.addTag("sd_tier_skull");
+            setStats(mob, 190 * s, 25 * s, 4, 0.30);
+            setSDVName(mob, "Carbon Ghost");
         } else {
-            mob.addTag("sd_mob_fly");
-            setStats(mob, 22, 6, 0, 0.30);     // Fly
-            setSDVName(mob, "Fly");
+            mob.addTag("sd_mob_ghost");
+            setStats(mob, 96 * s, 10 * s, 3, 0.25);
+            setSDVName(mob, "Ghost");
         }
     }
 
     private static void assignSkeleton(Mob mob, int floor) {
+        float s = getFloorScaling(floor);
         mob.addTag("sd_mob_skeleton");
-        setStats(mob, 140, 10, 2, 0.25);       // Skeleton (SDV 原版，仅40-79层出现)
+        setStats(mob, 140 * s, 10 * s, 2, 0.25);
         setSDVName(mob, "Skeleton");
     }
 
     private static void assignZombie(Mob mob, int floor) {
+        float s = getFloorScaling(floor);
         if (floor >= 80) {
             mob.addTag("sd_mob_metal_head");
-            setStats(mob, 80, 15, 16, 0.20);   // Metal Head (SDV 原版：高护甲)
+            setStats(mob, 40 * s, 15 * s, 16, 0.20);  // SDV Metal Head: 40HP 高甲
             setSDVName(mob, "Metal Head");
         } else {
             mob.addTag("sd_mob_golem");
-            setStats(mob, 45, 5, 10, 0.18);    // Rock Golem (SDV 原版：高防)
+            setStats(mob, 45 * s, 5 * s, 10, 0.18);
             setSDVName(mob, "Rock Golem");
         }
     }
 
     private static void assignWitherSkeleton(Mob mob, int floor) {
+        float s = getFloorScaling(floor);
         mob.addTag("sd_mob_shadow");
-        setStats(mob, 160, 18, 4, 0.30);       // Shadow Brute (SDV 原版)
+        setStats(mob, 160 * s, 18 * s, 4, 0.30);
         setSDVName(mob, "Shadow Brute");
     }
 
-    private static void assignEvoker(Mob mob, int floor) {
+    /** Shadow Shaman — MC Stray 映射（远程骷髅，替代 Evoker 避免召唤恼鬼） */
+    private static void assignStray(Mob mob, int floor) {
+        float s = getFloorScaling(floor);
         mob.addTag("sd_mob_shadow");
         mob.addTag("sd_tier_2");
-        setStats(mob, 80, 17, 2, 0.25);        // Shadow Shaman (SDV 原版)
+        setStats(mob, 80 * s, 17 * s, 2, 0.25);
         setSDVName(mob, "Shadow Shaman");
     }
 
     private static void assignBlaze(Mob mob, int floor) {
+        float s = getFloorScaling(floor);
         mob.addTag("sd_mob_squid");
-        setStats(mob, 50, 18, 2, 0.25);        // Squid Kid (SDV 原版)
+        setStats(mob, 50 * s, 18 * s, 2, 0.25);
         setSDVName(mob, "Squid Kid");
+    }
+
+    // ──────── 骷髅矿洞新增怪物映射 ────────
+
+    /** Mummy — MC Drowned 映射（骷髅矿核心怪物，被击倒后可复活） */
+    private static void assignMummy(Mob mob, int floor) {
+        float s = getFloorScaling(floor);
+        mob.addTag("sd_mob_mummy");
+        mob.addTag("sd_tier_skull");
+        setStats(mob, 260 * s, 30 * s, 4, 0.20);
+        setSDVName(mob, "Mummy");
+    }
+
+    /** Serpent — MC Vex 映射（飞行型，速度快） */
+    private static void assignSerpent(Mob mob, int floor) {
+        float s = getFloorScaling(floor);
+        // 深层变为 Royal Serpent
+        if (floor >= 200 && s > 1.5f) {
+            mob.addTag("sd_mob_royal_serpent");
+            mob.addTag("sd_tier_skull");
+            setStats(mob, 300 * s, 30 * s, 3, 0.40);
+            setSDVName(mob, "Royal Serpent");
+        } else {
+            mob.addTag("sd_mob_serpent");
+            mob.addTag("sd_tier_skull");
+            setStats(mob, 150 * s, 23 * s, 2, 0.35);
+            setSDVName(mob, "Serpent");
+        }
+    }
+
+    /** DinoMonster — MC Hoglin 映射（稀有地面大型怪） */
+    private static void assignDino(Mob mob, int floor) {
+        float s = getFloorScaling(floor);
+        mob.addTag("sd_mob_dino");
+        mob.addTag("sd_tier_skull");
+        setStats(mob, 300 * s, 15 * s, 6, 0.25);
+        setSDVName(mob, "Pepper Rex");
+    }
+
+    /** BigSlime (Skull) — MC MagmaCube 映射 */
+    private static void assignBigSlime(Mob mob, int floor) {
+        float s = getFloorScaling(floor);
+        mob.addTag("sd_mob_bigslime_skull");
+        mob.addTag("sd_tier_skull");
+        setStats(mob, 200 * s, 20 * s, 2, 0.20);
+        setSDVName(mob, "Big Slime");
     }
 
     // ======================== 属性设置 ========================
@@ -293,5 +408,51 @@ public class MineMonsterSpawnHandler {
 
     private static int getFloorFromPos(Mob mob) {
         return Math.round(mob.blockPosition().getZ() / (float) MiningCoordinates.FLOOR_SPACING);
+    }
+
+    // ═══════════ Mummy 复活机制 ═══════════
+    // SDV: 非爆炸击杀 → 倒地 10 秒后原地复活满血；只有炸弹能永久击杀
+
+    /** Mummy 倒地标记 tag */
+    private static final String MUMMY_COLLAPSED_TAG = "sd_mummy_collapsed";
+
+    @SubscribeEvent
+    public static void onMummyDeath(net.neoforged.neoforge.event.entity.living.LivingDeathEvent event) {
+        if (!(event.getEntity() instanceof Mob mob)) return;
+        if (!mob.getTags().contains("sd_mob_mummy")) return;
+        // 已经在倒地状态再次被杀（如炸弹补刀）→ 允许正常死亡
+        if (mob.getTags().contains(MUMMY_COLLAPSED_TAG)) return;
+
+        // 检查伤害源是否是爆炸
+        if (event.getSource() != null && event.getSource().is(net.minecraft.world.damagesource.DamageTypes.EXPLOSION)
+                || (event.getSource() != null && event.getSource().is(net.minecraft.world.damagesource.DamageTypes.PLAYER_EXPLOSION))) {
+            return; // 爆炸 → 正常死亡
+        }
+
+        // 取消死亡 → 进入"倒地"状态
+        event.setCanceled(true);
+        mob.setHealth(1.0F); // 保留 1 HP 避免被 MC 判定为已死
+        mob.addTag(MUMMY_COLLAPSED_TAG);
+        mob.setNoAi(true);
+        mob.setInvulnerable(true);
+        mob.setSilent(true);
+
+        // 10 秒后复活
+        if (mob.level() instanceof ServerLevel serverLevel) {
+            serverLevel.getServer().tell(new net.minecraft.server.TickTask(
+                    serverLevel.getServer().getTickCount() + 200, () -> {
+                if (mob.isAlive() && mob.getTags().contains(MUMMY_COLLAPSED_TAG)) {
+                    mob.removeTag(MUMMY_COLLAPSED_TAG);
+                    mob.setNoAi(false);
+                    mob.setInvulnerable(false);
+                    mob.setSilent(false);
+                    // 复活满血
+                    AttributeInstance maxHp = mob.getAttribute(Attributes.MAX_HEALTH);
+                    if (maxHp != null) {
+                        mob.setHealth((float) maxHp.getValue());
+                    }
+                }
+            }));
+        }
     }
 }

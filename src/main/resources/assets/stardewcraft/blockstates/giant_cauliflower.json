@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "part=main": { "model": "stardewcraft:block/crop/giant/empty" },
+    "part=extension": { "model": "stardewcraft:block/crop/giant/empty" }
+  }
+}

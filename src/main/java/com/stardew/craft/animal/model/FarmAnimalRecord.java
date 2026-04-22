@@ -25,6 +25,8 @@ public class FarmAnimalRecord {
     private String currentProduceId;
     private int produceQuality;
     private boolean hasEatenAnimalCracker;
+    /** 上次处理的绝对天数（用于离线追赶）。新动物默认 0，首次 growDaily 时会初始化。 */
+    private int lastProcessedAbsDay;
 
     public FarmAnimalRecord(long animalId,
                             String animalTypeId,
@@ -106,6 +108,7 @@ public class FarmAnimalRecord {
         this.currentProduceId = currentProduceId == null ? "" : currentProduceId;
         this.produceQuality = Math.max(0, produceQuality);
         this.hasEatenAnimalCracker = hasEatenAnimalCracker;
+        this.lastProcessedAbsDay = 0; // 新动物默认 0，首次处理时会初始化
     }
 
     public long animalId() {
@@ -254,6 +257,14 @@ public class FarmAnimalRecord {
         this.hasEatenAnimalCracker = hasEatenAnimalCracker;
     }
 
+    public int lastProcessedAbsDay() {
+        return lastProcessedAbsDay;
+    }
+
+    public void setLastProcessedAbsDay(int day) {
+        this.lastProcessedAbsDay = day;
+    }
+
     public String buildingId() {
         return buildingId;
     }
@@ -303,11 +314,12 @@ public class FarmAnimalRecord {
         tag.putString("currentProduceId", currentProduceId);
         tag.putInt("produceQuality", produceQuality);
         tag.putBoolean("hasEatenAnimalCracker", hasEatenAnimalCracker);
+        tag.putInt("lastProcessedAbsDay", lastProcessedAbsDay);
         return tag;
     }
 
     public static FarmAnimalRecord load(CompoundTag tag) {
-        return new FarmAnimalRecord(
+        FarmAnimalRecord record = new FarmAnimalRecord(
             tag.getLong("animalId"),
             tag.getString("animalTypeId"),
             tag.getString("customName"),
@@ -331,5 +343,8 @@ public class FarmAnimalRecord {
             tag.contains("produceQuality") ? tag.getInt("produceQuality") : 0,
             tag.contains("hasEatenAnimalCracker") && tag.getBoolean("hasEatenAnimalCracker")
         );
+        // 读取时间戳（旧存档兼容：不存在则为 0，首次处理时会初始化）
+        record.lastProcessedAbsDay = tag.contains("lastProcessedAbsDay") ? tag.getInt("lastProcessedAbsDay") : 0;
+        return record;
     }
 }

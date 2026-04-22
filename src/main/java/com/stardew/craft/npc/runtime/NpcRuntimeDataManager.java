@@ -1,6 +1,5 @@
 package com.stardew.craft.npc.runtime;
 
-import com.stardew.craft.StardewCraft;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.saveddata.SavedData;
@@ -48,7 +47,6 @@ public final class NpcRuntimeDataManager extends SavedData {
             manager.states.put(state.npcId(), state);
         }
 
-        StardewCraft.LOGGER.info("Loaded NPC runtime states: {}", manager.states.size());
         return manager;
     }
 

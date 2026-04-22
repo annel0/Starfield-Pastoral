@@ -2,9 +2,9 @@ package com.stardew.craft.weather;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModDimensions;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.GameRules;
-import net.minecraft.world.level.storage.ServerLevelData;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -114,48 +114,47 @@ public class WeatherManager {
 
     /**
      * 预测明天的天气（基于星露谷物语的概率系统）
+     * SDV 原版概率来自 Data/LocationContexts.json WeatherConditions：
+     * - 春/秋：18.3% 雨（其中 25% 变雷暴≈4.6%），春风~15%，秋风~49%
+     * - 夏：特殊雨概率（约 18%），其中 85% 变雷暴
+     * - 冬：63% 雪
      */
     public static String predictTomorrowWeather(ServerLevel level, String season, int dayOfMonth, Random random) {
         
 
-        // 基础概率（可以后续从配置文件读取）
-        // 星露谷物语的天气概率：
-        // - 春天：晴天40%，雨天40%，微风20%
-        // - 夏天：晴天80%，雨天18%，雷暴2%
-        // - 秋天：晴天40%，雨天40%，微风20%
-        // - 冬天：晴天50%，雪50%
-
         double roll = random.nextDouble();
 
         if ("winter".equalsIgnoreCase(season)) {
-            // 冬天：50%雪天，50%晴天
-            return roll < 0.50 ? "Snow" : "Sun";
+            // 冬天：63%雪天，37%晴天（SDV: SYNCED_RANDOM 0.63）
+            return roll < 0.63 ? "Snow" : "Sun";
         } else if ("spring".equalsIgnoreCase(season)) {
-            // 春天：40%晴天，40%雨天，20%微风
-            if (roll < 0.40) {
-                return "Sun";
-            } else if (roll < 0.80) {
-                return "Rain";
-            } else {
+            // 春天（SDV 顺序）：18.3%雨/雷暴，剩余中20%风，其余晴天
+            if (roll < 0.183) {
+                // 雨中25%变雷暴（需28天后）
+                return random.nextDouble() < 0.25 ? "Storm" : "Rain";
+            } else if (random.nextDouble() < 0.20) {
                 return "WindSpring";
+            } else {
+                return "Sun";
             }
         } else if ("summer".equalsIgnoreCase(season)) {
-            // 夏天：80%晴天，18%雨天，2%雷暴
-            if (roll < 0.80) {
-                return "Sun";
-            } else if (roll < 0.98) {
-                return "Rain";
-            } else {
+            // 夏天：约18%降水，其中85%变雷暴；13号固定雷暴
+            if (dayOfMonth % 13 == 0) {
                 return "Storm";
             }
-        } else if ("fall".equalsIgnoreCase(season)) {
-            // 秋天：40%晴天，40%雨天，20%微风
-            if (roll < 0.40) {
-                return "Sun";
-            } else if (roll < 0.80) {
-                return "Rain";
+            if (roll < 0.18) {
+                return random.nextDouble() < 0.85 ? "Storm" : "Rain";
             } else {
+                return "Sun";
+            }
+        } else if ("fall".equalsIgnoreCase(season)) {
+            // 秋天（SDV 顺序）：18.3%雨/雷暴，剩余中60%风，其余晴天
+            if (roll < 0.183) {
+                return random.nextDouble() < 0.25 ? "Storm" : "Rain";
+            } else if (random.nextDouble() < 0.60) {
                 return "WindFall";
+            } else {
+                return "Sun";
             }
         }
         
@@ -171,6 +170,28 @@ public class WeatherManager {
         }
         WeatherState state = getWeatherState(serverLevel);
         return state.weatherType;
+    }
+
+    /**
+     * 判断星露谷维度是否正在下雨/暴风雨。
+     * <p>
+     * <b>重要</b>：在星露谷维度中请用此方法替代 {@code level.isRaining()}，
+     * 因为原版 {@code isRaining()} 读取的是所有维度共享的 PrimaryLevelData 天气状态，
+     * 而非星露谷 WeatherManager 管理的独立天气。
+     */
+    public static boolean isRaining(Level level) {
+        String weather = getCurrentWeather(level);
+        return "Rain".equals(weather) || "Storm".equals(weather);
+    }
+
+    /**
+     * 判断星露谷维度是否正在雷暴。
+     * <p>
+     * <b>重要</b>：在星露谷维度中请用此方法替代 {@code level.isThundering()}，
+     * 因为原版 {@code isThundering()} 读取的是所有维度共享的 PrimaryLevelData 天气状态。
+     */
+    public static boolean isThundering(Level level) {
+        return "Storm".equals(getCurrentWeather(level));
     }
 
     /**
@@ -246,7 +267,9 @@ public class WeatherManager {
         com.stardew.craft.network.WeatherSyncPacket packet = new com.stardew.craft.network.WeatherSyncPacket(
             dimStr,
             state.weatherType,
-            state.weatherForTomorrow
+            state.weatherForTomorrow,
+            state.isRaining(),
+            state.isThundering()
         );
         
         for (net.minecraft.server.level.ServerPlayer player : level.getServer().getPlayerList().getPlayers()) {
@@ -270,9 +293,12 @@ public class WeatherManager {
     }
 
     /**
-     * 持续确保天气保持一致（每秒检查一次）
+     * 持续确保天气保持一致（每秒同步一次）。
+     *
+     * <p>原版天气 GameEventPacket 已被 {@code ClientWeatherPacketMixin} 在客户端屏蔽，
+     * 所以不存在"闪雨"问题。此处仅需定期同步，确保新进入维度的玩家等情况被覆盖。
      */
-    private static int tickCounter = 0;
+    private static int fullSyncCounter = 0;
 
     @SubscribeEvent
     public static void onLevelTick(LevelTickEvent.Post event) {
@@ -283,14 +309,31 @@ public class WeatherManager {
             return;
         }
 
-        tickCounter++;
-        // 每20 ticks（1秒）检查一次
-        if (tickCounter >= 20) {
-            tickCounter = 0;
-
+        fullSyncCounter++;
+        if (fullSyncCounter >= 20) {
+            fullSyncCounter = 0;
             WeatherState state = getWeatherState(level);
-            // 每秒强制同步，确保整天保持目标天气
             state.applyToLevel(level);
+        }
+
+        // 雷暴时生成闪电（对齐原版 ServerLevel.tickWeather 逻辑）
+        if (isThundering(level) && level.random.nextInt(100000) == 0) {
+            var players = level.players();
+            if (!players.isEmpty()) {
+                var player = players.get(level.random.nextInt(players.size()));
+                int x = (int) player.getX() + level.random.nextInt(256) - 128;
+                int z = (int) player.getZ() + level.random.nextInt(256) - 128;
+                // 沙漠区域禁止雷暴落雷（视觉与机制都不展现）
+                if (!com.stardew.craft.desert.DesertConstants.isInDesertRegion(x, z)) {
+                    BlockPos strikePos = level.getHeightmapPos(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING, new BlockPos(x, 0, z));
+                    net.minecraft.world.entity.LightningBolt bolt = net.minecraft.world.entity.EntityType.LIGHTNING_BOLT.create(level);
+                    if (bolt != null) {
+                        bolt.moveTo(net.minecraft.world.phys.Vec3.atBottomCenterOf(strikePos));
+                        bolt.setVisualOnly(false);
+                        level.addFreshEntity(bolt);
+                    }
+                }
+            }
         }
     }
 
@@ -322,60 +365,42 @@ public class WeatherManager {
         }
 
         /**
-         * 应用天气到 Minecraft 世界
+         * 应用天气到客户端（通过 mod 自定义网络包，不使用原版 GameEventPacket）。
+         *
+         * <p>原版 {@code ClientboundGameEventPacket} 天气包在星露谷维度被
+         * {@code ClientWeatherPacketMixin} 屏蔽，所以必须通过
+         * {@link com.stardew.craft.network.WeatherSyncPacket} 同步天气渲染状态。
          */
         @SuppressWarnings("null")
         public void applyToLevel(ServerLevel level) {
-            // 禁用原版天气循环——天气完全由 WeatherManager 控制。
-            // rainLevel/thunderLevel 的插值和广播在 advanceWeatherCycle 中
-            // 不受此 game rule 限制，所以客户端仍能收到 RAIN_LEVEL_CHANGE 包。
-            level.getGameRules().getRule(GameRules.RULE_WEATHER_CYCLE).set(false, level.getServer());
-            int durationTicks = 24000 * 365;
-            boolean raining = false;
-            boolean thundering = false;
-            switch (weatherType) {
-                case "Rain":
-                    raining = true;
-                    level.setWeatherParameters(0, durationTicks, true, false);
-                    break;
-                case "Storm":
-                    raining = true;
-                    thundering = true;
-                    level.setWeatherParameters(0, durationTicks, true, true);
-                    break;
-                case "Snow":
-                    // 雪天：晴天（不润湿耕地），客户端渲染器会显示雪花粒子
-                    level.setWeatherParameters(durationTicks, 0, false, false);
-                    break;
-                case "WindSpring":
-                case "WindFall":
-                case "Festival":
-                case "Sun":
-                default:
-                    // 晴天（包括风天和节日）
-                    level.setWeatherParameters(durationTicks, 0, false, false);
-                    break;
-            }
+            String dimStr = level.dimension().location().toString();
+            var packet = new com.stardew.craft.network.WeatherSyncPacket(
+                dimStr,
+                weatherType,
+                weatherForTomorrow,
+                isRaining(),
+                isThundering()
+            );
 
-            if (level.getLevelData() instanceof ServerLevelData data) {
-                data.setClearWeatherTime(raining ? 0 : durationTicks);
-                data.setRainTime(raining ? durationTicks : 0);
-                data.setRaining(raining);
-                data.setThunderTime(thundering ? durationTicks : 0);
-                data.setThundering(thundering);
-            }
-
-            if (level.dimension() != Level.OVERWORLD) {
-                ServerLevel overworld = level.getServer().overworld();
-                overworld.setWeatherParameters(raining ? 0 : durationTicks, raining ? durationTicks : 0, raining, thundering);
-                if (overworld.getLevelData() instanceof ServerLevelData overworldData) {
-                    overworldData.setClearWeatherTime(raining ? 0 : durationTicks);
-                    overworldData.setRainTime(raining ? durationTicks : 0);
-                    overworldData.setRaining(raining);
-                    overworldData.setThunderTime(thundering ? durationTicks : 0);
-                    overworldData.setThundering(thundering);
+            // 只给当前在这个维度的玩家发送
+            for (ServerPlayer player : level.getServer().getPlayerList().getPlayers()) {
+                if (player.level().dimension() == level.dimension()) {
+                    net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player, packet);
                 }
             }
+        }
+
+        /**
+         * 给单个玩家发送天气渲染包（用于玩家刚进入维度时的初始同步）。
+         */
+        public static void sendWeatherPackets(ServerPlayer player, boolean raining, boolean thundering) {
+            String dimStr = player.level().dimension().location().toString();
+            String weatherType = raining ? (thundering ? "Storm" : "Rain") : "Sun";
+            String weatherForTomorrow = "Sun"; // 初始同步时 tomorrow 无关紧要
+            var packet = new com.stardew.craft.network.WeatherSyncPacket(
+                dimStr, weatherType, weatherForTomorrow, raining, thundering
+            );
+            net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player, packet);
         }
 
         public boolean isRaining() {

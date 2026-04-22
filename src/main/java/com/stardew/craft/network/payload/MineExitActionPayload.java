@@ -52,9 +52,18 @@ public record MineExitActionPayload(Action action) implements CustomPacketPayloa
 
 			switch (payload.action) {
 				case EXIT_MINE -> {
-					// SDV ExitMine_Leave: Game1.warpFarmer("Mine", 23, 8) → 传送到矿井入口大厅（0层）
-					teleportToFloor(serverPlayer, playerData, 0);
-					StardewCraft.LOGGER.info("Player {} exited to mine entrance (floor 0)", serverPlayer.getName().getString());
+					int currentFloor = playerData.getCurrentFloor();
+					if (currentFloor > 120) {
+						// 骷髅矿：返回沙漠（而非矿井 Floor 0）
+						com.stardew.craft.mining.SkullCavernSessionManager.onPlayerLeave(
+								serverPlayer, (ServerLevel) serverPlayer.level());
+						teleportToDesert(serverPlayer, playerData);
+						StardewCraft.LOGGER.info("Player {} exited skull cavern to desert", serverPlayer.getName().getString());
+					} else {
+						// SDV ExitMine_Leave: Game1.warpFarmer("Mine", 23, 8) → 传送到矿井入口大厅（0层）
+						teleportToFloor(serverPlayer, playerData, 0);
+						StardewCraft.LOGGER.info("Player {} exited to mine entrance (floor 0)", serverPlayer.getName().getString());
+					}
 				}
 				case GO_UP_FLOOR -> {
 					int currentFloor = playerData.getCurrentFloor();
@@ -83,6 +92,32 @@ public record MineExitActionPayload(Action action) implements CustomPacketPayloa
 		net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(
 			serverPlayer,
 			new com.stardew.craft.network.MiningFloorSyncPacket(targetFloor)
+		);
+	}
+
+	/** 骷髅矿出口 → 传送到沙漠矿洞入口附近 */
+	private static void teleportToDesert(ServerPlayer serverPlayer, MiningPlayerData playerData) {
+		@SuppressWarnings("null")
+		ServerLevel stardew = serverPlayer.server.getLevel(com.stardew.craft.core.ModDimensions.STARDEW_VALLEY);
+		if (stardew == null) return;
+
+		// 使用骷髅矿专用出口坐标 (-339, -42, 1268)，朝南
+		net.minecraft.core.BlockPos arrival = com.stardew.craft.desert.DesertConstants.worldPos(
+				com.stardew.craft.desert.DesertConstants.SKULL_CAVERN_EXIT_OFFSET);
+
+		serverPlayer.teleportTo(stardew,
+				arrival.getX() + 0.5D,
+				arrival.getY(),
+				arrival.getZ() + 0.5D,
+				java.util.Set.of(),
+				180.0F, 0.0F);
+
+		playerData.setCurrentFloor(0);
+		MiningDataManager.savePlayerData(serverPlayer, playerData);
+
+		net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(
+			serverPlayer,
+			new com.stardew.craft.network.MiningFloorSyncPacket(0)
 		);
 	}
 }

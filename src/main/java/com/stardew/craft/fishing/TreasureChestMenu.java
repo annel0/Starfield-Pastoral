@@ -113,13 +113,11 @@ public class TreasureChestMenu extends AbstractContainerMenu {
 		super.removed(player);
 		if (!player.level().isClientSide) {
 			for (int i = 0; i < CHEST_SIZE; i++) {
-				ItemStack leftover = this.container.getItem(i);
+				ItemStack leftover = this.container.removeItemNoUpdate(i);
 				if (!leftover.isEmpty()) {
-					boolean added = player.getInventory().add(leftover.copy());
-					if (!added) {
-						player.drop(leftover.copy(), false);
+					if (!player.getInventory().add(leftover)) {
+						player.drop(leftover, false);
 					}
-					this.container.setItem(i, ItemStack.EMPTY);
 				}
 			}
 		}

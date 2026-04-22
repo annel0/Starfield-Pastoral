@@ -28,6 +28,16 @@ public final class ModGameRules {
                     GameRules.Category.PLAYER,
                     GameRules.IntegerValue.create(300));
 
+    /**
+     * 玩家离线期间季节变化后，上线时作物获得的宽限天数。
+     * 宽限期内，过季作物不会枯死，仍可正常生长和收获。
+     * 默认 3 天。设为 0 则禁用宽限（过季立即枯死）。
+     */
+    public static final GameRules.Key<GameRules.IntegerValue> RULE_CROP_GRACE_PERIOD_DAYS =
+            GameRules.register("stardewCropGracePeriodDays",
+                    GameRules.Category.PLAYER,
+                    GameRules.IntegerValue.create(3));
+
     private ModGameRules() {}
 
     /** 在 mod 初始化时调用，触发静态字段注册 */

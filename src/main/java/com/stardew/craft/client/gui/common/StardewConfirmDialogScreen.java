@@ -68,12 +68,9 @@ public class StardewConfirmDialogScreen extends Screen {
                 ),
                 index -> {
                     PacketDistributor.sendToServer(new SleepConfirmChoicePayload(index == 0, currentMinute));
-                    if (index == 0) {
-                        // 确认睡觉 → 打开等待界面（进度将由 SleepVoteUpdatePayload 更新）
-                        net.minecraft.client.Minecraft.getInstance().setScreen(
-                            new com.stardew.craft.client.gui.overnight.SleepWaitingOverlayScreen(1, 1));
-                    }
+                    // 确认后关闭对话框；服务端会调用 startSleeping → 客户端自动弹出原版 InBedChatScreen
                 },
+
                 -1
             )
         );

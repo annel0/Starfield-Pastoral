@@ -59,6 +59,12 @@ public final class WildTreeChopEvents {
 	private static final Map<UUID, Long> LAST_EXHAUST_WARN_TICK = new ConcurrentHashMap<>();
 	private static final Map<UUID, Long> LAST_TRUNK0_HINT_TICK = new ConcurrentHashMap<>();
 
+	public static void removePlayer(UUID playerId) {
+		MINING.remove(playerId);
+		LAST_EXHAUST_WARN_TICK.remove(playerId);
+		LAST_TRUNK0_HINT_TICK.remove(playerId);
+	}
+
 	private record MiningState(BlockPos pos, long startTick) {
 	}
 
@@ -187,6 +193,17 @@ public final class WildTreeChopEvents {
 		BlockState state = level.getBlockState(pos);
 		WildTrees.Def def = WildTrees.findByAnyPart(state);
 		if (def == null) {
+			return;
+		}
+
+		// Farm protection: in Stardew Valley, non-creative players may only chop trees where they
+		// have modify permission. Town/others' farms (without PERM_FULL) are off-limits.
+		if (level.dimension() == ModDimensions.STARDEW_VALLEY
+				&& !player.isCreative()
+				&& !FarmAreaProtectionEvents.canModifyAt(player, pos)) {
+			event.setCanceled(true);
+			player.displayClientMessage(
+					net.minecraft.network.chat.Component.translatable("stardewcraft.farm.build_farm_only"), true);
 			return;
 		}
 
@@ -724,17 +741,39 @@ public final class WildTreeChopEvents {
 	@SuppressWarnings("null")
 	private static void scheduleNearbyLeafDecay(ServerLevel level, BlockPos pivot, WildTrees.Def def) {
 		Block leaves = def.leaves().get();
+		Block trunk0 = def.trunk0().get();
+		Block trunk1 = def.trunk1().get();
+		Block branch1 = def.branch1().get();
+		Block branch2 = def.branch2().get();
 		int r = LEAF_DECAY_SCHEDULE_RADIUS;
 		for (int dx = -r; dx <= r; dx++) {
 			for (int dy = -r; dy <= r; dy++) {
 				for (int dz = -r; dz <= r; dz++) {
 					BlockPos p = pivot.offset(dx, dy, dz);
-					if (level.getBlockState(p).getBlock() == leaves) {
-						level.scheduleTick(p, leaves, 2 + level.random.nextInt(6));
+					if (level.getBlockState(p).getBlock() != leaves) {
+						continue;
 					}
+					// Only decay leaves that are not adjacent to any living wood block.
+					// Leaves next to a trunk/branch belong to a surviving tree.
+					if (isAdjacentToWood(level, p, trunk0, trunk1, branch1, branch2)) {
+						continue;
+					}
+					level.scheduleTick(p, leaves, 2 + level.random.nextInt(6));
 				}
 			}
 		}
+	}
+
+	@SuppressWarnings("null")
+	private static boolean isAdjacentToWood(ServerLevel level, BlockPos leafPos,
+			Block trunk0, Block trunk1, Block branch1, Block branch2) {
+		for (Direction d : Direction.values()) {
+			Block b = level.getBlockState(leafPos.relative(d)).getBlock();
+			if (b == trunk0 || b == trunk1 || b == branch1 || b == branch2) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private record TreeParts(BlockPos pivotTrunk0, Set<BlockPos> trunkColumn, Set<BlockPos> branches, Set<BlockPos> leaves) {

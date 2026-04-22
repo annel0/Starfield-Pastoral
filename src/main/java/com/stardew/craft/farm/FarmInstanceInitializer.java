@@ -137,7 +137,7 @@ public class FarmInstanceInitializer {
 
         for (int x = startX; x < endX; x++) {
             for (int z = startZ; z < endZ; z++) {
-                level.setBlock(new BlockPos(x, bedrockY, z), bedrock, 3);
+                level.setBlock(new BlockPos(x, bedrockY, z), bedrock, 2);
             }
         }
         StardewCraft.LOGGER.info("[FARM_INIT] Bedrock floor placed at Y={} ({} x {} blocks)",

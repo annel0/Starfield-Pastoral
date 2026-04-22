@@ -1,0 +1,6 @@
+{
+    "parent":  "stardewcraft:block/desert_copper_ore",
+    "textures":  {
+                     "particle":  "stardewcraft:block/mine/desert_copper_ore"
+                 }
+}

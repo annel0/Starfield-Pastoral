@@ -47,9 +47,11 @@ public record OpenGiftConfirmPayload(
         net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
         if (mc.player == null) return;
 
+        // payload.itemDisplayName() 是物品翻译键（如 item.stardewcraft.fishing_rod），
+        // 包成 Component.translatable 才会用客户端语言文件解析出「鱼竿」。
         Component question = Component.translatable(
             "stardewcraft.npc.gift.confirm",
-            payload.itemDisplayName(),
+            Component.translatable(payload.itemDisplayName()),
             payload.npcDisplayName()
         );
 

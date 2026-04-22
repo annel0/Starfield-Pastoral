@@ -52,7 +52,7 @@ public final class OfflineFarmCatchUp {
         if (level.dimension() != ModDimensions.STARDEW_VALLEY) return;
 
         FarmInstanceRegistry registry = FarmInstanceRegistry.get();
-        FarmInstance farm = registry.getFarm(playerUUID);
+        FarmInstance farm = registry.getFarmForPlayer(playerUUID);
         if (farm == null || !farm.isInitialized()) return;
 
         int currentAbsDay = computeAbsoluteDay();
@@ -63,6 +63,29 @@ public final class OfflineFarmCatchUp {
 
         StardewCraft.LOGGER.info("[FARM-CATCHUP] Player {} missed {} days (absDay {} → {})",
                 playerUUID, daysMissed, lastAbsDay, currentAbsDay);
+
+        // 跨季宽限期：离线期间季节变化了 → 先授予宽限天数，再追赶生长
+        // （必须在 catchUpCrops 之前设置，否则 growCropOneDay 会杀掉过季作物）
+        StardewTimeManager tm = StardewTimeManager.get();
+        int currentSeason = tm.getCurrentSeason();
+        if (farm.getLastOnlineSeason() != currentSeason) {
+            int graceDays = level.getServer().getGameRules()
+                    .getInt(com.stardew.craft.core.ModGameRules.RULE_CROP_GRACE_PERIOD_DAYS);
+            if (graceDays > 0) {
+                farm.setGraceDaysLeft(graceDays);
+                StardewCraft.LOGGER.info("[FARM-CATCHUP] Season changed ({} → {}), granting {} grace days to player {}",
+                        farm.getLastOnlineSeason(), currentSeason, graceDays, playerUUID);
+
+                // 通知玩家
+                net.minecraft.server.level.ServerPlayer player =
+                        level.getServer().getPlayerList().getPlayer(playerUUID);
+                if (player != null) {
+                    player.sendSystemMessage(
+                            net.minecraft.network.chat.Component.translatable(
+                                    "stardewcraft.farm.grace_period.granted", graceDays));
+                }
+            }
+        }
 
         // 临时加载农场区块（追赶完成后立即释放）
         FarmChunkManager.get().forceLoadFarmChunksForCatchUp(level, farm.getSlotIndex());
@@ -82,9 +105,8 @@ public final class OfflineFarmCatchUp {
         }
 
         // 更新最后在线信息
-        StardewTimeManager tm = StardewTimeManager.get();
         farm.setLastOnlineDay(currentAbsDay);
-        farm.setLastOnlineSeason(tm.getCurrentSeason());
+        farm.setLastOnlineSeason(currentSeason);
         registry.setDirty();
 
         StardewCraft.LOGGER.info("[FARM-CATCHUP] Catch-up complete for player {}", playerUUID);

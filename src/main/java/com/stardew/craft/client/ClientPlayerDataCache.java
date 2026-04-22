@@ -25,6 +25,7 @@ public class ClientPlayerDataCache {
     private static List<String> professions = new ArrayList<>();
     private static final java.util.Set<String> unlockedRecipes = new java.util.HashSet<>();
     private static final java.util.Map<String, Integer> recipeCraftCounts = new java.util.HashMap<>();
+    private static final java.util.Set<String> mailFlags = new java.util.HashSet<>();
 
     // 临时Buff（客户端显示/计算用）
     private static int tempFishingLevelBonus = 0;
@@ -34,11 +35,23 @@ public class ClientPlayerDataCache {
     private static int tempForagingLevelBonus = 0;
     private static int tempMiningLevelBonus = 0;
 
+    // 农场名
+    private static String farmName = "";
+
     // 装备槽
     private static String equippedLeftRing = "";
     private static String equippedRightRing = "";
     private static String equippedBoots = "";
-    
+
+    /**
+     * True after the server has sent at least one PlayerDataSyncPacket for this session.
+     * Gates logic that would otherwise false-negative on an empty cache (e.g. cutscene
+     * {@code not_mail}/{@code not_flag} preconditions incorrectly passing before sync).
+     */
+    private static volatile boolean syncedFromServer = false;
+
+    public static boolean isSynced() { return syncedFromServer; }
+
     /**
      * 从NBT更新缓存
      */
@@ -102,6 +115,21 @@ public class ClientPlayerDataCache {
             }
         }
 
+        // 读取邮件标记（含 CC 献祭进度：ccPantry/ccCraftsRoom/...）
+        mailFlags.clear();
+        if (nbt.contains("MailFlags")) {
+            ListTag flagList = nbt.getList("MailFlags", Tag.TAG_STRING);
+            for (int i = 0; i < flagList.size(); i++) {
+                String flag = flagList.getString(i);
+                if (!flag.isBlank()) mailFlags.add(flag);
+            }
+        }
+
+        // 农场名
+        if (nbt.contains("FarmName")) {
+            farmName = nbt.getString("FarmName");
+        }
+
         recipeCraftCounts.clear();
         if (nbt.contains("RecipeCraftCounts")) {
             ListTag countList = nbt.getList("RecipeCraftCounts", Tag.TAG_COMPOUND);
@@ -117,8 +145,10 @@ public class ClientPlayerDataCache {
                 }
             }
         }
+
+        syncedFromServer = true;
     }
-    
+
     // Getters
     public static int getHealth() {
         return health;
@@ -138,6 +168,10 @@ public class ClientPlayerDataCache {
     
     public static int getMoney() {
         return money;
+    }
+
+    public static String getFarmName() {
+        return farmName;
     }
 
     /** Update cached money on client (e.g. immediate feedback for geode cost deduction). */
@@ -203,6 +237,14 @@ public class ClientPlayerDataCache {
         return new java.util.HashMap<>(recipeCraftCounts);
     }
 
+    public static boolean hasMailFlag(String flag) {
+        return flag != null && mailFlags.contains(flag);
+    }
+
+    public static java.util.Set<String> getMailFlags() {
+        return new java.util.HashSet<>(mailFlags);
+    }
+
     // Equipment getters/setters
     public static String getEquippedLeftRing() { return equippedLeftRing; }
     public static String getEquippedRightRing() { return equippedRightRing; }
@@ -225,6 +267,7 @@ public class ClientPlayerDataCache {
         professions.clear();
         unlockedRecipes.clear();
         recipeCraftCounts.clear();
+        mailFlags.clear();
         tempFishingLevelBonus = 0;
         tempLuckBonus = 0;
         tempMaxEnergyBonus = 0;
@@ -234,6 +277,7 @@ public class ClientPlayerDataCache {
         equippedLeftRing = "";
         equippedRightRing = "";
         equippedBoots = "";
+        syncedFromServer = false;
         NpcFriendshipClientCache.reset();
     }
     

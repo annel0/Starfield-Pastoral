@@ -41,10 +41,9 @@ public class BillboardScreen extends Screen {
     // ─── 日历格子 ───
     @SuppressWarnings("unused")
     private static final int GRID_COLS = 7, GRID_ROWS = 4;
-    private static final int CELL_SDV = 32; // SDV pixel size per cell
 
-    // ─── 今日高亮 ───
-    private static final int TODAY_U = 379, TODAY_V = 357, TODAY_W = 3, TODAY_H = 3;
+    // ─── 今日高亮（mouseCursors 9-slice source，3×3 per-corner） ───
+    private static final int TODAY_U = 379, TODAY_V = 357;
 
     // ─── 每日任务完成星标 (billboard.png) ───
     private static final int STAR_U = 140, STAR_V = 397, STAR_W = 10, STAR_H = 11;
@@ -71,6 +70,12 @@ public class BillboardScreen extends Screen {
 
     public BillboardScreen() {
         super(Component.translatable("gui.stardewcraft.billboard"));
+        // SDV parity Billboard.cs:171 Game1.playSound("bigSelect")
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+        if (mc.getSoundManager() != null) {
+            mc.getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(
+                com.stardew.craft.sound.ModSounds.BIG_SELECT.get(), 1.0F, 1.0F));
+        }
     }
 
     @Override
@@ -141,77 +146,127 @@ public class BillboardScreen extends Screen {
         int cdy = closeY + closeH2 / 2 - Math.round(CLOSE_H * cs / 2);
         StardewGuiUtil.drawFromCursors(g, cdx, cdy, CLOSE_U, CLOSE_V, CLOSE_W, CLOSE_H, cs);
 
-        // Tab indicators
+        // Tab indicators — 用加粗 Component 代替 drawShadow（shadow 边缘在高 guiScale 下会变粗变脏）
         int tabY = windowY - Math.round(32 * s4);
-        String calLabel = Component.translatable("gui.stardewcraft.billboard.calendar").getString();
-        String questLabel = Component.translatable("gui.stardewcraft.billboard.daily_quest").getString();
+        Component calLabel = Component.translatable("gui.stardewcraft.billboard.calendar")
+            .withStyle(net.minecraft.ChatFormatting.BOLD);
+        Component questLabel = Component.translatable("gui.stardewcraft.billboard.daily_quest")
+            .withStyle(net.minecraft.ChatFormatting.BOLD);
         int calLabelX = windowX + Math.round(32 * s4);
         int questLabelX = windowX + windowW - font.width(questLabel) - Math.round(32 * s4);
 
-        g.drawString(font, calLabel, calLabelX, tabY, currentTab == 0 ? 0xFFFFD700 : 0xFFAAAAAA, true);
-        g.drawString(font, questLabel, questLabelX, tabY, currentTab == 1 ? 0xFFFFD700 : 0xFFAAAAAA, true);
+        g.drawString(font, calLabel, calLabelX, tabY, currentTab == 0 ? 0xFFFFD700 : 0xFFAAAAAA, false);
+        g.drawString(font, questLabel, questLabelX, tabY, currentTab == 1 ? 0xFFFFD700 : 0xFFAAAAAA, false);
     }
 
+    /**
+     * SDV parity — 日历面板严格按 Billboard.cs:414-457 像素对齐。
+     *
+     * 关键 SDV 坐标（单位：screen px，= SDV px × 4）：
+     * - 背景 billboardTexture[0,198,301,198] 在 (xPos, yPos) scale 4
+     * - 季节名 dialogueFont 绘制于 (xPos+160, yPos+80)
+     * - 年份字符串于 (xPos+448, yPos+80)
+     * - 日格 bounds = (xPos+152 + col*128, yPos+200 + row*128, 124, 124) — 每格 124 screen px，
+     *   间距 128 screen px（即 32 SDV px），首格左上角位于 (xPos+152, yPos+200)
+     * - 生日 mugshot 绘制于 cell.X+48, cell.Y+28，scale 4
+     * - 过去日期覆盖 staminaRect @ cell.bounds，Color.Gray * 0.25
+     * - 今日高亮 drawTextureBox(mouseCursors[379,357,3,3], cell.X-o, cell.Y-o,
+     *       cell.W+2o, cell.H+2o, Color.Blue, scale 4, shadow=false)
+     */
     private void renderCalendar(GuiGraphics g, int mouseX, int mouseY) {
-        // Draw calendar background from billboard.png
+        // ── 背景 ──
         drawBillboard(g, windowX, windowY, CAL_U, CAL_V, CAL_W, CAL_H, s4);
 
         int currentDay = getCurrentDay();
         String currentSeason = StardewTimeHud.getClientTimeCache().getSeasonName().toLowerCase();
-        int cellSize = Math.round(CELL_SDV * s4);
-        int cellInner = Math.round(31 * s4);
-        int gridOffX = Math.round(38 * s4);
-        int gridOffY = Math.round(50 * s4);
-
-        // Pre-build birthday lookup for current season: day → npcId
         Map<Integer, String> birthdaysByDay = buildBirthdayMap(currentSeason);
 
+        // ── 季节名 + 年份标签（对应 SDV Billboard.cs:416-417） ──
+        int seasonX = windowX + Math.round(160 * s4 / 4);
+        int seasonY = windowY + Math.round(80 * s4 / 4);
+        int yearX = windowX + Math.round(448 * s4 / 4);
+
+        Component seasonLabel = Component.translatable("stardewcraft.season." + currentSeason)
+            .withStyle(net.minecraft.ChatFormatting.BOLD);
+        Component yearLabel = Component.translatable("stardewcraft.gui.billboard.year",
+            StardewTimeHud.getClientTimeCache().getCurrentYear())
+            .withStyle(net.minecraft.ChatFormatting.BOLD);
+        g.drawString(font, seasonLabel, seasonX, seasonY, TEXT_COLOR, false);
+        g.drawString(font, yearLabel, yearX, seasonY, TEXT_COLOR, false);
+
+        // ── 日格参数（SDV pixel-perfect） ──
+        // SDV: cell bounds.X = xPos + 152 + col*128 screen px. 我们用 s4 = (4 / guiScale)
+        // 换算成 MC draw px：round((152 + col*128) * s4/4)
+        int gridOffX = Math.round(152 * s4 / 4);
+        int gridOffY = Math.round(200 * s4 / 4);
+        int cellStride = Math.round(128 * s4 / 4);   // 每格间距（SDV: 128 screen px = 32 SDV px）
+        int cellSize = Math.round(124 * s4 / 4);     // 每格实际大小（SDV: 124 screen px = 31 SDV px）
+
         for (int day = 1; day <= 28; day++) {
-            int col = (day - 1) % GRID_COLS;
-            int row = (day - 1) / GRID_COLS;
-            int cx = windowX + gridOffX + col * cellSize;
-            int cy = windowY + gridOffY + row * cellSize;
+            int idx = day - 1;
+            int col = idx % GRID_COLS;
+            int row = idx / GRID_COLS;
+            int cx = windowX + gridOffX + col * cellStride;
+            int cy = windowY + gridOffY + row * cellStride;
 
-            // Day number
-            g.drawString(font, String.valueOf(day), cx + Math.round(2 * s4), cy + Math.round(2 * s4), TEXT_COLOR, false);
-
-            // NPC birthday mugshot
+            // ── 生日 mugshot（SDV 425：cell.X+48, cell.Y+28 screen px, scale 4） ──
             String birthdayNpc = birthdaysByDay.get(day);
             if (birthdayNpc != null) {
-                int mugSize = Math.round(12 * s4); // small portrait
-                int mugX = cx + Math.round(12 * s4);
-                int mugY = cy + Math.round(7 * s4);
-                drawNpcMugshot(g, birthdayNpc, mugX, mugY, mugSize);
+                int mugX = cx + Math.round(48 * s4 / 4);
+                int mugY = cy + Math.round(28 * s4 / 4);
+                // SDV source 16×24，绘制 scale 4 → 64×96 screen px
+                int mugW = Math.round(16 * s4);
+                int mugH = Math.round(24 * s4);
+                drawNpcMugshotRect(g, birthdayNpc, mugX, mugY, mugW, mugH);
             }
 
-            // Daily quest completed star marker
+            // ── 每日任务完成星标（本模组扩展，SDV 无此功能） ──
             if (ClientQuestData.isDailyQuestCompletedOnDay(day)) {
-                int starX = cx + cellSize - Math.round(STAR_W * s4) - Math.round(1 * s4);
-                int starY = cy + cellSize - Math.round(STAR_H * s4) - Math.round(1 * s4);
+                int starX = cx + cellSize - Math.round(STAR_W * s4) - Math.round(s4 / 4);
+                int starY = cy + cellSize - Math.round(STAR_H * s4) - Math.round(s4 / 4);
                 drawBillboard(g, starX, starY, STAR_U, STAR_V, STAR_W, STAR_H, s4);
             }
 
-            // Today highlight
-            if (day == currentDay) {
-                StardewGuiUtil.drawFromCursors(g, cx, cy, TODAY_U, TODAY_V, TODAY_W, TODAY_H,
-                    (float) cellInner / TODAY_W);
+            // ── 过去日期灰盖（SDV 448-451：staminaRect @ cell.bounds, Color.Gray * 0.25） ──
+            if (currentDay > day) {
+                // 0x40808080 = alpha 25% + RGB 灰
+                g.fill(cx, cy, cx + cellSize, cy + cellSize, 0x40808080);
+            }
+            // ── 今日高亮（SDV 452-456：9-slice mouseCursors[379,357,3,3], Color.Blue） ──
+            else if (currentDay == day) {
+                // SDV 源是 3×3 tile pattern（每 1 SDV px 一角），drawTextureBox 内部 cornerSize = srcW/3
+                g.setColor(0.35F, 0.35F, 1.0F, 1.0F);
+                StardewGuiUtil.drawTextureBox(g,
+                    StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
+                    TODAY_U, TODAY_V, 3, 3,
+                    cx, cy, cellSize, cellSize, s4, false);
+                g.setColor(1.0F, 1.0F, 1.0F, 1.0F);
             }
         }
 
-        // NPC birthday tooltip on hover
+        // ── 生日 tooltip ──
         for (int day = 1; day <= 28; day++) {
             String bNpc = birthdaysByDay.get(day);
             if (bNpc == null) continue;
-            int col = (day - 1) % GRID_COLS;
-            int row = (day - 1) / GRID_COLS;
-            int cx = windowX + gridOffX + col * cellSize;
-            int cy = windowY + gridOffY + row * cellSize;
+            int idx = day - 1;
+            int col = idx % GRID_COLS;
+            int row = idx / GRID_COLS;
+            int cx = windowX + gridOffX + col * cellStride;
+            int cy = windowY + gridOffY + row * cellStride;
             if (mouseX >= cx && mouseX < cx + cellSize && mouseY >= cy && mouseY < cy + cellSize) {
-                String displayName = bNpc.substring(0, 1).toUpperCase() + bNpc.substring(1);
-                g.renderTooltip(font, Component.literal(displayName + "'s Birthday"), mouseX, mouseY);
+                Component tip = Component.translatable("stardewcraft.gui.billboard.birthday_tooltip",
+                        Component.translatable("entity.stardewcraft.npc." + bNpc));
+                g.renderTooltip(font, tip, mouseX, mouseY);
                 break;
             }
         }
+    }
+
+    /** 把 mugshot 画到指定矩形内（按源 16×24 比例）。 */
+    private void drawNpcMugshotRect(GuiGraphics g, String npcId, int x, int y, int w, int h) {
+        ResourceLocation mugTex = ResourceLocation.fromNamespaceAndPath(
+            StardewCraft.MODID, "textures/mugshots/" + npcId.toLowerCase() + ".png");
+        g.blit(mugTex, x, y, w, h, 0f, 0f, 16, 24, 16, 24);
     }
 
     /** Build a map of day → npcId for birthdays in the given season */
@@ -234,83 +289,113 @@ public class BillboardScreen extends Screen {
         return result;
     }
 
-    /** Draw a small NPC portrait (face only, index 0) */
-    private void drawNpcMugshot(GuiGraphics g, String npcId, int x, int y, int size) {
-        ResourceLocation portraitTex = ResourceLocation.fromNamespaceAndPath(
-            StardewCraft.MODID, "textures/portraits/" + npcId.toLowerCase() + ".png");
-        // Portrait sheets are 128×N, face is top-left 64×64
-        int texW = 128, texH = 128;
-        int faceW = 64, faceH = 64;
-        float scale = (float) size / faceW;
-        g.pose().pushPose();
-        g.pose().translate(x, y, 0);
-        g.pose().scale(scale, scale, 1.0f);
-        g.blit(portraitTex, 0, 0, 0, 0, faceW, faceH, texW, texH);
-        g.pose().popPose();
-    }
 
+    /**
+     * SDV parity — 每日任务面板严格按 Billboard.cs:459-494 像素对齐。
+     *
+     * 关键 SDV 坐标（单位：screen px, = SDV px × 4）：
+     * - 背景 billboardTexture[0,0,338,198] 在 (xPos, yPos) scale 4
+     * - "Nothing posted" 文本于 (xPos+384, yPos+320) — SDV 88 px, 56 py
+     * - 任务描述：parseText(desc, dialogueFont, 640) 于 (xPos+352, yPos+256) — wrap 640 screen px
+     * - 接受按钮 9-slice mouseCursors[403,373,9,9]
+     *   按钮 bounds = (xPos+width/2-128, yPos+height-128, textW+24, textH+24)
+     *   按钮文字 (btn.X+12, btn.Y+16)
+     * - 星星：billboardTexture[140,397,10,11]
+     *   绘制于 (xPos + (18+12*j)*4, yPos + 36*4) for j=0..2
+     */
     private void renderDailyQuest(GuiGraphics g, int mouseX, int mouseY) {
-        // Draw quest panel background from billboard.png
+        // ── 背景 ──
         drawBillboard(g, windowX, windowY, QUEST_U, QUEST_V, QUEST_W, QUEST_H, s4);
 
         StardewQuest daily = ClientQuestData.getDailyQuest();
+
+        // ── 没有任务 → "今日公告栏没有新任务" ──
         if (daily == null) {
-            String noQuest = Component.translatable("gui.stardewcraft.billboard.no_quest").getString();
-            g.drawCenteredString(font, noQuest,
-                windowX + windowW / 2,
-                windowY + Math.round(80 * s4),
-                0xFFAAAAAA);
+            // SDV: (xPos+384, yPos+320) screen px = SDV (96, 80) from window corner
+            int nothingX = windowX + Math.round(384 * s4 / 4);
+            int nothingY = windowY + Math.round(320 * s4 / 4);
+            Component nothing = Component.translatable("gui.stardewcraft.billboard.no_quest")
+                .withStyle(net.minecraft.ChatFormatting.BOLD);
+            g.drawString(font, nothing, nothingX, nothingY, TEXT_COLOR, false);
+            drawStars(g, 0);
             return;
         }
 
-        // Check if already accepted
-        boolean alreadyAccepted = ClientQuestData.hasQuest(daily.getId());
+        boolean alreadyAccepted = daily.isAccepted()
+                || daily.isCompleted()
+                || ClientQuestData.hasQuest(daily.getId());
 
-        // Quest description
-        int textX = windowX + Math.round(80 * s4 + 8 * s4);
-        int textY = windowY + Math.round(64 * s4);
-        int textW = windowW - Math.round(160 * s4);
-        List<FormattedCharSequence> descLines = font.split(Component.literal(daily.getDescription()), textW);
+        // ── 任务描述（SDV 471-473） ──
+        // SDV: new Vector2(xPos + 320 + 32, yPos + 256) = (xPos+352, yPos+256) screen px
+        int descX = windowX + Math.round(352 * s4 / 4);
+        int descY = windowY + Math.round(256 * s4 / 4);
+        int descW = Math.round(640 * s4 / 4);   // SDV wrap 640 screen px
+        List<FormattedCharSequence> descLines = font.split(daily.getDescriptionComponent(), descW);
         for (FormattedCharSequence line : descLines) {
-            g.drawString(font, line, textX, textY, TEXT_COLOR, false);
-            textY += font.lineHeight + 1;
+            g.drawString(font, line, descX, descY, TEXT_COLOR, false);
+            descY += font.lineHeight + 2;
         }
 
-        // Objectives
-        textY += Math.round(8 * s4);
-        for (String obj : daily.getObjectiveDescriptions()) {
-            g.drawString(font, "> " + obj, textX, textY, TEXT_COLOR, false);
-            textY += font.lineHeight + 2;
+        // 进度（非原版 Billboard 标准 — 原版在 QuestLog 显示目标，但我们让玩家能直接在公告栏看进度）
+        descY += Math.round(8 * s4 / 4);
+        for (Component obj : daily.getObjectiveComponents()) {
+            Component line = Component.literal("> ").append(obj)
+                .withStyle(net.minecraft.ChatFormatting.BOLD);
+            g.drawString(font, line, descX, descY, TEXT_COLOR, false);
+            descY += font.lineHeight + 2;
         }
 
-        // Reward
+        // 奖励（非原版 Billboard，SDV 奖励在 questComplete 弹窗里显示 — 这里保留给玩家决策参考）
         if (daily.hasMoneyReward()) {
-            textY += Math.round(8 * s4);
-            String rewardStr = Component.translatable("gui.stardewcraft.quest_log.reward").getString()
-                + ": " + daily.getMoneyReward() + "g";
-            g.drawString(font, rewardStr, textX, textY, MONEY_COLOR, true);
+            descY += Math.round(8 * s4 / 4);
+            Component rewardLine = Component.translatable("gui.stardewcraft.quest_log.reward")
+                .append(Component.literal(": " + daily.getMoneyReward() + "g"))
+                .withStyle(net.minecraft.ChatFormatting.BOLD);
+            g.drawString(font, rewardLine, descX, descY, MONEY_COLOR, false);
         }
 
-        // Accept button or "already accepted" text
+        // ── 接受按钮（SDV 474-479） ──
         if (alreadyAccepted) {
-            String accepted = Component.translatable("gui.stardewcraft.billboard.already_accepted").getString();
+            Component accepted = Component.translatable("gui.stardewcraft.billboard.already_accepted")
+                .withStyle(net.minecraft.ChatFormatting.BOLD);
             g.drawCenteredString(font, accepted,
                 windowX + windowW / 2,
-                acceptY + Math.round(8 * s4),
+                acceptY + acceptH2 / 2 - font.lineHeight / 2,
                 0xFF888888);
         } else {
-            // 9-slice accept button
+            boolean hov = isIn(mouseX, mouseY, acceptX, acceptY, acceptW2, acceptH2);
+            // SDV: (scale>1 ? LightPink : White) — hover 时按钮染粉
+            if (hov) g.setColor(1.0F, 0.7F, 0.75F, 1.0F);
+            // SDV 源 Rectangle(403,373,9,9) = 3×3 tile pattern，每 3 SDV px 一角
             StardewGuiUtil.drawTextureBox(g,
                 StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
                 ACCEPT_U, ACCEPT_V, ACCEPT_W, ACCEPT_H,
                 acceptX, acceptY, acceptW2, acceptH2, s4, false);
+            if (hov) g.setColor(1.0F, 1.0F, 1.0F, 1.0F);
 
-            String acceptText = Component.translatable("gui.stardewcraft.billboard.accept").getString();
-            boolean hov = isIn(mouseX, mouseY, acceptX, acceptY, acceptW2, acceptH2);
-            g.drawCenteredString(font, acceptText,
-                acceptX + acceptW2 / 2,
-                acceptY + acceptH2 / 2 - font.lineHeight / 2,
-                hov ? 0xFFFFD700 : 0xFFFFFFFF);
+            // SDV: text at (btn.X+12, btn.Y+16) screen px
+            Component acceptText = Component.translatable("gui.stardewcraft.billboard.accept")
+                .withStyle(net.minecraft.ChatFormatting.BOLD);
+            int textX = acceptX + Math.round(12 * s4 / 4);
+            int textY = acceptY + acceptH2 / 2 - font.lineHeight / 2;
+            g.drawString(font, acceptText, textX, textY, TEXT_COLOR, false);
+        }
+
+        // ── 累计星星（SDV 486-490：billboardQuestsDone % 3，每 3 连击奖励礼包） ──
+        int done = ClientQuestData.getBillboardQuestsDone();
+        boolean drawAll = done % 3 == 0 && daily.isCompleted();
+        drawStars(g, drawAll ? 3 : (done % 3));
+    }
+
+    /**
+     * 画累计星星 — SDV Billboard.cs:487-490。
+     * 位置：(xPos + (18+12*j)*4, yPos + 36*4) screen px, source billboardTexture[140,397,10,11] scale 4.
+     */
+    private void drawStars(GuiGraphics g, int count) {
+        int baseY = windowY + Math.round(36 * s4);      // SDV 36 SDV px = 144 screen px
+        for (int j = 0; j < count; j++) {
+            int x = windowX + Math.round((18 + 12 * j) * s4);
+            drawBillboard(g, x, baseY, STAR_U, STAR_V, STAR_W, STAR_H, s4);
         }
     }
 
@@ -321,34 +406,44 @@ public class BillboardScreen extends Screen {
 
         // Close button
         if (isIn(mx, my, closeX, closeY, closeW2, closeH2)) {
+            playSound(com.stardew.craft.sound.ModSounds.BIG_DESELECT.get());
             onClose();
             return true;
         }
 
-        // Tab switching via label click
+        // Tab switching via label click（点击区域与 render 保持同样的加粗 Component 宽度）
         int tabY = windowY - Math.round(32 * s4);
         int tabH = font.lineHeight + 4;
-        String calLabel = Component.translatable("gui.stardewcraft.billboard.calendar").getString();
-        String questLabel = Component.translatable("gui.stardewcraft.billboard.daily_quest").getString();
+        Component calLabel = Component.translatable("gui.stardewcraft.billboard.calendar")
+            .withStyle(net.minecraft.ChatFormatting.BOLD);
+        Component questLabel = Component.translatable("gui.stardewcraft.billboard.daily_quest")
+            .withStyle(net.minecraft.ChatFormatting.BOLD);
         int calLabelX = windowX + Math.round(32 * s4);
         int questLabelX = windowX + windowW - font.width(questLabel) - Math.round(32 * s4);
 
         if (isIn(mx, my, calLabelX, tabY, font.width(calLabel), tabH) && currentTab != 0) {
+            playSound(com.stardew.craft.sound.ModSounds.SMALL_SELECT.get());
             currentTab = 0;
             recalcLayout();
             return true;
         }
         if (isIn(mx, my, questLabelX, tabY, font.width(questLabel), tabH) && currentTab != 1) {
+            playSound(com.stardew.craft.sound.ModSounds.SMALL_SELECT.get());
             currentTab = 1;
             recalcLayout();
             return true;
         }
 
-        // Accept button (daily quest tab)
+        // Accept button (daily quest tab) — SDV parity Billboard.cs:365 "newArtifact"
+        // 只有在：任务存在 + 未接受 + 未完成 + 不在 questLog 里 时才响应点击
         if (currentTab == 1) {
             StardewQuest daily = ClientQuestData.getDailyQuest();
-            if (daily != null && !ClientQuestData.hasQuest(daily.getId())) {
+            if (daily != null
+                    && !daily.isAccepted()
+                    && !daily.isCompleted()
+                    && !ClientQuestData.hasQuest(daily.getId())) {
                 if (isIn(mx, my, acceptX, acceptY, acceptW2, acceptH2)) {
+                    playSound(com.stardew.craft.sound.ModSounds.NEW_ARTIFACT.get());
                     PacketDistributor.sendToServer(new AcceptQuestPayload(daily.getId()));
                     return true;
                 }
@@ -370,6 +465,13 @@ public class BillboardScreen extends Screen {
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    private void playSound(net.minecraft.sounds.SoundEvent sound) {
+        if (minecraft != null && minecraft.getSoundManager() != null && sound != null) {
+            minecraft.getSoundManager().play(
+                net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(sound, 1.0F, 1.0F));
+        }
     }
 
     // ─── 工具方法 ───

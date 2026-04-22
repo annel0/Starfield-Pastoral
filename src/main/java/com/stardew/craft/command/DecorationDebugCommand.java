@@ -32,15 +32,21 @@ public final class DecorationDebugCommand {
     private static com.mojang.brigadier.builder.LiteralArgumentBuilder<CommandSourceStack> nodeForType(String literal, DecorationType type) {
         return Commands.literal(literal)
             .then(Commands.literal("unlock")
-                .then(Commands.literal("all").executes(ctx -> unlockAll(ctx, type)))
-                .then(Commands.argument("style", StringArgumentType.word())
-                    .suggests((ctx, builder) -> SharedSuggestionProvider.suggest(styleIds(type), builder))
-                    .executes(ctx -> unlockOne(ctx, type))))
+                .then(CommandTargets.executesWithTarget(
+                    Commands.literal("all"),
+                    ctx -> unlockAll(ctx, type)))
+                .then(CommandTargets.executesWithTarget(
+                    Commands.argument("style", StringArgumentType.word())
+                        .suggests((ctx, builder) -> SharedSuggestionProvider.suggest(styleIds(type), builder)),
+                    ctx -> unlockOne(ctx, type))))
             .then(Commands.literal("lock")
-                .then(Commands.literal("all").executes(ctx -> lockAll(ctx, type)))
-                .then(Commands.argument("style", StringArgumentType.word())
-                    .suggests((ctx, builder) -> SharedSuggestionProvider.suggest(styleIds(type), builder))
-                    .executes(ctx -> lockOne(ctx, type))));
+                .then(CommandTargets.executesWithTarget(
+                    Commands.literal("all"),
+                    ctx -> lockAll(ctx, type)))
+                .then(CommandTargets.executesWithTarget(
+                    Commands.argument("style", StringArgumentType.word())
+                        .suggests((ctx, builder) -> SharedSuggestionProvider.suggest(styleIds(type), builder)),
+                    ctx -> lockOne(ctx, type))));
     }
 
     private static Iterable<String> styleIds(DecorationType type) {
@@ -48,7 +54,7 @@ public final class DecorationDebugCommand {
     }
 
     private static int unlockAll(CommandContext<CommandSourceStack> ctx, DecorationType type) {
-        ServerPlayer player = ctx.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(ctx);
         if (player == null) {
             return 0;
         }
@@ -66,7 +72,7 @@ public final class DecorationDebugCommand {
     }
 
     private static int lockAll(CommandContext<CommandSourceStack> ctx, DecorationType type) {
-        ServerPlayer player = ctx.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(ctx);
         if (player == null) {
             return 0;
         }
@@ -84,7 +90,7 @@ public final class DecorationDebugCommand {
     }
 
     private static int unlockOne(CommandContext<CommandSourceStack> ctx, DecorationType type) {
-        ServerPlayer player = ctx.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(ctx);
         if (player == null) {
             return 0;
         }
@@ -101,7 +107,7 @@ public final class DecorationDebugCommand {
     }
 
     private static int lockOne(CommandContext<CommandSourceStack> ctx, DecorationType type) {
-        ServerPlayer player = ctx.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(ctx);
         if (player == null) {
             return 0;
         }

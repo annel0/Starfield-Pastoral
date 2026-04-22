@@ -1,23 +1,33 @@
 {
   "location": "minecraft:overworld",
   "fish": [
-    
-    
     {
       "id": "sunfish",
       "precedence": 100,
       "item": "stardewcraft:sunfish",
       "chance": 0.35,
-      "difficulty": 24,
+      "difficulty": 30,
       "motionType": 2,
       "minFishingLevel": 0,
-      "seasons": ["spring", "summer"],
-      "timeRanges": [[600, 1900]],
+      "seasons": [
+        "spring",
+        "summer"
+      ],
+      "timeRanges": [
+        [
+          600,
+          1900
+        ]
+      ],
       "weather": "sunny",
-      "maxDepth": 3,
+      "maxDepth": 1,
       "depthMultiplier": 0.1,
-      "biomeTags": ["#stardewcraft:is_river", "#stardewcraft:is_town_river"],
-      "isTutorialFish": true
+      "biomeTags": [
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_town_river"
+      ],
+      "isTutorialFish": true,
+      "spawnRate": 0.45
     },
     {
       "id": "chub",
@@ -27,9 +37,22 @@
       "difficulty": 35,
       "motionType": 0,
       "minFishingLevel": 0,
-      "maxDepth": 3,
+      "maxDepth": 1,
       "depthMultiplier": 0.1,
-      "biomeTags": ["#stardewcraft:is_forest_pond", "#stardewcraft:is_mountain_lake", "#stardewcraft:is_river", "#stardewcraft:is_freshwater"]
+      "biomeTags": [
+        "#stardewcraft:is_forest_pond",
+        "#stardewcraft:is_mountain_lake",
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_freshwater"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.45
     },
     {
       "id": "bream",
@@ -39,10 +62,19 @@
       "difficulty": 35,
       "motionType": 2,
       "minFishingLevel": 0,
-      "timeRanges": [[1800, 2600]],
-      "maxDepth": 3,
+      "timeRanges": [
+        [
+          1800,
+          2600
+        ]
+      ],
+      "maxDepth": 1,
       "depthMultiplier": 0.1,
-      "biomeTags": ["#stardewcraft:is_river"]
+      "biomeTags": [
+        "#stardewcraft:is_river"
+      ],
+      "weather": "any",
+      "spawnRate": 0.45
     },
     {
       "id": "smallmouth_bass",
@@ -52,10 +84,24 @@
       "difficulty": 28,
       "motionType": 0,
       "minFishingLevel": 0,
-      "seasons": ["spring", "fall"],
-      "maxDepth": 3,
+      "seasons": [
+        "spring",
+        "fall"
+      ],
+      "maxDepth": 1,
       "depthMultiplier": 0.1,
-      "biomeTags": ["#stardewcraft:is_river", "#stardewcraft:is_town_river"]
+      "biomeTags": [
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_town_river"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.45
     },
     {
       "id": "rainbow_trout",
@@ -65,12 +111,23 @@
       "difficulty": 45,
       "motionType": 0,
       "minFishingLevel": 0,
-      "seasons": ["summer"],
-      "timeRanges": [[600, 1900]],
+      "seasons": [
+        "summer"
+      ],
+      "timeRanges": [
+        [
+          600,
+          1900
+        ]
+      ],
       "weather": "sunny",
-      "maxDepth": 3,
-      "depthMultiplier": 0.1,
-      "biomeTags": ["#stardewcraft:is_river", "#stardewcraft:is_mountain_lake"]
+      "maxDepth": 2,
+      "depthMultiplier": 0.3,
+      "biomeTags": [
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_mountain_lake"
+      ],
+      "spawnRate": 0.35
     },
     {
       "id": "catfish",
@@ -79,13 +136,26 @@
       "chance": 0.2,
       "difficulty": 75,
       "motionType": 0,
-      "minFishingLevel": 2,
-      "seasons": ["spring", "fall", "summer"],
+      "minFishingLevel": 0,
+      "seasons": [
+        "spring",
+        "fall",
+        "summer"
+      ],
       "weather": "rainy",
-      "timeRanges": [[600, 2400]],
+      "timeRanges": [
+        [
+          600,
+          2400
+        ]
+      ],
       "maxDepth": 4,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_river", "#stardewcraft:is_secret_woods"]
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_secret_woods"
+      ],
+      "spawnRate": 0.4
     },
     {
       "id": "shad",
@@ -95,12 +165,24 @@
       "difficulty": 45,
       "motionType": 1,
       "minFishingLevel": 0,
-      "seasons": ["spring", "summer", "fall"],
+      "seasons": [
+        "spring",
+        "summer",
+        "fall"
+      ],
       "weather": "rainy",
-      "timeRanges": [[900, 1400]],
-      "maxDepth": 3,
-      "depthMultiplier": 0.1,
-      "biomeTags": ["#stardewcraft:is_river"]
+      "timeRanges": [
+        [
+          900,
+          2600
+        ]
+      ],
+      "maxDepth": 2,
+      "depthMultiplier": 0.2,
+      "biomeTags": [
+        "#stardewcraft:is_river"
+      ],
+      "spawnRate": 0.35
     },
     {
       "id": "tiger_trout",
@@ -109,12 +191,24 @@
       "chance": 0.15,
       "difficulty": 60,
       "motionType": 0,
-      "minFishingLevel": 2,
-      "seasons": ["fall", "winter"],
-      "timeRanges": [[600, 1900]],
-      "maxDepth": 4,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_river"]
+      "minFishingLevel": 0,
+      "seasons": [
+        "fall",
+        "winter"
+      ],
+      "timeRanges": [
+        [
+          600,
+          1900
+        ]
+      ],
+      "maxDepth": 3,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_river"
+      ],
+      "weather": "any",
+      "spawnRate": 0.2
     },
     {
       "id": "salmon",
@@ -124,11 +218,22 @@
       "difficulty": 50,
       "motionType": 0,
       "minFishingLevel": 0,
-      "seasons": ["fall"],
-      "timeRanges": [[600, 1900]],
+      "seasons": [
+        "fall"
+      ],
+      "timeRanges": [
+        [
+          600,
+          1900
+        ]
+      ],
       "maxDepth": 3,
-      "depthMultiplier": 0.1,
-      "biomeTags": ["#stardewcraft:is_river"]
+      "depthMultiplier": 0.2,
+      "biomeTags": [
+        "#stardewcraft:is_river"
+      ],
+      "weather": "any",
+      "spawnRate": 0.4
     },
     {
       "id": "walleye",
@@ -138,12 +243,25 @@
       "difficulty": 45,
       "motionType": 1,
       "minFishingLevel": 0,
-      "seasons": ["fall", "winter"],
+      "seasons": [
+        "fall",
+        "winter"
+      ],
       "weather": "rainy",
-      "timeRanges": [[1200, 1400], [1800, 2600]],
-      "maxDepth": 3,
-      "depthMultiplier": 0.1,
-      "biomeTags": ["#stardewcraft:is_river", "#stardewcraft:is_mountain_lake", "#stardewcraft:is_forest_pond"]
+      "timeRanges": [
+        [
+          1200,
+          2600
+        ]
+      ],
+      "maxDepth": 2,
+      "depthMultiplier": 0.15,
+      "biomeTags": [
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_mountain_lake",
+        "#stardewcraft:is_forest_pond"
+      ],
+      "spawnRate": 0.4
     },
     {
       "id": "pike",
@@ -152,14 +270,26 @@
       "chance": 0.2,
       "difficulty": 60,
       "motionType": 1,
-      "minFishingLevel": 3,
-      "seasons": ["summer", "winter"],
-      "maxDepth": 4,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_river", "#stardewcraft:is_forest_pond"]
+      "minFishingLevel": 0,
+      "seasons": [
+        "summer",
+        "winter"
+      ],
+      "maxDepth": 3,
+      "depthMultiplier": 0.15,
+      "biomeTags": [
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_forest_pond"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.4
     },
-    
-    
     {
       "id": "largemouth_bass",
       "precedence": 100,
@@ -168,10 +298,19 @@
       "difficulty": 50,
       "motionType": 0,
       "minFishingLevel": 0,
-      "timeRanges": [[600, 1900]],
+      "timeRanges": [
+        [
+          600,
+          1900
+        ]
+      ],
       "maxDepth": 3,
-      "depthMultiplier": 0.1,
-      "biomeTags": ["#stardewcraft:is_mountain_lake"]
+      "depthMultiplier": 0.2,
+      "biomeTags": [
+        "#stardewcraft:is_mountain_lake"
+      ],
+      "weather": "any",
+      "spawnRate": 0.4
     },
     {
       "id": "carp",
@@ -181,9 +320,21 @@
       "difficulty": 15,
       "motionType": 0,
       "minFishingLevel": 0,
-      "maxDepth": 3,
+      "maxDepth": 1,
       "depthMultiplier": 0.1,
-      "biomeTags": ["#stardewcraft:is_forest_pond", "#stardewcraft:is_mountain_lake", "#stardewcraft:is_secret_woods"]
+      "biomeTags": [
+        "#stardewcraft:is_forest_pond",
+        "#stardewcraft:is_mountain_lake",
+        "#stardewcraft:is_secret_woods"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.45
     },
     {
       "id": "bullhead",
@@ -193,9 +344,19 @@
       "difficulty": 46,
       "motionType": 2,
       "minFishingLevel": 0,
-      "maxDepth": 3,
-      "depthMultiplier": 0.1,
-      "biomeTags": ["#stardewcraft:is_mountain_lake"]
+      "maxDepth": 2,
+      "depthMultiplier": 0.2,
+      "biomeTags": [
+        "#stardewcraft:is_mountain_lake"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.35
     },
     {
       "id": "sturgeon",
@@ -204,12 +365,24 @@
       "chance": 0.1,
       "difficulty": 78,
       "motionType": 0,
-      "minFishingLevel": 6,
-      "seasons": ["summer", "winter"],
-      "timeRanges": [[600, 1900]],
-      "maxDepth": 5,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_mountain_lake"]
+      "minFishingLevel": 0,
+      "seasons": [
+        "summer",
+        "winter"
+      ],
+      "timeRanges": [
+        [
+          600,
+          1900
+        ]
+      ],
+      "maxDepth": 3,
+      "depthMultiplier": 0.2,
+      "biomeTags": [
+        "#stardewcraft:is_mountain_lake"
+      ],
+      "weather": "any",
+      "spawnRate": 0.35
     },
     {
       "id": "perch",
@@ -219,10 +392,24 @@
       "difficulty": 35,
       "motionType": 1,
       "minFishingLevel": 0,
-      "seasons": ["winter"],
-      "maxDepth": 3,
+      "seasons": [
+        "winter"
+      ],
+      "maxDepth": 1,
       "depthMultiplier": 0.1,
-      "biomeTags": ["#stardewcraft:is_river", "#stardewcraft:is_mountain_lake", "#stardewcraft:is_forest_pond"]
+      "biomeTags": [
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_mountain_lake",
+        "#stardewcraft:is_forest_pond"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.45
     },
     {
       "id": "midnight_carp",
@@ -232,10 +419,20 @@
       "difficulty": 55,
       "motionType": 0,
       "minFishingLevel": 0,
-      "timeRanges": [[2200, 2600]],
-      "maxDepth": 3,
+      "timeRanges": [
+        [
+          2200,
+          2600
+        ]
+      ],
+      "maxDepth": 1,
       "depthMultiplier": 0.1,
-      "biomeTags": ["#stardewcraft:is_mountain_lake", "#stardewcraft:is_forest_pond"]
+      "biomeTags": [
+        "#stardewcraft:is_mountain_lake",
+        "#stardewcraft:is_forest_pond"
+      ],
+      "weather": "any",
+      "spawnRate": 0.33
     },
     {
       "id": "woodskip",
@@ -247,10 +444,19 @@
       "minFishingLevel": 0,
       "maxDepth": 3,
       "depthMultiplier": 0.1,
-      "biomeTags": ["#stardewcraft:is_secret_woods", "#stardewcraft:is_forest_pond"]
+      "biomeTags": [
+        "#stardewcraft:is_secret_woods",
+        "#stardewcraft:is_forest_pond"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.2
     },
-    
-    
     {
       "id": "sardine",
       "precedence": 100,
@@ -259,11 +465,24 @@
       "difficulty": 30,
       "motionType": 2,
       "minFishingLevel": 0,
-      "seasons": ["spring", "fall", "winter"],
-      "timeRanges": [[600, 1900]],
-      "maxDepth": 3,
+      "seasons": [
+        "spring",
+        "fall",
+        "winter"
+      ],
+      "timeRanges": [
+        [
+          600,
+          1900
+        ]
+      ],
+      "maxDepth": 1,
       "depthMultiplier": 0.1,
-      "biomeTags": ["#stardewcraft:is_ocean"]
+      "biomeTags": [
+        "#stardewcraft:is_ocean"
+      ],
+      "weather": "any",
+      "spawnRate": 0.65
     },
     {
       "id": "anchovy",
@@ -273,10 +492,23 @@
       "difficulty": 30,
       "motionType": 2,
       "minFishingLevel": 0,
-      "seasons": ["spring", "fall"],
-      "maxDepth": 3,
-      "depthMultiplier": 0.1,
-      "biomeTags": ["#stardewcraft:is_ocean"]
+      "seasons": [
+        "spring",
+        "fall"
+      ],
+      "maxDepth": 1,
+      "depthMultiplier": 0.3,
+      "biomeTags": [
+        "#stardewcraft:is_ocean"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.25
     },
     {
       "id": "herring",
@@ -286,10 +518,23 @@
       "difficulty": 25,
       "motionType": 1,
       "minFishingLevel": 0,
-      "seasons": ["spring", "winter"],
-      "maxDepth": 3,
+      "seasons": [
+        "spring",
+        "winter"
+      ],
+      "maxDepth": 1,
       "depthMultiplier": 0.1,
-      "biomeTags": ["#stardewcraft:is_ocean"]
+      "biomeTags": [
+        "#stardewcraft:is_ocean"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.45
     },
     {
       "id": "red_snapper",
@@ -299,12 +544,23 @@
       "difficulty": 40,
       "motionType": 0,
       "minFishingLevel": 0,
-      "seasons": ["summer", "fall"],
+      "seasons": [
+        "summer",
+        "fall"
+      ],
       "weather": "rainy",
-      "timeRanges": [[600, 1900]],
-      "maxDepth": 4,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_ocean"]
+      "timeRanges": [
+        [
+          600,
+          1900
+        ]
+      ],
+      "maxDepth": 2,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_ocean"
+      ],
+      "spawnRate": 0.45
     },
     {
       "id": "red_mullet",
@@ -314,11 +570,23 @@
       "difficulty": 55,
       "motionType": 0,
       "minFishingLevel": 0,
-      "seasons": ["summer", "winter"],
-      "timeRanges": [[600, 1900]],
-      "maxDepth": 4,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_ocean"]
+      "seasons": [
+        "summer",
+        "winter"
+      ],
+      "timeRanges": [
+        [
+          600,
+          1900
+        ]
+      ],
+      "maxDepth": 2,
+      "depthMultiplier": 0.15,
+      "biomeTags": [
+        "#stardewcraft:is_ocean"
+      ],
+      "weather": "any",
+      "spawnRate": 0.4
     },
     {
       "id": "sea_cucumber",
@@ -328,11 +596,23 @@
       "difficulty": 40,
       "motionType": 3,
       "minFishingLevel": 0,
-      "seasons": ["fall", "winter"],
-      "timeRanges": [[600, 1900]],
-      "maxDepth": 5,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_ocean"]
+      "seasons": [
+        "fall",
+        "winter"
+      ],
+      "timeRanges": [
+        [
+          600,
+          1900
+        ]
+      ],
+      "maxDepth": 3,
+      "depthMultiplier": 0.25,
+      "biomeTags": [
+        "#stardewcraft:is_ocean"
+      ],
+      "weather": "any",
+      "spawnRate": 0.25
     },
     {
       "id": "super_cucumber",
@@ -341,12 +621,24 @@
       "chance": 0.15,
       "difficulty": 80,
       "motionType": 3,
-      "minFishingLevel": 5,
-      "seasons": ["summer", "fall"],
-      "timeRanges": [[1800, 2600]],
-      "maxDepth": 5,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_ocean"]
+      "minFishingLevel": 0,
+      "seasons": [
+        "summer",
+        "fall"
+      ],
+      "timeRanges": [
+        [
+          1800,
+          2600
+        ]
+      ],
+      "maxDepth": 4,
+      "depthMultiplier": 0.25,
+      "biomeTags": [
+        "#stardewcraft:is_ocean"
+      ],
+      "weather": "any",
+      "spawnRate": 0.1
     },
     {
       "id": "flounder",
@@ -356,11 +648,23 @@
       "difficulty": 50,
       "motionType": 3,
       "minFishingLevel": 0,
-      "seasons": ["spring", "summer"],
-      "timeRanges": [[600, 2000]],
-      "maxDepth": 4,
+      "seasons": [
+        "spring",
+        "summer"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2000
+        ]
+      ],
+      "maxDepth": 2,
       "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_ocean"]
+      "biomeTags": [
+        "#stardewcraft:is_ocean"
+      ],
+      "weather": "any",
+      "spawnRate": 0.15
     },
     {
       "id": "halibut",
@@ -369,11 +673,29 @@
       "chance": 0.15,
       "difficulty": 50,
       "motionType": 3,
-      "minFishingLevel": 3,
-      "seasons": ["spring", "summer", "winter"],
-      "maxDepth": 5,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_ocean"]
+      "minFishingLevel": 0,
+      "seasons": [
+        "spring",
+        "summer",
+        "winter"
+      ],
+      "maxDepth": 3,
+      "depthMultiplier": 0.2,
+      "biomeTags": [
+        "#stardewcraft:is_ocean"
+      ],
+      "timeRanges": [
+        [
+          600,
+          1100
+        ],
+        [
+          1900,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.4
     },
     {
       "id": "eel",
@@ -383,12 +705,23 @@
       "difficulty": 70,
       "motionType": 2,
       "minFishingLevel": 0,
-      "seasons": ["spring", "fall"],
+      "seasons": [
+        "spring",
+        "fall"
+      ],
       "weather": "rainy",
-      "timeRanges": [[1600, 2600]],
-      "maxDepth": 4,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_ocean"]
+      "timeRanges": [
+        [
+          1600,
+          2600
+        ]
+      ],
+      "maxDepth": 3,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_ocean"
+      ],
+      "spawnRate": 0.55
     },
     {
       "id": "octopus",
@@ -398,11 +731,22 @@
       "difficulty": 95,
       "motionType": 1,
       "minFishingLevel": 0,
-      "seasons": ["summer"],
-      "timeRanges": [[600, 1300]],
+      "seasons": [
+        "summer"
+      ],
+      "timeRanges": [
+        [
+          600,
+          1300
+        ]
+      ],
       "maxDepth": 5,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_ocean"]
+      "depthMultiplier": 0.08,
+      "biomeTags": [
+        "#stardewcraft:is_ocean"
+      ],
+      "weather": "any",
+      "spawnRate": 0.1
     },
     {
       "id": "squid",
@@ -412,11 +756,22 @@
       "difficulty": 75,
       "motionType": 1,
       "minFishingLevel": 0,
-      "seasons": ["winter"],
-      "timeRanges": [[1800, 2600]],
-      "maxDepth": 5,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_ocean"]
+      "seasons": [
+        "winter"
+      ],
+      "timeRanges": [
+        [
+          1800,
+          2600
+        ]
+      ],
+      "maxDepth": 3,
+      "depthMultiplier": 0.3,
+      "biomeTags": [
+        "#stardewcraft:is_ocean"
+      ],
+      "weather": "any",
+      "spawnRate": 0.35
     },
     {
       "id": "tuna",
@@ -426,11 +781,23 @@
       "difficulty": 70,
       "motionType": 2,
       "minFishingLevel": 0,
-      "seasons": ["summer", "winter"],
-      "timeRanges": [[600, 1900]],
-      "maxDepth": 5,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_ocean"]
+      "seasons": [
+        "summer",
+        "winter"
+      ],
+      "timeRanges": [
+        [
+          600,
+          1900
+        ]
+      ],
+      "maxDepth": 3,
+      "depthMultiplier": 0.55,
+      "biomeTags": [
+        "#stardewcraft:is_ocean"
+      ],
+      "weather": "any",
+      "spawnRate": 0.15
     },
     {
       "id": "tilapia",
@@ -440,11 +807,23 @@
       "difficulty": 50,
       "motionType": 0,
       "minFishingLevel": 0,
-      "seasons": ["summer", "fall"],
-      "timeRanges": [[600, 1400]],
+      "seasons": [
+        "summer",
+        "fall"
+      ],
+      "timeRanges": [
+        [
+          600,
+          1400
+        ]
+      ],
       "maxDepth": 3,
-      "depthMultiplier": 0.1,
-      "biomeTags": ["#stardewcraft:is_ocean"]
+      "depthMultiplier": 0.2,
+      "biomeTags": [
+        "#stardewcraft:is_ocean"
+      ],
+      "weather": "any",
+      "spawnRate": 0.4
     },
     {
       "id": "pufferfish",
@@ -454,12 +833,22 @@
       "difficulty": 80,
       "motionType": 4,
       "minFishingLevel": 0,
-      "seasons": ["summer"],
+      "seasons": [
+        "summer"
+      ],
       "weather": "sunny",
-      "timeRanges": [[1200, 1600]],
+      "timeRanges": [
+        [
+          1200,
+          1600
+        ]
+      ],
       "maxDepth": 4,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_ocean"]
+      "depthMultiplier": 0.5,
+      "biomeTags": [
+        "#stardewcraft:is_ocean"
+      ],
+      "spawnRate": 0.3
     },
     {
       "id": "albacore",
@@ -469,11 +858,27 @@
       "difficulty": 60,
       "motionType": 0,
       "minFishingLevel": 0,
-      "seasons": ["fall", "winter"],
-      "timeRanges": [[600, 1100], [1800, 2400]],
-      "maxDepth": 5,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_ocean"]
+      "seasons": [
+        "fall",
+        "winter"
+      ],
+      "timeRanges": [
+        [
+          600,
+          1100
+        ],
+        [
+          1800,
+          2600
+        ]
+      ],
+      "maxDepth": 3,
+      "depthMultiplier": 0.15,
+      "biomeTags": [
+        "#stardewcraft:is_ocean"
+      ],
+      "weather": "any",
+      "spawnRate": 0.3
     },
     {
       "id": "lingcod",
@@ -482,14 +887,24 @@
       "chance": 0.15,
       "difficulty": 85,
       "motionType": 2,
-      "minFishingLevel": 5,
-      "seasons": ["winter"],
-      "maxDepth": 5,
+      "minFishingLevel": 0,
+      "seasons": [
+        "winter"
+      ],
+      "maxDepth": 3,
       "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_ocean"]
+      "biomeTags": [
+        "#stardewcraft:is_ocean"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.3
     },
-    
-    
     {
       "id": "sandfish",
       "precedence": 100,
@@ -498,10 +913,19 @@
       "difficulty": 65,
       "motionType": 0,
       "minFishingLevel": 0,
-      "timeRanges": [[600, 2000]],
-      "maxDepth": 3,
+      "timeRanges": [
+        [
+          600,
+          2000
+        ]
+      ],
+      "maxDepth": 1,
       "depthMultiplier": 0.1,
-      "biomeTags": ["#stardewcraft:is_desert"]
+      "biomeTags": [
+        "#stardewcraft:is_desert"
+      ],
+      "weather": "any",
+      "spawnRate": 0.65
     },
     {
       "id": "scorpion_carp",
@@ -511,10 +935,19 @@
       "difficulty": 90,
       "motionType": 1,
       "minFishingLevel": 4,
-      "timeRanges": [[600, 2000]],
-      "maxDepth": 4,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_desert"]
+      "timeRanges": [
+        [
+          600,
+          2000
+        ]
+      ],
+      "maxDepth": 2,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_desert"
+      ],
+      "weather": "any",
+      "spawnRate": 0.15
     },
     {
       "id": "dorado",
@@ -523,12 +956,23 @@
       "chance": 0.1,
       "difficulty": 78,
       "motionType": 0,
-      "minFishingLevel": 5,
-      "seasons": ["summer"],
-      "timeRanges": [[600, 1900]],
-      "maxDepth": 4,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_forest_waterfall"]
+      "minFishingLevel": 0,
+      "seasons": [
+        "summer"
+      ],
+      "timeRanges": [
+        [
+          600,
+          1900
+        ]
+      ],
+      "maxDepth": 3,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_forest_waterfall"
+      ],
+      "weather": "any",
+      "spawnRate": 0.15
     },
     {
       "id": "ghostfish",
@@ -538,9 +982,19 @@
       "difficulty": 50,
       "motionType": 0,
       "minFishingLevel": 0,
-      "maxDepth": 3,
-      "depthMultiplier": 0.1,
-      "biomeTags": ["#stardewcraft:is_mines_20"]
+      "maxDepth": 2,
+      "depthMultiplier": 0.3,
+      "biomeTags": [
+        "#stardewcraft:is_mines_20"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.3
     },
     {
       "id": "stonefish",
@@ -550,9 +1004,19 @@
       "difficulty": 65,
       "motionType": 3,
       "minFishingLevel": 3,
-      "maxDepth": 3,
+      "maxDepth": 2,
       "depthMultiplier": 0.1,
-      "biomeTags": ["#stardewcraft:is_mines_60"]
+      "biomeTags": [
+        "#stardewcraft:is_mines_60"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.1
     },
     {
       "id": "ice_pip",
@@ -562,9 +1026,19 @@
       "difficulty": 85,
       "motionType": 1,
       "minFishingLevel": 5,
-      "maxDepth": 3,
+      "maxDepth": 2,
       "depthMultiplier": 0.1,
-      "biomeTags": ["#stardewcraft:is_mines_100"]
+      "biomeTags": [
+        "#stardewcraft:is_mines_100"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.05
     },
     {
       "id": "lava_eel",
@@ -574,9 +1048,20 @@
       "difficulty": 90,
       "motionType": 0,
       "minFishingLevel": 7,
-      "maxDepth": 4,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_mines_100", "#stardewcraft:is_volcano"]
+      "maxDepth": 2,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_mines_100",
+        "#stardewcraft:is_volcano"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.05
     },
     {
       "id": "void_salmon",
@@ -586,9 +1071,19 @@
       "difficulty": 80,
       "motionType": 0,
       "minFishingLevel": 0,
-      "maxDepth": 4,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_witch_swamp"]
+      "maxDepth": 2,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_witch_swamp"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.33
     },
     {
       "id": "slimejack",
@@ -600,7 +1095,17 @@
       "minFishingLevel": 0,
       "maxDepth": 3,
       "depthMultiplier": 0.1,
-      "biomeTags": ["#stardewcraft:is_mutant_bug_lair"]
+      "biomeTags": [
+        "#stardewcraft:is_mutant_bug_lair"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.4
     },
     {
       "id": "midnight_squid",
@@ -610,10 +1115,19 @@
       "difficulty": 55,
       "motionType": 1,
       "minFishingLevel": 0,
-      "timeRanges": [[0, 200]],
-      "maxDepth": 4,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_night_market"]
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "maxDepth": 3,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_night_market"
+      ],
+      "weather": "any",
+      "spawnRate": 0.4
     },
     {
       "id": "spook_fish",
@@ -623,10 +1137,19 @@
       "difficulty": 60,
       "motionType": 1,
       "minFishingLevel": 0,
-      "timeRanges": [[0, 200]],
-      "maxDepth": 4,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_night_market"]
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "maxDepth": 3,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_night_market"
+      ],
+      "weather": "any",
+      "spawnRate": 0.4
     },
     {
       "id": "blobfish",
@@ -636,13 +1159,20 @@
       "difficulty": 75,
       "motionType": 4,
       "minFishingLevel": 0,
-      "timeRanges": [[0, 200]],
-      "maxDepth": 5,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_night_market"]
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "maxDepth": 3,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_night_market"
+      ],
+      "weather": "any",
+      "spawnRate": 0.4
     },
-    
-    
     {
       "id": "legend",
       "precedence": 500,
@@ -651,15 +1181,25 @@
       "difficulty": 110,
       "motionType": 0,
       "minFishingLevel": 10,
-      "seasons": ["spring"],
+      "seasons": [
+        "spring"
+      ],
       "weather": "rainy",
-      "timeRanges": [[600, 1900]],
+      "timeRanges": [
+        [
+          600,
+          2000
+        ]
+      ],
       "maxDepth": 5,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_mountain_lake"],
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_mountain_lake"
+      ],
       "condition": "!PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
       "catchLimit": 1,
-      "isBossFish": true
+      "isBossFish": true,
+      "spawnRate": 0.0
     },
     {
       "id": "crimsonfish",
@@ -668,15 +1208,26 @@
       "chance": 0.1,
       "difficulty": 95,
       "motionType": 0,
-      "minFishingLevel": 10,
-      "seasons": ["summer"],
-      "timeRanges": [[600, 2000]],
-      "maxDepth": 5,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_ocean"],
+      "minFishingLevel": 5,
+      "seasons": [
+        "summer"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2000
+        ]
+      ],
+      "maxDepth": 4,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_ocean"
+      ],
       "condition": "!PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
       "catchLimit": 1,
-      "isBossFish": true
+      "isBossFish": true,
+      "weather": "any",
+      "spawnRate": 0.1
     },
     {
       "id": "angler",
@@ -685,15 +1236,26 @@
       "chance": 0.1,
       "difficulty": 85,
       "motionType": 2,
-      "minFishingLevel": 10,
-      "seasons": ["fall"],
-      "timeRanges": [[600, 1900]],
-      "maxDepth": 5,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_town_river"],
+      "minFishingLevel": 3,
+      "seasons": [
+        "fall"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "maxDepth": 4,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_town_river"
+      ],
       "condition": "!PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
       "catchLimit": 1,
-      "isBossFish": true
+      "isBossFish": true,
+      "weather": "any",
+      "spawnRate": 0.05
     },
     {
       "id": "glacierfish",
@@ -702,15 +1264,26 @@
       "chance": 0.1,
       "difficulty": 100,
       "motionType": 0,
-      "minFishingLevel": 10,
-      "seasons": ["winter"],
-      "timeRanges": [[600, 2000]],
+      "minFishingLevel": 7,
+      "seasons": [
+        "winter"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2000
+        ]
+      ],
       "maxDepth": 5,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_forest_waterfall"],
+      "depthMultiplier": 0.02,
+      "biomeTags": [
+        "#stardewcraft:is_forest_waterfall"
+      ],
       "condition": "!PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
       "catchLimit": 1,
-      "isBossFish": true
+      "isBossFish": true,
+      "weather": "sunny",
+      "spawnRate": 0.0
     },
     {
       "id": "mutant_carp",
@@ -719,13 +1292,23 @@
       "chance": 0.1,
       "difficulty": 80,
       "motionType": 1,
-      "minFishingLevel": 10,
-      "maxDepth": 4,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_sewers"],
+      "minFishingLevel": 0,
+      "maxDepth": 5,
+      "depthMultiplier": 0.02,
+      "biomeTags": [
+        "#stardewcraft:is_sewers"
+      ],
       "condition": "!PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
       "catchLimit": 1,
-      "isBossFish": true
+      "isBossFish": true,
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.0
     },
     {
       "id": "legend_ii",
@@ -734,16 +1317,26 @@
       "chance": 0.05,
       "difficulty": 110,
       "motionType": 0,
-      "minFishingLevel": 15,
-      "seasons": ["spring"],
+      "minFishingLevel": 10,
+      "seasons": [
+        "spring"
+      ],
       "weather": "rainy",
-      "timeRanges": [[600, 1900]],
+      "timeRanges": [
+        [
+          600,
+          2000
+        ]
+      ],
       "maxDepth": 5,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_mountain_lake"],
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_mountain_lake"
+      ],
       "condition": "PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
       "catchLimit": 1,
-      "isBossFish": true
+      "isBossFish": true,
+      "spawnRate": 0.0
     },
     {
       "id": "son_of_crimsonfish",
@@ -752,15 +1345,26 @@
       "chance": 0.05,
       "difficulty": 95,
       "motionType": 0,
-      "minFishingLevel": 15,
-      "seasons": ["summer"],
-      "timeRanges": [[600, 2000]],
-      "maxDepth": 5,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_ocean"],
+      "minFishingLevel": 5,
+      "seasons": [
+        "summer"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2000
+        ]
+      ],
+      "maxDepth": 4,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_ocean"
+      ],
       "condition": "PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
       "catchLimit": 1,
-      "isBossFish": true
+      "isBossFish": true,
+      "weather": "any",
+      "spawnRate": 0.1
     },
     {
       "id": "ms_angler",
@@ -769,15 +1373,26 @@
       "chance": 0.05,
       "difficulty": 85,
       "motionType": 2,
-      "minFishingLevel": 15,
-      "seasons": ["fall"],
-      "timeRanges": [[600, 1900]],
-      "maxDepth": 5,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_town_river"],
+      "minFishingLevel": 3,
+      "seasons": [
+        "fall"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "maxDepth": 4,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_town_river"
+      ],
       "condition": "PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
       "catchLimit": 1,
-      "isBossFish": true
+      "isBossFish": true,
+      "weather": "any",
+      "spawnRate": 0.05
     },
     {
       "id": "glacierfish_jr",
@@ -786,15 +1401,26 @@
       "chance": 0.05,
       "difficulty": 100,
       "motionType": 0,
-      "minFishingLevel": 15,
-      "seasons": ["winter"],
-      "timeRanges": [[600, 2000]],
+      "minFishingLevel": 7,
+      "seasons": [
+        "winter"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2000
+        ]
+      ],
       "maxDepth": 5,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_forest_waterfall"],
+      "depthMultiplier": 0.02,
+      "biomeTags": [
+        "#stardewcraft:is_forest_waterfall"
+      ],
       "condition": "PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
       "catchLimit": 1,
-      "isBossFish": true
+      "isBossFish": true,
+      "weather": "sunny",
+      "spawnRate": 0.0
     },
     {
       "id": "radioactive_carp",
@@ -803,13 +1429,23 @@
       "chance": 0.05,
       "difficulty": 80,
       "motionType": 1,
-      "minFishingLevel": 15,
-      "maxDepth": 4,
-      "depthMultiplier": 0.05,
-      "biomeTags": ["#stardewcraft:is_sewers"],
+      "minFishingLevel": 0,
+      "maxDepth": 5,
+      "depthMultiplier": 0.02,
+      "biomeTags": [
+        "#stardewcraft:is_sewers"
+      ],
       "condition": "PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
       "catchLimit": 1,
-      "isBossFish": true
+      "isBossFish": true,
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.0
     }
   ]
 }

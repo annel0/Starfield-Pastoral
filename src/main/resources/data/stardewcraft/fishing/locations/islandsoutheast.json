@@ -1,6 +1,137 @@
-﻿{
-    "location":  "IslandSouthEast",
-    "fish":  [
-
-             ]
+{
+  "location": "IslandSouthEast",
+  "fish": [
+    {
+      "id": "super_cucumber",
+      "precedence": 0,
+      "item": "stardewcraft:super_cucumber",
+      "chance": 1.0,
+      "difficulty": 80,
+      "motionType": 3,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          1800,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 4,
+      "depthMultiplier": 0.25,
+      "spawnRate": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_ginger_island_ocean"
+      ]
+    },
+    {
+      "id": "tuna",
+      "precedence": 0,
+      "item": "stardewcraft:tuna",
+      "chance": 1.0,
+      "difficulty": 70,
+      "motionType": 2,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          1900
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 3,
+      "depthMultiplier": 0.55,
+      "spawnRate": 0.15,
+      "biomeTags": [
+        "#stardewcraft:is_ginger_island_ocean"
+      ]
+    },
+    {
+      "id": "pufferfish",
+      "precedence": 0,
+      "item": "stardewcraft:pufferfish",
+      "chance": 1.0,
+      "difficulty": 80,
+      "motionType": 4,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          1200,
+          1600
+        ]
+      ],
+      "weather": "sunny",
+      "maxDepth": 4,
+      "depthMultiplier": 0.5,
+      "spawnRate": 0.3,
+      "biomeTags": [
+        "#stardewcraft:is_ginger_island_ocean"
+      ]
+    },
+    {
+      "id": "flounder",
+      "precedence": 0,
+      "item": "stardewcraft:flounder",
+      "chance": 1.0,
+      "difficulty": 50,
+      "motionType": 3,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          2000
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 2,
+      "depthMultiplier": 0.05,
+      "spawnRate": 0.15,
+      "biomeTags": [
+        "#stardewcraft:is_ginger_island_ocean"
+      ]
+    },
+    {
+      "id": "sea_jelly",
+      "precedence": 0,
+      "item": "stardewcraft:sea_jelly",
+      "chance": 0.1,
+      "difficulty": 20,
+      "motionType": 0,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 4,
+      "depthMultiplier": 0.0,
+      "spawnRate": 1.0,
+      "biomeTags": [
+        "#stardewcraft:is_ginger_island_ocean"
+      ]
+    },
+    {
+      "id": "lionfish",
+      "precedence": 0,
+      "item": "stardewcraft:lionfish",
+      "chance": 1.0,
+      "difficulty": 50,
+      "motionType": 2,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 3,
+      "depthMultiplier": 0.1,
+      "spawnRate": 0.4,
+      "biomeTags": [
+        "#stardewcraft:is_ginger_island_ocean"
+      ]
+    }
+  ]
 }

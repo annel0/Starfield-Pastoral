@@ -57,7 +57,22 @@ public record SpawnFishRule(
 		boolean canBeInherited,
 		boolean requireMagicBait,
 		int catchLimit,
-		String condition
+		String condition,
+		// SDV CheckGenericFishRequirements depth-aware fields
+		float spawnRate,
+		int maxDepth,
+		float depthMultiplier,
+		boolean applyDailyLuck,
+		float curiosityLureBuff,
+		boolean isBossFish,
+		/** SDV Data/Fish field 13: marks easy fish allowed during the player's tutorial first-catch. */
+		boolean isTutorialFish,
+		/** SDV {@code SpawnFishData.ChanceModifiers}: list of QuantityModifier applied to first-roll chance. */
+		List<QuantityModifier.Entry> chanceModifiers,
+		/** SDV {@code SpawnFishData.ChanceModifierMode}: how multiple modifiers combine (Stack/Min/Max). */
+		QuantityModifier.Mode chanceModifierMode,
+		/** SDV {@code SpawnFishData.UseFishCaughtSeededRandom}: use seeded RNG keyed on PreciseFishCaught for first roll. */
+		boolean useFishCaughtSeededRandom
 ) {
 	/**
 	 * 检查基础条件（钓鱼等级、水深）
@@ -208,9 +223,23 @@ public record SpawnFishRule(
 		String weather = obj.has("weather") ? obj.get("weather").getAsString() : "any";
 		List<int[]> timeRanges = parseTimeRanges(obj);
 
+		// SDV depth-aware fields (CheckGenericFishRequirements)
+		float spawnRate = obj.has("spawnRate") ? obj.get("spawnRate").getAsFloat() : 1.0f;
+		int maxFishDepth = obj.has("maxDepth") ? obj.get("maxDepth").getAsInt() : 4;
+		float depthMultiplier = obj.has("depthMultiplier") ? obj.get("depthMultiplier").getAsFloat() : 0.0f;
+		boolean applyDailyLuck = obj.has("applyDailyLuck") && obj.get("applyDailyLuck").getAsBoolean();
+		float curiosityLureBuff = obj.has("curiosityLureBuff") ? obj.get("curiosityLureBuff").getAsFloat() : -1.0f;
+		boolean isBossFish = obj.has("isBossFish") && obj.get("isBossFish").getAsBoolean();
+		boolean isTutorialFish = obj.has("isTutorialFish") && obj.get("isTutorialFish").getAsBoolean();
+		List<QuantityModifier.Entry> chanceModifiers = QuantityModifier.parseList(obj, "chanceModifiers");
+		QuantityModifier.Mode chanceModifierMode = QuantityModifier.parseMode(obj, "chanceModifierMode");
+		boolean useFishCaughtSeededRandom = obj.has("useFishCaughtSeededRandom") && obj.get("useFishCaughtSeededRandom").getAsBoolean();
+
 		return new SpawnFishRule(id, precedence, item, chance, difficulty, motion, minLevel, minDepth, maxDepth,
 				biomes, biomeTags, seasons, weather, timeRanges, skipMinigame,
-				fishAreaId, canBeInherited, requireMagicBait, catchLimit, condition);
+				fishAreaId, canBeInherited, requireMagicBait, catchLimit, condition,
+				spawnRate, maxFishDepth, depthMultiplier, applyDailyLuck, curiosityLureBuff, isBossFish,
+				isTutorialFish, chanceModifiers, chanceModifierMode, useFishCaughtSeededRandom);
 	}
 
 	private static List<String> parseStringList(JsonObject obj, String key) {

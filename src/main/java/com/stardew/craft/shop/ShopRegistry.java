@@ -255,7 +255,9 @@ public final class ShopRegistry {
                 entryStock("stardewcraft:axe",                100, 1),
                 entryStock("stardewcraft:hoe",                100, 1),
                 entryStock("stardewcraft:watering_can",       100, 1),
-                entryStock("stardewcraft:scythe",             100, 1)
+                entryStock("stardewcraft:scythe",             100, 1),
+                // 铜锅补购 — 仅对已完成 CC Fish Tank（area 2）的玩家开放
+                entryMail("stardewcraft:copper_pan",         2500, "ccFishTank")
             ),
             Set.of() // Blacksmith doesn't buy items from player
         ));
@@ -433,7 +435,7 @@ public final class ShopRegistry {
                 entryAllSeasons("stardewcraft:cooking_pot",   5000),
                 entryAllSeasons("stardewcraft:fridge",        3000),
                 entryAllSeasons("stardewcraft:shipping_bin",  2500),
-                entryAllSeasons("stardewcraft:trash_bin",      500),
+
                 entryAllSeasons("stardewcraft:incubator",     5000),
                 // Animal building utilities
                 entryAllSeasons("stardewcraft:hay_hopper",             2000),
@@ -448,6 +450,62 @@ public final class ShopRegistry {
             ),
             Set.of("stardewcraft.type.resource")
         ));
+
+        // -------------------------------------------------------------------
+        // Desert Trader – 沙漠骆驼商人
+        // SDV parity: Data/Shops.json → "DesertTrade" section
+        // 1:1 item mapping (skipped per user rule: hats, furniture, Krobus pendant).
+        // Staircase (BC)71 → stardewcraft:mine_ladder substitute.
+        // Day-of-week: 0=Mon..6=Sun. Order preserved from vanilla JSON.
+        // -------------------------------------------------------------------
+        // SDV parity: DesertTrade owner has Portrait="" and Dialogues set from
+        // Strings\StringsFromCSFiles (NPC random lines, not shown in the shop menu).
+        // The shop menu itself does NOT draw a portrait/dialogue panel for the camel
+        // trader — leave ownerNpcId / ownerDialogue empty so ShopScreen skips the left panel.
+        REGISTRY.put("DesertTrade", new ShopDefinition(
+            "DesertTrade",
+            "",
+            "",
+            List.of(
+                // 1. Artifact Trove ← 5× Omni Geode
+                entryTrade("stardewcraft:artifact_trove",        "stardewcraft:omni_geode",    5),
+                // 2. Warp Totem Desert (item) ← 3× Omni Geode
+                entryTrade("stardewcraft:warp_totem_desert",     "stardewcraft:omni_geode",    3),
+                // 3. Triple Shot Espresso ← 1× Diamond
+                entryTrade("stardewcraft:triple_shot_espresso",  "stardewcraft:diamond",       1),
+                // 4. Spicy Eel ← 1× Ruby
+                entryTrade("stardewcraft:spicy_eel",             "stardewcraft:ruby",          1),
+                // 5. Mega Bomb ← 5× Iridium Ore
+                entryTrade("stardewcraft:mega_bomb",             "stardewcraft:iridium_ore",   5),
+                // 6. Bomb ← 5× Quartz
+                entryTrade("stardewcraft:bomb_item",             "stardewcraft:quartz",        5),
+                // 7. Hay ×3 per purchase ← 1× Omni Geode (Monday)
+                entryTradeDayStackSize("stardewcraft:hay",       "stardewcraft:omni_geode",    1, 0, 3),
+                // 8. Fiber ← 5× Stone (Tuesday)
+                entryTradeDay("stardewcraft:fiber",              "stardewcraft:stone",         5, 1),
+                // 9. Cloth ← 3× Aquamarine (Wednesday)
+                entryTradeDay("stardewcraft:cloth",              "stardewcraft:aquamarine",    3, 2),
+                // 10. Crab Cakes ← 3× Prismatic Shard (Thursday, per-player stock 1)
+                entryTradeDayStock("stardewcraft:crab_cakes",    "stardewcraft:prismatic_shard", 3, 3, 1),
+                // 11. Cheese ← 1× Emerald (Friday)
+                entryTradeDay("stardewcraft:cheese",             "stardewcraft:emerald",       1, 4),
+                // 12-15. Seed-pack rotation (Saturday) — each pack trades for the next season's
+                entryTradeDay("stardewcraft:spring_seeds",       "stardewcraft:summer_seeds",  2, 5),
+                entryTradeDay("stardewcraft:summer_seeds",       "stardewcraft:fall_seeds",    2, 5),
+                entryTradeDay("stardewcraft:fall_seeds",         "stardewcraft:winter_seeds",  2, 5),
+                entryTradeDay("stardewcraft:winter_seeds",       "stardewcraft:spring_seeds",  2, 5),
+                // 16. Staircase (SDV BC:71) → mine_ladder substitute ← 1× Jade (Sunday)
+                entryTradeDay("stardewcraft:mine_ladder",        "stardewcraft:jade",          1, 6),
+                // 17. Warp Totem Desert RECIPE ← 10× Iridium Bar
+                entryTradeRecipe("stardewcraft:warp_totem_desert","stardewcraft:iridium_bar", 10)
+                // Skipped (user rule):
+                //   (O)808  Void Ghost Pendant / Krobus marriage item
+                //   (F)1971, (F)2508, MidnightBeachBed, MidnightBeachDoubleBed, DarkPiano — furniture
+                //   (H)72, (H)73 (odd), (H)74 (even) — hats
+                // SDV Owners condition "Closed Winter 15/16/17" not implemented yet (TODO).
+            ),
+            Set.of() // DesertTrader doesn't buy items from player
+        ));
     }
 
     // -------------------------------------------------------------------
@@ -457,31 +515,31 @@ public final class ShopRegistry {
     /** Seasonal item available from year 1+, infinite stock. */
     private static ShopItemEntry entry(String id, int price, int season) {
         return new ShopItemEntry(id, "", "", price, Integer.MAX_VALUE,
-                null, 0, Set.of(season), 1, 0, null);
+                null, 0, Set.of(season), 1, 0, null, -1, 0, 1);
     }
 
     /** Seasonal item, custom min-year, infinite stock. */
     private static ShopItemEntry entryYear(String id, int price, int season, int minYear) {
         return new ShopItemEntry(id, "", "", price, Integer.MAX_VALUE,
-                null, 0, Set.of(season), minYear, 0, null);
+                null, 0, Set.of(season), minYear, 0, null, -1, 0, 1);
     }
 
     /** Year-round item (all seasons) from year 1+, infinite stock. */
     private static ShopItemEntry entryAllSeasons(String id, int price) {
         return new ShopItemEntry(id, "", "", price, Integer.MAX_VALUE,
-                null, 0, Set.of(), 1, 0, null);
+                null, 0, Set.of(), 1, 0, null, -1, 0, 1);
     }
 
     /** Year-round item with custom minYear, infinite stock. */
     private static ShopItemEntry entryAllSeasonsYear(String id, int price, int minYear) {
         return new ShopItemEntry(id, "", "", price, Integer.MAX_VALUE,
-                null, 0, Set.of(), minYear, 0, null);
+                null, 0, Set.of(), minYear, 0, null, -1, 0, 1);
     }
 
     /** Year-round item with limited stock, from year 1+. */
     private static ShopItemEntry entryStock(String id, int price, int stock) {
         return new ShopItemEntry(id, "", "", price, stock,
-                null, 0, Set.of(), 1, 0, null);
+                null, 0, Set.of(), 1, 0, null, -1, 0, 1);
     }
 
     /**
@@ -490,19 +548,49 @@ public final class ShopRegistry {
      */
     private static ShopItemEntry entryRecipe(String dishId, int price) {
         return new ShopItemEntry("recipe:" + dishId, "", "", price, 1,
-                null, 0, Set.of(), 1, 0, null);
+                null, 0, Set.of(), 1, 0, null, -1, 0, 1);
     }
 
     /** Year-round item with mine-level requirement, infinite stock. */
     private static ShopItemEntry entryMine(String id, int price, int minMineLevel) {
         return new ShopItemEntry(id, "", "", price, Integer.MAX_VALUE,
-                null, 0, Set.of(), 1, minMineLevel, null);
+                null, 0, Set.of(), 1, minMineLevel, null, -1, 0, 1);
     }
 
     /** Year-round item with mail-flag requirement, infinite stock. */
     private static ShopItemEntry entryMail(String id, int price, String mailFlag) {
         return new ShopItemEntry(id, "", "", price, Integer.MAX_VALUE,
-                null, 0, Set.of(), 1, 0, mailFlag);
+                null, 0, Set.of(), 1, 0, mailFlag, -1, 0, 1);
+    }
+
+    // ---- DesertTrade helpers (trade-only; gold price always 0) ----------
+
+    /** Year-round trade-only item (no gold price), infinite stock. */
+    private static ShopItemEntry entryTrade(String id, String tradeItemId, int tradeCount) {
+        return new ShopItemEntry(id, "", "", 0, Integer.MAX_VALUE,
+                tradeItemId, tradeCount, Set.of(), 1, 0, null, -1, 0, 1);
+    }
+
+    /** Year-round trade-only item, sold only on a specific day-of-week (0=Mon..6=Sun). */
+    private static ShopItemEntry entryTradeDay(String id, String tradeItemId, int tradeCount, int dayOfWeek) {
+        return new ShopItemEntry(id, "", "", 0, Integer.MAX_VALUE,
+                tradeItemId, tradeCount, Set.of(), 1, 0, null, dayOfWeek, 0, 1);
+    }
+
+    /** Year-round trade-only item, specific day-of-week, per-player limited stock. */
+    private static ShopItemEntry entryTradeDayStock(String id, String tradeItemId, int tradeCount, int dayOfWeek, int stock) {
+        return new ShopItemEntry(id, "", "", 0, stock,
+                tradeItemId, tradeCount, Set.of(), 1, 0, null, dayOfWeek, 0, 1);
+    }
+    /** Year-round trade item, specific day-of-week, grants `stack` items per single purchase (SDV MinStack). */
+    private static ShopItemEntry entryTradeDayStackSize(String id, String tradeItemId, int tradeCount, int dayOfWeek, int stackPerPurchase) {
+        return new ShopItemEntry(id, "", "", 0, Integer.MAX_VALUE,
+                tradeItemId, tradeCount, Set.of(), 1, 0, null, dayOfWeek, 0, stackPerPurchase);
+    }
+    /** Year-round trade recipe unlock (uses recipe: prefix). */
+    private static ShopItemEntry entryTradeRecipe(String dishId, String tradeItemId, int tradeCount) {
+        return new ShopItemEntry("recipe:" + dishId, "", "", 0, 1,
+                tradeItemId, tradeCount, Set.of(), 1, 0, null, -1, 0, 1);
     }
 
     // -------------------------------------------------------------------
@@ -524,7 +612,12 @@ public final class ShopRegistry {
             String shopId, ShopDefinition shop,
             net.minecraft.server.level.ServerPlayer player) {
         com.stardew.craft.time.StardewTimeManager time = com.stardew.craft.time.StardewTimeManager.get();
-        List<ShopItemEntry> rawItems = shop.getAvailableItems(time.getCurrentSeason(), time.getCurrentYear());
+        final int season = time.getCurrentSeason();
+        final int year = time.getCurrentYear();
+        final int dayOfMonth = time.getCurrentDay();
+        List<ShopItemEntry> rawItems = shop.items().stream()
+                .filter(e -> e.isAvailableOnDate(season, year, dayOfMonth))
+                .collect(Collectors.toList());
 
         java.util.UUID playerId = player.getUUID();
         com.stardew.craft.player.PlayerStardewData data =
@@ -551,7 +644,8 @@ public final class ShopRegistry {
             result.add(remaining == e.stock() ? e : new ShopItemEntry(
                 e.itemId(), e.displayName(), e.description(),
                 e.price(), remaining, e.tradeItemId(), e.tradeItemCount(),
-                e.seasons(), e.minYear(), e.minMineLevel(), e.mailFlag()
+                e.seasons(), e.minYear(), e.minMineLevel(), e.mailFlag(),
+                e.dayOfWeek(), e.dayOfMonthParity(), e.purchaseStack()
             ));
         }
         return result;

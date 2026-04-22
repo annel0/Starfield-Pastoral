@@ -36,7 +36,8 @@ public final class PortalHintPositions {
     public enum HintStyle {
         ENTER,            // warm amber/gold
         EXIT,             // cool blue-white
-        RETURN_OVERWORLD  // green
+        RETURN_OVERWORLD, // green
+        LOCKED            // gray — 献祭未完成，视觉上告知"进不去"
     }
 
     private static final List<HintInfo> ALL = new ArrayList<>();
@@ -161,5 +162,25 @@ public final class PortalHintPositions {
         enter(new BlockPos(209, -15, 26), 8, 3, 1, "farm_east");
         // West entry (toward forest): interaction area (70,-12,116)→(70,-10,123)
         enter(new BlockPos(70, -12, 116), 1, 3, 8, "farm_west");
+
+        // ---- Desert: Oasis outdoor entry (in calico desert) ----
+        enter(new BlockPos(-360, -40, 1414), 2, 2, 1, "oasis");
+
+        // ---- Desert: Oasis indoor exit ----
+        BlockPos oasisO = new BlockPos(18240, 70, 17664);
+        exit(oasisO, new BlockPos(1, 1, 4), 1, 2, 1, "oasis");
+
+        // ---- Desert: mine entrance (placeholder, skull cavern) ----
+        enter(new BlockPos(-340, -42, 1266), 3, 3, 1, "desert_mine");
+
+        // ---- Skull Cavern exit (mining dimension, floor 121 lobby) ----
+        // Portal: origin(-6,64,24211) + (1, 1..2, 2..3) → basePos (-5, 65, 24213), size 1×2×2
+        ALL.add(new HintInfo(
+            Vec3.atBottomCenterOf(new BlockPos(-5, 65, 24213)),
+            false,  // exit portal
+            1, 2, 2,
+            HintStyle.RETURN_OVERWORLD,
+            "desert_mine"
+        ));
     }
 }

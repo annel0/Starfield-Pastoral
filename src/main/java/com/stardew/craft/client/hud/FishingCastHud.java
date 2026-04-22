@@ -71,6 +71,9 @@ public final class FishingCastHud {
 		if (player == null || mc.level == null) {
 			return;
 		}
+		if (mc.options.hideGui || player.isSpectator()) {
+			return;
+		}
 
 		long now = System.currentTimeMillis();
 		int dt = 0;

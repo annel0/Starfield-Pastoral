@@ -269,6 +269,16 @@ public class AnimalQueryMenu extends AbstractContainerMenu {
             return;
         }
         AnimalWorldData data = AnimalWorldData.get(serverPlayer.serverLevel());
+        FarmAnimalRecord animal = data.getAnimal(animalId).orElse(null);
+        if (animal == null) return;
+        AnimalBuildingRecord building = data.getBuilding(animal.buildingId()).orElse(null);
+        if (building == null) return;
+        // 权限检查：只有农场成员可以操作
+        if (!com.stardew.craft.farm.FarmInstanceRegistry.get()
+                .canOperateBuilding(serverPlayer.getUUID(), building.ownerPlayerUuid())) {
+            serverPlayer.sendSystemMessage(net.minecraft.network.chat.Component.translatable("stardewcraft.animal.query.no_permission"));
+            return;
+        }
         if (data.setAllowReproduction(animalId, allow)) {
             this.allowReproduction = allow ? 1 : 0;
         }
@@ -279,12 +289,23 @@ public class AnimalQueryMenu extends AbstractContainerMenu {
             return;
         }
 
+        AnimalWorldData data = AnimalWorldData.get(serverPlayer.serverLevel());
+        FarmAnimalRecord animal = data.getAnimal(animalId).orElse(null);
+        if (animal == null) return;
+        AnimalBuildingRecord building = data.getBuilding(animal.buildingId()).orElse(null);
+        if (building == null) return;
+        // 权限检查：只有农场成员可以卖动物
+        if (!com.stardew.craft.farm.FarmInstanceRegistry.get()
+                .canOperateBuilding(serverPlayer.getUUID(), building.ownerPlayerUuid())) {
+            serverPlayer.sendSystemMessage(net.minecraft.network.chat.Component.translatable("stardewcraft.animal.query.no_permission"));
+            return;
+        }
+
         SellQuote quote = ProfessionSellPriceService.quoteAnimal(
             serverPlayer,
             getBaseAnimalSellPrice(),
             SellSource.ANIMAL_SALE
         );
-        AnimalWorldData data = AnimalWorldData.get(serverPlayer.serverLevel());
         if (!data.removeAnimal(animalId)) {
             return;
         }
@@ -328,10 +349,21 @@ public class AnimalQueryMenu extends AbstractContainerMenu {
             return;
         }
 
+        // 权限检查：只有农场成员可以迁移动物
+        if (!com.stardew.craft.farm.FarmInstanceRegistry.get()
+                .canOperateBuilding(serverPlayer.getUUID(), current.ownerPlayerUuid())) {
+            serverPlayer.sendSystemMessage(net.minecraft.network.chat.Component.translatable("stardewcraft.animal.query.no_permission"));
+            return;
+        }
+
         String family = AnimalTypeCatalog.resolve(animal.animalTypeId()).family();
         List<OpenAnimalMoveHomeScreenPayload.BuildingOption> options = new ArrayList<>();
         for (AnimalBuildingRecord building : data.getBuildings()) {
-            if (!current.ownerPlayerUuid().equals(building.ownerPlayerUuid())) {
+            // 只显示同一农场的建筑（自己的或同农场成员的）
+            if (!com.stardew.craft.farm.FarmInstanceRegistry.get()
+                    .canOperateBuilding(
+                        java.util.UUID.fromString(current.ownerPlayerUuid()),
+                        building.ownerPlayerUuid())) {
                 continue;
             }
             if (!family.equalsIgnoreCase(building.buildingType().family())) {

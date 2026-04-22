@@ -172,7 +172,8 @@ public class IncubatorBlockEntity extends TimedProductionBlockEntity {
         if (!"coop".equalsIgnoreCase(building.buildingType().family())) {
             return ClaimResult.INVALID_BUILDING;
         }
-        if (!player.getUUID().toString().equals(building.ownerPlayerUuid())) {
+        if (!com.stardew.craft.farm.FarmInstanceRegistry.get()
+                .canOperateBuilding(player.getUUID(), building.ownerPlayerUuid())) {
             return ClaimResult.NOT_OWNER;
         }
         if (building.memberAnimalIds().size() >= building.capacity()) {

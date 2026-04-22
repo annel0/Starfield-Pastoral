@@ -257,6 +257,10 @@ public class BundleMenu extends AbstractContainerMenu {
                 greenhouse.repairForPlayer(serverLevel, sp.getUUID());
             }
 
+            // 统一分发本轮新增奖励（ccFishTank=2 淘金, ccBulletin=5 友好度）
+            com.stardew.craft.communitycenter.reward.AreaRewardDispatcher
+                .onAreaComplete(sp, areaId, serverLevel);
+
             // T3.2: If ALL areas now complete, schedule goodbye dance after restore cutscene
             if (data.areAllAreasComplete(sp.getUUID())) {
                 // The goodbye dance will be triggered after AreaRestoreCutscene finishes

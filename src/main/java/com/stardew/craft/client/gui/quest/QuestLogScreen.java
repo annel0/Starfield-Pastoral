@@ -78,7 +78,8 @@ public class QuestLogScreen extends Screen {
     private int currentPage;
     private int questPage = -1;
     private StardewQuest shownQuest;
-    private List<String> objectiveText;
+    // 动态生成：每次 render 都从 quest 里重新拉，反映最新进度
+    private List<Component> objectiveText;
     private float scrollAmount;
     private float contentHeight;
     private float scissorRectHeight;
@@ -270,7 +271,7 @@ public class QuestLogScreen extends Screen {
             }
 
             // SDV: SpriteText.drawString at (bounds.X+132, bounds.Y+20)
-            g.drawString(font, q.getTitle(),
+            g.drawString(font, q.getTitleComponent(),
                     ex + mapping.ui(132), ey + mapping.ui(20), TEXT_COLOR, false);
         }
     }
@@ -285,8 +286,9 @@ public class QuestLogScreen extends Screen {
                 winX, winY, winW, winH, s4, true);
 
         // SDV: 标题居中 at (xPos+w/2, yPos+32)
-        String questTitle = shownQuest.getTitle();
-        g.drawCenteredString(font, questTitle,
+        Component questTitleComp = shownQuest.getTitleComponent();
+        String questTitle = questTitleComp.getString();
+        g.drawCenteredString(font, questTitleComp,
                 winX + winW / 2, winY + mapping.ui(32), TEXT_COLOR);
 
         // SDV: 计时任务时钟图标 + 剩余天数
@@ -325,7 +327,7 @@ public class QuestLogScreen extends Screen {
         float yPos = scissorY - scrollAmount + mapping.ui(4);
 
         List<FormattedCharSequence> descLines = font.split(
-                Component.literal(shownQuest.getDescription()), descWidth);
+                shownQuest.getDescriptionComponent(), descWidth);
         for (FormattedCharSequence line : descLines) {
             g.drawString(font, line, contentX, (int) yPos, TEXT_COLOR, false);
             yPos += font.lineHeight + 1;
@@ -344,8 +346,9 @@ public class QuestLogScreen extends Screen {
                 lastRewardBoxY = rboxY;
                 int rboxSz = mapping.ui(96);
 
-                // SDV: "Reward" label at (xPos+36, rewardBox.Y+25)
-                String rewardLabel = Component.translatable("gui.stardewcraft.quest_log.reward").getString();
+                // SDV: "Reward" label at (xPos+36, rewardBox.Y+25) — 加粗 Component 代替阴影
+                Component rewardLabel = Component.translatable("gui.stardewcraft.quest_log.reward")
+                    .withStyle(net.minecraft.ChatFormatting.BOLD);
                 g.drawString(font, rewardLabel,
                         winX + mapping.ui(36), rboxY + mapping.ui(25), TEXT_COLOR, false);
 
@@ -361,19 +364,23 @@ public class QuestLogScreen extends Screen {
                         winX + mapping.ui(448), rboxY + mapping.ui(25), 0xFF2C6E0F, false);
 
                 if (isIn(mouseX, mouseY, rboxX, rboxY, rboxSz, rboxSz)) {
-                    g.drawCenteredString(font,
-                            Component.translatable("gui.stardewcraft.quest_log.collect").getString(),
+                    Component collectTip = Component.translatable("gui.stardewcraft.quest_log.collect")
+                        .withStyle(net.minecraft.ChatFormatting.BOLD);
+                    g.drawCenteredString(font, collectTip,
                             winX + winW / 2, rboxY + rboxSz + mapping.ui(8), 0xFFFFD700);
                 }
             }
         } else {
-            // SDV: Objectives
-            if (objectiveText != null) {
-                for (int j = 0; j < objectiveText.size(); j++) {
-                    String objStr = objectiveText.get(j);
+            // SDV: Objectives — 每帧重新获取，反映最新 N/M 进度
+            List<Component> liveObjectives = shownQuest != null
+                    ? shownQuest.getObjectiveComponents()
+                    : objectiveText;
+            if (liveObjectives != null) {
+                for (int j = 0; j < liveObjectives.size(); j++) {
+                    Component objComp = liveObjectives.get(j);
                     int objTextWidth = descWidth - mapping.ui(64);
                     List<FormattedCharSequence> objLines = font.split(
-                            Component.literal(objStr), objTextWidth);
+                            objComp, objTextWidth);
 
                     // SDV: arrow at (xPos+96+8*dialogueButtonScale/10, yPos) rotated PI/2
                     // We skip the oscillation; draw rotated arrow
@@ -454,7 +461,7 @@ public class QuestLogScreen extends Screen {
                     playSound(ModSounds.SMALL_SELECT);
                     questPage = i;
                     shownQuest = pages.get(currentPage).get(i);
-                    objectiveText = shownQuest.getObjectiveDescriptions();
+                    objectiveText = shownQuest.getObjectiveComponents();
                     shownQuest.setShowNew(false);
                     // 通知服务端清除 showNew 标记，避免下次同步覆盖
                     PacketDistributor.sendToServer(new MarkQuestViewedPayload(shownQuest.getId()));

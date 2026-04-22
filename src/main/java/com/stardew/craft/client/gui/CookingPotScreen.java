@@ -285,13 +285,16 @@ public class CookingPotScreen extends AbstractContainerScreen<CookingPotMenu> {
         g.pose().popPose();
 
         if (unlocked) {
-            Component desc = Component.translatable(selStack.getItem().getDescriptionId() + ".desc");
+            String descKey = selStack.getItem().getDescriptionId() + ".desc";
+            if (net.minecraft.client.resources.language.I18n.exists(descKey)) {
+            Component desc = Component.translatable(descKey);
             List<FormattedCharSequence> descLines = this.font.split(desc, width - 6);
             int descY = py + 16;
             for (int i = 0; i < Math.min(3, descLines.size()); i++) {
                 int dx = px + (width - this.font.width(descLines.get(i))) / 2;
                 g.drawString(this.font, descLines.get(i), dx, descY, alphaMask | 0xFFAAAAAA, true);
                 descY += this.font.lineHeight;
+            }
             }
         }
 

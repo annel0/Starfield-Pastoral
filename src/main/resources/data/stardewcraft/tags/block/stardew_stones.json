@@ -49,6 +49,24 @@
     "stardewcraft:scoria_wall",
     "stardewcraft:salt_rock_slab",
     "stardewcraft:salt_rock_stairs",
-    "stardewcraft:salt_rock_wall"
+    "stardewcraft:salt_rock_wall",
+
+    "stardewcraft:desert_bedrock",
+    "stardewcraft:dark_desert_bedrock",
+    "stardewcraft:sulfur_rock",
+    "stardewcraft:weathered_stone",
+
+    "stardewcraft:desert_bedrock_slab",
+    "stardewcraft:desert_bedrock_stairs",
+    "stardewcraft:desert_bedrock_wall",
+    "stardewcraft:dark_desert_bedrock_slab",
+    "stardewcraft:dark_desert_bedrock_stairs",
+    "stardewcraft:dark_desert_bedrock_wall",
+    "stardewcraft:sulfur_rock_slab",
+    "stardewcraft:sulfur_rock_stairs",
+    "stardewcraft:sulfur_rock_wall",
+    "stardewcraft:weathered_stone_slab",
+    "stardewcraft:weathered_stone_stairs",
+    "stardewcraft:weathered_stone_wall"
   ]
 }

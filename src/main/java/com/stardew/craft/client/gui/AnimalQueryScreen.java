@@ -11,7 +11,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.StringUtil;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
@@ -319,7 +318,7 @@ public class AnimalQueryScreen extends AbstractContainerScreen<AnimalQueryMenu> 
     @Override
     public boolean charTyped(char codePoint, int modifiers) {
         if (editingName) {
-            if (StringUtil.isAllowedChatCharacter(codePoint) && editBuffer.length() < 48) {
+            if (codePoint >= ' ' && codePoint != '\u00A7' && editBuffer.length() < 48) {
                 editBuffer = editBuffer.substring(0, editCursor) + codePoint + editBuffer.substring(editCursor);
                 editCursor++;
                 this.renameCenterX = getDynamicRenameCenterX();

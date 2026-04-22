@@ -909,6 +909,28 @@
                                         ]
                     },
                     {
+                        "id":  "warp_totem_desert",
+                        "unlockCondition":  "null",
+                        "output":  {
+                                       "item":  "stardewcraft:warp_totem_desert",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:wood_hard",
+                                                "count":  2
+                                            },
+                                            {
+                                                "item":  "stardewcraft:coconut",
+                                                "count":  1
+                                            },
+                                            {
+                                                "item":  "stardewcraft:iridium_ore",
+                                                "count":  4
+                                            }
+                                        ]
+                    },
+                    {
                         "id":  "rain_totem",
                         "unlockCondition":  "s Foraging 9",
                         "output":  {
@@ -1146,6 +1168,16 @@
                         "ingredients":  [
                             { "item":  "stardewcraft:iron_bar", "count":  2 },
                             { "item":  "stardewcraft:battery_pack", "count":  1 }
+                        ]
+                    },
+                    {
+                        "id":  "scarecrow",
+                        "unlockCondition":  "s Farming 1",
+                        "output":  { "item":  "stardewcraft:scarecrow_0", "count":  1 },
+                        "ingredients":  [
+                            { "item":  "stardewcraft:wood_normal", "count":  50 },
+                            { "item":  "stardewcraft:coal", "count":  1 },
+                            { "item":  "stardewcraft:fiber", "count":  20 }
                         ]
                     }
                 ]

@@ -93,7 +93,7 @@ public final class SkillExperienceHud {
         if (!event.getName().equals(VanillaGuiLayers.HOTBAR)) return;
 
         Minecraft mc = Minecraft.getInstance();
-        if (mc.player == null || mc.options.hideGui) return;
+        if (mc.player == null || mc.options.hideGui || mc.player.isSpectator()) return;
 
         long nowNanos = System.nanoTime();
         float deltaMs = (nowNanos - lastUpdateNanos) / 1_000_000f;

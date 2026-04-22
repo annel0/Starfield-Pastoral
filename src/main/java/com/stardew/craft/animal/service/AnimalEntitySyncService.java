@@ -81,6 +81,20 @@ public final class AnimalEntitySyncService {
     private static BaseCoopAnimalEntity spawnEntityForRecord(ServerLevel level,
                                                              AnimalWorldData data,
                                                              FarmAnimalRecord record) {
+        Optional<AnimalBuildingRecord> buildingOpt = data.getBuilding(record.buildingId());
+
+        // 如果建筑区块未加载，跳过 spawn —— 实体可能在卸载的区块中存在，
+        // 强行 spawn 会导致区块重新加载时实体重复。
+        if (buildingOpt.isPresent()) {
+            AnimalBuildingRecord building = buildingOpt.get();
+            BlockPos managerPos = building.managerPos();
+            if (!level.isLoaded(managerPos)) {
+                StardewCraft.LOGGER.debug("[ANIMAL_SYNC] Skipping spawn for animal {} - building chunk not loaded at {}",
+                    record.animalId(), managerPos);
+                return null;
+            }
+        }
+
         EntityType<? extends BaseCoopAnimalEntity> type = resolveEntityType(record.animalTypeId());
         if (type == null) {
             StardewCraft.LOGGER.warn("[ANIMAL_SYNC] Unknown animal type: {}", record.animalTypeId());
@@ -93,7 +107,7 @@ public final class AnimalEntitySyncService {
             return null;
         }
 
-        BlockPos spawnPos = findSpawnPos(level, data.getBuilding(record.buildingId()));
+        BlockPos spawnPos = findSpawnPos(level, buildingOpt);
         entity.moveTo(
             spawnPos.getX() + 0.5D,
             spawnPos.getY(),

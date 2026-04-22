@@ -72,7 +72,7 @@ public class FurnitureCatalogueBlock extends MapDecorStaticBlock {
                 ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
                 items.add(new ShopItemEntry(
                         id.toString(), "", "", 0, Integer.MAX_VALUE,
-                        null, 0, Set.of(), 1, 0, null));
+                        null, 0, Set.of(), 1, 0, null, -1, 0, 1));
             }
         }
         // Add wallpaper and flooring blocks (type "utility" but belong in catalogue)
@@ -88,7 +88,7 @@ public class FurnitureCatalogueBlock extends MapDecorStaticBlock {
             if (item != null && item != net.minecraft.world.item.Items.AIR) {
                 items.add(new ShopItemEntry(
                         itemId, "", "", 0, Integer.MAX_VALUE,
-                        null, 0, Set.of(), 1, 0, null));
+                        null, 0, Set.of(), 1, 0, null, -1, 0, 1));
             }
         } catch (Exception ignored) {
         }

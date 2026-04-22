@@ -16,6 +16,19 @@ public class Config {
             .comment("Enable UI Info Suite features (Experience bars, tooltips, luck, NPC locations, etc.)")
             .define("client.uiInfoSuite.enabled", true);
 
+    public static final ModConfigSpec.IntValue MAX_STACK_SIZE;
+
+    static {
+        BUILDER.push("general");
+        MAX_STACK_SIZE = BUILDER
+                .comment("Maximum stack size for stackable items.",
+                         "Set to 64 to use vanilla behavior, or up to 999 for Stardew Valley parity.",
+                         "Requires restart to take full effect.")
+                .translation("config.stardewcraft.general.max_stack_size")
+                .defineInRange("maxStackSize", 999, 64, 999);
+        BUILDER.pop();
+    }
+
     static {
         BUILDER.push("totemPole");
 

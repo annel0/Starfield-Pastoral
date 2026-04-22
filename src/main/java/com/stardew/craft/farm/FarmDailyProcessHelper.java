@@ -33,6 +33,9 @@ public final class FarmDailyProcessHelper {
         for (ServerPlayer player : level.getServer().getPlayerList().getPlayers()) {
             cachedOnlinePlayers.add(player.getUUID());
         }
+
+        // 递减在线玩家农场的跨季宽限倒计时
+        tickGracePeriods(level);
     }
 
     /**
@@ -56,11 +59,19 @@ public final class FarmDailyProcessHelper {
         UUID owner = FarmAreaResolver.getOwnerAt(pos);
         if (owner == null) return false; // 在实例区域但无人拥有
 
-        // 使用缓存的在线集合（O(1) 查找），回退到线性搜索
+        // 检查 owner 或任一成员是否在线
+        FarmInstance farm = FarmInstanceRegistry.get().getFarm(owner);
+        if (farm == null) return false;
         if (cachedOnlinePlayers != null) {
-            return cachedOnlinePlayers.contains(owner);
+            for (UUID farmer : farm.getAllFarmers()) {
+                if (cachedOnlinePlayers.contains(farmer)) return true;
+            }
+            return false;
         }
-        return level.getServer().getPlayerList().getPlayer(owner) != null;
+        for (UUID farmer : farm.getAllFarmers()) {
+            if (level.getServer().getPlayerList().getPlayer(farmer) != null) return true;
+        }
+        return false;
     }
 
     /**
@@ -77,10 +88,58 @@ public final class FarmDailyProcessHelper {
     }
 
     /**
-     * 获取某个玩家的农场实例（如果有的话）。
+     * 获取某个玩家的农场实例（owner 或 member 均可）。
      */
     @Nullable
     public static FarmInstance getPlayerFarm(UUID playerUUID) {
-        return FarmInstanceRegistry.get().getFarm(playerUUID);
+        return FarmInstanceRegistry.get().getFarmForPlayer(playerUUID);
+    }
+
+    // ── 跨季宽限期倒计时 ──
+
+    /**
+     * 每日结算开始时调用。对所有有在线成员的农场递减宽限天数，
+     * 并向在线成员发送提示消息。
+     */
+    private static void tickGracePeriods(ServerLevel level) {
+        FarmInstanceRegistry registry = FarmInstanceRegistry.get();
+        boolean dirty = false;
+
+        for (FarmInstance farm : registry.getAllFarms()) {
+            int remaining = farm.getGraceDaysLeft();
+            if (remaining <= 0) continue;
+
+            // 检查是否有任一成员在线
+            boolean anyOnline = false;
+            for (UUID farmer : farm.getAllFarmers()) {
+                if (cachedOnlinePlayers != null ? cachedOnlinePlayers.contains(farmer)
+                        : level.getServer().getPlayerList().getPlayer(farmer) != null) {
+                    anyOnline = true;
+                    break;
+                }
+            }
+            if (!anyOnline) continue;
+
+            remaining--;
+            farm.setGraceDaysLeft(remaining);
+            dirty = true;
+
+            // 向所有在线成员发送提示
+            for (UUID farmer : farm.getAllFarmers()) {
+                ServerPlayer p = level.getServer().getPlayerList().getPlayer(farmer);
+                if (p == null) continue;
+                if (remaining > 0) {
+                    p.sendSystemMessage(
+                            net.minecraft.network.chat.Component.translatable(
+                                    "stardewcraft.farm.grace_period.remaining", remaining));
+                } else {
+                    p.sendSystemMessage(
+                            net.minecraft.network.chat.Component.translatable(
+                                    "stardewcraft.farm.grace_period.expired"));
+                }
+            }
+        }
+
+        if (dirty) registry.setDirty();
     }
 }

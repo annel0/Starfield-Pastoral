@@ -213,38 +213,133 @@ public class StardewBombEntity extends Entity {
                     BlockState state = level.getBlockState(pos);
 
                     if (state.isAir()) continue;
-                    // 不破坏基岩等不可破坏方块
-                    if (state.getDestroySpeed(level, pos) < 0) continue;
+                    // 不破坏不可破坏方块（基岩 / 屏障 / 命令方块 / 末地传送门框 / 强化深板岩 等）
+                    if (isIndestructible(level, pos, state)) continue;
                     // 不破坏矿井梯子
                     if (state.is(ModBlocks.MINE_LADDER.get())) continue;
+                    // 不破坏小镇区域和非权限农场的方块
+                    if (level.dimension() == com.stardew.craft.core.ModDimensions.STARDEW_VALLEY
+                            && owner instanceof net.minecraft.server.level.ServerPlayer sp
+                            && !sp.isCreative()
+                            && !com.stardew.craft.event.FarmAreaProtectionEvents.canModifyAt(sp, pos)) {
+                        continue;
+                    }
 
                     // SDV 炸弹掉落逻辑：矿石掉产物，其余掉自身
                     dropBlockForBomb(level, pos, state);
                     level.removeBlock(pos, false);
+
+                    // SDV 原版：炸弹炸石头也会触发梯子生成概率 + stonesLeft 递减
+                    if (owner instanceof net.minecraft.server.level.ServerPlayer sp
+                            && level.dimension() == com.stardew.craft.core.ModMiningDimensions.STARDEW_MINING) {
+                        com.stardew.craft.event.MiningBlockBreakHandler.handleStoneBreak(level, sp, pos, state);
+                    }
                 }
             }
         }
     }
 
     /**
-     * SDV 炸弹方块掉落：矿石 → 产物物品，其余方块 → 方块自身。
-     * 复用 MinePickaxeEvents 中相同的矿石→产物映射。
+     * 是否为生存模式下不可破坏的方块——炸弹一律不破坏。
+     * 涵盖基岩、屏障、命令方块、末地传送门框、强化深板岩、光源方块等。
+     */
+    @SuppressWarnings("deprecation")
+    private static boolean isIndestructible(ServerLevel level, BlockPos pos, BlockState state) {
+        // 1. 硬度 < 0 = 永远不可破坏（基岩、屏障、命令方块、jigsaw、末地传送门、light）
+        if (state.getDestroySpeed(level, pos) < 0) return true;
+        // 2. WITHER_IMMUNE tag —— 涵盖凋灵都炸不动的方块（含 end_portal_frame、reinforced_deepslate 等）
+        if (state.is(net.minecraft.tags.BlockTags.WITHER_IMMUNE)) return true;
+        // 3. 爆炸抗性极高的方块兜底（vanilla 用 3600000F 表示"无穷大"）
+        if (state.getBlock().getExplosionResistance() >= 3600000.0F) return true;
+        return false;
+    }
+
+    /**
+     * SDV 炸弹方块掉落：矿石 → 产物物品；植物/作物/草丛/树枝类 → 不掉落；其余方块 → 方块自身。
+     *
+     * SDV 原版炸弹会清理草丛、杂草、枯萎作物等，但**不会**让玩家拿到完整的草/作物方块物品；
+     * 同时 SDV 原版炸弹也不会破坏成长中的作物变成种子（默认无掉落）。
      */
     private void dropBlockForBomb(ServerLevel level, BlockPos pos, BlockState state) {
         Block block = state.getBlock();
 
-        // 1. 检查是否为模组矿石，掉落对应产物
-        net.minecraft.world.item.Item oreProduct = getOreDropItem(state);
-        if (oreProduct != null) {
-            Block.popResource(level, pos, new net.minecraft.world.item.ItemStack(oreProduct));
+        // 0. 木桶：onRemove 已经会调用 dropBarrelLoot，这里不要再 popResource(barrelItem)
+        //    否则玩家会同时拿到一个可放置的木桶方块物品。
+        if (block instanceof com.stardew.craft.block.mine.MineBarrelBlock) {
             return;
         }
 
-        // 2. 其余方块：掉落方块物品本身
+        // 1. SDV parity：让炸弹完全等价于"玩家挖矿"——吃 Miner / Geologist / Excavator /
+        //    Prospector 职业、采矿等级、每日幸运、铱矿 3.5% 五彩碎片、120 层后普通石头 0.005% 五彩碎片、
+        //    并给予挖矿经验。当 owner 是 ServerPlayer 时走这条路径。
+        if (owner instanceof net.minecraft.server.level.ServerPlayer sp && !sp.isCreative()) {
+            net.minecraft.world.item.Item oreProduct =
+                com.stardew.craft.event.MinePickaxeEvents.applyPlayerStyleBombDrops(level, sp, pos, state);
+            if (oreProduct != null) {
+                // 矿石已由 helper 投放，跳过自身/产物重复掉落
+                return;
+            }
+            // 非矿石：继续走下面的"掉落自身"逻辑（额外晶洞/煤等已由 helper 处理）
+        } else {
+            // 非玩家所有者（极少见，例如指令召唤）：保留旧的简化矿石产物路径
+            net.minecraft.world.item.Item oreProduct = getOreDropItem(state);
+            if (oreProduct != null) {
+                Block.popResource(level, pos, new net.minecraft.world.item.ItemStack(oreProduct));
+                @SuppressWarnings("null")
+                var oreKey = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(block);
+                if (oreKey != null && oreKey.getPath().contains("iridium_ore")
+                        && level.getRandom().nextDouble() < 0.035) {
+                    Block.popResource(level, pos,
+                        new net.minecraft.world.item.ItemStack(ModItems.PRISMATIC_SHARD.get(), 1));
+                }
+                return;
+            }
+        }
+
+        // 1.5 远古斑点：被炸时不出古物，仅掉落普通黄土方块
+        if (state.is(ModBlocks.ARTIFACT_SPOT_DIRT.get())) {
+            Block.popResource(level, pos,
+                new net.minecraft.world.item.ItemStack(ModBlocks.YELLOW_DIRT.get()));
+            return;
+        }
+        if (isPlantLikeBlock(state)) {
+            return;
+        }
         net.minecraft.world.item.Item blockItem = block.asItem();
         if (blockItem != net.minecraft.world.item.Items.AIR) {
             Block.popResource(level, pos, new net.minecraft.world.item.ItemStack(blockItem));
         }
+    }
+
+    /**
+     * 判断该方块是否属于"植物类"——这些方块在被炸弹清除时不应掉落自身物品，
+     * 否则玩家就能从草丛/作物里得到完整方块。
+     */
+    private static boolean isPlantLikeBlock(BlockState state) {
+        Block b = state.getBlock();
+        // 模组植物
+        if (b instanceof com.stardew.craft.block.crop.StardewCropBlock) return true;
+        if (b instanceof com.stardew.craft.block.nature.WildWeedsBlock) return true;
+        if (b instanceof com.stardew.craft.block.tree.WildOakBranchBlock) return true;
+        // 香草/模组通用植物：BushBlock 覆盖 PastureGrassBlock、DeadCropBlock 以及香草花/树苗
+        if (b instanceof net.minecraft.world.level.block.BushBlock) return true;
+        if (b instanceof net.minecraft.world.level.block.CropBlock) return true;
+        if (b instanceof net.minecraft.world.level.block.TallGrassBlock) return true;
+        if (b instanceof net.minecraft.world.level.block.DoublePlantBlock) return true;
+        if (b instanceof net.minecraft.world.level.block.SaplingBlock) return true;
+        if (b instanceof net.minecraft.world.level.block.StemBlock) return true;
+        if (b instanceof net.minecraft.world.level.block.AttachedStemBlock) return true;
+        if (b instanceof net.minecraft.world.level.block.SugarCaneBlock) return true;
+        if (b instanceof net.minecraft.world.level.block.MushroomBlock) return true;
+        // 通用 tag 兜底
+        if (state.is(net.minecraft.tags.BlockTags.LEAVES)) return true;
+        if (state.is(net.minecraft.tags.BlockTags.SAPLINGS)) return true;
+        if (state.is(net.minecraft.tags.BlockTags.FLOWERS)) return true;
+        if (state.is(net.minecraft.tags.BlockTags.SMALL_FLOWERS)) return true;
+        if (state.is(net.minecraft.tags.BlockTags.TALL_FLOWERS)) return true;
+        if (state.is(net.minecraft.tags.BlockTags.CROPS)) return true;
+        if (state.is(net.minecraft.tags.BlockTags.REPLACEABLE_BY_TREES)) return true;
+        return false;
     }
 
     /**

@@ -97,8 +97,13 @@ public class MailboxBlock extends MapUtilityStaticBlock implements EntityBlock {
             BlockEntity be = level.getBlockEntity(pos);
             if (be instanceof MailboxBlockEntity mailbox) {
                 if (mailbox.hasOwner() && !mailbox.isOwner(sp)) {
-                    sp.sendSystemMessage(Component.translatable("stardewcraft.mailbox.not_yours"));
-                    return InteractionResult.CONSUME;
+                    // 共用农场成员也可使用邮箱
+                    var registry = com.stardew.craft.farm.FarmInstanceRegistry.get();
+                    if (mailbox.getOwnerUUID() == null
+                            || !registry.areFarmmates(sp.getUUID(), mailbox.getOwnerUUID())) {
+                        sp.sendSystemMessage(Component.translatable("stardewcraft.mailbox.not_yours"));
+                        return InteractionResult.CONSUME;
+                    }
                 }
                 if (!mailbox.hasOwner()) {
                     mailbox.setOwner(sp);

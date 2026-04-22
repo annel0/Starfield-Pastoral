@@ -26,6 +26,8 @@ public class FarmInstanceRegistry extends SavedData {
     private final Map<UUID, FarmInstance> instances = new HashMap<>();
     /** 槽位序号 → 玩家UUID（用于反查） */
     private final Map<Integer, UUID> slotToOwner = new HashMap<>();
+    /** 成员UUID → 农场主人UUID（反查索引，不含 owner 自己） */
+    private final Map<UUID, UUID> memberToOwner = new HashMap<>();
     /** 下一个可分配的槽位序号 */
     private int nextSlotIndex = 0;
 
@@ -51,18 +53,103 @@ public class FarmInstanceRegistry extends SavedData {
     }
 
     /**
-     * 玩家是否已有农场。
+     * 玩家是否已有农场（作为 owner 或 member）。
      */
     public boolean hasFarm(UUID playerUUID) {
-        return instances.containsKey(playerUUID);
+        return instances.containsKey(playerUUID) || memberToOwner.containsKey(playerUUID);
+    }
+
+    /**
+     * 获取玩家所属农场（作为 owner 或 member）。
+     */
+    @Nullable
+    public FarmInstance getFarmForPlayer(UUID playerUUID) {
+        FarmInstance own = instances.get(playerUUID);
+        if (own != null) return own;
+        UUID ownerUUID = memberToOwner.get(playerUUID);
+        return ownerUUID != null ? instances.get(ownerUUID) : null;
+    }
+
+    /**
+     * 获取玩家所属农场的 owner UUID（如果该玩家是 owner 则返回自己，是 member 则返回 owner）。
+     */
+    @Nullable
+    public UUID getOwnerForPlayer(UUID playerUUID) {
+        if (instances.containsKey(playerUUID)) return playerUUID;
+        return memberToOwner.get(playerUUID);
+    }
+
+    /**
+     * 判断两个玩家是否属于同一农场（owner 或 member 均可）。
+     */
+    public boolean areFarmmates(UUID playerA, UUID playerB) {
+        if (playerA.equals(playerB)) return true;
+        UUID ownerA = getOwnerForPlayer(playerA);
+        UUID ownerB = getOwnerForPlayer(playerB);
+        return ownerA != null && ownerA.equals(ownerB);
+    }
+
+    /**
+     * 判断玩家是否可以操作某个建筑（建筑属于自己，或和建筑主人同属一个农场）。
+     */
+    public boolean canOperateBuilding(UUID playerUUID, String buildingOwnerUuid) {
+        if (buildingOwnerUuid == null || buildingOwnerUuid.isBlank()) return false;
+        if (playerUUID.toString().equals(buildingOwnerUuid)) return true;
+        try {
+            UUID buildingOwner = UUID.fromString(buildingOwnerUuid);
+            return areFarmmates(playerUUID, buildingOwner);
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    /**
+     * 添加成员到某个农场。
+     * @return true 成功，false 失败（农场不存在/已满/该玩家已有农场）
+     */
+    public boolean addMember(UUID ownerUUID, UUID memberUUID) {
+        FarmInstance farm = instances.get(ownerUUID);
+        if (farm == null) return false;
+        if (hasFarm(memberUUID)) return false; // 已有农场（拥有或加入）
+        if (!farm.addMember(memberUUID)) return false;
+        memberToOwner.put(memberUUID, ownerUUID);
+        setDirty();
+        StardewCraft.LOGGER.info("[FARM_REGISTRY] Added member {} to {}'s farm", memberUUID, ownerUUID);
+        return true;
+    }
+
+    /**
+     * 从农场移除成员。
+     */
+    public boolean removeMember(UUID ownerUUID, UUID memberUUID) {
+        FarmInstance farm = instances.get(ownerUUID);
+        if (farm == null) return false;
+        if (!farm.removeMember(memberUUID)) return false;
+        memberToOwner.remove(memberUUID);
+        setDirty();
+        StardewCraft.LOGGER.info("[FARM_REGISTRY] Removed member {} from {}'s farm", memberUUID, ownerUUID);
+        return true;
+    }
+
+    /**
+     * 重建 memberToOwner 索引（从所有 FarmInstance 的 members 列表）。
+     */
+    private void rebuildMemberIndex() {
+        memberToOwner.clear();
+        for (FarmInstance farm : instances.values()) {
+            for (UUID member : farm.getMembers()) {
+                memberToOwner.put(member, farm.getOwnerUUID());
+            }
+        }
     }
 
     /**
      * 获取玩家的农场出生点，没有农场则返回 null。
+     * 支持 owner 和 member。
      */
     @Nullable
     public BlockPos getFarmSpawnPoint(UUID playerUUID) {
-        FarmInstance farm = instances.get(playerUUID);
+        FarmInstance farm = getFarmForPlayer(playerUUID);
         return farm != null ? farm.getSpawnPoint() : null;
     }
 
@@ -121,6 +208,10 @@ public class FarmInstanceRegistry extends SavedData {
         if (farm == null) return null;
         slotToOwner.remove(farm.getSlotIndex());
         recycledSlots.add(farm.getSlotIndex());
+        // 清除所有成员的 memberToOwner 映射
+        for (UUID member : farm.getMembers()) {
+            memberToOwner.remove(member);
+        }
         setDirty();
         StardewCraft.LOGGER.info("[FARM_REGISTRY] Deleted farm for {} (slot={})", playerUUID, farm.getSlotIndex());
         return farm;
@@ -146,8 +237,23 @@ public class FarmInstanceRegistry extends SavedData {
         transferred.setLastOnlineDay(farm.getLastOnlineDay());
         transferred.setLastOnlineSeason(farm.getLastOnlineSeason());
 
+        // 迁移成员列表（排除新 owner 如果之前是成员）
+        for (UUID member : farm.getMembers()) {
+            if (!member.equals(toUUID)) {
+                transferred.addMember(member);
+            }
+        }
+        // 旧 owner 成为成员（如果还有空位且不是被删除的情况）
+        if (!fromUUID.equals(toUUID) && transferred.getFarmerCount() < FarmInstance.MAX_FARMERS) {
+            transferred.addMember(fromUUID);
+        }
+
         instances.put(toUUID, transferred);
         slotToOwner.put(farm.getSlotIndex(), toUUID);
+
+        // 重建 memberToOwner 索引
+        rebuildMemberIndex();
+
         setDirty();
         StardewCraft.LOGGER.info("[FARM_REGISTRY] Transferred farm slot={} from {} to {}",
                 farm.getSlotIndex(), fromUUID, toUUID);
@@ -240,6 +346,7 @@ public class FarmInstanceRegistry extends SavedData {
 
         StardewCraft.LOGGER.info("[FARM_REGISTRY] Loaded {} farm instances, nextSlot={}",
                 registry.instances.size(), registry.nextSlotIndex);
+        registry.rebuildMemberIndex();
         return registry;
     }
 

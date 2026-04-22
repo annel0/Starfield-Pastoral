@@ -1,6 +1,7 @@
 package com.stardew.craft.mixin;
 
 import com.stardew.craft.core.ModDimensions;
+import com.stardew.craft.weather.WeatherManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
@@ -54,7 +55,9 @@ public class FarmBlockMixin {
             //    原版Stardew下雨天不需要浇水。Minecraft randomTick里会检查 isRainingAt(pos.above())
             
             // 星露谷规则：雨天无条件湿润所有耕地（不检查天空遮挡）
-            if (!level.isRaining()) {
+            // 注意：必须用 WeatherManager 判断，不能用 level.isRaining()，
+            // 因为后者读的是所有维度共享的 PrimaryLevelData 天气（= 主世界天气）。
+            if (!WeatherManager.isRaining(level)) {
                 // 非雨天，禁止随机刻改变湿度（保持当前湿度）
                 ci.cancel(); 
             } else {

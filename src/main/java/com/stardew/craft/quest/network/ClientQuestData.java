@@ -100,4 +100,17 @@ public final class ClientQuestData {
         }
         return false;
     }
+
+    /**
+     * SDV parity: 等价于 <c>Game1.CanAcceptDailyQuest()</c> —
+     * 当前有每日任务、本地玩家还没接、也没完成，则世界内公告栏头顶浮 "!" 提示。
+     */
+    public static boolean hasUnclaimedDailyQuest() {
+        StardewQuest q = dailyQuest;
+        if (q == null) return false;
+        // 已在 questLog 里表示已接受；dailyQuest 本身的 accepted 也可能被 sync 更新
+        if (q.isAccepted() || q.isCompleted()) return false;
+        if (hasQuest(q.getId())) return false;
+        return true;
+    }
 }

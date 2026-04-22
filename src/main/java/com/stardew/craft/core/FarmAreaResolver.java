@@ -52,7 +52,7 @@ public final class FarmAreaResolver {
      */
     public static boolean isInPlayerFarm(UUID playerUUID, BlockPos pos) {
         FarmInstanceRegistry registry = FarmInstanceRegistry.get();
-        FarmInstance farm = registry.getFarm(playerUUID);
+        FarmInstance farm = registry.getFarmForPlayer(playerUUID);
         return farm != null && farm.contains(pos);
     }
 

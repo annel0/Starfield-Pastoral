@@ -81,4 +81,30 @@ public final class SeasonLocationRules {
         }
         return false;
     }
+
+    // ── 跨季宽限期规则 ──
+
+    private static boolean gracePeriodRuleRegistered = false;
+
+    /**
+     * 注册「跨季宽限期」规则。玩家离线期间季节变化，上线后农场作物
+     * 在宽限期内不因错季而枯死。在模组启动时调用一次。
+     */
+    public static void registerGracePeriodRule() {
+        if (gracePeriodRuleRegistered) return;
+        registerIgnoreSeasonsRule(SeasonLocationRules::isInGracePeriodFarm);
+        gracePeriodRuleRegistered = true;
+    }
+
+    /**
+     * 判断某位置是否在一个正处于跨季宽限期的农场内。
+     */
+    private static boolean isInGracePeriodFarm(Level level, BlockPos pos) {
+        if (!com.stardew.craft.farm.FarmInstanceAllocator.isInFarmInstanceRegion(pos)) return false;
+        java.util.UUID owner = com.stardew.craft.core.FarmAreaResolver.getOwnerAt(pos);
+        if (owner == null) return false;
+        com.stardew.craft.farm.FarmInstance farm =
+                com.stardew.craft.farm.FarmInstanceRegistry.get().getFarm(owner);
+        return farm != null && farm.getGraceDaysLeft() > 0;
+    }
 }

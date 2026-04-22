@@ -234,12 +234,15 @@ public class WateringCanItem extends Item implements IStardewItem {
 
             List<BlockPos> targetPositions = getAffectedBlocks(level, hitPos, player, chargeLevel);
 
-            // 农场保护：在别人农场上无权操作
+            // 农场保护：在别人农场上无权操作（温室内部豁免，温室是合法种植区域）
             if (!level.isClientSide && player instanceof ServerPlayer sp
                     && level.dimension() == ModDimensions.STARDEW_VALLEY
                     && !sp.isCreative()) {
-                // 仅检查命中位置（同一蓄力范围内不会跨农场）
-                if (!com.stardew.craft.event.FarmAreaProtectionEvents.canModifyAt(sp, hitPos)) {
+                boolean inGreenhouse = level instanceof net.minecraft.server.level.ServerLevel sl
+                        && com.stardew.craft.greenhouse.GreenhouseManager.isInGreenhouseInterior(sl, hitPos);
+                // 仅检查命中位置（同一蓄力范围内不会跨农场）；温室内不做农场归属检查
+                if (!inGreenhouse
+                        && !com.stardew.craft.event.FarmAreaProtectionEvents.canModifyAt(sp, hitPos)) {
                     sp.displayClientMessage(
                             Component.translatable("stardewcraft.farm.build_farm_only"), true);
                     return;
@@ -512,7 +515,9 @@ public class WateringCanItem extends Item implements IStardewItem {
     private static boolean isWaterSource(@Nonnull Level level, @Nonnull BlockPos pos) {
         // 允许从任意水(含流动水)汲水，符合星露谷手感
         var fluidState = level.getFluidState(pos);
-        return fluidState.is(FluidTags.WATER);
+        if (fluidState.is(FluidTags.WATER)) return true;
+        // 蓄水池方块也视为水源
+        return level.getBlockState(pos).getBlock() instanceof com.stardew.craft.block.decor.ReservoirBlock;
     }
 
     @SuppressWarnings("null")

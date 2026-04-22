@@ -2,8 +2,10 @@ package com.stardew.craft.item.equipment;
 
 import com.stardew.craft.combat.equipment.EquipmentStats;
 import com.stardew.craft.item.IStardewItem;
+import com.stardew.craft.item.weapon.WeaponIcons;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -52,12 +54,24 @@ public class StardewBootsItem extends Item implements IStardewItem {
         super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
 
         if (bootsType.getDefense() > 0) {
-            tooltipComponents.add(Component.translatable("stardewcraft.tooltip.defense", bootsType.getDefense())
-                    .withStyle(ChatFormatting.BLUE));
+            tooltipComponents.add(buildStatLine(WeaponIcons.ICON_DEFENSE,
+                    "+" + bootsType.getDefense(), ChatFormatting.BLUE,
+                    "stardewcraft.weapon.tooltip.defense"));
         }
         if (bootsType.getImmunity() > 0) {
-            tooltipComponents.add(Component.translatable("stardewcraft.tooltip.immunity", bootsType.getImmunity())
-                    .withStyle(ChatFormatting.YELLOW));
+            tooltipComponents.add(buildStatLine(WeaponIcons.ICON_IMMUNITY,
+                    "+" + bootsType.getImmunity(), ChatFormatting.YELLOW,
+                    "stardewcraft.tooltip.immunity_label"));
         }
+    }
+
+    @SuppressWarnings("null")
+    private static MutableComponent buildStatLine(String icon, String value, ChatFormatting valueColor, String nameKey) {
+        MutableComponent line = Component.empty();
+        line.append(Component.literal(" "));
+        line.append(WeaponIcons.icon(icon));
+        line.append(Component.translatable("stardewcraft.weapon.tooltip.attr_value", value).withStyle(valueColor));
+        line.append(Component.translatable(nameKey).withStyle(ChatFormatting.GRAY));
+        return line;
     }
 }

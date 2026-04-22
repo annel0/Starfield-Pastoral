@@ -10,7 +10,11 @@ import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.PlayerStardewData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
+import net.minecraft.ChatFormatting;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -173,7 +177,7 @@ public final class CrossDimensionTeleporter {
         // 查询玩家的农场出生点
         BlockPos spawnTarget = STARDEW_WORLD_ORIGIN;
         com.stardew.craft.farm.FarmInstanceRegistry registry = com.stardew.craft.farm.FarmInstanceRegistry.get();
-        com.stardew.craft.farm.FarmInstance farm = registry.getFarm(player.getUUID());
+        com.stardew.craft.farm.FarmInstance farm = registry.getFarmForPlayer(player.getUUID());
         if (farm != null) {
             spawnTarget = farm.getSpawnPoint();
             StardewCraft.LOGGER.info("[WIZARD] {} teleporting to personal farm spawn at {}",
@@ -218,8 +222,9 @@ public final class CrossDimensionTeleporter {
     /**
      * 首次到达星露谷时在玩家面前放置一个装有初始物资的木箱。
      * 箱子面朝玩家，并发送 hint 提示"点击领取初始物资"。
+     * 可从外部调用（如农场入口传送后）。
      */
-    private static void giveStarterToolsIfNeeded(ServerPlayer player) {
+    public static void giveStarterToolsIfNeeded(ServerPlayer player) {
         PlayerStardewData data = PlayerDataManager.getPlayerData(player);
         if (data.isStarterToolsGiven()) return;
 
@@ -242,8 +247,7 @@ public final class CrossDimensionTeleporter {
                 new ItemStack(ModItems.HOE.get()),
                 new ItemStack(ModItems.WATERING_CAN.get()),
                 new ItemStack(ModItems.SCYTHE.get()),
-                new ItemStack(ModItems.FISHING_ROD.get()),
-                new ItemStack(ModItems.RUSTY_SWORD.get()),
+                // 鱼竿与生锈的剑改由威利/马龙的剧情赠送，不再放入新手箱
                 new ItemStack(ModItems.PARSNIP_SEEDS.get(), 15),
                 new ItemStack(ModItems.MAILBOX.get()),
                 new ItemStack(ModItems.SHIPPING_BIN.get()),
@@ -275,6 +279,7 @@ public final class CrossDimensionTeleporter {
         player.server.execute(() ->
             player.server.execute(() -> {
                 sendWelcomeAnnouncement(player);
+                sendBilibiliAnnouncement(player);
                 if (com.stardew.craft.time.StardewTimeManager.get().getCurrentSeason() == 3) {
                     sendRuneAnnouncement(player);
                 }
@@ -295,6 +300,29 @@ public final class CrossDimensionTeleporter {
         player.sendSystemMessage(Component.literal(""));
         player.sendSystemMessage(Component.literal("§a§l📖 §f模组目前没有教程，主界面按 §e§lV §f键（可在按键设置中更改）打开。"));
         player.sendSystemMessage(Component.literal("§7   可以根据游玩星露谷物语的直觉来游玩本模组。"));
+        player.sendSystemMessage(Component.literal(""));
+        player.sendSystemMessage(Component.literal("§6§l═══════════════════════════════════"));
+        player.sendSystemMessage(Component.literal(""));
+    }
+
+    /**
+     * B 站关注公告：提示玩家点击领取彩虹猫之刃。
+     */
+    private static void sendBilibiliAnnouncement(ServerPlayer player) {
+        PlayerStardewData data = PlayerDataManager.getPlayerData(player);
+        if (data.isBilibiliRewardClaimed()) return;
+
+        MutableComponent clickMsg = Component.literal("§b§l§n[点击关注作者B站主页]")
+            .setStyle(Style.EMPTY
+                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/stardew bilibili_claim"))
+                .withUnderlined(true)
+                .withColor(ChatFormatting.AQUA));
+        MutableComponent hint = Component.literal(" §e§l← 点击获取神秘礼物！");
+
+        player.sendSystemMessage(Component.literal("§d§l✦ §e§l关注作者 §d§l✦"));
+        player.sendSystemMessage(Component.literal(""));
+        player.sendSystemMessage(Component.literal("§f  欢迎关注作者 B 站账号，获取最新开发动态："));
+        player.sendSystemMessage(Component.literal("  ").append(clickMsg).append(hint));
         player.sendSystemMessage(Component.literal(""));
         player.sendSystemMessage(Component.literal("§6§l═══════════════════════════════════"));
         player.sendSystemMessage(Component.literal(""));

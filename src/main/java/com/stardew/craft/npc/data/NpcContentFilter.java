@@ -19,6 +19,10 @@ public final class NpcContentFilter {
     /** Cache resolved item lookups so each raw string is only resolved once per session. */
     private static final Map<String, ResourceLocation> RESOLVED_ITEM_CACHE = new HashMap<>();
 
+    public static void clearCache() {
+        RESOLVED_ITEM_CACHE.clear();
+    }
+
     private NpcContentFilter() {
     }
 

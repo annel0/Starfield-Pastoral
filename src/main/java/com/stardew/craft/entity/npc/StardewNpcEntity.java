@@ -63,11 +63,21 @@ public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
     public StardewNpcEntity(EntityType<? extends PathfinderMob> entityType, Level level) {
         super(entityType, level);
         this.setPersistenceRequired();
+        this.setInvulnerable(true);
         // Keep AI loop enabled so MC navigation/pathfinder can run.
         this.setNoAi(false);
         // Replace the default LookControl with one that yields to our facing state machine.
         // Vanilla LookControl.tick() sets yHeadRot every tick, fighting our smooth rotation.
         this.lookControl = new NpcLookControl(this);
+    }
+
+    @Override
+    protected net.minecraft.world.entity.ai.navigation.PathNavigation createNavigation(Level level) {
+        NpcPathNavigation nav = new NpcPathNavigation(this, level);
+        nav.setCanOpenDoors(true);
+        nav.setCanPassDoors(true);
+        nav.setCanFloat(true);
+        return nav;
     }
 
     /**
@@ -94,7 +104,7 @@ public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
         return Mob.createMobAttributes()
             .add(Attributes.MAX_HEALTH, 20.0D)
             .add(Attributes.MOVEMENT_SPEED, 0.20D)
-            .add(Attributes.FOLLOW_RANGE, 24.0D)
+            .add(Attributes.FOLLOW_RANGE, 48.0D)
             .add(Attributes.STEP_HEIGHT, 0.6D);
     }
 
@@ -172,7 +182,7 @@ public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
                 }
             } else {
                 if (this.tickCount >= 10 && !com.stardew.craft.npc.runtime.NpcSpawnManager.isOfficialInstance(this)) {
-                    StardewCraft.LOGGER.warn(
+                    StardewCraft.LOGGER.debug(
                         "Self-destructing strictly forbidden duplicate StardewNpcEntity id='{}' uuid={}",
                         getNpcId(),
                         this.getUUID()
@@ -372,6 +382,12 @@ public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
         return profile != null && profile.canRunPathing();
     }
 
+    /** 客户端使用：当前 NPC 是否有行走动画资源。 */
+    public boolean hasWalkAnimation() {
+        NpcCapabilityProfile profile = NpcDataRegistry.capabilities().get(getNpcId());
+        return profile != null && profile.hasWalkAnimation();
+    }
+
     /** 服务端设置行走状态，通过 SynchedEntityData 自动同步到客户端。 */
     public void setWalking(boolean walking) {
         this.entityData.set(DATA_IS_WALKING, walking);
@@ -385,7 +401,7 @@ public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "main", 5, state -> {
-            if (isWalking() && isPathingEnabled()) {
+            if (isWalking() && hasWalkAnimation()) {
                 state.setAndContinue(WALK);
                 return PlayState.CONTINUE;
             }
@@ -412,6 +428,15 @@ public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
     @Override
     public boolean hurt(DamageSource source, float amount) {
         return false;
+    }
+
+    @Override
+    public void checkDespawn() {
+        // NPC 永远不消散
+    }
+
+    @Override
+    public void die(DamageSource source) {
     }
 
     /**

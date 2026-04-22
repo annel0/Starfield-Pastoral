@@ -162,6 +162,15 @@ public final class ScytheHarvestEvents {
 			return WildWeedsBlock.cutWithScythe(level, pos, player);
 		}
 
+		// 过季枯萎的作物：任何镰刀都可清除（原版行为）。无掉落。
+		if (state.getBlock() instanceof com.stardew.craft.block.crop.DeadCropBlock) {
+			if (isPublicArea) {
+				com.stardew.craft.farm.PublicAreaBlockTracker.get().recordRemoval(pos, state);
+			}
+			level.removeBlock(pos, false);
+			return true;
+		}
+
 		if (state.getBlock() instanceof PastureGrassBlock) {
 			if (!canModify) return false; // 公共区域不允许砍牧草
 			return PastureGrassBlock.cutWithScythe(level, pos, player, scythe);

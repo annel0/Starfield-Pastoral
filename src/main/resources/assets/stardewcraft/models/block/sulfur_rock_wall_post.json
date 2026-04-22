@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/template_wall_post",
+  "textures": {
+    "wall": "stardewcraft:block/mine/sulfur_rock",
+    "particle": "stardewcraft:block/mine/sulfur_rock"
+  }
+}

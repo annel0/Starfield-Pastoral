@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:block/sulfur_rock_slab",
+  "textures": {
+    "particle": "stardewcraft:block/mine/sulfur_rock"
+  }
+}

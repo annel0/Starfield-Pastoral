@@ -4,6 +4,7 @@ import com.stardew.craft.block.mine.MineChestBlock;
 import com.stardew.craft.block.utility.WoodenChestColorPalette;
 import com.stardew.craft.menu.WoodenChestMenu;
 import com.stardew.craft.mining.MineChestLootTable;
+import com.stardew.craft.mining.MineRewardClaimManager;
 import com.stardew.craft.mining.MiningCoordinates;
 import com.stardew.craft.sound.ModSounds;
 import net.minecraft.core.BlockPos;
@@ -59,6 +60,8 @@ public class MineChestBlockEntity extends net.minecraft.world.level.block.entity
     private int openCount;
     private boolean lastAnimatedOpen;
     private int colorSelection = -1;
+    /** 骷髅矿井宝藏室（220/320/420）每日刷新用：记录上次生成奖励的绝对天数。 */
+    private int lastRefreshDay = -1;
 
     public MineChestBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.MINE_CHEST.get(), pos, state);
@@ -70,18 +73,64 @@ public class MineChestBlockEntity extends net.minecraft.world.level.block.entity
      * 获取（或首次生成）指定玩家的库存。
      */
     public NonNullList<ItemStack> getOrCreatePlayerInventory(UUID playerId) {
+        int floor = getFloorNumber();
+        // 骷髅矿井宝藏室每日刷新：新的一天清空所有玩家的宝箱库存，重新生成奖励
+        if (MineChestLootTable.isSkullCavernTreasureFloor(floor)) {
+            int today = com.stardew.craft.time.StardewTimeManager.get().getAbsoluteDay();
+            if (lastRefreshDay != today) {
+                lastRefreshDay = today;
+                playerInventories.clear();
+                setChanged();
+            }
+        }
         return playerInventories.computeIfAbsent(playerId, id -> {
             NonNullList<ItemStack> inv = NonNullList.withSize(SLOT_COUNT, ItemStack.EMPTY);
-            // 根据宝箱所在层数生成奖励
-            int floor = getFloorNumber();
-            ItemStack reward = MineChestLootTable.getRewardForFloor(floor);
-            if (reward != null) {
-                inv.set(MineChestLootTable.REWARD_SLOT, reward.copy());
+            // 根据宝箱所在层数生成奖励，但如果玩家已在本存档领过该层，就不再给
+            if (!hasClaimedReward(playerId, floor)) {
+                ItemStack reward;
+                if (MineChestLootTable.isSkullCavernTreasureFloor(floor)) {
+                    // 骷髅矿井宝藏室（220/320/420）：26 选 1 随机池
+                    // 使用 (floor, playerId, chestPos) 作为种子，保证同一玩家同一宝箱奖励稳定
+                    long seed = ((long) floor * 341873128712L)
+                            ^ playerId.getMostSignificantBits()
+                            ^ playerId.getLeastSignificantBits()
+                            ^ (worldPosition.asLong() * 132897987541L);
+                    reward = com.stardew.craft.mining.SkullCavernTreasurePool.roll(
+                            net.minecraft.util.RandomSource.create(seed));
+                } else {
+                    reward = MineChestLootTable.getRewardForFloor(floor);
+                }
+                if (reward != null && !reward.isEmpty()) {
+                    inv.set(MineChestLootTable.REWARD_SLOT, reward.copy());
+                }
             }
             setChanged();
             syncToClient();
             return inv;
         });
+    }
+
+    private boolean hasClaimedReward(UUID playerId, int floor) {
+        if (!(level instanceof ServerLevel serverLevel)) return false;
+        return MineRewardClaimManager.get(serverLevel).hasClaimed(playerId, claimKeyForFloor(floor));
+    }
+
+    private void markRewardClaimed(UUID playerId, int floor) {
+        if (!(level instanceof ServerLevel serverLevel)) return;
+        MineRewardClaimManager.get(serverLevel).markClaimed(playerId, claimKeyForFloor(floor));
+    }
+
+    /**
+     * 骷髅矿井宝藏室 (220/320/420) 一层多个宝箱，需按宝箱位置区分 claim 状态；
+     * 且每天刷新，所以 claim key 还要包含绝对天数。
+     * 普通楼层一层一个宝箱，沿用 floor 作为 key 即可（保持老存档兼容）。
+     */
+    private int claimKeyForFloor(int floor) {
+        if (!MineChestLootTable.isSkullCavernTreasureFloor(floor)) {
+            return floor;
+        }
+        int day = com.stardew.craft.time.StardewTimeManager.get().getAbsoluteDay();
+        return Objects.hash(floor, worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), day);
     }
 
     /**
@@ -160,10 +209,14 @@ public class MineChestBlockEntity extends net.minecraft.world.level.block.entity
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
         UUID playerId = player.getUUID();
         NonNullList<ItemStack> inv = getOrCreatePlayerInventory(playerId);
+        int floor = getFloorNumber();
+        boolean rewardPresentOnOpen = !inv.get(MineChestLootTable.REWARD_SLOT).isEmpty()
+                && !hasClaimedReward(playerId, floor);
 
         // 包装成一个 SimpleContainer 供 WoodenChestMenu 使用
         // 用标志位防止填充期间 setChanged 回写覆盖 inv
         boolean[] initializing = {true};
+        boolean[] rewardPending = {rewardPresentOnOpen};
         SimpleContainer container = new SimpleContainer(SLOT_COUNT) {
             @Override
             public void startOpen(Player p) {
@@ -179,6 +232,11 @@ public class MineChestBlockEntity extends net.minecraft.world.level.block.entity
             public void setChanged() {
                 super.setChanged();
                 if (initializing[0]) return;
+                // 检测 slot 13 奖励是否被拿走（或数量变少）→ 标记为已领取
+                if (rewardPending[0] && getItem(MineChestLootTable.REWARD_SLOT).isEmpty()) {
+                    markRewardClaimed(playerId, floor);
+                    rewardPending[0] = false;
+                }
                 // 同步回 BlockEntity 的 per-player 库存
                 for (int i = 0; i < getContainerSize(); i++) {
                     inv.set(i, getItem(i).copy());
@@ -208,6 +266,7 @@ public class MineChestBlockEntity extends net.minecraft.world.level.block.entity
     protected void saveAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.putInt("colorSelection", colorSelection);
+        tag.putInt("lastRefreshDay", lastRefreshDay);
 
         ListTag playersList = new ListTag();
         for (var entry : playerInventories.entrySet()) {
@@ -234,6 +293,7 @@ public class MineChestBlockEntity extends net.minecraft.world.level.block.entity
         super.loadAdditional(tag, registries);
         colorSelection = tag.contains("colorSelection")
                 ? WoodenChestColorPalette.clampIndex(tag.getInt("colorSelection")) : -1;
+        lastRefreshDay = tag.contains("lastRefreshDay") ? tag.getInt("lastRefreshDay") : -1;
 
         playerInventories.clear();
         if (tag.contains("PlayerInventories")) {

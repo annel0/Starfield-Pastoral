@@ -47,7 +47,7 @@ public enum LightningRodJadeProvider implements IBlockComponentProvider, IServer
         }
 
         tag.putBoolean(NBT_READY, rod.isReady());
-        tag.putBoolean(NBT_STORMING, accessor.getLevel().isThundering());
+        tag.putBoolean(NBT_STORMING, com.stardew.craft.weather.WeatherManager.isThundering(accessor.getLevel()));
 
         ItemStack product = rod.getProduct();
         if (!product.isEmpty()) {

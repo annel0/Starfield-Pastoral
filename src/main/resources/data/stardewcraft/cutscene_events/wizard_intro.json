@@ -1,0 +1,58 @@
+{
+  "id": "wizard_intro",
+  "skippable": true,
+  "trigger": {
+    "type": "manual"
+  },
+  "preconditions": [],
+  "commands": [
+    { "cmd": "comment", "text": "=== Wizard First Meeting Cutscene ===" },
+    { "cmd": "lock_player" },
+    { "cmd": "fade", "mode": "out", "ticks": 10 },
+
+    { "cmd": "comment", "text": "Setup: hide real wizard (facing AWAY from door = east), no fake_player yet" },
+    { "cmd": "hide_npc", "npc_id": "wizard" },
+    { "cmd": "spawn_actor", "actor": "wizard", "npc_id": "wizard", "x": 18249, "y": 71, "z": 17095, "relative": false, "facing": -90 },
+
+    { "cmd": "comment", "text": "=== Smooth continuous orbit A1→A2→A3→A4 (no pauses, ~80 ticks total) ===" },
+    { "cmd": "camera", "x": 18245.1, "y": 71.452, "z": 17092.404, "yaw": -61.4, "pitch": 13.6, "relative": false },
+    { "cmd": "fade", "mode": "in", "ticks": 15 },
+    { "cmd": "camera", "x": 18243.313, "y": 71.464, "z": 17094.254, "yaw": -70.0, "pitch": 6.3, "relative": false, "ticks": 27 },
+    { "cmd": "camera", "x": 18243.106, "y": 71.464, "z": 17098.405, "yaw": -114.4, "pitch": 13.2, "relative": false, "ticks": 27 },
+    { "cmd": "camera", "x": 18246.353, "y": 71.464, "z": 17098.137, "yaw": -156.5, "pitch": 19.6, "relative": false, "ticks": 26 },
+
+    { "cmd": "comment", "text": "Camera holds at A4. Spawn fake_player at the door and walk in" },
+    { "cmd": "spawn_actor", "actor": "fake_player", "npc_id": "player", "x": 18243, "y": 71, "z": 17095, "relative": false, "facing": -90 },
+    { "cmd": "move_actor", "actor": "fake_player", "x": 18247, "y": 71, "z": 17095, "ticks": 50, "relative": false },
+    { "cmd": "pause", "ticks": 50 },
+
+    { "cmd": "comment", "text": "Wizard turns to face the player, then reacts" },
+    { "cmd": "face_actor", "actor": "wizard", "face_actor": "fake_player" },
+    { "cmd": "pause", "ticks": 5 },
+    { "cmd": "play_sound", "sound": "stardewcraft:dwop" },
+    { "cmd": "emote", "actor": "wizard", "emote": "exclamation" },
+    { "cmd": "jump", "actor": "wizard", "strength": 0.3 },
+    { "cmd": "pause", "ticks": 20 },
+
+    { "cmd": "comment", "text": "Hard cut to B1: wizard closeup (instant, no ticks)" },
+    { "cmd": "camera", "x": 18249.913, "y": 71.464, "z": 17096.818, "yaw": 102.1, "pitch": 15.7, "relative": false },
+    { "cmd": "speak", "npc_id": "wizard", "text": "event.wizard_intro.line1" },
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "speak", "npc_id": "wizard", "text": "event.wizard_intro.line2" },
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "speak", "npc_id": "wizard", "text": "event.wizard_intro.line3" },
+
+    { "cmd": "comment", "text": "Mark first met" },
+    { "cmd": "set_flag", "flag": "wizardFirstMet" },
+
+    { "cmd": "skippable" },
+    { "cmd": "comment", "text": "Fade out, clean up, end" },
+    { "cmd": "fade", "mode": "out", "ticks": 15 },
+    { "cmd": "remove_actor", "actor": "wizard" },
+    { "cmd": "remove_actor", "actor": "fake_player" },
+    { "cmd": "camera", "action": "reset" },
+    { "cmd": "unlock_player" },
+    { "cmd": "fade", "mode": "in", "ticks": 15 },
+    { "cmd": "end" }
+  ]
+}

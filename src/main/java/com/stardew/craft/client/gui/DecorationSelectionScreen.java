@@ -108,7 +108,13 @@ public class DecorationSelectionScreen extends Screen {
                 int segResult = checkSegmentButtonClick(mouseX, mouseY);
                 if (segResult != Integer.MIN_VALUE) {
                     selectedSegment = segResult;
-                    PacketDistributor.sendToServer(new SetWallpaperSegmentPayload(payload.targetPos(), selectedSegment));
+                    PaintbrushSelectionManager mgr = PaintbrushSelectionManager.get();
+                    if (mgr.hasCompleteSelection() && mgr.getFirstPos() != null && mgr.getSecondPos() != null) {
+                        PacketDistributor.sendToServer(SetWallpaperSegmentPayload.region(
+                            payload.targetPos(), selectedSegment, mgr.getFirstPos(), mgr.getSecondPos()));
+                    } else {
+                        PacketDistributor.sendToServer(new SetWallpaperSegmentPayload(payload.targetPos(), selectedSegment));
+                    }
                     return true;
                 }
             }

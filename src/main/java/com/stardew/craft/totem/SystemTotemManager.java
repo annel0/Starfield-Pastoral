@@ -22,33 +22,33 @@ import net.neoforged.neoforge.event.level.LevelEvent;
 @EventBusSubscriber(modid = StardewCraft.MODID)
 public class SystemTotemManager {
 
-    /** 系统柱固定ID：0=Farm, 1=Mountain, 2=Beach */
+    /** 系统柱固定ID：0=Farm, 1=Mountain, 2=Beach, 3=Desert */
     private static final int SYSTEM_ID_FARM = 0;
     private static final int SYSTEM_ID_MOUNTAIN = 1;
     private static final int SYSTEM_ID_BEACH = 2;
+    private static final int SYSTEM_ID_DESERT = 3;
 
     /** 系统柱坐标 */
     private static final BlockPos POS_FARM = new BlockPos(135, -12, 136);
     private static final BlockPos POS_MOUNTAIN = new BlockPos(-290, -14, 256);
     private static final BlockPos POS_BEACH = new BlockPos(-189, -14, -142);
-
-    /** 系统柱全部面朝北 */
-    private static final Direction SYSTEM_FACING = Direction.NORTH;
+    private static final BlockPos POS_DESERT = new BlockPos(-270, -41, 1389);
 
     @SubscribeEvent
     public static void onLevelLoad(LevelEvent.Load event) {
         if (!(event.getLevel() instanceof ServerLevel level)) return;
         if (!level.dimension().equals(ModDimensions.STARDEW_VALLEY)) return;
 
-        ensureSystemPole(level, POS_FARM, TotemType.FARM, ModBlocks.TOTEM_POLE_FARM, SYSTEM_ID_FARM, "农场");
-        ensureSystemPole(level, POS_MOUNTAIN, TotemType.MOUNTAIN, ModBlocks.TOTEM_POLE_MOUNTAIN, SYSTEM_ID_MOUNTAIN, "山区");
-        ensureSystemPole(level, POS_BEACH, TotemType.BEACH, ModBlocks.TOTEM_POLE_BEACH, SYSTEM_ID_BEACH, "海滩");
+        ensureSystemPole(level, POS_FARM, TotemType.FARM, ModBlocks.TOTEM_POLE_FARM, SYSTEM_ID_FARM, "农场", Direction.NORTH);
+        ensureSystemPole(level, POS_MOUNTAIN, TotemType.MOUNTAIN, ModBlocks.TOTEM_POLE_MOUNTAIN, SYSTEM_ID_MOUNTAIN, "山区", Direction.NORTH);
+        ensureSystemPole(level, POS_BEACH, TotemType.BEACH, ModBlocks.TOTEM_POLE_BEACH, SYSTEM_ID_BEACH, "海滩", Direction.NORTH);
+        ensureSystemPole(level, POS_DESERT, TotemType.DESERT, ModBlocks.TOTEM_POLE_DESERT, SYSTEM_ID_DESERT, "沙漠", Direction.SOUTH);
     }
 
     @SuppressWarnings("null")
     private static void ensureSystemPole(ServerLevel level, BlockPos pos, TotemType type,
                                          net.neoforged.neoforge.registries.DeferredBlock<Block> blockHolder,
-                                         int systemId, String name) {
+                                         int systemId, String name, Direction facing) {
         // 如果已经是该图腾柱，跳过
         BlockState existing = level.getBlockState(pos);
         if (existing.getBlock() instanceof TotemPoleBlock existingPole
@@ -66,7 +66,7 @@ public class SystemTotemManager {
         Block block = blockHolder.get();
         BlockState mainState = block.defaultBlockState()
                 .setValue(MapDecorStaticBlock.PART, MapDecorStaticBlock.Part.MAIN)
-                .setValue(MapDecorStaticBlock.FACING, SYSTEM_FACING)
+                .setValue(MapDecorStaticBlock.FACING, facing)
                 .setValue(TotemPoleBlock.ACTIVATED, true);
         level.setBlock(pos, mainState, 3);
 

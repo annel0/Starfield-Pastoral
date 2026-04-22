@@ -65,6 +65,7 @@ public class StardewTimeHud {
     private static final int SEASON_Y = 16;
     
     private static StardewTimeManager clientTimeCache = new StardewTimeManager();
+    private static volatile boolean timeSyncedFromServer = false;
     private static MoneyDial moneyDial = new MoneyDial(8, true);
     private static int moneyShakeTimer = 0;
     @SuppressWarnings("unused")
@@ -81,6 +82,15 @@ public class StardewTimeHud {
     
     public static void updateClientTime(StardewTimeManager timeData) {
         clientTimeCache = timeData;
+        timeSyncedFromServer = true;
+    }
+
+    public static boolean isTimeSynced() {
+        return timeSyncedFromServer;
+    }
+
+    public static void resetTimeSync() {
+        timeSyncedFromServer = false;
     }
     
     public static void updateClientMoney(int money) {
@@ -141,6 +151,11 @@ public class StardewTimeHud {
         Minecraft mc = Minecraft.getInstance();
         
         if (mc.player == null || mc.level == null) {
+            return;
+        }
+        @SuppressWarnings("null")
+        boolean spectator = mc.player.isSpectator();
+        if (mc.options.hideGui || spectator) {
             return;
         }
         

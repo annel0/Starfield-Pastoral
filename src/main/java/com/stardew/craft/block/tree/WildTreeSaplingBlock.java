@@ -4,11 +4,17 @@ import com.stardew.craft.block.shape.ModelVoxelShapeCache;
 import com.stardew.craft.manager.TreeGrowthManager;
 import com.stardew.craft.tree.WildTrees;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -49,6 +55,54 @@ public class WildTreeSaplingBlock extends Block {
 			}
 		}
 		return modelShape != null ? modelShape : super.getShape(state, level, pos, context);
+	}
+
+	// ── 生存条件 ──────────────────────────────────────────────
+	// 必须种在合法的「土壤类」方块上：原版 dirt 标签内的所有方块
+	// （dirt/grass_block/podzol/coarse_dirt/mycelium/rooted_dirt/moss/mud/...）
+	// 加上模组耕地（FarmBlock）与黄土（YELLOW_DIRT）。
+	// 不能浮空、不能种水里、不能放在叶子/木板等任意方块上。
+
+	private static boolean isValidGround(BlockState ground) {
+		Block b = ground.getBlock();
+		if (b instanceof FarmBlock) return true;
+		if (b == com.stardew.craft.block.ModBlocks.YELLOW_DIRT.get()) return true;
+		return ground.is(BlockTags.DIRT);
+	}
+
+	@SuppressWarnings("null")
+	@Override
+	public boolean canSurvive(@SuppressWarnings("null") BlockState state, @SuppressWarnings("null") LevelReader level, @SuppressWarnings("null") BlockPos pos) {
+		return isValidGround(level.getBlockState(pos.below()));
+	}
+
+	// 任意邻居更新（尤其是脚下方块被破坏 / 替换）时，若已不能生存则破坏并掉落。
+	@SuppressWarnings("null")
+	@Override
+	public BlockState updateShape(@SuppressWarnings("null") BlockState state, @SuppressWarnings("null") Direction direction,
+			@SuppressWarnings("null") BlockState neighborState, @SuppressWarnings("null") LevelAccessor level,
+			@SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") BlockPos neighborPos) {
+		if (!canSurvive(state, level, pos)) {
+			level.scheduleTick(pos, this, 1);
+		}
+		return super.updateShape(state, direction, neighborState, level, pos, neighborPos);
+	}
+
+	@SuppressWarnings("null")
+	@Override
+	public void tick(@SuppressWarnings("null") BlockState state, @SuppressWarnings("null") net.minecraft.server.level.ServerLevel level,
+			@SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") net.minecraft.util.RandomSource random) {
+		if (!canSurvive(state, level, pos)) {
+			dropResources(state, level, pos);
+			level.removeBlock(pos, false);
+		}
+	}
+
+	// 禁止活塞推动（推动会让树苗被挤到任意位置，破坏种植规则）。
+	@SuppressWarnings("null")
+	@Override
+	public PushReaction getPistonPushReaction(@SuppressWarnings("null") BlockState state) {
+		return PushReaction.BLOCK;
 	}
 
 	@SuppressWarnings("null")

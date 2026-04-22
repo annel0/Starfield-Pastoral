@@ -13,7 +13,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.util.StringUtil;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import javax.annotation.Nonnull;
@@ -420,7 +419,7 @@ public class AnimalPurchaseScreen extends Screen {
     @Override
     public boolean charTyped(char codePoint, int modifiers) {
         if (stage == Stage.BUILDING && editingName) {
-            if (StringUtil.isAllowedChatCharacter(codePoint) && editName.length() < 48) {
+            if (codePoint >= ' ' && codePoint != '\u00A7' && editName.length() < 48) {
                 editName = editName.substring(0, editCursor) + codePoint + editName.substring(editCursor);
                 editCursor++;
                 return true;

@@ -55,11 +55,16 @@ public class BulletinBoardBlock extends MapDecorWallStaticBlock {
             // 服务端同步每日任务和任务日志到客户端
             PlayerStardewData data = PlayerDataManager.getPlayerData(serverPlayer);
             if (data != null) {
+                // SDV parity: 首次查看公告栏 → 记下 checkedBulletinOnce 标记
+                // （对应 SDV Billboard 构造函数 L149-153 的 mailReceived.Add("checkedBulletinOnce") + Town.checkedBoard()）
+                data.addMailFlag("checkedBulletinOnce");
                 QuestManager mgr = data.getQuestManager();
                 PacketDistributor.sendToPlayer(serverPlayer,
                     DailyQuestSyncPayload.fromQuest(mgr.getDailyQuest()));
                 PacketDistributor.sendToPlayer(serverPlayer,
                     QuestLogSyncPayload.fromQuests(mgr.getQuestLog(), mgr.getBillboardQuestsDone(), mgr.getDailyQuestCompletedDays()));
+                // 同步玩家数据让 "checkedBulletinOnce" 到达客户端 → "?" 消失
+                com.stardew.craft.player.PlayerDataEventHandler.syncPlayerData(serverPlayer, data);
             }
         }
         return InteractionResult.sidedSuccess(level.isClientSide);

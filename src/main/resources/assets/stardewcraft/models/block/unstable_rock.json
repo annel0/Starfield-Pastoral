@@ -1,0 +1,7 @@
+{
+    "parent":  "minecraft:block/cube_all",
+    "textures":  {
+                     "all":  "stardewcraft:block/mine/unstable_rock",
+                     "particle":  "stardewcraft:block/mine/unstable_rock"
+                 }
+}

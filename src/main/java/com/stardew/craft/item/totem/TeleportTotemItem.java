@@ -34,7 +34,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 /**
- * 传送图腾（消耗品）— Farm / Mountain / Beach 三种。
+ * 传送图腾（消耗品）— Farm / Mountain / Beach / Desert 四种。
  * 严格复刻 SDV Object.performUseAction + totemWarp + totemWarpForReal。
  */
 @SuppressWarnings("null")
@@ -251,7 +251,7 @@ public class TeleportTotemItem extends Item implements IStardewItem {
         // FARM 类型未绑定时 → 优先使用玩家自己农场的图腾柱位置
         if (totemType == TotemType.FARM) {
             com.stardew.craft.farm.FarmInstance farm =
-                    com.stardew.craft.farm.FarmInstanceRegistry.get().getFarm(player.getUUID());
+                    com.stardew.craft.farm.FarmInstanceRegistry.get().getFarmForPlayer(player.getUUID());
             if (farm != null) {
                 return farm.getFarmTotemPos();
             }
@@ -336,7 +336,7 @@ public class TeleportTotemItem extends Item implements IStardewItem {
     private BlockPos getDefaultPosition(ServerPlayer player) {
         if (totemType == TotemType.FARM) {
             com.stardew.craft.farm.FarmInstance farm =
-                    com.stardew.craft.farm.FarmInstanceRegistry.get().getFarm(player.getUUID());
+                    com.stardew.craft.farm.FarmInstanceRegistry.get().getFarmForPlayer(player.getUUID());
             if (farm != null) {
                 return farm.getFarmTotemPos();
             }
@@ -345,6 +345,7 @@ public class TeleportTotemItem extends Item implements IStardewItem {
             case FARM -> new BlockPos(135, -12, 136);
             case MOUNTAIN -> new BlockPos(-290, -14, 256);
             case BEACH -> new BlockPos(-189, -14, -142);
+            case DESERT -> new BlockPos(-270, -41, 1389);
         };
     }
 

@@ -1,11 +1,8 @@
 package com.stardew.craft.interior;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.communitycenter.network.BundleSyncPayload;
 import com.stardew.craft.communitycenter.state.CCStoryFlags;
 import com.stardew.craft.core.ModDimensions;
-import com.stardew.craft.entity.ModEntities;
-import com.stardew.craft.entity.junimo.JunimoEntity;
 import com.stardew.craft.entity.npc.StardewNpcEntity;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.network.payload.OpenNpcDialogueScreenPayload;
@@ -13,7 +10,6 @@ import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.PlayerStardewData;
 import com.stardew.craft.sound.ModSounds;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -23,7 +19,6 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
-import com.stardew.craft.network.payload.NpcVisibilityPayload;
 
 /**
  * 巫师塔枢纽任务逻辑：
@@ -77,18 +72,11 @@ public final class WizardQuestHandler {
     private WizardQuestHandler() {}
 
     /**
-     * 玩家退出时清理 E112 状态：移除 per-player Junimo + 取消倒计时。
+     * 玩家退出时清理 E112 状态（旧倒计时 tag）。
+     * Junimo 现在由 cutscene 引擎在客户端管理，无需服务端清理。
      */
     public static void onPlayerLogout(ServerPlayer player) {
-        // 移除倒计时
         player.getPersistentData().remove(TAG_E112_WIZARD_AWAY_TICK);
-        // 移除该玩家专属的 Junimo
-        String junimoTag = TAG_E112_JUNIMO_PREFIX + player.getStringUUID();
-        ServerLevel level = player.serverLevel();
-        level.getEntitiesOfClass(com.stardew.craft.entity.junimo.JunimoEntity.class,
-                new net.minecraft.world.phys.AABB(JUNIMO_CAGE_POS).inflate(3.0),
-                e -> e.getTags().contains(junimoTag)
-        ).forEach(net.minecraft.world.entity.Entity::discard);
     }
 
     /**
@@ -101,24 +89,16 @@ public final class WizardQuestHandler {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
         if (!ModDimensions.STARDEW_VALLEY.equals(player.level().dimension())) return;
 
-        // ── E112 巫师离开倒计时 ──
-        if (player.getPersistentData().contains(TAG_E112_WIZARD_AWAY_TICK)) {
-            int tick = player.getPersistentData().getInt(TAG_E112_WIZARD_AWAY_TICK) + 1;
-            if (tick >= WIZARD_AWAY_DURATION) {
-                player.getPersistentData().remove(TAG_E112_WIZARD_AWAY_TICK);
-                handleE112WizardReturn(player);
-            } else {
-                player.getPersistentData().putInt(TAG_E112_WIZARD_AWAY_TICK, tick);
-            }
-            return; // 巫师不在时不处理其他接近逻辑
-        }
+        // E112 倒计时已移至 cutscene 引擎 (wizard_e112.json 中的 pause 命令)
 
         if (player.tickCount % PROXIMITY_CHECK_INTERVAL != 0) return;
 
         PlayerStardewData data = PlayerDataManager.getPlayerData(player);
 
-        // 只有首次见面才自动触发对话
-        if (data.isWizardFirstMet()) return;
+        // 只在需要自动触发时才继续检测
+        boolean needsIntro = !data.isWizardFirstMet();
+        boolean needsE112 = CCStoryFlags.hasSeenJunimoNote(player) && !CCStoryFlags.canReadJunimoText(player);
+        if (!needsIntro && !needsE112) return;
 
         // 检测是否在巫师附近
         double distSq = player.blockPosition().distSqr(WIZARD_POS);
@@ -131,9 +111,19 @@ public final class WizardQuestHandler {
         if (player.getPersistentData().contains(PROXIMITY_COOLDOWN_TAG)) return;
         player.getPersistentData().putBoolean(PROXIMITY_COOLDOWN_TAG, true);
 
-        // 首次见面剧情对话
-        data.setWizardFirstMet(true);
-        sendDialogue(player, "stardewcraft.npc.wizard.intro_1", 0);
+        if (needsIntro) {
+            // 首次见面 → 触发 wizard_intro cutscene
+            data.setWizardFirstMet(true);
+            triggerCutscene(player, "wizard_intro");
+        } else {
+            // 看过 JunimoNote 但未解锁文字 → 自动触发 wizard_e112
+            com.stardew.craft.quest.QuestManager qm = com.stardew.craft.quest.QuestManager.of(player);
+            com.stardew.craft.quest.StardewQuest meetWizardQuest = qm.getQuest("1");
+            if (meetWizardQuest != null) meetWizardQuest.questComplete(player);
+            CCStoryFlags.addFlag(player, CCStoryFlags.CAN_READ_JUNIMO);
+            com.stardew.craft.communitycenter.network.BundleSyncPayload.sendFullSync(player);
+            triggerCutscene(player, "wizard_e112");
+        }
     }
 
     /**
@@ -144,11 +134,17 @@ public final class WizardQuestHandler {
         PlayerStardewData data = PlayerDataManager.getPlayerData(player);
 
         // ── SDV Event 112 parity: 巫师森林魔法药水 → 解锁 Junimo 文字 ──
-        // 玩家看过 JunimoNote（收到巫师邀请信）但尚未解锁 → 触发多阶段过场
+        // 玩家看过 JunimoNote（收到巫师邀请信）但尚未解锁 → 触发 cutscene 过场
         if (CCStoryFlags.hasSeenJunimoNote(player) && !CCStoryFlags.canReadJunimoText(player)) {
-            // Phase 0: 巫师自我介绍 + "我要给你看样东西"
-            playSound(player, ModSounds.DWOP.get());
-            sendDialogue(player, "stardewcraft.npc.wizard.e112_intro", 0);
+            // 完成 meetTheWizard 任务 (Quest ID 1)
+            com.stardew.craft.quest.QuestManager qm = com.stardew.craft.quest.QuestManager.of(player);
+            com.stardew.craft.quest.StardewQuest meetWizardQuest = qm.getQuest("1");
+            if (meetWizardQuest != null) meetWizardQuest.questComplete(player);
+            // 直接在服务端设 flag，不依赖 cutscene 内的 set_flag 命令
+            // 防止 cutscene 失败/跳过导致 flag 永远不被设置，锁死交互
+            CCStoryFlags.addFlag(player, CCStoryFlags.CAN_READ_JUNIMO);
+            com.stardew.craft.communitycenter.network.BundleSyncPayload.sendFullSync(player);
+            triggerCutscene(player, "wizard_e112");
             return true;
         }
 
@@ -163,9 +159,9 @@ public final class WizardQuestHandler {
         }
 
         if (!data.isWizardFirstMet()) {
-            // 首次见面：触发剧情第1页
+            // 首次见面 → 触发 wizard_intro cutscene
             data.setWizardFirstMet(true);
-            sendDialogue(player, "stardewcraft.npc.wizard.intro_1", 0);
+            triggerCutscene(player, "wizard_intro");
             return true;
         }
 
@@ -187,6 +183,10 @@ public final class WizardQuestHandler {
         }
 
         // 没有末影之眼：提醒（任务进行中，仍拦截）
+        // 但如果玩家还没看过 JunimoNote，不应该锁死 → 走普通对话
+        if (!CCStoryFlags.hasSeenJunimoNote(player)) {
+            return false;
+        }
         sendDialogue(player, "stardewcraft.npc.wizard.daily_locked", 0);
         return true;
     }
@@ -230,28 +230,7 @@ public final class WizardQuestHandler {
                 // 玩家拒绝，关闭对话
                 yield true;
             }
-            // ── SDV Event 112 多阶段过场 ──
-            case NODE_E112_REVEAL -> {
-                handleE112Reveal(player);
-                yield true;
-            }
-            case NODE_E112_DISMISS -> {
-                handleE112Dismiss(player);
-                yield true;
-            }
-            case NODE_E112_WIZARD_LEAVE -> {
-                handleE112WizardLeave(player);
-                yield true;
-            }
-            case NODE_E112_CAULDRON -> {
-                // Phase 2→3: 走到大锅
-                sendDialogue(player, "stardewcraft.npc.wizard.e112_cauldron", 0);
-                yield true;
-            }
-            case NODE_E112_DRINK -> {
-                handleE112Drink(player);
-                yield true;
-            }
+            // E112 多阶段过场已迁移至 cutscene 引擎 (wizard_e112.json)
             default -> false;
         };
     }
@@ -261,110 +240,9 @@ public final class WizardQuestHandler {
     // ═══════════════════════════════════════════════════════════
 
     /**
-     * Phase 0→1: "看哪！" — screenFlash + playSound wand + 生成笼中 Junimo
-     * SDV: showFrame Wizard 19/playSound wand/screenFlash .8/warp Junimo 10 17/specificTemporarySprite junimoCage
-     */
-    private static void handleE112Reveal(ServerPlayer player) {
-        ServerLevel level = player.serverLevel();
-        // 闪白 + wand 音效
-        playSoundToPlayer(player, ModSounds.WAND.get());
-        sendScreenFlash(player);
-        // 生成临时 Junimo（绿色，笼中展示），用玩家UUID标记以支持多人
-        String junimoTag = TAG_E112_JUNIMO_PREFIX + player.getStringUUID();
-        JunimoEntity junimo = new JunimoEntity(ModEntities.JUNIMO.get(), level);
-        junimo.setJunimoColor(0x32CD32); // SDV 默认绿色 (LimeGreen)
-        junimo.moveTo(JUNIMO_CAGE_POS.getX() + 0.5, JUNIMO_CAGE_POS.getY(), JUNIMO_CAGE_POS.getZ() + 0.5, 0, 0);
-        junimo.setNoAi(true);
-        junimo.setNoTimeout(true);
-        junimo.addTag(junimoTag);
-        level.addFreshEntity(junimo);
-        // junimoMeep1 音效
-        playSoundToPlayer(player, ModSounds.DWOP.get());
-        // Phase 1 对话：Junimo 笼
-        sendDialogue(player, "stardewcraft.npc.wizard.e112_cage", 0);
-    }
-
-    /**
-     * Phase 1→2: Junimo 笼消失 — screenFlash + playSound wand + 消除 Junimo
-     * SDV: playSound dwop/playSound wand/screenFlash .8/warp Junimo -3000/specificTemporarySprite junimoCageGone
-     */
-    private static void handleE112Dismiss(ServerPlayer player) {
-        ServerLevel level = player.serverLevel();
-        // 闪白 + wand 音效
-        playSoundToPlayer(player, ModSounds.WAND.get());
-        sendScreenFlash(player);
-        // 移除该玩家专属的笼中 Junimo（不影响其他玩家的E112）
-        String junimoTag = TAG_E112_JUNIMO_PREFIX + player.getStringUUID();
-        level.getEntitiesOfClass(JunimoEntity.class,
-                new net.minecraft.world.phys.AABB(JUNIMO_CAGE_POS).inflate(3.0),
-                e -> e.getTags().contains(junimoTag)
-        ).forEach(net.minecraft.world.entity.Entity::discard);
-        // Phase 2 对话：巫师解释 CC + "你留在这，我去看看"
-        sendDialogue(player, "stardewcraft.npc.wizard.e112_note", 0);
-    }
-
-    /**
-     * Phase 2→2.5: 巫师说"你留在这" → 闪白 + 消失 → 启动倒计时
-     * SDV: showFrame Wizard 16/playSound wand/warp Wizard -3000/specificTemporarySprite wizardWarp
-     */
-    private static void handleE112WizardLeave(ServerPlayer player) {
-        // 闪白 + wand 音效（仅发给该玩家）
-        playSoundToPlayer(player, ModSounds.WAND.get());
-        sendScreenFlash(player);
-        // 通过客户端包隐藏巫师（仅对该玩家），不移动实体 → 多人安全
-        PacketDistributor.sendToPlayer(player, new NpcVisibilityPayload(NPC_ID, true));
-        // 启动倒计时（onPlayerTick 中递增）
-        player.getPersistentData().putInt(TAG_E112_WIZARD_AWAY_TICK, 0);
-        StardewCraft.LOGGER.debug("[WIZARD] E112: wizard hidden for {} (client-side), timer started",
-                player.getName().getString());
-    }
-
-    /**
-     * Phase 2.5 (自动触发): 巫师回来 → 门声 → 发送翻译卷轴 + 大锅对话
-     * SDV: playSound doorClose/warp Wizard 8 24/"I found the note..."
-     */
-    private static void handleE112WizardReturn(ServerPlayer player) {
-        // 门声（仅发给该玩家）
-        playSoundToPlayer(player, net.minecraft.sounds.SoundEvents.WOODEN_DOOR_CLOSE);
-        // 通过客户端包恢复巫师可见（仅对该玩家）
-        PacketDistributor.sendToPlayer(player, new NpcVisibilityPayload(NPC_ID, false));
-        playSoundToPlayer(player, ModSounds.DWOP.get());
-        StardewCraft.LOGGER.debug("[WIZARD] E112: wizard shown again for {}",
-                player.getName().getString());
-        // 自动弹出对话（无需玩家再次交互）
-        sendDialogue(player, "stardewcraft.npc.wizard.e112_return", 0);
-    }
-
-    /**
-     * Phase 3→4: 玩家喝下森林魔法药水
-     * SDV: farmerEat 184/playSound gulp/specificTemporarySprite farmerForestVision/globalFade/playSound reward
-     */
-    private static void handleE112Drink(ServerPlayer player) {
-        ServerLevel level = player.serverLevel();
-        // gulp 音效 (SDV: playSound gulp)
-        player.level().playSound(null, player.blockPosition(), net.minecraft.sounds.SoundEvents.GENERIC_DRINK,
-                SoundSource.PLAYERS, 1.0f, 1.0f);
-        // 森林幻视粒子效果 (SDV: specificTemporarySprite farmerForestVision)
-        for (int i = 0; i < 30; i++) {
-            double ox = (level.random.nextDouble() - 0.5) * 6;
-            double oy = level.random.nextDouble() * 3;
-            double oz = (level.random.nextDouble() - 0.5) * 6;
-            level.sendParticles(player, ParticleTypes.HAPPY_VILLAGER, true,
-                    player.getX() + ox, player.getY() + oy, player.getZ() + oz,
-                    1, 0, 0, 0, 0);
-        }
-        // 闪白
-        sendScreenFlash(player);
-        // reward 音效 (SDV: playSound reward)
-        playSound(player, ModSounds.REWARD.get());
-        // 设置 canReadJunimoText 标记
-        CCStoryFlags.addFlag(player, CCStoryFlags.CAN_READ_JUNIMO);
-        BundleSyncPayload.sendFullSync(player);
-        StardewCraft.LOGGER.info("[WIZARD] {} unlocked canReadJunimoText (SDV Event 112)",
-                player.getName().getString());
-        // 最终消息：你得到了森林的魔力！
-        sendDialogue(player, "stardewcraft.npc.wizard.e112_complete", 0);
-    }
+    // ═══ E112 多阶段过场方法已迁移至 cutscene 引擎 (wizard_e112.json) ═══
+    // handleE112Reveal, handleE112Dismiss, handleE112WizardLeave,
+    // handleE112WizardReturn, handleE112Drink 已由 JSON cutscene 替代
 
     /** 在巫师塔附近（含隐藏位置）搜索巫师 NPC 实体 */
     private static java.util.Optional<StardewNpcEntity> findWizardNpc(ServerLevel level) {
@@ -474,5 +352,11 @@ public final class WizardQuestHandler {
     private static void sendDialogue(ServerPlayer player, String translateKey, int friendshipPoints) {
         PacketDistributor.sendToPlayer(player,
             new OpenNpcDialogueScreenPayload(NPC_ID, translateKey, friendshipPoints));
+    }
+
+    /** 触发 cutscene 事件 (发送 TriggerEventPayload 到客户端) */
+    private static void triggerCutscene(ServerPlayer player, String eventId) {
+        com.stardew.craft.cutscene.server.ServerCutsceneTracker.startEvent(player, eventId);
+        StardewCraft.LOGGER.info("[WIZARD] Triggered cutscene '{}' for {}", eventId, player.getName().getString());
     }
 }

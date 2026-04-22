@@ -77,6 +77,10 @@ public class FarmSelectionScreen extends Screen {
     // 动画
     private float okScale = 1.0f;
     private float diceScale = 1.0f;
+    private float joinBtnScale = 1.0f;
+
+    // "加入农场" 按钮位置
+    private int joinBtnX, joinBtnY, joinBtnW, joinBtnH;
 
     // 名称输入 — 使用 Minecraft EditBox，支持中文 IME
     private EditBox nameField;
@@ -155,6 +159,16 @@ public class FarmSelectionScreen extends Screen {
         // OK 按钮（名称输入下方，右栏底部居中）
         okCx = rightX + rightW / 2;
         okCy = contentY + contentH - ui(20);
+
+        // "加入农场" 按钮（左栏底部）
+        joinBtnW = listW;
+        joinBtnH = ui(36);
+        joinBtnX = listX;
+        joinBtnY = contentY + contentH - joinBtnH - ui(4);
+        // 缩短列表高度为按钮留出空间
+        listH = joinBtnY - listY - ui(4);
+        maxVisible = Math.max(1, listH / rowH);
+        scrollOffset = Math.min(scrollOffset, Math.max(0, farmTypes.size() - maxVisible));
     }
 
     private int ui(int sdvPixels) {
@@ -227,6 +241,12 @@ public class FarmSelectionScreen extends Screen {
             return true;
         }
 
+        // 加入农场按钮
+        if (inside(mx, my, joinBtnX, joinBtnY, joinBtnW, joinBtnH)) {
+            requestJoinList();
+            return true;
+        }
+
         // 其余交给 EditBox 等 widget
         return super.mouseClicked(mouseX, mouseY, button);
     }
@@ -281,6 +301,9 @@ public class FarmSelectionScreen extends Screen {
 
         // OK 按钮
         drawIconButton(graphics, OK_ICON, okCx, okCy, okScale);
+
+        // "加入农场" 文字按钮（左栏底部）
+        drawJoinButton(graphics, mouseX, mouseY);
     }
 
     // ═══════════════════════════════════════════
@@ -409,6 +432,8 @@ public class FarmSelectionScreen extends Screen {
         int diceS = ui(40);
         diceScale = approach(diceScale,
                 inside(mouseX, mouseY, diceCx - diceS / 2, diceCy - diceS / 2, diceS, diceS) ? 1.15f : 1.0f);
+        joinBtnScale = approach(joinBtnScale,
+                inside(mouseX, mouseY, joinBtnX, joinBtnY, joinBtnW, joinBtnH) ? 1.0f : 0.0f);
 
         for (int i = 0; i < farmTypes.size(); i++) {
             boolean visible = (i >= scrollOffset && i < scrollOffset + maxVisible);
@@ -421,6 +446,37 @@ public class FarmSelectionScreen extends Screen {
                 typeHighlight[i] = approach(typeHighlight[i], 0.0f);
             }
         }
+    }
+
+    // ═══════════════════════════════════════════
+    //  "加入农场" 按钮
+    // ═══════════════════════════════════════════
+
+    private void drawJoinButton(GuiGraphics graphics, int mouseX, int mouseY) {
+        boolean hovered = joinBtnScale > 0.5f;
+        int bgColor = hovered ? 0x66EADB8C : 0x33EADB8C;
+        graphics.fill(joinBtnX, joinBtnY, joinBtnX + joinBtnW, joinBtnY + joinBtnH, bgColor);
+
+        // 边框
+        int borderColor = hovered ? 0xAA582A11 : 0x44582A11;
+        graphics.fill(joinBtnX, joinBtnY, joinBtnX + joinBtnW, joinBtnY + 1, borderColor);
+        graphics.fill(joinBtnX, joinBtnY + joinBtnH - 1, joinBtnX + joinBtnW, joinBtnY + joinBtnH, borderColor);
+        graphics.fill(joinBtnX, joinBtnY, joinBtnX + 1, joinBtnY + joinBtnH, borderColor);
+        graphics.fill(joinBtnX + joinBtnW - 1, joinBtnY, joinBtnX + joinBtnW, joinBtnY + joinBtnH, borderColor);
+
+        Component text = Component.translatable("gui.stardewcraft.farm_selection.join_farm");
+        int textColor = hovered ? 0x582A11 : 0x8D6E63;
+        int tw = this.font.width(text);
+        graphics.drawString(this.font, text,
+                joinBtnX + (joinBtnW - tw) / 2,
+                joinBtnY + (joinBtnH - this.font.lineHeight) / 2,
+                textColor, false);
+    }
+
+    private void requestJoinList() {
+        PacketDistributor.sendToServer(
+                new com.stardew.craft.network.payload.FarmJoinListRequestPayload());
+        playUi(ModSounds.SMALL_SELECT.get(), 0.7f, 1.05f);
     }
 
     // ═══════════════════════════════════════════

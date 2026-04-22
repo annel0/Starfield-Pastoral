@@ -2,8 +2,10 @@ package com.stardew.craft.item.equipment;
 
 import com.stardew.craft.combat.equipment.EquipmentStats;
 import com.stardew.craft.item.IStardewItem;
+import com.stardew.craft.item.weapon.WeaponIcons;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -53,47 +55,51 @@ public class StardewRingItem extends Item implements IStardewItem {
 
         EquipmentStats stats = getEquipmentStats();
         if (stats.getDefense() > 0) {
-            tooltipComponents.add(Component.translatable("stardewcraft.tooltip.defense", stats.getDefense())
-                    .withStyle(ChatFormatting.BLUE));
+            tooltipComponents.add(buildStatLine(WeaponIcons.ICON_DEFENSE,
+                    "+" + stats.getDefense(), ChatFormatting.BLUE,
+                    "stardewcraft.weapon.tooltip.defense"));
         }
         if (stats.getImmunity() > 0) {
-            tooltipComponents.add(Component.translatable("stardewcraft.tooltip.immunity", stats.getImmunity())
-                    .withStyle(ChatFormatting.YELLOW));
+            tooltipComponents.add(buildStatLine(WeaponIcons.ICON_IMMUNITY,
+                    "+" + stats.getImmunity(), ChatFormatting.YELLOW,
+                    "stardewcraft.tooltip.immunity_label"));
         }
         // 攻击倍率型戒指（Ruby Ring / Iridium Band）
         if (ringType.isAttackMultiplier()) {
-            tooltipComponents.add(Component.translatable("stardewcraft.tooltip.attack",
-                    String.format("+%d%%", Math.round(ringType.getAttackMultiplier() * 100)))
-                    .withStyle(ChatFormatting.RED));
+            tooltipComponents.add(buildStatLine(WeaponIcons.ICON_DAMAGE,
+                    "+" + Math.round(ringType.getAttackMultiplier() * 100) + "%", ChatFormatting.RED,
+                    "stardewcraft.tooltip.attack_label"));
         }
         if (stats.getCritChance() > 0) {
-            tooltipComponents.add(Component.translatable("stardewcraft.tooltip.crit_chance",
-                    String.format("+%d%%", Math.round(stats.getCritChance() * 100)))
-                    .withStyle(ChatFormatting.RED));
+            tooltipComponents.add(buildStatLine(WeaponIcons.ICON_CRIT_CHANCE,
+                    "+" + Math.round(stats.getCritChance() * 100) + "%", ChatFormatting.YELLOW,
+                    "stardewcraft.weapon.tooltip.crit_chance"));
         }
         if (stats.getCritPower() > 0) {
-            tooltipComponents.add(Component.translatable("stardewcraft.tooltip.crit_power",
-                    String.format("+%d%%", Math.round(stats.getCritPower() * 100)))
-                    .withStyle(ChatFormatting.RED));
+            tooltipComponents.add(buildStatLine(WeaponIcons.ICON_CRIT_POWER,
+                    "+" + Math.round(stats.getCritPower() * 100) + "%", ChatFormatting.GOLD,
+                    "stardewcraft.weapon.tooltip.crit_damage"));
         }
         if (stats.getKnockbackBonus() > 0) {
-            tooltipComponents.add(Component.translatable("stardewcraft.tooltip.knockback",
-                    String.format("+%d%%", Math.round(stats.getKnockbackBonus() * 100)))
-                    .withStyle(ChatFormatting.GOLD));
+            tooltipComponents.add(buildStatLine(WeaponIcons.ICON_WEIGHT,
+                    "+" + Math.round(stats.getKnockbackBonus() * 100) + "%", ChatFormatting.GOLD,
+                    "stardewcraft.weapon.tooltip.weight"));
         }
         if (stats.getMagneticRadius() > 0) {
-            tooltipComponents.add(Component.translatable("stardewcraft.tooltip.magnetic_radius", stats.getMagneticRadius())
-                    .withStyle(ChatFormatting.AQUA));
+            tooltipComponents.add(buildStatLine(WeaponIcons.ICON_MAGNETIC,
+                    "+" + stats.getMagneticRadius(), ChatFormatting.AQUA,
+                    "stardewcraft.tooltip.magnetic_label"));
         }
         if (stats.getLuck() > 0) {
-            tooltipComponents.add(Component.translatable("stardewcraft.tooltip.luck", String.format("+%.0f", stats.getLuck()))
-                    .withStyle(ChatFormatting.GREEN));
+            tooltipComponents.add(buildStatLine(WeaponIcons.ICON_LUCK,
+                    "+" + (int) stats.getLuck(), ChatFormatting.GREEN,
+                    "stardewcraft.tooltip.luck_label"));
         }
         // 武器速度型戒指
         if (ringType.isWeaponSpeedMultiplier()) {
-            tooltipComponents.add(Component.translatable("stardewcraft.tooltip.weapon_speed",
-                    String.format("+%d%%", Math.round(ringType.getWeaponSpeedMultiplier() * 100)))
-                    .withStyle(ChatFormatting.YELLOW));
+            tooltipComponents.add(buildStatLine(WeaponIcons.ICON_SPEED,
+                    "+" + Math.round(ringType.getWeaponSpeedMultiplier() * 100) + "%", ChatFormatting.YELLOW,
+                    "stardewcraft.weapon.tooltip.speed"));
         }
 
         // 特殊效果描述
@@ -101,5 +107,15 @@ public class StardewRingItem extends Item implements IStardewItem {
         if (ringType.hasSpecialEffect()) {
             tooltipComponents.add(Component.translatable(descKey).withStyle(ChatFormatting.LIGHT_PURPLE));
         }
+    }
+
+    @SuppressWarnings("null")
+    private static MutableComponent buildStatLine(String icon, String value, ChatFormatting valueColor, String nameKey) {
+        MutableComponent line = Component.empty();
+        line.append(Component.literal(" "));
+        line.append(WeaponIcons.icon(icon));
+        line.append(Component.translatable("stardewcraft.weapon.tooltip.attr_value", value).withStyle(valueColor));
+        line.append(Component.translatable(nameKey).withStyle(ChatFormatting.GRAY));
+        return line;
     }
 }

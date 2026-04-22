@@ -41,6 +41,11 @@ public class WarpWandSavedData extends SavedData {
 
     // ── API ──
 
+    public void clearPlayer(UUID playerId) {
+        playerUnlocks.remove(playerId);
+        setDirty();
+    }
+
     /**
      * 检查玩家是否已解锁指定目的地。
      * cost == 0 的目的地默认解锁。

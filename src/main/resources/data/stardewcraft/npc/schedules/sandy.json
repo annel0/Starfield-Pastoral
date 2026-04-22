@@ -1,0 +1,9 @@
+{
+  "npc_id": "sandy",
+  "override_vanilla": true,
+  "_format": "time -> \"location @namedPointId facing [behavior]\"",
+  "_note": "Sandy stays at her Oasis counter all day and does not path.",
+  "default": {
+    "600": "oasis @sandy_oasis_counter 3"
+  }
+}

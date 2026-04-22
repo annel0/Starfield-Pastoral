@@ -1,39 +1,125 @@
-﻿{
-    "location":  "Sewer",
-    "fish":  [
-                 {
-                     "id":  "mutant_carp",
-                     "precedence":  500,
-                     "item":  "stardewcraft:mutant_carp",
-                     "chance":  0.1,
-                     "difficulty":  80,
-                     "motionType":  1,
-                     "minFishingLevel":  10,
-                     "maxDepth":  4,
-                     "depthMultiplier":  0.05,
-                     "biomeTags":  [
-                                       "#stardewcraft:is_sewers"
-                                   ],
-                     "condition":  "!PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
-                     "catchLimit":  1,
-                     "isBossFish":  true
-                 },
-                 {
-                     "id":  "radioactive_carp",
-                     "precedence":  500,
-                     "item":  "stardewcraft:radioactive_carp",
-                     "chance":  0.05,
-                     "difficulty":  80,
-                     "motionType":  1,
-                     "minFishingLevel":  15,
-                     "maxDepth":  4,
-                     "depthMultiplier":  0.05,
-                     "biomeTags":  [
-                                       "#stardewcraft:is_sewers"
-                                   ],
-                     "condition":  "PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
-                     "catchLimit":  1,
-                     "isBossFish":  true
-                 }
-             ]
+{
+  "location": "Sewer",
+  "fish": [
+    {
+      "id": "mutant_carp",
+      "precedence": -100,
+      "item": "stardewcraft:mutant_carp",
+      "chance": 0.1,
+      "difficulty": 80,
+      "motionType": 1,
+      "minFishingLevel": 0,
+      "maxDepth": 5,
+      "depthMultiplier": 0.02,
+      "biomeTags": [
+        "#stardewcraft:is_sewers"
+      ],
+      "condition": "!PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
+      "catchLimit": 1,
+      "isBossFish": true,
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.0,
+      "curiosityLureBuff": 0.1,
+      "canBeInherited": false
+    },
+    {
+      "id": "radioactive_carp",
+      "precedence": -100,
+      "item": "stardewcraft:radioactive_carp",
+      "chance": 0.1,
+      "difficulty": 80,
+      "motionType": 1,
+      "minFishingLevel": 0,
+      "maxDepth": 5,
+      "depthMultiplier": 0.02,
+      "biomeTags": [
+        "#stardewcraft:is_sewers"
+      ],
+      "condition": "PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
+      "catchLimit": 1,
+      "isBossFish": true,
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.0,
+      "curiosityLureBuff": 0.1,
+      "canBeInherited": false
+    },
+    {
+      "id": "carp",
+      "precedence": 0,
+      "item": "stardewcraft:carp",
+      "chance": 1.0,
+      "difficulty": 15,
+      "motionType": 0,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 1,
+      "depthMultiplier": 0.1,
+      "spawnRate": 0.45,
+      "biomeTags": [
+        "#stardewcraft:is_sewers"
+      ]
+    },
+    {
+      "id": "green_algae",
+      "precedence": 0,
+      "item": "stardewcraft:green_algae",
+      "chance": 1.0,
+      "difficulty": 5,
+      "motionType": 4,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 0,
+      "depthMultiplier": 0.0,
+      "spawnRate": 0.3,
+      "biomeTags": [
+        "#stardewcraft:is_sewers"
+      ]
+    },
+    {
+      "id": "white_algae",
+      "precedence": 0,
+      "item": "stardewcraft:white_algae",
+      "chance": 1.0,
+      "difficulty": 5,
+      "motionType": 4,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 0,
+      "depthMultiplier": 0.0,
+      "spawnRate": 0.3,
+      "biomeTags": [
+        "#stardewcraft:is_sewers"
+      ]
+    }
+  ]
 }

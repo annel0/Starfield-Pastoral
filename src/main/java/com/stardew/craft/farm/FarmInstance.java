@@ -2,7 +2,12 @@ package com.stardew.craft.farm;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -21,6 +26,10 @@ public class FarmInstance {
     private long createdTimestamp;
     private int lastOnlineDay;
     private int lastOnlineSeason;
+    /** 跨季宽限剩余天数。>0 时该农场的过季作物不会枯死。 */
+    private int graceDaysLeft;
+    /** 农场成员 UUID 列表（不含 owner，最多 3 人，加上 owner 共 4 人） */
+    private final List<UUID> members = new ArrayList<>();
 
     public FarmInstance(UUID ownerUUID, String ownerName, String farmName,
                         int slotIndex, BlockPos origin, FarmType farmType) {
@@ -34,6 +43,7 @@ public class FarmInstance {
         this.createdTimestamp = System.currentTimeMillis();
         this.lastOnlineDay = 1;
         this.lastOnlineSeason = 0;
+        this.graceDaysLeft = 0;
     }
 
     // ── Getters ──
@@ -48,6 +58,27 @@ public class FarmInstance {
     public long getCreatedTimestamp() { return createdTimestamp; }
     public int getLastOnlineDay() { return lastOnlineDay; }
     public int getLastOnlineSeason() { return lastOnlineSeason; }
+    public int getGraceDaysLeft() { return graceDaysLeft; }
+    /** 获取成员列表（只读，不含 owner） */
+    public List<UUID> getMembers() { return Collections.unmodifiableList(members); }
+
+    /** 获取所有共同农场主（owner + members） */
+    public List<UUID> getAllFarmers() {
+        List<UUID> all = new ArrayList<>(members.size() + 1);
+        all.add(ownerUUID);
+        all.addAll(members);
+        return all;
+    }
+
+    /** 是否为该农场的成员（含 owner） */
+    public boolean isFarmer(UUID uuid) {
+        return ownerUUID.equals(uuid) || members.contains(uuid);
+    }
+
+    /** 农场当前人数（owner + members） */
+    public int getFarmerCount() { return 1 + members.size(); }
+
+    public static final int MAX_FARMERS = 4;
 
     // ── Setters (mutable fields) ──
 
@@ -56,7 +87,21 @@ public class FarmInstance {
     public void markInitialized() { this.initialized = true; }
     public void setLastOnlineDay(int day) { this.lastOnlineDay = day; }
     public void setLastOnlineSeason(int season) { this.lastOnlineSeason = season; }
+    public void setGraceDaysLeft(int days) { this.graceDaysLeft = days; }
     public void setCreatedTimestamp(long ts) { this.createdTimestamp = ts; }
+
+    /** 添加成员。返回 false 如果已满或已存在。 */
+    public boolean addMember(UUID uuid) {
+        if (isFarmer(uuid)) return false;
+        if (getFarmerCount() >= MAX_FARMERS) return false;
+        members.add(uuid);
+        return true;
+    }
+
+    /** 移除成员。不能移除 owner。 */
+    public boolean removeMember(UUID uuid) {
+        return members.remove(uuid);
+    }
 
     // ── 坐标计算（从 FarmType 布局读取偏移） ──
 
@@ -154,6 +199,17 @@ public class FarmInstance {
         tag.putLong("CreatedTimestamp", createdTimestamp);
         tag.putInt("LastOnlineDay", lastOnlineDay);
         tag.putInt("LastOnlineSeason", lastOnlineSeason);
+        tag.putInt("GraceDaysLeft", graceDaysLeft);
+        // 成员列表
+        if (!members.isEmpty()) {
+            ListTag memberList = new ListTag();
+            for (UUID m : members) {
+                CompoundTag mt = new CompoundTag();
+                mt.putUUID("UUID", m);
+                memberList.add(mt);
+            }
+            tag.put("Members", memberList);
+        }
         return tag;
     }
 
@@ -170,6 +226,14 @@ public class FarmInstance {
         instance.createdTimestamp = tag.getLong("CreatedTimestamp");
         instance.lastOnlineDay = tag.getInt("LastOnlineDay");
         instance.lastOnlineSeason = tag.getInt("LastOnlineSeason");
+        instance.graceDaysLeft = tag.getInt("GraceDaysLeft");
+        // 加载成员列表
+        if (tag.contains("Members", Tag.TAG_LIST)) {
+            ListTag memberList = tag.getList("Members", Tag.TAG_COMPOUND);
+            for (int i = 0; i < memberList.size(); i++) {
+                instance.members.add(memberList.getCompound(i).getUUID("UUID"));
+            }
+        }
         return instance;
     }
 }

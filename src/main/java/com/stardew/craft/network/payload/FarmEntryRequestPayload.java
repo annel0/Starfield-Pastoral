@@ -11,6 +11,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
@@ -58,15 +59,22 @@ public record FarmEntryRequestPayload(
                 return;
             }
 
-            // 权限检查
-            FarmPermissionManager permMgr = FarmPermissionManager.get();
-            if (!permMgr.canVisit(farm.getOwnerUUID(), player.getUUID())) {
-                player.displayClientMessage(Component.translatable("stardewcraft.farm.no_access"), true);
-                return;
+            // 权限检查：成员可直接进入
+            if (!farm.isFarmer(player.getUUID())) {
+                FarmPermissionManager permMgr = FarmPermissionManager.get();
+                if (!permMgr.canVisit(farm.getOwnerUUID(), player.getUUID())) {
+                    player.displayClientMessage(Component.translatable("stardewcraft.farm.no_access"), true);
+                    return;
+                }
             }
 
             // 触发区块加载
-            FarmChunkManager.get().onPlayerEnterFarm(player.serverLevel(), player, farm);
+            ServerLevel stardewLevel = player.server.getLevel(com.stardew.craft.core.ModDimensions.STARDEW_VALLEY);
+            if (stardewLevel == null) {
+                player.displayClientMessage(Component.translatable("stardewcraft.farm.not_found"), true);
+                return;
+            }
+            FarmChunkManager.get().onPlayerEnterFarm(stardewLevel, player, farm);
 
             // 根据入口方向路由
             BlockPos targetPos;
@@ -86,9 +94,13 @@ public record FarmEntryRequestPayload(
                 }
             }
 
-            player.teleportTo(player.serverLevel(),
+            player.teleportTo(stardewLevel,
                     targetPos.getX() + 0.5, targetPos.getY(), targetPos.getZ() + 0.5,
                     yaw, 0.0F);
+
+            // 首次进入农场：给予新手工具（成员加入后首次进入也适用）
+            com.stardew.craft.interior.CrossDimensionTeleporter.giveStarterToolsIfNeeded(player);
+
             StardewCraft.LOGGER.info("[FARM_ENTRY] {} entered {}'s farm via {}",
                     player.getName().getString(), farm.getOwnerName(), payload.entryTag);
         });

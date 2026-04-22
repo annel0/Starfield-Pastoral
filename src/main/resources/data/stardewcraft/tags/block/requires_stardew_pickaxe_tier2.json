@@ -17,6 +17,16 @@
     "stardewcraft:ruby_ore",
     "stardewcraft:emerald_ore",
     "stardewcraft:diamond_ore",
-    "stardewcraft:fire_quartz"
+    "stardewcraft:fire_quartz",
+
+    "stardewcraft:desert_bedrock",
+    "stardewcraft:dark_desert_bedrock",
+    "stardewcraft:desert_bedrock_slab",
+    "stardewcraft:desert_bedrock_stairs",
+    "stardewcraft:desert_bedrock_wall",
+    "stardewcraft:dark_desert_bedrock_slab",
+    "stardewcraft:dark_desert_bedrock_stairs",
+    "stardewcraft:dark_desert_bedrock_wall",
+    "stardewcraft:desert_gold_ore"
   ]
 }

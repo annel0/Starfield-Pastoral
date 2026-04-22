@@ -79,6 +79,8 @@ public class MineFloorGenerator {
     private static Block EARTH_SHALE, DARK_EARTH_SHALE;
     private static Block FROST_GNEISS, DARK_FROST_GNEISS;
     private static Block LAVA_BASALT, DARK_LAVA_BASALT;
+    private static Block DESERT_BEDROCK, DARK_DESERT_BEDROCK;
+    private static Block SULFUR_ROCK, WEATHERED_STONE;
     private static Block BANDED_MARBLE, LIMESTONE, MOSSY_SANDSTONE;
     private static Block CRACKED_SLATE, SCORIA, SALT_ROCK;
     private static Block MINE_BARRIER;
@@ -92,6 +94,10 @@ public class MineFloorGenerator {
         DARK_FROST_GNEISS = ModBlocks.DARK_FROST_GNEISS.get();
         LAVA_BASALT      = ModBlocks.LAVA_BASALT.get();
         DARK_LAVA_BASALT  = ModBlocks.DARK_LAVA_BASALT.get();
+        DESERT_BEDROCK   = ModBlocks.DESERT_BEDROCK.get();
+        DARK_DESERT_BEDROCK = ModBlocks.DARK_DESERT_BEDROCK.get();
+        SULFUR_ROCK      = ModBlocks.SULFUR_ROCK.get();
+        WEATHERED_STONE  = ModBlocks.WEATHERED_STONE.get();
         BANDED_MARBLE    = ModBlocks.BANDED_MARBLE.get();
         LIMESTONE        = ModBlocks.LIMESTONE.get();
         MOSSY_SANDSTONE  = ModBlocks.MOSSY_SANDSTONE.get();
@@ -109,6 +115,12 @@ public class MineFloorGenerator {
         ensureBlocksCached();
         RandomSource random = level.getRandom();
 
+        // Floor 121: 骷髅矿入口大厅（schem 放置，无标准地形）
+        if (floorNumber == 121) {
+            generateSkullCavernLobby(level);
+            return;
+        }
+
         // 每天只生成一次：同一天内进入不刷新
         MineFloorDataManager manager = MineFloorDataManager.get(level);
         MineFloorData existingData = manager.getFloorData(floorNumber);
@@ -125,7 +137,7 @@ public class MineFloorGenerator {
         
         // 2. 确定主题
         FloorTheme theme = getThemeForFloor(floorNumber);
-        boolean isDark = random.nextDouble() < 0.15; // 15% 概率为 Dark 层
+        boolean isDark = random.nextDouble() < (theme == FloorTheme.SKULL_CAVERN ? 0.30 : 0.15); // 骷髅矿30% dark，常规15%
         
     // 3. 计算中心坐标
     int centerX = 0;
@@ -198,7 +210,7 @@ public class MineFloorGenerator {
     manager.markGenerated(floorNumber);
 
         // 11. 预放置怪物（所有类型，不依赖原生刷怪）
-        spawnMonsters(level, random, centerX, centerZ, size, floorNumber);
+        spawnMonsters(level, random, centerX, centerZ, size, floorNumber, isDark);
         
         StardewCraft.LOGGER.info("[MINE] Floor {} generation complete, stonesLeft: {}", floorNumber, stonesLeft);
     }
@@ -286,7 +298,10 @@ public class MineFloorGenerator {
                         SAFE_ZONE_Y_START,
                         centerZ + dz * (SAFE_ZONE_RADIUS + 1));
                 if (level.getBlockState(torchPos).isAir()) {
-                    level.setBlock(torchPos, Blocks.TORCH.defaultBlockState(), 3);
+                    BlockState safeTorch = (theme == FloorTheme.SKULL_CAVERN)
+                        ? Blocks.SOUL_TORCH.defaultBlockState()
+                        : Blocks.TORCH.defaultBlockState();
+                    level.setBlock(torchPos, safeTorch, 3);
                 }
             }
         }
@@ -296,6 +311,10 @@ public class MineFloorGenerator {
         if (isDark) {
             groundLight = Blocks.SOUL_LANTERN.defaultBlockState();
             ceilingLight = Blocks.SOUL_LANTERN.defaultBlockState();
+        } else if (theme == FloorTheme.SKULL_CAVERN) {
+            // 骷髅矿：Soul Lantern 地面 + Magma Block 天花板自然光源
+            groundLight = Blocks.SOUL_LANTERN.defaultBlockState();
+            ceilingLight = Blocks.SHROOMLIGHT.defaultBlockState();
         } else {
             switch (theme) {
                 case LAVA:
@@ -314,7 +333,7 @@ public class MineFloorGenerator {
         }
 
         // 最小间距
-        int spacing = isDark ? 14 : 7;
+        int spacing = isDark ? 14 : (theme == FloorTheme.SKULL_CAVERN ? 10 : 7);
         // 用网格+随机偏移保证均匀分布
         for (int gx = centerX - halfSize + 4; gx < centerX + halfSize - 3; gx += spacing) {
             for (int gz = centerZ - halfSize + 4; gz < centerZ + halfSize - 3; gz += spacing) {
@@ -365,23 +384,23 @@ public class MineFloorGenerator {
     }
 
     /**
-     * 预放置怪物 — 按楼层主题生成多种 MC 原版怪物
+     * 预放置怪物 — 按 SDV 原版瀑布概率（cascading probability）生成怪物
      * MineMonsterSpawnHandler 会在 EntityJoinLevel 事件中注入 SDV 属性和 tag
      *
-     * SDV 每层约 8-15 只怪物（40×30 房间）；我们房间 80-120 格，按面积比例：
-     * base = area / 600 → 80×80=10, 100×100=16, 120×120=24
+     * 数量已按面积比例缩减：SDV 40×30 房间约 8-15 只；我们 80-120 格房间按 area/900
      */
     private static void spawnMonsters(ServerLevel level, RandomSource random,
-                                      int centerX, int centerZ, int size, int floorNumber) {
+                                      int centerX, int centerZ, int size, int floorNumber,
+                                      boolean isDark) {
         if (floorNumber <= 0) return; // 大厅不刷怪
         if (floorNumber % 5 == 0) return; // boss 层 / 电梯层不刷普通怪
 
         int area = size * size;
-        int baseCount = Math.max(6, area / 600);
-        int totalCount = baseCount + random.nextInt(baseCount / 2 + 1);
+        int baseCount = Math.max(6, area / (floorNumber > 120 ? 500 : 600)); // 骷髅矿怪物密度更高
+        int maxCount = floorNumber > 120 ? 35 : 30; // 骷髅矿上限 35
+        int totalCount = Math.min(baseCount + random.nextInt(baseCount / 2 + 1), maxCount);
 
-        // 获取该层可用的实体类型列表
-        EntityType<?>[] pool = getMobPool(floorNumber);
+        boolean ghostSpawned = false; // SDV ghostAdded 标记：每层最多 1 只 Ghost
 
         int halfSize = size / 2;
         int spawned = 0;
@@ -395,11 +414,22 @@ public class MineFloorGenerator {
             if (Math.abs(x - centerX) <= SAFE_ZONE_RADIUS + SAFE_ZONE_BUFFER + 2
                     && Math.abs(z - centerZ) <= SAFE_ZONE_RADIUS + SAFE_ZONE_BUFFER + 2) continue;
 
-            // 随机选择一种实体类型
-            EntityType<?> type = pool[random.nextInt(pool.length)];
+            // SDV 瀑布概率选择怪物类型
+            // 骷髅矿：isDark 时必出 Carbon Ghost，飞行怪须远离出生点
+            double distFromCenter = Math.sqrt((x - centerX) * (x - centerX) + (z - centerZ) * (z - centerZ));
+            EntityType<?> type = pickMonsterForFloor(floorNumber, random, isDark, distFromCenter);
+
+            // Ghost 限制：每层最多 1 只（匹配 SDV ghostAdded 标记）
+            if (type == EntityType.HUSK) {
+                if (ghostSpawned) {
+                    type = EntityType.SLIME; // 回退为史莱姆
+                } else {
+                    ghostSpawned = true;
+                }
+            }
 
             // 飞行怪在空气中生成，地面怪在地面生成
-            boolean isFlying = type == EntityType.PHANTOM || type == EntityType.VEX || type == EntityType.BLAZE;
+            boolean isFlying = type == EntityType.PHANTOM || type == EntityType.BLAZE;
 
             if (isFlying) {
                 int y = FLOOR_Y_START + 3 + random.nextInt(Math.max(1, FLOOR_HEIGHT - 6));
@@ -434,42 +464,138 @@ public class MineFloorGenerator {
         }
 
         if (spawned > 0) {
-            StardewCraft.LOGGER.info("[MINE] Spawned {} monsters on floor {} (target={}, attempts={})", 
-                    spawned, floorNumber, totalCount, maxAttempts);
+            StardewCraft.LOGGER.info("[MINE] Spawned {} monsters on floor {} (target={})", 
+                    spawned, floorNumber, totalCount);
         } else {
-            StardewCraft.LOGGER.warn("[MINE] FAILED to spawn any monsters on floor {} (target={}, attempts={}, pool={})", 
-                    floorNumber, totalCount, maxAttempts, pool.length);
+            StardewCraft.LOGGER.warn("[MINE] FAILED to spawn any monsters on floor {} (target={}, attempts={})", 
+                    floorNumber, totalCount, maxAttempts);
         }
     }
 
     /**
-     * 按楼层返回可用怪物类型池
-     * MineMonsterSpawnHandler 根据 EntityType + floor 分配 SDV 身份
+     * 按 SDV 原版 MineShaft.getMonsterForThisLevel() 的瀑布概率选择怪物。
+     * 每次 random 调用都是独立 roll，与原版行为一致。
+     *
+     * MC 实体映射：
+     * - Slime       → Green Slime / Frost Jelly / Sludge
+     * - Spider      → Bug（SDV 装甲飞虫）
+     * - Silverfish  → Rock Crab / Duggy / Lava Crab
+     * - Endermite   → Grub / Dust Spirit
+     * - Cave Spider → Fly（SDV 苍蝇）
+     * - Phantom     → Bat / Frost Bat / Lava Bat
+     * - Zombie      → Rock Golem / Metal Head
+     * - Husk        → Ghost（缓慢飘浮型，每层限 1 只）
+     * - Skeleton    → Skeleton
+     * - Wither Skeleton → Shadow Brute
+     * - Stray       → Shadow Shaman（远程魔法型）
+     * - Blaze       → Squid Kid
      */
-    private static EntityType<?>[] getMobPool(int floor) {
-        if (floor <= 39) {
-            // Earth: Slime, Phantom(Bat), Silverfish(Duggy/RockCrab), Endermite(Grub), Vex(Fly), Zombie(Golem)
-            if (floor > 30) {
-                return new EntityType<?>[]{ EntityType.SLIME, EntityType.PHANTOM, EntityType.SILVERFISH,
-                        EntityType.ENDERMITE, EntityType.VEX, EntityType.ZOMBIE };
+    private static EntityType<?> pickMonsterForFloor(int floor, RandomSource random,
+                                                      boolean isDark, double distFromSpawn) {
+        // ── 土段 Earth (1-40) — SDV getMineArea() == 0/10 ──
+        if (floor <= 40) {
+            // 25% Bug（原版全土段出现，非清怪层）
+            if (random.nextFloat() < 0.25f) {
+                return EntityType.SPIDER;
             }
-            return new EntityType<?>[]{ EntityType.SLIME, EntityType.PHANTOM, EntityType.SILVERFISH,
-                    EntityType.ENDERMITE, EntityType.VEX };
-        } else if (floor <= 79) {
-            // Frost: Slime(FrostJelly), Phantom(FrostBat), Silverfish(Duggy), Endermite(DustSprite),
-            //        Vex(Ghost), Zombie(Golem), Skeleton(70+)
-            if (floor >= 70) {
-                return new EntityType<?>[]{ EntityType.SLIME, EntityType.PHANTOM, EntityType.SILVERFISH,
-                        EntityType.ENDERMITE, EntityType.VEX, EntityType.ZOMBIE, EntityType.SKELETON };
+            if (floor <= 15) {
+                // 早期：15% Rock Crab → 其余 Green Slime
+                if (random.nextFloat() < 0.15f) return EntityType.SILVERFISH;
+                return EntityType.SLIME;
             }
-            return new EntityType<?>[]{ EntityType.SLIME, EntityType.PHANTOM, EntityType.SILVERFISH,
-                    EntityType.ENDERMITE, EntityType.VEX, EntityType.ZOMBIE };
-        } else {
-            // Lava: Slime(Sludge), Phantom(LavaBat), Silverfish(LavaCrab), Zombie(MetalHead),
-            //        WitherSkeleton(ShadowBrute), Evoker(ShadowShaman), Blaze(SquidKid)
-            return new EntityType<?>[]{ EntityType.SLIME, EntityType.PHANTOM, EntityType.SILVERFISH,
-                    EntityType.ZOMBIE, EntityType.WITHER_SKELETON, EntityType.EVOKER, EntityType.BLAZE };
+            if (floor <= 30) {
+                // 中期：Rock Crab + Fly + Green Slime + Grub
+                if (random.nextFloat() < 0.15f) return EntityType.SILVERFISH;  // Rock Crab
+                if (random.nextFloat() < 0.05f) return EntityType.CAVE_SPIDER; // Fly
+                if (random.nextFloat() < 0.45f) return EntityType.SLIME;       // Green Slime
+                return EntityType.ENDERMITE;                                     // Grub
+            }
+            // 31-40：Rock Golem 主力，少量 Bat
+            if (random.nextFloat() < 0.10f) return EntityType.PHANTOM;
+            return EntityType.ZOMBIE;
         }
+
+        // ── 冰段 Frost (41-79) — SDV getMineArea() == 40 ──
+        if (floor <= 79) {
+            // 70-79：Skeleton 占绝对主力（75%）
+            if (floor >= 70 && random.nextFloat() < 0.75f) {
+                return EntityType.SKELETON;
+            }
+            // 30% Dust Spirit
+            if (random.nextFloat() < 0.30f) return EntityType.ENDERMITE;
+            // 30% Frost Bat
+            if (random.nextFloat() < 0.30f) return EntityType.PHANTOM;
+            // Ghost（>50层，稀有，每层限1只由 spawnMonsters 控制）
+            if (floor > 50 && random.nextFloat() < 0.15f) return EntityType.HUSK;
+            // 剩余：Frost Jelly
+            return EntityType.SLIME;
+        }
+
+        // ── 熔岩段 Lava (80-120) — SDV getMineArea() == 80 ──
+        if (floor <= 120) {
+            // 15% Sludge
+            if (random.nextFloat() < 0.15f) return EntityType.SLIME;
+            // 15% Metal Head
+            if (random.nextFloat() < 0.15f) return EntityType.ZOMBIE;
+            // 25% Shadow Brute
+            if (random.nextFloat() < 0.25f) return EntityType.WITHER_SKELETON;
+            // 25% Shadow Shaman
+            if (random.nextFloat() < 0.25f) return EntityType.STRAY;
+            // 25% Lava Crab
+            if (random.nextFloat() < 0.25f) return EntityType.SILVERFISH;
+            // 20% Squid Kid（≥90层）
+            if (floor >= 90 && random.nextFloat() < 0.20f) return EntityType.BLAZE;
+            // 回退：Lava Bat
+            return EntityType.PHANTOM;
+        }
+
+        // ── 骷髅矿洞 Skull Cavern (121+) — 按 SDV 权重表选取 ──
+        // 映射：Mummy=DROWNED, Serpent/RoyalSerpent=VEX, DinoMonster=HOGLIN, BigSlime=MAGMA_CUBE,
+        //      IridiumBat=PHANTOM, IridiumCrab=SILVERFISH, CarbonGhost=HUSK,
+        //      ShadowBrute=WITHER_SKELETON, ShadowShaman=STRAY, Bug=SPIDER, GreenSlime=SLIME
+        return pickSkullCavernMonster(random, floor, isDark, distFromSpawn);
+    }
+
+    /** 骷髅矿权重表 — 总权重 1000，累积选取。 */
+    private static EntityType<?> pickSkullCavernMonster(RandomSource random, int floor, boolean isDark, double distFromSpawn) {
+        int total = 0;
+        int[] weights = new int[12];
+        EntityType<?>[] types = new EntityType<?>[12];
+        int n = 0;
+
+        // Mummy（Drowned）- SDV 主力
+        types[n] = EntityType.DROWNED; weights[n] = 220; n++;
+        // Serpent（Vex）- 飞行威胁，需离出生点有距离
+        if (distFromSpawn > 6.0) { types[n] = EntityType.VEX; weights[n] = 200; n++; }
+        // Big Slime（MagmaCube）- 骷髅矿回退核心
+        types[n] = EntityType.MAGMA_CUBE; weights[n] = 130; n++;
+        // Green Slime（低权重备选）
+        types[n] = EntityType.SLIME; weights[n] = 90; n++;
+        // Bug（低权重）
+        types[n] = EntityType.SPIDER; weights[n] = 70; n++;
+        // Iridium Bat - 高威胁飞行
+        types[n] = EntityType.PHANTOM; weights[n] = 110; n++;
+        // Iridium Crab（≥146）
+        if (floor >= 146) { types[n] = EntityType.SILVERFISH; weights[n] = 80; n++; }
+        // DinoMonster / Pepper Rex（≥146 低概率）
+        if (floor >= 146 && distFromSpawn > 8.0) { types[n] = EntityType.HOGLIN; weights[n] = 40; n++; }
+        // Carbon Ghost（dark 层优先）
+        if (isDark) { types[n] = EntityType.HUSK; weights[n] = 70; n++; }
+        // Shadow Brute（低概率随机插入，维持紧张感）
+        types[n] = EntityType.WITHER_SKELETON; weights[n] = 30; n++;
+        // Shadow Shaman
+        types[n] = EntityType.STRAY; weights[n] = 20; n++;
+        // 普通骷髅（极少数，配合 Skeleton Mage 映射）
+        types[n] = EntityType.SKELETON; weights[n] = 20; n++;
+
+        for (int i = 0; i < n; i++) total += weights[i];
+        int pick = random.nextInt(total);
+        int acc = 0;
+        for (int i = 0; i < n; i++) {
+            acc += weights[i];
+            if (pick < acc) return types[i];
+        }
+        return EntityType.MAGMA_CUBE;
     }
     
     /**
@@ -555,16 +681,18 @@ public class MineFloorGenerator {
         }
         
         // 装饰石 B（环境性，如 mossy_sandstone/salt_rock）— 每 chunk 约 1.5 个斑块
-        int decorBCount = Math.max(3, (int)(chunksEquivalent * 1.5));
         Block[] decorBBlocks = getDecorBBlocks(theme);
-        for (int i = 0; i < decorBCount; i++) {
-            int bx = centerX - halfSize + 2 + random.nextInt(Math.max(1, size - 4));
-            int bz = centerZ - halfSize + 2 + random.nextInt(Math.max(1, size - 4));
-            int by = FLOOR_Y_START + 1 + random.nextInt(Math.max(1, FLOOR_HEIGHT - 2));
-            if (isNearSafeZone(bx, bz, centerX, centerZ)) continue;
-            Block block = decorBBlocks[random.nextInt(decorBBlocks.length)];
-            generateStoneBlob(level, random, bx, by, bz, 15 + random.nextInt(19), // 15-33 块
-                    block, centerX, centerZ, halfSize);
+        if (decorBBlocks.length > 0) {
+            int decorBCount = Math.max(3, (int)(chunksEquivalent * 1.5));
+            for (int i = 0; i < decorBCount; i++) {
+                int bx = centerX - halfSize + 2 + random.nextInt(Math.max(1, size - 4));
+                int bz = centerZ - halfSize + 2 + random.nextInt(Math.max(1, size - 4));
+                int by = FLOOR_Y_START + 1 + random.nextInt(Math.max(1, FLOOR_HEIGHT - 2));
+                if (isNearSafeZone(bx, bz, centerX, centerZ)) continue;
+                Block block = decorBBlocks[random.nextInt(decorBBlocks.length)];
+                generateStoneBlob(level, random, bx, by, bz, 15 + random.nextInt(19), // 15-33 块
+                        block, centerX, centerZ, halfSize);
+            }
         }
         
         // 原版方块点缀（andesite/dirt/ice 等）— 每 chunk 约 1 个斑块，尺寸较小
@@ -674,6 +802,8 @@ public class MineFloorGenerator {
             case EARTH: return new Block[]{ ModBlocks.LIMESTONE.get(), ModBlocks.CRACKED_SLATE.get() };
             case FROST: return new Block[]{ ModBlocks.BANDED_MARBLE.get(), ModBlocks.CRACKED_SLATE.get() };
             case LAVA:  return new Block[]{ ModBlocks.SCORIA.get(), ModBlocks.CRACKED_SLATE.get() };
+            // 骷髅矿：仅 sulfur_rock —— 黄绿斑驳岩石，沙漠火山地质特征
+            case SKULL_CAVERN: return new Block[]{ ModBlocks.SULFUR_ROCK.get() };
             default:    return new Block[]{ ModBlocks.CRACKED_SLATE.get() };
         }
     }
@@ -684,6 +814,8 @@ public class MineFloorGenerator {
             case EARTH: return new Block[]{ ModBlocks.MOSSY_SANDSTONE.get(), ModBlocks.LIMESTONE.get() };
             case FROST: return new Block[]{ ModBlocks.SALT_ROCK.get(), ModBlocks.BANDED_MARBLE.get() };
             case LAVA:  return new Block[]{ ModBlocks.CRACKED_SLATE.get(), ModBlocks.SCORIA.get() };
+            // 骷髅矿：不用额外装饰石 B，变化靠 sulfur_rock 斑块 + 危险块地形
+            case SKULL_CAVERN: return new Block[0];
             default:    return new Block[]{ ModBlocks.CRACKED_SLATE.get() };
         }
     }
@@ -861,6 +993,18 @@ public class MineFloorGenerator {
             double iridium = (floor >= 100) ? 0.004 : 0.0024;
             return (iridium + 0.0136 + 0.0084 + 0.0084 + 0.0078) * depthFactor * ORE_RATE_MULTIPLIER; // iridium + gold + iron + copper + coal
         }
+        // ── 骷髅矿洞 (121+)：铱矿为核心资源，随深度上升后封顶 ──
+        if (floor > 120) {
+            int skullLevel = floor - 120;
+            double depthFactor = getThemeDepthFactor(floor);
+            // 铱矿：基数 0.03，每层 +0.0008，100 层后封顶 0.11 → 到 depthFactor 乘系最高 0.22
+            double iridium = 0.03 + Math.min(skullLevel, 100) * 0.0008;
+            double gold = 0.012 + Math.min(skullLevel, 100) * 0.0004;
+            double iron = Math.min(0.04, 0.02 + skullLevel * 0.0002);
+            double coal = 0.008;
+            double copper = 0.015;
+            return (iridium + gold + iron + copper + coal) * depthFactor * ORE_RATE_MULTIPLIER;
+        }
         return 0.0;
     }
 
@@ -918,6 +1062,38 @@ public class MineFloorGenerator {
             return "coal";
         }
 
+        // ── 骷髅矿洞 Skull Cavern (121+) — 铱矿密集，100 层后封顶 ──
+        if (floor > 120) {
+            int skullLevel = floor - 120;
+            // 铱矿：核心资源，基数 0.03，每层 +0.0008，100 层后封顶
+            double iridium = 0.03 + Math.min(skullLevel, 100) * 0.0008;
+            // 金矿：随深度小幅增长，同样封顶
+            double gold = 0.012 + Math.min(skullLevel, 100) * 0.0004;
+            // 铁矿：少量填充
+            double iron = Math.min(0.04, 0.02 + skullLevel * 0.0002);
+            // 煤矿：固定基底
+            double coal = 0.008;
+            // 铜矿：保底（剩余概率）
+            double copper = 0.015;
+            
+            iridium *= rareFactor * ORE_RATE_MULTIPLIER;
+            gold *= rareFactor * ORE_RATE_MULTIPLIER;
+            iron *= commonFactor * ORE_RATE_MULTIPLIER;
+            copper *= commonFactor * ORE_RATE_MULTIPLIER;
+            coal *= commonFactor * ORE_RATE_MULTIPLIER;
+            double total = iridium + gold + iron + copper + coal;
+            double roll = random.nextDouble() * total;
+            cumulative += iridium;
+            if (roll < cumulative) return "iridium";
+            cumulative += gold;
+            if (roll < cumulative) return "gold";
+            cumulative += iron;
+            if (roll < cumulative) return "iron";
+            cumulative += copper;
+            if (roll < cumulative) return "copper";
+            return "coal";
+        }
+
         return "coal";
     }
 
@@ -932,6 +1108,11 @@ public class MineFloorGenerator {
         if (floor >= 80 && floor <= 119) {
             return 1.0 + progress * 1.1; // 1.0 -> 2.1
         }
+        if (floor > 120) {
+            // 骷髅矿：每层 +1% 矿石产出，100 层后封顶为 2.0x
+            int skullLevel = floor - 120;
+            return 1.0 + Math.min(skullLevel, 100) * 0.01;
+        }
         return 1.0;
     }
 
@@ -944,6 +1125,10 @@ public class MineFloorGenerator {
         }
         if (floor >= 80 && floor <= 119) {
             return (floor - 80) / 39.0;
+        }
+        if (floor > 120) {
+            // 骷髅矿无限深，progress 以 100 层为满进度，之后 clamp 在 1.0
+            return Math.min(1.0, (floor - 120) / 100.0);
         }
         return 0.0;
     }
@@ -1062,10 +1247,13 @@ public class MineFloorGenerator {
             || block == Blocks.PACKED_ICE
             || block == Blocks.PRISMARINE_BRICKS
             || block == Blocks.MAGMA_BLOCK
-            || block == Blocks.NETHERRACK;
+            || block == Blocks.NETHERRACK
+            || block == Blocks.SANDSTONE
+            || block == Blocks.RED_SANDSTONE;
     }
 
     private static String getPrimaryOreKeyForFloor(int floor) {
+        if (floor > 120) return "iridium";
         if (floor >= 80) return "gold";
         if (floor >= 40) return "iron";
         return "copper";
@@ -1143,14 +1331,16 @@ public class MineFloorGenerator {
         Block block = state.getBlock();
         return block == EARTH_SHALE || block == DARK_EARTH_SHALE
             || block == FROST_GNEISS || block == DARK_FROST_GNEISS
-            || block == LAVA_BASALT || block == DARK_LAVA_BASALT;
+            || block == LAVA_BASALT || block == DARK_LAVA_BASALT
+            || block == DESERT_BEDROCK || block == DARK_DESERT_BEDROCK;
     }
 
     private static boolean isDecorStone(BlockState state) {
         Block block = state.getBlock();
         return block == BANDED_MARBLE || block == LIMESTONE
             || block == MOSSY_SANDSTONE || block == CRACKED_SLATE
-            || block == SCORIA || block == SALT_ROCK;
+            || block == SCORIA || block == SALT_ROCK
+            || block == SULFUR_ROCK || block == WEATHERED_STONE;
     }
 
     private static boolean isStoneForMineral(BlockState state) {
@@ -1162,7 +1352,8 @@ public class MineFloorGenerator {
         Block block = state.getBlock();
         return block == Blocks.ANDESITE || block == Blocks.DIRT
                 || block == Blocks.BLUE_ICE || block == Blocks.PACKED_ICE || block == Blocks.PRISMARINE_BRICKS
-                || block == Blocks.MAGMA_BLOCK || block == Blocks.NETHERRACK;
+                || block == Blocks.MAGMA_BLOCK || block == Blocks.NETHERRACK
+                || block == Blocks.SANDSTONE || block == Blocks.RED_SANDSTONE;
     }
 
     private static List<BlockPos> collectStonePositions(ServerLevel level, int centerX, int centerZ, int size) {
@@ -1230,7 +1421,14 @@ public class MineFloorGenerator {
         }
         
         BlockPos ladderPos = bestPos.below();
-        level.setBlock(ladderPos, ModBlocks.MINE_LADDER.get().defaultBlockState(), 2);
+        // SDV: 骷髅矿（floor > 120）非必杀层 20% 概率生成竖井
+        boolean isShaft = floorNumber > 120
+                && !data.isMonsterArea()
+                && random.nextDouble() < 0.2;
+        net.minecraft.world.level.block.state.BlockState ladderState =
+                ModBlocks.MINE_LADDER.get().defaultBlockState()
+                        .setValue(com.stardew.craft.block.mine.MineLadderBlock.SHAFT, isShaft);
+        level.setBlock(ladderPos, ladderState, 2);
         data.setLadderPos(ladderPos);
         data.setLadderFound(true);
 
@@ -1294,6 +1492,14 @@ public class MineFloorGenerator {
     private static Block pickSurfaceMineralBlock(RandomSource random, int floorNumber) {
         float quartzWeight = 0.6f;
         float roll = random.nextFloat();
+        // 骷髅矿洞 (121+)：A类矿石混合 — Fire Quartz 40%, Earth Crystal 30%, Frozen Tear 30%
+        if (floorNumber > 120) {
+            if (roll < quartzWeight) return ModBlocks.QUARTZ.get();
+            float gemRoll = random.nextFloat();
+            if (gemRoll < 0.4f) return ModBlocks.FIRE_QUARTZ.get();
+            if (gemRoll < 0.7f) return ModBlocks.EARTH_CRYSTAL.get();
+            return ModBlocks.FROZEN_TEAR.get();
+        }
         if (floorNumber >= 80) {
             return roll < quartzWeight ? ModBlocks.QUARTZ.get() : ModBlocks.FIRE_QUARTZ.get();
         }
@@ -1316,6 +1522,11 @@ public class MineFloorGenerator {
 
         List<BlockPos> surfaceStones = collectSurfaceStonePositions(level, centerX, centerZ, size);
         double baseRate = 0.003 * GEM_NODE_RATE_MULTIPLIER;
+        // 骷髅矿：宝石/铱矿节点密度大幅提升（3x + 深度附加）
+        if (floorNumber > 120) {
+            int skullLevel = floorNumber - 120;
+            baseRate *= 3.0 + Math.min(skullLevel * 0.02, 3.0); // skull=1→3.02x, skull=100→5x, skull=150+→6x 封顶
+        }
         int targetCount = (int)Math.round(stonePositions.size() * baseRate);
         if (targetCount <= 0) {
             targetCount = random.nextFloat() < 0.35f ? 1 : 0;
@@ -1360,6 +1571,14 @@ public class MineFloorGenerator {
             candidates.add(ModBlocks.DIAMOND_ORE.get());
         }
 
+        // 骷髅矿洞 B 类矿：大块铱矿节点 + 钻石 — 视觉"一坨接着一坨的铱矿"
+        if (floorNumber > 120) {
+            // 铱矿（成团大块，骷髅矿标志）x6 权重
+            for (int i = 0; i < 6; i++) candidates.add(ModBlocks.DESERT_IRIDIUM_ORE.get());
+            // 钻石 x2
+            for (int i = 0; i < 2; i++) candidates.add(ModBlocks.DIAMOND_ORE.get());
+        }
+
         if (candidates.isEmpty()) {
             return null;
         }
@@ -1401,11 +1620,16 @@ public class MineFloorGenerator {
 
         // ═══════════ Phase 1: MC 原版 CaveWorldCarver 隧道系统 ═══════════
 
+        // 骷髅矿调整：隧道更密、更粗、更多分叉 → 更开阔混乱的洞窟
+        boolean isSkull = theme == FloorTheme.SKULL_CAVERN;
+        float densityMul = isSkull ? 1.5f : 1.0f;
+        float thicknessMul = isSkull ? 1.3f : 1.0f;
+
         // 起源数量：每 16×16 区域 ~1.2 个起源（MC 原版密度）
         int chunksInArea = (size / 16) * (size / 16);
-        int caveOrigins = Math.max(6, (int)(chunksInArea * 1.2));
+        int caveOrigins = Math.max(6, (int)(chunksInArea * 1.2 * densityMul));
         // 上限避免极端卡顿，但允许足够多
-        caveOrigins = Math.min(caveOrigins, 50);
+        caveOrigins = Math.min(caveOrigins, 75);
 
         StardewCraft.LOGGER.debug("[MINE] Generating {} cave origins for {}x{} floor", caveOrigins, size, size);
 
@@ -1434,12 +1658,16 @@ public class MineFloorGenerator {
                               decorBlocks, random, centerX, centerZ, halfSize);
                 tunnelCount += random.nextInt(4);
             }
+            // 骷髅矿：每个起源额外多 1-2 条隧道（模拟 fork×1.5）
+            if (isSkull) {
+                tunnelCount += 1 + random.nextInt(2);
+            }
 
             // 从起源延伸隧道
             for (int t = 0; t < tunnelCount; t++) {
                 float yaw = random.nextFloat() * (float)(Math.PI * 2);
                 float pitch = (random.nextFloat() - 0.5F) / 4.0F;
-                float thickness = getCarverThickness(random);
+                float thickness = getCarverThickness(random) * thicknessMul;
                 // MC 原版步数：112 - random(28) = 84-112
                 int maxSteps = 80 + random.nextInt(40); // 80-119 步
                 createVanillaTunnel(level, random, centerX, centerZ, halfSize, decorBlocks,
@@ -1450,13 +1678,16 @@ public class MineFloorGenerator {
 
         // ═══════════ Phase 2: Canyon 峡谷（参照 MC CanyonWorldCarver）═══════════
         // MC 中每 ~50 chunks 生成 1 条峡谷，我们的 36 chunks 空间生成 1 条
-        if (random.nextFloat() < 0.7f) {
+        // 骷髅矿 85% 概率（更多峡谷）
+        float canyonChance = isSkull ? 0.85f : 0.7f;
+        if (random.nextFloat() < canyonChance) {
             createCanyon(level, random, centerX, centerZ, halfSize, decorBlocks);
         }
 
         // ═══════════ Phase 3: 大型洞穴房间（cheese cave 风格）═══════════
         // 用多个重叠大椭球创造大型开阔空间
-        int cheeseCaveCount = 1 + random.nextInt(3); // 1-3 个大型洞穴
+        // 骷髅矿 2-4 个（更宽敞）
+        int cheeseCaveCount = isSkull ? (2 + random.nextInt(3)) : (1 + random.nextInt(3));
         for (int i = 0; i < cheeseCaveCount; i++) {
             createLargeCavern(level, random, centerX, centerZ, halfSize, decorBlocks);
         }
@@ -2071,6 +2302,9 @@ public class MineFloorGenerator {
             case LAVA:
                 generateLavaFeatures(level, random, centerX, centerZ, size, isDark);
                 break;
+            case SKULL_CAVERN:
+                generateSkullCavernFeatures(level, random, centerX, centerZ, size, isDark, floorNumber);
+                break;
             default:
                 break;
         }
@@ -2420,6 +2654,595 @@ public class MineFloorGenerator {
         }
     }
 
+    // ──────── P1-4: 骷髅矿洞环境特色（121+层）────────
+
+    /**
+     * 骷髅矿洞专属地形特色 — 远古沙漠地下遗迹 + 极端自然环境
+     *
+     * 特色 1: 熔岩裂隙网络（地面裂缝，内部流淌熔岩）
+     * 特色 2: 沙岩柱林（地面到天花板的粗大石柱）
+     * 特色 3: 骨骸化石层（墙壁中嵌入巨大骨骼化石）
+     */
+    @SuppressWarnings("null")
+    private static void generateSkullCavernFeatures(ServerLevel level, RandomSource random,
+                                                     int centerX, int centerZ, int size,
+                                                     boolean isDark, int floorNumber) {
+        int halfSize = size / 2;
+
+        // ── 1. 熔岩裂隙网络（每层 1-3 条）──
+        int fissureCount = 1 + random.nextInt(3);
+        for (int f = 0; f < fissureCount; f++) {
+            int startX = centerX + random.nextInt(size - 30) - (size - 30) / 2;
+            int startZ = centerZ + random.nextInt(size - 30) - (size - 30) / 2;
+            if (Math.abs(startX - centerX) < 15 && Math.abs(startZ - centerZ) < 15) continue;
+
+            int steps = 15 + random.nextInt(16); // 15-30 步
+            double angle = random.nextDouble() * Math.PI * 2;
+            double cx = startX, cz = startZ;
+
+            for (int s = 0; s < steps; s++) {
+                int x = (int) cx;
+                int z = (int) cz;
+                if (Math.abs(x - centerX) >= halfSize - 3 || Math.abs(z - centerZ) >= halfSize - 3) break;
+                if (isNearSafeZone(x, z, centerX, centerZ)) { cx += Math.cos(angle); cz += Math.sin(angle); continue; }
+
+                int groundY = findCaveGroundY(level, x, z, centerX, centerZ, halfSize);
+                if (groundY < 0 || groundY - 2 <= FLOOR_Y_START) { cx += Math.cos(angle); cz += Math.sin(angle); continue; }
+
+                // 挖 1-2 格深的沟槽，底部放 MAGMA_BLOCK，上方放 LAVA
+                int depth = 1 + random.nextInt(2);
+                for (int d = 0; d < depth; d++) {
+                    BlockPos digPos = new BlockPos(x, groundY - d, z);
+                    if (level.getBlockState(digPos).getBlock() != ModBlocks.MINE_BARRIER.get()) {
+                        if (d == depth - 1) {
+                            level.setBlock(digPos, Blocks.MAGMA_BLOCK.defaultBlockState(), 2);
+                        } else {
+                            level.setBlock(digPos, Blocks.LAVA.defaultBlockState(), 2);
+                        }
+                    }
+                }
+
+                // 裂隙边缘用 sulfur_rock 装饰
+                int fissureWidth = 1 + (random.nextInt(3) == 0 ? 1 : 0); // 大部分 1 格宽，偶尔 2 格
+                if (fissureWidth > 1) {
+                    int sideX = x + (random.nextBoolean() ? 1 : -1);
+                    BlockPos sidePos = new BlockPos(sideX, groundY, z);
+                    if (level.getBlockState(sidePos).isAir() || isMainStone(level.getBlockState(sidePos))) {
+                        level.setBlock(sidePos, ModBlocks.SULFUR_ROCK.get().defaultBlockState(), 2);
+                    }
+                }
+
+                // 转向 ±45°
+                angle += (random.nextDouble() - 0.5) * Math.PI / 2;
+                cx += Math.cos(angle);
+                cz += Math.sin(angle);
+            }
+        }
+
+        // ── 2. 沙岩柱林（每层 2-5 根）──
+        int pillarCount = 2 + random.nextInt(4);
+        for (int p = 0; p < pillarCount; p++) {
+            int px = centerX + random.nextInt(size - 24) - (size - 24) / 2;
+            int pz = centerZ + random.nextInt(size - 24) - (size - 24) / 2;
+            if (isNearSafeZone(px, pz, centerX, centerZ)) continue;
+
+            int groundY = findCaveGroundY(level, px, pz, centerX, centerZ, halfSize);
+            if (groundY < 0) continue;
+
+            // 找天花板高度
+            int ceilingY = -1;
+            for (int y = groundY + 1; y <= FLOOR_Y_END; y++) {
+                if (!level.getBlockState(new BlockPos(px, y, pz)).isAir()) {
+                    ceilingY = y;
+                    break;
+                }
+            }
+            if (ceilingY < 0 || ceilingY - groundY < 4) continue; // 至少 4 格高
+
+            int pillarRadius = 1 + (random.nextInt(3) == 0 ? 1 : 0); // 大部分半径 1（3x3），偶尔 2（5x5）
+            boolean broken = random.nextFloat() < 0.30f; // 30% 断裂柱
+            int topY = broken ? groundY + (ceilingY - groundY) / 2 : ceilingY;
+
+            for (int dy = 0; dy <= topY - groundY; dy++) {
+                int y = groundY + dy;
+                Block pillarBlock;
+                if (dy <= 2) {
+                    pillarBlock = Blocks.SANDSTONE; // 基座
+                } else {
+                    // 骷髅矿柱身：sulfur_rock（黄绿斑驳，沙漠火山感）
+                    pillarBlock = ModBlocks.SULFUR_ROCK.get();
+                }
+
+                for (int dx = -pillarRadius; dx <= pillarRadius; dx++) {
+                    for (int dz = -pillarRadius; dz <= pillarRadius; dz++) {
+                        if (dx * dx + dz * dz > pillarRadius * pillarRadius + 1) continue;
+                        BlockPos pos = new BlockPos(px + dx, y, pz + dz);
+                        if (pos.getY() >= FLOOR_Y_END) break;
+                        BlockState current = level.getBlockState(pos);
+                        if (current.isAir() || isMainStone(current) || isDecorStone(current)) {
+                            level.setBlock(pos, pillarBlock.defaultBlockState(), 2);
+                        }
+                    }
+                }
+            }
+
+            // 断裂柱顶部散落碎石
+            if (broken) {
+                for (int i = 0; i < 3; i++) {
+                    int sx = px + random.nextInt(3) - 1;
+                    int sz = pz + random.nextInt(3) - 1;
+                    BlockPos scatterPos = new BlockPos(sx, groundY + (topY - groundY) + 1, sz);
+                    if (level.getBlockState(scatterPos).isAir()) {
+                        level.setBlock(scatterPos, Blocks.SANDSTONE.defaultBlockState(), 2);
+                    }
+                }
+            }
+        }
+
+        // ── 3. 骨骸化石层（每层 0-2 组）──
+        int fossilCount = random.nextInt(3); // 0-2
+        for (int f = 0; f < fossilCount; f++) {
+            int fx = centerX + random.nextInt(size - 20) - (size - 20) / 2;
+            int fz = centerZ + random.nextInt(size - 20) - (size - 20) / 2;
+            if (isNearSafeZone(fx, fz, centerX, centerZ)) continue;
+
+            int fy = FLOOR_Y_START + 3 + random.nextInt(Math.max(1, FLOOR_HEIGHT - 8));
+            int boneCount = 3 + random.nextInt(5); // 3-7 块骨头
+
+            // 弧形排列模拟肋骨/脊椎
+            double startAngle = random.nextDouble() * Math.PI * 2;
+            double angleStep = Math.PI / boneCount * 0.8;
+            for (int b = 0; b < boneCount; b++) {
+                double a = startAngle + b * angleStep;
+                int bx = fx + (int)(Math.cos(a) * (2 + b * 0.5));
+                int bz = fz + (int)(Math.sin(a) * (2 + b * 0.5));
+                int by = fy + (b % 2 == 0 ? 0 : 1);
+
+                BlockPos bonePos = new BlockPos(bx, by, bz);
+                BlockState current = level.getBlockState(bonePos);
+                if (isMainStone(current) || isDecorStone(current)) {
+                    // Bone Block 带方向属性
+                    BlockState boneState = Blocks.BONE_BLOCK.defaultBlockState()
+                        .setValue(BlockStateProperties.AXIS, random.nextBoolean() ? Direction.Axis.X : Direction.Axis.Z);
+                    level.setBlock(bonePos, boneState, 2);
+                }
+            }
+
+            // 化石旁放置 SOUL_LANTERN（幽蓝灯光）
+            BlockPos lanternPos = new BlockPos(fx, fy - 1, fz);
+            if (level.getBlockState(lanternPos).isAir()) {
+                BlockPos belowLantern = lanternPos.below();
+                if (!level.getBlockState(belowLantern).isAir()) {
+                    level.setBlock(lanternPos, Blocks.SOUL_LANTERN.defaultBlockState(), 2);
+                }
+            }
+        }
+
+        // ── 4. 悬空岩桥（Suspended Rock Bridge）——大型洞穴内横跨的窄石桥 ──
+        if (random.nextFloat() < 0.60f) { // 60% 概率
+            generateSuspendedBridge(level, random, centerX, centerZ, halfSize);
+        }
+
+        // ── 5. 沙瀑（Sand Fall）——天花板裂缝落沙效果 ──
+        int sandFallCount = random.nextInt(3); // 0-2
+        for (int sf = 0; sf < sandFallCount; sf++) {
+            generateSandFall(level, random, centerX, centerZ, halfSize);
+        }
+
+        // ── 6. 毒气区域（Toxic Mist Zone）——每层 3-5 个 ──
+        int toxicZoneCount = 3 + random.nextInt(3);
+        for (int tz = 0; tz < toxicZoneCount; tz++) {
+            generateToxicMistZone(level, random, centerX, centerZ, halfSize);
+        }
+
+        // ── 7. 流沙池（Quicksand Pools）——每层 5-8 个小池子 ──
+        int quicksandCount = 5 + random.nextInt(4);
+        for (int q = 0; q < quicksandCount; q++) {
+            generateQuicksandPool(level, random, centerX, centerZ, halfSize);
+        }
+    }
+
+    // ======================== 骷髅矿特殊地形方法 ========================
+
+    /**
+     * 悬空岩桥 — 在大型洞穴空间内横跨一座窄石桥（宽1-2格，长10-20格）。
+     * 桥面使用砂岩台阶/石砖，桥下是深渊/熔岩，两端连接洞壁。
+     * 营造"悬崖栈道"氛围，也是跨越大洞穴的捷径。
+     */
+    @SuppressWarnings("null")
+    private static void generateSuspendedBridge(ServerLevel level, RandomSource random,
+                                                  int centerX, int centerZ, int halfSize) {
+        // 在洞穴空间中寻找两个对向的石壁 → 连一座桥
+        int bridgeY = FLOOR_Y_START + 3 + random.nextInt(2); // 桥面高度
+        boolean eastWest = random.nextBoolean(); // 桥的方向
+
+        // 从洞穴中心偏移一段距离，寻找合适的起点
+        int offset = 5 + random.nextInt(halfSize / 3);
+        int sx, sz, ex, ez;
+        if (eastWest) {
+            sz = ez = centerZ + random.nextInt(halfSize / 2) - halfSize / 4;
+            sx = centerX - offset;
+            ex = centerX + offset;
+        } else {
+            sx = ex = centerX + random.nextInt(halfSize / 2) - halfSize / 4;
+            sz = centerZ - offset;
+            ez = centerZ + offset;
+        }
+
+        // 验证两端是实心石壁，中间大部分是空气
+        if (isNearSafeZone(sx, sz, centerX, centerZ)) return;
+        if (isNearSafeZone(ex, ez, centerX, centerZ)) return;
+        if (Math.abs(sx - centerX) >= halfSize - 3 || Math.abs(sz - centerZ) >= halfSize - 3) return;
+        if (Math.abs(ex - centerX) >= halfSize - 3 || Math.abs(ez - centerZ) >= halfSize - 3) return;
+
+        // 检查起止点是否有实心方块可以"锚定"
+        BlockPos startAnchor = new BlockPos(sx, bridgeY, sz);
+        BlockPos endAnchor = new BlockPos(ex, bridgeY, ez);
+        if (level.getBlockState(startAnchor).isAir() && level.getBlockState(startAnchor.below()).isAir()) return;
+        if (level.getBlockState(endAnchor).isAir() && level.getBlockState(endAnchor.below()).isAir()) return;
+
+        // 统计中间空气占比
+        int airCount = 0;
+        int totalCount = 0;
+        int steps = (int) Math.sqrt((ex - sx) * (ex - sx) + (ez - sz) * (ez - sz));
+        if (steps < 6) return; // 桥太短没意义
+
+        for (int i = 1; i < steps; i++) {
+            double t = (double) i / steps;
+            int mx = (int) (sx + (ex - sx) * t);
+            int mz = (int) (sz + (ez - sz) * t);
+            if (level.getBlockState(new BlockPos(mx, bridgeY, mz)).isAir()) airCount++;
+            totalCount++;
+        }
+        if (totalCount == 0 || (float) airCount / totalCount < 0.5f) return; // 中间不够空旷
+
+        // 铺设桥面——全部用 unstable_rock（踩上 1.5s 后碎裂）
+        Block bridgeBlock = ModBlocks.UNSTABLE_ROCK.get();
+        int bridgeWidth = 1 + random.nextInt(2); // 1-2 格宽
+
+        for (int i = 0; i <= steps; i++) {
+            double t = (double) i / steps;
+            int mx = (int) (sx + (ex - sx) * t);
+            int mz = (int) (sz + (ez - sz) * t);
+
+            for (int w = -(bridgeWidth / 2); w <= bridgeWidth / 2; w++) {
+                int bx = eastWest ? mx : mx + w;
+                int bz = eastWest ? mz + w : mz;
+                BlockPos bridgePos = new BlockPos(bx, bridgeY, bz);
+                BlockState current = level.getBlockState(bridgePos);
+                if (current.getBlock() == ModBlocks.MINE_BARRIER.get()) continue;
+
+                // 清空桥面上方
+                for (int dy = 1; dy <= 3; dy++) {
+                    BlockPos above = bridgePos.above(dy);
+                    BlockState aboveState = level.getBlockState(above);
+                    if (!aboveState.isAir() && aboveState.getBlock() != ModBlocks.MINE_BARRIER.get()) {
+                        level.setBlock(above, Blocks.AIR.defaultBlockState(), 2);
+                    }
+                }
+
+                // 放置不稳定岩桥面
+                level.setBlock(bridgePos, bridgeBlock.defaultBlockState(), 2);
+            }
+        }
+
+        // 桥头两端放置火把/灯笼
+        for (BlockPos anchor : new BlockPos[]{startAnchor, endAnchor}) {
+            BlockPos torchPos = anchor.above();
+            if (level.getBlockState(torchPos).isAir()) {
+                level.setBlock(torchPos, Blocks.SOUL_LANTERN.defaultBlockState(), 2);
+            }
+        }
+
+        StardewCraft.LOGGER.debug("[MINE] Generated suspended bridge from ({},{}) to ({},{})", sx, sz, ex, ez);
+    }
+
+    /**
+     * 沙瀑 — 从天花板裂缝下落的沙柱。
+     * 天花板开一条 1-2 格宽的裂缝，下方堆积 2-4 层沙子/红沙。
+     * 纯装饰性地形，营造"沙漠地下"氛围。
+     */
+    @SuppressWarnings("null")
+    private static void generateSandFall(ServerLevel level, RandomSource random,
+                                          int centerX, int centerZ, int halfSize) {
+        // 随机选择一个位置
+        int fx = centerX + random.nextInt(halfSize) - halfSize / 2;
+        int fz = centerZ + random.nextInt(halfSize) - halfSize / 2;
+        if (isNearSafeZone(fx, fz, centerX, centerZ)) return;
+        if (Math.abs(fx - centerX) >= halfSize - 4 || Math.abs(fz - centerZ) >= halfSize - 4) return;
+
+        // 裂缝方向（东西或南北）
+        boolean nsDir = random.nextBoolean();
+        int length = 3 + random.nextInt(5); // 3-7 格长
+        Block sandBlock = random.nextBoolean() ? Blocks.SAND : Blocks.RED_SAND;
+
+        for (int i = 0; i < length; i++) {
+            int sx = nsDir ? fx : fx + i;
+            int sz = nsDir ? fz + i : fz;
+
+            if (Math.abs(sx - centerX) >= halfSize - 3 || Math.abs(sz - centerZ) >= halfSize - 3) break;
+
+            // 从天花板向下找到空气开始的位置
+            int ceilingY = -1;
+            for (int y = FLOOR_Y_END; y >= FLOOR_Y_START + 2; y--) {
+                BlockPos pos = new BlockPos(sx, y, sz);
+                if (!level.getBlockState(pos).isAir()) {
+                    ceilingY = y;
+                    break;
+                }
+            }
+            if (ceilingY < 0) continue;
+
+            // 天花板打开裂缝（1-2 格）
+            for (int dy = 0; dy < 1 + random.nextInt(2); dy++) {
+                BlockPos crackPos = new BlockPos(sx, ceilingY - dy, sz);
+                BlockState crackState = level.getBlockState(crackPos);
+                if (crackState.getBlock() != ModBlocks.MINE_BARRIER.get()) {
+                    level.setBlock(crackPos, Blocks.AIR.defaultBlockState(), 2);
+                }
+            }
+
+            // 地面堆积沙子（找到地面）
+            for (int y = FLOOR_Y_START + 1; y < FLOOR_Y_END; y++) {
+                BlockPos groundPos = new BlockPos(sx, y, sz);
+                if (level.getBlockState(groundPos).isAir() && !level.getBlockState(groundPos.below()).isAir()) {
+                    // 堆 1-3 格高的沙
+                    int pileHeight = 1 + random.nextInt(3);
+                    for (int ph = 0; ph < pileHeight; ph++) {
+                        BlockPos sandPos = groundPos.above(ph);
+                        if (level.getBlockState(sandPos).isAir()) {
+                            level.setBlock(sandPos, sandBlock.defaultBlockState(), 2);
+                        }
+                    }
+                    // 周围扩散 1 格（自然感）
+                    if (random.nextFloat() < 0.5f) {
+                        for (net.minecraft.core.Direction dir : net.minecraft.core.Direction.Plane.HORIZONTAL) {
+                            BlockPos spread = groundPos.relative(dir);
+                            if (level.getBlockState(spread).isAir() && !level.getBlockState(spread.below()).isAir()
+                                    && random.nextFloat() < 0.4f) {
+                                level.setBlock(spread, sandBlock.defaultBlockState(), 2);
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+
+            // 在天花板与地面之间放置沙砾粒子方块（用 falling_dust 的视觉效果模拟）
+            // 中间放置少量沙砾（空中漂浮的碎屑感）
+            if (random.nextFloat() < 0.3f) {
+                int midY = (ceilingY + FLOOR_Y_START) / 2;
+                BlockPos midPos = new BlockPos(sx, midY, sz);
+                if (level.getBlockState(midPos).isAir()) {
+                    // 用蜘蛛网模拟落沙的"漫天飞尘"视觉
+                    level.setBlock(midPos, Blocks.COBWEB.defaultBlockState(), 2);
+                }
+            }
+        }
+    }
+
+    /**
+     * 毒气区域 — 一小片被有毒蒸气笼罩的区域。
+     * 用大量蜘蛛网 + 绿色混凝土粉末 + 凋零玫瑰模拟毒雾效果。
+     * 踩入区域会被凋零玫瑰施加 Wither 效果（MC 原版机制）。
+     */
+    @SuppressWarnings("null")
+    private static void generateToxicMistZone(ServerLevel level, RandomSource random,
+                                                int centerX, int centerZ, int halfSize) {
+        int zoneR = 4 + random.nextInt(4); // 半径 4-7
+        int zx = centerX + random.nextInt(halfSize / 2) - halfSize / 4;
+        int zz = centerZ + random.nextInt(halfSize / 2) - halfSize / 4;
+        if (isNearSafeZone(zx, zz, centerX, centerZ)) return;
+        if (Math.abs(zx - centerX) + zoneR >= halfSize - 3) return;
+        if (Math.abs(zz - centerZ) + zoneR >= halfSize - 3) return;
+
+        for (int dx = -zoneR; dx <= zoneR; dx++) {
+            for (int dz = -zoneR; dz <= zoneR; dz++) {
+                if (dx * dx + dz * dz > zoneR * zoneR) continue;
+
+                int px = zx + dx;
+                int pz = zz + dz;
+
+                // 安全区内绝不放置毒气孢子
+                if (isNearSafeZone(px, pz, centerX, centerZ)) continue;
+
+                // 找地面
+                for (int y = FLOOR_Y_END - 1; y >= FLOOR_Y_START + 1; y--) {
+                    BlockPos pos = new BlockPos(px, y, pz);
+                    if (level.getBlockState(pos).isAir() && !level.getBlockState(pos.below()).isAir()) {
+                        // 地面替换为 toxic_spore_block（接触/上方释放毒气，进入中毒）
+                        BlockPos groundPos = pos.below();
+                        BlockState groundState = level.getBlockState(groundPos);
+                        if (groundState.getBlock() != ModBlocks.MINE_BARRIER.get()
+                                && random.nextFloat() < 0.75f) {
+                            level.setBlock(groundPos,
+                                    ModBlocks.TOXIC_SPORE_BLOCK.get().defaultBlockState(), 2);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        // 区域中心放一个灵魂灯笼（提示"这里有东西"）
+        if (isNearSafeZone(zx, zz, centerX, centerZ)) return;
+        for (int y = FLOOR_Y_END - 1; y >= FLOOR_Y_START + 1; y--) {
+            BlockPos center = new BlockPos(zx, y, zz);
+            if (level.getBlockState(center).isAir() && !level.getBlockState(center.below()).isAir()) {
+                level.setBlock(center, Blocks.SOUL_LANTERN.defaultBlockState(), 2);
+                break;
+            }
+        }
+
+        StardewCraft.LOGGER.debug("[MINE] Generated toxic mist zone at ({}, {}), radius={}", zx, zz, zoneR);
+    }
+
+    /**
+     * 流沙池 — 地面一小片下沉区域，踩上即下陷+减速。
+     * 3-5 格直径的圆形凹陷，地面方块替换为 QUICKSAND；四周散一些沙子做自然过渡。
+     */
+    @SuppressWarnings("null")
+    private static void generateQuicksandPool(ServerLevel level, RandomSource random,
+                                                 int centerX, int centerZ, int halfSize) {
+        int r = 1 + random.nextInt(3); // 半径 1-3（直径 3-7）
+        int qx = centerX + random.nextInt(halfSize * 2 - 8) - (halfSize - 4);
+        int qz = centerZ + random.nextInt(halfSize * 2 - 8) - (halfSize - 4);
+        if (isNearSafeZone(qx, qz, centerX, centerZ)) return;
+        if (Math.abs(qx - centerX) + r >= halfSize - 3) return;
+        if (Math.abs(qz - centerZ) + r >= halfSize - 3) return;
+
+        BlockState quicksandState = ModBlocks.QUICKSAND.get().defaultBlockState();
+        BlockState sandState = Blocks.SAND.defaultBlockState();
+
+        for (int dx = -r - 1; dx <= r + 1; dx++) {
+            for (int dz = -r - 1; dz <= r + 1; dz++) {
+                int distSq = dx * dx + dz * dz;
+                if (distSq > (r + 1) * (r + 1)) continue;
+                int px = qx + dx;
+                int pz = qz + dz;
+
+                // 找地面
+                for (int y = FLOOR_Y_END - 1; y >= FLOOR_Y_START + 1; y--) {
+                    BlockPos pos = new BlockPos(px, y, pz);
+                    if (level.getBlockState(pos).isAir() && !level.getBlockState(pos.below()).isAir()) {
+                        BlockPos groundPos = pos.below();
+                        BlockState groundState = level.getBlockState(groundPos);
+                        if (groundState.getBlock() == ModBlocks.MINE_BARRIER.get()) break;
+
+                        if (distSq <= r * r) {
+                            // 核心：直接替换地面为流沙
+                            level.setBlock(groundPos, quicksandState, 2);
+                        } else if (random.nextFloat() < 0.5f) {
+                            // 外圈：铺一层沙做过渡
+                            level.setBlock(groundPos, sandState, 2);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 远古武器室 — 封闭石室，中央石基上放置一件随机高级武器。
+     * SDV 中骷髅矿偶有远古宝物房间，这是我们的 MC 版本。
+     * 房间 7×7，石砖墙壁，中央有盔甲架展示武器，四角有灵魂灯笼。
+     */
+    @SuppressWarnings("null")
+    private static void generateAncientWeaponRoom(ServerLevel level, RandomSource random,
+                                                     int centerX, int centerZ, int halfSize, int floorNumber) {
+        int roomW = 7;
+        int roomD = 7;
+        int roomH = 5;
+
+        // 选择位置
+        int rx = centerX + random.nextInt(halfSize / 2) - halfSize / 4;
+        int rz = centerZ + random.nextInt(halfSize / 2) - halfSize / 4;
+        if (isNearSafeZone(rx, rz, centerX, centerZ)) return;
+        if (Math.abs(rx - centerX) + roomW / 2 >= halfSize - 3) return;
+        if (Math.abs(rz - centerZ) + roomD / 2 >= halfSize - 3) return;
+
+        int baseY = FLOOR_Y_START + 2;
+
+        Block wallBlock = Blocks.DEEPSLATE_BRICKS;
+        Block floorBlock = Blocks.DEEPSLATE_TILES;
+        Block pillarBlock = Blocks.CHISELED_DEEPSLATE;
+
+        // 构建房间
+        for (int dx = -roomW / 2; dx <= roomW / 2; dx++) {
+            for (int dz = -roomD / 2; dz <= roomD / 2; dz++) {
+                boolean isWall = Math.abs(dx) == roomW / 2 || Math.abs(dz) == roomD / 2;
+                boolean isCorner = Math.abs(dx) == roomW / 2 && Math.abs(dz) == roomD / 2;
+
+                for (int dy = 0; dy < roomH; dy++) {
+                    BlockPos pos = new BlockPos(rx + dx, baseY + dy, rz + dz);
+                    BlockState current = level.getBlockState(pos);
+                    if (current.getBlock() == ModBlocks.MINE_BARRIER.get()) continue;
+
+                    if (dy == 0) {
+                        // 地板
+                        level.setBlock(pos, floorBlock.defaultBlockState(), 2);
+                    } else if (dy == roomH - 1) {
+                        // 天花板
+                        level.setBlock(pos, wallBlock.defaultBlockState(), 2);
+                    } else if (isCorner) {
+                        // 四角柱子
+                        level.setBlock(pos, pillarBlock.defaultBlockState(), 2);
+                    } else if (isWall) {
+                        // 墙壁
+                        level.setBlock(pos, wallBlock.defaultBlockState(), 2);
+                    } else {
+                        // 内部空气
+                        level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2);
+                    }
+                }
+            }
+        }
+
+        // 开一个门（随机一面墙的中间）
+        int doorSide = random.nextInt(4);
+        int doorX = rx, doorZ = rz;
+        switch (doorSide) {
+            case 0 -> doorX = rx - roomW / 2; // 西
+            case 1 -> doorX = rx + roomW / 2; // 东
+            case 2 -> doorZ = rz - roomD / 2; // 北
+            case 3 -> doorZ = rz + roomD / 2; // 南
+        }
+        for (int dy = 1; dy <= 2; dy++) {
+            BlockPos doorPos = new BlockPos(doorX, baseY + dy, doorZ);
+            level.setBlock(doorPos, Blocks.AIR.defaultBlockState(), 2);
+        }
+
+        // 中央石基（2格高的深板岩雕刻块 + 盔甲架）
+        BlockPos pedestalBase = new BlockPos(rx, baseY + 1, rz);
+        level.setBlock(pedestalBase, pillarBlock.defaultBlockState(), 2);
+
+        // 在石基上放置盔甲架，手持随机武器
+        BlockPos armorStandPos = new BlockPos(rx, baseY + 2, rz);
+        level.setBlock(armorStandPos, Blocks.AIR.defaultBlockState(), 2);
+
+        net.minecraft.world.entity.decoration.ArmorStand armorStand =
+                new net.minecraft.world.entity.decoration.ArmorStand(level, rx + 0.5, baseY + 2, rz + 0.5);
+        armorStand.setNoGravity(true);
+        armorStand.setInvulnerable(true);
+        armorStand.setShowArms(true);
+        armorStand.setSilent(true);
+
+        // 随机选择展示武器
+        net.minecraft.world.item.ItemStack weapon = pickAncientWeapon(random, floorNumber);
+        armorStand.setItemSlot(net.minecraft.world.entity.EquipmentSlot.MAINHAND, weapon);
+
+        level.addFreshEntity(armorStand);
+
+        // 四角灵魂灯笼
+        int[][] corners = {{-roomW/2 + 1, -roomD/2 + 1}, {roomW/2 - 1, -roomD/2 + 1},
+                           {-roomW/2 + 1, roomD/2 - 1}, {roomW/2 - 1, roomD/2 - 1}};
+        for (int[] c : corners) {
+            BlockPos lanternPos = new BlockPos(rx + c[0], baseY + 1, rz + c[1]);
+            if (level.getBlockState(lanternPos).isAir()) {
+                level.setBlock(lanternPos, Blocks.SOUL_LANTERN.defaultBlockState(), 2);
+            }
+        }
+
+        StardewCraft.LOGGER.info("[MINE] Generated ancient weapon room at ({}, {}), floor {}", rx, rz, floorNumber);
+    }
+
+    /** 选择远古武器室的展示武器 */
+    private static net.minecraft.world.item.ItemStack pickAncientWeapon(RandomSource random, int floorNumber) {
+        // 深层有更好的武器
+        if (floorNumber >= 160 && random.nextFloat() < 0.3f) {
+            return new net.minecraft.world.item.ItemStack(com.stardew.craft.item.ModItems.LAVA_KATANA.get());
+        }
+        float roll = random.nextFloat();
+        if (roll < 0.4f) {
+            return new net.minecraft.world.item.ItemStack(com.stardew.craft.item.ModItems.OBSIDIAN_EDGE.get());
+        } else if (roll < 0.7f) {
+            return new net.minecraft.world.item.ItemStack(com.stardew.craft.item.ModItems.BONE_SWORD.get());
+        } else {
+            return new net.minecraft.world.item.ItemStack(com.stardew.craft.item.ModItems.OBSIDIAN_EDGE.get());
+        }
+    }
+
     // ======================== 可钓鱼地下水池 ========================
 
     /**
@@ -2700,6 +3523,24 @@ public class MineFloorGenerator {
         int halfSize = size / 2;
         float roll = random.nextFloat();
 
+        if (theme == FloorTheme.SKULL_CAVERN) {
+            // 骷髅矿专属特殊房间
+            if (roll < 0.12f) {
+                // 铱矿密集洞（12%）
+                generateIridiumTreasureRoom(level, random, centerX, centerZ, halfSize, floorNumber);
+            } else if (roll < 0.20f) {
+                // 岩浆湖洞穴（8%）
+                generateLavaChamber(level, random, centerX, centerZ, halfSize, floorNumber);
+            } else if (roll < 0.23f && floorNumber >= 146) {
+                // Dino 巢穴（3%，≥146层）
+                generateDinoNest(level, random, centerX, centerZ, halfSize);
+            } else if (roll < 0.28f) {
+                // 远古武器室（5%）——封闭石室，中央武器展示架
+                generateAncientWeaponRoom(level, random, centerX, centerZ, halfSize, floorNumber);
+            }
+            return;
+        }
+
         if (roll < 0.10f) {
             // 矿石密集区（10%） — 全段
             generateRichVeinChamber(level, random, centerX, centerZ, halfSize, theme, floorNumber);
@@ -2932,6 +3773,174 @@ public class MineFloorGenerator {
         StardewCraft.LOGGER.debug("[MINE] Generated bone chamber at ({}, {})", rx, rz);
     }
 
+    // ──────── 骷髅矿专属特殊房间 ────────
+
+    /** 铱矿密集洞：小型洞穴，墙壁 40-60% 铱矿石 */
+    @SuppressWarnings("null")
+    private static void generateIridiumTreasureRoom(ServerLevel level, RandomSource random,
+                                                      int centerX, int centerZ, int halfSize, int floorNumber) {
+        int roomW = 6 + random.nextInt(4); // 6-9
+        int roomD = 6 + random.nextInt(4);
+        int roomH = 4 + random.nextInt(3); // 4-6
+
+        int rx = centerX + random.nextInt(halfSize) - halfSize / 2;
+        int rz = centerZ + random.nextInt(halfSize) - halfSize / 2;
+        if (isNearSafeZone(rx, rz, centerX, centerZ)) return;
+        if (Math.abs(rx - centerX) + roomW / 2 >= halfSize - 3) return;
+        if (Math.abs(rz - centerZ) + roomD / 2 >= halfSize - 3) return;
+
+        int baseY = FLOOR_Y_START + 2;
+        Block iridiumOre = ModBlocks.DESERT_IRIDIUM_ORE.get();
+        Block mainStone = LAVA_BASALT;
+
+        // 挖空房间，墙壁替换为铱矿 + 主石头混合
+        for (int dx = -roomW / 2; dx <= roomW / 2; dx++) {
+            for (int dz = -roomD / 2; dz <= roomD / 2; dz++) {
+                boolean isWall = Math.abs(dx) >= roomW / 2 - 1 || Math.abs(dz) >= roomD / 2 - 1;
+                for (int dy = 0; dy < roomH; dy++) {
+                    BlockPos pos = new BlockPos(rx + dx, baseY + dy, rz + dz);
+                    BlockState current = level.getBlockState(pos);
+                    if (current.getBlock() == ModBlocks.MINE_BARRIER.get()) continue;
+
+                    if (isWall && dy > 0 && dy < roomH - 1) {
+                        // 墙壁 40-60% 铱矿
+                        level.setBlock(pos, random.nextFloat() < 0.50f ? iridiumOre.defaultBlockState() : mainStone.defaultBlockState(), 2);
+                    } else if (!isWall) {
+                        level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2);
+                    }
+                }
+            }
+        }
+
+        // 地面放几颗铱矿碎块
+        for (int i = 0; i < 3 + random.nextInt(3); i++) {
+            int ix = rx - roomW / 2 + 2 + random.nextInt(Math.max(1, roomW - 4));
+            int iz = rz - roomD / 2 + 2 + random.nextInt(Math.max(1, roomD - 4));
+            BlockPos orePos = new BlockPos(ix, baseY, iz);
+            if (level.getBlockState(orePos).isAir() && !level.getBlockState(orePos.below()).isAir()) {
+                level.setBlock(orePos, iridiumOre.defaultBlockState(), 2);
+            }
+        }
+
+        // SOUL_LANTERN 照明
+        BlockPos lightPos = new BlockPos(rx, baseY, rz);
+        if (level.getBlockState(lightPos).isAir()) {
+            level.setBlock(lightPos, Blocks.SOUL_LANTERN.defaultBlockState(), 3);
+        }
+
+        StardewCraft.LOGGER.debug("[MINE] Generated iridium treasure room at ({}, {})", rx, rz);
+    }
+
+    /** 岩浆湖洞穴：大型开阔洞穴，中央是巨大熔岩湖，周围有矿石环 */
+    @SuppressWarnings("null")
+    private static void generateLavaChamber(ServerLevel level, RandomSource random,
+                                             int centerX, int centerZ, int halfSize, int floorNumber) {
+        int roomR = 8 + random.nextInt(5); // 半径 8-12
+        int roomH = 6 + random.nextInt(3); // 6-8
+
+        int rx = centerX + random.nextInt(halfSize / 2) - halfSize / 4;
+        int rz = centerZ + random.nextInt(halfSize / 2) - halfSize / 4;
+        if (isNearSafeZone(rx, rz, centerX, centerZ)) return;
+        if (Math.abs(rx - centerX) + roomR >= halfSize - 3) return;
+        if (Math.abs(rz - centerZ) + roomR >= halfSize - 3) return;
+
+        int baseY = FLOOR_Y_START + 2;
+        int lavaR = roomR - 3; // 熔岩湖比房间小 3 格
+
+        // 挖空椭圆房间
+        for (int dx = -roomR; dx <= roomR; dx++) {
+            for (int dz = -roomR; dz <= roomR; dz++) {
+                if (dx * dx + dz * dz > roomR * roomR) continue;
+                for (int dy = 0; dy < roomH; dy++) {
+                    BlockPos pos = new BlockPos(rx + dx, baseY + dy, rz + dz);
+                    BlockState current = level.getBlockState(pos);
+                    if (current.getBlock() != ModBlocks.MINE_BARRIER.get()) {
+                        level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2);
+                    }
+                }
+                // 中央熔岩湖
+                if (dx * dx + dz * dz <= lavaR * lavaR) {
+                    BlockPos lavaPos = new BlockPos(rx + dx, baseY, rz + dz);
+                    level.setBlock(lavaPos, Blocks.LAVA.defaultBlockState(), 2);
+                    // 熔岩底部
+                    BlockPos belowPos = lavaPos.below();
+                    if (level.getBlockState(belowPos).getBlock() != ModBlocks.MINE_BARRIER.get()) {
+                        level.setBlock(belowPos, Blocks.MAGMA_BLOCK.defaultBlockState(), 2);
+                    }
+                } else if (dx * dx + dz * dz > (lavaR + 1) * (lavaR + 1)) {
+                    // 外围矿石环
+                    if (random.nextFloat() < 0.25f) {
+                        BlockPos orePos = new BlockPos(rx + dx, baseY + 1 + random.nextInt(2), rz + dz);
+                        if (level.getBlockState(orePos).isAir()) {
+                            String oreKey = random.nextFloat() < 0.4f ? "iridium" : "gold";
+                            level.setBlock(orePos, getOreBlock(FloorTheme.SKULL_CAVERN, oreKey).defaultBlockState(), 2);
+                        }
+                    }
+                }
+            }
+        }
+
+        StardewCraft.LOGGER.debug("[MINE] Generated lava chamber at ({}, {})", rx, rz);
+    }
+
+    /** Dino 巢穴：菌丝地面 + 骨头装饰 */
+    @SuppressWarnings("null")
+    private static void generateDinoNest(ServerLevel level, RandomSource random,
+                                          int centerX, int centerZ, int halfSize) {
+        int roomW = 8 + random.nextInt(4); // 8-11
+        int roomD = 8 + random.nextInt(4);
+        int roomH = 5 + random.nextInt(3);
+
+        int rx = centerX + random.nextInt(halfSize) - halfSize / 2;
+        int rz = centerZ + random.nextInt(halfSize) - halfSize / 2;
+        if (isNearSafeZone(rx, rz, centerX, centerZ)) return;
+        if (Math.abs(rx - centerX) + roomW / 2 >= halfSize - 3) return;
+        if (Math.abs(rz - centerZ) + roomD / 2 >= halfSize - 3) return;
+
+        int baseY = FLOOR_Y_START + 2;
+
+        // 挖空房间
+        for (int dx = -roomW / 2; dx <= roomW / 2; dx++) {
+            for (int dz = -roomD / 2; dz <= roomD / 2; dz++) {
+                for (int dy = 0; dy < roomH; dy++) {
+                    BlockPos pos = new BlockPos(rx + dx, baseY + dy, rz + dz);
+                    BlockState current = level.getBlockState(pos);
+                    if (!current.isAir() && current.getBlock() != ModBlocks.MINE_BARRIER.get()) {
+                        level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2);
+                    }
+                }
+                // 地面替换为菌丝
+                BlockPos floorPos = new BlockPos(rx + dx, baseY - 1, rz + dz);
+                if (!level.getBlockState(floorPos).isAir()
+                    && level.getBlockState(floorPos).getBlock() != ModBlocks.MINE_BARRIER.get()) {
+                    level.setBlock(floorPos, Blocks.MYCELIUM.defaultBlockState(), 2);
+                }
+            }
+        }
+
+        // 骨头装饰
+        for (int b = 0; b < 4 + random.nextInt(4); b++) {
+            int bx = rx - roomW / 2 + 1 + random.nextInt(Math.max(1, roomW - 2));
+            int bz = rz - roomD / 2 + 1 + random.nextInt(Math.max(1, roomD - 2));
+            BlockPos pos = new BlockPos(bx, baseY, bz);
+            if (level.getBlockState(pos).isAir() && !level.getBlockState(pos.below()).isAir()) {
+                level.setBlock(pos, Blocks.BONE_BLOCK.defaultBlockState(), 2);
+            }
+        }
+
+        // SOUL_LANTERN 照明（2个）
+        for (int l = 0; l < 2; l++) {
+            int lx = rx + (l == 0 ? -roomW / 3 : roomW / 3);
+            int lz = rz + random.nextInt(3) - 1;
+            BlockPos pos = new BlockPos(lx, baseY, lz);
+            if (level.getBlockState(pos).isAir() && !level.getBlockState(pos.below()).isAir()) {
+                level.setBlock(pos, Blocks.SOUL_LANTERN.defaultBlockState(), 3);
+            }
+        }
+
+        StardewCraft.LOGGER.debug("[MINE] Generated dino nest at ({}, {})", rx, rz);
+    }
+
     /** 根据楼层返回该层主要矿石类型 */
     private static String pickPrimaryOreForFloor(int floor) {
         if (floor >= 80) return "gold";
@@ -3144,6 +4153,49 @@ public class MineFloorGenerator {
     private static boolean isInSafeZone(int x, int y, int z, int centerX, int centerZ) {
         return Math.abs(x - centerX) <= SAFE_ZONE_RADIUS + 1 && Math.abs(z - centerZ) <= SAFE_ZONE_RADIUS + 1 && y >= FLOOR_Y_START && y <= SAFE_ZONE_Y_END + 2;
     }
+
+    // ─────────────────────────────────────────────────────────────
+    //  Floor 121 骷髅矿入口大厅（skullkeyentrance.schem）
+    // ─────────────────────────────────────────────────────────────
+    /** skem 大小 13(X) × 6(Y) × 7(Z) */
+    public static final BlockPos SKULL_CAVERN_LOBBY_ORIGIN = new BlockPos(-6, 64, 24211);
+    /** 玩家进入位置 = origin + (3, 1, 3) */
+    public static final BlockPos SKULL_CAVERN_LOBBY_SPAWN =
+            SKULL_CAVERN_LOBBY_ORIGIN.offset(3, 1, 3);
+    private static final String SKULL_CAVERN_LOBBY_SCHEM = "data/stardewcraft/structures/skullkeyentrance.schem";
+    private static final String SKULL_CAVERN_EXIT_MARKER = "sdv_portal_marker:skull_cavern_exit";
+    private static final String SKULL_CAVERN_EXIT_TARGET = "sdv_portal_target:skull_cavern_exit";
+
+    /**
+     * 生成 floor 121 骷髅矿入口大厅：
+     * - 放置 skullkeyentrance.schem
+     * - 在 origin + (1, 1~2, 2~3) 放置 1×2×2 传送触发方块（返回沙漠）
+     */
+    @SuppressWarnings("null")
+    private static void generateSkullCavernLobby(ServerLevel level) {
+        MineFloorDataManager manager = MineFloorDataManager.get(level);
+        if (!manager.needsGeneration(121)) {
+            StardewCraft.LOGGER.info("[SKULL] Lobby (floor 121) already generated today, skipping");
+            return;
+        }
+        manager.clearFloorData(121);
+
+        StardewCraft.LOGGER.info("[SKULL] Generating skull cavern lobby at {}", SKULL_CAVERN_LOBBY_ORIGIN);
+
+        // 1. 放置 schem
+        StructureLoader.loadAndPlaceWithResult(level, SKULL_CAVERN_LOBBY_SCHEM, SKULL_CAVERN_LOBBY_ORIGIN);
+
+        // 2. 放置 1×2×2 portal trigger：X=origin+1, Y=origin+1..+2, Z=origin+2..+3
+        BlockPos portalBase = SKULL_CAVERN_LOBBY_ORIGIN.offset(1, 1, 2);
+        com.stardew.craft.interior.InteriorSubspaceManager.placePortalTriggerArea(
+                level, portalBase, 2 /*height*/, 1 /*xBlocks*/, 2 /*zBlocks*/,
+                SKULL_CAVERN_EXIT_MARKER, SKULL_CAVERN_EXIT_TARGET);
+
+        // 3. 标记生成完成
+        manager.markGenerated(121);
+
+        StardewCraft.LOGGER.info("[SKULL] Skull cavern lobby generated");
+    }
     
     /**
      * 生成中心安全区
@@ -3183,8 +4235,8 @@ public class MineFloorGenerator {
             level.setBlock(exitPos, exitState, 2);
         }
 
-        // 4. 电梯（每 5 层放一个，0层由结构放置）
-        if (floorNumber > 0 && floorNumber % 5 == 0) {
+        // 4. 电梯（每 5 层放一个，0层由结构放置；骷髅矿无电梯，只能靠楼梯下）
+        if (floorNumber > 0 && floorNumber <= 120 && floorNumber % 5 == 0) {
             Block elevator = ModBlocks.ELEVATOR.get();
             BlockPos elevatorPos = new BlockPos(centerX + 1, SAFE_ZONE_Y_START, wallZ); // 封印石旁边一格，地面高度
             @SuppressWarnings("null")
@@ -3197,11 +4249,45 @@ public class MineFloorGenerator {
 
         // 5. 宝箱层：在安全区南侧（玩家面前）放置矿井宝箱
         if (MineChestLootTable.isChestFloor(floorNumber)) {
-            BlockPos chestPos = new BlockPos(centerX, SAFE_ZONE_Y_START, centerZ + 1);
-            @SuppressWarnings("null")
-            net.minecraft.world.level.block.state.BlockState chestState =
-                    com.stardew.craft.block.ModBlocks.MINE_CHEST.get().defaultBlockState()
-                            .setValue(com.stardew.craft.block.mine.MineChestBlock.FACING, Direction.NORTH);
+            placeMineChests(level, centerX, centerZ, floorNumber);
+        }
+    }
+
+    /**
+     * 在宝箱楼层放置一个或多个矿井宝箱。
+     * <p>
+     * - 普通楼层：1 个宝箱，位于 (centerX, Y, centerZ+1)
+     * - 骷髅矿井宝藏室 220：1 个（主位）
+     * - 骷髅矿井宝藏室 320：2 个（主位 +1X / 主位 -1X）
+     * - 骷髅矿井宝藏室 420：3 个（主位 / 主位 -2X / 主位 +2X）
+     * 对齐 SDV MineShaft::addLevelChests 的 chestSpot 偏移。
+     */
+    @SuppressWarnings("null")
+    private static void placeMineChests(ServerLevel level, int centerX, int centerZ, int floorNumber) {
+        Block chestBlock = com.stardew.craft.block.ModBlocks.MINE_CHEST.get();
+        int chestZ = centerZ + 1;
+        int[] xOffsets;
+        if (MineChestLootTable.isSkullCavernTreasureFloor(floorNumber)) {
+            xOffsets = switch (floorNumber) {
+                case 220 -> new int[] { 0 };
+                case 320 -> new int[] { -1, 1 };
+                case 420 -> new int[] { -2, 0, 2 };
+                default -> new int[] { 0 };
+            };
+        } else {
+            xOffsets = new int[] { 0 };
+        }
+        for (int dx : xOffsets) {
+            BlockPos chestPos = new BlockPos(centerX + dx, SAFE_ZONE_Y_START, chestZ);
+            // 清空宝箱位及其上下各一格，避免挨着矿墙无法打开
+            for (int dy = 0; dy <= 2; dy++) {
+                level.setBlock(chestPos.above(dy), Blocks.AIR.defaultBlockState(), 2);
+            }
+            // 宝箱下方铺一块固体方块，防止掉落 / 确保视觉一致
+            level.setBlock(chestPos.below(),
+                    getMainStone(getThemeForFloor(floorNumber), false).defaultBlockState(), 2);
+            BlockState chestState = chestBlock.defaultBlockState()
+                    .setValue(com.stardew.craft.block.mine.MineChestBlock.FACING, Direction.NORTH);
             level.setBlock(chestPos, chestState, 2);
             StardewCraft.LOGGER.info("[MINE] Placed mine chest on floor {} at {}", floorNumber, chestPos);
         }
@@ -3211,14 +4297,16 @@ public class MineFloorGenerator {
      * 根据楼层确定主题
      */
     private static FloorTheme getThemeForFloor(int floor) {
-        if (floor >= 1 && floor <= 39) {
-            return FloorTheme.EARTH;
-        } else if (floor >= 40 && floor <= 79) {
-            return FloorTheme.FROST;
-        } else if (floor >= 80 && floor <= 119) {
-            return FloorTheme.LAVA;
+        if (floor > 120) {
+            return FloorTheme.SKULL_CAVERN;
         } else if (floor == 120) {
             return FloorTheme.SUMMIT;
+        } else if (floor >= 80) {
+            return FloorTheme.LAVA;
+        } else if (floor >= 40) {
+            return FloorTheme.FROST;
+        } else if (floor >= 1) {
+            return FloorTheme.EARTH;
         }
         return FloorTheme.EARTH; // 默认
     }
@@ -3234,6 +4322,8 @@ public class MineFloorGenerator {
                 return isDark ? ModBlocks.DARK_FROST_GNEISS.get() : ModBlocks.FROST_GNEISS.get();
             case LAVA:
                 return isDark ? ModBlocks.DARK_LAVA_BASALT.get() : ModBlocks.LAVA_BASALT.get();
+            case SKULL_CAVERN:
+                return isDark ? ModBlocks.DARK_DESERT_BEDROCK.get() : ModBlocks.DESERT_BEDROCK.get();
             case SUMMIT:
                 return ModBlocks.MINE_BARRIER.get();
             default:
@@ -3278,6 +4368,15 @@ public class MineFloorGenerator {
                     ModBlocks.CRACKED_SLATE.get()
                 };
                 return lavaDecor[random.nextInt(lavaDecor.length)];
+
+            case SKULL_CAVERN:
+                // 骷髅矿洞: sulfur_rock(硫磺结晶) + weathered_stone(风化石) + cracked_slate(通用)
+                Block[] skullDecor = {
+                    ModBlocks.SULFUR_ROCK.get(),
+                    ModBlocks.WEATHERED_STONE.get(),
+                    ModBlocks.CRACKED_SLATE.get()
+                };
+                return skullDecor[random.nextInt(skullDecor.length)];
                 
             default:
                 return ModBlocks.CRACKED_SLATE.get(); // 通用
@@ -3303,6 +4402,11 @@ public class MineFloorGenerator {
                 // 熔岩段: 岩浆块、地狱岩
                 Block[] lavaVanilla = {Blocks.MAGMA_BLOCK, Blocks.NETHERRACK};
                 return lavaVanilla[random.nextInt(lavaVanilla.length)];
+
+            case SKULL_CAVERN:
+                // 骷髅矿洞: 砂岩 + 红砂岩 + 岩浆块（沙漠主题）
+                Block[] skullVanilla = {Blocks.SANDSTONE, Blocks.RED_SANDSTONE, Blocks.MAGMA_BLOCK};
+                return skullVanilla[random.nextInt(skullVanilla.length)];
                 
             default:
                 return Blocks.STONE;
@@ -3327,6 +4431,12 @@ public class MineFloorGenerator {
                 
             case LAVA:
                 blocks.add(ModBlocks.SCORIA.get());           // 火山渣岩 - 熔岩段洞窟
+                break;
+
+            case SKULL_CAVERN:
+                blocks.add(ModBlocks.SCORIA.get());           // 火山渣岩
+                blocks.add(ModBlocks.MOSSY_SANDSTONE.get());  // 苔斑砂岩 - 远古沉积
+                blocks.add(ModBlocks.SALT_ROCK.get());        // 盐霜岩 - 地下荒漠
                 break;
                 
             case SUMMIT:
@@ -3370,6 +4480,16 @@ public class MineFloorGenerator {
                     case "iridium": return ModBlocks.LAVA_IRIDIUM_ORE.get();
                     case "coal": return ModBlocks.LAVA_COAL_ORE.get();
                     default: return ModBlocks.LAVA_COPPER_ORE.get();
+                }
+
+            case SKULL_CAVERN:
+                switch (oreType) {
+                    case "copper": return ModBlocks.DESERT_COPPER_ORE.get();
+                    case "iron": return ModBlocks.DESERT_IRON_ORE.get();
+                    case "gold": return ModBlocks.DESERT_GOLD_ORE.get();
+                    case "iridium": return ModBlocks.DESERT_IRIDIUM_ORE.get();
+                    case "coal": return ModBlocks.DESERT_COAL_ORE.get();
+                    default: return ModBlocks.DESERT_COPPER_ORE.get();
                 }
                 
             default:
@@ -3442,10 +4562,11 @@ public class MineFloorGenerator {
      * 楼层主题枚举
      */
     public enum FloorTheme {
-        EARTH,   // 1-39层：土段
-        FROST,   // 40-79层：冰段
-        LAVA,    // 80-119层：熔岩段
-        SUMMIT   // 120层：顶峰
+        EARTH,          // 1-39层：土段
+        FROST,          // 40-79层：冰段
+        LAVA,           // 80-119层：熔岩段
+        SUMMIT,         // 120层：顶峰
+        SKULL_CAVERN    // 121+层：骷髅矿洞
     }
 
     /**

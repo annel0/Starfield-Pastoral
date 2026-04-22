@@ -25,10 +25,27 @@ public class MuseumDonationSyncEvents {
         }
     }
 
+    @SubscribeEvent
+    public static void onPlayerChangeDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
+        // Museum is in a separate interior dimension; stand data is keyed by dimension so
+        // re-sync whenever the player crosses dimensions, otherwise stands appear empty.
+        if (event.getEntity() instanceof ServerPlayer player) {
+            syncToPlayer(player);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            syncToPlayer(player);
+        }
+    }
+
     private static void syncToPlayer(ServerPlayer player) {
         MuseumDonationData data = MuseumDonationData.get(player.serverLevel());
         PacketDistributor.sendToPlayer(player,
-                new MuseumDonationSyncPacket(List.copyOf(data.getDonatedItems())));
+                new MuseumDonationSyncPacket(List.copyOf(data.getDonatedItems(player.getUUID()))));
+        com.stardew.craft.block.utility.MuseumExhibitStandBlock.syncStands(player.serverLevel(), data, player);
     }
 
     @EventBusSubscriber(modid = StardewCraft.MODID, value = Dist.CLIENT)
@@ -36,6 +53,7 @@ public class MuseumDonationSyncEvents {
         @SubscribeEvent
         public static void onClientDisconnect(PlayerEvent.PlayerLoggedOutEvent event) {
             com.stardew.craft.client.ClientMuseumDonationCache.clear();
+            com.stardew.craft.client.ClientMuseumStandCache.clear();
         }
     }
 }

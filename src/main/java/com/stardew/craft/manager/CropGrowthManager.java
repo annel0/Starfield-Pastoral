@@ -243,6 +243,14 @@ public class CropGrowthManager extends SavedData {
                         cropBlock.growCropOneDay(serverLevel, pos, state, isWatered, growthState);
                         // growthState is mutated in-place
 
+                        // SDV: 成熟当日 1% 概率长成 3×3 巨型作物
+                        BlockState afterGrow = serverLevel.getBlockState(pos);
+                        if (afterGrow.getBlock() instanceof StardewCropBlock matureCheck
+                                && afterGrow.hasProperty(StardewCropBlock.AGE)
+                                && afterGrow.getValue(StardewCropBlock.AGE) == StardewCropBlock.MAX_AGE) {
+                            com.stardew.craft.spawner.GiantCropSpawner.tryRoll(serverLevel, pos, matureCheck);
+                        }
+
                     } else {
                         // 只要发现位置上不是作物了，就清理掉脏数据
                         removeCrop(serverLevel, pos);
@@ -363,12 +371,14 @@ public class CropGrowthManager extends SavedData {
                                 );
 
                                 // SDV parity: 非农场区域的耕地过夜恢复为泥土
-                                // 仅当上方没有作物时才恢复（有作物说明是合法种植区）
+                                // 仅当上方没有作物 / forage 时才恢复（有作物或采集物说明是合法种植区，可保土）
                                 // 温室内部豁免 — 温室是合法种植区域
                                 if (com.stardew.craft.core.FarmAreaResolver.isInStardewButNotFarm(level, realPos)
                                     && !com.stardew.craft.greenhouse.GreenhouseManager.isInGreenhouseInterior(level, realPos)) {
                                     BlockState above = level.getBlockState(realPos.above());
-                                    if (!(above.getBlock() instanceof StardewCropBlock)) {
+                                    if (!isSoilProtectingBlock(above)) {
+                                        // 在还原为黄土前，清理该位置残留的肥料数据，避免下次再耕后无法施肥
+                                        fertilizerManager.removeFertilizer(level, realPos);
                                         level.setBlock(realPos,
                                             com.stardew.craft.block.ModBlocks.YELLOW_DIRT.get().defaultBlockState(), Block.UPDATE_ALL);
                                         continue;
@@ -377,12 +387,14 @@ public class CropGrowthManager extends SavedData {
 
                                 // SDV parity: 农场区域的空耕地每日 10% 概率回退为黄土
                                 // SDV GameLocation.GetDirtDecayChance: Farm/IslandWest → 0.1
-                                // 温室 0%（已在上面豁免），有作物不衰退
+                                // 温室 0%（已在上面豁免），有作物 / forage 不衰退
                                 if (!com.stardew.craft.core.FarmAreaResolver.isInStardewButNotFarm(level, realPos)
                                     && !com.stardew.craft.greenhouse.GreenhouseManager.isInGreenhouseInterior(level, realPos)) {
                                     BlockState above = level.getBlockState(realPos.above());
-                                    if (!(above.getBlock() instanceof StardewCropBlock)
+                                    if (!isSoilProtectingBlock(above)
                                             && level.random.nextFloat() < 0.1f) {
+                                        // 在还原为黄土前，清理该位置残留的肥料数据，避免下次再耕后无法施肥
+                                        fertilizerManager.removeFertilizer(level, realPos);
                                         level.setBlock(realPos,
                                             com.stardew.craft.block.ModBlocks.YELLOW_DIRT.get().defaultBlockState(), Block.UPDATE_ALL);
                                         continue;
@@ -407,6 +419,18 @@ public class CropGrowthManager extends SavedData {
                 }
             }
         }
+    }
+
+    /**
+     * 判断「上方方块」是否能保护下方耕地不在过夜时回退为黄土。
+     * 包括：
+     *  - {@link StardewCropBlock}：所有自定义作物（含 WildSeedCropBlock）；
+     *  - {@link com.stardew.craft.block.nature.ForageBlock}：X 季种成熟后变成的 forage 方块（蒲公英、雪人参等）。
+     */
+    private static boolean isSoilProtectingBlock(BlockState above) {
+        Block block = above.getBlock();
+        return block instanceof StardewCropBlock
+            || block instanceof com.stardew.craft.block.nature.ForageBlock;
     }
 
     @SuppressWarnings("null")

@@ -4,8 +4,6 @@ import com.stardew.craft.block.ModBlocks;
 import com.stardew.craft.manager.CropGrowthManager;
 import com.stardew.craft.time.StardewTimeManager;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -114,6 +112,10 @@ public class WildSeedCropBlock extends StardewCropBlock {
         Block forageBlock = pickRandomForage(level.getRandom());
         if (forageBlock != null) {
             level.setBlock(pos, forageBlock.defaultBlockState(), 3);
+        } else {
+            // 兜底：万一没找到合适的 forage 方块，也不要把成熟的种子作物留在原地
+            // （否则玩家收获时会掉落种子本身这种诡异结果）。直接清空。
+            level.removeBlock(pos, false);
         }
     }
 
@@ -131,7 +133,7 @@ public class WildSeedCropBlock extends StardewCropBlock {
             case 1 -> switch (random.nextInt(3)) {
                 case 0 -> ModBlocks.FORAGE_SPICE_BERRY.get();
                 case 1 -> ModBlocks.FORAGE_SWEET_PEA.get();
-                default -> lookupForageBlock("grape");
+                default -> ModBlocks.FORAGE_FIDDLEHEAD_FERN.get(); // SDV: grape — 暂用蕨菜替代
             };
             case 2 -> switch (random.nextInt(4)) {
                 case 0 -> ModBlocks.FORAGE_COMMON_MUSHROOM.get();
@@ -142,19 +144,11 @@ public class WildSeedCropBlock extends StardewCropBlock {
             case 3 -> switch (random.nextInt(4)) {
                 case 0 -> ModBlocks.FORAGE_WINTER_ROOT.get();
                 case 1 -> ModBlocks.FORAGE_CRYSTAL_FRUIT.get();
-                case 2 -> lookupForageBlock("snow_yam");
+                case 2 -> ModBlocks.FORAGE_HOLLY.get(); // SDV: snow_yam — 暂用冬青替代
                 default -> ModBlocks.FORAGE_CROCUS.get();
             };
             default -> null;
         };
     }
 
-    @SuppressWarnings("null")
-    private static Block lookupForageBlock(String name) {
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath("stardewcraft", "forage_" + name);
-        if (BuiltInRegistries.BLOCK.containsKey(id)) {
-            return BuiltInRegistries.BLOCK.get(id);
-        }
-        return null;
-    }
 }

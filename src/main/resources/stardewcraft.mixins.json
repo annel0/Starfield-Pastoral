@@ -7,9 +7,12 @@
     "FarmBlockMixin",
     "DataComponentsMixin",
     "ContainerMixin",
+    "InventoryMaxStackMixin",
     "ItemStackCodecCountRangeMixin",
     "FishingHookDisableVanillaBiteMixin",
-    "PlayerSweepAttackMixin"
+    "PlayerSweepAttackMixin",
+    "MinecraftServerTimeSyncMixin",
+    "ServerLevelSleepMixin"
   ],
   "client": [
     "GuiGraphicsStackCountScaleMixin",
@@ -17,10 +20,14 @@
     "FishingHookRendererBiteDipMixin",
     "ItemInHandRendererScytheSwingMixin",
     "CameraShakeMixin",
+    "EventCameraMixin",
     "GameRendererFovMixin",
     "LivingEntitySwingAccessor",
     "PlayerRendererHoePoseMixin",
-    "PlayerRendererWateringCanPoseMixin"
+    "PlayerRendererWateringCanPoseMixin",
+    "ClientLevelTickTimeMixin",
+    "ClientSetTimeMixin",
+    "ClientWeatherPacketMixin"
   ],
   "injectors": {
     "defaultRequire": 1

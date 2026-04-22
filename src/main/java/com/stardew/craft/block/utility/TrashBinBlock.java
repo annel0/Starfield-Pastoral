@@ -1,6 +1,5 @@
 package com.stardew.craft.block.utility;
 
-import com.stardew.craft.block.ModBlocks;
 import com.stardew.craft.blockentity.ModBlockEntities;
 import com.stardew.craft.blockentity.TrashBinBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -64,7 +63,7 @@ public class TrashBinBlock extends Block implements EntityBlock {
 
     @Override
     protected List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
-        return List.of(new ItemStack(ModBlocks.TRASH_BIN.get()));
+        return List.of();
     }
 
     @Override

@@ -45,7 +45,10 @@ public enum RingType {
     SOUL_SAPPER_RING(862, 200, true),
     PHOENIX_RING(863, 200, true),
     IMMUNITY_BAND(887, 500, false),
-    GLOWSTONE_RING(888, 200, false);
+    GLOWSTONE_RING(888, 200, false),
+
+    // ── 结婚戒指 (801) — 纯装饰道具，无实际效果 ──
+    WEDDING_RING(801, 50, false);
 
     private final int sdvId;
     private final int sellPrice;

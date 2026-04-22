@@ -59,6 +59,10 @@ public record NpcCapabilityProfile(
     }
 
     public boolean canRunPathing() {
-        return implemented && pathingEnabled && !ANIM_IDLE_ONLY.equalsIgnoreCase(animationProfile);
+        return implemented && pathingEnabled;
+    }
+
+    public boolean hasWalkAnimation() {
+        return !ANIM_IDLE_ONLY.equalsIgnoreCase(animationProfile);
     }
 }

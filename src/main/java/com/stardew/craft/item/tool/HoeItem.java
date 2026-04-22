@@ -452,7 +452,8 @@ public class HoeItem extends Item implements IStardewItem {
      */
     @SuppressWarnings("null")
     private void rollBuriedDrops(ServerLevel level, BlockPos tilledPos, BlockState preTillState) {
-        if (preTillState.is(com.stardew.craft.block.ModBlocks.ARTIFACT_SPOT_DIRT.get())) {
+        if (preTillState.is(com.stardew.craft.block.ModBlocks.ARTIFACT_SPOT_DIRT.get())
+                || preTillState.is(com.stardew.craft.block.ModBlocks.DESERT_ARTIFACT_SPOT.get())) {
             // 远古斑点：完整古物掉落表（SDV ContinueOnDrop 可产出多个物品）
             List<ItemStack> drops = com.stardew.craft.manager.ArtifactDropService.rollAllDrops(level, tilledPos);
             for (ItemStack drop : drops) {

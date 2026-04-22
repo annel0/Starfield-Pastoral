@@ -57,11 +57,13 @@ public class JunimoNoteBlock extends Block {
 
         if (!(player instanceof ServerPlayer serverPlayer)) return InteractionResult.CONSUME;
 
-        // SDV parity: 首次看到 JunimoNote → 设置 seenJunimoNote + 安排巫师邀请信
+        // SDV parity: 首次看到 JunimoNote → 设置 seenJunimoNote + 安排巫师邀请信 + 接受拜访巫师任务
         if (!CCStoryFlags.hasSeenJunimoNote(serverPlayer)) {
             CCStoryFlags.addFlag(serverPlayer, CCStoryFlags.SEEN_JUNIMO_NOTE);
             // 巫师邀请信安排在次日投递
             MailService.addMailForTomorrow(serverPlayer, CCStoryFlags.WIZARD_JUNIMO_NOTE);
+            // 接受 meetTheWizard 任务 (Quest ID 1)
+            com.stardew.craft.quest.QuestManager.of(serverPlayer).acceptQuest("1", serverPlayer);
         }
 
         int areaId = state.getValue(AREA);

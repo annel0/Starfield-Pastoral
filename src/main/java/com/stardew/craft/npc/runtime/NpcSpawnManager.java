@@ -1,7 +1,6 @@
 package com.stardew.craft.npc.runtime;
 
 import com.google.gson.JsonObject;
-import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModMiningDimensions;
 import com.stardew.craft.entity.ModEntities;
@@ -28,8 +27,8 @@ import java.util.UUID;
 public final class NpcSpawnManager {
     private static final int FULL_SWEEP_INTERVAL_TICKS = 200;
     private static final int SPAWN_CHECK_INTERVAL_TICKS = 20;
-    private static final int RESPAWN_CONFIRM_MISSES = 3;
-    private static final int RESPAWN_COOLDOWN_TICKS = 100;
+    private static final int RESPAWN_CONFIRM_MISSES = 10;
+    private static final int RESPAWN_COOLDOWN_TICKS = 400;
     private static final Set<String> FORCE_SPAWN_IDS = java.util.Collections.synchronizedSet(new HashSet<>());
     private static final AABB GLOBAL_NPC_SCAN = new AABB(-3.0E7, -2048.0, -3.0E7, 3.0E7, 4096.0, 3.0E7);
 
@@ -150,7 +149,6 @@ public final class NpcSpawnManager {
 
         String npcId = canonicalNpcId(npc.getNpcId());
         if (npcId == null || npcId.isBlank()) {
-            StardewCraft.LOGGER.debug("Rejecting NPC join: blank id, uuid={}", npc.getUUID());
             return true;
         }
 
@@ -172,9 +170,6 @@ public final class NpcSpawnManager {
         if (existing instanceof StardewNpcEntity existingNpc
                 && !existingNpc.isRemoved() && existingNpc.isAlive()) {
             // Tracked entity is alive → reject the newcomer entirely.
-            StardewCraft.LOGGER.debug(
-                "Rejecting duplicate NPC '{}' uuid={} (tracked uuid={} is alive)",
-                npcId, npc.getUUID(), tracked);
             return true;
         }
 
@@ -184,9 +179,6 @@ public final class NpcSpawnManager {
         // "spawn new → old chunk loads → 2 NPCs" race.
         Long lastSpawn = LAST_SPAWN_GAME_TIME.get(npcId);
         if (lastSpawn != null && (level.getGameTime() - lastSpawn) < RESPAWN_COOLDOWN_TICKS) {
-            StardewCraft.LOGGER.debug(
-                "Rejecting stale NPC '{}' uuid={} (within cooldown)",
-                npcId, npc.getUUID());
             return true;
         }
 
@@ -217,13 +209,15 @@ public final class NpcSpawnManager {
             initialSweepDone = true;
         } else if (tickCounter % FULL_SWEEP_INTERVAL_TICKS == 0) {
             cleanupUnknownAndDuplicated(level, implementedIds);
-            // Proactively evict stale UUID mappings pointing to removed/dead entities.
+            // Proactively evict stale UUID mappings pointing to confirmed-dead entities.
             // Skip mining-dimension NPCs — they live in a different level so
             // level.getEntity() would return null and incorrectly evict them.
+            // IMPORTANT: null means the entity's chunk is unloaded, NOT that it's gone.
+            // Only evict when we have a positive confirmation of death/removal.
             TRACKED_NPC_UUIDS.entrySet().removeIf(e -> {
                 if (MINING_DIM_NPC_IDS.contains(e.getKey())) return false;
                 net.minecraft.world.entity.Entity ent = level.getEntity(e.getValue());
-                return ent == null || ent.isRemoved() || !ent.isAlive();
+                return ent != null && (ent.isRemoved() || !ent.isAlive());
             });
         }
 
@@ -295,6 +289,18 @@ public final class NpcSpawnManager {
 
             boolean forced = FORCE_SPAWN_IDS.remove(npcId);
             if (!forced) {
+                // If a tracked UUID still exists for this NPC but the entity wasn't
+                // found above, the entity is almost certainly serialised in an
+                // unloaded chunk — ensureRouteTargetChunkForced (called above) is
+                // reloading it. Do NOT accumulate MISSes / RESPAWN here, otherwise
+                // we create a duplicate prototype that conflicts with the serialised
+                // copy when the chunk reloads (the classic Sandy "flicker" bug).
+                UUID stillTracked = TRACKED_NPC_UUIDS.get(npcId);
+                if (stillTracked != null) {
+                    TRACKED_MISS_COUNTS.put(npcId, 0);
+                    continue;
+                }
+
                 int misses = TRACKED_MISS_COUNTS.getOrDefault(npcId, 0) + 1;
                 TRACKED_MISS_COUNTS.put(npcId, misses);
                 if (misses < RESPAWN_CONFIRM_MISSES) {
@@ -324,13 +330,6 @@ public final class NpcSpawnManager {
             boolean added = level.addFreshEntity(npc);
             if (!added) {
                 TRACKED_NPC_UUIDS.remove(npcId);
-                StardewCraft.LOGGER.warn(
-                    "Failed to spawn prototype NPC '{}' at ({}, {}, {}) [addFreshEntity=false]",
-                    npcId,
-                    spawnX,
-                    spawnY,
-                    spawnZ
-                );
                 continue;
             }
             TRACKED_NPC_UUIDS.put(npcId, npc.getUUID());
@@ -351,8 +350,6 @@ public final class NpcSpawnManager {
         for (String npcId : MINING_DIM_NPC_IDS) {
             NpcCapabilityProfile profile = NpcDataRegistry.capabilities().get(npcId);
             if (profile == null || !profile.implemented()) {
-                StardewCraft.LOGGER.warn("[NPC_MINE] Skipping '{}': profile={} implemented={}",
-                    npcId, profile != null, profile != null && profile.implemented());
                 continue;
             }
 
@@ -370,8 +367,6 @@ public final class NpcSpawnManager {
             if (existing != null) {
                 TRACKED_NPC_UUIDS.put(npcId, existing.getUUID());
                 TRACKED_MISS_COUNTS.put(npcId, 0);
-                StardewCraft.LOGGER.info("[NPC_MINE] Found existing '{}' entity in mine, UUID={}",
-                    npcId, existing.getUUID());
                 continue;
             }
 
@@ -379,7 +374,6 @@ public final class NpcSpawnManager {
             int misses = TRACKED_MISS_COUNTS.getOrDefault(npcId, 0) + 1;
             TRACKED_MISS_COUNTS.put(npcId, misses);
             if (misses <= RESPAWN_CONFIRM_MISSES) {
-                StardewCraft.LOGGER.debug("[NPC_MINE] '{}' not found, miss #{}/{}", npcId, misses, RESPAWN_CONFIRM_MISSES);
             }
             if (misses < RESPAWN_CONFIRM_MISSES) {
                 continue;
@@ -401,11 +395,7 @@ public final class NpcSpawnManager {
                 TRACKED_NPC_UUIDS.put(npcId, npc.getUUID());
                 TRACKED_MISS_COUNTS.put(npcId, 0);
                 LAST_SPAWN_GAME_TIME.put(npcId, mineLevel.getGameTime());
-                StardewCraft.LOGGER.info("[NPC_MINE] Spawned '{}' at ({}, {}, {}), UUID={}",
-                    npcId, DWARF_SPAWN_X, DWARF_SPAWN_Y, DWARF_SPAWN_Z, npc.getUUID());
             } else {
-                StardewCraft.LOGGER.error("[NPC_MINE] addFreshEntity FAILED for '{}' at ({}, {}, {})",
-                    npcId, DWARF_SPAWN_X, DWARF_SPAWN_Y, DWARF_SPAWN_Z);
             }
         }
     }
@@ -487,8 +477,10 @@ public final class NpcSpawnManager {
                 TRACKED_MISS_COUNTS.put(canonicalId, 0);
                 return true;
             }
-            TRACKED_NPC_UUIDS.remove(canonicalId);
-            TRACKED_MISS_COUNTS.put(canonicalId, TRACKED_MISS_COUNTS.getOrDefault(canonicalId, 0) + 1);
+            // Entity not found — likely in an unloaded chunk. Do NOT evict the
+            // tracked UUID or increment miss count here; let the caller's
+            // miss-count logic handle respawn decisions. Evicting prematurely
+            // causes the classic "spawn new → old chunk loads → duplicate" race.
             return false;
         }
 
@@ -581,6 +573,14 @@ public final class NpcSpawnManager {
         }
 
         var entity = level.getEntity(tracked);
+        // entity == null almost always means "chunk currently unloaded", NOT "entity gone".
+        // Do NOT evict the tracked UUID here — doing so caused duplicate prototype
+        // respawn (e.g. Sandy) when her Oasis chunk unloaded while the player was in
+        // another dimension. Mirror the safe behaviour already present in hasTrackedNpc.
+        if (entity == null) {
+            return null;
+        }
+
         if (!(entity instanceof StardewNpcEntity npc) || npc.isRemoved() || !npc.isAlive()) {
             TRACKED_NPC_UUIDS.remove(canonicalId);
             return null;
@@ -652,22 +652,12 @@ public final class NpcSpawnManager {
         cachedScanGameTime = Long.MIN_VALUE;
         cachedAllNpcs = List.of();
         cachedImplementedIdsVersion = -1;
-        StardewCraft.LOGGER.info("Reset NPC prototype spawn tracking for server '{}'.", server.getWorldData().getLevelName());
     }
 
     private static void discardWithReason(StardewNpcEntity npc, String reason) {
         if (npc == null || npc.isRemoved()) {
             return;
         }
-        StardewCraft.LOGGER.debug(
-            "Discard NPC id='{}' uuid={} reason={} pos=({}, {}, {})",
-            npc.getNpcId(),
-            npc.getUUID(),
-            reason,
-            npc.getX(),
-            npc.getY(),
-            npc.getZ()
-        );
         // discard() directly removes the entity from the world.
         // kill() does NOT work here because StardewNpcEntity.hurt() returns false (invulnerable).
         npc.discard();

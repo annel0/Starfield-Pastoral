@@ -3,6 +3,7 @@ package com.stardew.craft.quest;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
 import javax.annotation.Nullable;
@@ -32,9 +33,21 @@ public class StardewQuest {
     // ─── 核心字段（SDV NetFields） ───
     protected String id = "";
     protected int questType = TYPE_BASIC;
+    /** Legacy literal 文案；为空且本地化 key 为空时才显示。新代码用 {@link #titleKey}。 */
     protected String title = "";
     protected String description = "";
     protected String objectiveText = "";
+    // ─── 本地化字段（优先于 legacy 文本） ───
+    /** 翻译键（空 = 使用 legacy title）。 */
+    protected String titleKey = "";
+    protected String descriptionKey = "";
+    protected String objectiveKey = "";
+    /** 翻译参数。字符串形式；在 getComponent() 里智能包装成 Component：
+     *  以 "item."/"entity."/"stardewcraft." 开头的 arg 会自动 `Component.translatable` 包一层，
+     *  让物品名/NPC 名跟随客户端语言解析；其他 arg 保持字面量（数字等）。 */
+    protected List<String> titleArgs = new ArrayList<>();
+    protected List<String> descriptionArgs = new ArrayList<>();
+    protected List<String> objectiveArgs = new ArrayList<>();
     @Nullable
     protected String rewardDescription;
     protected int moneyReward;
@@ -82,11 +95,79 @@ public class StardewQuest {
 
     // ─── 显示接口 ───
 
+    /** 把字符串 arg 按规则打包成 Component 数组。前缀识别：
+     *  item.* / entity.* / stardewcraft.* → 走 translatable；其它保持 literal。 */
+    protected static Object[] buildArgs(List<String> rawArgs) {
+        Object[] out = new Object[rawArgs.size()];
+        for (int i = 0; i < rawArgs.size(); i++) {
+            String a = rawArgs.get(i);
+            if (a != null && (a.startsWith("item.") || a.startsWith("entity.")
+                    || a.startsWith("stardewcraft."))) {
+                out[i] = Component.translatable(a);
+            } else {
+                out[i] = a;
+            }
+        }
+        return out;
+    }
+
+    /** 返回标题 Component：优先用 titleKey，回退到 legacy title literal。 */
+    public Component getTitleComponent() {
+        if (titleKey != null && !titleKey.isEmpty()) {
+            return Component.translatable(titleKey, buildArgs(titleArgs));
+        }
+        return Component.literal(title == null ? "" : title);
+    }
+
+    public Component getDescriptionComponent() {
+        if (descriptionKey != null && !descriptionKey.isEmpty()) {
+            return Component.translatable(descriptionKey, buildArgs(descriptionArgs));
+        }
+        return Component.literal(description == null ? "" : description);
+    }
+
+    public Component getObjectiveComponent() {
+        if (objectiveKey != null && !objectiveKey.isEmpty()) {
+            return Component.translatable(objectiveKey, buildArgs(objectiveArgs));
+        }
+        return Component.literal(objectiveText == null ? "" : objectiveText);
+    }
+
+    /** 设置本地化标题（翻译键 + 字符串 args）。 */
+    public void setLocalizedTitle(String key, String... args) {
+        this.titleKey = key == null ? "" : key;
+        this.titleArgs.clear();
+        if (args != null) for (String a : args) this.titleArgs.add(a);
+    }
+
+    public void setLocalizedDescription(String key, String... args) {
+        this.descriptionKey = key == null ? "" : key;
+        this.descriptionArgs.clear();
+        if (args != null) for (String a : args) this.descriptionArgs.add(a);
+    }
+
+    public void setLocalizedObjective(String key, String... args) {
+        this.objectiveKey = key == null ? "" : key;
+        this.objectiveArgs.clear();
+        if (args != null) for (String a : args) this.objectiveArgs.add(a);
+    }
+
     public List<String> getObjectiveDescriptions() {
+        // 优先本地化
+        if (objectiveKey != null && !objectiveKey.isEmpty()) {
+            return Collections.singletonList(getObjectiveComponent().getString());
+        }
         if (objectiveText != null && !objectiveText.isEmpty()) {
             return Collections.singletonList(objectiveText);
         }
         return Collections.emptyList();
+    }
+
+    /** 动态（含当前进度）的 objective Component 列表。子类可重写以返回多行本地化内容。 */
+    public List<Component> getObjectiveComponents() {
+        Component single = getObjectiveComponent();
+        if (single.getString().isEmpty()) return Collections.emptyList();
+        return Collections.singletonList(single);
     }
 
     /** Current progress count for objectives with numeric progress, or -1 if not applicable. */
@@ -185,6 +266,25 @@ public class StardewQuest {
             for (String nq : nextQuests) list.add(StringTag.valueOf(nq));
             tag.put("NextQuests", list);
         }
+        // 本地化字段（空字符串不写，节省 NBT 体积；老存档缺失时读取会得到默认空值）
+        if (titleKey != null && !titleKey.isEmpty()) tag.putString("TitleKey", titleKey);
+        if (descriptionKey != null && !descriptionKey.isEmpty()) tag.putString("DescriptionKey", descriptionKey);
+        if (objectiveKey != null && !objectiveKey.isEmpty()) tag.putString("ObjectiveKey", objectiveKey);
+        if (!titleArgs.isEmpty()) {
+            ListTag list = new ListTag();
+            for (String a : titleArgs) list.add(StringTag.valueOf(a == null ? "" : a));
+            tag.put("TitleArgs", list);
+        }
+        if (!descriptionArgs.isEmpty()) {
+            ListTag list = new ListTag();
+            for (String a : descriptionArgs) list.add(StringTag.valueOf(a == null ? "" : a));
+            tag.put("DescriptionArgs", list);
+        }
+        if (!objectiveArgs.isEmpty()) {
+            ListTag list = new ListTag();
+            for (String a : objectiveArgs) list.add(StringTag.valueOf(a == null ? "" : a));
+            tag.put("ObjectiveArgs", list);
+        }
         saveExtra(tag);
         return tag;
     }
@@ -220,6 +320,22 @@ public class StardewQuest {
                 quest.nextQuests.add(list.getString(i));
             }
         }
+        // 本地化字段（老存档没有则保持空字符串/空列表 → getTitleComponent 自动回退到 legacy title）
+        if (tag.contains("TitleKey", 8)) quest.titleKey = tag.getString("TitleKey");
+        if (tag.contains("DescriptionKey", 8)) quest.descriptionKey = tag.getString("DescriptionKey");
+        if (tag.contains("ObjectiveKey", 8)) quest.objectiveKey = tag.getString("ObjectiveKey");
+        if (tag.contains("TitleArgs", 9)) {
+            ListTag list = tag.getList("TitleArgs", 8);
+            for (int i = 0; i < list.size(); i++) quest.titleArgs.add(list.getString(i));
+        }
+        if (tag.contains("DescriptionArgs", 9)) {
+            ListTag list = tag.getList("DescriptionArgs", 8);
+            for (int i = 0; i < list.size(); i++) quest.descriptionArgs.add(list.getString(i));
+        }
+        if (tag.contains("ObjectiveArgs", 9)) {
+            ListTag list = tag.getList("ObjectiveArgs", 8);
+            for (int i = 0; i < list.size(); i++) quest.objectiveArgs.add(list.getString(i));
+        }
         quest.loadExtra(tag);
         return quest;
     }
@@ -251,6 +367,9 @@ public class StardewQuest {
     public void setDescription(String description) { this.description = description; }
     public String getObjectiveText() { return objectiveText; }
     public void setObjectiveText(String objectiveText) { this.objectiveText = objectiveText; }
+    public String getTitleKey() { return titleKey; }
+    public String getDescriptionKey() { return descriptionKey; }
+    public String getObjectiveKey() { return objectiveKey; }
     @Nullable public String getRewardDescription() { return rewardDescription; }
     public void setRewardDescription(@Nullable String rewardDescription) { this.rewardDescription = rewardDescription; }
     public int getMoneyReward() { return moneyReward; }

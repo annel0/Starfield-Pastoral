@@ -11,11 +11,13 @@ import com.stardew.craft.player.PlayerStardewDataAPI;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
@@ -26,6 +28,7 @@ import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -38,27 +41,36 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * - 右键交互传送到下一层
  * - 只能在矿井维度使用
  * - 不可破坏（硬度很高）
- * - 紫色粒子效果
+ * - 紫色粒子效果（普通梯子）/ 红色粒子效果（竖井/shaft）
+ * - SHAFT=true 时：确认对话 → 跳多层 + 伤害（SDV 原版 Skull Cavern 机制）
  */
 public class MineLadderBlock extends Block {
     
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+    /** 是否为竖井（骷髅矿 20% 概率）。竖井需确认对话，跳 3-15 层并造成伤害。 */
+    public static final BooleanProperty SHAFT = BooleanProperty.create("shaft");
     private static final VoxelShape[] SHAPES = ModelVoxelShapeCache.horizontalShapes("stardewcraft:block/ladder", Direction.NORTH);
 
     @SuppressWarnings("null")
     public MineLadderBlock(Properties properties) {
         super(properties);
-        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
+        this.registerDefaultState(this.stateDefinition.any()
+                .setValue(FACING, Direction.NORTH)
+                .setValue(SHAFT, false));
     }
 
     @Override
     protected void createBlockStateDefinition(@SuppressWarnings("null") StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(FACING, SHAFT);
     }
 
     @SuppressWarnings("null")
     @Override
     public BlockState getStateForPlacement(@SuppressWarnings("null") BlockPlaceContext context) {
+        // 仅允许在矿井维度放置
+        if (!ModMiningDimensions.STARDEW_MINING.equals(context.getLevel().dimension())) {
+            return null;
+        }
         return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
@@ -101,76 +113,112 @@ public class MineLadderBlock extends Block {
     }
 
     /**
-     * 右键交互 - 传送到下一层
+     * 右键交互 - 普通梯子直接传送，竖井弹确认对话
      */
     @SuppressWarnings("null")
     @Override
     protected InteractionResult useWithoutItem(@SuppressWarnings("null") BlockState state, @SuppressWarnings("null") Level level, @SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") Player player, @SuppressWarnings("null") BlockHitResult hitResult) {
-        // 只在服务端处理
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
-
-        // 只在矿井维度有效
-        if (level.dimension() != ModMiningDimensions.STARDEW_MINING) {
+        if (!ModMiningDimensions.STARDEW_MINING.equals(level.dimension())) {
             return InteractionResult.PASS;
         }
-
         if (!(player instanceof ServerPlayer serverPlayer)) {
             return InteractionResult.PASS;
         }
 
-        // 获取玩家矿井数据
+        boolean isShaft = state.getValue(SHAFT);
+        if (isShaft) {
+            // 竖井：发送确认对话包到客户端
+            net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(
+                serverPlayer,
+                new com.stardew.craft.network.ShaftConfirmPacket(pos)
+            );
+            return InteractionResult.SUCCESS;
+        }
+
+        // 普通梯子：直接下一层
+        descendOneFloor(serverPlayer, (ServerLevel) level, pos);
+        return InteractionResult.SUCCESS;
+    }
+
+    /**
+     * 兜底：若客户端握有物品，MC 会走 useItemOn 路径。默认返回 PASS_TO_DEFAULT_BLOCK_INTERACTION
+     * 应该已经回落到 useWithoutItem，但有些 Item（如 BlockItem）会吞掉交互。显式转发确保可靠。
+     */
+    @SuppressWarnings("null")
+    @Override
+    protected net.minecraft.world.ItemInteractionResult useItemOn(
+            @SuppressWarnings("null") net.minecraft.world.item.ItemStack stack,
+            @SuppressWarnings("null") BlockState state,
+            @SuppressWarnings("null") Level level,
+            @SuppressWarnings("null") BlockPos pos,
+            @SuppressWarnings("null") Player player,
+            @SuppressWarnings("null") InteractionHand hand,
+            @SuppressWarnings("null") BlockHitResult hit) {
+        InteractionResult r = useWithoutItem(state, level, pos, player, hit);
+        return switch (r) {
+            case SUCCESS -> net.minecraft.world.ItemInteractionResult.sidedSuccess(level.isClientSide());
+            case CONSUME, CONSUME_PARTIAL -> net.minecraft.world.ItemInteractionResult.CONSUME;
+            case FAIL -> net.minecraft.world.ItemInteractionResult.FAIL;
+            default -> net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        };
+    }
+
+    /**
+     * 普通梯子下降 1 层
+     */
+    public static void descendOneFloor(ServerPlayer serverPlayer, ServerLevel level, BlockPos pos) {
         MiningPlayerData playerData = MiningDataManager.getPlayerData(serverPlayer);
         int currentFloor = playerData.getCurrentFloor();
+
+        // 禁止从普通矿井 120 层用梯子直接下到骷髅矿（121+）
+        // 骷髅矿入口必须走沙漠传送门（handleDesertMineEntrance）
+        // 注意：骷髅矿（121+）梯子允许继续下降，因此只拦截 currentFloor == 120
+        if (currentFloor == 120) {
+            serverPlayer.displayClientMessage(
+                Component.translatable("message.stardewcraft.mine_bottom_reached"), true);
+            return;
+        }
+
         int previousMaxFloor = playerData.getMaxFloorReached();
         int nextFloor = currentFloor + 1;
 
-        if (nextFloor > 120) {
-            player.displayClientMessage(net.minecraft.network.chat.Component.literal("你已经到达矿井最深处！"), true);
-            return InteractionResult.FAIL;
-        }
-
         StardewCraft.LOGGER.info("[MINE] Player {} descending from floor {} to floor {}", 
-            player.getName().getString(), currentFloor, nextFloor);
+            serverPlayer.getName().getString(), currentFloor, nextFloor);
 
-        // 生成下一层（如果还没生成或需要刷新）
-        com.stardew.craft.mining.MineFloorGenerator.generateFloor((ServerLevel) level, nextFloor);
+        com.stardew.craft.mining.MineFloorGenerator.generateFloor(level, nextFloor);
 
-        // 更新层数
         playerData.setCurrentFloor(nextFloor);
         MiningDataManager.savePlayerData(serverPlayer, playerData);
         PlayerStardewDataAPI.applyStardewCraftingConditionUnlocks(serverPlayer);
-
-        // 触发矿井层数到达事件（任务系统）
         com.stardew.craft.quest.StardewQuestEvents.fireMineFloorReached(serverPlayer, nextFloor);
 
-        // 播放传送音效 — SDV 原版：stairsdown
         level.playSound(null, pos, com.stardew.craft.sound.ModSounds.STAIRS_DOWN.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
 
-        // 传送到下一层
-        MiningCoordinates.teleportPlayerToFloor(serverPlayer, (ServerLevel) level, nextFloor);
+        MiningCoordinates.teleportPlayerToFloor(serverPlayer, level, nextFloor);
 
-        // 同步层数到客户端
+        // 骷髅矿会话追踪
+        if (nextFloor > 120) {
+            com.stardew.craft.mining.SkullCavernSessionManager.onPlayerEnter(serverPlayer);
+            com.stardew.craft.mining.SkullCavernSessionManager.updateDeepestFloor(nextFloor);
+        }
+
         net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(
-            serverPlayer, 
-            new MiningFloorSyncPacket(nextFloor)
-        );
+            serverPlayer, new MiningFloorSyncPacket(nextFloor));
 
-        // 延迟 3 tick 强制刷新客户端光照（等 chunk 发送完毕后再触发）
         final int floor = nextFloor;
-        ((ServerLevel) level).getServer().tell(new net.minecraft.server.TickTask(
-            ((ServerLevel) level).getServer().getTickCount() + 3,
-            () -> com.stardew.craft.mining.MineFloorGenerator.forceClientLightRefresh((ServerLevel) level, floor)
+        level.getServer().tell(new net.minecraft.server.TickTask(
+            level.getServer().getTickCount() + 3,
+            () -> com.stardew.craft.mining.MineFloorGenerator.forceClientLightRefresh(level, floor)
         ));
 
-        // SDV: elevatorShouldDing — 到达新的电梯层（5的倍数）且是首次到达时，
-        // 延迟 1.5 秒 (30 ticks) 播放 crystal 音效
         if (nextFloor % 5 == 0 && nextFloor > previousMaxFloor) {
-            ((ServerLevel) level).getServer().tell(new net.minecraft.server.TickTask(
-                ((ServerLevel) level).getServer().getTickCount() + 30,
+            level.getServer().tell(new net.minecraft.server.TickTask(
+                level.getServer().getTickCount() + 30,
                 () -> {
-                    if (serverPlayer.isAlive() && serverPlayer.level().dimension() == com.stardew.craft.core.ModMiningDimensions.STARDEW_MINING) {
+                    if (serverPlayer.isAlive() && serverPlayer.level().dimension() == ModMiningDimensions.STARDEW_MINING) {
                         level.playSound(null, serverPlayer.blockPosition(),
                             com.stardew.craft.sound.ModSounds.CRYSTAL.get(),
                             SoundSource.BLOCKS, 1.0F, 1.0F);
@@ -178,8 +226,74 @@ public class MineLadderBlock extends Block {
                 }
             ));
         }
+    }
 
-        return InteractionResult.SUCCESS;
+    /**
+     * 竖井跳跃 — 跳 3-15 层 + 伤害（SDV enterMineShaft 精确还原）
+     * 由 ShaftJumpPacket（C→S）触发。
+     */
+    public static void enterShaft(ServerPlayer serverPlayer, ServerLevel level, BlockPos shaftPos) {
+        MiningPlayerData playerData = MiningDataManager.getPlayerData(serverPlayer);
+        int currentFloor = playerData.getCurrentFloor();
+
+        // SDV 原版：3-8 层，10% 翻倍
+        java.util.Random rng = new java.util.Random(
+                currentFloor * 31L + level.getServer().overworld().getGameTime());
+        int levelsDown = 3 + rng.nextInt(6); // 3~8
+        if (rng.nextDouble() < 0.1) {
+            levelsDown = levelsDown * 2 - 1; // 5~15
+        }
+
+        int targetFloor = currentFloor + levelsDown;
+
+        StardewCraft.LOGGER.info("[MINE] Player {} jumping shaft from floor {} down {} levels to floor {}",
+                serverPlayer.getName().getString(), currentFloor, levelsDown, targetFloor);
+
+        // 生成目标层
+        com.stardew.craft.mining.MineFloorGenerator.generateFloor(level, targetFloor);
+
+        // 更新数据
+        playerData.setCurrentFloor(targetFloor);
+        MiningDataManager.savePlayerData(serverPlayer, playerData);
+        PlayerStardewDataAPI.applyStardewCraftingConditionUnlocks(serverPlayer);
+        com.stardew.craft.quest.StardewQuestEvents.fireMineFloorReached(serverPlayer, targetFloor);
+
+        // SDV 原版音效：fallDown — 暂用原版坠落音
+        level.playSound(null, shaftPos, net.minecraft.sounds.SoundEvents.PLAYER_BIG_FALL,
+                SoundSource.PLAYERS, 1.0F, 0.8F);
+
+        // 传送到目标层
+        MiningCoordinates.teleportPlayerToFloor(serverPlayer, level, targetFloor);
+
+        // 骷髅矿会话追踪
+        com.stardew.craft.mining.SkullCavernSessionManager.onPlayerEnter(serverPlayer);
+        com.stardew.craft.mining.SkullCavernSessionManager.updateDeepestFloor(targetFloor);
+
+        net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(
+                serverPlayer, new MiningFloorSyncPacket(targetFloor));
+
+        // SD 体力伤害：levelsDown × 3
+        int damage = levelsDown * 3;
+        com.stardew.craft.player.PlayerStardewData sdData =
+                com.stardew.craft.player.PlayerDataManager.get()
+                        .getOrCreateData(serverPlayer.getUUID());
+        int newHealth = Math.max(1, sdData.getHealth() - damage);
+        sdData.setHealth(newHealth);
+        com.stardew.craft.player.PlayerDataManager.get().setDirty();
+        com.stardew.craft.player.PlayerDataEventHandler.syncPlayerData(serverPlayer, sdData);
+
+        // 落地消息
+        String msgKey = levelsDown > 7
+                ? "message.stardewcraft.shaft_fell_far"
+                : "message.stardewcraft.shaft_fell";
+        serverPlayer.displayClientMessage(
+                Component.translatable(msgKey, levelsDown), false);
+
+        final int floor = targetFloor;
+        level.getServer().tell(new net.minecraft.server.TickTask(
+            level.getServer().getTickCount() + 3,
+            () -> com.stardew.craft.mining.MineFloorGenerator.forceClientLightRefresh(level, floor)
+        ));
     }
 
     /**

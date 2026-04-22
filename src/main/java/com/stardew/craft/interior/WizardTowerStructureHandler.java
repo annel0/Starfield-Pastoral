@@ -22,6 +22,7 @@ import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 import java.util.Map;
@@ -59,6 +60,16 @@ public final class WizardTowerStructureHandler {
     private static final int CHECK_INTERVAL = 100;
 
     private WizardTowerStructureHandler() {}
+
+    /**
+     * 每次 server 启动清空 in-memory 缓存，确保即使 JVM 未重启（例如单人游戏切换存档），
+     * 法师塔传送方块也会在玩家靠近时重新校验并补放，避免残留 key 遮蔽实际丢失的方块。
+     */
+    @SubscribeEvent
+    public static void onServerStarted(ServerStartedEvent event) {
+        processedTerrainKeys.clear();
+        portalPlacedKeys.clear();
+    }
 
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Post event) {

@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:block/desert_bedrock_wall_inventory",
+  "textures": {
+    "particle": "stardewcraft:block/mine/desert_bedrock"
+  }
+}

@@ -11,6 +11,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import com.stardew.craft.weather.WeatherManager;
 
 import javax.annotation.Nullable;
 
@@ -50,7 +51,7 @@ public class LightningRodBlockEntity extends TimedProductionBlockEntity {
         if (!product.isEmpty() || readyAtAbsMinute >= 0) {
             return;
         }
-        if (!level.isThundering()) {
+        if (!WeatherManager.isThundering(level)) {
             return;
         }
         long currentAbsMinute = getCurrentAbsMinute();

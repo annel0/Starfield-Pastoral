@@ -250,12 +250,12 @@ public class AnimalWorldData extends SavedData {
                                                                 UUID ownerPlayerId,
                                                                 String family,
                                                                 BlockPos managerPos) {
-        String owner = ownerPlayerId.toString();
+        var registry = com.stardew.craft.farm.FarmInstanceRegistry.get();
         for (AnimalBuildingRecord record : buildings.values()) {
             if (!dimensionId.equals(record.dimensionId())) {
                 continue;
             }
-            if (!owner.equals(record.ownerPlayerUuid())) {
+            if (!registry.canOperateBuilding(ownerPlayerId, record.ownerPlayerUuid())) {
                 continue;
             }
             if (!family.equalsIgnoreCase(record.buildingType().family())) {
@@ -296,7 +296,8 @@ public class AnimalWorldData extends SavedData {
         if (existing == null) {
             return false;
         }
-        if (!ownerPlayerId.toString().equals(existing.ownerPlayerUuid())) {
+        if (!com.stardew.craft.farm.FarmInstanceRegistry.get()
+                .canOperateBuilding(ownerPlayerId, existing.ownerPlayerUuid())) {
             return false;
         }
         if (!dimensionId.equals(existing.dimensionId())) {
@@ -586,7 +587,9 @@ public class AnimalWorldData extends SavedData {
         }
 
         if (ownerPlayerUuid != null && !ownerPlayerUuid.isBlank()) {
-            if (!ownerPlayerUuid.equals(source.ownerPlayerUuid()) || !ownerPlayerUuid.equals(target.ownerPlayerUuid())) {
+            var registry = com.stardew.craft.farm.FarmInstanceRegistry.get();
+            if (!registry.canOperateBuilding(java.util.UUID.fromString(ownerPlayerUuid), source.ownerPlayerUuid())
+                    || !registry.canOperateBuilding(java.util.UUID.fromString(ownerPlayerUuid), target.ownerPlayerUuid())) {
                 return false;
             }
         }

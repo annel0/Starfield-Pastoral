@@ -11,7 +11,8 @@ import javax.annotation.Nonnull;
 public enum TotemType implements StringRepresentable {
     FARM("farm", 0xFF55FF55, "农场"),
     MOUNTAIN("mountain", 0xFFFF5555, "山区"),
-    BEACH("beach", 0xFF5555FF, "海滩");
+    BEACH("beach", 0xFF5555FF, "海滩"),
+    DESERT("desert", 0xFFFFD355, "沙漠");
 
     private final String id;
     private final int textColor;
@@ -43,6 +44,7 @@ public enum TotemType implements StringRepresentable {
             case FARM -> 0x32CD32;      // LimeGreen
             case MOUNTAIN -> 0xFF4500;  // OrangeRed
             case BEACH -> 0xADD8E6;     // LightBlue
+            case DESERT -> 0xF4A460;    // SandyBrown
         };
     }
 

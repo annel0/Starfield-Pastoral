@@ -48,6 +48,9 @@ public class MiningFloorHud {
         if (mc.player == null || mc.level == null) {
             return;
         }
+        if (mc.options.hideGui || mc.player.isSpectator()) {
+            return;
+        }
         
         // 只在矿井维度显示
         if (mc.level.dimension() != ModMiningDimensions.STARDEW_MINING) {
@@ -74,8 +77,9 @@ public class MiningFloorHud {
             32, 32,         // 渲染宽高（放大2倍）
             32, 32);        // 纹理总大小（16x16拉伸到32x32）
         
-        // 层数文本
-        String floorText = String.valueOf(currentFloor);
+        // 层数文本（骷髅矿从 121 开始显示为 0，下一层显示 1...）
+        int displayFloor = currentFloor >= 121 ? (currentFloor - 121) : currentFloor;
+        String floorText = String.valueOf(displayFloor);
         
         // 栗色（Maroon） RGB(128, 0, 0) = 0x800000
         int color = 0xFF800000;

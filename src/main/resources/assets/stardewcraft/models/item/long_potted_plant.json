@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:decor/common/long_potted_plant",
+  "textures": {
+    "particle": "stardewcraft:block/decor/common/long_potted_plant"
+  }
+}

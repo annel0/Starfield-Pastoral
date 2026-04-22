@@ -212,7 +212,7 @@ public class CrabPotBlockEntity extends BlockEntity implements UtilityAutomation
 		// - 总是匹配 biome（如果该物品在 FishingDataManager 中有规则）
 		// - 非魔法饵时：额外匹配 season/time/weather（同 selectFish 的规则）
 		String season = getCurrentSeasonKey();
-		boolean isRaining = level.isRaining();
+		boolean isRaining = com.stardew.craft.weather.WeatherManager.isRaining(level);
 		long timeOfDay = level.getDayTime() % 24000;
 
 		@SuppressWarnings("null")

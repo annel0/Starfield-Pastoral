@@ -1,5 +1,6 @@
 package com.stardew.craft.npc.data;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 import java.util.Collections;
@@ -35,6 +36,45 @@ public final class NpcDataRegistry {
 
     private static volatile Snapshot CURRENT = Snapshot.EMPTY;
 
+    private static final Gson GSON = new Gson();
+    /** 缓存 events JSON（SoftReference），内存紧张时可被 GC 回收 */
+    private static volatile java.lang.ref.SoftReference<String> CACHED_EVENTS_JSON_REF = new java.lang.ref.SoftReference<>(null);
+
+    /** 获取缓存的 events JSON（服务端调用）。若 GC 回收则重新序列化 */
+    public static String getCachedEventsJson() {
+        String json = CACHED_EVENTS_JSON_REF.get();
+        if (json != null) return json;
+        json = rebuildEventsJson();
+        CACHED_EVENTS_JSON_REF = new java.lang.ref.SoftReference<>(json);
+        return json;
+    }
+
+    private static String rebuildEventsJson() {
+        Map<String, JsonObject> events = CURRENT.events;
+        if (events.isEmpty()) return "";
+        com.google.gson.JsonObject root = new com.google.gson.JsonObject();
+        for (Map.Entry<String, JsonObject> entry : events.entrySet()) {
+            root.add(entry.getKey(), entry.getValue());
+        }
+        return GSON.toJson(root);
+    }
+
+    /** 从 JSON 字符串重放 events 数据（客户端调用） */
+    public static void applyEventsFromJson(String json) {
+        try {
+            com.google.gson.JsonObject root = GSON.fromJson(json, com.google.gson.JsonObject.class);
+            if (root == null) return;
+            Map<String, JsonObject> events = new LinkedHashMap<>();
+            for (Map.Entry<String, com.google.gson.JsonElement> entry : root.entrySet()) {
+                if (entry.getValue().isJsonObject()) {
+                    events.put(entry.getKey(), entry.getValue().getAsJsonObject());
+                }
+            }
+            replaceEvents(events);
+        } catch (Exception e) {
+        }
+    }
+
     private NpcDataRegistry() {
     }
 
@@ -64,8 +104,11 @@ public final class NpcDataRegistry {
 
     public static void replaceEvents(Map<String, JsonObject> events) {
         Snapshot s = CURRENT;
+        Map<String, JsonObject> frozen = Collections.unmodifiableMap(new LinkedHashMap<>(events));
         CURRENT = new Snapshot(s.capabilities, s.dialogues, s.schedules, s.tastes,
-            Collections.unmodifiableMap(new LinkedHashMap<>(events)), s.locationMappings, s.locationAliases, s.locationAnchors);
+            frozen, s.locationMappings, s.locationAliases, s.locationAnchors);
+        // 清除旧的缓存引用，下次 getCachedEventsJson() 时按需重建
+        CACHED_EVENTS_JSON_REF = new java.lang.ref.SoftReference<>(null);
     }
 
     public static void replaceLocationMappings(Set<String> locations) {

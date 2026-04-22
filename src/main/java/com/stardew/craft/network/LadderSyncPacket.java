@@ -11,9 +11,9 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 /**
  * 楼梯状态同步包 - 服务端 → 客户端
- * 通知客户端某层的楼梯已被发现及其位置。
+ * 通知客户端某层的楼梯已被发现及其位置，以及是否为竖井。
  */
-public record LadderSyncPacket(int floorNumber, boolean ladderFound, BlockPos ladderPos) implements CustomPacketPayload {
+public record LadderSyncPacket(int floorNumber, boolean ladderFound, BlockPos ladderPos, boolean isShaft) implements CustomPacketPayload {
 
     @SuppressWarnings("null")
     public static final CustomPacketPayload.Type<LadderSyncPacket> TYPE =
@@ -28,6 +28,8 @@ public record LadderSyncPacket(int floorNumber, boolean ladderFound, BlockPos la
                     LadderSyncPacket::ladderFound,
                     BlockPos.STREAM_CODEC.cast(),
                     LadderSyncPacket::ladderPos,
+                    ByteBufCodecs.BOOL,
+                    LadderSyncPacket::isShaft,
                     LadderSyncPacket::new
             );
 
@@ -42,7 +44,7 @@ public record LadderSyncPacket(int floorNumber, boolean ladderFound, BlockPos la
     public static void handle(LadderSyncPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             com.stardew.craft.client.mining.ClientMiningState.setLadderState(
-                    packet.floorNumber(), packet.ladderFound(), packet.ladderPos());
+                    packet.floorNumber(), packet.ladderFound(), packet.ladderPos(), packet.isShaft());
         });
     }
 }

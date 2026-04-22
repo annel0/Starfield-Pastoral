@@ -43,44 +43,59 @@ public class StardewTeleportCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
             Commands.literal("stardew")
-                .requires(source -> source.hasPermission(2))
+                // 注意：不要在 "stardew" 根节点加 .requires()，
+                // 否则 FarmJoinCommand 的 accept/reject 也会被阻断。
+                // 各子命令自行限制权限。
                 // 传送相关
-                .then(Commands.literal("tp")
-                    // 兼容旧用法：/stardew tp 依然等价于 main
-                    .executes(StardewTeleportCommand::teleportToStardew)
-                    .then(Commands.literal("main")
-                        .executes(StardewTeleportCommand::teleportToStardew)
-                    )
-                    .then(Commands.literal("mine")
-                        .executes(StardewTeleportCommand::teleportToMine)
-                    )
-                )
-                .then(Commands.literal("return")
-                    .executes(StardewTeleportCommand::returnToOverworld)
-                )
+                .then(CommandTargets.executesWithTarget(
+                    Commands.literal("tp")
+                        .requires(source -> source.hasPermission(2))
+                        // 兼容旧用法：/stardew tp 依然等价于 main
+                        .then(CommandTargets.executesWithTarget(
+                            Commands.literal("main"),
+                            StardewTeleportCommand::teleportToStardew))
+                        .then(CommandTargets.executesWithTarget(
+                            Commands.literal("mine"),
+                            StardewTeleportCommand::teleportToMine))
+                        .then(CommandTargets.executesWithTarget(
+                            Commands.literal("desert_mine"),
+                            StardewTeleportCommand::teleportToDesertMine)),
+                    StardewTeleportCommand::teleportToStardew))
+                .then(CommandTargets.executesWithTarget(
+                    Commands.literal("return")
+                        .requires(source -> source.hasPermission(2)),
+                    StardewTeleportCommand::returnToOverworld))
                 .then(Commands.literal("mine")
+                    .requires(source -> source.hasPermission(2))
                     .then(Commands.literal("set_floor")
-                        .then(Commands.argument("floor", IntegerArgumentType.integer(0))
-                            .executes(StardewTeleportCommand::setMineFloor)
-                        )
+                        .then(CommandTargets.executesWithTarget(
+                            Commands.argument("floor", IntegerArgumentType.integer(0)),
+                            StardewTeleportCommand::setMineFloor))
+                    )
+                    .then(Commands.literal("set_skull_floor")
+                        .then(CommandTargets.executesWithTarget(
+                            Commands.argument("floor", IntegerArgumentType.integer(1)),
+                            StardewTeleportCommand::setDesertMineFloor))
                     )
                 )
                 .then(Commands.literal("interior")
+                    .requires(source -> source.hasPermission(2))
                     .then(Commands.literal("ensure")
                         .executes(StardewTeleportCommand::ensureInteriorLoaded)
                     )
                     .then(Commands.literal("reload")
                         .executes(StardewTeleportCommand::forceReloadInterior)
                     )
-                    .then(Commands.literal("tp_origin")
-                        .executes(StardewTeleportCommand::teleportToInteriorOrigin)
-                    )
-                    .then(Commands.literal("tp_spawn")
-                        .executes(StardewTeleportCommand::teleportToInteriorSpawn)
-                    )
+                    .then(CommandTargets.executesWithTarget(
+                        Commands.literal("tp_origin"),
+                        StardewTeleportCommand::teleportToInteriorOrigin))
+                    .then(CommandTargets.executesWithTarget(
+                        Commands.literal("tp_spawn"),
+                        StardewTeleportCommand::teleportToInteriorSpawn))
                 )
                 // 树预制导出
                 .then(Commands.literal("tree")
+                        .requires(source -> source.hasPermission(2))
                         .then(Commands.literal("preset")
                                 .then(Commands.literal("export")
                             .then(Commands.argument("name", StringArgumentType.string())
@@ -100,6 +115,7 @@ public class StardewTeleportCommand {
                 )
                 // 时间管理
                 .then(Commands.literal("time")
+                    .requires(source -> source.hasPermission(2))
                     .then(Commands.literal("get")
                         .executes(StardewTeleportCommand::getTime))
                     .then(Commands.literal("set")
@@ -126,6 +142,7 @@ public class StardewTeleportCommand {
                         .executes(StardewTeleportCommand::resetTime)))
                 // 天气管理
                 .then(Commands.literal("weather")
+                    .requires(source -> source.hasPermission(2))
                     .then(Commands.literal("get")
                         .executes(StardewTeleportCommand::getWeather))
                     .then(Commands.literal("set")
@@ -233,7 +250,11 @@ public class StardewTeleportCommand {
      */
     private static int teleportToStardew(CommandContext<CommandSourceStack> context) {
         try {
-            ServerPlayer player = context.getSource().getPlayerOrException();
+            ServerPlayer player = CommandTargets.resolve(context);
+            if (player == null) {
+                sendFailureMsg(context, "需要指定目标玩家或由玩家执行");
+                return 0;
+            }
             @SuppressWarnings("null")
             ServerLevel stardewLevel = context.getSource().getServer()
                 .getLevel(ModDimensions.STARDEW_VALLEY);
@@ -312,7 +333,11 @@ public class StardewTeleportCommand {
 
     private static int teleportToInteriorOrigin(CommandContext<CommandSourceStack> context) {
         try {
-            ServerPlayer player = context.getSource().getPlayerOrException();
+            ServerPlayer player = CommandTargets.resolve(context);
+            if (player == null) {
+                sendFailureMsg(context, "需要指定目标玩家或由玩家执行");
+                return 0;
+            }
             @SuppressWarnings("null")
             ServerLevel stardewLevel = context.getSource().getServer().getLevel(ModDimensions.STARDEW_VALLEY);
             if (stardewLevel == null) {
@@ -332,7 +357,11 @@ public class StardewTeleportCommand {
 
     private static int teleportToInteriorSpawn(CommandContext<CommandSourceStack> context) {
         try {
-            ServerPlayer player = context.getSource().getPlayerOrException();
+            ServerPlayer player = CommandTargets.resolve(context);
+            if (player == null) {
+                sendFailureMsg(context, "需要指定目标玩家或由玩家执行");
+                return 0;
+            }
             @SuppressWarnings("null")
             ServerLevel stardewLevel = context.getSource().getServer().getLevel(ModDimensions.STARDEW_VALLEY);
             if (stardewLevel == null) {
@@ -357,7 +386,11 @@ public class StardewTeleportCommand {
      */
     private static int teleportToMine(CommandContext<CommandSourceStack> context) {
         try {
-            ServerPlayer player = context.getSource().getPlayerOrException();
+            ServerPlayer player = CommandTargets.resolve(context);
+            if (player == null) {
+                sendFailureMsg(context, "需要指定目标玩家或由玩家执行");
+                return 0;
+            }
             @SuppressWarnings("null")
             ServerLevel mineLevel = context.getSource().getServer().getLevel(ModMiningDimensions.STARDEW_MINING);
 
@@ -381,18 +414,56 @@ public class StardewTeleportCommand {
     }
 
     /**
+     * 传送到骷髅矿洞入口（floor 121 的安全区）
+     */
+    private static int teleportToDesertMine(CommandContext<CommandSourceStack> context) {
+        try {
+            ServerPlayer player = CommandTargets.resolve(context);
+            if (player == null) {
+                sendFailureMsg(context, "需要指定目标玩家或由玩家执行");
+                return 0;
+            }
+            @SuppressWarnings("null")
+            ServerLevel mineLevel = context.getSource().getServer().getLevel(ModMiningDimensions.STARDEW_MINING);
+            if (mineLevel == null) {
+                sendFailureMsg(context, "矿井维度未加载！");
+                return 0;
+            }
+
+            // 骷髅矿洞入口 = floor 121 safe zone
+            int floor = 121;
+            int floorZ = floor * com.stardew.craft.mining.MiningCoordinates.FLOOR_SPACING + 14;
+            double safeY = 66.0;
+
+            // 确保 floor 121 已生成
+            com.stardew.craft.mining.MineFloorGenerator.generateFloor(mineLevel, floor);
+
+            player.teleportTo(mineLevel, 0.5, safeY, floorZ + 0.5, player.getYRot(), player.getXRot());
+
+            context.getSource().sendSuccess(
+                () -> Component.literal("已传送到骷髅矿洞入口 (Floor 121)"),
+                false
+            );
+            return 1;
+        } catch (Exception e) {
+            sendFailureMsg(context, "传送到骷髅矿洞失败: " + e.getMessage());
+            return 0;
+        }
+    }
+
+    /**
      * 直接设置矿井楼层并传送（调试/管理）
      * 用法：/stardew mine set_floor <floor>
      */
     @SuppressWarnings("null")
     private static int setMineFloor(CommandContext<CommandSourceStack> context) {
         try {
-            ServerPlayer player = context.getSource().getPlayerOrException();
-            int targetFloor = IntegerArgumentType.getInteger(context, "floor");
-            if (targetFloor > 120) {
-                sendFailureMsg(context, "矿井最多只有 120 层！");
+            ServerPlayer player = CommandTargets.resolve(context);
+            if (player == null) {
+                sendFailureMsg(context, "需要指定目标玩家或由玩家执行");
                 return 0;
             }
+            int targetFloor = IntegerArgumentType.getInteger(context, "floor");
 
             @SuppressWarnings("null")
             ServerLevel mineLevel = context.getSource().getServer().getLevel(ModMiningDimensions.STARDEW_MINING);
@@ -424,13 +495,56 @@ public class StardewTeleportCommand {
         }
     }
 
-    
     /**
-     * 返回主世界
+     * 设置骷髅矿井楼层（SDV 相对层，1 = 内部 floor 121）。
+     * 用法：/stardew desert_mine set_floor <n>
      */
+    @SuppressWarnings("null")
+    private static int setDesertMineFloor(CommandContext<CommandSourceStack> context) {
+        try {
+            ServerPlayer player = CommandTargets.resolve(context);
+            if (player == null) {
+                sendFailureMsg(context, "需要指定目标玩家或由玩家执行");
+                return 0;
+            }
+            int relative = IntegerArgumentType.getInteger(context, "floor");
+            int targetFloor = 120 + relative; // 骷髅矿井 1 -> 内部 121
+
+            ServerLevel mineLevel = context.getSource().getServer().getLevel(ModMiningDimensions.STARDEW_MINING);
+            if (mineLevel == null) {
+                sendFailureMsg(context, "矿井维度未加载！");
+                return 0;
+            }
+
+            MineEntranceBootstrap.ensureGenerated(mineLevel);
+            MineFloorGenerator.generateFloor(mineLevel, targetFloor);
+
+            MiningPlayerData playerData = MiningDataManager.getPlayerData(player);
+            playerData.setCurrentFloor(targetFloor);
+            MiningDataManager.savePlayerData(player, playerData);
+
+            MiningCoordinates.teleportPlayerToFloor(player, mineLevel, targetFloor);
+            PacketDistributor.sendToPlayer(player, new MiningFloorSyncPacket(targetFloor));
+
+            final int displayFloor = relative;
+            final int internal = targetFloor;
+            context.getSource().sendSuccess(
+                () -> Component.literal("已传送到骷髅矿井第 " + displayFloor + " 层（内部 floor " + internal + "）"),
+                false
+            );
+            return 1;
+        } catch (Exception e) {
+            sendFailureMsg(context, "设置骷髅矿井层数失败: " + e.getMessage());
+            return 0;
+        }
+    }
     private static int returnToOverworld(CommandContext<CommandSourceStack> context) {
         try {
-            ServerPlayer player = context.getSource().getPlayerOrException();
+            ServerPlayer player = CommandTargets.resolve(context);
+            if (player == null) {
+                sendFailureMsg(context, "需要指定目标玩家或由玩家执行");
+                return 0;
+            }
             @SuppressWarnings("null")
             ServerLevel overworld = context.getSource().getServer()
                 .getLevel(Level.OVERWORLD);

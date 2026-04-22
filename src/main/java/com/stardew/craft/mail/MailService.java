@@ -72,6 +72,13 @@ public class MailService {
         // 标记为已读
         data.addMailFlag(mailId);
 
+        // 特殊信件打开时触发附加效果（SDV parity: LetterViewerMenu 内联逻辑）
+        if (com.stardew.craft.communitycenter.reward.BulletinReward.isBulletinThankYouMail(mailId)) {
+            if (player.level() instanceof net.minecraft.server.level.ServerLevel lvl) {
+                com.stardew.craft.communitycenter.reward.BulletinReward.onThankYouLetterOpened(player, lvl);
+            }
+        }
+
         MailEntry entry = MailRegistry.get(mailId);
         if (entry == null) {
             LOGGER.warn("Mail '{}' not found in registry, skipping", mailId);

@@ -171,8 +171,25 @@ public final class ModBlockEntities {
 			BLOCK_ENTITIES.register("shrine", () -> BlockEntityType.Builder.of(ShrineBlockEntity::new, ModBlocks.SHRINE.get()).build(null));
 
 	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ScarecrowBlockEntity>> SCARECROW =
+			BLOCK_ENTITIES.register("scarecrow", () -> BlockEntityType.Builder.of(ScarecrowBlockEntity::new,
+					ModBlocks.SCARECROW_0.get(), ModBlocks.SCARECROW_1.get(), ModBlocks.SCARECROW_2.get(),
+					ModBlocks.SCARECROW_3.get(), ModBlocks.SCARECROW_4.get(), ModBlocks.SCARECROW_5.get(),
+					ModBlocks.SCARECROW_6.get(), ModBlocks.SCARECROW_7.get(), ModBlocks.SCARECROW_8.get(),
+					ModBlocks.SCARECROW_9.get()).build(null));
+
+	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<JunimoHutDecorBlockEntity>> JUNIMO_HUT_DECOR =
 			BLOCK_ENTITIES.register("junimo_hut_decor", () -> BlockEntityType.Builder.of(JunimoHutDecorBlockEntity::new, ModBlocks.JUNIMO_HUT_DECOR.get()).build(null));
+
+	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<com.stardew.craft.blockentity.GiantCropBlockEntity>> GIANT_CROP =
+			BLOCK_ENTITIES.register("giant_crop", () -> BlockEntityType.Builder.of(
+					com.stardew.craft.blockentity.GiantCropBlockEntity::new,
+					ModBlocks.GIANT_CAULIFLOWER.get(),
+					ModBlocks.GIANT_MELON.get(),
+					ModBlocks.GIANT_PUMPKIN.get(),
+					ModBlocks.GIANT_POWDERMELON.get()).build(null));
 
 	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BookshelfGeoBlockEntity>> BOOKSHELF_GEO =
@@ -201,7 +218,7 @@ public final class ModBlockEntities {
 	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TotemPoleBlockEntity>> TOTEM_POLE =
 			BLOCK_ENTITIES.register("totem_pole", () -> BlockEntityType.Builder.of(TotemPoleBlockEntity::new,
-				ModBlocks.TOTEM_POLE_FARM.get(), ModBlocks.TOTEM_POLE_MOUNTAIN.get(), ModBlocks.TOTEM_POLE_BEACH.get()).build(null));
+				ModBlocks.TOTEM_POLE_FARM.get(), ModBlocks.TOTEM_POLE_MOUNTAIN.get(), ModBlocks.TOTEM_POLE_BEACH.get(), ModBlocks.TOTEM_POLE_DESERT.get()).build(null));
 
 	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MailboxBlockEntity>> MAILBOX =

@@ -33,17 +33,92 @@ public final class FishingDataManager {
 	private static final Gson GSON = new Gson();
 	private static final Set<String> INHERITED_POOL_KEYS = Set.of("Default");
 	private static final String LEGACY_COMPAT_POOL_KEY = "stardewcraft:stardew_valley";
+
+	/**
+	 * Items that are technically caught while fishing but are NOT fish — algae,
+	 * jelly, seaweed, junk/trash, etc. SDV never plays the bobber-bar minigame for
+	 * these (FishingRod.cs: only TypeObject + has minigame motion triggers it).
+	 * The JSON {@code skipMinigame} flag is honored when true; this set is an
+	 * additional safety-net so a missing flag never accidentally forces a minigame.
+	 */
+	private static final Set<String> NON_FISH_CATCHABLE_IDS = Set.of(
+			"stardewcraft:green_algae",
+			"stardewcraft:white_algae",
+			"stardewcraft:seaweed",
+			"stardewcraft:sea_jelly",
+			"stardewcraft:river_jelly",
+			"stardewcraft:cave_jelly",
+			"stardewcraft:trash",
+			"stardewcraft:driftwood",
+			"stardewcraft:soggy_newspaper",
+			"stardewcraft:broken_cd",
+			"stardewcraft:broken_glasses",
+			"stardewcraft:joja_cola"
+	);
+
+	/** True when the resolved item is a non-fish catchable that should bypass the bobber-bar minigame. */
+	public static boolean isNonFishCatchable(String itemId) {
+		return itemId != null && NON_FISH_CATCHABLE_IDS.contains(itemId);
+	}
+
 	private static volatile RuleEligibilityHook RULE_ELIGIBILITY_HOOK = RuleEligibilityHook.ALLOW_ALL;
 	private static volatile FishingDataManager INSTANCE = new FishingDataManager(
 			Collections.singletonMap("Default", FishingLocationData.defaultFallback())
 	);
+	/** 缓存原始 JSON（SoftReference），内存紧张时可被 GC 回收 */
+	private static volatile java.lang.ref.SoftReference<String> CACHED_JSON_REF = new java.lang.ref.SoftReference<>(null);
+
+	/** 获取缓存的 JSON（服务端调用）。若 GC 回收则重新序列化 */
+	public static String getCachedJson() {
+		String json = CACHED_JSON_REF.get();
+		if (json != null) return json;
+		json = rebuildCacheJson();
+		CACHED_JSON_REF = new java.lang.ref.SoftReference<>(json);
+		return json;
+	}
+
+	private static String rebuildCacheJson() {
+		Map<String, FishingLocationData> current = INSTANCE.byLocationKey;
+		if (current.isEmpty()) return "";
+		com.google.gson.JsonObject cacheRoot = new com.google.gson.JsonObject();
+		for (Map.Entry<String, FishingLocationData> me : current.entrySet()) {
+			com.google.gson.JsonObject locObj = new com.google.gson.JsonObject();
+			locObj.addProperty("location", me.getValue().locationKey());
+			com.google.gson.JsonArray fishArr = new com.google.gson.JsonArray();
+			for (SpawnFishRule rule : me.getValue().fish()) {
+				fishArr.add(ruleToJson(rule));
+			}
+			locObj.add("fish", fishArr);
+			cacheRoot.add(me.getKey(), locObj);
+		}
+		return GSON.toJson(cacheRoot);
+	}
+
+	/** 从 JSON 字符串重放解析（客户端调用） */
+	public static void applyFromJson(String json) {
+		try {
+			com.google.gson.JsonObject root = GSON.fromJson(json, com.google.gson.JsonObject.class);
+			if (root == null) return;
+			Map<String, FishingLocationData> loaded = new HashMap<>();
+			for (Map.Entry<String, com.google.gson.JsonElement> entry : root.entrySet()) {
+				FishingLocationData data = FishingLocationData.fromJson(entry.getValue().getAsJsonObject());
+				loaded.put(entry.getKey(), data);
+			}
+			loaded.putIfAbsent("Default", FishingLocationData.defaultFallback());
+			INSTANCE = new FishingDataManager(Collections.unmodifiableMap(loaded));
+			StardewCraft.LOGGER.info("[DATA-SYNC] Applied fishing data from network: {}", loaded.keySet());
+		} catch (Exception e) {
+			StardewCraft.LOGGER.error("[DATA-SYNC] Failed to apply fishing JSON", e);
+		}
+	}
 
 	public static FishingDataManager get() {
 		return INSTANCE;
 	}
 
 	static {
-		setRuleEligibilityHook(FishingDataManager::matchesVanillaCondition);
+		// Default eligibility hook is ALLOW_ALL; condition evaluation now happens explicitly
+		// in selectFish so it can pass the magic-bait flag for MagicBaitIgnoreQueryKeys.
 	}
 
 	/**
@@ -72,6 +147,19 @@ public final class FishingDataManager {
 	 */
 	@SuppressWarnings("null")
 	public Optional<FishSelection> selectFish(ServerPlayer player, ServerLevel level, BlockPos bobberPos, int waterDepth, RandomSource random) {
+		return selectFish(player, level, bobberPos, waterDepth, false, random);
+	}
+
+	/**
+	 * SDV-parity selection with optional fish-splash boost. SDV's {@code FishingRod}
+	 * passes {@code clearWaterDistance + 1} into {@code getFish(...)} when the bobber
+	 * intersects the splash rect. The {@code baitPotency + 0.4} that SDV also passes is
+	 * a dead parameter ({@code GetFishFromLocationData} ignores it), so splash only
+	 * affects depth-related rolls, not chance directly.
+	 */
+	@SuppressWarnings("null")
+	public Optional<FishSelection> selectFish(ServerPlayer player, ServerLevel level, BlockPos bobberPos, int waterDepth, boolean inSplash, RandomSource random) {
+		int effectiveDepth = waterDepth + (inSplash ? 1 : 0);
 		if (!isStardewFishingDimension(level)) {
 			return Optional.of(new FishSelection(getRandomJunk(random), 0, 0, true));
 		}
@@ -84,8 +172,23 @@ public final class FishingDataManager {
 		boolean usingMagicBait = !rodStack.isEmpty()
 				&& (rodStack.getItem() instanceof com.stardew.craft.item.tool.FishingRodItem)
 				&& com.stardew.craft.item.tool.FishingRodItem.hasBait(rodStack, "stardewcraft:magic_bait");
+		boolean isTrainingRod = !rodStack.isEmpty()
+				&& rodStack.getItem() instanceof com.stardew.craft.item.tool.FishingRodItem fri
+				&& fri.getTier() == com.stardew.craft.item.tool.FishingRodItem.RodTier.TRAINING_ROD;
 		boolean usingGoodBait = isUsingGoodBait(rodStack);
 		String baitTargetFishId = getTargetedBaitFishId(rodStack);
+		// SDV: who.fishCaught.Length == 0 → only tutorial fish allowed; Carp fallback otherwise.
+		// MC adaptation: if no candidate in this location is flagged tutorial (e.g. Desert),
+		// suppress the gate entirely — otherwise the player would always get Carp from
+		// outside Pelican Town, which contradicts the location's biome rules.
+		boolean hasTutorialFishHere = false;
+		{
+			List<String> probeKeys = resolveVanillaAlignedLocationKeys(level, level.getBiome(bobberPos));
+			for (CandidateRule cr : collectCandidatesByKeys(probeKeys)) {
+				if (cr.rule().isTutorialFish()) { hasTutorialFishHere = true; break; }
+			}
+		}
+		boolean isTutorialCatch = hasTutorialFishHere && playerData.getDistinctFishCaughtCount() == 0;
 
 		// 获取浮漂位置的群系
 		@SuppressWarnings("null")
@@ -95,7 +198,7 @@ public final class FishingDataManager {
 				.orElse(ResourceLocation.withDefaultNamespace("plains"));
 
 		// 获取当前环境条件
-		boolean isRaining = level.isRaining();
+		boolean isRaining = com.stardew.craft.weather.WeatherManager.isRaining(level);
 		long timeOfDay = level.getDayTime() % 24000;
 		String currentSeason = getCurrentSeason(level);
 
@@ -106,7 +209,7 @@ public final class FishingDataManager {
 
 		if (candidates.isEmpty()) {
 			// 如果没有任何候选鱼（数据未加载或配置错误），直接返回垃圾
-			StardewCraft.LOGGER.warn("No fish candidates found for keys {} at biome {}. Check if fishing data loaded correctly!",
+			StardewCraft.LOGGER.debug("No fish candidates found for keys {} at biome {}. Check if fishing data loaded correctly!",
 					lookupKeys, biomeId);
 			return Optional.of(new FishSelection(getRandomJunk(random), 0, 0, true));
 		}
@@ -128,6 +231,10 @@ public final class FishingDataManager {
 				if (!RULE_ELIGIBILITY_HOOK.allow(player, level, bobberPos, biomeHolder, rule)) {
 					continue;
 				}
+				// SDV GameStateQuery.CheckConditions(spawn.Condition, ..., MagicBaitIgnoreQueryKeys)
+				if (!matchesVanillaCondition(player, level, bobberPos, biomeHolder, rule, usingMagicBait)) {
+					continue;
+				}
 				if (rule.catchLimit() >= 0 && playerData.getFishCatchCount(rule.itemId()) >= rule.catchLimit()) {
 					continue;
 				}
@@ -139,7 +246,7 @@ public final class FishingDataManager {
 						continue;
 					}
 				}
-				if (!rule.matchesBasic(fishingLevel, waterDepth)) {
+				if (!rule.matchesBasic(fishingLevel, effectiveDepth)) {
 					continue;
 				}
 				if (!rule.matchesBiome(biomeHolder)) {
@@ -151,19 +258,91 @@ public final class FishingDataManager {
 					}
 				}
 				float chance = Math.max(0f, rule.chance());
-				if (luckBuffLevel > 0) {
-					// Spirit Blessing now gives tangible fishing benefit: +2% base catch roll per luck level.
-					chance = Math.min(1.0f, chance + 0.02f * luckBuffLevel);
-				}
+				// === SDV SpawnFishData.GetChance: apply curiosity/luck/target bait modifiers to first roll ===
 				if (hasCuriosityLure) {
-					chance = applyCuriosityLureWeight(chance);
+					if (rule.curiosityLureBuff() > -1f) {
+						chance += rule.curiosityLureBuff();
+					} else {
+						float max = 0.25f, min = 0.08f;
+						chance = (max - min) / max * chance + (max - min) / 2f;
+					}
 				}
+				if (rule.applyDailyLuck()) {
+					chance += (float) playerData.getDailyLuck();
+				}
+				if (luckBuffLevel > 0) {
+					// Spirit Blessing buff (mod-extended): +2% per level on first roll.
+					chance += 0.02f * luckBuffLevel;
+				}
+				if (baitTargetFishId != null && !baitTargetFishId.isBlank()
+						&& baitTargetFishId.equals(rule.itemId())) {
+					chance *= 1.66f;
+				}
+				// SDV SpawnFishData.GetChance: apply user-defined ChanceModifiers list.
+				if (rule.chanceModifiers() != null && !rule.chanceModifiers().isEmpty()) {
+					final boolean mb = usingMagicBait;
+					chance = QuantityModifier.apply(chance, rule.chanceModifiers(), rule.chanceModifierMode(), random,
+							cond -> evalGsqCondition(player, level, bobberPos, biomeHolder, cond, mb));
+				}
+				chance = Math.min(chance, 1.0f);
 				if (chance <= 0f) {
 					continue;
 				}
-				if (random.nextFloat() >= chance) {
+				// SDV first roll: optional seeded RNG keyed on PreciseFishCaught (e.g. extended family fish).
+				boolean rollPass;
+				if (rule.useFishCaughtSeededRandom()) {
+					long worldSeed = level.getSeed();
+					long key = ((long) playerData.getPreciseFishCaught()) * 859L;
+					java.util.Random seeded = new java.util.Random(worldSeed ^ key);
+					rollPass = seeded.nextFloat() < chance;
+				} else {
+					rollPass = random.nextFloat() < chance;
+				}
+				if (!rollPass) {
 					continue;
 				}
+				// === SDV CheckGenericFishRequirements: depth-aware spawnRate second roll ===
+				// Replicates GameLocation.cs CheckGenericFishRequirements (1.6 source).
+				// SDV training-rod gate: reject difficulty>=50 unless rule overrides.
+				if (isTrainingRod && rule.difficulty() >= 50) {
+					continue;
+				}
+				// SDV tutorial gate: first-catch ever → only tutorial fish allowed.
+				if (isTutorialCatch && !rule.isTutorialFish()) {
+					continue;
+				}
+				float dropOff = rule.depthMultiplier() * rule.spawnRate();
+				float c = rule.spawnRate();
+				c -= Math.max(0, rule.maxDepth() - effectiveDepth) * dropOff;
+				c += fishingLevel / 50f;
+				if (isTrainingRod) {
+					c *= 1.1f;
+				}
+				c = Math.min(c, 0.9f);
+				if (c < 0.25f && hasCuriosityLure) {
+					if (rule.curiosityLureBuff() > -1f) {
+						c += rule.curiosityLureBuff();
+					} else {
+						c = (0.25f - 0.08f) / 0.25f * c + (0.25f - 0.08f) / 2f;
+					}
+				}
+				if (baitTargetFishId != null && !baitTargetFishId.isBlank()
+						&& baitTargetFishId.equals(rule.itemId())) {
+					c *= 1.66f;
+				}
+				if (rule.applyDailyLuck()) {
+					c += (float) playerData.getDailyLuck();
+				}
+				// SDV CheckGenericFishRequirements: apply user-defined ChanceModifiers to second roll too.
+				if (rule.chanceModifiers() != null && !rule.chanceModifiers().isEmpty()) {
+					final boolean mb2 = usingMagicBait;
+					c = QuantityModifier.apply(c, rule.chanceModifiers(), rule.chanceModifierMode(), random,
+							cond -> evalGsqCondition(player, level, bobberPos, biomeHolder, cond, mb2));
+				}
+				if (random.nextFloat() >= c) {
+					continue;
+				}
+				// === end SDV second roll ===
 				if (baitTargetFishId != null && !baitTargetFishId.isBlank()
 						&& !baitTargetFishId.equals(rule.itemId())
 						&& targetedBaitTries < 2) {
@@ -188,6 +367,13 @@ public final class FishingDataManager {
 		}
 
 		if (chosen == null) {
+			// SDV: tutorial first-catch always falls back to Carp ((O)145).
+			if (isTutorialCatch) {
+				Item carp = BuiltInRegistries.ITEM.get(ResourceLocation.parse("stardewcraft:carp"));
+				if (carp != null && carp != Items.AIR) {
+					return Optional.of(new FishSelection(new ItemStack(carp), 15, 0, false));
+				}
+			}
 			return Optional.of(new FishSelection(getRandomJunk(random), 0, 0, true));
 		}
 		Item item;
@@ -202,7 +388,8 @@ public final class FishingDataManager {
 
 		@SuppressWarnings("null")
 		ItemStack stack = new ItemStack(item);
-		return Optional.of(new FishSelection(stack, chosen.difficulty(), chosen.motionTypeId(), chosen.skipMinigame()));
+		boolean skip = chosen.skipMinigame() || isNonFishCatchable(chosen.itemId());
+		return Optional.of(new FishSelection(stack, chosen.difficulty(), chosen.motionTypeId(), skip));
 	}
 
 	private List<CandidateRule> collectCandidatesByKeys(List<String> lookupKeys) {
@@ -238,6 +425,11 @@ public final class FishingDataManager {
 	 * Match vanilla location buckets first (from Data/Locations), then fall back to legacy keys.
 	 */
 	private List<String> resolveVanillaAlignedLocationKeys(ServerLevel level, Holder<Biome> biomeHolder) {
+		return resolveVanillaAlignedLocationKeysStatic(level, biomeHolder);
+	}
+
+	/** Public access for systems outside selection (e.g. splash-point ticker). */
+	public static List<String> resolveVanillaAlignedLocationKeysStatic(ServerLevel level, Holder<Biome> biomeHolder) {
 		List<String> keys = new ArrayList<>();
 
 		if (hasBiomeTag(biomeHolder, "stardewcraft:is_night_market")) {
@@ -343,24 +535,23 @@ public final class FishingDataManager {
 		return biomeHolder.is(tag);
 	}
 
+	/** Public mirror for splash-point ticker. */
+	public static boolean hasBiomeTagPublic(Holder<Biome> biomeHolder, String tagId) {
+		return hasBiomeTag(biomeHolder, tagId);
+	}
+
+	public static boolean isStardewFishingDimensionPublic(ServerLevel level) {
+		return isStardewFishingDimension(level);
+	}
+
 	private static boolean isStardewFishingDimension(ServerLevel level) {
 		return level.dimension() == ModDimensions.STARDEW_VALLEY
 				|| level.dimension() == ModMiningDimensions.STARDEW_MINING;
 	}
 
 	private static ItemStack getRodFromPlayer(ServerPlayer player) {
-		if (player == null) {
-			return ItemStack.EMPTY;
-		}
-		ItemStack rod = player.getMainHandItem();
-		if (!rod.isEmpty() && rod.getItem() instanceof com.stardew.craft.item.tool.FishingRodItem) {
-			return rod;
-		}
-		rod = player.getOffhandItem();
-		if (!rod.isEmpty() && rod.getItem() instanceof com.stardew.craft.item.tool.FishingRodItem) {
-			return rod;
-		}
-		return ItemStack.EMPTY;
+		if (player == null) return ItemStack.EMPTY;
+		return com.stardew.craft.item.tool.FishingRodItem.findRod(player);
 	}
 
 	private static boolean isUsingGoodBait(ItemStack rodStack) {
@@ -414,36 +605,113 @@ public final class FishingDataManager {
 	}
 
 	/**
-	 * Stardew Valley (1.6) curiosity lure behavior: for low-chance fish (chance < 0.25),
-	 * linearly raise the chance toward a minimum floor.
+	 * SDV {@code GameStateQuery.MagicBaitIgnoreQueryKeys}: when magic bait is equipped,
+	 * time/season/weather/day clauses are skipped (treated as true).
 	 */
-	private static float applyCuriosityLureWeight(float baseChance) {
-		if (!(baseChance < 0.25f)) {
-			return baseChance;
-		}
-		float max = 0.25f;
-		float min = 0.08f;
-		return (max - min) / max * baseChance + (max - min) / 2f;
-	}
+	private static final java.util.Set<String> MAGIC_BAIT_IGNORE_KEYS = java.util.Set.of(
+			"DAY_OF_MONTH", "DAY_OF_WEEK", "DAYS_PLAYED",
+			"LOCATION_SEASON", "SEASON", "SEASON_DAY",
+			"WEATHER", "TIME");
 
 	private static boolean matchesVanillaCondition(ServerPlayer player, ServerLevel level, BlockPos bobberPos,
-									  Holder<Biome> biomeHolder, SpawnFishRule rule) {
-		String condition = rule.condition();
+									  Holder<Biome> biomeHolder, SpawnFishRule rule, boolean usingMagicBait) {
+		return evalGsqCondition(player, level, bobberPos, biomeHolder, rule.condition(), usingMagicBait);
+	}
+
+	/** SDV {@code GameStateQuery.CheckConditions}: evaluates a free-form condition string. */
+	private static boolean evalGsqCondition(ServerPlayer player, ServerLevel level, BlockPos bobberPos,
+											Holder<Biome> biomeHolder, String condition, boolean usingMagicBait) {
 		if (condition == null || condition.isBlank()) {
 			return true;
 		}
-
-		boolean negate = condition.startsWith("!");
-		String normalized = negate ? condition.substring(1).trim() : condition.trim();
-		String marker = "PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current ";
-		if (normalized.startsWith(marker)) {
-			String ruleId = normalized.substring(marker.length()).trim();
-			boolean active = PlayerStardewDataAPI.isSpecialOrderRuleActive(player, ruleId);
-			return negate ? !active : active;
+		String[] clauses = condition.split(",");
+		for (String raw : clauses) {
+			String clause = raw.trim();
+			if (clause.isEmpty()) continue;
+			boolean negate = clause.startsWith("!");
+			if (negate) clause = clause.substring(1).trim();
+			String head = clause.split("\\s+", 2)[0];
+			if (usingMagicBait && MAGIC_BAIT_IGNORE_KEYS.contains(head)) {
+				continue;
+			}
+			boolean result = evalGsqClause(player, level, clause);
+			if (negate) result = !result;
+			if (!result) return false;
 		}
-
-		// Unknown condition expression: keep current behavior permissive for compatibility.
 		return true;
+	}
+
+	private static boolean evalGsqClause(ServerPlayer player, ServerLevel level, String clause) {
+		String[] parts = clause.split("\\s+");
+		if (parts.length == 0) return true;
+		String op = parts[0];
+		switch (op) {
+			case "PLAYER_SPECIAL_ORDER_RULE_ACTIVE": {
+				// PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current <ruleId>
+				if (parts.length < 3) return false;
+				return PlayerStardewDataAPI.isSpecialOrderRuleActive(player, parts[2]);
+			}
+			case "PLAYER_HAS_MAIL": {
+				// PLAYER_HAS_MAIL Host <mailId>
+				if (parts.length < 3) return false;
+				return PlayerStardewDataAPI.getData(player).hasMailFlag(parts[2]);
+			}
+			case "PLAYER_HAS_ITEM": {
+				// PLAYER_HAS_ITEM Current (O)<id>  -- check inventory by qualified id
+				if (parts.length < 3) return false;
+				String qid = parts[2];
+				String want = vanillaQualifiedIdToModItemId(qid);
+				if (want == null) return false;
+				ResourceLocation wantLoc = ResourceLocation.tryParse(want);
+				if (wantLoc == null) return false;
+				for (ItemStack st : player.getInventory().items) {
+					if (!st.isEmpty()) {
+						ResourceLocation k = BuiltInRegistries.ITEM.getKey(st.getItem());
+						if (wantLoc.equals(k)) return true;
+					}
+				}
+				return false;
+			}
+			case "LOCATION_SEASON": {
+				// LOCATION_SEASON Here <season1> [<season2> ...]
+				if (parts.length < 3) return false;
+				String current = staticGetCurrentSeason(level);
+				for (int i = 2; i < parts.length; i++) {
+					if (parts[i].equalsIgnoreCase(current)) return true;
+				}
+				return false;
+			}
+			case "IS_PASSIVE_FESTIVAL_OPEN": {
+				// IS_PASSIVE_FESTIVAL_OPEN <festivalId> [TIME hhmm hhmm]
+				// Mod has no passive festival system → always false.
+				return false;
+			}
+			default:
+				// Unknown predicate: be permissive (matches previous behavior).
+				return true;
+		}
+	}
+
+	private static String vanillaQualifiedIdToModItemId(String qid) {
+		// Maps SDV qualified item id like "(O)308" to mod item id, if known.
+		// Currently we only need a few; return null for unmapped → condition will fail.
+		if (qid == null || qid.isBlank()) return null;
+		switch (qid) {
+			case "(O)308": return "stardewcraft:void_mayonnaise";
+			default: return null;
+		}
+	}
+
+	private static String staticGetCurrentSeason(ServerLevel level) {
+		com.stardew.craft.time.StardewTimeManager tm = com.stardew.craft.time.StardewTimeManager.get();
+		int idx = tm != null ? tm.getCurrentSeason() : 0;
+		return switch (idx) {
+			case 0 -> "spring";
+			case 1 -> "summer";
+			case 2 -> "fall";
+			case 3 -> "winter";
+			default -> "spring";
+		};
 	}
 
 	/**
@@ -458,17 +726,7 @@ public final class FishingDataManager {
 	 * 获取当前季节
 	 */
 	private String getCurrentSeason(ServerLevel level) {
-		// 根据游戏天数计算季节
-		long dayTime = level.getDayTime();
-		long days = dayTime / 24000;
-		int seasonIndex = (int) ((days / 28) % 4);
-		return switch (seasonIndex) {
-			case 0 -> "spring";
-			case 1 -> "summer";
-			case 2 -> "fall";
-			case 3 -> "winter";
-			default -> "spring";
-		};
+		return staticGetCurrentSeason(level);
 	}
 
 	/**
@@ -540,6 +798,71 @@ public final class FishingDataManager {
 		return Optional.empty();
 	}
 
+	private static com.google.gson.JsonObject ruleToJson(SpawnFishRule r) {
+		com.google.gson.JsonObject o = new com.google.gson.JsonObject();
+		o.addProperty("id", r.id());
+		o.addProperty("precedence", r.precedence());
+		o.addProperty("item", r.itemId());
+		o.addProperty("chance", r.chance());
+		o.addProperty("difficulty", r.difficulty());
+		o.addProperty("motionType", r.motionTypeId());
+		o.addProperty("minFishingLevel", r.minFishingLevel());
+		o.addProperty("minDistanceFromShore", r.minDistanceFromShore());
+		o.addProperty("maxDistanceFromShore", r.maxDistanceFromShore());
+		o.addProperty("skipMinigame", r.skipMinigame());
+		if (r.fishAreaId() != null) o.addProperty("fishAreaId", r.fishAreaId());
+		o.addProperty("canBeInherited", r.canBeInherited());
+		o.addProperty("requireMagicBait", r.requireMagicBait());
+		o.addProperty("catchLimit", r.catchLimit());
+		if (r.condition() != null) o.addProperty("condition", r.condition());
+		o.addProperty("weather", r.weather());
+		if (r.isTutorialFish()) o.addProperty("isTutorialFish", true);
+		if (r.useFishCaughtSeededRandom()) o.addProperty("useFishCaughtSeededRandom", true);
+		if (r.chanceModifiers() != null && !r.chanceModifiers().isEmpty()) {
+			com.google.gson.JsonArray arr = new com.google.gson.JsonArray();
+			for (QuantityModifier.Entry m : r.chanceModifiers()) {
+				com.google.gson.JsonObject mo = new com.google.gson.JsonObject();
+				mo.addProperty("modification", m.modification().name());
+				mo.addProperty("amount", m.amount());
+				if (m.randomAmount() != null && !m.randomAmount().isEmpty()) {
+					com.google.gson.JsonArray ra = new com.google.gson.JsonArray();
+					for (Float f : m.randomAmount()) ra.add(f);
+					mo.add("randomAmount", ra);
+				}
+				if (m.condition() != null) mo.addProperty("condition", m.condition());
+				arr.add(mo);
+			}
+			o.add("chanceModifiers", arr);
+			o.addProperty("chanceModifierMode", r.chanceModifierMode().name());
+		}
+		if (r.biomes() != null && !r.biomes().isEmpty()) {
+			com.google.gson.JsonArray a = new com.google.gson.JsonArray();
+			r.biomes().forEach(a::add);
+			o.add("biomes", a);
+		}
+		if (r.biomeTags() != null && !r.biomeTags().isEmpty()) {
+			com.google.gson.JsonArray a = new com.google.gson.JsonArray();
+			r.biomeTags().forEach(a::add);
+			o.add("biomeTags", a);
+		}
+		if (r.seasons() != null && !r.seasons().isEmpty()) {
+			com.google.gson.JsonArray a = new com.google.gson.JsonArray();
+			r.seasons().forEach(a::add);
+			o.add("seasons", a);
+		}
+		if (r.timeRanges() != null && !r.timeRanges().isEmpty()) {
+			com.google.gson.JsonArray ranges = new com.google.gson.JsonArray();
+			for (int[] range : r.timeRanges()) {
+				com.google.gson.JsonArray pair = new com.google.gson.JsonArray();
+				pair.add(range[0]);
+				if (range.length > 1) pair.add(range[1]);
+				ranges.add(pair);
+			}
+			o.add("timeRanges", ranges);
+		}
+		return o;
+	}
+
 	public static final class ReloadListener extends SimpleJsonResourceReloadListener {
 		public ReloadListener() {
 			super(GSON, "fishing/locations");
@@ -561,6 +884,10 @@ public final class FishingDataManager {
 			// 确保至少有 Default
 			loaded.putIfAbsent("Default", FishingLocationData.defaultFallback());
 			INSTANCE = new FishingDataManager(Collections.unmodifiableMap(loaded));
+
+			// 清除旧的缓存引用，下次 getCachedJson() 时按需重建
+			CACHED_JSON_REF = new java.lang.ref.SoftReference<>(null);
+
 			StardewCraft.LOGGER.info("Loaded fishing locations: {}", INSTANCE.byLocationKey.keySet());
 		}
 	}

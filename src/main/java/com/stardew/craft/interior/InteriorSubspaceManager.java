@@ -9,12 +9,18 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.saveddata.SavedData;
 
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
+
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 室内亚空间管理器：
@@ -28,6 +34,45 @@ public final class InteriorSubspaceManager {
     private InteriorSubspaceManager() {
     }
 
+    // ── Portal 自修复注册表 ──
+    public record PortalPlacement(ResourceKey<Level> dimension, BlockPos basePos,
+                                   int heightBlocks, int xBlocks, int zBlocks,
+                                   String markerTag, String targetTag, boolean solidOnly) {}
+
+    private static final Map<Long, PortalPlacement> PORTAL_REGISTRY = new ConcurrentHashMap<>();
+    private static final double REPAIR_CHECK_RANGE = 12.0;
+
+    private static long portalKey(ResourceKey<Level> dim, BlockPos pos) {
+        return ((long) dim.location().hashCode() << 32) | ((long) pos.hashCode() & 0xFFFFFFFFL);
+    }
+
+    /**
+     * 验证并修复玩家附近的传送触发方块。
+     * 如果注册表中的 portal 位置方块缺失，自动重新放置。
+     */
+    public static void verifyAndRepairNearby(ServerLevel level, ServerPlayer player) {
+        ResourceKey<Level> dim = level.dimension();
+        BlockPos playerPos = player.blockPosition();
+        for (PortalPlacement p : PORTAL_REGISTRY.values()) {
+            if (!p.dimension.equals(dim)) continue;
+            if (!playerPos.closerThan(p.basePos, REPAIR_CHECK_RANGE)) continue;
+            // 只检查 basePos 处的方块是否仍是 portal_trigger
+            if (!level.getBlockState(p.basePos).is(com.stardew.craft.block.ModBlocks.PORTAL_TRIGGER.get())) {
+                StardewCraft.LOGGER.warn("[PORTAL-REPAIR] Missing portal trigger '{}' at {} — re-placing",
+                        p.markerTag, p.basePos);
+                placePortalTriggerAreaInternal(level, p.basePos, p.heightBlocks, p.xBlocks, p.zBlocks,
+                        p.markerTag, p.targetTag, p.solidOnly);
+            }
+        }
+    }
+
+    /**
+     * 清除注册表（服务器关闭时调用）。
+     */
+    public static void clearPortalRegistry() {
+        PORTAL_REGISTRY.clear();
+    }
+
     // 用户要求：室内亚空间区域必须在第一象限远坐标，且 X>10000、Z>10000。
     public static final int REGION_MIN_X = 10001;
     public static final int REGION_MIN_Z = 10001;
@@ -35,7 +80,7 @@ public final class InteriorSubspaceManager {
     public static final int REGION_MAX_Z = 19000;
 
     // 结构布局版本：当结构清单或坐标大改时 +1，可触发重新装载。
-    private static final int LAYOUT_VERSION = 29;
+    private static final int LAYOUT_VERSION = 31;
 
     private static final String PIERRE_HOUSE_STRUCTURE_PATH = "data/stardewcraft/structures/interior/pierre_house.schem";
     private static final BlockPos PIERRE_HOUSE_ORIGIN = new BlockPos(12032, 70, 12032);
@@ -197,6 +242,15 @@ public final class InteriorSubspaceManager {
     private static final String TAG_PORTAL_MARKER_WIZARD_TOWER_RETURN_OVERWORLD = "sdv_portal_marker:wizard_tower_return_overworld";
     private static final BlockPos WIZARD_TOWER_RETURN_OVERWORLD_BASE = new BlockPos(18249, 71, 17100);
 
+    // ---- 绿洲（沙漠 Oasis / Sandy's shop） ----
+    private static final String OASIS_STRUCTURE_PATH = "data/stardewcraft/structures/interior/oasis_interior.schem";
+    public static final BlockPos OASIS_ORIGIN = new BlockPos(18240, 70, 17664);
+    private static final BlockPos OASIS_INDOOR_SPAWN_OFFSET = new BlockPos(2, 1, 4);
+    private static final BlockPos OASIS_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(1, 1, 4);
+    /** Oasis 出门后传送到沙漠室外（Oasis 入口旁，Z-1） */
+    public static final BlockPos OASIS_OUTDOOR_EXIT_POS = new BlockPos(-360, -40, 1413);
+    private static final String TAG_PORTAL_MARKER_OASIS_INSIDE = "sdv_portal_marker:oasis_inside";
+
     // ---- 社区中心 ----
     static final String CC_RUINS_PATH = "data/stardewcraft/structures/interior/community_center_ruins.schem";
     @SuppressWarnings("unused")
@@ -248,6 +302,7 @@ public final class InteriorSubspaceManager {
         register("fish_shop", FISH_SHOP_STRUCTURE_PATH, FISH_SHOP_ORIGIN.getX(), FISH_SHOP_ORIGIN.getY(), FISH_SHOP_ORIGIN.getZ());
         register("elliott_cabin", ELLIOTT_CABIN_STRUCTURE_PATH, ELLIOTT_CABIN_ORIGIN.getX(), ELLIOTT_CABIN_ORIGIN.getY(), ELLIOTT_CABIN_ORIGIN.getZ());
         register("wizard_tower", WIZARD_TOWER_STRUCTURE_PATH, WIZARD_TOWER_ORIGIN.getX(), WIZARD_TOWER_ORIGIN.getY(), WIZARD_TOWER_ORIGIN.getZ());
+        register("oasis", OASIS_STRUCTURE_PATH, OASIS_ORIGIN.getX(), OASIS_ORIGIN.getY(), OASIS_ORIGIN.getZ());
         // CC 和温室不再注册为 FIXED_STRUCTURES — 由 PlayerInteriorAllocator 按玩家独立加载
 
         BlockPos indoorSpawn = PIERRE_HOUSE_ORIGIN.offset(PIERRE_INDOOR_SPAWN_OFFSET);
@@ -742,6 +797,38 @@ public final class InteriorSubspaceManager {
 
         StardewCraft.LOGGER.info("[INTERIOR] wizard_tower indoor exit interaction anchor = {}", wizardTowerIndoorExitPortal);
 
+        // ── 绿洲（Oasis） ──
+        BlockPos oasisIndoorSpawn = OASIS_ORIGIN.offset(OASIS_INDOOR_SPAWN_OFFSET);
+        BlockPos oasisIndoorExitPortal = OASIS_ORIGIN.offset(OASIS_INDOOR_EXIT_PORTAL_OFFSET);
+
+        // 进绿洲：传送到 origin+(2,1,5)，面朝正东。
+        InteriorPortalRegistry.register(
+            "oasis_enter",
+            new InteriorPortalRegistry.PortalTarget(
+                oasisIndoorSpawn.getX() + 0.5D,
+                oasisIndoorSpawn.getY(),
+                oasisIndoorSpawn.getZ() + 0.5D,
+                -90.0F,
+                0.0F,
+                InteriorPortalRegistry.PortalMode.ENTRANCE
+            )
+        );
+
+        // 出绿洲：回到沙漠 Oasis 入口外侧，面朝正北。
+        InteriorPortalRegistry.register(
+            "oasis_exit",
+            new InteriorPortalRegistry.PortalTarget(
+                OASIS_OUTDOOR_EXIT_POS.getX() + 0.5D,
+                OASIS_OUTDOOR_EXIT_POS.getY(),
+                OASIS_OUTDOOR_EXIT_POS.getZ() + 0.5D,
+                180.0F,
+                0.0F,
+                InteriorPortalRegistry.PortalMode.EXIT
+            )
+        );
+
+        StardewCraft.LOGGER.info("[INTERIOR] oasis indoor exit interaction anchor = {}", oasisIndoorExitPortal);
+
         // CC 和温室门户不再静态注册 — 由 InteriorPortalInteractionEvents 动态解析
     }
 
@@ -974,6 +1061,30 @@ public final class InteriorSubspaceManager {
         batchPlacementIndex = 0;
     }
 
+    /**
+     * 在已初始化的存档上重新放置所有已知传送触发方块（小镇入口/出口、矿洞入口、社区中心、
+     * 法师塔室内/室外返回等）。幂等，用于 pregen region 覆盖或存档加载后的兜底补放。
+     *
+     * <p>若布局尚未初始化或正在批量放置，直接跳过——此时 tickBatchPlacement 末尾会自动调用
+     * {@link #ensurePortalInteractions(ServerLevel)}，无需外部再次触发。</p>
+     */
+    public static void replaceAllPortalsIfReady(ServerLevel level, String reason) {
+        if (!ModDimensions.STARDEW_VALLEY.equals(level.dimension())) {
+            return;
+        }
+        InteriorSubspaceSavedData data = InteriorSubspaceSavedData.get(level);
+        if (!data.initialized || batchPlacementInProgress) {
+            return;
+        }
+        StardewCraft.LOGGER.info("[INTERIOR] Re-placing all portal triggers. reason={}", reason);
+        ensurePortalInteractions(level);
+        // Farm/greenhouse portals are persisted in the world and only need
+        // re-placement on layout version upgrade (handled by batch flow).
+        // Skipping them on routine server start avoids loading dozens of
+        // distant farm chunks synchronously, which can exceed the 60-second
+        // watchdog timeout on servers with many farms.
+    }
+
     public static void forceReload(ServerLevel level, String reason) {
         if (!ModDimensions.STARDEW_VALLEY.equals(level.dimension())) {
             return;
@@ -1011,49 +1122,22 @@ public final class InteriorSubspaceManager {
     }
 
     /**
-     * 布局重建后，从 MuseumDonationData 中恢复展示柜的陈列物品。
-     * standKey 格式: "dimension|x,y,z"，解析出 BlockPos 后对展示柜方块实体还原 displayItem。
+     * 布局重建后的博物馆展示柜恢复。
+     * 数据现在是 per-player 的，展示柜内容通过 MuseumStandSyncPacket 按玩家同步，
+     * 因此布局重建时无需在服务端恢复 BE 的 displayItem。
+     * 仅在有遗留捐赠模式时强制结束（展柜已被重建）。
      */
     private static void restoreMuseumExhibitStands(ServerLevel level) {
         com.stardew.craft.museum.MuseumDonationData data = com.stardew.craft.museum.MuseumDonationData.get(level);
-        java.util.Map<String, String> stands = data.getStandDisplayItems();
-        if (stands.isEmpty()) return;
-
-        String dimPrefix = level.dimension().location().toString() + "|";
-        int restored = 0;
-        for (java.util.Map.Entry<String, String> entry : stands.entrySet()) {
-            String key = entry.getKey();
-            String itemId = entry.getValue();
-            if (key == null || itemId == null || itemId.isBlank()) continue;
-            if (!key.startsWith(dimPrefix)) continue;
-
-            // 解析 "x,y,z" 部分
-            String coordPart = key.substring(dimPrefix.length());
-            String[] parts = coordPart.split(",");
-            if (parts.length != 3) continue;
-
+        // Force-end any active donation sessions since the stands have been rebuilt
+        for (String uuidStr : data.getAllPlayerUUIDs()) {
             try {
-                int x = Integer.parseInt(parts[0]);
-                int y = Integer.parseInt(parts[1]);
-                int z = Integer.parseInt(parts[2]);
-                BlockPos pos = new BlockPos(x, y, z);
-
-                net.minecraft.world.level.block.entity.BlockEntity be = level.getBlockEntity(pos);
-                if (be instanceof com.stardew.craft.blockentity.MuseumExhibitStandBlockEntity stand) {
-                    net.minecraft.resources.ResourceLocation rl = net.minecraft.resources.ResourceLocation.tryParse(itemId);
-                    if (rl != null) {
-                        net.minecraft.world.item.Item item = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(rl);
-                        if (item != null && item != net.minecraft.world.item.Items.AIR) {
-                            stand.setDisplayItem(new net.minecraft.world.item.ItemStack(item));
-                            restored++;
-                        }
-                    }
+                java.util.UUID playerId = java.util.UUID.fromString(uuidStr);
+                if (data.isDonationModeActive(playerId)) {
+                    data.forceEndDonationMode(playerId);
+                    StardewCraft.LOGGER.info("[INTERIOR] Force-ended donation mode for {} after layout rebuild", uuidStr);
                 }
-            } catch (NumberFormatException ignored) {}
-        }
-
-        if (restored > 0) {
-            StardewCraft.LOGGER.info("[INTERIOR] Restored {} museum exhibit stand(s) after layout rebuild", restored);
+            } catch (IllegalArgumentException ignored) {}
         }
     }
 
@@ -1223,6 +1307,29 @@ public final class InteriorSubspaceManager {
         placePortalTriggerArea(level, WIZARD_TOWER_RETURN_OVERWORLD_BASE, 2, 3, 3,
             TAG_PORTAL_MARKER_WIZARD_TOWER_RETURN_OVERWORLD, "sdv_portal_target:wizard_tower_return_overworld");
 
+        // 绿洲室内出口：2高 x 1宽 x 1深（室外入口由 DesertMapBootstrap 放置）
+        BlockPos oasisIndoorExitPortal = OASIS_ORIGIN.offset(OASIS_INDOOR_EXIT_PORTAL_OFFSET);
+        placePortalTriggerArea(level, oasisIndoorExitPortal, 2, 1, 1,
+            TAG_PORTAL_MARKER_OASIS_INSIDE, "sdv_portal_target:oasis_exit");
+
+        // 沙漠公交站传送区域：在空气位置放置触发方块（默认行为，跳过已有非空气方块）
+        placePortalTriggerArea(level,
+            com.stardew.craft.desert.DesertConstants.BUS_PORTAL_BASE,
+            com.stardew.craft.desert.DesertConstants.BUS_PORTAL_H,
+            com.stardew.craft.desert.DesertConstants.BUS_PORTAL_X,
+            com.stardew.craft.desert.DesertConstants.BUS_PORTAL_Z,
+            com.stardew.craft.desert.DesertConstants.TAG_BUS_PORTAL_MARKER,
+            com.stardew.craft.desert.DesertConstants.TAG_BUS_PORTAL_TARGET);
+
+        // 沙漠返程公交站：沙漠侧 2x2x1 区域，在空气位置放置触发方块
+        placePortalTriggerArea(level,
+            com.stardew.craft.desert.DesertConstants.BUS_RETURN_PORTAL_BASE,
+            com.stardew.craft.desert.DesertConstants.BUS_RETURN_PORTAL_H,
+            com.stardew.craft.desert.DesertConstants.BUS_RETURN_PORTAL_X,
+            com.stardew.craft.desert.DesertConstants.BUS_RETURN_PORTAL_Z,
+            com.stardew.craft.desert.DesertConstants.TAG_BUS_RETURN_PORTAL_MARKER,
+            com.stardew.craft.desert.DesertConstants.TAG_BUS_RETURN_PORTAL_TARGET);
+
         // 矿井室外入口：3高 x 4宽 x 1深。
         placePortalTriggerArea(level, MINE_OUTDOOR_ENTRY_POS, 3, 4, 1,
             TAG_PORTAL_MARKER_MINE_OUTSIDE, "sdv_portal_target:mine_entrance");
@@ -1343,6 +1450,36 @@ public final class InteriorSubspaceManager {
                                                int zBlocks,
                                                String markerTag,
                                                String targetTag) {
+        placePortalTriggerAreaInternal(level, basePos, heightBlocks, xBlocks, zBlocks, markerTag, targetTag, false);
+    }
+
+    /**
+     * 仅替换 <b>非空气</b> 方块位置的 PortalTriggerBlock（专用于沙漠公交站）。
+     * <p>此区域内的空气方块保持不变，只有已存在的实体方块（站牌、地砖等）被替换成触发方块，
+     * 玩家只会在踩到/撞到这些非空气方块时触发，而不会把整个体积都填成触发方块。
+     */
+    public static void placePortalTriggerAreaSolidOnly(ServerLevel level,
+                                                      BlockPos basePos,
+                                                      int heightBlocks,
+                                                      int xBlocks,
+                                                      int zBlocks,
+                                                      String markerTag,
+                                                      String targetTag) {
+        placePortalTriggerAreaInternal(level, basePos, heightBlocks, xBlocks, zBlocks, markerTag, targetTag, true);
+    }
+
+    private static void placePortalTriggerAreaInternal(ServerLevel level,
+                                               BlockPos basePos,
+                                               int heightBlocks,
+                                               int xBlocks,
+                                               int zBlocks,
+                                               String markerTag,
+                                               String targetTag,
+                                               boolean solidOnly) {
+        // ── 注册到自修复注册表 ──
+        PORTAL_REGISTRY.put(portalKey(level.dimension(), basePos),
+                new PortalPlacement(level.dimension(), basePos, heightBlocks, xBlocks, zBlocks, markerTag, targetTag, solidOnly));
+
         // ── 区块预加载检查 ──
         java.util.Set<Long> neededChunks = new java.util.HashSet<>();
         for (int dx = 0; dx < xBlocks; dx++) {
@@ -1365,7 +1502,7 @@ public final class InteriorSubspaceManager {
             // 区块尚未加载，延迟到下一 tick 重试
             level.getServer().tell(new net.minecraft.server.TickTask(
                 level.getServer().getTickCount() + 1,
-                () -> placePortalTriggerArea(level, basePos, heightBlocks, xBlocks, zBlocks, markerTag, targetTag)
+                () -> placePortalTriggerAreaInternal(level, basePos, heightBlocks, xBlocks, zBlocks, markerTag, targetTag, solidOnly)
             ));
             StardewCraft.LOGGER.info("[INTERIOR] Deferred portal trigger '{}' at {} — waiting for chunks",
                     markerTag, basePos);
@@ -1390,6 +1527,10 @@ public final class InteriorSubspaceManager {
             for (int dz = 0; dz < zBlocks; dz++) {
                 for (int dy = 0; dy < heightBlocks; dy++) {
                     BlockPos pos = basePos.offset(dx, dy, dz);
+                    // solidOnly 模式下，只替换非空气方块（沙漠公交站）
+                    if (solidOnly && level.getBlockState(pos).isAir()) {
+                        continue;
+                    }
                     level.setBlock(pos,
                             com.stardew.craft.block.ModBlocks.PORTAL_TRIGGER.get().defaultBlockState(),
                             net.minecraft.world.level.block.Block.UPDATE_ALL);
@@ -1401,8 +1542,8 @@ public final class InteriorSubspaceManager {
                 }
             }
         }
-        StardewCraft.LOGGER.info("[INTERIOR] Portal trigger area '{}': base={}, x={} z={} h={}, placed={}",
-                markerTag, basePos, xBlocks, zBlocks, heightBlocks, placed);
+        StardewCraft.LOGGER.info("[INTERIOR] Portal trigger area '{}': base={}, x={} z={} h={}, placed={}, solidOnly={}",
+                markerTag, basePos, xBlocks, zBlocks, heightBlocks, placed, solidOnly);
     }
 
     /**

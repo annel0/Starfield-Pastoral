@@ -3,6 +3,7 @@ package com.stardew.craft.quest;
 import com.stardew.craft.npc.runtime.NpcFriendshipDataManager;
 import com.stardew.craft.npc.runtime.NpcInteractionService;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Collections;
@@ -58,14 +59,30 @@ public class ItemDeliveryQuest extends StardewQuest {
     public int getTotalObjectiveCount() { return number > 1 ? number : -1; }
 
     @Override
+    public List<Component> getObjectiveComponents() {
+        // 有本地化 key → 用动态进度构造（args: [itemKey, npcKey]）
+        if (objectiveKey != null && !objectiveKey.isEmpty() && objectiveArgs.size() >= 2) {
+            Component itemName = Component.translatable(objectiveArgs.get(0));
+            Component npcName = Component.translatable(objectiveArgs.get(1));
+            if (number > 1) {
+                // 多数量版：再拼一行 "N/M"
+                return Collections.singletonList(Component.translatable(
+                        "stardewcraft.quest.delivery.objective_multi",
+                        String.valueOf(number), itemName, npcName,
+                        String.valueOf(numberDelivered)));
+            }
+            return Collections.singletonList(Component.translatable(
+                    objectiveKey, itemName, npcName));
+        }
+        return super.getObjectiveComponents();
+    }
+
+    @Override
     public List<String> getObjectiveDescriptions() {
-        if (!objectiveText.isEmpty()) {
-            return Collections.singletonList(objectiveText);
-        }
-        if (number > 1) {
-            return Collections.singletonList("将 " + number + " 个物品交给 " + targetNpc + " (" + numberDelivered + "/" + number + ")");
-        }
-        return Collections.singletonList("将物品交给 " + targetNpc);
+        List<Component> comps = getObjectiveComponents();
+        List<String> out = new java.util.ArrayList<>(comps.size());
+        for (Component c : comps) out.add(c.getString());
+        return out;
     }
 
     @Override

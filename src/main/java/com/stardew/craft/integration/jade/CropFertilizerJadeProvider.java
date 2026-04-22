@@ -11,6 +11,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.FarmBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IBlockComponentProvider;
 import snownee.jade.api.ITooltip;
@@ -30,6 +33,26 @@ public enum CropFertilizerJadeProvider implements IBlockComponentProvider {
         return UID;
     }
 
+    private static BlockPos resolveCropRootPos(BlockAccessor accessor) {
+        BlockPos pos = accessor.getPosition();
+        BlockState state = accessor.getBlockState();
+        if (!state.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)) {
+            return pos;
+        }
+        if (state.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) != DoubleBlockHalf.UPPER) {
+            return pos;
+        }
+
+        BlockPos belowPos = pos.below();
+        BlockState belowState = accessor.getLevel().getBlockState(belowPos);
+        if (belowState.getBlock() == state.getBlock()
+                && belowState.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)
+                && belowState.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.LOWER) {
+            return belowPos;
+        }
+        return pos;
+    }
+
     @SuppressWarnings("null")
     @Override
     public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
@@ -39,7 +62,7 @@ public enum CropFertilizerJadeProvider implements IBlockComponentProvider {
         }
 
         // 检查作物下方的耕地
-        BlockPos farmPos = accessor.getPosition().below();
+        BlockPos farmPos = resolveCropRootPos(accessor).below();
         if (!(accessor.getLevel().getBlockState(farmPos).getBlock() instanceof FarmBlock)) {
             return;
         }

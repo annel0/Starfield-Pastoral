@@ -65,10 +65,7 @@ public final class FishingSessionManager {
 		int ticksUntilBite;
 
 		// 获取鱼竿
-		ItemStack rod = player.getMainHandItem();
-		if (rod.isEmpty() || !(rod.getItem() instanceof com.stardew.craft.item.tool.FishingRodItem)) {
-			rod = player.getOffhandItem();
-		}
+		ItemStack rod = com.stardew.craft.item.tool.FishingRodItem.findRod(player);
 		
 		if (rod != null && rod.getItem() instanceof com.stardew.craft.item.tool.FishingRodItem fishingRodItem) {
 			// Spinner & Dressed Spinner: reduce the MAX bite time by 5s/10s each (stackable).
@@ -121,11 +118,8 @@ public final class FishingSessionManager {
 	}
 
 	private static ItemStack getRodFromPlayer(ServerPlayer player) {
-		ItemStack rod = player.getMainHandItem();
-		if (rod.isEmpty() || !(rod.getItem() instanceof FishingRodItem)) {
-			rod = player.getOffhandItem();
-		}
-		if (rod.isEmpty() || !(rod.getItem() instanceof FishingRodItem)) {
+		ItemStack rod = FishingRodItem.findRod(player);
+		if (rod.isEmpty()) {
 			return ItemStack.EMPTY;
 		}
 		return rod;
@@ -338,10 +332,7 @@ public final class FishingSessionManager {
 		boolean caught = success && catchProgress >= 1.0f;
 		
 		// 获取鱼竿（用于消耗鱼饵和渔具）
-		ItemStack rod = player.getMainHandItem();
-		if (rod.isEmpty() || !(rod.getItem() instanceof com.stardew.craft.item.tool.FishingRodItem)) {
-			rod = player.getOffhandItem();
-		}
+		ItemStack rod = com.stardew.craft.item.tool.FishingRodItem.findRod(player);
 		boolean hasWildBait = rod != null && !rod.isEmpty() && com.stardew.craft.item.tool.FishingRodItem.hasBait(rod, "stardewcraft:wild_bait");
 		boolean hasChallengeBait = rod != null && !rod.isEmpty() && com.stardew.craft.item.tool.FishingRodItem.hasBait(rod, "stardewcraft:challenge_bait");
 		
@@ -598,8 +589,26 @@ public final class FishingSessionManager {
 			// 1.20+ 常见构造：FishingHook(Player, Level, luck, lure)
 			@SuppressWarnings("null")
 			FishingHook hook = new FishingHook(player, level, 0, 0);
-			// Let the hook fly out like vanilla; charge changes initial velocity => visible distance difference.
-			float velocity = Mth.lerp(Mth.clamp(castPower01, 0f, 1f), 0.7f, 1.8f);
+			// === SDV FishingRod cast distance formula ===
+			// distance(px) = max(128, castingPower * (getAddedDistance + 4) * 64)
+			// 1 tile = 64px ≈ 1 MC block. getAddedDistance:
+			//   level 0  -> 0 (max 4 tiles)
+			//   level 1  -> 1 (max 5 tiles)
+			//   level 4  -> 2 (max 6 tiles)
+			//   level 8  -> 3 (max 7 tiles)
+			//   level 15 -> 4 (max 8 tiles)
+			int fishingLevel = com.stardew.craft.player.PlayerStardewDataAPI.getSkillLevel(
+					player, com.stardew.craft.player.SkillType.FISHING);
+			int addedDistance;
+			if (fishingLevel >= 15) addedDistance = 4;
+			else if (fishingLevel >= 8) addedDistance = 3;
+			else if (fishingLevel >= 4) addedDistance = 2;
+			else if (fishingLevel >= 1) addedDistance = 1;
+			else addedDistance = 0;
+			float targetTiles = Math.max(2f, Mth.clamp(castPower01, 0f, 1f) * (addedDistance + 4));
+			// MC FishingHook with shootFromRotation: empirically ~4.5 blocks per unit of velocity
+			// at level horizon. Calibrate so targetTiles maps directly to blocks of horizontal travel.
+			float velocity = Mth.clamp(targetTiles / 4.5f, 0.45f, 2.0f);
 			hook.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, velocity, 1.0F);
 			level.addFreshEntity(hook);
 			return hook;

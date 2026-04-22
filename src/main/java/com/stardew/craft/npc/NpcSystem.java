@@ -85,7 +85,6 @@ public final class NpcSystem {
             if (mineLevel != null) {
                 NpcSpawnManager.tickMiningDimension(mineLevel);
             } else {
-                StardewCraft.LOGGER.warn("[NPC] anyPlayerInMining=true but getLevel(STARDEW_MINING) returned null!");
             }
         }
     }
@@ -101,8 +100,11 @@ public final class NpcSystem {
             previouslyHadPlayers = true;
         }
         NpcScheduleRuntimeService.tick(level);
-        // 标记 wizard 需要立即生成，跳过 miss-count 延迟
-        NpcSpawnManager.forceSpawnNpc("wizard");
+        // Only force-spawn wizard if not already tracked, to avoid
+        // creating duplicates when the tower chunk loads serialised entities.
+        if (NpcSpawnManager.getTrackedNpc(level, "wizard") == null) {
+            NpcSpawnManager.forceSpawnNpc("wizard");
+        }
         NpcSpawnManager.tick(level);
     }
 

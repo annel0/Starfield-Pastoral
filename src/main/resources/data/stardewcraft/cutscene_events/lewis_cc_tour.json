@@ -1,0 +1,325 @@
+{
+  "id": "lewis_cc_tour",
+  "skippable": true,
+  "trigger": {
+    "type": "enter_area",
+    "location": "town",
+    "area_min": [-229, -11, -98],
+    "area_max": [-167, 4, 158]
+  },
+  "preconditions": [
+    { "type": "not_saw_event", "id": "lewis_cc_tour" },
+    { "type": "days_played", "min": 4 },
+    { "type": "time", "min": 800, "max": 1300 },
+    { "type": "weather", "weather": "sunny" },
+    { "type": "not_mail", "id": "JojaMember" },
+    { "type": "is_host" }
+  ],
+  "commands": [
+    { "cmd": "comment", "text": "=== SDV Event 611439: Lewis CC Tour — Part A (Town exterior) ===" },
+
+    { "cmd": "lock_player" },
+    { "cmd": "fade", "mode": "out", "ticks": 10 },
+
+    { "cmd": "comment", "text": "--- Setup: Lewis at CC door facing SOUTH (toward CC, yaw 0) ---" },
+    { "cmd": "hide_npc", "npc_id": "lewis" },
+    { "cmd": "spawn_actor", "actor": "lewis", "npc_id": "lewis",
+      "x": -190.5, "y": -10, "z": 137.5, "relative": false, "facing": 0 },
+
+    { "cmd": "comment", "text": "=== T1: Establishing shot — Lewis alone gazing at CC (sccam T1) ===" },
+    { "cmd": "camera", "x": -190.116, "y": -1.353, "z": 124.487,
+      "yaw": 2.0, "pitch": 29.2, "relative": false },
+
+    { "cmd": "music", "track": "MUSIC_SPRINGTOWN" },
+    { "cmd": "fade", "mode": "in", "ticks": 20 },
+
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "add_mail", "id": "ccDoorUnlock" },
+    { "cmd": "add_quest", "quest_id": "26" },
+    { "cmd": "skippable" },
+
+    { "cmd": "comment", "text": "=== T2: Player appears, walks toward Lewis (sccam T2) ===" },
+    { "cmd": "spawn_actor", "actor": "fake_player", "npc_id": "player",
+      "x": -190.5, "y": -10, "z": 123.5, "relative": false, "facing": 0 },
+
+    { "cmd": "camera", "x": -192.251, "y": -7.751, "z": 139.581,
+      "yaw": -161.0, "pitch": 27.3, "relative": false },
+
+    { "cmd": "comment", "text": "Player walks first half (z 123.5 → 129)" },
+    { "cmd": "move_actor", "actor": "fake_player",
+      "x": -190.5, "y": -10, "z": 129, "ticks": 45, "relative": false },
+
+    { "cmd": "comment", "text": "Player halfway — Lewis notices, turns NORTH (yaw 180) to face player" },
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "emote", "actor": "lewis", "emote": "sad" },
+      { "cmd": "face_actor", "actor": "lewis", "yaw": 180 },
+      { "cmd": "move_actor", "actor": "fake_player",
+        "x": -190.5, "y": -10, "z": 134.5, "ticks": 45, "relative": false }
+    ]},
+
+    { "cmd": "pause", "ticks": 6 },
+
+    { "cmd": "comment", "text": "=== T3: Brief close-up then T4 for dialogue (sccam T3 → T4) ===" },
+    { "cmd": "camera", "x": -191.202, "y": -10.705, "z": 137.08,
+      "yaw": -39.2, "pitch": -37.8, "relative": false },
+
+    { "cmd": "comment", "text": "Lewis faces NORTH (toward player, yaw 180) — greets" },
+    { "cmd": "speak", "npc_id": "lewis", "text": "event.lewis_cc_tour.oh_hi" },
+
+    { "cmd": "comment", "text": "Switch to T4 for the rest of dialogue (shows both characters)" },
+    { "cmd": "camera", "x": -189.768, "y": -7.507, "z": 132.85,
+      "yaw": -0.1, "pitch": 13.9, "relative": false },
+
+    { "cmd": "comment", "text": "Player walks up beside Lewis" },
+    { "cmd": "move_actor", "actor": "fake_player",
+      "x": -191.5, "y": -10, "z": 134.5, "ticks": 15, "relative": false },
+    { "cmd": "move_actor", "actor": "fake_player",
+      "x": -191.5, "y": -10, "z": 136.5, "ticks": 30, "relative": false },
+
+    { "cmd": "comment", "text": "Both face SOUTH (toward CC, yaw 0)" },
+    { "cmd": "face_actor", "actor": "lewis", "yaw": 0 },
+    { "cmd": "face_actor", "actor": "fake_player", "yaw": 0 },
+    { "cmd": "pause", "ticks": 12 },
+
+    { "cmd": "emote", "actor": "lewis", "emote": "pause" },
+    { "cmd": "pause", "ticks": 8 },
+
+    { "cmd": "speak", "npc_id": "lewis", "text": "event.lewis_cc_tour.eyesore" },
+    { "cmd": "pause", "ticks": 12 },
+
+    { "cmd": "comment", "text": "Lewis turns NORTH (yaw 180) to face player" },
+    { "cmd": "face_actor", "actor": "lewis", "yaw": 180 },
+    { "cmd": "pause", "ticks": 6 },
+    { "cmd": "face_actor", "actor": "fake_player", "yaw": 0 },
+    { "cmd": "pause", "ticks": 4 },
+
+    { "cmd": "speak", "npc_id": "lewis", "text": "event.lewis_cc_tour.this_is_cc" },
+    { "cmd": "pause", "ticks": 10 },
+
+    { "cmd": "comment", "text": "Both face SOUTH (toward CC, yaw 0)" },
+    { "cmd": "face_actor", "actor": "fake_player", "yaw": 0 },
+    { "cmd": "face_actor", "actor": "lewis", "yaw": 0 },
+    { "cmd": "pause", "ticks": 8 },
+
+    { "cmd": "speak", "npc_id": "lewis", "text": "event.lewis_cc_tour.pride_and_joy" },
+    { "cmd": "pause", "ticks": 10 },
+
+    { "cmd": "comment", "text": "Lewis turns NORTH (yaw 180) toward player" },
+    { "cmd": "face_actor", "actor": "lewis", "yaw": 180 },
+    { "cmd": "pause", "ticks": 6 },
+
+    { "cmd": "speak", "npc_id": "lewis", "text": "event.lewis_cc_tour.shameful" },
+    { "cmd": "pause", "ticks": 10 },
+
+    { "cmd": "speak", "npc_id": "lewis", "text": "event.lewis_cc_tour.old_fool" },
+
+    { "cmd": "comment", "text": "Lewis turns south and walks 1 block toward CC" },
+    { "cmd": "face_actor", "actor": "lewis", "yaw": 0 },
+    { "cmd": "move_actor", "actor": "lewis",
+      "x": -190.5, "y": -10, "z": 138.5, "ticks": 15, "relative": false },
+
+    { "cmd": "comment", "text": "Lewis turns back NORTH to face player for Joja speech" },
+    { "cmd": "face_actor", "actor": "lewis", "yaw": 180 },
+    { "cmd": "speak", "npc_id": "lewis", "text": "event.lewis_cc_tour.joja" },
+    { "cmd": "pause", "ticks": 14 },
+
+    { "cmd": "comment", "text": "Lewis faces south (toward CC door)" },
+    { "cmd": "face_actor", "actor": "lewis", "yaw": 0 },
+    { "cmd": "speak", "npc_id": "lewis", "text": "event.lewis_cc_tour.lets_go_inside" },
+
+    { "cmd": "comment", "text": "=== Walk to CC entrance — move_actor auto-snaps to ground ===" },
+
+    { "cmd": "comment", "text": "Lewis walks to door (ground-snapped, handles stairs)" },
+    { "cmd": "move_actor", "actor": "lewis",
+      "x": -190.5, "y": -10, "z": 141, "ticks": 30, "relative": false },
+
+    { "cmd": "pause", "ticks": 6 },
+    { "cmd": "play_sound", "sound": "stardewcraft:open_box" },
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "play_sound", "sound": "stardewcraft:door_close" },
+
+    { "cmd": "remove_actor", "actor": "lewis" },
+
+    { "cmd": "comment", "text": "Player walks to door (ground-snapped)" },
+    { "cmd": "face_actor", "actor": "fake_player", "yaw": 0 },
+    { "cmd": "move_actor", "actor": "fake_player",
+      "x": -190.5, "y": -10, "z": 141, "ticks": 50, "relative": false },
+
+    { "cmd": "play_sound", "sound": "stardewcraft:door_close" },
+    { "cmd": "remove_actor", "actor": "fake_player" },
+
+    { "cmd": "comment", "text": "--- Part A ends, transition to Part B (CC Interior) ---" },
+    { "cmd": "stop_music" },
+    { "cmd": "fade", "mode": "out", "ticks": 20 },
+    { "cmd": "pause", "ticks": 10 },
+
+    { "cmd": "comment", "text": "=== Teleport real player to CC interior & wait for chunks ===" },
+    { "cmd": "teleport_cc" },
+    { "cmd": "pause", "ticks": 20 },
+
+    { "cmd": "comment", "text": "=== Part B: CC Interior (anchor=cc_interior; coords are offsets from per-player CC origin) ===" },
+
+    { "cmd": "comment", "text": "=== C1: Establishing pan — no actors, camera C1_1 → C1_2 ===" },
+    { "cmd": "camera", "anchor": "cc_interior", "x": 17.522, "y": 3.666, "z": 28.637,
+      "yaw": 55.9, "pitch": 7.0, "relative": false },
+    { "cmd": "music", "track": "MUSIC_COMMUNITYROOM" },
+    { "cmd": "fade", "mode": "in", "ticks": 20 },
+    { "cmd": "camera", "anchor": "cc_interior", "x": 10.317, "y": 3.666, "z": 34.531,
+      "yaw": 12.5, "pitch": 11.5, "relative": false, "ticks": 80 },
+    { "cmd": "pause", "ticks": 20 },
+
+    { "cmd": "comment", "text": "=== C2: Lewis & player appear at entrance, walk into CC ===" },
+    { "cmd": "spawn_actor", "actor": "lewis", "npc_id": "lewis", "anchor": "cc_interior",
+      "x": 12.5, "y": 3, "z": 38.5, "relative": false, "facing": 90 },
+    { "cmd": "spawn_actor", "actor": "fake_player", "npc_id": "player", "anchor": "cc_interior",
+      "x": 13.5, "y": 3, "z": 37.5, "relative": false, "facing": 90 },
+
+    { "cmd": "camera", "anchor": "cc_interior", "x": 7.125, "y": 3.293, "z": 34.877,
+      "yaw": -48.4, "pitch": 3.7, "relative": false },
+
+    { "cmd": "comment", "text": "Both walk west" },
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "move_actor", "actor": "lewis", "anchor": "cc_interior",
+        "x": 7.5, "y": 3, "z": 38.5, "ticks": 60, "relative": false },
+      { "cmd": "move_actor", "actor": "fake_player", "anchor": "cc_interior",
+        "x": 8.5, "y": 3, "z": 37.5, "ticks": 60, "relative": false }
+    ]},
+
+    { "cmd": "pause", "ticks": 10 },
+
+    { "cmd": "comment", "text": "Lewis looks around, spots something on the floor" },
+    { "cmd": "face_actor", "actor": "lewis", "yaw": 0 },
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "face_actor", "actor": "lewis", "yaw": -90 },
+    { "cmd": "pause", "ticks": 8 },
+
+    { "cmd": "speak", "npc_id": "lewis", "text": "event.lewis_cc_tour.whats_this" },
+    { "cmd": "pause", "ticks": 10 },
+
+    { "cmd": "comment", "text": "=== C3: Lewis close-up — surveys the ruin ===" },
+    { "cmd": "camera", "anchor": "cc_interior", "x": 8.159, "y": 3.293, "z": 40.967,
+      "yaw": 140.3, "pitch": 10.5, "relative": false },
+
+    { "cmd": "emote", "actor": "lewis", "emote": "question" },
+    { "cmd": "pause", "ticks": 8 },
+    { "cmd": "speak", "npc_id": "lewis", "text": "event.lewis_cc_tour.dilapidated" },
+    { "cmd": "pause", "ticks": 16 },
+
+    { "cmd": "comment", "text": "=== C4: First Junimo (green) appears at spot 1 ===" },
+    { "cmd": "camera", "anchor": "cc_interior", "x": 9.889, "y": 2.167, "z": 47.426,
+      "yaw": 120.5, "pitch": 9.6, "relative": false },
+
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "spawn_entity", "entity_type": "junimo", "tag": "junimo1", "anchor": "cc_interior",
+        "x": 8.5, "y": 3, "z": 46.5, "color": 3329330 },
+      { "cmd": "play_sound", "sound": "stardewcraft:coin" },
+      { "cmd": "particle", "type": "enchant", "anchor": "cc_interior",
+        "x": 8.5, "y": 3.5, "z": 46.5, "count": 8, "ticks": 30 },
+      { "cmd": "screen_flash", "ticks": 3 }
+    ]},
+
+    { "cmd": "pause", "ticks": 20 },
+
+    { "cmd": "comment", "text": "Player turns toward junimo1 briefly (yaw 0 = +Z)" },
+    { "cmd": "face_actor", "actor": "fake_player", "yaw": 0 },
+    { "cmd": "pause", "ticks": 15 },
+
+    { "cmd": "comment", "text": "=== C5: Player jumps in shock ===" },
+    { "cmd": "camera", "anchor": "cc_interior", "x": 9.862, "y": 3.656, "z": 36.431,
+      "yaw": 14.0, "pitch": 15.1, "relative": false },
+
+    { "cmd": "jump", "actor": "fake_player", "strength": 0.5 },
+    { "cmd": "pause", "ticks": 12 },
+
+    { "cmd": "comment", "text": "Lewis turns to face player, question emote (SDV emote 8)" },
+    { "cmd": "emote", "actor": "lewis", "emote": "question" },
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "face_actor", "actor": "lewis", "yaw": -90 },
+    { "cmd": "speak", "npc_id": "lewis", "text": "event.lewis_cc_tour.what" },
+    { "cmd": "pause", "ticks": 6 },
+
+    { "cmd": "comment", "text": "Junimo1 vanishes" },
+    { "cmd": "play_sound", "sound": "stardewcraft:dwop" },
+    { "cmd": "remove_actor", "actor": "junimo1" },
+    { "cmd": "pause", "ticks": 14 },
+
+    { "cmd": "comment", "text": "Lewis looks around confused, doesn't see anything" },
+    { "cmd": "face_actor", "actor": "lewis", "yaw": 0 },
+    { "cmd": "pause", "ticks": 8 },
+    { "cmd": "face_actor", "actor": "lewis", "yaw": -90 },
+    { "cmd": "pause", "ticks": 6 },
+
+    { "cmd": "speak", "npc_id": "lewis", "text": "event.lewis_cc_tour.are_you_ill" },
+    { "cmd": "pause", "ticks": 8 },
+
+    { "cmd": "comment", "text": "Player gestures toward where the junimo was" },
+    { "cmd": "face_actor", "actor": "fake_player", "yaw": 0 },
+    { "cmd": "pause", "ticks": 10 },
+
+    { "cmd": "speak", "npc_id": "lewis", "text": "event.lewis_cc_tour.rats" },
+    { "cmd": "pause", "ticks": 16 },
+
+    { "cmd": "comment", "text": "=== C6: Second Junimo (blue) appears at spot 2 ===" },
+    { "cmd": "camera", "anchor": "cc_interior", "x": 8.776, "y": 2.543, "z": 33.424,
+      "yaw": 50.3, "pitch": 9.9, "relative": false },
+
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "spawn_entity", "entity_type": "junimo", "tag": "junimo2", "anchor": "cc_interior",
+        "x": 5.5, "y": 3, "z": 33.5, "color": 4286945 },
+      { "cmd": "play_sound", "sound": "stardewcraft:coin" },
+      { "cmd": "particle", "type": "enchant", "anchor": "cc_interior",
+        "x": 5.5, "y": 3.5, "z": 33.5, "count": 8, "ticks": 30 },
+      { "cmd": "screen_flash", "ticks": 3 }
+    ]},
+
+    { "cmd": "pause", "ticks": 10 },
+
+    { "cmd": "comment", "text": "Player turns toward junimo2 (southwest ~143°)" },
+    { "cmd": "face_actor", "actor": "fake_player", "yaw": 143 },
+    { "cmd": "jump", "actor": "fake_player", "strength": 0.5 },
+    { "cmd": "pause", "ticks": 15 },
+
+    { "cmd": "comment", "text": "Junimo2 vanishes" },
+    { "cmd": "play_sound", "sound": "stardewcraft:dwop" },
+    { "cmd": "remove_actor", "actor": "junimo2" },
+    { "cmd": "pause", "ticks": 10 },
+
+    { "cmd": "comment", "text": "Lewis worried about player — pause/thinking emote (SDV emote 40)" },
+    { "cmd": "face_actor", "actor": "lewis", "face_actor": "fake_player" },
+    { "cmd": "emote", "actor": "lewis", "emote": "pause" },
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "speak", "npc_id": "lewis", "text": "event.lewis_cc_tour.worrying" },
+    { "cmd": "pause", "ticks": 10 },
+
+    { "cmd": "speak", "npc_id": "lewis", "text": "event.lewis_cc_tour.head_home" },
+    { "cmd": "pause", "ticks": 10 },
+
+    { "cmd": "speak", "npc_id": "lewis", "text": "event.lewis_cc_tour.unlocked" },
+    { "cmd": "pause", "ticks": 10 },
+
+    { "cmd": "comment", "text": "=== C7: Lewis walks to exit ===" },
+    { "cmd": "camera", "anchor": "cc_interior", "x": 5.119, "y": 5.156, "z": 39.245,
+      "yaw": -100.4, "pitch": 22.0, "relative": false },
+
+    { "cmd": "face_actor", "actor": "lewis", "yaw": -90 },
+    { "cmd": "move_actor", "actor": "lewis", "anchor": "cc_interior",
+      "x": 16.5, "y": 3, "z": 38.5, "ticks": 80, "relative": false },
+
+    { "cmd": "remove_actor", "actor": "lewis" },
+    { "cmd": "pause", "ticks": 20 },
+
+    { "cmd": "comment", "text": "Player alone in CC — inner monologue" },
+    { "cmd": "message", "text": "event.lewis_cc_tour.strange" },
+    { "cmd": "message", "text": "event.lewis_cc_tour.come_back" },
+
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "remove_actor", "actor": "fake_player" },
+
+    { "cmd": "fade", "mode": "out", "ticks": 20 },
+    { "cmd": "pause", "ticks": 20 },
+    { "cmd": "show_npc", "npc_id": "lewis" },
+    { "cmd": "camera", "action": "reset" },
+    { "cmd": "fade", "mode": "in", "ticks": 20 },
+    { "cmd": "end" }
+  ]
+}

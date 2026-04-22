@@ -17,6 +17,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Server-side handler for Gunther's museum interactions.
@@ -52,7 +53,8 @@ public final class GuntherService {
         gunther.setYHeadRot(90f);
 
         MuseumDonationData data = MuseumDonationData.get(player.serverLevel());
-        boolean donationActive = data.isDonationModeActive();
+        UUID playerId = player.getUUID();
+        boolean donationActive = data.isDonationModeActive(playerId);
         boolean hasDonatable = !donationActive && playerHasDonatableItem(player);
 
         if (!donationActive && !hasDonatable) {
@@ -84,9 +86,10 @@ public final class GuntherService {
 
     private static void startDonation(ServerPlayer player) {
         MuseumDonationData data = MuseumDonationData.get(player.serverLevel());
-        if (data.isDonationModeActive()) return;
-        data.startDonationMode();
-        syncDonations(data);
+        UUID playerId = player.getUUID();
+        if (data.isDonationModeActive(playerId)) return;
+        data.startDonationMode(playerId);
+        syncDonations(data, player);
         // SDV parity: Gunther tells the player to come back when done
         PacketDistributor.sendToPlayer(player, new OpenNpcDialogueScreenPayload(
             "gunther",
@@ -97,9 +100,10 @@ public final class GuntherService {
 
     private static void endDonation(ServerPlayer player) {
         MuseumDonationData data = MuseumDonationData.get(player.serverLevel());
-        if (!data.isDonationModeActive()) return;
-        MuseumDonationData.EndSessionResult result = data.endDonationMode();
-        syncDonations(data);
+        UUID playerId = player.getUUID();
+        if (!data.isDonationModeActive(playerId)) return;
+        MuseumDonationData.EndSessionResult result = data.endDonationMode(playerId);
+        syncDonations(data, player);
 
         if (!result.success()) {
             PacketDistributor.sendToPlayer(player, new OpenNpcDialogueScreenPayload(
@@ -112,7 +116,7 @@ public final class GuntherService {
 
         // Check & grant museum milestone rewards
         List<MuseumRewardRegistry.MuseumReward> claimable =
-            MuseumRewardRegistry.getClaimableRewards(data, data.getClaimedMuseumRewards());
+            MuseumRewardRegistry.getClaimableRewards(data, playerId, data.getClaimedMuseumRewards(playerId));
 
         if (!claimable.isEmpty()) {
             PlayerStardewData pData = PlayerDataManager.getPlayerData(player);
@@ -129,7 +133,7 @@ public final class GuntherService {
                     pData.unlockRecipe(reward.grantRecipe());
                 }
                 // Mark as claimed
-                data.claimReward(reward.id());
+                data.claimReward(playerId, reward.id());
 
                 // Build display name
                 for (MuseumRewardRegistry.RewardItem ri : reward.rewardItems()) {
@@ -152,7 +156,7 @@ public final class GuntherService {
             // Prismatic Shard hint check
             PlayerStardewData pData = PlayerDataManager.getPlayerData(player);
             if (!pData.hasMailFlag("galaxySword")
-                    && data.getDonatedItems().contains("stardewcraft:prismatic_shard")) {
+                    && data.getDonatedItems(playerId).contains("stardewcraft:prismatic_shard")) {
                 PacketDistributor.sendToPlayer(player, new OpenNpcDialogueScreenPayload(
                     "gunther",
                     "stardewcraft.npc.gunther.prismatic_hint",
@@ -168,9 +172,10 @@ public final class GuntherService {
         }
     }
 
-    private static void syncDonations(MuseumDonationData data) {
-        List<String> ids = new ArrayList<>(data.getDonatedItems());
-        PacketDistributor.sendToAllPlayers(new MuseumDonationSyncPacket(ids));
+    private static void syncDonations(MuseumDonationData data, ServerPlayer player) {
+        UUID playerId = player.getUUID();
+        List<String> ids = new ArrayList<>(data.getDonatedItems(playerId));
+        PacketDistributor.sendToPlayer(player, new MuseumDonationSyncPacket(ids));
     }
 
     /**
@@ -178,6 +183,7 @@ public final class GuntherService {
      */
     public static boolean playerHasDonatableItem(ServerPlayer player) {
         MuseumDonationData data = MuseumDonationData.get(player.serverLevel());
+        UUID playerId = player.getUUID();
         for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
             ItemStack stack = player.getInventory().getItem(i);
             if (stack.isEmpty()) continue;
@@ -185,7 +191,7 @@ public final class GuntherService {
             String typeKey = stardewItem.getItemTypeKey();
             if (!"stardewcraft.type.mineral".equals(typeKey) && !"stardewcraft.type.artifact".equals(typeKey)) continue;
             String itemId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-            if (!data.isDonated(itemId)) return true;
+            if (!data.isDonated(playerId, itemId)) return true;
         }
         return false;
     }

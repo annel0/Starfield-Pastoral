@@ -1,12 +1,15 @@
 package com.stardew.craft.integration.jade;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.block.utility.MailboxBlock;
 import com.stardew.craft.blockentity.MailboxBlockEntity;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IBlockComponentProvider;
 import snownee.jade.api.IServerDataProvider;
@@ -29,8 +32,8 @@ public enum MailboxJadeProvider implements IBlockComponentProvider, IServerDataP
 	@SuppressWarnings("null")
 	@Override
 	public void appendServerData(CompoundTag tag, BlockAccessor accessor) {
-		BlockEntity be = accessor.getBlockEntity();
-		if (be instanceof MailboxBlockEntity mailbox) {
+		MailboxBlockEntity mailbox = getMailbox(accessor);
+		if (mailbox != null) {
 			tag.putBoolean(NBT_HAS_OWNER, mailbox.hasOwner());
 			if (mailbox.hasOwner()) {
 				tag.putString(NBT_OWNER_NAME, mailbox.getOwnerName());
@@ -47,5 +50,23 @@ public enum MailboxJadeProvider implements IBlockComponentProvider, IServerDataP
 			tooltip.add(Component.translatable("stardewcraft.jade.mailbox.owner", ownerName)
 					.withStyle(ChatFormatting.GRAY));
 		}
+	}
+
+	@SuppressWarnings("null")
+	private static MailboxBlockEntity getMailbox(BlockAccessor accessor) {
+		BlockEntity beDirect = accessor.getBlockEntity();
+		if (beDirect instanceof MailboxBlockEntity mailbox) {
+			return mailbox;
+		}
+		BlockState state = accessor.getBlockState();
+		if (!(state.getBlock() instanceof MailboxBlock mailboxBlock)) {
+			return null;
+		}
+		BlockPos mainPos = mailboxBlock.findMainPos(accessor.getLevel(), accessor.getPosition(), state);
+		if (mainPos == null) {
+			return null;
+		}
+		BlockEntity be = accessor.getLevel().getBlockEntity(mainPos);
+		return be instanceof MailboxBlockEntity mailbox ? mailbox : null;
 	}
 }

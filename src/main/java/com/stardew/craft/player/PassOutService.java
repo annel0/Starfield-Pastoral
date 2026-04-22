@@ -1,10 +1,13 @@
 package com.stardew.craft.player;
 
+import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModMiningDimensions;
+import com.stardew.craft.core.ModTags;
 import com.stardew.craft.item.equipment.StardewBootsItem;
 import com.stardew.craft.item.equipment.StardewRingItem;
 import com.stardew.craft.item.weapon.StardewWeaponItem;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.item.ItemStack;
@@ -267,18 +270,27 @@ public final class PassOutService {
     }
 
     /**
-     * SDV 原版：工具、武器、戒指、靴子不可丢失。
+     * SDV 原版：工具、武器、戒指、靴子不可丢失；
+     * 非星露谷物品不参与丢失；标记 prevent_loss_on_death 的物品不可丢失。
      */
     private static boolean canBeLostOnDeath(ItemStack stack) {
         var item = stack.getItem();
-        // 星露谷工具（锄头、斧头、镐、浇水壶、钓竿、镰刀）
+        // 只有 stardewcraft 命名空间的物品可以丢失
+        ResourceLocation id = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item);
+        if (!StardewCraft.MODID.equals(id.getNamespace())) return false;
+        // 数据标签黑名单（SDV prevent_loss_on_death 等价）
+        if (stack.is(ModTags.Items.PREVENT_LOSS_ON_DEATH)) return false;
+        // 星露谷工具（锄头、斧头、镐、浇水壶、钓竿、镰刀、淘金盘）
         if (item instanceof net.minecraft.world.item.TieredItem) return false;
         if (item instanceof com.stardew.craft.item.tool.HoeItem) return false;
         if (item instanceof com.stardew.craft.item.tool.WateringCanItem) return false;
         if (item instanceof com.stardew.craft.item.tool.FishingRodItem) return false;
         if (item instanceof com.stardew.craft.item.tool.ScytheItem) return false;
-        // 武器
+        if (item instanceof com.stardew.craft.item.tool.PanItem) return false;
+        // 武器（剑、匕首、棍棒）
         if (item instanceof StardewWeaponItem) return false;
+        if (item instanceof com.stardew.craft.item.weapon.StardewDaggerItem) return false;
+        if (item instanceof com.stardew.craft.item.weapon.StardewClubItem) return false;
         // 戒指
         if (item instanceof StardewRingItem) return false;
         // 靴子

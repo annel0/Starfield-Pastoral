@@ -68,7 +68,9 @@ public class ShippingBinMenu extends AbstractContainerMenu {
             }
             if (this.container instanceof ShippingBinBlockEntity bin) {
                 bin.depositFromPlayer(player, stackInSlot);
+                stackInSlot.setCount(0);
                 slot.set(ItemStack.EMPTY);
+                slot.setChanged();
                 return ItemStack.EMPTY;
             } else if (!this.moveItemStackTo(stackInSlot, 0, BIN_SLOTS, false)) {
                 return ItemStack.EMPTY;

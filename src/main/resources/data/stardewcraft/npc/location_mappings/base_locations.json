@@ -27,7 +27,9 @@
     "trailer",
     "leahhouse",
     "adventurer_guild",
-    "wizard_tower"
+    "oasis",
+    "wizard_tower",
+    "sebastianroom"
   ],
   "aliases": {
     "pierreshop": "seedshop",
@@ -37,6 +39,8 @@
     "carpenter": "sciencehouse",
     "marnieranch": "animalshop",
     "willyshop": "fishshop",
+    "sandyhouse": "oasis",
+    "oasisshop": "oasis",
     "wizardhouse": "wizard_tower"
   },
   "anchors": {
@@ -80,11 +84,14 @@
       "indoor_entry_point": "clinic_indoor_entry"
     },
     "animalshop": {
-      "x": 179.0,
-      "y": -14.0,
-      "z": -5.0,
-      "indoor": false,
-      "use_ground_height": true
+      "x": 17090.5,
+      "y": 71.0,
+      "z": 18255.5,
+      "indoor": true,
+      "portal_target": "marnie_ranch_enter",
+      "use_ground_height": false,
+      "outdoor_door_point": "animalshop_outdoor_door",
+      "indoor_entry_point": "animalshop_indoor_entry"
     },
     "archaeologyhouse": {
       "x": 13066.5,
@@ -103,10 +110,27 @@
       "indoor": true,
       "use_ground_height": false
     },
+    "oasis": {
+      "x": 18245.5,
+      "y": 71.0,
+      "z": 17666.5,
+      "indoor": true,
+      "use_ground_height": false
+    },
     "sciencehouse": {
       "x": 16525.5,
       "y": 75.0,
       "z": 16519.5,
+      "indoor": true,
+      "portal_target": "carpenter_shop_enter",
+      "use_ground_height": false,
+      "outdoor_door_point": "sciencehouse_outdoor_door",
+      "indoor_entry_point": "sciencehouse_indoor_entry"
+    },
+    "sebastianroom": {
+      "x": 16519.5,
+      "y": 71.0,
+      "z": 16535.5,
       "indoor": true,
       "portal_target": "carpenter_shop_enter",
       "use_ground_height": false,
@@ -175,11 +199,14 @@
       "outdoor_door_point": "fishshop_outer"
     },
     "samhouse": {
-      "x": 84.0,
-      "y": -16.0,
-      "z": -25.0,
-      "indoor": false,
-      "use_ground_height": true
+      "x": 17090.5,
+      "y": 71.0,
+      "z": 17093.5,
+      "indoor": true,
+      "portal_target": "1_willow_lane_enter",
+      "use_ground_height": false,
+      "outdoor_door_point": "samhouse_outdoor_door",
+      "indoor_entry_point": "samhouse_indoor_entry"
     },
     "jojamart": {
       "x": -292.0,
@@ -236,11 +263,14 @@
       "use_ground_height": true
     },
     "leahhouse": {
-      "x": 156.0,
-      "y": -13.0,
-      "z": -59.0,
-      "indoor": false,
-      "use_ground_height": true
+      "x": 17094.5,
+      "y": 71.0,
+      "z": 18823.5,
+      "indoor": true,
+      "portal_target": "leah_cottage_enter",
+      "use_ground_height": false,
+      "outdoor_door_point": "leahhouse_outdoor_door",
+      "indoor_entry_point": "leahhouse_indoor_entry"
     },
     "wizard_tower": {
       "x": 18249.5,

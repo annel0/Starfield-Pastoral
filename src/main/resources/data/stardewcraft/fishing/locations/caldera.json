@@ -1,20 +1,28 @@
-﻿{
-    "location":  "Caldera",
-    "fish":  [
-                 {
-                     "id":  "lava_eel",
-                     "precedence":  100,
-                     "item":  "stardewcraft:lava_eel",
-                     "chance":  0.1,
-                     "difficulty":  90,
-                     "motionType":  0,
-                     "minFishingLevel":  7,
-                     "maxDepth":  4,
-                     "depthMultiplier":  0.05,
-                     "biomeTags":  [
-                                       "#stardewcraft:is_mines_100",
-                                       "#stardewcraft:is_volcano"
-                                   ]
-                 }
-             ]
+{
+  "location": "Caldera",
+  "fish": [
+    {
+      "id": "lava_eel",
+      "precedence": -10,
+      "item": "stardewcraft:lava_eel",
+      "chance": 0.1,
+      "difficulty": 90,
+      "motionType": 0,
+      "minFishingLevel": 7,
+      "maxDepth": 2,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_mines_100",
+        "#stardewcraft:is_volcano"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.05
+    }
+  ]
 }

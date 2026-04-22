@@ -1,8 +1,10 @@
 package com.stardew.craft.event;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.command.BilibiliClaimCommand;
 import com.stardew.craft.command.CommunityCenterCommand;
 import com.stardew.craft.command.FarmAdminCommand;
+import com.stardew.craft.command.FarmJoinCommand;
 import com.stardew.craft.command.MailDebugCommand;
 import com.stardew.craft.command.MuseumDebugCommand;
 import com.stardew.craft.command.AnimalDebugCommand;
@@ -36,7 +38,12 @@ public class CommandEventHandler {
         MailDebugCommand.register(event.getDispatcher());
         CommunityCenterCommand.register(event.getDispatcher());
         FarmAdminCommand.register(event.getDispatcher());
+        FarmJoinCommand.register(event.getDispatcher());
         StructureDebugCommand.register(event.getDispatcher());
+        BilibiliClaimCommand.register(event.getDispatcher());
+        com.stardew.craft.command.CutsceneDebugCommand.register(event.getDispatcher());
+        com.stardew.craft.command.CameraDebugCommand.register(event.getDispatcher());
+        com.stardew.craft.command.FishSplashDebugCommand.register(event.getDispatcher());
         StardewCraft.LOGGER.info("Registered Stardew commands");
     }
 }

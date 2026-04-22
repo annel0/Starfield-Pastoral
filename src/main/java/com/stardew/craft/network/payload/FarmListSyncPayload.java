@@ -27,7 +27,8 @@ public record FarmListSyncPayload(
             String ownerName,
             String farmName,
             String farmTypeId,
-            int permission // 0/1/2 — 当前玩家对该农场的权限
+            int permission, // 0/1/2 — 当前玩家对该农场的权限
+            boolean isMember // 当前玩家是否为该农场的成员（owner 或 member）
     ) {}
 
     public static final Type<FarmListSyncPayload> TYPE =
@@ -46,7 +47,8 @@ public record FarmListSyncPayload(
                         String farmName = buf.readUtf();
                         String farmTypeId = buf.readUtf();
                         int perm = buf.readByte();
-                        farms.add(new FarmEntry(uuid, ownerName, farmName, farmTypeId, perm));
+                        boolean isMember = buf.readBoolean();
+                        farms.add(new FarmEntry(uuid, ownerName, farmName, farmTypeId, perm, isMember));
                     }
                     return new FarmListSyncPayload(farms, entryTag);
                 }
@@ -61,6 +63,7 @@ public record FarmListSyncPayload(
                         buf.writeUtf(entry.farmName);
                         buf.writeUtf(entry.farmTypeId);
                         buf.writeByte(entry.permission);
+                        buf.writeBoolean(entry.isMember);
                     }
                 }
             };
@@ -78,7 +81,11 @@ public record FarmListSyncPayload(
     private static void handleClient(FarmListSyncPayload payload) {
         net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
         if (mc.player == null) return;
-        mc.setScreen(new com.stardew.craft.client.gui.FarmEntryScreen(payload.farms, payload.entryTag));
+        if ("farm_join".equals(payload.entryTag)) {
+            mc.setScreen(new com.stardew.craft.client.gui.FarmJoinSelectScreen(payload.farms));
+        } else {
+            mc.setScreen(new com.stardew.craft.client.gui.FarmEntryScreen(payload.farms, payload.entryTag));
+        }
     }
 
     /**
@@ -92,13 +99,18 @@ public record FarmListSyncPayload(
         List<FarmEntry> entries = new ArrayList<>();
         for (com.stardew.craft.farm.FarmInstance farm : registry.getAllFarms()) {
             if (!farm.isInitialized()) continue;
-            int perm = permMgr.getPermission(farm.getOwnerUUID(), playerUUID);
+            // 成员视为 PERM_FULL
+            int perm = farm.isFarmer(playerUUID)
+                    ? com.stardew.craft.farm.FarmPermissionManager.PERM_FULL
+                    : permMgr.getPermission(farm.getOwnerUUID(), playerUUID);
+            boolean isMember = farm.isFarmer(playerUUID);
             entries.add(new FarmEntry(
                     farm.getOwnerUUID(),
                     farm.getOwnerName(),
                     farm.getFarmName(),
                     farm.getFarmType().getId(),
-                    perm
+                    perm,
+                    isMember
             ));
         }
 

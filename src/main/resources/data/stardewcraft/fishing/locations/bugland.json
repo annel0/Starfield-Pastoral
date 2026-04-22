@@ -1,19 +1,93 @@
-﻿{
-    "location":  "BugLand",
-    "fish":  [
-                 {
-                     "id":  "slimejack",
-                     "precedence":  100,
-                     "item":  "stardewcraft:slimejack",
-                     "chance":  0.2,
-                     "difficulty":  55,
-                     "motionType":  0,
-                     "minFishingLevel":  0,
-                     "maxDepth":  3,
-                     "depthMultiplier":  0.1,
-                     "biomeTags":  [
-                                       "#stardewcraft:is_mutant_bug_lair"
-                                   ]
-                 }
-             ]
+{
+  "location": "BugLand",
+  "fish": [
+    {
+      "id": "slimejack",
+      "precedence": 0,
+      "item": "stardewcraft:slimejack",
+      "chance": 1.0,
+      "difficulty": 55,
+      "motionType": 0,
+      "minFishingLevel": 0,
+      "maxDepth": 3,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_mutant_bug_lair"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.4
+    },
+    {
+      "id": "carp",
+      "precedence": 0,
+      "item": "stardewcraft:carp",
+      "chance": 1.0,
+      "difficulty": 15,
+      "motionType": 0,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 1,
+      "depthMultiplier": 0.1,
+      "spawnRate": 0.45,
+      "biomeTags": [
+        "#stardewcraft:is_mutant_bug_lair"
+      ]
+    },
+    {
+      "id": "green_algae",
+      "precedence": 0,
+      "item": "stardewcraft:green_algae",
+      "chance": 1.0,
+      "difficulty": 5,
+      "motionType": 4,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 0,
+      "depthMultiplier": 0.0,
+      "spawnRate": 0.3,
+      "biomeTags": [
+        "#stardewcraft:is_mutant_bug_lair"
+      ]
+    },
+    {
+      "id": "white_algae",
+      "precedence": 0,
+      "item": "stardewcraft:white_algae",
+      "chance": 1.0,
+      "difficulty": 5,
+      "motionType": 4,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 0,
+      "depthMultiplier": 0.0,
+      "spawnRate": 0.3,
+      "biomeTags": [
+        "#stardewcraft:is_mutant_bug_lair"
+      ]
+    }
+  ]
 }

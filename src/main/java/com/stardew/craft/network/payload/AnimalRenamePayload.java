@@ -55,7 +55,9 @@ public record AnimalRenamePayload(long animalId, String newName) implements Cust
             }
 
             String ownerUuid = buildingOpt.get().ownerPlayerUuid();
-            if (!serverPlayer.getUUID().toString().equals(ownerUuid)) {
+            if (!com.stardew.craft.farm.FarmInstanceRegistry.get()
+                    .canOperateBuilding(serverPlayer.getUUID(), ownerUuid)) {
+                serverPlayer.sendSystemMessage(Component.translatable("stardewcraft.animal.query.no_permission"));
                 return;
             }
 

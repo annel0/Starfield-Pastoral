@@ -46,41 +46,51 @@ public record RequestNpcFriendshipOverviewPayload() implements CustomPacketPaylo
             if (!(context.player() instanceof ServerPlayer player)) {
                 return;
             }
-            if (!(player.level() instanceof ServerLevel serverLevel)) {
-                return;
-            }
-
-            int dayKey = currentDayKey();
-            NpcFriendshipDataManager friendshipManager = NpcFriendshipDataManager.get(serverLevel);
-            Map<String, NpcCapabilityProfile> capabilities = NpcDataRegistry.capabilities();
-
-            List<SyncNpcFriendshipOverviewPayload.Entry> rows = new ArrayList<>();
-            for (NpcCapabilityProfile profile : capabilities.values()) {
-                if (profile == null || !profile.implemented()) {
-                    continue;
-                }
-                String npcId = profile.npcId();
-                if (npcId == null || npcId.isBlank()) {
-                    continue;
-                }
-
-                NpcFriendshipDataManager.FriendshipState state = friendshipManager.getOrCreate(player.getUUID(), npcId);
-                int points = Math.max(0, state.points());
-                int hearts = Math.max(0, Math.min(14, points / 250));
-                int gifts = Math.max(0, Math.min(2, state.giftsThisWeek()));
-                boolean giftedToday = state.lastGiftDayKey() == dayKey;
-                boolean talkedToday = state.lastTalkDayKey() == dayKey;
-                int metOrder = state.firstMetDayKey() == Integer.MAX_VALUE ? Integer.MAX_VALUE : Math.max(0, state.firstMetDayKey());
-                rows.add(new SyncNpcFriendshipOverviewPayload.Entry(npcId.toLowerCase(Locale.ROOT), points, hearts, gifts, giftedToday, talkedToday, metOrder));
-            }
-
-            rows.sort(Comparator
-                .comparingInt(SyncNpcFriendshipOverviewPayload.Entry::points).reversed()
-                .thenComparingInt(SyncNpcFriendshipOverviewPayload.Entry::metOrder)
-                .thenComparing(entry -> displayNameForSort(entry.npcId()))
-                .thenComparing(SyncNpcFriendshipOverviewPayload.Entry::npcId));
-            PacketDistributor.sendToPlayer(player, new SyncNpcFriendshipOverviewPayload(rows));
+            sendOverviewTo(player);
         });
+    }
+
+    /**
+     * Build and send the current friendship overview to a specific player. Callable outside
+     * of a request/response (e.g. from PlayerLoggedInEvent) so precondition checks that read
+     * NpcFriendshipClientCache don't silently fail while the client waits for the user to
+     * open the social menu.
+     */
+    public static void sendOverviewTo(ServerPlayer player) {
+        if (!(player.level() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+
+        int dayKey = currentDayKey();
+        NpcFriendshipDataManager friendshipManager = NpcFriendshipDataManager.get(serverLevel);
+        Map<String, NpcCapabilityProfile> capabilities = NpcDataRegistry.capabilities();
+
+        List<SyncNpcFriendshipOverviewPayload.Entry> rows = new ArrayList<>();
+        for (NpcCapabilityProfile profile : capabilities.values()) {
+            if (profile == null || !profile.implemented()) {
+                continue;
+            }
+            String npcId = profile.npcId();
+            if (npcId == null || npcId.isBlank()) {
+                continue;
+            }
+
+            NpcFriendshipDataManager.FriendshipState state = friendshipManager.getOrCreate(player.getUUID(), npcId);
+            int points = Math.max(0, state.points());
+            int hearts = Math.max(0, Math.min(14, points / 250));
+            int gifts = Math.max(0, Math.min(2, state.giftsThisWeek()));
+            boolean giftedToday = state.lastGiftDayKey() == dayKey;
+            boolean talkedToday = state.lastTalkDayKey() == dayKey;
+            int metOrder = state.firstMetDayKey() == Integer.MAX_VALUE ? Integer.MAX_VALUE : Math.max(0, state.firstMetDayKey());
+            rows.add(new SyncNpcFriendshipOverviewPayload.Entry(npcId.toLowerCase(Locale.ROOT), points, hearts, gifts, giftedToday, talkedToday, metOrder));
+        }
+
+        rows.sort(Comparator
+            .comparingInt(SyncNpcFriendshipOverviewPayload.Entry::points).reversed()
+            .thenComparingInt(SyncNpcFriendshipOverviewPayload.Entry::metOrder)
+            .thenComparing(entry -> displayNameForSort(entry.npcId()))
+            .thenComparing(SyncNpcFriendshipOverviewPayload.Entry::npcId));
+        PacketDistributor.sendToPlayer(player, new SyncNpcFriendshipOverviewPayload(rows));
     }
 
     private static String displayNameForSort(String npcId) {

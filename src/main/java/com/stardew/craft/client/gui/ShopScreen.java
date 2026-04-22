@@ -101,6 +101,10 @@ public class ShopScreen extends Screen {
     private record PortraitInfo(ResourceLocation texture, int sheetW, int sheetH) {}
     private static final Map<ResourceLocation, PortraitInfo> PORTRAIT_CACHE = new ConcurrentHashMap<>();
 
+    public static void clearPortraitCache() {
+        PORTRAIT_CACHE.clear();
+    }
+
     private int   currentIndex = 0;
     private int   hoveredRow   = -1;
     private int   hoveredInvSlot = -1;
@@ -147,12 +151,20 @@ public class ShopScreen extends Screen {
         boolean isRecipe = itemId.startsWith("recipe:");
         if (isRecipe) itemId = itemId.substring("recipe:".length());
         ItemStack stack = resolveStack(itemId);
+        String base;
         if (!stack.isEmpty()) {
             String name = stack.getHoverName().getString();
-            return isRecipe ? name + " (" + net.minecraft.client.resources.language.I18n.get("stardewcraft.shop.recipe_suffix") + ")" : name;
+            base = isRecipe ? name + " (" + net.minecraft.client.resources.language.I18n.get("stardewcraft.shop.recipe_suffix") + ")" : name;
+        } else {
+            base = entry.displayName().isEmpty() ? entry.itemId() : entry.displayName();
         }
-        // fallback to whatever the server sent (may be empty for unknown items)
-        return entry.displayName().isEmpty() ? entry.itemId() : entry.displayName();
+        // SDV parity (ShopMenu.cs:1897): if (item.Stack > 1) displayName += " x" + item.Stack;
+        // Not applied to recipes (recipes always show as stack=1 in SDV).
+        int stack1 = entry.purchaseStack();
+        if (!isRecipe && stack1 > 1) {
+            base = base + " x" + stack1;
+        }
+        return base;
     }
 
     /**
@@ -730,6 +742,17 @@ public class ShopScreen extends Screen {
         if (sellable && stack.getItem() instanceof IStardewItem si) {
             // Show sell price (what the shop pays = IStardewItem.getSellPrice, the item's sell value)
             int sellUnit = si.getSellPrice(stack);
+            // 应用职业加成显示，与服务器端一致
+            try {
+                java.util.Set<String> profNames = new java.util.HashSet<>(
+                    com.stardew.craft.client.ClientPlayerDataCache.getProfessions());
+                com.stardew.craft.economy.sell.SellQuote q =
+                    com.stardew.craft.economy.sell.ProfessionSellPriceService.quoteItemForProfessionNames(
+                        profNames, stack, com.stardew.craft.economy.sell.SellSource.SHOP_COUNTER);
+                if (q.sellable() && q.finalUnitPrice() > 0) {
+                    sellUnit = q.finalUnitPrice();
+                }
+            } catch (Throwable ignored) { /* 客户端缓存不可用时退化到基础价 */ }
             if (sellUnit > 0) {
                 lines.add(Component.literal("出售：" + (sellUnit * stack.getCount()) + "g")
                     .withStyle(ChatFormatting.GOLD));
@@ -951,7 +974,8 @@ public class ShopScreen extends Screen {
             if (old.stock()!=Integer.MAX_VALUE) {
                 forSale.set(idx,new ShopItemEntry(old.itemId(),old.displayName(),old.description(),
                     old.price(),Math.max(0,old.stock()-r.quantity()),old.tradeItemId(),old.tradeItemCount(),
-                    old.seasons(),old.minYear(),old.minMineLevel(),old.mailFlag()));
+                    old.seasons(),old.minYear(),old.minMineLevel(),old.mailFlag(),
+                    old.dayOfWeek(),old.dayOfMonthParity(),old.purchaseStack()));
             }
         }
         if (!r.itemId().isEmpty() && r.quantity() > 0) {

@@ -112,8 +112,10 @@ public class BundleRewardMenu extends AbstractContainerMenu {
                 if (!this.moveItemStackTo(stackInSlot, MAX_REWARD_SLOTS, this.slots.size(), true)) {
                     return ItemStack.EMPTY;
                 }
-                // Mark reward as claimed
-                onRewardTaken(index);
+                // SHIFT-click 不会触发 Slot.onTake，需要在这里显式标记已领取
+                if (stackInSlot.isEmpty()) {
+                    onRewardTaken(index, player);
+                }
             } else {
                 // Don't allow moving items back into reward slots
                 return ItemStack.EMPTY;
@@ -129,8 +131,9 @@ public class BundleRewardMenu extends AbstractContainerMenu {
         return result;
     }
 
-    /** Called when a reward item is taken from a slot */
-    private void onRewardTaken(int slotIndex) {
+    /** Called when a reward item is taken from a slot (server-side only) */
+    private void onRewardTaken(int slotIndex, Player player) {
+        if (player.level().isClientSide) return; // SavedData is server-only
         if (slotIndex < 0 || slotIndex >= MAX_REWARD_SLOTS) return;
         int bundleId = slotBundleIds[slotIndex];
         if (bundleId >= 0) {
@@ -149,6 +152,16 @@ public class BundleRewardMenu extends AbstractContainerMenu {
     @SuppressWarnings("null")
     @Override
     public void removed(@NotNull Player player) {
+        // 关闭前防御性扫描：任何空 reward 槽（说明物品已经被玩家取走，
+        // 不论是普通 pickup 进入 cursor、shift-click、还是中途取了一半再 ESC）
+        // 都应当视为已领取，避免反复领。剩余的非空 reward 槽继续保留为可领取状态。
+        if (!player.level().isClientSide && playerUUID != null) {
+            for (int i = 0; i < MAX_REWARD_SLOTS; i++) {
+                if (slotBundleIds[i] >= 0 && rewardContainer.getItem(i).isEmpty()) {
+                    onRewardTaken(i, player);
+                }
+            }
+        }
         super.removed(player);
         // Unclaimed rewards stay in savedData — don't drop anything
         // (SDV: rewards persist until claimed)
@@ -169,7 +182,7 @@ public class BundleRewardMenu extends AbstractContainerMenu {
         @Override
         public void onTake(@NotNull Player player, @NotNull ItemStack stack) {
             super.onTake(player, stack);
-            onRewardTaken(this.getContainerSlot());
+            onRewardTaken(this.getContainerSlot(), player);
         }
     }
 }

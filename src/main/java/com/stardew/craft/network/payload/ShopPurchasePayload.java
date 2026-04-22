@@ -208,7 +208,7 @@ public record ShopPurchasePayload(
                 ShopStockTracker.recordPurchase(player.getUUID(), payload.shopId(), entry.itemId(), qty);
             }
 
-            sendResult(player, true, newMoney, entry.itemId(), qty, payload.itemIndex());
+            sendResult(player, true, newMoney, entry.itemId(), qty * Math.max(1, entry.purchaseStack()), payload.itemIndex());
         });
     }
 

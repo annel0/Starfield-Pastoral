@@ -1,7 +1,7 @@
 ﻿{
     "farming":  {
                     "1":  [
-
+                              "scarecrow"
                           ],
                     "2":  [
 
@@ -104,7 +104,6 @@
 
                          ],
                    "3":  [
-                             "miner_treat",
                              "miner_s_treat",
                              "dish_o_the_sea"
                          ],

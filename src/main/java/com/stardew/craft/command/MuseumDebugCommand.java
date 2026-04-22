@@ -45,12 +45,13 @@ public class MuseumDebugCommand {
         if (player == null) return 0;
 
         MuseumDonationData data = MuseumDonationData.get(player.serverLevel());
-        if (data.isDonationModeActive()) {
+        java.util.UUID playerId = player.getUUID();
+        if (data.isDonationModeActive(playerId)) {
             context.getSource().sendSuccess(() -> Component.translatable("stardewcraft.command.museum.mode.already_on"), false);
             return 1;
         }
 
-        data.startDonationMode();
+        data.startDonationMode(playerId);
         context.getSource().sendSuccess(() -> Component.translatable("stardewcraft.command.museum.mode.started"), false);
         return 1;
     }
@@ -60,18 +61,19 @@ public class MuseumDebugCommand {
         if (player == null) return 0;
 
         MuseumDonationData data = MuseumDonationData.get(player.serverLevel());
-        if (!data.isDonationModeActive()) {
+        java.util.UUID playerId = player.getUUID();
+        if (!data.isDonationModeActive(playerId)) {
             context.getSource().sendSuccess(() -> Component.translatable("stardewcraft.command.museum.mode.already_off"), false);
             return 1;
         }
 
-        MuseumDonationData.EndSessionResult result = data.endDonationMode();
+        MuseumDonationData.EndSessionResult result = data.endDonationMode(playerId);
         if (!result.success()) {
             context.getSource().sendFailure(Component.translatable("stardewcraft.command.museum.mode.end_blocked", result.missingItems().size()));
             return 0;
         }
 
-        syncAll(data);
+        syncAll(data, player);
         context.getSource().sendSuccess(() -> Component.translatable("stardewcraft.command.museum.mode.ended"), false);
         return 1;
     }
@@ -81,8 +83,9 @@ public class MuseumDebugCommand {
         if (player == null) return 0;
 
         MuseumDonationData data = MuseumDonationData.get(player.serverLevel());
+        java.util.UUID playerId = player.getUUID();
         context.getSource().sendSuccess(() -> Component.translatable(
-                data.isDonationModeActive() ? "stardewcraft.command.museum.mode.status_on" : "stardewcraft.command.museum.mode.status_off"
+                data.isDonationModeActive(playerId) ? "stardewcraft.command.museum.mode.status_on" : "stardewcraft.command.museum.mode.status_off"
         ), false);
         return 1;
     }
@@ -105,11 +108,12 @@ public class MuseumDebugCommand {
 
         ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
         MuseumDonationData data = MuseumDonationData.get(player.serverLevel());
-        boolean added = data.donate(id.toString());
+        java.util.UUID playerId = player.getUUID();
+        boolean added = data.donate(playerId, id.toString());
         ItemStack stack = new ItemStack(item);
         Component itemName = stack.getHoverName();
 
-    syncAll(data);
+    syncAll(data, player);
 
     if (added) {
         context.getSource().sendSuccess(() -> Component.translatable(
@@ -124,7 +128,7 @@ public class MuseumDebugCommand {
         return 1;
     }
 
-    private static void syncAll(MuseumDonationData data) {
-        PacketDistributor.sendToAllPlayers(new MuseumDonationSyncPacket(List.copyOf(data.getDonatedItems())));
+    private static void syncAll(MuseumDonationData data, ServerPlayer player) {
+        PacketDistributor.sendToPlayer(player, new MuseumDonationSyncPacket(List.copyOf(data.getDonatedItems(player.getUUID()))));
     }
 }

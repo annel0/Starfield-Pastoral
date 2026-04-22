@@ -6,12 +6,30 @@ import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import com.stardew.craft.cutscene.network.SyncEventSeenPayload;
+import com.stardew.craft.cutscene.server.EventSeenData;
+import com.stardew.craft.farm.FarmInstanceRegistry;
+import com.stardew.craft.farm.FarmPermissionManager;
+import com.stardew.craft.mining.MineRewardClaimManager;
+import com.stardew.craft.mining.MiningDataManager;
+import com.stardew.craft.network.payload.FarmPermSyncPayload;
+import com.stardew.craft.network.payload.SyncNpcFriendshipOverviewPayload;
+import com.stardew.craft.network.payload.WarpWandSyncPayload;
+import com.stardew.craft.npc.runtime.NpcFriendshipDataManager;
 import com.stardew.craft.player.*;
 import com.stardew.craft.time.StardewTimeManager;
+import com.stardew.craft.warp.WarpWandSavedData;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.PacketDistributor;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.UUID;
 
 import static com.stardew.craft.player.PlayerDataEventHandler.syncPlayerData;
 
@@ -29,196 +47,237 @@ public class PlayerDataCommand {
         dispatcher.register(Commands.literal("stardew")
             .then(Commands.literal("player")
                 // 查看数据
-                .then(Commands.literal("info")
-                    .executes(PlayerDataCommand::showPlayerInfo))
-                
+                .then(CommandTargets.executesWithTarget(
+                    Commands.literal("info"),
+                    PlayerDataCommand::showPlayerInfo))
+
                 // 经验相关
                 .then(Commands.literal("exp")
                     .then(Commands.literal("add")
                         .then(Commands.literal("farming")
-                            .then(Commands.argument("amount", IntegerArgumentType.integer(1))
-                                .executes(ctx -> addExperience(ctx, SkillType.FARMING))))
+                            .then(CommandTargets.executesWithTarget(
+                                Commands.argument("amount", IntegerArgumentType.integer(1)),
+                                ctx -> addExperience(ctx, SkillType.FARMING))))
                         .then(Commands.literal("fishing")
-                            .then(Commands.argument("amount", IntegerArgumentType.integer(1))
-                                .executes(ctx -> addExperience(ctx, SkillType.FISHING))))
+                            .then(CommandTargets.executesWithTarget(
+                                Commands.argument("amount", IntegerArgumentType.integer(1)),
+                                ctx -> addExperience(ctx, SkillType.FISHING))))
                         .then(Commands.literal("foraging")
-                            .then(Commands.argument("amount", IntegerArgumentType.integer(1))
-                                .executes(ctx -> addExperience(ctx, SkillType.FORAGING))))
+                            .then(CommandTargets.executesWithTarget(
+                                Commands.argument("amount", IntegerArgumentType.integer(1)),
+                                ctx -> addExperience(ctx, SkillType.FORAGING))))
                         .then(Commands.literal("mining")
-                            .then(Commands.argument("amount", IntegerArgumentType.integer(1))
-                                .executes(ctx -> addExperience(ctx, SkillType.MINING))))
+                            .then(CommandTargets.executesWithTarget(
+                                Commands.argument("amount", IntegerArgumentType.integer(1)),
+                                ctx -> addExperience(ctx, SkillType.MINING))))
                         .then(Commands.literal("combat")
-                            .then(Commands.argument("amount", IntegerArgumentType.integer(1))
-                                .executes(ctx -> addExperience(ctx, SkillType.COMBAT)))))
+                            .then(CommandTargets.executesWithTarget(
+                                Commands.argument("amount", IntegerArgumentType.integer(1)),
+                                ctx -> addExperience(ctx, SkillType.COMBAT)))))
                     .then(Commands.literal("set")
                         .then(Commands.literal("farming")
-                            .then(Commands.argument("amount", IntegerArgumentType.integer(0))
-                                .executes(ctx -> setExperience(ctx, SkillType.FARMING))))
+                            .then(CommandTargets.executesWithTarget(
+                                Commands.argument("amount", IntegerArgumentType.integer(0)),
+                                ctx -> setExperience(ctx, SkillType.FARMING))))
                         .then(Commands.literal("fishing")
-                            .then(Commands.argument("amount", IntegerArgumentType.integer(0))
-                                .executes(ctx -> setExperience(ctx, SkillType.FISHING))))
+                            .then(CommandTargets.executesWithTarget(
+                                Commands.argument("amount", IntegerArgumentType.integer(0)),
+                                ctx -> setExperience(ctx, SkillType.FISHING))))
                         .then(Commands.literal("foraging")
-                            .then(Commands.argument("amount", IntegerArgumentType.integer(0))
-                                .executes(ctx -> setExperience(ctx, SkillType.FORAGING))))
+                            .then(CommandTargets.executesWithTarget(
+                                Commands.argument("amount", IntegerArgumentType.integer(0)),
+                                ctx -> setExperience(ctx, SkillType.FORAGING))))
                         .then(Commands.literal("mining")
-                            .then(Commands.argument("amount", IntegerArgumentType.integer(0))
-                                .executes(ctx -> setExperience(ctx, SkillType.MINING))))
+                            .then(CommandTargets.executesWithTarget(
+                                Commands.argument("amount", IntegerArgumentType.integer(0)),
+                                ctx -> setExperience(ctx, SkillType.MINING))))
                         .then(Commands.literal("combat")
-                            .then(Commands.argument("amount", IntegerArgumentType.integer(0))
-                                .executes(ctx -> setExperience(ctx, SkillType.COMBAT)))))
+                            .then(CommandTargets.executesWithTarget(
+                                Commands.argument("amount", IntegerArgumentType.integer(0)),
+                                ctx -> setExperience(ctx, SkillType.COMBAT)))))
                     .then(Commands.literal("remove")
                         .then(Commands.literal("farming")
-                            .then(Commands.argument("amount", IntegerArgumentType.integer(1))
-                                .executes(ctx -> removeExperience(ctx, SkillType.FARMING))))
+                            .then(CommandTargets.executesWithTarget(
+                                Commands.argument("amount", IntegerArgumentType.integer(1)),
+                                ctx -> removeExperience(ctx, SkillType.FARMING))))
                         .then(Commands.literal("fishing")
-                            .then(Commands.argument("amount", IntegerArgumentType.integer(1))
-                                .executes(ctx -> removeExperience(ctx, SkillType.FISHING))))
+                            .then(CommandTargets.executesWithTarget(
+                                Commands.argument("amount", IntegerArgumentType.integer(1)),
+                                ctx -> removeExperience(ctx, SkillType.FISHING))))
                         .then(Commands.literal("foraging")
-                            .then(Commands.argument("amount", IntegerArgumentType.integer(1))
-                                .executes(ctx -> removeExperience(ctx, SkillType.FORAGING))))
+                            .then(CommandTargets.executesWithTarget(
+                                Commands.argument("amount", IntegerArgumentType.integer(1)),
+                                ctx -> removeExperience(ctx, SkillType.FORAGING))))
                         .then(Commands.literal("mining")
-                            .then(Commands.argument("amount", IntegerArgumentType.integer(1))
-                                .executes(ctx -> removeExperience(ctx, SkillType.MINING))))
+                            .then(CommandTargets.executesWithTarget(
+                                Commands.argument("amount", IntegerArgumentType.integer(1)),
+                                ctx -> removeExperience(ctx, SkillType.MINING))))
                         .then(Commands.literal("combat")
-                            .then(Commands.argument("amount", IntegerArgumentType.integer(1))
-                                .executes(ctx -> removeExperience(ctx, SkillType.COMBAT))))))
-                
+                            .then(CommandTargets.executesWithTarget(
+                                Commands.argument("amount", IntegerArgumentType.integer(1)),
+                                ctx -> removeExperience(ctx, SkillType.COMBAT))))))
+
                 // 金币相关
                 .then(Commands.literal("money")
                     .then(Commands.literal("add")
-                        .then(Commands.argument("amount", IntegerArgumentType.integer(1))
-                            .executes(PlayerDataCommand::addMoney)))
+                        .then(CommandTargets.executesWithTarget(
+                            Commands.argument("amount", IntegerArgumentType.integer(1)),
+                            PlayerDataCommand::addMoney)))
                     .then(Commands.literal("remove")
-                        .then(Commands.argument("amount", IntegerArgumentType.integer(1))
-                            .executes(PlayerDataCommand::removeMoney)))
+                        .then(CommandTargets.executesWithTarget(
+                            Commands.argument("amount", IntegerArgumentType.integer(1)),
+                            PlayerDataCommand::removeMoney)))
                     .then(Commands.literal("set")
-                        .then(Commands.argument("amount", IntegerArgumentType.integer(0))
-                            .executes(PlayerDataCommand::setMoney))))
-                
+                        .then(CommandTargets.executesWithTarget(
+                            Commands.argument("amount", IntegerArgumentType.integer(0)),
+                            PlayerDataCommand::setMoney))))
+
                 // 能量相关
                 .then(Commands.literal("energy")
                     .then(Commands.literal("add")
-                        .then(Commands.argument("amount", FloatArgumentType.floatArg(0))
-                            .executes(PlayerDataCommand::addEnergy)))
+                        .then(CommandTargets.executesWithTarget(
+                            Commands.argument("amount", FloatArgumentType.floatArg(0)),
+                            PlayerDataCommand::addEnergy)))
                     .then(Commands.literal("consume")
-                        .then(Commands.argument("amount", FloatArgumentType.floatArg(0))
-                            .executes(PlayerDataCommand::consumeEnergy)))
-                    .then(Commands.literal("cure")
-                        .executes(PlayerDataCommand::cureExhaustion)))
-                
+                        .then(CommandTargets.executesWithTarget(
+                            Commands.argument("amount", FloatArgumentType.floatArg(0)),
+                            PlayerDataCommand::consumeEnergy)))
+                    .then(CommandTargets.executesWithTarget(
+                        Commands.literal("cure"),
+                        PlayerDataCommand::cureExhaustion)))
+
                 // 生命值相关
                 .then(Commands.literal("health")
                     .then(Commands.literal("set")
-                        .then(Commands.argument("amount", IntegerArgumentType.integer(1))
-                            .executes(PlayerDataCommand::setHealth)))
+                        .then(CommandTargets.executesWithTarget(
+                            Commands.argument("amount", IntegerArgumentType.integer(1)),
+                            PlayerDataCommand::setHealth)))
                     .then(Commands.literal("setmax")
-                        .then(Commands.argument("amount", IntegerArgumentType.integer(100))
-                            .executes(PlayerDataCommand::setMaxHealth))))
+                        .then(CommandTargets.executesWithTarget(
+                            Commands.argument("amount", IntegerArgumentType.integer(100)),
+                            PlayerDataCommand::setMaxHealth))))
 
                 // 今日运气（daily luck）
                 .then(Commands.literal("lucky")
-                    .then(Commands.literal("get")
-                        .executes(PlayerDataCommand::getLucky))
+                    .then(CommandTargets.executesWithTarget(
+                        Commands.literal("get"),
+                        PlayerDataCommand::getLucky))
                     .then(Commands.literal("set")
-                        .then(Commands.argument("value", DoubleArgumentType.doubleArg())
-                            .executes(PlayerDataCommand::setLucky))))
-                
+                        .then(CommandTargets.executesWithTarget(
+                            Commands.argument("value", DoubleArgumentType.doubleArg()),
+                            PlayerDataCommand::setLucky))))
+
                 // Recipe commands
                 .then(Commands.literal("recipe")
                     .then(Commands.literal("crafting")
                         .then(Commands.literal("unlock")
-                            .then(Commands.argument("recipe_id", StringArgumentType.string())
-                                .suggests((ctx, builder) -> {
-                                    java.util.List<String> suggestions = getCraftingRecipeSuggestions();
-                                    suggestions.add("all");
-                                    return net.minecraft.commands.SharedSuggestionProvider.suggest(suggestions, builder);
-                                })
-                                .executes(ctx -> unlockRecipeByCategory(ctx, RecipeCatalogData.getCraftingRecipeIds(), "crafting"))))
+                            .then(CommandTargets.executesWithTarget(
+                                Commands.argument("recipe_id", StringArgumentType.string())
+                                    .suggests((ctx, builder) -> {
+                                        java.util.List<String> suggestions = getCraftingRecipeSuggestions();
+                                        suggestions.add("all");
+                                        return net.minecraft.commands.SharedSuggestionProvider.suggest(suggestions, builder);
+                                    }),
+                                ctx -> unlockRecipeByCategory(ctx, RecipeCatalogData.getCraftingRecipeIds(), "crafting"))))
                         .then(Commands.literal("lock")
-                            .then(Commands.argument("recipe_id", StringArgumentType.string())
-                                .suggests((ctx, builder) -> {
-                                    java.util.List<String> suggestions = getCraftingRecipeSuggestions();
-                                    suggestions.add("all");
-                                    return net.minecraft.commands.SharedSuggestionProvider.suggest(suggestions, builder);
-                                })
-                                .executes(ctx -> lockRecipeByCategory(ctx, RecipeCatalogData.getCraftingRecipeIds(), "crafting")))))
+                            .then(CommandTargets.executesWithTarget(
+                                Commands.argument("recipe_id", StringArgumentType.string())
+                                    .suggests((ctx, builder) -> {
+                                        java.util.List<String> suggestions = getCraftingRecipeSuggestions();
+                                        suggestions.add("all");
+                                        return net.minecraft.commands.SharedSuggestionProvider.suggest(suggestions, builder);
+                                    }),
+                                ctx -> lockRecipeByCategory(ctx, RecipeCatalogData.getCraftingRecipeIds(), "crafting")))))
                     .then(Commands.literal("cooking")
                         .then(Commands.literal("unlock")
-                            .then(Commands.argument("recipe_id", StringArgumentType.string())
-                                .suggests((ctx, builder) -> {
-                                    java.util.List<String> suggestions = getCookingRecipeSuggestions();
-                                    suggestions.add("all");
-                                    return net.minecraft.commands.SharedSuggestionProvider.suggest(suggestions, builder);
-                                })
-                                .executes(ctx -> unlockRecipeByCategory(ctx, RecipeCatalogData.getCookingRecipeIds(), "cooking"))))
+                            .then(CommandTargets.executesWithTarget(
+                                Commands.argument("recipe_id", StringArgumentType.string())
+                                    .suggests((ctx, builder) -> {
+                                        java.util.List<String> suggestions = getCookingRecipeSuggestions();
+                                        suggestions.add("all");
+                                        return net.minecraft.commands.SharedSuggestionProvider.suggest(suggestions, builder);
+                                    }),
+                                ctx -> unlockRecipeByCategory(ctx, RecipeCatalogData.getCookingRecipeIds(), "cooking"))))
                         .then(Commands.literal("lock")
-                            .then(Commands.argument("recipe_id", StringArgumentType.string())
+                            .then(CommandTargets.executesWithTarget(
+                                Commands.argument("recipe_id", StringArgumentType.string())
+                                    .suggests((ctx, builder) -> {
+                                        java.util.List<String> suggestions = getCookingRecipeSuggestions();
+                                        suggestions.add("all");
+                                        return net.minecraft.commands.SharedSuggestionProvider.suggest(suggestions, builder);
+                                    }),
+                                ctx -> lockRecipeByCategory(ctx, RecipeCatalogData.getCookingRecipeIds(), "cooking")))))
+                    .then(Commands.literal("unlock")
+                        .then(CommandTargets.executesWithTarget(
+                            Commands.argument("recipe_id", StringArgumentType.string())
                                 .suggests((ctx, builder) -> {
-                                    java.util.List<String> suggestions = getCookingRecipeSuggestions();
+                                    java.util.List<String> suggestions = getRecipeSuggestions();
                                     suggestions.add("all");
                                     return net.minecraft.commands.SharedSuggestionProvider.suggest(suggestions, builder);
-                                })
-                                .executes(ctx -> lockRecipeByCategory(ctx, RecipeCatalogData.getCookingRecipeIds(), "cooking")))))
-                    .then(Commands.literal("unlock")
-                        .then(Commands.argument("recipe_id", StringArgumentType.string())
-                            .suggests((ctx, builder) -> {
-                                java.util.List<String> suggestions = getRecipeSuggestions();
-                                suggestions.add("all");
-                                return net.minecraft.commands.SharedSuggestionProvider.suggest(suggestions, builder);
-                            })
-                            .executes(PlayerDataCommand::unlockRecipe)))
+                                }),
+                            PlayerDataCommand::unlockRecipe)))
                     .then(Commands.literal("lock")
-                        .then(Commands.argument("recipe_id", StringArgumentType.string())
-                            .suggests((ctx, builder) -> {
-                                java.util.List<String> suggestions = getRecipeSuggestions();
-                                suggestions.add("all");
-                                return net.minecraft.commands.SharedSuggestionProvider.suggest(suggestions, builder);
-                            })
-                            .executes(PlayerDataCommand::lockRecipe))))
+                        .then(CommandTargets.executesWithTarget(
+                            Commands.argument("recipe_id", StringArgumentType.string())
+                                .suggests((ctx, builder) -> {
+                                    java.util.List<String> suggestions = getRecipeSuggestions();
+                                    suggestions.add("all");
+                                    return net.minecraft.commands.SharedSuggestionProvider.suggest(suggestions, builder);
+                                }),
+                            PlayerDataCommand::lockRecipe))))
 
                 .then(Commands.literal("unlock-source")
                     .then(Commands.literal("apply")
-                        .then(Commands.argument("source_id", StringArgumentType.string())
-                            .suggests((ctx, builder) ->
-                                net.minecraft.commands.SharedSuggestionProvider.suggest(
-                                    UnlockSourceData.getSourceIds(),
-                                    builder
-                                ))
-                            .executes(PlayerDataCommand::applyUnlockSource))))
+                        .then(CommandTargets.executesWithTarget(
+                            Commands.argument("source_id", StringArgumentType.string())
+                                .suggests((ctx, builder) ->
+                                    net.minecraft.commands.SharedSuggestionProvider.suggest(
+                                        UnlockSourceData.getSourceIds(),
+                                        builder
+                                    )),
+                            PlayerDataCommand::applyUnlockSource))))
 
                 // 职业相关（调试 + 原版分支选择流程）
                 .then(Commands.literal("profession")
-                    .then(Commands.literal("list")
-                        .executes(PlayerDataCommand::listProfessions))
-                    .then(Commands.literal("pending")
-                        .executes(PlayerDataCommand::showPendingProfessions))
+                    .then(CommandTargets.executesWithTarget(
+                        Commands.literal("list"),
+                        PlayerDataCommand::listProfessions))
+                    .then(CommandTargets.executesWithTarget(
+                        Commands.literal("pending"),
+                        PlayerDataCommand::showPendingProfessions))
                     .then(Commands.literal("choose")
-                        .then(Commands.argument("profession", StringArgumentType.word())
-                            .suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(getProfessionSuggestions(), builder))
-                            .executes(PlayerDataCommand::choosePendingProfession)))
+                        .then(CommandTargets.executesWithTarget(
+                            Commands.argument("profession", StringArgumentType.word())
+                                .suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(getProfessionSuggestions(), builder)),
+                            PlayerDataCommand::choosePendingProfession)))
                     .then(Commands.literal("grant")
-                        .then(Commands.argument("profession", StringArgumentType.word())
-                            .suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(getProfessionSuggestions(), builder))
-                            .executes(PlayerDataCommand::grantProfession)))
+                        .then(CommandTargets.executesWithTarget(
+                            Commands.argument("profession", StringArgumentType.word())
+                                .suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(getProfessionSuggestions(), builder)),
+                            PlayerDataCommand::grantProfession)))
                     .then(Commands.literal("revoke")
-                        .then(Commands.argument("profession", StringArgumentType.word())
-                            .suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(getProfessionSuggestions(), builder))
-                            .executes(PlayerDataCommand::revokeProfession)))
-                    .then(Commands.literal("clear")
-                        .executes(PlayerDataCommand::clearProfessions))
-                    .then(Commands.literal("repair")
-                        .executes(PlayerDataCommand::repairProfessionChoices)))
-                
+                        .then(CommandTargets.executesWithTarget(
+                            Commands.argument("profession", StringArgumentType.word())
+                                .suggests((ctx, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(getProfessionSuggestions(), builder)),
+                            PlayerDataCommand::revokeProfession)))
+                    .then(CommandTargets.executesWithTarget(
+                        Commands.literal("clear"),
+                        PlayerDataCommand::clearProfessions))
+                    .then(CommandTargets.executesWithTarget(
+                        Commands.literal("repair"),
+                        PlayerDataCommand::repairProfessionChoices)))
+
                 // 重置数据
-                .then(Commands.literal("reset")
-                    .executes(PlayerDataCommand::resetPlayerData))
+                .then(CommandTargets.executesWithTarget(
+                    Commands.literal("reset"),
+                    PlayerDataCommand::resetPlayerData))
             )
         );
     }
 
     @SuppressWarnings("null")
     private static int unlockRecipeByCategory(CommandContext<CommandSourceStack> ctx, java.util.List<String> categoryRecipeIds, String categoryLabel) {
-        ServerPlayer player = ctx.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(ctx);
         if (player == null) return 0;
 
         String recipeId = StringArgumentType.getString(ctx, "recipe_id");
@@ -250,7 +309,7 @@ public class PlayerDataCommand {
 
     @SuppressWarnings("null")
     private static int lockRecipeByCategory(CommandContext<CommandSourceStack> ctx, java.util.List<String> categoryRecipeIds, String categoryLabel) {
-        ServerPlayer player = ctx.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(ctx);
         if (player == null) return 0;
 
         String recipeId = StringArgumentType.getString(ctx, "recipe_id");
@@ -282,7 +341,7 @@ public class PlayerDataCommand {
 
     @SuppressWarnings("null")
     private static int unlockRecipe(CommandContext<CommandSourceStack> ctx) {
-        ServerPlayer player = ctx.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(ctx);
         if (player == null) return 0;
         
         String recipeId = StringArgumentType.getString(ctx, "recipe_id");
@@ -310,7 +369,7 @@ public class PlayerDataCommand {
 
     @SuppressWarnings("null")
     private static int lockRecipe(CommandContext<CommandSourceStack> ctx) {
-        ServerPlayer player = ctx.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(ctx);
         if (player == null) return 0;
         
         String recipeId = StringArgumentType.getString(ctx, "recipe_id");
@@ -338,7 +397,7 @@ public class PlayerDataCommand {
 
     @SuppressWarnings("null")
     private static int applyUnlockSource(CommandContext<CommandSourceStack> ctx) {
-        ServerPlayer player = ctx.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(ctx);
         if (player == null) return 0;
 
         String sourceId = StringArgumentType.getString(ctx, "source_id");
@@ -353,7 +412,7 @@ public class PlayerDataCommand {
     }
 
     private static int getLucky(CommandContext<CommandSourceStack> context) {
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(context);
         if (player == null) return 0;
 
         StardewTimeManager timeManager = StardewTimeManager.get();
@@ -361,7 +420,7 @@ public class PlayerDataCommand {
 
         context.getSource().sendSuccess(() -> Component.translatable(
             "stardewcraft.command.lucky.info",
-            luck,
+            String.format("%.3f", luck),
             timeManager.getCurrentYear(),
             timeManager.getCurrentSeason(),
             timeManager.getCurrentDay()
@@ -369,8 +428,8 @@ public class PlayerDataCommand {
 
         context.getSource().sendSuccess(() -> Component.translatable(
             "stardewcraft.command.lucky.range",
-            LUCK_MIN,
-            LUCK_MAX
+            String.format("%.2f", LUCK_MIN),
+            String.format("%.2f", LUCK_MAX)
         ), false);
 
         return 1;
@@ -378,15 +437,15 @@ public class PlayerDataCommand {
 
     @SuppressWarnings("null")
     private static int setLucky(CommandContext<CommandSourceStack> context) {
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(context);
         if (player == null) return 0;
 
         double value = DoubleArgumentType.getDouble(context, "value");
         if (value < LUCK_MIN || value > LUCK_MAX) {
             context.getSource().sendFailure(Component.translatable(
                 "stardewcraft.command.lucky.out_of_range",
-                LUCK_MIN,
-                LUCK_MAX
+                String.format("%.2f", LUCK_MIN),
+                String.format("%.2f", LUCK_MAX)
             ));
             return 0;
         }
@@ -396,7 +455,7 @@ public class PlayerDataCommand {
 
         context.getSource().sendSuccess(() -> Component.translatable(
             "stardewcraft.command.lucky.set",
-            value,
+            String.format("%.3f", value),
             timeManager.getCurrentYear(),
             timeManager.getCurrentSeason(),
             timeManager.getCurrentDay()
@@ -409,7 +468,7 @@ public class PlayerDataCommand {
      * 显示玩家信息
      */
     private static int showPlayerInfo(CommandContext<CommandSourceStack> context) {
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(context);
         if (player == null) return 0;
         
         PlayerStardewData data = PlayerStardewDataAPI.getData(player);
@@ -419,7 +478,7 @@ public class PlayerDataCommand {
             "stardewcraft.command.health.info", data.getHealth(), data.getMaxHealth()), false);
         context.getSource().sendSuccess(() -> Component.translatable(
             data.isExhausted() ? "stardewcraft.command.energy.info_exhausted" : "stardewcraft.command.energy.info",
-            data.getEnergy(), data.getMaxEnergy()), false);
+            String.format("%.1f", data.getEnergy()), data.getMaxEnergy()), false);
         context.getSource().sendSuccess(() -> Component.translatable(
             "stardewcraft.command.money.info", data.getMoney()), false);
         
@@ -432,7 +491,7 @@ public class PlayerDataCommand {
             
             context.getSource().sendSuccess(() -> Component.translatable(
                 "stardewcraft.command.skill.detail", 
-                skill.getDisplayName(), level, exp, nextExp, progress * 100), false);
+                skill.getDisplayName(), level, exp, nextExp, String.format("%.1f", progress * 100)), false);
         }
         
         if (!data.getProfessions().isEmpty()) {
@@ -517,7 +576,7 @@ public class PlayerDataCommand {
     }
 
     private static int listProfessions(CommandContext<CommandSourceStack> context) {
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(context);
         if (player == null) return 0;
 
         PlayerStardewData data = PlayerStardewDataAPI.getData(player);
@@ -539,7 +598,7 @@ public class PlayerDataCommand {
     }
 
     private static int showPendingProfessions(CommandContext<CommandSourceStack> context) {
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(context);
         if (player == null) return 0;
 
         PlayerStardewData data = PlayerStardewDataAPI.getData(player);
@@ -564,7 +623,7 @@ public class PlayerDataCommand {
     }
 
     private static int choosePendingProfession(CommandContext<CommandSourceStack> context) {
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(context);
         if (player == null) return 0;
 
         ProfessionType profession = parseProfession(context);
@@ -584,7 +643,7 @@ public class PlayerDataCommand {
     }
 
     private static int grantProfession(CommandContext<CommandSourceStack> context) {
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(context);
         if (player == null) return 0;
 
         ProfessionType profession = parseProfession(context);
@@ -604,7 +663,7 @@ public class PlayerDataCommand {
     }
 
     private static int revokeProfession(CommandContext<CommandSourceStack> context) {
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(context);
         if (player == null) return 0;
 
         ProfessionType profession = parseProfession(context);
@@ -624,7 +683,7 @@ public class PlayerDataCommand {
     }
 
     private static int clearProfessions(CommandContext<CommandSourceStack> context) {
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(context);
         if (player == null) return 0;
 
         boolean changed = PlayerStardewDataAPI.clearProfessions(player);
@@ -638,7 +697,7 @@ public class PlayerDataCommand {
     }
 
     private static int repairProfessionChoices(CommandContext<CommandSourceStack> context) {
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(context);
         if (player == null) return 0;
 
         PlayerStardewDataAPI.repairMissingProfessionChoices(player);
@@ -655,7 +714,7 @@ public class PlayerDataCommand {
      * 添加经验
      */
     private static int addExperience(CommandContext<CommandSourceStack> context, SkillType skill) {
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(context);
         if (player == null) return 0;
         
         int amount = IntegerArgumentType.getInteger(context, "amount");
@@ -679,7 +738,7 @@ public class PlayerDataCommand {
      * 设置经验
      */
     private static int setExperience(CommandContext<CommandSourceStack> context, SkillType skill) {
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(context);
         if (player == null) return 0;
         
         int amount = IntegerArgumentType.getInteger(context, "amount");
@@ -697,7 +756,7 @@ public class PlayerDataCommand {
      * 移除经验
      */
     private static int removeExperience(CommandContext<CommandSourceStack> context, SkillType skill) {
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(context);
         if (player == null) return 0;
         
         int amount = IntegerArgumentType.getInteger(context, "amount");
@@ -716,7 +775,7 @@ public class PlayerDataCommand {
      * 添加金币
      */
     private static int addMoney(CommandContext<CommandSourceStack> context) {
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(context);
         if (player == null) return 0;
         
         int amount = IntegerArgumentType.getInteger(context, "amount");
@@ -737,7 +796,7 @@ public class PlayerDataCommand {
      */
     @SuppressWarnings("null")
     private static int removeMoney(CommandContext<CommandSourceStack> context) {
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(context);
         if (player == null) return 0;
         
         int amount = IntegerArgumentType.getInteger(context, "amount");
@@ -761,7 +820,7 @@ public class PlayerDataCommand {
      * 设置金币
      */
     private static int setMoney(CommandContext<CommandSourceStack> context) {
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(context);
         if (player == null) return 0;
         
         int amount = IntegerArgumentType.getInteger(context, "amount");
@@ -777,7 +836,7 @@ public class PlayerDataCommand {
      * 添加能量
      */
     private static int addEnergy(CommandContext<CommandSourceStack> context) {
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(context);
         if (player == null) return 0;
         
         float amount = FloatArgumentType.getFloat(context, "amount");
@@ -785,7 +844,7 @@ public class PlayerDataCommand {
         
         float newEnergy = PlayerStardewDataAPI.getEnergy(player);
         context.getSource().sendSuccess(() -> Component.translatable(
-            "stardewcraft.command.energy.added", amount, newEnergy), false);
+            "stardewcraft.command.energy.added", String.format("%.1f", amount), String.format("%.1f", newEnergy)), false);
         
         return 1;
     }
@@ -794,7 +853,7 @@ public class PlayerDataCommand {
      * 消耗能量
      */
     private static int consumeEnergy(CommandContext<CommandSourceStack> context) {
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(context);
         if (player == null) return 0;
         
         float amount = FloatArgumentType.getFloat(context, "amount");
@@ -818,7 +877,7 @@ public class PlayerDataCommand {
      * 治愈疲惫
      */
     private static int cureExhaustion(CommandContext<CommandSourceStack> context) {
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(context);
         if (player == null) return 0;
         
         PlayerStardewDataAPI.cureExhaustion(player);
@@ -831,7 +890,7 @@ public class PlayerDataCommand {
      * 设置生命值
      */
     private static int setHealth(CommandContext<CommandSourceStack> context) {
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(context);
         if (player == null) return 0;
         
         int amount = IntegerArgumentType.getInteger(context, "amount");
@@ -847,7 +906,7 @@ public class PlayerDataCommand {
      * 设置最大生命值
      */
     private static int setMaxHealth(CommandContext<CommandSourceStack> context) {
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(context);
         if (player == null) return 0;
         
         int amount = IntegerArgumentType.getInteger(context, "amount");
@@ -860,18 +919,94 @@ public class PlayerDataCommand {
     }
     
     /**
-     * 重置玩家数据
+     * 重置玩家数据 — 完全格式化所有模组相关数据
      */
     private static int resetPlayerData(CommandContext<CommandSourceStack> context) {
-        ServerPlayer player = context.getSource().getPlayer();
+        ServerPlayer player = CommandTargets.resolve(context);
         if (player == null) return 0;
-        
-        PlayerDataManager.get().removePlayerData(player.getUUID());
-        PlayerDataManager.get().getOrCreateData(player.getUUID());
-        
+
+        UUID uuid = player.getUUID();
+        net.minecraft.server.MinecraftServer server = player.getServer();
+        if (server == null) return 0;
+        var overworld = server.overworld();
+        int cleared = 0;
+
+        // 1. 主数据（技能、金钱、能量、职业、邮件、已知配方 等）
+        PlayerDataManager.get().removePlayerData(uuid);
+        PlayerStardewData freshData = PlayerDataManager.get().getOrCreateData(uuid);
+        cleared++;
+
+        // 2. NPC 好感度
+        try { NpcFriendshipDataManager.get(overworld).clearPlayer(uuid); cleared++; } catch (Exception ignored) {}
+
+        // 3. 事件已看记录
+        try { EventSeenData.get().clearSeen(uuid); cleared++; } catch (Exception ignored) {}
+
+        // 4. 矿洞奖励领取
+        try { MineRewardClaimManager.get(overworld).clearPlayer(uuid); cleared++; } catch (Exception ignored) {}
+
+        // 5. 矿井进度
+        try { MiningDataManager.clearPlayerData(player); cleared++; } catch (Exception ignored) {}
+
+        // 6. 传送魔杖解锁
+        try { WarpWandSavedData.get().clearPlayer(uuid); cleared++; } catch (Exception ignored) {}
+
+        // 7. 农场权限
+        try { FarmPermissionManager.get().clearAllForOwner(uuid); cleared++; } catch (Exception ignored) {}
+
+        // 8. 农场实例
+        try { FarmInstanceRegistry.get().deleteFarm(uuid); cleared++; } catch (Exception ignored) {}
+
+        // 9. 玩家 persistentData 中的模组标签
+        int tagCount = clearModPersistentTags(player);
+
+        // 10. 同步到客户端
+        syncPlayerData(player, freshData);
+
+        // 11. 同步事件已看数据（清空后）到客户端，否则客户端缓存仍认为剧情已看过
+        try {
+            PacketDistributor.sendToPlayer(player, new SyncEventSeenPayload(List.of()));
+        } catch (Exception ignored) {}
+
+        // 12. 同步传送魔杖解锁（清空后）到客户端
+        try {
+            PacketDistributor.sendToPlayer(player, new WarpWandSyncPayload(new HashSet<>()));
+        } catch (Exception ignored) {}
+
+        // 13. 同步 NPC 好感度（清空后）到客户端
+        try {
+            PacketDistributor.sendToPlayer(player, new SyncNpcFriendshipOverviewPayload(List.of()));
+        } catch (Exception ignored) {}
+
+        // 14. 同步农场权限（清空后）到客户端
+        try {
+            FarmPermSyncPayload.sendToPlayer(player);
+        } catch (Exception ignored) {}
+
+        int finalCleared = cleared;
         context.getSource().sendSuccess(() -> Component.literal(
-            "§e玩家数据已重置！"), false);
-        
+            "§a玩家 " + player.getName().getString() + " 的模组数据已完全重置！"
+            + "\n§7  - 清除了 " + finalCleared + " 个数据系统"
+            + "\n§7  - 移除了 " + tagCount + " 个 persistentData 标签"), true);
+
         return 1;
+    }
+
+    /**
+     * 清除玩家 persistentData 中所有 Stardew / stardewcraft_ 开头的标签。
+     * 返回移除的标签数量。
+     */
+    private static int clearModPersistentTags(ServerPlayer player) {
+        CompoundTag data = player.getPersistentData();
+        List<String> toRemove = new ArrayList<>();
+        for (String key : data.getAllKeys()) {
+            if (key.startsWith("Stardew") || key.startsWith("stardewcraft_")) {
+                toRemove.add(key);
+            }
+        }
+        for (String key : toRemove) {
+            data.remove(key);
+        }
+        return toRemove.size();
     }
 }

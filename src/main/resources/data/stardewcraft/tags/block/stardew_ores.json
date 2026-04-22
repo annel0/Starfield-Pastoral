@@ -19,6 +19,12 @@
 
     "stardewcraft:earth_coal_ore",
     "stardewcraft:frost_coal_ore",
-    "stardewcraft:lava_coal_ore"
+    "stardewcraft:lava_coal_ore",
+
+    "stardewcraft:desert_copper_ore",
+    "stardewcraft:desert_iron_ore",
+    "stardewcraft:desert_gold_ore",
+    "stardewcraft:desert_iridium_ore",
+    "stardewcraft:desert_coal_ore"
   ]
 }

@@ -48,6 +48,9 @@ public final class StardewHudMessageManager {
 	private static final int DIGIT_TEX_W = 5;
 	private static final int DIGIT_TEX_H = 70;
 
+	/** Uniform scale applied to the entire HUD toast (box + text + icon). */
+	private static final float HUD_SCALE = 0.70f;
+
 	private static final float VANILLA_TO_MC = 0.40f;
 	private static final int BOX_HEIGHT = Math.round(112f * VANILLA_TO_MC);
 	private static final int BOX_MARGIN_LEFT = Math.round(16f * VANILLA_TO_MC);
@@ -123,17 +126,26 @@ public final class StardewHudMessageManager {
 		}
 		updateMessages();
 		Minecraft mc = Minecraft.getInstance();
+		if (mc.options.hideGui || (mc.player != null && mc.player.isSpectator())) {
+			return;
+		}
 		Font font = mc.font;
-		int screenWidth = mc.getWindow().getGuiScaledWidth();
-		int screenHeight = mc.getWindow().getGuiScaledHeight();
+		// Scale screen coords so the entire toast is drawn at HUD_SCALE
+		int screenWidth = Math.round(mc.getWindow().getGuiScaledWidth() / HUD_SCALE);
+		int screenHeight = Math.round(mc.getWindow().getGuiScaledHeight() / HUD_SCALE);
 		int heightUsed = 0;
 		GuiGraphics graphics = event.getGuiGraphics();
+
+		graphics.pose().pushPose();
+		graphics.pose().scale(HUD_SCALE, HUD_SCALE, 1f);
 
 		for (int i = MESSAGES.size() - 1; i >= 0; i--) {
 			HudMessage message = MESSAGES.get(i);
 			drawMessage(graphics, font, screenWidth, screenHeight, message, heightUsed);
 			heightUsed += BOX_HEIGHT;
 		}
+
+		graphics.pose().popPose();
 	}
 
 	private static void updateMessages() {
@@ -256,7 +268,9 @@ public final class StardewHudMessageManager {
 		graphics.pose().pushPose();
 		graphics.pose().translate(textX, textY, 0f);
 		graphics.pose().scale(TEXT_SCALE, TEXT_SCALE, 1f);
-		graphics.drawString(font, message.message, 0, 0, textColor, true);
+		// 用纯字符串渲染 — 忽略 Component 里嵌入的样式（如物品名默认白色），
+		// 让 TEXT_COLOR（深棕）统一生效。
+		graphics.drawString(font, message.messageText, 0, 0, textColor, true);
 		graphics.pose().popPose();
 
 		RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
@@ -315,7 +329,6 @@ public final class StardewHudMessageManager {
 	}
 
 	private static final class HudMessage {
-		private final Component message;
 		private final String messageText;
 		private String typeKey;
 		private int number = -1;
@@ -326,8 +339,10 @@ public final class StardewHudMessageManager {
 		private boolean expensive;
 
 		private HudMessage(Component message, MessageKind kind) {
-			this.message = Objects.requireNonNull(message, "message");
-			this.messageText = message.getString();
+			Objects.requireNonNull(message, "message");
+			String raw = message.getString();
+			String stripped = net.minecraft.ChatFormatting.stripFormatting(raw);
+			this.messageText = stripped != null ? stripped : raw;
 			Objects.requireNonNull(kind, "kind");
 		}
 

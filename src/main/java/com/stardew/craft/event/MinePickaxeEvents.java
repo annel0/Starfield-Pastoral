@@ -1,6 +1,7 @@
 package com.stardew.craft.event;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModTags;
 import com.stardew.craft.core.ModMiningDimensions;
 import com.stardew.craft.item.tool.StardewPickaxeItem;
@@ -19,6 +20,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -27,11 +29,10 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.level.BlockDropsEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 
 /**
@@ -80,10 +81,16 @@ public final class MinePickaxeEvents {
 			return;
 		}
 
-		// SDV parity: 非矿井非农场区域的装饰性石头不可被玩家挖掘
-		if (player.level() instanceof ServerLevel sl) {
-			if (sl.dimension() != ModMiningDimensions.STARDEW_MINING
-					&& !com.stardew.craft.core.FarmAreaResolver.isInFarmArea(sl, event.getPosition().orElse(BlockPos.ZERO))) {
+		// SDV parity: 只能在矿井维度或自己/授权的农场上挖模组石头。
+		// 小镇（公共区域）和别人没授权的农场禁止挖掘。
+		if (player.level() instanceof ServerLevel sl && !player.isCreative()) {
+			BlockPos p = event.getPosition().orElse(BlockPos.ZERO);
+			if (sl.dimension() == ModDimensions.STARDEW_VALLEY) {
+				if (!(player instanceof ServerPlayer sp) || !FarmAreaProtectionEvents.canModifyAt(sp, p)) {
+					event.setNewSpeed(0.0F);
+					return;
+				}
+			} else if (sl.dimension() != ModMiningDimensions.STARDEW_MINING) {
 				event.setNewSpeed(0.0F);
 				return;
 			}
@@ -145,11 +152,17 @@ public final class MinePickaxeEvents {
 			return;
 		}
 
-		// SDV parity: 模组石头/矿石只能在矿井维度和农场区域破坏
-		// 小镇等非农场区域的装饰性石头不可被玩家破坏
+		// SDV parity: 模组石头/矿石只能在矿井维度和有权限的农场上破坏。
+		// 小镇等公共区域以及别人没授权的农场禁止挖掘。
 		if (event.getLevel() instanceof ServerLevel sl) {
-			if (sl.dimension() != ModMiningDimensions.STARDEW_MINING
-					&& !com.stardew.craft.core.FarmAreaResolver.isInFarmArea(sl, event.getPos())) {
+			if (sl.dimension() == ModDimensions.STARDEW_VALLEY) {
+				if (!FarmAreaProtectionEvents.canModifyAt(player, event.getPos())) {
+					event.setCanceled(true);
+					player.displayClientMessage(
+							Component.translatable("stardewcraft.farm.build_farm_only"), true);
+					return;
+				}
+			} else if (sl.dimension() != ModMiningDimensions.STARDEW_MINING) {
 				event.setCanceled(true);
 				return;
 			}
@@ -158,11 +171,6 @@ public final class MinePickaxeEvents {
 		ItemStack tool = player.getMainHandItem();
 		int requiredTier = getRequiredTier(state);
 		int stardewTier = getStardewPickaxeTier(tool);
-		
-		// Debug log
-		StardewCraft.LOGGER.info("[MinePickaxe] Block: {}, requiredTier: {}, stardewTier: {}, isPickaxe: {}", 
-			net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()),
-			requiredTier, stardewTier, isPickaxeLike(tool));
 
 		if (!isPickaxeLike(tool)) {
 			event.setCanceled(true); // 不是镐子，阻止破坏
@@ -172,14 +180,11 @@ public final class MinePickaxeEvents {
 		// 非模组镐子：只能挖 tier 0 的石头和煤矿，不能挖铁矿及以上、宝石矿、矿物节点
 		if (stardewTier < 0 && (requiredTier > 0 || isStardewOre(state) || isMineralBlock(state))) {
 			event.setCanceled(true);
-			StardewCraft.LOGGER.info("[MinePickaxe] Blocked non-mod pickaxe on ore/mineral: {}", 
-				net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()));
 			return;
 		}
 
 		if (requiredTier > 0 && stardewTier < requiredTier) {
 			event.setCanceled(true); // tier不够，阻止破坏
-			StardewCraft.LOGGER.info("[MinePickaxe] Blocked: tier {} < required {}", stardewTier, requiredTier);
 			return;
 		}
 
@@ -187,22 +192,45 @@ public final class MinePickaxeEvents {
 			return;
 		}
 
-		// 能量不足时，禁止继续挖矿（仅矿井维度生效）
-		if (level.dimension() == ModMiningDimensions.STARDEW_MINING
-				&& PlayerStardewDataAPI.getEnergy(player) <= 0.0f) {
+		// 能量不足时，禁止继续挖矿
+		if (PlayerStardewDataAPI.getEnergy(player) <= 0.0f) {
 			player.displayClientMessage(Component.translatable("stardewcraft.message.player.exhausted"), true);
 			event.setCanceled(true);
 			return;
 		}
 
+		// 所有检查通过：让原版正常破坏方块（声音、粒子、破坏动画走原版流程），
+		// 自定义掉落由 onBlockDrops 接管（替换原版战利品表结果）。
+		// 梯子生成由 MiningBlockBreakHandler.onBlockBreak 订阅同一事件完成。
+		int miningExp = getMiningExperienceForBlock(state);
+		if (miningExp > 0) {
+			PlayerStardewDataAPI.addExperience(player, SkillType.MINING, miningExp);
+		}
+
+		consumeMiningEnergy(player, level);
+	}
+
+	/**
+	 * 替换模组石头/矿石的掉落物，用星露谷数量公式覆盖原版战利品表。
+	 * 矿石：清空原版掉落，改投对应 Stardew 产物（按采矿等级/职业/幸运计算数量）。
+	 * 普通石头：保留原版掉落（掉落自身），额外滚晶洞 / 从石头中掉煤的概率。
+	 * 矿物节点（水晶/火石英等）：保留原版掉落（掉落自身）。
+	 */
+	@SubscribeEvent
+	public static void onBlockDrops(BlockDropsEvent event) {
+		if (!(event.getBreaker() instanceof ServerPlayer player)) {
+			return;
+		}
+		if (player.isCreative()) {
+			return;
+		}
+		BlockState state = event.getState();
+		if (!isStardewMineBlock(state)) {
+			return;
+		}
+		ServerLevel level = event.getLevel();
 		BlockPos pos = event.getPos();
-		event.setCanceled(true);
 
-		// Break block without vanilla drops.
-		level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
-		level.levelEvent(2001, pos, Block.getId(state));
-
-		// For ores: drop resource items with Stardew quantity logic
 		if (isStardewOre(state)) {
 			Item dropItem = getOreDropItem(state);
 			if (dropItem != null) {
@@ -210,26 +238,33 @@ public final class MinePickaxeEvents {
 				if (count <= 0) {
 					count = 1;
 				}
-				Block.popResource(level, pos, new ItemStack(dropItem, count));
+				event.getDrops().clear();
+				event.getDrops().add(makeDrop(level, pos, new ItemStack(dropItem, count)));
+
+				// SDV parity: 所有铱矿石（stone 765）3.5% 概率额外掉落五彩碎片
+				// 见 GameLocation.cs::breakStone case "765": `if (r.NextDouble() < 0.035)`
+				@SuppressWarnings("null")
+				String orePath = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath();
+				if (orePath.contains("iridium_ore")) {
+					if (level.getRandom().nextDouble() < 0.035) {
+						event.getDrops().add(makeDrop(level, pos,
+							new ItemStack(ModItems.PRISMATIC_SHARD.get(), 1)));
+					}
+				}
 			}
-		} else {
-			// For stones: drop themselves (1 block)
-			Block.popResource(level, pos, new ItemStack(state.getBlock().asItem(), 1));
-
-			// 额外晶洞掉落（概率降低，但逻辑与原版一致）
-			tryDropGeode(level, player, pos, state);
-			tryDropCoalFromStone(level, player, pos, state);
+			return;
 		}
 
-		// 触发梯子概率逻辑（生存模式自定义挖掘路径）
-		MiningBlockBreakHandler.handleStoneBreak(level, player, pos, state);
-
-		int miningExp = getMiningExperienceForBlock(state);
-		if (miningExp > 0) {
-			PlayerStardewDataAPI.addExperience(player, SkillType.MINING, miningExp);
+		// 矿物节点（水晶等）不滚晶洞/煤；普通石头才走额外掉落概率。
+		if (!isMineralBlock(state)) {
+			addGeodeDrop(event, level, player, pos, state);
+			addCoalFromStoneDrop(event, level, player, pos, state);
 		}
+	}
 
-		consumeMiningEnergy(player, level);
+	private static ItemEntity makeDrop(ServerLevel level, BlockPos pos, ItemStack stack) {
+		return new ItemEntity(level,
+				pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, stack);
 	}
 
 	private static int getMiningExperienceForBlock(BlockState state) {
@@ -267,7 +302,7 @@ public final class MinePickaxeEvents {
 	}
 
 	@SuppressWarnings("null")
-	private static void tryDropGeode(ServerLevel level, ServerPlayer player, BlockPos pos, BlockState state) {
+	private static void addGeodeDrop(BlockDropsEvent event, ServerLevel level, ServerPlayer player, BlockPos pos, BlockState state) {
 		if (level.dimension() != ModMiningDimensions.STARDEW_MINING) {
 			return;
 		}
@@ -286,13 +321,13 @@ public final class MinePickaxeEvents {
 		if (level.getRandom().nextDouble() < geodeChance) {
 			Item geode = pickGeodeItemForFloor(floorNumber);
 			if (geode != null) {
-				Block.popResource(level, pos, new ItemStack(geode, 1));
+				event.getDrops().add(makeDrop(level, pos, new ItemStack(geode, 1)));
 			}
 		}
 
 		// 普通矿井 20 层以上仍可额外掉落万能晶洞
 		if (floorNumber >= 20 && level.getRandom().nextDouble() < OMNI_GEODE_EXTRA_CHANCE * (1.0 + chanceModifier) * excavatorMultiplier) {
-			Block.popResource(level, pos, new ItemStack(ModItems.OMNI_GEODE.get(), 1));
+			event.getDrops().add(makeDrop(level, pos, new ItemStack(ModItems.OMNI_GEODE.get(), 1)));
 		}
 
 	}
@@ -323,9 +358,6 @@ public final class MinePickaxeEvents {
 	 * 公式: cost = TIER_ENERGY_COSTS[tier] - miningLevel × 0.05, 下限 0.5
 	 */
 	private static void consumeMiningEnergy(ServerPlayer player, ServerLevel level) {
-		if (level.dimension() != ModMiningDimensions.STARDEW_MINING) {
-			return;
-		}
 		int tier = getStardewPickaxeTier(player.getMainHandItem());
 		float baseCost = (tier >= 0 && tier < TIER_ENERGY_COSTS.length)
 				? TIER_ENERGY_COSTS[tier] : TIER_ENERGY_COSTS[0];
@@ -387,7 +419,7 @@ public final class MinePickaxeEvents {
 	 * 挖普通石头时 5% 基础概率触发「矿石掉落」，在该 5% 内 25% 概率掉煤炭。
 	 * 有效煤炭掉率 ≈ 1.25%。Prospector 职业使煤炭子概率 ×2 (50%)。
 	 */
-	private static void tryDropCoalFromStone(ServerLevel level, ServerPlayer player, BlockPos pos, BlockState state) {
+	private static void addCoalFromStoneDrop(BlockDropsEvent event, ServerLevel level, ServerPlayer player, BlockPos pos, BlockState state) {
 		if (level.dimension() != ModMiningDimensions.STARDEW_MINING) {
 			return;
 		}
@@ -407,7 +439,19 @@ public final class MinePickaxeEvents {
 			// SDV: 在矿石掉落内，25% 概率额外掉煤炭；Prospector(Burrower) ×2
 			int burrowerMultiplier = PlayerStardewDataAPI.hasProfession(player, ProfessionType.PROSPECTOR) ? 2 : 1;
 			if (r.nextDouble() < 0.25 * burrowerMultiplier) {
-				Block.popResource(level, pos, new ItemStack(ModItems.COAL.get(), 1));
+				event.getDrops().add(makeDrop(level, pos, new ItemStack(ModItems.COAL.get(), 1)));
+			}
+		}
+
+		// SDV parity: 玩家到过矿井 120 层后，普通石头才可能偶尔掉落五彩碎片（对应 SDV Mystic Stone 的降维近似）
+		com.stardew.craft.mining.MiningPlayerData miningData = com.stardew.craft.mining.MiningDataManager.getPlayerData(player);
+		int maxReached = miningData != null ? miningData.getMaxFloorReached() : 0;
+		if (maxReached >= 120) {
+			// 基础 0.005%（约 1/20000），按采矿等级、每日幸运、幸运等级线性缩放
+			double base = 0.00005;
+			double shardChance = base + base * miningLevel * 0.008 + base * (dailyLuck / 2.0) + base * luckLevel * 0.05;
+			if (r.nextDouble() < shardChance) {
+				event.getDrops().add(makeDrop(level, pos, new ItemStack(ModItems.PRISMATIC_SHARD.get(), 1)));
 			}
 		}
 	}
@@ -429,6 +473,94 @@ public final class MinePickaxeEvents {
 			count += 1;
 		}
 		return Mth.clamp(count, 1, 999);
+	}
+
+	/**
+	 * 公开供炸弹爆炸时复用：模拟"玩家挖掉这块矿/石头"的全部 SDV 风格掉落。
+	 * <p>调用方应在调用本方法<b>之后</b>再 removeBlock。本方法只负责掉落（不破坏方块），
+	 * 与 onBlockDrops 的逻辑保持一致：
+	 * <ul>
+	 *   <li>矿石：按 Miner/Geologist/采矿等级/幸运算 count；铱矿 3.5% 五彩碎片；记采矿经验</li>
+	 *   <li>普通石头：调用方需另行掉落自身；本方法只补 5% 矿石额外掉落（25% 内出煤；Prospector x2）、
+	 *       晶洞、玩家到过 120 层后基础 0.005% 五彩碎片；记采矿经验</li>
+	 *   <li>矿物节点（水晶/火石英 等）：调用方掉落自身；本方法只记采矿经验</li>
+	 * </ul>
+	 * 仅在玩家非创造模式时调用；炸弹本身已限定矿井维度/可破坏方块。
+	 *
+	 * @return 矿石的产物 Item（用于让调用方知道矿石已被本方法处理，不要再掉落自身），其他方块返回 null
+	 */
+	public static Item applyPlayerStyleBombDrops(ServerLevel level, ServerPlayer player,
+												 BlockPos pos, BlockState state) {
+		if (!isStardewMineBlock(state)) {
+			return null;
+		}
+		Item oreProduct = null;
+		if (isStardewOre(state)) {
+			oreProduct = getOreDropItem(state);
+			if (oreProduct != null) {
+				int count = isGemOre(state) ? computeGemOreCount(level, player) : computeStardewOreCount(player, pos);
+				if (count <= 0) count = 1;
+				net.minecraft.world.level.block.Block.popResource(level, pos, new ItemStack(oreProduct, count));
+				@SuppressWarnings("null")
+				String orePath = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()).getPath();
+				if (orePath.contains("iridium_ore") && level.getRandom().nextDouble() < 0.035) {
+					net.minecraft.world.level.block.Block.popResource(level, pos,
+						new ItemStack(ModItems.PRISMATIC_SHARD.get(), 1));
+				}
+			}
+		} else if (!isMineralBlock(state)) {
+			rollBombStoneExtras(level, player, pos);
+		}
+		int miningExp = getMiningExperienceForBlock(state);
+		if (miningExp > 0) {
+			PlayerStardewDataAPI.addExperience(player, SkillType.MINING, miningExp);
+		}
+		return oreProduct;
+	}
+
+	/** 炸弹打石头时的额外掉落（晶洞/煤/五彩碎片），与 addGeodeDrop + addCoalFromStoneDrop 等价但直接 popResource。 */
+	private static void rollBombStoneExtras(ServerLevel level, ServerPlayer player, BlockPos pos) {
+		if (level.dimension() != ModMiningDimensions.STARDEW_MINING) return;
+
+		int floorNumber = getFloorNumber(pos);
+		int luckLevel = PlayerStardewDataAPI.getLuckLevel(player);
+		int luckBuff = PlayerStardewDataAPI.getLuckBuffLevel(player);
+		double dailyLuck = PlayerStardewDataAPI.getDailyLuck(player);
+		int miningLevel = PlayerStardewDataAPI.getSkillLevel(player, SkillType.MINING);
+		double chanceMod = dailyLuck / 2.0 + miningLevel * 0.005 + luckLevel * 0.001;
+		int excavatorMul = PlayerStardewDataAPI.hasProfession(player, ProfessionType.EXCAVATOR) ? 2 : 1;
+		RandomSource r = level.getRandom();
+
+		// 主晶洞
+		if (r.nextDouble() < GEODE_BASE_CHANCE * (1.0 + chanceMod) * excavatorMul) {
+			Item geode = pickGeodeItemForFloor(floorNumber);
+			if (geode != null) {
+				net.minecraft.world.level.block.Block.popResource(level, pos, new ItemStack(geode, 1));
+			}
+		}
+		// 万能晶洞
+		if (floorNumber >= 20 && r.nextDouble() < OMNI_GEODE_EXTRA_CHANCE * (1.0 + chanceMod) * excavatorMul) {
+			net.minecraft.world.level.block.Block.popResource(level, pos, new ItemStack(ModItems.OMNI_GEODE.get(), 1));
+		}
+		// 5% 矿石额外掉落 → 25% 内出煤（Prospector x2）
+		double oreDropChance = 0.05 * (1.0 + (dailyLuck / 2.0 + miningLevel * 0.005 + luckBuff * 0.001));
+		if (r.nextDouble() < oreDropChance) {
+			int burrowerMul = PlayerStardewDataAPI.hasProfession(player, ProfessionType.PROSPECTOR) ? 2 : 1;
+			if (r.nextDouble() < 0.25 * burrowerMul) {
+				net.minecraft.world.level.block.Block.popResource(level, pos, new ItemStack(ModItems.COAL.get(), 1));
+			}
+		}
+		// 普通石头出五彩碎片（仅 120 层以上玩家）
+		com.stardew.craft.mining.MiningPlayerData md = com.stardew.craft.mining.MiningDataManager.getPlayerData(player);
+		int maxReached = md != null ? md.getMaxFloorReached() : 0;
+		if (maxReached >= 120) {
+			double base = 0.00005;
+			double shardChance = base + base * miningLevel * 0.008 + base * (dailyLuck / 2.0) + base * luckBuff * 0.05;
+			if (r.nextDouble() < shardChance) {
+				net.minecraft.world.level.block.Block.popResource(level, pos,
+					new ItemStack(ModItems.PRISMATIC_SHARD.get(), 1));
+			}
+		}
 	}
 
 	private static long makeDailyPosSeed(BlockPos pos) {

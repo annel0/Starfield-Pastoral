@@ -102,6 +102,9 @@ public class ModClientEvents {
                 } else if ("stardewcraft.type.furniture".equals(typeKey)) {
                     // 家具：青色
                     typeColor = net.minecraft.ChatFormatting.DARK_AQUA;
+                } else if ("stardewcraft.type.scarecrow".equals(typeKey)) {
+                    // 稻草人：稻草黄（区别于家具）
+                    typeColor = net.minecraft.ChatFormatting.YELLOW;
                 } else if ("stardewcraft.type.craftable".equals(typeKey)) {
                     // 打造物品：未占用的颜色
                     typeColor = net.minecraft.ChatFormatting.DARK_RED;
@@ -146,17 +149,28 @@ public class ModClientEvents {
                     typeColor = net.minecraft.ChatFormatting.LIGHT_PURPLE;
                 }
 
-                customLines.add(Component.translatable("stardewcraft.tooltip.type_prefix") // Type label in white, non-bold.
-                        .withStyle(ChatFormatting.WHITE)
-                        .append(Component.translatable(typeKey)
-                        .withStyle(typeColor, ChatFormatting.BOLD)));
+                if (stack.getItem() == com.stardew.craft.item.ModItems.SKULL_KEY.get()) {
+                    // 骷髅钥匙：类型名用流动紫金高光
+                    customLines.add(Component.translatable("stardewcraft.tooltip.type_prefix")
+                            .withStyle(ChatFormatting.WHITE)
+                            .append(SkullKeyClientFx.flowingTypeLabel(
+                                    Component.translatable(typeKey).getString())));
+                } else {
+                    customLines.add(Component.translatable("stardewcraft.tooltip.type_prefix") // Type label in white, non-bold.
+                            .withStyle(ChatFormatting.WHITE)
+                            .append(Component.translatable(typeKey)
+                            .withStyle(typeColor, ChatFormatting.BOLD)));
+                }
             }
             
                 // 第二行：单价（与服务端结算复用同一职业报价逻辑）
                 SellQuote quote = ProfessionSellPriceService.quoteItemForProfessionNames(
                     new java.util.HashSet<>(ClientPlayerDataCache.getProfessions()), stack, SellSource.SHOP_COUNTER);
                 int sellPrice = quote.finalUnitPrice();
-                if (sellPrice > 0) {
+                boolean hidePriceLine = stack.getItem() == com.stardew.craft.item.ModItems.SKULL_KEY.get();
+                if (hidePriceLine) {
+                    // 骷髅钥匙：不显示单价行
+                } else if (sellPrice > 0) {
                  customLines.add(Component.translatable("stardewcraft.tooltip.price")
                          .append(": ")
                          .append(Component.literal(TooltipConstants.ICON_MONEY).withStyle(ChatFormatting.WHITE)) // 图标
@@ -344,8 +358,35 @@ public class ModClientEvents {
         com.stardew.craft.client.weapon.DragontoothShivBreathClientState.clearIfNoPlayer();
         com.stardew.craft.client.weapon.DashMovementClientState.clearIfNoPlayer();
 
+        // ── Cutscene event player tick ──
+        com.stardew.craft.cutscene.runtime.EventPlayer.get().tick();
+        com.stardew.craft.cutscene.runtime.EventCameraController.tick();
+        com.stardew.craft.cutscene.runtime.EventScreenFade.tick();
+        com.stardew.craft.cutscene.runtime.EventTriggerChecker.tick();
+
         Minecraft mc = Minecraft.getInstance();
         if (mc == null || mc.player == null || mc.level == null) {
+            return;
+        }
+
+        // ── During cutscene: suppress all player input, freeze movement ──
+        if (com.stardew.craft.cutscene.runtime.EventPlayer.get().isPlayerFrozen()) {
+            // Zero out movement so the player stands still
+            mc.player.setDeltaMovement(net.minecraft.world.phys.Vec3.ZERO);
+            mc.player.xxa = 0;
+            mc.player.zza = 0;
+            // Absorb continuous attacks block breaking during cutscenes
+            mc.options.keyAttack.setDown(false);
+            mc.options.keyUse.setDown(false);
+            mc.options.keyPickItem.setDown(false);
+            // Consume vanilla attack/use/pick so player can't break/place/interact
+            while (mc.options.keyAttack.consumeClick()) {}
+            while (mc.options.keyUse.consumeClick()) {}
+            while (mc.options.keyPickItem.consumeClick()) {}
+            // Consume all custom key clicks so menus/skills don't fire
+            while (ModKeyMappings.GAME_MENU.consumeClick()) {}
+            while (ModKeyMappings.QUEST_LOG.consumeClick()) {}
+            drainSkillKeyClicks();
             return;
         }
 
@@ -435,6 +476,8 @@ public class ModClientEvents {
         com.stardew.craft.client.render.PortalHintRenderer.onRenderLevel(event);
         com.stardew.craft.client.render.JunimoNoteOutlineRenderer.onRenderLevel(event);
         com.stardew.craft.client.render.StarPlaqueRenderer.onRenderLevel(event);
+        com.stardew.craft.client.render.BillboardQuestIndicatorRenderer.onRenderLevel(event);
+        com.stardew.craft.client.render.PanPointRenderer.onRenderLevel(event);
     }
 
     @SubscribeEvent
@@ -446,9 +489,15 @@ public class ModClientEvents {
         // CC 过场全屏 overlay (淡入淡出 / 闪白)
         com.stardew.craft.communitycenter.cutscene.ScreenFade.render(event.getGuiGraphics());
 
+        // Cutscene event fade overlay
+        com.stardew.craft.cutscene.runtime.EventScreenFade.render(event.getGuiGraphics());
+
         Minecraft mc = Minecraft.getInstance();
         Player player = mc.player;
         if (player == null) {
+            return;
+        }
+        if (mc.options.hideGui || player.isSpectator()) {
             return;
         }
 
@@ -1067,6 +1116,20 @@ public class ModClientEvents {
     public static void onPlayerLogout(net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedOutEvent event) {
         com.stardew.craft.network.payload.ClientNpcVisibilityState.clear();
         com.stardew.craft.client.render.ClientStarterChestState.clear();
+
+        // 清理所有客户端静态缓存，防止跨世界/跨服务器内存泄漏
+        com.stardew.craft.client.gui.menu.StardewGameMenuScreen.clearPortraitCache();
+        com.stardew.craft.client.gui.common.StardewNpcDialogueScreen.clearPortraitCache();
+        com.stardew.craft.client.gui.ShopScreen.clearPortraitCache();
+        com.stardew.craft.client.fishing.FishingBiteVisuals.clearTexSizeCache();
+        com.stardew.craft.block.shape.ModelVoxelShapeCache.clearAll();
+        com.stardew.craft.npc.data.NpcContentFilter.clearCache();
+
+        // Reset per-session player data so "isSynced" flags go back to false and stale
+        // mail/money/skill/friendship from the previous world doesn't leak into preconditions
+        // evaluated before the next PlayerDataSyncPacket arrives.
+        com.stardew.craft.client.ClientPlayerDataCache.reset();
+        com.stardew.craft.client.hud.StardewTimeHud.resetTimeSync();
     }
 }
 

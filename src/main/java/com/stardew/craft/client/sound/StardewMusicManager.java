@@ -71,7 +71,9 @@ public final class StardewMusicManager {
         new InteriorEntry("1_river_road",     15936, 15936, ModSounds.MUSIC_SPRINGTOWN),
         new InteriorEntry("1_willow_lane",    17088, 17088, ModSounds.MUSIC_SPRINGTOWN),
         new InteriorEntry("2_willow_lane",    17088, 17664, ModSounds.MUSIC_SPRINGTOWN),
-        new InteriorEntry("leah_cottage",     17088, 18816, ModSounds.MUSIC_SPRINGTOWN)
+        new InteriorEntry("leah_cottage",     17088, 18816, ModSounds.MUSIC_SPRINGTOWN),
+        // Desert
+        new InteriorEntry("oasis",            18240, 17664, ModSounds.MUSIC_OASIS)
     );
 
     private static int tickCounter = CHECK_INTERVAL - 1; // evaluate on first tick
@@ -97,6 +99,23 @@ public final class StardewMusicManager {
 
     /** 客户端跟踪的活跃唱片机。 */
     private static final Map<BlockPos, JukeboxPlayback> activeJukeboxes = new HashMap<>();
+
+    /** When true, the cutscene system owns the music — skip evaluateAndPlay(). */
+    private static boolean cutsceneOverride = false;
+
+    /**
+     * Play a track for a cutscene event. Registers as currentMusic so stopAll() works,
+     * and sets cutsceneOverride to prevent evaluateAndPlay() from overriding it.
+     */
+    public static void playForCutscene(SoundEvent event) {
+        stopAll();
+        cutsceneOverride = true;
+        Minecraft mc = Minecraft.getInstance();
+        StardewMusicInstance instance = new StardewMusicInstance(event);
+        currentMusic = instance;
+        currentTrackEvent = event;
+        mc.getSoundManager().play(instance);
+    }
 
     private record JukeboxPlayback(String trackId, StardewMusicInstance sound) {}
 
@@ -178,6 +197,9 @@ public final class StardewMusicManager {
         // Process fade-out
         tickFadeOut();
 
+        // Don't override cutscene music
+        if (cutsceneOverride) return;
+
         // Periodic track evaluation
         tickCounter++;
         if (tickCounter >= CHECK_INTERVAL) {
@@ -190,6 +212,7 @@ public final class StardewMusicManager {
      * Force stop all music immediately (e.g. on dimension change).
      */
     public static void stopAll() {
+        cutsceneOverride = false;
         if (currentMusic != null) {
             currentMusic.stopNow();
             Minecraft.getInstance().getSoundManager().stop(currentMusic);
@@ -305,6 +328,11 @@ public final class StardewMusicManager {
             return interiorTrack;
         }
 
+        // ── Desert outdoor music (Calico Desert uses "wavy") ──
+        if (isPlayerInDesert(mc)) {
+            return ModSounds.MUSIC_DESERT.get();
+        }
+
         // ── Weather: Rain ──
         String weather = ClientWeatherCache.getCurrentWeather(ModDimensions.STARDEW_VALLEY);
         boolean isRaining = "Rain".equals(weather) || "Storm".equals(weather);
@@ -371,6 +399,17 @@ public final class StardewMusicManager {
         } else {
             return ModSounds.MUSIC_FROST_MINE.get();
         }
+    }
+
+    /**
+     * Checks if the player is in the Calico Desert outdoor area.
+     * Desert schem bounds: X ∈ [-466, -169], Z ∈ [1160, 1483]
+     */
+    private static boolean isPlayerInDesert(Minecraft mc) {
+        if (mc.player == null) return false;
+        int px = mc.player.getBlockX();
+        int pz = mc.player.getBlockZ();
+        return px >= -466 && px <= -169 && pz >= 1160 && pz <= 1483;
     }
 
     /**

@@ -46,6 +46,44 @@ public final class PreservesIngredientDataManager {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static volatile Map<String, IngredientData> DATA = Collections.emptyMap();
+    /** 缓存原始 JSON（SoftReference），内存紧张时可被 GC 回收 */
+    private static volatile java.lang.ref.SoftReference<String> CACHED_JSON_REF = new java.lang.ref.SoftReference<>(null);
+
+    /** 获取缓存的 JSON（服务端调用）。若 GC 回收则重新序列化 */
+    public static String getCachedJson() {
+        String json = CACHED_JSON_REF.get();
+        if (json != null) return json;
+        json = rebuildCacheJson();
+        CACHED_JSON_REF = new java.lang.ref.SoftReference<>(json);
+        return json;
+    }
+
+    private static String rebuildCacheJson() {
+        Map<String, IngredientData> current = DATA;
+        if (current.isEmpty()) return "";
+        com.google.gson.JsonObject cacheRoot = new com.google.gson.JsonObject();
+        for (Map.Entry<String, IngredientData> me : current.entrySet()) {
+            cacheRoot.add(me.getKey(), GSON.toJsonTree(me.getValue()));
+        }
+        return GSON.toJson(cacheRoot);
+    }
+
+    /** 从 JSON 字符串重放解析（客户端调用） */
+    public static void applyFromJson(String json) {
+        try {
+            com.google.gson.JsonObject root = GSON.fromJson(json, com.google.gson.JsonObject.class);
+            if (root == null) return;
+            Map<String, IngredientData> loaded = new HashMap<>();
+            for (Map.Entry<String, com.google.gson.JsonElement> entry : root.entrySet()) {
+                IngredientData data = GSON.fromJson(entry.getValue(), IngredientData.class);
+                if (data != null) loaded.put(entry.getKey(), data);
+            }
+            DATA = Collections.unmodifiableMap(loaded);
+            com.stardew.craft.StardewCraft.LOGGER.info("[DATA-SYNC] Applied preserves data from network: {} entries", loaded.size());
+        } catch (Exception e) {
+            com.stardew.craft.StardewCraft.LOGGER.error("[DATA-SYNC] Failed to apply preserves JSON", e);
+        }
+    }
 
     @SuppressWarnings("null")
     public static Optional<IngredientData> getData(ItemStack stack) {
@@ -103,6 +141,10 @@ public final class PreservesIngredientDataManager {
                 }
             }
             DATA = Collections.unmodifiableMap(loaded);
+
+            // 清除旧的缓存引用，下次 getCachedJson() 时按需重建
+            CACHED_JSON_REF = new java.lang.ref.SoftReference<>(null);
+
             StardewCraft.LOGGER.info("Loaded preserves ingredient data: {} entries", DATA.size());
 
             applyVanillaOverrides(loaded, resourceManager);

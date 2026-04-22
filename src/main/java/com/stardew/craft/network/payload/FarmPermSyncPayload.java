@@ -77,13 +77,17 @@ public record FarmPermSyncPayload(
      * 服务端构建并发送权限数据。
      */
     public static void sendToPlayer(ServerPlayer player) {
-        UUID ownerUUID = player.getUUID();
+        UUID ownerUUID = com.stardew.craft.farm.FarmInstanceRegistry.get().getOwnerForPlayer(player.getUUID());
+        if (ownerUUID == null) ownerUUID = player.getUUID();
         FarmPermissionManager mgr = FarmPermissionManager.get();
         int defaultPerm = mgr.getDefaultPermission(ownerUUID);
 
         List<PlayerPermEntry> entries = new ArrayList<>();
+        com.stardew.craft.farm.FarmInstance farm = com.stardew.craft.farm.FarmInstanceRegistry.get().getFarm(ownerUUID);
         for (ServerPlayer online : player.server.getPlayerList().getPlayers()) {
             if (online.getUUID().equals(ownerUUID)) continue;
+            // 跳过农场成员（他们已有完整权限）
+            if (farm != null && farm.getMembers().contains(online.getUUID())) continue;
             int override = mgr.getOverridePermission(ownerUUID, online.getUUID());
             entries.add(new PlayerPermEntry(online.getUUID(), online.getName().getString(), override));
         }

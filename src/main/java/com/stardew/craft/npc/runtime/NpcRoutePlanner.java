@@ -155,7 +155,6 @@ final class NpcRoutePlanner {
         JsonElement element = points.get(pointId);
         if (element == null || !element.isJsonObject()) {
             if (MISSING_CONFIG_POINT_LOGGED.add(pointId)) {
-                com.stardew.craft.StardewCraft.LOGGER.warn("Missing npc route point '{}' in npc_route_points event; using fallback.", pointId);
             }
             return fallback;
         }
@@ -327,11 +326,6 @@ final class NpcRoutePlanner {
         if (target == null || target.position() == null) {
             String missingSig = "target_missing|" + canonicalNpcId + "|" + canonicalLocation;
             if (UNKNOWN_LOCATION_LOGGED.add(missingSig)) {
-                com.stardew.craft.StardewCraft.LOGGER.warn(
-                    "NPC route unresolved for npc='{}' location='{}'; movement paused.",
-                    canonicalNpcId,
-                    canonicalLocation
-                );
             }
             return null;
         }
@@ -357,11 +351,15 @@ final class NpcRoutePlanner {
         } else if ("seedshop".equals(canonicalLocation)
             || "pierreshop".equals(canonicalLocation)
             || "shop".equals(canonicalLocation)
-            || "sunroom".equals(canonicalLocation)
-            || "sebastianroom".equals(canonicalLocation)) {
+            || "sunroom".equals(canonicalLocation)) {
             destination.add(NpcRouteStep.warp("indoor_entry", pointFromConfig("seedshop_inner_entry", SEEDSHOP_INNER_ENTRY)));
             destination.add(NpcRouteStep.walk("indoor_target", target.position()));
         } else {
+            if (anchor == null) {
+                String sig = "missing_anchor|" + canonicalNpcId + "|" + canonicalLocation;
+                if (UNKNOWN_LOCATION_LOGGED.add(sig)) {
+                }
+            }
             destination.add(NpcRouteStep.warp("indoor_target", target.position()));
         }
         return new NpcRouteContext(canonicalLocation, destination);
@@ -376,7 +374,7 @@ final class NpcRoutePlanner {
             }
         }
         return switch (canonicalLocation) {
-            case "seedshop", "pierreshop", "shop", "sunroom", "sebastianroom" -> pointFromConfig("seedshop_outer", SEEDSHOP_OUTER);
+            case "seedshop", "pierreshop", "shop", "sunroom" -> pointFromConfig("seedshop_outer", SEEDSHOP_OUTER);
             case "saloon" -> pointFromConfig("saloon_outer", SALOON_OUTER);
             case "fishshop", "willyshop" -> pointFromConfig("fishshop_outer", FISHSHOP_OUTER);
             case "manorhouse" -> pointFromConfig("manorhouse_outer", MANORHOUSE_OUTER);
@@ -443,15 +441,6 @@ final class NpcRoutePlanner {
             return;
         }
 
-        com.stardew.craft.StardewCraft.LOGGER.warn(
-            "[LEWIS_ENDPOINT_MISSING][HARD] reason={} location={} point={} scheduleKey={} checkpoint={} node={} action=movement_paused",
-            reason,
-            canonicalLocation,
-            pointId,
-            safe(state == null ? "" : state.activeScheduleKey()),
-            state == null ? -1 : state.scheduleCheckpoint(),
-            state == null ? -1 : state.scheduleNodeIndex()
-        );
     }
 
     private static String safe(String value) {

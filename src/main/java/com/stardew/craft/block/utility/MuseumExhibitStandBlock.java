@@ -5,9 +5,11 @@ import com.stardew.craft.blockentity.MuseumExhibitStandBlockEntity;
 import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.museum.MuseumDonationData;
 import com.stardew.craft.network.MuseumDonationSyncPacket;
+import com.stardew.craft.network.MuseumStandSyncPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -51,12 +53,7 @@ public class MuseumExhibitStandBlock extends MapUtilityStaticBlock implements En
     @SuppressWarnings("null")
     @Override
     public void onRemove(@SuppressWarnings("null") BlockState state, @SuppressWarnings("null") Level level, @SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") BlockState newState, boolean isMoving) {
-        if (!state.is(newState.getBlock()) && !isMoving && state.getValue(PART) == Part.MAIN) {
-            BlockEntity be = level.getBlockEntity(pos);
-            if (be instanceof MuseumExhibitStandBlockEntity stand && stand.hasDisplayItem()) {
-                popResource(level, pos, stand.removeDisplayItem());
-            }
-        }
+        // Per-player data lives in MuseumDonationData, no item to drop on block break
         super.onRemove(state, level, pos, newState, isMoving);
     }
 
@@ -90,18 +87,24 @@ public class MuseumExhibitStandBlock extends MapUtilityStaticBlock implements En
             return InteractionResult.PASS;
         }
 
-        MuseumDonationData data = MuseumDonationData.get(serverLevel);
-        if (!data.isDonationModeActive()) {
+        if (!(player instanceof ServerPlayer serverPlayer)) {
             return InteractionResult.PASS;
         }
 
-        if (player.isShiftKeyDown() && stand.hasDisplayItem()) {
-            ItemStack removed = stand.removeDisplayItem();
+        java.util.UUID playerId = serverPlayer.getUUID();
+        MuseumDonationData data = MuseumDonationData.get(serverLevel);
+        if (!data.isDonationModeActive(playerId)) {
+            return InteractionResult.PASS;
+        }
+
+        if (player.isShiftKeyDown() && stand.hasDisplayItemForPlayer(playerId)) {
+            ItemStack removed = stand.removeDisplayItemForPlayer(playerId);
             if (!removed.isEmpty()) {
                 if (!player.addItem(removed)) {
                     player.drop(removed, false);
                 }
-                syncDonation(serverLevel, data);
+                syncDonation(serverLevel, data, serverPlayer);
+                syncStands(serverLevel, data, serverPlayer);
                 level.playSound(null, pos, net.minecraft.sounds.SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.7f, 1.0f);
                 return InteractionResult.CONSUME;
             }
@@ -130,19 +133,25 @@ public class MuseumExhibitStandBlock extends MapUtilityStaticBlock implements En
             return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
 
+        if (!(player instanceof ServerPlayer serverPlayer)) {
+            return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+
+        java.util.UUID playerId = serverPlayer.getUUID();
         MuseumDonationData data = MuseumDonationData.get(serverLevel);
-        if (!data.isDonationModeActive()) {
+        if (!data.isDonationModeActive(playerId)) {
             return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
 
         if (player.isShiftKeyDown()) {
-            if (stand.hasDisplayItem()) {
-                ItemStack removed = stand.removeDisplayItem();
+            if (stand.hasDisplayItemForPlayer(playerId)) {
+                ItemStack removed = stand.removeDisplayItemForPlayer(playerId);
                 if (!removed.isEmpty()) {
                     if (!player.addItem(removed)) {
                         player.drop(removed, false);
                     }
-                    syncDonation(serverLevel, data);
+                    syncDonation(serverLevel, data, serverPlayer);
+                    syncStands(serverLevel, data, serverPlayer);
                     level.playSound(null, pos, net.minecraft.sounds.SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.7f, 1.0f);
                     return net.minecraft.world.ItemInteractionResult.sidedSuccess(false);
                 }
@@ -150,7 +159,7 @@ public class MuseumExhibitStandBlock extends MapUtilityStaticBlock implements En
             return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
 
-        if (stack.isEmpty() || stand.hasDisplayItem()) {
+        if (stack.isEmpty() || stand.hasDisplayItemForPlayer(playerId)) {
             return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
 
@@ -164,21 +173,22 @@ public class MuseumExhibitStandBlock extends MapUtilityStaticBlock implements En
         }
 
         String itemId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
-        if (!data.canDonateItem(itemId)) {
+        if (!data.canDonateItem(playerId, itemId)) {
             player.sendSystemMessage(net.minecraft.network.chat.Component.translatable("stardewcraft.command.museum.donate.already", stack.getHoverName()));
             return net.minecraft.world.ItemInteractionResult.sidedSuccess(false);
         }
 
         ItemStack toDisplay = stack.copy();
         toDisplay.setCount(1);
-        stand.setDisplayItem(toDisplay);
-        data.markSessionPendingItem(itemId);
+        stand.setDisplayItemForPlayer(playerId, toDisplay);
+        data.markSessionPendingItem(playerId, itemId);
 
         if (!player.getAbilities().instabuild) {
             stack.shrink(1);
         }
 
-        syncDonation(serverLevel, data);
+        syncDonation(serverLevel, data, serverPlayer);
+        syncStands(serverLevel, data, serverPlayer);
         level.playSound(null, pos, net.minecraft.sounds.SoundEvents.ITEM_FRAME_ADD_ITEM, SoundSource.BLOCKS, 0.8f, 1.0f);
         return net.minecraft.world.ItemInteractionResult.sidedSuccess(false);
     }
@@ -188,7 +198,31 @@ public class MuseumExhibitStandBlock extends MapUtilityStaticBlock implements En
         return findMainPos(level, pos, state);
     }
 
-    private static void syncDonation(ServerLevel serverLevel, MuseumDonationData data) {
-        PacketDistributor.sendToAllPlayers(new MuseumDonationSyncPacket(List.copyOf(data.getDonatedItems())));
+    private static void syncDonation(ServerLevel serverLevel, MuseumDonationData data, ServerPlayer player) {
+        PacketDistributor.sendToPlayer(player,
+                new MuseumDonationSyncPacket(java.util.List.copyOf(data.getDonatedItems(player.getUUID()))));
+    }
+
+    /**
+     * Sync all museum stand display items for a specific player.
+     */
+    public static void syncStands(ServerLevel serverLevel, MuseumDonationData data, ServerPlayer player) {
+        java.util.Map<String, String> stands = data.getStandDisplayItems(player.getUUID());
+        String dimPrefix = serverLevel.dimension().location().toString() + "|";
+        java.util.Map<BlockPos, String> posItems = new java.util.HashMap<>();
+        for (java.util.Map.Entry<String, String> entry : stands.entrySet()) {
+            String key = entry.getKey();
+            if (key == null || !key.startsWith(dimPrefix)) continue;
+            String coordPart = key.substring(dimPrefix.length());
+            String[] parts = coordPart.split(",");
+            if (parts.length != 3) continue;
+            try {
+                int x = Integer.parseInt(parts[0]);
+                int y = Integer.parseInt(parts[1]);
+                int z = Integer.parseInt(parts[2]);
+                posItems.put(new BlockPos(x, y, z), entry.getValue());
+            } catch (NumberFormatException ignored) {}
+        }
+        PacketDistributor.sendToPlayer(player, new MuseumStandSyncPacket(posItems));
     }
 }

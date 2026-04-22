@@ -31,6 +31,89 @@ public final class ArtisanRecipeDataManager {
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static volatile Map<String, List<Recipe>> RECIPES_BY_MACHINE = Collections.emptyMap();
+    /** 缓存原始 JSON（SoftReference），内存紧张时可被 GC 回收，需要时重新生成 */
+    private static volatile java.lang.ref.SoftReference<String> CACHED_JSON_REF = new java.lang.ref.SoftReference<>(null);
+
+    /** 获取缓存的 JSON（服务端调用）。若 GC 回收则重新序列化 */
+    public static String getCachedJson() {
+        String json = CACHED_JSON_REF.get();
+        if (json != null) return json;
+        json = rebuildCacheJson();
+        CACHED_JSON_REF = new java.lang.ref.SoftReference<>(json);
+        return json;
+    }
+
+    private static String rebuildCacheJson() {
+        Map<String, List<Recipe>> current = RECIPES_BY_MACHINE;
+        if (current.isEmpty()) return "";
+        JsonObject cacheRoot = new JsonObject();
+        for (Map.Entry<String, List<Recipe>> me : current.entrySet()) {
+            JsonArray arr = new JsonArray();
+            for (Recipe r : me.getValue()) {
+                @SuppressWarnings("null")
+                JsonObject ro = ReloadListener.buildRecipeJson(r);
+                arr.add(ro);
+            }
+            cacheRoot.add(me.getKey(), arr);
+        }
+        return GSON.toJson(cacheRoot);
+    }
+
+    /** 从 JSON 字符串重放解析（客户端调用） */
+    public static void applyFromJson(String json) {
+        try {
+            com.google.gson.JsonObject root = GSON.fromJson(json, com.google.gson.JsonObject.class);
+            if (root == null) return;
+            Map<String, List<Recipe>> loaded = new HashMap<>();
+            for (Map.Entry<String, JsonElement> entry : root.entrySet()) {
+                String machineKey = entry.getKey();
+                JsonArray recipes = entry.getValue().getAsJsonArray();
+                List<Recipe> list = new ArrayList<>();
+                for (JsonElement el : recipes) {
+                    Recipe r = recipeFromJson(el.getAsJsonObject());
+                    if (r != null) list.add(r);
+                }
+                loaded.put(machineKey, Collections.unmodifiableList(list));
+            }
+            RECIPES_BY_MACHINE = Collections.unmodifiableMap(loaded);
+            StardewCraft.LOGGER.info("[DATA-SYNC] Applied artisan recipes from network: {} machines", loaded.size());
+        } catch (Exception e) {
+            StardewCraft.LOGGER.error("[DATA-SYNC] Failed to apply artisan JSON", e);
+        }
+    }
+
+    @Nullable
+    private static Recipe recipeFromJson(JsonObject obj) {
+        try {
+            ResourceLocation inputId = obj.has("inputId") && !obj.get("inputId").isJsonNull()
+                    ? ResourceLocation.tryParse(obj.get("inputId").getAsString()) : null;
+            TagKey<Item> inputTag = obj.has("inputTag") && !obj.get("inputTag").isJsonNull()
+                    ? TagKey.create(net.minecraft.core.registries.Registries.ITEM, ResourceLocation.parse(obj.get("inputTag").getAsString())) : null;
+            InputMode inputMode = InputMode.valueOf(obj.get("inputMode").getAsString());
+            ResourceLocation outputId = obj.has("outputId") && !obj.get("outputId").isJsonNull()
+                    ? ResourceLocation.tryParse(obj.get("outputId").getAsString()) : null;
+            int outputCount = obj.get("outputCount").getAsInt();
+            int minutes = obj.get("minutes").getAsInt();
+            int consumeCount = obj.get("consumeCount").getAsInt();
+            boolean keepInputQuality = obj.get("keepInputQuality").getAsBoolean();
+            int outputQuality = obj.get("outputQuality").getAsInt();
+            PreserveType preserveType = obj.has("preserveType") && !obj.get("preserveType").isJsonNull()
+                    ? PreserveType.valueOf(obj.get("preserveType").getAsString()) : null;
+            SeedMakerRule seedMakerRule = null;
+            if (obj.has("seedMakerRule") && !obj.get("seedMakerRule").isJsonNull()) {
+                JsonObject sm = obj.getAsJsonObject("seedMakerRule");
+                seedMakerRule = new SeedMakerRule(
+                        sm.get("ancientChance").getAsDouble(), sm.get("mixedChance").getAsDouble(),
+                        sm.get("mixedMin").getAsInt(), sm.get("mixedMax").getAsInt(),
+                        sm.get("seedMin").getAsInt(), sm.get("seedMax").getAsInt());
+            }
+            OutputMode outputMode = OutputMode.valueOf(obj.get("outputMode").getAsString());
+            return new Recipe(inputId, inputTag, inputMode, outputId, outputCount, minutes,
+                    consumeCount, keepInputQuality, outputQuality, preserveType, seedMakerRule, outputMode);
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
     public enum InputMode {
         DEFAULT,
@@ -218,7 +301,43 @@ public final class ArtisanRecipeDataManager {
                 frozen.put(entry.getKey(), Collections.unmodifiableList(entry.getValue()));
             }
             RECIPES_BY_MACHINE = Collections.unmodifiableMap(frozen);
+
+            // 清除旧的缓存引用，下次 getCachedJson() 时按需重建
+            CACHED_JSON_REF = new java.lang.ref.SoftReference<>(null);
+
             StardewCraft.LOGGER.info("Loaded artisan recipes: {} machines", RECIPES_BY_MACHINE.size());
+        }
+
+        @SuppressWarnings("null")
+        static JsonObject buildRecipeJson(Recipe r) {
+            JsonObject ro = new JsonObject();
+            ResourceLocation inputId = r.inputId();
+            TagKey<Item> inputTag = r.inputTag();
+            ResourceLocation outputId = r.outputId();
+            PreserveType preserveType = r.preserveType();
+            ro.addProperty("inputId", inputId != null ? inputId.toString() : null);
+            ro.addProperty("inputTag", inputTag != null ? inputTag.location().toString() : null);
+            ro.addProperty("inputMode", r.inputMode().name());
+            ro.addProperty("outputId", outputId != null ? outputId.toString() : null);
+            ro.addProperty("outputCount", r.outputCount());
+            ro.addProperty("minutes", r.minutes());
+            ro.addProperty("consumeCount", r.consumeCount());
+            ro.addProperty("keepInputQuality", r.keepInputQuality());
+            ro.addProperty("outputQuality", r.outputQuality());
+            ro.addProperty("preserveType", preserveType != null ? preserveType.name() : null);
+            SeedMakerRule seedRule = r.seedMakerRule();
+            if (seedRule != null) {
+                JsonObject sm = new JsonObject();
+                sm.addProperty("ancientChance", seedRule.ancientChance());
+                sm.addProperty("mixedChance", seedRule.mixedChance());
+                sm.addProperty("mixedMin", seedRule.mixedMin());
+                sm.addProperty("mixedMax", seedRule.mixedMax());
+                sm.addProperty("seedMin", seedRule.seedMin());
+                sm.addProperty("seedMax", seedRule.seedMax());
+                ro.add("seedMakerRule", sm);
+            }
+            ro.addProperty("outputMode", r.outputMode().name());
+            return ro;
         }
 
         private static int readInt(JsonObject obj, String key, int fallback) {

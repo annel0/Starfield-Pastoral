@@ -22,7 +22,10 @@ public record ShopItemEntry(
     Set<Integer> seasons, // empty = all seasons; 0=spring,1=summer,2=fall,3=winter
     int minYear,          // minimum year to appear in shop (1 = year 1+)
     int minMineLevel,     // minimum mine floor reached to unlock (0 = no requirement)
-    String mailFlag       // required player mail flag (null = no requirement)
+    String mailFlag,      // required player mail flag (null = no requirement)
+    int dayOfWeek,        // -1 = any; 0=Mon,1=Tue,2=Wed,3=Thu,4=Fri,5=Sat,6=Sun
+    int dayOfMonthParity, // 0 = any; 1 = odd days only; 2 = even days only
+    int purchaseStack     // items granted per single purchase (SDV MinStack); default 1
 ) {
     public boolean isFree() {
         return price <= 0 && (tradeItemId == null || tradeItemId.isEmpty());
@@ -43,6 +46,21 @@ public record ShopItemEntry(
     }
 
     /**
+     * Full date-aware availability check. dayOfMonth is 1-28 (SDV season day).
+     * Day-of-week is derived: (dayOfMonth - 1) % 7, where 0=Mon..6=Sun.
+     */
+    public boolean isAvailableOnDate(int season, int year, int dayOfMonth) {
+        if (!isAvailableIn(season, year)) return false;
+        if (dayOfWeek >= 0) {
+            int dow = ((dayOfMonth - 1) % 7 + 7) % 7;
+            if (dow != dayOfWeek) return false;
+        }
+        if (dayOfMonthParity == 1 && dayOfMonth % 2 == 0) return false;
+        if (dayOfMonthParity == 2 && dayOfMonth % 2 != 0) return false;
+        return true;
+    }
+
+    /**
      * Returns true when this item should appear given the player's mine progress
      * and mail flags. Call after isAvailableIn().
      */
@@ -58,8 +76,9 @@ public record ShopItemEntry(
      */
     public static ShopItemEntry fromNetwork(
             String itemId, String displayName, String description,
-            int price, int stock, String tradeItemId, int tradeItemCount) {
+            int price, int stock, String tradeItemId, int tradeItemCount,
+            int purchaseStack) {
         return new ShopItemEntry(itemId, displayName, description,
-                price, stock, tradeItemId, tradeItemCount, Set.of(), 1, 0, null);
+                price, stock, tradeItemId, tradeItemCount, Set.of(), 1, 0, null, -1, 0, purchaseStack);
     }
 }

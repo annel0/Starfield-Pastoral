@@ -34,6 +34,10 @@ public record SleepCancelPayload() implements CustomPacketPayload {
             if (!(context.player() instanceof ServerPlayer player)) {
                 return;
             }
+            // 唤醒玩家（取消睡眠姿态 + 移动锁定）
+            if (player.isSleeping()) {
+                player.stopSleeping();
+            }
             SleepVoteTracker.revokeVoteAndBroadcast(player);
         });
     }

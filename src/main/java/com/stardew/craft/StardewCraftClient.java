@@ -305,7 +305,11 @@ public class StardewCraftClient {
                 ModBlocks.YARN_CABINET.get(),
                 ModBlocks.BROKEN_CHAIR.get(),
                 ModBlocks.COAL_BASKET.get(),
-                ModBlocks.FURNITURE_CATALOGUE.get()
+                ModBlocks.FURNITURE_CATALOGUE.get(),
+                ModBlocks.STANDING_HOE.get(),
+                ModBlocks.EMPTY_TERRACOTTA_POT.get(),
+                ModBlocks.RESERVOIR.get(),
+                ModBlocks.LONG_POTTED_PLANT.get()
             ));
 
             // Negative-volume models with mixed opaque/transparent faces.
@@ -343,6 +347,8 @@ public class StardewCraftClient {
     static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(ModEntities.FALLEN_OAK_TREE.get(), FallenOakTreeRenderer::new);
         event.registerEntityRenderer(ModEntities.SOFA_SEAT.get(), SofaSeatEntityRenderer::new);
+        event.registerEntityRenderer(ModEntities.MINECART_STATION.get(),
+                com.stardew.craft.client.render.MinecartStationRenderer::new);
     }
 
     @SuppressWarnings("null")

@@ -11,13 +11,15 @@ public final class ClientMiningState {
     private static int ladderFloor = -1;
     private static boolean ladderFound = false;
     private static BlockPos ladderPos = null;
+    private static boolean ladderIsShaft = false;
 
     private ClientMiningState() {}
 
-    public static void setLadderState(int floor, boolean found, BlockPos pos) {
+    public static void setLadderState(int floor, boolean found, BlockPos pos, boolean isShaft) {
         ladderFloor = floor;
         ladderFound = found;
         ladderPos = found ? pos : null;
+        ladderIsShaft = found && isShaft;
     }
 
     public static boolean hasLadder() {
@@ -32,9 +34,14 @@ public final class ClientMiningState {
         return ladderFloor;
     }
 
+    public static boolean isShaft() {
+        return ladderIsShaft;
+    }
+
     public static void reset() {
         ladderFloor = -1;
         ladderFound = false;
         ladderPos = null;
+        ladderIsShaft = false;
     }
 }

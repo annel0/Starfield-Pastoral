@@ -42,6 +42,7 @@ public record FarmAdminSyncPayload(
                                 buf.readUtf(32),
                                 buf.readBoolean(),
                                 buf.readVarInt(),
+                                buf.readVarInt(),
                                 buf.readVarInt()
                         ));
                     }
@@ -61,6 +62,7 @@ public record FarmAdminSyncPayload(
                         buf.writeBoolean(entry.initialized);
                         buf.writeVarInt(entry.lastOnlineDay);
                         buf.writeVarInt(entry.lastOnlineSeason);
+                        buf.writeVarInt(entry.memberCount);
                     }
                 }
             };
@@ -83,7 +85,8 @@ public record FarmAdminSyncPayload(
                     farm.getFarmType().name(),
                     farm.isInitialized(),
                     farm.getLastOnlineDay(),
-                    farm.getLastOnlineSeason()
+                    farm.getLastOnlineSeason(),
+                    farm.getFarmerCount()
             ));
         }
         return new FarmAdminSyncPayload(entries);
@@ -107,6 +110,7 @@ public record FarmAdminSyncPayload(
             String farmType,
             boolean initialized,
             int lastOnlineDay,
-            int lastOnlineSeason
+            int lastOnlineSeason,
+            int memberCount // 成员数（含 owner）
     ) {}
 }

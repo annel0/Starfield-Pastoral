@@ -1,0 +1,13 @@
+{
+  "npc_id": "sandy",
+  "entries": {
+    "Mon": "stardewcraft.npc.sandy.mon",
+    "Tue": "stardewcraft.npc.sandy.tue",
+    "Wed": "stardewcraft.npc.sandy.wed",
+    "Thu": "stardewcraft.npc.sandy.thu",
+    "Fri": "stardewcraft.npc.sandy.fri",
+    "Sat": "stardewcraft.npc.sandy.sat",
+    "Sun": "stardewcraft.npc.sandy.sun",
+    "default": "stardewcraft.npc.sandy.default"
+  }
+}

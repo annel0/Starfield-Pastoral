@@ -1,17 +1,32 @@
 {
   "variants": {
-    "facing=north": {
+    "facing=north,shaft=false": {
       "model": "stardewcraft:block/ladder"
     },
-    "facing=south": {
+    "facing=south,shaft=false": {
       "model": "stardewcraft:block/ladder",
       "y": 180
     },
-    "facing=west": {
+    "facing=west,shaft=false": {
       "model": "stardewcraft:block/ladder",
       "y": 270
     },
-    "facing=east": {
+    "facing=east,shaft=false": {
+      "model": "stardewcraft:block/ladder",
+      "y": 90
+    },
+    "facing=north,shaft=true": {
+      "model": "stardewcraft:block/ladder"
+    },
+    "facing=south,shaft=true": {
+      "model": "stardewcraft:block/ladder",
+      "y": 180
+    },
+    "facing=west,shaft=true": {
+      "model": "stardewcraft:block/ladder",
+      "y": 270
+    },
+    "facing=east,shaft=true": {
       "model": "stardewcraft:block/ladder",
       "y": 90
     }

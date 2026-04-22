@@ -36,6 +36,10 @@ public final class FishingBiteVisuals {
 	private static final float EXCLAMATION_JUMP_PX = 22f;
 	private static final Map<ResourceLocation, int[]> TEX_SIZE_CACHE = new ConcurrentHashMap<>();
 
+	public static void clearTexSizeCache() {
+		TEX_SIZE_CACHE.clear();
+	}
+
 	public static void startBitePrompt(int hookEntityId, int durationTicks) {
 		long now = System.currentTimeMillis();
 		long until = now + (durationTicks * 50L);
@@ -119,6 +123,9 @@ public final class FishingBiteVisuals {
 	public static void onRenderGui(RenderGuiEvent.Post event) {
 		Minecraft mc = Minecraft.getInstance();
 		if (mc == null || mc.player == null) {
+			return;
+		}
+		if (mc.options.hideGui || mc.player.isSpectator()) {
 			return;
 		}
 		// Don't render on top of the minigame.

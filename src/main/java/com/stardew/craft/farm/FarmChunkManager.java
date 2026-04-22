@@ -125,7 +125,7 @@ public class FarmChunkManager {
      * 玩家下线时清理计数。
      */
     public void onPlayerLogout(ServerLevel level, ServerPlayer player) {
-        FarmInstance farm = FarmInstanceRegistry.get().getFarm(player.getUUID());
+        FarmInstance farm = FarmInstanceRegistry.get().getFarmForPlayer(player.getUUID());
         if (farm == null) return;
         int slot = farm.getSlotIndex();
         if (playerCounts.containsKey(slot)) {

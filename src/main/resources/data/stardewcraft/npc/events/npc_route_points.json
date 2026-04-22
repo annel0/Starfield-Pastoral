@@ -1976,6 +1976,16 @@
       "z": 17095.5,
       "indoor": true,
       "note": "Wizard 法师塔内"
+    },
+    "_comment_sandy": {
+      "note": "=== Sandy 专属停留点 ==="
+    },
+    "sandy_oasis_counter": {
+      "x": 18245.5,
+      "y": 71.0,
+      "z": 17666.5,
+      "indoor": true,
+      "note": "Sandy 绿洲柜台工作位（朝西）"
     }
   }
 }

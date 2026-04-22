@@ -24,11 +24,12 @@ import java.io.InputStream;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 星露谷主地图引导器：
@@ -900,7 +901,7 @@ public final class StardewValleyMapBootstrap {
         private int length;
         private long[] nonAirMask = new long[0];
         private long[] generatedChunksArray = new long[0];
-        private final Set<Long> generatedChunks = new HashSet<>();
+        private final Set<Long> generatedChunks = ConcurrentHashMap.newKeySet();
         private int totalMapChunks;
 
         static MapSavedData get(ServerLevel level) {

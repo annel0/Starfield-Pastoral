@@ -383,6 +383,18 @@
       "optimism": 0,
       "gender": 0,
       "datable": false
+    },
+    {
+      "id": "sandy",
+      "implemented": true,
+      "pathing_enabled": false,
+      "animation_profile": "idle_only",
+      "age": 0,
+      "manners": 1,
+      "social_anxiety": 0,
+      "optimism": 0,
+      "gender": 1,
+      "datable": false
     }
   ]
 }

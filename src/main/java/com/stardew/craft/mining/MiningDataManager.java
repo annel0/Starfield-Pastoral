@@ -23,6 +23,15 @@ public class MiningDataManager extends SavedData {
         super();
     }
     
+    public void clearPlayer(UUID playerId) {
+        playerDataMap.remove(playerId);
+        setDirty();
+    }
+
+    public static void clearPlayerData(ServerPlayer player) {
+        get(player).clearPlayer(player.getUUID());
+    }
+
     /**
      * 获取玩家的矿井数据
      */

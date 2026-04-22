@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:decor/common/standing_hoe",
+  "textures": {
+    "particle": "stardewcraft:block/decor/common/standing_hoe"
+  }
+}

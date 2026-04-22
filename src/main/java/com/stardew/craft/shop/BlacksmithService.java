@@ -3,6 +3,7 @@ package com.stardew.craft.shop;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.entity.npc.StardewNpcEntity;
 import com.stardew.craft.item.tool.HoeItem;
+import com.stardew.craft.item.tool.PanItem;
 import com.stardew.craft.item.tool.StardewAxeItem;
 import com.stardew.craft.item.tool.StardewPickaxeItem;
 import com.stardew.craft.item.tool.WateringCanItem;
@@ -205,8 +206,54 @@ public final class BlacksmithService {
         addUpgradeIfAvailable(items, player, "pickaxe", StardewPickaxeItem.class);
         addUpgradeIfAvailable(items, player, "hoe", HoeItem.class);
         addUpgradeIfAvailable(items, player, "watering_can", WateringCanItem.class);
+        // Pan starts at Copper (tier 1) and goes to Iridium (tier 4) — uses
+        // a separate upgrade path because there is no "starter" pan and
+        // the id naming skips the "copper_" prefix on the base item.
+        addPanUpgradeIfAvailable(items, player);
 
         return items;
+    }
+
+    /**
+     * Pan upgrade variant — SDV: Copper (L1) → Steel (L2) → Gold (L3) → Iridium (L4).
+     * Unlike other tools, pan has no "starter" tier; the copper_pan is itself
+     * the base. Prices/bars match the standard SDV upgrade ladder.
+     */
+    private static void addPanUpgradeIfAvailable(List<ShopItemEntry> items, ServerPlayer player) {
+        int currentTier = findCurrentPanTier(player);
+        if (currentTier < 1 || currentTier >= 4) return; // No pan or already iridium
+
+        int nextTier = currentTier + 1;
+        String upgradedItemId = switch (nextTier) {
+            case 2 -> "stardewcraft:steel_pan";
+            case 3 -> "stardewcraft:gold_pan";
+            case 4 -> "stardewcraft:iridium_pan";
+            default -> null;
+        };
+        if (upgradedItemId == null) return;
+
+        int price = getUpgradePrice(nextTier);
+        String tradeItemId = getUpgradeBarId(nextTier);
+        int tradeCount = 5;
+
+        items.add(new ShopItemEntry(
+            upgradedItemId, "", "",
+            price, 1, tradeItemId, tradeCount,
+            Set.of(), 1, 0, null, -1, 0, 1
+        ));
+    }
+
+    private static int findCurrentPanTier(ServerPlayer player) {
+        int maxTier = -1;
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack stack = player.getInventory().getItem(i);
+            if (stack.isEmpty()) continue;
+            if (stack.getItem() instanceof PanItem pan) {
+                int t = pan.getUpgradeLevel();
+                if (t > maxTier) maxTier = t;
+            }
+        }
+        return maxTier;
     }
 
     private static void addUpgradeIfAvailable(List<ShopItemEntry> items, ServerPlayer player,
@@ -231,7 +278,7 @@ public final class BlacksmithService {
         items.add(new ShopItemEntry(
             upgradedItemId, "", "", // displayName and description resolved client-side
             price, 1, tradeItemId, tradeCount,
-            Set.of(), 1, 0, null
+            Set.of(), 1, 0, null, -1, 0, 1
         ));
     }
 
@@ -466,6 +513,10 @@ public final class BlacksmithService {
             case "stardewcraft:steel_watering_can" -> "stardewcraft:copper_watering_can";
             case "stardewcraft:gold_watering_can" -> "stardewcraft:steel_watering_can";
             case "stardewcraft:iridium_watering_can" -> "stardewcraft:gold_watering_can";
+            // Pan (Copper → Steel → Gold → Iridium; no starter tier)
+            case "stardewcraft:steel_pan"    -> "stardewcraft:copper_pan";
+            case "stardewcraft:gold_pan"     -> "stardewcraft:steel_pan";
+            case "stardewcraft:iridium_pan"  -> "stardewcraft:gold_pan";
             default -> null;
         };
     }
@@ -546,7 +597,8 @@ public final class BlacksmithService {
             if (stack.isEmpty()) continue;
             Item item = stack.getItem();
             if (item instanceof StardewAxeItem || item instanceof StardewPickaxeItem
-                || item instanceof HoeItem || item instanceof WateringCanItem) {
+                || item instanceof HoeItem || item instanceof WateringCanItem
+                || item instanceof PanItem) {
                 return true;
             }
         }

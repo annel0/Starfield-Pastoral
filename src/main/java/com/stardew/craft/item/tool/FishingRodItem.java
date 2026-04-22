@@ -102,6 +102,18 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 	public Attachments getAttachmentsForTooltip(ItemStack rodStack) {
 		return new Attachments(getBait(rodStack), getTackle1(rodStack), getTackle2(rodStack));
 	}
+
+	/**
+	 * Find the player's currently held fishing rod, checking main hand first then offhand.
+	 * Returns {@link ItemStack#EMPTY} if no rod is held.
+	 */
+	public static ItemStack findRod(Player player) {
+		ItemStack main = player.getMainHandItem();
+		if (main.getItem() instanceof FishingRodItem) return main;
+		ItemStack off = player.getOffhandItem();
+		if (off.getItem() instanceof FishingRodItem) return off;
+		return ItemStack.EMPTY;
+	}
 	
 	/**
 	 * 获取鱼饵效力（星露谷物语逻辑：baitPotency = price / 10）

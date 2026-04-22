@@ -17,6 +17,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
+
 import java.util.Random;
 
 /**
@@ -193,11 +194,6 @@ public class DamageCalculator {
         // 最小伤害保证为1
         totalDamage = Math.max(1.0f, totalDamage);
         
-        // ==================== �?�? 维度映射 ====================
-        if (!inStardewDimension) {
-            totalDamage = DimensionDamageMapper.mapDamage(totalDamage, false);
-        }
-        
         result.finalDamage(totalDamage);
         
         // 检测是否被闪避
@@ -270,11 +266,6 @@ public class DamageCalculator {
         
         // 最小伤害保证为1
         totalDamage = Math.max(1.0f, totalDamage);
-        
-        // 维度映射
-        if (!inStardewDimension) {
-            totalDamage = DimensionDamageMapper.mapDamage(totalDamage, false);
-        }
         
         result.finalDamage(totalDamage);
         

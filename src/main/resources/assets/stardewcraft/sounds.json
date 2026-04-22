@@ -1,4 +1,14 @@
 {
+  "crow_caw": {
+    "sounds": [
+      { "name": "stardewcraft:entity/crow/caw", "stream": false }
+    ]
+  },
+  "crow_flap": {
+    "sounds": [
+      { "name": "stardewcraft:entity/crow/flap", "stream": false }
+    ]
+  },
   "hoe_hit": {
     "sounds": [
       {
@@ -1024,6 +1034,22 @@
       {
         "name": "stardewcraft:music/ocean_ambience",
         "stream": false
+      }
+    ]
+  },
+  "music_desert": {
+    "sounds": [
+      {
+        "name": "stardewcraft:music/wavy",
+        "stream": true
+      }
+    ]
+  },
+  "music_oasis": {
+    "sounds": [
+      {
+        "name": "stardewcraft:music/distant_banjo",
+        "stream": true
       }
     ]
   },

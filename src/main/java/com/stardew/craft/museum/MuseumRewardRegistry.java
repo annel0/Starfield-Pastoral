@@ -120,8 +120,8 @@ public final class MuseumRewardRegistry {
     /**
      * Get all unclaimed rewards that the player now qualifies for.
      */
-    public static List<MuseumReward> getClaimableRewards(MuseumDonationData data, Set<String> claimedIds) {
-        Set<String> donated = data.getDonatedItems();
+    public static List<MuseumReward> getClaimableRewards(MuseumDonationData data, java.util.UUID playerId, Set<String> claimedIds) {
+        Set<String> donated = data.getDonatedItems(playerId);
         int totalCount = donated.size();
 
         // Count by type

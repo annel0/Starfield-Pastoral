@@ -41,6 +41,7 @@ public record OpenShopScreenPayload(
                 buf.writeInt(e.stock());
                 buf.writeUtf(e.tradeItemId() != null ? e.tradeItemId() : "");
                 buf.writeInt(e.tradeItemCount());
+                buf.writeInt(e.purchaseStack());
                 // seasons and minYear are server-side only; not transmitted
             },
             buf -> ShopItemEntry.fromNetwork(
@@ -50,7 +51,8 @@ public record OpenShopScreenPayload(
                 buf.readInt(),  // price
                 buf.readInt(),  // stock
                 buf.readUtf(),  // tradeItemId
-                buf.readInt()   // tradeItemCount
+                buf.readInt(),  // tradeItemCount
+                buf.readInt()   // purchaseStack
             )
         );
 

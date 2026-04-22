@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:decor/common/empty_terracotta_pot",
+  "textures": {
+    "particle": "stardewcraft:block/decor/common/empty_terracotta_pot"
+  }
+}

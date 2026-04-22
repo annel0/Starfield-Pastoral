@@ -35,7 +35,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 /**
- * 图腾柱方块 — Farm / Mountain / Beach 三种共享此类，由 {@link TotemType} 区分。
+ * 图腾柱方块 — Farm / Mountain / Beach / Desert 四种共享此类，由 {@link TotemType} 区分。
  */
 @SuppressWarnings("null")
 public class TotemPoleBlock extends MapUtilityStaticBlock implements EntityBlock {
@@ -43,6 +43,8 @@ public class TotemPoleBlock extends MapUtilityStaticBlock implements EntityBlock
     private static final PlacementBounds FARM_BOUNDS = PlacementBounds.of(311, 36, 154, 103, -18, 37);
     private static final PlacementBounds MOUNTAIN_BOUNDS = PlacementBounds.of(-174, 41, 172, -537, -33, 372);
     private static final PlacementBounds BEACH_BOUNDS = PlacementBounds.of(-464, 32, -98, -175, -33, -244);
+    // 沙漠区域（围绕系统柱坐标 -270,-41,1389 的合理范围）
+    private static final PlacementBounds DESERT_BOUNDS = PlacementBounds.of(-350, 36, 1300, -200, -50, 1470);
 
     private final TotemType totemType;
 
@@ -249,6 +251,7 @@ public class TotemPoleBlock extends MapUtilityStaticBlock implements EntityBlock
             case FARM -> FARM_BOUNDS;
             case MOUNTAIN -> MOUNTAIN_BOUNDS;
             case BEACH -> BEACH_BOUNDS;
+            case DESERT -> DESERT_BOUNDS;
         };
     }
 

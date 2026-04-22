@@ -52,7 +52,9 @@ public class WeatherSyncEvents {
         WeatherSyncPacket packet = new WeatherSyncPacket(
             dimStr,
             state.getWeatherType(),
-            state.getWeatherForTomorrow()
+            state.getWeatherForTomorrow(),
+            state.isRaining(),
+            state.isThundering()
         );
         
         PacketDistributor.sendToPlayer(player, packet);

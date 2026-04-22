@@ -28,6 +28,9 @@ public record GrowCropsPayload() implements CustomPacketPayload {
     public static void handle(GrowCropsPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             Player player = context.player();
+            if (!player.isCreative() || !player.hasPermissions(2)) {
+                return;
+            }
             Level level = player.level();
             BlockPos playerPos = player.blockPosition();
 
@@ -48,6 +51,14 @@ public record GrowCropsPayload() implements CustomPacketPayload {
                             CropGrowthManager.CropGrowthState gs = CropGrowthManager.get(serverLevel).getOrCreateState(serverLevel, pos);
                             // Debug: 视为“推进一天且已浇水”，避免把所有作物误导成只走 AGE 0-3。
                             crop.growCropOneDay(serverLevel, pos, state, true, gs);
+
+                            // SDV 对齐：成熟当日 1% 概率长成 3×3 巨型作物
+                            BlockState afterGrow = serverLevel.getBlockState(pos);
+                            if (afterGrow.getBlock() instanceof StardewCropBlock matureCheck
+                                    && afterGrow.hasProperty(StardewCropBlock.AGE)
+                                    && afterGrow.getValue(StardewCropBlock.AGE) == StardewCropBlock.MAX_AGE) {
+                                com.stardew.craft.spawner.GiantCropSpawner.tryRoll(serverLevel, pos, matureCheck);
+                            }
                         }
                     }
                 }

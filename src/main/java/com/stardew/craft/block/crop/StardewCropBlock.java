@@ -507,6 +507,19 @@ public abstract class StardewCropBlock extends Block {
     }
 
     /**
+     * 作物的所有掉落（成熟作物 + 经验）已由 playerWillDestroy 中的 spawnHarvestDrops 完整处理，
+     * loot table 必须被覆盖为空，否则会出现：
+     *   - 未成熟时左键也掉种子（不应该）
+     *   - 成熟时既掉 loot table 的无品质作物，又掉 spawnHarvestDrops 的有品质作物，造成 2 个不可叠加的副本
+     */
+    @SuppressWarnings("null")
+    @Override
+    public java.util.List<ItemStack> getDrops(BlockState state,
+                                              net.minecraft.world.level.storage.loot.LootParams.Builder params) {
+        return java.util.Collections.emptyList();
+    }
+
+    /**
      * 收割作物（照抄原版Crop.harvest逻辑）
      */
     @SuppressWarnings("null")

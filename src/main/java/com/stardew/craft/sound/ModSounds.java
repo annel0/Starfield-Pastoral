@@ -169,12 +169,21 @@ public final class ModSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_ELLIOTT_PIANO = register("music_elliott_piano");
     public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_SEED_SHOP = register("music_seed_shop");
     public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_OCEAN_AMBIENCE = register("music_ocean_ambience");
+    // Desert / Oasis
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_DESERT = register("music_desert");
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_OASIS = register("music_oasis");
 
     // ─── Quest ───
     public static final DeferredHolder<SoundEvent, SoundEvent> QUEST_COMPLETE = register("questcomplete");
 
     // ─── Community Center ───
     public static final DeferredHolder<SoundEvent, SoundEvent> REWARD = register("reward");
+
+    // ─── Crow / Bird ───
+    /** SDV cue "crow" — a singular crow caw. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> CROW_CAW  = register("crow_caw");
+    /** SDV cue "batFlap" — wings flapping (used by crows in SDV). */
+    public static final DeferredHolder<SoundEvent, SoundEvent> CROW_FLAP = register("crow_flap");
 
 	@SuppressWarnings("null")
 	private static DeferredHolder<SoundEvent, SoundEvent> register(String path) {

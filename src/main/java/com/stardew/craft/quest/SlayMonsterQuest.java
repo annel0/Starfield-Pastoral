@@ -1,6 +1,7 @@
 package com.stardew.craft.quest;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Collections;
@@ -51,13 +52,29 @@ public class SlayMonsterQuest extends StardewQuest {
     }
 
     @Override
-    public List<String> getObjectiveDescriptions() {
+    public List<Component> getObjectiveComponents() {
         if (numberKilled >= numberToKill && targetNpc != null && !targetNpc.isEmpty()) {
-            return Collections.singletonList("回去找 " + targetNpc + " 复命");
+            return Collections.singletonList(Component.translatable(
+                    "stardewcraft.quest.report_to",
+                    Component.translatable("entity.stardewcraft.npc." + targetNpc)));
         }
-        return Collections.singletonList(
-            monsterName + " " + numberKilled + "/" + numberToKill
-        );
+        if (objectiveKey != null && !objectiveKey.isEmpty() && objectiveArgs.size() >= 2) {
+            // args: [count, monsterKey, progress]
+            return Collections.singletonList(Component.translatable(
+                    objectiveKey,
+                    String.valueOf(numberToKill),
+                    Component.translatable(objectiveArgs.get(1)),
+                    String.valueOf(numberKilled)));
+        }
+        return super.getObjectiveComponents();
+    }
+
+    @Override
+    public List<String> getObjectiveDescriptions() {
+        List<Component> comps = getObjectiveComponents();
+        List<String> out = new java.util.ArrayList<>(comps.size());
+        for (Component c : comps) out.add(c.getString());
+        return out;
     }
 
     @Override

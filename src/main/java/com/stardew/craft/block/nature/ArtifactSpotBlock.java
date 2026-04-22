@@ -19,8 +19,15 @@ import javax.annotation.Nullable;
 @SuppressWarnings("null")
 public class ArtifactSpotBlock extends Block {
 
+    private final Block tilledTarget;
+
     public ArtifactSpotBlock(Properties properties) {
+        this(properties, Blocks.FARMLAND);
+    }
+
+    public ArtifactSpotBlock(Properties properties, Block tilledTarget) {
         super(properties);
+        this.tilledTarget = tilledTarget;
     }
 
     @SuppressWarnings("null")
@@ -29,8 +36,7 @@ public class ArtifactSpotBlock extends Block {
     public BlockState getToolModifiedState(BlockState state, UseOnContext context,
                                            ItemAbility itemAbility, boolean simulate) {
         if (itemAbility == ItemAbilities.HOE_TILL) {
-            // 锄头可以翻耕此方块
-            return Blocks.FARMLAND.defaultBlockState();
+            return tilledTarget.defaultBlockState();
         }
         return super.getToolModifiedState(state, context, itemAbility, simulate);
     }

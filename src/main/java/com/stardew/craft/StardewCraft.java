@@ -45,6 +45,9 @@ public class StardewCraft {
     public static final String MODID = "stardewcraft";
     // Directly reference a slf4j logger
     public static final Logger LOGGER = LogUtils.getLogger();
+
+    /** pregen .mca 文件在本次启动中被覆盖（版本升级），需要在 level 加载后 reset 管理器。 */
+    public static boolean pregenJustInstalled = false;
     
     // Create a Deferred Register to hold CreativeModeTabs which will all be registered under the "stardewcraft" namespace
     @SuppressWarnings("null")
@@ -143,6 +146,36 @@ public class StardewCraft {
                 output.accept(ModItems.EARTH_COAL_ORE.get());
                 output.accept(ModItems.FROST_COAL_ORE.get());
                 output.accept(ModItems.LAVA_COAL_ORE.get());
+
+                // 骷髅矿洞石材
+                output.accept(ModItems.DESERT_BEDROCK.get());
+                output.accept(ModItems.DESERT_BEDROCK_SLAB.get());
+                output.accept(ModItems.DESERT_BEDROCK_STAIRS.get());
+                output.accept(ModItems.DESERT_BEDROCK_WALL.get());
+                output.accept(ModItems.DARK_DESERT_BEDROCK.get());
+                output.accept(ModItems.DARK_DESERT_BEDROCK_SLAB.get());
+                output.accept(ModItems.DARK_DESERT_BEDROCK_STAIRS.get());
+                output.accept(ModItems.DARK_DESERT_BEDROCK_WALL.get());
+                output.accept(ModItems.SULFUR_ROCK.get());
+                output.accept(ModItems.SULFUR_ROCK_SLAB.get());
+                output.accept(ModItems.SULFUR_ROCK_STAIRS.get());
+                output.accept(ModItems.SULFUR_ROCK_WALL.get());
+                output.accept(ModItems.WEATHERED_STONE.get());
+                output.accept(ModItems.WEATHERED_STONE_SLAB.get());
+                output.accept(ModItems.WEATHERED_STONE_STAIRS.get());
+                output.accept(ModItems.WEATHERED_STONE_WALL.get());
+
+                // 骷髅矿洞矿石
+                output.accept(ModItems.DESERT_COPPER_ORE.get());
+                output.accept(ModItems.DESERT_IRON_ORE.get());
+                output.accept(ModItems.DESERT_GOLD_ORE.get());
+                output.accept(ModItems.DESERT_IRIDIUM_ORE.get());
+                output.accept(ModItems.DESERT_COAL_ORE.get());
+
+                // 骷髅矿洞功能方块
+                output.accept(ModItems.QUICKSAND.get());
+                output.accept(ModItems.TOXIC_SPORE_BLOCK.get());
+                output.accept(ModItems.UNSTABLE_ROCK.get());
 
                 // 直接采集矿物（放置为方块）
                 output.accept(ModItems.QUARTZ.get());
@@ -367,6 +400,17 @@ public class StardewCraft {
                 output.accept(ModItems.PILLAR.get());
                 output.accept(ModItems.SHRINE.get());
                 output.accept(ModItems.JUNIMO_HUT_DECOR.get());
+                // 稻草人 / Rarecrow
+                output.accept(ModItems.SCARECROW_0.get());
+                output.accept(ModItems.SCARECROW_1.get());
+                output.accept(ModItems.SCARECROW_2.get());
+                output.accept(ModItems.SCARECROW_3.get());
+                output.accept(ModItems.SCARECROW_4.get());
+                output.accept(ModItems.SCARECROW_5.get());
+                output.accept(ModItems.SCARECROW_6.get());
+                output.accept(ModItems.SCARECROW_7.get());
+                output.accept(ModItems.SCARECROW_8.get());
+                output.accept(ModItems.SCARECROW_9.get());
                 output.accept(ModItems.SAFE_BOX.get());
                 output.accept(ModItems.BROKEN_SAFE_BOX.get());
                 output.accept(ModItems.LOOM_MACHINE.get());
@@ -386,6 +430,10 @@ public class StardewCraft {
                 output.accept(ModItems.HOSPITAL_COUNTER.get());
                 output.accept(ModItems.JOJA_VENDING_MACHINE.get());
                 output.accept(ModItems.FURNITURE_CATALOGUE.get());
+                output.accept(ModItems.STANDING_HOE.get());
+                output.accept(ModItems.EMPTY_TERRACOTTA_POT.get());
+                output.accept(ModItems.RESERVOIR.get());
+                output.accept(ModItems.LONG_POTTED_PLANT.get());
                 output.accept(ModItems.BULLETIN_BOARD.get());
                 // 社区中心献祭卷轴 (7 areas)
                 for (int area = 0; area <= 6; area++) {
@@ -624,6 +672,9 @@ public class StardewCraft {
                         output.accept(createQualityItem(item, com.stardew.craft.item.quality.QualityHelper.IRIDIUM));
                     } else if ("stardewcraft.type.misc".equals(typeKey)) {
                         // 杂项物品（藻类等）不支持品质
+                        output.accept(item);
+                    } else if ("stardewcraft.type.special".equals(typeKey)) {
+                        // 特殊物品（骷髅钥匙等纪念物）：不支持品质
                         output.accept(item);
                     } else if ("stardewcraft.type.trash".equals(typeKey)) {
                         // 垃圾物品不支持品质
@@ -878,6 +929,14 @@ public class StardewCraft {
 
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+
+        // Sync max stack size from config → StackSizeHolder whenever config loads/reloads
+        modContainer.getEventBus().addListener((net.neoforged.fml.event.config.ModConfigEvent event) -> {
+            if (event.getConfig().getSpec() == Config.SPEC) {
+                com.stardew.craft.config.StackSizeHolder.set(Config.MAX_STACK_SIZE.get());
+                LOGGER.info("Max stack size set to {}", com.stardew.craft.config.StackSizeHolder.get());
+            }
+        });
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {
@@ -920,9 +979,11 @@ public class StardewCraft {
         var server = event.getServer();
         LOGGER.info("[VALLEY_MAP] Startup: trying prebuilt region install (ServerAboutToStart)");
         var result = com.stardew.craft.dimension.StardewValleyPrebuiltRegionInstaller.installIfAvailable(server);
-        if (result == com.stardew.craft.dimension.StardewValleyPrebuiltRegionInstaller.InstallResult.INSTALLED
-            || result == com.stardew.craft.dimension.StardewValleyPrebuiltRegionInstaller.InstallResult.ALREADY_PRESENT) {
-            LOGGER.info("[VALLEY_MAP] Prebuilt regions ready ({}).", result);
+        if (result == com.stardew.craft.dimension.StardewValleyPrebuiltRegionInstaller.InstallResult.INSTALLED) {
+            pregenJustInstalled = true;
+            LOGGER.info("[VALLEY_MAP] Prebuilt regions INSTALLED (version upgrade). Will reset managers on level load.");
+        } else if (result == com.stardew.craft.dimension.StardewValleyPrebuiltRegionInstaller.InstallResult.ALREADY_PRESENT) {
+            LOGGER.info("[VALLEY_MAP] Prebuilt regions ready (ALREADY_PRESENT).");
         } else {
             LOGGER.error("[VALLEY_MAP] Prebuilt region package missing or invalid. Stardew Valley travel will be blocked until fixed.");
         }
@@ -943,12 +1004,34 @@ public class StardewCraft {
         // 注册祝尼魔温室符文季节豁免规则
         com.stardew.craft.manager.JunimoGreenhouseRuneManager.registerSeasonRule();
 
+        // 注册跨季宽限期季节豁免规则
+        com.stardew.craft.farming.SeasonLocationRules.registerGracePeriodRule();
+
         var server = event.getServer();
         // markAsPreGenerated 需要在 level 可用之后执行
         if (com.stardew.craft.dimension.StardewValleyPrebuiltRegionInstaller.hasInstalledPrebuilt(server)) {
             var stardewLevel = server.getLevel(com.stardew.craft.core.ModDimensions.STARDEW_VALLEY);
             if (stardewLevel != null) {
                 com.stardew.craft.dimension.StardewValleyMapBootstrap.markAsPreGenerated(stardewLevel);
+
+                // pregen version 刚升级 → .mca 已在 ServerAboutToStart 被覆盖。
+                // 此时 level 已加载，执行所有管理器 reset，确保 ensurePlaced 会重新放置。
+                if (pregenJustInstalled) {
+                    pregenJustInstalled = false;
+                    com.stardew.craft.interior.InteriorSubspaceManager.replaceAllPortalsIfReady(
+                        stardewLevel, "pregen_region_reinstalled_startup");
+                    LOGGER.info("[VALLEY_PREGEN] Pregen just installed — portal replacement done (startup path)");
+                }
+
+                // 每次服务器启动都强制重置屏障/采石场/矿车站点的放置版本号。
+                // 这样首个玩家进入星露谷时 ensurePlaced() 一定会重新放置所有方块，
+                // 避免老存档 / 模组更新后方块丢失但 SavedData 版本号仍为最新导致跳过。
+                // 各 manager 内部是幂等的 setBlock 操作，重复放置不会有副作用。
+                com.stardew.craft.farm.FarmEntryBarrierManager.get(stardewLevel).resetForMigration();
+                com.stardew.craft.communitycenter.quarry.QuarryAccessManager.get(stardewLevel).resetForMigration();
+                com.stardew.craft.minecart.MinecartStationManager.get(stardewLevel).resetForMigration();
+                com.stardew.craft.manager.QuarrySpawnService.resetInitialSpawn(stardewLevel);
+                LOGGER.info("[VALLEY_INIT] Reset all manager SavedData versions — ensurePlaced will re-run on first player entry");
             } else {
                 LOGGER.info("[VALLEY_MAP] Stardew level not loaded at startup, will mark pre-generated on first travel.");
             }

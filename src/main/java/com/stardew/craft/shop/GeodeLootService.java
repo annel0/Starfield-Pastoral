@@ -76,6 +76,42 @@ public class GeodeLootService {
     }
 
     // ────────────────────────────────────────────────────────────────────
+    //  Artifact Trove (275) — 严格对齐 SDV Content/Data/Objects.json "275".GeodeDrops：
+    //  GeodeDropsDefaultItems=false, 单条 Chance=1.0 的 RandomItemId 列表（等权随机选一）。
+    //  原版 RandomItemId：(O)100..125（跳过 102/107）+ (O)166 宝藏箱 +
+    //  (O)373 棱彩碎片 + (O)797 珍珠 + (O)Book_Artifact（本模组未实现，省略）。
+    // ────────────────────────────────────────────────────────────────────
+    private static final Supplier<Item>[] ARTIFACT_TROVE_POOL = new Supplier[]{
+        ModItems.CHIPPED_AMPHORA,    // (O)100
+        ModItems.ARROWHEAD,          // (O)101
+        ModItems.ANCIENT_DOLL,       // (O)103
+        ModItems.ELVISH_JEWELRY,     // (O)104
+        ModItems.CHEWING_STICK,      // (O)105
+        ModItems.ORNAMENTAL_FAN,     // (O)106
+        ModItems.RARE_DISC,          // (O)108
+        ModItems.ANCIENT_SWORD,      // (O)109
+        ModItems.RUSTY_SPOON,        // (O)110
+        ModItems.RUSTY_SPUR,         // (O)111
+        ModItems.RUSTY_COG,          // (O)112
+        ModItems.CHICKEN_STATUE,     // (O)113
+        ModItems.ANCIENT_SEED,       // (O)114
+        ModItems.PREHISTORIC_TOOL,   // (O)115
+        ModItems.DRIED_STARFISH,     // (O)116
+        ModItems.ANCHOR,             // (O)117
+        ModItems.GLASS_SHARDS,       // (O)118
+        ModItems.BONE_FLUTE,         // (O)119
+        ModItems.PREHISTORIC_HANDAXE,// (O)120
+        ModItems.DWARVISH_HELM,      // (O)121
+        ModItems.DWARF_GADGET,       // (O)122
+        ModItems.ANCIENT_DRUM,       // (O)123
+        ModItems.GOLDEN_MASK,        // (O)124
+        ModItems.GOLDEN_RELIC,       // (O)125
+        ModItems.TREASURE_CHEST,     // (O)166
+        ModItems.PRISMATIC_SHARD,    // (O)373
+        ModItems.PEARL               // (O)797
+    };
+
+    // ────────────────────────────────────────────────────────────────────
 
     public static void handleGeodeCrack(ServerPlayer player, int slot) {
         if (slot < 0 || slot >= player.getInventory().getContainerSize()) return;
@@ -158,6 +194,15 @@ public class GeodeLootService {
         // ── Mystery Box / Golden Mystery Box ──
         if (geodeType.contains("mystery_box")) {
             return getMysteryBoxTreasure(geodeType, r, player);
+        }
+
+        // ── Artifact Trove (275) ──
+        // SDV Utility.getTreasureFromGeode() 走数据驱动分支：
+        // Objects.json "275".GeodeDrops 单条 Chance=1.0、MinStack=MaxStack=-1、
+        // RandomItemId 等权随机选一。对应下方的 ARTIFACT_TROVE_POOL。
+        if ("artifact_trove".equals(geodeType)) {
+            Item chosen = ARTIFACT_TROVE_POOL[r.nextInt(ARTIFACT_TROVE_POOL.length)].get();
+            return new ItemStack(chosen);
         }
 
         // ── Omni geode: 0.8 % prismatic shard ──
@@ -404,6 +449,7 @@ public class GeodeLootService {
             case "frozen_geode" -> "frozen_geode";
             case "magma_geode" -> "magma_geode";
             case "omni_geode" -> "omni_geode";
+            case "artifact_trove" -> "artifact_trove";
             case "mystery_box" -> "mystery_box";
             case "golden_mystery_box" -> "golden_mystery_box";
             default -> null;

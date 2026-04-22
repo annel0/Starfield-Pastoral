@@ -42,14 +42,51 @@ public class StardewTimeManager extends SavedData {
     private int currentDay = 1;                // 当前日期
     private int currentSeason = 0;             // 当前季节 (0=春, 1=夏, 2=秋, 3=冬)
     private int currentYear = 1;               // 当前年份
+
+    /**
+     * 维度时间隔离偏移量。
+     * 星露谷的"虚拟 dayTime" = overworld.getDayTime() + dayTimeOffset。
+     * 修改此偏移量代替直接修改 overworld 的 dayTime，从而不影响主世界。
+     */
+    private long dayTimeOffset = 0;
     
     // 事件标记（防止重复触发）
     private boolean event1800Triggered = false;  // 18:00 事件
     private boolean event2200Triggered = false;  // 22:00 事件
     private boolean event0000Triggered = false;  // 0:00 事件
     private boolean event0130Triggered = false;  // 1:30 事件
+
+    /** 最近触发过 10 分钟 tick 的时间桶（=currentTime/10），-1 表示本日尚未触发过。 */
+    private int lastTenMinuteBucket = -1;
     
     public StardewTimeManager() {
+    }
+
+    // ── dayTimeOffset API（维度时间隔离）──
+
+    /**
+     * 获取星露谷维度的"虚拟 dayTime"（不修改主世界 dayTime）。
+     * virtualDayTime = overworld.getDayTime() + dayTimeOffset
+     */
+    public long getVirtualDayTime(ServerLevel anyLevel) {
+        return anyLevel.getServer().overworld().getDayTime() + dayTimeOffset;
+    }
+
+    /** 获取当前偏移量。 */
+    public long getDayTimeOffset() { return dayTimeOffset; }
+
+    /** 直接设置偏移量（用于补偿主世界时间变化）。 */
+    public void setDayTimeOffsetRaw(long offset) {
+        dayTimeOffset = offset;
+        setDirty();
+    }
+
+    /**
+     * 将星露谷虚拟 dayTime 跳到目标值（修改 offset，不动 overworld）。
+     */
+    public void setVirtualDayTime(ServerLevel anyLevel, long targetDayTime) {
+        dayTimeOffset = targetDayTime - anyLevel.getServer().overworld().getDayTime();
+        setDirty();
     }
     
     /**
@@ -72,6 +109,20 @@ public class StardewTimeManager extends SavedData {
      * 检查并触发时间事件
      */
     private void checkTimeEvents() {
+        // 每 10 分钟 tick — SDV parity: GameLocation.performTenMinuteUpdate
+        // 当前用于 ore-pan-point 生成（ccFishTank 奖励）。
+        int currentBucket = currentTime / 10;
+        if (currentBucket != lastTenMinuteBucket) {
+            lastTenMinuteBucket = currentBucket;
+            var server = ServerLifecycleHooks.getCurrentServer();
+            if (server != null) {
+                com.stardew.craft.communitycenter.reward.panning.OrePanPointManager
+                    .performTenMinuteUpdate(server);
+                com.stardew.craft.fishing.splash.FishSplashTicker
+                    .performTenMinuteUpdate(server);
+            }
+        }
+
         // 18:00 (1080分钟)
         if (currentTime >= 1080 && !event1800Triggered) {
             event1800Triggered = true;
@@ -165,6 +216,7 @@ public class StardewTimeManager extends SavedData {
                 com.stardew.craft.manager.ForageSpawnService.onNewDay(stardewLevel, currentSeason);
                 com.stardew.craft.manager.ForageSpawnService.onNewDayForestFarms(stardewLevel, currentSeason);
                 com.stardew.craft.manager.ArtifactSpotSpawnService.onNewDay(stardewLevel, currentSeason);
+                com.stardew.craft.manager.QuarrySpawnService.onNewDay(stardewLevel, getCurrentYear());
                 } finally {
                     // 日结算完成后立即释放室内区块，避免 784 区块永久 force-loaded
                     com.stardew.craft.interior.InteriorSubspaceManager.setInteriorChunksForced(stardewLevel, false, "daily_settlement_done");
@@ -279,6 +331,31 @@ public class StardewTimeManager extends SavedData {
      * 同时处理里程碑邮件（父母信等按天数触发的邮件）。
      */
     private void scheduleMailByDate(net.minecraft.server.level.ServerPlayer player, int season, int day) {
+        // 初始化玩家的首次加入天数（用于里程碑/父母信件的相对天数计算）
+        com.stardew.craft.player.PlayerStardewData pData =
+                com.stardew.craft.player.PlayerDataManager.getPlayerData(player);
+        int globalDays = (currentYear - 1) * (28 * 4) + currentSeason * 28 + currentDay;
+        if (pData.getFirstJoinDay() < 0) {
+            pData.setFirstJoinDay(globalDays);
+        }
+
+        // 玩家个人年份（用于年份限定邮件，如 spring_2_1 = 春2日个人第1年）
+        int personalDays = Math.max(0, globalDays - pData.getFirstJoinDay());
+        int personalYear = personalDays / (28 * 4) + 1;
+
+        // 个人日历：从加入当天起算的"季节/日"。这样 _<year> 邮件总是按
+        // "玩家进入服务器后的第 N 个游戏日"触发，避免玩家如果在春5日才进服
+        // 就永远收不到 spring_4_1 这类信。
+        int personalSeason = (personalDays / 28) % 4;
+        int personalDay = (personalDays % 28) + 1;
+        String personalSeasonName = switch (personalSeason) {
+            case 0 -> "spring";
+            case 1 -> "summer";
+            case 2 -> "fall";
+            case 3 -> "winter";
+            default -> "";
+        };
+
         String seasonName = switch (season) {
             case 0 -> "spring";
             case 1 -> "summer";
@@ -287,28 +364,27 @@ public class StardewTimeManager extends SavedData {
             default -> "";
         };
 
-        // SDV parity: 先检查 season_day_year（如 spring_2_1 = 春2日Y1）
-        String keyWithYear = seasonName + "_" + day + "_" + currentYear;
+        // SDV parity: season_day_year 用个人日历触发（spring_4_1 = 进服后第 4 个游戏日早晨）
+        String keyWithYear = personalSeasonName + "_" + personalDay + "_" + personalYear;
         if (com.stardew.craft.mail.MailRegistry.contains(keyWithYear)) {
             com.stardew.craft.mail.MailService.addMail(player, keyWithYear);
         }
 
-        // 再检查 season_day（如 spring_12 = 春12日节日通知，不区分年份）
+        // season_day（如 spring_12 = 春12日节日通知）仍按服务器全局日历触发
         String keyNoYear = seasonName + "_" + day;
         if (com.stardew.craft.mail.MailRegistry.contains(keyNoYear)) {
             com.stardew.craft.mail.MailService.addMail(player, keyNoYear);
         }
 
-        // 父母信件 — 按 totalDaysPlayed 里程碑触发（SDV parity）
-        scheduleParentMail(player);
+        // 父母信件 — 按玩家个人天数里程碑触发
+        scheduleParentMail(player, personalDays);
     }
 
     /**
-     * 父母来信 — SDV 按收入/天数里程碑触发。
+     * 父母来信 — 按玩家个人天数里程碑触发。
      * mom1/dad1: 15天, mom2/dad2: 50天, mom3/dad3: 80天, mom4/dad4: 120天
      */
-    private void scheduleParentMail(net.minecraft.server.level.ServerPlayer player) {
-        int days = (currentYear - 1) * (28 * 4) + currentSeason * 28 + currentDay;
+    private void scheduleParentMail(net.minecraft.server.level.ServerPlayer player, int personalDays) {
         String[][] parentMails = {
             {"mom1", "dad1"},  // 15 days
             {"mom2", "dad2"},  // 50 days
@@ -317,7 +393,7 @@ public class StardewTimeManager extends SavedData {
         };
         int[] dayThresholds = {15, 50, 80, 120};
         for (int i = 0; i < parentMails.length; i++) {
-            if (days >= dayThresholds[i]) {
+            if (personalDays >= dayThresholds[i]) {
                 // SDV: randomly pick mom or dad
                 String mailId = parentMails[i][new java.util.Random(player.getUUID().hashCode() + i).nextInt(2)];
                 com.stardew.craft.mail.MailService.addMail(player, mailId);
@@ -325,31 +401,31 @@ public class StardewTimeManager extends SavedData {
         }
 
         // 里程碑提示邮件 — NPC 在特定天数给出建议
-        scheduleMilestoneMail(player, days);
+        scheduleMilestoneMail(player, personalDays);
     }
 
     /**
      * 里程碑邮件 — NPC 在特定天数自动发送提示/建议信。
-     * SDV parity: 类似 Game1.checkForNewMail 按进度解锁。
+     * 使用玩家个人天数（从首次加入起算），而非服务器全局天数。
      */
-    private void scheduleMilestoneMail(net.minecraft.server.level.ServerPlayer player, int totalDays) {
+    private void scheduleMilestoneMail(net.minecraft.server.level.ServerPlayer player, int personalDays) {
         // 罗宾：建筑建议
-        if (totalDays >= 7) com.stardew.craft.mail.MailService.addMail(player, "robinWell");
-        if (totalDays >= 20) com.stardew.craft.mail.MailService.addMail(player, "robinCoop");
-        if (totalDays >= 40) com.stardew.craft.mail.MailService.addMail(player, "robinBarn");
+        if (personalDays >= 7) com.stardew.craft.mail.MailService.addMail(player, "robinWell");
+        if (personalDays >= 20) com.stardew.craft.mail.MailService.addMail(player, "robinCoop");
+        if (personalDays >= 40) com.stardew.craft.mail.MailService.addMail(player, "robinBarn");
         // 德米特里厄斯：山洞
-        if (totalDays >= 10) com.stardew.craft.mail.MailService.addMail(player, "demetriusCave");
+        if (personalDays >= 10) com.stardew.craft.mail.MailService.addMail(player, "demetriusCave");
         // 皮埃尔：一般提示
-        if (totalDays >= 14) com.stardew.craft.mail.MailService.addMail(player, "pierreGeneral");
+        if (personalDays >= 14) com.stardew.craft.mail.MailService.addMail(player, "pierreGeneral");
         // 莱纳斯
-        if (totalDays >= 12) com.stardew.craft.mail.MailService.addMail(player, "linusTip");
-        if (totalDays >= 30) com.stardew.craft.mail.MailService.addMail(player, "linusTrash");
+        if (personalDays >= 12) com.stardew.craft.mail.MailService.addMail(player, "linusTip");
+        if (personalDays >= 30) com.stardew.craft.mail.MailService.addMail(player, "linusTrash");
         // 玛妮：动物
-        if (totalDays >= 25) com.stardew.craft.mail.MailService.addMail(player, "marnieAnimal");
+        if (personalDays >= 25) com.stardew.craft.mail.MailService.addMail(player, "marnieAnimal");
         // 格斯：烹饪
-        if (totalDays >= 35) com.stardew.craft.mail.MailService.addMail(player, "gusRecipe");
+        if (personalDays >= 35) com.stardew.craft.mail.MailService.addMail(player, "gusRecipe");
         // 艾利奥特
-        if (totalDays >= 45) com.stardew.craft.mail.MailService.addMail(player, "elliottBook");
+        if (personalDays >= 45) com.stardew.craft.mail.MailService.addMail(player, "elliottBook");
     }
 
     /**
@@ -360,6 +436,7 @@ public class StardewTimeManager extends SavedData {
         event2200Triggered = false;
         event0000Triggered = false;
         event0130Triggered = false;
+        lastTenMinuteBucket = -1;
     }
     
     /**
@@ -427,6 +504,11 @@ public class StardewTimeManager extends SavedData {
     public int getCurrentDay() { return currentDay; }
     public int getCurrentSeason() { return currentSeason; }
     public int getCurrentYear() { return currentYear; }
+
+    /** 绝对游戏日（year/season/day 合成，用于跨年单调递增的天数键）。 */
+    public int getAbsoluteDay() {
+        return (currentYear - 1) * (28 * 4) + currentSeason * 28 + currentDay;
+    }
     
     // Setters (用于调试或特殊情况)
     public void setCurrentTime(int time) { 
@@ -456,6 +538,7 @@ public class StardewTimeManager extends SavedData {
         tag.putInt("currentDay", currentDay);
         tag.putInt("currentSeason", currentSeason);
         tag.putInt("currentYear", currentYear);
+        tag.putLong("dayTimeOffset", dayTimeOffset);
         
         tag.putBoolean("event1800", event1800Triggered);
         tag.putBoolean("event2200", event2200Triggered);
@@ -474,6 +557,7 @@ public class StardewTimeManager extends SavedData {
         data.currentSeason = tag.contains("currentSeason") ? tag.getInt("currentSeason") : 0;
         data.currentYear = tag.contains("currentYear") ? tag.getInt("currentYear") : 1;
         
+        data.dayTimeOffset = tag.getLong("dayTimeOffset");
         data.event1800Triggered = tag.getBoolean("event1800");
         data.event2200Triggered = tag.getBoolean("event2200");
         data.event0000Triggered = tag.getBoolean("event0000");

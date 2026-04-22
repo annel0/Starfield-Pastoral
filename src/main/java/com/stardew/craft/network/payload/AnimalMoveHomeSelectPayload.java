@@ -45,6 +45,18 @@ public record AnimalMoveHomeSelectPayload(long animalId, String targetBuildingId
             }
 
             AnimalWorldData data = AnimalWorldData.get(serverPlayer.serverLevel());
+
+            // 权限前置检查：确认玩家可操作源建筑
+            var animalOpt = data.getAnimal(payload.animalId);
+            if (animalOpt.isPresent()) {
+                var srcBuilding = data.getBuilding(animalOpt.get().buildingId());
+                if (srcBuilding.isPresent() && !com.stardew.craft.farm.FarmInstanceRegistry.get()
+                        .canOperateBuilding(serverPlayer.getUUID(), srcBuilding.get().ownerPlayerUuid())) {
+                    serverPlayer.sendSystemMessage(Component.translatable("stardewcraft.animal.query.no_permission"));
+                    return;
+                }
+            }
+
             boolean moved = data.moveAnimalToBuilding(payload.animalId, payload.targetBuildingId, serverPlayer.getUUID().toString());
             if (moved) {
                 serverPlayer.sendSystemMessage(Component.translatable("stardewcraft.animal.query.move_success"));

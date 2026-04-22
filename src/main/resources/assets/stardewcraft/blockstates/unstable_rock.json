@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "triggered=false": {
+      "model": "stardewcraft:block/unstable_rock"
+    },
+    "triggered=true": {
+      "model": "stardewcraft:block/unstable_rock"
+    }
+  }
+}

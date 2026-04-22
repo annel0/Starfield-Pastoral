@@ -55,9 +55,9 @@ public record FarmPermissionUpdatePayload(
         context.enqueueWork(() -> {
             if (!(context.player() instanceof ServerPlayer player)) return;
 
-            // 只能修改自己的农场权限
-            UUID ownerUUID = player.getUUID();
-            if (!FarmInstanceRegistry.get().hasFarm(ownerUUID)) return;
+            // 解析真实农场主 UUID（成员也能管理）
+            UUID ownerUUID = FarmInstanceRegistry.get().getOwnerForPlayer(player.getUUID());
+            if (ownerUUID == null) return;
 
             FarmPermissionManager mgr = FarmPermissionManager.get();
 

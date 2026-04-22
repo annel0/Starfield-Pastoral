@@ -2,7 +2,6 @@
   "replace": false,
   "values": [
     "stardewcraft:tapper",
-
     "stardewcraft:wild_oak_trunk0",
     "stardewcraft:wild_oak_trunk1",
     "stardewcraft:wild_oak_branch1",
@@ -23,7 +22,6 @@
     "stardewcraft:wild_mystic_tree_trunk1",
     "stardewcraft:wild_mystic_tree_branch1",
     "stardewcraft:wild_mystic_tree_branch2",
-
     "stardewcraft:keg",
     "stardewcraft:preserves_jar",
     "stardewcraft:dehydrator",
@@ -38,23 +36,18 @@
     "stardewcraft:worm_bin",
     "stardewcraft:deluxe_worm_bin",
     "stardewcraft:bee_house",
-
     "stardewcraft:feed_trough",
     "stardewcraft:autofeed_trough",
     "stardewcraft:hay_hopper",
     "stardewcraft:coop_manager",
     "stardewcraft:barn_manager",
-
     "stardewcraft:wooden_chest",
     "stardewcraft:shipping_bin",
-
     "stardewcraft:mine_barrel",
     "stardewcraft:mine_ladder",
-
     "stardewcraft:totem_pole_farm",
     "stardewcraft:totem_pole_mountain",
     "stardewcraft:totem_pole_beach",
-
     "stardewcraft:oak_table",
     "stardewcraft:spruce_table",
     "stardewcraft:birch_table",
@@ -67,12 +60,10 @@
     "stardewcraft:stool",
     "stardewcraft:dining_chair_wood",
     "stardewcraft:sofa",
-
     "stardewcraft:bookshelf_tall_1",
     "stardewcraft:bookshelf_tall_2",
     "stardewcraft:bookshelf_wall",
     "stardewcraft:wall_kitchen_cabinet",
-
     "stardewcraft:dresser_1",
     "stardewcraft:dresser_2",
     "stardewcraft:dresser_3",
@@ -94,7 +85,6 @@
     "stardewcraft:book_stack_1",
     "stardewcraft:book_stack_2",
     "stardewcraft:book_stack_3",
-
     "stardewcraft:shop_basket",
     "stardewcraft:shop_crate_fruit_1",
     "stardewcraft:shop_crate_fruit_2",
@@ -114,10 +104,19 @@
     "stardewcraft:supermarket_shelf_2",
     "stardewcraft:shop_shipping_bin",
     "stardewcraft:fish_shop_counter",
-
     "stardewcraft:tv_1",
     "stardewcraft:wallpaper_block",
     "stardewcraft:flooring_block",
-    "stardewcraft:hospital_counter"
+    "stardewcraft:hospital_counter",
+    "stardewcraft:scarecrow_0",
+    "stardewcraft:scarecrow_1",
+    "stardewcraft:scarecrow_2",
+    "stardewcraft:scarecrow_3",
+    "stardewcraft:scarecrow_4",
+    "stardewcraft:scarecrow_5",
+    "stardewcraft:scarecrow_6",
+    "stardewcraft:scarecrow_7",
+    "stardewcraft:scarecrow_8",
+    "stardewcraft:scarecrow_9"
   ]
 }

@@ -76,7 +76,8 @@ public final class AnimalShopService {
 
         List<OpenAnimalPurchaseScreenPayload.BuildingOption> buildings = new ArrayList<>();
         for (var building : data.getBuildings()) {
-            if (!ownerUuid.equals(building.ownerPlayerUuid())) {
+            if (!com.stardew.craft.farm.FarmInstanceRegistry.get()
+                    .canOperateBuilding(player.getUUID(), building.ownerPlayerUuid())) {
                 continue;
             }
             String displayName = (building.customName() == null || building.customName().isBlank())
@@ -112,7 +113,10 @@ public final class AnimalShopService {
     public static int getOwnerMaxTier(AnimalWorldData data, String ownerUuid, String family) {
         int maxTier = 0;
         for (AnimalBuildingRecord building : data.getBuildings()) {
-            if (!ownerUuid.equals(building.ownerPlayerUuid())) {
+            if (!com.stardew.craft.farm.FarmInstanceRegistry.get()
+                    .canOperateBuilding(
+                        java.util.UUID.fromString(ownerUuid),
+                        building.ownerPlayerUuid())) {
                 continue;
             }
             if (!building.active()) {

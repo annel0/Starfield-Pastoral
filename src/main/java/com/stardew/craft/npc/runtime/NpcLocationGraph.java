@@ -3,7 +3,6 @@ package com.stardew.craft.npc.runtime;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.stardew.craft.StardewCraft;
 import com.stardew.craft.npc.data.NpcDataRegistry;
 import com.stardew.craft.npc.data.NpcLocationAnchor;
 import net.minecraft.world.phys.Vec3;
@@ -73,8 +72,6 @@ public final class NpcLocationGraph {
         }
 
         adjacency = Collections.unmodifiableMap(adj);
-        StardewCraft.LOGGER.info("NpcLocationGraph loaded: {} locations, {} directed edges.",
-            adj.size(), adj.values().stream().mapToInt(List::size).sum());
     }
 
     // ---- BFS shortest-path ----

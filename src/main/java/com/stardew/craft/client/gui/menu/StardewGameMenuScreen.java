@@ -90,6 +90,10 @@ public class StardewGameMenuScreen extends Screen {
     );
     private static final Map<ResourceLocation, PortraitResource> SOCIAL_PORTRAIT_CACHE = new HashMap<>();
 
+    public static void clearPortraitCache() {
+        SOCIAL_PORTRAIT_CACHE.clear();
+    }
+
     private static final String[] TAB_KEYS = new String[] {
             "stardewcraft.game_menu.tab.inventory",
             "stardewcraft.game_menu.tab.skills",

@@ -51,6 +51,34 @@
     },
     {
       "type": "bitmap",
+      "file": "stardewcraft:gui/weapon_skill/icon_skill.png",
+      "ascent": 7,
+      "height": 9,
+      "chars": ["\uE008"]
+    },
+    {
+      "type": "bitmap",
+      "file": "stardewcraft:gui/weapon_skill/icon_immunity.png",
+      "ascent": 7,
+      "height": 9,
+      "chars": ["\uE009"]
+    },
+    {
+      "type": "bitmap",
+      "file": "stardewcraft:gui/weapon_skill/icon_magnetic.png",
+      "ascent": 7,
+      "height": 9,
+      "chars": ["\uE00A"]
+    },
+    {
+      "type": "bitmap",
+      "file": "stardewcraft:gui/weapon_skill/icon_luck.png",
+      "ascent": 7,
+      "height": 9,
+      "chars": ["\uE00B"]
+    },
+    {
+      "type": "bitmap",
       "file": "stardewcraft:gui/weapon_skill/meowmere_1.png",
       "ascent": 12,
       "height": 16,
@@ -62,13 +90,6 @@
       "ascent": 12,
       "height": 16,
       "chars": ["\uE109"]
-    },
-    {
-      "type": "bitmap",
-      "file": "stardewcraft:gui/weapon_skill/icon_skill.png",
-      "ascent": 7,
-      "height": 9,
-      "chars": ["\uE008"]
     },
     {
       "type": "bitmap",

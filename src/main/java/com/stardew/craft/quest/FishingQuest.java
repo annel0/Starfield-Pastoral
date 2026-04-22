@@ -1,6 +1,7 @@
 package com.stardew.craft.quest;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Collections;
@@ -51,15 +52,31 @@ public class FishingQuest extends StardewQuest {
     }
 
     @Override
-    public List<String> getObjectiveDescriptions() {
+    public List<Component> getObjectiveComponents() {
+        // 对象完成等待 NPC 复命阶段：单独一条 "回去找 XX 复命"
         if (numberFished >= numberToFish && targetNpc != null && !targetNpc.isEmpty()) {
-            return Collections.singletonList("回去找 " + targetNpc + " 复命");
+            return Collections.singletonList(Component.translatable(
+                    "stardewcraft.quest.report_to",
+                    Component.translatable("entity.stardewcraft.npc." + targetNpc)));
         }
-        return Collections.singletonList(
-            objectiveText.isEmpty()
-                ? (itemId + " " + numberFished + "/" + numberToFish)
-                : objectiveText
-        );
+        // 进度阶段：用本地化键 + 当前 N/M 实时构造
+        if (objectiveKey != null && !objectiveKey.isEmpty() && objectiveArgs.size() >= 2) {
+            // args: [count, itemKey, progress] → 替换 progress 为当前 numberFished
+            return Collections.singletonList(Component.translatable(
+                    objectiveKey,
+                    String.valueOf(numberToFish),
+                    Component.translatable(objectiveArgs.get(1)),
+                    String.valueOf(numberFished)));
+        }
+        return super.getObjectiveComponents();
+    }
+
+    @Override
+    public List<String> getObjectiveDescriptions() {
+        List<Component> comps = getObjectiveComponents();
+        List<String> out = new java.util.ArrayList<>(comps.size());
+        for (Component c : comps) out.add(c.getString());
+        return out;
     }
 
     @Override

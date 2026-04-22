@@ -24,7 +24,7 @@ public enum BombType {
     MEGA_BOMB("mega_bomb", 3, 2400, () -> ModItems.MEGA_BOMB);
 
     /** 爆炸范围相对 SDV 原版的缩放比例 */
-    private static final float RADIUS_SCALE = 1.2f;
+    private static final float RADIUS_SCALE = 2.4f;
 
     private final String id;
     private final int radius;

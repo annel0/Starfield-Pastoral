@@ -1,0 +1,126 @@
+{
+  "id": "willy_fishing_rod",
+  "skippable": true,
+  "trigger": {
+    "type": "enter_area",
+    "location": "beach",
+    "area_min": [-387, -19, -252],
+    "area_max": [-177, 14, -140]
+  },
+  "preconditions": [
+    { "type": "not_saw_event", "id": "willy_fishing_rod" },
+    { "type": "time", "min": 600, "max": 1710 },
+    { "type": "mail", "id": "spring_4_1" }
+  ],
+  "commands": [
+    { "cmd": "comment", "text": "=== SDV Event 739330: Willy gives you the fishing rod ===" },
+    { "cmd": "comment", "text": "Willy is fishing at the dock. Player walks up, Willy greets and gives bamboo pole." },
+
+    { "cmd": "lock_player" },
+    { "cmd": "fade", "mode": "out", "ticks": 10 },
+
+    { "cmd": "comment", "text": "--- Setup: hide real Willy, spawn actors ---" },
+    { "cmd": "hide_npc", "npc_id": "willy" },
+    { "cmd": "spawn_actor", "actor": "willy", "npc_id": "willy",
+      "x": -239, "y": -15, "z": -218.82, "relative": false, "facing": 180 },
+    { "cmd": "spawn_actor", "actor": "fake_player", "npc_id": "player",
+      "x": -230, "y": -15, "z": -202, "relative": false, "facing": 0 },
+
+    { "cmd": "comment", "text": "--- W1: High establishing shot of beach + dock ---" },
+    { "cmd": "camera", "x": -240.842, "y": 1.854, "z": -242.491,
+      "yaw": -0.2, "pitch": 46.2, "relative": false },
+
+    { "cmd": "music", "track": "MUSIC_OCEAN_AMBIENCE" },
+    { "cmd": "fade", "mode": "in", "ticks": 20 },
+    { "cmd": "pause", "ticks": 30 },
+
+    { "cmd": "comment", "text": "--- Willy is fishing (animate) ---" },
+    { "cmd": "animate", "actor": "willy", "anim": "fishing", "loop": true },
+
+    { "cmd": "comment", "text": "--- W2: Mid shot, player starts walking toward Willy ---" },
+    { "cmd": "camera", "x": -237.36, "y": -12.766, "z": -224.25,
+      "yaw": -33.1, "pitch": 16.7, "relative": false },
+
+    { "cmd": "comment", "text": "Player walks south: -230,-15,-202 -> -230,-15,-217" },
+    { "cmd": "move_actor", "actor": "fake_player",
+      "x": -230, "y": -15, "z": -217, "ticks": 60, "relative": false },
+
+    { "cmd": "comment", "text": "Player turns west toward Willy: -230,-15,-217 -> -237,-15,-219" },
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "move_actor", "actor": "fake_player",
+        "x": -237, "y": -15, "z": -219, "ticks": 50, "relative": false },
+      { "cmd": "pause", "ticks": 25 }
+    ]},
+
+    { "cmd": "comment", "text": "Willy stops fishing and turns to face player (halfway through approach)" },
+    { "cmd": "animate", "actor": "willy", "anim": "idle", "loop": false },
+    { "cmd": "face_actor", "actor": "willy", "face_actor": "fake_player" },
+
+    { "cmd": "comment", "text": "Wait for player to finish walking" },
+    { "cmd": "pause", "ticks": 25 },
+
+    { "cmd": "comment", "text": "--- W3: Willy close-up for greeting ---" },
+    { "cmd": "camera", "x": -237.489, "y": -14.625, "z": -221.478,
+      "yaw": -0.5, "pitch": 5.0, "relative": false },
+
+    { "cmd": "play_sound", "sound": "stardewcraft:dwop" },
+    { "cmd": "emote", "actor": "willy", "emote": "happy" },
+    { "cmd": "pause", "ticks": 10 },
+
+    { "cmd": "speak", "npc_id": "willy", "text": "event.willy_fishing_rod.greet" },
+
+    { "cmd": "comment", "text": "--- Willy reminisces about the sea ---" },
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "face_actor", "actor": "willy", "yaw": 180 },
+    { "cmd": "pause", "ticks": 20 },
+
+    { "cmd": "speak", "npc_id": "willy", "text": "event.willy_fishing_rod.sea_story" },
+
+    { "cmd": "comment", "text": "--- W4: Two-shot for rod exchange ---" },
+    { "cmd": "camera", "x": -237.847, "y": -14.625, "z": -217.27,
+      "yaw": 179.6, "pitch": 3.4, "relative": false },
+
+    { "cmd": "face_actor", "actor": "willy", "face_actor": "fake_player" },
+    { "cmd": "pause", "ticks": 10 },
+
+    { "cmd": "speak", "npc_id": "willy", "text": "event.willy_fishing_rod.give_rod" },
+
+    { "cmd": "comment", "text": "--- Give the rod: sound + item above head display ---" },
+    { "cmd": "play_sound", "sound": "stardewcraft:jingle1" },
+    { "cmd": "add_item", "item": "stardewcraft:fishing_rod", "count": 1 },
+    { "cmd": "hold_item", "actor": "fake_player", "item": "stardewcraft:fishing_rod", "ticks": 60, "offset_y": 0.2 },
+    { "cmd": "set_flag", "flag": "NOQUEST_13" },
+
+    { "cmd": "comment", "text": "--- Back to W3: Willy's parting words ---" },
+    { "cmd": "camera", "x": -237.489, "y": -14.625, "z": -221.478,
+      "yaw": -0.5, "pitch": 5.0, "relative": false },
+
+    { "cmd": "pause", "ticks": 15 },
+    { "cmd": "speak", "npc_id": "willy", "text": "event.willy_fishing_rod.fish_advice" },
+
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "face_actor", "actor": "willy", "face_actor": "fake_player" },
+    { "cmd": "speak", "npc_id": "willy", "text": "event.willy_fishing_rod.shop_invite" },
+
+    { "cmd": "comment", "text": "--- W5: Willy goes back to fishing, camera pans out to ocean ---" },
+    { "cmd": "face_actor", "actor": "willy", "yaw": 180 },
+    { "cmd": "animate", "actor": "willy", "anim": "fishing", "loop": true },
+
+    { "cmd": "camera", "x": -242.181, "y": -12.38, "z": -224.19,
+      "yaw": 0.7, "pitch": 30.4, "relative": false },
+    { "cmd": "pause", "ticks": 20 },
+
+    { "cmd": "comment", "text": "Smooth pan from W5_1 to W5_2 (looking out to sea)" },
+    { "cmd": "camera", "x": -242.171, "y": -2.651, "z": -242.125,
+      "yaw": 0.1, "pitch": 40.6, "relative": false, "ticks": 100 },
+    { "cmd": "pause", "ticks": 100 },
+
+    { "cmd": "comment", "text": "--- Cleanup ---" },
+    { "cmd": "stop_music" },
+    { "cmd": "fade", "mode": "out", "ticks": 20 },
+    { "cmd": "pause", "ticks": 20 },
+    { "cmd": "show_npc", "npc_id": "willy" },
+    { "cmd": "skippable" },
+    { "cmd": "end" }
+  ]
+}

@@ -49,6 +49,11 @@ public final class NpcFriendshipDataManager extends SavedData {
         return max;
     }
 
+    public void clearPlayer(UUID playerId) {
+        playerState.remove(playerId);
+        setDirty();
+    }
+
     public int getPointsForNpc(UUID playerId, String npcId) {
         if (playerId == null || npcId == null || npcId.isBlank()) {
             return 0;

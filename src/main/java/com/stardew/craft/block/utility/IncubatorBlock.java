@@ -261,7 +261,8 @@ public class IncubatorBlock extends Block implements EntityBlock {
             serverPlayer.sendSystemMessage(msg);
             return;
         }
-        if (!serverPlayer.getUUID().toString().equals(building.ownerPlayerUuid())) {
+        if (!com.stardew.craft.farm.FarmInstanceRegistry.get()
+                .canOperateBuilding(serverPlayer.getUUID(), building.ownerPlayerUuid())) {
             Component msg = Component.translatable("stardewcraft.incubator.claim.not_owner");
             serverPlayer.sendSystemMessage(msg);
             return;

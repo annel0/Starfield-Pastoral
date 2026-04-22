@@ -35,6 +35,7 @@ public final class PaintbrushModeIndicator {
         Minecraft mc = Minecraft.getInstance();
         Player player = mc.player;
         if (player == null) return;
+        if (mc.options.hideGui || player.isSpectator()) return;
 
         boolean holding = player.getMainHandItem().getItem() instanceof PaintbrushItem
                        || player.getOffhandItem().getItem() instanceof PaintbrushItem;

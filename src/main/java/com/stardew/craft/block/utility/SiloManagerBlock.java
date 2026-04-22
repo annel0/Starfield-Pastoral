@@ -69,6 +69,13 @@ public class SiloManagerBlock extends Block {
         return super.onDestroyedByPlayer(state, level, pos, player, willHarvest, fluid);
     }
 
+    // 未绑定建筑时，被玩家破坏后掉落自身（无需 loot table）
+    @Override
+    public java.util.List<ItemStack> getDrops(BlockState state,
+                                              net.minecraft.world.level.storage.loot.LootParams.Builder params) {
+        return java.util.List.of(new ItemStack(ModBlocks.SILO_MANAGER.get()));
+    }
+
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack,
                                               BlockState state,
@@ -126,7 +133,8 @@ public class SiloManagerBlock extends Block {
         if (buildingId.isBlank() || owner.isBlank() || family.isBlank() || !"silo".equalsIgnoreCase(family)) {
             return;
         }
-        if (!serverPlayer.getUUID().toString().equals(owner)) {
+        if (!com.stardew.craft.farm.FarmInstanceRegistry.get()
+                .canOperateBuilding(serverPlayer.getUUID(), owner)) {
             serverPlayer.sendSystemMessage(Component.translatable("message.stardew_craft.manager.relocate_owner_mismatch"));
             return;
         }

@@ -1,6 +1,15 @@
 {
   "env": {
-    "ANTHROPIC_API_KEY": "cr_1caff026332e9f6e0482d14cb5c77311ff67ffbb8614a47636ea48c2a9298e06",
-    "ANTHROPIC_BASE_URL": "https://co.yes.vg"
-  }
+    "ANTHROPIC_BASE_URL": "https://co.yes.vg",
+    "ANTHROPIC_AUTH_TOKEN": "cr_2ba41584d9847153e7ebe4867961c35dba504dd491f4092525ad1a384dad2e59"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(unzip -p /Users/jiayuhan/.gradle/caches/modules-2/files-2.1/net.neoforged/neoforge/21.1.217/f8798213b260c83be365a3d8ec5537d36dd44d1c/neoforge-21.1.217-sources.jar net/neoforged/neoforge/event/level/BlockEvent.java)",
+      "Bash(python3)",
+      "Bash(./gradlew compileJava)"
+    ]
+  },
+  "model": "opus[1m]",
+  "effortLevel": "medium"
 }

@@ -2,7 +2,6 @@ package com.stardew.craft.npc.runtime;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.stardew.craft.StardewCraft;
 import com.stardew.craft.npc.data.NpcCapabilityProfile;
 import com.stardew.craft.npc.data.NpcLocationAnchor;
 import com.stardew.craft.npc.data.NpcDataRegistry;
@@ -30,6 +29,7 @@ import java.util.UUID;
 @SuppressWarnings("null")
 public final class NpcScheduleRuntimeService {
     private static final String[] WEEKDAY_NAMES = {"monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"};
+    private static final String[] WEEKDAY_SHORT = {"mon", "tue", "wed", "thu", "fri", "sat", "sun"};
     private static boolean warnedMissingTownAnchor;
     private static final Map<String, ScheduleKeyTrace> LAST_KEY_TRACE = new LinkedHashMap<>();
     private static final Set<String> MAIL_POLICY_LOGGED = new HashSet<>();
@@ -148,8 +148,6 @@ public final class NpcScheduleRuntimeService {
                 }
             }
             // Named point defined in schedule but missing from route_points.json — fall through to anchor.
-            StardewCraft.LOGGER.warn("[NPC_SCHEDULE] Named point '{}' not found in npc_route_points.json (npc={})",
-                pointId, state.npcId());
         }
 
         // --- Anchor lookup (legacy tile-offset or per-location anchor) ---
@@ -167,7 +165,6 @@ public final class NpcScheduleRuntimeService {
 
         if ("town".equals(location) && !warnedMissingTownAnchor) {
             warnedMissingTownAnchor = true;
-            StardewCraft.LOGGER.warn("NPC schedule location 'Town' has no anchor mapping. Add anchors.town in npc/location_mappings to enable Town tile routing.");
         }
         return TargetPoint.fallback(fallback);
     }
@@ -253,7 +250,9 @@ public final class NpcScheduleRuntimeService {
         Set<String> candidates = new LinkedHashSet<>();
         int day = Math.max(1, timeManager.getCurrentDay());
         String season = timeManager.getSeasonName().toLowerCase(Locale.ROOT);
-        String weekday = WEEKDAY_NAMES[(day - 1) % WEEKDAY_NAMES.length];
+        int weekdayIndex = (day - 1) % WEEKDAY_NAMES.length;
+        String weekday = WEEKDAY_NAMES[weekdayIndex];
+        String weekdayShort = WEEKDAY_SHORT[weekdayIndex];
         String weather = activeWeather == null ? "" : activeWeather.toLowerCase(Locale.ROOT);
         int hearts = Math.max(0, friendship.getPointsForNpc(schedulePlayerId, canonicalNpcId(npcId)) / NpcInteractionService.POINTS_PER_HEART);
 
@@ -284,21 +283,26 @@ public final class NpcScheduleRuntimeService {
 
         // 7) <season>_<dayOfWeek>_<hearts>
         candidates.add(season + "_" + weekday + "_" + hearts);
+        candidates.add(season + "_" + weekdayShort + "_" + hearts);
 
         // 8) <season>_<dayOfWeek>
         candidates.add(season + "_" + weekday);
+        candidates.add(season + "_" + weekdayShort);
 
         // 9) <dayOfWeek>_<hearts>
         candidates.add(weekday + "_" + hearts);
+        candidates.add(weekdayShort + "_" + hearts);
 
         // 10) <dayOfWeek>
         candidates.add(weekday);
+        candidates.add(weekdayShort);
 
         // 11) <season>
         candidates.add(season);
 
         // 12) spring_<dayOfWeek>
         candidates.add("spring_" + weekday);
+        candidates.add("spring_" + weekdayShort);
 
         // 13) spring
         candidates.add("spring");
@@ -386,10 +390,6 @@ public final class NpcScheduleRuntimeService {
 
         // Detect _goto cycle
         if (current != null && visited.contains(current)) {
-            com.stardew.craft.StardewCraft.LOGGER.warn(
-                "[NPC_SCHEDULE] _goto cycle detected for npc='{}': key='{}' visited={}",
-                npcId, current, visited
-            );
         }
 
         return null;
@@ -433,12 +433,6 @@ public final class NpcScheduleRuntimeService {
         if (!MAIL_POLICY_LOGGED.add(key + "|" + allowed)) {
             return;
         }
-        com.stardew.craft.StardewCraft.LOGGER.info(
-            "[NPC_SCHEDULE_MAIL_POLICY] condition='{}' policy='{}' allowed={}",
-            rawCondition,
-            resolveMailConditionPolicyRaw(NpcDataRegistry.events().get("npc_schedule_policy")),
-            allowed
-        );
     }
 
     private static void logUnknownCondition(String rawCondition) {
@@ -446,10 +440,6 @@ public final class NpcScheduleRuntimeService {
         if (!UNKNOWN_CONDITION_LOGGED.add(key)) {
             return;
         }
-        com.stardew.craft.StardewCraft.LOGGER.warn(
-            "[NPC_SCHEDULE_CONDITION_UNKNOWN] condition='{}' action='allow'",
-            rawCondition
-        );
     }
 
     private static boolean mailConditionAllowed(ServerLevel level, boolean negated) {

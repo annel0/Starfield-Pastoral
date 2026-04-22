@@ -101,7 +101,7 @@ public class SolarPanelBlockEntity extends BlockEntity implements UtilityAutomat
         if (!state.hasProperty(com.stardew.craft.block.utility.SolarPanelBlock.FACING)) {
             BlockPos above = pos.above();
             boolean openSky = level.canSeeSky(above);
-            boolean raining = level.isRainingAt(above);
+            boolean raining = com.stardew.craft.weather.WeatherManager.isRaining(level);
             return !openSky || raining;
         }
 
@@ -111,7 +111,7 @@ public class SolarPanelBlockEntity extends BlockEntity implements UtilityAutomat
         BlockPos extAbove = extPos.above();
 
         boolean openSky = level.canSeeSky(mainAbove) && level.canSeeSky(extAbove);
-        boolean raining = level.isRainingAt(mainAbove) || level.isRainingAt(extAbove);
+        boolean raining = com.stardew.craft.weather.WeatherManager.isRaining(level);
         return !openSky || raining;
     }
 

@@ -105,6 +105,8 @@ public class PlayerStardewData {
     // ============ 钓鱼记录 ============
     // 用于对齐原版 CatchLimit（例如传奇鱼一次性）
     private final Map<String, Integer> fishCatchCounts = new HashMap<>();
+    /** SDV {@code Stats.PreciseFishCaught}: monotonic counter incremented per individual catch (incl. duplicates). */
+    private int preciseFishCaught = 0;
 
     // ============ 出货统计（夜间结算） ============
     // 对齐原版 player.shippedBasic 与 stats.ItemsShipped 的基础数据结构。
@@ -137,6 +139,10 @@ public class PlayerStardewData {
     // ============ 特殊物品去重（SDV Farmer.specialItems parity） ============
     // Tracks unique items already obtained (e.g. Neptune's Glaive from fishing treasure)
     private final Set<String> specialItems = new HashSet<>();
+
+    // ============ 首次加入日（邮件调度基准） ============
+    // -1 表示尚未初始化，首次处理邮件时设为当天全局总天数
+    private int firstJoinDay = -1;
 
     // ============ 巫师塔枢纽（维度传送） ============
     private boolean wizardQuestComplete;          // 末影之眼已交付，星露谷入口已解锁
@@ -382,6 +388,7 @@ public class PlayerStardewData {
                 }
             }
         }
+        data.preciseFishCaught = Math.max(0, tag.getInt("PreciseFishCaught"));
 
         data.shippedBasic.clear();
         if (tag.contains("ShippedBasic")) {
@@ -488,6 +495,8 @@ public class PlayerStardewData {
         if (tag.contains("QuestManager", 10)) {
             data.questManager.load(tag.getCompound("QuestManager"));
         }
+
+        data.firstJoinDay = tag.contains("FirstJoinDay") ? tag.getInt("FirstJoinDay") : -1;
 
         data.wizardQuestComplete = tag.getBoolean("WizardQuestComplete");
         data.wizardFirstMet = tag.getBoolean("WizardFirstMet");
@@ -652,6 +661,7 @@ public class PlayerStardewData {
             fishCounts.add(fishCountTag);
         }
         tag.put("FishCatchCounts", fishCounts);
+        tag.putInt("PreciseFishCaught", preciseFishCaught);
 
         ListTag shippedBasicTag = new ListTag();
         for (String itemId : shippedBasic) {
@@ -750,6 +760,8 @@ public class PlayerStardewData {
         tag.put("QuestManager", questManager.save());
 
         // 巫师塔枢纽
+        tag.putInt("FirstJoinDay", firstJoinDay);
+
         tag.putBoolean("WizardQuestComplete", wizardQuestComplete);
         tag.putBoolean("WizardFirstMet", wizardFirstMet);
         tag.putBoolean("StarterToolsGiven", starterToolsGiven);
@@ -1057,15 +1069,13 @@ public class PlayerStardewData {
     
     /**
      * 消耗能量
-     * @return 是否成功消耗
+     * @return 是否成功消耗（体力充足）
      */
     public boolean consumeEnergy(float amount) {
         if (amount <= 0) return true;
 
-        // SDV 原版：能量可以扣到负数（≤ -15 时触发体力耗尽晕倒）。
-        // exhausted 在能量 ≤ 0 时设置，用于次日恢复减半等逻辑。
         boolean enough = energy >= amount;
-        energy = energy - amount;
+        energy = Math.max(0f, energy - amount);
 
         if (energy <= 0) {
             exhausted = true;
@@ -1364,14 +1374,25 @@ public class PlayerStardewData {
         return Math.max(0, fishCatchCounts.getOrDefault(itemId, 0));
     }
 
+    /** SDV parity: {@code who.fishCaught.Length} — number of distinct fish species caught. */
+    public int getDistinctFishCaughtCount() {
+        return fishCatchCounts.size();
+    }
+
     public boolean addFishCatchCount(String itemId, int amount) {
         if (itemId == null || itemId.isBlank() || amount <= 0) {
             return false;
         }
         int next = Math.max(0, fishCatchCounts.getOrDefault(itemId, 0)) + amount;
         fishCatchCounts.put(itemId, next);
+        preciseFishCaught += amount;
         markDirty();
         return true;
+    }
+
+    /** SDV {@code Stats.PreciseFishCaught}: total fish caught (counts duplicates). */
+    public int getPreciseFishCaught() {
+        return preciseFishCaught;
     }
 
     public boolean isSpecialOrderRuleActive(String ruleId) {
@@ -1534,6 +1555,10 @@ public class PlayerStardewData {
     public void setDaysLeftForToolUpgrade(int days) { this.daysLeftForToolUpgrade = days; markDirty(); }
     public boolean isToolUpgradeNotified() { return toolUpgradeNotified; }
     public void setToolUpgradeNotified(boolean notified) { this.toolUpgradeNotified = notified; markDirty(); }
+
+    // ──── First Join Day (Mail scheduling baseline) ────
+    public int getFirstJoinDay() { return firstJoinDay; }
+    public void setFirstJoinDay(int day) { this.firstJoinDay = day; markDirty(); }
 
     // ──── Wizard Tower Hub (Cross-dimension) ────
     public boolean isWizardQuestComplete() { return wizardQuestComplete; }

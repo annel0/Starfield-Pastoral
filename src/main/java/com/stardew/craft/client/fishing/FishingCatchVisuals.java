@@ -130,6 +130,10 @@ public final class FishingCatchVisuals {
 
 	@SubscribeEvent
 	public static void onRenderGui(RenderGuiEvent.Post event) {
+		Minecraft mc = Minecraft.getInstance();
+		if (mc.options.hideGui || (mc.player != null && mc.player.isSpectator())) {
+			return;
+		}
 		// \u5904\u7406\u9c7c\u6355\u83b7\u52a8\u753b
 		if (mode != Mode.NONE && startMs != 0L) {
 			renderFishCatchAnimation(event.getGuiGraphics());

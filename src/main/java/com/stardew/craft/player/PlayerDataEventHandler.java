@@ -48,8 +48,54 @@ public class PlayerDataEventHandler {
             // 同步数据到客户端
             syncPlayerData(player, data);
 
+            // 同步星露谷时间到客户端。原本 TimeSyncPacket 只在切维度/睡觉时发，
+            // 如果玩家上次下线时就在星露谷维度，不会触发 PlayerChangedDimensionEvent，
+            // 客户端时间缓存会停留在默认 day1/spring/year1，导致 days_played / season
+            // 等剧情前置在真实进度很深的老存档上评估失败。
+            {
+                com.stardew.craft.time.StardewTimeManager tmForSync = com.stardew.craft.time.StardewTimeManager.get();
+                net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(
+                    player,
+                    com.stardew.craft.network.TimeSyncPacket.fromTimeManager(tmForSync));
+            }
+
             // 同步社区中心 bundle 数据到客户端 (星盘渲染等需要)
             com.stardew.craft.communitycenter.network.BundleSyncPayload.sendFullSync(player);
+
+            // 同步淘金点 — 否则玩家上次下线时已生成的点位重新登录后看不见，
+            // 必须等下一次 10-min tick 重新生成才能看到。
+            try {
+                if (player.level() instanceof net.minecraft.server.level.ServerLevel sl) {
+                    com.stardew.craft.communitycenter.reward.panning.OrePanPointManager
+                            .get(sl).syncToClient(player);
+                }
+            } catch (Exception ex) {
+                StardewCraft.LOGGER.warn("Failed to push initial ore-pan point on login: {}", ex.getMessage());
+            }
+
+            // 同步气泡（fish splash points）
+            try {
+                if (player.level() instanceof net.minecraft.server.level.ServerLevel sl) {
+                    com.stardew.craft.fishing.splash.FishSplashState fs =
+                            com.stardew.craft.fishing.splash.FishSplashState.getStardewState(sl);
+                    if (fs != null) fs.sendFullSnapshot(player);
+                }
+            } catch (Exception ex) {
+                StardewCraft.LOGGER.warn("Failed to push initial fish splash points on login: {}", ex.getMessage());
+            }
+
+            // 同步 NPC 好感度概览到客户端 — 否则 EventTriggerChecker 因为
+            // NpcFriendshipClientCache.isSynced()==false 永远跑不起来，
+            // 玩家进入触发区域的剧情（lewis_cc_tour / willy_fishing_rod /
+            // marlon_mine_intro 等）会被无声卡住直到玩家手动打开社交菜单。
+            try {
+                com.stardew.craft.network.payload.RequestNpcFriendshipOverviewPayload.sendOverviewTo(player);
+            } catch (Exception ex) {
+                StardewCraft.LOGGER.warn("Failed to push initial NPC friendship overview on login: {}", ex.getMessage());
+            }
+
+            // 同步 DataManager 数据到客户端（专用服务器客户端缺少 datapack ReloadListener）
+            com.stardew.craft.network.DataRegistrySyncPayload.sendFullSync(player);
 
             // 同步任务日志到客户端
             com.stardew.craft.quest.QuestManager qm = data.getQuestManager();
@@ -65,6 +111,15 @@ public class PlayerDataEventHandler {
                 // 确保农场入口屏障墙和交互实体已放置（老存档升级兼容）
                 com.stardew.craft.farm.FarmEntryBarrierManager.get(player.serverLevel())
                         .ensureBarriersPlaced(player.serverLevel());
+                // 采石场访问门（老存档升级兼容）
+                com.stardew.craft.communitycenter.quarry.QuarryAccessManager.get(player.serverLevel())
+                        .ensurePlaced(player.serverLevel());
+                // 采石场首次铺设（老存档升级兼容）
+                int year = com.stardew.craft.time.StardewTimeManager.get().getCurrentYear();
+                com.stardew.craft.manager.QuarrySpawnService.ensureInitialSpawn(player.serverLevel(), year);
+                // 矿车站点 + 矿井铁轨（老存档升级兼容）
+                com.stardew.craft.minecart.MinecartStationManager.get(player.serverLevel())
+                        .ensurePlaced(player.server);
             }
 
             // 多人农场：离线追赶——批量推进离线期间的作物/树苗生长
@@ -80,6 +135,16 @@ public class PlayerDataEventHandler {
             // （advanceDay 只在过夜时调用，新存档春1没有过夜，quest trigger 不会触发）
             com.stardew.craft.time.StardewTimeManager tm = com.stardew.craft.time.StardewTimeManager.get();
             int absDay = (tm.getCurrentYear() - 1) * 112 + tm.getCurrentSeason() * 28 + tm.getCurrentDay();
+            // 立即初始化 firstJoinDay，避免第 1 天没过夜时它仍为 -1，导致首次 advanceDay
+            // 把"加入日"误记为"加入日+1"，使所有按 personalDay 触发的信件晚 1 天送达。
+            com.stardew.craft.player.PlayerStardewData pData =
+                    com.stardew.craft.player.PlayerDataManager.getPlayerData(player);
+            if (pData.getFirstJoinDay() < 0) {
+                // 与 scheduleMailByDate 中的公式保持一致（currentDay 为 1-based，不减 1）
+                int globalDays = (tm.getCurrentYear() - 1) * (28 * 4)
+                        + tm.getCurrentSeason() * 28 + tm.getCurrentDay();
+                pData.setFirstJoinDay(globalDays);
+            }
             com.stardew.craft.quest.StardewQuestEvents.fireDayStarted(player, absDay);
         }
     }
@@ -99,6 +164,9 @@ public class PlayerDataEventHandler {
             // Clean up all combat tracker static maps (prevents memory leak)
             com.stardew.craft.combat.CombatTrackerCleanup.onPlayerLogout(player.getUUID());
 
+            // Clean up tree chopping state
+            com.stardew.craft.event.WildTreeChopEvents.removePlayer(player.getUUID());
+
             // Clean up fishing session
             com.stardew.craft.fishing.server.FishingSessionManager.onPlayerLogout(player);
 
@@ -109,7 +177,7 @@ public class PlayerDataEventHandler {
             {
                 com.stardew.craft.farm.FarmInstanceRegistry registry =
                         com.stardew.craft.farm.FarmInstanceRegistry.get();
-                com.stardew.craft.farm.FarmInstance farm = registry.getFarm(player.getUUID());
+                com.stardew.craft.farm.FarmInstance farm = registry.getFarmForPlayer(player.getUUID());
                 if (farm != null) {
                     int absDay = com.stardew.craft.farm.OfflineFarmCatchUp.computeAbsoluteDay();
                     com.stardew.craft.time.StardewTimeManager tm = com.stardew.craft.time.StardewTimeManager.get();
@@ -474,7 +542,8 @@ public class PlayerDataEventHandler {
             // 兼容：若存在非 MobEffect 驱动的 timed buff，这里负责过期清理。
             changed |= data.tickTimedBuffs(now);
 
-            if (changed) {
+            if (changed || data.isDirty()) {
+                data.markClean();
                 syncPlayerData(player, data);
             }
         } catch (Exception e) {
@@ -557,13 +626,12 @@ public class PlayerDataEventHandler {
             return;
         }
 
-        // SDV 原版：体力 ≤ -15 时触发体力耗尽晕倒
+        // SDV: 精疲力竭时持续给予缓慢 I 效果
         {
             PlayerStardewData tickData = PlayerDataManager.getPlayerData(player);
-            if (tickData.getEnergy() <= -15f) {
-                // 重置能量到 0（防止反复触发）
-                tickData.setEnergy(0f);
-                PassOutService.onExhaustionPassOut(player);
+            if (tickData.isExhausted()) {
+                player.addEffect(new net.minecraft.world.effect.MobEffectInstance(
+                    net.minecraft.world.effect.MobEffects.MOVEMENT_SLOWDOWN, 60, 0, false, false, true));
             }
         }
 
@@ -616,6 +684,11 @@ public class PlayerDataEventHandler {
         } catch (Exception e) {
             StardewCraft.LOGGER.error("Error saving player data on server stop", e);
         }
+
+        // 释放服务端静态缓存，防止内存泄漏
+        com.stardew.craft.interior.InteriorSubspaceManager.clearPortalRegistry();
+        com.stardew.craft.block.shape.ModelVoxelShapeCache.clearAll();
+        com.stardew.craft.npc.data.NpcContentFilter.clearCache();
     }
     
     /**
@@ -624,6 +697,12 @@ public class PlayerDataEventHandler {
     @SuppressWarnings("null")
     public static void syncPlayerData(ServerPlayer player, PlayerStardewData data) {
         PlayerDataSyncPacket packet = PlayerDataSyncPacket.fromPlayerData(data);
+        // Inject farm name into sync NBT so client can resolve %farm placeholder
+        com.stardew.craft.farm.FarmInstance farm =
+                com.stardew.craft.farm.FarmInstanceRegistry.get().getFarmForPlayer(player.getUUID());
+        if (farm != null && farm.getFarmName() != null) {
+            packet.data().putString("FarmName", farm.getFarmName());
+        }
         PacketDistributor.sendToPlayer(player, packet);
         // sync equipment slots
         PacketDistributor.sendToPlayer(player, new com.stardew.craft.network.payload.EquipmentSyncPayload(

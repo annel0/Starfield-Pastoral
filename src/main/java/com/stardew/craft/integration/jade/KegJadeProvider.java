@@ -1,13 +1,17 @@
 package com.stardew.craft.integration.jade;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.block.utility.KegBlock;
 import com.stardew.craft.blockentity.KegBlockEntity;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IBlockComponentProvider;
 import snownee.jade.api.IServerDataProvider;
@@ -37,7 +41,8 @@ public enum KegJadeProvider implements IBlockComponentProvider, IServerDataProvi
 	@SuppressWarnings("null")
 	@Override
 	public void appendServerData(CompoundTag tag, BlockAccessor accessor) {
-		if (!(accessor.getBlockEntity() instanceof KegBlockEntity keg)) {
+		KegBlockEntity keg = getKeg(accessor);
+		if (keg == null) {
 			return;
 		}
 
@@ -142,5 +147,23 @@ public enum KegJadeProvider implements IBlockComponentProvider, IServerDataProvi
 			return ItemStack.EMPTY;
 		}
 		return new ItemStack(BuiltInRegistries.ITEM.get(id));
+	}
+
+	@SuppressWarnings("null")
+	private static KegBlockEntity getKeg(BlockAccessor accessor) {
+		BlockEntity beDirect = accessor.getBlockEntity();
+		if (beDirect instanceof KegBlockEntity keg) {
+			return keg;
+		}
+		BlockState state = accessor.getBlockState();
+		if (!(state.getBlock() instanceof KegBlock kegBlock)) {
+			return null;
+		}
+		BlockPos mainPos = kegBlock.findMainPos(accessor.getLevel(), accessor.getPosition(), state);
+		if (mainPos == null) {
+			return null;
+		}
+		BlockEntity be = accessor.getLevel().getBlockEntity(mainPos);
+		return be instanceof KegBlockEntity keg ? keg : null;
 	}
 }

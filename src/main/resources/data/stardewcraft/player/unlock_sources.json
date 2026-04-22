@@ -21,7 +21,6 @@
   },
   "skill:mining:3": {
     "recipes": [
-      "miner_treat",
       "miner_s_treat",
       "dish_o_the_sea"
     ]

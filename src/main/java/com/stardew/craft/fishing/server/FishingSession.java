@@ -37,6 +37,7 @@ public final class FishingSession {
 	private boolean skipMinigame;
 	private int hookEntityId;
 	private boolean hookInWater;
+	private boolean inSplash;
 	private int settleTicks;
 
 	// 宝箱相关
@@ -149,7 +150,22 @@ public final class FishingSession {
 					|| level.getFluidState(hookPos).is(net.minecraft.tags.FluidTags.LAVA);
 				if (inWater && !hookInWater) {
 					hookInWater = true;
-					this.waterDepth = com.stardew.craft.fishing.server.FishingSessionManager.estimateWaterDepth(level, hookPos, 8);
+					// SDV uses tile coords with practical max ~5 (legendary maxDepth). Cap to 5 to match.
+					this.waterDepth = com.stardew.craft.fishing.server.FishingSessionManager.estimateWaterDepth(level, hookPos, 5);
+					// SDV: bobber within fishSplashPoint rect → timeUntilFishingBite /= 4 + later +0.4 chance + +1 depth.
+					try {
+						com.stardew.craft.fishing.splash.FishSplashState fs =
+								com.stardew.craft.fishing.splash.FishSplashState.getStardewState(level);
+						if (fs != null) {
+							net.minecraft.core.Holder<net.minecraft.world.level.biome.Biome> bh = level.getBiome(hookPos);
+							java.util.List<String> keys = com.stardew.craft.fishing.data.FishingDataManager
+									.resolveVanillaAlignedLocationKeysStatic(level, bh);
+							if (fs.findIntersecting(keys, hookPos) != null) {
+								this.inSplash = true;
+								this.ticksUntilBite = Math.max(1, this.ticksUntilBite / 4);
+							}
+						}
+					} catch (Exception ignored) {}
 				}
 
 				// If the hook fails to land in water soon, treat it as a cancelled/invalid cast (vanilla would reel back).
@@ -173,7 +189,7 @@ public final class FishingSession {
 
 			// 使用最新的bobberPos进行鱼类选择（因为初始创建session时用的是player位置占位符）
 			BlockPos actualBobberPos = (hookEntityId >= 0) ? this.bobberPos : bobberPos;
-			Optional<FishingDataManager.FishSelection> selected = FishingDataManager.get().selectFish(player, level, actualBobberPos, waterDepth, random);
+			Optional<FishingDataManager.FishSelection> selected = FishingDataManager.get().selectFish(player, level, actualBobberPos, waterDepth, this.inSplash, random);
 			if (selected.isEmpty()) {
 				plannedCatch = ItemStack.EMPTY;
 				difficulty = 15;
@@ -200,10 +216,7 @@ public final class FishingSession {
 				}
 
 				// 3. 偏爱饵料加成（Targeted Bait匹配目标鱼时×1.2）
-				ItemStack rod = player.getMainHandItem();
-				if (rod.isEmpty() || !(rod.getItem() instanceof com.stardew.craft.item.tool.FishingRodItem)) {
-					rod = player.getOffhandItem();
-				}
+				ItemStack rod = com.stardew.craft.item.tool.FishingRodItem.findRod(player);
 				if (rod != null && rod.getItem() instanceof com.stardew.craft.item.tool.FishingRodItem fishingRodItem) {
 					ItemStack baitStack = fishingRodItem.getAttachmentsForTooltip(rod).bait();
 					if (!baitStack.isEmpty() && baitStack.getItem() instanceof com.stardew.craft.item.SpecificBaitItem) {
@@ -241,10 +254,7 @@ public final class FishingSession {
 
 			// 决定是否生成宝箱(参考星露谷物语的计算)
 			// 获取鱼竿用于检查鱼饵和渔具
-			ItemStack rod = player.getMainHandItem();
-			if (rod.isEmpty() || !(rod.getItem() instanceof com.stardew.craft.item.tool.FishingRodItem)) {
-				rod = player.getOffhandItem();
-			}
+			ItemStack rod = com.stardew.craft.item.tool.FishingRodItem.findRod(player);
 			decideTreasure(player, rod, random);
 
 			// 咬钩了：等待玩家再次右键"收杆"才进入小游戏。

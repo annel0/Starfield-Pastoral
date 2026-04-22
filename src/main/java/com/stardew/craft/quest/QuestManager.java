@@ -97,6 +97,10 @@ public class QuestManager {
         return completedQuestIds.contains(questId);
     }
 
+    public Set<String> getCompletedQuestIds() {
+        return java.util.Collections.unmodifiableSet(completedQuestIds);
+    }
+
     // ─── 每日任务 ───
 
     @Nullable
@@ -236,6 +240,14 @@ public class QuestManager {
         // ── SDV 故事任务自动触发 ──
         triggerStoryQuests(player, gameDay);
 
+        // 存档迁移：老版 daily quest（legacy 英文 title，未填本地化 key）且尚未被接受 → 强制重生成以走新模板
+        if (dailyQuest != null
+                && (dailyQuest.getTitleKey() == null || dailyQuest.getTitleKey().isEmpty())
+                && !dailyQuest.isAccepted()) {
+            dailyQuest = null;
+            lastDailyQuestDay = -1; // 触发下面的重生成
+        }
+
         // 刷新每日任务
         if (gameDay != lastDailyQuestDay) {
             dailyQuest = null;
@@ -244,9 +256,9 @@ public class QuestManager {
             if (gameDay > 0 && (gameDay - 1) % 28 == 0) {
                 dailyQuestCompletedDays.clear();
             }
-            // 生成今日公告栏每日任务
+            // 生成今日公告栏每日任务（SDV 概率表：约 30% 天数可能返回 null 表示今天没任务）
             long worldSeed = player.level().getServer().overworld().getSeed();
-            dailyQuest = DailyQuestGenerator.generate(gameDay, worldSeed);
+            dailyQuest = DailyQuestGenerator.generate(gameDay, worldSeed, player);
             markOwnerDirty(player);
             // P2 fix: sync new daily quest to client immediately (SDV parity)
             PacketDistributor.sendToPlayer(player, DailyQuestSyncPayload.fromQuest(dailyQuest));
@@ -330,6 +342,11 @@ public class QuestManager {
         }
         if (changed || !pendingNextQuests.isEmpty()) {
             syncToClient(player);
+            // 若当前每日任务已完成，同时刷新客户端 dailyQuest 缓存（isCompleted=true）→
+            // 公告栏不再显示"接受"按钮。
+            if (dailyQuest != null && dailyQuest.isCompleted()) {
+                PacketDistributor.sendToPlayer(player, DailyQuestSyncPayload.fromQuest(dailyQuest));
+            }
         }
         // 任何状态变更（包括 notifiedComplete）都需要持久化
         markOwnerDirty(player);

@@ -64,6 +64,29 @@ public final class BundleDataManager {
         return bundlesById.size();
     }
 
+    /**
+     * 从网络同步的数据填充客户端 BundleDataManager。
+     * 专用服务器场景下，客户端无法通过 datapack ReloadListener 加载 bundle 定义，
+     * 需要服务端通过 BundleSyncPayload 将定义同步给客户端。
+     */
+    public static void applyFromNetwork(Collection<BundleDefinition> defs,
+                                         Map<Integer, String> names,
+                                         Map<Integer, String> displayKeys) {
+        Map<Integer, BundleDefinition> newById = new LinkedHashMap<>();
+        Map<Integer, List<BundleDefinition>> newByArea = new HashMap<>();
+        for (BundleDefinition def : defs) {
+            newById.put(def.bundleId(), def);
+            newByArea.computeIfAbsent(def.areaId(), k -> new ArrayList<>()).add(def);
+        }
+        for (Map.Entry<Integer, List<BundleDefinition>> e : newByArea.entrySet()) {
+            e.setValue(Collections.unmodifiableList(e.getValue()));
+        }
+        bundlesById = Collections.unmodifiableMap(newById);
+        bundlesByArea = Collections.unmodifiableMap(newByArea);
+        areaNames = Collections.unmodifiableMap(new HashMap<>(names));
+        areaDisplayNameKeys = Collections.unmodifiableMap(new HashMap<>(displayKeys));
+    }
+
     // ── Reload Listener ──
 
     @SuppressWarnings("null")

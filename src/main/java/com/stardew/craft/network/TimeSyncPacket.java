@@ -12,12 +12,14 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * 时间同步数据包（服务端 -> 客户端）
+ * 包含 UI 时间数据和原始 virtualDayTime 用于客户端天空渲染。
  */
 public record TimeSyncPacket(
     int currentTime,
     int currentDay,
     int currentSeason,
-    int currentYear
+    int currentYear,
+    long virtualDayTime
 ) implements CustomPacketPayload {
     
     @SuppressWarnings("null")
@@ -31,6 +33,7 @@ public record TimeSyncPacket(
         ByteBufCodecs.INT, TimeSyncPacket::currentDay,
         ByteBufCodecs.INT, TimeSyncPacket::currentSeason,
         ByteBufCodecs.INT, TimeSyncPacket::currentYear,
+        ByteBufCodecs.VAR_LONG, TimeSyncPacket::virtualDayTime,
         TimeSyncPacket::new
     );
     
@@ -43,11 +46,17 @@ public record TimeSyncPacket(
      * 从时间管理器创建数据包
      */
     public static TimeSyncPacket fromTimeManager(StardewTimeManager timeManager) {
+        long vdt = 0;
+        var server = net.neoforged.neoforge.server.ServerLifecycleHooks.getCurrentServer();
+        if (server != null) {
+            vdt = timeManager.getVirtualDayTime(server.overworld());
+        }
         return new TimeSyncPacket(
             timeManager.getCurrentTime(),
             timeManager.getCurrentDay(),
             timeManager.getCurrentSeason(),
-            timeManager.getCurrentYear()
+            timeManager.getCurrentYear(),
+            vdt
         );
     }
     
@@ -56,13 +65,17 @@ public record TimeSyncPacket(
      */
     public static void handle(TimeSyncPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
-            // 更新客户端时间缓存
+            // 更新客户端时间缓存（UI 用）
             StardewTimeManager clientTime = new StardewTimeManager();
             clientTime.setCurrentTime(packet.currentTime());
             clientTime.setCurrentDay(packet.currentDay());
             clientTime.setCurrentSeason(packet.currentSeason());
+            clientTime.setCurrentYear(packet.currentYear());
             
             com.stardew.craft.client.hud.StardewTimeHud.updateClientTime(clientTime);
+            
+            // 更新客户端天空时间（每 tick 会强制覆盖 ClientLevel.dayTime）
+            com.stardew.craft.client.StardewClientTimeState.onServerTimeSync(packet.virtualDayTime());
         });
     }
 }

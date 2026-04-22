@@ -34,9 +34,9 @@ public class ClientOvernightHandler {
     public static void startSequence(OvernightSettlementPayload payload) {
         beginSequence();
 
-        // 如果当前正在显示睡眠等待界面，先关闭它（不发取消包）
-        if (Minecraft.getInstance().screen instanceof com.stardew.craft.client.gui.overnight.SleepWaitingOverlayScreen waitingScreen) {
-            waitingScreen.onDayAdvanced();
+        // 如果玩家正在睡觉（原版 InBedChatScreen），关闭该界面
+        if (Minecraft.getInstance().screen instanceof net.minecraft.client.gui.screens.InBedChatScreen) {
+            Minecraft.getInstance().setScreen(null);
         }
 
         com.stardew.craft.StardewCraft.LOGGER.info("[OVERNIGHT_CLIENT] startSequence: hasPassOut={}, passOutType={}, moneyLost={}, levelUps={}, shippedItems={}",

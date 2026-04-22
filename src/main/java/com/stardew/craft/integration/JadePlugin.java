@@ -50,6 +50,8 @@ import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 
 import java.util.Objects;
 
@@ -161,19 +163,40 @@ public class JadePlugin implements IWailaPlugin {
 
     public static class CropComponentProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
 
+        private static BlockPos resolveCropRootPos(BlockAccessor accessor) {
+            BlockPos pos = Objects.requireNonNull(accessor.getPosition(), "position");
+            BlockState state = accessor.getBlockState();
+            if (!state.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)) {
+                return pos;
+            }
+            if (state.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) != DoubleBlockHalf.UPPER) {
+                return pos;
+            }
+
+            BlockPos belowPos = pos.below();
+            BlockState belowState = accessor.getLevel().getBlockState(belowPos);
+            if (belowState.getBlock() == state.getBlock()
+                    && belowState.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)
+                    && belowState.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.LOWER) {
+                return belowPos;
+            }
+            return pos;
+        }
+
         @Override
         public void appendServerData(CompoundTag tag, BlockAccessor accessor) {
             if (!(accessor.getLevel() instanceof ServerLevel serverLevel)) {
                 return;
             }
 
-            BlockState state = accessor.getBlockState();
+            BlockPos rootPos = resolveCropRootPos(accessor);
+            BlockState state = accessor.getLevel().getBlockState(rootPos);
             if (!(state.getBlock() instanceof StardewCropBlock cropBlock)) {
                 return;
             }
 
             int age = state.getValue(Objects.requireNonNull(StardewCropBlock.AGE, "AGE"));
-            CropGrowthManager.CropGrowthState gs = CropGrowthManager.get(serverLevel).getState(serverLevel, accessor.getPosition());
+            CropGrowthManager.CropGrowthState gs = CropGrowthManager.get(serverLevel).getState(serverLevel, rootPos);
             int dayInPhase = gs != null ? gs.dayInPhase : 0;
             int phase = gs != null ? gs.phase : 0;
             boolean regrowing = gs != null && gs.regrowing;
@@ -231,10 +254,10 @@ public class JadePlugin implements IWailaPlugin {
 
         @Override
         public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
-            if (accessor.getBlockState().getBlock() instanceof StardewCropBlock) {
-                BlockState state = accessor.getBlockState();
+            BlockPos rootPos = resolveCropRootPos(accessor);
+            BlockState state = accessor.getLevel().getBlockState(rootPos);
+            if (state.getBlock() instanceof StardewCropBlock cropBlock) {
                 int age = state.getValue(Objects.requireNonNull(StardewCropBlock.AGE, "AGE"));
-                int maxAge = StardewCropBlock.MAX_AGE;
 
                 CompoundTag serverData = accessor.getServerData();
                 if (serverData != null && serverData.contains(NBT_TOTAL_DAYS) && serverData.contains(NBT_DAYS_GROWN)) {
@@ -243,13 +266,25 @@ public class JadePlugin implements IWailaPlugin {
                     String progressText = grown + "/" + total;
                     tooltip.add(Component.translatable("stardewcraft.tooltip.growth_stage", progressText));
                 } else {
-                    String progressText = age + "/" + maxAge;
-                    tooltip.add(Component.translatable("stardewcraft.tooltip.growth_stage", progressText));
+                    // 回退：使用方块的阶段天数估算
+                    int[] phaseDays = cropBlock.getPhaseDaysForDisplay();
+                    if (phaseDays != null && phaseDays.length > 0) {
+                        int totalDays = 0;
+                        for (int pd : phaseDays) totalDays += pd;
+                        int daysGrown = 0;
+                        for (int i = 0; i < age && i < phaseDays.length; i++) {
+                            daysGrown += phaseDays[i];
+                        }
+                        if (age >= StardewCropBlock.MAX_AGE) daysGrown = totalDays;
+                        tooltip.add(Component.translatable("stardewcraft.tooltip.growth_stage", daysGrown + "/" + totalDays));
+                    } else {
+                        tooltip.add(Component.translatable("stardewcraft.tooltip.growth_stage", age + "/" + StardewCropBlock.MAX_AGE));
+                    }
                 }
                 
                 // 检查是否浇水 (检查下方耕地湿润度)
-                BlockPos belowPos = Objects.requireNonNull(accessor.getPosition(), "belowPos").below();
-                BlockState belowState = accessor.getLevel().getBlockState(Objects.requireNonNull(belowPos, "belowPos"));
+                BlockPos belowPos = rootPos.below();
+                BlockState belowState = accessor.getLevel().getBlockState(belowPos);
                 boolean isWatered = false;
                 if (belowState.getBlock() instanceof FarmBlock) {
                     isWatered = belowState.getValue(Objects.requireNonNull(FarmBlock.MOISTURE, "MOISTURE")) > 0;
@@ -271,6 +306,9 @@ public class JadePlugin implements IWailaPlugin {
                 boolean mature = false;
                 if (serverData != null && serverData.contains(NBT_MATURE)) {
                     mature = serverData.getBoolean(NBT_MATURE);
+                } else {
+                    // 回退：AGE 达到最大值视为成熟
+                    mature = age >= StardewCropBlock.MAX_AGE;
                 }
 
                 if (!mature) {

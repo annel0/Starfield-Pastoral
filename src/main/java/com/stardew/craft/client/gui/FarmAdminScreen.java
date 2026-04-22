@@ -208,12 +208,14 @@ public class FarmAdminScreen extends Screen {
             g.drawString(font, farm.farmType(), textX + 300, lineY1, COL_TYPE, false);
 
             // 详情行
-            String detailStr = String.format("#%d  UUID: %s  在线: 第%d天/季%d  %s",
+            String memberStr = farm.memberCount() > 1 ? "  成员: " + farm.memberCount() + "/4" : "";
+            String detailStr = String.format("#%d  UUID: %s  在线: 第%d天/季%d  %s%s",
                     farm.slotIndex(),
                     farm.ownerUUID().toString().substring(0, 8),
                     farm.lastOnlineDay(),
                     farm.lastOnlineSeason(),
-                    farm.origin().toShortString());
+                    farm.origin().toShortString(),
+                    memberStr);
             g.drawString(font, detailStr, textX + 30, lineY2, COL_DETAIL, false);
 
             // ── 行内按钮 ──

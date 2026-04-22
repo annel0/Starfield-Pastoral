@@ -343,12 +343,51 @@ public class MapDecorStaticBlock extends Block {
         return null;
     }
 
-    protected BlockPos findMainPos(BlockGetter level, BlockPos pos, BlockState state) {
+    public BlockPos findMainPos(BlockGetter level, BlockPos pos, BlockState state) {
         if (state.getValue(PART) == Part.MAIN) {
             return pos;
         }
         CellOffset offset = findOffsetForExtension(level, pos, state);
         return offset == null ? null : pos.offset(-offset.dx, -offset.dy, -offset.dz);
+    }
+
+    /**
+     * 返回此装饰方块（按当前 FACING）相对 MAIN 格的水平 extension 方向。
+     * 仅取第一个非零、且 dy==0 的偏移并返回单位 {@link Direction}；
+     * 如果没有水平 extension（单格方块或仅纵向 extension）则返回 {@code null}。
+     */
+    public Direction findHorizontalExtensionDirection(Direction facing) {
+        for (CellOffset offset : occupiedOffsets(facing)) {
+            if (offset.dy != 0) continue;
+            if (offset.dx == 0 && offset.dz == 0) continue;
+            if (offset.dx == 1 && offset.dz == 0) return Direction.EAST;
+            if (offset.dx == -1 && offset.dz == 0) return Direction.WEST;
+            if (offset.dx == 0 && offset.dz == 1) return Direction.SOUTH;
+            if (offset.dx == 0 && offset.dz == -1) return Direction.NORTH;
+        }
+        return null;
+    }
+
+    /**
+     * 返回此装饰方块（按当前 FACING）所有相对 MAIN 格的「水平 extension 单位方向」集合。
+     * 用于判断 1×N、N×1、N×M 等形状。仅返回 |dx|+|dz|==1 且 dy==0 的格子。
+     * 例如：1×2 床返回 {SOUTH}；2×2 床返回 {SOUTH, WEST}（顺序按迭代顺序）。
+     */
+    public java.util.List<Direction> findAllHorizontalExtensionDirections(Direction facing) {
+        java.util.List<Direction> dirs = new java.util.ArrayList<>(2);
+        for (CellOffset offset : occupiedOffsets(facing)) {
+            if (offset.dy != 0) continue;
+            if (Math.abs(offset.dx) + Math.abs(offset.dz) != 1) continue;
+            Direction d = null;
+            if (offset.dx == 1) d = Direction.EAST;
+            else if (offset.dx == -1) d = Direction.WEST;
+            else if (offset.dz == 1) d = Direction.SOUTH;
+            else if (offset.dz == -1) d = Direction.NORTH;
+            if (d != null && !dirs.contains(d)) {
+                dirs.add(d);
+            }
+        }
+        return dirs;
     }
 
     protected boolean canPlaceAtFacing(Level level, BlockPos pos, Direction facing, BlockPlaceContext context) {
@@ -407,6 +446,15 @@ public class MapDecorStaticBlock extends Block {
         return List.of(new ItemStack(this));
     }
 
+    /**
+     * 禁止水流/流体替换装饰方块。
+     * 默认的 canBeReplaced 对非完整碰撞箱方块返回 true，导致水流能冲掉家具。
+     */
+    @Override
+    protected boolean canBeReplaced(@Nonnull BlockState state, @Nonnull net.minecraft.world.level.material.Fluid fluid) {
+        return false;
+    }
+
     @Override
     protected boolean canSurvive(@Nonnull BlockState state, @Nonnull LevelReader level, @Nonnull BlockPos pos) {
         if (state.getValue(PART) == Part.MAIN) {
@@ -434,6 +482,12 @@ public class MapDecorStaticBlock extends Block {
         if (!state.is(newState.getBlock()) && hasExtensions()) {
             BlockPos mainPos = findMainPos(level, pos, state);
             if (mainPos != null) {
+                // 安全网：EXTENSION 被非玩家方式移除时（如爆炸等），掉落物品
+                // （水流已被 canBeReplaced 拦截，但保留此逻辑以防万一）
+                if (!level.isClientSide && state.getValue(PART) == Part.EXTENSION
+                        && level.getBlockState(mainPos).is(this)) {
+                    popResource(level, mainPos, new ItemStack(this));
+                }
                 Direction facing = mainFacingForCleanup(level, mainPos, state);
                 for (CellOffset offset : occupiedOffsets(facing)) {
                     BlockPos target = mainPos.offset(offset.dx, offset.dy, offset.dz);
@@ -461,6 +515,14 @@ public class MapDecorStaticBlock extends Block {
                 if (!player.isCreative()) {
                     popResource(level, mainPos, new ItemStack(this));
                 }
+                // 关键：先清掉 MAIN，让 MAIN 的 onRemove 级联删除所有 EXTENSION。
+                // 此时各 EXTENSION 的 onRemove 调用 findMainPos 会返回 null，从而不会触发安全网 popResource，
+                // 避免每个 extension 各自再掉一份物品。
+                BlockState mainState = level.getBlockState(mainPos);
+                if (mainState.is(this)) {
+                    level.setBlock(mainPos, Blocks.AIR.defaultBlockState(), 35);
+                }
+                // 兜底：MAIN 级联应已清掉所有格子；如还有残留则强制清理（不会再触发掉落，因为 MAIN 已不在）。
                 Direction facing = mainFacingForCleanup(level, mainPos, state);
                 for (CellOffset offset : occupiedOffsets(facing)) {
                     BlockPos target = mainPos.offset(offset.dx, offset.dy, offset.dz);

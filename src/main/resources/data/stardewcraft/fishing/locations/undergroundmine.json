@@ -1,62 +1,168 @@
-﻿{
-    "location":  "UndergroundMine",
-    "fish":  [
-                 {
-                     "id":  "ghostfish",
-                     "precedence":  100,
-                     "item":  "stardewcraft:ghostfish",
-                     "chance":  0.25,
-                     "difficulty":  50,
-                     "motionType":  0,
-                     "minFishingLevel":  0,
-                     "maxDepth":  3,
-                     "depthMultiplier":  0.1,
-                     "biomeTags":  [
-                                       "#stardewcraft:is_mines_20"
-                                   ]
-                 },
-                 {
-                     "id":  "stonefish",
-                     "precedence":  100,
-                     "item":  "stardewcraft:stonefish",
-                     "chance":  0.2,
-                     "difficulty":  65,
-                     "motionType":  3,
-                     "minFishingLevel":  3,
-                     "maxDepth":  3,
-                     "depthMultiplier":  0.1,
-                     "biomeTags":  [
-                                       "#stardewcraft:is_mines_60"
-                                   ]
-                 },
-                 {
-                     "id":  "ice_pip",
-                     "precedence":  100,
-                     "item":  "stardewcraft:ice_pip",
-                     "chance":  0.2,
-                     "difficulty":  85,
-                     "motionType":  1,
-                     "minFishingLevel":  5,
-                     "maxDepth":  3,
-                     "depthMultiplier":  0.1,
-                     "biomeTags":  [
-                                       "#stardewcraft:is_mines_100"
-                                   ]
-                 },
-                 {
-                     "id":  "lava_eel",
-                     "precedence":  100,
-                     "item":  "stardewcraft:lava_eel",
-                     "chance":  0.1,
-                     "difficulty":  90,
-                     "motionType":  0,
-                     "minFishingLevel":  7,
-                     "maxDepth":  4,
-                     "depthMultiplier":  0.05,
-                     "biomeTags":  [
-                                       "#stardewcraft:is_mines_100",
-                                       "#stardewcraft:is_volcano"
-                                   ]
-                 }
-             ]
+{
+  "location": "UndergroundMine",
+  "fish": [
+    {
+      "id": "ghostfish",
+      "precedence": 0,
+      "item": "stardewcraft:ghostfish",
+      "chance": 1.0,
+      "difficulty": 50,
+      "motionType": 0,
+      "minFishingLevel": 0,
+      "maxDepth": 2,
+      "depthMultiplier": 0.3,
+      "biomeTags": [
+        "#stardewcraft:is_mines_20",
+        "#stardewcraft:is_mines_60",
+        "#stardewcraft:is_mines_100"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.3
+    },
+    {
+      "id": "stonefish",
+      "precedence": 100,
+      "item": "stardewcraft:stonefish",
+      "chance": 0.2,
+      "difficulty": 65,
+      "motionType": 3,
+      "minFishingLevel": 3,
+      "maxDepth": 2,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_mines_60"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.1
+    },
+    {
+      "id": "ice_pip",
+      "precedence": 100,
+      "item": "stardewcraft:ice_pip",
+      "chance": 0.2,
+      "difficulty": 85,
+      "motionType": 1,
+      "minFishingLevel": 5,
+      "maxDepth": 2,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_mines_100"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.05
+    },
+    {
+      "id": "lava_eel",
+      "precedence": 100,
+      "item": "stardewcraft:lava_eel",
+      "chance": 0.1,
+      "difficulty": 90,
+      "motionType": 0,
+      "minFishingLevel": 7,
+      "maxDepth": 2,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_mines_100",
+        "#stardewcraft:is_volcano"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.05
+    },
+    {
+      "id": "green_algae",
+      "precedence": 0,
+      "item": "stardewcraft:green_algae",
+      "chance": 1.0,
+      "difficulty": 5,
+      "motionType": 4,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 0,
+      "depthMultiplier": 0.0,
+      "spawnRate": 0.3,
+      "biomeTags": [
+        "#stardewcraft:is_mines_20",
+        "#stardewcraft:is_mines_60",
+        "#stardewcraft:is_mines_100"
+      ]
+    },
+    {
+      "id": "white_algae",
+      "precedence": 0,
+      "item": "stardewcraft:white_algae",
+      "chance": 1.0,
+      "difficulty": 5,
+      "motionType": 4,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 0,
+      "depthMultiplier": 0.0,
+      "spawnRate": 0.3,
+      "biomeTags": [
+        "#stardewcraft:is_mines_20",
+        "#stardewcraft:is_mines_60",
+        "#stardewcraft:is_mines_100"
+      ]
+    },
+    {
+      "id": "cave_jelly",
+      "precedence": 0,
+      "item": "stardewcraft:cave_jelly",
+      "chance": 0.1,
+      "difficulty": 20,
+      "motionType": 0,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 4,
+      "depthMultiplier": 0.0,
+      "spawnRate": 1.0,
+      "biomeTags": [
+        "#stardewcraft:is_mines_20",
+        "#stardewcraft:is_mines_60",
+        "#stardewcraft:is_mines_100"
+      ]
+    }
+  ]
 }

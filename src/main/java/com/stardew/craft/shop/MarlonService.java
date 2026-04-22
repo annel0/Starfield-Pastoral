@@ -157,7 +157,7 @@ public final class MarlonService {
                 realItemId, displayName, "",
                 price, lost.getCount(),
                 null, 0,
-                java.util.Set.of(), 1, 0, null
+                java.util.Set.of(), 1, 0, null, -1, 0, 1
             ));
         }
 

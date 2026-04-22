@@ -27,6 +27,16 @@ public final class ModelVoxelShapeCache {
     private ModelVoxelShapeCache() {
     }
 
+    /**
+     * 清理所有缓存的 VoxelShape / GeoModel / Blockstate 数据。
+     * 在客户端断开连接或资源重载时调用。
+     */
+    public static void clearAll() {
+        SHAPE_CACHE.clear();
+        GEO_MODEL_CACHE.clear();
+        BLOCKSTATE_VARIANTS_CACHE.clear();
+    }
+
     @SuppressWarnings("null")
     public static VoxelShape shapeFromModelId(String modelId) {
         return SHAPE_CACHE.computeIfAbsent(modelId, ModelVoxelShapeCache::loadShapeFromModelId);

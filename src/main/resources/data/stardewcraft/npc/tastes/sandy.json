@@ -1,0 +1,27 @@
+{
+  "npc_id": "sandy",
+  "_vanilla_ref": "Sandy gift tastes from Data/NPCGiftTastes.json",
+
+  "loved": [],
+  "_loved_not_yet_in_mod": ["crocus(418)", "daffodil(18)", "mango_sticky_rice(904)", "sweet_pea(402)", "tom_kha_soup(218)"],
+
+  "liked": [],
+  "_liked_not_yet_in_mod": ["goat_milk(436)", "large_goat_milk(438)", "wool(440)", "cloth(428)"],
+  "liked_categories": ["fruit", "vegetables"],
+
+  "neutral": [],
+
+  "disliked": [],
+  "_disliked_not_yet_in_mod": [],
+  "disliked_categories": [],
+
+  "hated": [],
+  "_hated_not_yet_in_mod": [],
+  "hated_categories": ["fish"],
+
+  "loved_msg": "How did you know I love these? You're the sweetest!",
+  "liked_msg": "Thanks, sweetie. I appreciate it!",
+  "neutral_msg": "For me? You're so thoughtful!",
+  "disliked_msg": "Oh... that's... nice.",
+  "hated_msg": "Sorry, but I really don't like this..."
+}

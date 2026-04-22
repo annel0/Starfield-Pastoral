@@ -1,6 +1,8 @@
 {
   "replace": false,
   "values": [
-    "stardewcraft:yellow_dirt"
+    "stardewcraft:yellow_dirt",
+    "stardewcraft:quicksand",
+    "stardewcraft:toxic_spore_block"
   ]
 }

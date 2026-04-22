@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": {
+    "item": "stardewcraft:desert_bedrock"
+  },
+  "result": {
+    "count": 1,
+    "id": "stardewcraft:desert_bedrock_slab"
+  }
+}

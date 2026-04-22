@@ -101,125 +101,112 @@ public class MineBarrelBlock extends Block {
         dropEquipment(level, pos, r, floor);
     }
 
-    // ======================== Standard Barrel (area 0, floor 1-39) ========================
+    // ======================== Standard Barrel (area 0, ItemId "118", floor 1-39) ========================
+    // SDV BreakableContainer.cs::releaseContents case "118"
 
     private static void dropStandard(ServerLevel level, BlockPos pos, RandomSource r, int floor) {
-        // 65% 普通掉落
+        // 65% 普通掉落 ELSE 40% 稀有掉落（SDV 是 if/else if，互斥）
         if (r.nextFloat() < 0.65f) {
             if (r.nextFloat() < 0.80f) {
-                switch (r.nextInt(10)) {
-                    case 0 -> drop(level, pos, item("copper_ore"), 1 + r.nextInt(2));
-                    case 1 -> drop(level, pos, item("iron_ore"), 1 + r.nextInt(3));
-                    case 2 -> drop(level, pos, item("stone"), 2 + r.nextInt(4));
-                    case 3 -> drop(level, pos, item("wood_normal"), 2);
-                    case 4 -> {
-                        if (r.nextFloat() < 0.5f) {
-                            drop(level, pos, item("gold_ore"), 2);
-                        } else {
-                            drop(level, pos, item("sap"), 2 + r.nextInt(2));
-                        }
-                    }
-                    case 5 -> drop(level, pos, item("wood_normal"), 2 + r.nextInt(4));
-                    case 6 -> drop(level, pos, item("stone"), 2 + r.nextInt(4));
-                    case 7 -> drop(level, pos, item("mixed_seeds"), 1);
-                    case 8 -> drop(level, pos, item("coal"), 1 + r.nextInt(2));
-                    case 9 -> drop(level, pos, item("cave_carrot"), 1);
+                // r.Next(9) — case 2 为空（无掉落），保留以维持概率分布
+                switch (r.nextInt(9)) {
+                    case 0 -> drop(level, pos, item("coal"), 1 + r.nextInt(2));        // (O)382
+                    case 1 -> drop(level, pos, item("copper_ore"), 1 + r.nextInt(3));  // (O)378
+                    case 2 -> { /* empty */ }
+                    case 3 -> drop(level, pos, item("stone"), 2 + r.nextInt(4));       // (O)390
+                    case 4 -> drop(level, pos, item("wood_normal"), 2);                 // (O)388 r.Next(2,3)==2
+                    case 5 -> drop(level, pos, item("sap"), 2 + r.nextInt(2));         // (O)92 / parsnip 替代（无 player ctx）
+                    case 6 -> drop(level, pos, item("wood_normal"), 2 + r.nextInt(4)); // (O)388
+                    case 7 -> drop(level, pos, item("stone"), 2 + r.nextInt(4));       // (O)390
+                    case 8 -> drop(level, pos, item("mixed_seeds"), 1);                 // (O)770
                 }
             } else {
-                // 20%: 次级
-                if (r.nextFloat() < 0.75f) {
-                    drop(level, pos, item("copper_ore"), 1 + r.nextInt(2));
-                } else {
-                    drop(level, pos, item("geode"), 1);
+                // r.Next(4) — 3/4 cave_carrot, 1/4 geode
+                switch (r.nextInt(4)) {
+                    case 0, 1, 2 -> drop(level, pos, item("cave_carrot"), 1 + r.nextInt(2)); // (O)78
+                    case 3       -> drop(level, pos, item("geode"), 1 + r.nextInt(2));        // (O)535
                 }
             }
-        }
-
-        // 40% 稀有掉落
-        if (r.nextFloat() < 0.40f) {
+        } else if (r.nextFloat() < 0.40f) {
+            // 40% 稀有 r.Next(5)
             switch (r.nextInt(5)) {
-                case 0 -> drop(level, pos, item("ruby"), 1);
-                case 1 -> drop(level, pos, item("amethyst"), 1);
-                case 2 -> drop(level, pos, item("aquamarine"), 1);
-                case 3 -> drop(level, pos, item("geode"), 1);
-                case 4 -> dropSpecialItem(level, pos, r, floor);
+                case 0 -> drop(level, pos, item("amethyst"), 1);              // (O)66
+                case 1 -> drop(level, pos, item("topaz"), 1);                 // (O)68
+                case 2 -> drop(level, pos, item("wood_normal"), 4);           // (O)709 hardwood 替代（mod 暂无 hardwood）
+                case 3 -> drop(level, pos, item("geode"), 1);                 // (O)535
+                case 4 -> dropSpecialItem(level, pos, r, floor);              // getSpecialItemForThisMineLevel
             }
         }
     }
 
-    // ======================== Frost Barrel (area 40, floor 40-79) ========================
+    // ======================== Frost Barrel (area 40, ItemId "120", floor 40-79) ========================
+    // SDV BreakableContainer.cs::releaseContents case "120"
 
     private static void dropFrost(ServerLevel level, BlockPos pos, RandomSource r, int floor) {
         if (r.nextFloat() < 0.65f) {
             if (r.nextFloat() < 0.80f) {
                 switch (r.nextInt(9)) {
-                    case 0 -> drop(level, pos, item("copper_ore"), 1 + r.nextInt(2));
-                    case 1 -> drop(level, pos, item("iron_ore"), 1 + r.nextInt(3));
-                    case 2 -> drop(level, pos, item("iron_ore"), 2 + r.nextInt(4));
-                    case 3 -> drop(level, pos, item("wood_normal"), 2 + r.nextInt(4));
-                    case 4 -> {
-                        if (r.nextFloat() < 0.5f) {
-                            drop(level, pos, item("gold_ore"), 2);
-                        } else {
-                            drop(level, pos, item("sap"), 2 + r.nextInt(2));
-                        }
-                    }
-                    case 5 -> drop(level, pos, item("wood_normal"), 2 + r.nextInt(4));
-                    case 6 -> drop(level, pos, item("stone"), 2 + r.nextInt(4));
-                    case 7 -> drop(level, pos, item("mixed_seeds"), 1);
-                    case 8 -> drop(level, pos, item("coal"), 1 + r.nextInt(3));
+                    case 0 -> drop(level, pos, item("coal"), 1 + r.nextInt(2));        // (O)382
+                    case 1 -> drop(level, pos, item("iron_ore"), 1 + r.nextInt(3));    // (O)380
+                    case 2 -> { /* empty */ }
+                    case 3 -> drop(level, pos, item("copper_ore"), 2 + r.nextInt(4));  // (O)378
+                    case 4 -> drop(level, pos, item("wood_normal"), 2 + r.nextInt(4)); // (O)388
+                    case 5 -> drop(level, pos, item("sap"), 2 + r.nextInt(2));         // 替代（不区分是否到底）
+                    case 6 -> drop(level, pos, item("stone"), 2 + r.nextInt(2));       // (O)390 r.Next(2,4)
+                    case 7 -> drop(level, pos, item("stone"), 2 + r.nextInt(4));       // (O)390
+                    case 8 -> drop(level, pos, item("mixed_seeds"), 1);                 // (O)770
                 }
             } else {
-                if (r.nextFloat() < 0.75f) {
-                    drop(level, pos, item("iron_ore"), 1 + r.nextInt(2));
-                } else {
-                    drop(level, pos, item("frozen_geode"), 1);
+                switch (r.nextInt(4)) {
+                    case 0, 2, 3 -> drop(level, pos, item("cave_carrot"), 1 + r.nextInt(2)); // (O)78
+                    case 1       -> drop(level, pos, item("frozen_geode"), 1 + r.nextInt(2)); // (O)536
                 }
             }
-        }
-
-        if (r.nextFloat() < 0.40f) {
+        } else if (r.nextFloat() < 0.40f) {
             switch (r.nextInt(5)) {
-                case 0 -> drop(level, pos, item("emerald"), 1);
-                case 1 -> drop(level, pos, item("diamond"), 1);
-                case 2 -> drop(level, pos, item("aquamarine"), 1 + r.nextInt(3));
-                case 3 -> drop(level, pos, item("frozen_tear"), 1);
+                case 0 -> drop(level, pos, item("aquamarine"), 1);              // (O)62
+                case 1 -> drop(level, pos, item("jade"), 1);                    // (O)70
+                case 2 -> drop(level, pos, item("wood_normal"), 4 + r.nextInt(4)); // (O)709 hardwood 替代 r.Next(1,4)
+                case 3 -> drop(level, pos, item("frozen_geode"), 1);            // (O)536
                 case 4 -> dropSpecialItem(level, pos, r, floor);
             }
         }
     }
 
-    // ======================== Dark & Desert Barrel (area 80+) ========================
+    // ======================== Dark/Desert Barrel (area 80+, ItemId "122"/"124") ========================
+    // SDV BreakableContainer.cs::releaseContents case "122"/case "124"（共用）
 
     private static void dropDarkDesert(ServerLevel level, BlockPos pos, RandomSource r, int floor) {
         if (r.nextFloat() < 0.65f) {
             if (r.nextFloat() < 0.80f) {
+                // r.Next(8) — case 2 为空
                 switch (r.nextInt(8)) {
-                    case 0 -> drop(level, pos, item("copper_ore"), 1 + r.nextInt(2));
-                    case 1 -> drop(level, pos, item("iridium_ore"), 1 + r.nextInt(3));
-                    case 2 -> drop(level, pos, item("iron_ore"), 2 + r.nextInt(4));
-                    case 3 -> drop(level, pos, item("gold_ore"), 2 + r.nextInt(4));
-                    case 4 -> drop(level, pos, item("stone"), 2 + r.nextInt(4));
-                    case 5 -> drop(level, pos, item("wood_normal"), 2 + r.nextInt(4));
-                    case 6 -> drop(level, pos, item("bone_fragment"), 2 + r.nextInt(4));
-                    case 7 -> drop(level, pos, item("coal"), 2 + r.nextInt(3));
+                    case 0 -> drop(level, pos, item("coal"), 1 + r.nextInt(2));        // (O)382
+                    case 1 -> drop(level, pos, item("gold_ore"), 1 + r.nextInt(3));    // (O)384
+                    case 2 -> { /* empty */ }
+                    case 3 -> drop(level, pos, item("iron_ore"), 2 + r.nextInt(4));    // (O)380
+                    case 4 -> drop(level, pos, item("copper_ore"), 2 + r.nextInt(4));  // (O)378
+                    case 5 -> drop(level, pos, item("stone"), 2 + r.nextInt(4));       // (O)390
+                    case 6 -> drop(level, pos, item("wood_normal"), 2 + r.nextInt(4)); // (O)388
+                    case 7 -> drop(level, pos, item("bone_fragment"), 2 + r.nextInt(4)); // (O)881
                 }
             } else {
-                if (r.nextFloat() < 0.75f) {
-                    drop(level, pos, item("gold_ore"), 1 + r.nextInt(2));
-                } else {
-                    drop(level, pos, item("magma_geode"), 1);
+                switch (r.nextInt(4)) {
+                    case 0 -> drop(level, pos, item("cave_carrot"), 1 + r.nextInt(2));   // (O)78
+                    case 1 -> drop(level, pos, item("cactus_fruit"), 1 + r.nextInt(2));  // (O)537 - SDV 实际是 (O)537 仙人掌果
+                    case 2 -> drop(level, pos, item("cave_carrot"), 1 + r.nextInt(2));   // (O)78（不区分是否到底，省略 (O)82）
+                    case 3 -> drop(level, pos, item("cave_carrot"), 1 + r.nextInt(2));   // (O)78
                 }
             }
-        }
-
-        if (r.nextFloat() < 0.40f) {
-            switch (r.nextInt(5)) {
-                case 0 -> drop(level, pos, item("topaz"), 1);
-                case 1 -> drop(level, pos, item("jade"), 1);
-                case 2 -> drop(level, pos, item("omni_geode"), 1);
-                case 3 -> drop(level, pos, item("fire_quartz"), 1);
-                case 4 -> dropSpecialItem(level, pos, r, floor);
+        } else if (r.nextFloat() < 0.40f) {
+            // r.Next(6)
+            switch (r.nextInt(6)) {
+                case 0 -> drop(level, pos, item("emerald"), 1);                  // (O)60
+                case 1 -> drop(level, pos, item("ruby"), 1);                     // (O)64
+                case 2 -> drop(level, pos, item("wood_normal"), 4 + r.nextInt(4));  // (O)709 hardwood 替代 r.Next(1,4)
+                case 3 -> drop(level, pos, item("golden_relic"), 1);              // (O)749
+                case 4 -> dropSpecialItem(level, pos, r, floor);                  // getSpecialItemForThisMineLevel
+                case 5 -> drop(level, pos, item("warp_totem_desert"), 1);         // (O)688
             }
         }
     }

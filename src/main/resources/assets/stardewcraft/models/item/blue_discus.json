@@ -1,0 +1,27 @@
+{
+    "parent": "minecraft:item/generated",
+    "textures": {
+        "layer0": "stardewcraft:item/fish/special/blue_discus",
+        "particle": "stardewcraft:item/fish/special/blue_discus"
+    },
+    "overrides": [
+        {
+            "predicate": {
+                "custom_model_data": 1
+            },
+            "model": "stardewcraft:item/blue_discus_silver"
+        },
+        {
+            "predicate": {
+                "custom_model_data": 2
+            },
+            "model": "stardewcraft:item/blue_discus_gold"
+        },
+        {
+            "predicate": {
+                "custom_model_data": 3
+            },
+            "model": "stardewcraft:item/blue_discus_iridium"
+        }
+    ]
+}

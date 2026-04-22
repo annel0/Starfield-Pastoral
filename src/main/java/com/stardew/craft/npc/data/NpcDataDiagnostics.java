@@ -1,6 +1,5 @@
 package com.stardew.craft.npc.data;
 
-import com.stardew.craft.StardewCraft;
 
 import java.util.Map;
 
@@ -22,13 +21,10 @@ public final class NpcDataDiagnostics {
 
             String npcId = capability.npcId();
             if (!dialogues.containsKey(npcId)) {
-                StardewCraft.LOGGER.warn("NPC data missing dialogue for implemented npc='{}'", npcId);
             }
             if (!schedules.containsKey(npcId)) {
-                StardewCraft.LOGGER.warn("NPC data missing schedule for implemented npc='{}'", npcId);
             }
             if (!tastes.containsKey(npcId)) {
-                StardewCraft.LOGGER.warn("NPC data missing tastes for implemented npc='{}'", npcId);
             }
         }
     }

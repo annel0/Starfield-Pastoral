@@ -38,6 +38,10 @@ public class StardewNpcDialogueScreen extends Screen {
     private final int friendshipPoints;
     private static final Map<ResourceLocation, PortraitResource> PORTRAIT_CACHE = new ConcurrentHashMap<>();
 
+    public static void clearPortraitCache() {
+        PORTRAIT_CACHE.clear();
+    }
+
     private final List<DialoguePage> pages = new ArrayList<>();
     private StardewRenderMapping mapping;
     

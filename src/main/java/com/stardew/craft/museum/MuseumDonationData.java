@@ -12,29 +12,24 @@ import net.minecraft.world.level.saveddata.SavedData;
 
 import javax.annotation.Nonnull;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
- * Museum donation persistence (debug scaffolding for future museum logic).
+ * Museum donation persistence — per-player data.
+ * Each player has their own donated items, stand display items, session pending items,
+ * donation mode flag, and claimed rewards.
  */
 public class MuseumDonationData extends SavedData {
     private static final String DATA_NAME = "stardew_museum_donations";
+    private static final String TAG_PLAYERS = "players";
     private static final String TAG_DONATED = "donated";
     private static final String TAG_DONATION_MODE = "donation_mode";
     private static final String TAG_SESSION_PENDING = "session_pending";
     private static final String TAG_STAND_ITEMS = "stand_items";
     private static final String TAG_CLAIMED_REWARDS = "claimed_rewards";
 
-    private final Set<String> donatedItems = new HashSet<>();
-    private final Set<String> sessionPendingItems = new HashSet<>();
-    private final Map<String, String> standDisplayItems = new HashMap<>();
-    private final Set<String> claimedMuseumRewards = new HashSet<>();
-    private boolean donationModeActive;
+    /** Per-player data keyed by UUID string */
+    private final Map<String, PlayerMuseumData> playerData = new HashMap<>();
 
     public static MuseumDonationData get(ServerLevel level) {
         return level.getServer()
@@ -46,36 +41,45 @@ public class MuseumDonationData extends SavedData {
                 );
     }
 
+    private PlayerMuseumData getOrCreate(UUID playerId) {
+        String key = playerId.toString();
+        PlayerMuseumData existing = playerData.get(key);
+        if (existing != null) return existing;
+
+        // Copy legacy shared data to every new player (old save migration)
+        PlayerMuseumData legacy = playerData.get("__legacy__");
+        PlayerMuseumData fresh;
+        if (legacy != null) {
+            fresh = legacy.copy();
+            // Reset session-only state for the new player
+            fresh.donationModeActive = false;
+            fresh.sessionPendingItems.clear();
+        } else {
+            fresh = new PlayerMuseumData();
+        }
+        playerData.put(key, fresh);
+        setDirty();
+        return fresh;
+    }
+
     public static MuseumDonationData load(CompoundTag tag, HolderLookup.Provider provider) {
         MuseumDonationData data = new MuseumDonationData();
-        ListTag list = tag.getList(TAG_DONATED, CompoundTag.TAG_STRING);
-        for (int i = 0; i < list.size(); i++) {
-            data.donatedItems.add(list.getString(i));
+
+        // Try loading legacy global data (migration from old shared format)
+        if (!tag.contains(TAG_PLAYERS) && tag.contains(TAG_DONATED)) {
+            PlayerMuseumData legacy = new PlayerMuseumData();
+            legacy.load(tag);
+            data.playerData.put("__legacy__", legacy);
         }
 
-        data.donationModeActive = tag.getBoolean(TAG_DONATION_MODE);
-
-        ListTag pendingList = tag.getList(TAG_SESSION_PENDING, CompoundTag.TAG_STRING);
-        for (int i = 0; i < pendingList.size(); i++) {
-            data.sessionPendingItems.add(pendingList.getString(i));
-        }
-
-        CompoundTag standTag = tag.getCompound(TAG_STAND_ITEMS);
-        for (String key : standTag.getAllKeys()) {
-            if (key == null) {
-                continue;
-            }
-            String itemId = Objects.requireNonNull(standTag.getString(key));
-            if (!itemId.isBlank()) {
-                data.standDisplayItems.put(key, itemId);
-            }
-        }
-
-        if (tag.contains(TAG_CLAIMED_REWARDS, CompoundTag.TAG_LIST)) {
-            ListTag rewardList = tag.getList(TAG_CLAIMED_REWARDS, CompoundTag.TAG_STRING);
-            for (int i = 0; i < rewardList.size(); i++) {
-                String id = rewardList.getString(i);
-                if (!id.isBlank()) data.claimedMuseumRewards.add(id);
+        if (tag.contains(TAG_PLAYERS, CompoundTag.TAG_COMPOUND)) {
+            CompoundTag playersTag = tag.getCompound(TAG_PLAYERS);
+            for (String uuidStr : playersTag.getAllKeys()) {
+                if (uuidStr == null) continue;
+                CompoundTag playerTag = playersTag.getCompound(uuidStr);
+                PlayerMuseumData pData = new PlayerMuseumData();
+                pData.load(playerTag);
+                data.playerData.put(uuidStr, pData);
             }
         }
 
@@ -84,79 +88,74 @@ public class MuseumDonationData extends SavedData {
 
     @Override
     public @Nonnull CompoundTag save(@Nonnull CompoundTag tag, @Nonnull HolderLookup.Provider provider) {
-        ListTag list = new ListTag();
-        for (String id : donatedItems) {
-            if (id != null) {
-                list.add(StringTag.valueOf(id));
-            }
+        CompoundTag playersTag = new CompoundTag();
+        for (Map.Entry<String, PlayerMuseumData> entry : playerData.entrySet()) {
+            if (entry.getKey() == null) continue;
+            CompoundTag playerTag = new CompoundTag();
+            entry.getValue().save(playerTag);
+            playersTag.put(entry.getKey(), playerTag);
         }
-        tag.put(TAG_DONATED, list);
-
-        tag.putBoolean(TAG_DONATION_MODE, donationModeActive);
-
-        ListTag pendingList = new ListTag();
-        for (String id : sessionPendingItems) {
-            if (id != null) {
-                pendingList.add(StringTag.valueOf(id));
-            }
-        }
-        tag.put(TAG_SESSION_PENDING, pendingList);
-
-        CompoundTag standTag = new CompoundTag();
-        for (Map.Entry<String, String> entry : standDisplayItems.entrySet()) {
-            if (entry.getKey() != null && entry.getValue() != null) {
-                standTag.putString(Objects.requireNonNull(entry.getKey()), Objects.requireNonNull(entry.getValue()));
-            }
-        }
-        tag.put(TAG_STAND_ITEMS, standTag);
-
-        ListTag rewardList = new ListTag();
-        for (String id : claimedMuseumRewards) {
-            if (id != null) rewardList.add(StringTag.valueOf(id));
-        }
-        tag.put(TAG_CLAIMED_REWARDS, rewardList);
-
+        tag.put(TAG_PLAYERS, playersTag);
         return tag;
     }
 
-    public boolean donate(String itemId) {
-        boolean added = donatedItems.add(itemId);
-        if (added) {
-            setDirty();
-        }
+    // ── Per-player donation methods ──
+
+    /**
+     * Resolve player data for reading. Falls back to legacy shared data if
+     * the player has no personal entry yet (old save migration).
+     */
+    private PlayerMuseumData resolve(UUID playerId) {
+        PlayerMuseumData pData = playerData.get(playerId.toString());
+        if (pData != null) return pData;
+        return playerData.get("__legacy__"); // may be null
+    }
+
+    public boolean donate(UUID playerId, String itemId) {
+        PlayerMuseumData pData = getOrCreate(playerId);
+        boolean added = pData.donatedItems.add(itemId);
+        if (added) setDirty();
         return added;
     }
 
-    public boolean isDonated(String itemId) {
-        return donatedItems.contains(itemId);
+    public boolean isDonated(UUID playerId, String itemId) {
+        PlayerMuseumData pData = resolve(playerId);
+        return pData != null && pData.donatedItems.contains(itemId);
     }
 
-    public Set<String> getDonatedItems() {
-        return Collections.unmodifiableSet(donatedItems);
+    public Set<String> getDonatedItems(UUID playerId) {
+        PlayerMuseumData pData = resolve(playerId);
+        if (pData == null) return Collections.emptySet();
+        return Collections.unmodifiableSet(pData.donatedItems);
     }
 
-    public boolean isDonationModeActive() {
-        return donationModeActive;
+    public boolean isDonationModeActive(UUID playerId) {
+        PlayerMuseumData pData = resolve(playerId);
+        return pData != null && pData.donationModeActive;
     }
 
-    public void startDonationMode() {
-        if (!donationModeActive) {
-            donationModeActive = true;
+    public void startDonationMode(UUID playerId) {
+        PlayerMuseumData pData = getOrCreate(playerId);
+        if (!pData.donationModeActive) {
+            pData.donationModeActive = true;
             setDirty();
         }
     }
 
-    public EndSessionResult endDonationMode() {
-        Set<String> missing = getMissingSessionItems();
+    public EndSessionResult endDonationMode(UUID playerId) {
+        PlayerMuseumData pData = playerData.get(playerId.toString());
+        if (pData == null) return new EndSessionResult(true, Collections.emptySet());
+
+        Set<String> missing = getMissingSessionItems(pData);
         if (!missing.isEmpty()) {
             return new EndSessionResult(false, missing);
         }
 
-        for (String itemId : standDisplayItems.values()) {
-            donatedItems.add(itemId);
+        for (String itemId : pData.standDisplayItems.values()) {
+            pData.donatedItems.add(itemId);
         }
-        donationModeActive = false;
-        sessionPendingItems.clear();
+        pData.donationModeActive = false;
+        pData.sessionPendingItems.clear();
         setDirty();
         return new EndSessionResult(true, Collections.emptySet());
     }
@@ -164,76 +163,55 @@ public class MuseumDonationData extends SavedData {
     /**
      * 强制结束捐赠模式（不检查缺失物品）。
      * 用于室内布局版本升级时：展示柜可能被重置，继续检查 missing 会永远失败。
-     * 已放置在展示柜上的物品视为已捐赠；sessionPending 中未放置的不计入。
      */
-    public void forceEndDonationMode() {
-        for (String itemId : standDisplayItems.values()) {
-            donatedItems.add(itemId);
+    public void forceEndDonationMode(UUID playerId) {
+        PlayerMuseumData pData = playerData.get(playerId.toString());
+        if (pData == null) return;
+        for (String itemId : pData.standDisplayItems.values()) {
+            pData.donatedItems.add(itemId);
         }
-        donationModeActive = false;
-        sessionPendingItems.clear();
-        standDisplayItems.clear();
+        pData.donationModeActive = false;
+        pData.sessionPendingItems.clear();
+        pData.standDisplayItems.clear();
         setDirty();
     }
 
-    public boolean isItemDonated(String itemId) {
-        return donatedItems.contains(itemId);
+    public boolean canDonateItem(UUID playerId, String itemId) {
+        PlayerMuseumData pData = resolve(playerId);
+        if (pData == null || !pData.donationModeActive) return false;
+        return !pData.standDisplayItems.containsValue(itemId);
     }
 
-    public boolean canDonateItem(String itemId) {
-        if (!donationModeActive) {
-            return false;
-        }
-        // Allow rearranging already-donated items as long as the same item
-        // is not currently displayed on another stand.
-        return !standDisplayItems.containsValue(itemId);
+    public Map<String, String> getStandDisplayItems(UUID playerId) {
+        PlayerMuseumData pData = resolve(playerId);
+        if (pData == null) return Collections.emptyMap();
+        return Collections.unmodifiableMap(pData.standDisplayItems);
     }
 
-    /**
-     * 返回展示柜位置→物品ID的只读副本（用于布局重建后恢复展示柜内容）。
-     */
-    public Map<String, String> getStandDisplayItems() {
-        return Collections.unmodifiableMap(standDisplayItems);
-    }
-
-    public void setStandDisplayedItem(String standKey, String itemId) {
-        if (standKey == null || standKey.isBlank()) {
-            return;
-        }
-
+    public void setStandDisplayedItem(UUID playerId, String standKey, String itemId) {
+        if (standKey == null || standKey.isBlank()) return;
+        PlayerMuseumData pData = getOrCreate(playerId);
         if (itemId == null || itemId.isBlank()) {
-            if (standDisplayItems.remove(standKey) != null) {
-                setDirty();
-            }
+            if (pData.standDisplayItems.remove(standKey) != null) setDirty();
             return;
         }
-
-        String old = standDisplayItems.put(standKey, itemId);
-        if (!itemId.equals(old)) {
-            setDirty();
-        }
+        String old = pData.standDisplayItems.put(standKey, itemId);
+        if (!itemId.equals(old)) setDirty();
     }
 
-    public void markSessionPendingItem(String itemId) {
-        if (itemId == null || itemId.isBlank()) {
-            return;
-        }
-        if (sessionPendingItems.add(itemId)) {
-            setDirty();
-        }
+    public void markSessionPendingItem(UUID playerId, String itemId) {
+        if (itemId == null || itemId.isBlank()) return;
+        PlayerMuseumData pData = getOrCreate(playerId);
+        if (pData.sessionPendingItems.add(itemId)) setDirty();
     }
 
-    private Set<String> getMissingSessionItems() {
-        Set<String> requiredItems = new HashSet<>(donatedItems);
-        requiredItems.addAll(sessionPendingItems);
-
-        Set<String> displayed = new HashSet<>(standDisplayItems.values());
+    private Set<String> getMissingSessionItems(PlayerMuseumData pData) {
+        Set<String> requiredItems = new HashSet<>(pData.donatedItems);
+        requiredItems.addAll(pData.sessionPendingItems);
+        Set<String> displayed = new HashSet<>(pData.standDisplayItems.values());
         Set<String> missing = new HashSet<>();
-        
         for (String req : requiredItems) {
-            if (!displayed.contains(req)) {
-                missing.add(req);
-            }
+            if (!displayed.contains(req)) missing.add(req);
         }
         return missing;
     }
@@ -244,22 +222,98 @@ public class MuseumDonationData extends SavedData {
         return dimId + "|" + pos.getX() + "," + pos.getY() + "," + pos.getZ();
     }
 
-    public record EndSessionResult(boolean success, Set<String> missingItems) {
+    public record EndSessionResult(boolean success, Set<String> missingItems) {}
+
+    // ── Museum Reward tracking (per-player) ──
+
+    public Set<String> getClaimedMuseumRewards(UUID playerId) {
+        PlayerMuseumData pData = resolve(playerId);
+        if (pData == null) return Collections.emptySet();
+        return Collections.unmodifiableSet(pData.claimedMuseumRewards);
     }
 
-    // ── Museum Reward tracking ──
-
-    public Set<String> getClaimedMuseumRewards() {
-        return Collections.unmodifiableSet(claimedMuseumRewards);
+    public boolean isRewardClaimed(UUID playerId, String rewardId) {
+        PlayerMuseumData pData = playerData.get(playerId.toString());
+        return pData != null && pData.claimedMuseumRewards.contains(rewardId);
     }
 
-    public boolean isRewardClaimed(String rewardId) {
-        return claimedMuseumRewards.contains(rewardId);
+    public void claimReward(UUID playerId, String rewardId) {
+        PlayerMuseumData pData = getOrCreate(playerId);
+        if (pData.claimedMuseumRewards.add(rewardId)) setDirty();
     }
 
-    public void claimReward(String rewardId) {
-        if (claimedMuseumRewards.add(rewardId)) {
-            setDirty();
+    /**
+     * Get all player UUID strings that have data.
+     */
+    public Set<String> getAllPlayerUUIDs() {
+        return Collections.unmodifiableSet(playerData.keySet());
+    }
+
+    // ── Inner class for per-player data ──
+
+    private static class PlayerMuseumData {
+        final Set<String> donatedItems = new HashSet<>();
+        final Set<String> sessionPendingItems = new HashSet<>();
+        final Map<String, String> standDisplayItems = new HashMap<>();
+        final Set<String> claimedMuseumRewards = new HashSet<>();
+        boolean donationModeActive;
+
+        void load(CompoundTag tag) {
+            ListTag list = tag.getList(TAG_DONATED, CompoundTag.TAG_STRING);
+            for (int i = 0; i < list.size(); i++) donatedItems.add(list.getString(i));
+
+            donationModeActive = tag.getBoolean(TAG_DONATION_MODE);
+
+            ListTag pendingList = tag.getList(TAG_SESSION_PENDING, CompoundTag.TAG_STRING);
+            for (int i = 0; i < pendingList.size(); i++) sessionPendingItems.add(pendingList.getString(i));
+
+            CompoundTag standTag = tag.getCompound(TAG_STAND_ITEMS);
+            for (String key : standTag.getAllKeys()) {
+                if (key == null) continue;
+                String itemId = Objects.requireNonNull(standTag.getString(key));
+                if (!itemId.isBlank()) standDisplayItems.put(key, itemId);
+            }
+
+            if (tag.contains(TAG_CLAIMED_REWARDS, CompoundTag.TAG_LIST)) {
+                ListTag rewardList = tag.getList(TAG_CLAIMED_REWARDS, CompoundTag.TAG_STRING);
+                for (int i = 0; i < rewardList.size(); i++) {
+                    String id = rewardList.getString(i);
+                    if (!id.isBlank()) claimedMuseumRewards.add(id);
+                }
+            }
+        }
+
+        PlayerMuseumData copy() {
+            PlayerMuseumData c = new PlayerMuseumData();
+            c.donatedItems.addAll(this.donatedItems);
+            c.sessionPendingItems.addAll(this.sessionPendingItems);
+            c.standDisplayItems.putAll(this.standDisplayItems);
+            c.claimedMuseumRewards.addAll(this.claimedMuseumRewards);
+            c.donationModeActive = this.donationModeActive;
+            return c;
+        }
+
+        void save(CompoundTag tag) {
+            ListTag list = new ListTag();
+            for (String id : donatedItems) if (id != null) list.add(StringTag.valueOf(id));
+            tag.put(TAG_DONATED, list);
+
+            tag.putBoolean(TAG_DONATION_MODE, donationModeActive);
+
+            ListTag pendingList = new ListTag();
+            for (String id : sessionPendingItems) if (id != null) pendingList.add(StringTag.valueOf(id));
+            tag.put(TAG_SESSION_PENDING, pendingList);
+
+            CompoundTag standTag = new CompoundTag();
+            for (Map.Entry<String, String> entry : standDisplayItems.entrySet()) {
+                if (entry.getKey() != null && entry.getValue() != null)
+                    standTag.putString(Objects.requireNonNull(entry.getKey()), Objects.requireNonNull(entry.getValue()));
+            }
+            tag.put(TAG_STAND_ITEMS, standTag);
+
+            ListTag rewardList = new ListTag();
+            for (String id : claimedMuseumRewards) if (id != null) rewardList.add(StringTag.valueOf(id));
+            tag.put(TAG_CLAIMED_REWARDS, rewardList);
         }
     }
 }

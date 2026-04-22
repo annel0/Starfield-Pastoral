@@ -25,8 +25,11 @@ import com.stardew.craft.entity.animal.SheepEntity;
 import com.stardew.craft.entity.animal.VoidChickenEntity;
 import com.stardew.craft.entity.animal.WhiteChickenEntity;
 import com.stardew.craft.entity.npc.StardewNpcEntity;
+import com.stardew.craft.cutscene.runtime.EventActorEntity;
+import com.stardew.craft.cutscene.runtime.EventPlayerActorEntity;
 import com.stardew.craft.entity.junimo.JunimoEntity;
 import com.stardew.craft.entity.seat.SofaSeatEntity;
+import com.stardew.craft.entity.minecart.MinecartStationEntity;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 
 public final class ModEntities {
@@ -208,6 +211,26 @@ public final class ModEntities {
 					.build("stardew_npc")
 	);
 
+	public static final DeferredHolder<EntityType<?>, EntityType<EventActorEntity>> EVENT_ACTOR = ENTITY_TYPES.register(
+			"event_actor",
+			() -> EntityType.Builder.<EventActorEntity>of(EventActorEntity::new, MobCategory.MISC)
+					.sized(0.6F, 1.8F)
+					.clientTrackingRange(16)
+					.updateInterval(2)
+					.noSave()
+					.build("event_actor")
+	);
+
+	public static final DeferredHolder<EntityType<?>, EntityType<EventPlayerActorEntity>> EVENT_PLAYER_ACTOR = ENTITY_TYPES.register(
+			"event_player_actor",
+			() -> EntityType.Builder.<EventPlayerActorEntity>of(EventPlayerActorEntity::new, MobCategory.MISC)
+					.sized(0.6F, 1.8F)
+					.clientTrackingRange(16)
+					.updateInterval(2)
+					.noSave()
+					.build("event_player_actor")
+	);
+
 	public static final DeferredHolder<EntityType<?>, EntityType<JunimoEntity>> JUNIMO = ENTITY_TYPES.register(
 			"junimo",
 			() -> EntityType.Builder.<JunimoEntity>of(JunimoEntity::new, MobCategory.CREATURE)
@@ -217,6 +240,16 @@ public final class ModEntities {
 					.build("junimo")
 	);
 
+	public static final DeferredHolder<EntityType<?>, EntityType<com.stardew.craft.entity.npc.CamelMerchantEntity>> CAMEL_MERCHANT = ENTITY_TYPES.register(
+			"camel_merchant",
+			() -> EntityType.Builder.<com.stardew.craft.entity.npc.CamelMerchantEntity>of(
+							com.stardew.craft.entity.npc.CamelMerchantEntity::new, MobCategory.MISC)
+					.sized(0.7F, 2.1F)
+					.clientTrackingRange(10)
+					.updateInterval(20)
+					.build("camel_merchant")
+	);
+
 	public static final DeferredHolder<EntityType<?>, EntityType<SofaSeatEntity>> SOFA_SEAT = ENTITY_TYPES.register(
 			"sofa_seat",
 			() -> EntityType.Builder.<SofaSeatEntity>of(SofaSeatEntity::new, MobCategory.MISC)
@@ -224,6 +257,24 @@ public final class ModEntities {
 					.clientTrackingRange(8)
 					.updateInterval(1)
 					.build("sofa_seat")
+	);
+
+	public static final DeferredHolder<EntityType<?>, EntityType<MinecartStationEntity>> MINECART_STATION = ENTITY_TYPES.register(
+			"minecart_station",
+			() -> EntityType.Builder.<MinecartStationEntity>of(MinecartStationEntity::new, MobCategory.MISC)
+					.sized(0.98F, 0.7F)
+					.clientTrackingRange(8)
+					.updateInterval(40)
+					.build("minecart_station")
+	);
+
+	public static final DeferredHolder<EntityType<?>, EntityType<com.stardew.craft.entity.passive.CrowEntity>> CROW = ENTITY_TYPES.register(
+			"crow",
+			() -> EntityType.Builder.<com.stardew.craft.entity.passive.CrowEntity>of(com.stardew.craft.entity.passive.CrowEntity::new, MobCategory.CREATURE)
+					.sized(0.4F, 0.5F)
+					.clientTrackingRange(8)
+					.updateInterval(3)
+					.build("crow")
 	);
 
 	@SuppressWarnings("null")
@@ -240,7 +291,11 @@ public final class ModEntities {
 		event.put(SHEEP.get(), BaseCoopAnimalEntity.createAttributes().build());
 		event.put(PIG.get(), BaseCoopAnimalEntity.createAttributes().build());
 		event.put(STARDEW_NPC.get(), StardewNpcEntity.createAttributes().build());
+		event.put(EVENT_ACTOR.get(), EventActorEntity.createAttributes().build());
+		event.put(EVENT_PLAYER_ACTOR.get(), EventPlayerActorEntity.createAttributes().build());
 		event.put(JUNIMO.get(), JunimoEntity.createAttributes().build());
+		event.put(CAMEL_MERCHANT.get(), com.stardew.craft.entity.npc.CamelMerchantEntity.createAttributes().build());
+		event.put(CROW.get(), com.stardew.craft.entity.passive.CrowEntity.createAttributes().build());
 	}
 
 }

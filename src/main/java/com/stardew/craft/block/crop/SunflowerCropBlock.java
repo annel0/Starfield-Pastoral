@@ -107,7 +107,7 @@ public class SunflowerCropBlock extends StardewCropBlock {
 
     @Override
     protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return getHalfShape(state);
+        return net.minecraft.world.phys.shapes.Shapes.empty();
     }
 
     @SuppressWarnings("null")

@@ -184,6 +184,18 @@ public class PacketHandler {
         );
 
         registrar.playToClient(
+            ShaftConfirmPacket.TYPE,
+            ShaftConfirmPacket.STREAM_CODEC,
+            ShaftConfirmPacket::handle
+        );
+
+        registrar.playToServer(
+            ShaftJumpPacket.TYPE,
+            ShaftJumpPacket.STREAM_CODEC,
+            ShaftJumpPacket::handle
+        );
+
+        registrar.playToClient(
             MissingItemHudMessagePacket.TYPE,
             MissingItemHudMessagePacket.STREAM_CODEC,
             MissingItemHudMessagePacket::handle
@@ -211,6 +223,12 @@ public class PacketHandler {
             MuseumDonationSyncPacket.TYPE,
             MuseumDonationSyncPacket.STREAM_CODEC,
             MuseumDonationSyncPacket::handle
+        );
+
+        registrar.playToClient(
+            MuseumStandSyncPacket.TYPE,
+            MuseumStandSyncPacket.STREAM_CODEC,
+            MuseumStandSyncPacket::handle
         );
 
 		registrar.playToClient(
@@ -681,16 +699,8 @@ public class PacketHandler {
             WeatherSyncPacket.STREAM_CODEC,
             (packet, context) -> {
                 context.enqueueWork(() -> {
-                    try {
-                        net.minecraft.resources.ResourceLocation dimLoc = net.minecraft.resources.ResourceLocation.parse(packet.dimension());
-                        net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> dimKey = net.minecraft.resources.ResourceKey.create(
-                            net.minecraft.core.registries.Registries.DIMENSION,
-                            dimLoc
-                        );
-                        com.stardew.craft.weather.ClientWeatherCache.setWeather(dimKey, packet.weatherType(), packet.weatherForTomorrow());
-                        com.stardew.craft.StardewCraft.LOGGER.info("Client received weather sync: {} (tomorrow: {})", packet.weatherType(), packet.weatherForTomorrow());
-                    } catch (Exception e) {
-                        com.stardew.craft.StardewCraft.LOGGER.error("Failed to parse weather sync packet", e);
+                    if (net.neoforged.fml.loading.FMLEnvironment.dist.isClient()) {
+                        com.stardew.craft.network.WeatherSyncPacketClient.apply(packet);
                     }
                 });
             }
@@ -1059,6 +1069,20 @@ public class PacketHandler {
             com.stardew.craft.network.payload.FarmEntryRequestPayload::handle
         );
 
+        // Farm join list request (C→S) — 玩家请求可加入的农场列表
+        registrar.playToServer(
+            com.stardew.craft.network.payload.FarmJoinListRequestPayload.TYPE,
+            com.stardew.craft.network.payload.FarmJoinListRequestPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FarmJoinListRequestPayload::handle
+        );
+
+        // Farm join request (C→S) — 玩家请求加入某个农场
+        registrar.playToServer(
+            com.stardew.craft.network.payload.FarmJoinRequestPayload.TYPE,
+            com.stardew.craft.network.payload.FarmJoinRequestPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FarmJoinRequestPayload::handle
+        );
+
         // Farm permission update (C→S) — 玩家修改农场权限
         registrar.playToServer(
             com.stardew.craft.network.payload.FarmPermissionUpdatePayload.TYPE,
@@ -1104,6 +1128,47 @@ public class PacketHandler {
             com.stardew.craft.network.payload.ConfirmGiftPayload.TYPE,
             com.stardew.craft.network.payload.ConfirmGiftPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.ConfirmGiftPayload::handle
+        );
+
+        // Desert bus ride (confirm dialog + fade) — S→C open / C→S confirm / S→C fade
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenDesertBusConfirmPayload.TYPE,
+            com.stardew.craft.network.payload.OpenDesertBusConfirmPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenDesertBusConfirmPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.DesertBusConfirmPayload.TYPE,
+            com.stardew.craft.network.payload.DesertBusConfirmPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.DesertBusConfirmPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.DesertBusFadePayload.TYPE,
+            com.stardew.craft.network.payload.DesertBusFadePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.DesertBusFadePayload::handle
+        );
+
+        // Quest delivery confirm dialog (S→C) and confirmation (C→S)
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenQuestDeliveryConfirmPayload.TYPE,
+            com.stardew.craft.network.payload.OpenQuestDeliveryConfirmPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenQuestDeliveryConfirmPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.ConfirmQuestDeliveryPayload.TYPE,
+            com.stardew.craft.network.payload.ConfirmQuestDeliveryPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.ConfirmQuestDeliveryPayload::handle
+        );
+
+        // Minecart menu (S→C) and selection response (C→S)
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenMinecartMenuPayload.TYPE,
+            com.stardew.craft.network.payload.OpenMinecartMenuPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenMinecartMenuPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.SelectMinecartDestinationPayload.TYPE,
+            com.stardew.craft.network.payload.SelectMinecartDestinationPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.SelectMinecartDestinationPayload::handle
         );
 
         // Marnie menu dialog (S→C) and choice response (C→S)
@@ -1302,6 +1367,16 @@ public class PacketHandler {
             com.stardew.craft.network.payload.StarterChestHintPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.StarterChestHintPayload::handle
         );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.PanPointSyncPayload.TYPE,
+            com.stardew.craft.network.payload.PanPointSyncPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.PanPointSyncPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.FishSplashSyncPayload.TYPE,
+            com.stardew.craft.network.payload.FishSplashSyncPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FishSplashSyncPayload::handle
+        );
         registrar.playToServer(
             com.stardew.craft.network.payload.JukeboxSelectPayload.TYPE,
             com.stardew.craft.network.payload.JukeboxSelectPayload.STREAM_CODEC,
@@ -1340,6 +1415,50 @@ public class PacketHandler {
             com.stardew.craft.network.payload.WarpWandUnlockPayload.TYPE,
             com.stardew.craft.network.payload.WarpWandUnlockPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.WarpWandUnlockPayload::handle
+        );
+
+        // ── Data Registry Sync (Artisan / Preserves / Fishing / NPC Events) ──
+        registrar.playToClient(
+            DataRegistrySyncPayload.TYPE,
+            DataRegistrySyncPayload.STREAM_CODEC,
+            DataRegistrySyncPayload::handle
+        );
+
+        // ── Cutscene / Event System ──
+        registrar.playToClient(
+            com.stardew.craft.cutscene.network.SyncEventRegistryPayload.TYPE,
+            com.stardew.craft.cutscene.network.SyncEventRegistryPayload.STREAM_CODEC,
+            com.stardew.craft.cutscene.network.SyncEventRegistryPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.cutscene.network.SyncEventSeenPayload.TYPE,
+            com.stardew.craft.cutscene.network.SyncEventSeenPayload.STREAM_CODEC,
+            com.stardew.craft.cutscene.network.SyncEventSeenPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.cutscene.network.MarkEventSeenPayload.TYPE,
+            com.stardew.craft.cutscene.network.MarkEventSeenPayload.STREAM_CODEC,
+            com.stardew.craft.cutscene.network.MarkEventSeenPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.cutscene.network.CutsceneServerActionPayload.TYPE,
+            com.stardew.craft.cutscene.network.CutsceneServerActionPayload.STREAM_CODEC,
+            com.stardew.craft.cutscene.network.CutsceneServerActionPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.cutscene.network.TriggerEventPayload.TYPE,
+            com.stardew.craft.cutscene.network.TriggerEventPayload.STREAM_CODEC,
+            com.stardew.craft.cutscene.network.TriggerEventPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.cutscene.network.CutsceneAnchorPayload.TYPE,
+            com.stardew.craft.cutscene.network.CutsceneAnchorPayload.STREAM_CODEC,
+            com.stardew.craft.cutscene.network.CutsceneAnchorPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.cutscene.network.NotifyCutsceneStartPayload.TYPE,
+            com.stardew.craft.cutscene.network.NotifyCutsceneStartPayload.STREAM_CODEC,
+            com.stardew.craft.cutscene.network.NotifyCutsceneStartPayload::handle
         );
 
     }

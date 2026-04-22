@@ -69,6 +69,8 @@ public class InteriorPortalInteractionEvents {
         if (inMine) {
             if ("mine_exit".equals(targetId)) {
                 handleMineExit(player);
+            } else if ("skull_cavern_exit".equals(targetId)) {
+                handleSkullCavernExit(player);
             }
             return;
         }
@@ -86,6 +88,24 @@ public class InteriorPortalInteractionEvents {
         // 矿井入口
         if ("mine_entrance".equals(targetId)) {
             handleMineEntrance(player);
+            return;
+        }
+
+        // 骷髅矿入口（沙漠 → floor 121）
+        if ("desert_mine_enter".equals(targetId)) {
+            handleDesertMineEntrance(player);
+            return;
+        }
+
+        // 沙漠公交站（买票前往沙漠）
+        if ("desert_bus".equals(targetId)) {
+            handleDesertBus(player);
+            return;
+        }
+
+        // 沙漠公交站（返程鹈鹕镇，免费）
+        if ("desert_bus_return".equals(targetId)) {
+            handleDesertBusReturn(player);
             return;
         }
 
@@ -125,6 +145,18 @@ public class InteriorPortalInteractionEvents {
             return;
         }
 
+        // 采石场入口（需要完成工艺室献祭）
+        if ("quarry_entrance".equals(targetId)) {
+            handleQuarryEntrance(player);
+            return;
+        }
+
+        // 采石场出口（无条件返程）
+        if ("quarry_exit".equals(targetId)) {
+            handleQuarryExit(player);
+            return;
+        }
+
         // 巫师塔 → 回主世界
         if ("wizard_tower_return_overworld".equals(targetId)) {
             CrossDimensionTeleporter.wizardInteriorToOverworld(player);
@@ -158,7 +190,7 @@ public class InteriorPortalInteractionEvents {
         if ("museum_exit".equals(targetId)) {
             com.stardew.craft.museum.MuseumDonationData museumData =
                 com.stardew.craft.museum.MuseumDonationData.get(player.serverLevel());
-            if (museumData.isDonationModeActive()) {
+            if (museumData.isDonationModeActive(player.getUUID())) {
                 net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,
                     new com.stardew.craft.network.payload.OpenNpcDialogueScreenPayload(
                         "gunther",
@@ -233,6 +265,26 @@ public class InteriorPortalInteractionEvents {
         }
     }
 
+    // ======================== 沙漠公交站 ========================
+
+    private static void handleDesertBus(ServerPlayer player) {
+        long now = player.serverLevel().getGameTime();
+        long last = player.getPersistentData().getLong(PLAYER_LAST_PORTAL_TICK);
+        if (now - last < PORTAL_COOLDOWN_TICKS) return;
+        player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
+
+        com.stardew.craft.desert.DesertBusService.beginBusRide(player);
+    }
+
+    private static void handleDesertBusReturn(ServerPlayer player) {
+        long now = player.serverLevel().getGameTime();
+        long last = player.getPersistentData().getLong(PLAYER_LAST_PORTAL_TICK);
+        if (now - last < PORTAL_COOLDOWN_TICKS) return;
+        player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
+
+        com.stardew.craft.desert.DesertBusService.beginReturnRide(player);
+    }
+
     // ======================== 矿井跨维度传送 ========================
 
     private static final double MINE_OUTDOOR_X = -285.5;
@@ -249,7 +301,7 @@ public class InteriorPortalInteractionEvents {
         player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
 
         com.stardew.craft.farm.FarmInstanceRegistry registry = com.stardew.craft.farm.FarmInstanceRegistry.get();
-        com.stardew.craft.farm.FarmInstance myFarm = registry.getFarm(player.getUUID());
+        com.stardew.craft.farm.FarmInstance myFarm = registry.getFarmForPlayer(player.getUUID());
 
         if (myFarm == null) {
             net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,
@@ -275,7 +327,7 @@ public class InteriorPortalInteractionEvents {
         player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
 
         com.stardew.craft.farm.FarmInstance farm = com.stardew.craft.farm.FarmInstanceRegistry.get()
-                .getFarm(player.getUUID());
+                .getFarmForPlayer(player.getUUID());
         if (farm != null) {
             com.stardew.craft.farm.FarmChunkManager.get().onPlayerLeaveFarm(
                     player.serverLevel(), player, farm);
@@ -309,6 +361,112 @@ public class InteriorPortalInteractionEvents {
         player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
     }
 
+    /** 骷髅矿入口：传送到 floor 121 大厅 schem 内部 (origin + 3, 1, 3) */
+    private static void handleDesertMineEntrance(ServerPlayer player) {
+        ServerLevel mineLevel = player.server.getLevel(ModMiningDimensions.STARDEW_MINING);
+        if (mineLevel == null) {
+            StardewCraft.LOGGER.warn("[SKULL_CAVERN] Mine dimension not available");
+            return;
+        }
+
+        long now = player.serverLevel().getGameTime();
+        long last = player.getPersistentData().getLong(PLAYER_LAST_PORTAL_TICK);
+        if (now - last < PORTAL_COOLDOWN_TICKS) return;
+
+        // SDV 原版门禁：必须拥有 SkullKey 才能进入 (GameLocation.SkullDoor)
+        com.stardew.craft.player.PlayerStardewData sdData =
+                com.stardew.craft.player.PlayerDataManager.getPlayerData(player);
+        if (!sdData.hasMailFlag(com.stardew.craft.communitycenter.state.CCStoryFlags.HAS_SKULL_KEY)) {
+            player.displayClientMessage(
+                net.minecraft.network.chat.Component.translatable("message.stardewcraft.skull_door_locked"),
+                false);
+            player.playNotifySound(net.minecraft.sounds.SoundEvents.IRON_DOOR_OPEN,
+                    net.minecraft.sounds.SoundSource.PLAYERS, 0.6f, 0.7f);
+            player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
+            return;
+        }
+
+        // 生成 floor 121 入口大厅（使用 skullkeyentrance.schem）
+        com.stardew.craft.mining.MineFloorGenerator.generateFloor(mineLevel, 121);
+
+        // 标记跳过 DimensionEventHandler.onPlayerChangeDimension 的自动传送
+        // 否则会被覆盖到普通矿井大厅 (21.5, 66, 3.5)
+        com.stardew.craft.interior.CrossDimensionTeleporter.markSkipAutoTeleport(player.getUUID());
+
+        // 传送到 schem 内部 spawn (origin + 3, 1, 3)
+        net.minecraft.core.BlockPos spawn = com.stardew.craft.mining.MineFloorGenerator.SKULL_CAVERN_LOBBY_SPAWN;
+        player.setInvulnerable(true);
+        player.teleportTo(mineLevel,
+                spawn.getX() + 0.5D, spawn.getY(), spawn.getZ() + 0.5D,
+                0.0F, 0.0F);
+        player.setDeltaMovement(0, 0, 0);
+        player.fallDistance = 0;
+        player.hurtMarked = true;
+        mineLevel.getServer().tell(new net.minecraft.server.TickTask(
+                mineLevel.getServer().getTickCount() + 10,
+                () -> {
+                    if (!player.isCreative()) player.setInvulnerable(false);
+                }));
+
+        // 更新玩家矿井数据
+        com.stardew.craft.mining.MiningPlayerData pData = com.stardew.craft.mining.MiningDataManager.getPlayerData(player);
+        if (pData != null) {
+            pData.setCurrentFloor(121);
+            com.stardew.craft.mining.MiningDataManager.savePlayerData(player, pData);
+        }
+
+        net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(
+            player,
+            new com.stardew.craft.network.MiningFloorSyncPacket(121)
+        );
+
+        com.stardew.craft.mining.SkullCavernSessionManager.onPlayerEnter(player);
+
+        player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
+        StardewCraft.LOGGER.info("[SKULL_CAVERN] {} entered skull cavern lobby at {}", player.getName().getString(), spawn);
+    }
+
+    /** 骷髅矿大厅出口：传回沙漠 (-339, -42, 1268) 朝南 */
+    private static void handleSkullCavernExit(ServerPlayer player) {
+        ServerLevel stardewLevel = player.server.getLevel(ModDimensions.STARDEW_VALLEY);
+        if (stardewLevel == null) {
+            StardewCraft.LOGGER.warn("[SKULL_CAVERN] Stardew Valley dimension not available");
+            return;
+        }
+
+        long now = player.serverLevel().getGameTime();
+        long last = player.getPersistentData().getLong(PLAYER_LAST_PORTAL_TICK);
+        if (now - last < PORTAL_COOLDOWN_TICKS) return;
+
+        player.closeContainer();
+        player.stopUsingItem();
+
+        // session 清理（若本层无其他玩家则重置）
+        com.stardew.craft.mining.SkullCavernSessionManager.onPlayerLeave(player, player.serverLevel());
+
+        com.stardew.craft.interior.CrossDimensionTeleporter.markSkipAutoTeleport(player.getUUID());
+
+        net.minecraft.core.BlockPos arrival = com.stardew.craft.desert.DesertConstants.worldPos(
+                com.stardew.craft.desert.DesertConstants.SKULL_CAVERN_EXIT_OFFSET);
+        player.teleportTo(stardewLevel,
+                arrival.getX() + 0.5D, arrival.getY(), arrival.getZ() + 0.5D,
+                180.0F, 0.0F);
+
+        // 重置楼层显示为 0（离开骷髅矿）
+        com.stardew.craft.mining.MiningPlayerData pData = com.stardew.craft.mining.MiningDataManager.getPlayerData(player);
+        if (pData != null) {
+            pData.setCurrentFloor(0);
+            com.stardew.craft.mining.MiningDataManager.savePlayerData(player, pData);
+        }
+        net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(
+            player,
+            new com.stardew.craft.network.MiningFloorSyncPacket(0)
+        );
+
+        player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
+        StardewCraft.LOGGER.info("[SKULL_CAVERN] {} exited skull cavern to desert at {}", player.getName().getString(), arrival);
+    }
+
     private static void handleMineExit(ServerPlayer player) {
         ServerLevel stardewLevel = player.server.getLevel(ModDimensions.STARDEW_VALLEY);
         if (stardewLevel == null) {
@@ -335,10 +493,28 @@ public class InteriorPortalInteractionEvents {
     // ════════════════════════════════════════════════════════════════
 
     private static void handleCCEntry(ServerPlayer player) {
-        long now = player.serverLevel().getGameTime();
-        long last = player.getPersistentData().getLong(PLAYER_LAST_PORTAL_TICK);
-        if (now - last < PORTAL_COOLDOWN_TICKS) return;
+        // SDV parity: CC door is locked until event 611439 (lewis_cc_tour) sets ccDoorUnlock
+        // Original: if (Game1.MasterPlayer.mailReceived.Contains("ccDoorUnlock") || Game1.MasterPlayer.mailReceived.Contains("JojaMember"))
+        com.stardew.craft.player.PlayerStardewData data =
+                com.stardew.craft.player.PlayerDataManager.getPlayerData(player);
+        if (!data.hasMailFlag(com.stardew.craft.communitycenter.state.CCStoryFlags.CC_DOOR_UNLOCKED)
+                && !data.hasMailFlag("JojaMember")) {
+            player.displayClientMessage(
+                    net.minecraft.network.chat.Component.translatable("stardewcraft.portal.cc.locked"),
+                    true);
+            return;
+        }
+        handleCCEntryCore(player);
+    }
 
+    /**
+     * Public entry for cutscene use — skips cooldown check.
+     */
+    public static void handleCCEntryForCutscene(ServerPlayer player) {
+        handleCCEntryCore(player);
+    }
+
+    private static void handleCCEntryCore(ServerPlayer player) {
         ServerLevel level = player.serverLevel();
         InteriorSubspaceManager.ensureLoaded(level, "cc_entry");
 
@@ -352,7 +528,7 @@ public class InteriorPortalInteractionEvents {
         player.teleportTo(level,
             spawnPos.getX() + 0.5D, spawnPos.getY(), spawnPos.getZ() + 0.5D,
             -90.0F, 0.0F);
-        player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
+        player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, player.serverLevel().getGameTime());
         applyInteriorFlag(player, InteriorPortalRegistry.PortalMode.ENTRANCE);
 
         StardewCraft.LOGGER.debug("[CC-PORTAL] Player {} entered their CC at {}", player.getName().getString(), ccOrigin);
@@ -397,6 +573,52 @@ public class InteriorPortalInteractionEvents {
         applyInteriorFlag(player, InteriorPortalRegistry.PortalMode.ENTRANCE);
 
         StardewCraft.LOGGER.debug("[GH-PORTAL] Player {} entered their greenhouse at {}", player.getName().getString(), ghOrigin);
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    //  采石场访问（工艺室献祭解锁）
+    // ════════════════════════════════════════════════════════════════
+
+    private static void handleQuarryEntrance(ServerPlayer player) {
+        long now = player.serverLevel().getGameTime();
+        long last = player.getPersistentData().getLong(PLAYER_LAST_PORTAL_TICK);
+        if (now - last < PORTAL_COOLDOWN_TICKS) return;
+
+        com.stardew.craft.player.PlayerStardewData data =
+                com.stardew.craft.player.PlayerDataManager.getPlayerData(player);
+        if (!data.hasMailFlag(com.stardew.craft.communitycenter.state.CCStoryFlags.CC_CRAFTS_ROOM)) {
+            player.displayClientMessage(
+                    net.minecraft.network.chat.Component.translatable("stardewcraft.portal.quarry.blocked"),
+                    true);
+            player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
+            return;
+        }
+
+        player.closeContainer();
+        player.stopUsingItem();
+        player.teleportTo(player.serverLevel(),
+                com.stardew.craft.communitycenter.quarry.QuarryAccessManager.ENTRY_DEST_X,
+                com.stardew.craft.communitycenter.quarry.QuarryAccessManager.ENTRY_DEST_Y,
+                com.stardew.craft.communitycenter.quarry.QuarryAccessManager.ENTRY_DEST_Z,
+                com.stardew.craft.communitycenter.quarry.QuarryAccessManager.ENTRY_DEST_YAW,
+                com.stardew.craft.communitycenter.quarry.QuarryAccessManager.ENTRY_DEST_PITCH);
+        player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
+    }
+
+    private static void handleQuarryExit(ServerPlayer player) {
+        long now = player.serverLevel().getGameTime();
+        long last = player.getPersistentData().getLong(PLAYER_LAST_PORTAL_TICK);
+        if (now - last < PORTAL_COOLDOWN_TICKS) return;
+
+        player.closeContainer();
+        player.stopUsingItem();
+        player.teleportTo(player.serverLevel(),
+                com.stardew.craft.communitycenter.quarry.QuarryAccessManager.EXIT_DEST_X,
+                com.stardew.craft.communitycenter.quarry.QuarryAccessManager.EXIT_DEST_Y,
+                com.stardew.craft.communitycenter.quarry.QuarryAccessManager.EXIT_DEST_Z,
+                com.stardew.craft.communitycenter.quarry.QuarryAccessManager.EXIT_DEST_YAW,
+                com.stardew.craft.communitycenter.quarry.QuarryAccessManager.EXIT_DEST_PITCH);
+        player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
     }
 
     private static void handleGreenhouseExit(ServerPlayer player) {

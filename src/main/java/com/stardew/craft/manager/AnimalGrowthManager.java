@@ -117,13 +117,36 @@ public class AnimalGrowthManager extends SavedData {
         AnimalWorldData worldData = AnimalWorldData.get(level);
 
         StardewTimeManager time = StardewTimeManager.get();
-        int absoluteDaysPlayed = (time.getCurrentYear() - 1) * (28 * 4) + time.getCurrentSeason() * 28 + time.getCurrentDay();
+        int currentAbsDay = (time.getCurrentYear() - 1) * (28 * 4) + time.getCurrentSeason() * 28 + time.getCurrentDay();
 
         for (FarmAnimalRecord record : worldData.getAnimals()) {
-            applyDayUpdate(level, worldData, record, absoluteDaysPlayed);
+            int lastDay = record.lastProcessedAbsDay();
+            
+            // 新动物或旧存档：初始化为昨天，只处理今天
+            if (lastDay <= 0) {
+                lastDay = currentAbsDay - 1;
+            }
+            
+            int daysMissed = currentAbsDay - lastDay;
+            if (daysMissed <= 0) {
+                // 已经处理过今天，跳过（防止重复调用）
+                continue;
+            }
+            
+            // 追赶离线天数（离线模式：简化逻辑，假设室内已喂食）
+            for (int d = 1; d < daysMissed; d++) {
+                int catchUpDay = lastDay + d;
+                applyDayUpdate(level, worldData, record, catchUpDay, true /* isOfflineCatchUp */);
+            }
+            
+            // 处理今天（在线模式：完整逻辑）
+            applyDayUpdate(level, worldData, record, currentAbsDay, false /* isOfflineCatchUp */);
+            
+            // 更新时间戳
+            record.setLastProcessedAbsDay(currentAbsDay);
         }
 
-        tryReproduction(level, worldData, absoluteDaysPlayed);
+        tryReproduction(level, worldData, currentAbsDay);
 
         worldData.markChanged();
         AnimalEntitySyncService.syncAll(level);
@@ -145,7 +168,7 @@ public class AnimalGrowthManager extends SavedData {
         }
 
         boolean isWinter = StardewTimeManager.get().getCurrentSeason() == 3;
-        boolean isRaining = level.isRaining();
+        boolean isRaining = com.stardew.craft.weather.WeatherManager.isRaining(level);
 
         for (FarmAnimalRecord record : worldData.getAnimals()) {
             AnimalProfile profile = resolveProfile(record.animalTypeId());
@@ -176,7 +199,7 @@ public class AnimalGrowthManager extends SavedData {
         if (timeOfDay < 600 || timeOfDay >= 1900) {
             return false;
         }
-        if (StardewTimeManager.get().getCurrentSeason() == 3 || level.isRaining()) {
+        if (StardewTimeManager.get().getCurrentSeason() == 3 || com.stardew.craft.weather.WeatherManager.isRaining(level)) {
             return false;
         }
 
@@ -234,7 +257,7 @@ public class AnimalGrowthManager extends SavedData {
         if (building == null) {
             return false;
         }
-        if (StardewTimeManager.get().getCurrentSeason() == 3 || level.isRaining()) {
+        if (StardewTimeManager.get().getCurrentSeason() == 3 || com.stardew.craft.weather.WeatherManager.isRaining(level)) {
             return false;
         }
         return isAnimalOutdoors(level, record, building);
@@ -290,7 +313,12 @@ public class AnimalGrowthManager extends SavedData {
         );
     }
 
-    private boolean applyDayUpdate(ServerLevel level, AnimalWorldData worldData, FarmAnimalRecord record, int absoluteDaysPlayed) {
+    /**
+     * 应用每日更新到单个动物。
+     * 
+     * @param isOfflineCatchUp true 表示离线追赶模式（简化逻辑，假设室内已喂食，跳过产出放置）
+     */
+    private boolean applyDayUpdate(ServerLevel level, AnimalWorldData worldData, FarmAnimalRecord record, int absoluteDaysPlayed, boolean isOfflineCatchUp) {
         AnimalProfile profile = resolveProfile(record.animalTypeId());
         RandomSource random = randomForAnimalDay(record.animalId(), absoluteDaysPlayed);
         AnimalBuildingRecord building = worldData.getBuilding(record.buildingId()).orElse(null);
@@ -298,10 +326,11 @@ public class AnimalGrowthManager extends SavedData {
         boolean hasQualityProfession = hasBuildingOwnerProfession(building, profile.professionForQualityBoost());
         boolean hasFasterProduceProfession = hasBuildingOwnerProfession(building, profile.professionForFasterProduce());
         boolean animalOutdoors = false;
-        double averageDailyLuck = computeAverageDailyLuck(level);
+        double averageDailyLuck = isOfflineCatchUp ? 0.0 : computeAverageDailyLuck(level);
         boolean wasLeftOutLastNight = false;
 
-        if (building != null) {
+        // 离线追赶模式：假设动物在室内，门关着，有饲料
+        if (!isOfflineCatchUp && building != null) {
             animalOutdoors = isAnimalOutdoors(level, record, building);
             boolean doorOpen = AnimalDoorStateService.isAnyBoundaryDoorOpen(level, building);
             if (animalOutdoors && !doorOpen) {
@@ -317,6 +346,9 @@ public class AnimalGrowthManager extends SavedData {
             } else if (!animalOutdoors && !doorOpen) {
                 record.addHappiness(profile.happinessDrain() * 2);
             }
+        } else if (isOfflineCatchUp && building != null) {
+            // 离线追赶：假设门关着，动物在室内，给幸福度加成
+            record.addHappiness(profile.happinessDrain() * 2);
         }
 
         record.incrementDaysSinceLastProduce();
@@ -330,12 +362,17 @@ public class AnimalGrowthManager extends SavedData {
         record.setWasPetToday(false);
         record.setWasAutoPetToday(false);
 
-        if (building != null && hasWorkingAutoPetter(level, building)) {
+        // 自动抚摸器检查（离线追赶时跳过，因为无法确定设备状态）
+        if (!isOfflineCatchUp && building != null && hasWorkingAutoPetter(level, building)) {
             applyAutoPetterEffect(record, profile, hasHappinessProfession);
         }
 
-        // Parity: overnight feeding comes from indoor hay when the animal is considered back at home.
-        if (record.fullness() < 200 && building != null && !animalOutdoors && consumeOneHayFromTrough(level, building)) {
+        // 喂食逻辑
+        if (isOfflineCatchUp) {
+            // 离线追赶：假设有饲料，直接喂饱
+            record.setFullness(255);
+        } else if (record.fullness() < 200 && building != null && !animalOutdoors && consumeOneHayFromTrough(level, building)) {
+            // 在线模式：从喂食槽消耗饲料
             record.setFullness(255);
         }
 
@@ -405,15 +442,20 @@ public class AnimalGrowthManager extends SavedData {
                 record.setCurrentProduceId(produceId);
                 record.setProduceQuality(produceQuality);
                 produced = true;
-            } else if (AnimalProducePlacementService.placeInHome(level, worldData, record, produceStack)) {
-                // Parity: Animal Cracker spawns a second item separately, not a stack of 2
-                if (record.hasEatenAnimalCracker()) {
-                    AnimalProducePlacementService.placeInHome(level, worldData, record, produceStack.copy());
+            } else if (!isOfflineCatchUp) {
+                // 在线模式：放置产出到建筑中
+                if (AnimalProducePlacementService.placeInHome(level, worldData, record, produceStack)) {
+                    // Parity: Animal Cracker spawns a second item separately, not a stack of 2
+                    if (record.hasEatenAnimalCracker()) {
+                        AnimalProducePlacementService.placeInHome(level, worldData, record, produceStack.copy());
+                    }
+                    produced = true;
+                } else if (AnimalProducePlacementService.dropInHome(level, worldData, record, produceStack)) {
+                    produced = true;
                 }
-                produced = true;
-            } else if (AnimalProducePlacementService.dropInHome(level, worldData, record, produceStack)) {
-                produced = true;
             }
+            // 离线追赶模式：跳过 placeInHome/dropInHome 类型的产出放置
+            // 这些产出会在玩家重新上线后的正常处理中生成
         }
 
         if (!wasLeftOutLastNight) {
@@ -429,7 +471,8 @@ public class AnimalGrowthManager extends SavedData {
         }
 
         record.setFullness(0);
-        if (isFestivalDay(level)) {
+        // 节日日喂食补偿（离线追赶时跳过，因为无法判断历史某天是否为节日）
+        if (!isOfflineCatchUp && isFestivalDay(level)) {
             // Parity: festival days keep animals sufficiently fed after overnight update.
             record.setFullness(250);
         }
@@ -590,9 +633,15 @@ public class AnimalGrowthManager extends SavedData {
             return true;
         }
 
+        // 如果建筑区块未加载，假设动物在室内（避免错误惩罚）
+        if (!level.isLoaded(building.managerPos())) {
+            return false;
+        }
+
         BaseCoopAnimalEntity entity = findEntityByManagedId(level, record.animalId(), building);
         if (entity == null) {
-            return true;
+            // 区块已加载但找不到实体 —— 可能是动物在别处，保守假设室内
+            return false;
         }
         return !isEntityInsideBuilding(entity, building);
     }

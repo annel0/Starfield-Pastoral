@@ -24,6 +24,9 @@ public class WeaponIcons {
     public static final String ICON_CRIT_POWER = "\uE006";  // 暴击伤害
     public static final String ICON_COOLDOWN = "\uE007";    // 冷却时间
     public static final String ICON_SKILL = "\uE008";       // 技能标记
+    public static final String ICON_IMMUNITY = "\uE009";    // 免疫
+    public static final String ICON_MAGNETIC = "\uE00A";    // 磁力范围
+    public static final String ICON_LUCK = "\uE00B";        // 幸运
     
     // 技能图标 (从 E100 开始)
     public static final String SKILL_RUSTY_SWORD_1 = "\uE100"; // 破伤一击

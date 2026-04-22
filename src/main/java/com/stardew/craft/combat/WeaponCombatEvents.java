@@ -86,6 +86,20 @@ public class WeaponCombatEvents {
             return;
         }
 
+        // 别人的农场：仅访问权限不可攻击实体
+        if (!player.level().isClientSide
+                && player instanceof net.minecraft.server.level.ServerPlayer sp
+                && !sp.isCreative()
+                && sp.level().dimension() == com.stardew.craft.core.ModDimensions.STARDEW_VALLEY) {
+            net.minecraft.core.BlockPos targetPos = event.getTarget().blockPosition();
+            if (com.stardew.craft.event.FarmAreaProtectionEvents.isOnProtectedFarm(sp, targetPos)) {
+                event.setCanceled(true);
+                sp.displayClientMessage(
+                    net.minecraft.network.chat.Component.translatable("stardewcraft.farm.build_farm_only"), true);
+                return;
+            }
+        }
+
         if (player.level().isClientSide) {
             return;
         }
@@ -338,9 +352,21 @@ public class WeaponCombatEvents {
             return;
         }
 
+        // MC 原版蓄力冷却惩罚 — SDV 武器跳过此机制
+        // 服务器上 attackStrengthTicker 与客户端不同步，
+        // 导致 getAttackStrengthScale() 返回 0 → 0.2F + 0*0*0.8F = 0.2 = 恰好 1/5 伤害。
+        // SDV 有自己的武器速度系统（speed 属性），不需要 MC 的蓄力惩罚。
         if (isNormalAttack) {
-            float attackStrength = player.getAttackStrengthScale(0.5f);
-            float strengthMultiplier = 0.2f + (attackStrength * attackStrength * 0.8f);
+            float attackStrength = player.getAttackStrengthScale(0.5F);
+            if (attackStrength < 0.85F) {
+                // 自愈：服务端蓄力值不可靠，强制视为满蓄力
+                if (attackStrength < 0.5F && player instanceof net.minecraft.server.level.ServerPlayer) {
+                    StardewCraft.LOGGER.debug("[COMBAT] Charge desync detected for {}: scale={}, forcing full charge",
+                            player.getName().getString(), attackStrength);
+                }
+                attackStrength = 1.0F;
+            }
+            float strengthMultiplier = 0.2F + attackStrength * attackStrength * 0.8F;
             finalDamage *= strengthMultiplier;
         }
 

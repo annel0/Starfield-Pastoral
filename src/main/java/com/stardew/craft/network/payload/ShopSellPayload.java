@@ -56,6 +56,14 @@ public record ShopSellPayload(
             int sellUnit = com.stardew.craft.shop.ShopRegistry.getSellPrice(stack, shop);
             if (sellUnit <= 0) return; // shop does not buy this item
 
+            // 应用职业加成（SDV: Farming/Foraging/Fishing/Mining 各派生职业对售价加成）
+            com.stardew.craft.economy.sell.SellQuote quote =
+                com.stardew.craft.economy.sell.ProfessionSellPriceService.quoteItem(
+                    player, stack, com.stardew.craft.economy.sell.SellSource.SHOP_COUNTER);
+            if (quote.sellable() && quote.finalUnitPrice() > 0) {
+                sellUnit = quote.finalUnitPrice();
+            }
+
             int qty = (payload.quantity() < 0) ? stack.getCount() : Math.min(payload.quantity(), stack.getCount());
             int earned = sellUnit * qty;
 

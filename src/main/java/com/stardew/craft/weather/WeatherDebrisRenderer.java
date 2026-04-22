@@ -48,6 +48,11 @@ public class WeatherDebrisRenderer {
             return;
         }
 
+        // 沙漠区域不展现星露谷外部天气粒子（春风花瓣 / 秋风落叶 / 雪花）
+        if (com.stardew.craft.desert.DesertConstants.isInDesertRegion(player.blockPosition())) {
+            return;
+        }
+
         tickCounter++;
         // 降低生成频率：风天每20 ticks生成一次（约1秒），雪天每10 ticks
         int tickInterval = isSnowing ? 10 : 20;

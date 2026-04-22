@@ -21,6 +21,8 @@ public final class CCStoryFlags {
     public static final String CAN_READ_JUNIMO     = "canReadJunimoText";
     /** 全部区域完成 */
     public static final String CC_IS_COMPLETE      = "ccIsComplete";
+    /** 玩家已获得骷髅钥匙（SDV mailReceived "HasSkullKey"）——骷髅矿洞通行证 */
+    public static final String HAS_SKULL_KEY       = "HasSkullKey";
 
     // ── 巫师邀请信 ──
     /** 巫师邀请信邮件 ID */

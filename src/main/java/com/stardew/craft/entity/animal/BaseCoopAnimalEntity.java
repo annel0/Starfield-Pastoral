@@ -105,6 +105,7 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 
 	protected BaseCoopAnimalEntity(EntityType<? extends Animal> entityType, Level level) {
 		super(entityType, level);
+		this.setInvulnerable(true);
 	}
 
 	public static AttributeSupplier.Builder createAttributes() {
@@ -410,6 +411,21 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 	public void die(@Nonnull DamageSource source) {
 	}
 
+	@Override
+	public void checkDespawn() {
+		// 牲畜永远不消散
+	}
+
+	@Override
+	public boolean removeWhenFarAway(double distanceToClosestPlayer) {
+		return false;
+	}
+
+	@Override
+	public boolean isPersistenceRequired() {
+		return true;
+	}
+
 	private boolean shouldPlayEatAnimation() {
 		return eatAnimationTicks > 0;
 	}
@@ -530,7 +546,7 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 		if (current < MINUTES_0600 || current >= MINUTES_1700) {
 			return "idle:not_day_window";
 		}
-		if (this.level().isRaining() || StardewTimeManager.get().getCurrentSeason() == 3) {
+		if (com.stardew.craft.weather.WeatherManager.isRaining(this.level()) || StardewTimeManager.get().getCurrentSeason() == 3) {
 			return "blocked:rain_or_winter";
 		}
 		if (homeBuilding == null) {
@@ -1269,7 +1285,7 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 			}
 
 			record.setFullness(255);
-			if (record.moodMessage() != 5 && record.moodMessage() != 6 && !serverLevel.isRaining()) {
+			if (record.moodMessage() != 5 && record.moodMessage() != 6 && !com.stardew.craft.weather.WeatherManager.isRaining(serverLevel)) {
 				record.setHappiness(255);
 				record.addFriendship(ateBlueGrass ? 16 : 8);
 			}

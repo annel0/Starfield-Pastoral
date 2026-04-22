@@ -11,7 +11,6 @@ import com.stardew.craft.item.artisan.ArtisanDrinkItem;
 import com.stardew.craft.item.artisan.ArtisanRecipeDataManager;
 import com.stardew.craft.item.artisan.DehydratorIngredientHelper;
 import com.stardew.craft.item.artisan.PreserveType;
-import com.stardew.craft.item.artisan.PreservesIngredientDataManager;
 import com.stardew.craft.item.artisan.PreservesItem;
 import com.stardew.craft.item.artisan.SmokedFishItem;
 import com.stardew.craft.item.quality.QualityHelper;
@@ -271,9 +270,8 @@ public class StardewJeiPlugin implements IModPlugin {
                 continue;
             }
             ResourceLocation id = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item);
-            if (!PreservesIngredientDataManager.hasData(id)) {
-                continue;
-            }
+            // 注意：不再依赖 PreservesIngredientDataManager.hasData() 检查
+            // 因为在专用服务器客户端上，数据可能在 JEI 初始化后才通过网络同步
             String typeKey = stardewItem.getItemTypeKey();
             if (isPreserveCropIngredient(typeKey)) {
                 var preserveType = com.stardew.craft.item.artisan.PreservesCropTypeHelper.getCropPreserveType(id);

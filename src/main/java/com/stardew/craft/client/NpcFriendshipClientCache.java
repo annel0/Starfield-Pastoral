@@ -14,11 +14,15 @@ public final class NpcFriendshipClientCache {
 
     private static List<Entry> entries = List.of();
     private static long lastSyncMs;
+    private static volatile boolean syncedFromServer = false;
 
     private NpcFriendshipClientCache() {
     }
 
+    public static boolean isSynced() { return syncedFromServer; }
+
     public static void update(List<Entry> incoming) {
+        syncedFromServer = true;
         if (incoming == null || incoming.isEmpty()) {
             entries = List.of();
             lastSyncMs = System.currentTimeMillis();
@@ -137,5 +141,6 @@ public final class NpcFriendshipClientCache {
     public static void reset() {
         entries = List.of();
         lastSyncMs = 0L;
+        syncedFromServer = false;
     }
 }

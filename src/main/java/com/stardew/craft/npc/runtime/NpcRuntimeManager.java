@@ -1,6 +1,5 @@
 package com.stardew.craft.npc.runtime;
 
-import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.npc.data.NpcCapabilityProfile;
 import com.stardew.craft.npc.data.NpcDataRegistry;
@@ -33,11 +32,6 @@ public final class NpcRuntimeManager {
 
         if (!snapshot.loggedOnce) {
             snapshot.loggedOnce = true;
-            StardewCraft.LOGGER.info(
-                "NPC runtime initialized: implemented={}, pathingEnabled={}",
-                snapshot.implementedNpcIds.size(),
-                snapshot.pathingNpcIds.size()
-            );
         }
     }
 

@@ -71,8 +71,11 @@ public final class ForageSpawnService {
             int minDailySpawn,
             int maxDailySpawn,
             int maxSpawnedAtOnce,
-            boolean requireGrass // true = must be on grass_block; false = any solid block
+            SurfaceType surface
     ) {}
+
+    /** 表面要求：GRASS = 必须草方块；ANY_SOLID = 任何固体顶面；DESERT = 露天的砂岩或末地岩。 */
+    private enum SurfaceType { GRASS, ANY_SOLID, DESERT }
 
     // ======================== Zone Definitions (SDV parity) ========================
 
@@ -97,7 +100,7 @@ public final class ForageSpawnService {
                             new ForageEntry(ModBlocks.FORAGE_CRYSTAL_FRUIT, WINTER, 0.1),
                             new ForageEntry(ModBlocks.FORAGE_HOLLY, WINTER, 0.5)
                     ),
-                    1, 4, 6, true),
+                    1, 4, 6, SurfaceType.GRASS),
 
             // ---- Forest (Cindersap) ----
             // SDV: Wild Horseradish(Spring 0.9), Dandelion(Spring 0.9),
@@ -122,7 +125,7 @@ public final class ForageSpawnService {
                             new ForageEntry(ModBlocks.FORAGE_CRYSTAL_FRUIT, WINTER, 0.9),
                             new ForageEntry(ModBlocks.FORAGE_HOLLY, WINTER, 0.5)
                     ),
-                    1, 4, 6, true),
+                    1, 4, 6, SurfaceType.GRASS),
 
             // ---- Mountain ----
             // SDV: Leek(Spring 0.7), Wild Horseradish(Spring 0.5),
@@ -149,7 +152,7 @@ public final class ForageSpawnService {
                             new ForageEntry(ModBlocks.FORAGE_CROCUS, WINTER, 0.9),
                             new ForageEntry(ModBlocks.FORAGE_HOLLY, WINTER, 0.5)
                     ),
-                    1, 4, 6, true),
+                    1, 4, 6, SurfaceType.GRASS),
 
             // ---- Beach ----
             // SDV Beach: Nautilus Shell(Winter 0.8), Rainbow Shell(Summer 0.5),
@@ -166,7 +169,21 @@ public final class ForageSpawnService {
                             new ForageEntry(ModBlocks.FORAGE_NAUTILUS_SHELL, WINTER, 0.8),
                             new ForageEntry(ModBlocks.FORAGE_RAINBOW_SHELL, SUMMER, 0.5)
                     ),
-                    1, 4, 6, false)
+                    1, 4, 6, SurfaceType.ANY_SOLID),
+
+            // ---- Desert (Calico Desert) ----
+            // SDV: Coconut(全年), Cactus Fruit(夏/秋)
+            // 露天的 sandstone / end_stone 上生成；概率明显低于其它区域，避免沙漠被塑料果子塑料。
+            new ForageZone("Desert",
+                    List.of(
+                            rect(-372, 1285, -259, 1423)
+                    ),
+                    List.of(
+                            new ForageEntry(ModBlocks.FORAGE_COCONUT, ANY, 0.35),
+                            new ForageEntry(ModBlocks.FORAGE_CACTUS_FRUIT, SUMMER, 0.45),
+                            new ForageEntry(ModBlocks.FORAGE_CACTUS_FRUIT, FALL, 0.45)
+                    ),
+                    1, 3, 5, SurfaceType.DESERT)
     );
 
     // ======================== Spawn Weight for Beach Rects ========================
@@ -244,7 +261,7 @@ public final class ForageSpawnService {
                     if (surfaceState.isAir() || surfaceState.getFluidState().isSource()) continue;
 
                     // Check placement conditions
-                    if (!canPlaceForage(level, surfacePos, placePos, zone.requireGrass)) continue;
+                    if (!canPlaceForage(level, surfacePos, placePos, zone.surface)) continue;
 
                     // Pick a random forage entry and apply chance
                     ForageEntry chosen = possibleForage.get(random.nextInt(possibleForage.size()));
@@ -293,7 +310,7 @@ public final class ForageSpawnService {
      * Check if forage can be placed at placePos on top of surfacePos.
      */
     private static boolean canPlaceForage(ServerLevel level, BlockPos surfacePos, BlockPos placePos,
-                                          boolean requireGrass) {
+                                          SurfaceType surface) {
         BlockState surfaceState = level.getBlockState(surfacePos);
         BlockState placeState = level.getBlockState(placePos);
 
@@ -303,13 +320,24 @@ public final class ForageSpawnService {
         // Must see sky (outdoors check)
         if (!level.canSeeSky(placePos)) return false;
 
-        if (requireGrass) {
+        return switch (surface) {
             // Town/Forest/Mountain: must be on grass_block (SDV: "Spawnable" tile property on Back layer)
-            return surfaceState.is(Blocks.GRASS_BLOCK);
-        } else {
+            case GRASS -> surfaceState.is(Blocks.GRASS_BLOCK);
             // Beach: any solid block
-            return surfaceState.isFaceSturdy(level, surfacePos, net.minecraft.core.Direction.UP);
-        }
+            case ANY_SOLID -> surfaceState.isFaceSturdy(level, surfacePos, net.minecraft.core.Direction.UP);
+            // Desert: only sandstone variants or end_stone (起伏的露天岩面，排除平平的沙子表层走道)
+            case DESERT -> isDesertSurface(surfaceState);
+        };
+    }
+
+    /** 沙漠可生成 forage 的表面：原版 / 切制 / 阔重 / 平滑的砂岩及其台阶 —— 以及末地岩。 */
+    private static boolean isDesertSurface(BlockState state) {
+        Block b = state.getBlock();
+        return b == Blocks.SANDSTONE || b == Blocks.SMOOTH_SANDSTONE
+                || b == Blocks.CHISELED_SANDSTONE || b == Blocks.CUT_SANDSTONE
+                || b == Blocks.RED_SANDSTONE || b == Blocks.SMOOTH_RED_SANDSTONE
+                || b == Blocks.CHISELED_RED_SANDSTONE || b == Blocks.CUT_RED_SANDSTONE
+                || b == Blocks.END_STONE;
     }
 
     /**
@@ -489,7 +517,7 @@ public final class ForageSpawnService {
                     BlockPos placePos = surfacePos.above();
 
                     if (surfaceState.isAir() || surfaceState.getFluidState().isSource()) continue;
-                    if (!canPlaceForage(level, surfacePos, placePos, true)) continue;
+                    if (!canPlaceForage(level, surfacePos, placePos, SurfaceType.GRASS)) continue;
 
                     // Equal probability among 4 items
                     DeferredBlock<Block> chosen = possibleForage.get(random.nextInt(possibleForage.size()));

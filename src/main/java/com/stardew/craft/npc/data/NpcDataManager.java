@@ -5,7 +5,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.stardew.craft.StardewCraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
@@ -121,10 +120,6 @@ public final class NpcDataManager {
             NpcDataRegistry.replaceLocationAnchors(locationAnchors);
             NpcDataDiagnostics.validateAndLog(capabilities, dialogues, filteredSchedules, tastes);
 
-            StardewCraft.LOGGER.info(
-                "Loaded NPC data: capabilities={}, dialogueFiles={}, scheduleFiles={}, tasteFiles={}, eventFiles={}",
-                capabilities.size(), dialogues.size(), filteredSchedules.size(), tastes.size(), events.size()
-            );
         }
 
         private static String extractNpcId(JsonObject root,
@@ -160,7 +155,6 @@ public final class NpcDataManager {
                                               Map<String, NpcCapabilityProfile> output,
                                               ResourceLocation resourceId) {
             if (!root.has("npcs") || !root.get("npcs").isJsonArray()) {
-                StardewCraft.LOGGER.warn("NPC capability file {} is missing 'npcs' array", resourceId);
                 return;
             }
 
@@ -190,11 +184,11 @@ public final class NpcDataManager {
                 int gender = readInt(obj, "gender", NpcCapabilityProfile.GENDER_MALE);
                 boolean datable = readBoolean(obj, "datable", false);
 
+                // 动画检查仅用于客户端动画播放决策，不再禁用服务端寻路。
+                // 服务端不一定能加载客户端动画资源文件，不应据此阻断 pathing。
                 boolean hasWalkAnimation = NpcAnimationInspector.hasWalkAnimation(npcId.trim().toLowerCase(Locale.ROOT));
                 if (pathingEnabled && !hasWalkAnimation) {
-                    pathingEnabled = false;
                     animationProfile = NpcCapabilityProfile.ANIM_IDLE_ONLY;
-                    StardewCraft.LOGGER.warn("NPC '{}' pathing disabled because walk animation is missing", npcId);
                 }
 
                 NpcCapabilityProfile profile = new NpcCapabilityProfile(
@@ -325,13 +319,6 @@ public final class NpcDataManager {
             }
 
             if (!dropped.isEmpty()) {
-                StardewCraft.LOGGER.warn(
-                    "[NPC_TASTE_FILTER] npc={} category={} droppedCount={} dropped={}",
-                    npcId,
-                    category,
-                    dropped.size(),
-                    String.join(",", dropped)
-                );
             }
         }
 

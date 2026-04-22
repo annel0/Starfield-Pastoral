@@ -3,14 +3,19 @@ package com.stardew.craft.item.artisan;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.item.quality.QualityHelper;
+import com.stardew.craft.player.PlayerStardewDataAPI;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.level.Level;
 import net.minecraft.nbt.CompoundTag;
 
 import java.util.Optional;
@@ -35,12 +40,46 @@ public class PreservesItem extends Item implements IStardewItem {
 
     @SuppressWarnings("null")
     public PreservesItem(PreserveType preserveType, Properties properties) {
-        super(properties);
+        super(properties.food(new FoodProperties.Builder()
+                .nutrition(2)
+                .saturationModifier(0.3f)
+                .alwaysEdible()
+                .build()));
         this.preserveType = preserveType;
     }
 
     public PreserveType getPreserveType() {
         return preserveType;
+    }
+
+    @SuppressWarnings("null")
+    @Override
+    public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity livingEntity) {
+        ItemStack result = super.finishUsingItem(stack, level, livingEntity);
+
+        if (!level.isClientSide && livingEntity instanceof ServerPlayer serverPlayer) {
+            int energy = getEnergy(stack);
+            int health = getHealth(stack);
+
+            // 处理生命恢复
+            if (health != 0) {
+                int currentSDHealth = PlayerStardewDataAPI.getHealth(serverPlayer);
+                int maxSDHealth = PlayerStardewDataAPI.getMaxHealth(serverPlayer);
+                int newHealth = Math.max(0, Math.min(maxSDHealth, currentSDHealth + health));
+                PlayerStardewDataAPI.setHealth(serverPlayer, newHealth);
+            }
+
+            // 处理能量恢复
+            if (energy != 0) {
+                if (energy > 0) {
+                    PlayerStardewDataAPI.restoreEnergy(serverPlayer, energy);
+                } else {
+                    PlayerStardewDataAPI.consumeEnergy(serverPlayer, -energy);
+                }
+            }
+        }
+
+        return result;
     }
 
     @Override

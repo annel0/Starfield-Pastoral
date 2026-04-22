@@ -2,6 +2,7 @@ package com.stardew.craft.event;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModDimensions;
+import com.stardew.craft.desert.DesertMapBootstrap;
 import com.stardew.craft.interior.InteriorSubspaceManager;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -29,6 +30,12 @@ public class InteriorSubspaceLifecycleEvents {
         }
 
         InteriorSubspaceManager.ensureLoaded(stardew, "server_started");
+        // 兜底：已初始化的存档不会触发 batch 流程，主动重放一次所有传送触发方块，
+        // 防止任何原因（region 覆盖、玩家误挖、旧版本遗漏）导致的丢失。
+        InteriorSubspaceManager.replaceAllPortalsIfReady(stardew, "server_started_safety_net");
+
+        // 沙漠区域 schem 放置
+        DesertMapBootstrap.ensureLoaded(stardew, "server_started");
     }
 
     /**
@@ -60,6 +67,10 @@ public class InteriorSubspaceLifecycleEvents {
         }
 
         InteriorSubspaceManager.ensureLoaded(player.serverLevel(), "enter_stardew_dimension");
+        InteriorSubspaceManager.replaceAllPortalsIfReady(player.serverLevel(), "enter_stardew_dimension_safety_net");
+
+        // 沙漠区域 schem 放置（老存档首次进入时触发）
+        DesertMapBootstrap.ensureLoaded(player.serverLevel(), "enter_stardew_dimension");
     }
 
     @SubscribeEvent
@@ -73,6 +84,9 @@ public class InteriorSubspaceLifecycleEvents {
 
         // 驱动分批建筑放置（每 tick 放一个，避免 watchdog 超时）
         InteriorSubspaceManager.tickBatchPlacement(level);
+
+        // 驱动沙漠 schem 放置
+        DesertMapBootstrap.tick(level);
 
         tickCounter++;
         if (tickCounter < 20) {

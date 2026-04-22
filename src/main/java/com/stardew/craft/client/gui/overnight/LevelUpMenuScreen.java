@@ -203,16 +203,23 @@ public class LevelUpMenuScreen extends Screen {
                 graphics.drawString(this.font, noneText, xPos + guiWidth / 2 - this.font.width(noneText) / 2, lineY, 0x5A4A3A, false);
             } else {
                 int centerX = xPos + guiWidth / 2;
+                // SDV 原版行距：每条配方 ≈ 1 tile（16 coord units）。MC 物品图标高 16、字体 9，
+                // 取 22 coord units 作为行距保证在任意 guiScale 下都不会重叠。
+                int rowStep = 22;
                 for (int i = 0; i < unlockedRecipes.size(); i++) {
                     RecipeDisplayEntry entry = unlockedRecipes.get(i);
                     Component message = entry.displayName();
                     int textW = this.font.width(message);
-                    // SDV parity: 文本居中偏左（留出图标空间），图标在文本右侧
-                    int textX = centerX - textW / 2 - 10;
-                    int itemY = lineY + i * px(20);
-                    graphics.drawString(this.font, message, textX, itemY + 4, 0x3A2A1A, false);
-                    if (!entry.icon().isEmpty()) {
-                        graphics.renderItem(entry.icon(), textX + textW + 4, itemY - 4);
+                    boolean hasIcon = !entry.icon().isEmpty();
+                    // 总宽度 = 图标(16) + 间距(4) + 文字宽，居中对齐
+                    int totalW = textW + (hasIcon ? 20 : 0);
+                    int startX = centerX - totalW / 2;
+                    int itemY = lineY + i * rowStep;
+                    if (hasIcon) {
+                        graphics.renderItem(entry.icon(), startX, itemY - 4);
+                        graphics.drawString(this.font, message, startX + 20, itemY + 4, 0x3A2A1A, false);
+                    } else {
+                        graphics.drawString(this.font, message, startX, itemY + 4, 0x3A2A1A, false);
                     }
                 }
             }
@@ -411,11 +418,27 @@ public class LevelUpMenuScreen extends Screen {
 
         for (String recipeId : seen) {
             if (recipeId == null || recipeId.isBlank()) continue;
-            Component name = Component.translatable("recipe.stardewcraft." + recipeId);
             ItemStack icon = StardewCraftingRecipeData.getOutputStack(recipeId);
+            // SDV parity: 菜单里显示的是配方产物的物品名（不是配方 ID）。
+            // 回退到 prettified id 以应对找不到产物的旧配方。
+            Component name = icon.isEmpty()
+                    ? Component.literal(prettifyRecipeId(recipeId))
+                    : icon.getHoverName();
             entries.add(new RecipeDisplayEntry(name, icon));
         }
         return entries;
+    }
+
+    private static String prettifyRecipeId(String id) {
+        String[] parts = id.split("_");
+        StringBuilder sb = new StringBuilder();
+        for (String p : parts) {
+            if (p.isEmpty()) continue;
+            if (sb.length() > 0) sb.append(' ');
+            sb.append(Character.toUpperCase(p.charAt(0)));
+            if (p.length() > 1) sb.append(p.substring(1));
+        }
+        return sb.toString();
     }
 
     private void drawWrappedText(GuiGraphics graphics, Component text, int x, int y, int maxWidth, int color, int lineStep) {

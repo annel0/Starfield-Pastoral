@@ -69,7 +69,7 @@ public final class TrackerProfessionHud {
 
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null) return;
-        if (mc.options.hideGui) return;
+        if (mc.options.hideGui || mc.player.isSpectator()) return;
 
         // SDV: only works outdoors. In MC we skip enclosed dimensions (like mines).
         // We allow it in the overworld and custom stardew dimensions but not the nether/end.

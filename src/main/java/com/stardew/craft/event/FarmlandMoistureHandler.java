@@ -2,7 +2,6 @@ package com.stardew.craft.event;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModDimensions;
-import com.stardew.craft.time.StardewTimeManager;
 import com.stardew.craft.weather.WeatherManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -15,14 +14,16 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
 /**
- * 处理下雨时耕地自动湿润
- * 性能优化：只处理玩家附近32格范围内的耕地
+ * 处理下雨时耕地自动湿润。
+ * 每 100 tick（5秒）扫一次玩家附近耕地，雨天强制 moisture=7。
+ * 保证离开再回来时耕地也能即时变湿。
  */
 @EventBusSubscriber(modid = StardewCraft.MODID)
 public class FarmlandMoistureHandler {
     
     private static final int RADIUS = 32; // 玩家周围32格
-    private static int lastWetDay = -1;
+    private static final int SCAN_INTERVAL = 100; // 每100tick扫一次（5秒）
+    private static int tickCounter = 0;
     
     /**
      * 定期检查并湿润玩家附近的耕地
@@ -38,10 +39,12 @@ public class FarmlandMoistureHandler {
             return;
         }
         
-        int currentDay = StardewTimeManager.get().getCurrentDay();
-        if (currentDay == lastWetDay) {
+        // 低频执行：每 100 tick（5秒）扫一次
+        tickCounter++;
+        if (tickCounter < SCAN_INTERVAL) {
             return;
         }
+        tickCounter = 0;
         
         // 获取当前天气
         String weather = WeatherManager.getCurrentWeather(level);
@@ -56,8 +59,6 @@ public class FarmlandMoistureHandler {
         for (ServerPlayer player : level.players()) {
             moistenFarmlandAroundPlayer(level, player);
         }
-
-        lastWetDay = currentDay;
     }
     
     /**

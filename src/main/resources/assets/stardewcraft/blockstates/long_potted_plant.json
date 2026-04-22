@@ -1,0 +1,31 @@
+{
+  "variants": {
+    "part=main,facing=north": {
+      "model": "stardewcraft:decor/common/long_potted_plant"
+    },
+    "part=main,facing=east": {
+      "model": "stardewcraft:decor/common/long_potted_plant",
+      "y": 90
+    },
+    "part=main,facing=south": {
+      "model": "stardewcraft:decor/common/long_potted_plant",
+      "y": 180
+    },
+    "part=main,facing=west": {
+      "model": "stardewcraft:decor/common/long_potted_plant",
+      "y": 270
+    },
+    "part=extension,facing=north": {
+      "model": "stardewcraft:block/decor/extensions/long_potted_plant_extension_empty"
+    },
+    "part=extension,facing=east": {
+      "model": "stardewcraft:block/decor/extensions/long_potted_plant_extension_empty"
+    },
+    "part=extension,facing=south": {
+      "model": "stardewcraft:block/decor/extensions/long_potted_plant_extension_empty"
+    },
+    "part=extension,facing=west": {
+      "model": "stardewcraft:block/decor/extensions/long_potted_plant_extension_empty"
+    }
+  }
+}

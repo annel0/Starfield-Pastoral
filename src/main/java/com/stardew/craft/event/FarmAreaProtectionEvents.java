@@ -4,12 +4,15 @@ import com.stardew.craft.StardewCraft;
 import com.stardew.craft.block.ModBlocks;
 import com.stardew.craft.core.FarmAreaResolver;
 import com.stardew.craft.core.ModDimensions;
+import com.stardew.craft.farm.FarmInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.block.Blocks;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 
@@ -80,8 +83,9 @@ public class FarmAreaProtectionEvents {
         // 但远古斑点允许在任何区域被锄（挖掘后变耕地，第二天复原）
         BlockPos pos = event.getPos();
         if (!event.getBlockSnapshot().getState().isAir()) {
-            if (event.getBlockSnapshot().getState().is(ModBlocks.ARTIFACT_SPOT_DIRT.get())) {
-                // 远古斑点：放行，不受区域保护
+            if (event.getBlockSnapshot().getState().is(ModBlocks.ARTIFACT_SPOT_DIRT.get())
+                    || event.getBlockSnapshot().getState().is(ModBlocks.DESERT_ARTIFACT_SPOT.get())) {
+                // 远古斑点（含沙漠变体）：放行，不受区域保护，避免锄完被回滚
                 return;
             }
             if (!canModifyAt(player, pos)) {
@@ -118,12 +122,17 @@ public class FarmAreaProtectionEvents {
      * 可被外部调用（镰刀、作物交互、工具等自定义逻辑需要统一权限检查）。
      */
     public static boolean canModifyAt(ServerPlayer player, BlockPos pos) {
+        // 采石场区域：所有玩家都可以挖掘/放置（非农场但属于公共可操作区）
+        if (com.stardew.craft.communitycenter.quarry.QuarryAccessManager.isInQuarryArea(pos)) {
+            return true;
+        }
         // 查找该位置属于哪个农场
         java.util.UUID ownerUUID = FarmAreaResolver.getOwnerAt(pos);
         if (ownerUUID == null) return false; // 不在任何农场内
 
-        // 自己的农场
-        if (ownerUUID.equals(player.getUUID())) return true;
+        // 自己的农场（owner 或 member）
+        FarmInstance farm = com.stardew.craft.farm.FarmInstanceRegistry.get().getFarm(ownerUUID);
+        if (farm != null && farm.isFarmer(player.getUUID())) return true;
 
         // 别人的农场：检查权限
         return com.stardew.craft.farm.FarmPermissionManager.get()
@@ -138,10 +147,41 @@ public class FarmAreaProtectionEvents {
     public static boolean isOnProtectedFarm(ServerPlayer player, BlockPos pos) {
         java.util.UUID ownerUUID = FarmAreaResolver.getOwnerAt(pos);
         if (ownerUUID == null) return false; // 不在任何农场内 → 非受保护区域
-        if (ownerUUID.equals(player.getUUID())) return false; // 自己的农场
+        // 自己的农场（owner 或 member）
+        FarmInstance farm = com.stardew.craft.farm.FarmInstanceRegistry.get().getFarm(ownerUUID);
+        if (farm != null && farm.isFarmer(player.getUUID())) return false;
 
         return !com.stardew.craft.farm.FarmPermissionManager.get()
                 .canModify(ownerUUID, player.getUUID());
+    }
+
+    /**
+     * STARDEW_VALLEY 维度内：
+     * 1. 禁止草方块被锄成耕地（所有锄头）
+     * 2. 禁止 MC 原版锄头在农场区域使用（太超模，又快又好）— 只允许模组 HoeItem
+     */
+    @SubscribeEvent
+    public static void onBlockToolModification(BlockEvent.BlockToolModificationEvent event) {
+        if (!(event.getLevel() instanceof ServerLevel level)) return;
+        if (level.dimension() != ModDimensions.STARDEW_VALLEY) return;
+        if (event.getItemAbility() != ItemAbilities.HOE_TILL) return;
+        if (event.getPlayer() instanceof ServerPlayer sp && sp.isCreative()) return;
+
+        // 草方块始终禁止被锄（无论什么工具）
+        if (event.getState().is(Blocks.GRASS_BLOCK)) {
+            event.setCanceled(true);
+            return;
+        }
+
+        // 在农场区域内，只允许模组 HoeItem，禁止 MC 原版锄头
+        if (event.getPlayer() != null) {
+            net.minecraft.world.item.ItemStack tool = event.getPlayer().getMainHandItem();
+            if (!(tool.getItem() instanceof com.stardew.craft.item.tool.HoeItem)) {
+                if (com.stardew.craft.core.FarmAreaResolver.isInAnyFarm(level, event.getPos())) {
+                    event.setCanceled(true);
+                }
+            }
+        }
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -167,6 +207,32 @@ public class FarmAreaProtectionEvents {
         if (event.getLevel() instanceof ServerLevel sl
                 && com.stardew.craft.greenhouse.GreenhouseManager.isInGreenhouseInterior(sl, event.getPos())) {
             return;
+        }
+        // 传送触发方块不受保护（进入别人家的屋内/屋外必须能触发传送）
+        if (event.getLevel().getBlockState(event.getPos()).getBlock()
+                instanceof com.stardew.craft.block.portal.PortalTriggerBlock) {
+            return;
+        }
+        // 水桶/岩浆桶等流体桶：在任何受保护区域都禁止放置流体
+        // （NeoForge 中 BucketItem.emptyContents → LiquidBlock.placeLiquid 不触发 EntityPlaceEvent，
+        //  必须在 RightClickBlock 阶段拦截）
+        net.minecraft.world.item.ItemStack heldItem = event.getItemStack();
+        if (heldItem.getItem() instanceof net.minecraft.world.item.BucketItem bucket) {
+            // 空桶（拾取流体）允许通过；有内容的桶才做放置保护
+            if (bucket.content != net.minecraft.world.level.material.Fluids.EMPTY) {
+                // 流体会放在目标方块的面朝向相邻位置（若目标不可替换）或目标位置
+                BlockPos targetPos = event.getPos();
+                BlockPos placePos = event.getLevel().getBlockState(targetPos).canBeReplaced()
+                        ? targetPos
+                        : targetPos.relative(event.getFace());
+                if (!canModifyAt(player, placePos)) {
+                    event.setCanceled(true);
+                    event.setCancellationResult(net.minecraft.world.InteractionResult.FAIL);
+                    player.displayClientMessage(
+                            Component.translatable("stardewcraft.farm.build_farm_only"), true);
+                    return;
+                }
+            }
         }
         // 别人的农场禁止右键交互（公共区域允许：开门、献祭、NPC交互等）
         if (isOnProtectedFarm(player, event.getPos())) {

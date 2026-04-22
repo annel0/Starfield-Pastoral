@@ -1,0 +1,109 @@
+package com.stardew.craft.minecart;
+
+import com.stardew.craft.communitycenter.state.CCStoryFlags;
+import com.stardew.craft.core.ModDimensions;
+import com.stardew.craft.core.ModMiningDimensions;
+import com.stardew.craft.player.PlayerDataManager;
+import com.stardew.craft.player.PlayerStardewData;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.network.PacketDistributor;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+/**
+ * 矿车网络 — 定义 4 个站点的坐标、传送落点、解锁条件，
+ * 并处理「打开菜单」和「玩家选定后传送」两件事。
+ */
+public final class MinecartMenuService {
+
+    public record Destination(
+            String id,                                  // 内部 ID，也是 stationId
+            String labelKey,                            // 翻译键（菜单显示）
+            ResourceKey<Level> dimension,               // 目的地所在维度
+            double x, double y, double z,               // 玩家落点
+            float yaw,                                  // 玩家朝向
+            String gatingFlag                           // 解锁条件（null = 始终可选）
+    ) {}
+
+    public static final Destination TOWN = new Destination(
+            "town", "stardewcraft.minecart.dest.town",
+            ModDimensions.STARDEW_VALLEY,
+            -312.0 + 0.5, -17.0, -15.0 + 0.5, 180.0F, null);
+
+    public static final Destination MINES = new Destination(
+            "mines", "stardewcraft.minecart.dest.mines",
+            ModMiningDimensions.STARDEW_MINING,
+            -6.0 + 0.5, 66.0, -12.0 + 0.5, -90.0F, null);
+
+    public static final Destination BUS = new Destination(
+            "bus", "stardewcraft.minecart.dest.bus",
+            ModDimensions.STARDEW_VALLEY,
+            85.0 + 0.5, -12.0, 223.0 + 0.5, 180.0F, null);
+
+    public static final Destination QUARRY = new Destination(
+            "quarry", "stardewcraft.minecart.dest.quarry",
+            ModDimensions.STARDEW_VALLEY,
+            -471.0 + 0.5, -13.0, 292.0 + 0.5, 180.0F, CCStoryFlags.CC_CRAFTS_ROOM);
+
+    private static final List<Destination> ALL = List.of(TOWN, MINES, BUS, QUARRY);
+
+    private MinecartMenuService() {}
+
+    public static Destination byId(String id) {
+        for (Destination d : ALL) {
+            if (d.id.equalsIgnoreCase(id)) return d;
+        }
+        return null;
+    }
+
+    /** 服务端：打开菜单（已在 MinecartStationEntity.interact 里先做了 ccBoilerRoom 校验）。 */
+    public static void openFor(ServerPlayer player, String currentStationId) {
+        PlayerStardewData data = PlayerDataManager.getPlayerData(player);
+        // 双重校验（防止客户端作弊直接发 select 包）
+        if (!data.hasMailFlag(CCStoryFlags.CC_BOILER_ROOM)) return;
+
+        List<String> available = new ArrayList<>();
+        for (Destination d : ALL) {
+            if (Objects.equals(d.id, currentStationId)) continue; // 排除当前站
+            if (d.gatingFlag != null && !data.hasMailFlag(d.gatingFlag)) continue;
+            available.add(d.id);
+        }
+
+        PacketDistributor.sendToPlayer(player,
+                new com.stardew.craft.network.payload.OpenMinecartMenuPayload(
+                        currentStationId == null ? "" : currentStationId,
+                        available));
+    }
+
+    /** 服务端：玩家在菜单里选定后的处理。 */
+    public static void handleSelection(ServerPlayer player, String currentStationId, String chosenId) {
+        PlayerStardewData data = PlayerDataManager.getPlayerData(player);
+        if (!data.hasMailFlag(CCStoryFlags.CC_BOILER_ROOM)) return;
+
+        Destination dest = byId(chosenId);
+        if (dest == null) return;
+        if (Objects.equals(dest.id, currentStationId)) return; // 不能选当前站
+        if (dest.gatingFlag != null && !data.hasMailFlag(dest.gatingFlag)) return;
+
+        ServerLevel target = player.server.getLevel(dest.dimension);
+        if (target == null) return;
+
+        // 过场动作：停下正在做的事，冻结 0.7 秒，再传送（模仿 SDV MinecartWarp 的 freezePause=700ms）
+        player.closeContainer();
+        player.stopUsingItem();
+
+        // 关键：标记跳过 DimensionEventHandler.onPlayerChangeDimension 里的
+        // 「进入星露谷 → 农场出生点」/ 「进入矿井 → 当前楼层」自动劫持。
+        boolean crossDim = !player.serverLevel().dimension().equals(dest.dimension);
+        if (crossDim) {
+            com.stardew.craft.interior.CrossDimensionTeleporter.markSkipAutoTeleport(player.getUUID());
+        }
+
+        player.teleportTo(target, dest.x, dest.y, dest.z, dest.yaw, 0.0F);
+    }
+}

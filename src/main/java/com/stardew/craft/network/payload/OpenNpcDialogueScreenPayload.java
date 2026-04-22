@@ -110,7 +110,7 @@ public record OpenNpcDialogueScreenPayload(
             finalDisplayText = com.stardew.craft.shop.DwarfService.convertToDwarvish(finalDisplayText);
         }
 
-        StardewCraft.LOGGER.info("[NPC_DIALOGUE_CLIENT] key={} resolved(first80)={}",
+        StardewCraft.LOGGER.debug("[NPC_DIALOGUE_CLIENT] key={} resolved(first80)={}",
             payload.translateKey(),
             finalDisplayText.length() > 80 ? finalDisplayText.substring(0, 80) : finalDisplayText);
 
@@ -141,7 +141,7 @@ public record OpenNpcDialogueScreenPayload(
      * @param text  raw dialogue text
      * @param male  true to pick male variant, false for female
      */
-    private static String resolveInlineGenderTokens(String text, boolean male) {
+    public static String resolveInlineGenderTokens(String text, boolean male) {
         if (text == null || !text.contains("${")) return text;
         StringBuilder sb = new StringBuilder();
         int pos = 0;
@@ -178,7 +178,7 @@ public record OpenNpcDialogueScreenPayload(
      * @param text  raw dialogue text (inline tokens should already be resolved)
      * @param male  true to keep male half
      */
-    private static String resolveGenderSplit(String text, boolean male) {
+    public static String resolveGenderSplit(String text, boolean male) {
         if (text == null || !text.contains("^")) return text;
         // Don't split inside $q/$r question blocks — those use ^ differently
         // Find the first ^ that is not inside ${...}$
@@ -235,7 +235,7 @@ public record OpenNpcDialogueScreenPayload(
      * Also converts {@code #} page separators to {@code $b} for parseChunks.
      * Preserves {@code $q/$r} blocks untouched (parseChunks handles those).
      */
-    private static String resolveDialogueCommands(String text) {
+    public static String resolveDialogueCommands(String text) {
         if (text == null || text.isEmpty()) return text;
 
         // SDV || random dialogue selection: pick one alternative at random
@@ -475,11 +475,15 @@ public record OpenNpcDialogueScreenPayload(
      * Tokens that require systems not yet implemented are replaced with
      * sensible defaults or stripped.
      */
-    private static String resolvePercentTokens(String text, String playerName) {
+    public static String resolvePercentTokens(String text, String playerName) {
         if (text == null || !text.contains("%")) return text;
 
-        // %farm → "your" (no farm name system; reads "your farm")
-        text = text.replace("%farm", "your");
+        // %farm → farm name from client cache, fallback to player name
+        if (text.contains("%farm")) {
+            String farmName = com.stardew.craft.client.ClientPlayerDataCache.getFarmName();
+            if (farmName == null || farmName.isBlank()) farmName = playerName;
+            text = text.replace("%farm", farmName);
+        }
 
         // %firstnameletter → first half of player name (SDV parity)
         if (text.contains("%firstnameletter")) {

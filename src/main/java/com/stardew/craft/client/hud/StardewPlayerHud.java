@@ -99,6 +99,10 @@ public class StardewPlayerHud {
      * 检查是否应该渲染自定义HUD
      */
     private static boolean shouldRenderCustomHUD(Player player) {
+        // F1 隐藏 HUD
+        if (Minecraft.getInstance().options.hideGui) {
+            return false;
+        }
         // 创造模式和旁观模式不显示
         if (player.isCreative() || player.isSpectator()) {
             return false;

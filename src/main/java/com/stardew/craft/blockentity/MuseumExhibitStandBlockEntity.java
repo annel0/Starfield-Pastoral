@@ -15,10 +15,16 @@ import javax.annotation.Nullable;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
+import java.util.UUID;
 
+/**
+ * Museum exhibit stand block entity.
+ * Server-side: display items are stored in MuseumDonationData per-player.
+ * Client-side: displayItem is set via custom sync packet for the local player's view.
+ */
 public class MuseumExhibitStandBlockEntity extends BlockEntity {
-    private static final String TAG_DISPLAY_ITEM = "DisplayItem";
 
+    /** Client-side only: the item to render for the local player. */
     private ItemStack displayItem = ItemStack.EMPTY;
 
     public MuseumExhibitStandBlockEntity(BlockPos pos, BlockState state) {
@@ -33,83 +39,108 @@ public class MuseumExhibitStandBlockEntity extends BlockEntity {
         return !displayItem.isEmpty();
     }
 
-    public void setDisplayItem(ItemStack stack) {
-        if (stack == null || stack.isEmpty()) {
-            displayItem = ItemStack.EMPTY;
-        } else {
-            ItemStack one = stack.copy();
-            one.setCount(1);
-            displayItem = one;
-        }
+    /**
+     * Client-side: set the display item for rendering (called from sync packet).
+     */
+    public void setClientDisplayItem(ItemStack stack) {
+        displayItem = (stack == null || stack.isEmpty()) ? ItemStack.EMPTY : stack.copy();
+    }
 
-        setChanged();
-        if (level instanceof ServerLevel serverLevel) {
-            String standKey = MuseumDonationData.standKey(serverLevel, worldPosition);
-            MuseumDonationData data = MuseumDonationData.get(serverLevel);
-            if (displayItem.isEmpty()) {
-                data.setStandDisplayedItem(standKey, null);
-            } else {
-                net.minecraft.resources.ResourceLocation itemKey = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(Objects.requireNonNull(displayItem.getItem()));
-                if (itemKey != null) {
-                    String itemId = itemKey.toString();
-                    data.setStandDisplayedItem(standKey, itemId);
-                }
+    /**
+     * Server-side: place an item on the stand for a specific player.
+     */
+    public void setDisplayItemForPlayer(UUID playerId, ItemStack stack) {
+        if (!(level instanceof ServerLevel serverLevel)) return;
+        String standKey = MuseumDonationData.standKey(serverLevel, worldPosition);
+        MuseumDonationData data = MuseumDonationData.get(serverLevel);
+        if (stack == null || stack.isEmpty()) {
+            data.setStandDisplayedItem(playerId, standKey, null);
+        } else {
+            net.minecraft.resources.ResourceLocation itemKey = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(Objects.requireNonNull(stack.getItem()));
+            if (itemKey != null) {
+                data.setStandDisplayedItem(playerId, standKey, itemKey.toString());
             }
-            serverLevel.sendBlockUpdated(Objects.requireNonNull(worldPosition), Objects.requireNonNull(getBlockState()), Objects.requireNonNull(getBlockState()), 3);
         }
     }
 
-    public ItemStack removeDisplayItem() {
-        ItemStack out = displayItem;
-        displayItem = ItemStack.EMPTY;
-        setChanged();
+    /**
+     * Server-side: remove the item from the stand for a specific player.
+     * Returns the item that was on the stand (from MuseumDonationData).
+     */
+    public ItemStack removeDisplayItemForPlayer(UUID playerId) {
+        if (!(level instanceof ServerLevel serverLevel)) return ItemStack.EMPTY;
+        String standKey = MuseumDonationData.standKey(serverLevel, worldPosition);
+        MuseumDonationData data = MuseumDonationData.get(serverLevel);
+        java.util.Map<String, String> stands = data.getStandDisplayItems(playerId);
+        String itemId = stands.get(standKey);
+        if (itemId == null || itemId.isBlank()) return ItemStack.EMPTY;
 
-        if (level instanceof ServerLevel serverLevel) {
-            String standKey = MuseumDonationData.standKey(serverLevel, worldPosition);
-            MuseumDonationData data = MuseumDonationData.get(serverLevel);
-            data.setStandDisplayedItem(standKey, null);
-            serverLevel.sendBlockUpdated(Objects.requireNonNull(worldPosition), Objects.requireNonNull(getBlockState()), Objects.requireNonNull(getBlockState()), 3);
+        data.setStandDisplayedItem(playerId, standKey, null);
+
+        net.minecraft.resources.ResourceLocation rl = net.minecraft.resources.ResourceLocation.tryParse(itemId);
+        if (rl != null) {
+            net.minecraft.world.item.Item item = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(rl);
+            if (item != null && item != net.minecraft.world.item.Items.AIR) {
+                return new ItemStack(item);
+            }
         }
+        return ItemStack.EMPTY;
+    }
 
-        return out;
+    /**
+     * Server-side: check if a specific player has an item on this stand.
+     */
+    public boolean hasDisplayItemForPlayer(UUID playerId) {
+        if (!(level instanceof ServerLevel serverLevel)) return false;
+        String standKey = MuseumDonationData.standKey(serverLevel, worldPosition);
+        MuseumDonationData data = MuseumDonationData.get(serverLevel);
+        java.util.Map<String, String> stands = data.getStandDisplayItems(playerId);
+        String itemId = stands.get(standKey);
+        return itemId != null && !itemId.isBlank();
     }
 
     @Override
     protected void saveAdditional(@Nonnull CompoundTag tag, @Nonnull net.minecraft.core.HolderLookup.Provider provider) {
         super.saveAdditional(tag, provider);
-        if (!displayItem.isEmpty()) {
-            net.minecraft.nbt.Tag saved = displayItem.save(provider);
-            if (saved != null) {
-                tag.put(TAG_DISPLAY_ITEM, saved);
-            }
-        }
-        // Empty item: simply omit the tag so loadAdditional falls through to EMPTY.
+        // No longer save displayItem to NBT — data lives in MuseumDonationData per player
     }
 
     @Override
     protected void loadAdditional(@Nonnull CompoundTag tag, @Nonnull net.minecraft.core.HolderLookup.Provider provider) {
         super.loadAdditional(tag, provider);
-        if (tag.contains(TAG_DISPLAY_ITEM, CompoundTag.TAG_COMPOUND)) {
-            CompoundTag itemTag = tag.getCompound(TAG_DISPLAY_ITEM);
-            if (itemTag != null && itemTag.contains("id")) {
-                displayItem = ItemStack.parse(provider, itemTag).orElse(ItemStack.EMPTY);
-            } else {
-                displayItem = ItemStack.EMPTY;
-            }
-        } else {
-            displayItem = ItemStack.EMPTY;
-        }
+        // Display item is authoritative server-side in MuseumDonationData and synced to the
+        // client via MuseumStandSyncPacket → ClientMuseumStandCache. Do not touch displayItem
+        // here; vanilla block update packets would otherwise clobber the cache-hydrated state.
     }
 
     @Override
     public CompoundTag getUpdateTag(@Nonnull net.minecraft.core.HolderLookup.Provider provider) {
-        CompoundTag tag = new CompoundTag();
-        saveAdditional(tag, provider);
-        return tag;
+        // Return empty tag — stand content is synced per-player via custom packet
+        return new CompoundTag();
     }
 
     @Override
     public @Nullable Packet<ClientGamePacketListener> getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @SuppressWarnings("null")
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        net.minecraft.world.level.Level lvl = level;
+        if (lvl != null && lvl.isClientSide) {
+            com.stardew.craft.client.ClientMuseumStandCache.register(this);
+        }
+    }
+
+    @SuppressWarnings("null")
+    @Override
+    public void setRemoved() {
+        net.minecraft.world.level.Level lvl = level;
+        if (lvl != null && lvl.isClientSide) {
+            com.stardew.craft.client.ClientMuseumStandCache.unregister(this);
+        }
+        super.setRemoved();
     }
 }

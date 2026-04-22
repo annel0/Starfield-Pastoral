@@ -32,10 +32,13 @@ public class MiningBlockBreakHandler {
      * 检查方块是否是可计数的主石头
      */
     private static boolean isCountableStone(Block block) {
-        // 检查是否是主石头（6种）
+        // 检查是否是可计数的主石头或装饰石（含 Dark 变体）
         return block == ModBlocks.EARTH_SHALE.get() ||
+               block == ModBlocks.DARK_EARTH_SHALE.get() ||
                block == ModBlocks.FROST_GNEISS.get() ||
+               block == ModBlocks.DARK_FROST_GNEISS.get() ||
                block == ModBlocks.LAVA_BASALT.get() ||
+               block == ModBlocks.DARK_LAVA_BASALT.get() ||
                block == ModBlocks.BANDED_MARBLE.get() ||
                block == ModBlocks.LIMESTONE.get() ||
                block == ModBlocks.MOSSY_SANDSTONE.get() ||
@@ -110,17 +113,26 @@ public class MiningBlockBreakHandler {
                 // 延迟 1 tick 放置楼梯方块：BreakEvent 在方块移除之前触发，
                 // 如果在这里直接 setBlock，随后的破坏逻辑会把它覆盖成空气。
                 final BlockPos ladderPos = pos.immutable();
+                // SDV: 骷髅矿（floor > 120）非必杀层 20% 概率生成竖井
+                final boolean isShaft = floorNumber > 120
+                        && !floorData.isMonsterArea()
+                        && serverLevel.getRandom().nextDouble() < 0.2;
                 serverLevel.getServer().execute(() -> {
-                    serverLevel.setBlock(ladderPos, ModBlocks.MINE_LADDER.get().defaultBlockState(), 3);
+                    net.minecraft.world.level.block.state.BlockState ladderState =
+                            ModBlocks.MINE_LADDER.get().defaultBlockState()
+                                    .setValue(com.stardew.craft.block.mine.MineLadderBlock.SHAFT, isShaft);
+                    serverLevel.setBlock(ladderPos, ladderState, 3);
 
                     // SDV 原版：发现楼梯播放 "hoeHit" 音效
                     serverLevel.playSound(null, ladderPos, ModSounds.HOE_HIT.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
 
                     // SDV 原版：显示全局消息提示楼梯已出现（仿 MineShaft.cs:9484）
                     for (ServerPlayer p : serverLevel.players()) {
-                        PacketDistributor.sendToPlayer(p, new LadderSyncPacket(floorNumber, true, ladderPos));
+                        PacketDistributor.sendToPlayer(p, new LadderSyncPacket(floorNumber, true, ladderPos, isShaft));
                         p.displayClientMessage(
-                                Component.translatable("message.stardewcraft.ladder_found"), false);
+                                Component.translatable(isShaft
+                                        ? "message.stardewcraft.shaft_found"
+                                        : "message.stardewcraft.ladder_found"), false);
                     }
                 });
             }

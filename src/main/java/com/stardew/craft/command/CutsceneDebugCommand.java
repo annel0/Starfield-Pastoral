@@ -1,0 +1,98 @@
+package com.stardew.craft.command;
+
+import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.context.CommandContext;
+import com.stardew.craft.cutscene.data.EventData;
+import com.stardew.craft.cutscene.data.EventRegistry;
+import com.stardew.craft.cutscene.network.SyncEventSeenPayload;
+import com.stardew.craft.cutscene.server.EventSeenData;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.PacketDistributor;
+
+import java.util.ArrayList;
+
+/**
+ * Debug commands for the cutscene/event system.
+ * /stardew event play &lt;id&gt;  — trigger an event by id
+ * /stardew event list       — list all loaded events
+ * /stardew event reset      — clear eventsSeen for the player
+ */
+@SuppressWarnings("null")
+public final class CutsceneDebugCommand {
+
+    private CutsceneDebugCommand() {}
+
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+        dispatcher.register(
+            Commands.literal("stardew")
+                .requires(source -> source.hasPermission(2))
+                .then(Commands.literal("event")
+                    .then(Commands.literal("play")
+                        .then(Commands.argument("eventId", StringArgumentType.string())
+                            .executes(CutsceneDebugCommand::playEvent)
+                        )
+                    )
+                    .then(Commands.literal("list")
+                        .executes(CutsceneDebugCommand::listEvents)
+                    )
+                    .then(Commands.literal("reset")
+                        .executes(CutsceneDebugCommand::resetSeen)
+                    )
+                )
+        );
+    }
+
+    private static int playEvent(CommandContext<CommandSourceStack> context) {
+        String eventId = StringArgumentType.getString(context, "eventId");
+        EventData data = EventRegistry.getById(eventId);
+        if (data == null) {
+            context.getSource().sendFailure(Component.literal("未找到事件: " + eventId));
+            return 0;
+        }
+
+        // Send the event data to the client for playback
+        // For now, use a simple trigger payload approach:
+        // The client will need to fetch the event from its own registry copy
+        if (context.getSource().getEntity() instanceof ServerPlayer player) {
+            // Send a trigger packet (and mark server-side cutscene active)
+            com.stardew.craft.cutscene.server.ServerCutsceneTracker.startEvent(player, eventId);
+            context.getSource().sendSuccess(() -> Component.literal("触发事件: " + eventId), false);
+            return 1;
+        }
+
+        context.getSource().sendFailure(Component.literal("需要玩家执行此命令。"));
+        return 0;
+    }
+
+    private static int listEvents(CommandContext<CommandSourceStack> context) {
+        var allEvents = EventRegistry.all();
+        if (allEvents.isEmpty()) {
+            context.getSource().sendSuccess(() -> Component.literal("没有已加载的事件。"), false);
+            return 0;
+        }
+
+        StringBuilder sb = new StringBuilder("已加载的事件 (").append(allEvents.size()).append("):\n");
+        for (EventData event : allEvents) {
+            sb.append("  - ").append(event.id())
+              .append(" [").append(event.trigger().type()).append("]")
+              .append(" (").append(event.rawCommands().size()).append(" 条命令)\n");
+        }
+        context.getSource().sendSuccess(() -> Component.literal(sb.toString()), false);
+        return 1;
+    }
+
+    private static int resetSeen(CommandContext<CommandSourceStack> context) {
+        if (context.getSource().getEntity() instanceof ServerPlayer player) {
+            EventSeenData data = EventSeenData.get(player.serverLevel());
+            data.clearSeen(player.getUUID());
+            PacketDistributor.sendToPlayer(player, new SyncEventSeenPayload(new ArrayList<>()));
+            context.getSource().sendSuccess(() -> Component.literal("已重置事件观看记录。"), false);
+            return 1;
+        }
+        return 0;
+    }
+}

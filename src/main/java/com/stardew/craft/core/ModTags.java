@@ -34,6 +34,8 @@ public final class ModTags {
 		public static final TagKey<Item> SEEDMAKER_BANNED = tag("seedmaker_banned");
 		public static final TagKey<Item> CRYSTALARIUM_BANNED = tag("crystalarium_banned");
 		public static final TagKey<Item> ALL_FISHING_CATCHES = tag("all_fishing_catches");
+		/** SDV prevent_loss_on_death 等价：标记这些物品在死亡时不可丢失 */
+		public static final TagKey<Item> PREVENT_LOSS_ON_DEATH = tag("prevent_loss_on_death");
 
 		@SuppressWarnings("null")
 		private static TagKey<Item> tag(String name) {

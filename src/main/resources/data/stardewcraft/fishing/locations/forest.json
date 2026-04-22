@@ -1,218 +1,641 @@
-﻿{
-    "location":  "Forest",
-    "fish":  [
-                 {
-                     "id":  "chub",
-                     "precedence":  100,
-                     "item":  "stardewcraft:chub",
-                     "chance":  0.4,
-                     "difficulty":  35,
-                     "motionType":  0,
-                     "minFishingLevel":  0,
-                     "maxDepth":  3,
-                     "depthMultiplier":  0.1,
-                     "biomeTags":  [
-                                       "#stardewcraft:is_forest_pond",
-                                       "#stardewcraft:is_mountain_lake",
-                                       "#stardewcraft:is_river",
-                                       "#stardewcraft:is_freshwater"
-                                   ]
-                 },
-                 {
-                     "id":  "walleye",
-                     "precedence":  100,
-                     "item":  "stardewcraft:walleye",
-                     "chance":  0.25,
-                     "difficulty":  45,
-                     "motionType":  1,
-                     "minFishingLevel":  0,
-                     "seasons":  [
-                                     "fall",
-                                     "winter"
-                                 ],
-                     "weather":  "rainy",
-                     "timeRanges":  [
-                                        [
-                                            1200,
-                                            1400
-                                        ],
-                                        [
-                                            1800,
-                                            2600
-                                        ]
-                                    ],
-                     "maxDepth":  3,
-                     "depthMultiplier":  0.1,
-                     "biomeTags":  [
-                                       "#stardewcraft:is_river",
-                                       "#stardewcraft:is_mountain_lake",
-                                       "#stardewcraft:is_forest_pond"
-                                   ]
-                 },
-                 {
-                     "id":  "pike",
-                     "precedence":  100,
-                     "item":  "stardewcraft:pike",
-                     "chance":  0.2,
-                     "difficulty":  60,
-                     "motionType":  1,
-                     "minFishingLevel":  3,
-                     "seasons":  [
-                                     "summer",
-                                     "winter"
-                                 ],
-                     "maxDepth":  4,
-                     "depthMultiplier":  0.05,
-                     "biomeTags":  [
-                                       "#stardewcraft:is_river",
-                                       "#stardewcraft:is_forest_pond"
-                                   ]
-                 },
-                 {
-                     "id":  "carp",
-                     "precedence":  100,
-                     "item":  "stardewcraft:carp",
-                     "chance":  0.4,
-                     "difficulty":  15,
-                     "motionType":  0,
-                     "minFishingLevel":  0,
-                     "maxDepth":  3,
-                     "depthMultiplier":  0.1,
-                     "biomeTags":  [
-                                       "#stardewcraft:is_forest_pond",
-                                       "#stardewcraft:is_mountain_lake",
-                                       "#stardewcraft:is_secret_woods"
-                                   ]
-                 },
-                 {
-                     "id":  "perch",
-                     "precedence":  100,
-                     "item":  "stardewcraft:perch",
-                     "chance":  0.35,
-                     "difficulty":  35,
-                     "motionType":  1,
-                     "minFishingLevel":  0,
-                     "seasons":  [
-                                     "winter"
-                                 ],
-                     "maxDepth":  3,
-                     "depthMultiplier":  0.1,
-                     "biomeTags":  [
-                                       "#stardewcraft:is_river",
-                                       "#stardewcraft:is_mountain_lake",
-                                       "#stardewcraft:is_forest_pond"
-                                   ]
-                 },
-                 {
-                     "id":  "midnight_carp",
-                     "precedence":  100,
-                     "item":  "stardewcraft:midnight_carp",
-                     "chance":  0.2,
-                     "difficulty":  55,
-                     "motionType":  0,
-                     "minFishingLevel":  0,
-                     "timeRanges":  [
-                                        [
-                                            2200,
-                                            2600
-                                        ]
-                                    ],
-                     "maxDepth":  3,
-                     "depthMultiplier":  0.1,
-                     "biomeTags":  [
-                                       "#stardewcraft:is_mountain_lake",
-                                       "#stardewcraft:is_forest_pond"
-                                   ]
-                 },
-                 {
-                     "id":  "woodskip",
-                     "precedence":  100,
-                     "item":  "stardewcraft:woodskip",
-                     "chance":  0.15,
-                     "difficulty":  50,
-                     "motionType":  2,
-                     "minFishingLevel":  0,
-                     "maxDepth":  3,
-                     "depthMultiplier":  0.1,
-                     "biomeTags":  [
-                                       "#stardewcraft:is_secret_woods",
-                                       "#stardewcraft:is_forest_pond"
-                                   ]
-                 },
-                 {
-                     "id":  "dorado",
-                     "precedence":  100,
-                     "item":  "stardewcraft:dorado",
-                     "chance":  0.1,
-                     "difficulty":  78,
-                     "motionType":  0,
-                     "minFishingLevel":  5,
-                     "seasons":  [
-                                     "summer"
-                                 ],
-                     "timeRanges":  [
-                                        [
-                                            600,
-                                            1900
-                                        ]
-                                    ],
-                     "maxDepth":  4,
-                     "depthMultiplier":  0.05,
-                     "biomeTags":  [
-                                       "#stardewcraft:is_forest_waterfall"
-                                   ]
-                 },
-                 {
-                     "id":  "glacierfish",
-                     "precedence":  500,
-                     "item":  "stardewcraft:glacierfish",
-                     "chance":  0.1,
-                     "difficulty":  100,
-                     "motionType":  0,
-                     "minFishingLevel":  10,
-                     "seasons":  [
-                                     "winter"
-                                 ],
-                     "timeRanges":  [
-                                        [
-                                            600,
-                                            2000
-                                        ]
-                                    ],
-                     "maxDepth":  5,
-                     "depthMultiplier":  0.05,
-                     "biomeTags":  [
-                                       "#stardewcraft:is_forest_waterfall"
-                                   ],
-                     "condition":  "!PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
-                     "catchLimit":  1,
-                     "isBossFish":  true
-                 },
-                 {
-                     "id":  "glacierfish_jr",
-                     "precedence":  500,
-                     "item":  "stardewcraft:glacierfish_jr",
-                     "chance":  0.05,
-                     "difficulty":  100,
-                     "motionType":  0,
-                     "minFishingLevel":  15,
-                     "seasons":  [
-                                     "winter"
-                                 ],
-                     "timeRanges":  [
-                                        [
-                                            600,
-                                            2000
-                                        ]
-                                    ],
-                     "maxDepth":  5,
-                     "depthMultiplier":  0.05,
-                     "biomeTags":  [
-                                       "#stardewcraft:is_forest_waterfall"
-                                   ],
-                     "condition":  "PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
-                     "catchLimit":  1,
-                     "isBossFish":  true
-                 }
-             ]
+{
+  "location": "Forest",
+  "fish": [
+    {
+      "id": "chub",
+      "precedence": 0,
+      "item": "stardewcraft:chub",
+      "chance": 1.0,
+      "difficulty": 35,
+      "motionType": 0,
+      "minFishingLevel": 0,
+      "maxDepth": 1,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_forest_pond",
+        "#stardewcraft:is_mountain_lake",
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_freshwater"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.45,
+      "fishAreaId": "River"
+    },
+    {
+      "id": "walleye",
+      "precedence": 0,
+      "item": "stardewcraft:walleye",
+      "chance": 1.0,
+      "difficulty": 45,
+      "motionType": 1,
+      "minFishingLevel": 0,
+      "weather": "rainy",
+      "timeRanges": [
+        [
+          1200,
+          2600
+        ]
+      ],
+      "maxDepth": 2,
+      "depthMultiplier": 0.15,
+      "biomeTags": [
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_mountain_lake",
+        "#stardewcraft:is_forest_pond"
+      ],
+      "spawnRate": 0.4
+    },
+    {
+      "id": "pike",
+      "precedence": 0,
+      "item": "stardewcraft:pike",
+      "chance": 1.0,
+      "difficulty": 60,
+      "motionType": 1,
+      "minFishingLevel": 0,
+      "maxDepth": 3,
+      "depthMultiplier": 0.15,
+      "biomeTags": [
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_forest_pond"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.4
+    },
+    {
+      "id": "carp",
+      "precedence": 100,
+      "item": "stardewcraft:carp",
+      "chance": 0.4,
+      "difficulty": 15,
+      "motionType": 0,
+      "minFishingLevel": 0,
+      "maxDepth": 1,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_forest_pond",
+        "#stardewcraft:is_mountain_lake",
+        "#stardewcraft:is_secret_woods"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.45
+    },
+    {
+      "id": "perch",
+      "precedence": 0,
+      "item": "stardewcraft:perch",
+      "chance": 1.0,
+      "difficulty": 35,
+      "motionType": 1,
+      "minFishingLevel": 0,
+      "seasons": [
+        "winter"
+      ],
+      "maxDepth": 1,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_mountain_lake",
+        "#stardewcraft:is_forest_pond"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.45
+    },
+    {
+      "id": "midnight_carp",
+      "precedence": 0,
+      "item": "stardewcraft:midnight_carp",
+      "chance": 1.0,
+      "difficulty": 55,
+      "motionType": 0,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          2200,
+          2600
+        ]
+      ],
+      "maxDepth": 1,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_mountain_lake",
+        "#stardewcraft:is_forest_pond"
+      ],
+      "weather": "any",
+      "spawnRate": 0.33,
+      "fishAreaId": "Lake"
+    },
+    {
+      "id": "woodskip",
+      "precedence": 100,
+      "item": "stardewcraft:woodskip",
+      "chance": 0.15,
+      "difficulty": 50,
+      "motionType": 2,
+      "minFishingLevel": 0,
+      "maxDepth": 3,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_secret_woods",
+        "#stardewcraft:is_forest_pond"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.2
+    },
+    {
+      "id": "dorado",
+      "precedence": 0,
+      "item": "stardewcraft:dorado",
+      "chance": 1.0,
+      "difficulty": 78,
+      "motionType": 0,
+      "minFishingLevel": 0,
+      "seasons": [
+        "summer"
+      ],
+      "timeRanges": [
+        [
+          600,
+          1900
+        ]
+      ],
+      "maxDepth": 3,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_forest_waterfall"
+      ],
+      "weather": "any",
+      "spawnRate": 0.15,
+      "fishAreaId": "River"
+    },
+    {
+      "id": "glacierfish",
+      "precedence": -100,
+      "item": "stardewcraft:glacierfish",
+      "chance": 0.5,
+      "difficulty": 100,
+      "motionType": 0,
+      "minFishingLevel": 7,
+      "seasons": [
+        "winter"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2000
+        ]
+      ],
+      "maxDepth": 5,
+      "depthMultiplier": 0.02,
+      "biomeTags": [
+        "#stardewcraft:is_forest_waterfall"
+      ],
+      "condition": "!PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
+      "catchLimit": 1,
+      "isBossFish": true,
+      "weather": "sunny",
+      "spawnRate": 0.0,
+      "curiosityLureBuff": 0.0,
+      "canBeInherited": false
+    },
+    {
+      "id": "glacierfish_jr",
+      "precedence": -100,
+      "item": "stardewcraft:glacierfish_jr",
+      "chance": 0.5,
+      "difficulty": 100,
+      "motionType": 0,
+      "minFishingLevel": 7,
+      "timeRanges": [
+        [
+          600,
+          2000
+        ]
+      ],
+      "maxDepth": 5,
+      "depthMultiplier": 0.02,
+      "biomeTags": [
+        "#stardewcraft:is_forest_waterfall"
+      ],
+      "condition": "PLAYER_SPECIAL_ORDER_RULE_ACTIVE Current LEGENDARY_FAMILY",
+      "catchLimit": 1,
+      "isBossFish": true,
+      "weather": "sunny",
+      "spawnRate": 0.0,
+      "curiosityLureBuff": 0.0,
+      "canBeInherited": false
+    },
+    {
+      "id": "salmon",
+      "precedence": -89,
+      "item": "stardewcraft:salmon",
+      "chance": 0.15,
+      "difficulty": 50,
+      "motionType": 0,
+      "minFishingLevel": 0,
+      "seasons": [
+        "fall"
+      ],
+      "timeRanges": [
+        [
+          600,
+          1900
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 3,
+      "depthMultiplier": 0.2,
+      "spawnRate": 0.4,
+      "biomeTags": [
+        "#stardewcraft:is_forest_pond",
+        "#stardewcraft:is_mountain_lake",
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_freshwater"
+      ]
+    },
+    {
+      "id": "green_algae",
+      "precedence": 0,
+      "item": "stardewcraft:green_algae",
+      "chance": 1.0,
+      "difficulty": 5,
+      "motionType": 4,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 0,
+      "depthMultiplier": 0.0,
+      "spawnRate": 0.3,
+      "biomeTags": [
+        "#stardewcraft:is_forest_pond",
+        "#stardewcraft:is_mountain_lake",
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_freshwater"
+      ]
+    },
+    {
+      "id": "sunfish",
+      "precedence": 0,
+      "item": "stardewcraft:sunfish",
+      "chance": 1.0,
+      "difficulty": 30,
+      "motionType": 0,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          1900
+        ]
+      ],
+      "weather": "sunny",
+      "maxDepth": 1,
+      "depthMultiplier": 0.1,
+      "spawnRate": 0.45,
+      "biomeTags": [
+        "#stardewcraft:is_forest_pond",
+        "#stardewcraft:is_mountain_lake",
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_freshwater"
+      ],
+      "fishAreaId": "River",
+      "condition": "LOCATION_SEASON Here spring summer"
+    },
+    {
+      "id": "catfish",
+      "precedence": 0,
+      "item": "stardewcraft:catfish",
+      "chance": 1.0,
+      "difficulty": 75,
+      "motionType": 0,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          2400
+        ]
+      ],
+      "weather": "rainy",
+      "maxDepth": 4,
+      "depthMultiplier": 0.1,
+      "spawnRate": 0.4,
+      "biomeTags": [
+        "#stardewcraft:is_forest_pond",
+        "#stardewcraft:is_mountain_lake",
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_freshwater"
+      ],
+      "fishAreaId": "River",
+      "condition": "LOCATION_SEASON Here spring fall winter"
+    },
+    {
+      "id": "smallmouth_bass",
+      "precedence": 0,
+      "item": "stardewcraft:smallmouth_bass",
+      "chance": 1.0,
+      "difficulty": 28,
+      "motionType": 0,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 1,
+      "depthMultiplier": 0.1,
+      "spawnRate": 0.45,
+      "biomeTags": [
+        "#stardewcraft:is_forest_pond",
+        "#stardewcraft:is_mountain_lake",
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_freshwater"
+      ],
+      "fishAreaId": "Lake",
+      "condition": "LOCATION_SEASON Here spring fall"
+    },
+    {
+      "id": "bream",
+      "precedence": 0,
+      "item": "stardewcraft:bream",
+      "chance": 1.0,
+      "difficulty": 35,
+      "motionType": 2,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          1800,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 1,
+      "depthMultiplier": 0.1,
+      "spawnRate": 0.45,
+      "biomeTags": [
+        "#stardewcraft:is_forest_pond",
+        "#stardewcraft:is_mountain_lake",
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_freshwater"
+      ],
+      "fishAreaId": "River"
+    },
+    {
+      "id": "shad",
+      "precedence": 0,
+      "item": "stardewcraft:shad",
+      "chance": 1.0,
+      "difficulty": 45,
+      "motionType": 2,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          900,
+          2600
+        ]
+      ],
+      "weather": "rainy",
+      "maxDepth": 2,
+      "depthMultiplier": 0.2,
+      "spawnRate": 0.35,
+      "biomeTags": [
+        "#stardewcraft:is_forest_pond",
+        "#stardewcraft:is_mountain_lake",
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_freshwater"
+      ],
+      "fishAreaId": "River",
+      "condition": "LOCATION_SEASON Here spring summer fall"
+    },
+    {
+      "id": "rainbow_trout",
+      "precedence": 0,
+      "item": "stardewcraft:rainbow_trout",
+      "chance": 1.0,
+      "difficulty": 45,
+      "motionType": 0,
+      "minFishingLevel": 0,
+      "seasons": [
+        "summer"
+      ],
+      "timeRanges": [
+        [
+          600,
+          1900
+        ]
+      ],
+      "weather": "sunny",
+      "maxDepth": 2,
+      "depthMultiplier": 0.3,
+      "spawnRate": 0.35,
+      "biomeTags": [
+        "#stardewcraft:is_forest_pond",
+        "#stardewcraft:is_mountain_lake",
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_freshwater"
+      ],
+      "fishAreaId": "River",
+      "condition": "IS_PASSIVE_FESTIVAL_OPEN TroutDerby"
+    },
+    {
+      "id": "rainbow_trout",
+      "precedence": 0,
+      "item": "stardewcraft:rainbow_trout",
+      "chance": 1.0,
+      "difficulty": 45,
+      "motionType": 0,
+      "minFishingLevel": 0,
+      "seasons": [
+        "summer"
+      ],
+      "timeRanges": [
+        [
+          600,
+          1900
+        ]
+      ],
+      "weather": "sunny",
+      "maxDepth": 2,
+      "depthMultiplier": 0.3,
+      "spawnRate": 0.35,
+      "biomeTags": [
+        "#stardewcraft:is_forest_pond",
+        "#stardewcraft:is_mountain_lake",
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_freshwater"
+      ],
+      "fishAreaId": "River"
+    },
+    {
+      "id": "salmon",
+      "precedence": 0,
+      "item": "stardewcraft:salmon",
+      "chance": 1.0,
+      "difficulty": 50,
+      "motionType": 0,
+      "minFishingLevel": 0,
+      "seasons": [
+        "fall"
+      ],
+      "timeRanges": [
+        [
+          600,
+          1900
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 3,
+      "depthMultiplier": 0.2,
+      "spawnRate": 0.4,
+      "biomeTags": [
+        "#stardewcraft:is_forest_pond",
+        "#stardewcraft:is_mountain_lake",
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_freshwater"
+      ],
+      "fishAreaId": "River"
+    },
+    {
+      "id": "tiger_trout",
+      "precedence": 0,
+      "item": "stardewcraft:tiger_trout",
+      "chance": 1.0,
+      "difficulty": 60,
+      "motionType": 1,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          1900
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 3,
+      "depthMultiplier": 0.1,
+      "spawnRate": 0.2,
+      "biomeTags": [
+        "#stardewcraft:is_forest_pond",
+        "#stardewcraft:is_mountain_lake",
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_freshwater"
+      ],
+      "fishAreaId": "River",
+      "condition": "LOCATION_SEASON Here fall winter"
+    },
+    {
+      "id": "lingcod",
+      "precedence": 0,
+      "item": "stardewcraft:lingcod",
+      "chance": 1.0,
+      "difficulty": 85,
+      "motionType": 0,
+      "minFishingLevel": 0,
+      "seasons": [
+        "winter"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 3,
+      "depthMultiplier": 0.05,
+      "spawnRate": 0.3,
+      "biomeTags": [
+        "#stardewcraft:is_forest_pond",
+        "#stardewcraft:is_mountain_lake",
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_freshwater"
+      ],
+      "fishAreaId": "River"
+    },
+    {
+      "id": "river_jelly",
+      "precedence": 0,
+      "item": "stardewcraft:river_jelly",
+      "chance": 0.1,
+      "difficulty": 20,
+      "motionType": 0,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 4,
+      "depthMultiplier": 0.0,
+      "spawnRate": 1.0,
+      "biomeTags": [
+        "#stardewcraft:is_forest_pond",
+        "#stardewcraft:is_mountain_lake",
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_freshwater"
+      ]
+    },
+    {
+      "id": "goby",
+      "precedence": -90,
+      "item": "stardewcraft:goby",
+      "chance": 0.15,
+      "difficulty": 55,
+      "motionType": 1,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          800,
+          1800
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 1,
+      "depthMultiplier": 0.2,
+      "spawnRate": 0.25,
+      "biomeTags": [
+        "#stardewcraft:is_forest_pond",
+        "#stardewcraft:is_mountain_lake",
+        "#stardewcraft:is_river",
+        "#stardewcraft:is_freshwater"
+      ],
+      "curiosityLureBuff": 0.15
+    }
+  ]
 }

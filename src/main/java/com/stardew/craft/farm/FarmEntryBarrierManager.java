@@ -27,7 +27,13 @@ public class FarmEntryBarrierManager extends SavedData {
     private static final String DATA_NAME = "stardew_farm_entry_barriers";
     private static final String TAG_FARM_ENTRY = "sdv_portal_marker:farm_entry";
 
-    private boolean barriersPlaced = false;
+    /**
+     * 放置逻辑版本号。修改三个入口屏障/触发位置时把这个数 +1，
+     * 老存档下次加载会自动覆盖旧位置重新放置。
+     */
+    private static final int CURRENT_VERSION = 2;
+
+    private int placedVersion = 0;
 
     public FarmEntryBarrierManager() {}
 
@@ -41,18 +47,20 @@ public class FarmEntryBarrierManager extends SavedData {
      * 重置屏障放置状态，用于迁移时强制重新放置。
      */
     public void resetForMigration() {
-        barriersPlaced = false;
+        placedVersion = 0;
         setDirty();
     }
 
     /**
-     * 确保屏障墙和交互实体已放置。只执行一次。
+     * 确保屏障墙和交互实体已放置。基于版本号幂等：
+     * placedVersion < CURRENT_VERSION 时会重新放置（老存档升级兼容）。
      */
     public void ensureBarriersPlaced(ServerLevel stardewLevel) {
-        if (barriersPlaced) return;
+        if (placedVersion >= CURRENT_VERSION) return;
         if (!ModDimensions.STARDEW_VALLEY.equals(stardewLevel.dimension())) return;
 
-        StardewCraft.LOGGER.info("[FARM_BARRIER] Placing farm entry barriers and interaction entities...");
+        StardewCraft.LOGGER.info("[FARM_BARRIER] Placing farm entry barriers (oldVersion={}, newVersion={})",
+                placedVersion, CURRENT_VERSION);
 
         // ── 入口 1: 南入口（镇子方向） ──
         // 屏障墙: X 198-210, Y -14 到 8, Z=160
@@ -78,7 +86,7 @@ public class FarmEntryBarrierManager extends SavedData {
                 new BlockPos(70, -12, 116), new BlockPos(70, -10, 123),
                 "sdv_portal_target:farm_entry_west");
 
-        barriersPlaced = true;
+        placedVersion = CURRENT_VERSION;
         setDirty();
         StardewCraft.LOGGER.info("[FARM_BARRIER] Farm entry barriers placed successfully.");
     }
@@ -122,13 +130,18 @@ public class FarmEntryBarrierManager extends SavedData {
     @Override
     @Nonnull
     public CompoundTag save(@Nonnull CompoundTag tag, @Nonnull HolderLookup.Provider registries) {
-        tag.putBoolean("BarriersPlaced", barriersPlaced);
+        tag.putInt("PlacedVersion", placedVersion);
         return tag;
     }
 
     private static FarmEntryBarrierManager load(CompoundTag tag, HolderLookup.Provider provider) {
         FarmEntryBarrierManager manager = new FarmEntryBarrierManager();
-        manager.barriersPlaced = tag.getBoolean("BarriersPlaced");
+        if (tag.contains("PlacedVersion")) {
+            manager.placedVersion = tag.getInt("PlacedVersion");
+        } else if (tag.contains("BarriersPlaced")) {
+            // 旧存档兼容：老 BarriersPlaced=true 视为版本 1
+            manager.placedVersion = tag.getBoolean("BarriersPlaced") ? 1 : 0;
+        }
         return manager;
     }
 

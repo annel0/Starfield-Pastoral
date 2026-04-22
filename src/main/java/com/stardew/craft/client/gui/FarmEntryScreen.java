@@ -34,6 +34,7 @@ public class FarmEntryScreen extends Screen {
 
     private final List<FarmListSyncPayload.FarmEntry> farms;
     private final String entryTag;
+    @SuppressWarnings("unused")
     private final UUID selfUUID;
     private List<FarmListSyncPayload.FarmEntry> sortedFarms;
 
@@ -72,7 +73,7 @@ public class FarmEntryScreen extends Screen {
         rowHighlight = new float[sortedFarms.size()];
 
         for (int i = 0; i < sortedFarms.size(); i++) {
-            if (sortedFarms.get(i).ownerUUID().equals(selfUUID)) {
+            if (sortedFarms.get(i).isMember()) {
                 selectedIndex = i;
                 break;
             }
@@ -100,7 +101,7 @@ public class FarmEntryScreen extends Screen {
     }
 
     private int sortPriority(FarmListSyncPayload.FarmEntry e) {
-        if (e.ownerUUID().equals(selfUUID)) return 0;
+        if (e.isMember()) return 0;
         return switch (e.permission()) {
             case 2 -> 1;
             case 1 -> 2;
@@ -131,7 +132,7 @@ public class FarmEntryScreen extends Screen {
             if (inside(mx, my, contentX, ry, contentW - ui(12), rowH)) {
                 FarmListSyncPayload.FarmEntry entry = sortedFarms.get(idx);
                 boolean canEnter = entry.permission() >= FarmPermissionManager.PERM_VISIT
-                        || entry.ownerUUID().equals(selfUUID);
+                        || entry.isMember();
                 if (canEnter) {
                     // 双击进入
                     if (idx == lastClickIndex && idx == selectedIndex && (now - lastClickTime) < 400) {
@@ -219,7 +220,7 @@ public class FarmEntryScreen extends Screen {
             int idx = i + scrollOffset;
             FarmListSyncPayload.FarmEntry entry = sortedFarms.get(idx);
             boolean isSelected = (idx == selectedIndex);
-            boolean isSelf = entry.ownerUUID().equals(selfUUID);
+            boolean isSelf = entry.isMember();
             int perm = entry.permission();
             boolean locked = (perm == FarmPermissionManager.PERM_NONE && !isSelf);
             int ry = listY + i * rowH;
@@ -327,7 +328,7 @@ public class FarmEntryScreen extends Screen {
     private void submitSelection() {
         if (selectedIndex < 0 || selectedIndex >= sortedFarms.size()) return;
         FarmListSyncPayload.FarmEntry entry = sortedFarms.get(selectedIndex);
-        if (entry.permission() < FarmPermissionManager.PERM_VISIT && !entry.ownerUUID().equals(selfUUID)) {
+        if (entry.permission() < FarmPermissionManager.PERM_VISIT && !entry.isMember()) {
             playUi(ModSounds.SMALL_SELECT.get(), 0.4f, 0.7f);
             return;
         }

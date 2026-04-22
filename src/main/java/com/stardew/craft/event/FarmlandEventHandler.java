@@ -32,22 +32,32 @@ public class FarmlandEventHandler {
     /**
      * 星露谷维度破坏耕地 → 掉落黄土而非原版泥土。
      * SDV parity: 锄过的地撸掉后回到原始土壤状态。
+     * 但若位于受保护区域（城镇等），由 FarmAreaProtectionEvents 拦截，本处不应处理。
      */
     @SubscribeEvent
     public static void onFarmlandBreak(BlockEvent.BreakEvent event) {
+        if (event.isCanceled()) return;
         if (event.getLevel().isClientSide()) return;
         if (!(event.getState().getBlock() instanceof FarmBlock)) return;
         if (!(event.getLevel() instanceof net.minecraft.world.level.Level level)) return;
         if (level.dimension() != ModDimensions.STARDEW_VALLEY) return;
 
         BlockPos pos = event.getPos();
-        // 取消原版破坏，手动放置黄土并掉落
+
+        // 区域保护：城镇/他人农场等不允许破坏耕地（创造模式照常通过）
+        if (event.getPlayer() instanceof net.minecraft.server.level.ServerPlayer sp
+                && !sp.isCreative()
+                && !FarmAreaProtectionEvents.canModifyAt(sp, pos)) {
+            event.setCanceled(true);
+            sp.displayClientMessage(
+                    net.minecraft.network.chat.Component.translatable("stardewcraft.farm.build_farm_only"), true);
+            return;
+        }
+
+        // 取消原版破坏（避免掉落原版泥土），把耕地直接移除变成空气，并掉落黄土
         event.setCanceled(true);
-        level.setBlock(pos, ModBlocks.YELLOW_DIRT.get().defaultBlockState(),
-                net.minecraft.world.level.block.Block.UPDATE_ALL);
-        net.minecraft.world.entity.item.ItemEntity drop = new net.minecraft.world.entity.item.ItemEntity(
-                level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
+        level.removeBlock(pos, false);
+        net.minecraft.world.level.block.Block.popResource(level, pos,
                 new ItemStack(ModBlocks.YELLOW_DIRT.get()));
-        level.addFreshEntity(drop);
     }
 }

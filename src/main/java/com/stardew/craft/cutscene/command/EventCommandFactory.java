@@ -1,0 +1,224 @@
+package com.stardew.craft.cutscene.command;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.mojang.logging.LogUtils;
+import org.slf4j.Logger;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Creates {@link EventCommand} instances from JSON command objects.
+ */
+public final class EventCommandFactory {
+
+    private static final Logger LOGGER = LogUtils.getLogger();
+
+    private EventCommandFactory() {}
+
+    /**
+     * Parse a single JSON command object into an EventCommand.
+     * Returns null for unknown/comment commands.
+     */
+    public static EventCommand create(JsonObject obj) {
+        String cmd = obj.get("cmd").getAsString();
+
+        return switch (cmd) {
+            case "lock_player"   -> new LockPlayerCommand();
+            case "unlock_player" -> new UnlockPlayerCommand();
+            case "pause"         -> new PauseCommand(obj.get("ticks").getAsInt());
+            case "skippable"     -> new SkippableCommand();
+            case "end"           -> new EndCommand();
+            case "comment"       -> null; // skip comments
+
+            case "spawn_actor"   -> new SpawnActorCommand(
+                    obj.get("actor").getAsString(),
+                    obj.get("npc_id").getAsString(),
+                    getDouble(obj, "x", 0),
+                    getDouble(obj, "y", 0),
+                    getDouble(obj, "z", 0),
+                    getBool(obj, "relative", false),
+                    getFloat(obj, "facing", 0),
+                    getString(obj, "anchor", null)
+            );
+            case "remove_actor"  -> new RemoveActorCommand(obj.get("actor").getAsString());
+            case "move_player"   -> new MovePlayerCommand(
+                    getDouble(obj, "x", 0),
+                    getDouble(obj, "y", 0),
+                    getDouble(obj, "z", 0),
+                    obj.get("ticks").getAsInt(),
+                    getBool(obj, "relative", false),
+                    getString(obj, "anchor", null)
+            );
+
+            case "move_actor"    -> new MoveActorCommand(
+                    obj.get("actor").getAsString(),
+                    getDouble(obj, "x", 0),
+                    getDouble(obj, "y", 0),
+                    getDouble(obj, "z", 0),
+                    obj.get("ticks").getAsInt(),
+                    getBool(obj, "relative", true),
+                    getString(obj, "anchor", null)
+            );
+            case "face_actor"    -> new FaceActorCommand(
+                    obj.get("actor").getAsString(),
+                    obj.has("yaw") ? obj.get("yaw").getAsFloat() : null,
+                    obj.has("face_actor") ? obj.get("face_actor").getAsString() : null
+            );
+            case "animate"       -> new AnimateCommand(
+                    obj.get("actor").getAsString(),
+                    obj.get("anim").getAsString(),
+                    getBool(obj, "loop", false)
+            );
+            case "hide_npc"      -> new HideNpcCommand(obj.get("npc_id").getAsString());
+
+            case "camera"        -> {
+                if (obj.has("action") && "reset".equals(obj.get("action").getAsString())) {
+                    yield new CameraResetCommand();
+                }
+                yield new CameraCommand(
+                        getDouble(obj, "x", 0),
+                        getDouble(obj, "y", 0),
+                        getDouble(obj, "z", 0),
+                        getFloat(obj, "yaw", 0),
+                        getFloat(obj, "pitch", 30),
+                        getBool(obj, "relative", false),
+                        getInt(obj, "ticks", 0),
+                        getString(obj, "anchor", null)
+                );
+            }
+
+            case "speak"         -> new SpeakCommand(
+                    obj.get("npc_id").getAsString(),
+                    obj.get("text").getAsString()
+            );
+
+            case "fade"          -> new FadeCommand(
+                    "out".equals(getString(obj, "mode", "out")),
+                    getInt(obj, "ticks", 20)
+            );
+
+            case "emote"         -> new EmoteCommand(
+                    obj.get("actor").getAsString(),
+                    obj.get("emote").getAsString()
+            );
+            case "jump"          -> new JumpCommand(
+                    obj.get("actor").getAsString(),
+                    getDouble(obj, "strength", 0.5)
+            );
+            case "play_sound"    -> new PlaySoundCommand(
+                    obj.get("sound").getAsString(),
+                    getFloat(obj, "volume", 1.0f),
+                    getFloat(obj, "pitch", 1.0f)
+            );
+            case "message"       -> new MessageCommand(obj.get("text").getAsString());
+            case "add_quest"     -> new AddQuestCommand(obj.get("quest_id").getAsString());
+            case "set_flag"      -> new SetFlagCommand(obj.get("flag").getAsString());
+            case "show_npc"      -> new ShowNpcCommand(obj.get("npc_id").getAsString());
+            case "spawn_entity"  -> new SpawnEntityCommand(
+                    obj.get("entity_type").getAsString(),
+                    obj.get("tag").getAsString(),
+                    getDouble(obj, "x", 0), getDouble(obj, "y", 0), getDouble(obj, "z", 0),
+                    getInt(obj, "color", 0),
+                    getFloat(obj, "facing", 0),
+                    getString(obj, "anchor", null)
+            );
+            case "screen_flash"  -> new ScreenFlashCommand(getInt(obj, "ticks", 4));
+
+            // ── Layer 2: new commands ──
+
+            case "music"         -> new MusicCommand(obj.get("track").getAsString());
+            case "stop_music"    -> new StopMusicCommand();
+
+            case "add_friendship" -> new AddFriendshipCommand(
+                    obj.get("npc").getAsString(),
+                    getInt(obj, "points", 250)
+            );
+            case "add_item"      -> new AddItemCommand(
+                    obj.get("item").getAsString(),
+                    getInt(obj, "count", 1)
+            );
+            case "add_mail"      -> new AddMailCommand(obj.get("id").getAsString());
+
+            case "question"      -> QuestionCommand.fromJson(obj);
+
+            case "simultaneous"  -> {
+                JsonArray cmdsArr = obj.getAsJsonArray("commands");
+                List<EventCommand> subCmds = new ArrayList<>();
+                for (var el : cmdsArr) {
+                    EventCommand sub = create(el.getAsJsonObject());
+                    if (sub != null) subCmds.add(sub);
+                }
+                yield new SimultaneousCommand(subCmds);
+            }
+
+            case "camera_shake"  -> new CameraShakeCommand(
+                    getFloat(obj, "intensity", 0.5f),
+                    getInt(obj, "ticks", 20)
+            );
+            case "camera_follow" -> new CameraFollowCommand(
+                    obj.get("actor").getAsString(),
+                    getDouble(obj, "dx", 0),
+                    getDouble(obj, "dy", 3),
+                    getDouble(obj, "dz", 5),
+                    getFloat(obj, "yaw", 0),
+                    getFloat(obj, "pitch", 30),
+                    getInt(obj, "ticks", 60)
+            );
+            case "warp"          -> new WarpCommand(
+                    obj.get("actor").getAsString(),
+                    getDouble(obj, "x", 0),
+                    getDouble(obj, "y", 0),
+                    getDouble(obj, "z", 0),
+                    getBool(obj, "relative", false),
+                    getString(obj, "anchor", null)
+            );
+            case "particle"      -> new ParticleCommand(
+                    obj.get("type").getAsString(),
+                    getDouble(obj, "x", 0),
+                    getDouble(obj, "y", 0),
+                    getDouble(obj, "z", 0),
+                    getInt(obj, "count", 3),
+                    getInt(obj, "ticks", 20),
+                    getString(obj, "anchor", null)
+            );
+
+            case "hold_item"     -> new HoldItemCommand(
+                    obj.get("actor").getAsString(),
+                    obj.get("item").getAsString(),
+                    getInt(obj, "ticks", 60),
+                    getFloat(obj, "offset_y", 0)
+            );
+
+            case "teleport_cc"   -> new TeleportCCCommand();
+
+            default -> {
+                LOGGER.warn("Unknown event command: {}", cmd);
+                yield null;
+            }
+        };
+    }
+
+    // ─── JSON helpers ───
+
+    private static double getDouble(JsonObject obj, String key, double def) {
+        return obj.has(key) ? obj.get(key).getAsDouble() : def;
+    }
+
+    private static float getFloat(JsonObject obj, String key, float def) {
+        return obj.has(key) ? obj.get(key).getAsFloat() : def;
+    }
+
+    private static int getInt(JsonObject obj, String key, int def) {
+        return obj.has(key) ? obj.get(key).getAsInt() : def;
+    }
+
+    private static boolean getBool(JsonObject obj, String key, boolean def) {
+        return obj.has(key) ? obj.get(key).getAsBoolean() : def;
+    }
+
+    private static String getString(JsonObject obj, String key, String def) {
+        return obj.has(key) ? obj.get(key).getAsString() : def;
+    }
+}

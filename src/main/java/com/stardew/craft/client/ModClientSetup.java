@@ -86,6 +86,7 @@ public final class ModClientSetup {
 		event.registerEntityRenderer(ModEntities.ELF_BLADE_LEAF.get(), ElfBladeLeafRenderer::new);
 		event.registerEntityRenderer(ModEntities.ICE_SPINE_EFFECT.get(), IceSpineEffectRenderer::new);
 		event.registerEntityRenderer(ModEntities.STARDEW_BOMB.get(), com.stardew.craft.client.renderer.entity.StardewBombEntityRenderer::new);
+		event.registerEntityRenderer(ModEntities.CROW.get(), com.stardew.craft.client.renderer.entity.CrowEntityRenderer::new);
 		event.registerEntityRenderer(ModEntities.DUCK.get(), CoopAnimalGeoRenderer::new);
 		event.registerEntityRenderer(ModEntities.WHITE_CHICKEN.get(), CoopAnimalGeoRenderer::new);
 		event.registerEntityRenderer(ModEntities.GOLDEN_CHICKEN.get(), CoopAnimalGeoRenderer::new);
@@ -98,7 +99,13 @@ public final class ModClientSetup {
 		event.registerEntityRenderer(ModEntities.SHEEP.get(), CoopAnimalGeoRenderer::new);
 		event.registerEntityRenderer(ModEntities.PIG.get(), CoopAnimalGeoRenderer::new);
 		event.registerEntityRenderer(ModEntities.STARDEW_NPC.get(), NpcGeoRenderer::new);
+		event.registerEntityRenderer(ModEntities.EVENT_ACTOR.get(),
+				com.stardew.craft.client.renderer.entity.EventActorGeoRenderer::new);
+		event.registerEntityRenderer(ModEntities.EVENT_PLAYER_ACTOR.get(),
+				com.stardew.craft.client.renderer.entity.EventPlayerActorRenderer::new);
 		event.registerEntityRenderer(ModEntities.JUNIMO.get(), JunimoGeoRenderer::new);
+		event.registerEntityRenderer(ModEntities.CAMEL_MERCHANT.get(),
+				com.stardew.craft.client.renderer.entity.CamelMerchantGeoRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.TAPPER.get(), TapperBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.KEG.get(), KegBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.PRESERVES_JAR.get(), PreservesJarBlockEntityRenderer::new);
@@ -136,6 +143,7 @@ public final class ModClientSetup {
 		event.registerBlockEntityRenderer(ModBlockEntities.LARGE_FIREPLACE.get(), LargeFireplaceBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.SHRINE.get(), ShrineBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.JUNIMO_HUT_DECOR.get(), com.stardew.craft.client.render.JunimoHutDecorBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(ModBlockEntities.GIANT_CROP.get(), com.stardew.craft.client.render.GiantCropBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.BOOKSHELF_GEO.get(), BookshelfGeoBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.PILLAR_GEO.get(), PillarGeoBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.GRANDFATHER_CLOCK.get(), com.stardew.craft.client.render.GrandfatherClockBlockEntityRenderer::new);

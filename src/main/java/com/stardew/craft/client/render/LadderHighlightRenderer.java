@@ -41,13 +41,18 @@ public final class LadderHighlightRenderer {
     // 边缘半宽（世界单位）
     private static final float EDGE_HALF = 0.025f;
 
-    // 紫色高亮色调
+    // 紫色高亮色调（常规矿 1-120）
     private static final int R = 180, G = 80, B = 255;
     private static final int EDGE_A = 200;
     private static final int FACE_A = 30;
     private static final int BG_R = 50, BG_G = 20, BG_B = 80, BG_A = 190;
 
+    // 红色高亮色调（骷髅矿 121+）
+    private static final int SKULL_R = 255, SKULL_G = 60, SKULL_B = 60;
+    private static final int SKULL_BG_R = 80, SKULL_BG_G = 20, SKULL_BG_B = 20;
+
     private static final Component LADDER_TEXT = Component.literal("▼ 楼梯");
+    private static final Component SHAFT_TEXT = Component.literal("▼ 竖井");
 
     @SuppressWarnings("null")
     private static final RenderType QUAD_TYPE = makeQuadType("stardew_ladder_hint", false);
@@ -89,8 +94,8 @@ public final class LadderHighlightRenderer {
         ps.pushPose();
         ps.translate(-cam.x, -cam.y, -cam.z);
 
-        renderGlowOutline(buf, ps, cam, ladderPos, breath);
-        renderBubble(ps, buf, cam, ladderPos, breath, mc.font);
+        renderGlowOutline(buf, ps, cam, ladderPos, breath, ClientMiningState.isShaft());
+        renderBubble(ps, buf, cam, ladderPos, breath, mc.font, ClientMiningState.isShaft());
 
         ps.popPose();
     }
@@ -99,22 +104,25 @@ public final class LadderHighlightRenderer {
 
     @SuppressWarnings("null")
     private static void renderGlowOutline(MultiBufferSource.BufferSource buf, PoseStack ps, Vec3 cam,
-                                           BlockPos pos, float alpha) {
+                                           BlockPos pos, float alpha, boolean isShaft) {
         AABB box = new AABB(pos).inflate(0.03);
 
+        int r = isShaft ? SKULL_R : R;
+        int g = isShaft ? SKULL_G : G;
+        int b = isShaft ? SKULL_B : B;
         int edgeA = (int) (EDGE_A * alpha);
         int faceA = (int) (FACE_A * alpha);
 
         // X-ray 层（穿墙）
         VertexConsumer xr = buf.getBuffer(QUAD_XRAY);
-        renderFaces(ps, xr, box, R, G, B, faceA / 2);
-        renderEdgeQuads(ps, xr, box, cam, R, G, B, edgeA / 3, EDGE_HALF * 0.6f);
+        renderFaces(ps, xr, box, r, g, b, faceA / 2);
+        renderEdgeQuads(ps, xr, box, cam, r, g, b, edgeA / 3, EDGE_HALF * 0.6f);
         buf.endBatch(QUAD_XRAY);
 
         // 深度测试层
         VertexConsumer vc = buf.getBuffer(QUAD_TYPE);
-        renderFaces(ps, vc, box, R, G, B, faceA);
-        renderEdgeQuads(ps, vc, box, cam, R, G, B, edgeA, EDGE_HALF);
+        renderFaces(ps, vc, box, r, g, b, faceA);
+        renderEdgeQuads(ps, vc, box, cam, r, g, b, edgeA, EDGE_HALF);
         buf.endBatch(QUAD_TYPE);
     }
 
@@ -122,7 +130,13 @@ public final class LadderHighlightRenderer {
 
     @SuppressWarnings("null")
     private static void renderBubble(PoseStack ps, MultiBufferSource.BufferSource buf, Vec3 cam,
-                                      BlockPos pos, float alpha, Font font) {
+                                      BlockPos pos, float alpha, Font font, boolean isShaft) {
+        int cr = isShaft ? SKULL_R : R;
+        int cg = isShaft ? SKULL_G : G;
+        int cb = isShaft ? SKULL_B : B;
+        int bgr = isShaft ? SKULL_BG_R : BG_R;
+        int bgg = isShaft ? SKULL_BG_G : BG_G;
+        int bgb = isShaft ? SKULL_BG_B : BG_B;
         double bx = pos.getX() + 0.5;
         double by = pos.getY() + 1.6;
         double bz = pos.getZ() + 0.5;
@@ -143,7 +157,8 @@ public final class LadderHighlightRenderer {
         float scale = 0.025f;
         ps.scale(-scale, -scale, scale);
 
-        int textWidth = font.width(LADDER_TEXT);
+        Component displayText = isShaft ? SHAFT_TEXT : LADDER_TEXT;
+        int textWidth = font.width(displayText);
         int textHeight = 9;
 
         int padX = 6, padY = 4;
@@ -160,21 +175,21 @@ public final class LadderHighlightRenderer {
         float z = 0.0f;
 
         // 背景填充
-        fillRect(pose, vc, left + 1, top + 1, left + bubbleW - 1, top + bubbleH - 1, z, BG_R, BG_G, BG_B, bgA);
-        fillRect(pose, vc, left, top + 1, left + 1, top + bubbleH - 1, z, BG_R, BG_G, BG_B, bgA);
-        fillRect(pose, vc, left + bubbleW - 1, top + 1, left + bubbleW, top + bubbleH - 1, z, BG_R, BG_G, BG_B, bgA);
-        fillRect(pose, vc, left + 1, top, left + bubbleW - 1, top + 1, z, BG_R, BG_G, BG_B, bgA);
-        fillRect(pose, vc, left + 1, top + bubbleH - 1, left + bubbleW - 1, top + bubbleH, z, BG_R, BG_G, BG_B, bgA);
+        fillRect(pose, vc, left + 1, top + 1, left + bubbleW - 1, top + bubbleH - 1, z, bgr, bgg, bgb, bgA);
+        fillRect(pose, vc, left, top + 1, left + 1, top + bubbleH - 1, z, bgr, bgg, bgb, bgA);
+        fillRect(pose, vc, left + bubbleW - 1, top + 1, left + bubbleW, top + bubbleH - 1, z, bgr, bgg, bgb, bgA);
+        fillRect(pose, vc, left + 1, top, left + bubbleW - 1, top + 1, z, bgr, bgg, bgb, bgA);
+        fillRect(pose, vc, left + 1, top + bubbleH - 1, left + bubbleW - 1, top + bubbleH, z, bgr, bgg, bgb, bgA);
 
         // 边框
-        fillRect(pose, vc, left + 1, top - 0.5f, left + bubbleW - 1, top + 0.5f, z, R, G, B, borderA);
-        fillRect(pose, vc, left + 1, top + bubbleH - 0.5f, left + bubbleW - 1, top + bubbleH + 0.5f, z, R, G, B, borderA);
-        fillRect(pose, vc, left - 0.5f, top + 1, left + 0.5f, top + bubbleH - 1, z, R, G, B, borderA);
-        fillRect(pose, vc, left + bubbleW - 0.5f, top + 1, left + bubbleW + 0.5f, top + bubbleH - 1, z, R, G, B, borderA);
+        fillRect(pose, vc, left + 1, top - 0.5f, left + bubbleW - 1, top + 0.5f, z, cr, cg, cb, borderA);
+        fillRect(pose, vc, left + 1, top + bubbleH - 0.5f, left + bubbleW - 1, top + bubbleH + 0.5f, z, cr, cg, cb, borderA);
+        fillRect(pose, vc, left - 0.5f, top + 1, left + 0.5f, top + bubbleH - 1, z, cr, cg, cb, borderA);
+        fillRect(pose, vc, left + bubbleW - 0.5f, top + 1, left + bubbleW + 0.5f, top + bubbleH - 1, z, cr, cg, cb, borderA);
 
         // 三角指针
         float triW = 3.0f, triH = 3.0f;
-        triQuad(pose, vc, -triW, top + bubbleH, triW, top + bubbleH, 0, top + bubbleH + triH, z, R, G, B, borderA);
+        triQuad(pose, vc, -triW, top + bubbleH, triW, top + bubbleH, 0, top + bubbleH + triH, z, cr, cg, cb, borderA);
 
         buf.endBatch(QUAD_TYPE);
 
@@ -186,10 +201,10 @@ public final class LadderHighlightRenderer {
 
         MultiBufferSource.BufferSource textBuf = MultiBufferSource.immediate(new ByteBufferBuilder(1536));
         int textAlpha = (int) (255 * alpha);
-        int textColor = (textAlpha << 24) | (R << 16) | (G << 8) | B;
+        int textColor = (textAlpha << 24) | (cr << 16) | (cg << 8) | cb;
 
         font.drawInBatch(
-            LADDER_TEXT,
+            displayText,
             -textWidth / 2.0f, -textHeight / 2.0f,
             textColor,
             true,

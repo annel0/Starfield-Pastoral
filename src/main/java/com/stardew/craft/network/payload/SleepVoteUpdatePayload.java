@@ -35,8 +35,14 @@ public record SleepVoteUpdatePayload(int votedCount, int requiredCount) implemen
     @SuppressWarnings("null")
     public static void handle(SleepVoteUpdatePayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
-            if (Minecraft.getInstance().screen instanceof com.stardew.craft.client.gui.overnight.SleepWaitingOverlayScreen screen) {
-                screen.updateProgress(payload.votedCount(), payload.requiredCount());
+            // 显示投票进度到 action bar（原版 InBedChatScreen 下依然可见）
+            Minecraft mc = Minecraft.getInstance();
+            if (mc.player != null) {
+                mc.player.displayClientMessage(
+                    net.minecraft.network.chat.Component.translatable(
+                        "stardewcraft.sleep.waiting.progress",
+                        payload.votedCount(), payload.requiredCount()),
+                    true);
             }
         });
     }

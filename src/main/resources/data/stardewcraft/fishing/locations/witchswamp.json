@@ -1,19 +1,117 @@
-﻿{
-    "location":  "WitchSwamp",
-    "fish":  [
-                 {
-                     "id":  "void_salmon",
-                     "precedence":  100,
-                     "item":  "stardewcraft:void_salmon",
-                     "chance":  0.15,
-                     "difficulty":  80,
-                     "motionType":  0,
-                     "minFishingLevel":  0,
-                     "maxDepth":  4,
-                     "depthMultiplier":  0.05,
-                     "biomeTags":  [
-                                       "#stardewcraft:is_witch_swamp"
-                                   ]
-                 }
-             ]
+{
+  "location": "WitchSwamp",
+  "fish": [
+    {
+      "id": "void_salmon",
+      "precedence": 0,
+      "item": "stardewcraft:void_salmon",
+      "chance": 1.0,
+      "difficulty": 80,
+      "motionType": 0,
+      "minFishingLevel": 0,
+      "maxDepth": 2,
+      "depthMultiplier": 0.1,
+      "biomeTags": [
+        "#stardewcraft:is_witch_swamp"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "spawnRate": 0.33
+    },
+    {
+      "id": "void_mayonnaise",
+      "precedence": -10,
+      "item": "stardewcraft:void_mayonnaise",
+      "chance": 0.05,
+      "difficulty": 20,
+      "motionType": 0,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 4,
+      "depthMultiplier": 0.0,
+      "spawnRate": 1.0,
+      "biomeTags": [
+        "#stardewcraft:is_witch_swamp"
+      ],
+      "condition": "!PLAYER_HAS_MAIL Host henchmanGone, !PLAYER_HAS_ITEM Current (O)308",
+      "canBeInherited": false
+    },
+    {
+      "id": "green_algae",
+      "precedence": 0,
+      "item": "stardewcraft:green_algae",
+      "chance": 1.0,
+      "difficulty": 5,
+      "motionType": 4,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 0,
+      "depthMultiplier": 0.0,
+      "spawnRate": 0.3,
+      "biomeTags": [
+        "#stardewcraft:is_witch_swamp"
+      ]
+    },
+    {
+      "id": "catfish",
+      "precedence": 0,
+      "item": "stardewcraft:catfish",
+      "chance": 1.0,
+      "difficulty": 75,
+      "motionType": 0,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          2400
+        ]
+      ],
+      "weather": "rainy",
+      "maxDepth": 4,
+      "depthMultiplier": 0.1,
+      "spawnRate": 0.4,
+      "biomeTags": [
+        "#stardewcraft:is_witch_swamp"
+      ]
+    },
+    {
+      "id": "white_algae",
+      "precedence": 0,
+      "item": "stardewcraft:white_algae",
+      "chance": 1.0,
+      "difficulty": 5,
+      "motionType": 4,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any",
+      "maxDepth": 0,
+      "depthMultiplier": 0.0,
+      "spawnRate": 0.3,
+      "biomeTags": [
+        "#stardewcraft:is_witch_swamp"
+      ]
+    }
+  ]
 }

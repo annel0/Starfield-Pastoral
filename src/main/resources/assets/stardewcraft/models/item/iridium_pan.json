@@ -1,0 +1,7 @@
+{
+    "parent": "minecraft:item/generated",
+    "textures": {
+        "layer0": "stardewcraft:item/tool/pan/iridium_pan",
+        "particle": "stardewcraft:item/tool/pan/iridium_pan"
+    }
+}

@@ -30,6 +30,9 @@ public record GrowTreesPayload() implements CustomPacketPayload {
 	public static void handle(GrowTreesPayload payload, IPayloadContext context) {
 		context.enqueueWork(() -> {
 			Player player = context.player();
+			if (!player.isCreative() || !player.hasPermissions(2)) {
+				return;
+			}
 			Level level = player.level();
 			BlockPos playerPos = player.blockPosition();
 

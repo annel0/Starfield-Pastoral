@@ -67,11 +67,19 @@ public final class PortalHintRenderer {
     private static final int RET_FACE_A = 22;
     private static final int RET_BG_R = 25, RET_BG_G = 60, RET_BG_B = 30, RET_BG_A = 180;
 
+    // Locked style — gray（献祭未完成）
+    private static final int LOCKED_R = 150, LOCKED_G = 150, LOCKED_B = 150;
+    private static final int LOCKED_EDGE_A = 150;
+    private static final int LOCKED_FACE_A = 20;
+    private static final int LOCKED_BG_R = 35, LOCKED_BG_G = 35, LOCKED_BG_B = 35, LOCKED_BG_A = 180;
+
     // Bubble text — translatable keys
     private static final String ENTER_KEY = "stardewcraft.portal.hint.enter";
     private static final String EXIT_KEY = "stardewcraft.portal.hint.exit";
     private static final String RETURN_KEY = "stardewcraft.portal.hint.return";
     private static final String CLAIM_KEY = "stardewcraft.portal.hint.claim";
+
+    private static final String BUY_TICKET_KEY = "stardewcraft.portal.hint.buy_ticket";
 
     @SuppressWarnings("null")
     private static final RenderType QUAD_TYPE = makeQuadType("stardew_portal_hint", false);
@@ -204,23 +212,58 @@ public final class PortalHintRenderer {
         for (var entry : portalBounds.entrySet()) {
             String targetId = entry.getKey();
             double[] b = entry.getValue();
-            boolean isEnter = "greenhouse_enter".equals(targetId);
-            String locKey = targetId.startsWith("farm_exit_") ? targetId : "greenhouse";
+            boolean isEnter = "greenhouse_enter".equals(targetId)
+                    || "quarry_entrance".equals(targetId)
+                    || "desert_bus".equals(targetId)
+                    || "desert_bus_return".equals(targetId);
+            String locKey;
+            if (targetId.startsWith("farm_exit_")) {
+                locKey = targetId;
+            } else if ("quarry_entrance".equals(targetId) || "quarry_exit".equals(targetId)) {
+                locKey = "quarry";
+            } else if ("desert_bus".equals(targetId)) {
+                locKey = "desert";
+            } else if ("desert_bus_return".equals(targetId)) {
+                locKey = "pelican_town";
+            } else {
+                locKey = "greenhouse";
+            }
             Vec3 minPos = new Vec3(b[0], b[1], b[2]);
             int xBlocks = Math.max(1, (int) Math.round(b[3] - b[0]) + 1);
             int zBlocks = Math.max(1, (int) Math.round(b[5] - b[2]) + 1);
             int heightBlocks = Math.max(2, (int) Math.round(b[4] - b[1]) + 1);
             if (distSqToHintArea(playerPos, minPos, xBlocks, heightBlocks, zBlocks) > HINT_RANGE_SQ) continue;
-            result.add(new PortalHint(minPos, isEnter, xBlocks, heightBlocks, zBlocks,
-                    isEnter ? PortalHintPositions.HintStyle.ENTER : PortalHintPositions.HintStyle.EXIT,
-                    locKey));
+
+            // 采石场入口：根据客户端缓存的 ccCraftsRoom 献祭进度决定边框颜色。
+            // 已完成 → 黄色(ENTER)；未完成 → 灰色(LOCKED)。
+            PortalHintPositions.HintStyle style;
+            if ("quarry_entrance".equals(targetId)) {
+                style = com.stardew.craft.client.ClientPlayerDataCache.hasMailFlag(
+                        com.stardew.craft.communitycenter.state.CCStoryFlags.CC_CRAFTS_ROOM)
+                        ? PortalHintPositions.HintStyle.ENTER
+                        : PortalHintPositions.HintStyle.LOCKED;
+            } else if ("desert_bus".equals(targetId)) {
+                style = com.stardew.craft.client.ClientPlayerDataCache.hasMailFlag(
+                        com.stardew.craft.communitycenter.state.CCStoryFlags.CC_VAULT)
+                        ? PortalHintPositions.HintStyle.ENTER
+                        : PortalHintPositions.HintStyle.LOCKED;
+            } else if ("desert_bus_return".equals(targetId)) {
+                style = PortalHintPositions.HintStyle.ENTER;
+            } else {
+                style = isEnter ? PortalHintPositions.HintStyle.ENTER : PortalHintPositions.HintStyle.EXIT;
+            }
+            result.add(new PortalHint(minPos, isEnter, xBlocks, heightBlocks, zBlocks, style, locKey));
         }
     }
 
     private static boolean isDynamicHintTarget(String targetId) {
         return targetId.startsWith("farm_exit_")
+                || "desert_bus_return".equals(targetId)
                 || "greenhouse_enter".equals(targetId)
-                || "greenhouse_exit".equals(targetId);
+                || "greenhouse_exit".equals(targetId)
+                || "quarry_entrance".equals(targetId)
+                || "quarry_exit".equals(targetId)
+                || "desert_bus".equals(targetId);
     }
 
     /**
@@ -302,6 +345,10 @@ public final class PortalHintRenderer {
             r = RET_R; g = RET_G; b = RET_B;
             edgeA = (int) (RET_EDGE_A * alpha);
             faceA = (int) (RET_FACE_A * alpha);
+        } else if (hint.hintStyle == PortalHintPositions.HintStyle.LOCKED) {
+            r = LOCKED_R; g = LOCKED_G; b = LOCKED_B;
+            edgeA = (int) (LOCKED_EDGE_A * alpha);
+            faceA = (int) (LOCKED_FACE_A * alpha);
         } else if (hint.isEnter) {
             r = ENTER_R; g = ENTER_G; b = ENTER_B;
             edgeA = (int) (ENTER_EDGE_A * alpha);
@@ -359,6 +406,9 @@ public final class PortalHintRenderer {
         String hintKey;
         if ("starter_chest".equals(hint.destinationKey)) {
             hintKey = CLAIM_KEY;
+        } else if ("desert".equals(hint.destinationKey)
+                || "pelican_town".equals(hint.destinationKey)) {
+            hintKey = BUY_TICKET_KEY;
         } else if (hint.hintStyle == PortalHintPositions.HintStyle.RETURN_OVERWORLD) {
             hintKey = RETURN_KEY;
         } else if (hint.isEnter) {
@@ -386,6 +436,9 @@ public final class PortalHintRenderer {
         if (hint.hintStyle == PortalHintPositions.HintStyle.RETURN_OVERWORLD) {
             bgR = RET_BG_R; bgG = RET_BG_G; bgB = RET_BG_B; bgA = (int) (RET_BG_A * alpha);
             borderR = RET_R; borderG = RET_G; borderB = RET_B;
+        } else if (hint.hintStyle == PortalHintPositions.HintStyle.LOCKED) {
+            bgR = LOCKED_BG_R; bgG = LOCKED_BG_G; bgB = LOCKED_BG_B; bgA = (int) (LOCKED_BG_A * alpha);
+            borderR = LOCKED_R; borderG = LOCKED_G; borderB = LOCKED_B;
         } else if (hint.isEnter) {
             bgR = ENTER_BG_R; bgG = ENTER_BG_G; bgB = ENTER_BG_B; bgA = (int) (ENTER_BG_A * alpha);
             borderR = ENTER_R; borderG = ENTER_G; borderB = ENTER_B;
@@ -428,6 +481,8 @@ public final class PortalHintRenderer {
         int textColor;
         if (hint.hintStyle == PortalHintPositions.HintStyle.RETURN_OVERWORLD) {
             textColor = (textAlpha << 24) | (RET_R << 16) | (RET_G << 8) | RET_B;
+        } else if (hint.hintStyle == PortalHintPositions.HintStyle.LOCKED) {
+            textColor = (textAlpha << 24) | (LOCKED_R << 16) | (LOCKED_G << 8) | LOCKED_B;
         } else if (hint.isEnter) {
             textColor = (textAlpha << 24) | (ENTER_R << 16) | (ENTER_G << 8) | ENTER_B;
         } else {

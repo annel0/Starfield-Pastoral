@@ -60,7 +60,8 @@ public record AnimalPurchaseSubmitPayload(String animalTypeId, String buildingId
             }
 
             String ownerUuid = serverPlayer.getUUID().toString();
-            if (!ownerUuid.equals(buildingOpt.get().ownerPlayerUuid())) {
+            if (!com.stardew.craft.farm.FarmInstanceRegistry.get()
+                    .canOperateBuilding(serverPlayer.getUUID(), buildingOpt.get().ownerPlayerUuid())) {
                 serverPlayer.sendSystemMessage(Component.translatable("stardewcraft.animal.purchase.failed"));
                 return;
             }

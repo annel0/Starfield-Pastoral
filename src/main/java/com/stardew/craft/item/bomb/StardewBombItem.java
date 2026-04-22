@@ -43,6 +43,18 @@ public class StardewBombItem extends Item implements IStardewItem {
             return InteractionResult.SUCCESS;
         }
 
+        // 星露谷维度：小镇区域和非权限农场禁止放置炸弹
+        if (level.dimension() == com.stardew.craft.core.ModDimensions.STARDEW_VALLEY
+                && context.getPlayer() instanceof net.minecraft.server.level.ServerPlayer sp
+                && !sp.isCreative()) {
+            net.minecraft.core.BlockPos clickBlockPos = net.minecraft.core.BlockPos.containing(context.getClickLocation());
+            if (!com.stardew.craft.event.FarmAreaProtectionEvents.canModifyAt(sp, clickBlockPos)) {
+                sp.displayClientMessage(
+                        net.minecraft.network.chat.Component.translatable("stardewcraft.farm.build_farm_only"), true);
+                return InteractionResult.FAIL;
+            }
+        }
+
         Vec3 clickPos = context.getClickLocation();
 
         // 生成炸弹实体
