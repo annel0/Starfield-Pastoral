@@ -1,45 +1,71 @@
 
-Installation information
-=======
+# StarfieldPastoral | 星野牧歌
 
-This template repository can be directly cloned to get you started with a new
-mod. Simply create a new repository cloned from this one, by following the
-instructions provided by [GitHub](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template).
+StarfieldPastoral（星野牧歌） is a non-commercial fan project that recreates the feel and core progression of Stardew Valley inside Minecraft on NeoForge.
 
-Once you have your clone, simply open the repository in the IDE of your choice. The usual recommendation for an IDE is either IntelliJ IDEA or Eclipse.
+## Current Status
 
-If at any point you are missing libraries in your IDE, or you've run into problems you can
-run `gradlew --refresh-dependencies` to refresh the local cache. `gradlew clean` to reset everything 
-{this does not affect your code} and then start the process again.
+The project is in active alpha development. It already contains a broad playable foundation, but it is not yet a full 1:1 parity implementation.
 
-Mapping Names:
-============
-By default, the MDK is configured to use the official mapping names from Mojang for methods and fields 
-in the Minecraft codebase. These names are covered by a specific license. All modders should be aware of this
-license. For the latest license text, refer to the mapping file itself, or the reference copy here:
-https://github.com/NeoForged/NeoForm/blob/main/Mojang.md
+Current development focus is on expanding feature coverage while tightening Stardew Valley behavioral parity across existing systems.
 
-Additional Resources: 
-==========
-Community Documentation: https://docs.neoforged.net/  
-NeoForged Discord: https://discord.neoforged.net/
+## Platform
 
-Stardew Valley Map Bootstrap
-==========
-- Required: place your map schematic at one of these paths:
-	- `src/main/resources/data/stardewcraft/structures/stardew_valley/main.schem`
-	- `src/main/resources/data/stardewcraft/structures/mine/main.schem`
-- Required: provide prebuilt region files under:
-	- `src/main/resources/pregen/stardew_valley/region_manifest.txt`
-	- `src/main/resources/pregen/stardew_valley/region/*.mca`
-- Runtime chunk-by-chunk generation is disabled for Stardew Valley.
-- If prebuilt regions are missing or invalid, travel to Stardew Valley is blocked.
+- Project name: StarfieldPastoral | 星野牧歌
+- Minecraft 1.21.1
+- NeoForge 21.1.217
+- Java 21
+- Mod version: 0.3.6-alpha-hotfix2
+- Mod id: stardewcraft
 
-Fast First-Load (Near Instant New Save)
-==========
-1. Export or prepare your Stardew Valley dimension `region` folder (contains `*.mca`).
-2. Run:
-	- `powershell -ExecutionPolicy Bypass -File .\scripts\setup_valley_pregen.ps1 -SourceRegionDir "D:\path\to\region" -CleanTarget`
-3. Build and run the game normally.
+## Implemented or In-Progress Systems
 
-The script will copy all `.mca` files into `src/main/resources/pregen/stardew_valley/region/` and regenerate `region_manifest.txt` automatically.
+- core farm flow, farmland, crops, growth management, and related item content;
+- animal systems including barns, coops, feed troughs, hay flow, pasture grass eating, and animal interaction UI;
+- fishing data, fish location rules, treasure tables, and fishing session runtime;
+- NPC runtime systems including schedules, dialogue, mail, event triggers, and friendship-related content;
+- cutscenes, overnight settlement flow, time management, pass-out handling, and player data systems;
+- interior and subspace systems for farm buildings and special locations;
+- artisan and utility blocks such as kegs, casks, looms, furnaces, smokers, worm bins, and similar facilities;
+- community center, shop, minecart, warp, weather, mining, and desert-related content foundations.
+
+## Repository Scope
+
+This repository is intended to keep the actual mod project itself:
+
+- source code and gameplay resources under src;
+- Gradle build files and wrapper files;
+- required local dependency jars under libs;
+- essential repository metadata such as README, license, and workflow files.
+
+Local planning notes, reverse-engineering reference material, scratch assets, and temporary working files are intentionally kept out of version control.
+
+## Development
+
+Common local validation commands:
+
+- ./gradlew classes
+- ./gradlew build
+
+If local dependency resolution gets out of sync, refresh Gradle dependencies and reload the project in your IDE.
+
+## Pregen World Data
+
+The Stardew Valley dimension relies on prebuilt region data instead of runtime chunk-by-chunk generation.
+
+Expected resource locations include:
+
+- src/main/resources/data/stardewcraft/structures/stardew_valley/main.schem
+- src/main/resources/data/stardewcraft/structures/mine/main.schem
+- src/main/resources/pregen/stardew_valley/region_manifest.txt
+- src/main/resources/pregen/stardew_valley/region/*.mca
+
+If the required pregen data is missing or invalid, travel into the Stardew Valley world space is blocked.
+
+## License and Asset Notice
+
+This repository is distributed as a non-commercial fan project.
+
+Source code and project-original content belong to the StarfieldPastoral project team and contributors. Any included third-party or original-game-derived assets remain subject to their original rightsholders and are not relicensed by this repository.
+
+See LICENSE.md for the current project license terms.

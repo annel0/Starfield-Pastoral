@@ -29,8 +29,25 @@ run-dev-server
 _tmp*
 *.log
 *.zip
+/*.jar
+docs/
+wiki/
+tools/
+ui_spec/
+resourcepack-template/
+scripts/
+
+# local reference and scratch work
+tmp_models/
+源文件/
+test.java
+mezz/
+net/
+software/
+.claude/settings.local.json
 
 # macOS
 .DS_Store
+**/.DS_Store
 
 repo
