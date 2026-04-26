@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "stardewcraft:item/fruit/orange",
+    "particle": "stardewcraft:item/fruit/orange"
+  }
+}

@@ -181,18 +181,8 @@ public class TapperBlock extends Block implements EntityBlock {
 		}
 		startCycleIfNeeded(level, pos, state, tapper);
 
-		if (!tapper.isReady()) {
-			return InteractionResult.CONSUME;
-		}
-
-		ItemStack out = tapper.harvestOne();
-		if (out.isEmpty()) {
-			return InteractionResult.CONSUME;
-		}
-		if (!player.addItem(out)) {
-			player.drop(out, false);
-		}
-		level.playSound(null, pos, net.minecraft.sounds.SoundEvents.ITEM_PICKUP, net.minecraft.sounds.SoundSource.BLOCKS, 0.6f, 1.0f);
+		UtilityDropHelper.tryHarvest(level, pos, player, tapper::isReady, tapper::harvestOne,
+				UtilityDropHelper.LOW_MACHINE_VANILLA_XP);
 		return InteractionResult.CONSUME;
 	}
 

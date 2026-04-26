@@ -250,6 +250,16 @@ public final class ModEntities {
 					.build("camel_merchant")
 	);
 
+	public static final DeferredHolder<EntityType<?>, EntityType<com.stardew.craft.entity.npc.TravelingCartEntity>> TRAVELING_CART = ENTITY_TYPES.register(
+			"traveling_cart",
+			() -> EntityType.Builder.<com.stardew.craft.entity.npc.TravelingCartEntity>of(
+							com.stardew.craft.entity.npc.TravelingCartEntity::new, MobCategory.MISC)
+					.sized(3.8F, 3.2F)
+					.clientTrackingRange(10)
+					.updateInterval(20)
+					.build("traveling_cart")
+	);
+
 	public static final DeferredHolder<EntityType<?>, EntityType<SofaSeatEntity>> SOFA_SEAT = ENTITY_TYPES.register(
 			"sofa_seat",
 			() -> EntityType.Builder.<SofaSeatEntity>of(SofaSeatEntity::new, MobCategory.MISC)
@@ -295,6 +305,7 @@ public final class ModEntities {
 		event.put(EVENT_PLAYER_ACTOR.get(), EventPlayerActorEntity.createAttributes().build());
 		event.put(JUNIMO.get(), JunimoEntity.createAttributes().build());
 		event.put(CAMEL_MERCHANT.get(), com.stardew.craft.entity.npc.CamelMerchantEntity.createAttributes().build());
+		event.put(TRAVELING_CART.get(), com.stardew.craft.entity.npc.TravelingCartEntity.createAttributes().build());
 		event.put(CROW.get(), com.stardew.craft.entity.passive.CrowEntity.createAttributes().build());
 	}
 

@@ -1,13 +1,62 @@
 package com.stardew.craft.blockentity;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Containers;
+import net.minecraft.world.entity.ExperienceOrb;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.Vec3;
+
+import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
 public final class UtilityDropHelper {
+    public static final int LOW_MACHINE_VANILLA_XP = 1;
+    public static final int STANDARD_MACHINE_VANILLA_XP = 2;
+    public static final int PREMIUM_MACHINE_VANILLA_XP = 3;
+    public static final int DEFAULT_MACHINE_VANILLA_XP = LOW_MACHINE_VANILLA_XP;
+
     private UtilityDropHelper() {
+    }
+
+    public static boolean tryHarvest(Level level, BlockPos pos, Player player,
+                                     BooleanSupplier readyCheck, Supplier<ItemStack> harvestAction) {
+        return tryHarvest(level, pos, player, readyCheck, harvestAction, DEFAULT_MACHINE_VANILLA_XP);
+    }
+
+    public static boolean tryHarvest(Level level, BlockPos pos, Player player,
+                                     BooleanSupplier readyCheck, Supplier<ItemStack> harvestAction,
+                                     int vanillaExperience) {
+        if (!readyCheck.getAsBoolean()) {
+            return false;
+        }
+
+        ItemStack product = harvestAction.get();
+        if (product.isEmpty()) {
+            return false;
+        }
+
+        if (!player.addItem(product)) {
+            player.drop(product, false);
+        }
+        grantHarvestRewards(level, pos, player, vanillaExperience);
+        return true;
+    }
+
+    public static void grantHarvestRewards(Level level, BlockPos pos, Player player) {
+        grantHarvestRewards(level, pos, player, DEFAULT_MACHINE_VANILLA_XP);
+    }
+
+    public static void grantHarvestRewards(Level level, BlockPos pos, Player player, int vanillaExperience) {
+        if (vanillaExperience > 0 && level instanceof ServerLevel serverLevel) {
+            ExperienceOrb.award(serverLevel, Vec3.atCenterOf(pos), vanillaExperience);
+        }
+        level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6f, 1.0f);
     }
 
     @SuppressWarnings("null")

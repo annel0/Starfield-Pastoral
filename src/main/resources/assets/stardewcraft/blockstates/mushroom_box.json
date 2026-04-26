@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "ready=false": { "model": "stardewcraft:block/mushroom_box_empty" },
+    "ready=true":  { "model": "stardewcraft:block/mushroom_box_full"  }
+  }
+}

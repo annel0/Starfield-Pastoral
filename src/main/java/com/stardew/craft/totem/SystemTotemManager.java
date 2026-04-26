@@ -17,7 +17,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.level.LevelEvent;
 
 /**
- * 系统图腾柱管理器 — 在星露谷维度加载时确保3根系统柱存在。
+ * 系统图腾柱管理器 — 在星露谷维度加载时确保4根系统柱存在。
  */
 @EventBusSubscriber(modid = StardewCraft.MODID)
 public class SystemTotemManager {

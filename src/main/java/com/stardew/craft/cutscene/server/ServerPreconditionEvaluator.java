@@ -71,6 +71,7 @@ public final class ServerPreconditionEvaluator {
             case "weather" -> checkWeather(level, p);
             case "day_of_week" -> checkDayOfWeek(level, p);
             case "day_of_month" -> checkDayOfMonth(level, p);
+            case "days_played" -> checkDaysPlayed(p);
             case "money" -> {
                 PlayerStardewData data = PlayerDataManager.getPlayerData(player);
                 yield data.getMoney() >= p.getInt("min", 0);
@@ -148,6 +149,17 @@ public final class ServerPreconditionEvaluator {
 
     private static boolean checkDayOfMonth(ServerLevel level, EventPrecondition p) {
         return StardewTimeManager.get().getCurrentDay() == p.getInt("day", -1);
+    }
+
+    private static boolean checkDaysPlayed(EventPrecondition p) {
+        // SDV parity: Game1.stats.DaysPlayed counts from day 1.
+        StardewTimeManager tm = StardewTimeManager.get();
+        int total = (tm.getCurrentYear() - 1) * (28 * 4)
+                + tm.getCurrentSeason() * 28
+                + tm.getCurrentDay();
+        int min = p.getInt("min", 0);
+        int max = p.getInt("max", Integer.MAX_VALUE);
+        return total >= min && total <= max;
     }
 
     private static boolean checkSkill(ServerPlayer player, EventPrecondition p) {

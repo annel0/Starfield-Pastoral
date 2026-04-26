@@ -178,30 +178,23 @@ public class LetterViewerScreen extends Screen {
     }
 
     private List<String> wrapText(String text, int maxWidth) {
+        // 用 MC 自带的 font.split —— 支持 CJK 字符逐字断行，空格断词，宽度溢出强制切。
+        // 之前手写按 " " 切的版本对中文整段无空格文本完全无效，会越界画出边框。
         List<String> result = new ArrayList<>();
-        // 按换行符分割
-        String[] rawLines = text.split("\n");
-        for (String rawLine : rawLines) {
+        for (String rawLine : text.split("\n")) {
             if (rawLine.isEmpty()) {
                 result.add("");
                 continue;
             }
-            // MC font word-wrap
-            List<String> wrapped = new ArrayList<>();
-            StringBuilder current = new StringBuilder();
-            for (String word : rawLine.split(" ")) {
-                String test = current.length() == 0 ? word : current + " " + word;
-                if (font.width(test) > maxWidth && current.length() > 0) {
-                    wrapped.add(current.toString());
-                    current = new StringBuilder(word);
-                } else {
-                    current = new StringBuilder(test);
-                }
+            for (net.minecraft.util.FormattedCharSequence seq :
+                    font.split(net.minecraft.network.chat.Component.literal(rawLine), maxWidth)) {
+                StringBuilder sb = new StringBuilder();
+                seq.accept((idx, style, codePoint) -> {
+                    sb.appendCodePoint(codePoint);
+                    return true;
+                });
+                result.add(sb.toString());
             }
-            if (current.length() > 0) {
-                wrapped.add(current.toString());
-            }
-            result.addAll(wrapped);
         }
         return result;
     }

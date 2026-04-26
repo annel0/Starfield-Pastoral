@@ -15,10 +15,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import com.stardew.craft.fishing.data.FishingDataManager;
-import com.stardew.craft.player.PlayerStardewDataAPI;
+import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.ProfessionType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -85,9 +83,8 @@ public class CrabPotBlockEntity extends BlockEntity implements UtilityAutomation
 	 * 每日更新逻辑（参考 CrabPot.DayUpdate）
 	 */
 	private void dayUpdate(Level level, BlockPos pos) {
-		ServerPlayer professionPlayer = resolveProfessionPlayer(level, pos);
-		boolean hasMariner = professionPlayer != null && PlayerStardewDataAPI.hasProfession(professionPlayer, ProfessionType.MARINER);
-		boolean hasLuremaster = professionPlayer != null && PlayerStardewDataAPI.hasProfession(professionPlayer, ProfessionType.LUREMASTER);
+		boolean hasMariner = hasOwnerProfession(ProfessionType.MARINER);
+		boolean hasLuremaster = hasOwnerProfession(ProfessionType.LUREMASTER);
 
 		// 需要鱼饵且没有产物才能捕获
 		if (!canWorkToday(hasLuremaster)) {
@@ -172,20 +169,11 @@ public class CrabPotBlockEntity extends BlockEntity implements UtilityAutomation
 		return hasLuremaster || !bait.isEmpty();
 	}
 
-	@Nullable
-	private ServerPlayer resolveProfessionPlayer(Level level, BlockPos pos) {
-		if (!(level instanceof ServerLevel serverLevel)) {
-			return null;
+	private boolean hasOwnerProfession(ProfessionType profession) {
+		if (ownerPlayerId == null) {
+			return false;
 		}
-		UUID ownerId = ownerPlayerId;
-		if (ownerId != null) {
-			ServerPlayer owner = serverLevel.getServer().getPlayerList().getPlayer(ownerId);
-			if (owner != null) {
-				return owner;
-			}
-		}
-		var nearest = serverLevel.getNearestPlayer(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, 16.0D, false);
-		return nearest instanceof ServerPlayer serverPlayer ? serverPlayer : null;
+		return PlayerDataManager.getPlayerData(ownerPlayerId).hasProfession(profession);
 	}
 
 
@@ -213,7 +201,7 @@ public class CrabPotBlockEntity extends BlockEntity implements UtilityAutomation
 		// - 非魔法饵时：额外匹配 season/time/weather（同 selectFish 的规则）
 		String season = getCurrentSeasonKey();
 		boolean isRaining = com.stardew.craft.weather.WeatherManager.isRaining(level);
-		long timeOfDay = level.getDayTime() % 24000;
+		int stardewTime = FishingDataManager.currentStardewTime();
 
 		@SuppressWarnings("null")
 		var items = tagContents.get().stream().toList().stream()
@@ -229,7 +217,7 @@ public class CrabPotBlockEntity extends BlockEntity implements UtilityAutomation
 						if (ignoreSeasonTime) return true;
 						if (!rule.matchesSeason(season)) return false;
 						if (!rule.matchesWeather(isRaining)) return false;
-						return rule.matchesTime(timeOfDay);
+						return rule.matchesStardewTime(stardewTime);
 					} catch (Exception ex) {
 						return true;
 					}
@@ -292,6 +280,7 @@ public class CrabPotBlockEntity extends BlockEntity implements UtilityAutomation
 			return;
 		}
 		ownerPlayerId = owner;
+		lastCheckDay = getCurrentDay();
 		setChanged();
 		syncToClient();
 	}

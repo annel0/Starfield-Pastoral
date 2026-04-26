@@ -26,7 +26,13 @@
       "weather": "any",
       "spawnRate": 0.0,
       "curiosityLureBuff": 0.1,
-      "canBeInherited": false
+      "canBeInherited": false,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "radioactive_carp",
@@ -53,7 +59,13 @@
       "weather": "any",
       "spawnRate": 0.0,
       "curiosityLureBuff": 0.1,
-      "canBeInherited": false
+      "canBeInherited": false,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "carp",
@@ -75,6 +87,11 @@
       "spawnRate": 0.45,
       "biomeTags": [
         "#stardewcraft:is_sewers"
+      ],
+      "seasons": [
+        "spring",
+        "summer",
+        "fall"
       ]
     },
     {
@@ -97,6 +114,12 @@
       "spawnRate": 0.3,
       "biomeTags": [
         "#stardewcraft:is_sewers"
+      ],
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
       ]
     },
     {
@@ -119,6 +142,12 @@
       "spawnRate": 0.3,
       "biomeTags": [
         "#stardewcraft:is_sewers"
+      ],
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
       ]
     }
   ]

@@ -5,6 +5,9 @@ import com.stardew.craft.block.ModBlocks;
 import com.stardew.craft.core.FarmAreaResolver;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.farm.FarmInstance;
+import com.stardew.craft.greenhouse.GreenhouseInteriorCache;
+import com.stardew.craft.interior.PlayerInteriorAllocator;
+import com.stardew.craft.manager.CoalForestArea;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -43,13 +46,28 @@ public class FarmAreaProtectionEvents {
         if (player.isCreative()) {
             return;
         }
+        if (isCoalForestChopExempt(event.getPos(), event.getState())) {
+            return;
+        }
+        if (com.stardew.craft.communitycenter.quarry.QuarryAccessManager.isInQuarryArea(event.getPos())
+                && !com.stardew.craft.manager.QuarrySpawnService.canPlayerBreakInQuarry(event.getState())) {
+            event.setCanceled(true);
+            return;
+        }
         // 温室外观区域不可破坏
         if (com.stardew.craft.greenhouse.GreenhouseManager.isInGreenhouseExterior(level, event.getPos())) {
             event.setCanceled(true);
             return;
         }
-        // 温室内部区域可自由操作
+        // 温室内部按 owner/farm 权限决定是否允许破坏。
         if (com.stardew.craft.greenhouse.GreenhouseManager.isInGreenhouseInterior(level, event.getPos())) {
+            if (!canModifyGreenhouseAt(player, level, event.getPos())) {
+                event.setCanceled(true);
+                player.displayClientMessage(
+                        Component.translatable("stardewcraft.farm.build_farm_only"), true);
+            } else if (isOriginalGreenhouseStructureBlock(level, event.getPos())) {
+                event.setCanceled(true);
+            }
             return;
         }
         if (!canModifyAt(player, event.getPos())) {
@@ -82,6 +100,19 @@ public class FarmAreaProtectionEvents {
         // 方块替换（去皮、除锈、锄地等工具交互）→ 也需要权限检查
         // 但远古斑点允许在任何区域被锄（挖掘后变耕地，第二天复原）
         BlockPos pos = event.getPos();
+        if (com.stardew.craft.greenhouse.GreenhouseManager.isInGreenhouseExterior(level, pos)) {
+            event.getBlockSnapshot().restore();
+            return;
+        }
+        if (com.stardew.craft.greenhouse.GreenhouseManager.isInGreenhouseInterior(level, pos)) {
+            if (canModifyGreenhouseAt(player, level, pos)) {
+                return;
+            }
+            event.getBlockSnapshot().restore();
+            player.displayClientMessage(
+                    Component.translatable("stardewcraft.farm.build_farm_only"), true);
+            return;
+        }
         if (!event.getBlockSnapshot().getState().isAir()) {
             if (event.getBlockSnapshot().getState().is(ModBlocks.ARTIFACT_SPOT_DIRT.get())
                     || event.getBlockSnapshot().getState().is(ModBlocks.DESERT_ARTIFACT_SPOT.get())) {
@@ -155,6 +186,16 @@ public class FarmAreaProtectionEvents {
                 .canModify(ownerUUID, player.getUUID());
     }
 
+    private static boolean isCoalForestChopExempt(BlockPos pos, net.minecraft.world.level.block.state.BlockState state) {
+        if (!CoalForestArea.containsColumn(pos)) {
+            return false;
+        }
+        if (state.getBlock() == ModBlocks.LARGE_STUMP.get() || state.getBlock() == ModBlocks.HOLLOW_LOG.get()) {
+            return true;
+        }
+        return com.stardew.craft.tree.WildTrees.isAnyWildTreePart(state);
+    }
+
     /**
      * STARDEW_VALLEY 维度内：
      * 1. 禁止草方块被锄成耕地（所有锄头）
@@ -170,6 +211,27 @@ public class FarmAreaProtectionEvents {
         // 草方块始终禁止被锄（无论什么工具）
         if (event.getState().is(Blocks.GRASS_BLOCK)) {
             event.setCanceled(true);
+            return;
+        }
+
+        // 公共主区域的普通黄土不允许直接锄成耕地；只有远古斑点黄土允许挖。
+        if (event.getState().is(ModBlocks.YELLOW_DIRT.get())
+                && FarmAreaResolver.isInStardewButNotFarm(level, event.getPos())
+                && !com.stardew.craft.greenhouse.GreenhouseManager.isInGreenhouseInterior(level, event.getPos())) {
+            event.setCanceled(true);
+            if (event.getPlayer() instanceof ServerPlayer player) {
+                player.displayClientMessage(
+                        Component.translatable("stardewcraft.farm.build_farm_only"), true);
+            }
+            return;
+        }
+
+        if (event.getPlayer() instanceof ServerPlayer player
+            && com.stardew.craft.greenhouse.GreenhouseManager.isInGreenhouseInterior(level, event.getPos())
+            && !canModifyGreenhouseAt(player, level, event.getPos())) {
+            event.setCanceled(true);
+            player.displayClientMessage(
+                Component.translatable("stardewcraft.farm.build_farm_only"), true);
             return;
         }
 
@@ -206,6 +268,13 @@ public class FarmAreaProtectionEvents {
         // 温室内部允许交互
         if (event.getLevel() instanceof ServerLevel sl
                 && com.stardew.craft.greenhouse.GreenhouseManager.isInGreenhouseInterior(sl, event.getPos())) {
+            if (canModifyGreenhouseAt(player, sl, event.getPos())) {
+                return;
+            }
+            event.setCanceled(true);
+            event.setCancellationResult(net.minecraft.world.InteractionResult.CONSUME);
+            player.displayClientMessage(
+                    Component.translatable("stardewcraft.farm.build_farm_only"), true);
             return;
         }
         // 传送触发方块不受保护（进入别人家的屋内/屋外必须能触发传送）
@@ -241,5 +310,45 @@ public class FarmAreaProtectionEvents {
             player.displayClientMessage(
                     Component.translatable("stardewcraft.farm.build_farm_only"), true);
         }
+    }
+
+    public static boolean canModifyGreenhouseAt(ServerPlayer player, ServerLevel level, BlockPos pos) {
+        if (player == null || level == null || pos == null) {
+            return false;
+        }
+        if (!com.stardew.craft.greenhouse.GreenhouseManager.isInGreenhouseInterior(level, pos)) {
+            return false;
+        }
+
+        java.util.UUID ownerUUID = PlayerInteriorAllocator.get(level).findGreenhouseOwner(pos);
+        if (ownerUUID == null) {
+            return true;
+        }
+
+        FarmInstance farm = com.stardew.craft.farm.FarmInstanceRegistry.get().getFarm(ownerUUID);
+        if (farm != null && farm.isFarmer(player.getUUID())) {
+            return true;
+        }
+        return com.stardew.craft.farm.FarmPermissionManager.get()
+                .canModify(ownerUUID, player.getUUID());
+    }
+
+    public static boolean isOriginalGreenhouseStructureBlock(ServerLevel level, BlockPos pos) {
+        if (level == null || pos == null) {
+            return false;
+        }
+        if (!com.stardew.craft.greenhouse.GreenhouseManager.isInGreenhouseInterior(level, pos)) {
+            return false;
+        }
+
+        BlockPos origin = PlayerInteriorAllocator.get(level).findGreenhouseOrigin(pos);
+        if (origin == null) {
+            origin = com.stardew.craft.greenhouse.GreenhouseManager.INTERIOR_ORIGIN;
+        }
+
+        int rx = pos.getX() - origin.getX();
+        int ry = pos.getY() - origin.getY();
+        int rz = pos.getZ() - origin.getZ();
+        return GreenhouseInteriorCache.get().isOriginalStructureBlock(rx, ry, rz);
     }
 }

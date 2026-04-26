@@ -25,12 +25,32 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class TreePresetIO {
 	private TreePresetIO() {
 	}
 
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+
+	// Cache of loaded presets keyed by treeId. Invalidated when the active ResourceManager
+	// instance changes (datapack reload yields a new MultiPackResourceManager). This avoids
+	// walking the entire datapack tree on every tree-growth check, which previously froze the
+	// server thread for many seconds during offline farm catch-up.
+	private static volatile ResourceManager cachedResourceManager;
+	private static final Map<String, List<TreePreset>> RESOURCE_CACHE = new ConcurrentHashMap<>();
+	private static final Map<String, List<TreePreset>> CONFIG_CACHE = new ConcurrentHashMap<>();
+	private static volatile long configCacheStampMs = 0L;
+	// Refresh the config-folder cache at most every few seconds to allow live-edits without
+	// re-walking the directory on every call during catch-up loops.
+	private static final long CONFIG_CACHE_TTL_MS = 5_000L;
+
+	public static synchronized void invalidateCaches() {
+		cachedResourceManager = null;
+		RESOURCE_CACHE.clear();
+		CONFIG_CACHE.clear();
+		configCacheStampMs = 0L;
+	}
 
 	public static Path presetsDir() {
 		return FMLPaths.CONFIGDIR.get().resolve("stardewcraft").resolve("tree_presets");
@@ -65,11 +85,33 @@ public final class TreePresetIO {
 			return result;
 		}
 
-		// 1) Packaged resources
-		result.addAll(loadAllForTreeFromResources(server.getResourceManager(), treeId));
+		// 1) Packaged resources (cached per ResourceManager instance)
+		ResourceManager rm = server.getResourceManager();
+		if (rm != cachedResourceManager) {
+			synchronized (TreePresetIO.class) {
+				if (rm != cachedResourceManager) {
+					RESOURCE_CACHE.clear();
+					cachedResourceManager = rm;
+				}
+			}
+		}
+		List<TreePreset> resourcePresets = RESOURCE_CACHE.computeIfAbsent(treeId,
+				id -> List.copyOf(loadAllForTreeFromResources(rm, id)));
+		result.addAll(resourcePresets);
 
-		// 2) Config overrides (optional)
-		result.addAll(loadAllForTreeFromConfig(treeId));
+		// 2) Config overrides (cached briefly to avoid repeated dir walks during catch-up loops)
+		long now = System.currentTimeMillis();
+		if (now - configCacheStampMs > CONFIG_CACHE_TTL_MS) {
+			synchronized (TreePresetIO.class) {
+				if (now - configCacheStampMs > CONFIG_CACHE_TTL_MS) {
+					CONFIG_CACHE.clear();
+					configCacheStampMs = now;
+				}
+			}
+		}
+		List<TreePreset> configPresets = CONFIG_CACHE.computeIfAbsent(treeId,
+				id -> List.copyOf(loadAllForTreeFromConfig(id)));
+		result.addAll(configPresets);
 
 		return result;
 	}

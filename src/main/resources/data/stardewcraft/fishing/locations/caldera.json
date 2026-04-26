@@ -22,7 +22,13 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.05
+      "spawnRate": 0.05,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     }
   ]
 }

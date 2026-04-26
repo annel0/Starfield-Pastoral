@@ -49,6 +49,53 @@ public final class CCStoryFlags {
         };
     }
 
+    // ── Joja 线 ──
+    /** 已支付 5000g 入会 Joja 超市（SDV mailReceived "JojaMember"） */
+    public static final String JOJA_MEMBER          = "JojaMember";
+    /** 已见过 Morris 首次问候（SDV mailReceived "JojaGreeting"） */
+    public static final String JOJA_GREETING        = "JojaGreeting";
+    /** 已购买 Vault（矿车铁轨修复） */
+    public static final String JOJA_VAULT           = "jojaVault";
+    /** 已购买 Boiler Room（矿车系统） */
+    public static final String JOJA_BOILER_ROOM     = "jojaBoilerRoom";
+    /** 已购买 Crafts Room（山区断桥） */
+    public static final String JOJA_CRAFTS_ROOM     = "jojaCraftsRoom";
+    /** 已购买 Pantry（老农场 → 温室） */
+    public static final String JOJA_PANTRY          = "jojaPantry";
+    /** 已购买 Fish Tank（矿洞入口炸石） */
+    public static final String JOJA_FISH_TANK       = "jojaFishTank";
+    /** 已购买电影院（ccMovieTheater + ccMovieTheaterJoja） */
+    public static final String CC_MOVIE_THEATER     = "ccMovieTheater";
+    public static final String CC_MOVIE_THEATER_JOJA = "ccMovieTheaterJoja";
+
+    /** CD form 5 格按钮对应的 joja flag */
+    public static String jojaAreaFlag(int buttonIdx) {
+        return switch (buttonIdx) {
+            case 0 -> JOJA_VAULT;
+            case 1 -> JOJA_BOILER_ROOM;
+            case 2 -> JOJA_CRAFTS_ROOM;
+            case 3 -> JOJA_PANTRY;
+            case 4 -> JOJA_FISH_TANK;
+            default -> "";
+        };
+    }
+
+    /** CD form 按钮对应的 CC 区域 mail flag（Joja 购买会同时寄出两封，这里返回 cc* 那一封） */
+    public static String jojaButtonToCcFlag(int buttonIdx) {
+        return switch (buttonIdx) {
+            case 0 -> CC_VAULT;
+            case 1 -> CC_BOILER_ROOM;
+            case 2 -> CC_CRAFTS_ROOM;
+            case 3 -> CC_PANTRY;
+            case 4 -> CC_FISH_TANK;
+            default -> "";
+        };
+    }
+
+    public static boolean isJojaMember(ServerPlayer player) {
+        return hasFlag(player, JOJA_MEMBER);
+    }
+
     // ── 便捷查询 ──
 
     public static boolean hasFlag(ServerPlayer player, String flag) {

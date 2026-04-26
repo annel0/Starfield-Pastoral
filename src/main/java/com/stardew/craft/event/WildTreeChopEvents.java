@@ -3,6 +3,7 @@ package com.stardew.craft.event;
 import com.stardew.craft.entity.FallenOakTreeEntity;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.item.tool.StardewAxeItem;
+import com.stardew.craft.manager.CoalForestArea;
 import com.stardew.craft.manager.WildTreeSeedManager;
 import com.stardew.craft.tree.WildTrees;
 import com.stardew.craft.core.ModDimensions;
@@ -200,7 +201,8 @@ public final class WildTreeChopEvents {
 		// have modify permission. Town/others' farms (without PERM_FULL) are off-limits.
 		if (level.dimension() == ModDimensions.STARDEW_VALLEY
 				&& !player.isCreative()
-				&& !FarmAreaProtectionEvents.canModifyAt(player, pos)) {
+				&& !CoalForestArea.containsColumn(pos)
+				&& !canChopAt(player, level, pos)) {
 			event.setCanceled(true);
 			player.displayClientMessage(
 					net.minecraft.network.chat.Component.translatable("stardewcraft.farm.build_farm_only"), true);
@@ -325,6 +327,13 @@ public final class WildTreeChopEvents {
 				return;
 			}
 		}
+	}
+
+	private static boolean canChopAt(ServerPlayer player, ServerLevel level, BlockPos pos) {
+		if (com.stardew.craft.greenhouse.GreenhouseManager.isInGreenhouseInterior(level, pos)) {
+			return FarmAreaProtectionEvents.canModifyGreenhouseAt(player, level, pos);
+		}
+		return FarmAreaProtectionEvents.canModifyAt(player, pos);
 	}
 
 

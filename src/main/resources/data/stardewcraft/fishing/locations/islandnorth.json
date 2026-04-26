@@ -21,6 +21,10 @@
       "spawnRate": 0.4,
       "biomeTags": [
         "#stardewcraft:is_ginger_island_river"
+      ],
+      "seasons": [
+        "summer",
+        "fall"
       ]
     },
     {
@@ -43,6 +47,10 @@
       "spawnRate": 0.33,
       "biomeTags": [
         "#stardewcraft:is_ginger_island_river"
+      ],
+      "seasons": [
+        "fall",
+        "winter"
       ]
     },
     {
@@ -87,6 +95,12 @@
       "spawnRate": 0.25,
       "biomeTags": [
         "#stardewcraft:is_ginger_island_river"
+      ],
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
       ]
     }
   ]

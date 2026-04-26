@@ -36,6 +36,7 @@ public class InteriorSubspaceLifecycleEvents {
 
         // 沙漠区域 schem 放置
         DesertMapBootstrap.ensureLoaded(stardew, "server_started");
+        com.stardew.craft.desert.DesertGalaxyPillarBootstrap.ensurePlaced(stardew, "server_started");
     }
 
     /**
@@ -71,6 +72,7 @@ public class InteriorSubspaceLifecycleEvents {
 
         // 沙漠区域 schem 放置（老存档首次进入时触发）
         DesertMapBootstrap.ensureLoaded(player.serverLevel(), "enter_stardew_dimension");
+        com.stardew.craft.desert.DesertGalaxyPillarBootstrap.ensurePlaced(player.serverLevel(), "enter_stardew_dimension");
     }
 
     @SubscribeEvent
@@ -87,6 +89,7 @@ public class InteriorSubspaceLifecycleEvents {
 
         // 驱动沙漠 schem 放置
         DesertMapBootstrap.tick(level);
+        com.stardew.craft.desert.DesertGalaxyPillarBootstrap.tick(level);
 
         tickCounter++;
         if (tickCounter < 20) {

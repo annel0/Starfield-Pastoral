@@ -1,6 +1,9 @@
 {
   "variants": {
-    "": {
+    "placed_by_player=false": {
+      "model": "stardewcraft:block/quartz"
+    },
+    "placed_by_player=true": {
       "model": "stardewcraft:block/quartz"
     }
   }

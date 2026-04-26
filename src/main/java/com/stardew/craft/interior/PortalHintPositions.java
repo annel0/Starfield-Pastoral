@@ -163,6 +163,13 @@ public final class PortalHintPositions {
         // West entry (toward forest): interaction area (70,-12,116)→(70,-10,123)
         enter(new BlockPos(70, -12, 116), 1, 3, 8, "farm_west");
 
+        // ---- Joja Mart outdoor entry ----
+        enter(new BlockPos(-294, -16, 59), 4, 4, 1, "joja_mart");
+
+        // ---- Joja Mart indoor exit ----
+        BlockPos jojaMartO = new BlockPos(18240, 70, 18240);
+        exit(jojaMartO, new BlockPos(1, 1, 13), 1, 2, 2, "joja_mart");
+
         // ---- Desert: Oasis outdoor entry (in calico desert) ----
         enter(new BlockPos(-360, -40, 1414), 2, 2, 1, "oasis");
 

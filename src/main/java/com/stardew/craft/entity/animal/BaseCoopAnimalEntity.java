@@ -461,7 +461,9 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 				record.allowReproduction(),
 				record.hasEatenAnimalCracker(),
 				getVariant().ordinal(),
-				record.moodMessage()
+				record.moodMessage(),
+				record.wasFedToday(),
+				record.fullness()
 			),
 			displayName
 		));
@@ -1285,6 +1287,7 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 			}
 
 			record.setFullness(255);
+			record.setWasFedToday(true);
 			if (record.moodMessage() != 5 && record.moodMessage() != 6 && !com.stardew.craft.weather.WeatherManager.isRaining(serverLevel)) {
 				record.setHappiness(255);
 				record.addFriendship(ateBlueGrass ? 16 : 8);

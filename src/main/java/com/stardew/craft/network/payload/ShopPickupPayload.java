@@ -54,6 +54,8 @@ public record ShopPickupPayload(
             if (payload.itemId() == null || payload.itemId().isEmpty()) return;
             // Recipe purchases are handled at purchase time, no pickup needed.
             if (payload.itemId().startsWith("recipe:")) return;
+            // Decoration style unlocks are handled at purchase time, no item to deliver.
+            if (payload.itemId().startsWith("wallpaper:") || payload.itemId().startsWith("flooring:")) return;
             int qty = payload.quantity();
             if (qty <= 0) return;
 

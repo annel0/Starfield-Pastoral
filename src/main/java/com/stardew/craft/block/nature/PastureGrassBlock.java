@@ -59,9 +59,42 @@ public class PastureGrassBlock extends BushBlock {
     @SuppressWarnings("null")
     @Override
     protected void randomTick(@SuppressWarnings("null") BlockState state, @SuppressWarnings("null") ServerLevel level, @SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") RandomSource random) {
-        if (level.dimension() == ModDimensions.STARDEW_VALLEY && StardewTimeManager.get().getCurrentSeason() == 3) {
-            level.removeBlock(pos, false);
+        // 仅在 Stardew Valley 维度内生效（冬季消失 + 扩散），其他维度完全不处理。
+        if (level.dimension() != ModDimensions.STARDEW_VALLEY) {
+            return;
         }
+        // 冬季在 SDV 维度内自动消失（与 SDV 一致）
+        if (StardewTimeManager.get().getCurrentSeason() == 3) {
+            level.removeBlock(pos, false);
+            return;
+        }
+
+        // 扩散：极低概率 + 单方向尝试 + 全 O(1) 检查，零额外扫描，对服务器最友好。
+        // 参考 SDV growWeedGrass：原版每天结算一次、每株 65% 尝试、4 邻 25% 落地。
+        // MC randomTick 触发频率高得多（默认 ~3/section/tick），所以基础概率必须压到极低。
+        // 1/24 + 单邻 = 期望每 24 次 randomTick 才放一格，长草节奏接近 SDV 的"几天才铺一片"。
+        if (random.nextInt(24) != 0) {
+            return;
+        }
+        Direction dir = Direction.Plane.HORIZONTAL.getRandomDirection(random);
+        BlockPos targetPos = pos.relative(dir);
+        // 必须已加载，避免触发邻区块加载
+        if (!level.isLoaded(targetPos)) {
+            return;
+        }
+        if (!level.getBlockState(targetPos).isAir()) {
+            return;
+        }
+        BlockPos belowTarget = targetPos.below();
+        BlockState belowState = level.getBlockState(belowTarget);
+        if (!mayPlaceOn(belowState, level, belowTarget)) {
+            return;
+        }
+        // VARIANT 仅材质差异（0/1/2 三种贴图），随机一个即可。
+        int variant = random.nextInt(3);
+        level.setBlock(targetPos,
+            this.defaultBlockState().setValue(VARIANT, variant),
+            net.minecraft.world.level.block.Block.UPDATE_ALL);
     }
 
     @SuppressWarnings("null")

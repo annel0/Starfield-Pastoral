@@ -65,6 +65,9 @@ public class StardewCraft {
                 output.accept(ModItems.PASTURE_GRASS.get());
                 output.accept(ModItems.BLUE_PASTURE_GRASS.get());
                 output.accept(ModItems.YELLOW_DIRT.get());
+                output.accept(ModItems.LARGE_STUMP.get());
+                output.accept(ModItems.HOLLOW_LOG.get());
+                output.accept(ModItems.LARGE_BOULDER.get());
 
                 // 矿井
                 output.accept(ModItems.MINE_BARRIER.get());
@@ -531,6 +534,9 @@ public class StardewCraft {
                 output.accept(ModItems.SHOP_COUNTER_3.get());
                 output.accept(ModItems.SUPERMARKET_SHELF_1.get());
                 output.accept(ModItems.SUPERMARKET_SHELF_2.get());
+                output.accept(ModItems.JOJA_SUPERMARKET_CRATE.get());
+                output.accept(ModItems.SUPERMARKET_CART.get());
+                output.accept(ModItems.SUPERMARKET_FREEZER.get());
                 output.accept(ModItems.SHOP_BASKET.get());
                 output.accept(ModItems.SHOP_CRATE_FRUIT_1.get());
                 output.accept(ModItems.SHOP_CRATE_FRUIT_2.get());
@@ -921,6 +927,7 @@ public class StardewCraft {
         // 手动注册事件（确保事件被正确注册）
         NeoForge.EVENT_BUS.register(com.stardew.craft.event.MinePickaxeEvents.class);
         NeoForge.EVENT_BUS.register(WildTreeChopEvents.class);
+        NeoForge.EVENT_BUS.register(com.stardew.craft.event.ResourceClumpEvents.class);
         // WeaponCombatEvents 已有 @EventBusSubscriber 自动注册，不需要手动注册
 
         if (FMLEnvironment.dist == Dist.CLIENT) {

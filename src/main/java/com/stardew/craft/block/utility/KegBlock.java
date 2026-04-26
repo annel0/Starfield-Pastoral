@@ -112,15 +112,9 @@ public class KegBlock extends MapUtilityStaticBlock implements EntityBlock {
 		}
 
 		// 就绪优先收获（即使手里有物品）
-		if (keg.isReady()) {
-			ItemStack product = keg.harvestOne();
-			if (!product.isEmpty()) {
-				if (!player.addItem(product)) {
-					player.drop(product, false);
-				}
-				level.playSound(null, pos, net.minecraft.sounds.SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6f, 1.0f);
-				return ItemInteractionResult.sidedSuccess(false);
-			}
+		if (UtilityDropHelper.tryHarvest(level, pos, player, keg::isReady, keg::harvestOne,
+				UtilityDropHelper.PREMIUM_MACHINE_VANILLA_XP)) {
+			return ItemInteractionResult.sidedSuccess(false);
 		}
 
 		// 放入原料
@@ -173,18 +167,9 @@ public class KegBlock extends MapUtilityStaticBlock implements EntityBlock {
 			return InteractionResult.PASS;
 		}
 
-		if (!keg.isReady()) {
-			return InteractionResult.PASS;
-		}
-
-		ItemStack product = keg.harvestOne();
-		if (product.isEmpty()) {
-			return InteractionResult.PASS;
-		}
-		if (!player.addItem(product)) {
-			player.drop(product, false);
-		}
-		level.playSound(null, pos, net.minecraft.sounds.SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6f, 1.0f);
-		return InteractionResult.CONSUME;
+		return UtilityDropHelper.tryHarvest(level, pos, player, keg::isReady, keg::harvestOne,
+				UtilityDropHelper.PREMIUM_MACHINE_VANILLA_XP)
+			? InteractionResult.CONSUME
+			: InteractionResult.PASS;
 	}
 }

@@ -331,8 +331,10 @@ public class DimensionEventHandler {
             com.stardew.craft.quest.StardewQuestEvents.fireWarped(player, location);
 
             if (ModDimensions.STARDEW_VALLEY.equals(event.getTo())) {
-                // 如果是 CrossDimensionTeleporter 主动传送（如巫师塔入口），不覆盖目标位置
+                // 如果是 ModTeleport / CrossDimensionTeleporter 主动传送，不覆盖目标位置
                 if (!com.stardew.craft.interior.CrossDimensionTeleporter.consumeSkipAutoTeleport(player.getUUID())) {
+                    StardewCraft.LOGGER.warn("[DIM] auto-redirect fired for {} -> stardew_valley: no SKIP flag, assuming vanilla source (/tp, /execute in, respawn). Mod code must teleport via ModTeleport.",
+                            player.getName().getString());
                     // 查询玩家的农场出生点
                     com.stardew.craft.farm.FarmInstanceRegistry registry = com.stardew.craft.farm.FarmInstanceRegistry.get();
                     net.minecraft.core.BlockPos spawnPos = registry.getFarmSpawnPoint(player.getUUID());
@@ -424,8 +426,10 @@ public class DimensionEventHandler {
                 com.stardew.craft.mining.MineFloorGenerator.generateFloor(level, currentFloor);
             }
 
-            // 如果是 CrossDimensionTeleporter 主动传送（如矿车进入矿井），不覆盖目标位置
+            // 如果是 ModTeleport / CrossDimensionTeleporter 主动传送，不覆盖目标位置
             if (!com.stardew.craft.interior.CrossDimensionTeleporter.consumeSkipAutoTeleport(player.getUUID())) {
+                StardewCraft.LOGGER.warn("[DIM] auto-redirect fired for {} -> stardew_mining floor {}: no SKIP flag, assuming vanilla source. Mod code must teleport via ModTeleport.",
+                        player.getName().getString(), currentFloor);
                 // 传送到当前层数的出生点
                 com.stardew.craft.mining.MiningCoordinates.teleportPlayerToFloor(player, level, currentFloor);
             }
@@ -561,18 +565,21 @@ public class DimensionEventHandler {
             }
             // 关键：先保存已投票玩家快照，再清空投票
             java.util.Set<java.util.UUID> votedPlayers = SleepVoteTracker.getVotedPlayerSnapshot();
-            // 1. 对每个玩家执行晕倒惩罚（跳过已投睡觉票的玩家——他们选择了睡觉，不算晕倒）
+            // 1. 对每个玩家执行晕倒惩罚（跳过已投睡觉票的玩家——他们选择了睡觉，不算晕倒；
+            //    同时跳过尚未拥有农场的新玩家：他们没有农场出生点，强制传送会 fallback 到旧农场导致卡死）
+            com.stardew.craft.farm.FarmInstanceRegistry farmRegistry =
+                    com.stardew.craft.farm.FarmInstanceRegistry.get();
             for (ServerPlayer sp : stardewPlayers) {
-                    if (!votedPlayers.contains(sp.getUUID())) {
+                    if (!votedPlayers.contains(sp.getUUID()) && farmRegistry.hasFarm(sp.getUUID())) {
                         com.stardew.craft.player.PassOutService.on2AMPassOut(sp);
                     }
             }
             // 2. 推进到次日（内部会消费 PassOutResult 并合并进结算包发送给客户端）
             SleepVoteTracker.clearVotes(); // 2AM 强制推进，清空所有未完成的投票
             advanceToNextMorning(serverLevel, stardewMinutes, "pass_out_2am");
-            // 3. 只传送未投票的玩家回农场出生点（已投票玩家正常过夜，不惩罚不传送）
+            // 3. 只传送未投票且已拥有农场的玩家回农场出生点（已投票玩家正常过夜；新玩家没有农场不应被传送）
             for (ServerPlayer sp : stardewPlayers) {
-                    if (!votedPlayers.contains(sp.getUUID())) {
+                    if (!votedPlayers.contains(sp.getUUID()) && farmRegistry.hasFarm(sp.getUUID())) {
                         com.stardew.craft.player.PassOutService.teleportToFarmSpawn(sp);
                     }
             }
@@ -728,6 +735,7 @@ public class DimensionEventHandler {
                     int season = com.stardew.craft.time.StardewTimeManager.get().getCurrentSeason();
                     com.stardew.craft.manager.ForageSpawnService.ensureInitialSpawn(sdv, season);
                     com.stardew.craft.manager.ArtifactSpotSpawnService.ensureInitialSpawn(sdv, season);
+                    com.stardew.craft.manager.CoalForestClumpSpawnService.ensureInitialSpawn(sdv);
                 }
             } catch (Exception e) {
                 StardewCraft.LOGGER.error("[DEFERRED_INIT] Forage/Artifact failed", e);

@@ -52,6 +52,9 @@ public class SmokedFishItem extends Item implements IStardewItem {
 
     @Override
     public String getItemTypeKey() {
+        // SDV: 熏鱼 Object.Category = -26 (ArtisanGoods)，享受 Artisan 1.4×。
+        // 此外 SDV Object.getPriceAfterMultipliers 对 PreserveType.SmokedFish 额外
+        // 叠加 Fisher 1.25× / Angler 1.5×（见下游 ProfessionSellPriceService 特判）。
         return "stardewcraft.type.artisan_goods";
     }
 

@@ -1400,6 +1400,14 @@ public class StardewGameMenuScreen extends Screen {
     private static final ResourceLocation NIGHTBG =
             ResourceLocation.fromNamespaceAndPath("stardewcraft", "textures/gui/nightbg.png");
 
+    // Junimo Note icon (SDV mouseCursors rect 331,374,15,14 × scale 4 = 60×56 within a 64×64 hover slot)
+    private static final ResourceLocation JUNIMO_NOTE_ICON =
+            ResourceLocation.fromNamespaceAndPath("stardewcraft", "textures/gui/junimo_note_icon.png");
+    private static final int JUNIMO_ICON_SRC_W = 15;
+    private static final int JUNIMO_ICON_SRC_H = 14;
+    private int junimoNotePulser = 0;
+    private long junimoIconLastTickMs = 0L;
+
     // Organize button (cursors.png UV)
     private static final int ORGANIZE_U = 162;
     private static final int ORGANIZE_V = 440;
@@ -1437,6 +1445,82 @@ public class StardewGameMenuScreen extends Screen {
 
         // ── 7. Trash can ──
         drawTrashCan(graphics, mouseX, mouseY);
+
+        // ── 8. Junimo Note icon (SDV parity: InventoryPage junimoNoteIcon) ──
+        if (shouldShowJunimoNoteIcon()) {
+            drawJunimoNoteIcon(graphics, mouseX, mouseY);
+        }
+    }
+
+    // ------------- Junimo Note icon (SDV parity) -------------
+
+    /**
+     * SDV InventoryPage.ShouldShowJunimoNoteIcon():
+     *   canReadJunimoText && !JojaMember && !MasterPlayer.hasCompletedCommunityCenter()
+     * Client approximation: use BundleClientData for canReadJunimoText and per-area
+     * completion (which mirrors the server's SavedData via BundleSyncPayload), and
+     * ClientPlayerDataCache.hasMailFlag for JojaMember.
+     */
+    private boolean shouldShowJunimoNoteIcon() {
+        com.stardew.craft.communitycenter.network.BundleClientData cd =
+                com.stardew.craft.communitycenter.network.BundleClientData.INSTANCE;
+        if (!cd.canReadJunimoText()) return false;
+        if (ClientPlayerDataCache.hasMailFlag("JojaMember")) return false;
+        // Consider CC complete only if every area (0..5) is marked complete on the client cache.
+        boolean allComplete = true;
+        for (int area = 0; area < 6; area++) {
+            if (!cd.isAreaComplete(area)) { allComplete = false; break; }
+        }
+        return !allComplete;
+    }
+
+    private int junimoIconX() {
+        return menuX + menuWidth;
+    }
+
+    private int junimoIconY() {
+        return menuY + ui(96);
+    }
+
+    private int junimoIconHoverSize() {
+        // SDV hover box = 64 screen px, at our scaling
+        return ui(64);
+    }
+
+    private boolean junimoIconContains(double mouseX, double mouseY) {
+        int x = junimoIconX();
+        int y = junimoIconY();
+        int size = junimoIconHoverSize();
+        return mouseX >= x && mouseX < x + size && mouseY >= y && mouseY < y + size;
+    }
+
+    private void drawJunimoNoteIcon(GuiGraphics graphics, int mouseX, int mouseY) {
+        // SDV pulse animation: when hovered, pulser accumulates ms → scale = base + sin(pulser/100)/4
+        boolean hovered = junimoIconContains(mouseX, mouseY);
+        long now = System.currentTimeMillis();
+        long dt = (junimoIconLastTickMs == 0L) ? 0L : (now - junimoIconLastTickMs);
+        junimoIconLastTickMs = now;
+        if (hovered) {
+            junimoNotePulser += (int) dt;
+        } else {
+            junimoNotePulser = 0;
+        }
+
+        // SDV base sprite is 15×14 at ×4 = 60×56 screen px, centered inside 64 hover slot.
+        int baseW = ui(JUNIMO_ICON_SRC_W * 4);
+        int baseH = ui(JUNIMO_ICON_SRC_H * 4);
+        float scale = hovered ? (1.0f + (float) Math.sin(junimoNotePulser / 100.0f) / 4.0f) : 1.0f;
+
+        int hoverSize = junimoIconHoverSize();
+        float cx = junimoIconX() + hoverSize / 2.0f;
+        float cy = junimoIconY() + hoverSize / 2.0f;
+
+        graphics.pose().pushPose();
+        graphics.pose().translate(cx, cy, 0);
+        graphics.pose().scale(scale, scale, 1.0f);
+        graphics.pose().translate(-baseW / 2.0f, -baseH / 2.0f, 0);
+        graphics.blit(JUNIMO_NOTE_ICON, 0, 0, 0, 0, baseW, baseH, baseW, baseH);
+        graphics.pose().popPose();
     }
 
     // ------------- Inventory grid (top section) -------------
@@ -1692,6 +1776,13 @@ public class StardewGameMenuScreen extends Screen {
     // ------------- Inventory Page Tooltips -------------
 
     private void drawInventoryPageTooltips(GuiGraphics graphics, int mouseX, int mouseY) {
+        // Junimo Note icon tooltip (SDV: Strings\UI:GameMenu_JunimoNote_Hover — "Community Center")
+        if (shouldShowJunimoNoteIcon() && junimoIconContains(mouseX, mouseY)) {
+            graphics.renderTooltip(this.font,
+                    Component.translatable("stardewcraft.game_menu.junimo_note.hover"),
+                    mouseX, mouseY);
+            return;
+        }
         // Equipment slot tooltips
         int equipSlot = invPageHoveredEquip(mouseX, mouseY);
         if (equipSlot >= 0) {
@@ -3127,6 +3218,13 @@ public class StardewGameMenuScreen extends Screen {
             }
 
             if (currentTab == 0) {
+                // Junimo Note icon click → open read-only bundle viewer (SDV parity)
+                if (shouldShowJunimoNoteIcon() && junimoIconContains(mouseX, mouseY)) {
+                    PacketDistributor.sendToServer(
+                            new com.stardew.craft.communitycenter.network.OpenBundleViewerPayload());
+                    playUiSound(ModSounds.BIG_SELECT.get(), 1.0f, 1.0f);
+                    return true;
+                }
                 // Equipment slot click
                 int equipSlot = invPageHoveredEquip(mouseX, mouseY);
                 if (equipSlot >= 0) {

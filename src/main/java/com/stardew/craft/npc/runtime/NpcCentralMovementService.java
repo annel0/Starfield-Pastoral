@@ -5,6 +5,7 @@ import com.stardew.craft.interior.InteriorSubspaceManager;
 import com.stardew.craft.npc.data.NpcCapabilityProfile;
 import com.stardew.craft.npc.data.NpcDataRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Blocks;
@@ -12,6 +13,7 @@ import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.levelgen.Heightmap;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -66,6 +68,12 @@ public final class NpcCentralMovementService {
     private static final int NAV_FAIL_TELEPORT_THRESHOLD = 8;
     /** Ticks without any progress before emergency teleport. */
     private static final int NO_PROGRESS_TELEPORT_TICKS = 300;
+    /** Vertical scan above preferred Y when correcting a bad route point. */
+    private static final int SAFE_TARGET_SCAN_UP = 3;
+    /** Vertical scan below preferred Y when correcting a bad route point. */
+    private static final int SAFE_TARGET_SCAN_DOWN = 8;
+    /** Horizontal radius to search inside interiors before giving up on a bad authored column. */
+    private static final int INTERIOR_SAFE_TARGET_RADIUS = 2;
     /**
      * When the step target is beyond this distance, use an intermediate
      * moveTo target ~40 blocks in the direction of the real target.
@@ -101,6 +109,9 @@ public final class NpcCentralMovementService {
             activeNpcIds.add(npcId);
             // Skip NPCs that live in a different dimension (e.g. dwarf in mining)
             if (NpcSpawnManager.isMiningDimensionNpc(npcId)) continue;
+            // Joja Mart NPCs 由 JojaNpcEvents 独立管理（骆驼商人同款），
+            // 不能让本服务的路径规划 / teleport 干预它们。
+            if (com.stardew.craft.joja.JojaNpcEvents.isJojaMartNpc(npcId)) continue;
             StardewNpcEntity npc = NpcSpawnManager.getTrackedNpc(level, npcId);
             if (npc == null) {
                 continue;
@@ -325,10 +336,11 @@ public final class NpcCentralMovementService {
     // ──── Plan execution helpers ────
 
     /** Teleport NPC to the current step target and advance to the next step. */
-    private static void advanceStepByTeleport(StardewNpcEntity npc, NpcRoutePlan plan, Vec3 target, long now) {
+    private static void advanceStepByTeleport(ServerLevel level, StardewNpcEntity npc, NpcRoutePlan plan, Vec3 target, long now) {
         npc.getNavigation().stop();
         npc.setDeltaMovement(Vec3.ZERO);
         npc.setPos(target.x, target.y, target.z);
+        snapToSurface(level, npc);
         plan.currentStepIndex++;
         plan.consecutiveNavFailures = 0;
         plan.lastProgressTick = now;
@@ -344,12 +356,13 @@ public final class NpcCentralMovementService {
                                            StardewNpcEntity npc,
                                            NpcRoutePlan plan) {
         if (plan.currentStepIndex >= plan.steps.size()) {
-            Vec3 finalTarget = plan.steps.isEmpty() ? null : plan.steps.get(plan.steps.size() - 1).target;
+            Vec3 finalTarget = plan.steps.isEmpty() ? null : resolveSafeStepTarget(level, plan.steps.get(plan.steps.size() - 1).target);
             if (finalTarget != null) {
                 Vec3 delta = finalTarget.subtract(npc.position());
                 double d2dSqr = delta.x * delta.x + delta.z * delta.z;
                 if (d2dSqr > DONE_RESYNC_DIST_SQR) {
                     npc.setPos(finalTarget.x, finalTarget.y, finalTarget.z);
+                    snapToSurface(level, npc);
                     plan.lastProgressTick = level.getGameTime();
                     plan.debugStage = "done_resync";
                     return false;
@@ -364,36 +377,38 @@ public final class NpcCentralMovementService {
         plan.lastFallbackTeleportUsed = false;
         plan.debugRepathReason = "none";
         NpcRoutePlanner.NpcRouteStep step = plan.steps.get(plan.currentStepIndex);
+        Vec3 safeTarget = resolveSafeStepTarget(level, step.target);
         plan.debugPointId = step.pointId;
-        plan.debugTarget = step.target;
-        plan.debugNextWaypoint = step.target;
+        plan.debugTarget = safeTarget;
+        plan.debugNextWaypoint = safeTarget;
         long now = level.getGameTime();
 
         // ── WARP steps: instant teleport ──
         if (step.mode == NpcRoutePlanner.RouteStepMode.WARP) {
-            NpcChunkForceManager.ensureRouteTargetChunkForced(level, npc.getNpcId(), step.target);
+            NpcChunkForceManager.ensureRouteTargetChunkForced(level, npc.getNpcId(), safeTarget);
             plan.debugStage = "warp";
-            advanceStepByTeleport(npc, plan, step.target, now);
+            advanceStepByTeleport(level, npc, plan, safeTarget, now);
             return false;
         }
 
         // ── WALK steps: delegate to vanilla GroundPathNavigation ──
-        NpcChunkForceManager.ensureRouteTargetChunkForced(level, npc.getNpcId(), step.target);
-        NpcChunkForceManager.ensureRouteCorridorChunksForced(level, npc.getNpcId(), npc.position(), step.target);
+        NpcChunkForceManager.ensureRouteTargetChunkForced(level, npc.getNpcId(), safeTarget);
+        NpcChunkForceManager.ensureRouteCorridorChunksForced(level, npc.getNpcId(), npc.position(), safeTarget);
 
         // Open doors near NPC and toward target
         long npcBlockKey = npc.blockPosition().asLong();
         if (npcBlockKey != plan.lastDoorCheckBlockKey) {
             plan.lastDoorCheckBlockKey = npcBlockKey;
-            tryOpenNearbyDoors(level, npc, step.target, step.target);
+            tryOpenNearbyDoors(level, npc, safeTarget, safeTarget);
         }
 
         // Check horizontal arrival at step target
-        Vec3 toTarget = new Vec3(step.target.x - npc.getX(), 0.0D, step.target.z - npc.getZ());
+        Vec3 toTarget = new Vec3(safeTarget.x - npc.getX(), 0.0D, safeTarget.z - npc.getZ());
         double distSqr = toTarget.lengthSqr();
         if (distSqr <= STEP_REACH_SQR) {
             // Arrived at step target — advance
             npc.getNavigation().stop();
+            snapToSurface(level, npc);
             plan.currentStepIndex++;
             plan.consecutiveNavFailures = 0;
             plan.lastProgressTick = now;
@@ -415,14 +430,14 @@ public final class NpcCentralMovementService {
         double moveToX, moveToY, moveToZ;
         if (dist > INTERMEDIATE_TARGET_DIST) {
             double ratio = INTERMEDIATE_TARGET_DIST / dist;
-            moveToX = npc.getX() + (step.target.x - npc.getX()) * ratio;
-            moveToZ = npc.getZ() + (step.target.z - npc.getZ()) * ratio;
-            moveToY = step.target.y; // keep target elevation
+            moveToX = npc.getX() + (safeTarget.x - npc.getX()) * ratio;
+            moveToZ = npc.getZ() + (safeTarget.z - npc.getZ()) * ratio;
+            moveToY = safeTarget.y; // keep target elevation
             plan.debugRepathReason = "intermediate_" + (int) dist + "m";
         } else {
-            moveToX = step.target.x;
-            moveToY = step.target.y;
-            moveToZ = step.target.z;
+            moveToX = safeTarget.x;
+            moveToY = safeTarget.y;
+            moveToZ = safeTarget.z;
         }
 
         // Issue or re-issue moveTo at periodic intervals
@@ -485,12 +500,12 @@ public final class NpcCentralMovementService {
             String reason = plan.stuckCheckCount >= STUCK_TELEPORT_CHECKS ? "stuck_" + plan.stuckCheckCount
                 : plan.consecutiveNavFailures >= NAV_FAIL_TELEPORT_THRESHOLD ? "nav_fail_" + plan.consecutiveNavFailures
                 : "no_progress";
-            advanceStepByTeleport(npc, plan, step.target, now);
+            advanceStepByTeleport(level, npc, plan, safeTarget, now);
             plan.debugRepathReason = "teleport_" + reason;
         } else if (plan.stuckCheckCount >= STUCK_REPATH_CHECKS) {
             // Stuck but not yet at teleport threshold — force repath
             npc.getNavigation().stop();
-            npc.getNavigation().moveTo(step.target.x, step.target.y, step.target.z, 1.0D);
+            npc.getNavigation().moveTo(safeTarget.x, safeTarget.y, safeTarget.z, 1.0D);
             plan.lastRepathTick = now;
             plan.debugStage = "stuck_repath";
             plan.debugRepathReason = "stuck_repath_check" + plan.stuckCheckCount;
@@ -727,5 +742,116 @@ public final class NpcCentralMovementService {
                 npc.setPos(npc.getX(), surfaceY, npc.getZ());
             }
         }
+    }
+
+    private static Vec3 resolveSafeStepTarget(ServerLevel level, Vec3 rawTarget) {
+        if (level == null || rawTarget == null) {
+            return rawTarget;
+        }
+
+        int baseX = Mth.floor(rawTarget.x);
+        int baseZ = Mth.floor(rawTarget.z);
+        if (level.getChunkSource().getChunkNow(baseX >> 4, baseZ >> 4) == null) {
+            return rawTarget;
+        }
+
+        boolean interiorTarget = InteriorSubspaceManager.isInteriorRegion(level, BlockPos.containing(rawTarget));
+
+        BlockPos safeStand = resolveColumnSafeStand(level, baseX, baseZ, Mth.floor(rawTarget.y), !interiorTarget, interiorTarget);
+        if (safeStand == null && interiorTarget) {
+            safeStand = resolveNearbyInteriorStand(level, baseX, baseZ, Mth.floor(rawTarget.y));
+        }
+        if (safeStand == null) {
+            return rawTarget;
+        }
+
+        return new Vec3(rawTarget.x, safeStand.getY(), rawTarget.z);
+    }
+
+    private static BlockPos resolveColumnSafeStand(ServerLevel level,
+                                                   int x,
+                                                   int z,
+                                                   int preferredY,
+                                                   boolean allowSurfaceFallback,
+                                                   boolean interiorTarget) {
+        if (level.getChunkSource().getChunkNow(x >> 4, z >> 4) == null) {
+            return null;
+        }
+
+        for (int y = preferredY + SAFE_TARGET_SCAN_UP; y >= preferredY - SAFE_TARGET_SCAN_DOWN; y--) {
+            BlockPos candidate = new BlockPos(x, y, z);
+            if (isSafeStandPosition(level, candidate, interiorTarget)) {
+                return candidate;
+            }
+        }
+
+        if (!allowSurfaceFallback) {
+            return null;
+        }
+
+        int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
+        BlockPos surface = new BlockPos(x, surfaceY, z);
+        if (isSafeStandPosition(level, surface, false)) {
+            return surface;
+        }
+        return null;
+    }
+
+    private static BlockPos resolveNearbyInteriorStand(ServerLevel level, int x, int z, int preferredY) {
+        for (int radius = 1; radius <= INTERIOR_SAFE_TARGET_RADIUS; radius++) {
+            for (int dx = -radius; dx <= radius; dx++) {
+                BlockPos north = resolveColumnSafeStand(level, x + dx, z - radius, preferredY, false, true);
+                if (north != null) {
+                    return north;
+                }
+                BlockPos south = resolveColumnSafeStand(level, x + dx, z + radius, preferredY, false, true);
+                if (south != null) {
+                    return south;
+                }
+            }
+            for (int dz = -radius + 1; dz <= radius - 1; dz++) {
+                BlockPos west = resolveColumnSafeStand(level, x - radius, z + dz, preferredY, false, true);
+                if (west != null) {
+                    return west;
+                }
+                BlockPos east = resolveColumnSafeStand(level, x + radius, z + dz, preferredY, false, true);
+                if (east != null) {
+                    return east;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static boolean isSafeStandPosition(ServerLevel level, BlockPos pos, boolean interiorTarget) {
+        if (interiorTarget) {
+            return isSafeInteriorStandPosition(level, pos);
+        }
+        return NpcPathfinder.canStand(level, pos)
+            && level.getFluidState(pos).isEmpty()
+            && level.getFluidState(pos.above()).isEmpty();
+    }
+
+    private static boolean isSafeInteriorStandPosition(ServerLevel level, BlockPos pos) {
+        BlockPos abovePos = pos.above();
+        BlockPos belowPos = pos.below();
+        BlockState feet = level.getBlockState(pos);
+        BlockState head = level.getBlockState(abovePos);
+        BlockState below = level.getBlockState(belowPos);
+
+        if (!feet.getCollisionShape(level, pos).isEmpty() && !NpcPathfinder.isPathDoorPassable(feet)) {
+            return false;
+        }
+        if (!head.getCollisionShape(level, abovePos).isEmpty() && !NpcPathfinder.isPathDoorPassable(head)) {
+            return false;
+        }
+        if (NpcPathfinder.isBarrierBlock(below)) {
+            return false;
+        }
+        if (below.getCollisionShape(level, belowPos).isEmpty()) {
+            return false;
+        }
+        return level.getFluidState(pos).isEmpty()
+            && level.getFluidState(abovePos).isEmpty();
     }
 }

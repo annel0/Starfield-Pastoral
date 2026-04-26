@@ -58,7 +58,23 @@ public class CommunityCenterCommand {
                                 .executes(ctx -> completeArea(ctx, IntegerArgumentType.getInteger(ctx, "area")))))
                 .then(Commands.literal("complete_bundle")
                         .then(Commands.argument("bundleId", IntegerArgumentType.integer(0))
-                                .executes(ctx -> completeBundle(ctx, IntegerArgumentType.getInteger(ctx, "bundleId")))));
+                                .executes(ctx -> completeBundle(ctx, IntegerArgumentType.getInteger(ctx, "bundleId")))))
+                .then(Commands.literal("unlock_junimo_text")
+                        .executes(CommunityCenterCommand::unlockJunimoText));
+    }
+
+    private static int unlockJunimoText(CommandContext<CommandSourceStack> ctx) {
+        ServerPlayer player = ctx.getSource().getPlayer();
+        if (player == null) {
+            ctx.getSource().sendFailure(Component.literal("Must be run by a player"));
+            return 0;
+        }
+        CCStoryFlags.addFlag(player, CCStoryFlags.CAN_READ_JUNIMO);
+        BundleSyncPayload.sendFullSync(player);
+        ctx.getSource().sendSuccess(
+                () -> Component.literal("Granted canReadJunimoText — junimo note icon will now show in GameMenu."),
+                false);
+        return 1;
     }
 
     private static int openMenu(CommandContext<CommandSourceStack> ctx, int areaId) {

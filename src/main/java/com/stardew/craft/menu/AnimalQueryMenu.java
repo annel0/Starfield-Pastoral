@@ -40,9 +40,11 @@ public class AnimalQueryMenu extends AbstractContainerMenu {
     private int hasEatenAnimalCracker;
     private int variantIndex;
     private int moodMessage;
+    private int wasFedToday;
+    private int fullness;
 
     public AnimalQueryMenu(int containerId, Inventory playerInventory) {
-        this(containerId, playerInventory, -1L, 0, 5, false, 0, false, false, 0, 0);
+        this(containerId, playerInventory, -1L, 0, 5, false, 0, false, false, 0, 0, false, 0);
     }
 
     public AnimalQueryMenu(int containerId,
@@ -55,7 +57,9 @@ public class AnimalQueryMenu extends AbstractContainerMenu {
                            boolean allowReproduction,
                            boolean hasEatenAnimalCracker,
                            int variantIndex,
-                           int moodMessage) {
+                           int moodMessage,
+                           boolean wasFedToday,
+                           int fullness) {
         super(ModMenuTypes.ANIMAL_QUERY.get(), containerId);
         this.player = playerInventory.player;
         this.animalId = animalId;
@@ -67,6 +71,8 @@ public class AnimalQueryMenu extends AbstractContainerMenu {
         this.hasEatenAnimalCracker = hasEatenAnimalCracker ? 1 : 0;
         this.variantIndex = Math.max(0, variantIndex);
         this.moodMessage = Math.max(0, moodMessage);
+        this.wasFedToday = wasFedToday ? 1 : 0;
+        this.fullness = Math.max(0, Math.min(255, fullness));
 
         this.addDataSlot(new DataSlot() {
             @Override
@@ -175,6 +181,38 @@ public class AnimalQueryMenu extends AbstractContainerMenu {
                 AnimalQueryMenu.this.moodMessage = Math.max(0, value);
             }
         });
+
+        this.addDataSlot(new DataSlot() {
+            @Override
+            public int get() {
+                return AnimalQueryMenu.this.wasFedToday;
+            }
+
+            @Override
+            public void set(int value) {
+                AnimalQueryMenu.this.wasFedToday = value > 0 ? 1 : 0;
+            }
+        });
+
+        this.addDataSlot(new DataSlot() {
+            @Override
+            public int get() {
+                return AnimalQueryMenu.this.fullness;
+            }
+
+            @Override
+            public void set(int value) {
+                AnimalQueryMenu.this.fullness = Math.max(0, Math.min(255, value));
+            }
+        });
+    }
+
+    public int getFullness() {
+        return fullness;
+    }
+
+    public boolean wasFedToday() {
+        return wasFedToday > 0;
     }
 
     public long getAnimalId() {

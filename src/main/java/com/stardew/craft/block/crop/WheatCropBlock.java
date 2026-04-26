@@ -1,12 +1,21 @@
 package com.stardew.craft.block.crop;
 
+import com.stardew.craft.animal.data.AnimalWorldData;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.item.quality.QualityHelper;
+import com.stardew.craft.network.HayHarvestHudMessagePacket;
 import com.stardew.craft.time.StardewTimeManager;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 
@@ -82,5 +91,30 @@ public class WheatCropBlock extends StardewCropBlock {
     @Override
     public String getCropDisplayName() {
         return "小麦";
+    }
+
+    /**
+     * SDV 1:1: Crop.cs:728 — 小麦收获时 40% 概率额外掉 1 份干草。
+     * 本模组扩展：优先尝试塞入玩家的筒仓，塞不下的部分掉落在地上。
+     */
+    @Override
+    protected void spawnHarvestSideProducts(ServerLevel level, BlockPos pos, BlockState state, RandomSource random,
+                                            Player player, int fertilizerLevel, int farmingLevel) {
+        if (random.nextDouble() >= 0.4) {
+            return;
+        }
+        int hayCount = 1;
+        int leftover = hayCount;
+        if (player instanceof ServerPlayer serverPlayer) {
+            AnimalWorldData data = AnimalWorldData.get(level);
+            int stored = data.storeHay(serverPlayer.getUUID(), hayCount);
+            if (stored > 0) {
+                HayHarvestHudMessagePacket.sendTo(serverPlayer, stored, false);
+            }
+            leftover = hayCount - stored;
+        }
+        if (leftover > 0) {
+            Block.popResource(level, pos, new ItemStack(ModItems.HAY.get(), leftover));
+        }
     }
 }

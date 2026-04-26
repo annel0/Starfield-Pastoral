@@ -366,7 +366,12 @@ public class StardewNpcDialogueScreen extends Screen {
             int qIndex = normalized.indexOf("$q ");
             String mainText = normalized.substring(0, qIndex).trim();
             String queryPart = normalized.substring(qIndex);
-            
+
+            // Tolerate data that omits the leading '#' before '$r' / '$q'
+            // (canonical SDV format uses '#$r'/'#$q'). Insert it where missing
+            // so the parser below can rely on '#$r' as the response delimiter.
+            queryPart = queryPart.replaceAll("(?<!#)\\$r ", "#\\$r ");
+
             // Format: $q <id> <next_if_already> <base text>#$r <resId> <score> <resNext>#<resText>#$r...
             // Extract base text
             int firstHash = queryPart.indexOf("#");

@@ -23,7 +23,13 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.3
+      "spawnRate": 0.3,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "stonefish",
@@ -45,7 +51,13 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.1
+      "spawnRate": 0.1,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "ice_pip",
@@ -67,7 +79,13 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.05
+      "spawnRate": 0.05,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "lava_eel",
@@ -90,7 +108,13 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.05
+      "spawnRate": 0.05,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "green_algae",
@@ -114,6 +138,12 @@
         "#stardewcraft:is_mines_20",
         "#stardewcraft:is_mines_60",
         "#stardewcraft:is_mines_100"
+      ],
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
       ]
     },
     {
@@ -138,6 +168,12 @@
         "#stardewcraft:is_mines_20",
         "#stardewcraft:is_mines_60",
         "#stardewcraft:is_mines_100"
+      ],
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
       ]
     },
     {

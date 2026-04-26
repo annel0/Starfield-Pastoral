@@ -26,7 +26,11 @@ public enum FarmType {
                     new BlockPos(37, 5, 172), new BlockPos(37, 7, 177)),
             entry(new BlockPos(225, 5, 298), 180.0f,
                     new BlockPos(217, 5, 300), new BlockPos(239, 7, 300)),
-            null, null, null
+            null, null, null,
+            region(new BlockPos(254, 5, 127), new BlockPos(254, 7, 131)),
+            region(new BlockPos(253, 5, 127), new BlockPos(253, 7, 131)),
+            null,
+            new BlockPos(251, 5, 129), -90.0f
     )),
 
     RIVERLAND("riverland", true, layout(
@@ -40,7 +44,11 @@ public enum FarmType {
                     new BlockPos(2, 10, 149), new BlockPos(2, 12, 156)),
             entry(new BlockPos(166, 10, 248), 180.0f,
                     new BlockPos(163, 10, 249), new BlockPos(169, 12, 249)),
-            "pelican_town_river", null, null
+            "pelican_town_river", null, null,
+            null,
+            region(new BlockPos(213, 10, 108), new BlockPos(213, 12, 111)),
+            null,
+            new BlockPos(211, 10, 110), -90.0f
     )),
 
     FOREST("forest", true, layout(
@@ -55,7 +63,11 @@ public enum FarmType {
             entry(new BlockPos(227, 3, 313), 180.0f,
                     new BlockPos(222, 3, 315), new BlockPos(235, 5, 315)),
             "secret_woods_pond",
-            new BlockPos(48, 3, 43), new BlockPos(206, 7, 98)
+            new BlockPos(48, 3, 43), new BlockPos(206, 7, 98),
+            region(new BlockPos(283, 3, 119), new BlockPos(283, 6, 126)),
+            region(new BlockPos(282, 3, 119), new BlockPos(282, 6, 126)),
+            region(new BlockPos(279, 3, 119), new BlockPos(282, 6, 126)),
+            new BlockPos(279, 3, 123), -90.0f
     )),
 
     HILLTOP("hilltop", false, null),
@@ -73,6 +85,9 @@ public enum FarmType {
             BlockPos exitMin, BlockPos exitMax
     ) {}
 
+    /** 立方体区域规范（相对 farm origin），用于农场洞穴的墙/传送区/清空区。min/max 均包含。 */
+    public record CaveRegion(BlockPos min, BlockPos max) {}
+
     /** 完整农场布局（仅解锁类型有值） */
     public record FarmLayout(
             int originY,
@@ -85,7 +100,12 @@ public enum FarmType {
             EntryData entryWest,
             @Nullable String biomeId,
             @Nullable BlockPos forageZoneMin,
-            @Nullable BlockPos forageZoneMax
+            @Nullable BlockPos forageZoneMax,
+            @Nullable CaveRegion caveBlackWall,
+            @Nullable CaveRegion cavePortalWall,
+            @Nullable CaveRegion caveClearBox,
+            @Nullable BlockPos caveExitSpawn,
+            float caveExitYaw
     ) {
         public BlockPos boundsMin() { return BlockPos.ZERO; }
         public BlockPos boundsMax() { return new BlockPos(schemWidth - 1, schemHeight - 1, schemLength - 1); }
@@ -151,8 +171,18 @@ public enum FarmType {
                                      BlockPos greenhouse, BlockPos totem,
                                      EntryData south, EntryData east, EntryData west,
                                      @Nullable String biomeId,
-                                     @Nullable BlockPos forageMin, @Nullable BlockPos forageMax) {
+                                     @Nullable BlockPos forageMin, @Nullable BlockPos forageMax,
+                                     @Nullable CaveRegion blackWall,
+                                     @Nullable CaveRegion portalWall,
+                                     @Nullable CaveRegion clearBox,
+                                     @Nullable BlockPos caveExitSpawn,
+                                     float caveExitYaw) {
         return new FarmLayout(originY, w, h, l, spawn, spawnYaw,
-                greenhouse, totem, south, east, west, biomeId, forageMin, forageMax);
+                greenhouse, totem, south, east, west, biomeId, forageMin, forageMax,
+                blackWall, portalWall, clearBox, caveExitSpawn, caveExitYaw);
+    }
+
+    private static CaveRegion region(BlockPos min, BlockPos max) {
+        return new CaveRegion(min, max);
     }
 }

@@ -363,6 +363,7 @@ public class ModClientEvents {
         com.stardew.craft.cutscene.runtime.EventCameraController.tick();
         com.stardew.craft.cutscene.runtime.EventScreenFade.tick();
         com.stardew.craft.cutscene.runtime.EventTriggerChecker.tick();
+        com.stardew.craft.client.ritual.GalaxySwordRitualClientState.tick();
 
         Minecraft mc = Minecraft.getInstance();
         if (mc == null || mc.player == null || mc.level == null) {
@@ -370,7 +371,8 @@ public class ModClientEvents {
         }
 
         // ── During cutscene: suppress all player input, freeze movement ──
-        if (com.stardew.craft.cutscene.runtime.EventPlayer.get().isPlayerFrozen()) {
+        if (com.stardew.craft.cutscene.runtime.EventPlayer.get().isPlayerFrozen()
+            || com.stardew.craft.client.ritual.GalaxySwordRitualClientState.isPlayerFrozen()) {
             // Zero out movement so the player stands still
             mc.player.setDeltaMovement(net.minecraft.world.phys.Vec3.ZERO);
             mc.player.xxa = 0;
@@ -491,6 +493,7 @@ public class ModClientEvents {
 
         // Cutscene event fade overlay
         com.stardew.craft.cutscene.runtime.EventScreenFade.render(event.getGuiGraphics());
+        com.stardew.craft.client.ritual.GalaxySwordRitualClientState.render(event.getGuiGraphics());
 
         Minecraft mc = Minecraft.getInstance();
         Player player = mc.player;

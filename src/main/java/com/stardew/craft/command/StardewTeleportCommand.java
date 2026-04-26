@@ -18,6 +18,7 @@ import com.stardew.craft.network.MiningFloorSyncPacket;
 import com.stardew.craft.network.TimeSyncPacket;
 import com.stardew.craft.time.StardewTimeManager;
 import com.stardew.craft.tree.WildTrees;
+import com.stardew.craft.warp.ModTeleport;
 import com.stardew.craft.tree.preset.TreePresetIO;
 import com.stardew.craft.weather.WeatherManager;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
@@ -158,7 +159,9 @@ public class StardewTeleportCommand {
                     .then(Commands.literal("test")
                         .executes(StardewTeleportCommand::testWeatherProbability))
                     .then(Commands.literal("diagnose")
-                        .executes(StardewTeleportCommand::diagnoseRain)))
+                        .executes(StardewTeleportCommand::diagnoseRain))
+                    .then(Commands.literal("fixvanilla")
+                        .executes(StardewTeleportCommand::fixVanillaWeather)))
         );
     }
 
@@ -269,13 +272,7 @@ public class StardewTeleportCommand {
             // 传送到星露谷维度的出生点（可以后续改为农场位置）
             BlockPos targetPos = new BlockPos(0, 70, 0);
             
-            player.teleportTo(stardewLevel, 
-                targetPos.getX() + 0.5, 
-                targetPos.getY(), 
-                targetPos.getZ() + 0.5,
-                player.getYRot(), 
-                player.getXRot()
-            );
+            ModTeleport.to(player, stardewLevel, targetPos, player.getYRot(), player.getXRot());
             
             context.getSource().sendSuccess(
                 () -> Component.literal("欢迎来到星露谷！"),
@@ -346,7 +343,7 @@ public class StardewTeleportCommand {
             }
 
             InteriorSubspaceManager.ensureLoaded(stardewLevel, "manual_tp_origin");
-            player.teleportTo(stardewLevel, 12032.5D, 70.0D, 12032.5D, player.getYRot(), player.getXRot());
+            ModTeleport.to(player, stardewLevel, 12032.5D, 70.0D, 12032.5D, player.getYRot(), player.getXRot());
             context.getSource().sendSuccess(() -> Component.literal("已传送到室内结构原点附近: 12032 70 12032"), false);
             return 1;
         } catch (Exception e) {
@@ -370,7 +367,7 @@ public class StardewTeleportCommand {
             }
 
             InteriorSubspaceManager.ensureLoaded(stardewLevel, "manual_tp_spawn");
-            player.teleportTo(stardewLevel, 12038.5D, 71.0D, 12038.5D, -90.0F, 0.0F);
+            ModTeleport.to(player, stardewLevel, 12038.5D, 71.0D, 12038.5D, -90.0F, 0.0F);
             context.getSource().sendSuccess(() -> Component.literal("已传送到室内落点: 12038 71 12038（朝东）"), false);
             return 1;
         } catch (Exception e) {
@@ -382,7 +379,7 @@ public class StardewTeleportCommand {
     /**
      * 传送到矿井维度（调试用）
      * - 会确保入口大厅结构只生成一次
-     * - 落点按大厅 schem 偏移固定到 (21,66,3)
+     * - 落点统一走 MiningCoordinates.teleportPlayerToFloor(0)，即 (0.5, 66, -7.5) 面朝北
      */
     private static int teleportToMine(CommandContext<CommandSourceStack> context) {
         try {
@@ -400,7 +397,7 @@ public class StardewTeleportCommand {
             }
 
             MineEntranceBootstrap.ensureGenerated(mineLevel);
-            player.teleportTo(mineLevel, 21.5, 66.0, 3.5, player.getYRot(), player.getXRot());
+            MiningCoordinates.teleportPlayerToFloor(player, mineLevel, 0);
 
             context.getSource().sendSuccess(
                 () -> Component.literal("已传送到矿井入口（如果是第一次进入，会自动生成大厅）"),
@@ -438,7 +435,7 @@ public class StardewTeleportCommand {
             // 确保 floor 121 已生成
             com.stardew.craft.mining.MineFloorGenerator.generateFloor(mineLevel, floor);
 
-            player.teleportTo(mineLevel, 0.5, safeY, floorZ + 0.5, player.getYRot(), player.getXRot());
+            ModTeleport.to(player, mineLevel, 0.5, safeY, floorZ + 0.5, player.getYRot(), player.getXRot());
 
             context.getSource().sendSuccess(
                 () -> Component.literal("已传送到骷髅矿洞入口 (Floor 121)"),
@@ -557,13 +554,7 @@ public class StardewTeleportCommand {
             // 返回到主世界出生点
             BlockPos spawnPos = overworld.getSharedSpawnPos();
             
-            player.teleportTo(overworld,
-                spawnPos.getX() + 0.5,
-                spawnPos.getY(),
-                spawnPos.getZ() + 0.5,
-                player.getYRot(),
-                player.getXRot()
-            );
+            ModTeleport.to(player, overworld, spawnPos, player.getYRot(), player.getXRot());
             
             context.getSource().sendSuccess(
                 () -> Component.literal("已返回主世界"),
@@ -915,6 +906,34 @@ public class StardewTeleportCommand {
         );
 
         context.getSource().sendSuccess(() -> Component.literal(msg), false);
+        return 1;
+    }
+
+    private static int fixVanillaWeather(CommandContext<CommandSourceStack> context) {
+        var src = context.getSource();
+        var server = src.getServer();
+        ServerLevel overworld = server.overworld();
+        boolean wasRaining = overworld.isRaining();
+        boolean wasThundering = overworld.isThundering();
+        // Clear shared PrimaryLevelData weather (also resets the timers so the
+        // game won't immediately re-roll a thunderstorm).
+        overworld.setWeatherParameters(0, 0, false, false);
+
+        // Re-broadcast the Stardew dim's authoritative weather so any client
+        // that already cached the bogus storm state gets corrected immediately.
+        for (ServerLevel sl : server.getAllLevels()) {
+            if (sl.dimension() == com.stardew.craft.core.ModDimensions.STARDEW_VALLEY) {
+                com.stardew.craft.weather.WeatherSavedData.get(sl)
+                    .getWeatherState(sl.dimension())
+                    .applyToLevel(sl);
+            }
+        }
+
+        src.sendSuccess(() -> Component.literal(
+            "\u00a7a已清除原版天气状态 (raining=" + wasRaining
+                + ", thundering=" + wasThundering + " -> false)。"
+            + "\n\u00a77请改用 /stardew weather set ... 修改星露谷天气，避免使用原版 /weather。"
+        ), true);
         return 1;
     }
 

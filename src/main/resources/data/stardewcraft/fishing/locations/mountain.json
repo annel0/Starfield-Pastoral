@@ -24,7 +24,13 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.45
+      "spawnRate": 0.45,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "rainbow_trout",
@@ -74,7 +80,11 @@
         "#stardewcraft:is_mountain_lake",
         "#stardewcraft:is_forest_pond"
       ],
-      "spawnRate": 0.4
+      "spawnRate": 0.4,
+      "seasons": [
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "largemouth_bass",
@@ -96,7 +106,13 @@
         "#stardewcraft:is_mountain_lake"
       ],
       "weather": "any",
-      "spawnRate": 0.4
+      "spawnRate": 0.4,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "carp",
@@ -120,7 +136,12 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.45
+      "spawnRate": 0.45,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall"
+      ]
     },
     {
       "id": "bullhead",
@@ -142,7 +163,13 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.35
+      "spawnRate": 0.35,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "sturgeon",
@@ -164,7 +191,11 @@
         "#stardewcraft:is_mountain_lake"
       ],
       "weather": "any",
-      "spawnRate": 0.35
+      "spawnRate": 0.35,
+      "seasons": [
+        "summer",
+        "winter"
+      ]
     },
     {
       "id": "perch",
@@ -214,7 +245,11 @@
         "#stardewcraft:is_forest_pond"
       ],
       "weather": "any",
-      "spawnRate": 0.33
+      "spawnRate": 0.33,
+      "seasons": [
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "legend",
@@ -271,7 +306,13 @@
       "isBossFish": true,
       "spawnRate": 0.0,
       "curiosityLureBuff": 0.1,
-      "canBeInherited": false
+      "canBeInherited": false,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "green_algae",
@@ -296,6 +337,12 @@
         "#stardewcraft:is_mountain_lake",
         "#stardewcraft:is_river",
         "#stardewcraft:is_freshwater"
+      ],
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
       ]
     },
     {

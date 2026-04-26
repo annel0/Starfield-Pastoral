@@ -19,6 +19,10 @@ public final class ModBlockEntities {
 			BLOCK_ENTITIES.register("tapper", () -> BlockEntityType.Builder.of(TapperBlockEntity::new, ModBlocks.TAPPER.get()).build(null));
 
 	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MushroomBoxBlockEntity>> MUSHROOM_BOX =
+			BLOCK_ENTITIES.register("mushroom_box", () -> BlockEntityType.Builder.of(MushroomBoxBlockEntity::new, ModBlocks.MUSHROOM_BOX.get()).build(null));
+
+	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<KegBlockEntity>> KEG =
 			BLOCK_ENTITIES.register("keg", () -> BlockEntityType.Builder.of(KegBlockEntity::new, ModBlocks.KEG.get()).build(null));
 
@@ -199,7 +203,7 @@ public final class ModBlockEntities {
 	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PillarGeoBlockEntity>> PILLAR_GEO =
 			BLOCK_ENTITIES.register("pillar_geo", () -> BlockEntityType.Builder.of(PillarGeoBlockEntity::new,
-				ModBlocks.PILLAR.get()).build(null));
+				ModBlocks.PILLAR.get(), ModBlocks.GALAXY_PILLAR.get()).build(null));
 
 	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TableDisplayBlockEntity>> TABLE_DISPLAY =

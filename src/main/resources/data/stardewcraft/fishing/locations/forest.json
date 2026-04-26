@@ -25,7 +25,13 @@
       ],
       "weather": "any",
       "spawnRate": 0.45,
-      "fishAreaId": "River"
+      "fishAreaId": "River",
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "walleye",
@@ -49,7 +55,11 @@
         "#stardewcraft:is_mountain_lake",
         "#stardewcraft:is_forest_pond"
       ],
-      "spawnRate": 0.4
+      "spawnRate": 0.4,
+      "seasons": [
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "pike",
@@ -72,7 +82,11 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.4
+      "spawnRate": 0.4,
+      "seasons": [
+        "summer",
+        "winter"
+      ]
     },
     {
       "id": "carp",
@@ -96,7 +110,12 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.45
+      "spawnRate": 0.45,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall"
+      ]
     },
     {
       "id": "perch",
@@ -147,7 +166,11 @@
       ],
       "weather": "any",
       "spawnRate": 0.33,
-      "fishAreaId": "Lake"
+      "fishAreaId": "Lake",
+      "seasons": [
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "woodskip",
@@ -170,7 +193,13 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.2
+      "spawnRate": 0.2,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "dorado",
@@ -253,7 +282,10 @@
       "weather": "sunny",
       "spawnRate": 0.0,
       "curiosityLureBuff": 0.0,
-      "canBeInherited": false
+      "canBeInherited": false,
+      "seasons": [
+        "winter"
+      ]
     },
     {
       "id": "salmon",
@@ -306,6 +338,12 @@
         "#stardewcraft:is_mountain_lake",
         "#stardewcraft:is_river",
         "#stardewcraft:is_freshwater"
+      ],
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
       ]
     },
     {
@@ -333,7 +371,11 @@
         "#stardewcraft:is_freshwater"
       ],
       "fishAreaId": "River",
-      "condition": "LOCATION_SEASON Here spring summer"
+      "condition": "LOCATION_SEASON Here spring summer",
+      "seasons": [
+        "spring",
+        "summer"
+      ]
     },
     {
       "id": "catfish",
@@ -360,7 +402,12 @@
         "#stardewcraft:is_freshwater"
       ],
       "fishAreaId": "River",
-      "condition": "LOCATION_SEASON Here spring fall winter"
+      "condition": "LOCATION_SEASON Here spring fall winter",
+      "seasons": [
+        "spring",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "smallmouth_bass",
@@ -387,7 +434,11 @@
         "#stardewcraft:is_freshwater"
       ],
       "fishAreaId": "Lake",
-      "condition": "LOCATION_SEASON Here spring fall"
+      "condition": "LOCATION_SEASON Here spring fall",
+      "seasons": [
+        "spring",
+        "fall"
+      ]
     },
     {
       "id": "bream",
@@ -413,7 +464,13 @@
         "#stardewcraft:is_river",
         "#stardewcraft:is_freshwater"
       ],
-      "fishAreaId": "River"
+      "fishAreaId": "River",
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "shad",
@@ -440,7 +497,12 @@
         "#stardewcraft:is_freshwater"
       ],
       "fishAreaId": "River",
-      "condition": "LOCATION_SEASON Here spring summer fall"
+      "condition": "LOCATION_SEASON Here spring summer fall",
+      "seasons": [
+        "spring",
+        "summer",
+        "fall"
+      ]
     },
     {
       "id": "rainbow_trout",
@@ -555,7 +617,13 @@
         "#stardewcraft:is_freshwater"
       ],
       "fishAreaId": "River",
-      "condition": "LOCATION_SEASON Here fall winter"
+      "condition": "LOCATION_SEASON Here fall winter",
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "lingcod",
@@ -635,7 +703,12 @@
         "#stardewcraft:is_river",
         "#stardewcraft:is_freshwater"
       ],
-      "curiosityLureBuff": 0.15
+      "curiosityLureBuff": 0.15,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall"
+      ]
     }
   ]
 }

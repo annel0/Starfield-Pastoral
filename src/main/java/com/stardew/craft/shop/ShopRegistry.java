@@ -1,5 +1,11 @@
 package com.stardew.craft.shop;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -17,10 +23,13 @@ import java.util.stream.Collectors;
  */
 public final class ShopRegistry {
 
+    private record TravelingCartPortraitEntry(String npcId, String itemId) {}
+
     // Season indices – mirrors StardewTimeManager.currentSeason values
     private static final int SPRING = 0;
     private static final int SUMMER = 1;
     private static final int FALL   = 2;
+    private static final int WINTER = 3;
 
     public record ShopDefinition(
         String              shopId,
@@ -42,7 +51,39 @@ public final class ShopRegistry {
     }
 
     private static final Map<String, ShopDefinition> REGISTRY = new LinkedHashMap<>();
-
+    private static final String TRAVELING_CART_RARECROW_ID = "stardewcraft:scarecrow_4";
+    private static final String TRAVELING_CART_VANILLA_OBJECTS_RESOURCE =
+            "data/stardewcraft/npc/vanilla/data/Objects.json";
+    private static final Map<String, String> TRAVELING_CART_OBJECT_PATH_OVERRIDES = Map.ofEntries(
+            Map.entry("bomb", "bomb_item"),
+            Map.entry("grape_starter", "grape_seeds"),
+            Map.entry("hops_starter", "hops_seeds"),
+            Map.entry("l_milk", "large_milk"),
+            Map.entry("l_goat_milk", "large_goat_milk")
+    );
+    private static final List<TravelingCartPortraitEntry> TRAVELING_CART_PORTRAITS = List.of(
+        new TravelingCartPortraitEntry("abigail", "stardewcraft:abigail_portrait"),
+        new TravelingCartPortraitEntry("emily", "stardewcraft:emily_portrait"),
+        new TravelingCartPortraitEntry("haley", "stardewcraft:haley_portrait"),
+        new TravelingCartPortraitEntry("leah", "stardewcraft:leah_portrait"),
+        new TravelingCartPortraitEntry("penny", "stardewcraft:penny_portrait"),
+        new TravelingCartPortraitEntry("maru", "stardewcraft:maru_portrait"),
+        new TravelingCartPortraitEntry("alex", "stardewcraft:alex_portrait"),
+        new TravelingCartPortraitEntry("sebastian", "stardewcraft:sebastian_portrait"),
+        new TravelingCartPortraitEntry("harvey", "stardewcraft:harvey_portrait"),
+        new TravelingCartPortraitEntry("sam", "stardewcraft:sam_portrait"),
+        new TravelingCartPortraitEntry("elliott", "stardewcraft:elliott_portrait"),
+        new TravelingCartPortraitEntry("shane", "stardewcraft:shane_portrait"),
+        new TravelingCartPortraitEntry("krobus", "stardewcraft:krobus_portrait")
+    );
+    private static final List<String> TRAVELING_CART_SKILL_BOOKS = List.of(
+        "stardewcraft:skill_book_0",
+        "stardewcraft:skill_book_1",
+        "stardewcraft:skill_book_2",
+        "stardewcraft:skill_book_3",
+        "stardewcraft:skill_book_4"
+    );
+    private static volatile List<String> travelingCartRandomObjectCandidates;
     static {
         // -------------------------------------------------------------------
         // Pierre – General Store
@@ -53,7 +94,8 @@ public final class ShopRegistry {
         //   spring→0, summer→1, fall→2, winter→3
         // Year-2+ items: garlic_seeds, red_cabbage_seeds, artichoke_seeds
         // After day-15: basic/quality fertilizer, speed_gro
-        // Year-2+ fertilizers: quality_retaining_soil, deluxe_speed_gro
+        // Year-2+ fertilizers: quality_fertilizer, quality_retaining_soil, deluxe_speed_gro
+        // 不卖（SDV Qi 胡桃室专属）: deluxe_fertilizer, deluxe_retaining_soil, hyper_speed_gro
         // -------------------------------------------------------------------
         REGISTRY.put("SeedShop", new ShopDefinition(
             "SeedShop",
@@ -68,21 +110,21 @@ public final class ShopRegistry {
                 entry("stardewcraft:tulip_seeds",       20,  SPRING),
                 entry("stardewcraft:kale_seeds",        70,  SPRING),
                 entry("stardewcraft:blue_jazz_seeds",   30,  SPRING),
-                entry("stardewcraft:strawberry_seeds", 100,  SPRING), // Egg-Festival item in SDV; included per data pack
-                entryYear("stardewcraft:garlic_seeds",  40,  SPRING,  2),
+                entry("stardewcraft:strawberry_seeds", 100,  SPRING),
+                entryYear("stardewcraft:garlic_seeds",  40,  SPRING, 2),
 
                 // ---- Summer ----
-                entry("stardewcraft:melon_seeds",       80,  SUMMER),
-                entry("stardewcraft:tomato_seeds",      50,  SUMMER),
-                entry("stardewcraft:blueberry_seeds",   80,  SUMMER),
-                entry("stardewcraft:hot_pepper_seeds",  40,  SUMMER),
-                entry("stardewcraft:wheat_seeds",       10,  SUMMER),
-                entry("stardewcraft:radish_seeds",      40,  SUMMER),
-                entry("stardewcraft:poppy_seeds",      100,  SUMMER),
-                entry("stardewcraft:summer_spangle_seeds", 50, SUMMER),
-                entry("stardewcraft:hops_seeds",        60,  SUMMER),
-                entry("stardewcraft:corn_seeds",       150,  SUMMER),
-                entry("stardewcraft:sunflower_seeds",  200,  SUMMER),
+                entry("stardewcraft:melon_seeds",            80, SUMMER),
+                entry("stardewcraft:tomato_seeds",           50, SUMMER),
+                entry("stardewcraft:blueberry_seeds",        80, SUMMER),
+                entry("stardewcraft:hot_pepper_seeds",       40, SUMMER),
+                entry("stardewcraft:wheat_seeds",            10, SUMMER),
+                entry("stardewcraft:radish_seeds",           40, SUMMER),
+                entry("stardewcraft:poppy_seeds",           100, SUMMER),
+                entry("stardewcraft:summer_spangle_seeds",   50, SUMMER),
+                entry("stardewcraft:hops_seeds",             60, SUMMER),
+                entry("stardewcraft:corn_seeds",            150, SUMMER),
+                entry("stardewcraft:sunflower_seeds",       200, SUMMER),
                 entryYear("stardewcraft:red_cabbage_seeds", 100, SUMMER, 2),
 
                 // ---- Fall ----
@@ -97,33 +139,34 @@ public final class ShopRegistry {
                 entry("stardewcraft:fairy_rose_seeds", 200,  FALL),
                 entry("stardewcraft:amaranth_seeds",    70,  FALL),
                 entry("stardewcraft:grape_seeds",       60,  FALL),
-                entryYear("stardewcraft:artichoke_seeds", 30, FALL,  2),
+                entryYear("stardewcraft:artichoke_seeds", 30, FALL, 2),
 
                 // ---- Year-round ----
                 entryAllSeasons("stardewcraft:grass_starter",         100),
-                entryAllSeasons("stardewcraft:blue_grass_starter",    80), // SDV: only from Marnie/Mastery
+                // 注：blue_grass_starter 在 SDV 中是沙漠/Marnie + Mastery 解锁专属，
+                // Pierre 不出售，已移至 AnimalShop（Marnie）。
 
-                // ---- Fertilizers: unlock after day 15 (modelled as minYear=1, all seasons) ----
+                // ---- Fertilizers (SDV SeedShop) ----
+                //   Basic 3 (DAYS_PLAYED 15 in SDV, 近似为 Y1 全季售卖)
                 entryAllSeasons("stardewcraft:basic_fertilizer",      100),
-                entryAllSeasons("stardewcraft:quality_fertilizer",    150),
                 entryAllSeasons("stardewcraft:basic_retaining_soil",  100),
                 entryAllSeasons("stardewcraft:speed_gro",             100),
-                // ---- Fertilizers: Year 2+ (SDV YEAR 2 condition) ----
-                entryAllSeasonsYear("stardewcraft:deluxe_fertilizer",        300, 2),
+                //   Quality/Deluxe-Speed 3 (SDV YEAR 2 条件, 价格来自 Price*2 markup)
+                entryAllSeasonsYear("stardewcraft:quality_fertilizer",       150, 2),
                 entryAllSeasonsYear("stardewcraft:quality_retaining_soil",   150, 2),
-                entryAllSeasonsYear("stardewcraft:deluxe_retaining_soil",    300, 2),
-                entryAllSeasonsYear("stardewcraft:deluxe_speed_gro",          80, 2),
-                entryAllSeasonsYear("stardewcraft:hyper_speed_gro",          150, 2),
+                entryAllSeasonsYear("stardewcraft:deluxe_speed_gro",         150, 2),
+                //   注：deluxe_fertilizer / deluxe_retaining_soil / hyper_speed_gro
+                //   在 SDV 1.6 仅 Qi 胡桃房出售，Pierre 不卖（已从本清单移除）。
 
-                // ---- Machinery (SDV: Dehydrator sold at Pierre's, 5000g once) ----
-                entryStock("stardewcraft:dehydrator",                       5000, 1),
+                // ---- Machinery recipes (SDV: Dehydrator sold as recipe, IsRecipe=true, 5000×2=10000g) ----
+                entryRecipe("stardewcraft:dehydrator",                     10000),
 
-                // ---- Cooking ingredients (SDV: year-round, no condition) ----
-                entryAllSeasons("stardewcraft:sugar",          50),
-                entryAllSeasons("stardewcraft:wheat_flour",    50),
-                entryAllSeasons("stardewcraft:oil",           100),
-                entryAllSeasons("stardewcraft:rice",          100),
-                entryAllSeasons("stardewcraft:vinegar",       100),
+                // ---- Cooking ingredients (SDV: year-round, Price=-1 → 使用物品基础 Price, 无 markup) ----
+                entryAllSeasons("stardewcraft:sugar",         100),
+                entryAllSeasons("stardewcraft:wheat_flour",   100),
+                entryAllSeasons("stardewcraft:oil",           200),
+                entryAllSeasons("stardewcraft:rice",          200),
+                entryAllSeasons("stardewcraft:vinegar",       200),
 
                 // ---- Tree fruits (SDV: from fruit trees, sold at Pierre as shortcut) ----
                 entry("stardewcraft:cherry",               80,  SPRING),
@@ -192,8 +235,8 @@ public final class ShopRegistry {
 
         // -------------------------------------------------------------------
         // Marnie – Ranch Shop
-        // SDV also sells blue_grass_starter (Mastery-unlocked), but we add it to
-        // Pierre's year-round section above as a simpler approximation.
+        // 注：blue_grass_starter 在 SDV 中是 Mastery 解锁专属，
+        // 当前版本暂不开放任何获取途径（以后再决定挂在哪里）。
         // -------------------------------------------------------------------
         REGISTRY.put("AnimalShop", new ShopDefinition(
             "AnimalShop",
@@ -506,6 +549,93 @@ public final class ShopRegistry {
             ),
             Set.of() // DesertTrader doesn't buy items from player
         ));
+
+        REGISTRY.put("Traveler", new ShopDefinition(
+            "Traveler",
+            "",
+            "",
+            List.of(),
+            Set.of()
+        ));
+
+        // -------------------------------------------------------------------
+        // Joja Mart — SDV source: 源文件/Content/Data/Shops.json "Joja" section.
+        //
+        // SDV pricing rule (PriceModifiers):
+        //   !PLAYER_HAS_MAIL Current JojaMember → price * 1.25
+        //   JojaMember → base price (same as Pierre).
+        // 本项目在 {@link JojaMartService#handleJojaInteraction} 中统一 ×1.25 应用非会员
+        // 溢价；ShopRegistry 这里仅存基础价（会员价）。
+        //
+        // 基础价格与 Pierre 相同（SDV 的 UseObjectDataPrice / IgnoreShopPriceModifiers 组合
+        // 让 Joja 基础价 == Pierre 基础价）。
+        // -------------------------------------------------------------------
+        REGISTRY.put("JojaMart", new ShopDefinition(
+            "JojaMart",
+            "joja_cashier",
+            "stardewcraft.shop.jojamart.dialogue",
+            List.of(
+                // ---- Joja 独占商品 ----
+                entryAllSeasons("stardewcraft:joja_cola",       75),        // (O)167
+                // Auto Petter — SDV 条件 PLAYER_HAS_SEEN_EVENT Host 502261（用 seenJojaCDForm flag 代理）
+                entryMail("stardewcraft:auto_petter",        50000, "seenJojaCDForm"),
+                // 家具（JojaCatalogue / JojaCouch）不做 — 以后如果加家具系统再补
+                // 壁纸 / 地板 — SDV 每日 RANDOM，250g/份。通过 wallpaper:{id} / flooring:{id}
+                // 前缀条目实现，在 getFilteredItemsForPlayer 中按当前日种子动态注入。
+
+                // ---- Spring 种子 ----
+                entry("stardewcraft:parsnip_seeds",     20,  SPRING),
+                entry("stardewcraft:green_bean_seeds",  60,  SPRING),
+                entry("stardewcraft:cauliflower_seeds", 80,  SPRING),
+                entry("stardewcraft:potato_seeds",      50,  SPRING),
+                entry("stardewcraft:tulip_seeds",       20,  SPRING),
+                entry("stardewcraft:kale_seeds",        70,  SPRING),
+                entry("stardewcraft:blue_jazz_seeds",   30,  SPRING),
+
+                // ---- Summer 种子 ----
+                entry("stardewcraft:melon_seeds",       80,  SUMMER),
+                entry("stardewcraft:tomato_seeds",      50,  SUMMER),
+                entry("stardewcraft:wheat_seeds",       10,  SUMMER),
+                entry("stardewcraft:radish_seeds",      40,  SUMMER),
+                entry("stardewcraft:blueberry_seeds",   80,  SUMMER),
+                entry("stardewcraft:hops_seeds",        60,  SUMMER),
+                entry("stardewcraft:poppy_seeds",      100,  SUMMER),
+                entry("stardewcraft:summer_spangle_seeds", 50, SUMMER),
+                // SDV Joja 对 sunflower_seeds 明确写 Price=100（Pierre 的 200 被覆盖）
+                entry("stardewcraft:sunflower_seeds",  100,  SUMMER),
+
+                // ---- Fall 种子 ----
+                entry("stardewcraft:corn_seeds",       150,  FALL),
+                entry("stardewcraft:eggplant_seeds",    20,  FALL),
+                entry("stardewcraft:wheat_seeds",       10,  FALL),
+                entry("stardewcraft:pumpkin_seeds",    100,  FALL),
+                entry("stardewcraft:amaranth_seeds",    70,  FALL),
+                entry("stardewcraft:grape_seeds",       60,  FALL),
+                entry("stardewcraft:yam_seeds",         60,  FALL),
+                entry("stardewcraft:bok_choy_seeds",    50,  FALL),
+                entry("stardewcraft:cranberry_seeds",  240,  FALL),
+                entry("stardewcraft:sunflower_seeds",  100,  FALL),
+                entry("stardewcraft:fairy_rose_seeds", 200,  FALL),
+
+                // ---- 年化杂货（SDV Joja 全季在售）----
+                entryAllSeasons("stardewcraft:grass_starter",   100), // (O)297
+                entryAllSeasons("stardewcraft:sugar",           100), // (O)245
+                entryAllSeasons("stardewcraft:wheat_flour",     100), // (O)246
+                entryAllSeasons("stardewcraft:rice",            200)  // (O)423
+            ),
+            Set.of(
+                "stardewcraft.type.crop",
+                "stardewcraft.type.fruit",
+                "stardewcraft.type.forage",
+                "stardewcraft.type.seed",
+                "stardewcraft.type.fertilizer",
+                "stardewcraft.type.cooking",
+                "stardewcraft.type.cooking_ingredient",
+                "stardewcraft.type.animal_product",
+                "stardewcraft.type.artisan_goods",
+                "stardewcraft.type.artisan_animal_quality"
+            )
+        ));
     }
 
     // -------------------------------------------------------------------
@@ -634,7 +764,6 @@ public final class ShopRegistry {
                 String recipeId = SaloonService.extractRecipeId(e.itemId());
                 if (data.isRecipeUnlocked(recipeId)) continue;
             }
-
             // SDV parity: mine-level and mail-flag conditions
             if (!e.meetsPlayerConditions(playerMineLevel, playerMailFlags)) continue;
 
@@ -648,7 +777,417 @@ public final class ShopRegistry {
                 e.dayOfWeek(), e.dayOfMonthParity(), e.purchaseStack()
             ));
         }
+
+        if ("Traveler".equals(shopId)) {
+            net.minecraft.server.level.ServerLevel stardewLevel =
+                player.server.getLevel(com.stardew.craft.core.ModDimensions.STARDEW_VALLEY);
+            if (stardewLevel != null) {
+                appendTravelingCartStock(result, player, data, time, TravelingCartManager.get(stardewLevel));
+            }
+        }
+
+        // SDV parity: Joja 每日 RANDOM 壁纸/地板 — (WP) 0..111 / (FL) 0..39 @ 250g
+        // 追加在列表末尾（与 SDV Shops.json Joja 节最后两条 RANDOM_ITEMS 顺序一致）。
+        //
+        // 设计：daily seed 决定当天的 styleId（固定，不因已解锁而轮换），stock=1 per-player-per-day。
+        // ShopStockTracker 记录购买；已购 → stock=0 → UI 灰显 + ShopPurchasePayload 拒绝。
+        // 已拥有的款式（/wallpaper unlock all 调出来的）直接不上架（SDV 也不会在已拥有时显示）。
+        if ("JojaMart".equals(shopId)) {
+            int dayKey = time.getAbsoluteDay();
+            java.util.Random rng = new java.util.Random(dayKey * 2654435761L ^ 0xC0FFEEL);
+            int wpId = rng.nextInt(112);
+            int flId = rng.nextInt(40);
+            // Wallpaper
+            if (!data.isDecorationUnlocked(com.stardew.craft.deco.DecorationType.WALLPAPER, String.valueOf(wpId))) {
+                String wpItemId = "wallpaper:" + wpId;
+                int wpRemaining = ShopStockTracker.getRemaining(playerId, shopId, wpItemId, 1);
+                result.add(new ShopItemEntry(wpItemId, "", "", 250, wpRemaining,
+                    null, 0, Set.of(), 1, 0, null, -1, 0, 1));
+            }
+            // Flooring
+            if (!data.isDecorationUnlocked(com.stardew.craft.deco.DecorationType.FLOORING, String.valueOf(flId))) {
+                String flItemId = "flooring:" + flId;
+                int flRemaining = ShopStockTracker.getRemaining(playerId, shopId, flItemId, 1);
+                result.add(new ShopItemEntry(flItemId, "", "", 250, flRemaining,
+                    null, 0, Set.of(), 1, 0, null, -1, 0, 1));
+            }
+        }
+
+        // SDV parity: Joja 非会员 1.25x 溢价（PriceModifier "NonMemberMarkup"）
+        if ("JojaMart".equals(shopId)
+            && !com.stardew.craft.communitycenter.state.CCStoryFlags.isJojaMember(player)) {
+            List<ShopItemEntry> marked = new ArrayList<>(result.size());
+            for (ShopItemEntry e : result) {
+                int markedPrice = (int) Math.round(e.price() * 1.25);
+                marked.add(new ShopItemEntry(
+                    e.itemId(), e.displayName(), e.description(),
+                    markedPrice, e.stock(), e.tradeItemId(), e.tradeItemCount(),
+                    e.seasons(), e.minYear(), e.minMineLevel(), e.mailFlag(),
+                    e.dayOfWeek(), e.dayOfMonthParity(), e.purchaseStack()
+                ));
+            }
+            return marked;
+        }
         return result;
+    }
+
+    private static void appendTravelingCartStock(
+            List<ShopItemEntry> result,
+            net.minecraft.server.level.ServerPlayer player,
+            com.stardew.craft.player.PlayerStardewData data,
+            com.stardew.craft.time.StardewTimeManager time,
+            TravelingCartManager manager) {
+        int absoluteDay = time.getAbsoluteDay();
+        int season = time.getCurrentSeason();
+        int year = time.getCurrentYear();
+        java.util.UUID playerId = player.getUUID();
+        java.util.Set<String> avoidRepeat = new java.util.LinkedHashSet<>();
+        java.util.Random shopRandom = createTravelingCartShopRandom(player, absoluteDay);
+
+        List<String> randomObjects = new ArrayList<>(collectTravelingCartRandomObjectCandidates());
+        java.util.Collections.shuffle(randomObjects, shopRandom);
+        for (int i = 0; i < Math.min(10, randomObjects.size()); i++) {
+            String itemId = randomObjects.get(i);
+            addTravelingCartEntry(
+                result,
+                playerId,
+                avoidRepeat,
+                itemId,
+                getTravelingCartObjectPrice(shopRandom, itemId),
+                getTravelingCartRareMultiplierStock(shopRandom),
+                true
+            );
+        }
+
+        if (year == 1
+                && manager.getVisitsUntilY1Guarantee() == 0
+                && travelingCartItemExists("stardewcraft:red_cabbage_seeds")) {
+            addTravelingCartEntry(
+                result,
+                playerId,
+                avoidRepeat,
+                "stardewcraft:red_cabbage_seeds",
+                getTravelingCartObjectPrice(shopRandom, "stardewcraft:red_cabbage_seeds"),
+                getTravelingCartRareMultiplierStock(shopRandom),
+                true
+            );
+        }
+
+        List<String> randomFurniture = collectTravelingCartRandomFurnitureCandidates();
+        java.util.Collections.shuffle(randomFurniture, shopRandom);
+        for (String itemId : randomFurniture) {
+            if (avoidRepeat.contains(itemId)) {
+                continue;
+            }
+            addTravelingCartEntry(
+                result,
+                playerId,
+                avoidRepeat,
+                itemId,
+                getTravelingCartFurniturePrice(shopRandom),
+                1,
+                true
+            );
+            break;
+        }
+
+        if ((season == SPRING || season == SUMMER) && travelingCartItemExists("stardewcraft:rare_seed")) {
+            addTravelingCartEntry(result, playerId, avoidRepeat, "stardewcraft:rare_seed", 1000,
+                    getTravelingCartRareMultiplierStock(shopRandom), true);
+        }
+
+        if ((season == FALL || season == WINTER)
+                && travelingCartItemExists(TRAVELING_CART_RARECROW_ID)
+                && rollTravelingCartChance(absoluteDay, "cart_rarecrow", 0.4)) {
+            addTravelingCartEntry(result, playerId, avoidRepeat, TRAVELING_CART_RARECROW_ID, 4000, 1, false);
+        }
+
+        if ((season == FALL || season == WINTER)
+                && travelingCartItemExists("stardewcraft:coffee_bean")
+                && rollTravelingCartChance(absoluteDay, "cart_coffee_bean", 0.25)) {
+            addTravelingCartEntry(result, playerId, avoidRepeat, "stardewcraft:coffee_bean", 2500, 1, false);
+        }
+
+        if (travelingCartItemExists("stardewcraft:red_fez")
+                && rollTravelingCartChance(absoluteDay, "cart_fez", 0.1)) {
+            addTravelingCartEntry(result, playerId, avoidRepeat, "stardewcraft:red_fez", 8000, 1, false);
+        }
+
+        boolean isCommunityCenterComplete =
+                com.stardew.craft.communitycenter.state.CCStoryFlags.hasFlag(
+                        player, com.stardew.craft.communitycenter.state.CCStoryFlags.CC_IS_COMPLETE);
+        if (isCommunityCenterComplete
+                && travelingCartItemExists("stardewcraft:joja_catalogue")
+                && rollTravelingCartChance(absoluteDay, "cart_jojaCatalogue", 0.1)) {
+            addTravelingCartEntry(result, playerId, avoidRepeat, "stardewcraft:joja_catalogue", 30000, 1, false);
+        }
+        if (isCommunityCenterComplete
+                && travelingCartItemExists("stardewcraft:junimo_catalogue")
+                && rollTravelingCartChance(absoluteDay, "cart_junimoCatalogue", 0.1)) {
+            addTravelingCartEntry(result, playerId, avoidRepeat, "stardewcraft:junimo_catalogue", 70000, 1, false);
+        }
+        if (travelingCartItemExists("stardewcraft:retro_catalogue")
+                && rollTravelingCartChance(absoluteDay, "cart_retroCatalogue", 0.1)) {
+            addTravelingCartEntry(result, playerId, avoidRepeat, "stardewcraft:retro_catalogue", 110000, 1, false);
+        }
+
+        net.minecraft.server.level.ServerLevel overworld = player.server.overworld();
+        if (overworld != null) {
+            com.stardew.craft.npc.runtime.NpcFriendshipDataManager friendship =
+                    com.stardew.craft.npc.runtime.NpcFriendshipDataManager.get(overworld);
+            for (TravelingCartPortraitEntry portrait : TRAVELING_CART_PORTRAITS) {
+                if (!travelingCartItemExists(portrait.itemId())) {
+                    continue;
+                }
+                int points = friendship.getPointsForNpc(playerId, portrait.npcId());
+                if (points / 250 >= 14) {
+                    addTravelingCartEntry(result, playerId, avoidRepeat, portrait.itemId(), 30000, 1, false);
+                }
+            }
+        }
+
+        if (year >= 25
+                && travelingCartItemExists("stardewcraft:tea_set")
+                && rollTravelingCartChance(absoluteDay, "teaset", 0.05)) {
+            addTravelingCartEntry(result, playerId, avoidRepeat, "stardewcraft:tea_set", 1_000_000,
+                    Integer.MAX_VALUE, false);
+        }
+
+        if (rollTravelingCartChance(absoluteDay, "travelerSkillBook", 0.05)) {
+            List<String> availableSkillBooks = new ArrayList<>();
+            for (String itemId : TRAVELING_CART_SKILL_BOOKS) {
+                if (travelingCartItemExists(itemId)) {
+                    availableSkillBooks.add(itemId);
+                }
+            }
+            if (!availableSkillBooks.isEmpty()) {
+                String skillBookId = availableSkillBooks.get(shopRandom.nextInt(availableSkillBooks.size()));
+                addTravelingCartEntry(result, playerId, avoidRepeat, skillBookId, 6000, Integer.MAX_VALUE, false);
+            }
+        }
+
+        if (isTravelingCartMultiplayer(player)
+                && travelingCartItemExists("stardewcraft:wedding_ring")
+                && !data.isRecipeUnlocked("stardewcraft:wedding_ring")) {
+            addTravelingCartEntry(result, playerId, avoidRepeat, "recipe:stardewcraft:wedding_ring", 500, 1, false);
+        }
+    }
+
+    private static void addTravelingCartEntry(
+            List<ShopItemEntry> result,
+            java.util.UUID playerId,
+            java.util.Set<String> avoidRepeat,
+            String itemId,
+            int price,
+            int stock,
+            boolean shouldAvoidRepeat) {
+        if (shouldAvoidRepeat && !avoidRepeat.add(itemId)) {
+            return;
+        }
+        int remaining = stock == Integer.MAX_VALUE
+                ? Integer.MAX_VALUE
+                : ShopStockTracker.getRemaining(playerId, "Traveler", itemId, stock);
+        if (remaining == 0) {
+            return;
+        }
+        result.add(new ShopItemEntry(
+                itemId,
+                "",
+                "",
+                price,
+                remaining,
+                null,
+                0,
+                Set.of(),
+                1,
+                0,
+                null,
+                -1,
+                0,
+                1
+        ));
+    }
+
+    private static java.util.Random createTravelingCartRandom(int absoluteDay, String salt) {
+        return new java.util.Random(absoluteDay * 2654435761L ^ salt.hashCode());
+    }
+
+    private static java.util.Random createTravelingCartShopRandom(
+            net.minecraft.server.level.ServerPlayer player,
+            int absoluteDay) {
+        long worldSeed = player.server.overworld() != null ? player.server.overworld().getSeed() : 0L;
+        long seed = (worldSeed >>> 1) ^ (absoluteDay * 341873128712L) ^ 132897987541L;
+        return new java.util.Random(seed);
+    }
+
+    private static boolean rollTravelingCartChance(int absoluteDay, String salt, double chance) {
+        return createTravelingCartRandom(absoluteDay, salt).nextDouble() < chance;
+    }
+
+    private static int getTravelingCartRareMultiplierStock(java.util.Random shopRandom) {
+        return shopRandom.nextDouble() < 0.1 ? 5 : 1;
+    }
+
+    private static int getTravelingCartObjectPrice(java.util.Random shopRandom, String itemId) {
+        int flatPrice = (shopRandom.nextInt(10) + 1) * 100;
+        int multiplier = 3 + shopRandom.nextInt(3);
+        int basePrice = Math.max(1, getTravelingCartBasePrice(itemId));
+        return Math.max(flatPrice, basePrice * multiplier);
+    }
+
+    private static int getTravelingCartFurniturePrice(java.util.Random shopRandom) {
+        return 250 * (shopRandom.nextInt(10) + 1);
+    }
+
+    private static List<String> collectTravelingCartRandomObjectCandidates() {
+        List<String> cached = travelingCartRandomObjectCandidates;
+        if (cached != null) {
+            return cached;
+        }
+
+        List<String> out = new ArrayList<>();
+        Set<String> seen = new LinkedHashSet<>();
+        try (java.io.InputStream stream = ShopRegistry.class.getClassLoader()
+                .getResourceAsStream(TRAVELING_CART_VANILLA_OBJECTS_RESOURCE)) {
+            if (stream == null) {
+                com.stardew.craft.StardewCraft.LOGGER.warn(
+                        "Traveler random object source {} was not found",
+                        TRAVELING_CART_VANILLA_OBJECTS_RESOURCE);
+                travelingCartRandomObjectCandidates = List.of();
+                return travelingCartRandomObjectCandidates;
+            }
+
+            JsonObject root = JsonParser.parseReader(new InputStreamReader(stream, StandardCharsets.UTF_8))
+                    .getAsJsonObject();
+            for (Map.Entry<String, JsonElement> entry : root.entrySet()) {
+                if (!entry.getValue().isJsonObject()) {
+                    continue;
+                }
+                String itemId = resolveTravelingCartRandomObjectItemId(entry.getKey(), entry.getValue().getAsJsonObject());
+                if (itemId != null && seen.add(itemId)) {
+                    out.add(itemId);
+                }
+            }
+        } catch (Exception ex) {
+            com.stardew.craft.StardewCraft.LOGGER.warn(
+                    "Failed to load Traveler random object candidates from {}: {}",
+                    TRAVELING_CART_VANILLA_OBJECTS_RESOURCE,
+                    ex.getMessage());
+            travelingCartRandomObjectCandidates = List.of();
+            return travelingCartRandomObjectCandidates;
+        }
+
+        travelingCartRandomObjectCandidates = List.copyOf(out);
+        return travelingCartRandomObjectCandidates;
+    }
+
+    private static List<String> collectTravelingCartRandomFurnitureCandidates() {
+        List<String> out = new ArrayList<>();
+        for (net.minecraft.world.item.Item item : net.minecraft.core.registries.BuiltInRegistries.ITEM) {
+            if (!(item instanceof com.stardew.craft.item.IStardewItem stardewItem)) {
+                continue;
+            }
+            if (!"stardewcraft.type.furniture".equals(stardewItem.getItemTypeKey())) {
+                continue;
+            }
+            if (stardewItem.getSellPrice(new net.minecraft.world.item.ItemStack(item)) <= 0) {
+                continue;
+            }
+            net.minecraft.resources.ResourceLocation key =
+                    net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item);
+            if (key != null) {
+                out.add(key.toString());
+            }
+        }
+        return out;
+    }
+
+    private static String resolveTravelingCartRandomObjectItemId(String sourceObjectId, JsonObject data) {
+        if (!sourceObjectId.chars().allMatch(Character::isDigit)) {
+            return null;
+        }
+
+        int numericId = Integer.parseInt(sourceObjectId);
+        if (numericId < 2 || numericId > 789) {
+            return null;
+        }
+        if (getJsonInt(data, "Price", 0) <= 0) {
+            return null;
+        }
+        if (getJsonBoolean(data, "ExcludeFromRandomSale", false)) {
+            return null;
+        }
+        if (getJsonInt(data, "Category", -999) == -999) {
+            return null;
+        }
+
+        String objectType = getJsonString(data, "Type");
+        if ("Quest".equals(objectType) || "Minerals".equals(objectType) || "Arch".equals(objectType)) {
+            return null;
+        }
+
+        String name = getJsonString(data, "Name");
+        if (name.isBlank()) {
+            return null;
+        }
+
+        String path = normalizeTravelingCartObjectName(name);
+        path = TRAVELING_CART_OBJECT_PATH_OVERRIDES.getOrDefault(path, path);
+        String itemId = "stardewcraft:" + path;
+        if (!travelingCartItemExists(itemId) || getTravelingCartBasePrice(itemId) <= 0) {
+            return null;
+        }
+        return itemId;
+    }
+
+    private static String normalizeTravelingCartObjectName(String name) {
+        String normalized = name.toLowerCase(Locale.ROOT)
+                .replace("'", "")
+                .replace(".", "")
+                .replace("&", "and");
+        normalized = normalized.replaceAll("[^a-z0-9]+", "_");
+        return normalized.replaceAll("^_+|_+$", "");
+    }
+
+    private static String getJsonString(JsonObject data, String member) {
+        JsonElement element = data.get(member);
+        return element == null || element.isJsonNull() ? "" : element.getAsString();
+    }
+
+    private static int getJsonInt(JsonObject data, String member, int fallback) {
+        JsonElement element = data.get(member);
+        return element == null || element.isJsonNull() ? fallback : element.getAsInt();
+    }
+
+    private static boolean getJsonBoolean(JsonObject data, String member, boolean fallback) {
+        JsonElement element = data.get(member);
+        return element == null || element.isJsonNull() ? fallback : element.getAsBoolean();
+    }
+
+    private static int getTravelingCartBasePrice(String itemId) {
+        net.minecraft.resources.ResourceLocation id = net.minecraft.resources.ResourceLocation.tryParse(itemId);
+        if (id == null) {
+            return 0;
+        }
+        java.util.Optional<net.minecraft.world.item.Item> item =
+                net.minecraft.core.registries.BuiltInRegistries.ITEM.getOptional(id);
+        if (item.isEmpty()) {
+            return 0;
+        }
+        net.minecraft.world.item.Item resolved = item.get();
+        if (!(resolved instanceof com.stardew.craft.item.IStardewItem stardewItem)) {
+            return 0;
+        }
+        return Math.max(0, stardewItem.getSellPrice(new net.minecraft.world.item.ItemStack(resolved)));
+    }
+
+    private static boolean travelingCartItemExists(String itemId) {
+        net.minecraft.resources.ResourceLocation id = net.minecraft.resources.ResourceLocation.tryParse(itemId);
+        return id != null && net.minecraft.core.registries.BuiltInRegistries.ITEM.containsKey(id);
+    }
+
+    private static boolean isTravelingCartMultiplayer(net.minecraft.server.level.ServerPlayer player) {
+        return player.server.getPlayerCount() > 1;
     }
 
     /**

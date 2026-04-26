@@ -217,6 +217,21 @@ public class StardewBombEntity extends Entity {
                     if (isIndestructible(level, pos, state)) continue;
                     // 不破坏矿井梯子
                     if (state.is(ModBlocks.MINE_LADDER.get())) continue;
+                    // SDV parity：炸弹不破坏树（树干 / 树枝 / 树苗 / 树叶 等任何树的部分），
+                    // 砍树必须用斧头。
+                    if (com.stardew.craft.tree.WildTrees.isAnyWildTreePart(state)) continue;
+                    // 采石场：只允许炸掉每日/初始生成的石头、矿物等资源块，原始结构不允许被炸毁。
+                    if (level.dimension() == com.stardew.craft.core.ModDimensions.STARDEW_VALLEY
+                            && com.stardew.craft.communitycenter.quarry.QuarryAccessManager.isInQuarryArea(pos)
+                            && !com.stardew.craft.manager.QuarrySpawnService.canBombDestroyInQuarry(state)) {
+                        continue;
+                    }
+                    // 不破坏"玩家正常破坏不掉任何东西"的方块——刷怪笼最典型：
+                    // 它有 Items.SPAWNER 物品形式（创造栏 / 指令可获得），但 loot table 是 EMPTY，
+                    // 所以生存模式破坏 0 掉落。这类方块炸出来玩家什么也得不到，留着不动。
+                    // 植物类同样 loot 可能为空（草丛默认无掉落），但 SDV 炸弹本就要清理它们，所以放行。
+                    if (state.getBlock().getLootTable() == net.minecraft.world.level.storage.loot.BuiltInLootTables.EMPTY
+                            && !isPlantLikeBlock(state)) continue;
                     // 不破坏小镇区域和非权限农场的方块
                     if (level.dimension() == com.stardew.craft.core.ModDimensions.STARDEW_VALLEY
                             && owner instanceof net.minecraft.server.level.ServerPlayer sp

@@ -21,6 +21,7 @@ import com.stardew.craft.player.ProfessionType;
 import com.stardew.craft.time.StardewTimeManager;
 import com.stardew.craft.weather.WeatherManager;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -368,12 +369,15 @@ public class AnimalGrowthManager extends SavedData {
         }
 
         // 喂食逻辑
+        boolean fedToday = false;
         if (isOfflineCatchUp) {
             // 离线追赶：假设有饲料，直接喂饱
             record.setFullness(255);
+            fedToday = true;
         } else if (record.fullness() < 200 && building != null && !animalOutdoors && consumeOneHayFromTrough(level, building)) {
             // 在线模式：从喂食槽消耗饲料
             record.setFullness(255);
+            fedToday = true;
         }
 
         if (record.fullness() > 200 || random.nextDouble() < (record.fullness() - 30) / 170.0) {
@@ -475,7 +479,9 @@ public class AnimalGrowthManager extends SavedData {
         if (!isOfflineCatchUp && isFestivalDay(level)) {
             // Parity: festival days keep animals sufficiently fed after overnight update.
             record.setFullness(250);
+            fedToday = true;
         }
+        record.setWasFedToday(fedToday);
         return produced;
     }
 
@@ -597,31 +603,56 @@ public class AnimalGrowthManager extends SavedData {
     }
 
     private boolean consumeOneHayFromTrough(ServerLevel level, AnimalBuildingRecord building) {
-        for (int y = building.minY(); y <= building.maxY(); y++) {
-            for (int z = building.minZ(); z <= building.maxZ(); z++) {
-                for (int x = building.minX(); x <= building.maxX(); x++) {
-                    BlockPos pos = new BlockPos(x, y, z);
-                    BlockEntity be = level.getBlockEntity(pos);
+        BlockPos autoTroughPos = null;
+        for (BlockPos pos : iterateBuildingUtilityPositions(building)) {
+            BlockEntity be = level.getBlockEntity(pos);
 
-                    if (be instanceof FeedTroughBlockEntity trough) {
-                        ItemStack removed = trough.takeOneFromSelf(false);
-                        if (removed.isEmpty()) {
-                            removed = trough.extractAutomation(1, false);
-                        }
-                        if (!removed.isEmpty()) {
-                            return true;
+            if (be instanceof FeedTroughBlockEntity trough) {
+                ItemStack removed = trough.takeOneFromSelf(false);
+                if (removed.isEmpty()) {
+                    removed = trough.extractAutomation(1, false);
+                }
+                if (!removed.isEmpty()) {
+                    return true;
+                }
+            }
+
+            if (be instanceof AutoFeedTroughBlockEntity autoTrough) {
+                if (autoTroughPos == null) {
+                    autoTroughPos = pos;
+                }
+                ItemStack removed = autoTrough.takeOneFromSelf(false);
+                if (removed.isEmpty()) {
+                    removed = autoTrough.extractAutomation(1, false);
+                }
+                if (!removed.isEmpty()) {
+                    return true;
+                }
+            }
+        }
+
+        if (autoTroughPos != null) {
+            String ownerStr = building.ownerPlayerUuid();
+            if (ownerStr != null && !ownerStr.isBlank()) {
+                try {
+                    java.util.UUID owner = java.util.UUID.fromString(ownerStr);
+                    if (AutoFeedTroughBlockEntity.refillConnectedNetwork(level, autoTroughPos, owner, 1) > 0) {
+                        for (BlockPos pos : iterateBuildingUtilityPositions(building)) {
+                            BlockEntity be = level.getBlockEntity(pos);
+                            if (!(be instanceof AutoFeedTroughBlockEntity autoTrough)) {
+                                continue;
+                            }
+                            ItemStack removed = autoTrough.takeOneFromSelf(false);
+                            if (removed.isEmpty()) {
+                                removed = autoTrough.extractAutomation(1, false);
+                            }
+                            if (!removed.isEmpty()) {
+                                return true;
+                            }
                         }
                     }
-
-                    if (be instanceof AutoFeedTroughBlockEntity autoTrough) {
-                        ItemStack removed = autoTrough.takeOneFromSelf(false);
-                        if (removed.isEmpty()) {
-                            removed = autoTrough.extractAutomation(1, false);
-                        }
-                        if (!removed.isEmpty()) {
-                            return true;
-                        }
-                    }
+                } catch (IllegalArgumentException ignored) {
+                    return false;
                 }
             }
         }
@@ -675,17 +706,37 @@ public class AnimalGrowthManager extends SavedData {
     }
 
     private boolean hasUtilityBlockEntityInBuilding(ServerLevel level, AnimalBuildingRecord building, Class<? extends BlockEntity> utilityType) {
+        for (BlockPos pos : iterateBuildingUtilityPositions(building)) {
+            BlockEntity be = level.getBlockEntity(pos);
+            if (utilityType.isInstance(be)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private Iterable<BlockPos> iterateBuildingUtilityPositions(AnimalBuildingRecord building) {
+        java.util.LinkedHashSet<BlockPos> positions = new java.util.LinkedHashSet<>();
+        if (building == null) {
+            return positions;
+        }
+
         for (int y = building.minY(); y <= building.maxY(); y++) {
             for (int z = building.minZ(); z <= building.maxZ(); z++) {
                 for (int x = building.minX(); x <= building.maxX(); x++) {
-                    BlockEntity be = level.getBlockEntity(new BlockPos(x, y, z));
-                    if (utilityType.isInstance(be)) {
-                        return true;
+                    BlockPos pos = new BlockPos(x, y, z);
+                    positions.add(pos);
+                    if (!building.interiorAirCells().contains(pos.asLong())) {
+                        continue;
+                    }
+                    for (Direction direction : Direction.values()) {
+                        positions.add(pos.relative(direction));
                     }
                 }
             }
         }
-        return false;
+
+        return positions;
     }
 
     private boolean hasBuildingOwnerProfession(AnimalBuildingRecord building, int professionId) {

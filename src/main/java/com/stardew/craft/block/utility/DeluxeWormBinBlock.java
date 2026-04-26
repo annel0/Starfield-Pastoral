@@ -116,20 +116,10 @@ public class DeluxeWormBinBlock extends Block implements EntityBlock {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
 
-        if (!wormBin.isReady()) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
-        }
-
-        ItemStack product = wormBin.harvestOne();
-        if (!product.isEmpty()) {
-            if (!player.addItem(product)) {
-                player.drop(product, false);
-            }
-            level.playSound(null, pos, net.minecraft.sounds.SoundEvents.ITEM_PICKUP, net.minecraft.sounds.SoundSource.BLOCKS, 0.6f, 1.0f);
-            return ItemInteractionResult.sidedSuccess(false);
-        }
-
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return UtilityDropHelper.tryHarvest(level, pos, player, wormBin::isReady, wormBin::harvestOne,
+            UtilityDropHelper.LOW_MACHINE_VANILLA_XP)
+            ? ItemInteractionResult.sidedSuccess(false)
+            : ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
     @SuppressWarnings("null")
@@ -153,18 +143,9 @@ public class DeluxeWormBinBlock extends Block implements EntityBlock {
             return InteractionResult.PASS;
         }
 
-        if (!wormBin.isReady()) {
-            return InteractionResult.PASS;
-        }
-
-        ItemStack product = wormBin.harvestOne();
-        if (product.isEmpty()) {
-            return InteractionResult.PASS;
-        }
-        if (!player.addItem(product)) {
-            player.drop(product, false);
-        }
-        level.playSound(null, pos, net.minecraft.sounds.SoundEvents.ITEM_PICKUP, net.minecraft.sounds.SoundSource.BLOCKS, 0.6f, 1.0f);
-        return InteractionResult.CONSUME;
+        return UtilityDropHelper.tryHarvest(level, pos, player, wormBin::isReady, wormBin::harvestOne,
+            UtilityDropHelper.LOW_MACHINE_VANILLA_XP)
+            ? InteractionResult.CONSUME
+            : InteractionResult.PASS;
     }
 }

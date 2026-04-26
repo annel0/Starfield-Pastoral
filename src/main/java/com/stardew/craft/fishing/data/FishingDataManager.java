@@ -199,7 +199,9 @@ public final class FishingDataManager {
 
 		// 获取当前环境条件
 		boolean isRaining = com.stardew.craft.weather.WeatherManager.isRaining(level);
-		long timeOfDay = level.getDayTime() % 24000;
+		// 直接使用 StardewTimeManager 的时间（HHMM, 600~2600），避免 MC dayTime 与
+		// 星露谷虚拟时间在自定义维度下不一致，且 MC→SDV 转换无法表示 24:00 之后的时刻。
+		int stardewTime = currentStardewTime();
 		String currentSeason = getCurrentSeason(level);
 
 		List<String> lookupKeys = resolveVanillaAlignedLocationKeys(level, biomeHolder);
@@ -215,7 +217,9 @@ public final class FishingDataManager {
 		}
 
 		// 按优先级排序，同优先级内随机
-		candidates.sort(Comparator.comparingInt(c -> c.rule().precedence()));
+		// 模组数据约定："高 precedence = 高优先级"（与 SDV 源数据语义相反，SDV 用 -1000..2000 + OrderByAsc）
+		// 采用降序：precedence 大的鱼（如 legendary=200、regular fish=50~150）先于 algae（0）尝试。
+		candidates.sort((a, b) -> Integer.compare(b.rule().precedence(), a.rule().precedence()));
 		List<CandidateRule> ordered = stableShuffleByPrecedence(candidates, random);
 
 		// Stardew Valley style selection: iterate by precedence and roll chance (not weighted).
@@ -253,7 +257,7 @@ public final class FishingDataManager {
 					continue;
 				}
 				if (!usingMagicBait) {
-					if (!rule.matchesSeason(currentSeason) || !rule.matchesWeather(isRaining) || !rule.matchesTime(timeOfDay)) {
+					if (!rule.matchesSeason(currentSeason) || !rule.matchesWeather(isRaining) || !rule.matchesStardewTime(stardewTime)) {
 						continue;
 					}
 				}
@@ -681,6 +685,83 @@ public final class FishingDataManager {
 				}
 				return false;
 			}
+			case "SEASON": {
+				// SEASON <season1> [<season2> ...]
+				if (parts.length < 2) return false;
+				String current = staticGetCurrentSeason(level);
+				for (int i = 1; i < parts.length; i++) {
+					if (parts[i].equalsIgnoreCase(current)) return true;
+				}
+				return false;
+			}
+			case "SEASON_DAY": {
+				// SEASON_DAY <season> <day> [<season> <day> ...]
+				if (parts.length < 3) return false;
+				com.stardew.craft.time.StardewTimeManager tm = com.stardew.craft.time.StardewTimeManager.get();
+				if (tm == null) return false;
+				String current = staticGetCurrentSeason(level);
+				int day = tm.getCurrentDay();
+				for (int i = 1; i + 1 < parts.length; i += 2) {
+					if (parts[i].equalsIgnoreCase(current)) {
+						try {
+							if (Integer.parseInt(parts[i + 1]) == day) return true;
+						} catch (NumberFormatException ignored) {}
+					}
+				}
+				return false;
+			}
+			case "DAY_OF_MONTH": {
+				// DAY_OF_MONTH <day1> [<day2> ...]   ("even"/"odd" 也支持)
+				if (parts.length < 2) return false;
+				com.stardew.craft.time.StardewTimeManager tm = com.stardew.craft.time.StardewTimeManager.get();
+				if (tm == null) return false;
+				int day = tm.getCurrentDay();
+				for (int i = 1; i < parts.length; i++) {
+					String t = parts[i];
+					if (t.equalsIgnoreCase("even")) {
+						if (day % 2 == 0) return true;
+					} else if (t.equalsIgnoreCase("odd")) {
+						if (day % 2 == 1) return true;
+					} else {
+						try {
+							if (Integer.parseInt(t) == day) return true;
+						} catch (NumberFormatException ignored) {}
+					}
+				}
+				return false;
+			}
+			case "TIME": {
+				// TIME <minTime> <maxTime>   (HHMM, inclusive on min, exclusive on max — SDV 语义)
+				if (parts.length < 3) return false;
+				try {
+					int min = Integer.parseInt(parts[1]);
+					int max = Integer.parseInt(parts[2]);
+					int now = currentStardewTime();
+					return now >= min && now < max;
+				} catch (NumberFormatException ex) {
+					return false;
+				}
+			}
+			case "WEATHER": {
+				// WEATHER <location> <weather1> [<weather2> ...]
+				// 我们没有按地点细分天气，统一使用全局 WeatherManager。
+				if (parts.length < 3) return false;
+				boolean raining = com.stardew.craft.weather.WeatherManager.isRaining(level);
+				for (int i = 2; i < parts.length; i++) {
+					String w = parts[i].toLowerCase(java.util.Locale.ROOT);
+					switch (w) {
+						case "rain", "rainy", "stormy", "snow", "green_rain":
+							if (raining) return true;
+							break;
+						case "sun", "sunny", "wind", "festival":
+							if (!raining) return true;
+							break;
+						default:
+							break;
+					}
+				}
+				return false;
+			}
 			case "IS_PASSIVE_FESTIVAL_OPEN": {
 				// IS_PASSIVE_FESTIVAL_OPEN <festivalId> [TIME hhmm hhmm]
 				// Mod has no passive festival system → always false.
@@ -715,6 +796,20 @@ public final class FishingDataManager {
 	}
 
 	/**
+	 * 取当前星露谷时间（HHMM 格式，600~2600）。在凌晨 0~2 点会返回 2400~2600，
+	 * 与 fishing JSON 中 timeRanges 的约定一致。
+	 */
+	public static int currentStardewTime() {
+		com.stardew.craft.time.StardewTimeManager tm = com.stardew.craft.time.StardewTimeManager.get();
+		if (tm == null) {
+			return 600;
+		}
+		int hour = tm.getHour();
+		int minute = tm.getMinute();
+		return hour * 100 + minute;
+	}
+
+	/**
 	 * 旧版兼容方法
 	 */
 	public Optional<FishSelection> selectFish(ServerPlayer player, ServerLevel level, int waterDepth, RandomSource random) {
@@ -731,13 +826,28 @@ public final class FishingDataManager {
 
 	/**
 	 * 获取随机垃圾物品
-	 * SDV原版：当所有鱼规则都未命中时，回退只返回Trash(168)。
+	 * SDV 原版（GameLocation.getFish 末尾回退 + Data/Locations.json 的 trash RandomItemId 池）：
+	 * 在 6 个垃圾物品中均匀随机 —— Joja Cola(167) / Trash(168) / Driftwood(169) /
+	 * Broken Glasses(170) / Broken CD(171) / Soggy Newspaper(172)。
 	 * 海草/藻类/Joja可乐等应作为独立鱼规则配置在位置数据中，不属于回退垃圾池。
 	 */
 	@SuppressWarnings("null")
 	public ItemStack getRandomJunk(RandomSource random) {
+		// SDV 原版回退：6 件垃圾均匀随机
+		String[] ids = new String[] {
+			"stardewcraft:trash",
+			"stardewcraft:joja_cola",
+			"stardewcraft:driftwood",
+			"stardewcraft:broken_glasses",
+			"stardewcraft:broken_cd",
+			"stardewcraft:soggy_newspaper"
+		};
+		String pick = ids[random.nextInt(ids.length)];
 		try {
-			// SDV原版回退：只返回Trash(168)
+			Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(pick));
+			if (item != null && item != Items.AIR) {
+				return new ItemStack(item);
+			}
 			Item trash = BuiltInRegistries.ITEM.get(ResourceLocation.parse("stardewcraft:trash"));
 			return new ItemStack(trash);
 		} catch (Exception e) {
@@ -771,6 +881,13 @@ public final class FishingDataManager {
 		RuleEligibilityHook ALLOW_ALL = (player, level, bobberPos, biomeHolder, rule) -> true;
 
 		boolean allow(ServerPlayer player, ServerLevel level, BlockPos bobberPos, Holder<Biome> biomeHolder, SpawnFishRule rule);
+	}
+
+	/**
+	 * 获取所有已加载的鱼类规则 (用于JEI等展示)
+	 */
+	public Map<String, FishingLocationData> getLocationDataSnapshot() {
+		return byLocationKey;
 	}
 
 	/**

@@ -21,7 +21,13 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.33
+      "spawnRate": 0.33,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "void_mayonnaise",
@@ -67,6 +73,12 @@
       "spawnRate": 0.3,
       "biomeTags": [
         "#stardewcraft:is_witch_swamp"
+      ],
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
       ]
     },
     {
@@ -89,6 +101,11 @@
       "spawnRate": 0.4,
       "biomeTags": [
         "#stardewcraft:is_witch_swamp"
+      ],
+      "seasons": [
+        "spring",
+        "fall",
+        "winter"
       ]
     },
     {
@@ -111,6 +128,12 @@
       "spawnRate": 0.3,
       "biomeTags": [
         "#stardewcraft:is_witch_swamp"
+      ],
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
       ]
     }
   ]

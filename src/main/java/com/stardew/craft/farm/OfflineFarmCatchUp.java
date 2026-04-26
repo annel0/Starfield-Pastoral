@@ -179,18 +179,16 @@ public final class OfflineFarmCatchUp {
         StardewCraft.LOGGER.info("[FARM-CATCHUP] Processing {} tree saplings for {} days",
                 farmTrees.size(), daysMissed);
 
-        // 树苗支持 growOneDay — 调用 N 次
+        // 树苗支持 growBy — 单次解析推进 daysMissed 天，避免 N 次状态机回放
         for (GlobalPos gp : farmTrees) {
             BlockPos pos = gp.pos();
             if (!level.isLoaded(pos)) continue;
 
-            for (int d = 0; d < daysMissed; d++) {
-                BlockState state = level.getBlockState(pos);
-                if (!(state.getBlock() instanceof com.stardew.craft.block.tree.WildTreeSaplingBlock)) {
-                    break; // 已经成熟或被移除
-                }
-                treeMgr.growOneDay(level, pos);
+            BlockState state = level.getBlockState(pos);
+            if (!(state.getBlock() instanceof com.stardew.craft.block.tree.WildTreeSaplingBlock)) {
+                continue;
             }
+            treeMgr.growBy(level, pos, daysMissed);
         }
     }
 

@@ -120,6 +120,8 @@ public class StardewTimeManager extends SavedData {
                     .performTenMinuteUpdate(server);
                 com.stardew.craft.fishing.splash.FishSplashTicker
                     .performTenMinuteUpdate(server);
+                com.stardew.craft.weather.LightningStrikeScheduler
+                    .performTenMinuteUpdate(server);
             }
         }
 
@@ -217,6 +219,7 @@ public class StardewTimeManager extends SavedData {
                 com.stardew.craft.manager.ForageSpawnService.onNewDayForestFarms(stardewLevel, currentSeason);
                 com.stardew.craft.manager.ArtifactSpotSpawnService.onNewDay(stardewLevel, currentSeason);
                 com.stardew.craft.manager.QuarrySpawnService.onNewDay(stardewLevel, getCurrentYear());
+                com.stardew.craft.manager.FarmCaveDailyService.onNewDay(stardewLevel);
                 } finally {
                     // 日结算完成后立即释放室内区块，避免 784 区块永久 force-loaded
                     com.stardew.craft.interior.InteriorSubspaceManager.setInteriorChunksForced(stardewLevel, false, "daily_settlement_done");
@@ -246,9 +249,17 @@ public class StardewTimeManager extends SavedData {
             // 次日恢复：生命回满；能量按 SV 原版 dayupdate 规则恢复（疲惫则减半）。
             // SDV parity: 结算前先将所有出货箱 buffer 里剩余的物品记录到出货追踪器
             com.stardew.craft.blockentity.ShippingBinBlockEntity.flushAllForOvernight();
+            com.stardew.craft.farm.FarmInstanceRegistry overnightFarmRegistry =
+                com.stardew.craft.farm.FarmInstanceRegistry.get();
             for (var player : server.getPlayerList().getPlayers()) {
                 if (player.level().dimension() != ModDimensions.STARDEW_VALLEY
                     && player.level().dimension() != ModMiningDimensions.STARDEW_MINING) {
+                    continue;
+                }
+                // 新玩家（尚未创建/加入农场）豁免一切夜间结算：不扣体力、不发结算画面、不投递邮件流程
+                if (!overnightFarmRegistry.hasFarm(player.getUUID())) {
+                    com.stardew.craft.network.overnight.OvernightSettlementTracker.consumePayload(player);
+                    com.stardew.craft.player.PassOutService.consumePassOutResult(player.getUUID());
                     continue;
                 }
 
@@ -306,6 +317,9 @@ public class StardewTimeManager extends SavedData {
 
                 // 始终发送结算包，即使没有出货/升级，以便客户端显示夜间结算过渡画面
                 PacketDistributor.sendToPlayer(player, finalPayload);
+
+                // 扫描并排队所有 wake_up 剧情，等客户端关闭结算画面后按序播放
+                com.stardew.craft.cutscene.server.WakeUpEventScheduler.enqueueAtNightSettlement(player);
             }
         }
 

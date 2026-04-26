@@ -21,7 +21,13 @@
         "#stardewcraft:is_night_market"
       ],
       "weather": "any",
-      "spawnRate": 0.4
+      "spawnRate": 0.4,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "spook_fish",
@@ -44,7 +50,13 @@
       ],
       "weather": "any",
       "spawnRate": 0.4,
-      "curiosityLureBuff": 0.05
+      "curiosityLureBuff": 0.05,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "blobfish",
@@ -67,7 +79,13 @@
       ],
       "weather": "any",
       "spawnRate": 0.4,
-      "curiosityLureBuff": 0.1
+      "curiosityLureBuff": 0.1,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "sea_cucumber",
@@ -89,6 +107,10 @@
       "spawnRate": 0.25,
       "biomeTags": [
         "#stardewcraft:is_night_market"
+      ],
+      "seasons": [
+        "fall",
+        "winter"
       ]
     },
     {
@@ -112,7 +134,11 @@
       "biomeTags": [
         "#stardewcraft:is_night_market"
       ],
-      "curiosityLureBuff": 0.1
+      "curiosityLureBuff": 0.1,
+      "seasons": [
+        "summer",
+        "winter"
+      ]
     },
     {
       "id": "octopus",
@@ -134,6 +160,9 @@
       "spawnRate": 0.1,
       "biomeTags": [
         "#stardewcraft:is_night_market"
+      ],
+      "seasons": [
+        "summer"
       ]
     },
     {
@@ -179,6 +208,12 @@
       "spawnRate": 0.3,
       "biomeTags": [
         "#stardewcraft:is_night_market"
+      ],
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
       ]
     },
     {

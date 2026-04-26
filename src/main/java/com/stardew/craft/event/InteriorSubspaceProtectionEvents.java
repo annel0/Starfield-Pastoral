@@ -25,6 +25,10 @@ public class InteriorSubspaceProtectionEvents {
             event.setCanceled(true);
             return;
         }
+        if (com.stardew.craft.event.FarmAreaProtectionEvents.canModifyGreenhouseAt(player, level, event.getPos())
+                && !com.stardew.craft.event.FarmAreaProtectionEvents.isOriginalGreenhouseStructureBlock(level, event.getPos())) {
+            return;
+        }
         if (player.isCreative()) {
             return;
         }
@@ -38,6 +42,10 @@ public class InteriorSubspaceProtectionEvents {
             return;
         }
         if (!InteriorSubspaceManager.isInteriorRegion(level, event.getPos())) {
+            return;
+        }
+        if (event.getEntity() instanceof ServerPlayer player
+                && com.stardew.craft.event.FarmAreaProtectionEvents.canModifyGreenhouseAt(player, level, event.getPos())) {
             return;
         }
 
@@ -56,6 +64,10 @@ public class InteriorSubspaceProtectionEvents {
         if (!InteriorSubspaceManager.isInteriorRegion(level, event.getPos())) {
             return;
         }
+        if (event.getEntity() instanceof ServerPlayer player
+                && com.stardew.craft.event.FarmAreaProtectionEvents.canModifyGreenhouseAt(player, level, event.getPos())) {
+            return;
+        }
 
         if (event.getEntity() instanceof Player player && player.isCreative()) {
             return;
@@ -70,6 +82,10 @@ public class InteriorSubspaceProtectionEvents {
             return;
         }
         if (!InteriorSubspaceManager.isInteriorRegion(level, event.getPos())) {
+            return;
+        }
+        // 温室内部仍然禁止随意倒液体，避免玩家互相灌水/岩浆污染温室。
+        if (com.stardew.craft.greenhouse.GreenhouseManager.isInGreenhouseInterior(level, event.getPos())) {
             return;
         }
         event.setCanceled(true);

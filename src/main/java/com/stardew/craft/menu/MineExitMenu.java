@@ -7,6 +7,7 @@ import com.stardew.craft.mining.MiningCoordinates;
 import com.stardew.craft.mining.MiningDataManager;
 import com.stardew.craft.mining.MiningPlayerData;
 import com.stardew.craft.network.MiningFloorSyncPacket;
+import com.stardew.craft.warp.ModTeleport;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -133,8 +134,7 @@ public class MineExitMenu extends AbstractContainerMenu {
                 spawnPos = overworld.getSharedSpawnPos();
             }
             
-            serverPlayer.teleportTo(overworld, 
-                spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5,
+            ModTeleport.to(serverPlayer, overworld, spawnPos,
                 serverPlayer.getYRot(), serverPlayer.getXRot());
             
             StardewCraft.LOGGER.info("玩家 {} 退出矿井维度", serverPlayer.getName().getString());

@@ -7,6 +7,7 @@ import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.sound.ModSounds;
 import com.stardew.craft.totem.TotemPoleTracker;
+import com.stardew.craft.warp.ModTeleport;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
@@ -216,14 +217,7 @@ public class TeleportTotemItem extends Item implements IStardewItem {
             ServerLevel stardewLevel = sp.server.getLevel(ModDimensions.STARDEW_VALLEY);
             if (stardewLevel != null) {
                 BlockPos target = resolveTeleportDestination(sp, stack, stardewLevel);
-                if (sp.level().dimension() == ModDimensions.STARDEW_VALLEY) {
-                    // 同维度传送
-                    sp.teleportTo(target.getX() + 0.5, target.getY(), target.getZ() + 0.5);
-                } else {
-                    // 跨维度传送
-                    sp.teleportTo(stardewLevel, target.getX() + 0.5, target.getY(), target.getZ() + 0.5,
-                            sp.getYRot(), sp.getXRot());
-                }
+                ModTeleport.to(sp, stardewLevel, target, sp.getYRot(), sp.getXRot());
             }
         }
 

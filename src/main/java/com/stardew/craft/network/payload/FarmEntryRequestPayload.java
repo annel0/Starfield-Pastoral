@@ -5,6 +5,7 @@ import com.stardew.craft.farm.FarmChunkManager;
 import com.stardew.craft.farm.FarmInstance;
 import com.stardew.craft.farm.FarmInstanceRegistry;
 import com.stardew.craft.farm.FarmPermissionManager;
+import com.stardew.craft.warp.ModTeleport;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -94,7 +95,7 @@ public record FarmEntryRequestPayload(
                 }
             }
 
-            player.teleportTo(stardewLevel,
+            ModTeleport.to(player, stardewLevel,
                     targetPos.getX() + 0.5, targetPos.getY(), targetPos.getZ() + 0.5,
                     yaw, 0.0F);
 

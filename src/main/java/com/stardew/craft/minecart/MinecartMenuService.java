@@ -5,6 +5,7 @@ import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModMiningDimensions;
 import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.PlayerStardewData;
+import com.stardew.craft.warp.ModTeleport;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -97,13 +98,6 @@ public final class MinecartMenuService {
         player.closeContainer();
         player.stopUsingItem();
 
-        // 关键：标记跳过 DimensionEventHandler.onPlayerChangeDimension 里的
-        // 「进入星露谷 → 农场出生点」/ 「进入矿井 → 当前楼层」自动劫持。
-        boolean crossDim = !player.serverLevel().dimension().equals(dest.dimension);
-        if (crossDim) {
-            com.stardew.craft.interior.CrossDimensionTeleporter.markSkipAutoTeleport(player.getUUID());
-        }
-
-        player.teleportTo(target, dest.x, dest.y, dest.z, dest.yaw, 0.0F);
+        ModTeleport.to(player, target, dest.x, dest.y, dest.z, dest.yaw, 0.0F);
     }
 }

@@ -37,6 +37,11 @@ public record MarkEventSeenPayload(String eventId) implements CustomPacketPayloa
             // Sync back full list to confirm
             var seen = data.getSeenEvents(player.getUUID());
             PacketDistributor.sendToPlayer(player, new SyncEventSeenPayload(new ArrayList<>(seen)));
+
+            // If this was a queued wake_up event, drop it from the queue and
+            // dispatch the next one (if any). No-op for other trigger types.
+            com.stardew.craft.cutscene.server.WakeUpEventScheduler.onEventCompleted(
+                    player, payload.eventId);
         });
     }
 

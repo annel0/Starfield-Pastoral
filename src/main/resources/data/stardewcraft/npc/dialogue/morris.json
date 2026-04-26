@@ -1,0 +1,21 @@
+{
+  "npc_id": "morris",
+  "entries": {
+    "Morris_Greeting":                                    "stardewcraft.npc.morris.greeting",
+    "Morris_FirstGreeting":                               "stardewcraft.npc.morris.first_greeting",
+    "Morris_WeekendGreeting":                             "stardewcraft.npc.morris.weekend_greeting",
+    "Morris_FirstGreeting_MembershipAvailable":           "stardewcraft.npc.morris.first_membership",
+    "Morris_WeekendGreeting_MembershipAvailable":         "stardewcraft.npc.morris.weekend_membership",
+    "Morris_FirstGreeting_CommunityCenterComplete":       "stardewcraft.npc.morris.first_cc_done",
+    "Morris_WeekendGreeting_CommunityCenterComplete":     "stardewcraft.npc.morris.weekend_cc_done",
+    "Morris_FirstGreeting_SecondPlayer":                  "stardewcraft.npc.morris.second_player",
+    "Morris_WeekendGreeting_SecondPlayer":                "stardewcraft.npc.morris.second_player",
+    "JojaMart_SignUp":                                    "stardewcraft.npc.morris.signup_confirm",
+    "Morris_PlayerSignedUp":                              "stardewcraft.npc.morris.signed_up",
+    "Morris_ComeBackLater":                               "stardewcraft.npc.morris.come_back_later",
+    "Morris_CommunityDevelopmentForm":                    "stardewcraft.npc.morris.cd_form_offer",
+    "Morris_JojaCDConfirm":                               "stardewcraft.npc.morris.cd_confirm",
+    "Morris_StillProcessingOrder":                        "stardewcraft.npc.morris.processing",
+    "Morris_NoMoreCD":                                    "stardewcraft.npc.morris.no_more_cd"
+  }
+}

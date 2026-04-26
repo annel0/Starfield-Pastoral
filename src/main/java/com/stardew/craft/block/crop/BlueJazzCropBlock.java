@@ -117,6 +117,7 @@ public class BlueJazzCropBlock extends StardewCropBlock {
     @Override
     protected void addExtraProperties(StateDefinition.Builder<net.minecraft.world.level.block.Block, BlockState> builder) {
         builder.add(COLOR);
+        builder.add(PLACED_BY_PLAYER);
     }
 
     @Override

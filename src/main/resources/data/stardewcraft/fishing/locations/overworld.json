@@ -52,7 +52,13 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.45
+      "spawnRate": 0.45,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "bream",
@@ -74,7 +80,13 @@
         "#stardewcraft:is_river"
       ],
       "weather": "any",
-      "spawnRate": 0.45
+      "spawnRate": 0.45,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "smallmouth_bass",
@@ -138,9 +150,9 @@
       "motionType": 0,
       "minFishingLevel": 0,
       "seasons": [
-        "spring",
         "fall",
-        "summer"
+        "spring",
+        "winter"
       ],
       "weather": "rainy",
       "timeRanges": [
@@ -194,6 +206,8 @@
       "minFishingLevel": 0,
       "seasons": [
         "fall",
+        "spring",
+        "summer",
         "winter"
       ],
       "timeRanges": [
@@ -310,7 +324,13 @@
         "#stardewcraft:is_mountain_lake"
       ],
       "weather": "any",
-      "spawnRate": 0.4
+      "spawnRate": 0.4,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "carp",
@@ -334,7 +354,12 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.45
+      "spawnRate": 0.45,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall"
+      ]
     },
     {
       "id": "bullhead",
@@ -356,7 +381,13 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.35
+      "spawnRate": 0.35,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "sturgeon",
@@ -432,7 +463,11 @@
         "#stardewcraft:is_forest_pond"
       ],
       "weather": "any",
-      "spawnRate": 0.33
+      "spawnRate": 0.33,
+      "seasons": [
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "woodskip",
@@ -455,7 +490,13 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.2
+      "spawnRate": 0.2,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "sardine",
@@ -466,8 +507,9 @@
       "motionType": 2,
       "minFishingLevel": 0,
       "seasons": [
-        "spring",
         "fall",
+        "spring",
+        "summer",
         "winter"
       ],
       "timeRanges": [
@@ -545,8 +587,9 @@
       "motionType": 0,
       "minFishingLevel": 0,
       "seasons": [
+        "fall",
         "summer",
-        "fall"
+        "winter"
       ],
       "weather": "rainy",
       "timeRanges": [
@@ -624,7 +667,7 @@
       "minFishingLevel": 0,
       "seasons": [
         "summer",
-        "fall"
+        "winter"
       ],
       "timeRanges": [
         [
@@ -925,7 +968,13 @@
         "#stardewcraft:is_desert"
       ],
       "weather": "any",
-      "spawnRate": 0.65
+      "spawnRate": 0.65,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "scorpion_carp",
@@ -947,7 +996,13 @@
         "#stardewcraft:is_desert"
       ],
       "weather": "any",
-      "spawnRate": 0.15
+      "spawnRate": 0.15,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "dorado",
@@ -994,7 +1049,13 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.3
+      "spawnRate": 0.3,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "stonefish",
@@ -1016,7 +1077,13 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.1
+      "spawnRate": 0.1,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "ice_pip",
@@ -1038,7 +1105,13 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.05
+      "spawnRate": 0.05,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "lava_eel",
@@ -1061,7 +1134,13 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.05
+      "spawnRate": 0.05,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "void_salmon",
@@ -1083,7 +1162,13 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.33
+      "spawnRate": 0.33,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "slimejack",
@@ -1105,7 +1190,13 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.4
+      "spawnRate": 0.4,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "midnight_squid",
@@ -1127,7 +1218,13 @@
         "#stardewcraft:is_night_market"
       ],
       "weather": "any",
-      "spawnRate": 0.4
+      "spawnRate": 0.4,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "spook_fish",
@@ -1149,7 +1246,13 @@
         "#stardewcraft:is_night_market"
       ],
       "weather": "any",
-      "spawnRate": 0.4
+      "spawnRate": 0.4,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "blobfish",
@@ -1171,7 +1274,13 @@
         "#stardewcraft:is_night_market"
       ],
       "weather": "any",
-      "spawnRate": 0.4
+      "spawnRate": 0.4,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "legend",
@@ -1308,7 +1417,13 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.0
+      "spawnRate": 0.0,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "legend_ii",
@@ -1445,7 +1560,13 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.0
+      "spawnRate": 0.0,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     }
   ]
 }

@@ -22,7 +22,12 @@
         "#stardewcraft:is_river",
         "#stardewcraft:is_secret_woods"
       ],
-      "spawnRate": 0.4
+      "spawnRate": 0.4,
+      "seasons": [
+        "spring",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "carp",
@@ -46,7 +51,12 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.45
+      "spawnRate": 0.45,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall"
+      ]
     },
     {
       "id": "woodskip",
@@ -69,7 +79,13 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.2
+      "spawnRate": 0.2,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "river_jelly",

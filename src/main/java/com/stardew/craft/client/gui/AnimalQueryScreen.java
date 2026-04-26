@@ -396,7 +396,7 @@ public class AnimalQueryScreen extends AbstractContainerScreen<AnimalQueryMenu> 
         String ageLine = "年龄：" + Math.max(1, this.menu.getAgeDays() / 7 + 1);
         String stageLine = "阶段：（" + (this.menu.isBaby() ? "幼年" : "成年") + "）";
         String petLine = "今日抚摸：" + (this.menu.wasPetToday() ? "✅" : "❌");
-        String feedLine = "今日喂食：" + (this.menu.wasPetToday() ? "✅" : "❌");
+        String feedLine = "今日喂食：" + (this.menu.wasFedToday() ? "✅" : "❌");
 
         drawSingleLineScaled(graphics, Component.literal(ageLine), textX, infoY, COLOR_TEXT_SUB, infoW, lineScale);
         drawSingleLineScaled(graphics, Component.literal(stageLine), textX, infoY + si(32), COLOR_TEXT_SUB, infoW, lineScale);

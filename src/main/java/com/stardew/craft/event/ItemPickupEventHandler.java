@@ -47,5 +47,26 @@ public class ItemPickupEventHandler {
         // Quest: item received
         String itemId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(original.getItem()).toString();
         com.stardew.craft.quest.StardewQuestEvents.fireItemReceived(player, itemId, count);
+
+        // SDV parity: first time a player picks up an ore, set the corresponding
+        // mail flag (e.g. "copperFound"). These flags gate early story events
+        // such as Clint's furnace cutscene.
+        setOreFoundFlag(player, itemId);
+    }
+
+    /** Sets {ore}Found flag once when the player first obtains that ore. */
+    private static void setOreFoundFlag(ServerPlayer player, String itemId) {
+        String flag = switch (itemId) {
+            case "stardewcraft:copper_ore"   -> "copperFound";
+            case "stardewcraft:iron_ore"     -> "ironFound";
+            case "stardewcraft:gold_ore"     -> "goldFound";
+            case "stardewcraft:iridium_ore"  -> "iridiumFound";
+            default -> null;
+        };
+        if (flag == null) return;
+        var data = com.stardew.craft.player.PlayerDataManager.getPlayerData(player);
+        if (!data.hasMailFlag(flag)) {
+            data.addMailFlag(flag);
+        }
     }
 }

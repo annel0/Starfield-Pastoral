@@ -23,7 +23,11 @@
         "#stardewcraft:is_town_river"
       ],
       "isTutorialFish": true,
-      "spawnRate": 0.45
+      "spawnRate": 0.45,
+      "seasons": [
+        "spring",
+        "summer"
+      ]
     },
     {
       "id": "smallmouth_bass",
@@ -46,7 +50,11 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.45
+      "spawnRate": 0.45,
+      "seasons": [
+        "spring",
+        "fall"
+      ]
     },
     {
       "id": "angler",
@@ -103,7 +111,13 @@
       "weather": "any",
       "spawnRate": 0.05,
       "curiosityLureBuff": 0.05,
-      "canBeInherited": false
+      "canBeInherited": false,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "bream",
@@ -126,6 +140,12 @@
       "biomeTags": [
         "#stardewcraft:is_river",
         "#stardewcraft:is_town_river"
+      ],
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
       ]
     },
     {
@@ -150,7 +170,12 @@
         "#stardewcraft:is_river",
         "#stardewcraft:is_town_river"
       ],
-      "condition": "LOCATION_SEASON Here spring fall winter"
+      "condition": "LOCATION_SEASON Here spring fall winter",
+      "seasons": [
+        "spring",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "green_algae",
@@ -173,6 +198,12 @@
       "biomeTags": [
         "#stardewcraft:is_river",
         "#stardewcraft:is_town_river"
+      ],
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
       ]
     },
     {
@@ -197,7 +228,12 @@
         "#stardewcraft:is_river",
         "#stardewcraft:is_town_river"
       ],
-      "condition": "LOCATION_SEASON Here spring summer fall"
+      "condition": "LOCATION_SEASON Here spring summer fall",
+      "seasons": [
+        "spring",
+        "summer",
+        "fall"
+      ]
     },
     {
       "id": "rainbow_trout",
@@ -247,7 +283,11 @@
         "#stardewcraft:is_river",
         "#stardewcraft:is_town_river"
       ],
-      "condition": "LOCATION_SEASON Here summer winter"
+      "condition": "LOCATION_SEASON Here summer winter",
+      "seasons": [
+        "summer",
+        "winter"
+      ]
     },
     {
       "id": "salmon",
@@ -297,7 +337,11 @@
         "#stardewcraft:is_river",
         "#stardewcraft:is_town_river"
       ],
-      "condition": "LOCATION_SEASON Here fall winter"
+      "condition": "LOCATION_SEASON Here fall winter",
+      "seasons": [
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "tiger_trout",
@@ -321,7 +365,13 @@
         "#stardewcraft:is_river",
         "#stardewcraft:is_town_river"
       ],
-      "condition": "LOCATION_SEASON Here fall winter"
+      "condition": "LOCATION_SEASON Here fall winter",
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "perch",

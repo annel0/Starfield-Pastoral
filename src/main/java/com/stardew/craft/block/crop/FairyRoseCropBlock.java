@@ -127,6 +127,7 @@ public class FairyRoseCropBlock extends StardewCropBlock {
     protected void addExtraProperties(StateDefinition.Builder<net.minecraft.world.level.block.Block, BlockState> builder) {
         builder.add(COLOR);
         builder.add(HALF);
+        builder.add(PLACED_BY_PLAYER);
     }
 
     @Override
@@ -175,6 +176,13 @@ public class FairyRoseCropBlock extends StardewCropBlock {
         if (!farmland) {
             String blockId = below.getBlock().builtInRegistryHolder().key().location().toString().toLowerCase();
             farmland = blockId.contains("farmland");
+        }
+        // 玩家手动放置的成品花：允许種在自然地表上
+        if (!farmland
+                && state.hasProperty(StardewCropBlock.PLACED_BY_PLAYER)
+                && state.getValue(StardewCropBlock.PLACED_BY_PLAYER)
+                && StardewCropBlock.isNaturalSoil(below)) {
+            farmland = true;
         }
         if (!farmland) return false;
         BlockState above = level.getBlockState(pos.above());

@@ -1,6 +1,7 @@
 package com.stardew.craft.economy.sell;
 
 import com.stardew.craft.item.IStardewItem;
+import com.stardew.craft.item.artisan.SmokedFishItem;
 import com.stardew.craft.player.PlayerStardewDataAPI;
 import com.stardew.craft.player.ProfessionType;
 import net.minecraft.core.registries.Registries;
@@ -120,6 +121,9 @@ public final class ProfessionSellPriceService {
         boolean isAnimalProduct = ANIMAL_PRODUCT_TYPES.contains(typeKey);
         boolean isArtisan = ARTISAN_TYPES.contains(typeKey);
         boolean isFish = FISH_TYPES.contains(typeKey) || isInTag(stack, FISH_TAG);
+        // SDV Object.getPriceAfterMultipliers 对 PreserveType.SmokedFish 额外触发
+        // Fisher/Angler 加成（与 Category=-4 鱼并行），与 Artisan 1.4× 乘法叠加。
+        boolean isSmokedFish = stack != null && stack.getItem() instanceof SmokedFishItem;
         boolean isMetalBar = METAL_BAR_TYPES.contains(typeKey) || isInTag(stack, BLACKSMITH_TAG);
         boolean isGem = GEM_TYPES.contains(typeKey) || isInTag(stack, GEMOLOGIST_TAG);
         boolean isTapperProduct = TAPPER_TYPES.contains(typeKey) || isInTag(stack, TAPPER_TAG);
@@ -137,6 +141,9 @@ public final class ProfessionSellPriceService {
         }
 
         if (isFish) {
+            multiplier *= getFishingMultiplier(checker);
+        } else if (isSmokedFish) {
+            // 熏鱼走 Artisan 分支拿 1.4×，再额外叠加 Fisher/Angler（SDV 显式 SmokedFish 例外）
             multiplier *= getFishingMultiplier(checker);
         }
 

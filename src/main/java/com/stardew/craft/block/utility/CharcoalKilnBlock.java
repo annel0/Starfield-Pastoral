@@ -204,15 +204,9 @@ public class CharcoalKilnBlock extends Block implements EntityBlock {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
 
-        if (kiln.isReady()) {
-            ItemStack product = kiln.harvestOne();
-            if (!product.isEmpty()) {
-                if (!player.addItem(product)) {
-                    player.drop(product, false);
-                }
-                level.playSound(null, pos, net.minecraft.sounds.SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6f, 1.0f);
-                return ItemInteractionResult.sidedSuccess(false);
-            }
+        if (UtilityDropHelper.tryHarvest(level, pos, player, kiln::isReady, kiln::harvestOne,
+            UtilityDropHelper.STANDARD_MACHINE_VANILLA_XP)) {
+            return ItemInteractionResult.sidedSuccess(false);
         }
 
         if (!stack.isEmpty()) {
@@ -258,19 +252,10 @@ public class CharcoalKilnBlock extends Block implements EntityBlock {
             return InteractionResult.PASS;
         }
 
-        if (!kiln.isReady()) {
-            return InteractionResult.PASS;
-        }
-
-        ItemStack product = kiln.harvestOne();
-        if (product.isEmpty()) {
-            return InteractionResult.PASS;
-        }
-        if (!player.addItem(product)) {
-            player.drop(product, false);
-        }
-        level.playSound(null, pos, net.minecraft.sounds.SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6f, 1.0f);
-        return InteractionResult.CONSUME;
+        return UtilityDropHelper.tryHarvest(level, pos, player, kiln::isReady, kiln::harvestOne,
+            UtilityDropHelper.STANDARD_MACHINE_VANILLA_XP)
+            ? InteractionResult.CONSUME
+            : InteractionResult.PASS;
     }
 
     @SuppressWarnings("null")

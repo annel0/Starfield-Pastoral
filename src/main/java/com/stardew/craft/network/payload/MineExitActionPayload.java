@@ -5,6 +5,7 @@ import com.stardew.craft.core.ModMiningDimensions;
 import com.stardew.craft.mining.MiningCoordinates;
 import com.stardew.craft.mining.MiningDataManager;
 import com.stardew.craft.mining.MiningPlayerData;
+import com.stardew.craft.warp.ModTeleport;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -105,11 +106,10 @@ public record MineExitActionPayload(Action action) implements CustomPacketPayloa
 		net.minecraft.core.BlockPos arrival = com.stardew.craft.desert.DesertConstants.worldPos(
 				com.stardew.craft.desert.DesertConstants.SKULL_CAVERN_EXIT_OFFSET);
 
-		serverPlayer.teleportTo(stardew,
+		ModTeleport.to(serverPlayer, stardew,
 				arrival.getX() + 0.5D,
 				arrival.getY(),
 				arrival.getZ() + 0.5D,
-				java.util.Set.of(),
 				180.0F, 0.0F);
 
 		playerData.setCurrentFloor(0);

@@ -6,24 +6,15 @@ import java.util.Random;
  * 免疫系统
  * 
  * 星露谷物语免疫机制：
- * - 基础免疫值来自装备（主要是戒指）
- * - 免疫值决定抵抗debuff的概率
- * - 公式: 免疫概率 = 免疫值 × 10%，上限100%
- * - 例如: 免疫值5 = 50%概率抵抗debuff
- * - 免疫值10 = 100%完全免疫
- * 
- * 免疫还可以减少已有debuff的持续时间：
- * - 持续时间减少 = 免疫值 × 10%
+ * - 数值 immunity 决定能否直接抵抗一次 debuff 施加
+ * - 原版判定等价于 random.nextInt(11) < immunity
+ * - sturdy 类效果单独负责把负面状态持续时间减半
  */
 public class ImmunitySystem {
     
     private static final Random RANDOM = new Random();
     
-    // 每点免疫提供的抵抗概率
-    private static final float IMMUNITY_RESIST_PER_POINT = 0.10f;  // 10%
-    
-    // 最大免疫值
-    private static final int MAX_IMMUNITY = 10;
+    private static final int IMMUNITY_ROLL_BOUND = 11;
     
     /**
      * 计算是否抵抗debuff
@@ -37,9 +28,21 @@ public class ImmunitySystem {
         if (!debuffType.canReduce()) {
             return false;
         }
-        
-        float resistChance = calculateResistChance(immunity);
-        return RANDOM.nextFloat() < resistChance;
+
+        return tryResistEffect(immunity);
+    }
+
+    /**
+     * 按 SDV 风格判定一次负面状态是否被免疫抵抗。
+     */
+    public static boolean tryResistEffect(int immunity) {
+        if (immunity <= 0) {
+            return false;
+        }
+        if (immunity >= IMMUNITY_ROLL_BOUND) {
+            return true;
+        }
+        return RANDOM.nextInt(IMMUNITY_ROLL_BOUND) < immunity;
     }
     
     /**
@@ -49,8 +52,8 @@ public class ImmunitySystem {
      * @return 抵抗概率 (0.0 - 1.0)
      */
     public static float calculateResistChance(int immunity) {
-        int clampedImmunity = Math.min(Math.max(immunity, 0), MAX_IMMUNITY);
-        return clampedImmunity * IMMUNITY_RESIST_PER_POINT;
+        int clampedImmunity = Math.min(Math.max(immunity, 0), IMMUNITY_ROLL_BOUND);
+        return clampedImmunity / (float) IMMUNITY_ROLL_BOUND;
     }
     
     /**
@@ -66,12 +69,18 @@ public class ImmunitySystem {
         if (!debuffType.canReduce()) {
             return baseDuration;
         }
-        
-        float reduction = calculateDurationReduction(immunity);
-        int reducedDuration = (int)(baseDuration * (1.0f - reduction));
-        
-        // 最低持续时间为0.5秒
-        return Math.max(reducedDuration, 500);
+
+        return baseDuration;
+    }
+
+    /**
+     * sturdy 类效果：只负责把负面持续时间减半。
+     */
+    public static int adjustDurationTicks(int baseDurationTicks, boolean halveDuration) {
+        if (!halveDuration || baseDurationTicks <= 1) {
+            return baseDurationTicks;
+        }
+        return Math.max(1, baseDurationTicks / 2);
     }
     
     /**
@@ -81,14 +90,13 @@ public class ImmunitySystem {
      * @return 减少比例 (0.0 - 1.0)
      */
     public static float calculateDurationReduction(int immunity) {
-        int clampedImmunity = Math.min(Math.max(immunity, 0), MAX_IMMUNITY);
-        return clampedImmunity * IMMUNITY_RESIST_PER_POINT;
+        return 0.0f;
     }
     
     /**
      * 获取最大免疫值
      */
     public static int getMaxImmunity() {
-        return MAX_IMMUNITY;
+        return IMMUNITY_ROLL_BOUND;
     }
 }

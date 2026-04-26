@@ -1,6 +1,7 @@
 package com.stardew.craft.mining;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.warp.ModTeleport;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -52,7 +53,7 @@ public class MiningCoordinates {
         // 传送前给予无敌帧（防止 fall damage / 撞击伤害）
         player.setInvulnerable(true);
 
-        player.teleportTo(level, x, y, z_pos, 180.0f, 0.0f);
+        ModTeleport.to(player, level, x, y, z_pos, 180.0f, 0.0f);
 
         // 清除速度，防止残留 momentum 造成摔落伤害
         player.setDeltaMovement(0, 0, 0);

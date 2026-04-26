@@ -18,6 +18,7 @@ public class FarmAnimalRecord {
     private int friendship;
     private boolean allowReproduction;
     private int daysOwned;
+    private boolean wasFedToday;
     private int fullness;
     private int happiness;
     private int moodMessage;
@@ -54,6 +55,7 @@ public class FarmAnimalRecord {
             0,
             false,
             0,
+            false,
             255,
             255,
             0,
@@ -79,6 +81,7 @@ public class FarmAnimalRecord {
                             int friendship,
                             boolean allowReproduction,
                             int daysOwned,
+                            boolean wasFedToday,
                             int fullness,
                             int happiness,
                             int moodMessage,
@@ -101,6 +104,7 @@ public class FarmAnimalRecord {
         this.friendship = Math.max(0, friendship);
         this.allowReproduction = allowReproduction;
         this.daysOwned = Math.max(0, daysOwned);
+        this.wasFedToday = wasFedToday;
         this.fullness = Math.max(0, Math.min(255, fullness));
         this.happiness = Math.max(0, Math.min(255, happiness));
         this.moodMessage = Math.max(0, moodMessage);
@@ -184,6 +188,14 @@ public class FarmAnimalRecord {
 
     public int daysOwned() {
         return daysOwned;
+    }
+
+    public boolean wasFedToday() {
+        return wasFedToday;
+    }
+
+    public void setWasFedToday(boolean wasFedToday) {
+        this.wasFedToday = wasFedToday;
     }
 
     public void incrementDaysOwned() {
@@ -307,6 +319,7 @@ public class FarmAnimalRecord {
         tag.putInt("friendship", friendship);
         tag.putBoolean("allowReproduction", allowReproduction);
         tag.putInt("daysOwned", daysOwned);
+        tag.putBoolean("wasFedToday", wasFedToday);
         tag.putInt("fullness", fullness);
         tag.putInt("happiness", happiness);
         tag.putInt("moodMessage", moodMessage);
@@ -335,6 +348,7 @@ public class FarmAnimalRecord {
             tag.contains("friendship") ? tag.getInt("friendship") : 0,
             tag.getBoolean("allowReproduction"),
             tag.contains("daysOwned") ? tag.getInt("daysOwned") : 0,
+            tag.contains("wasFedToday") && tag.getBoolean("wasFedToday"),
             tag.contains("fullness") ? tag.getInt("fullness") : 255,
             tag.contains("happiness") ? tag.getInt("happiness") : 255,
             tag.contains("moodMessage") ? tag.getInt("moodMessage") : 0,

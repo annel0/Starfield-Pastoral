@@ -2,11 +2,15 @@ package com.stardew.craft.item.crop.spring;
 
     import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.item.quality.QualityHelper;
+import com.stardew.craft.block.ModBlocks;
+import com.stardew.craft.block.crop.FlowerPlacement;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
 
 /**
  * 蓝爵
@@ -27,6 +31,16 @@ public class BlueJazzItem extends Item implements IStardewItem {
                         .alwaysEdible()
                         .build())
         );
+    }
+
+    @SuppressWarnings("null")
+    @Override
+    public InteractionResult useOn(UseOnContext context) {
+        InteractionResult result = FlowerPlacement.place(context, ModBlocks.BLUE_JAZZ_CROP);
+        if (result != InteractionResult.PASS) {
+            return result;
+        }
+        return super.useOn(context);
     }
 
 

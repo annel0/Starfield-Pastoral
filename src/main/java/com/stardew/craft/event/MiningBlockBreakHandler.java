@@ -29,22 +29,81 @@ import net.neoforged.neoforge.network.PacketDistributor;
 public class MiningBlockBreakHandler {
     
     /**
-     * 检查方块是否是可计数的主石头
+     * 检查方块是否是可计数的"石头节点"。
+     *
+     * SDV 原版 breakStone() 会让 quartz / earth_crystal / frozen_tear / fire_quartz 也参与
+     * stonesLeft 递减 + 梯子概率，但本 mod 里玩家普遍反馈这种"挖个晶簇就把通道挖出来了"很别扭，
+     * 而且这些节点本身就稀有 + 可放置装饰，更像奖励物而不是"石头"。
+     * 所以在我们的实现里：
+     *  - 主石头 + 装饰石（含 Dark 变体）
+     *  - 全部矿石（copper / iron / gold / iridium / coal，含 earth/frost/lava/desert 四套主题）
+     *  - 宝石矿石（amethyst / aquamarine / diamond / emerald / jade / ruby / topaz）
+     *  - 骷髅矿主石头（desert_bedrock / dark_desert_bedrock）+ 装饰石（sulfur_rock / weathered_stone）
+     * **不**计入：mineral 节点（quartz / earth_crystal / frozen_tear / fire_quartz）、
+     *           mine_barrel（补给箱）、toxic_spore_block、quicksand 等功能方块。
      */
     private static boolean isCountableStone(Block block) {
-        // 检查是否是可计数的主石头或装饰石（含 Dark 变体）
-        return block == ModBlocks.EARTH_SHALE.get() ||
-               block == ModBlocks.DARK_EARTH_SHALE.get() ||
-               block == ModBlocks.FROST_GNEISS.get() ||
-               block == ModBlocks.DARK_FROST_GNEISS.get() ||
-               block == ModBlocks.LAVA_BASALT.get() ||
-               block == ModBlocks.DARK_LAVA_BASALT.get() ||
-               block == ModBlocks.BANDED_MARBLE.get() ||
-               block == ModBlocks.LIMESTONE.get() ||
-               block == ModBlocks.MOSSY_SANDSTONE.get() ||
-               block == ModBlocks.CRACKED_SLATE.get() ||
-               block == ModBlocks.SCORIA.get() ||
-               block == ModBlocks.SALT_ROCK.get();
+        // 主石头 + 装饰石（主矿洞，含 Dark 变体）
+        if (block == ModBlocks.EARTH_SHALE.get() ||
+            block == ModBlocks.DARK_EARTH_SHALE.get() ||
+            block == ModBlocks.FROST_GNEISS.get() ||
+            block == ModBlocks.DARK_FROST_GNEISS.get() ||
+            block == ModBlocks.LAVA_BASALT.get() ||
+            block == ModBlocks.DARK_LAVA_BASALT.get() ||
+            block == ModBlocks.BANDED_MARBLE.get() ||
+            block == ModBlocks.LIMESTONE.get() ||
+            block == ModBlocks.MOSSY_SANDSTONE.get() ||
+            block == ModBlocks.CRACKED_SLATE.get() ||
+            block == ModBlocks.SCORIA.get() ||
+            block == ModBlocks.SALT_ROCK.get()) {
+            return true;
+        }
+        // 骷髅矿主石头 + 装饰石
+        if (block == ModBlocks.DESERT_BEDROCK.get() ||
+            block == ModBlocks.DARK_DESERT_BEDROCK.get() ||
+            block == ModBlocks.SULFUR_ROCK.get() ||
+            block == ModBlocks.WEATHERED_STONE.get()) {
+            return true;
+        }
+        // 金属矿石（earth / frost / lava 三段）
+        if (block == ModBlocks.EARTH_COPPER_ORE.get() ||
+            block == ModBlocks.FROST_COPPER_ORE.get() ||
+            block == ModBlocks.LAVA_COPPER_ORE.get() ||
+            block == ModBlocks.EARTH_IRON_ORE.get() ||
+            block == ModBlocks.FROST_IRON_ORE.get() ||
+            block == ModBlocks.LAVA_IRON_ORE.get() ||
+            block == ModBlocks.EARTH_GOLD_ORE.get() ||
+            block == ModBlocks.FROST_GOLD_ORE.get() ||
+            block == ModBlocks.LAVA_GOLD_ORE.get() ||
+            block == ModBlocks.EARTH_IRIDIUM_ORE.get() ||
+            block == ModBlocks.FROST_IRIDIUM_ORE.get() ||
+            block == ModBlocks.LAVA_IRIDIUM_ORE.get() ||
+            block == ModBlocks.EARTH_COAL_ORE.get() ||
+            block == ModBlocks.FROST_COAL_ORE.get() ||
+            block == ModBlocks.LAVA_COAL_ORE.get()) {
+            return true;
+        }
+        // 骷髅矿矿石（desert 主题）
+        if (block == ModBlocks.DESERT_COPPER_ORE.get() ||
+            block == ModBlocks.DESERT_IRON_ORE.get() ||
+            block == ModBlocks.DESERT_GOLD_ORE.get() ||
+            block == ModBlocks.DESERT_IRIDIUM_ORE.get() ||
+            block == ModBlocks.DESERT_COAL_ORE.get()) {
+            return true;
+        }
+        // 宝石矿石
+        if (block == ModBlocks.AMETHYST_ORE.get() ||
+            block == ModBlocks.AQUAMARINE_ORE.get() ||
+            block == ModBlocks.DIAMOND_ORE.get() ||
+            block == ModBlocks.EMERALD_ORE.get() ||
+            block == ModBlocks.JADE_ORE.get() ||
+            block == ModBlocks.RUBY_ORE.get() ||
+            block == ModBlocks.TOPAZ_ORE.get()) {
+            return true;
+        }
+        // 注：mineral 节点（quartz / earth_crystal / frozen_tear / fire_quartz）刻意不计入，
+        // 它们是稀有装饰节点，不应触发 stonesLeft 递减或梯子概率。
+        return false;
     }
     
     @SubscribeEvent

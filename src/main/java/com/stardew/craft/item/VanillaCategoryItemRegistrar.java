@@ -55,7 +55,8 @@ public final class VanillaCategoryItemRegistrar {
         new Entry("ginger", "stardewcraft.type.forage", 60, 10, true),
         new Entry("taro_root", "stardewcraft.type.cooking_ingredient", 100, 15, true),
         new Entry("pineapple", "stardewcraft.type.cooking_ingredient", 300, 55, true),
-        new Entry("mango", "stardewcraft.type.fruit", 130, 40, true)
+        new Entry("mango", "stardewcraft.type.fruit", 130, 40, true),
+        new Entry("salmonberry", "stardewcraft.type.forage", 75, 10, true)
     );
 
     private VanillaCategoryItemRegistrar() {

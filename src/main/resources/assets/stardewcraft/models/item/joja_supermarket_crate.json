@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/common/joja_supermarket_crate",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/joja_supermarket_crate"
+	}
+}

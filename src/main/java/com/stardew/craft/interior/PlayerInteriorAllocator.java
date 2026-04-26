@@ -28,6 +28,8 @@ public class PlayerInteriorAllocator extends SavedData {
     static final int CC_Z_STRIDE = 128;
     // Greenhouse: 室内较小，64 步幅
     static final int GH_Z_STRIDE = 64;
+    // Farm Cave: schem 9×6×10，32 步幅绰绰有余
+    static final int CAVE_Z_STRIDE = 32;
 
     private final Map<UUID, Integer> playerIndices = new HashMap<>();
     private int nextIndex = 0;
@@ -36,6 +38,8 @@ public class PlayerInteriorAllocator extends SavedData {
     private final Set<UUID> ccPlaced = new HashSet<>();
     /** 已放置温室室内结构的玩家集合 */
     private final Set<UUID> ghPlaced = new HashSet<>();
+    /** 已放置农场洞穴室内结构的玩家集合 */
+    private final Set<UUID> cavePlaced = new HashSet<>();
 
     // ── 静态访问 ──
 
@@ -59,6 +63,12 @@ public class PlayerInteriorAllocator extends SavedData {
     public BlockPos getGreenhouseOrigin(UUID playerUUID) {
         int index = getOrAllocateIndex(playerUUID);
         return InteriorSubspaceManager.GREENHOUSE_INTERIOR_ORIGIN.offset(0, 0, index * GH_Z_STRIDE);
+    }
+
+    /** 获取指定玩家的农场洞穴室内原点 */
+    public BlockPos getCaveOrigin(UUID playerUUID) {
+        int index = getOrAllocateIndex(playerUUID);
+        return InteriorSubspaceManager.FARM_CAVE_INTERIOR_ORIGIN.offset(0, 0, index * CAVE_Z_STRIDE);
     }
 
     private int getOrAllocateIndex(UUID playerUUID) {
@@ -124,11 +134,33 @@ public class PlayerInteriorAllocator extends SavedData {
     }
 
     /**
+     * 确保指定玩家的农场洞穴室内结构已加载。
+     *
+     * @return 该玩家的洞穴 origin（= schem min corner）
+     */
+    public BlockPos ensureCaveLoaded(ServerLevel level, UUID playerUUID) {
+        BlockPos origin = getCaveOrigin(playerUUID);
+        if (!cavePlaced.contains(playerUUID)) {
+            boolean ok = StructureLoader.loadAndPlaceWithResult(
+                level, InteriorSubspaceManager.FARM_CAVE_PATH, origin);
+            if (ok) {
+                cavePlaced.add(playerUUID);
+                setDirty();
+                spawnCaveExitPortals(level, origin);
+                forceChunksForCave(level, origin, true);
+                StardewCraft.LOGGER.info("[INTERIOR-ALLOC] Farm cave interior loaded for player {} at {}", playerUUID, origin);
+            } else {
+                StardewCraft.LOGGER.error("[INTERIOR-ALLOC] Failed to load farm cave for player {} at {}", playerUUID, origin);
+            }
+        }
+        return origin;
+    }
+
+    /**
      * 布局版本变更后重新加载所有已分配的 per-player 结构。
      * 由 {@link InteriorSubspaceManager#ensureLoaded} 在静态结构加载后调用。
      */
-    public void reloadAllPlaced(ServerLevel level) {
-        var ccData = com.stardew.craft.communitycenter.state.CommunityCenterSavedData.get();
+    public void reloadAllPlaced(ServerLevel level) {        var ccData = com.stardew.craft.communitycenter.state.CommunityCenterSavedData.get();
         for (UUID uuid : new ArrayList<>(ccPlaced)) {
             BlockPos origin = getCCOrigin(uuid);
             StructureLoader.loadAndPlaceWithResult(level, InteriorSubspaceManager.CC_RUINS_PATH, origin);
@@ -151,6 +183,12 @@ public class PlayerInteriorAllocator extends SavedData {
             StructureLoader.loadAndPlaceWithResult(level, InteriorSubspaceManager.GREENHOUSE_INTERIOR_PATH, origin);
             spawnGHExitPortals(level, origin);
             forceChunksForGH(level, origin, true);
+        }
+        for (UUID uuid : new ArrayList<>(cavePlaced)) {
+            BlockPos origin = getCaveOrigin(uuid);
+            StructureLoader.loadAndPlaceWithResult(level, InteriorSubspaceManager.FARM_CAVE_PATH, origin);
+            spawnCaveExitPortals(level, origin);
+            forceChunksForCave(level, origin, true);
         }
         StardewCraft.LOGGER.info("[INTERIOR-ALLOC] Reloaded {} CC + {} GH per-player structures",
             ccPlaced.size(), ghPlaced.size());
@@ -185,6 +223,9 @@ public class PlayerInteriorAllocator extends SavedData {
         return null;
     }
 
+    private static final int GH_SLOT_X = 64;
+    private static final int GH_SLOT_Y = 64;
+
     /** 判断世界坐标是否在任意玩家的温室室内区域内 */
     public boolean isInsideAnyGreenhouse(BlockPos worldPos) {
         return findGreenhouseOwner(worldPos) != null;
@@ -197,16 +238,37 @@ public class PlayerInteriorAllocator extends SavedData {
         int rx = worldPos.getX() - ghBase.getX();
         int ry = worldPos.getY() - ghBase.getY();
         int rz = worldPos.getZ() - ghBase.getZ();
-        if (rx < 0 || rx > 6 || ry < 0 || ry > 4 || rz < 0) return null;
+        if (rx < 0 || rx >= GH_SLOT_X || ry < 0 || ry >= GH_SLOT_Y || rz < 0) return null;
         int candidateIndex = rz / GH_Z_STRIDE;
         int localZ = rz - candidateIndex * GH_Z_STRIDE;
-        if (localZ < 0 || localZ > 11) return null;
+        if (localZ < 0 || localZ >= GH_Z_STRIDE) return null;
         for (var entry : playerIndices.entrySet()) {
             if (entry.getValue() == candidateIndex && ghPlaced.contains(entry.getKey())) {
                 return entry.getKey();
             }
         }
         return null;
+    }
+
+    /**
+     * 根据世界坐标反推出该格子所在的温室槽位 origin。
+     * 仅做几何换算，不要求该槽位已经绑定到某个玩家。
+     */
+    @Nullable
+    public BlockPos findGreenhouseOrigin(BlockPos worldPos) {
+        BlockPos ghBase = InteriorSubspaceManager.GREENHOUSE_INTERIOR_ORIGIN;
+        int rx = worldPos.getX() - ghBase.getX();
+        int ry = worldPos.getY() - ghBase.getY();
+        int rz = worldPos.getZ() - ghBase.getZ();
+        if (rx < 0 || rx >= GH_SLOT_X || ry < 0 || ry >= GH_SLOT_Y || rz < 0) {
+            return null;
+        }
+        int candidateIndex = rz / GH_Z_STRIDE;
+        int localZ = rz - candidateIndex * GH_Z_STRIDE;
+        if (localZ < 0 || localZ >= GH_Z_STRIDE) {
+            return null;
+        }
+        return ghBase.offset(0, 0, candidateIndex * GH_Z_STRIDE);
     }
 
     /** CC 是否已为指定玩家放置 */
@@ -219,12 +281,42 @@ public class PlayerInteriorAllocator extends SavedData {
         return ghPlaced.contains(playerUUID);
     }
 
+    /** 洞穴是否已为指定玩家放置 */
+    public boolean isCavePlaced(UUID playerUUID) {
+        return cavePlaced.contains(playerUUID);
+    }
+
     public Set<UUID> getPlayersWithCC() {
         return Collections.unmodifiableSet(ccPlaced);
     }
 
     public Set<UUID> getPlayersWithGreenhouse() {
         return Collections.unmodifiableSet(ghPlaced);
+    }
+
+    public Set<UUID> getPlayersWithCave() {
+        return Collections.unmodifiableSet(cavePlaced);
+    }
+
+    /** 查找世界坐标所属的洞穴玩家 UUID，不在任何洞穴内返回 null */
+    @Nullable
+    public UUID findCaveOwner(BlockPos worldPos) {
+        BlockPos base = InteriorSubspaceManager.FARM_CAVE_INTERIOR_ORIGIN;
+        int rx = worldPos.getX() - base.getX();
+        int ry = worldPos.getY() - base.getY();
+        int rz = worldPos.getZ() - base.getZ();
+        if (rx < 0 || rx >= InteriorSubspaceManager.FARM_CAVE_SCHEM_W
+                || ry < 0 || ry >= InteriorSubspaceManager.FARM_CAVE_SCHEM_H
+                || rz < 0) return null;
+        int candidateIndex = rz / CAVE_Z_STRIDE;
+        int localZ = rz - candidateIndex * CAVE_Z_STRIDE;
+        if (localZ < 0 || localZ >= InteriorSubspaceManager.FARM_CAVE_SCHEM_L) return null;
+        for (var entry : playerIndices.entrySet()) {
+            if (entry.getValue() == candidateIndex && cavePlaced.contains(entry.getKey())) {
+                return entry.getKey();
+            }
+        }
+        return null;
     }
 
     // ── 交互实体生成 ──
@@ -247,6 +339,16 @@ public class PlayerInteriorAllocator extends SavedData {
         );
     }
 
+    private void spawnCaveExitPortals(ServerLevel level, BlockPos origin) {
+        BlockPos exitPortal = origin.offset(InteriorSubspaceManager.FARM_CAVE_INDOOR_EXIT_PORTAL_OFFSET);
+        // 1×1×2：1 格长 × 1 格宽 × 2 格高（参数为 height, x, z）
+        InteriorSubspaceManager.spawnInteractionArea(
+            level, exitPortal, 2, 1, 1,
+            InteriorSubspaceManager.TAG_PORTAL_MARKER_FARM_CAVE_INSIDE,
+            "sdv_portal_target:farm_cave_exit"
+        );
+    }
+
     // ── 区块强制加载 ──
 
     // CC schem 尺寸 23x8x69 → 需要 min(0,0)~max(22,68) 的 chunk 范围
@@ -262,6 +364,13 @@ public class PlayerInteriorAllocator extends SavedData {
 
     private void forceChunksForGH(ServerLevel level, BlockPos origin, boolean force) {
         forceChunksForRegion(level, origin, GH_SCHEM_X, GH_SCHEM_Z, force);
+    }
+
+    private void forceChunksForCave(ServerLevel level, BlockPos origin, boolean force) {
+        forceChunksForRegion(level, origin,
+            InteriorSubspaceManager.FARM_CAVE_SCHEM_W,
+            InteriorSubspaceManager.FARM_CAVE_SCHEM_L,
+            force);
     }
 
     private void forceChunksForRegion(ServerLevel level, BlockPos origin, int sizeX, int sizeZ, boolean force) {
@@ -291,6 +400,7 @@ public class PlayerInteriorAllocator extends SavedData {
             alloc.playerIndices.put(uuid, index);
             if (entry.getBoolean("ccPlaced")) alloc.ccPlaced.add(uuid);
             if (entry.getBoolean("ghPlaced")) alloc.ghPlaced.add(uuid);
+            if (entry.getBoolean("cavePlaced")) alloc.cavePlaced.add(uuid);
         }
         return alloc;
     }
@@ -306,6 +416,7 @@ public class PlayerInteriorAllocator extends SavedData {
             entryTag.putInt("index", entry.getValue());
             entryTag.putBoolean("ccPlaced", ccPlaced.contains(entry.getKey()));
             entryTag.putBoolean("ghPlaced", ghPlaced.contains(entry.getKey()));
+            entryTag.putBoolean("cavePlaced", cavePlaced.contains(entry.getKey()));
             players.add(entryTag);
         }
         tag.put("players", players);

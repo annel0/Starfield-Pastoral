@@ -8,6 +8,7 @@ import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.PlayerStardewData;
+import com.stardew.craft.warp.ModTeleport;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.ClickEvent;
@@ -32,6 +33,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 跨维度传送工具：处理 Overworld ↔ Stardew Valley 巫师塔枢纽传送。
+ * <p>
+ * <b>Contract:</b> Mod code must teleport players via {@link com.stardew.craft.warp.ModTeleport},
+ * not raw {@link ServerPlayer#teleportTo(ServerLevel, double, double, double, float, float)}.
+ * Direct calls bypass the {@link #markSkipAutoTeleport} flag and will be redirected
+ * to the farm spawn / current mine floor entrance by {@code DimensionEventHandler}
+ * (which treats unmarked dim changes as vanilla sources — {@code /tp}, {@code /execute in},
+ * respawn, etc.).
  */
 @SuppressWarnings({"null", "unused"})
 public final class CrossDimensionTeleporter {
@@ -95,15 +103,12 @@ public final class CrossDimensionTeleporter {
 
         BlockPos spawnAbs = WIZARD_TOWER_ORIGIN.offset(WIZARD_TOWER_INDOOR_SPAWN_OFFSET);
 
-        // 标记跳过 DimensionEventHandler 的自动传送
-        SKIP_AUTO_TELEPORT.add(player.getUUID());
-
         // 传送前清理
         player.closeContainer();
         player.stopUsingItem();
 
-        // 跨维度传送到巫师塔内部
-        player.teleportTo(stardewLevel,
+        // 跨维度传送到巫师塔内部 — ModTeleport 自动跳过维度拦截
+        ModTeleport.to(player, stardewLevel,
             spawnAbs.getX() + 0.5, spawnAbs.getY(), spawnAbs.getZ() + 0.5,
             180.0F, 0.0F);
 
@@ -143,7 +148,7 @@ public final class CrossDimensionTeleporter {
         player.closeContainer();
         player.stopUsingItem();
 
-        player.teleportTo(overworld,
+        ModTeleport.to(player, overworld,
             returnPos.getX() + 0.5, returnPos.getY(), returnPos.getZ() + 0.5,
             player.getYRot(), player.getXRot());
 
@@ -184,7 +189,7 @@ public final class CrossDimensionTeleporter {
                     player.getName().getString(), spawnTarget);
         }
 
-        player.teleportTo(stardewLevel,
+        ModTeleport.to(player, stardewLevel,
             spawnTarget.getX() + 0.5,
             spawnTarget.getY(),
             spawnTarget.getZ() + 0.5,

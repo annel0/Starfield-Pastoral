@@ -35,6 +35,13 @@ public class CropGrowthManager extends SavedData {
     
     // 存储所有作物的位置 (使用GlobalPos以支持多维度，虽然目前只限星露谷维度)
     private final Set<GlobalPos> cropPositions = new HashSet<>();
+    /**
+     * 公共区域（非任何玩家农场）耕作过的区块（chunk key）集合。
+     * 由 HoeItem 在锄成耕地后调用 {@link #trackPublicTilledChunk} 登记，
+     * 用于次日 dryAllFarmland 时确保被扫描，避免"小镇耕地永远不复原"。
+     * 扫描后保留集合（耕地可能被反复锄）；只有当过夜还原后该 chunk 内确无耕地残留时清理。
+     */
+    private final Set<Long> publicTilledChunks = new HashSet<>();
 
     /**
      * 每株作物的生长状态：当前阶段已过天数 + 是否处于“再生长倒计时”状态。
@@ -107,6 +114,18 @@ public class CropGrowthManager extends SavedData {
         state.dayInPhase = Math.max(0, dayInPhase);
         state.phase = Math.max(0, phase);
         setDirty();
+    }
+
+    /**
+     * 登记一个"公共区域（小镇/沙漠等非任何农场）"被锄成耕地的位置所在区块，
+     * 用于次日 dryAllFarmland 时强制扫描。HoeItem 在 tillTile 成功后调用。
+     */
+    public void trackPublicTilledChunk(Level level, BlockPos pos) {
+        if (!(level instanceof ServerLevel)) return;
+        long key = net.minecraft.world.level.ChunkPos.asLong(pos.getX() >> 4, pos.getZ() >> 4);
+        if (publicTilledChunks.add(key)) {
+            setDirty();
+        }
     }
 
     /**
@@ -308,7 +327,10 @@ public class CropGrowthManager extends SavedData {
     @SuppressWarnings("null")
     private void dryAllFarmland(ServerLevel level) {
             FertilizerManager fertilizerManager = FertilizerManager.get(level);
-         // 收集需要扫描的区块：只扫描在线玩家农场边界 + 温室内的区块
+         // SDV 平价：每天午夜扫描整个维度的耕地。
+         // 农场区域：10% 衰退；非农场区域（小镇/沙漠等公共区）：必定还原为黄土。
+         // 仅"小镇/沙漠等公共区"也产生过耕地（旧版本未拦截或创造模式），所以必须扫描。
+         // 收集需要扫描的区块：在线玩家农场 + 已注册作物所在区块 + 所有当前已加载的本维度区块。
          java.util.Set<Long> chunkKeys = new java.util.HashSet<>();
 
          // 1. 在线玩家农场区块
@@ -334,6 +356,13 @@ public class CropGrowthManager extends SavedData {
              if (gp.dimension() != level.dimension()) continue;
              BlockPos pos = gp.pos();
              chunkKeys.add(net.minecraft.world.level.ChunkPos.asLong(pos.getX() >> 4, pos.getZ() >> 4));
+         }
+
+         // 3. 公共区域（小镇/沙漠等非农场）锄出过的耕地所在区块 —
+         //    HoeItem 在锄成耕地时若位置不属于任何农场，会注册到 publicTilledChunks，
+         //    保证次日扫描必能 100% 还原（SDV 同款行为）。
+         for (long key : publicTilledChunks) {
+             chunkKeys.add(key);
          }
 
          // 3. 加载并处理
@@ -456,6 +485,11 @@ public class CropGrowthManager extends SavedData {
             list.add(posTag);
         }
         tag.put("Crops", list);
+        // 持久化公共区耕地区块（小镇/沙漠等非农场区域）
+        long[] tilled = new long[publicTilledChunks.size()];
+        int idx = 0;
+        for (long key : publicTilledChunks) tilled[idx++] = key;
+        tag.putLongArray("PublicTilledChunks", tilled);
         return tag;
     }
 
@@ -478,6 +512,11 @@ public class CropGrowthManager extends SavedData {
                 boolean regrowing = posTag.contains("Regrowing", Tag.TAG_BYTE) && posTag.getBoolean("Regrowing");
                 UUID planterUuid = posTag.hasUUID("PlanterUuid") ? posTag.getUUID("PlanterUuid") : null;
                 manager.cropStates.put(gp, new CropGrowthState(dayInPhase, phase, regrowing, planterUuid));
+            }
+        }
+        if (tag.contains("PublicTilledChunks", Tag.TAG_LONG_ARRAY)) {
+            for (long key : tag.getLongArray("PublicTilledChunks")) {
+                manager.publicTilledChunks.add(key);
             }
         }
         return manager;

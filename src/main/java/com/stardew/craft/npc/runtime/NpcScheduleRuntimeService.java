@@ -143,7 +143,7 @@ public final class NpcScheduleRuntimeService {
                     double y = pt.has("y") ? pt.get("y").getAsDouble() : 0;
                     double z = pt.has("z") ? pt.get("z").getAsDouble() : 0;
                     boolean indoor = pt.has("indoor") && pt.get("indoor").getAsBoolean();
-                    // Named points are always precise — no ground-height scan needed.
+                    // Preserve the authored point here; the movement layer will ground/sanitize it if needed.
                     return new TargetPoint(new Vec3(x, y, z), false, indoor);
                 }
             }

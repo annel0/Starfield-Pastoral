@@ -57,6 +57,11 @@ public class JunimoNoteBlock extends Block {
 
         if (!(player instanceof ServerPlayer serverPlayer)) return InteractionResult.CONSUME;
 
+        // SDV parity: Joja 会员不能使用 JunimoNote（社区中心已被 Joja 接管）。
+        if (CCStoryFlags.isJojaMember(serverPlayer)) {
+            return InteractionResult.SUCCESS;
+        }
+
         // SDV parity: 首次看到 JunimoNote → 设置 seenJunimoNote + 安排巫师邀请信 + 接受拜访巫师任务
         if (!CCStoryFlags.hasSeenJunimoNote(serverPlayer)) {
             CCStoryFlags.addFlag(serverPlayer, CCStoryFlags.SEEN_JUNIMO_NOTE);

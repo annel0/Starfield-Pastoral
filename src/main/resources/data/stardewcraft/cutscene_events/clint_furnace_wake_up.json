@@ -1,0 +1,54 @@
+{
+  "id": "clint_furnace_wake_up",
+  "skippable": false,
+  "trigger": { "type": "wake_up" },
+  "preconditions": [
+    { "type": "not_saw_event", "id": "clint_furnace_wake_up" },
+    { "type": "flag", "id": "copperFound" }
+  ],
+  "commands": [
+    { "cmd": "comment", "text": "=== SDV Event 992553: Clint teaches Furnace — adapted to farm-door layout ===" },
+
+    { "cmd": "lock_player" },
+    { "cmd": "fade", "mode": "out", "ticks": 10 },
+
+    { "cmd": "comment", "text": "Snap real player to farm spawn (position sync; invisible from 1st-person under camera override)" },
+    { "cmd": "warp", "actor": "player", "x": 0, "y": 0, "z": 0, "anchor": "farm_spawn" },
+    { "cmd": "face_actor", "actor": "player", "yaw": 90 },
+
+    { "cmd": "comment", "text": "Visible player actor (copies equipment) — this is what the camera sees" },
+    { "cmd": "spawn_actor", "actor": "fake_player", "npc_id": "player",
+      "x": 0, "y": 0, "z": 0, "facing": 90, "anchor": "farm_spawn" },
+
+    { "cmd": "comment", "text": "Clint 2 blocks west of player, facing east (yaw -90)" },
+    { "cmd": "spawn_actor", "actor": "clint", "npc_id": "clint",
+      "x": -2, "y": 0, "z": 0, "facing": -90, "anchor": "farm_spawn" },
+
+    { "cmd": "comment", "text": "Static camera: offset (-2.432, +0.378, +2.928) from spawn, yaw -141.4 pitch 13.5" },
+    { "cmd": "camera", "x": -2.432, "y": 0.378, "z": 2.928,
+      "yaw": -141.4, "pitch": 13.5, "anchor": "farm_spawn" },
+
+    { "cmd": "fade", "mode": "in", "ticks": 20 },
+    { "cmd": "pause", "ticks": 30 },
+
+    { "cmd": "speak", "npc_id": "clint", "text": "event.clint_furnace.greeting" },
+    { "cmd": "speak", "npc_id": "clint", "text": "event.clint_furnace.need_furnace" },
+    { "cmd": "speak", "npc_id": "clint", "text": "event.clint_furnace.blueprints" },
+
+    { "cmd": "hold_item", "actor": "clint", "item": "stardewcraft:furnace", "ticks": 40 },
+    { "cmd": "play_sound", "sound": "stardewcraft:reward", "volume": 1.0, "pitch": 1.0 },
+    { "cmd": "add_recipe", "recipe": "furnace" },
+    { "cmd": "message", "text": "event.clint_furnace.learned" },
+    { "cmd": "pause", "ticks": 40 },
+
+    { "cmd": "speak", "npc_id": "clint", "text": "event.clint_furnace.explanation" },
+    { "cmd": "speak", "npc_id": "clint", "text": "event.clint_furnace.goodbye" },
+
+    { "cmd": "add_quest", "quest_id": "11" },
+
+    { "cmd": "remove_actor", "actor": "clint" },
+    { "cmd": "remove_actor", "actor": "fake_player" },
+    { "cmd": "unlock_player" },
+    { "cmd": "end" }
+  ]
+}

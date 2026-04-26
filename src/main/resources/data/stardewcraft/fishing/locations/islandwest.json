@@ -23,7 +23,10 @@
         "#stardewcraft:is_ginger_island_ocean",
         "#stardewcraft:is_ginger_island_river"
       ],
-      "fishAreaId": "Ocean"
+      "fishAreaId": "Ocean",
+      "seasons": [
+        "summer"
+      ]
     },
     {
       "id": "super_cucumber",
@@ -47,7 +50,11 @@
         "#stardewcraft:is_ginger_island_ocean",
         "#stardewcraft:is_ginger_island_river"
       ],
-      "fishAreaId": "Ocean"
+      "fishAreaId": "Ocean",
+      "seasons": [
+        "summer",
+        "winter"
+      ]
     },
     {
       "id": "tuna",
@@ -71,7 +78,11 @@
         "#stardewcraft:is_ginger_island_ocean",
         "#stardewcraft:is_ginger_island_river"
       ],
-      "fishAreaId": "Ocean"
+      "fishAreaId": "Ocean",
+      "seasons": [
+        "summer",
+        "winter"
+      ]
     },
     {
       "id": "pufferfish",
@@ -95,7 +106,10 @@
         "#stardewcraft:is_ginger_island_ocean",
         "#stardewcraft:is_ginger_island_river"
       ],
-      "fishAreaId": "Ocean"
+      "fishAreaId": "Ocean",
+      "seasons": [
+        "summer"
+      ]
     },
     {
       "id": "flounder",
@@ -119,7 +133,11 @@
         "#stardewcraft:is_ginger_island_ocean",
         "#stardewcraft:is_ginger_island_river"
       ],
-      "fishAreaId": "Ocean"
+      "fishAreaId": "Ocean",
+      "seasons": [
+        "spring",
+        "summer"
+      ]
     },
     {
       "id": "tilapia",
@@ -143,7 +161,11 @@
         "#stardewcraft:is_ginger_island_ocean",
         "#stardewcraft:is_ginger_island_river"
       ],
-      "fishAreaId": "Freshwater"
+      "fishAreaId": "Freshwater",
+      "seasons": [
+        "summer",
+        "fall"
+      ]
     },
     {
       "id": "midnight_carp",
@@ -167,7 +189,11 @@
         "#stardewcraft:is_ginger_island_ocean",
         "#stardewcraft:is_ginger_island_river"
       ],
-      "fishAreaId": "Freshwater"
+      "fishAreaId": "Freshwater",
+      "seasons": [
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "river_jelly",
@@ -239,7 +265,13 @@
         "#stardewcraft:is_ginger_island_ocean",
         "#stardewcraft:is_ginger_island_river"
       ],
-      "fishAreaId": "Ocean"
+      "fishAreaId": "Ocean",
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "blue_discus",
@@ -263,7 +295,13 @@
         "#stardewcraft:is_ginger_island_ocean",
         "#stardewcraft:is_ginger_island_river"
       ],
-      "fishAreaId": "Freshwater"
+      "fishAreaId": "Freshwater",
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     }
   ]
 }

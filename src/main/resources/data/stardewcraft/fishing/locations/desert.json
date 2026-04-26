@@ -22,7 +22,13 @@
       ],
       "weather": "any",
       "spawnRate": 0.65,
-      "fishAreaId": "TopPond"
+      "fishAreaId": "TopPond",
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "scorpion_carp",
@@ -45,7 +51,13 @@
       ],
       "weather": "any",
       "spawnRate": 0.15,
-      "fishAreaId": "TopPond"
+      "fishAreaId": "TopPond",
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "green_algae",
@@ -68,7 +80,13 @@
       "biomeTags": [
         "#stardewcraft:is_desert"
       ],
-      "fishAreaId": "TopPond"
+      "fishAreaId": "TopPond",
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "river_jelly",

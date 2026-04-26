@@ -7,7 +7,6 @@ import com.stardew.craft.blockentity.ModBlockEntities;
 import com.stardew.craft.blockentity.UtilityDropHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -168,6 +167,9 @@ public class LightningRodBlock extends Block implements EntityBlock {
         BlockPos extensionPos = pos.above();
         BlockState extensionState = state.setValue(PART, Part.EXTENSION);
         level.setBlock(extensionPos, extensionState, 3);
+        if (level instanceof net.minecraft.server.level.ServerLevel sl) {
+            com.stardew.craft.blockentity.registry.LightningRodRegistry.get(sl).add(pos);
+        }
     }
 
     @SuppressWarnings("null")
@@ -200,20 +202,10 @@ public class LightningRodBlock extends Block implements EntityBlock {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
 
-        if (!rod.isReady()) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
-        }
-
-        ItemStack product = rod.harvestOne();
-        if (!product.isEmpty()) {
-            if (!player.addItem(product)) {
-                player.drop(product, false);
-            }
-            level.playSound(null, pos, net.minecraft.sounds.SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6f, 1.0f);
-            return ItemInteractionResult.sidedSuccess(false);
-        }
-
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return UtilityDropHelper.tryHarvest(level, pos, player, rod::isReady, rod::harvestOne,
+            UtilityDropHelper.LOW_MACHINE_VANILLA_XP)
+            ? ItemInteractionResult.sidedSuccess(false)
+            : ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
     @SuppressWarnings("null")
@@ -234,19 +226,10 @@ public class LightningRodBlock extends Block implements EntityBlock {
             return InteractionResult.PASS;
         }
 
-        if (!rod.isReady()) {
-            return InteractionResult.PASS;
-        }
-
-        ItemStack product = rod.harvestOne();
-        if (product.isEmpty()) {
-            return InteractionResult.PASS;
-        }
-        if (!player.addItem(product)) {
-            player.drop(product, false);
-        }
-        level.playSound(null, pos, net.minecraft.sounds.SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6f, 1.0f);
-        return InteractionResult.CONSUME;
+        return UtilityDropHelper.tryHarvest(level, pos, player, rod::isReady, rod::harvestOne,
+            UtilityDropHelper.LOW_MACHINE_VANILLA_XP)
+            ? InteractionResult.CONSUME
+            : InteractionResult.PASS;
     }
 
     @SuppressWarnings("null")
@@ -261,6 +244,10 @@ public class LightningRodBlock extends Block implements EntityBlock {
             BlockState otherState = level.getBlockState(otherPos);
             if (otherState.getBlock() == this && otherState.getValue(PART) != part) {
                 level.removeBlock(otherPos, false);
+            }
+            if (level instanceof net.minecraft.server.level.ServerLevel sl) {
+                BlockPos mainPos = part == Part.MAIN ? pos : pos.below();
+                com.stardew.craft.blockentity.registry.LightningRodRegistry.get(sl).remove(mainPos);
             }
         }
         super.onRemove(state, level, pos, newState, isMoving);

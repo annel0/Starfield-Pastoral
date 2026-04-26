@@ -48,6 +48,29 @@ public record CutsceneServerActionPayload(String action, String value) implement
                         com.stardew.craft.communitycenter.network.BundleSyncPayload.sendFullSync(player);
                     }
                 }
+                case "add_recipe" -> {
+                    PlayerStardewData data = PlayerDataManager.getPlayerData(player);
+                    if (data.unlockRecipe(payload.value)) {
+                        LOGGER.debug("Cutscene unlocked recipe '{}' for {}",
+                                payload.value, player.getName().getString());
+                        // markDirty() only flags save; we must push to the client
+                        // so JEI / crafting UIs see the new recipe immediately.
+                        com.stardew.craft.player.PlayerDataEventHandler.syncPlayerData(player, data);
+                    }
+                }
+                case "set_cave_choice" -> {
+                    com.stardew.craft.farm.FarmCaveChoice choice =
+                            com.stardew.craft.farm.FarmCaveChoice.fromName(payload.value);
+                    if (choice == null) {
+                        LOGGER.warn("Cutscene set_cave_choice: unknown value '{}'", payload.value);
+                    } else if (!com.stardew.craft.farm.FarmCaveAPI.setCaveChoice(player, choice)) {
+                        LOGGER.warn("Cutscene set_cave_choice failed for {} (no farm or not owner)",
+                                player.getName().getString());
+                    } else {
+                        LOGGER.debug("Cutscene set cave choice '{}' for {}",
+                                choice.getName(), player.getName().getString());
+                    }
+                }
                 case "add_friendship" -> {
                     // value format: "npc_id:points"
                     String[] parts = payload.value.split(":", 2);

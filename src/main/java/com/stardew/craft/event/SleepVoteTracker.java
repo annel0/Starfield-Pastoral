@@ -247,37 +247,13 @@ public final class SleepVoteTracker {
     }
 
     /**
-     * 每 tick 调用：
-     * 1. 检测已投票但不再睡觉的玩家（按了"离开床"），自动撤回投票。
-     * 2. 等待其他人睡觉期间，已投票玩家每秒恢复 1 点能量。
+     * 每 tick 调用：等待其他人睡觉期间，已投票玩家每秒恢复 1 点能量。
      */
     public static void tickSleepEnergyRegen(MinecraftServer server) {
         if (votes.isEmpty()) {
             sleepRegenTickCounter = 0;
             return;
         }
-
-        // 检测"离开床"的玩家 → 自动撤回投票
-        List<UUID> toRevoke = null;
-        for (ServerPlayer sp : server.getPlayerList().getPlayers()) {
-            if (votes.containsKey(sp.getUUID()) && !sp.isSleeping()) {
-                if (toRevoke == null) toRevoke = new java.util.ArrayList<>();
-                toRevoke.add(sp.getUUID());
-            }
-        }
-        if (toRevoke != null) {
-            for (UUID uuid : toRevoke) {
-                votes.remove(uuid);
-            }
-            // 广播更新后的投票进度
-            int afkTimeout = server.getGameRules().getInt(ModGameRules.RULE_STARDEW_AFK_TIMEOUT);
-            int activeCount = countActiveStardewPlayers(server, afkTimeout);
-            int votedCount = countCurrentVotes(server);
-            int sleepPct = server.getGameRules().getInt(ModGameRules.RULE_STARDEW_SLEEPING_PERCENTAGE);
-            int required = computeRequired(activeCount, sleepPct);
-            broadcastVoteProgress(server, votedCount, required);
-        }
-
         sleepRegenTickCounter++;
         if (sleepRegenTickCounter < 20) return;
         sleepRegenTickCounter = 0;

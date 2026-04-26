@@ -3,6 +3,7 @@ package com.stardew.craft.block.utility;
 import com.stardew.craft.block.shape.ModelVoxelShapeCache;
 import com.stardew.craft.blockentity.CrabPotBlockEntity;
 import com.stardew.craft.blockentity.ModBlockEntities;
+import com.stardew.craft.blockentity.UtilityDropHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvents;
@@ -179,8 +180,7 @@ public class CrabPotBlock extends Block implements EntityBlock, SimpleWaterlogge
 					if (newState.hasProperty(WORKING) && newState.getValue(WORKING) != workingNow) {
 						level.setBlock(pos, newState.setValue(WORKING, workingNow), 3);
 					}
-					level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 0.2F, 
-						((level.random.nextFloat() - level.random.nextFloat()) * 0.7F + 1.0F) * 2.0F);
+					UtilityDropHelper.grantHarvestRewards(level, pos, player);
 					return InteractionResult.SUCCESS;
 				}
 			}

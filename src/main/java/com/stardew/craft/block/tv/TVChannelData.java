@@ -41,7 +41,7 @@ public final class TVChannelData {
         // --- Channel availability (matches TV.cs checkForAction) ---
         boolean tipsAvailable = dayOfWeek == 0 || dayOfWeek == 3;  // Mon/Thu
         boolean cookingAvailable = dayOfWeek == 6 || (dayOfWeek == 2 && daysPlayed > 7); // Sun / Wed(rerun)
-        boolean fishingAvailable = true;  // original: requires pamNewChannel mail
+        boolean fishingAvailable = data.hasMailFlag("pamNewChannel");
         boolean cursedAvailable = false;  // original: Fall 26 + childrenTurnedToDoves + !cursed_doll
 
         // --- Fortune opening variant (matches TV.cs getFortuneTellerOpening random) ---

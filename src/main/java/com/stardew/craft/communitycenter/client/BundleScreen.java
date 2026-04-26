@@ -55,6 +55,14 @@ public class BundleScreen extends AbstractContainerScreen<BundleMenu> {
     private static final int TEX_WIDTH = 640;
     private static final int TEX_HEIGHT = 308;
 
+    // Area Next/Back arrows (SDV mouseCursors 352,495,12,11 / 365,495,12,11)
+    private static final ResourceLocation AREA_BACK_ARROW = ResourceLocation.fromNamespaceAndPath(
+            StardewCraft.MODID, "textures/gui/area_back_arrow.png");
+    private static final ResourceLocation AREA_NEXT_ARROW = ResourceLocation.fromNamespaceAndPath(
+            StardewCraft.MODID, "textures/gui/area_next_arrow.png");
+    private static final int AREA_ARROW_W = 12;
+    private static final int AREA_ARROW_H = 11;
+
     // SDV menu base dimensions (sprite pixels, before ×4 scale)
     private static final int BASE_W = 320;
     private static final int BASE_H = 180;
@@ -192,7 +200,8 @@ public class BundleScreen extends AbstractContainerScreen<BundleMenu> {
         }
 
         // Check for present button (any bundle in this area has claimable reward)
-        showPresentButton = cd.hasAnyRewardForArea(areaId);
+        // Hidden in read-only viewer mode (SDV: JunimoNoteMenu.fromGameMenu blocks rewards).
+        showPresentButton = !this.menu.isReadOnly() && cd.hasAnyRewardForArea(areaId);
     }
 
     /**
@@ -228,16 +237,17 @@ public class BundleScreen extends AbstractContainerScreen<BundleMenu> {
                 refreshDetailPage();
             }
 
-            // On first sync, seed previouslyCompleteBundles with already-complete bundles
-            // so we don't trigger false completion animations for bundles that were already done.
+            // On first sync, seed previouslyCompleteBundles with ALL already-complete bundles
+            // (across every area) so navigating to other areas in the read-only viewer doesn't
+            // re-trigger completion animations for bundles that were already done.
             BundleClientData cd = BundleClientData.INSTANCE;
             if (firstSync) {
-                for (BundleDefinition bd : BundleDataManager.getBundlesForArea(currentArea)) {
+                for (BundleDefinition bd : BundleDataManager.getAllBundles()) {
                     if (cd.isBundleComplete(bd.bundleId())) {
                         previouslyCompleteBundles.add(bd.bundleId());
                     }
                 }
-                showPresentButton = cd.hasAnyRewardForArea(currentArea);
+                showPresentButton = !this.menu.isReadOnly() && cd.hasAnyRewardForArea(currentArea);
             } else {
                 // Check for newly completed bundles → screenSwipe + completion animation
                 for (BundleDefinition bd : BundleDataManager.getBundlesForArea(currentArea)) {
@@ -265,7 +275,7 @@ public class BundleScreen extends AbstractContainerScreen<BundleMenu> {
                             tempSprites.clear();
                         }
                         // SDV: checkForRewards()
-                        showPresentButton = cd.hasAnyRewardForArea(currentArea);
+                        showPresentButton = !this.menu.isReadOnly() && cd.hasAnyRewardForArea(currentArea);
                     }
                 }
             }
@@ -338,6 +348,10 @@ public class BundleScreen extends AbstractContainerScreen<BundleMenu> {
      */
     @Override
     protected void renderSlot(@Nonnull GuiGraphics g, @Nonnull net.minecraft.world.inventory.Slot slot) {
+        // SDV parity: fromGameMenu viewer has no inventory rendered
+        if (this.menu.isReadOnly()) {
+            return;
+        }
         if (specificBundlePage && selectedBundleId >= 0) {
             BundleDefinition def = BundleDataManager.getBundle(selectedBundleId);
             ItemStack stack = slot.getItem();
@@ -513,6 +527,11 @@ public class BundleScreen extends AbstractContainerScreen<BundleMenu> {
             orb.draw(g, s4, mouseX, mouseY);
         }
 
+        // 5b. Area Next/Back arrows (SDV parity: only in fromGameMenu / readOnly mode)
+        if (this.menu.isReadOnly()) {
+            drawAreaArrows(g, mouseX, mouseY);
+        }
+
         // 6. Present button (gift icon animation) — SDV: (548, 262, 18, 20), 4 frames, 70ms
         // SDV position: (xPos + 592, yPos + 512, 72, 72)
         if (showPresentButton) {
@@ -552,6 +571,48 @@ public class BundleScreen extends AbstractContainerScreen<BundleMenu> {
         }
 
         // 10. Close button (upper right X) — handled by MC's AbstractContainerScreen
+    }
+
+    // ── Area Next/Back arrows (SDV parity, readOnly viewer only) ──
+
+    /** SDV: areaBackButton rect (xPos + 64, yPos, 48, 44). */
+    private int areaBackButtonX() { return menuX + mapping.ui(64); }
+    private int areaBackButtonY() { return menuY; }
+    /** SDV: areaNextButton rect (xPos + width - 128, yPos, 48, 44). width = 1280. */
+    private int areaNextButtonX() { return menuX + mapping.ui(1280 - 128); }
+    private int areaNextButtonY() { return menuY; }
+    private int areaButtonW() { return mapping.ui(48); }
+    private int areaButtonH() { return mapping.ui(44); }
+
+    private boolean areaBackContains(double mx, double my) {
+        return mx >= areaBackButtonX() && mx < areaBackButtonX() + areaButtonW()
+            && my >= areaBackButtonY() && my < areaBackButtonY() + areaButtonH();
+    }
+    private boolean areaNextContains(double mx, double my) {
+        return mx >= areaNextButtonX() && mx < areaNextButtonX() + areaButtonW()
+            && my >= areaNextButtonY() && my < areaNextButtonY() + areaButtonH();
+    }
+
+    private void drawAreaArrows(GuiGraphics g, int mouseX, int mouseY) {
+        // Sprite is 12×11, drawn at scale 4 centered in a 48×44 hover box.
+        int spriteW = mapping.ui(AREA_ARROW_W * 4);
+        int spriteH = mapping.ui(AREA_ARROW_H * 4);
+
+        // Back arrow
+        int bx = areaBackButtonX() + (areaButtonW() - spriteW) / 2;
+        int by = areaBackButtonY() + (areaButtonH() - spriteH) / 2;
+        g.pose().pushPose();
+        g.pose().translate(0, 0, 0.2f);
+        g.blit(AREA_BACK_ARROW, bx, by, 0, 0, spriteW, spriteH, spriteW, spriteH);
+        g.pose().popPose();
+
+        // Next arrow
+        int nx = areaNextButtonX() + (areaButtonW() - spriteW) / 2;
+        int ny = areaNextButtonY() + (areaButtonH() - spriteH) / 2;
+        g.pose().pushPose();
+        g.pose().translate(0, 0, 0.2f);
+        g.blit(AREA_NEXT_ARROW, nx, ny, 0, 0, spriteW, spriteH, spriteW, spriteH);
+        g.pose().popPose();
     }
 
     // ── Bundle Detail Page ──
@@ -711,8 +772,28 @@ public class BundleScreen extends AbstractContainerScreen<BundleMenu> {
             return false;
         }
 
+        // SDV parity: read-only viewer mode (fromGameMenu=true)
+        // allows navigating orbs + back button + close, blocks all donations/purchases.
+        final boolean readOnly = this.menu.isReadOnly();
+
         if (button == 0) {
             if (!specificBundlePage) {
+                // Area Next/Back arrows (readOnly viewer only)
+                if (readOnly) {
+                    if (areaNextContains(mouseX, mouseY)) {
+                        PacketDistributor.sendToServer(
+                            new com.stardew.craft.communitycenter.network.SwitchBundleViewerAreaPayload(1));
+                        playSound(ModSounds.SMALL_SELECT);
+                        return true;
+                    }
+                    if (areaBackContains(mouseX, mouseY)) {
+                        PacketDistributor.sendToServer(
+                            new com.stardew.craft.communitycenter.network.SwitchBundleViewerAreaPayload(-1));
+                        playSound(ModSounds.SMALL_SELECT);
+                        return true;
+                    }
+                }
+
                 // Room overview: click bundle orb → open detail
                 for (BundleOrb orb : bundleOrbs) {
                     if (orb.isHovered((int) mouseX, (int) mouseY, s4) && !orb.complete) {
@@ -721,8 +802,8 @@ public class BundleScreen extends AbstractContainerScreen<BundleMenu> {
                     }
                 }
 
-                // Present button click
-                if (showPresentButton) {
+                // Present button click (hidden in readOnly)
+                if (showPresentButton && !readOnly) {
                     int presX = menuX + mapping.ui(592);
                     int presY = menuY + mapping.ui(512);
                     int presSize = mapping.ui(72);
@@ -749,6 +830,11 @@ public class BundleScreen extends AbstractContainerScreen<BundleMenu> {
                         && this.menu.getCarried().isEmpty()) {
                     closeBundleDetail();
                     return true;
+                }
+
+                // Read-only: no purchase / deposit / partial — block remaining interactions.
+                if (readOnly) {
+                    return false;
                 }
 
                 // Purchase button (Vault only)
@@ -847,6 +933,9 @@ public class BundleScreen extends AbstractContainerScreen<BundleMenu> {
         // SDV: right-click handling
         if (button == 1) {
             if (specificBundlePage) {
+                if (readOnly) {
+                    return false;
+                }
                 // SDV: receiveRightClick — inventory right-click (pick up half stack)
                 // MC handles this via super.mouseClicked
 
@@ -859,6 +948,20 @@ public class BundleScreen extends AbstractContainerScreen<BundleMenu> {
                             retrieveOneFromPartial();
                             return true;
                         }
+                    }
+                }
+
+                // QoL: right-click anywhere else on detail page (outside ingredient slots /
+                // outside the inventory grid) returns to the room overview when the cursor is
+                // empty. ESC works but is easy to miss; the back button sprite is small.
+                if (this.menu.getCarried().isEmpty() && this.getSlotUnderMouse() == null) {
+                    boolean onIngredientSlot = false;
+                    for (IngredientSlotVisual slot : ingredientSlots) {
+                        if (slot.isHovered((int) mouseX, (int) mouseY)) { onIngredientSlot = true; break; }
+                    }
+                    if (!onIngredientSlot) {
+                        closeBundleDetail();
+                        return true;
                     }
                 }
             } else {
@@ -913,6 +1016,9 @@ public class BundleScreen extends AbstractContainerScreen<BundleMenu> {
         this.ingredientSlots.clear();
         this.ingredientList.clear();
         this.localCompletedIngredients.clear();
+        // Clear any lingering deposit/sparkle animations so they don't re-render as ghost
+        // overlays the next time the player opens a bundle detail page.
+        this.tempSprites.clear();
         resetPartialDonation();
         buildBundleOrbs();
         playSound(ModSounds.SHWIP);
@@ -1216,10 +1322,13 @@ public class BundleScreen extends AbstractContainerScreen<BundleMenu> {
      * Add deposit animation to target slot.
      */
     private void addDepositAnimation(IngredientSlotVisual slot) {
+        // SDV: deposit animation plays once then disappears.
+        // holdLastFrame=false ensures the TempSprite is removed when it reaches the last frame,
+        // otherwise these sprites accumulate every deposit and stack as ghost icons over slots.
         TempSprite depositAnim = new TempSprite(
                 slot.x, slot.y,
                 530, 244, 18, 18,
-                6, 50f, true);
+                6, 50f, false);
         depositAnim.endSound = ModSounds.COWBOY_MONSTERHIT;
         tempSprites.add(depositAnim);
     }

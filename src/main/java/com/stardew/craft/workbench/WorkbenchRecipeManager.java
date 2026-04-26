@@ -50,10 +50,10 @@ public final class WorkbenchRecipeManager {
         List<WorkbenchEntry> list = new ArrayList<>();
 
         // Logs (including stripped)
-        addFromTag(list, "minecraft:logs", "logs", 5, 1, null);
+            addFromTag(list, "minecraft:logs", "logs", 5, 2, null);
 
         // Wood blocks (6-face bark): oak_wood, birch_wood, etc.
-        addHardcoded(list, "wood", 5, 1,
+            addHardcoded(list, "wood", 5, 2,
             "minecraft:oak_wood", "minecraft:spruce_wood", "minecraft:birch_wood",
             "minecraft:jungle_wood", "minecraft:acacia_wood", "minecraft:dark_oak_wood",
             "minecraft:mangrove_wood", "minecraft:cherry_wood",
@@ -64,25 +64,25 @@ public final class WorkbenchRecipeManager {
         );
 
         // Planks
-        addFromTag(list, "minecraft:planks", "planks", 2, 1, null);
+            addFromTag(list, "minecraft:planks", "planks", 2, 2, null);
 
         // Wooden slabs
-        addFromTag(list, "minecraft:wooden_slabs", "slabs", 1, 1, null);
+            addFromTag(list, "minecraft:wooden_slabs", "slabs", 1, 2, null);
 
         // Wooden stairs
-        addFromTag(list, "minecraft:wooden_stairs", "stairs", 3, 1, null);
+            addFromTag(list, "minecraft:wooden_stairs", "stairs", 3, 2, null);
 
         // Wooden fences
-        addFromTag(list, "minecraft:wooden_fences", "fences", 1, 1, null);
+            addFromTag(list, "minecraft:wooden_fences", "fences", 1, 2, null);
 
         // Fence gates
-        addFromTag(list, "minecraft:fence_gates", "fence_gates", 2, 1, null);
+            addFromTag(list, "minecraft:fence_gates", "fence_gates", 2, 2, null);
 
         // Wooden doors
-        addFromTag(list, "minecraft:wooden_doors", "doors", 4, 1, null);
+            addFromTag(list, "minecraft:wooden_doors", "doors", 4, 2, null);
 
         // Wooden trapdoors
-        addFromTag(list, "minecraft:wooden_trapdoors", "trapdoors", 3, 1, null);
+            addFromTag(list, "minecraft:wooden_trapdoors", "trapdoors", 3, 2, null);
 
         // Wooden buttons
         addFromTag(list, "minecraft:wooden_buttons", "buttons", 1, 2, null);
@@ -107,7 +107,7 @@ public final class WorkbenchRecipeManager {
         );
 
         // T2 — cost 2
-        addHardcoded(list, "standard", 2, 1,
+           addHardcoded(list, "standard", 2, 2,
             "minecraft:stone",
             "minecraft:andesite", "minecraft:diorite", "minecraft:granite",
             "minecraft:tuff",
@@ -116,7 +116,7 @@ public final class WorkbenchRecipeManager {
         );
 
         // T3 — cost 3
-        addHardcoded(list, "refined", 3, 1,
+           addHardcoded(list, "refined", 3, 2,
             "minecraft:polished_andesite", "minecraft:polished_diorite", "minecraft:polished_granite",
             "minecraft:polished_tuff",
             "minecraft:smooth_stone",
@@ -145,7 +145,7 @@ public final class WorkbenchRecipeManager {
         addStoneStairs(list);
 
         // Walls
-        addFromTag(list, "minecraft:walls", "walls", 2, 1, null);
+            addFromTag(list, "minecraft:walls", "walls", 2, 2, null);
 
         // Stone buttons
         addHardcoded(list, "buttons", 1, 2,
@@ -210,7 +210,7 @@ public final class WorkbenchRecipeManager {
             })
             .forEach(item -> {
                 ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
-                list.add(new WorkbenchEntry(id, "slabs", 1, 1, id.getNamespace()));
+                list.add(new WorkbenchEntry(id, "slabs", 1, 2, id.getNamespace()));
             });
     }
 
@@ -228,7 +228,7 @@ public final class WorkbenchRecipeManager {
             })
             .forEach(item -> {
                 ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
-                list.add(new WorkbenchEntry(id, "stairs", 2, 1, id.getNamespace()));
+                list.add(new WorkbenchEntry(id, "stairs", 2, 2, id.getNamespace()));
             });
     }
 
@@ -270,4 +270,5 @@ public final class WorkbenchRecipeManager {
             default -> 50;
         };
     }
+
 }

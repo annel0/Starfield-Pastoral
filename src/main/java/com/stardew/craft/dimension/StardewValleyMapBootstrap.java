@@ -51,7 +51,7 @@ public final class StardewValleyMapBootstrap {
     private static final int BLOCK_BUDGET_BLOCKING = 400000;
     private static final long TICK_TIME_BUDGET_NANOS = 10_000_000L;
     private static final int PROGRESS_LOG_INTERVAL_TICKS = 100;
-    private static final int MAP_PIPELINE_VERSION = 2;
+    private static final int MAP_PIPELINE_VERSION = 3;
     private static final int PLACE_FLAGS = 2 | 16;
 
     private static final Map<Level, PlacementJob> ACTIVE_JOBS = new HashMap<>();

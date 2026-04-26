@@ -21,7 +21,13 @@
         "#stardewcraft:is_ocean"
       ],
       "weather": "any",
-      "spawnRate": 0.65
+      "spawnRate": 0.65,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "anchovy",
@@ -43,7 +49,11 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.25
+      "spawnRate": 0.25,
+      "seasons": [
+        "spring",
+        "fall"
+      ]
     },
     {
       "id": "herring",
@@ -65,7 +75,11 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.45
+      "spawnRate": 0.45,
+      "seasons": [
+        "spring",
+        "winter"
+      ]
     },
     {
       "id": "red_snapper",
@@ -87,7 +101,12 @@
       "biomeTags": [
         "#stardewcraft:is_ocean"
       ],
-      "spawnRate": 0.45
+      "spawnRate": 0.45,
+      "seasons": [
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "red_mullet",
@@ -109,7 +128,11 @@
         "#stardewcraft:is_ocean"
       ],
       "weather": "any",
-      "spawnRate": 0.4
+      "spawnRate": 0.4,
+      "seasons": [
+        "summer",
+        "winter"
+      ]
     },
     {
       "id": "sea_cucumber",
@@ -131,7 +154,11 @@
         "#stardewcraft:is_ocean"
       ],
       "weather": "any",
-      "spawnRate": 0.25
+      "spawnRate": 0.25,
+      "seasons": [
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "super_cucumber",
@@ -153,7 +180,11 @@
         "#stardewcraft:is_ocean"
       ],
       "weather": "any",
-      "spawnRate": 0.1
+      "spawnRate": 0.1,
+      "seasons": [
+        "summer",
+        "winter"
+      ]
     },
     {
       "id": "flounder",
@@ -175,7 +206,11 @@
         "#stardewcraft:is_ocean"
       ],
       "weather": "any",
-      "spawnRate": 0.15
+      "spawnRate": 0.15,
+      "seasons": [
+        "spring",
+        "summer"
+      ]
     },
     {
       "id": "halibut",
@@ -201,7 +236,12 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.4
+      "spawnRate": 0.4,
+      "seasons": [
+        "spring",
+        "summer",
+        "winter"
+      ]
     },
     {
       "id": "eel",
@@ -223,7 +263,11 @@
       "biomeTags": [
         "#stardewcraft:is_ocean"
       ],
-      "spawnRate": 0.55
+      "spawnRate": 0.55,
+      "seasons": [
+        "spring",
+        "fall"
+      ]
     },
     {
       "id": "octopus",
@@ -295,7 +339,11 @@
         "#stardewcraft:is_ocean"
       ],
       "weather": "any",
-      "spawnRate": 0.15
+      "spawnRate": 0.15,
+      "seasons": [
+        "summer",
+        "winter"
+      ]
     },
     {
       "id": "tilapia",
@@ -317,7 +365,11 @@
         "#stardewcraft:is_ocean"
       ],
       "weather": "any",
-      "spawnRate": 0.4
+      "spawnRate": 0.4,
+      "seasons": [
+        "summer",
+        "fall"
+      ]
     },
     {
       "id": "pufferfish",
@@ -368,7 +420,11 @@
         "#stardewcraft:is_ocean"
       ],
       "weather": "any",
-      "spawnRate": 0.3
+      "spawnRate": 0.3,
+      "seasons": [
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "lingcod",
@@ -450,7 +506,10 @@
       "weather": "any",
       "spawnRate": 0.1,
       "curiosityLureBuff": 0.07,
-      "canBeInherited": false
+      "canBeInherited": false,
+      "seasons": [
+        "winter"
+      ]
     },
     {
       "id": "midnight_squid",
@@ -475,7 +534,13 @@
       ],
       "requireMagicBait": true,
       "curiosityLureBuff": 0.205,
-      "canBeInherited": false
+      "canBeInherited": false,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "seaweed",
@@ -497,6 +562,12 @@
       "spawnRate": 0.3,
       "biomeTags": [
         "#stardewcraft:is_ocean"
+      ],
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
       ]
     },
     {

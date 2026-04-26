@@ -29,6 +29,7 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -153,7 +154,7 @@ public class HoeItem extends Item implements IStardewItem {
                 BlockState preTillState = level.getBlockState(pos);
                 boolean tilled = tillTile(serverLevel, player, hand, pos);
                 if (tilled) {
-                    rollBuriedDrops(serverLevel, pos, preTillState);
+                    rollBuriedDrops(serverLevel, pos, preTillState, player instanceof ServerPlayer sp ? sp : null);
                     applyStaminaAndCooldown(player, 0);
                 }
             }
@@ -232,6 +233,36 @@ public class HoeItem extends Item implements IStardewItem {
         InteractionHand usedHand = resolveHand(player, stack);
         List<BlockPos> targets = getAffectedBlocks(level, startPos, player, usedHand, chargeLevel);
 
+        // 农场区域保护：在星露谷维度，非创造玩家不能在"自己农场以外"锄地。
+        // 蓄力流程由 Item.use(air) → startUsingItem 启动，完全绕过 RightClickBlock 事件，
+        // 因此直接在这里按目标格过滤，并在全部被过滤后给出提示。
+        if (!level.isClientSide
+            && player instanceof ServerPlayer sp
+            && !sp.isCreative()
+            && level.dimension() == ModDimensions.STARDEW_VALLEY) {
+            int before = targets.size();
+            targets.removeIf(pos -> {
+                // 温室内部按 owner/farm 权限放行，不再一刀切豁免。
+                if (level instanceof ServerLevel sl
+                        && com.stardew.craft.greenhouse.GreenhouseManager.isInGreenhouseInterior(sl, pos)) {
+                    return !com.stardew.craft.event.FarmAreaProtectionEvents.canModifyGreenhouseAt(sp, sl, pos);
+                }
+                // 远古斑点（含沙漠变体）：在小镇/沙漠等公共区域也允许锄取古物
+                BlockState stateHere = level.getBlockState(pos);
+                if (stateHere.is(com.stardew.craft.block.ModBlocks.ARTIFACT_SPOT_DIRT.get())
+                        || stateHere.is(com.stardew.craft.block.ModBlocks.DESERT_ARTIFACT_SPOT.get())
+                        || stateHere.is(com.stardew.craft.block.ModBlocks.BEACH_ARTIFACT_SPOT.get())) {
+                    return false;
+                }
+                return !com.stardew.craft.event.FarmAreaProtectionEvents.canModifyAt(sp, pos);
+            });
+            if (targets.isEmpty() && before > 0) {
+                sp.displayClientMessage(
+                        Component.translatable("stardewcraft.farm.build_farm_only"), true);
+                return;
+            }
+        }
+
         // 能量为 0 时：拦截耗能动作（仅星露谷维度）。
         if (!level.isClientSide
             && player instanceof ServerPlayer serverPlayer
@@ -259,7 +290,7 @@ public class HoeItem extends Item implements IStardewItem {
                 BlockState preTillState = level.getBlockState(pos);
                 if (tillTile((ServerLevel) level, player, usedHand, pos)) {
                     tilledAny = true;
-                    rollBuriedDrops((ServerLevel) level, pos, preTillState);
+                    rollBuriedDrops((ServerLevel) level, pos, preTillState, player instanceof ServerPlayer sp ? sp : null);
                 }
             }
 
@@ -409,6 +440,9 @@ public class HoeItem extends Item implements IStardewItem {
         }
 
         BlockState state = level.getBlockState(pos);
+        if (isPublicYellowDirt(level, pos, state)) {
+            return false;
+        }
         @SuppressWarnings("null")
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false);
         @SuppressWarnings("null")
@@ -427,6 +461,9 @@ public class HoeItem extends Item implements IStardewItem {
         }
 
         BlockState state = level.getBlockState(pos);
+        if (isPublicYellowDirt(level, pos, state)) {
+            return false;
+        }
         @SuppressWarnings("null")
         BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false);
         @SuppressWarnings("null")
@@ -440,6 +477,13 @@ public class HoeItem extends Item implements IStardewItem {
 
         level.setBlock(pos, modified, 11);
 
+        // 公共区域耕地才需要登记次日复原；远古斑点恢复基础地块时不登记。
+        if (modified.is(Blocks.FARMLAND)
+                && com.stardew.craft.core.FarmAreaResolver.isInStardewButNotFarm(level, pos)
+                && !com.stardew.craft.greenhouse.GreenhouseManager.isInGreenhouseInterior(level, pos)) {
+            com.stardew.craft.manager.CropGrowthManager.get(level).trackPublicTilledChunk(level, pos);
+        }
+
         level.playSound(null, pos, SoundEvents.HOE_TILL, SoundSource.BLOCKS, 1.0f, 1.0f);
         level.levelEvent(2001, pos, Block.getId(state));
         return true;
@@ -451,11 +495,12 @@ public class HoeItem extends Item implements IStardewItem {
      * - 普通黄土/泥土 → 仅粘土 3% / 混合种子 1%
      */
     @SuppressWarnings("null")
-    private void rollBuriedDrops(ServerLevel level, BlockPos tilledPos, BlockState preTillState) {
+    private void rollBuriedDrops(ServerLevel level, BlockPos tilledPos, BlockState preTillState, ServerPlayer player) {
         if (preTillState.is(com.stardew.craft.block.ModBlocks.ARTIFACT_SPOT_DIRT.get())
-                || preTillState.is(com.stardew.craft.block.ModBlocks.DESERT_ARTIFACT_SPOT.get())) {
+                || preTillState.is(com.stardew.craft.block.ModBlocks.DESERT_ARTIFACT_SPOT.get())
+                || preTillState.is(com.stardew.craft.block.ModBlocks.BEACH_ARTIFACT_SPOT.get())) {
             // 远古斑点：完整古物掉落表（SDV ContinueOnDrop 可产出多个物品）
-            List<ItemStack> drops = com.stardew.craft.manager.ArtifactDropService.rollAllDrops(level, tilledPos);
+            List<ItemStack> drops = com.stardew.craft.manager.ArtifactDropService.rollAllDrops(level, tilledPos, player);
             for (ItemStack drop : drops) {
                 if (!drop.isEmpty()) {
                     Block.popResource(level, tilledPos.above(), drop);
@@ -471,6 +516,12 @@ public class HoeItem extends Item implements IStardewItem {
         if (level.random.nextDouble() < 0.01) {
             Block.popResource(level, tilledPos.above(), new ItemStack(ModItems.MIXED_SEEDS.get()));
         }
+    }
+
+    private static boolean isPublicYellowDirt(Level level, BlockPos pos, BlockState state) {
+        return state.is(com.stardew.craft.block.ModBlocks.YELLOW_DIRT.get())
+                && com.stardew.craft.core.FarmAreaResolver.isInStardewButNotFarm(level, pos)
+                && !com.stardew.craft.greenhouse.GreenhouseManager.isInGreenhouseInterior(level, pos);
     }
 
     @SuppressWarnings("null")

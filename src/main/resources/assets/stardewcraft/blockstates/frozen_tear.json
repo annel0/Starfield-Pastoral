@@ -1,6 +1,9 @@
 {
   "variants": {
-    "": {
+    "placed_by_player=false": {
+      "model": "stardewcraft:block/frozen_tear"
+    },
+    "placed_by_player=true": {
       "model": "stardewcraft:block/frozen_tear"
     }
   }

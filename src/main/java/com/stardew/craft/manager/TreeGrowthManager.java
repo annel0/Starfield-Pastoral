@@ -226,6 +226,67 @@ public class TreeGrowthManager extends SavedData {
 	}
 
 	/**
+	 * 离线/批量补帧：一次推进 days 天。等价于循环 growOneDay(days) 但避免每天重复读
+	 * 方块状态、查 preset 缓存等开销。对 catch-up 性能至关重要：登录时单棵树需要补 400+
+	 * 天的场景下，原循环会把主线程冻死并触发 watchdog 关服。
+	 */
+	public void growBy(@Nonnull ServerLevel level, @Nonnull BlockPos pos, int days) {
+		if (days <= 0) {
+			return;
+		}
+		GlobalPos gp = GlobalPos.of(
+			Objects.requireNonNull(level.dimension(), "dimension"),
+			Objects.requireNonNull(pos.immutable(), "pos")
+		);
+		addSapling(level, pos);
+
+		BlockState state = level.getBlockState(pos);
+		if (!(state.getBlock() instanceof WildTreeSaplingBlock saplingBlock)) {
+			removeSapling(level, pos);
+			return;
+		}
+		WildTrees.Def def = Objects.requireNonNull(saplingBlock.getDef(), "def");
+		int currentDay = daysGrown.getOrDefault(gp, 0);
+		int stage = saplingBlock.getStage();
+
+		// Stage 1 already mature: just retry placement.
+		if (stage == 1 && currentDay >= TOTAL_DAYS) {
+			if (canMature(level, pos, def) && placePresetOrFallbackTree(level, pos, def)) {
+				removeSapling(level, pos);
+			}
+			return;
+		}
+
+		int newDay = Math.min(currentDay + days, TOTAL_DAYS);
+
+		// Stage 0 → 1 transition at STAGE1_DAY. Use current 3x3 occupancy as proxy for
+		// "was clear during catch-up" — same approximation a per-day loop would make if
+		// nothing changed during the offline window.
+		if (stage == 0 && newDay >= STAGE1_DAY) {
+			if (!isSaplingAreaClear(level, pos)) {
+				int capped = Math.min(newDay, STAGE1_DAY - 1);
+				if (capped != currentDay) {
+					daysGrown.put(gp, capped);
+					setDirty();
+				}
+				return;
+			}
+			BlockState nextState = Objects.requireNonNull(def.sapling1().get().defaultBlockState(), "sapling1");
+			level.setBlock(pos, nextState, 3);
+			stage = 1;
+		}
+
+		daysGrown.put(gp, newDay);
+		setDirty();
+
+		if (stage == 1 && newDay >= TOTAL_DAYS) {
+			if (canMature(level, pos, def) && placePresetOrFallbackTree(level, pos, def)) {
+				removeSapling(level, pos);
+			}
+		}
+	}
+
+	/**
 	 * 树肥：立即推进到下一阶段（sapling0→sapling1，sapling1→成熟树）。
 	 * 返回 true 表示成功推进。
 	 */

@@ -101,6 +101,11 @@ public class StardewTimeHud {
     public static void triggerMoneyShake() {
         moneyShakeTimer = 100;
     }
+
+    /** SDV parity: dayTimeMoneyBox.moneyShakeTimer = millis (e.g. 1000 ms for insufficient funds). */
+    public static void triggerMoneyShake(int millis) {
+        moneyShakeTimer = Math.max(moneyShakeTimer, millis);
+    }
     
     public static StardewTimeManager getClientTimeCache() {
         return clientTimeCache;

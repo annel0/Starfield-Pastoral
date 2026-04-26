@@ -4,7 +4,6 @@ import com.stardew.craft.StardewCraft;
 import com.stardew.craft.communitycenter.state.CCStoryFlags;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.entity.npc.StardewNpcEntity;
-import com.stardew.craft.item.ModItems;
 import com.stardew.craft.network.payload.OpenNpcDialogueScreenPayload;
 import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.PlayerStardewData;
@@ -45,9 +44,6 @@ public final class WizardQuestHandler {
     public static final String NODE_STAY = "wizard_stay";
     public static final String NODE_ACCEPTED = "wizard_accepted";
     public static final String NODE_FIRST_TELEPORT = "wizard_first_teleport";
-    public static final String NODE_GALAXY_CONFIRM = "wizard_galaxy_confirm";
-    public static final String NODE_GALAXY_DECLINE = "wizard_galaxy_decline";
-
     // ── SDV Event 112: 巫师森林魔法药水（多阶段过场） ──
     /** Phase 0→1: 巫师展示 Junimo ("看哪！") */
     public static final String NODE_E112_REVEAL     = "wizard_e112_reveal";
@@ -149,11 +145,6 @@ public final class WizardQuestHandler {
         }
 
         if (data.isWizardQuestComplete()) {
-            // Galaxy Sword: 手持棱彩碎片 + 尚未获取过 Galaxy Sword
-            if (!data.hasMailFlag("galaxySword") && findPrismaticShard(player) != null) {
-                sendDialogue(player, "stardewcraft.npc.wizard.galaxy_offer", 0);
-                return true;
-            }
             // 任务已完成 → 走普通 NPC 对话系统（每日1次限制、对话轮转、好感度）
             return false;
         }
@@ -221,15 +212,6 @@ public final class WizardQuestHandler {
                 handleGoStardew(player);
                 yield true;
             }
-            case NODE_GALAXY_CONFIRM -> {
-                // 玩家同意交出棱彩碎片 → 获得 Galaxy Sword
-                handleGalaxyConfirm(player);
-                yield true;
-            }
-            case NODE_GALAXY_DECLINE -> {
-                // 玩家拒绝，关闭对话
-                yield true;
-            }
             // E112 多阶段过场已迁移至 cutscene 引擎 (wizard_e112.json)
             default -> false;
         };
@@ -294,49 +276,6 @@ public final class WizardQuestHandler {
             StardewCraft.LOGGER.info("[WIZARD] {} has no farm, opening farm selection screen",
                     player.getName().getString());
         }
-    }
-
-    /**
-     * 玩家确认交出棱彩碎片 → 消耗碎片 → 给予 Galaxy Sword → 设置 galaxySword 标记。
-     */
-    private static void handleGalaxyConfirm(ServerPlayer player) {
-        ItemStack shard = findPrismaticShard(player);
-        if (shard == null) {
-            // 碎片已不在背包（可能被丢弃），回退到日常对话
-            sendDialogue(player, "stardewcraft.npc.wizard.daily_unlocked", 0);
-            return;
-        }
-        PlayerStardewData data = PlayerDataManager.getPlayerData(player);
-        if (data.hasMailFlag("galaxySword")) {
-            sendDialogue(player, "stardewcraft.npc.wizard.daily_unlocked", 0);
-            return;
-        }
-
-        // 消耗 1 个棱彩碎片
-        shard.shrink(1);
-
-        // 给予 Galaxy Sword
-        ItemStack galaxySword = new ItemStack(ModItems.GALAXY_SWORD.get());
-        if (!player.getInventory().add(galaxySword)) {
-            // 背包满则掉落在脚下
-            player.drop(galaxySword, false);
-        }
-
-        // 设置标记 → 马龙商店解锁 Galaxy Dagger / Galaxy Hammer
-        data.addMailFlag("galaxySword");
-
-        StardewCraft.LOGGER.info("[WIZARD] {} obtained Galaxy Sword via Prismatic Shard", player.getName().getString());
-        sendDialogue(player, "stardewcraft.npc.wizard.galaxy_granted", 0);
-    }
-
-    private static ItemStack findPrismaticShard(ServerPlayer player) {
-        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-            ItemStack stack = player.getInventory().getItem(i);
-            if (!stack.isEmpty() && stack.is(ModItems.PRISMATIC_SHARD.get())) {
-                return stack;
-            }
-        }
-        return null;
     }
 
     private static ItemStack findEyeOfEnder(ServerPlayer player) {

@@ -7,23 +7,36 @@ import com.stardew.craft.client.gui.common.StardewQuestionDialogSpec;
 import com.stardew.craft.client.gui.common.StardewRenderMapping;
 import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
 import com.stardew.craft.client.render.TVScreenOverlayRenderer;
+import com.stardew.craft.fishing.data.FishingDataManager;
+import com.stardew.craft.fishing.data.FishingLocationData;
+import com.stardew.craft.fishing.data.SpawnFishRule;
 import com.stardew.craft.network.payload.OpenTVScreenPayload;
 import com.stardew.craft.network.payload.TVRecipeUnlockPayload;
 import com.stardew.craft.sound.ModSounds;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Random;
 import java.util.function.IntConsumer;
 
@@ -80,6 +93,8 @@ public class TVScreen extends Screen {
 
     // Recipe unlock tracking
     private boolean recipeUnlockSent;
+    private List<String> fishingPages = List.of();
+    private int fishingPageIndex;
 
     public TVScreen(OpenTVScreenPayload data) {
         super(Component.literal("TV"));
@@ -192,6 +207,8 @@ public class TVScreen extends Screen {
         this.characterAdvanceTimer = 0;
         this.lastUpdateMs = System.currentTimeMillis();
         this.recipeUnlockSent = false;
+        this.fishingPages = List.of();
+        this.fishingPageIndex = 0;
 
         switch (channel) {
             case TVChannelData.CHANNEL_WEATHER:
@@ -207,6 +224,7 @@ public class TVScreen extends Screen {
                 setCurrentText(Component.translatable("stardewcraft.tv.cooking.opening"));
                 break;
             case TVChannelData.CHANNEL_FISHING:
+                fishingPages = buildFishingPages();
                 setCurrentText(Component.translatable("stardewcraft.tv.fishing.opening"));
                 break;
             case TVChannelData.CHANNEL_CURSED:
@@ -353,9 +371,19 @@ public class TVScreen extends Screen {
             case TVChannelData.CHANNEL_FISHING:
                 if (phase == Phase.OPENING) {
                     phase = Phase.CONTENT;
-                    setCurrentText(Component.translatable("stardewcraft.tv.fishing.content"));
+                    fishingPageIndex = 0;
+                    if (fishingPages.isEmpty()) {
+                        closeTV();
+                    } else {
+                        setCurrentText(Component.literal(fishingPages.get(0)));
+                    }
                 } else {
-                    closeTV();
+                    fishingPageIndex++;
+                    if (fishingPageIndex >= fishingPages.size()) {
+                        closeTV();
+                    } else {
+                        setCurrentText(Component.literal(fishingPages.get(fishingPageIndex)));
+                    }
                 }
                 break;
 
@@ -578,6 +606,199 @@ public class TVScreen extends Screen {
     private void playUiSound(SoundEvent sound, float volume, float pitch) {
         if (this.minecraft != null) {
             this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(sound, pitch, volume));
+        }
+    }
+
+    private List<String> buildFishingPages() {
+        String seasonId = currentSeasonId();
+        Map<String, FishingBroadcastEntryBuilder> byItemId = new HashMap<>();
+
+        for (Map.Entry<String, FishingLocationData> entry : FishingDataManager.get().getLocationDataSnapshot().entrySet()) {
+            String sanitizedLocation = sanitizeFishingLocation(entry.getKey());
+            if (sanitizedLocation.isEmpty()) {
+                continue;
+            }
+
+            for (SpawnFishRule rule : entry.getValue().fish()) {
+                if (!shouldIncludeInFishingBroadcast(rule, seasonId)) {
+                    continue;
+                }
+
+                FishingBroadcastEntryBuilder builder = byItemId.computeIfAbsent(
+                        rule.itemId(), itemId -> FishingBroadcastEntryBuilder.fromRule(itemId, rule));
+                builder.locations.add(sanitizedLocation);
+            }
+        }
+
+        List<FishingBroadcastEntryBuilder> entries = new ArrayList<>(byItemId.values());
+        entries.removeIf(entry -> entry.locations.isEmpty());
+        entries.sort(Comparator
+                .comparingInt((FishingBroadcastEntryBuilder entry) -> entry.sortOrder)
+                .thenComparing(entry -> entry.itemId));
+
+        StringBuilder page = new StringBuilder();
+        page.append("---").append(I18n.get("stardewcraft.tv.fishing.season." + seasonId)).append("---\n\n");
+
+        List<String> pages = new ArrayList<>();
+        int count = 0;
+        for (FishingBroadcastEntryBuilder entry : entries) {
+            page.append(formatFishingBroadcastLine(entry)).append("\n");
+            count++;
+            if (count > 3) {
+                pages.add(page.toString().stripTrailing());
+                page.setLength(0);
+                count = 0;
+            }
+        }
+
+        return pages;
+    }
+
+    private boolean shouldIncludeInFishingBroadcast(SpawnFishRule rule, String seasonId) {
+        if (rule == null || rule.itemId() == null || rule.itemId().isBlank() || rule.isBossFish()) {
+            return false;
+        }
+        if (rule.condition() != null && !rule.condition().isBlank()) {
+            return false;
+        }
+        List<String> seasons = rule.seasons();
+        if (seasons == null || seasons.isEmpty()) {
+            return false;
+        }
+
+        boolean hasSpring = false;
+        boolean hasSummer = false;
+        boolean hasFall = false;
+        boolean hasWinter = false;
+        boolean hasCurrentSeason = false;
+        for (String season : seasons) {
+            String normalized = season == null ? "" : season.toLowerCase(Locale.ROOT);
+            if (normalized.equals("spring")) hasSpring = true;
+            if (normalized.equals("summer")) hasSummer = true;
+            if (normalized.equals("fall")) hasFall = true;
+            if (normalized.equals("winter")) hasWinter = true;
+            if (normalized.equals(seasonId)) hasCurrentSeason = true;
+        }
+
+        if (hasSpring && hasSummer && hasFall && hasWinter) {
+            return false;
+        }
+        return hasCurrentSeason;
+    }
+
+    private String sanitizeFishingLocation(String locationKey) {
+        return switch (locationKey) {
+            case "Town", "Forest" -> "river";
+            case "Beach" -> "ocean";
+            case "Mountain" -> "lake";
+            default -> "";
+        };
+    }
+
+    private String formatFishingBroadcastLine(FishingBroadcastEntryBuilder entry) {
+        StringBuilder line = new StringBuilder();
+        line.append(resolveFishingItemDisplayName(entry.itemId));
+        line.append("...... ");
+        line.append(formatStardewTime(entry.startTime));
+        line.append("-");
+        line.append(formatStardewTime(entry.endTime));
+
+        if (!entry.weather.equals("both") && !entry.weather.equals("any")) {
+            line.append(", ");
+            line.append(I18n.get("stardewcraft.tv.fishing.weather." + entry.weather));
+        }
+
+        appendLocationIfPresent(line, entry.locations, "river");
+        appendLocationIfPresent(line, entry.locations, "ocean");
+        appendLocationIfPresent(line, entry.locations, "lake");
+        return line.toString();
+    }
+
+    private void appendLocationIfPresent(StringBuilder line, LinkedHashSet<String> locations, String locationId) {
+        if (!locations.contains(locationId)) {
+            return;
+        }
+        line.append(", ");
+        line.append(I18n.get("stardewcraft.tv.fishing.location." + locationId));
+    }
+
+    private String resolveFishingItemDisplayName(String itemId) {
+        try {
+            Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(itemId));
+            if (item != null) {
+                return new ItemStack(item).getHoverName().getString();
+            }
+        } catch (Exception ignored) {
+        }
+        return itemId;
+    }
+
+    private String formatStardewTime(int stardewTime) {
+        int normalized = stardewTime;
+        while (normalized >= 2400) {
+            normalized -= 2400;
+        }
+        if (normalized < 0) {
+            normalized = 0;
+        }
+
+        int hours24 = normalized / 100;
+        int minutes = normalized % 100;
+        String suffix = hours24 < 12 ? "AM" : "PM";
+        int hours12 = hours24 % 12;
+        if (hours12 == 0) {
+            hours12 = 12;
+        }
+        return String.format(Locale.ROOT, "%d:%02d%s", hours12, minutes, suffix);
+    }
+
+    private String currentSeasonId() {
+        return switch (data.currentSeason()) {
+            case 0 -> "spring";
+            case 1 -> "summer";
+            case 2 -> "fall";
+            case 3 -> "winter";
+            default -> "spring";
+        };
+    }
+
+    private static final class FishingBroadcastEntryBuilder {
+        private final String itemId;
+        private final int startTime;
+        private final int endTime;
+        private final String weather;
+        private final int sortOrder;
+        private final LinkedHashSet<String> locations = new LinkedHashSet<>();
+
+        private FishingBroadcastEntryBuilder(String itemId, int startTime, int endTime, String weather, int sortOrder) {
+            this.itemId = itemId;
+            this.startTime = startTime;
+            this.endTime = endTime;
+            this.weather = weather;
+            this.sortOrder = sortOrder;
+        }
+
+        private static FishingBroadcastEntryBuilder fromRule(String itemId, SpawnFishRule rule) {
+            int startTime = 600;
+            int endTime = 2600;
+            if (rule.timeRanges() != null && !rule.timeRanges().isEmpty() && rule.timeRanges().get(0).length >= 2) {
+                startTime = rule.timeRanges().get(0)[0];
+                endTime = rule.timeRanges().get(0)[1];
+            }
+
+            int sortOrder = Integer.MAX_VALUE;
+            try {
+                Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(itemId));
+                if (item != null) {
+                    sortOrder = BuiltInRegistries.ITEM.getId(item);
+                }
+            } catch (Exception ignored) {
+            }
+
+            String weather = rule.weather() == null || rule.weather().isBlank()
+                    ? "both"
+                    : rule.weather().toLowerCase(Locale.ROOT);
+            return new FishingBroadcastEntryBuilder(itemId, startTime, endTime, weather, sortOrder);
         }
     }
 }

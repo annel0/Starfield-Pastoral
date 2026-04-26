@@ -318,7 +318,8 @@ public record OpenNpcDialogueScreenPayload(
             text = sb.toString();
         }
 
-        // Re-append $q/$r portion
+        // Re-append $q/$r portion verbatim — client StardewNpcDialogueScreen.parseChunks
+        // owns the interactive question/answer parsing.
         if (!qPortion.isEmpty()) {
             if (!text.isEmpty()) text += "$b";
             text += qPortion;

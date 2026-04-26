@@ -1,0 +1,31 @@
+{
+	"variants": {
+		"part=main,facing=north": {
+			"model": "stardewcraft:decor/common/supermarket_cart"
+		},
+		"part=extension,facing=north": {
+			"model": "stardewcraft:block/decor/extensions/supermarket_cart_extension_empty"
+		},
+		"part=main,facing=east": {
+			"model": "stardewcraft:decor/common/supermarket_cart",
+			"y": 90
+		},
+		"part=extension,facing=east": {
+			"model": "stardewcraft:block/decor/extensions/supermarket_cart_extension_empty"
+		},
+		"part=main,facing=south": {
+			"model": "stardewcraft:decor/common/supermarket_cart",
+			"y": 180
+		},
+		"part=extension,facing=south": {
+			"model": "stardewcraft:block/decor/extensions/supermarket_cart_extension_empty"
+		},
+		"part=main,facing=west": {
+			"model": "stardewcraft:decor/common/supermarket_cart",
+			"y": 270
+		},
+		"part=extension,facing=west": {
+			"model": "stardewcraft:block/decor/extensions/supermarket_cart_extension_empty"
+		}
+	}
+}

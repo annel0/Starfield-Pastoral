@@ -1,5 +1,6 @@
 package com.stardew.craft.blockentity;
 
+import com.stardew.craft.blockentity.registry.LightningRodRegistry;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.time.StardewTimeManager;
 import net.minecraft.core.BlockPos;
@@ -7,25 +8,20 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import com.stardew.craft.weather.WeatherManager;
 
 import javax.annotation.Nullable;
 
 public class LightningRodBlockEntity extends TimedProductionBlockEntity {
     private static final int EFFECTIVE_MINUTES_PER_DAY = 1260;
-    private static final int CHECK_INTERVAL_MINUTES = 10;
-    private static final double CHARGE_CHANCE = 0.005;
 
     private static final String TAG_PRODUCT = "product";
     private static final String TAG_READY_AT = "readyAtAbsMinute";
     private static final String TAG_READY = "ready";
-    private static final String TAG_LAST_CHECK = "lastCheckAbsMinute";
-
-    private long lastCheckAbsMinute = -1;
 
     public record RemainingTime(int days, int hours, int minutes) {}
 
@@ -34,42 +30,36 @@ public class LightningRodBlockEntity extends TimedProductionBlockEntity {
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, LightningRodBlockEntity be) {
-        if (level.isClientSide) {
-            return;
-        }
+        if (!(level instanceof ServerLevel sl)) return;
+        // Self-heal: ensure this rod is registered (handles rods placed before
+        // the registry existed, or after a registry data wipe).
+        LightningRodRegistry registry = LightningRodRegistry.get(sl);
+        registry.add(pos);
+
         boolean newReady = be.refreshReady();
         if (newReady != be.ready) {
             be.ready = newReady;
             be.setChanged();
             be.syncToClient();
         }
-        be.tryChargeDuringStorm(level);
+        // Drain any pending strike scheduled while this chunk was unloaded.
+        if (!be.isBusy()) {
+            if (registry.consumePending(pos)) {
+                be.startChargingFromStrike();
+            }
+        }
         be.updateWorkingState(level, pos, state);
     }
 
-    private void tryChargeDuringStorm(Level level) {
-        if (!product.isEmpty() || readyAtAbsMinute >= 0) {
-            return;
-        }
-        if (!WeatherManager.isThundering(level)) {
-            return;
-        }
-        long currentAbsMinute = getCurrentAbsMinute();
-        if (currentAbsMinute == lastCheckAbsMinute) {
-            return;
-        }
-        lastCheckAbsMinute = currentAbsMinute;
-        if (currentAbsMinute % CHECK_INTERVAL_MINUTES != 0) {
-            return;
-        }
-        if (level.random.nextDouble() > CHARGE_CHANCE) {
-            return;
-        }
-        startCharging();
+    /** True while a battery is charging (occupied), regardless of ready state. */
+    public boolean isBusy() {
+        return !product.isEmpty() || readyAtAbsMinute >= 0;
     }
 
+    /** Called by {@link com.stardew.craft.weather.LightningStrikeScheduler} when this rod is hit. */
     @SuppressWarnings("null")
-    private void startCharging() {
+    public void startChargingFromStrike() {
+        if (isBusy()) return;
         product = new ItemStack((net.minecraft.world.level.ItemLike) ModItems.BATTERY_PACK.get());
         readyAtAbsMinute = getCurrentAbsMinute() + EFFECTIVE_MINUTES_PER_DAY;
         ready = false;
@@ -183,7 +173,6 @@ public class LightningRodBlockEntity extends TimedProductionBlockEntity {
         }
         tag.putLong(TAG_READY_AT, readyAtAbsMinute);
         tag.putBoolean(TAG_READY, ready);
-        tag.putLong(TAG_LAST_CHECK, lastCheckAbsMinute);
     }
 
     @SuppressWarnings("null")
@@ -197,10 +186,5 @@ public class LightningRodBlockEntity extends TimedProductionBlockEntity {
         }
         readyAtAbsMinute = tag.getLong(TAG_READY_AT);
         ready = tag.getBoolean(TAG_READY);
-        if (tag.contains(TAG_LAST_CHECK)) {
-            lastCheckAbsMinute = tag.getLong(TAG_LAST_CHECK);
-        } else {
-            lastCheckAbsMinute = -1;
-        }
     }
 }

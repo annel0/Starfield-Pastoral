@@ -171,6 +171,13 @@ public class ModItems {
         public static final DeferredItem<Item> PASTURE_GRASS = blockItem("pasture_grass", ModBlocks.PASTURE_GRASS);
         public static final DeferredItem<Item> BLUE_PASTURE_GRASS = blockItem("blue_pasture_grass", ModBlocks.BLUE_PASTURE_GRASS);
 
+        // 农场洞穴：蘑菇培养盆（无 CreativeTab 入口，按设计不可获取）
+        public static final DeferredItem<Item> MUSHROOM_BOX = blockItem("mushroom_box", ModBlocks.MUSHROOM_BOX);
+
+        public static final DeferredItem<Item> LARGE_STUMP = blockItem("large_stump", ModBlocks.LARGE_STUMP);
+        public static final DeferredItem<Item> HOLLOW_LOG = blockItem("hollow_log", ModBlocks.HOLLOW_LOG);
+        public static final DeferredItem<Item> LARGE_BOULDER = blockItem("large_boulder", ModBlocks.LARGE_BOULDER);
+
         // 鏂瑰潡鐗╁搧锛堥噹鐢熸爲锛氭鏍戝師鍨嬶級
         // 鐭夸簳
         public static final DeferredItem<Item> MINE_BARRIER = blockItem("mine_barrier", ModBlocks.MINE_BARRIER);
@@ -680,6 +687,12 @@ public class ModItems {
                         () -> new StardewBlockItem(ModBlocks.SUPERMARKET_SHELF_1.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> SUPERMARKET_SHELF_2 = ITEMS.register("supermarket_shelf_2",
                         () -> new StardewBlockItem(ModBlocks.SUPERMARKET_SHELF_2.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> JOJA_SUPERMARKET_CRATE = ITEMS.register("joja_supermarket_crate",
+                        () -> new StardewBlockItem(ModBlocks.JOJA_SUPERMARKET_CRATE.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> SUPERMARKET_CART = ITEMS.register("supermarket_cart",
+                        () -> new StardewBlockItem(ModBlocks.SUPERMARKET_CART.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> SUPERMARKET_FREEZER = ITEMS.register("supermarket_freezer",
+                        () -> new StardewBlockItem(ModBlocks.SUPERMARKET_FREEZER.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> SHOP_SHIPPING_BIN = ITEMS.register("shop_shipping_bin",
                         () -> new StardewBlockItem(ModBlocks.SHOP_SHIPPING_BIN.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> CARPET_1 = ITEMS.register("carpet_1",
@@ -2496,6 +2509,8 @@ public class ModItems {
     public static final DeferredItem<Item> ARTIFACT_SPOT_DIRT = blockItem("artifact_spot_dirt", com.stardew.craft.block.ModBlocks.ARTIFACT_SPOT_DIRT);
     // 沙漠远古斑点（砂岩变体）
     public static final DeferredItem<Item> DESERT_ARTIFACT_SPOT = blockItem("desert_artifact_spot", com.stardew.craft.block.ModBlocks.DESERT_ARTIFACT_SPOT);
+        // 海滩远古斑点（砂岩变体）
+        public static final DeferredItem<Item> BEACH_ARTIFACT_SPOT = blockItem("beach_artifact_spot", com.stardew.craft.block.ModBlocks.BEACH_ARTIFACT_SPOT);
 
     // ── 怪物掉落物品 (Monster Loot) ────────────────────────────────────────
     public static final DeferredItem<Item> SLIME_ITEM = ITEMS.register("slime_item",

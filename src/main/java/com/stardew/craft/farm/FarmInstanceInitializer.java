@@ -96,6 +96,9 @@ public class FarmInstanceInitializer {
         // 7. 放置 3 个出口交互实体
         spawnExitPortals(level, farm, layout);
 
+        // 7.5 放置农场洞穴系统（室外墙 + 室外传送方块 + 室内结构）
+        placeFarmCaveSystem(level, farm, layout);
+
         // 8. 河边农场特殊：送熏鱼机
         if (farm.getFarmType() == FarmType.RIVERLAND) {
             giveStarterItem(level, farm, ModBlocks.FISH_SMOKER.get().asItem());
@@ -428,11 +431,98 @@ public class FarmInstanceInitializer {
     }
 
     // ══════════════════════════════════════════
+    //  农场洞穴系统（外墙 + 传送方块 + 室内）
+    // ══════════════════════════════════════════
+
+    /**
+     * 老存档兼容：若某农场未放置过洞穴系统（cavePlaced=false），则首次进服时补放。
+     * 仅由 {@link com.stardew.craft.player.PlayerDataEventHandler} 在玩家登录并完成离线追赶后调用。
+     *
+     * @return true 表示本次执行了补放
+     */
+    public static boolean backfillFarmCaveIfMissing(ServerLevel level, FarmInstance farm) {
+        if (farm == null || !farm.isInitialized()) return false;
+        FarmType.FarmLayout layout = farm.getFarmType().getLayout();
+        if (layout == null) return false;
+        com.stardew.craft.interior.PlayerInteriorAllocator alloc =
+                com.stardew.craft.interior.PlayerInteriorAllocator.get(level);
+        if (alloc.isCavePlaced(farm.getOwnerUUID())) return false;
+
+        StardewCraft.LOGGER.info("[FARM_INIT] Backfilling farm cave for owner={} ({})",
+                farm.getOwnerUUID(), farm.getOwnerName());
+        placeFarmCaveSystem(level, farm, layout);
+
+        // 若 owner 已选择过 MUSHROOMS（老存档 choice 可能已在 Step 1 存下），补放蘑菇盆
+        if (farm.getCaveChoice() == FarmCaveChoice.MUSHROOMS) {
+            BlockPos caveOrigin = alloc.getCaveOrigin(farm.getOwnerUUID());
+            net.minecraft.world.level.block.Block box = com.stardew.craft.block.ModBlocks.MUSHROOM_BOX.get();
+            for (BlockPos off : com.stardew.craft.manager.FarmCaveDailyService.MUSHROOM_BOX_OFFSETS) {
+                BlockPos p = caveOrigin.offset(off);
+                if (level.getBlockState(p).isAir()) {
+                    level.setBlock(p, box.defaultBlockState(), net.minecraft.world.level.block.Block.UPDATE_ALL);
+                }
+            }
+        }
+        return true;
+    }
+
+    private static void placeFarmCaveSystem(ServerLevel level, FarmInstance farm, FarmType.FarmLayout layout) {
+        BlockPos origin = farm.getOrigin();
+
+        // 1. 清空区域（仅 FOREST）
+        FarmType.CaveRegion clear = layout.caveClearBox();
+        if (clear != null) {
+            fillRegion(level, origin, clear, Blocks.AIR.defaultBlockState());
+        }
+
+        // 2. 黑色混凝土墙（STANDARD/FOREST）
+        FarmType.CaveRegion blackWall = layout.caveBlackWall();
+        if (blackWall != null) {
+            fillRegion(level, origin, blackWall, Blocks.BLACK_CONCRETE.defaultBlockState());
+        }
+
+        // 3. 外部传送方块
+        FarmType.CaveRegion portalWall = layout.cavePortalWall();
+        if (portalWall != null) {
+            BlockPos absMin = origin.offset(portalWall.min());
+            BlockPos absMax = origin.offset(portalWall.max());
+            com.stardew.craft.interior.InteriorSubspaceManager.spawnFarmCaveOutdoorPortalArea(level, absMin, absMax);
+        }
+
+        // 4. 室内：为 owner 分配洞穴 origin + 放置 schem + 室内出口传送
+        com.stardew.craft.interior.PlayerInteriorAllocator alloc =
+                com.stardew.craft.interior.PlayerInteriorAllocator.get(level);
+        alloc.ensureCaveLoaded(level, farm.getOwnerUUID());
+
+        StardewCraft.LOGGER.info("[FARM_INIT] Farm cave system placed for {}", farm.getOwnerName());
+    }
+
+    /**
+     * 在 (origin + region.min)~(origin + region.max) 的立方体区域填充 state。min/max 均包含。
+     */
+    private static void fillRegion(ServerLevel level, BlockPos origin, FarmType.CaveRegion region, BlockState state) {
+        BlockPos min = origin.offset(region.min());
+        BlockPos max = origin.offset(region.max());
+        int minX = Math.min(min.getX(), max.getX());
+        int maxX = Math.max(min.getX(), max.getX());
+        int minY = Math.min(min.getY(), max.getY());
+        int maxY = Math.max(min.getY(), max.getY());
+        int minZ = Math.min(min.getZ(), max.getZ());
+        int maxZ = Math.max(min.getZ(), max.getZ());
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    level.setBlock(new BlockPos(x, y, z), state, 3);
+                }
+            }
+        }
+    }
+
+    // ══════════════════════════════════════════
     //  辅助
     // ══════════════════════════════════════════
 
-    private static void preloadFarmChunks(ServerLevel level, FarmInstance farm) {
-        BlockPos min = farm.getFarmBoundsMin();
+    private static void preloadFarmChunks(ServerLevel level, FarmInstance farm) {        BlockPos min = farm.getFarmBoundsMin();
         BlockPos max = farm.getFarmBoundsMax();
         int minCX = min.getX() >> 4, maxCX = max.getX() >> 4;
         int minCZ = min.getZ() >> 4, maxCZ = max.getZ() >> 4;

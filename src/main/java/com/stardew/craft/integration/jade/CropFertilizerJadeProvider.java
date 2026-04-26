@@ -61,6 +61,13 @@ public enum CropFertilizerJadeProvider implements IBlockComponentProvider {
             return;
         }
 
+        // 玩家放置的花不显示肥料信息
+        BlockState viewState = accessor.getBlockState();
+        if (viewState.hasProperty(com.stardew.craft.block.crop.StardewCropBlock.PLACED_BY_PLAYER)
+                && viewState.getValue(com.stardew.craft.block.crop.StardewCropBlock.PLACED_BY_PLAYER)) {
+            return;
+        }
+
         // 检查作物下方的耕地
         BlockPos farmPos = resolveCropRootPos(accessor).below();
         if (!(accessor.getLevel().getBlockState(farmPos).getBlock() instanceof FarmBlock)) {

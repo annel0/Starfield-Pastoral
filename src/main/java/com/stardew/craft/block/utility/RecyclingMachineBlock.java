@@ -108,15 +108,9 @@ public class RecyclingMachineBlock extends MapUtilityStaticBlock implements Enti
 			return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
 		}
 
-		if (machine.isReady()) {
-			ItemStack product = machine.harvestOne();
-			if (!product.isEmpty()) {
-				if (!player.addItem(product)) {
-					player.drop(product, false);
-				}
-				level.playSound(null, pos, net.minecraft.sounds.SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6f, 1.0f);
-				return ItemInteractionResult.sidedSuccess(false);
-			}
+		if (UtilityDropHelper.tryHarvest(level, pos, player, machine::isReady, machine::harvestOne,
+				UtilityDropHelper.LOW_MACHINE_VANILLA_XP)) {
+			return ItemInteractionResult.sidedSuccess(false);
 		}
 
 		if (!stack.isEmpty()) {
@@ -158,19 +152,10 @@ public class RecyclingMachineBlock extends MapUtilityStaticBlock implements Enti
 			return InteractionResult.PASS;
 		}
 
-		if (!machine.isReady()) {
-			return InteractionResult.PASS;
-		}
-
-		ItemStack product = machine.harvestOne();
-		if (product.isEmpty()) {
-			return InteractionResult.PASS;
-		}
-		if (!player.addItem(product)) {
-			player.drop(product, false);
-		}
-		level.playSound(null, pos, net.minecraft.sounds.SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6f, 1.0f);
-		return InteractionResult.CONSUME;
+		return UtilityDropHelper.tryHarvest(level, pos, player, machine::isReady, machine::harvestOne,
+				UtilityDropHelper.LOW_MACHINE_VANILLA_XP)
+			? InteractionResult.CONSUME
+			: InteractionResult.PASS;
 	}
 
 	@SuppressWarnings("null")

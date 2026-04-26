@@ -706,10 +706,10 @@ public class PlayerStardewDataAPI {
             return skill != null && level != null && data.getRawSkillLevel(skill) >= level;
         }
 
-        if ("l".equals(head) && parts.length >= 2) {
-            Integer requiredMineFloor = parseInt(parts[1]);
-            return requiredMineFloor != null && maxMineFloor >= requiredMineFloor;
-        }
+        // NOTE: SDV's `l N` (mine-floor) is a display/filter condition, not an
+        // auto-unlock. The only way to learn a recipe gated by `l N` in vanilla
+        // is via the relevant teaching event (e.g. Furnace ← Event 992553).
+        // Do not auto-unlock on mine-floor progress.
 
         return false;
     }

@@ -697,6 +697,38 @@
       }
     ]
   },
+  "stardrop": {
+    "sounds": [
+      {
+        "name": "stardewcraft:stardrop",
+        "stream": false
+      }
+    ]
+  },
+  "spring_birds": {
+    "sounds": [
+      {
+        "name": "stardewcraft:ambient/spring_birds_1",
+        "stream": false
+      },
+      {
+        "name": "stardewcraft:ambient/spring_birds_2",
+        "stream": false
+      },
+      {
+        "name": "stardewcraft:ambient/spring_birds_3",
+        "stream": false
+      },
+      {
+        "name": "stardewcraft:ambient/spring_birds_4",
+        "stream": false
+      },
+      {
+        "name": "stardewcraft:ambient/spring_birds_5",
+        "stream": false
+      }
+    ]
+  },
   "purchase": {
     "sounds": [
       {

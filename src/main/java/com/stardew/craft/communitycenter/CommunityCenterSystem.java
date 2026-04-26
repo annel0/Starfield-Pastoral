@@ -61,6 +61,11 @@ public final class CommunityCenterSystem {
         if (insideNow && !wasInside) {
             // Player just entered CC — spawn idle Junimos (SDV resetSharedState parity)
             playersInsideCC.add(sp.getUUID());
+            // SDV parity (CommunityCenter.cs:540): Joja 会员进入 CC 不再生成 Junimo / JunimoNote —
+            // 仓库外观、Junimo 已撤走的语义。
+            if (CCStoryFlags.isJojaMember(sp)) {
+                return;
+            }
             boolean friendly = CCStoryFlags.canReadJunimoText(sp);
             net.minecraft.core.BlockPos ccOrigin = alloc.getCCOrigin(sp.getUUID());
             JunimoSpawner.spawnIdleJunimos(serverLevel, friendly, sp.getUUID(), ccOrigin);

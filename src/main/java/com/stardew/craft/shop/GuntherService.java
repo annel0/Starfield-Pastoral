@@ -153,22 +153,11 @@ public final class GuntherService {
                 0
             ));
         } else {
-            // Prismatic Shard hint check
-            PlayerStardewData pData = PlayerDataManager.getPlayerData(player);
-            if (!pData.hasMailFlag("galaxySword")
-                    && data.getDonatedItems(playerId).contains("stardewcraft:prismatic_shard")) {
-                PacketDistributor.sendToPlayer(player, new OpenNpcDialogueScreenPayload(
-                    "gunther",
-                    "stardewcraft.npc.gunther.prismatic_hint",
-                    0
-                ));
-            } else {
-                PacketDistributor.sendToPlayer(player, new OpenNpcDialogueScreenPayload(
-                    "gunther",
-                    "stardewcraft.npc.gunther.donation_ended",
-                    0
-                ));
-            }
+            PacketDistributor.sendToPlayer(player, new OpenNpcDialogueScreenPayload(
+                "gunther",
+                "stardewcraft.npc.gunther.donation_ended",
+                0
+            ));
         }
     }
 

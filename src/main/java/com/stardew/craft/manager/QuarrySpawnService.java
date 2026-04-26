@@ -11,6 +11,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.saveddata.SavedData;
+import net.neoforged.neoforge.registries.DeferredBlock;
 
 import javax.annotation.Nonnull;
 
@@ -164,14 +165,6 @@ public final class QuarrySpawnService {
         Block toPlace = pickBlock(r);
         if (toPlace == null) return false;
 
-        // 远古斑点特殊：直接替换 Y=-12 的砂土为 ARTIFACT_SPOT_DIRT，
-        // 视觉上比其他生成物矮一格、与地面齐平（跟现有 ArtifactSpotSpawnService 走同一机制）。
-        if (toPlace == ModBlocks.ARTIFACT_SPOT_DIRT.get()) {
-            if (!isReplaceableAbove(level, above)) return false; // 地表不能被压住
-            level.setBlock(floor, ModBlocks.ARTIFACT_SPOT_DIRT.get().defaultBlockState(), Block.UPDATE_ALL);
-            return true;
-        }
-
         // 其他方块（石头/矿石/树苗等）放在 Y=-11 地表上
         if (!isReplaceableAbove(level, above)) return false;
         level.setBlock(above, toPlace.defaultBlockState(), Block.UPDATE_ALL);
@@ -204,23 +197,48 @@ public final class QuarrySpawnService {
             }
             return GEM_ORES.get(r.nextInt(GEM_ORES.size())).get();
         }
-        // 3) 4% 远古斑点（SDV 另有 15% 子分支为 SeedSpot，我们无该方块，全部归为 artifact spot）
-        if (r.nextDouble() < 0.04) {
-            return ModBlocks.ARTIFACT_SPOT_DIRT.get();
-        }
-        // 4) 15% 大矿脉：0.1% 铱 / 10% 金 / 33% 铁 / 其余 铜
+        // 3) 15% 大矿脉：0.1% 铱 / 10% 金 / 33% 铁 / 其余 铜
         if (r.nextDouble() < 0.15) {
             if (r.nextDouble() < 0.001) return ModBlocks.EARTH_IRIDIUM_ORE.get();
             if (r.nextDouble() < 0.1)   return ModBlocks.EARTH_GOLD_ORE.get();
             if (r.nextDouble() < 0.33)  return ModBlocks.EARTH_IRON_ORE.get();
             return ModBlocks.EARTH_COPPER_ORE.get();
         }
-        // 5) 10% 煤矿节点
+        // 4) 10% 煤矿节点
         if (r.nextDouble() < 0.1) {
             return ModBlocks.EARTH_COAL_ORE.get();
         }
-        // 6) 兜底：6 种普通石头等概率
+        // 5) 兜底：6 种普通石头等概率
         return PLAIN_STONES.get(r.nextInt(PLAIN_STONES.size())).get();
+    }
+
+    public static boolean canPlayerBreakInQuarry(BlockState state) {
+        return isQuarryResourceBlock(state) || com.stardew.craft.tree.WildTrees.isAnyWildTreePart(state);
+    }
+
+    public static boolean canBombDestroyInQuarry(BlockState state) {
+        return isQuarryResourceBlock(state);
+    }
+
+    private static boolean isQuarryResourceBlock(BlockState state) {
+        return state.is(ModBlocks.ARTIFACT_SPOT_DIRT.get())
+                || state.is(ModBlocks.EARTH_COPPER_ORE.get())
+                || state.is(ModBlocks.EARTH_COAL_ORE.get())
+                || state.is(ModBlocks.EARTH_IRON_ORE.get())
+                || state.is(ModBlocks.EARTH_GOLD_ORE.get())
+                || state.is(ModBlocks.EARTH_IRIDIUM_ORE.get())
+                || state.is(ModBlocks.FIRE_QUARTZ.get())
+                || isAny(state, PLAIN_STONES)
+                || isAny(state, GEM_ORES);
+    }
+
+    private static boolean isAny(BlockState state, java.util.List<DeferredBlock<Block>> blocks) {
+        for (DeferredBlock<Block> block : blocks) {
+            if (state.is(block.get())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // ======================== 持久化（首次初始化标志） ========================

@@ -16,13 +16,17 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import java.util.List;
 
 /**
- * Client → Server: player wants to buy qty units of item at index itemIndex
- * from shop shopId.
+ * Client → Server: player wants to buy qty units of an item from a shop.
+ *
+ * itemIndex is the client-side slot index for UI stock sync.
+ * itemId is the stable server-side identity used to avoid index drift when
+ * sold-out entries remain visible client-side but are filtered out server-side.
  */
 @SuppressWarnings("null")
 public record ShopPurchasePayload(
     String shopId,
     int itemIndex,
+    String itemId,
     int quantity
 ) implements CustomPacketPayload {
 
@@ -33,6 +37,7 @@ public record ShopPurchasePayload(
         StreamCodec.composite(
             ByteBufCodecs.STRING_UTF8, ShopPurchasePayload::shopId,
             ByteBufCodecs.INT,         ShopPurchasePayload::itemIndex,
+            ByteBufCodecs.STRING_UTF8, ShopPurchasePayload::itemId,
             ByteBufCodecs.INT,         ShopPurchasePayload::quantity,
             ShopPurchasePayload::new
         );
@@ -70,27 +75,77 @@ public record ShopPurchasePayload(
             ShopRegistry.ShopDefinition shop = ShopRegistry.get(payload.shopId());
             if (shop == null) return;
 
-            // Rebuild the EXACT same filtered list that was sent to this client when the shop opened.
-            // This ensures itemIndex maps to the correct item (recipes/sold-out items are excluded).
+            // Rebuild the current filtered list. Client-side sold-out entries may still be visible as
+            // greyed-out rows, so itemIndex alone is not stable enough after a purchase.
             List<ShopItemEntry> items = ShopRegistry.getFilteredItemsForPlayer(
                 payload.shopId(), shop, player);
-            if (payload.itemIndex() < 0 || payload.itemIndex() >= items.size()) return;
+            ShopItemEntry entry = null;
+            if (payload.itemIndex() >= 0 && payload.itemIndex() < items.size()) {
+                ShopItemEntry indexed = items.get(payload.itemIndex());
+                if (indexed.itemId().equals(payload.itemId())) {
+                    entry = indexed;
+                }
+            }
+            if (entry == null) {
+                for (ShopItemEntry candidate : items) {
+                    if (candidate.itemId().equals(payload.itemId())) {
+                        entry = candidate;
+                        break;
+                    }
+                }
+            }
+            if (entry == null) return;
 
-            ShopItemEntry entry = items.get(payload.itemIndex());
             int qty  = Math.max(1, payload.quantity());
 
             // Clamp to available stock (also checks per-player daily stock via tracker)
             if (entry.stock() != Integer.MAX_VALUE) {
-                int remaining = ShopStockTracker.getRemaining(
-                    player.getUUID(), payload.shopId(), entry.itemId(), entry.stock());
-                qty = Math.min(qty, remaining);
+                qty = Math.min(qty, entry.stock());
                 if (qty <= 0) {
-                    sendResult(player, false, 0, "", 0, payload.itemIndex());
+                    sendResult(player, false,
+                        com.stardew.craft.player.PlayerStardewDataAPI.getMoney(player),
+                        "", 0, payload.itemIndex());
                     return;
                 }
             }
 
             int cost = entry.price() * qty;
+
+            // Decoration unlock purchases (SDV Joja RANDOM_ITEMS (WP)/(FL)): wallpaper:{id} / flooring:{id}
+            if (entry.itemId().startsWith("wallpaper:") || entry.itemId().startsWith("flooring:")) {
+                boolean isWp = entry.itemId().startsWith("wallpaper:");
+                String styleId = entry.itemId().substring(isWp ? "wallpaper:".length() : "flooring:".length());
+                com.stardew.craft.deco.DecorationType decoType = isWp
+                    ? com.stardew.craft.deco.DecorationType.WALLPAPER
+                    : com.stardew.craft.deco.DecorationType.FLOORING;
+                com.stardew.craft.player.PlayerStardewData data =
+                    com.stardew.craft.player.PlayerDataManager.getPlayerData(player);
+                if (data.isDecorationUnlocked(decoType, styleId)) {
+                    sendResult(player, false,
+                        com.stardew.craft.player.PlayerStardewDataAPI.getMoney(player),
+                        "", 0, payload.itemIndex());
+                    return;
+                }
+                if (cost > 0) {
+                    boolean ok = com.stardew.craft.player.PlayerStardewDataAPI.removeMoney(player, cost);
+                    if (!ok) {
+                        sendResult(player, false,
+                            com.stardew.craft.player.PlayerStardewDataAPI.getMoney(player),
+                            "", 0, payload.itemIndex());
+                        return;
+                    }
+                }
+                data.unlockDecoration(decoType, styleId);
+                com.stardew.craft.player.PlayerDataEventHandler.syncPlayerData(player, data);
+                // 每玩家每日限购 1 —— 记录已购，下次 getFilteredItemsForPlayer 会把 stock 算成 0
+                if (entry.stock() != Integer.MAX_VALUE) {
+                    ShopStockTracker.recordPurchase(player.getUUID(), payload.shopId(), entry.itemId(), qty);
+                }
+                sendResult(player, true,
+                    com.stardew.craft.player.PlayerStardewDataAPI.getMoney(player),
+                    entry.itemId(), qty, payload.itemIndex());
+                return;
+            }
 
             // Recipe purchases: check if already learned BEFORE deducting money
             if (entry.itemId().startsWith("recipe:")) {

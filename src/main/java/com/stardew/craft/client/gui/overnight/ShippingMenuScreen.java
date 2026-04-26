@@ -263,6 +263,10 @@ public class ShippingMenuScreen extends Screen {
         if (this.siblingScreens != null && !this.siblingScreens.isEmpty()) {
             this.minecraft.setScreen(this.siblingScreens.remove(0));
         } else {
+            // Overnight flow is fully done — tell the server the player just
+            // regained control so any queued wake_up cutscenes can dispatch.
+            net.neoforged.neoforge.network.PacketDistributor.sendToServer(
+                new com.stardew.craft.cutscene.network.PlayerWokeUpPayload());
             super.onClose();
         }
     }

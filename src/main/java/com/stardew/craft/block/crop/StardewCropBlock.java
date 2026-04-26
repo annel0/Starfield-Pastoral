@@ -27,6 +27,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
@@ -112,6 +113,12 @@ public abstract class StardewCropBlock extends Block {
     
     // 作物生长阶段 (0-3, 4个阶段)
     public static final IntegerProperty AGE = IntegerProperty.create("age", 0, 3);
+    /**
+     * 玩家手动放置（例如用成品花右键草地/泥土）的标记：
+     * 只有在 addExtraProperties 中显式注册该属性的作物方块才能用到。
+     * 标记为 true 的方块不吃耕地限制，可以种在泥土/草地/菌丝/苔藓等自然地表上。
+     */
+    public static final BooleanProperty PLACED_BY_PLAYER = BooleanProperty.create("placed_by_player");
     public static final int SEED_PHASE = 0;
     public static final int MAX_AGE = 3;
         private final boolean solidCollision;
@@ -342,15 +349,66 @@ public abstract class StardewCropBlock extends Block {
         @SuppressWarnings("null")
         BlockState belowState = level.getBlockState(belowPos);
         @Nonnull Block block = belowState.getBlock();
-        
+
+        // 双高作物：UPPER 只要求下方是同类作物的 LOWER
+        if (state.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)
+                && state.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.UPPER) {
+            return belowState.getBlock() == this
+                    && belowState.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)
+                    && belowState.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.LOWER;
+        }
+
+        // 玩家放置的花：允许种在泥土类自然地表上
+        if (state.hasProperty(PLACED_BY_PLAYER) && state.getValue(PLACED_BY_PLAYER)) {
+            if (isNaturalSoil(belowState)) {
+                return true;
+            }
+        }
+
         // 检查是否是耕地
         if (block instanceof net.minecraft.world.level.block.FarmBlock) {
             return true;
         }
-        
+
         // 兼容其他模组的耕地
         String blockId = BuiltInRegistries.BLOCK.getKey(block).toString().toLowerCase();
         return blockId.contains("farmland");
+    }
+
+    /**
+     * 是否是“泥土类”自然地表：草方块、泥土、砂土、灰化土、菌丝、黄土、苔藓、湿泥、根泥以及耕地。
+     */
+    public static boolean isNaturalSoil(BlockState belowState) {
+        Block block = belowState.getBlock();
+        if (block instanceof net.minecraft.world.level.block.FarmBlock) {
+            return true;
+        }
+        if (belowState.is(net.minecraft.tags.BlockTags.DIRT)) {
+            return true;
+        }
+        if (belowState.is(Blocks.GRASS_BLOCK)
+                || blockStateIsAny(belowState,
+                        Blocks.DIRT,
+                        Blocks.COARSE_DIRT,
+                        Blocks.ROOTED_DIRT,
+                        Blocks.PODZOL,
+                        Blocks.MYCELIUM,
+                        Blocks.MOSS_BLOCK,
+                        Blocks.MUD,
+                        Blocks.MUDDY_MANGROVE_ROOTS)) {
+            return true;
+        }
+        String id = BuiltInRegistries.BLOCK.getKey(block).toString().toLowerCase();
+        return id.contains("farmland") || id.contains("dirt") || id.contains("grass_block") || id.contains("mycelium");
+    }
+
+    private static boolean blockStateIsAny(BlockState state, Block... blocks) {
+        for (Block b : blocks) {
+            if (state.is(b)) {
+                return true;
+            }
+        }
+        return false;
     }
     
     @SuppressWarnings("null")
@@ -491,15 +549,20 @@ public abstract class StardewCropBlock extends Block {
                     && interactionState.getValue(AGE) == MAX_AGE
                     && isMature(serverLevel, interactionPos, interactionState);
             boolean canGrabHarvest = getHarvestMethod() == HarvestMethod.GRAB;
+            boolean placedByPlayer = interactionState.hasProperty(PLACED_BY_PLAYER)
+                    && interactionState.getValue(PLACED_BY_PLAYER);
             // 如果不是创造模式，生成掉落物并给予经验
             if (mature && canGrabHarvest && !player.isCreative() && player instanceof ServerPlayer serverPlayer) {
                 int farmingLevel = getFarmingLevel(player);
                 int fertilizerLevel = getFertilizerLevel(serverLevel, interactionPos);
                 spawnHarvestDrops(serverLevel, interactionPos, interactionState, level.getRandom(), fertilizerLevel, farmingLevel);
+                spawnHarvestSideProducts(serverLevel, interactionPos, interactionState, level.getRandom(), player, fertilizerLevel, farmingLevel);
 
-                int farmingExp = getHarvestFarmingExperience(interactionState);
-                if (farmingExp > 0) {
-                    PlayerStardewDataAPI.addExperience(serverPlayer, SkillType.FARMING, farmingExp);
+                if (!placedByPlayer) {
+                    int farmingExp = getHarvestFarmingExperience(interactionState);
+                    if (farmingExp > 0) {
+                        PlayerStardewDataAPI.addExperience(serverPlayer, SkillType.FARMING, farmingExp);
+                    }
                 }
             }
         }
@@ -538,7 +601,12 @@ public abstract class StardewCropBlock extends Block {
         // 生成并掉落物品
         spawnHarvestDrops(level, harvestPos, currentState, level.getRandom(), fertilizerLevel, farmingLevel);
 
-        if (player instanceof ServerPlayer serverPlayer && !serverPlayer.isCreative()) {
+        // 副产物（如小麦掉落干草）
+        spawnHarvestSideProducts(level, harvestPos, currentState, level.getRandom(), player, fertilizerLevel, farmingLevel);
+
+        boolean placedByPlayer = currentState.hasProperty(PLACED_BY_PLAYER)
+                && currentState.getValue(PLACED_BY_PLAYER);
+        if (!placedByPlayer && player instanceof ServerPlayer serverPlayer && !serverPlayer.isCreative()) {
             int farmingExp = getHarvestFarmingExperience(currentState);
             if (farmingExp > 0) {
                 PlayerStardewDataAPI.addExperience(serverPlayer, SkillType.FARMING, farmingExp);
@@ -610,18 +678,28 @@ public abstract class StardewCropBlock extends Block {
      */
     @SuppressWarnings("null")
     protected void spawnHarvestDrops(ServerLevel level, BlockPos pos, BlockState state, RandomSource random, int fertilizerLevel, int farmingLevel) {
-        int quality = getHarvestQuality(random, fertilizerLevel, farmingLevel);
-        
-        // 获取收获数量（基础1个）
-        int numToHarvest = getHarvestCount(random, farmingLevel);
-        
+        boolean placedByPlayer = state.hasProperty(PLACED_BY_PLAYER) && state.getValue(PLACED_BY_PLAYER);
+        int quality = placedByPlayer ? QualityHelper.NORMAL : getHarvestQuality(random, fertilizerLevel, farmingLevel);
+
+        // 获取收获数量（玩家放置的花只掉 1 个普通品质，且不受农业等级影响，方便与正常收割的普通品质堆叠）
+        int numToHarvest = placedByPlayer ? 1 : getHarvestCount(random, farmingLevel);
+
         // 创建作物物品
         ItemStack harvestItem = getHarvestItem(quality);
         harvestItem.setCount(numToHarvest);
         harvestItem = applyHarvestItemCustomization(harvestItem, state);
-        
+
         // 掉落物品
         popResource(level, pos, harvestItem);
+    }
+
+    /**
+     * 收割时的副产物（默认无）。例如小麦在 SDV 中有 40% 概率额外掉落 1 份干草。
+     * 默认空实现，子类可按需重写。
+     */
+    @SuppressWarnings({"null", "unused"})
+    protected void spawnHarvestSideProducts(ServerLevel level, BlockPos pos, BlockState state, RandomSource random,
+                                            Player player, int fertilizerLevel, int farmingLevel) {
     }
     
     /**

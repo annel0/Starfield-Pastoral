@@ -10,7 +10,6 @@ import com.stardew.craft.communitycenter.restore.CCAreaRegistry;
 import com.stardew.craft.communitycenter.state.CCStoryFlags;
 import com.stardew.craft.communitycenter.state.CommunityCenterSavedData;
 import com.stardew.craft.item.quality.QualityHelper;
-import com.stardew.craft.mail.MailService;
 import com.stardew.craft.menu.ModMenuTypes;
 import com.stardew.craft.player.PlayerStardewDataAPI;
 import net.minecraft.core.BlockPos;
@@ -43,6 +42,13 @@ public class BundleMenu extends AbstractContainerMenu {
     /** Which area this menu was opened for (0-6). */
     private int areaId;
 
+    /**
+     * Read-only mode — opened from inventory tab's junimo note icon (SDV: JunimoNoteMenu(fromGameMenu=true)).
+     * In read-only mode: cannot deposit, purchase, partial-donate, or receive rewards.
+     * Kept in sync with client via DataSlot.
+     */
+    private boolean readOnly = false;
+
     // ── Partial Donation State (SDV parity: JunimoNoteMenu.partialDonationItem) ──
     // Tracks items deposited partially when player doesn't have enough for the full count.
     // Items are held temporarily until the full required count is reached, then the deposit completes.
@@ -54,18 +60,29 @@ public class BundleMenu extends AbstractContainerMenu {
 
     // ── Client-side constructor (from network) ──
     public BundleMenu(int containerId, Inventory playerInventory) {
-        this(containerId, playerInventory, 1); // default, will be synced via DataSlot
+        this(containerId, playerInventory, 1, false); // default, will be synced via DataSlot
     }
 
     // ── Server-side constructor ──
     public BundleMenu(int containerId, Inventory playerInventory, int areaId) {
+        this(containerId, playerInventory, areaId, false);
+    }
+
+    // ── Server-side constructor (supports read-only viewer from GameMenu) ──
+    public BundleMenu(int containerId, Inventory playerInventory, int areaId, boolean readOnly) {
         super(ModMenuTypes.BUNDLE.get(), containerId);
         this.areaId = areaId;
+        this.readOnly = readOnly;
 
         // Sync areaId to client via DataSlot (automatic S↔C each tick)
         this.addDataSlot(new DataSlot() {
             @Override public int get() { return BundleMenu.this.areaId; }
             @Override public void set(int value) { BundleMenu.this.areaId = value; }
+        });
+        // Sync readOnly as DataSlot (0/1)
+        this.addDataSlot(new DataSlot() {
+            @Override public int get() { return BundleMenu.this.readOnly ? 1 : 0; }
+            @Override public void set(int value) { BundleMenu.this.readOnly = (value != 0); }
         });
 
         // SDV JunimoNoteMenu: InventoryMenu(x+128, y+140, capacity=36, rows=6, hGap=8, vGap=8)
@@ -85,6 +102,19 @@ public class BundleMenu extends AbstractContainerMenu {
 
     public int getAreaId() {
         return areaId;
+    }
+
+    /**
+     * Update the area being viewed (used by the read-only viewer's Next/Back buttons).
+     * Server-authoritative: syncs to client via the areaId DataSlot on broadcastChanges().
+     */
+    public void setAreaId(int newArea) {
+        this.areaId = newArea;
+        this.broadcastChanges();
+    }
+
+    public boolean isReadOnly() {
+        return readOnly;
     }
 
     @Override
@@ -135,6 +165,7 @@ public class BundleMenu extends AbstractContainerMenu {
      */
     public boolean tryDeposit(Player player, int bundleId, int slotIndex, ItemStack stack) {
         if (player.level().isClientSide()) return false;
+        if (readOnly) return false;
 
         BundleDefinition def = BundleDataManager.getBundle(bundleId);
         if (def == null || def.areaId() != this.areaId) return false;
@@ -174,6 +205,7 @@ public class BundleMenu extends AbstractContainerMenu {
      */
     public boolean tryPurchaseVault(Player player, int bundleId) {
         if (player.level().isClientSide()) return false;
+        if (readOnly) return false;
         if (this.areaId != 4) return false;
 
         BundleDefinition def = BundleDataManager.getBundle(bundleId);
@@ -233,39 +265,12 @@ public class BundleMenu extends AbstractContainerMenu {
             CCStoryFlags.addFlag(sp, flag);
         }
 
-        // 发送区域完成邮件通知
-        String mailId = "cc_area_complete_" + areaId;
-        MailService.addMail(sp, mailId);
-
-        // 检查是否全部完成
-        CommunityCenterSavedData data = CommunityCenterSavedData.get();
-        if (data.areAllAreasComplete(sp.getUUID())) {
-            CCStoryFlags.addFlag(sp, CCStoryFlags.CC_IS_COMPLETE);
-        }
-
-        // 启动区域修复过场动画
+        // 复用共享完成逻辑（mail + rewards + greenhouse + cutscene + CC_IS_COMPLETE）
         if (sp.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
-            com.stardew.craft.communitycenter.cutscene.AreaRestoreCutscene.start(serverLevel, areaId, sp.getUUID());
-
-            // 区域修复后祝尼魔卷轴会被移除，自动发放该区域未领取的 bundle 奖励
+            com.stardew.craft.communitycenter.reward.AreaCompletionService.onAreaComplete(
+                sp, areaId, serverLevel, /*jojaPath=*/false);
+            // bundle 特有：未领取奖励自动发放
             deliverUnclaimedRewards(sp, areaId);
-
-            // Pantry (area 0) 完成 → 修复该玩家的温室
-            if (areaId == 0) {
-                com.stardew.craft.greenhouse.GreenhouseManager greenhouse =
-                    com.stardew.craft.greenhouse.GreenhouseManager.get(serverLevel);
-                greenhouse.repairForPlayer(serverLevel, sp.getUUID());
-            }
-
-            // 统一分发本轮新增奖励（ccFishTank=2 淘金, ccBulletin=5 友好度）
-            com.stardew.craft.communitycenter.reward.AreaRewardDispatcher
-                .onAreaComplete(sp, areaId, serverLevel);
-
-            // T3.2: If ALL areas now complete, schedule goodbye dance after restore cutscene
-            if (data.areAllAreasComplete(sp.getUUID())) {
-                // The goodbye dance will be triggered after AreaRestoreCutscene finishes
-                // (handled in AreaRestoreCutscene.advancePhase default case)
-            }
         }
     }
 
@@ -355,6 +360,7 @@ public class BundleMenu extends AbstractContainerMenu {
      * accumulates until full count is reached, then completes the deposit.
      */
     public boolean handlePartialDeposit(ServerPlayer player, int bundleId, int ingredientIndex, int amount, ItemStack carried) {
+        if (readOnly) return false;
         BundleDefinition def = BundleDataManager.getBundle(bundleId);
         if (def == null || def.areaId() != this.areaId || def.isVaultBundle()) return false;
 
@@ -455,6 +461,7 @@ public class BundleMenu extends AbstractContainerMenu {
      * SDV parity: right-click on partial donation slot → retrieve 1 item to cursor.
      */
     public void retrieveOneFromPartial(ServerPlayer player, int bundleId) {
+        if (readOnly) return;
         if (partialDonationItem == null || partialBundleId != bundleId) return;
         if (partialDonationComponents.isEmpty()) return;
 

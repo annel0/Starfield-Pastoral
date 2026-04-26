@@ -1,5 +1,6 @@
 package com.stardew.craft.npc.runtime;
 
+import com.stardew.craft.StardewCraft;
 import com.google.gson.JsonObject;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModMiningDimensions;
@@ -29,6 +30,7 @@ public final class NpcSpawnManager {
     private static final int SPAWN_CHECK_INTERVAL_TICKS = 20;
     private static final int RESPAWN_CONFIRM_MISSES = 10;
     private static final int RESPAWN_COOLDOWN_TICKS = 400;
+    private static final int TRACKED_ENTITY_RECOVERY_MISSES = 30;
     private static final Set<String> FORCE_SPAWN_IDS = java.util.Collections.synchronizedSet(new HashSet<>());
     private static final AABB GLOBAL_NPC_SCAN = new AABB(-3.0E7, -2048.0, -3.0E7, 3.0E7, 4096.0, 3.0E7);
 
@@ -112,6 +114,10 @@ public final class NpcSpawnManager {
             // Mining-dimension NPCs don't live in the main level; skip to avoid
             // getTrackedNpc evicting their tracked UUID.
             if (MINING_DIM_NPC_IDS.contains(npcId)) continue;
+            // 根因修复：没有 schedule 的 NPC 不应被"关服回位"代码挪动 ——
+            // resolveWorldTarget 对无 state 的 NPC 会回落到 sharedSpawn（镇里世界出生点），
+            // 曾把 Morris 这种固定 NPC 甩到 (-221,-18,-34)。
+            if (NpcDataRegistry.schedules().get(npcId) == null) continue;
             StardewNpcEntity npc = getTrackedNpc(level, npcId);
             if (npc == null) continue;
             NpcRuntimeState state = NpcRuntimeDataManager.get(level).states().get(npcId);
@@ -150,6 +156,12 @@ public final class NpcSpawnManager {
         String npcId = canonicalNpcId(npc.getNpcId());
         if (npcId == null || npcId.isBlank()) {
             return true;
+        }
+        // Joja NPCs 完全由 JojaNpcEvents 管理 —— 不进老追踪系统。
+        // 顺带：加载出来的位置若偏离目标 → 立即 snap 到 Joja Mart，断开陈旧 NBT 的权威。
+        if (com.stardew.craft.joja.JojaNpcEvents.isJojaMartNpc(npcId)) {
+            com.stardew.craft.joja.JojaNpcEvents.onJojaNpcJoin(npc, npcId);
+            return false;
         }
 
         UUID tracked = TRACKED_NPC_UUIDS.get(npcId);
@@ -237,6 +249,10 @@ public final class NpcSpawnManager {
             if (MINING_DIM_NPC_IDS.contains(npcId)) {
                 continue;
             }
+            // Skip Joja Mart NPCs — handled by JojaNpcEvents (固定生成，与骆驼商人同套机制)
+            if (com.stardew.craft.joja.JojaNpcEvents.isJojaMartNpc(npcId)) {
+                continue;
+            }
             JsonObject pos = resolveSpawnPos(spawns, npcId, profile.npcId());
 
             double x = 150.0D;
@@ -290,15 +306,14 @@ public final class NpcSpawnManager {
             boolean forced = FORCE_SPAWN_IDS.remove(npcId);
             if (!forced) {
                 // If a tracked UUID still exists for this NPC but the entity wasn't
-                // found above, the entity is almost certainly serialised in an
-                // unloaded chunk — ensureRouteTargetChunkForced (called above) is
-                // reloading it. Do NOT accumulate MISSes / RESPAWN here, otherwise
-                // we create a duplicate prototype that conflicts with the serialised
-                // copy when the chunk reloads (the classic Sandy "flicker" bug).
+                // found above, give it a short grace window for chunk reload.
+                // If it remains unresolved for long enough, treat it as truly
+                // missing and self-heal by clearing the stale tracked UUID.
                 UUID stillTracked = TRACKED_NPC_UUIDS.get(npcId);
                 if (stillTracked != null) {
-                    TRACKED_MISS_COUNTS.put(npcId, 0);
-                    continue;
+                    if (!promoteStaleTrackedNpcToMissing(level, npcId, stillTracked, false)) {
+                        continue;
+                    }
                 }
 
                 int misses = TRACKED_MISS_COUNTS.getOrDefault(npcId, 0) + 1;
@@ -362,6 +377,13 @@ public final class NpcSpawnManager {
                 continue;
             }
 
+            UUID stillTracked = TRACKED_NPC_UUIDS.get(npcId);
+            if (stillTracked != null) {
+                if (!promoteStaleTrackedNpcToMissing(mineLevel, npcId, stillTracked, true)) {
+                    continue;
+                }
+            }
+
             // Check if already loaded
             StardewNpcEntity existing = findLoadedNpcById(mineLevel, npcId, null);
             if (existing != null) {
@@ -411,6 +433,10 @@ public final class NpcSpawnManager {
             }
             String id = entity.getNpcId();
             String canonicalId = canonicalNpcId(id);
+            // Joja NPCs 完全由 JojaNpcEvents 管理 —— 不入这里的 byId 去重表也不加入 discard 列表。
+            if (com.stardew.craft.joja.JojaNpcEvents.isJojaMartNpc(canonicalId)) {
+                continue;
+            }
             if (canonicalId == null || canonicalId.isBlank() || !implementedIds.contains(canonicalId)) {
                 toDiscard.add(entity);
                 continue;
@@ -442,6 +468,11 @@ public final class NpcSpawnManager {
                 continue;
             }
             String id = canonicalNpcId(entity.getNpcId());
+            // Joja Mart NPCs are managed exclusively by JojaNpcEvents (骆驼商人同款独立生命周期)。
+            // 不要让通用 sweep 碰它们 —— 否则 profile 尚未加载时会被当作 "unknown" 清掉。
+            if (com.stardew.craft.joja.JojaNpcEvents.isJojaMartNpc(id)) {
+                continue;
+            }
             if (id == null || id.isBlank() || !implementedIds.contains(id)) {
                 discardWithReason(entity, "sweep_unknown_or_unimplemented");
                 continue;
@@ -637,6 +668,33 @@ public final class NpcSpawnManager {
         return result.isEmpty() ? null : result;
     }
 
+    private static boolean promoteStaleTrackedNpcToMissing(ServerLevel level,
+                                                           String npcId,
+                                                           UUID trackedUuid,
+                                                           boolean miningDimension) {
+        int unresolvedMisses = TRACKED_MISS_COUNTS.getOrDefault(npcId, 0) + 1;
+        TRACKED_MISS_COUNTS.put(npcId, unresolvedMisses);
+        if (unresolvedMisses < TRACKED_ENTITY_RECOVERY_MISSES) {
+            return false;
+        }
+
+        Long lastSpawn = LAST_SPAWN_GAME_TIME.get(npcId);
+        long now = level.getGameTime();
+        if (lastSpawn != null && (now - lastSpawn) < RESPAWN_COOLDOWN_TICKS) {
+            return false;
+        }
+
+        TRACKED_NPC_UUIDS.remove(npcId, trackedUuid);
+        StardewCraft.LOGGER.warn(
+            "[NPC_SPAWN] Recovering stale tracked NPC {} in {} after {} unresolved checks (tracked UUID: {})",
+            npcId,
+            miningDimension ? "mining" : "valley",
+            unresolvedMisses,
+            trackedUuid
+        );
+        return true;
+    }
+
     private static void ensureServerContext(ServerLevel level) {
         MinecraftServer server = level.getServer();
         if (activeServer == server) {
@@ -670,6 +728,10 @@ public final class NpcSpawnManager {
         String id = canonicalNpcId(npc.getNpcId());
         if (id == null || id.isBlank()) {
             return false;
+        }
+        // Joja NPCs 由 JojaNpcEvents 独立管理（不进 TRACKED_NPC_UUIDS）—— 始终视为官方实例。
+        if (com.stardew.craft.joja.JojaNpcEvents.isJojaMartNpc(id)) {
+            return true;
         }
         UUID tracked = TRACKED_NPC_UUIDS.get(id);
         if (tracked == null) {

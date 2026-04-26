@@ -106,8 +106,9 @@
         "#stardewcraft:is_beach"
       ],
       "seasons": [
-        "spring",
         "fall",
+        "spring",
+        "summer",
         "winter"
       ],
       "timeRanges": [
@@ -251,8 +252,9 @@
         "#stardewcraft:is_beach"
       ],
       "seasons": [
+        "fall",
         "summer",
-        "fall"
+        "winter"
       ],
       "weather": "rainy",
       "timeRanges": [
@@ -338,7 +340,7 @@
       ],
       "seasons": [
         "summer",
-        "fall"
+        "winter"
       ],
       "timeRanges": [
         [
@@ -503,7 +505,13 @@
       "weather": "any",
       "maxDepth": 1,
       "spawnRate": 0.45,
-      "depthMultiplier": 0.1
+      "depthMultiplier": 0.1,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "sunfish",
@@ -551,8 +559,9 @@
         "#stardewcraft:is_forest_river"
       ],
       "seasons": [
+        "fall",
         "spring",
-        "fall"
+        "winter"
       ],
       "weather": "rainy",
       "timeRanges": [
@@ -613,6 +622,8 @@
       ],
       "seasons": [
         "fall",
+        "spring",
+        "summer",
         "winter"
       ],
       "timeRanges": [
@@ -890,7 +901,13 @@
       "weather": "any",
       "maxDepth": 3,
       "spawnRate": 0.4,
-      "depthMultiplier": 0.2
+      "depthMultiplier": 0.2,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "bullhead",
@@ -914,7 +931,13 @@
       "weather": "any",
       "maxDepth": 2,
       "spawnRate": 0.35,
-      "depthMultiplier": 0.2
+      "depthMultiplier": 0.2,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "carp",
@@ -940,7 +963,12 @@
       "weather": "any",
       "maxDepth": 1,
       "spawnRate": 0.45,
-      "depthMultiplier": 0.1
+      "depthMultiplier": 0.1,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall"
+      ]
     },
     {
       "id": "chub",
@@ -965,7 +993,13 @@
       "weather": "any",
       "maxDepth": 1,
       "spawnRate": 0.45,
-      "depthMultiplier": 0.1
+      "depthMultiplier": 0.1,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "sturgeon",
@@ -1049,7 +1083,13 @@
       "weather": "any",
       "maxDepth": 3,
       "spawnRate": 0.2,
-      "depthMultiplier": 0.1
+      "depthMultiplier": 0.1,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "catfish_secret_woods",
@@ -1065,8 +1105,9 @@
         "#stardewcraft:is_secret_woods"
       ],
       "seasons": [
+        "fall",
         "spring",
-        "summer"
+        "winter"
       ],
       "weather": "rainy",
       "timeRanges": [
@@ -1105,7 +1146,13 @@
       "weather": "any",
       "maxDepth": 2,
       "spawnRate": 0.3,
-      "depthMultiplier": 0.3
+      "depthMultiplier": 0.3,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "stonefish",
@@ -1129,7 +1176,13 @@
       "weather": "any",
       "maxDepth": 2,
       "spawnRate": 0.1,
-      "depthMultiplier": 0.1
+      "depthMultiplier": 0.1,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "ice_pip",
@@ -1153,7 +1206,13 @@
       "weather": "any",
       "maxDepth": 2,
       "spawnRate": 0.05,
-      "depthMultiplier": 0.1
+      "depthMultiplier": 0.1,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "lava_eel",
@@ -1178,7 +1237,13 @@
       "weather": "any",
       "maxDepth": 2,
       "spawnRate": 0.05,
-      "depthMultiplier": 0.1
+      "depthMultiplier": 0.1,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "comment": "========== 沙漠 (Desert) =========="
@@ -1205,7 +1270,13 @@
       "weather": "any",
       "maxDepth": 1,
       "spawnRate": 0.65,
-      "depthMultiplier": 0.1
+      "depthMultiplier": 0.1,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "scorpion_carp",
@@ -1229,7 +1300,13 @@
       "weather": "any",
       "maxDepth": 2,
       "spawnRate": 0.15,
-      "depthMultiplier": 0.1
+      "depthMultiplier": 0.1,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "comment": "========== 下水道 (Sewers) =========="
@@ -1256,7 +1333,12 @@
       "weather": "any",
       "maxDepth": 1,
       "spawnRate": 0.45,
-      "depthMultiplier": 0.1
+      "depthMultiplier": 0.1,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall"
+      ]
     },
     {
       "id": "mutant_carp",
@@ -1281,7 +1363,13 @@
       "weather": "any",
       "maxDepth": 5,
       "spawnRate": 0.0,
-      "depthMultiplier": 0.02
+      "depthMultiplier": 0.02,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "comment": "========== 变异虫穴 (Mutant Bug Lair) =========="
@@ -1308,7 +1396,13 @@
       "weather": "any",
       "maxDepth": 3,
       "spawnRate": 0.4,
-      "depthMultiplier": 0.1
+      "depthMultiplier": 0.1,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "comment": "========== 女巫沼泽 (Witch's Swamp) =========="
@@ -1335,7 +1429,13 @@
       "weather": "any",
       "maxDepth": 2,
       "spawnRate": 0.33,
-      "depthMultiplier": 0.1
+      "depthMultiplier": 0.1,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "catfish_witch_swamp",
@@ -1359,7 +1459,12 @@
       "weather": "rainy",
       "maxDepth": 4,
       "spawnRate": 0.4,
-      "depthMultiplier": 0.1
+      "depthMultiplier": 0.1,
+      "seasons": [
+        "spring",
+        "fall",
+        "winter"
+      ]
     },
     {
       "comment": "========== 夜市潜水艇 (Night Market Submarine) =========="
@@ -1386,7 +1491,13 @@
       "weather": "any",
       "maxDepth": 3,
       "spawnRate": 0.4,
-      "depthMultiplier": 0.1
+      "depthMultiplier": 0.1,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "spook_fish",
@@ -1410,7 +1521,13 @@
       "weather": "any",
       "maxDepth": 3,
       "spawnRate": 0.4,
-      "depthMultiplier": 0.1
+      "depthMultiplier": 0.1,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "blobfish",
@@ -1434,7 +1551,13 @@
       "weather": "any",
       "maxDepth": 3,
       "spawnRate": 0.4,
-      "depthMultiplier": 0.1
+      "depthMultiplier": 0.1,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "comment": "========== 姜岛 (Ginger Island) =========="
@@ -1461,7 +1584,13 @@
       "weather": "any",
       "maxDepth": 3,
       "spawnRate": 0.4,
-      "depthMultiplier": 0.1
+      "depthMultiplier": 0.1,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "blue_discus",
@@ -1486,7 +1615,13 @@
       "weather": "any",
       "maxDepth": 1,
       "spawnRate": 0.25,
-      "depthMultiplier": 0.1
+      "depthMultiplier": 0.1,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "stingray",
@@ -1510,7 +1645,13 @@
       "weather": "any",
       "maxDepth": 4,
       "spawnRate": 0.2,
-      "depthMultiplier": 0.1
+      "depthMultiplier": 0.1,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "comment": "========== 传说鱼 (Legendary Fish) =========="
@@ -1652,7 +1793,12 @@
       "weather": "any",
       "maxDepth": 1,
       "spawnRate": 0.25,
-      "depthMultiplier": 0.2
+      "depthMultiplier": 0.2,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall"
+      ]
     },
     {
       "id": "salmon_waterfall",
@@ -1708,7 +1854,13 @@
       "weather": "any",
       "maxDepth": 0,
       "spawnRate": 0.3,
-      "depthMultiplier": 0.0
+      "depthMultiplier": 0.0,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "green_algae",
@@ -1730,7 +1882,13 @@
       "weather": "any",
       "maxDepth": 0,
       "spawnRate": 0.3,
-      "depthMultiplier": 0.0
+      "depthMultiplier": 0.0,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "white_algae",
@@ -1760,7 +1918,13 @@
       "weather": "any",
       "maxDepth": 0,
       "spawnRate": 0.3,
-      "depthMultiplier": 0.0
+      "depthMultiplier": 0.0,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "sea_jelly",

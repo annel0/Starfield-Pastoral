@@ -20,11 +20,15 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Client -> server request for V-menu social tab friendship data.
  */
 public record RequestNpcFriendshipOverviewPayload() implements CustomPacketPayload {
+    /** NPCs that exist as world entities but do NOT appear in the social overview / friendship list. */
+    private static final Set<String> NON_SOCIAL_NPCS = Set.of("morris", "joja_cashier");
+
     @SuppressWarnings("null")
     public static final Type<RequestNpcFriendshipOverviewPayload> TYPE =
         new Type<>(ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "request_npc_friendship_overview"));
@@ -62,8 +66,10 @@ public record RequestNpcFriendshipOverviewPayload() implements CustomPacketPaylo
         }
 
         int dayKey = currentDayKey();
+        int weekKey = currentWeekKey(dayKey);
         NpcFriendshipDataManager friendshipManager = NpcFriendshipDataManager.get(serverLevel);
         Map<String, NpcCapabilityProfile> capabilities = NpcDataRegistry.capabilities();
+        boolean normalizedAnyWeek = false;
 
         List<SyncNpcFriendshipOverviewPayload.Entry> rows = new ArrayList<>();
         for (NpcCapabilityProfile profile : capabilities.values()) {
@@ -74,8 +80,15 @@ public record RequestNpcFriendshipOverviewPayload() implements CustomPacketPaylo
             if (npcId == null || npcId.isBlank()) {
                 continue;
             }
+            if (NON_SOCIAL_NPCS.contains(npcId.toLowerCase(Locale.ROOT))) {
+                continue;
+            }
 
             NpcFriendshipDataManager.FriendshipState state = friendshipManager.getOrCreate(player.getUUID(), npcId);
+            if (state.lastGiftWeekKey() != weekKey) {
+                state.normalizeGiftWeek(weekKey);
+                normalizedAnyWeek = true;
+            }
             int points = Math.max(0, state.points());
             int hearts = Math.max(0, Math.min(14, points / 250));
             int gifts = Math.max(0, Math.min(2, state.giftsThisWeek()));
@@ -90,6 +103,9 @@ public record RequestNpcFriendshipOverviewPayload() implements CustomPacketPaylo
             .thenComparingInt(SyncNpcFriendshipOverviewPayload.Entry::metOrder)
             .thenComparing(entry -> displayNameForSort(entry.npcId()))
             .thenComparing(SyncNpcFriendshipOverviewPayload.Entry::npcId));
+        if (normalizedAnyWeek) {
+            friendshipManager.setDirty();
+        }
         PacketDistributor.sendToPlayer(player, new SyncNpcFriendshipOverviewPayload(rows));
     }
 
@@ -117,5 +133,9 @@ public record RequestNpcFriendshipOverviewPayload() implements CustomPacketPaylo
     private static int currentDayKey() {
         StardewTimeManager tm = StardewTimeManager.get();
         return (tm.getCurrentYear() - 1) * 112 + tm.getCurrentSeason() * 28 + tm.getCurrentDay();
+    }
+
+    private static int currentWeekKey(int dayKey) {
+        return dayKey / 7;
     }
 }

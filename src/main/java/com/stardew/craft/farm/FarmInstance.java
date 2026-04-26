@@ -28,6 +28,8 @@ public class FarmInstance {
     private int lastOnlineSeason;
     /** 跨季宽限剩余天数。>0 时该农场的过季作物不会枯死。 */
     private int graceDaysLeft;
+    /** 洞穴类型选择（对齐 SDV Farmer.caveChoice） */
+    private FarmCaveChoice caveChoice = FarmCaveChoice.NONE;
     /** 农场成员 UUID 列表（不含 owner，最多 3 人，加上 owner 共 4 人） */
     private final List<UUID> members = new ArrayList<>();
 
@@ -59,6 +61,7 @@ public class FarmInstance {
     public int getLastOnlineDay() { return lastOnlineDay; }
     public int getLastOnlineSeason() { return lastOnlineSeason; }
     public int getGraceDaysLeft() { return graceDaysLeft; }
+    public FarmCaveChoice getCaveChoice() { return caveChoice; }
     /** 获取成员列表（只读，不含 owner） */
     public List<UUID> getMembers() { return Collections.unmodifiableList(members); }
 
@@ -89,6 +92,7 @@ public class FarmInstance {
     public void setLastOnlineSeason(int season) { this.lastOnlineSeason = season; }
     public void setGraceDaysLeft(int days) { this.graceDaysLeft = days; }
     public void setCreatedTimestamp(long ts) { this.createdTimestamp = ts; }
+    public void setCaveChoice(FarmCaveChoice choice) { this.caveChoice = (choice == null ? FarmCaveChoice.NONE : choice); }
 
     /** 添加成员。返回 false 如果已满或已存在。 */
     public boolean addMember(UUID uuid) {
@@ -200,6 +204,7 @@ public class FarmInstance {
         tag.putInt("LastOnlineDay", lastOnlineDay);
         tag.putInt("LastOnlineSeason", lastOnlineSeason);
         tag.putInt("GraceDaysLeft", graceDaysLeft);
+        tag.putString("CaveChoice", caveChoice.getName());
         // 成员列表
         if (!members.isEmpty()) {
             ListTag memberList = new ListTag();
@@ -227,6 +232,12 @@ public class FarmInstance {
         instance.lastOnlineDay = tag.getInt("LastOnlineDay");
         instance.lastOnlineSeason = tag.getInt("LastOnlineSeason");
         instance.graceDaysLeft = tag.getInt("GraceDaysLeft");
+        if (tag.contains("CaveChoice", Tag.TAG_STRING)) {
+            FarmCaveChoice parsed = FarmCaveChoice.fromName(tag.getString("CaveChoice"));
+            instance.caveChoice = parsed != null ? parsed : FarmCaveChoice.NONE;
+        } else {
+            instance.caveChoice = FarmCaveChoice.NONE;
+        }
         // 加载成员列表
         if (tag.contains("Members", Tag.TAG_LIST)) {
             ListTag memberList = tag.getList("Members", Tag.TAG_COMPOUND);

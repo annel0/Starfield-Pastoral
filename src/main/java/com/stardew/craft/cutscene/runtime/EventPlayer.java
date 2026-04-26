@@ -65,8 +65,10 @@ public final class EventPlayer {
         currentEvent = event;
         skippable = event.skippable();
 
-        // Anchor registry is per-event; clear any leftover entries.
-        CutsceneAnchorRegistry.clear();
+        // NOTE: Do NOT clear the anchor registry here.
+        // Server-pushed anchors (e.g. farm_spawn for wake_up events) arrive BEFORE
+        // the TriggerEventPayload, so wiping at start would discard them. Anchors
+        // are cleared at event end / abort instead (see finish() / abort()).
 
         // Parse commands
         List<EventCommand> parsed = new ArrayList<>();

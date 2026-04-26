@@ -45,6 +45,15 @@ mezz/
 net/
 software/
 .claude/settings.local.json
+.vscode/
+resourcepack-template/
+scripts/
+tools/
+ui_spec/
+wiki/
+stardewcraft-template-1.21.1.sln
+AGENTS.md
+CLAUDE.md
 
 # macOS
 .DS_Store

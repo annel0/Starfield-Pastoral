@@ -213,6 +213,7 @@ public final class PortalHintRenderer {
             String targetId = entry.getKey();
             double[] b = entry.getValue();
             boolean isEnter = "greenhouse_enter".equals(targetId)
+                    || "farm_cave_enter".equals(targetId)
                     || "quarry_entrance".equals(targetId)
                     || "desert_bus".equals(targetId)
                     || "desert_bus_return".equals(targetId);
@@ -225,6 +226,8 @@ public final class PortalHintRenderer {
                 locKey = "desert";
             } else if ("desert_bus_return".equals(targetId)) {
                 locKey = "pelican_town";
+            } else if ("farm_cave_enter".equals(targetId) || "farm_cave_exit".equals(targetId)) {
+                locKey = "farm_cave";
             } else {
                 locKey = "greenhouse";
             }
@@ -261,6 +264,8 @@ public final class PortalHintRenderer {
                 || "desert_bus_return".equals(targetId)
                 || "greenhouse_enter".equals(targetId)
                 || "greenhouse_exit".equals(targetId)
+                || "farm_cave_enter".equals(targetId)
+                || "farm_cave_exit".equals(targetId)
                 || "quarry_entrance".equals(targetId)
                 || "quarry_exit".equals(targetId)
                 || "desert_bus".equals(targetId);

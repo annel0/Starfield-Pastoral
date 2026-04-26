@@ -75,6 +75,31 @@ public class SunflowerCropBlock extends StardewCropBlock {
         return stack;
     }
 
+    /**
+     * SDV 原版：向日葵收获时除了花朵，还会额外掉 0-2 颗向日葵种子。
+     * 参见 Data/Crops.xnb 中 sunflower 的 HarvestItems：
+     *   - 1× Sunflower (421)
+     *   - 0-2× Sunflower Seeds (431)，每颗独立 50% 概率
+     */
+    @SuppressWarnings("null")
+    @Override
+    protected void spawnHarvestDrops(ServerLevel level, BlockPos pos, BlockState state,
+                                     net.minecraft.util.RandomSource random,
+                                     int fertilizerLevel, int farmingLevel) {
+        super.spawnHarvestDrops(level, pos, state, random, fertilizerLevel, farmingLevel);
+
+        int seedCount = 0;
+        for (int i = 0; i < 2; i++) {
+            if (random.nextFloat() < 0.5f) {
+                seedCount++;
+            }
+        }
+        if (seedCount > 0) {
+            ItemStack seeds = new ItemStack(ModItems.SUNFLOWER_SEEDS.get(), seedCount);
+            net.minecraft.world.level.block.Block.popResource(level, pos, seeds);
+        }
+    }
+
     @Override
     protected boolean canRegrow() {
         return false;
@@ -98,6 +123,7 @@ public class SunflowerCropBlock extends StardewCropBlock {
     @Override
     protected void addExtraProperties(StateDefinition.Builder<net.minecraft.world.level.block.Block, BlockState> builder) {
         builder.add(HALF);
+        builder.add(PLACED_BY_PLAYER);
     }
 
     @Override
@@ -136,6 +162,13 @@ public class SunflowerCropBlock extends StardewCropBlock {
         if (!farmland) {
             String blockId = below.getBlock().builtInRegistryHolder().key().location().toString().toLowerCase();
             farmland = blockId.contains("farmland");
+        }
+        // 玩家手动放置的成品花：允许種在泥土/草方块/菌丝等自然地表上
+        if (!farmland
+                && state.hasProperty(StardewCropBlock.PLACED_BY_PLAYER)
+                && state.getValue(StardewCropBlock.PLACED_BY_PLAYER)
+                && StardewCropBlock.isNaturalSoil(below)) {
+            farmland = true;
         }
         if (!farmland) return false;
         BlockState above = level.getBlockState(pos.above());

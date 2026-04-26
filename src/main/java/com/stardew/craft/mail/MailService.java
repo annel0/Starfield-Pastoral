@@ -46,6 +46,23 @@ public class MailService {
     }
 
     /**
+     * 安排标志位于次日生效（SDV {@code addMailForTomorrow(noLetter: true)} 对等）。
+     * flush 时直接进 mailFlags —— 不产生可读信件。队列记录 queue 时的 absoluteDay，
+     * 之后 currentDay &gt; queuedDay 才会 flush（多人跨日登录安全）。
+     */
+    public static void addMailFlagForTomorrow(ServerPlayer player, String flag) {
+        PlayerStardewData data = PlayerDataManager.getPlayerData(player);
+        if (data.hasMailFlag(flag)) return;
+        int today = com.stardew.craft.time.StardewTimeManager.get().getAbsoluteDay();
+        data.addMailFlagForTomorrow(flag, today);
+    }
+
+    /** 是否已在明天生效的标志位队列里（尚未 flush）。 */
+    public static boolean hasMailFlagForTomorrow(ServerPlayer player, String flag) {
+        return PlayerDataManager.getPlayerData(player).hasMailFlagForTomorrow(flag);
+    }
+
+    /**
      * 检查玩家是否已经收过、正在信箱中、或已安排明天投递此邮件。
      */
     public static boolean hasOrWillReceiveMail(ServerPlayer player, String mailId) {
@@ -148,12 +165,61 @@ public class MailService {
     /**
      * 夜间结算：将所有玩家的 mailForTomorrow 移入 mailbox。
      * 应在新一天开始时调用。
+     *
+     * <p>额外：对刚 flush 的 {@code ccXxx} flag（由 Joja CD form 次日生效）
+     * 触发 {@link com.stardew.craft.communitycenter.reward.AreaCompletionService}，
+     * 让温室、鱼塘淘金、公告板奖励等和 CC 路径一样生效。
      */
     public static void deliverAllTomorrowMail(net.minecraft.server.MinecraftServer server) {
+        int today = com.stardew.craft.time.StardewTimeManager.get().getAbsoluteDay();
         PlayerDataManager manager = PlayerDataManager.get();
+        net.minecraft.server.level.ServerLevel stardewLevel =
+            server.getLevel(com.stardew.craft.core.ModDimensions.STARDEW_VALLEY);
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             PlayerStardewData data = manager.getOrCreateData(player.getUUID());
-            data.deliverTomorrowMail();
+            java.util.List<String> flushed = data.deliverTomorrowMail(today);
+            dispatchFlushedFlags(player, stardewLevel, flushed);
         }
+    }
+
+    /**
+     * 单个玩家登录时调用 —— 对跨日离线玩家补 flush。
+     * 如果没到期就什么也不做。
+     */
+    public static void flushOnLogin(ServerPlayer player) {
+        int today = com.stardew.craft.time.StardewTimeManager.get().getAbsoluteDay();
+        PlayerStardewData data = PlayerDataManager.getPlayerData(player);
+        java.util.List<String> flushed = data.deliverTomorrowMail(today);
+        if (flushed.isEmpty()) return;
+        net.minecraft.server.level.ServerLevel stardewLevel =
+            player.getServer() == null ? null
+            : player.getServer().getLevel(com.stardew.craft.core.ModDimensions.STARDEW_VALLEY);
+        dispatchFlushedFlags(player, stardewLevel, flushed);
+    }
+
+    private static void dispatchFlushedFlags(ServerPlayer player,
+                                             net.minecraft.server.level.ServerLevel stardewLevel,
+                                             java.util.List<String> flushed) {
+        if (stardewLevel == null || flushed.isEmpty()) return;
+        for (String flag : flushed) {
+            int areaId = ccFlagToAreaId(flag);
+            if (areaId >= 0) {
+                com.stardew.craft.communitycenter.reward.AreaCompletionService.onAreaComplete(
+                    player, areaId, stardewLevel, /*jojaPath=*/true);
+            }
+        }
+    }
+
+    private static int ccFlagToAreaId(String flag) {
+        if (flag == null) return -1;
+        return switch (flag) {
+            case "ccPantry"     -> 0;
+            case "ccCraftsRoom" -> 1;
+            case "ccFishTank"   -> 2;
+            case "ccBoilerRoom" -> 3;
+            case "ccVault"      -> 4;
+            case "ccBulletin"   -> 5;
+            default -> -1;
+        };
     }
 }

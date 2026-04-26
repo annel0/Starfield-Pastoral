@@ -148,6 +148,13 @@ public class ShopScreen extends Screen {
      */
     private String resolveItemName(ShopItemEntry entry) {
         String itemId = entry.itemId();
+        // Decoration unlock entries: "壁纸 #42" / "Wallpaper #42" etc.
+        if (itemId.startsWith("wallpaper:") || itemId.startsWith("flooring:")) {
+            boolean isWp = itemId.startsWith("wallpaper:");
+            String styleId = itemId.substring(isWp ? "wallpaper:".length() : "flooring:".length());
+            String typeKey = isWp ? "stardewcraft.shop.wallpaper_unlock" : "stardewcraft.shop.flooring_unlock";
+            return net.minecraft.client.resources.language.I18n.get(typeKey) + " #" + styleId;
+        }
         boolean isRecipe = itemId.startsWith("recipe:");
         if (isRecipe) itemId = itemId.substring("recipe:".length());
         ItemStack stack = resolveStack(itemId);
@@ -649,6 +656,11 @@ public class ShopScreen extends Screen {
 
     private void drawItemIconAt(GuiGraphics g, String itemId,
                                  int x, int y, float s4, float alpha, boolean isRecipe) {
+        // Decoration unlock entries: draw style sample sprite from DecorationStyleRegistry
+        if (itemId.startsWith("wallpaper:") || itemId.startsWith("flooring:")) {
+            drawDecorationStyleIcon(g, itemId, x, y, alpha);
+            return;
+        }
         // Strip recipe: prefix so the dish icon is displayed
         if (itemId.startsWith("recipe:")) itemId = itemId.substring("recipe:".length());
         try {
@@ -682,6 +694,45 @@ public class ShopScreen extends Screen {
                 if (alpha < 1f) g.setColor(1f, 1f, 1f, 1f);
             }
         } catch (Exception ignored) {}
+    }
+
+    /**
+     * Renders a wallpaper/flooring style icon in the shop icon slot — 1:1 同
+     * {@link com.stardew.craft.client.gui.DecorationSelectionScreen} 的"小图标"画法：
+     * 外层从 mouse_cursors2 采样容器框 (39,31,16,16) / (55,31,16,16)，内层从
+     * walls_and_floors 采样小预览（壁纸 8×14 / 地板 14×13），居中叠在框内。
+     */
+    private static final ResourceLocation MOUSE_CURSORS_2 = ResourceLocation.fromNamespaceAndPath(
+        StardewCraft.MODID, "textures/gui/mouse_cursors2.png");
+
+    private void drawDecorationStyleIcon(GuiGraphics g, String itemId, int x, int y, float alpha) {
+        boolean isWp = itemId.startsWith("wallpaper:");
+        String styleId = itemId.substring(isWp ? "wallpaper:".length() : "flooring:".length());
+        com.stardew.craft.deco.DecorationType type = isWp
+            ? com.stardew.craft.deco.DecorationType.WALLPAPER
+            : com.stardew.craft.deco.DecorationType.FLOORING;
+        com.stardew.craft.deco.DecorationStyle style =
+            com.stardew.craft.deco.DecorationStyleRegistry.getStyle(type, styleId);
+        if (style == null) return;
+
+        g.setColor(1.0f, 1.0f, 1.0f, alpha);
+
+        // 1) 容器框（mouse_cursors2 里 16×16 的小框）
+        int frameSrcX = isWp ? 39 : 55;
+        int frameSrcY = 31;
+        g.blit(MOUSE_CURSORS_2, x, y, 16, 16, frameSrcX, frameSrcY, 16, 16, 256, 320);
+
+        // 2) 内层预览贴图（壁纸 8×14 / 地板 14×13，居中）
+        int innerW = isWp ? 8 : 14;
+        int innerH = isWp ? 14 : 13;
+        int innerX = x + (16 - innerW) / 2;
+        int innerY = y + 1;
+        g.blit(style.texture(), innerX, innerY, innerW, innerH,
+            style.sourceX(), style.sourceY(),
+            style.sourceWidth(), style.sourceHeight(),
+            style.texWidth(), style.texHeight());
+
+        g.setColor(1.0f, 1.0f, 1.0f, 1.0f);
     }
 
     private void drawBuyTooltip(GuiGraphics g, int mx, int my, ShopItemEntry item) {
@@ -917,7 +968,7 @@ public class ShopScreen extends Screen {
         if (!repeating) {
             playSound(ModSounds.PURCHASE_CLICK.get());
         }
-        PacketDistributor.sendToServer(new ShopPurchasePayload(shopId,itemIdx,qty));
+        PacketDistributor.sendToServer(new ShopPurchasePayload(shopId, itemIdx, item.itemId(), qty));
     }
 
     // =========================================================================

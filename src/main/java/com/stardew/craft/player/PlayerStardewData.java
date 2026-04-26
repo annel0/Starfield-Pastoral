@@ -128,6 +128,10 @@ public class PlayerStardewData {
     private final List<String> mailbox = new ArrayList<>();
     // mailForTomorrow: 明天投递的邮件ID队列（SDV Farmer.mailForTomorrow）
     private final List<String> mailForTomorrow = new ArrayList<>();
+    // mailFlagsForTomorrow: 次日生效的标志位队列（SDV noLetter: true 等价）。
+    // Key = flag id，Value = queuedOnAbsoluteDay。flush 条件：currentDay > queuedOnAbsoluteDay。
+    // 这样离线玩家跨日登录时也能按各自 queued 日正确判定是否该 flush（多人服务器安全）。
+    private final java.util.LinkedHashMap<String, Integer> mailFlagsForTomorrow = new java.util.LinkedHashMap<>();
 
     // ============ 任务系统 ============
     private final QuestManager questManager = new QuestManager();
@@ -454,6 +458,14 @@ public class PlayerStardewData {
                 if (!mid.isBlank()) data.mailForTomorrow.add(mid);
             }
         }
+        if (tag.contains("MailFlagsForTomorrow", 10)) {
+            CompoundTag mfftTag = tag.getCompound("MailFlagsForTomorrow");
+            for (String flag : mfftTag.getAllKeys()) {
+                if (!flag.isBlank()) {
+                    data.mailFlagsForTomorrow.put(flag, mfftTag.getInt(flag));
+                }
+            }
+        }
 
         // 怪物讨伐击杀计数
         if (tag.contains("MonsterKillCounts", 10)) { // 10 = TAG_Compound
@@ -718,6 +730,13 @@ public class PlayerStardewData {
                 mftList.add(StringTag.valueOf(mid));
             }
             tag.put("MailForTomorrow", mftList);
+        }
+        if (!mailFlagsForTomorrow.isEmpty()) {
+            CompoundTag mfftTag = new CompoundTag();
+            for (java.util.Map.Entry<String, Integer> entry : mailFlagsForTomorrow.entrySet()) {
+                mfftTag.putInt(entry.getKey(), entry.getValue());
+            }
+            tag.put("MailFlagsForTomorrow", mfftTag);
         }
 
         // 怪物讨伐击杀计数
@@ -1490,17 +1509,58 @@ public class PlayerStardewData {
         }
     }
     /**
-     * 夜间结算时调用：把 mailForTomorrow 全部移入 mailbox。
+     * 夜间结算 / 玩家登录时调用：
+     * - mailForTomorrow     → mailbox（可读信件） —— 全部 flush（原逻辑，不含日期判断）
+     * - mailFlagsForTomorrow → mailFlags —— 只 flush queuedDay &lt; currentAbsoluteDay 的项
+     *
+     * <p>多人服务器语义：每个 flag 记录 queue 时的 day；currentDay 大于它才生效。
+     * 离线玩家跨日登录时也能正确补 flush。
+     *
+     * @param currentAbsoluteDay 当前服务器 {@link com.stardew.craft.time.StardewTimeManager#getAbsoluteDay()}
+     * @return 本次新 flush 进 mailFlags 的 flag 清单
      */
-    public void deliverTomorrowMail() {
-        if (mailForTomorrow.isEmpty()) return;
-        for (String mid : mailForTomorrow) {
-            if (!mailbox.contains(mid)) {
-                mailbox.add(mid);
+    public java.util.List<String> deliverTomorrowMail(int currentAbsoluteDay) {
+        java.util.List<String> flushedFlags = java.util.Collections.emptyList();
+        boolean dirty = false;
+        if (!mailForTomorrow.isEmpty()) {
+            for (String mid : mailForTomorrow) {
+                if (!mailbox.contains(mid)) mailbox.add(mid);
+            }
+            mailForTomorrow.clear();
+            dirty = true;
+        }
+        if (!mailFlagsForTomorrow.isEmpty()) {
+            java.util.List<String> due = new ArrayList<>();
+            for (java.util.Map.Entry<String, Integer> e : mailFlagsForTomorrow.entrySet()) {
+                if (currentAbsoluteDay > e.getValue()) due.add(e.getKey());
+            }
+            if (!due.isEmpty()) {
+                for (String flag : due) {
+                    mailFlags.add(flag);
+                    mailFlagsForTomorrow.remove(flag);
+                }
+                flushedFlags = due;
+                dirty = true;
             }
         }
-        mailForTomorrow.clear();
-        markDirty();
+        if (dirty) markDirty();
+        return flushedFlags;
+    }
+
+    // ──── Mail Flags For Tomorrow（SDV addMailForTomorrow + noLetter:true parity）────
+    /** 查询某 flag 是否已排队在明天生效（还没 flush 到 mailFlags）。 */
+    public boolean hasMailFlagForTomorrow(String flag) { return mailFlagsForTomorrow.containsKey(flag); }
+    /**
+     * 次日才生效的标志位：flush 时直接进 mailFlags，不进 mailbox。
+     * @param flag                  flag id
+     * @param currentAbsoluteDay    当前 absoluteDay —— 记录为 queuedDay，flush 条件 currentDay &gt; queuedDay。
+     */
+    public void addMailFlagForTomorrow(String flag, int currentAbsoluteDay) {
+        if (flag == null || flag.isBlank()) return;
+        if (!mailFlagsForTomorrow.containsKey(flag)) {
+            mailFlagsForTomorrow.put(flag, currentAbsoluteDay);
+            markDirty();
+        }
     }
 
     // ──── Monster Slayer (Gil Goals) ────

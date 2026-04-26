@@ -1027,6 +1027,12 @@ public class PacketHandler {
             com.stardew.craft.network.payload.HoldUpItemPayload::handle
         );
 
+        registrar.playToClient(
+            com.stardew.craft.network.payload.GalaxySwordRitualPayload.TYPE,
+            com.stardew.craft.network.payload.GalaxySwordRitualPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.GalaxySwordRitualPayload::handle
+        );
+
         // Totem naming screen (S→C)
         registrar.playToClient(
             com.stardew.craft.network.payload.OpenTotemNamingScreenPayload.TYPE,
@@ -1338,6 +1344,16 @@ public class PacketHandler {
             com.stardew.craft.communitycenter.network.OpenBundleRewardsPayload.STREAM_CODEC,
             com.stardew.craft.communitycenter.network.OpenBundleRewardsPayload::handle
         );
+        registrar.playToServer(
+            com.stardew.craft.communitycenter.network.OpenBundleViewerPayload.TYPE,
+            com.stardew.craft.communitycenter.network.OpenBundleViewerPayload.STREAM_CODEC,
+            com.stardew.craft.communitycenter.network.OpenBundleViewerPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.communitycenter.network.SwitchBundleViewerAreaPayload.TYPE,
+            com.stardew.craft.communitycenter.network.SwitchBundleViewerAreaPayload.STREAM_CODEC,
+            com.stardew.craft.communitycenter.network.SwitchBundleViewerAreaPayload::handle
+        );
 
         // CC Cutscene
         registrar.playToClient(
@@ -1460,6 +1476,32 @@ public class PacketHandler {
             com.stardew.craft.cutscene.network.NotifyCutsceneStartPayload.STREAM_CODEC,
             com.stardew.craft.cutscene.network.NotifyCutsceneStartPayload::handle
         );
+        registrar.playToServer(
+            com.stardew.craft.cutscene.network.PlayerWokeUpPayload.TYPE,
+            com.stardew.craft.cutscene.network.PlayerWokeUpPayload.STREAM_CODEC,
+            com.stardew.craft.cutscene.network.PlayerWokeUpPayload::handle
+        );
 
+        // ── Joja 线 ──
+        registrar.playToClient(
+            com.stardew.craft.joja.network.OpenJojaCDMenuPayload.TYPE,
+            com.stardew.craft.joja.network.OpenJojaCDMenuPayload.STREAM_CODEC,
+            com.stardew.craft.joja.network.OpenJojaCDMenuPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.joja.network.JojaPurchaseResultPayload.TYPE,
+            com.stardew.craft.joja.network.JojaPurchaseResultPayload.STREAM_CODEC,
+            com.stardew.craft.joja.network.JojaPurchaseResultPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.joja.network.JojaPurchasePayload.TYPE,
+            com.stardew.craft.joja.network.JojaPurchasePayload.STREAM_CODEC,
+            com.stardew.craft.joja.network.JojaPurchasePayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.joja.network.CloseJojaCDMenuPayload.TYPE,
+            com.stardew.craft.joja.network.CloseJojaCDMenuPayload.STREAM_CODEC,
+            com.stardew.craft.joja.network.CloseJojaCDMenuPayload::handle
+        );
     }
 }

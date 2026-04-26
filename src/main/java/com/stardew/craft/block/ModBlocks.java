@@ -129,6 +129,25 @@ public class ModBlocks {
         public static final DeferredBlock<Block> FORAGE_MOREL             = forage("morel");
         public static final DeferredBlock<Block> FORAGE_CHANTERELLE       = forage("chanterelle");
         public static final DeferredBlock<Block> FORAGE_MAGMA_CAP         = forage("magma_cap");
+        // Fruit Cave (SDV FarmCave fruit bats spawns)
+        public static final DeferredBlock<Block> FORAGE_SALMONBERRY       = forage("salmonberry");
+        public static final DeferredBlock<Block> FORAGE_APPLE             = forage("apple");
+        public static final DeferredBlock<Block> FORAGE_APRICOT           = forage("apricot");
+        public static final DeferredBlock<Block> FORAGE_ORANGE            = forage("orange");
+        public static final DeferredBlock<Block> FORAGE_PEACH             = forage("peach");
+        public static final DeferredBlock<Block> FORAGE_POMEGRANATE       = forage("pomegranate");
+        public static final DeferredBlock<Block> FORAGE_MANGO             = forage("mango");
+
+        // ---- 农场洞穴：蘑菇培养盆 ----
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> MUSHROOM_BOX = BLOCKS.register("mushroom_box",
+                        () -> new com.stardew.craft.block.farm.MushroomBoxBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .pushReaction(net.minecraft.world.level.material.PushReaction.BLOCK)
+                                        .strength(-1.0F, 3600000.0F)
+                                        .noLootTable()
+                                        .noOcclusion()));
 
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> ANIMAL_PRODUCE_SPOT = BLOCKS.register("animal_produce_spot",
@@ -139,6 +158,78 @@ public class ModBlocks {
                                         .noCollission()
                                         .noOcclusion()
                                         .instabreak()));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> LARGE_STUMP = BLOCKS.register("large_stump",
+                        () -> new com.stardew.craft.block.decor.ResourceClumpBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(5.0F, 6.0F)
+                                        .noLootTable(),
+                                        "stardewcraft:decor/common/large_stump",
+                                        com.stardew.craft.block.decor.ResourceClumpBlock.RequiredTool.AXE,
+                                        1,
+                                        10.0F,
+                                        () -> com.stardew.craft.item.ModItems.WOOD_HARD.get(),
+                                        2,
+                                        () -> com.stardew.craft.item.ModItems.MAHOGANY_SEED.get(),
+                                        1,
+                                        0.1D,
+                                        com.stardew.craft.player.SkillType.FORAGING,
+                                        25,
+                                        -8.0D,
+                                        -5.0D,
+                                        27.0D,
+                                        23.0D,
+                                        23.0D));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> HOLLOW_LOG = BLOCKS.register("hollow_log",
+                        () -> new com.stardew.craft.block.decor.ResourceClumpBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(5.0F, 6.0F)
+                                        .noLootTable(),
+                                        "stardewcraft:decor/common/hollow_log",
+                                        com.stardew.craft.block.decor.ResourceClumpBlock.RequiredTool.AXE,
+                                        2,
+                                        20.0F,
+                                        () -> com.stardew.craft.item.ModItems.WOOD_HARD.get(),
+                                        8,
+                                        () -> com.stardew.craft.item.ModItems.MAHOGANY_SEED.get(),
+                                        1,
+                                        0.1D,
+                                        com.stardew.craft.player.SkillType.FORAGING,
+                                        25,
+                                        -9.0D,
+                                        -10.0D,
+                                        20.0D,
+                                        15.0D,
+                                        30.0D));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> LARGE_BOULDER = BLOCKS.register("large_boulder",
+                        () -> new com.stardew.craft.block.decor.ResourceClumpBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.STONE)
+                                        .sound(net.minecraft.world.level.block.SoundType.STONE)
+                                        .noOcclusion()
+                                        .strength(6.0F, 6.0F)
+                                        .noLootTable(),
+                                        "stardewcraft:decor/common/large_boulder",
+                                        com.stardew.craft.block.decor.ResourceClumpBlock.RequiredTool.PICKAXE,
+                                        2,
+                                        10.0F,
+                                        () -> com.stardew.craft.item.ModItems.STONE.get(),
+                                        15,
+                                        null,
+                                        0,
+                                        -11.0D,
+                                        -11.0D,
+                                        29.0D,
+                                        25.0D,
+                                        32.0D));
 
         // 矿井
         // 说明：生存/冒险不可破坏（硬度 -1），创造模式可正常破坏。
@@ -1725,6 +1816,32 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .strength(1.0F, 1.0F), "stardewcraft:decor/common/supermarket_shelf_2",
                                         0, 0, -16, 16, 25, 32));
 
+        // Joja 超市相关：箱子（单格）、购物车（2 长 1 宽 1 高，硬编码碰撞）、冰柜（默认自适应）
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> JOJA_SUPERMARKET_CRATE = BLOCKS.register("joja_supermarket_crate",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.8F, 1.0F), "stardewcraft:decor/common/joja_supermarket_crate"));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> SUPERMARKET_CART = BLOCKS.register("supermarket_cart",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.METAL)
+                                        .sound(net.minecraft.world.level.block.SoundType.METAL)
+                                        .noOcclusion()
+                                        .strength(0.8F, 1.0F), "stardewcraft:decor/common/supermarket_cart",
+                                        0, 0, 0, 16, 16, 32));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> SUPERMARKET_FREEZER = BLOCKS.register("supermarket_freezer",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.METAL)
+                                        .sound(net.minecraft.world.level.block.SoundType.METAL)
+                                        .noOcclusion()
+                                        .strength(1.0F, 1.0F), "stardewcraft:decor/common/supermarket_freezer"));
+
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> SHOP_SHIPPING_BIN = BLOCKS.register("shop_shipping_bin",
                         () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
@@ -2219,6 +2336,15 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .sound(net.minecraft.world.level.block.SoundType.STONE)
                                         .noOcclusion()
                                         .strength(1.5F, 6.0F), "stardewcraft:geo/block/decor/pillar_1.geo.json"));
+
+                @SuppressWarnings("null")
+                public static final DeferredBlock<Block> GALAXY_PILLAR = BLOCKS.register("galaxy_pillar",
+                                () -> new com.stardew.craft.block.decor.PillarGeoDecorBlock(Block.Properties.of()
+                                                .mapColor(net.minecraft.world.level.material.MapColor.STONE)
+                                                .sound(net.minecraft.world.level.block.SoundType.STONE)
+                                                .noOcclusion()
+                                                .strength(-1.0F, 3600000.0F)
+                                                .noLootTable(), "stardewcraft:geo/block/decor/desert_galaxy_pillar.geo.json"));
 
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> RADIO = BLOCKS.register("radio",
@@ -2733,10 +2859,7 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .noOcclusion()
                                         .strength(2.0F, 6.0F),
                                         com.stardew.craft.block.utility.totem.TotemType.DESERT,
-                                        // Reuse farm model (blockstate also points at totem_pole_farm*)
-                                        // — desert-specific art not yet produced. Keep modelId in
-                                        // sync with the actual JSON to get a valid collision shape.
-                                        "stardewcraft:block/utility/totem_pole_farm"));
+                                        "stardewcraft:block/utility/totem_pole_desert"));
 
         // 黄土
         @SuppressWarnings("null")
@@ -2760,6 +2883,14 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                         () -> new com.stardew.craft.block.nature.ArtifactSpotBlock(
                                         Block.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.SANDSTONE),
                                         net.minecraft.world.level.block.Blocks.SANDSTONE));
+
+        // 海滩远古斑点（沙滩变体）— 记住原始底块，沙子版回沙子，砂岩版回砂岩
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> BEACH_ARTIFACT_SPOT = BLOCKS.register("beach_artifact_spot",
+                        () -> new com.stardew.craft.block.nature.ArtifactSpotBlock(
+                                        Block.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.SANDSTONE),
+                                        net.minecraft.world.level.block.Blocks.SANDSTONE,
+                                        net.minecraft.world.level.block.Blocks.SAND));
 
         // 传送触发方块（隐形，无碰撞，不可破坏）— 替代 Interaction 实体
         @SuppressWarnings("null")

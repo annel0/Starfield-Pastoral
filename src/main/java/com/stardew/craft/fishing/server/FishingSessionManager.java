@@ -14,10 +14,12 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.projectile.FishingHook;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.*;
@@ -249,6 +251,7 @@ public final class FishingSessionManager {
 		@SuppressWarnings("null")
 		var id = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(caughtStack.getItem());
 		PacketDistributor.sendToPlayer(player, new FishingCatchVisualPayload(id, caughtStack.getCount()));
+		spawnVanillaExperienceOrb(player, vanillaInstantCatchExperience(session.difficulty()));
 
 		// SV: non-fish items grant 3 fishing XP.
 		PlayerStardewDataAPI.addExperience(player, SkillType.FISHING, 3);
@@ -438,6 +441,7 @@ public final class FishingSessionManager {
 			PacketDistributor.sendToPlayer(player, new FishingCatchVisualPayload(id, fish.getCount()));
 			
 			int baseExp = 10 + session.difficulty();
+			spawnVanillaExperienceOrb(player, vanillaFishingExperience(session.difficulty(), treasureCaught));
 			PlayerStardewDataAPI.addExperience(player, SkillType.FISHING, baseExp);
 			
 			// 消耗鱼饵（成功时消耗 1；若有 Preserving 则 50% 概率不消耗）
@@ -461,6 +465,22 @@ public final class FishingSessionManager {
 		session.finish();
 		sessionsByPlayer.remove(player.getUUID());
 		clearAllRodCastFlags(player);
+	}
+
+	private static int vanillaInstantCatchExperience(int difficulty) {
+		return Mth.clamp(1 + difficulty / 40, 1, 4);
+	}
+
+	private static int vanillaFishingExperience(int difficulty, boolean treasureCaught) {
+		int bonus = treasureCaught ? 1 : 0;
+		return Mth.clamp(1 + difficulty / 25 + bonus, 1, 6);
+	}
+
+	private static void spawnVanillaExperienceOrb(ServerPlayer player, int amount) {
+		if (amount <= 0) {
+			return;
+		}
+		ExperienceOrb.award(player.serverLevel(), Vec3.atCenterOf(player.blockPosition()), amount);
 	}
 
 	@SuppressWarnings("null")

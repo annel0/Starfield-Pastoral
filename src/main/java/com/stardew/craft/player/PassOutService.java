@@ -7,6 +7,7 @@ import com.stardew.craft.core.ModTags;
 import com.stardew.craft.item.equipment.StardewBootsItem;
 import com.stardew.craft.item.equipment.StardewRingItem;
 import com.stardew.craft.item.weapon.StardewWeaponItem;
+import com.stardew.craft.warp.ModTeleport;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
@@ -371,11 +372,7 @@ public final class PassOutService {
         double sy = spawnPos != null ? spawnPos.getY() : -12;
         double sz = spawnPos != null ? spawnPos.getZ() + 0.5 : 119.5;
 
-        if (player.level().dimension() != ModDimensions.STARDEW_VALLEY) {
-            player.teleportTo(stardewLevel, sx, sy, sz, player.getYRot(), player.getXRot());
-        } else {
-            player.teleportTo(sx, sy, sz);
-        }
+        ModTeleport.to(player, stardewLevel, sx, sy, sz, player.getYRot(), player.getXRot());
 
         // 传送完成：清除击倒状态，恢复满血
         clearKnockedOut(player);

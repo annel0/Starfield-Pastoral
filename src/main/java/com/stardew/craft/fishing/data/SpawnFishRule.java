@@ -164,14 +164,23 @@ public record SpawnFishRule(
 	/**
 	 * 检查时间是否匹配
 	 * @param timeOfDay 当前时间 (0-24000, MC tick时间)
+	 * @deprecated MC dayTime 与星露谷虚拟时间不一致（尤其在自定义维度），且 hour 取模 24
+	 *             无法表示星露谷的 2400~2600（凌晨 0~2 点）。请改用
+	 *             {@link #matchesStardewTime(int)}，由调用方传入星露谷格式时间（HHMM, 600~2600）。
 	 */
+	@Deprecated
 	public boolean matchesTime(long timeOfDay) {
+		return matchesStardewTime(convertMcTimeToStardew(timeOfDay));
+	}
+
+	/**
+	 * 检查星露谷时间是否匹配。
+	 * @param stardewTime 星露谷时间格式（HHMM），允许 2400~2600 表示凌晨 0~2 点。
+	 */
+	public boolean matchesStardewTime(int stardewTime) {
 		if (timeRanges == null || timeRanges.isEmpty()) {
 			return true;
 		}
-		// 转换为星露谷格式 (600-2600)
-		// MC: 0=6:00, 6000=12:00, 12000=18:00, 18000=0:00
-		int stardewTime = convertMcTimeToStardew(timeOfDay);
 		for (int[] range : timeRanges) {
 			if (range.length >= 2 && stardewTime >= range[0] && stardewTime < range[1]) {
 				return true;

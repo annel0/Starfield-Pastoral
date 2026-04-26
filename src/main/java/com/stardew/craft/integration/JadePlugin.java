@@ -195,6 +195,12 @@ public class JadePlugin implements IWailaPlugin {
                 return;
             }
 
+            // 玩家放置的花只是装饰品，不应显示生长进度/浇水信息
+            if (state.hasProperty(StardewCropBlock.PLACED_BY_PLAYER)
+                    && state.getValue(StardewCropBlock.PLACED_BY_PLAYER)) {
+                return;
+            }
+
             int age = state.getValue(Objects.requireNonNull(StardewCropBlock.AGE, "AGE"));
             CropGrowthManager.CropGrowthState gs = CropGrowthManager.get(serverLevel).getState(serverLevel, rootPos);
             int dayInPhase = gs != null ? gs.dayInPhase : 0;
@@ -257,6 +263,11 @@ public class JadePlugin implements IWailaPlugin {
             BlockPos rootPos = resolveCropRootPos(accessor);
             BlockState state = accessor.getLevel().getBlockState(rootPos);
             if (state.getBlock() instanceof StardewCropBlock cropBlock) {
+                // 玩家放置的花不显示生长/浇水/成熟等信息
+                if (state.hasProperty(StardewCropBlock.PLACED_BY_PLAYER)
+                        && state.getValue(StardewCropBlock.PLACED_BY_PLAYER)) {
+                    return;
+                }
                 int age = state.getValue(Objects.requireNonNull(StardewCropBlock.AGE, "AGE"));
 
                 CompoundTag serverData = accessor.getServerData();

@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "stardewcraft:item/forage/salmonberry",
+    "particle": "stardewcraft:item/forage/salmonberry"
+  }
+}

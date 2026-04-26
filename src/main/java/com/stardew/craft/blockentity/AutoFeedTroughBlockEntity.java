@@ -1,6 +1,7 @@
 package com.stardew.craft.blockentity;
 
 import com.stardew.craft.animal.data.AnimalWorldData;
+import com.stardew.craft.animal.model.AnimalBuildingRecord;
 import com.stardew.craft.block.utility.AutoFeedTroughBlock;
 import com.stardew.craft.item.ModItems;
 import net.minecraft.core.BlockPos;
@@ -15,11 +16,15 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.IItemHandler;
 
 import javax.annotation.Nullable;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @SuppressWarnings("null")
 public class AutoFeedTroughBlockEntity extends net.minecraft.world.level.block.entity.BlockEntity implements UtilityAutomationAccess {
     private static final String TAG_HAY = "hay";
     private static final int REFILL_INTERVAL_TICKS = 20;
+    private static final Set<String> FEED_BUILDING_FAMILIES = Set.of("coop", "barn");
 
     private final IItemHandler automationItemHandler = new IItemHandler() {
         @Override
@@ -81,12 +86,77 @@ public class AutoFeedTroughBlockEntity extends net.minecraft.world.level.block.e
         }
 
         AnimalWorldData data = AnimalWorldData.get(serverLevel);
-        int removed = data.takeHayFromAnyOwner(1);
-        if (removed <= 0) {
+        AnimalBuildingRecord building = data.findBuildingAtAnyOwner(
+            serverLevel.dimension().location().toString(),
+            pos,
+            FEED_BUILDING_FAMILIES
+        ).orElse(null);
+        if (building == null) {
             return;
         }
 
-        blockEntity.insertOneSelf(false);
+        UUID ownerId;
+        try {
+            ownerId = UUID.fromString(building.ownerPlayerUuid());
+        } catch (IllegalArgumentException ex) {
+            return;
+        }
+
+        refillConnectedNetwork(serverLevel, pos, ownerId, 1);
+    }
+
+    public static int refillConnectedNetwork(ServerLevel level, BlockPos origin, UUID ownerPlayerId, int maxHay) {
+        if (maxHay <= 0) {
+            return 0;
+        }
+
+        List<BlockPos> network = AutoFeedTroughBlock.collectConnectedTroughs(level, origin);
+        if (network.isEmpty()) {
+            return 0;
+        }
+
+        AnimalWorldData data = AnimalWorldData.get(level);
+        int inserted = refillPass(level, data, network, ownerPlayerId, maxHay, true);
+        if (inserted >= maxHay) {
+            return inserted;
+        }
+        return inserted + refillPass(level, data, network, ownerPlayerId, maxHay - inserted, false);
+    }
+
+    private static int refillPass(Level level,
+                                  AnimalWorldData data,
+                                  List<BlockPos> network,
+                                  UUID ownerPlayerId,
+                                  int remaining,
+                                  boolean preferEmptyOnly) {
+        int inserted = 0;
+        for (BlockPos networkPos : network) {
+            if (remaining <= 0) {
+                break;
+            }
+
+            AutoFeedTroughBlockEntity trough = getTrough(level, networkPos);
+            if (trough == null) {
+                continue;
+            }
+            if (preferEmptyOnly) {
+                if (trough.hayCount() != 0) {
+                    continue;
+                }
+            } else if (trough.isFull()) {
+                continue;
+            }
+            if (!trough.insertOneSelf(true)) {
+                continue;
+            }
+            if (data.takeHay(ownerPlayerId, 1) <= 0) {
+                break;
+            }
+            trough.insertOneSelf(false);
+            inserted++;
+            remaining--;
+        }
+        return inserted;
     }
 
     public ItemStack getHayStack() {

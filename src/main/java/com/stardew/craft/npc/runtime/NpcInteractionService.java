@@ -59,6 +59,15 @@ public final class NpcInteractionService {
         if (npcId.isBlank()) {
             return InteractionResult.PASS;
         }
+        // Joja-line NPCs: 不进入通用好感/打招呼流程。
+        // 女收银员（joja_cashier）— 无论玩家站在哪里，右键直接打开 Joja 超市商店界面。
+        if ("joja_cashier".equals(npcId)) {
+            return com.stardew.craft.shop.JojaMartService.handleJojaInteraction(serverPlayer, npc);
+        }
+        // Morris — 对话 + 入会 + CD form 流程，全在 MorrisService 内部。
+        if ("morris".equals(npcId)) {
+            return com.stardew.craft.joja.MorrisService.handle(serverPlayer, npc);
+        }
         ItemStack held = serverPlayer.getItemInHand(hand);
 
         DayContext dayContext = currentDayContext(serverLevel);
@@ -151,15 +160,6 @@ public final class NpcInteractionService {
             }
         }
 
-        // Dwarf NPC: shop if player can understand Dwarvish, garbled dialogue otherwise
-        if (npcId.equals("dwarf")) {
-            InteractionResult dwarfResult = com.stardew.craft.shop.DwarfService.handleDwarfInteraction(serverPlayer, npc);
-            if (dwarfResult == InteractionResult.SUCCESS) {
-                return InteractionResult.SUCCESS;
-            }
-            // PASS = can't understand → show garbled dialogue below
-        }
-
         // ═══════════════════════════════════════════════════════════════
         // SDV parity: HEART EVENT CHECK — before gifts/dialogue, check
         // if this NPC has a pending interact_npc cutscene event.
@@ -191,6 +191,14 @@ public final class NpcInteractionService {
         }
 
         if (state.lastTalkDayKey() == dayContext.dayKey()) {
+            if (npcId.equals("dwarf")
+                    && held.isEmpty()
+                    && com.stardew.craft.shop.DwarfService.canUnderstandDwarves(serverPlayer)) {
+                InteractionResult dwarfResult = com.stardew.craft.shop.DwarfService.handleDwarfInteraction(serverPlayer, npc);
+                if (dwarfResult == InteractionResult.SUCCESS) {
+                    return InteractionResult.SUCCESS;
+                }
+            }
             syncFriendshipStatus(serverPlayer, npcId, state, dayContext);
             // 当天已对话过不再加好感，但仍要触发任务事件
             // （SDV: 杀完怪/做完条件后回来找 NPC 复命的场景）
@@ -912,6 +920,10 @@ public final class NpcInteractionService {
 
         // Wizard tower hub: intercept wizard-specific answer nodes (teleport commands)
         if ("wizard".equals(npcId) && com.stardew.craft.interior.WizardQuestHandler.handleWizardQuestionAnswer(player, nextDialogueNode)) {
+            return;
+        }
+        // Morris: Yes/No on membership / CD form
+        if ("morris".equals(npcId) && com.stardew.craft.joja.MorrisService.handleAnswer(player, nextDialogueNode)) {
             return;
         }
 

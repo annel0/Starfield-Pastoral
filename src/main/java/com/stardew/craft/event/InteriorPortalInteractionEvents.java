@@ -8,6 +8,7 @@ import com.stardew.craft.interior.InteriorPortalRegistry;
 import com.stardew.craft.interior.InteriorSubspaceManager;
 import com.stardew.craft.interior.PlayerInteriorAllocator;
 import com.stardew.craft.mining.MineEntranceBootstrap;
+import com.stardew.craft.warp.ModTeleport;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -142,6 +143,18 @@ public class InteriorPortalInteractionEvents {
         // 温室出口
         if ("greenhouse_exit".equals(targetId)) {
             handleGreenhouseExit(player);
+            return;
+        }
+
+        // 农场洞穴入口
+        if ("farm_cave_enter".equals(targetId)) {
+            handleFarmCaveEntry(player);
+            return;
+        }
+
+        // 农场洞穴出口
+        if ("farm_cave_exit".equals(targetId)) {
+            handleFarmCaveExit(player);
             return;
         }
 
@@ -290,9 +303,7 @@ public class InteriorPortalInteractionEvents {
     private static final double MINE_OUTDOOR_X = -285.5;
     private static final double MINE_OUTDOOR_Y = -12.0;
     private static final double MINE_OUTDOOR_Z = 314.5;
-    private static final double MINE_INDOOR_X = 21.5;
-    private static final double MINE_INDOOR_Y = 66.0;
-    private static final double MINE_INDOOR_Z = 3.5;
+    // 矿井大厅落点统一走 MiningCoordinates（0 层中心 (0,64,0)、出生点 (0.5,66,-7.5) 面朝北）。
 
     private static void handleFarmEntry(ServerPlayer player, String entryTag) {
         long now = player.serverLevel().getGameTime();
@@ -357,7 +368,7 @@ public class InteriorPortalInteractionEvents {
         if (now - last < PORTAL_COOLDOWN_TICKS) return;
 
         MineEntranceBootstrap.ensureGenerated(mineLevel);
-        player.teleportTo(mineLevel, MINE_INDOOR_X, MINE_INDOOR_Y, MINE_INDOOR_Z, 0.0F, 0.0F);
+        com.stardew.craft.mining.MiningCoordinates.teleportPlayerToFloor(player, mineLevel, 0);
         player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
     }
 
@@ -389,14 +400,10 @@ public class InteriorPortalInteractionEvents {
         // 生成 floor 121 入口大厅（使用 skullkeyentrance.schem）
         com.stardew.craft.mining.MineFloorGenerator.generateFloor(mineLevel, 121);
 
-        // 标记跳过 DimensionEventHandler.onPlayerChangeDimension 的自动传送
-        // 否则会被覆盖到普通矿井大厅 (21.5, 66, 3.5)
-        com.stardew.craft.interior.CrossDimensionTeleporter.markSkipAutoTeleport(player.getUUID());
-
-        // 传送到 schem 内部 spawn (origin + 3, 1, 3)
+        // 传送到 schem 内部 spawn (origin + 3, 1, 3) — ModTeleport 自动跳过维度拦截
         net.minecraft.core.BlockPos spawn = com.stardew.craft.mining.MineFloorGenerator.SKULL_CAVERN_LOBBY_SPAWN;
         player.setInvulnerable(true);
-        player.teleportTo(mineLevel,
+        ModTeleport.to(player, mineLevel,
                 spawn.getX() + 0.5D, spawn.getY(), spawn.getZ() + 0.5D,
                 0.0F, 0.0F);
         player.setDeltaMovement(0, 0, 0);
@@ -444,11 +451,9 @@ public class InteriorPortalInteractionEvents {
         // session 清理（若本层无其他玩家则重置）
         com.stardew.craft.mining.SkullCavernSessionManager.onPlayerLeave(player, player.serverLevel());
 
-        com.stardew.craft.interior.CrossDimensionTeleporter.markSkipAutoTeleport(player.getUUID());
-
         net.minecraft.core.BlockPos arrival = com.stardew.craft.desert.DesertConstants.worldPos(
                 com.stardew.craft.desert.DesertConstants.SKULL_CAVERN_EXIT_OFFSET);
-        player.teleportTo(stardewLevel,
+        ModTeleport.to(player, stardewLevel,
                 arrival.getX() + 0.5D, arrival.getY(), arrival.getZ() + 0.5D,
                 180.0F, 0.0F);
 
@@ -481,9 +486,7 @@ public class InteriorPortalInteractionEvents {
         player.closeContainer();
         player.stopUsingItem();
 
-        com.stardew.craft.interior.CrossDimensionTeleporter.markSkipAutoTeleport(player.getUUID());
-
-        player.teleportTo(stardewLevel, MINE_OUTDOOR_X, MINE_OUTDOOR_Y, MINE_OUTDOOR_Z,
+        ModTeleport.to(player, stardewLevel, MINE_OUTDOOR_X, MINE_OUTDOOR_Y, MINE_OUTDOOR_Z,
                           180.0F, 0.0F);
         player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
     }
@@ -493,12 +496,18 @@ public class InteriorPortalInteractionEvents {
     // ════════════════════════════════════════════════════════════════
 
     private static void handleCCEntry(ServerPlayer player) {
-        // SDV parity: CC door is locked until event 611439 (lewis_cc_tour) sets ccDoorUnlock
-        // Original: if (Game1.MasterPlayer.mailReceived.Contains("ccDoorUnlock") || Game1.MasterPlayer.mailReceived.Contains("JojaMember"))
         com.stardew.craft.player.PlayerStardewData data =
                 com.stardew.craft.player.PlayerDataManager.getPlayerData(player);
-        if (!data.hasMailFlag(com.stardew.craft.communitycenter.state.CCStoryFlags.CC_DOOR_UNLOCKED)
-                && !data.hasMailFlag("JojaMember")) {
+        // 本项目简化：Joja 会员视同"CC 已被 Joja 接管"，不可进入。
+        // SDV 原版是进入后看到仓库外观；我们服务器共享地图不做两套装饰层，直接拦入口。
+        if (data.hasMailFlag(com.stardew.craft.communitycenter.state.CCStoryFlags.JOJA_MEMBER)) {
+            player.displayClientMessage(
+                    net.minecraft.network.chat.Component.translatable("stardewcraft.portal.cc.joja_warehouse"),
+                    true);
+            return;
+        }
+        // SDV parity: CC door is locked until event 611439 (lewis_cc_tour) sets ccDoorUnlock
+        if (!data.hasMailFlag(com.stardew.craft.communitycenter.state.CCStoryFlags.CC_DOOR_UNLOCKED)) {
             player.displayClientMessage(
                     net.minecraft.network.chat.Component.translatable("stardewcraft.portal.cc.locked"),
                     true);
@@ -573,6 +582,76 @@ public class InteriorPortalInteractionEvents {
         applyInteriorFlag(player, InteriorPortalRegistry.PortalMode.ENTRANCE);
 
         StardewCraft.LOGGER.debug("[GH-PORTAL] Player {} entered their greenhouse at {}", player.getName().getString(), ghOrigin);
+    }
+
+    // ════════════════════════════════════════════════════════════════
+    //  农场洞穴（每玩家独立）
+    // ════════════════════════════════════════════════════════════════
+
+    private static void handleFarmCaveEntry(ServerPlayer player) {
+        long now = player.serverLevel().getGameTime();
+        long last = player.getPersistentData().getLong(PLAYER_LAST_PORTAL_TICK);
+        if (now - last < PORTAL_COOLDOWN_TICKS) return;
+
+        ServerLevel level = player.serverLevel();
+
+        // 农场 owner 决定用谁的洞穴（成员共享 owner 的洞穴）
+        com.stardew.craft.farm.FarmInstance farm = com.stardew.craft.farm.FarmInstanceRegistry.get()
+                .getFarmForPlayer(player.getUUID());
+        java.util.UUID caveOwner = (farm != null) ? farm.getOwnerUUID() : player.getUUID();
+
+        PlayerInteriorAllocator alloc = PlayerInteriorAllocator.get(level);
+        net.minecraft.core.BlockPos caveOrigin = alloc.ensureCaveLoaded(level, caveOwner);
+        net.minecraft.core.BlockPos spawnPos = caveOrigin.offset(InteriorSubspaceManager.FARM_CAVE_INDOOR_SPAWN_OFFSET);
+
+        player.closeContainer();
+        player.stopUsingItem();
+
+        player.teleportTo(level,
+            spawnPos.getX() + 0.5D, spawnPos.getY(), spawnPos.getZ() + 0.5D,
+            -90.0F, 0.0F);
+        player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
+        applyInteriorFlag(player, InteriorPortalRegistry.PortalMode.ENTRANCE);
+
+        StardewCraft.LOGGER.debug("[FARM-CAVE] Player {} entered cave of {} at {}",
+                player.getName().getString(), caveOwner, caveOrigin);
+    }
+
+    private static void handleFarmCaveExit(ServerPlayer player) {
+        long now = player.serverLevel().getGameTime();
+        long last = player.getPersistentData().getLong(PLAYER_LAST_PORTAL_TICK);
+        if (now - last < PORTAL_COOLDOWN_TICKS) return;
+
+        ServerLevel level = player.serverLevel();
+        // 反查当前所在的洞穴属于哪个玩家
+        java.util.UUID caveOwner = PlayerInteriorAllocator.get(level).findCaveOwner(player.blockPosition());
+        com.stardew.craft.farm.FarmInstance farm = null;
+        if (caveOwner != null) {
+            farm = com.stardew.craft.farm.FarmInstanceRegistry.get().getFarm(caveOwner);
+        }
+        if (farm == null) {
+            // 兜底：按玩家自身农场反查
+            farm = com.stardew.craft.farm.FarmInstanceRegistry.get().getFarmForPlayer(player.getUUID());
+        }
+        if (farm == null || farm.getFarmType().getLayout() == null
+                || farm.getFarmType().getLayout().caveExitSpawn() == null) {
+            StardewCraft.LOGGER.warn("[FARM-CAVE] Cannot resolve exit target for {}, aborting", player.getName().getString());
+            return;
+        }
+
+        net.minecraft.core.BlockPos exitOffset = farm.getFarmType().getLayout().caveExitSpawn();
+        float yaw = farm.getFarmType().getLayout().caveExitYaw();
+        net.minecraft.core.BlockPos exitAbs = farm.getOrigin().offset(exitOffset);
+
+        player.closeContainer();
+        player.stopUsingItem();
+        player.teleportTo(level,
+            exitAbs.getX() + 0.5D, exitAbs.getY(), exitAbs.getZ() + 0.5D,
+            yaw, 0.0F);
+        player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
+        applyInteriorFlag(player, InteriorPortalRegistry.PortalMode.EXIT);
+
+        StardewCraft.LOGGER.debug("[FARM-CAVE] Player {} exited cave to {}", player.getName().getString(), exitAbs);
     }
 
     // ════════════════════════════════════════════════════════════════

@@ -1,35 +1,37 @@
 package com.stardew.craft.manager;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.stardew.craft.StardewCraft;
+import com.stardew.craft.desert.DesertConstants;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModMiningDimensions;
+import com.stardew.craft.player.PlayerDataManager;
+import com.stardew.craft.player.PlayerStardewData;
+import com.stardew.craft.player.PlayerStardewDataAPI;
 import com.stardew.craft.time.StardewTimeManager;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.registries.DeferredItem;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
  * SDV-parity artifact drop service for hoe digging (artifact spots).
  * Replicates GameLocation.digUpArtifactSpot() + ItemQueryResolver RANDOM_ARTIFACT_FOR_DIG_SPOT.
  *
- * <p>SDV evaluation order:
- * <ol>
- *   <li>Merge Default.ArtifactSpots + Location.ArtifactSpots</li>
- *   <li>Sort by Precedence (Default -100 first, Location 0 middle, Default 100 last)</li>
- *   <li>Evaluate in order; stop on first hit unless ContinueOnDrop=true</li>
- * </ol>
- *
- * <p>Precedence -100 (Default, evaluated first):
- *   Mixed Seeds 20% (not Farm) → RANDOM_ARTIFACT 100% → Bone Fragment 20% (ContinueOnDrop)
- * <p>Precedence 0 (Location-specific):
- *   copper ore, fossils, etc. per location
- * <p>Precedence 100 (Default, evaluated last):
- *   Stone 11% → Warp Totems 10% (after day 28) → Clay 1-3 100% (guaranteed)
+ * <p>This project intentionally does not execute the vanilla Default artifact-spot table.
+ * Only three runtime groups are used: Beach, Desert, and one mixed outdoor table for every
+ * other outdoor valley location.
  */
 @SuppressWarnings("null")
 public final class ArtifactDropService {
@@ -49,6 +51,32 @@ public final class ArtifactDropService {
     }
 
     private static final Map<String, List<ZoneRect>> ZONE_RECTS = new LinkedHashMap<>();
+    private static final int RELAXED_ZONE_MARGIN = 24;
+        private static final String DEFAULT_LOCATION = "Default";
+        private static final String BEACH_LOCATION = "Beach";
+        private static final String DESERT_LOCATION = "Desert";
+        private static final String UNDERGROUND_MINE_LOCATION = "UndergroundMine";
+        private static final String MIXED_OUTDOOR_LOCATION = "OtherOutdoorsMixed";
+        private static final List<String> MIXED_OUTDOOR_SOURCE_LOCATIONS = List.of(
+            "Town",
+            "Forest",
+            "Mountain",
+            "BusStop",
+            "Backwoods",
+            "Railroad",
+            "Farm"
+        );
+            private static final DropEntry SYNTHETIC_RANDOM_ARTIFACT_DROP = new DropEntry(
+                "RANDOM_ARTIFACT_FOR_DIG_SPOT",
+                1.0,
+                -100,
+                false,
+                null,
+                null,
+                -1,
+                -1,
+                    (location, season, totalDaysPlayed, random, player) -> true
+            );
 
     static {
         ZONE_RECTS.put("Town", List.of(
@@ -67,6 +95,7 @@ public final class ArtifactDropService {
                 rect(-324, 289, -292, 309),
                 rect(-105, 294, -72, 312)
         ));
+        // Keep Beach aligned with the forage system's two outdoor beach rectangles.
         ZONE_RECTS.put("Beach", List.of(
                 rect(-293, -182, -192, -139),
                 rect(-376, -173, -326, -148)
@@ -82,9 +111,6 @@ public final class ArtifactDropService {
         ));
         ZONE_RECTS.put("Railroad", List.of(
                 rect(-300, 300, -250, 350)
-        ));
-        ZONE_RECTS.put("Desert", List.of(
-                rect(-500, -400, -350, -250)
         ));
     }
 
@@ -104,242 +130,379 @@ public final class ArtifactDropService {
 
     @FunctionalInterface
     private interface DropCondition {
-        boolean test(String location, int season, int totalDaysPlayed, RandomSource random);
+        boolean test(String location, int season, int totalDaysPlayed, RandomSource random, ServerPlayer player);
     }
 
-    private static final DropCondition ALWAYS = (loc, season, days, rng) -> true;
+    private static final DropCondition ALWAYS = (loc, season, days, rng, player) -> true;
 
-    // ======================== Default ArtifactSpots (Precedence -100 and 100) ========================
+    // ======================== ArtifactSpot Data Sources ========================
 
-    private static final List<DropEntry> DEFAULT_DROPS = new ArrayList<>();
-
-    static {
-        // --- Precedence -100 ---
-        // LOST_BOOK_OR_ITEM (O)770 — Mixed Seeds 20%, not on Farm
-        DEFAULT_DROPS.add(new DropEntry("LOST_BOOK_OR_ITEM (O)770", 0.2, -100, false,
-                ModItems.MIXED_SEEDS, null, 1, 1,
-                (loc, season, days, rng) -> !"Farm".equals(loc)));
-
-        // RANDOM_ARTIFACT_FOR_DIG_SPOT — 100% chance, actual artifact roll done in code
-        DEFAULT_DROPS.add(new DropEntry("RANDOM_ARTIFACT_FOR_DIG_SPOT", 1.0, -100, false,
-                null, null, 1, 1, ALWAYS));
-
-        // (O)416 Snow Yam — 50% chance, Winter AND RANDOM 0.4 (effective ~20%)
-        DEFAULT_DROPS.add(new DropEntry("(O)416", 0.5, -100, false,
-                ModItems.VANILLA_CATEGORY_ITEMS.get("snow_yam"), null, 1, 1,
-                (loc, season, days, rng) -> season == 3 && rng.nextDouble() < 0.4));
-
-        // (O)412 Winter Root — 50% chance, Winter only
-        DEFAULT_DROPS.add(new DropEntry("(O)412", 0.5, -100, false,
-                ModItems.VANILLA_CATEGORY_ITEMS.get("winter_root"), null, 1, 1,
-                (loc, season, days, rng) -> season == 3));
-
-        // (O)890 Qi Beans — special order, not applicable → skip
-
-        // (O)273 Rice Shoot — 6.25%, Spring, not Beach, stack 2-5
-        DEFAULT_DROPS.add(new DropEntry("(O)273", 0.0625, -100, false,
-                ModItems.VANILLA_CATEGORY_ITEMS.get("rice_shoot"), null, 2, 5,
-                (loc, season, days, rng) -> season == 0 && !"Beach".equals(loc)));
-
-        // (O)881 Bone Fragment — 20%, ContinueOnDrop=true
-        // SDV requires guntherBones mail or active Gunther quest; we simplify to always available
-        DEFAULT_DROPS.add(new DropEntry("(O)881", 0.2, -100, true,
-                ModItems.BONE_FRAGMENT, null, 2, 5, ALWAYS));
-
-        // --- Precedence 100 ---
-        // SECRET_NOTE_OR_ITEM (O)390 — Stone 11%
-        DEFAULT_DROPS.add(new DropEntry("SECRET_NOTE_OR_ITEM (O)390", 0.11, 100, false,
-                ModItems.STONE, null, 1, 1, ALWAYS));
-
-        // (O)688|(O)689|(O)690 — Warp Totems, 10%, after day 28
-        DEFAULT_DROPS.add(new DropEntry("(O)688|(O)689|(O)690", 0.1, 100, false,
-                null,
-                List.of(ModItems.WARP_TOTEM_FARM, ModItems.WARP_TOTEM_MOUNTAIN, ModItems.WARP_TOTEM_BEACH),
-                1, 1,
-                (loc, season, days, rng) -> days >= 28));
-
-        // (O)330 Clay — 100% guaranteed fallback, stack 1-3
-        DEFAULT_DROPS.add(new DropEntry("(O)330", 1.0, 100, false,
-                ModItems.CLAY, null, 1, 3, ALWAYS));
-    }
-
-    // ======================== Location-specific ArtifactSpots (Precedence 0) ========================
-
+    private static final String LOCATION_ARTIFACT_SPOTS_RESOURCE =
+            "data/stardewcraft/vanilla/artifact_spots.json";
     private static final Map<String, List<DropEntry>> LOCATION_DROPS = new LinkedHashMap<>();
-
-    static {
-        // Town: copper_ore 20%, rusty_spoon 20%, prehistoric_rib 10%, mixed_seeds 20%, stone 25%
-        LOCATION_DROPS.put("Town", List.of(
-                locDrop("(O)378", ModItems.COPPER_ORE, 0.2),
-                locDrop("(O)110", ModItems.RUSTY_SPOON, 0.2),
-                locDrop("(O)583", ModItems.PREHISTORIC_RIB, 0.1),
-                locDrop("LOST_BOOK_OR_ITEM (O)770", ModItems.MIXED_SEEDS, 0.2),
-                locDrop("(O)390", ModItems.STONE, 0.25)
-        ));
-        // Mountain: coal 60%, prehistoric_skull 10%, copper_ore 10%, mixed_seeds 15%, stone 25%
-        LOCATION_DROPS.put("Mountain", List.of(
-                locDrop("(O)382", ModItems.COAL, 0.6),
-                locDrop("(O)581", ModItems.PREHISTORIC_SKULL, 0.1),
-                locDrop("(O)378", ModItems.COPPER_ORE, 0.1),
-                locDrop("LOST_BOOK_OR_ITEM (O)770", ModItems.MIXED_SEEDS, 0.15),
-                locDrop("(O)390", ModItems.STONE, 0.25)
-        ));
-        // Forest: copper_ore 8%, prehistoric_scapula 10%, palm_fossil 1%, mixed_seeds 15%, stone 25%
-        LOCATION_DROPS.put("Forest", List.of(
-                locDrop("(O)378", ModItems.COPPER_ORE, 0.08),
-                locDrop("(O)579", ModItems.PREHISTORIC_SCAPULA, 0.1),
-                locDrop("(O)588", ModItems.PALM_FOSSIL, 0.01),
-                locDrop("LOST_BOOK_OR_ITEM (O)770", ModItems.MIXED_SEEDS, 0.15),
-                locDrop("(O)390", ModItems.STONE, 0.25)
-        ));
-        // Beach: gold_ore 8%, trilobite 3%, mixed_seeds 15%, stone 25%
-        LOCATION_DROPS.put("Beach", List.of(
-                locDrop("(O)384", ModItems.GOLD_ORE, 0.08),
-                locDrop("(O)589", ModItems.TRILOBITE, 0.03),
-                locDrop("LOST_BOOK_OR_ITEM (O)770", ModItems.MIXED_SEEDS, 0.15),
-                locDrop("(O)390", ModItems.STONE, 0.25)
-        ));
-        // BusStop: prehistoric_vertebra 8%, copper_ore 15%, mixed_seeds 15%, stone 25%
-        LOCATION_DROPS.put("BusStop", List.of(
-                locDrop("(O)584", ModItems.PREHISTORIC_VERTEBRA, 0.08),
-                locDrop("(O)378", ModItems.COPPER_ORE, 0.15),
-                locDrop("LOST_BOOK_OR_ITEM (O)770", ModItems.MIXED_SEEDS, 0.15),
-                locDrop("(O)390", ModItems.STONE, 0.25)
-        ));
-        // Backwoods: coal 60%, skeletal_hand 10%, copper_ore 10%, mixed_seeds 15%, stone 25%
-        LOCATION_DROPS.put("Backwoods", List.of(
-                locDrop("(O)382", ModItems.COAL, 0.6),
-                locDrop("(O)582", ModItems.SKELETAL_HAND, 0.1),
-                locDrop("(O)378", ModItems.COPPER_ORE, 0.1),
-                locDrop("LOST_BOOK_OR_ITEM (O)770", ModItems.MIXED_SEEDS, 0.15),
-                locDrop("(O)390", ModItems.STONE, 0.25)
-        ));
-        // Railroad: prehistoric_tibia 10%, copper_ore 15%, mixed_seeds 19%, stone 25%
-        LOCATION_DROPS.put("Railroad", List.of(
-                locDrop("(O)580", ModItems.PREHISTORIC_TIBIA, 0.1),
-                locDrop("(O)378", ModItems.COPPER_ORE, 0.15),
-                locDrop("LOST_BOOK_OR_ITEM (O)770", ModItems.MIXED_SEEDS, 0.19),
-                locDrop("(O)390", ModItems.STONE, 0.25)
-        ));
-        // Farm_Standard: coal 50%, mixed_seeds 10%, stone 25%
-        LOCATION_DROPS.put("Farm", List.of(
-                locDrop("(O)382", ModItems.COAL, 0.5),
-                locDrop("(O)770", ModItems.MIXED_SEEDS, 0.1),
-                locDrop("(O)390", ModItems.STONE, 0.25)
-        ));
-        // Desert has no location-specific ArtifactSpots in SDV data
-    }
-
-    private static DropEntry locDrop(String id, DeferredItem<? extends Item> item, double chance) {
-        return new DropEntry(id, chance, 0, false, item, null, 1, 1, ALWAYS);
-    }
+    private static final Map<String, DeferredItem<? extends Item>> DROP_ITEM_IDS = Map.ofEntries(
+            Map.entry("(O)110", ModItems.RUSTY_SPOON),
+            Map.entry("(O)273", ModItems.VANILLA_CATEGORY_ITEMS.get("rice_shoot")),
+            Map.entry("(O)330", ModItems.CLAY),
+            Map.entry("(O)378", ModItems.COPPER_ORE),
+            Map.entry("(O)382", ModItems.COAL),
+            Map.entry("(O)384", ModItems.GOLD_ORE),
+            Map.entry("(O)390", ModItems.STONE),
+            Map.entry("(O)412", ModItems.VANILLA_CATEGORY_ITEMS.get("winter_root")),
+            Map.entry("(O)416", ModItems.VANILLA_CATEGORY_ITEMS.get("snow_yam")),
+            Map.entry("(O)581", ModItems.PREHISTORIC_SKULL),
+            Map.entry("(O)582", ModItems.SKELETAL_HAND),
+            Map.entry("(O)583", ModItems.PREHISTORIC_RIB),
+            Map.entry("(O)584", ModItems.PREHISTORIC_VERTEBRA),
+            Map.entry("(O)580", ModItems.PREHISTORIC_TIBIA),
+            Map.entry("(O)579", ModItems.PREHISTORIC_SCAPULA),
+            Map.entry("(O)588", ModItems.PALM_FOSSIL),
+            Map.entry("(O)589", ModItems.TRILOBITE),
+            Map.entry("(O)688", ModItems.WARP_TOTEM_FARM),
+            Map.entry("(O)689", ModItems.WARP_TOTEM_MOUNTAIN),
+            Map.entry("(O)690", ModItems.WARP_TOTEM_BEACH),
+            Map.entry("(O)770", ModItems.MIXED_SEEDS),
+            Map.entry("(O)881", ModItems.BONE_FRAGMENT)
+    );
 
     // ======================== ArtifactSpotChances (from Objects.json) ========================
 
     private record ArtifactChance(DeferredItem<? extends Item> item, double chance) {}
 
+    private static final String VANILLA_OBJECTS_RESOURCE =
+            "data/stardewcraft/npc/vanilla/data/Objects.json";
+    private static final Map<String, DeferredItem<? extends Item>> OBJECT_ID_TO_ARTIFACT_ITEM = Map.ofEntries(
+            Map.entry("100", ModItems.CHIPPED_AMPHORA),
+            Map.entry("101", ModItems.ARROWHEAD),
+            Map.entry("103", ModItems.ANCIENT_DOLL),
+            Map.entry("104", ModItems.ELVISH_JEWELRY),
+            Map.entry("105", ModItems.CHEWING_STICK),
+            Map.entry("106", ModItems.ORNAMENTAL_FAN),
+            Map.entry("107", ModItems.DINOSAUR_EGG),
+            Map.entry("108", ModItems.RARE_DISC),
+            Map.entry("109", ModItems.ANCIENT_SWORD),
+            Map.entry("110", ModItems.RUSTY_SPOON),
+            Map.entry("111", ModItems.RUSTY_SPUR),
+            Map.entry("112", ModItems.RUSTY_COG),
+            Map.entry("113", ModItems.CHICKEN_STATUE),
+            Map.entry("114", ModItems.ANCIENT_SEED),
+            Map.entry("115", ModItems.PREHISTORIC_TOOL),
+            Map.entry("116", ModItems.DRIED_STARFISH),
+            Map.entry("117", ModItems.ANCHOR),
+            Map.entry("118", ModItems.GLASS_SHARDS),
+            Map.entry("119", ModItems.BONE_FLUTE),
+            Map.entry("120", ModItems.PREHISTORIC_HANDAXE),
+            Map.entry("121", ModItems.DWARVISH_HELM),
+            Map.entry("122", ModItems.DWARF_GADGET),
+            Map.entry("123", ModItems.ANCIENT_DRUM),
+            Map.entry("124", ModItems.GOLDEN_MASK),
+            Map.entry("125", ModItems.GOLDEN_RELIC),
+            Map.entry("126", ModItems.STRANGE_DOLL_GREEN),
+            Map.entry("127", ModItems.STRANGE_DOLL_YELLOW),
+            Map.entry("579", ModItems.PREHISTORIC_SCAPULA),
+            Map.entry("580", ModItems.PREHISTORIC_TIBIA),
+            Map.entry("581", ModItems.PREHISTORIC_SKULL),
+            Map.entry("582", ModItems.SKELETAL_HAND),
+            Map.entry("583", ModItems.PREHISTORIC_RIB),
+            Map.entry("584", ModItems.PREHISTORIC_VERTEBRA),
+            Map.entry("585", ModItems.SKELETAL_TAIL),
+            Map.entry("586", ModItems.NAUTILUS_FOSSIL),
+            Map.entry("587", ModItems.AMPHIBIAN_FOSSIL),
+            Map.entry("588", ModItems.PALM_FOSSIL),
+            Map.entry("589", ModItems.TRILOBITE),
+            Map.entry("590", ModItems.BONE_FLUTE),
+            Map.entry("591", ModItems.ANCIENT_DOLL),
+            Map.entry("592", ModItems.CHEWING_STICK)
+    );
     private static final Map<String, List<ArtifactChance>> ARTIFACT_SPOT_CHANCES = new LinkedHashMap<>();
 
     static {
-        addAC("Town", ModItems.CHIPPED_AMPHORA, 0.04);
-        addAC("Town", ModItems.ANCIENT_DOLL, 0.01);
-        addAC("Town", ModItems.CHEWING_STICK, 0.01);
-        addAC("Town", ModItems.ORNAMENTAL_FAN, 0.008);
-        addAC("Town", ModItems.RUSTY_SPOON, 0.05);
-        addAC("Town", ModItems.BONE_FLUTE, 0.005);
-        addAC("Town", ModItems.ANCIENT_DRUM, 0.005);
-        addAC("Town", ModItems.STRANGE_DOLL_GREEN, 0.001);
-        addAC("Town", ModItems.STRANGE_DOLL_YELLOW, 0.001);
-
-        addAC("Mountain", ModItems.ARROWHEAD, 0.02);
-        addAC("Mountain", ModItems.ANCIENT_DOLL, 0.04);
-        addAC("Mountain", ModItems.CHEWING_STICK, 0.02);
-        addAC("Mountain", ModItems.DINOSAUR_EGG, 0.008);
-        addAC("Mountain", ModItems.ANCIENT_SWORD, 0.008);
-        addAC("Mountain", ModItems.RUSTY_COG, 0.05);
-        addAC("Mountain", ModItems.ANCIENT_SEED, 0.01);
-        addAC("Mountain", ModItems.PREHISTORIC_TOOL, 0.03);
-        addAC("Mountain", ModItems.PREHISTORIC_HANDAXE, 0.05);
-        addAC("Mountain", ModItems.BONE_FLUTE, 0.01);
-        addAC("Mountain", ModItems.AMPHIBIAN_FOSSIL, 0.01);
-        addAC("Mountain", ModItems.TRILOBITE, 0.03);
-        addAC("Mountain", ModItems.STRANGE_DOLL_GREEN, 0.001);
-        addAC("Mountain", ModItems.STRANGE_DOLL_YELLOW, 0.001);
-
-        addAC("Forest", ModItems.ARROWHEAD, 0.02);
-        addAC("Forest", ModItems.ANCIENT_DOLL, 0.03);
-        addAC("Forest", ModItems.ELVISH_JEWELRY, 0.01);
-        addAC("Forest", ModItems.CHEWING_STICK, 0.02);
-        addAC("Forest", ModItems.ORNAMENTAL_FAN, 0.01);
-        addAC("Forest", ModItems.ANCIENT_SWORD, 0.01);
-        addAC("Forest", ModItems.ANCIENT_SEED, 0.01);
-        addAC("Forest", ModItems.PREHISTORIC_TOOL, 0.03);
-        addAC("Forest", ModItems.PREHISTORIC_HANDAXE, 0.05);
-        addAC("Forest", ModItems.BONE_FLUTE, 0.01);
-        addAC("Forest", ModItems.ANCIENT_DRUM, 0.01);
-        addAC("Forest", ModItems.AMPHIBIAN_FOSSIL, 0.01);
-        addAC("Forest", ModItems.TRILOBITE, 0.03);
-        addAC("Forest", ModItems.PALM_FOSSIL, 0.01);
-        addAC("Forest", ModItems.STRANGE_DOLL_GREEN, 0.001);
-        addAC("Forest", ModItems.STRANGE_DOLL_YELLOW, 0.001);
-
-        addAC("Beach", ModItems.ORNAMENTAL_FAN, 0.02);
-        addAC("Beach", ModItems.DRIED_STARFISH, 0.1);
-        addAC("Beach", ModItems.ANCHOR, 0.05);
-        addAC("Beach", ModItems.GLASS_SHARDS, 0.1);
-        addAC("Beach", ModItems.NAUTILUS_FOSSIL, 0.03);
-        addAC("Beach", ModItems.PALM_FOSSIL, 0.01);
-        addAC("Beach", ModItems.STRANGE_DOLL_GREEN, 0.001);
-        addAC("Beach", ModItems.STRANGE_DOLL_YELLOW, 0.001);
-
-        addAC("Farm", ModItems.RUSTY_SPUR, 0.1);
-        addAC("Farm", ModItems.CHICKEN_STATUE, 0.1);
-        addAC("Farm", ModItems.STRANGE_DOLL_GREEN, 0.001);
-        addAC("Farm", ModItems.STRANGE_DOLL_YELLOW, 0.001);
-
-        addAC("BusStop", ModItems.ARROWHEAD, 0.02);
-        addAC("BusStop", ModItems.ANCIENT_DOLL, 0.03);
-        addAC("BusStop", ModItems.PREHISTORIC_TOOL, 0.04);
-        addAC("BusStop", ModItems.PREHISTORIC_HANDAXE, 0.05);
-        addAC("BusStop", ModItems.ANCIENT_DRUM, 0.01);
-        addAC("BusStop", ModItems.STRANGE_DOLL_GREEN, 0.001);
-        addAC("BusStop", ModItems.STRANGE_DOLL_YELLOW, 0.001);
-
-        addAC("Backwoods", ModItems.SKELETAL_HAND, 0.1);
-        addAC("Backwoods", ModItems.STRANGE_DOLL_GREEN, 0.001);
-        addAC("Backwoods", ModItems.STRANGE_DOLL_YELLOW, 0.001);
-
-        addAC("Railroad", ModItems.STRANGE_DOLL_GREEN, 0.001);
-        addAC("Railroad", ModItems.STRANGE_DOLL_YELLOW, 0.001);
-
-        addAC("Desert", ModItems.GOLDEN_MASK, 0.04);
-        addAC("Desert", ModItems.GOLDEN_RELIC, 0.06);
-        addAC("Desert", ModItems.SKELETAL_TAIL, 0.06);
-        addAC("Desert", ModItems.PALM_FOSSIL, 0.1);
-
-        addAC("UndergroundMine", ModItems.DINOSAUR_EGG, 0.01);
-        addAC("UndergroundMine", ModItems.RARE_DISC, 0.01);
-        addAC("UndergroundMine", ModItems.DWARVISH_HELM, 0.01);
-        addAC("UndergroundMine", ModItems.DWARF_GADGET, 0.001);
-        addAC("UndergroundMine", ModItems.BONE_FLUTE, 0.02);
-        addAC("UndergroundMine", ModItems.ANCIENT_DRUM, 0.02);
-        addAC("UndergroundMine", ModItems.STRANGE_DOLL_GREEN, 0.001);
-        addAC("UndergroundMine", ModItems.STRANGE_DOLL_YELLOW, 0.001);
+        loadLocationArtifactSpots();
+        loadArtifactSpotChances();
     }
 
-    private static void addAC(String location, DeferredItem<? extends Item> item, double chance) {
-        ARTIFACT_SPOT_CHANCES.computeIfAbsent(location, k -> new ArrayList<>())
-                .add(new ArtifactChance(item, chance));
+    private static void loadLocationArtifactSpots() {
+        try (InputStream stream = ArtifactDropService.class.getClassLoader().getResourceAsStream(LOCATION_ARTIFACT_SPOTS_RESOURCE)) {
+            if (stream == null) {
+                StardewCraft.LOGGER.warn("Artifact spot location source {} was not found", LOCATION_ARTIFACT_SPOTS_RESOURCE);
+                return;
+            }
+
+            JsonObject root = JsonParser.parseReader(new InputStreamReader(stream, StandardCharsets.UTF_8))
+                    .getAsJsonObject();
+            LOCATION_DROPS.clear();
+
+            for (Map.Entry<String, JsonElement> entry : root.entrySet()) {
+                if (!entry.getValue().isJsonArray()) {
+                    continue;
+                }
+                List<DropEntry> drops = new ArrayList<>();
+                for (JsonElement dropElement : entry.getValue().getAsJsonArray()) {
+                    if (dropElement.isJsonObject()) {
+                        drops.add(parseDropEntry(dropElement.getAsJsonObject()));
+                    }
+                }
+                if (!"Default".equals(entry.getKey())) {
+                    LOCATION_DROPS.put(entry.getKey(), List.copyOf(drops));
+                }
+            }
+            buildMixedOutdoorDropTable();
+        } catch (Exception exception) {
+            StardewCraft.LOGGER.warn("Failed to load artifact spot location data from {}: {}",
+                    LOCATION_ARTIFACT_SPOTS_RESOURCE, exception.getMessage());
+            LOCATION_DROPS.clear();
+        }
+    }
+
+    private static void buildMixedOutdoorDropTable() {
+        LinkedHashMap<String, Double> mergedChances = new LinkedHashMap<>();
+        LinkedHashMap<String, Integer> mergedCounts = new LinkedHashMap<>();
+        LinkedHashMap<String, DropEntry> prototypes = new LinkedHashMap<>();
+        for (String sourceLocation : MIXED_OUTDOOR_SOURCE_LOCATIONS) {
+            List<DropEntry> drops = LOCATION_DROPS.get(sourceLocation);
+            if (drops == null) {
+                continue;
+            }
+            for (DropEntry drop : drops) {
+                String key = dropMergeKey(drop);
+                prototypes.putIfAbsent(key, drop);
+                mergedChances.merge(key, drop.chance, Double::sum);
+                mergedCounts.merge(key, 1, Integer::sum);
+            }
+        }
+
+        List<DropEntry> mixedDrops = new ArrayList<>();
+        mixedDrops.add(SYNTHETIC_RANDOM_ARTIFACT_DROP);
+        for (Map.Entry<String, DropEntry> entry : prototypes.entrySet()) {
+            DropEntry prototype = entry.getValue();
+            double averageChance = mergedChances.getOrDefault(entry.getKey(), 0.0)
+                    / Math.max(1, mergedCounts.getOrDefault(entry.getKey(), 1));
+            mixedDrops.add(new DropEntry(
+                    prototype.id,
+                    Math.min(1.0, averageChance),
+                    prototype.precedence,
+                    prototype.continueOnDrop,
+                    prototype.item,
+                    prototype.randomItems,
+                    prototype.minStack,
+                    prototype.maxStack,
+                    prototype.condition
+            ));
+        }
+        LOCATION_DROPS.put(MIXED_OUTDOOR_LOCATION, List.copyOf(mixedDrops));
+    }
+
+    private static String dropMergeKey(DropEntry drop) {
+        String itemId = drop.item == null ? "" : String.valueOf(drop.item.getId());
+        String randomItemIds = "";
+        if (drop.randomItems != null && !drop.randomItems.isEmpty()) {
+            StringJoiner joiner = new StringJoiner("|");
+            for (DeferredItem<? extends Item> randomItem : drop.randomItems) {
+                joiner.add(String.valueOf(randomItem.getId()));
+            }
+            randomItemIds = joiner.toString();
+        }
+        return drop.id + "#" + itemId + "#" + randomItemIds + "#" + drop.precedence + "#"
+                + drop.continueOnDrop + "#" + drop.minStack + "#" + drop.maxStack;
+    }
+
+    private static DropEntry parseDropEntry(JsonObject json) {
+        return new DropEntry(
+                json.get("Id").getAsString(),
+                json.get("Chance").getAsDouble(),
+                json.get("Precedence").getAsInt(),
+                json.get("ContinueOnDrop").getAsBoolean(),
+                resolveDropItemId(getNullableString(json, "ItemId")),
+                resolveRandomItemIds(json.get("RandomItemId")),
+                json.get("MinStack").getAsInt(),
+                json.get("MaxStack").getAsInt(),
+                parseCondition(getNullableString(json, "Condition"))
+        );
+    }
+
+    private static String getNullableString(JsonObject json, String key) {
+        JsonElement element = json.get(key);
+        if (element == null || element.isJsonNull()) {
+            return null;
+        }
+        return element.getAsString();
+    }
+
+    private static DeferredItem<? extends Item> resolveDropItemId(String itemId) {
+        if (itemId == null || itemId.contains("LOST_BOOK_OR_ITEM") || itemId.contains("SECRET_NOTE_OR_ITEM")
+                || itemId.contains("RANDOM_ARTIFACT_FOR_DIG_SPOT")) {
+            return null;
+        }
+        DeferredItem<? extends Item> item = DROP_ITEM_IDS.get(itemId);
+        if (item == null && itemId.startsWith("(O)")) {
+            item = OBJECT_ID_TO_ARTIFACT_ITEM.get(itemId.substring(3, itemId.length() - 1));
+        }
+        return item;
+    }
+
+    private static List<DeferredItem<? extends Item>> resolveRandomItemIds(JsonElement element) {
+        if (element == null || element.isJsonNull()) {
+            return null;
+        }
+        List<DeferredItem<? extends Item>> items = new ArrayList<>();
+        if (element.isJsonArray()) {
+            for (JsonElement itemElement : element.getAsJsonArray()) {
+                DeferredItem<? extends Item> item = resolveDropItemId(itemElement.getAsString());
+                if (item != null) {
+                    items.add(item);
+                }
+            }
+        } else if (element.isJsonPrimitive()) {
+            DeferredItem<? extends Item> item = resolveDropItemId(element.getAsString());
+            if (item != null) {
+                items.add(item);
+            }
+        }
+        return items.isEmpty() ? null : List.copyOf(items);
+    }
+
+    private static DropCondition parseCondition(String rawCondition) {
+        if (rawCondition == null || rawCondition.isBlank()) {
+            return ALWAYS;
+        }
+        List<DropCondition> conditions = new ArrayList<>();
+        for (String token : rawCondition.split(",\\s*")) {
+            conditions.add(parseConditionToken(token.trim()));
+        }
+        return (location, season, totalDaysPlayed, random, player) -> {
+            for (DropCondition condition : conditions) {
+                if (!condition.test(location, season, totalDaysPlayed, random, player)) {
+                    return false;
+                }
+            }
+            return true;
+        };
+    }
+
+    private static DropCondition parseConditionToken(String token) {
+        boolean inverted = token.startsWith("!");
+        String normalized = inverted ? token.substring(1).trim() : token;
+        String[] parts = normalized.split("\\s+");
+        DropCondition baseCondition = switch (parts[0]) {
+            case "PLAYER_LOCATION_NAME" -> buildLocationNameCondition(parts);
+            case "LOCATION_SEASON" -> buildSeasonCondition(parts);
+            case "RANDOM" -> (location, season, totalDaysPlayed, random, player) -> random.nextDouble() < Double.parseDouble(parts[1]);
+            case "PLAYER_SPECIAL_ORDER_RULE_ACTIVE" ->
+                    (location, season, totalDaysPlayed, random, player) -> player != null
+                            && PlayerStardewDataAPI.isSpecialOrderRuleActive(player, parts[2]);
+            case "PLAYER_HAS_MAIL" ->
+                    (location, season, totalDaysPlayed, random, player) -> player != null
+                            && getPlayerData(player) != null
+                            && getPlayerData(player).hasMailFlag(parts[2]);
+            case "PLAYER_SPECIAL_ORDER_ACTIVE" ->
+                    (location, season, totalDaysPlayed, random, player) -> false;
+            case "DAYS_PLAYED" ->
+                    (location, season, totalDaysPlayed, random, player) -> totalDaysPlayed >= Integer.parseInt(parts[1]);
+            default -> {
+                StardewCraft.LOGGER.warn("Unsupported artifact spot condition token: {}", token);
+                yield (location, season, totalDaysPlayed, random, player) -> false;
+            }
+        };
+        if (!inverted) {
+            return baseCondition;
+        }
+        return (location, season, totalDaysPlayed, random, player) ->
+                !baseCondition.test(location, season, totalDaysPlayed, random, player);
+    }
+
+    private static DropCondition buildLocationNameCondition(String[] parts) {
+        String expectedLocation = parts[2];
+        return (location, season, totalDaysPlayed, random, player) -> expectedLocation.equals(location);
+    }
+
+    private static DropCondition buildSeasonCondition(String[] parts) {
+        int expectedSeason = switch (parts[2]) {
+            case "Spring" -> 0;
+            case "Summer" -> 1;
+            case "Fall" -> 2;
+            case "Winter" -> 3;
+            default -> -1;
+        };
+        return (location, season, totalDaysPlayed, random, player) -> season == expectedSeason;
+    }
+
+    private static PlayerStardewData getPlayerData(ServerPlayer player) {
+        return PlayerDataManager.getPlayerData(player);
+    }
+
+    private static void loadArtifactSpotChances() {
+        try (InputStream stream = ArtifactDropService.class.getClassLoader().getResourceAsStream(VANILLA_OBJECTS_RESOURCE)) {
+            if (stream == null) {
+                StardewCraft.LOGGER.warn("Artifact spot chance source {} was not found", VANILLA_OBJECTS_RESOURCE);
+                return;
+            }
+
+            JsonObject root = JsonParser.parseReader(new InputStreamReader(stream, StandardCharsets.UTF_8))
+                    .getAsJsonObject();
+            for (Map.Entry<String, JsonElement> entry : root.entrySet()) {
+                if (!entry.getValue().isJsonObject()) {
+                    continue;
+                }
+                DeferredItem<? extends Item> item = OBJECT_ID_TO_ARTIFACT_ITEM.get(entry.getKey());
+                if (item == null) {
+                    continue;
+                }
+                JsonElement artifactSpotChances = entry.getValue().getAsJsonObject().get("ArtifactSpotChances");
+                if (artifactSpotChances == null || artifactSpotChances.isJsonNull() || !artifactSpotChances.isJsonObject()) {
+                    continue;
+                }
+                for (Map.Entry<String, JsonElement> chanceEntry : artifactSpotChances.getAsJsonObject().entrySet()) {
+                    String locationKey = normalizeArtifactChanceLocation(chanceEntry.getKey());
+                    ARTIFACT_SPOT_CHANCES
+                            .computeIfAbsent(locationKey, key -> new ArrayList<>())
+                            .add(new ArtifactChance(item, chanceEntry.getValue().getAsDouble()));
+                }
+            }
+            buildMixedOutdoorArtifactChanceTable();
+        } catch (Exception exception) {
+            StardewCraft.LOGGER.warn("Failed to load artifact spot chances from {}: {}",
+                    VANILLA_OBJECTS_RESOURCE, exception.getMessage());
+            ARTIFACT_SPOT_CHANCES.clear();
+        }
+    }
+
+    private static void buildMixedOutdoorArtifactChanceTable() {
+        LinkedHashMap<DeferredItem<? extends Item>, Double> mergedChances = new LinkedHashMap<>();
+        LinkedHashMap<DeferredItem<? extends Item>, Integer> mergedCounts = new LinkedHashMap<>();
+        for (String sourceLocation : MIXED_OUTDOOR_SOURCE_LOCATIONS) {
+            List<ArtifactChance> chances = ARTIFACT_SPOT_CHANCES.get(sourceLocation);
+            if (chances == null) {
+                continue;
+            }
+            for (ArtifactChance chance : chances) {
+                mergedChances.merge(chance.item, chance.chance, Double::sum);
+                mergedCounts.merge(chance.item, 1, Integer::sum);
+            }
+        }
+
+        List<ArtifactChance> mixedChances = new ArrayList<>();
+        for (Map.Entry<DeferredItem<? extends Item>, Double> entry : mergedChances.entrySet()) {
+            double averageChance = entry.getValue() / Math.max(1, mergedCounts.getOrDefault(entry.getKey(), 1));
+            mixedChances.add(new ArtifactChance(entry.getKey(), averageChance));
+        }
+        ARTIFACT_SPOT_CHANCES.put(MIXED_OUTDOOR_LOCATION, List.copyOf(mixedChances));
+    }
+
+    private static String normalizeArtifactChanceLocation(String locationKey) {
+        return "Mine".equals(locationKey) ? "UndergroundMine" : locationKey;
     }
 
     // ======================== Zone Resolution ========================
 
     public static String resolveLocation(ServerLevel level, BlockPos pos) {
         if (level.dimension().equals(ModMiningDimensions.STARDEW_MINING)) {
-            return "UndergroundMine";
+            return UNDERGROUND_MINE_LOCATION;
         }
         if (!level.dimension().equals(ModDimensions.STARDEW_VALLEY)) {
-            return "Default";
+            return DEFAULT_LOCATION;
+        }
+        if (DesertConstants.isInDesertRegion(pos)) {
+            return DESERT_LOCATION;
         }
         int x = pos.getX();
         int z = pos.getZ();
@@ -350,7 +513,46 @@ public final class ArtifactDropService {
                 }
             }
         }
-        return "Default";
+        for (Map.Entry<String, List<ZoneRect>> entry : ZONE_RECTS.entrySet()) {
+            for (ZoneRect r : entry.getValue()) {
+                if (containsExpanded(r, x, z, RELAXED_ZONE_MARGIN)) {
+                    return entry.getKey();
+                }
+            }
+        }
+        return DEFAULT_LOCATION;
+    }
+
+    private static String resolveDropGroup(ServerLevel level, String actualLocation) {
+        if (level.dimension().equals(ModMiningDimensions.STARDEW_MINING)) {
+            return UNDERGROUND_MINE_LOCATION;
+        }
+        if (!level.dimension().equals(ModDimensions.STARDEW_VALLEY)) {
+            return actualLocation;
+        }
+        if (BEACH_LOCATION.equals(actualLocation) || DESERT_LOCATION.equals(actualLocation)) {
+            return actualLocation;
+        }
+        return MIXED_OUTDOOR_LOCATION;
+    }
+
+    private static List<DropEntry> dropsForGroup(String dropGroup) {
+        List<DropEntry> drops = new ArrayList<>();
+        drops.add(SYNTHETIC_RANDOM_ARTIFACT_DROP);
+        List<DropEntry> locDrops = LOCATION_DROPS.get(dropGroup);
+        if (locDrops != null) {
+            for (DropEntry drop : locDrops) {
+                if (!"RANDOM_ARTIFACT_FOR_DIG_SPOT".equals(drop.id)) {
+                    drops.add(drop);
+                }
+            }
+        }
+        return drops;
+    }
+
+    private static boolean containsExpanded(ZoneRect rect, int x, int z, int margin) {
+        return x >= rect.minX - margin && x <= rect.maxX + margin
+                && z >= rect.minZ - margin && z <= rect.maxZ + margin;
     }
 
     // ======================== Main Drop Logic ========================
@@ -360,40 +562,38 @@ public final class ArtifactDropService {
      * Mirrors SDV's digUpArtifactSpot(): merges Default + Location drops,
      * sorts by Precedence, evaluates with ContinueOnDrop support.
      *
-     * @return list of drops (usually 1, but ContinueOnDrop entries can add more).
-     *         Guaranteed non-empty since Clay is the 100% fallback.
+    * @return list of drops (usually 0 or 1, but ContinueOnDrop entries can add more).
      */
     @SuppressWarnings("null")
     public static List<ItemStack> rollDrops(ServerLevel level, BlockPos pos) {
+        return rollDrops(level, pos, null);
+    }
+
+    @SuppressWarnings("null")
+    public static List<ItemStack> rollDrops(ServerLevel level, BlockPos pos, ServerPlayer player) {
         RandomSource random = level.getRandom();
-        String location = resolveLocation(level, pos);
+        String actualLocation = resolveLocation(level, pos);
+        String dropGroup = resolveDropGroup(level, actualLocation);
         StardewTimeManager tm = StardewTimeManager.get();
         int season = tm.getCurrentSeason();
         int totalDaysPlayed = (tm.getCurrentYear() - 1) * 112 + season * 28 + tm.getCurrentDay();
 
-        // Build merged drop list: Default + Location, then sort by Precedence (stable)
-        List<DropEntry> allDrops = new ArrayList<>(DEFAULT_DROPS);
-        List<DropEntry> locDrops = LOCATION_DROPS.get(location);
-        if (locDrops != null) {
-            allDrops.addAll(locDrops);
-        }
+        // Build runtime drop list from the selected location group only.
+        List<DropEntry> allDrops = dropsForGroup(dropGroup);
         allDrops.sort(Comparator.comparingInt(DropEntry::precedence));
 
         List<ItemStack> results = new ArrayList<>();
 
         for (DropEntry drop : allDrops) {
-            // Check chance
             if (random.nextDouble() >= drop.chance) {
                 continue;
             }
-            // Check condition
-            if (!drop.condition.test(location, season, totalDaysPlayed, random)) {
+            if (!drop.condition.test(actualLocation, season, totalDaysPlayed, random, player)) {
                 continue;
             }
 
-            // Special handling for RANDOM_ARTIFACT_FOR_DIG_SPOT
             if ("RANDOM_ARTIFACT_FOR_DIG_SPOT".equals(drop.id)) {
-                ItemStack artifact = rollRandomArtifact(location, random);
+                ItemStack artifact = rollRandomArtifact(dropGroup, random);
                 if (artifact != null) {
                     results.add(artifact);
                     if (!drop.continueOnDrop) break;
@@ -401,8 +601,7 @@ public final class ArtifactDropService {
                 continue;
             }
 
-            // Resolve item
-            ItemStack stack = resolveDropItem(drop, random);
+            ItemStack stack = resolveDropItem(drop, random, player);
             if (!stack.isEmpty()) {
                 results.add(stack);
                 if (!drop.continueOnDrop) {
@@ -411,10 +610,6 @@ public final class ArtifactDropService {
             }
         }
 
-        // Should never be empty (Clay is guaranteed fallback), but just in case
-        if (results.isEmpty()) {
-            results.add(new ItemStack(ModItems.CLAY.get()));
-        }
         return results;
     }
 
@@ -423,32 +618,61 @@ public final class ArtifactDropService {
      * Most callers just need a single ItemStack.
      */
     public static ItemStack rollDrop(ServerLevel level, BlockPos pos) {
-        List<ItemStack> drops = rollDrops(level, pos);
-        return drops.get(0);
+        List<ItemStack> drops = rollDrops(level, pos, null);
+        return drops.isEmpty() ? ItemStack.EMPTY : drops.get(0);
+    }
+
+    public static ItemStack rollDrop(ServerLevel level, BlockPos pos, ServerPlayer player) {
+        List<ItemStack> drops = rollDrops(level, pos, player);
+        return drops.isEmpty() ? ItemStack.EMPTY : drops.get(0);
     }
 
     /**
      * Returns all drops (for callers that support ContinueOnDrop multi-drops).
      */
     public static List<ItemStack> rollAllDrops(ServerLevel level, BlockPos pos) {
-        return rollDrops(level, pos);
+        return rollDrops(level, pos, null);
     }
 
-    private static ItemStack resolveDropItem(DropEntry drop, RandomSource random) {
+    public static List<ItemStack> rollAllDrops(ServerLevel level, BlockPos pos, ServerPlayer player) {
+        return rollDrops(level, pos, player);
+    }
+
+    private static ItemStack resolveDropItem(DropEntry drop, RandomSource random, ServerPlayer player) {
+        if (drop.id.startsWith("LOST_BOOK_OR_ITEM")) {
+            return ItemStack.EMPTY;
+        }
+        if (drop.id.startsWith("SECRET_NOTE_OR_ITEM")) {
+            return resolveSpecialQueryDrop("(O)390", random);
+        }
+
         Item item;
         if (drop.randomItems != null && !drop.randomItems.isEmpty()) {
-            // Pick random from list (e.g. warp totems)
             item = drop.randomItems.get(random.nextInt(drop.randomItems.size())).get();
         } else if (drop.item != null) {
             item = drop.item.get();
         } else {
             return ItemStack.EMPTY;
         }
-        int count = drop.minStack;
-        if (drop.maxStack > drop.minStack) {
-            count = drop.minStack + random.nextInt(drop.maxStack - drop.minStack + 1);
+        int minStack = normalizeStackValue(drop.minStack);
+        int maxStack = Math.max(minStack, normalizeStackValue(drop.maxStack));
+        int count = minStack;
+        if (maxStack > minStack) {
+            count = minStack + random.nextInt(maxStack - minStack + 1);
         }
         return new ItemStack(item, count);
+    }
+
+    private static ItemStack resolveSpecialQueryDrop(String fallbackItemId, RandomSource random) {
+        DeferredItem<? extends Item> fallbackItem = resolveDropItemId(fallbackItemId);
+        if (fallbackItem == null) {
+            return ItemStack.EMPTY;
+        }
+        return new ItemStack(fallbackItem.get());
+    }
+
+    private static int normalizeStackValue(int value) {
+        return value <= 0 ? 1 : value;
     }
 
     /**

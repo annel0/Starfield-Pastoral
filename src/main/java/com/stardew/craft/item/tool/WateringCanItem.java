@@ -234,15 +234,22 @@ public class WateringCanItem extends Item implements IStardewItem {
 
             List<BlockPos> targetPositions = getAffectedBlocks(level, hitPos, player, chargeLevel);
 
-            // 农场保护：在别人农场上无权操作（温室内部豁免，温室是合法种植区域）
+            // 农场保护：在别人农场上无权操作（温室内部豁免，温室是合法种植区域）。
+            // 蓄力流程由 Item.use(air) → startUsingItem 启动，完全绕过 RightClickBlock 事件，
+            // 因此在这里按每个目标格过滤，若全部被过滤则提示并返回。
             if (!level.isClientSide && player instanceof ServerPlayer sp
                     && level.dimension() == ModDimensions.STARDEW_VALLEY
                     && !sp.isCreative()) {
-                boolean inGreenhouse = level instanceof net.minecraft.server.level.ServerLevel sl
-                        && com.stardew.craft.greenhouse.GreenhouseManager.isInGreenhouseInterior(sl, hitPos);
-                // 仅检查命中位置（同一蓄力范围内不会跨农场）；温室内不做农场归属检查
-                if (!inGreenhouse
-                        && !com.stardew.craft.event.FarmAreaProtectionEvents.canModifyAt(sp, hitPos)) {
+                int before = targetPositions.size();
+                targetPositions = new java.util.ArrayList<>(targetPositions);
+                targetPositions.removeIf(pos -> {
+                    if (level instanceof net.minecraft.server.level.ServerLevel sl
+                            && com.stardew.craft.greenhouse.GreenhouseManager.isInGreenhouseInterior(sl, pos)) {
+                        return !com.stardew.craft.event.FarmAreaProtectionEvents.canModifyGreenhouseAt(sp, sl, pos);
+                    }
+                    return !com.stardew.craft.event.FarmAreaProtectionEvents.canModifyAt(sp, pos);
+                });
+                if (targetPositions.isEmpty() && before > 0) {
                     sp.displayClientMessage(
                             Component.translatable("stardewcraft.farm.build_farm_only"), true);
                     return;

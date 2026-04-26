@@ -21,7 +21,13 @@
         ]
       ],
       "weather": "any",
-      "spawnRate": 0.4
+      "spawnRate": 0.4,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ]
     },
     {
       "id": "carp",
@@ -43,6 +49,11 @@
       "spawnRate": 0.45,
       "biomeTags": [
         "#stardewcraft:is_mutant_bug_lair"
+      ],
+      "seasons": [
+        "spring",
+        "summer",
+        "fall"
       ]
     },
     {
@@ -65,6 +76,12 @@
       "spawnRate": 0.3,
       "biomeTags": [
         "#stardewcraft:is_mutant_bug_lair"
+      ],
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
       ]
     },
     {
@@ -87,6 +104,12 @@
       "spawnRate": 0.3,
       "biomeTags": [
         "#stardewcraft:is_mutant_bug_lair"
+      ],
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
       ]
     }
   ]

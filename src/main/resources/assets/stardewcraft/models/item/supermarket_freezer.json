@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:decor/common/supermarket_freezer",
+	"textures": {
+		"particle": "stardewcraft:block/decor/common/supermarket_freezer"
+	}
+}

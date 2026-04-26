@@ -128,6 +128,12 @@ public class PlayerDataEventHandler {
                         player.server.getLevel(com.stardew.craft.core.ModDimensions.STARDEW_VALLEY);
                 if (stardewLevel != null) {
                     com.stardew.craft.farm.OfflineFarmCatchUp.catchUp(stardewLevel, player.getUUID());
+                    // 老存档/老服务器兼容：补放农场洞穴（早于洞穴系统的存档 cavePlaced=false）
+                    com.stardew.craft.farm.FarmInstance ownFarm =
+                            com.stardew.craft.farm.FarmInstanceRegistry.get().getFarm(player.getUUID());
+                    if (ownFarm != null) {
+                        com.stardew.craft.farm.FarmInstanceInitializer.backfillFarmCaveIfMissing(stardewLevel, ownFarm);
+                    }
                 }
             }
 

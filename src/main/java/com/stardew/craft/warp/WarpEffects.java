@@ -48,7 +48,7 @@ public final class WarpEffects {
         // 农场特殊处理：传送到玩家自己的农场出生点
         double tx = dest.x(), ty = dest.y(), tz = dest.z();
         if ("farm".equals(dest.id())) {
-            FarmInstance farm = FarmInstanceRegistry.get().getFarmForPlayer(player.getUUID());
+            FarmInstance farm = FarmInstanceRegistry.get().getFarm(player.getUUID());
             if (farm != null) {
                 BlockPos spawn = farm.getSpawnPoint();
                 tx = spawn.getX() + 0.5;

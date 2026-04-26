@@ -296,6 +296,36 @@ public class AnimalWorldData extends SavedData {
         if (existing == null) {
             return false;
         }
+        return moveBuildingManagerFromItem(
+            buildingId,
+            ownerPlayerId,
+            dimensionId,
+            newManagerPos,
+            family,
+            existing.minX(),
+            existing.minY(),
+            existing.minZ(),
+            existing.maxX(),
+            existing.maxY(),
+            existing.maxZ()
+        );
+    }
+
+    public boolean moveBuildingManagerFromItem(String buildingId,
+                                               UUID ownerPlayerId,
+                                               String dimensionId,
+                                               BlockPos newManagerPos,
+                                               String family,
+                                               int minX,
+                                               int minY,
+                                               int minZ,
+                                               int maxX,
+                                               int maxY,
+                                               int maxZ) {
+        AnimalBuildingRecord existing = buildings.get(buildingId);
+        if (existing == null) {
+            return false;
+        }
         if (!com.stardew.craft.farm.FarmInstanceRegistry.get()
                 .canOperateBuilding(ownerPlayerId, existing.ownerPlayerUuid())) {
             return false;
@@ -308,10 +338,10 @@ public class AnimalWorldData extends SavedData {
         }
 
         int range = Math.max(
-            Math.max(Math.abs(newManagerPos.getX() - existing.minX()), Math.abs(existing.maxX() - newManagerPos.getX())),
+            Math.max(Math.abs(newManagerPos.getX() - minX), Math.abs(maxX - newManagerPos.getX())),
             Math.max(
-                Math.max(Math.abs(newManagerPos.getY() - existing.minY()), Math.abs(existing.maxY() - newManagerPos.getY())),
-                Math.max(Math.abs(newManagerPos.getZ() - existing.minZ()), Math.abs(existing.maxZ() - newManagerPos.getZ()))
+                Math.max(Math.abs(newManagerPos.getY() - minY), Math.abs(maxY - newManagerPos.getY())),
+                Math.max(Math.abs(newManagerPos.getZ() - minZ), Math.abs(maxZ - newManagerPos.getZ()))
             )
         );
 
@@ -323,12 +353,12 @@ public class AnimalWorldData extends SavedData {
             existing.dimensionId(),
             newManagerPos.immutable(),
             range,
-            existing.minX(),
-            existing.minY(),
-            existing.minZ(),
-            existing.maxX(),
-            existing.maxY(),
-            existing.maxZ(),
+            minX,
+            minY,
+            minZ,
+            maxX,
+            maxY,
+            maxZ,
             existing.capacity(),
             existing.hayCapacity(),
             true,
@@ -491,6 +521,24 @@ public class AnimalWorldData extends SavedData {
                 continue;
             }
             if (!owner.equals(record.ownerPlayerUuid())) {
+                continue;
+            }
+            if (!buildingFamilies.contains(record.buildingType().family())) {
+                continue;
+            }
+            if (!record.active()) {
+                continue;
+            }
+            if (record.isInBounds(pos)) {
+                return Optional.of(record);
+            }
+        }
+        return Optional.empty();
+    }
+
+    public Optional<AnimalBuildingRecord> findBuildingAtAnyOwner(String dimensionId, BlockPos pos, Set<String> buildingFamilies) {
+        for (AnimalBuildingRecord record : buildings.values()) {
+            if (!dimensionId.equals(record.dimensionId())) {
                 continue;
             }
             if (!buildingFamilies.contains(record.buildingType().family())) {

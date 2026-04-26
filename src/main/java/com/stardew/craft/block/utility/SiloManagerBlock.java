@@ -84,6 +84,31 @@ public class SiloManagerBlock extends Block {
                                               Player player,
                                               InteractionHand hand,
                                               BlockHitResult hitResult) {
+        if (!stack.isEmpty() && stack.is(com.stardew.craft.item.ModItems.HAY.get())) {
+            if (level.isClientSide) {
+                return ItemInteractionResult.SUCCESS;
+            }
+            if (!(player instanceof ServerPlayer serverPlayer) || !(level instanceof ServerLevel serverLevel)) {
+                return ItemInteractionResult.CONSUME;
+            }
+            AnimalWorldData data = AnimalWorldData.get(serverLevel);
+            if (data.getHayCapacity(serverPlayer.getUUID()) <= 0) {
+                serverPlayer.displayClientMessage(
+                    Component.translatable("stardewcraft.hud.hay_silo_full"), true);
+                return ItemInteractionResult.CONSUME;
+            }
+            int requested = stack.getCount();
+            int stored = data.storeHay(serverPlayer.getUUID(), requested);
+            if (stored <= 0) {
+                serverPlayer.displayClientMessage(
+                    Component.translatable("stardewcraft.hud.hay_silo_full"), true);
+                return ItemInteractionResult.CONSUME;
+            }
+            stack.shrink(stored);
+            level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6F, 1.0F);
+            com.stardew.craft.network.HayHarvestHudMessagePacket.sendTo(serverPlayer, stored, false);
+            return ItemInteractionResult.sidedSuccess(false);
+        }
         return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
@@ -135,7 +160,17 @@ public class SiloManagerBlock extends Block {
         }
         if (!com.stardew.craft.farm.FarmInstanceRegistry.get()
                 .canOperateBuilding(serverPlayer.getUUID(), owner)) {
+            refundRelocationItem(stack, serverLevel, pos, serverPlayer);
+            serverLevel.removeBlock(pos, false);
             serverPlayer.sendSystemMessage(Component.translatable("message.stardew_craft.manager.relocate_owner_mismatch"));
+            return;
+        }
+
+        SiloManagerValidationService.ValidationResult validation = SiloManagerValidationService.validate(serverLevel, pos);
+        if (!validation.success()) {
+            refundRelocationItem(stack, serverLevel, pos, serverPlayer);
+            serverLevel.removeBlock(pos, false);
+            serverPlayer.sendSystemMessage(Component.literal("[筒仓管理器] 搬迁失败：" + validation.message()));
             return;
         }
 
@@ -144,11 +179,38 @@ public class SiloManagerBlock extends Block {
             serverPlayer.getUUID(),
             dimension.isBlank() ? serverLevel.dimension().location().toString() : dimension,
             pos,
-            family
+            family,
+            validation.minX(),
+            validation.minY(),
+            validation.minZ(),
+            validation.maxX(),
+            validation.maxY(),
+            validation.maxZ()
         );
 
         if (moved) {
             serverPlayer.sendSystemMessage(Component.translatable("message.stardew_craft.manager.relocate_pending"));
+            return;
+        }
+
+        refundRelocationItem(stack, serverLevel, pos, serverPlayer);
+        serverLevel.removeBlock(pos, false);
+    }
+
+    private static void refundRelocationItem(ItemStack placementStack,
+                                             ServerLevel level,
+                                             BlockPos pos,
+                                             ServerPlayer player) {
+        if (!placementStack.isEmpty()) {
+            placementStack.grow(1);
+            player.getInventory().setChanged();
+            player.inventoryMenu.broadcastChanges();
+            return;
+        }
+
+        ItemStack managerItem = new ItemStack(ModBlocks.SILO_MANAGER.get().asItem());
+        if (!player.getInventory().add(managerItem)) {
+            popResource(level, pos, managerItem);
         }
     }
 

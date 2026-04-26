@@ -21,6 +21,9 @@ import java.util.Set;
 
 @SuppressWarnings("null")
 public final class BarnManagerValidationService {
+    private static final int START_SEARCH_RADIUS_XZ = 2;
+    private static final int START_SEARCH_RADIUS_Y = 1;
+
     private BarnManagerValidationService() {
     }
 
@@ -80,16 +83,7 @@ public final class BarnManagerValidationService {
         int scanMinZ = managerPos.getZ() - rangeXZ;
         int scanMaxZ = managerPos.getZ() + rangeXZ;
 
-        List<BlockPos> startCandidates = new ArrayList<>();
-        for (Direction direction : Direction.values()) {
-            BlockPos candidate = managerPos.relative(direction);
-            if (!withinScan(candidate, scanMinX, scanMaxX, scanMinY, scanMaxY, scanMinZ, scanMaxZ)) {
-                continue;
-            }
-            if (level.getBlockState(candidate).isAir()) {
-                startCandidates.add(candidate.immutable());
-            }
-        }
+        List<BlockPos> startCandidates = collectStartCandidates(level, managerPos, scanMinX, scanMaxX, scanMinY, scanMaxY, scanMinZ, scanMaxZ);
 
         if (startCandidates.isEmpty()) {
             return new ScanResult(
@@ -114,7 +108,37 @@ public final class BarnManagerValidationService {
             );
         }
 
-        FloodResult flood = floodInterior(level, startCandidates, scanMinX, scanMaxX, scanMinY, scanMaxY, scanMinZ, scanMaxZ);
+        FloodResult flood = null;
+        for (BlockPos start : startCandidates) {
+            FloodResult current = floodInterior(level, List.of(start), scanMinX, scanMaxX, scanMinY, scanMaxY, scanMinZ, scanMaxZ);
+            if (flood == null || isBetterComponent(current, flood)) {
+                flood = current;
+            }
+        }
+
+        if (flood == null) {
+            return new ScanResult(
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                false,
+                0,
+                managerPos.getX(),
+                managerPos.getY(),
+                managerPos.getZ(),
+                managerPos.getX(),
+                managerPos.getY(),
+                managerPos.getZ(),
+                Collections.emptySet(),
+                Collections.emptySet()
+            );
+        }
+
         Set<Long> scopedInterior = flood.enclosed ? flood.interiorAirCells : Collections.emptySet();
         FacilityCount facilities = countInteriorFacilities(level, scopedInterior, scanMinX, scanMaxX, scanMinY, scanMaxY, scanMinZ, scanMaxZ);
 
@@ -143,6 +167,69 @@ public final class BarnManagerValidationService {
             Collections.unmodifiableSet(new LinkedHashSet<>(scopedInterior)),
             Collections.unmodifiableSet(flood.boundaryDoorCells)
         );
+    }
+
+    private static boolean isBetterComponent(FloodResult current, FloodResult best) {
+        if (current.enclosed != best.enclosed) {
+            return current.enclosed;
+        }
+        return current.airCount > best.airCount;
+    }
+
+    private static List<BlockPos> collectStartCandidates(ServerLevel level,
+                                                         BlockPos managerPos,
+                                                         int scanMinX,
+                                                         int scanMaxX,
+                                                         int scanMinY,
+                                                         int scanMaxY,
+                                                         int scanMinZ,
+                                                         int scanMaxZ) {
+        LinkedHashSet<Long> unique = new LinkedHashSet<>();
+        List<BlockPos> startCandidates = new ArrayList<>();
+
+        for (Direction direction : Direction.values()) {
+            BlockPos candidate = managerPos.relative(direction);
+            if (tryAddStartCandidate(level, candidate, scanMinX, scanMaxX, scanMinY, scanMaxY, scanMinZ, scanMaxZ, unique)) {
+                startCandidates.add(candidate.immutable());
+            }
+        }
+
+        for (int dx = -START_SEARCH_RADIUS_XZ; dx <= START_SEARCH_RADIUS_XZ; dx++) {
+            for (int dy = -START_SEARCH_RADIUS_Y; dy <= START_SEARCH_RADIUS_Y; dy++) {
+                for (int dz = -START_SEARCH_RADIUS_XZ; dz <= START_SEARCH_RADIUS_XZ; dz++) {
+                    if (dx == 0 && dy == 0 && dz == 0) {
+                        continue;
+                    }
+                    if (Math.abs(dx) + Math.abs(dy) + Math.abs(dz) <= 1) {
+                        continue;
+                    }
+                    BlockPos candidate = managerPos.offset(dx, dy, dz);
+                    if (tryAddStartCandidate(level, candidate, scanMinX, scanMaxX, scanMinY, scanMaxY, scanMinZ, scanMaxZ, unique)) {
+                        startCandidates.add(candidate.immutable());
+                    }
+                }
+            }
+        }
+
+        return startCandidates;
+    }
+
+    private static boolean tryAddStartCandidate(ServerLevel level,
+                                                BlockPos candidate,
+                                                int scanMinX,
+                                                int scanMaxX,
+                                                int scanMinY,
+                                                int scanMaxY,
+                                                int scanMinZ,
+                                                int scanMaxZ,
+                                                Set<Long> unique) {
+        if (!withinScan(candidate, scanMinX, scanMaxX, scanMinY, scanMaxY, scanMinZ, scanMaxZ)) {
+            return false;
+        }
+        if (!level.getBlockState(candidate).isAir()) {
+            return false;
+        }
+        return unique.add(candidate.asLong());
     }
 
     private static FacilityCount countInteriorFacilities(ServerLevel level,

@@ -21,6 +21,10 @@
       "spawnRate": 0.1,
       "biomeTags": [
         "#stardewcraft:is_ginger_island_ocean"
+      ],
+      "seasons": [
+        "summer",
+        "winter"
       ]
     },
     {
@@ -43,6 +47,10 @@
       "spawnRate": 0.15,
       "biomeTags": [
         "#stardewcraft:is_ginger_island_ocean"
+      ],
+      "seasons": [
+        "summer",
+        "winter"
       ]
     },
     {
@@ -65,6 +73,9 @@
       "spawnRate": 0.3,
       "biomeTags": [
         "#stardewcraft:is_ginger_island_ocean"
+      ],
+      "seasons": [
+        "summer"
       ]
     },
     {
@@ -87,6 +98,10 @@
       "spawnRate": 0.15,
       "biomeTags": [
         "#stardewcraft:is_ginger_island_ocean"
+      ],
+      "seasons": [
+        "spring",
+        "summer"
       ]
     },
     {
@@ -131,6 +146,12 @@
       "spawnRate": 0.4,
       "biomeTags": [
         "#stardewcraft:is_ginger_island_ocean"
+      ],
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
       ]
     }
   ]

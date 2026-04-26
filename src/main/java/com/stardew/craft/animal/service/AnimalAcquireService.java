@@ -25,6 +25,7 @@ public final class AnimalAcquireService {
             : customName;
 
         FarmAnimalRecord record = worldData.createAnimal(animalTypeId, finalName, buildingId, AnimalAcquisitionSource.PURCHASE);
+        ensureBuildingChunkLoaded(level, building);
         AnimalEntitySyncService.spawnOrSyncSingle(level, record);
         return record;
     }
@@ -38,6 +39,7 @@ public final class AnimalAcquireService {
 
         validateBuildingFamily(animalTypeId, building);
         FarmAnimalRecord record = worldData.createAnimal(animalTypeId, defaultName(animalTypeId), buildingId, AnimalAcquisitionSource.PREGNANCY);
+        ensureBuildingChunkLoaded(level, building);
         AnimalEntitySyncService.spawnOrSyncSingle(level, record);
         return record;
     }
@@ -61,8 +63,18 @@ public final class AnimalAcquireService {
             ? defaultName(animalTypeId)
             : customName;
         FarmAnimalRecord record = worldData.createAnimal(animalTypeId, finalName, buildingId, AnimalAcquisitionSource.INCUBATION);
+        ensureBuildingChunkLoaded(level, building);
         AnimalEntitySyncService.spawnOrSyncSingle(level, record);
         return record;
+    }
+
+    private static void ensureBuildingChunkLoaded(ServerLevel level, AnimalBuildingRecord building) {
+        if (level == null || building == null) {
+            return;
+        }
+        int chunkX = building.managerPos().getX() >> 4;
+        int chunkZ = building.managerPos().getZ() >> 4;
+        level.getChunk(chunkX, chunkZ);
     }
 
     private static void validateBuildingFamily(String animalTypeId, AnimalBuildingRecord building) {

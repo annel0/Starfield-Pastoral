@@ -80,7 +80,7 @@ public final class InteriorSubspaceManager {
     public static final int REGION_MAX_Z = 19000;
 
     // 结构布局版本：当结构清单或坐标大改时 +1，可触发重新装载。
-    private static final int LAYOUT_VERSION = 31;
+    private static final int LAYOUT_VERSION = 32;
 
     private static final String PIERRE_HOUSE_STRUCTURE_PATH = "data/stardewcraft/structures/interior/pierre_house.schem";
     private static final BlockPos PIERRE_HOUSE_ORIGIN = new BlockPos(12032, 70, 12032);
@@ -251,6 +251,20 @@ public final class InteriorSubspaceManager {
     public static final BlockPos OASIS_OUTDOOR_EXIT_POS = new BlockPos(-360, -40, 1413);
     private static final String TAG_PORTAL_MARKER_OASIS_INSIDE = "sdv_portal_marker:oasis_inside";
 
+    // ---- Joja 超市（JojaMart） ----
+    private static final String JOJA_MART_STRUCTURE_PATH = "data/stardewcraft/structures/interior/joja_mart.schem";
+    public static final BlockPos JOJA_MART_ORIGIN = new BlockPos(18240, 70, 18240);
+    /** 进店后玩家落点：origin +(3,1,13)，面朝东（-X 方向是门，看向店内东侧） */
+    private static final BlockPos JOJA_MART_INDOOR_SPAWN_OFFSET = new BlockPos(3, 1, 13);
+    /** 室内出口触发方块基点：origin +(1,1,13)，2 高 x 1 宽 x 2 深（Z+13~14） */
+    private static final BlockPos JOJA_MART_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(1, 1, 13);
+    /** 出店后玩家落点：镇上 Joja 门外，面朝北（-Z） */
+    public static final BlockPos JOJA_MART_OUTDOOR_EXIT_POS = new BlockPos(-293, -16, 57);
+    /** 室外入口触发方块基点：(-294,-16,59)，4 高 x 4 宽 x 1 深 */
+    private static final BlockPos JOJA_MART_OUTDOOR_ENTRY_BASE = new BlockPos(-294, -16, 59);
+    private static final String TAG_PORTAL_MARKER_JOJA_MART_OUTSIDE = "sdv_portal_marker:joja_mart_outside";
+    private static final String TAG_PORTAL_MARKER_JOJA_MART_INSIDE  = "sdv_portal_marker:joja_mart_inside";
+
     // ---- 社区中心 ----
     static final String CC_RUINS_PATH = "data/stardewcraft/structures/interior/community_center_ruins.schem";
     @SuppressWarnings("unused")
@@ -273,6 +287,22 @@ public final class InteriorSubspaceManager {
     static final BlockPos GREENHOUSE_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(1, 1, 10);
 
     private static final String TAG_PORTAL_MARKER_GREENHOUSE_OUTSIDE = "sdv_portal_marker:greenhouse_outside";
+
+    // ---- 农场洞穴 ----
+    public static final String FARM_CAVE_PATH = "data/stardewcraft/structures/farm/cave.schem";
+    /** 每玩家农场洞穴室内基础 origin（实际 origin = 此值 + index * CAVE_Z_STRIDE） */
+    public static final BlockPos FARM_CAVE_INTERIOR_ORIGIN = new BlockPos(18944, 70, 19392);
+    /** schem 9×6×10，min corner 映射到 origin；玩家入口 spawn 局部 (2,1,6) 朝东 */
+    public static final BlockPos FARM_CAVE_INDOOR_SPAWN_OFFSET = new BlockPos(2, 1, 6);
+    /** 室内出洞传送触发方块基点 (1,1,6)，高 2 格 */
+    static final BlockPos FARM_CAVE_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(1, 1, 6);
+    /** cave schem 外接尺寸 (width, height, length) */
+    public static final int FARM_CAVE_SCHEM_W = 9;
+    public static final int FARM_CAVE_SCHEM_H = 6;
+    public static final int FARM_CAVE_SCHEM_L = 10;
+
+    private static final String TAG_PORTAL_MARKER_FARM_CAVE_OUTSIDE = "sdv_portal_marker:farm_cave_outside";
+    static final String TAG_PORTAL_MARKER_FARM_CAVE_INSIDE = "sdv_portal_marker:farm_cave_inside";
 
     // ---- 矿井入口（室外） ----
     private static final String TAG_PORTAL_MARKER_MINE_OUTSIDE = "sdv_portal_marker:mine_entrance";
@@ -303,6 +333,7 @@ public final class InteriorSubspaceManager {
         register("elliott_cabin", ELLIOTT_CABIN_STRUCTURE_PATH, ELLIOTT_CABIN_ORIGIN.getX(), ELLIOTT_CABIN_ORIGIN.getY(), ELLIOTT_CABIN_ORIGIN.getZ());
         register("wizard_tower", WIZARD_TOWER_STRUCTURE_PATH, WIZARD_TOWER_ORIGIN.getX(), WIZARD_TOWER_ORIGIN.getY(), WIZARD_TOWER_ORIGIN.getZ());
         register("oasis", OASIS_STRUCTURE_PATH, OASIS_ORIGIN.getX(), OASIS_ORIGIN.getY(), OASIS_ORIGIN.getZ());
+        register("joja_mart", JOJA_MART_STRUCTURE_PATH, JOJA_MART_ORIGIN.getX(), JOJA_MART_ORIGIN.getY(), JOJA_MART_ORIGIN.getZ());
         // CC 和温室不再注册为 FIXED_STRUCTURES — 由 PlayerInteriorAllocator 按玩家独立加载
 
         BlockPos indoorSpawn = PIERRE_HOUSE_ORIGIN.offset(PIERRE_INDOOR_SPAWN_OFFSET);
@@ -829,6 +860,38 @@ public final class InteriorSubspaceManager {
 
         StardewCraft.LOGGER.info("[INTERIOR] oasis indoor exit interaction anchor = {}", oasisIndoorExitPortal);
 
+        // ── Joja 超市（JojaMart） ──
+        BlockPos jojaMartIndoorSpawn = JOJA_MART_ORIGIN.offset(JOJA_MART_INDOOR_SPAWN_OFFSET);
+        BlockPos jojaMartIndoorExitPortal = JOJA_MART_ORIGIN.offset(JOJA_MART_INDOOR_EXIT_PORTAL_OFFSET);
+
+        // 进 Joja：传送到 origin+(3,1,13)，面朝东。
+        InteriorPortalRegistry.register(
+            "joja_mart_enter",
+            new InteriorPortalRegistry.PortalTarget(
+                jojaMartIndoorSpawn.getX() + 0.5D,
+                jojaMartIndoorSpawn.getY(),
+                jojaMartIndoorSpawn.getZ() + 0.5D,
+                -90.0F,
+                0.0F,
+                InteriorPortalRegistry.PortalMode.ENTRANCE
+            )
+        );
+
+        // 出 Joja：回到镇上 (-293,-16,57)，面朝北。
+        InteriorPortalRegistry.register(
+            "joja_mart_exit",
+            new InteriorPortalRegistry.PortalTarget(
+                JOJA_MART_OUTDOOR_EXIT_POS.getX() + 0.5D,
+                JOJA_MART_OUTDOOR_EXIT_POS.getY(),
+                JOJA_MART_OUTDOOR_EXIT_POS.getZ() + 0.5D,
+                180.0F,
+                0.0F,
+                InteriorPortalRegistry.PortalMode.EXIT
+            )
+        );
+
+        StardewCraft.LOGGER.info("[INTERIOR] joja_mart indoor exit interaction anchor = {}", jojaMartIndoorExitPortal);
+
         // CC 和温室门户不再静态注册 — 由 InteriorPortalInteractionEvents 动态解析
     }
 
@@ -1312,6 +1375,15 @@ public final class InteriorSubspaceManager {
         placePortalTriggerArea(level, oasisIndoorExitPortal, 2, 1, 1,
             TAG_PORTAL_MARKER_OASIS_INSIDE, "sdv_portal_target:oasis_exit");
 
+        // Joja 超市室外入口：4高 x 4宽 x 1深，(-294,-16,59) → (-291,-13,59)
+        placePortalTriggerArea(level, JOJA_MART_OUTDOOR_ENTRY_BASE, 4, 4, 1,
+            TAG_PORTAL_MARKER_JOJA_MART_OUTSIDE, "sdv_portal_target:joja_mart_enter");
+
+        // Joja 超市室内出口：2高 x 1宽 x 2深，Z+13~14
+        BlockPos jojaMartIndoorExitPortal = JOJA_MART_ORIGIN.offset(JOJA_MART_INDOOR_EXIT_PORTAL_OFFSET);
+        placePortalTriggerArea(level, jojaMartIndoorExitPortal, 2, 1, 2,
+            TAG_PORTAL_MARKER_JOJA_MART_INSIDE, "sdv_portal_target:joja_mart_exit");
+
         // 沙漠公交站传送区域：在空气位置放置触发方块（默认行为，跳过已有非空气方块）
         placePortalTriggerArea(level,
             com.stardew.craft.desert.DesertConstants.BUS_PORTAL_BASE,
@@ -1569,6 +1641,30 @@ public final class InteriorSubspaceManager {
             "sdv_portal_target:greenhouse_enter"
         );
         StardewCraft.LOGGER.info("[INTERIOR] Greenhouse outdoor portal placed at {}", pos);
+    }
+
+    /**
+     * 在农场指定立方体区域放置「进洞」传送触发方块。由 {@link com.stardew.craft.farm.FarmInstanceInitializer} 调用。
+     * 坐标为绝对世界坐标（min/max 均包含）。
+     */
+    public static void spawnFarmCaveOutdoorPortalArea(ServerLevel level, BlockPos min, BlockPos max) {
+        int minX = Math.min(min.getX(), max.getX());
+        int maxX = Math.max(min.getX(), max.getX());
+        int minY = Math.min(min.getY(), max.getY());
+        int maxY = Math.max(min.getY(), max.getY());
+        int minZ = Math.min(min.getZ(), max.getZ());
+        int maxZ = Math.max(min.getZ(), max.getZ());
+        int xBlocks = maxX - minX + 1;
+        int yBlocks = maxY - minY + 1;
+        int zBlocks = maxZ - minZ + 1;
+        placePortalTriggerArea(
+            level,
+            new BlockPos(minX, minY, minZ),
+            yBlocks, xBlocks, zBlocks,
+            TAG_PORTAL_MARKER_FARM_CAVE_OUTSIDE,
+            "sdv_portal_target:farm_cave_enter"
+        );
+        StardewCraft.LOGGER.info("[INTERIOR] Farm cave outdoor portal placed at {}~{}", min, max);
     }
 
     private static final class InteriorSubspaceSavedData extends SavedData {

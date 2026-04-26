@@ -140,6 +140,8 @@ public final class EventCommandFactory {
                     getInt(obj, "count", 1)
             );
             case "add_mail"      -> new AddMailCommand(obj.get("id").getAsString());
+            case "add_recipe"    -> new AddRecipeCommand(obj.get("recipe").getAsString());
+            case "set_cave_choice" -> new SetCaveChoiceCommand(obj.get("choice").getAsString());
 
             case "question"      -> QuestionCommand.fromJson(obj);
 
