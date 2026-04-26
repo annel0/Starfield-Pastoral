@@ -141,9 +141,15 @@ public final class ScytheHarvestEvents {
 		}
 		// 农场保护
 		boolean inStardew = level.dimension() == com.stardew.craft.core.ModDimensions.STARDEW_VALLEY;
-		boolean canModify = player.isCreative() || !inStardew || FarmAreaProtectionEvents.canModifyAt(player, pos);
+		boolean isGreenhouseInterior = inStardew
+				&& com.stardew.craft.greenhouse.GreenhouseManager.isInGreenhouseInterior(level, pos);
+		boolean canModify = player.isCreative() || !inStardew
+				|| (isGreenhouseInterior
+				? FarmAreaProtectionEvents.canModifyGreenhouseAt(player, level, pos)
+				: FarmAreaProtectionEvents.canModifyAt(player, pos));
 		// 公共区域（小镇等）：允许砍杂草类方块，但不允许其他操作
 		boolean isPublicArea = inStardew && !player.isCreative()
+				&& !isGreenhouseInterior
 				&& com.stardew.craft.core.FarmAreaResolver.isInStardewButNotFarm(level, pos);
 
 		if (!canModify && !isPublicArea) {

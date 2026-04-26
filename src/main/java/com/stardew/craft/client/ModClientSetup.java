@@ -106,6 +106,8 @@ public final class ModClientSetup {
 		event.registerEntityRenderer(ModEntities.JUNIMO.get(), JunimoGeoRenderer::new);
 		event.registerEntityRenderer(ModEntities.CAMEL_MERCHANT.get(),
 				com.stardew.craft.client.renderer.entity.CamelMerchantGeoRenderer::new);
+		event.registerEntityRenderer(ModEntities.TRAVELING_CART.get(),
+				com.stardew.craft.client.renderer.entity.TravelingCartGeoRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.TAPPER.get(), TapperBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.KEG.get(), KegBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.PRESERVES_JAR.get(), PreservesJarBlockEntityRenderer::new);

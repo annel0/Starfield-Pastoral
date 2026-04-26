@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.IItemHandler;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 @SuppressWarnings("null")
 public class FeedTroughBlockEntity extends net.minecraft.world.level.block.entity.BlockEntity implements UtilityAutomationAccess {
@@ -71,18 +72,6 @@ public class FeedTroughBlockEntity extends net.minecraft.world.level.block.entit
             return ItemStack.EMPTY;
         }
         return new ItemStack(ModItems.HAY.get(), 1);
-    }
-
-    public void clearClientHayVisual() {
-        Level currentLevel = level;
-        if (currentLevel == null || !currentLevel.isClientSide) {
-            return;
-        }
-        if (hayStack.isEmpty()) {
-            return;
-        }
-        hayStack = ItemStack.EMPTY;
-        currentLevel.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 11);
     }
 
     private static FeedTroughBlockEntity getTrough(Level level, BlockPos pos) {
@@ -144,6 +133,7 @@ public class FeedTroughBlockEntity extends net.minecraft.world.level.block.entit
                 hayStack.grow(1);
             }
             setChanged();
+            syncVisualState();
             syncToClient();
         }
         return true;
@@ -158,6 +148,7 @@ public class FeedTroughBlockEntity extends net.minecraft.world.level.block.entit
         if (!simulate) {
             hayStack = ItemStack.EMPTY;
             setChanged();
+            syncVisualState();
             syncToClient();
         }
         return taken;
@@ -273,15 +264,44 @@ public class FeedTroughBlockEntity extends net.minecraft.world.level.block.entit
         return 1;
     }
 
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        syncVisualState();
+    }
+
+    private void syncVisualState() {
+        Level currentLevel = level;
+        if (currentLevel == null || currentLevel.isClientSide) {
+            return;
+        }
+        BlockState state = getBlockState();
+        if (!(state.getBlock() instanceof FeedTroughBlock)) {
+            return;
+        }
+        boolean hasHay = !hayStack.isEmpty();
+        if (state.getValue(FeedTroughBlock.HAS_HAY) != hasHay) {
+            currentLevel.setBlock(worldPosition, state.setValue(FeedTroughBlock.HAS_HAY, hasHay), 3);
+        }
+    }
+
     @SuppressWarnings("null")
     private void syncToClient() {
         Level currentLevel = level;
         if (currentLevel == null || currentLevel.isClientSide) {
             return;
         }
-        currentLevel.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 11);
-        if (currentLevel instanceof ServerLevel serverLevel) {
-            serverLevel.getChunkSource().blockChanged(worldPosition);
+        List<BlockPos> network = FeedTroughBlock.collectConnectedTroughs(currentLevel, worldPosition);
+        if (network.isEmpty()) {
+            network = List.of(worldPosition);
+        }
+
+        for (BlockPos pos : network) {
+            BlockState state = currentLevel.getBlockState(pos);
+            currentLevel.sendBlockUpdated(pos, state, state, 11);
+            if (currentLevel instanceof ServerLevel serverLevel) {
+                serverLevel.getChunkSource().blockChanged(pos);
+            }
         }
     }
 
@@ -309,9 +329,13 @@ public class FeedTroughBlockEntity extends net.minecraft.world.level.block.entit
     @SuppressWarnings("null")
     @Override
     public CompoundTag getUpdateTag(@SuppressWarnings("null") net.minecraft.core.HolderLookup.Provider registries) {
-        CompoundTag tag = new CompoundTag();
-        saveAdditional(tag, registries);
-        return tag;
+        return saveWithoutMetadata(registries);
+    }
+
+    @SuppressWarnings("null")
+    @Override
+    public void handleUpdateTag(@SuppressWarnings("null") CompoundTag tag, @SuppressWarnings("null") net.minecraft.core.HolderLookup.Provider registries) {
+        loadAdditional(tag, registries);
     }
 
     @Nullable

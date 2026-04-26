@@ -79,7 +79,7 @@ public enum CoopAnimalVariant {
 			"textures/entity/animal/sheep.png",
 			"geo/entity/animal/baby_sheep.geo.json",
 			"animations/entity/animal/baby_sheep.animation.json",
-			"textures/entity/animal/sheep.png"
+			"textures/entity/animal/baby_sheep.png"
 	),
 	SHEARED_SHEEP(
 			"geo/entity/animal/sheared_sheep.geo.json",
@@ -87,11 +87,11 @@ public enum CoopAnimalVariant {
 			"textures/entity/animal/sheep.png",
 			"geo/entity/animal/baby_sheep.geo.json",
 			"animations/entity/animal/baby_sheep.animation.json",
-			"textures/entity/animal/sheep.png"
+			"textures/entity/animal/baby_sheep.png"
 	),
 	PIG(
-			"geo/entity/animal/baby_pig.json",
-			"animations/entity/animal/baby_pig.animation.json",
+			"geo/entity/animal/pig.geo.json",
+			"animations/entity/animal/pig.animation.json",
 			"textures/entity/animal/pig.png",
 			"geo/entity/animal/baby_pig.json",
 			"animations/entity/animal/baby_pig.animation.json",

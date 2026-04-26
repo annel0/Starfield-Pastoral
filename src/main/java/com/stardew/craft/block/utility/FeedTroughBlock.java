@@ -51,6 +51,7 @@ public class FeedTroughBlock extends Block implements EntityBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty LEFT_CONNECTED = BooleanProperty.create("left_connected");
     public static final BooleanProperty RIGHT_CONNECTED = BooleanProperty.create("right_connected");
+    public static final BooleanProperty HAS_HAY = BooleanProperty.create("has_hay");
 
     private static final VoxelShape FALLBACK_SHAPE = Block.box(0.0, 0.0, 0.0, 16.0, 14.0, 16.0);
     private static final Map<String, VoxelShape> SHAPE_CACHE = new ConcurrentHashMap<>();
@@ -61,12 +62,13 @@ public class FeedTroughBlock extends Block implements EntityBlock {
         registerDefaultState(stateDefinition.any()
             .setValue(FACING, Direction.NORTH)
             .setValue(LEFT_CONNECTED, false)
-            .setValue(RIGHT_CONNECTED, false));
+            .setValue(RIGHT_CONNECTED, false)
+            .setValue(HAS_HAY, false));
     }
 
     @Override
     protected void createBlockStateDefinition(@SuppressWarnings("null") StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, LEFT_CONNECTED, RIGHT_CONNECTED);
+        builder.add(FACING, LEFT_CONNECTED, RIGHT_CONNECTED, HAS_HAY);
     }
 
     @SuppressWarnings("null")
@@ -91,7 +93,8 @@ public class FeedTroughBlock extends Block implements EntityBlock {
     private static VoxelShape getModelShape(BlockState state) {
         String variant = "facing=" + state.getValue(FACING).getSerializedName()
             + ",left_connected=" + state.getValue(LEFT_CONNECTED)
-            + ",right_connected=" + state.getValue(RIGHT_CONNECTED);
+            + ",right_connected=" + state.getValue(RIGHT_CONNECTED)
+            + ",has_hay=false";
         String blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
         return SHAPE_CACHE.computeIfAbsent(variant, key -> {
             VoxelShape shape = ModelVoxelShapeCache.variantShape(blockId, key);
@@ -355,7 +358,7 @@ public class FeedTroughBlock extends Block implements EntityBlock {
         }
 
         if (!trough.insertOneHay(false)) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return ItemInteractionResult.CONSUME;
         }
 
         if (!player.isCreative()) {
@@ -369,7 +372,6 @@ public class FeedTroughBlock extends Block implements EntityBlock {
     @Override
     protected InteractionResult useWithoutItem(@SuppressWarnings("null") BlockState state, @SuppressWarnings("null") Level level, @SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") Player player, @SuppressWarnings("null") BlockHitResult hit) {
         if (level.isClientSide) {
-            clearClientVisualForExpectedExtraction(level, pos);
             return InteractionResult.SUCCESS;
         }
 
@@ -392,25 +394,6 @@ public class FeedTroughBlock extends Block implements EntityBlock {
         level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6f, 1.0f);
         level.sendBlockUpdated(pos, state, state, 11);
         return InteractionResult.CONSUME;
-    }
-
-    private static void clearClientVisualForExpectedExtraction(Level level, BlockPos origin) {
-        for (BlockPos networkPos : collectConnectedTroughs(level, origin)) {
-            BlockEntity be = level.getBlockEntity(networkPos);
-            if (!(be instanceof FeedTroughBlockEntity trough)) {
-                continue;
-            }
-            if (trough.getHayStack().isEmpty()) {
-                continue;
-            }
-            trough.clearClientHayVisual();
-            return;
-        }
-
-        BlockEntity fallbackBe = level.getBlockEntity(origin);
-        if (fallbackBe instanceof FeedTroughBlockEntity fallback) {
-            fallback.clearClientHayVisual();
-        }
     }
 
     @SuppressWarnings("null")

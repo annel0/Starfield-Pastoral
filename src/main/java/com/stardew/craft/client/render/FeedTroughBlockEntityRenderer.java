@@ -2,7 +2,9 @@ package com.stardew.craft.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import com.stardew.craft.block.utility.FeedTroughBlock;
 import com.stardew.craft.blockentity.FeedTroughBlockEntity;
+import com.stardew.craft.item.ModItems;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -24,10 +26,11 @@ public class FeedTroughBlockEntityRenderer implements BlockEntityRenderer<FeedTr
             return;
         }
 
-        ItemStack hay = be.getHayStack();
-        if (hay.isEmpty()) {
+        if (!be.getBlockState().hasProperty(FeedTroughBlock.HAS_HAY) || !be.getBlockState().getValue(FeedTroughBlock.HAS_HAY)) {
             return;
         }
+
+        ItemStack hay = new ItemStack(ModItems.HAY.get());
 
         long seed = be.getBlockPos().asLong();
         float yaw = randomRange(seed ^ 0x72B4C91FL, -25.0f, 25.0f);
@@ -35,10 +38,10 @@ public class FeedTroughBlockEntityRenderer implements BlockEntityRenderer<FeedTr
         float offsetZ = randomRange(seed ^ 0x11AA66E3L, -0.08f, 0.08f);
 
         poseStack.pushPose();
-        poseStack.translate(0.5f + offsetX, 0.145f, 0.5f + offsetZ);
+        poseStack.translate(0.5f + offsetX, 0.17f, 0.5f + offsetZ);
         poseStack.mulPose(Axis.YP.rotationDegrees(yaw));
         poseStack.mulPose(Axis.XP.rotationDegrees(90.0f));
-        poseStack.scale(0.72f, 0.72f, 0.72f);
+        poseStack.scale(0.64f, 0.64f, 0.64f);
 
         Minecraft.getInstance().getItemRenderer().renderStatic(
             hay,
@@ -48,7 +51,7 @@ public class FeedTroughBlockEntityRenderer implements BlockEntityRenderer<FeedTr
             poseStack,
             buffer,
             be.getLevel(),
-            0
+            (int) seed
         );
         poseStack.popPose();
     }

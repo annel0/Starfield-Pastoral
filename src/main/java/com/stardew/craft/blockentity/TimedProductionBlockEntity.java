@@ -45,31 +45,35 @@ public abstract class TimedProductionBlockEntity extends BlockEntity implements 
         return computeReady();
     }
 
+    protected boolean hasReadyPayload() {
+        return readyCheckRequiresProduct() ? !product.isEmpty() : !input.isEmpty();
+    }
+
     protected boolean computeReady() {
-        boolean hasProduct = !product.isEmpty();
-        if (!hasProduct || readyAtAbsMinute < 0) {
+        boolean hasPayload = hasReadyPayload();
+        if (!hasPayload || readyAtAbsMinute < 0) {
             lastReadyCheckAbsMinute = Long.MIN_VALUE;
             lastReadyCheckReadyAt = readyAtAbsMinute;
-            lastReadyCheckHasProduct = hasProduct;
+            lastReadyCheckHasProduct = hasPayload;
             lastReadyCheckResult = false;
             return false;
         }
         long currentAbsMinute = getCurrentAbsMinute();
         if (currentAbsMinute == lastReadyCheckAbsMinute
                 && readyAtAbsMinute == lastReadyCheckReadyAt
-                && lastReadyCheckHasProduct == hasProduct) {
+                && lastReadyCheckHasProduct == hasPayload) {
             return lastReadyCheckResult;
         }
         boolean result = currentAbsMinute >= readyAtAbsMinute;
         lastReadyCheckAbsMinute = currentAbsMinute;
         lastReadyCheckReadyAt = readyAtAbsMinute;
-        lastReadyCheckHasProduct = hasProduct;
+        lastReadyCheckHasProduct = hasPayload;
         lastReadyCheckResult = result;
         return result;
     }
 
     public long getRemainingAbsMinutes() {
-        if (product.isEmpty() || readyAtAbsMinute < 0) {
+        if (!hasReadyPayload() || readyAtAbsMinute < 0) {
             return 0;
         }
         return Math.max(0, readyAtAbsMinute - getCurrentAbsMinute());
@@ -92,7 +96,7 @@ public abstract class TimedProductionBlockEntity extends BlockEntity implements 
         if (currentLevel == null || currentLevel.isClientSide) {
             return;
         }
-        if (product.isEmpty() || readyAtAbsMinute < 0) {
+        if (!hasReadyPayload() || readyAtAbsMinute < 0) {
             return;
         }
         long delta = (long) days * (long) EFFECTIVE_MINUTES_PER_DAY;

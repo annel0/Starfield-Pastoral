@@ -229,6 +229,7 @@ public class PlayerStardewData {
         this.tempMagneticRadiusBonus = 0;
         this.tempMagneticRadiusBonusEndTick = 0L;
 
+        this.unlockedRecipes.add("fried_egg");
         this.unlockedWallpaperStyles.add(DecorationStyleRegistry.getDefaultStyleId(DecorationType.WALLPAPER));
         this.unlockedFlooringStyles.add(DecorationStyleRegistry.getDefaultStyleId(DecorationType.FLOORING));
     }

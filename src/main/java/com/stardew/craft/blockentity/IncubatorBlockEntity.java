@@ -12,6 +12,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -28,6 +29,11 @@ public class IncubatorBlockEntity extends TimedProductionBlockEntity {
     private static final String TAG_INPUT = "input";
     private static final String TAG_READY_AT = "readyAtAbsMinute";
     private static final String TAG_READY = "ready";
+    private static final String[] CHICKEN_NAMES = {"Pip", "Bean", "Dot", "Sunny", "Maple", "Mochi", "Biscuit", "Clover"};
+    private static final String[] DUCK_NAMES = {"Puddle", "Bubbles", "Waddles", "Pebble", "Marsh", "Ripple", "Mallow", "Drizzle"};
+    private static final String[] VOID_CHICKEN_NAMES = {"Nyx", "Soot", "Hex", "Ash", "Murk", "Umbra", "Cinder", "Gloom"};
+    private static final String[] GOLDEN_CHICKEN_NAMES = {"Goldie", "Topaz", "Glint", "Honey", "Auric", "Spark", "Amber", "Sunbeam"};
+    private static final String[] DINOSAUR_NAMES = {"Fern", "Spike", "Pebble", "Moss", "Sprout", "Juniper", "Rexie", "Bramble"};
 
     public record RemainingTime(int days, int hours, int minutes) {
     }
@@ -49,7 +55,7 @@ public class IncubatorBlockEntity extends TimedProductionBlockEntity {
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, IncubatorBlockEntity be) {
-        if (level.isClientSide) {
+        if (!(level instanceof ServerLevel serverLevel)) {
             return;
         }
 
@@ -64,7 +70,74 @@ public class IncubatorBlockEntity extends TimedProductionBlockEntity {
             be.setChanged();
             be.syncToClient();
         }
+
+        if (be.ready) {
+            be.tryAutoHatch(serverLevel);
+        }
+
         be.updateWorkingState(level, pos, state);
+    }
+
+    private boolean tryAutoHatch(ServerLevel serverLevel) {
+        if (!ready || input.isEmpty()) {
+            return false;
+        }
+
+        AnimalBuildingRecord building = getContainingAnimalBuilding(serverLevel);
+        if (building == null || !"coop".equalsIgnoreCase(building.buildingType().family())) {
+            return false;
+        }
+        if (building.memberAnimalIds().size() >= building.capacity()) {
+            return false;
+        }
+
+        String animalTypeId = resolveAnimalTypeId(input);
+        if (animalTypeId == null) {
+            return false;
+        }
+
+        try {
+            String generatedName = generateIncubationName(serverLevel, animalTypeId);
+            AnimalAcquireService.incubation(serverLevel, animalTypeId, generatedName, building.buildingId());
+            clearIncubationState();
+            return true;
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            return false;
+        }
+    }
+
+    private String generateIncubationName(ServerLevel serverLevel, String animalTypeId) {
+        AnimalWorldData data = AnimalWorldData.get(serverLevel);
+        RandomSource random = serverLevel.random;
+        String[] pool = switch (animalTypeId) {
+            case "duck" -> DUCK_NAMES;
+            case "void_chicken" -> VOID_CHICKEN_NAMES;
+            case "golden_chicken" -> GOLDEN_CHICKEN_NAMES;
+            case "dinosaur" -> DINOSAUR_NAMES;
+            default -> CHICKEN_NAMES;
+        };
+
+        for (int attempt = 0; attempt < 24; attempt++) {
+            String candidate = pool[random.nextInt(pool.length)];
+            if (!data.hasAnyAnimalWithName(candidate)) {
+                return candidate;
+            }
+        }
+
+        String base = switch (animalTypeId) {
+            case "duck" -> "Duck";
+            case "void_chicken" -> "Void";
+            case "golden_chicken" -> "Goldie";
+            case "dinosaur" -> "Dino";
+            default -> "Chick";
+        };
+        for (int attempt = 0; attempt < 64; attempt++) {
+            String candidate = base + " " + (100 + random.nextInt(900));
+            if (!data.hasAnyAnimalWithName(candidate)) {
+                return candidate;
+            }
+        }
+        return base + " " + Math.abs(random.nextInt());
     }
 
     private boolean isInsideActiveAnimalBuilding(Level level, BlockPos pos) {

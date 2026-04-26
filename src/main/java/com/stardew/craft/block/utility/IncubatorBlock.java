@@ -5,8 +5,6 @@ import com.stardew.craft.block.shape.ModelVoxelShapeCache;
 import com.stardew.craft.blockentity.IncubatorBlockEntity;
 import com.stardew.craft.blockentity.ModBlockEntities;
 import com.stardew.craft.blockentity.UtilityDropHelper;
-import com.stardew.craft.network.payload.OpenAnimalPurchaseScreenPayload;
-import net.minecraft.network.chat.Component;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvents;
@@ -41,7 +39,6 @@ import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -204,8 +201,7 @@ public class IncubatorBlock extends Block implements EntityBlock {
         }
 
         if (incubator.isReady()) {
-            openIncubatorNamingScreen(level, pos, player, incubator);
-            return ItemInteractionResult.sidedSuccess(false);
+            return ItemInteractionResult.CONSUME;
         }
 
         if (!stack.isEmpty() && incubator.tryInsert(stack, player)) {
@@ -238,68 +234,7 @@ public class IncubatorBlock extends Block implements EntityBlock {
             return InteractionResult.PASS;
         }
 
-        openIncubatorNamingScreen(level, pos, player, incubator);
         return InteractionResult.CONSUME;
-    }
-
-    private static void openIncubatorNamingScreen(Level level, BlockPos pos, Player player, IncubatorBlockEntity incubator) {
-        if (!(player instanceof net.minecraft.server.level.ServerPlayer serverPlayer)
-            || !(level instanceof net.minecraft.server.level.ServerLevel serverLevel)) {
-            return;
-        }
-
-        String animalTypeId = incubator.getReadyAnimalTypeId();
-        if (animalTypeId == null) {
-            Component msg = Component.translatable("stardewcraft.incubator.claim.invalid_egg");
-            serverPlayer.sendSystemMessage(msg);
-            return;
-        }
-
-        var building = incubator.getContainingAnimalBuilding(serverLevel);
-        if (building == null || !"coop".equalsIgnoreCase(building.buildingType().family())) {
-            Component msg = Component.translatable("stardewcraft.incubator.claim.invalid_building");
-            serverPlayer.sendSystemMessage(msg);
-            return;
-        }
-        if (!com.stardew.craft.farm.FarmInstanceRegistry.get()
-                .canOperateBuilding(serverPlayer.getUUID(), building.ownerPlayerUuid())) {
-            Component msg = Component.translatable("stardewcraft.incubator.claim.not_owner");
-            serverPlayer.sendSystemMessage(msg);
-            return;
-        }
-        if (building.memberAnimalIds().size() >= building.capacity()) {
-            Component msg = Component.translatable("stardewcraft.incubator.claim.building_full");
-            serverPlayer.sendSystemMessage(msg);
-            return;
-        }
-
-        String displayName = Component.translatable("entity.stardewcraft." + animalTypeId).getString();
-        var animal = new OpenAnimalPurchaseScreenPayload.AnimalOption(
-            animalTypeId,
-            displayName,
-            "coop",
-            1,
-            0,
-            true,
-            "stardewcraft.animal.shop.desc.white_chicken",
-            ""
-        );
-
-        String buildingDisplay = (building.customName() == null || building.customName().isBlank())
-            ? building.buildingId()
-            : building.customName();
-        var buildingOption = new OpenAnimalPurchaseScreenPayload.BuildingOption(
-            building.buildingId(),
-            buildingDisplay,
-            building.buildingType().family(),
-            building.buildingType().tier(),
-            building.memberAnimalIds().size(),
-            building.capacity()
-        );
-
-        @SuppressWarnings("null")
-        OpenAnimalPurchaseScreenPayload payload = OpenAnimalPurchaseScreenPayload.incubator(List.of(animal), List.of(buildingOption), pos);
-        PacketDistributor.sendToPlayer(serverPlayer, payload);
     }
 
     @SuppressWarnings("null")

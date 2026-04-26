@@ -522,12 +522,16 @@ public abstract class StardewCropBlock extends Block {
         if (!level.isClientSide && level instanceof ServerLevel serverLevel) {
             // 农场保护：在别人农场上无权收割
             if (player instanceof net.minecraft.server.level.ServerPlayer sp
-                    && level.dimension() == com.stardew.craft.core.ModDimensions.STARDEW_VALLEY
-                    && !sp.isCreative()
-                    && !com.stardew.craft.event.FarmAreaProtectionEvents.canModifyAt(sp, interactionPos)) {
+                && level.dimension() == com.stardew.craft.core.ModDimensions.STARDEW_VALLEY
+                && !sp.isCreative()) {
+            boolean canHarvest = com.stardew.craft.greenhouse.GreenhouseManager.isInGreenhouseInterior(serverLevel, interactionPos)
+                ? com.stardew.craft.event.FarmAreaProtectionEvents.canModifyGreenhouseAt(sp, serverLevel, interactionPos)
+                : com.stardew.craft.event.FarmAreaProtectionEvents.canModifyAt(sp, interactionPos);
+            if (!canHarvest) {
                 sp.displayClientMessage(
                         net.minecraft.network.chat.Component.translatable("stardewcraft.farm.build_farm_only"), true);
                 return InteractionResult.CONSUME;
+            }
             }
             harvest(serverLevel, interactionPos, interactionState, player);
         }

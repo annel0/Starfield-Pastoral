@@ -64,7 +64,8 @@ public class AutoFeedTroughUpgraderItem extends Item implements IStardewItem {
             BlockState newState = ModBlocks.AUTOFEED_TROUGH.get().defaultBlockState()
                 .setValue(AutoFeedTroughBlock.FACING, oldState.getValue(FeedTroughBlock.FACING))
                 .setValue(AutoFeedTroughBlock.LEFT_CONNECTED, oldState.getValue(FeedTroughBlock.LEFT_CONNECTED))
-                .setValue(AutoFeedTroughBlock.RIGHT_CONNECTED, oldState.getValue(FeedTroughBlock.RIGHT_CONNECTED));
+                .setValue(AutoFeedTroughBlock.RIGHT_CONNECTED, oldState.getValue(FeedTroughBlock.RIGHT_CONNECTED))
+                .setValue(AutoFeedTroughBlock.HAS_HAY, hadHay);
 
             level.setBlock(pos, newState, 3);
 
