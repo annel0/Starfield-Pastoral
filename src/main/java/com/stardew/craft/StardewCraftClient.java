@@ -4,6 +4,7 @@ import com.stardew.craft.block.ModBlocks;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.item.SpecificBaitItem;
 import com.stardew.craft.item.artisan.PreservesItem;
+import com.stardew.craft.client.hud.StardewTimeHud;
 import com.stardew.craft.client.render.FallenOakTreeRenderer;
 import com.stardew.craft.client.ModItemProperties;
 import com.stardew.craft.client.ModRenderLayers;
@@ -12,6 +13,7 @@ import com.stardew.craft.client.render.TVScreenOverlayRenderer;
 import com.stardew.craft.client.renderer.SprinklerOverlayRenderer;
 import com.stardew.craft.client.DebugKeybindsTick;
 import com.stardew.craft.client.renderer.entity.SofaSeatEntityRenderer;
+import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.entity.ModEntities;
 import com.stardew.craft.block.utility.CushionBlock;
 import com.stardew.craft.block.utility.OfficeChair2Block;
@@ -23,7 +25,14 @@ import com.stardew.craft.block.utility.SofaBlock;
 import com.stardew.craft.block.utility.WoodenChestColorPalette;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.FoliageColor;
+import net.minecraft.world.level.GrassColor;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -45,6 +54,13 @@ import java.util.List;
 // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
 @EventBusSubscriber(modid = StardewCraft.MODID, value = Dist.CLIENT)
 public class StardewCraftClient {
+    private static final int STARDEW_GRASS_SPRING = 0xB7E36A;
+    private static final int STARDEW_GRASS_SUMMER = 0x6CCF43;
+    private static final int STARDEW_GRASS_FALL = 0xD8A53A;
+    private static final int STARDEW_GRASS_WINTER = 0xC7DBEC;
+    private static final int STARDEW_LEAF_WINTER = 0xEDF7FF;
+    private static final int STARDEW_YELLOW_DIRT_WINTER = 0xF8FCFF;
+
     public StardewCraftClient(IEventBus modEventBus, ModContainer container) {
         // Allows NeoForge to create a config screen for this mod's configs.
         // The config screen is accessed by going to the Mods screen > clicking on your mod > clicking on config.
@@ -348,6 +364,18 @@ public class StardewCraftClient {
                 ModBlocks.LIGHTNING_ROD.get(),
                 net.minecraft.client.renderer.RenderType.translucent()
             );
+            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
+                ModBlocks.FISH_POND_WATER.get(),
+                net.minecraft.client.renderer.RenderType.translucent()
+            );
+            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
+                com.stardew.craft.fluid.ModFluids.FISH_POND_WATER.get(),
+                net.minecraft.client.renderer.RenderType.translucent()
+            );
+            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
+                com.stardew.craft.fluid.ModFluids.FLOWING_FISH_POND_WATER.get(),
+                net.minecraft.client.renderer.RenderType.translucent()
+            );
             
 			ModItemProperties.register();
         });
@@ -365,6 +393,50 @@ public class StardewCraftClient {
     @SuppressWarnings("null")
     @SubscribeEvent
     static void onRegisterBlockColors(RegisterColorHandlersEvent.Block event) {
+        event.register((state, level, pos, tintIndex) -> {
+            if (tintIndex != 0) {
+                return 0xFFFFFFFF;
+            }
+            return resolveSeasonalGrassColor(level, pos);
+        }, Blocks.GRASS_BLOCK);
+
+        event.register((state, level, pos, tintIndex) -> {
+            if (tintIndex != 0) {
+                return 0xFFFFFFFF;
+            }
+            return resolveSeasonalGrassColor(level, pos);
+        }, Blocks.SHORT_GRASS, Blocks.FERN, Blocks.TALL_GRASS, Blocks.LARGE_FERN,
+                ModBlocks.PASTURE_GRASS.get(), ModBlocks.BLUE_PASTURE_GRASS.get());
+
+        event.register((state, level, pos, tintIndex) -> {
+            if (tintIndex != 0) {
+                return 0xFFFFFFFF;
+            }
+            return resolveSeasonalLeafColor(state, level, pos);
+        },
+                Blocks.OAK_LEAVES,
+                Blocks.SPRUCE_LEAVES,
+                Blocks.BIRCH_LEAVES,
+                Blocks.JUNGLE_LEAVES,
+                Blocks.ACACIA_LEAVES,
+                Blocks.DARK_OAK_LEAVES,
+                Blocks.MANGROVE_LEAVES,
+                Blocks.CHERRY_LEAVES,
+                Blocks.AZALEA_LEAVES,
+                Blocks.FLOWERING_AZALEA_LEAVES,
+                ModBlocks.WILD_OAK_LEAVES.get(),
+                ModBlocks.WILD_MAPLE_LEAVES.get(),
+                ModBlocks.WILD_PINE_LEAVES.get(),
+                ModBlocks.WILD_MAHOGANY_LEAVES.get(),
+                ModBlocks.WILD_MYSTIC_TREE_LEAVES.get());
+
+        event.register((state, level, pos, tintIndex) -> {
+            if (tintIndex != 0) {
+                return 0xFFFFFFFF;
+            }
+            return resolveYellowDirtColor();
+        }, ModBlocks.YELLOW_DIRT.get(), ModBlocks.ARTIFACT_SPOT_DIRT.get());
+
         event.register((state, level, pos, tintIndex) -> {
             if (tintIndex != 0 || state == null) {
                 return 0xFFFFFFFF;
@@ -394,6 +466,79 @@ public class StardewCraftClient {
             }
             return 0xFF000000 | (WoodenChestColorPalette.rgbAt(index) & 0xFFFFFF);
         }, ModBlocks.SOFA.get(), ModBlocks.CUSHION.get(), ModBlocks.OFFICE_STOOL.get(), ModBlocks.OFFICE_STOOL_TOP_RENDER.get(), ModBlocks.OFFICE_CHAIR_2.get(), ModBlocks.OFFICE_CHAIR_2_TOP_RENDER.get(), ModBlocks.STOOL.get(), ModBlocks.DINING_CHAIR_WOOD.get(), ModBlocks.DINING_CHAIR_IRON.get());
+
+    }
+
+    private static int resolveSeasonalGrassColor(BlockAndTintGetter level, BlockPos pos) {
+        if (!isRenderingStardewValley() || !StardewTimeHud.isTimeSynced()) {
+            return getVanillaGrassColor(level, pos);
+        }
+
+        return switch (StardewTimeHud.getClientTimeCache().getCurrentSeason()) {
+            case 0 -> STARDEW_GRASS_SPRING;
+            case 1 -> STARDEW_GRASS_SUMMER;
+            case 2 -> STARDEW_GRASS_FALL;
+            case 3 -> getWinterGrassColor();
+            default -> getVanillaGrassColor(level, pos);
+        };
+    }
+
+    private static int resolveSeasonalLeafColor(BlockState state, BlockAndTintGetter level, BlockPos pos) {
+        if (!isRenderingStardewValley() || !StardewTimeHud.isTimeSynced()) {
+            return getVanillaLeafColor(state, level, pos);
+        }
+
+        return switch (StardewTimeHud.getClientTimeCache().getCurrentSeason()) {
+            case 0 -> STARDEW_GRASS_SPRING;
+            case 1 -> STARDEW_GRASS_SUMMER;
+            case 2 -> STARDEW_GRASS_FALL;
+            case 3 -> getWinterLeafColor();
+            default -> getVanillaLeafColor(state, level, pos);
+        };
+    }
+
+    private static boolean isRenderingStardewValley() {
+        var clientLevel = Minecraft.getInstance().level;
+        return clientLevel != null && clientLevel.dimension().equals(ModDimensions.STARDEW_VALLEY);
+    }
+
+    private static int getVanillaGrassColor(BlockAndTintGetter level, BlockPos pos) {
+        if (level == null || pos == null) {
+            return GrassColor.getDefaultColor();
+        }
+        return BiomeColors.getAverageGrassColor(level, pos);
+    }
+
+    private static int getVanillaLeafColor(BlockState state, BlockAndTintGetter level, BlockPos pos) {
+        if (state != null) {
+            if (state.is(Blocks.SPRUCE_LEAVES) || state.is(ModBlocks.WILD_PINE_LEAVES.get())) {
+                return FoliageColor.getEvergreenColor();
+            }
+            if (state.is(Blocks.BIRCH_LEAVES)) {
+                return FoliageColor.getBirchColor();
+            }
+        }
+        if (level == null || pos == null) {
+            return FoliageColor.getDefaultColor();
+        }
+        return BiomeColors.getAverageFoliageColor(level, pos);
+    }
+
+    private static int getWinterGrassColor() {
+        return STARDEW_GRASS_WINTER;
+    }
+
+    private static int getWinterLeafColor() {
+        return STARDEW_LEAF_WINTER;
+    }
+
+    private static int resolveYellowDirtColor() {
+        if (!isRenderingStardewValley() || !StardewTimeHud.isTimeSynced()) {
+            return 0xFFFFFFFF;
+        }
+        return StardewTimeHud.getClientTimeCache().getCurrentSeason() == 3
+            ? STARDEW_YELLOW_DIRT_WINTER
+            : 0xFFFFFFFF;
     }
 
     @SubscribeEvent

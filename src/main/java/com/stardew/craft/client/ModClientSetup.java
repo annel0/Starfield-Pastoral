@@ -43,6 +43,8 @@ import com.stardew.craft.client.render.TapperBlockEntityRenderer;
 import com.stardew.craft.client.render.LoomBlockEntityRenderer;
 import com.stardew.craft.client.render.WormBinBlockEntityRenderer;
 import com.stardew.craft.client.render.FeedTroughBlockEntityRenderer;
+import com.stardew.craft.client.render.FishNetBlockEntityRenderer;
+import com.stardew.craft.client.render.FishPondBucketBlockEntityRenderer;
 import com.stardew.craft.client.render.AutoFeedTroughBlockEntityRenderer;
 import com.stardew.craft.client.render.AnimalProduceSpotBlockEntityRenderer;
 import com.stardew.craft.client.render.MuseumExhibitStandBlockEntityRenderer;
@@ -149,6 +151,8 @@ public final class ModClientSetup {
 		event.registerBlockEntityRenderer(ModBlockEntities.GIANT_CROP.get(), com.stardew.craft.client.render.GiantCropBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.BOOKSHELF_GEO.get(), BookshelfGeoBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.PILLAR_GEO.get(), PillarGeoBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(ModBlockEntities.FISH_NET.get(), FishNetBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(ModBlockEntities.FISH_POND_BUCKET.get(), FishPondBucketBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.GRANDFATHER_CLOCK.get(), com.stardew.craft.client.render.GrandfatherClockBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.TABLE_DISPLAY.get(), TableDisplayBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.OFFICE_STOOL.get(), OfficeStoolBlockEntityRenderer::new);
@@ -164,6 +168,7 @@ public final class ModClientSetup {
 		event.register((net.minecraft.world.inventory.MenuType) ModMenuTypes.COOP_MANAGER.get(), BuildingManagerScreen::new);
 		event.register((net.minecraft.world.inventory.MenuType) ModMenuTypes.BARN_MANAGER.get(), BuildingManagerScreen::new);
 		event.register(ModMenuTypes.SILO_MANAGER.get(), com.stardew.craft.client.gui.SiloManagerScreen::new);
+		event.register(ModMenuTypes.FISH_POND_MANAGER.get(), com.stardew.craft.client.gui.FishPondManagerScreen::new);
 		event.register(ModMenuTypes.ANIMAL_QUERY.get(), AnimalQueryScreen::new);
 		event.register(ModMenuTypes.TREASURE_CHEST.get(), com.stardew.craft.client.fishing.TreasureChestScreen::new);
 		event.register(ModMenuTypes.COOKING_POT.get(), com.stardew.craft.client.gui.CookingPotScreen::new);

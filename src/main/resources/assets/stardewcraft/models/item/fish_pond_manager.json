@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:block/fish_pond_manager",
+  "textures": {
+    "particle": "stardewcraft:block/building/fish_pond_manager"
+  }
+}

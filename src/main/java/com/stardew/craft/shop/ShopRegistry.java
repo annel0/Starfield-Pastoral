@@ -484,6 +484,8 @@ public final class ShopRegistry {
                 entryAllSeasons("stardewcraft:hay_hopper",             2000),
                 entryAllSeasons("stardewcraft:feed_trough",            1000),
                 entryAllSeasons("stardewcraft:autofeed_trough_upgrader", 10000),
+                entryAllSeasons("stardewcraft:fish_pond_bucket",        500),
+                entryAllSeasons("stardewcraft:fish_net",                250),
                 // Catalogue & tools
                 entryAllSeasons("stardewcraft:furniture_catalogue", 200000),
                 entryAllSeasons("stardewcraft:paintbrush",   0),

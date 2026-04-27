@@ -11,6 +11,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -383,6 +384,7 @@ public class CarpenterMenuScreen extends Screen {
     }
 
     private void drawNameWithScroll(GuiGraphics g, CarpenterBlueprint bp, int sdvXPos, int sdvYPos, float s4) {
+        Component name = bp.displayName();
         // SDV exact formula:
         // x = xPos + viewerW - spaceToClearSideBorder - 16 + 64
         //     + (width - (viewerW + 128)) / 2
@@ -391,7 +393,7 @@ public class CarpenterMenuScreen extends Screen {
         int nameCenterX = sdvXPos + ui(MAX_VIEWER_W - SPACE_SIDE - 16 + 64)
             + (sdvTotalW - ui(MAX_VIEWER_W + 128)) / 2;
 
-        int nameWidth = font.width(bp.displayName());
+        int nameWidth = font.width(name);
         int scrollPadding = ui(32);
         int scrollWidth = Math.max(nameWidth + scrollPadding * 2, ui(416));
         int scrollHeight = ui(56);
@@ -409,7 +411,7 @@ public class CarpenterMenuScreen extends Screen {
         // Draw name text centered on the scroll
         int textX = nameCenterX - nameWidth / 2;
         int textY = scrollY + (scrollHeight - font.lineHeight) / 2;
-        g.drawString(font, bp.displayName(), textX, textY, TEXT_COLOR, false);
+        g.drawString(font, name, textX, textY, TEXT_COLOR, false);
     }
 
     private void drawDescription(GuiGraphics g, CarpenterBlueprint bp, int sdvXPos, int sdvYPos, float s4) {
@@ -417,10 +419,19 @@ public class CarpenterMenuScreen extends Screen {
         int textX = sdvXPos + ui(MAX_VIEWER_W);
         int textY = sdvYPos + ui(80 + 16);
         int maxWidth = descW - ui(32);
+        int maxBottom = sdvYPos + ui(256 + 32) - ui(12);
 
-        // Word-wrap the description
-        List<net.minecraft.util.FormattedCharSequence> lines = font.split(Component.literal(bp.description()), maxWidth);
-        for (net.minecraft.util.FormattedCharSequence line : lines) {
+        // Wrap against the actual box width and stop before the price/material area.
+        List<FormattedCharSequence> lines = font.split(bp.description(), maxWidth);
+        int maxLines = Math.max(1, (maxBottom - textY) / (font.lineHeight + 2));
+        boolean truncated = lines.size() > maxLines;
+        int drawnLines = Math.min(lines.size(), maxLines);
+        for (int index = 0; index < drawnLines; index++) {
+            FormattedCharSequence line = lines.get(index);
+            if (truncated && index == drawnLines - 1) {
+                String clipped = font.plainSubstrByWidth(bp.description().getString(), Math.max(0, maxWidth - font.width("...")));
+                line = font.split(Component.literal(clipped + "..."), maxWidth).get(0);
+            }
             g.drawString(font, line, textX, textY, TEXT_COLOR, false);
             textY += font.lineHeight + 2;
         }
@@ -503,12 +514,14 @@ public class CarpenterMenuScreen extends Screen {
         // Show tooltip for OK button
         if (isInside(mouseX, mouseY, okX, okY, okW, okH)) {
             CarpenterBlueprint bp = blueprints.get(currentIndex);
-            String tip = canBuildCurrent() ? "\u5efa\u9020 " + bp.displayName() : "\u8d44\u6e90\u4e0d\u8db3";
-            g.renderTooltip(font, Component.literal(tip), mouseX, mouseY);
+            Component tip = canBuildCurrent()
+                ? Component.translatable("stardewcraft.carpenter.tooltip.build", bp.displayName())
+                : Component.translatable("stardewcraft.carpenter.tooltip.insufficient_resources");
+            g.renderTooltip(font, tip, mouseX, mouseY);
         }
         // Cancel button tooltip
         if (isInside(mouseX, mouseY, cancelX, cancelY, cancelW, cancelH)) {
-            g.renderTooltip(font, Component.literal("\u53d6\u6d88"), mouseX, mouseY);
+            g.renderTooltip(font, Component.translatable("stardewcraft.carpenter.tooltip.cancel"), mouseX, mouseY);
         }
     }
 

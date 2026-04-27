@@ -1,5 +1,5 @@
 ﻿{
-    "parent":  "minecraft:block/cross",
+    "parent":  "minecraft:block/tinted_cross",
     "textures":  {
                      "cross":  "stardewcraft:block/grass/blue_pasture_grass_2",
                      "particle":  "stardewcraft:block/grass/blue_pasture_grass_2"

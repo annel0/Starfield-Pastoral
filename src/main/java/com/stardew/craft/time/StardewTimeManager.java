@@ -215,6 +215,7 @@ public class StardewTimeManager extends SavedData {
                 com.stardew.craft.manager.SprinklerManager.get(stardewLevel).waterDaily(stardewLevel);
                 com.stardew.craft.manager.PastureGrassGrowthManager.get(stardewLevel).growDaily(stardewLevel);
                 com.stardew.craft.manager.AnimalGrowthManager.get(stardewLevel).growDaily(stardewLevel);
+                com.stardew.craft.fishpond.service.FishPondDailyUpdateService.onNewDay(stardewLevel);
                 com.stardew.craft.manager.ForageSpawnService.onNewDay(stardewLevel, currentSeason);
                 com.stardew.craft.manager.ForageSpawnService.onNewDayForestFarms(stardewLevel, currentSeason);
                 com.stardew.craft.manager.ArtifactSpotSpawnService.onNewDay(stardewLevel, currentSeason);

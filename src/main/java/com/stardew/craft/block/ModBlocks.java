@@ -1,6 +1,7 @@
 package com.stardew.craft.block;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.fluid.ModFluids;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.SoundType;
@@ -1432,6 +1433,14 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .pushReaction(net.minecraft.world.level.material.PushReaction.BLOCK)));
 
         @SuppressWarnings("null")
+        public static final DeferredBlock<Block> FISH_POND_MANAGER = BLOCKS.register("fish_pond_manager",
+                        () -> new com.stardew.craft.block.utility.FishPondManagerBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .strength(1.5F, 3600000.0F)
+                                        .pushReaction(net.minecraft.world.level.material.PushReaction.BLOCK)));
+
+        @SuppressWarnings("null")
         public static final DeferredBlock<Block> TRASH_BIN = BLOCKS.register("trash_bin",
                         () -> new com.stardew.craft.block.utility.TrashBinBlock(Block.Properties.of()
                                         .mapColor(net.minecraft.world.level.material.MapColor.METAL)
@@ -1464,6 +1473,33 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .noOcclusion()
                                         // 需求：徒手也能很快拆（类似羊毛/更快）
                                         .strength(0.2F, 1.0F)));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> FISH_NET = BLOCKS.register("fish_net",
+                        () -> new com.stardew.craft.block.decor.FishNetDecorBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.8F, 2.0F), "stardewcraft:utility/fish_net"));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> FISH_POND_BUCKET = BLOCKS.register("fish_pond_bucket",
+                        () -> new com.stardew.craft.block.utility.FishPondBucketBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(1.0F, 3.0F)));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> FISH_POND_WATER = BLOCKS.register("fish_pond_water",
+                        () -> new com.stardew.craft.block.utility.FishPondWaterBlock(ModFluids.FISH_POND_WATER.get(), Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WATER)
+                                        .noCollission()
+                                        .noLootTable()
+                                        .noOcclusion()
+                                        .replaceable()
+                                        .strength(100.0F, 3600000.0F)
+                                        .sound(net.minecraft.world.level.block.SoundType.EMPTY)));
 
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> MUSEUM_EXHIBIT_STAND = BLOCKS.register("museum_exhibit_stand",

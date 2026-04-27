@@ -305,6 +305,7 @@ public class ModClientEvents {
     public static void onClientTick(ClientTickEvent.Post event) {
         com.stardew.craft.client.sound.StardewMusicManager.onClientTick();
         com.stardew.craft.client.emote.EmoteBubbleClientState.tick();
+        com.stardew.craft.client.fishpond.ClientFishPondJumpEffects.onClientTick(event);
         com.stardew.craft.client.emote.EmoteWheelClient.onClientTick();
         com.stardew.craft.communitycenter.cutscene.ScreenFade.tick();
         com.stardew.craft.client.combat.DamageNumberClient.onClientTick(event);
@@ -453,6 +454,7 @@ public class ModClientEvents {
     @SubscribeEvent
     public static void onRenderLevel(RenderLevelStageEvent event) {
                 com.stardew.craft.client.combat.DamageNumberClient.onRenderLevel(event);
+        com.stardew.craft.client.fishpond.ClientFishPondJumpEffects.onRenderLevel(event);
         com.stardew.craft.client.emote.EmoteBubbleWorldRenderer.onRenderLevel(event);
         com.stardew.craft.client.weapon.TideMarkRenderer.onRenderLevel(event);
         com.stardew.craft.client.weapon.OssifiedMarkRenderer.onRenderLevel(event);

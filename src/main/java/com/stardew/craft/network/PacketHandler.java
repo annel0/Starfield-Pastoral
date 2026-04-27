@@ -1393,6 +1393,16 @@ public class PacketHandler {
             com.stardew.craft.network.payload.FishSplashSyncPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.FishSplashSyncPayload::handle
         );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.FishPondWaterColorSyncPayload.TYPE,
+            com.stardew.craft.network.payload.FishPondWaterColorSyncPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FishPondWaterColorSyncPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.FishPondJumpSyncPayload.TYPE,
+            com.stardew.craft.network.payload.FishPondJumpSyncPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FishPondJumpSyncPayload::handle
+        );
         registrar.playToServer(
             com.stardew.craft.network.payload.JukeboxSelectPayload.TYPE,
             com.stardew.craft.network.payload.JukeboxSelectPayload.STREAM_CODEC,

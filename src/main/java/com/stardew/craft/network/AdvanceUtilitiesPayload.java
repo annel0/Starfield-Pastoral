@@ -22,6 +22,7 @@ import com.stardew.craft.blockentity.TapperBlockEntity;
 import com.stardew.craft.blockentity.LoomBlockEntity;
 import com.stardew.craft.blockentity.SolarPanelBlockEntity;
 import com.stardew.craft.blockentity.WormBinBlockEntity;
+import com.stardew.craft.fishpond.service.FishPondDailyUpdateService;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.codec.StreamCodec;
@@ -113,6 +114,8 @@ public record AdvanceUtilitiesPayload() implements CustomPacketPayload {
 					}
 				}
 			}
+
+			FishPondDailyUpdateService.advanceNearby(serverLevel, playerPos, 1);
 		});
 	}
 }

@@ -206,6 +206,16 @@ public final class ModBlockEntities {
 				ModBlocks.PILLAR.get(), ModBlocks.GALAXY_PILLAR.get()).build(null));
 
 	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FishNetBlockEntity>> FISH_NET =
+			BLOCK_ENTITIES.register("fish_net", () -> BlockEntityType.Builder.of(FishNetBlockEntity::new,
+				ModBlocks.FISH_NET.get()).build(null));
+
+	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FishPondBucketBlockEntity>> FISH_POND_BUCKET =
+			BLOCK_ENTITIES.register("fish_pond_bucket", () -> BlockEntityType.Builder.of(FishPondBucketBlockEntity::new,
+				ModBlocks.FISH_POND_BUCKET.get()).build(null));
+
+	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TableDisplayBlockEntity>> TABLE_DISPLAY =
 			BLOCK_ENTITIES.register("table_display", () -> BlockEntityType.Builder.of(TableDisplayBlockEntity::new,
 				ModBlocks.OAK_TABLE.get(), ModBlocks.SPRUCE_TABLE.get(), ModBlocks.BIRCH_TABLE.get(), ModBlocks.SPRUCE_COUNTER.get(), ModBlocks.OAK_ROUND_TABLE.get(), ModBlocks.KITCHEN_COUNTER.get(), ModBlocks.HOSPITAL_COUNTER.get()).build(null));

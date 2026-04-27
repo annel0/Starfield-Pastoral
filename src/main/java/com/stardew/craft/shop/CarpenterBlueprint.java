@@ -1,5 +1,7 @@
 package com.stardew.craft.shop;
 
+import net.minecraft.network.chat.Component;
+
 import java.util.List;
 
 /**
@@ -8,13 +10,21 @@ import java.util.List;
  */
 public record CarpenterBlueprint(
     String id,
-    String displayName,
-    String description,
+    String displayNameKey,
+    String descriptionKey,
     int cost,
     List<MaterialEntry> materials,
     String resultItemId,
     boolean isUpgrade
 ) {
+    public Component displayName() {
+        return Component.translatable(displayNameKey);
+    }
+
+    public Component description() {
+        return Component.translatable(descriptionKey);
+    }
+
     public record MaterialEntry(
         String itemId,
         int count

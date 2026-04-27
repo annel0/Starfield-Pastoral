@@ -7,6 +7,7 @@ import com.stardew.craft.block.ModBlocks;
 import com.stardew.craft.capability.UtilityAutomationCapabilities;
 import com.stardew.craft.entity.ModEntities;
 import com.stardew.craft.effect.ModMobEffects;
+import com.stardew.craft.fluid.ModFluids;
 import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.item.SpecificBaitItem;
@@ -902,6 +903,8 @@ public class StardewCraft {
         // 注册作物系统的物品和方块
         ModItems.ITEMS.register(modEventBus);
         ModBlocks.BLOCKS.register(modEventBus);
+        ModFluids.FLUID_TYPES.register(modEventBus);
+        ModFluids.FLUIDS.register(modEventBus);
         ModBlockEntities.BLOCK_ENTITIES.register(modEventBus);
 		ModEntities.ENTITY_TYPES.register(modEventBus);
 		ModSounds.SOUND_EVENTS.register(modEventBus);

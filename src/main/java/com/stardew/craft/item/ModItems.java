@@ -523,6 +523,9 @@ public class ModItems {
         public static final DeferredItem<Item> COOP_MANAGER = ITEMS.register("coop_manager",
                         () -> new StardewBlockItem(ModBlocks.COOP_MANAGER.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
 
+        public static final DeferredItem<Item> FISH_POND_MANAGER = ITEMS.register("fish_pond_manager",
+                        () -> new StardewBlockItem(ModBlocks.FISH_POND_MANAGER.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
+
         public static final DeferredItem<Item> BARN_MANAGER = ITEMS.register("barn_manager",
                         () -> new StardewBlockItem(ModBlocks.BARN_MANAGER.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
 
@@ -537,6 +540,12 @@ public class ModItems {
 
         public static final DeferredItem<Item> CRAB_POT = ITEMS.register("crab_pot",
                         () -> new CrabPotItem(ModBlocks.CRAB_POT.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> FISH_NET = ITEMS.register("fish_net",
+                        () -> new StardewBlockItem(ModBlocks.FISH_NET.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> FISH_POND_BUCKET = ITEMS.register("fish_pond_bucket",
+                        () -> new StardewBlockItem(ModBlocks.FISH_POND_BUCKET.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
 
         public static final DeferredItem<Item> MUSEUM_EXHIBIT_STAND = ITEMS.register("museum_exhibit_stand",
                         () -> new StardewBlockItem(ModBlocks.MUSEUM_EXHIBIT_STAND.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));

@@ -46,6 +46,11 @@ public class ModMenuTypes {
         MENU_TYPES.register("silo_manager",
             () -> new MenuType<>(SiloManagerMenu::new, FeatureFlags.DEFAULT_FLAGS));
 
+    @SuppressWarnings("null")
+    public static final DeferredHolder<MenuType<?>, MenuType<FishPondManagerMenu>> FISH_POND_MANAGER =
+        MENU_TYPES.register("fish_pond_manager",
+            () -> new MenuType<>(FishPondManagerMenu::new, FeatureFlags.DEFAULT_FLAGS));
+
     // 动物信息面板菜单
     @SuppressWarnings("null")
     public static final DeferredHolder<MenuType<?>, MenuType<AnimalQueryMenu>> ANIMAL_QUERY =

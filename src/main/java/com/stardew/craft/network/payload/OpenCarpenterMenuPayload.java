@@ -35,20 +35,20 @@ public record OpenCarpenterMenuPayload(
             @Override
             public CarpenterBlueprint decode(RegistryFriendlyByteBuf buf) {
                 String id = ByteBufCodecs.STRING_UTF8.decode(buf);
-                String displayName = ByteBufCodecs.STRING_UTF8.decode(buf);
-                String description = ByteBufCodecs.STRING_UTF8.decode(buf);
+                String displayNameKey = ByteBufCodecs.STRING_UTF8.decode(buf);
+                String descriptionKey = ByteBufCodecs.STRING_UTF8.decode(buf);
                 int cost = buf.readInt();
                 List<CarpenterBlueprint.MaterialEntry> materials = MATERIAL_CODEC.apply(ByteBufCodecs.list()).decode(buf);
                 String resultItemId = ByteBufCodecs.STRING_UTF8.decode(buf);
                 boolean isUpgrade = buf.readBoolean();
-                return new CarpenterBlueprint(id, displayName, description, cost, materials, resultItemId, isUpgrade);
+                return new CarpenterBlueprint(id, displayNameKey, descriptionKey, cost, materials, resultItemId, isUpgrade);
             }
 
             @Override
             public void encode(RegistryFriendlyByteBuf buf, CarpenterBlueprint bp) {
                 ByteBufCodecs.STRING_UTF8.encode(buf, bp.id());
-                ByteBufCodecs.STRING_UTF8.encode(buf, bp.displayName());
-                ByteBufCodecs.STRING_UTF8.encode(buf, bp.description());
+                ByteBufCodecs.STRING_UTF8.encode(buf, bp.displayNameKey());
+                ByteBufCodecs.STRING_UTF8.encode(buf, bp.descriptionKey());
                 buf.writeInt(bp.cost());
                 MATERIAL_CODEC.apply(ByteBufCodecs.list()).encode(buf, bp.materials());
                 ByteBufCodecs.STRING_UTF8.encode(buf, bp.resultItemId());

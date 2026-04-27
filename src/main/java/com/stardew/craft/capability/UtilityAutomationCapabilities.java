@@ -84,6 +84,8 @@ public final class UtilityAutomationCapabilities {
             (be, ctx) -> be.getAutomationItemHandler());
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ModBlockEntities.MUSHROOM_BOX.get(),
             (be, ctx) -> be.getAutomationItemHandler());
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ModBlockEntities.FISH_POND_BUCKET.get(),
+            (be, ctx) -> be.getAutomationItemHandler());
 
         event.registerBlock(Capabilities.ItemHandler.BLOCK, UtilityAutomationCapabilities::getAutomationFromMultiblock,
             ModBlocks.BEE_HOUSE.get(),

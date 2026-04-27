@@ -22,9 +22,17 @@ public final class DebugKeybinds {
 			"key.categories.stardewcraft"
 	);
 
+	public static final KeyMapping GROW_DEBUG_KEY_F8 = new KeyMapping(
+			"key.stardewcraft.grow_crops_f8",
+			InputConstants.Type.KEYSYM,
+			GLFW.GLFW_KEY_F8,
+			"key.categories.stardewcraft"
+	);
+
 	@SuppressWarnings("null")
 	@SubscribeEvent
 	public static void registerKeyMappings(RegisterKeyMappingsEvent event) {
 		event.register(GROW_DEBUG_KEY);
+		event.register(GROW_DEBUG_KEY_F8);
 	}
 }

@@ -23,7 +23,7 @@ public final class DebugKeybindsTick {
 			return;
 		}
 
-		while (DebugKeybinds.GROW_DEBUG_KEY.consumeClick()) {
+		while (DebugKeybinds.GROW_DEBUG_KEY.consumeClick() || DebugKeybinds.GROW_DEBUG_KEY_F8.consumeClick()) {
 			PacketDistributor.sendToServer(new GrowCropsPayload());
 			PacketDistributor.sendToServer(new GrowTreesPayload());
 			PacketDistributor.sendToServer(new AdvanceUtilitiesPayload());

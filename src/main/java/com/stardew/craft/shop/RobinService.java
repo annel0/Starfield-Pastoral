@@ -28,9 +28,8 @@ public final class RobinService {
     private static final List<CarpenterBlueprint> BLUEPRINTS = List.of(
         new CarpenterBlueprint(
             "Coop",
-            "\u9e21\u820d",     // 鸡舍 (SDV exact)
-            "\u53ef\u5bb9\u7eb3 4 \u53ea\u5bb6\u79bd\u3002\u8d2d\u4e70\u540e\u83b7\u5f97\u9e21\u820d\u7ba1\u7406\u5668\uff0c\u653e\u7f6e\u5728\u519c\u573a\u5373\u53ef\u5f00\u59cb\u5efa\u9020\u3002",
-            // 可容纳 4 只家禽。购买后获得鸡舍管理器，放置在农场即可开始建造。
+            "stardewcraft.robin.blueprint.coop.name",
+            "stardewcraft.robin.blueprint.coop.desc",
             4000,
             List.of(
                 new CarpenterBlueprint.MaterialEntry("stardewcraft:wood_normal", 300),
@@ -41,9 +40,8 @@ public final class RobinService {
         ),
         new CarpenterBlueprint(
             "Barn",
-            "\u755c\u68da",     // 畜棚 (SDV exact)
-            "\u53ef\u5bb9\u7eb3 4 \u53ea\u5bb6\u755c\u3002\u8d2d\u4e70\u540e\u83b7\u5f97\u755c\u68da\u7ba1\u7406\u5668\uff0c\u653e\u7f6e\u5728\u519c\u573a\u5373\u53ef\u5f00\u59cb\u5efa\u9020\u3002",
-            // 可容纳 4 只家畜。购买后获得畜棚管理器，放置在农场即可开始建造。
+            "stardewcraft.robin.blueprint.barn.name",
+            "stardewcraft.robin.blueprint.barn.desc",
             6000,
             List.of(
                 new CarpenterBlueprint.MaterialEntry("stardewcraft:wood_normal", 350),
@@ -54,9 +52,8 @@ public final class RobinService {
         ),
         new CarpenterBlueprint(
             "Silo",
-            "\u7b52\u4ed3",     // 筒仓 (SDV exact)
-            "\u53ef\u50a8\u5b58\u5e72\u8349\u3002\u8d2d\u4e70\u540e\u83b7\u5f97\u7b52\u4ed3\u7ba1\u7406\u5668\uff0c\u653e\u7f6e\u5728\u519c\u573a\u5373\u53ef\u5f00\u59cb\u5efa\u9020\u3002",
-            // 可储存干草。购买后获得筒仓管理器，放置在农场即可开始建造。
+            "stardewcraft.robin.blueprint.silo.name",
+            "stardewcraft.robin.blueprint.silo.desc",
             100,
             List.of(
                 new CarpenterBlueprint.MaterialEntry("stardewcraft:stone", 100),
@@ -64,6 +61,19 @@ public final class RobinService {
                 new CarpenterBlueprint.MaterialEntry("stardewcraft:copper_bar", 5)
             ),
             "stardewcraft:silo_manager",
+            false
+        ),
+        new CarpenterBlueprint(
+            "Fish Pond",
+            "stardewcraft.robin.blueprint.fish_pond.name",
+            "stardewcraft.robin.blueprint.fish_pond.desc",
+            5000,
+            List.of(
+                new CarpenterBlueprint.MaterialEntry("stardewcraft:stone", 200),
+                new CarpenterBlueprint.MaterialEntry("stardewcraft:seaweed", 5),
+                new CarpenterBlueprint.MaterialEntry("stardewcraft:green_algae", 5)
+            ),
+            "stardewcraft:fish_pond_manager",
             false
         )
     );
