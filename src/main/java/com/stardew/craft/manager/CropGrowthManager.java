@@ -336,7 +336,7 @@ public class CropGrowthManager extends SavedData {
          // 1. 在线玩家农场区块
          com.stardew.craft.farm.FarmInstanceRegistry farmReg = com.stardew.craft.farm.FarmInstanceRegistry.get();
          for (net.minecraft.server.level.ServerPlayer player : level.players()) {
-             com.stardew.craft.farm.FarmInstance farm = farmReg.getFarm(player.getUUID());
+             com.stardew.craft.farm.FarmInstance farm = farmReg.getFarmForPlayer(player.getUUID());
              if (farm == null) continue;
              BlockPos min = farm.getFarmBoundsMin();
              BlockPos max = farm.getFarmBoundsMax();

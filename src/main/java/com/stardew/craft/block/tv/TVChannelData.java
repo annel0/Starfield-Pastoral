@@ -59,7 +59,12 @@ public final class TVChannelData {
             whichWeek = getRerunWeek(daysPlayed, data);
         }
         String cookingRecipeId = getRecipeIdForWeek(whichWeek);
-        boolean cookingAlreadyKnown = data.isRecipeUnlocked(cookingRecipeId);
+        String watchedRecipeId = data.getQueenOfSauceRecipeIdForDay(daysPlayed);
+        if (!watchedRecipeId.isBlank()) {
+            cookingRecipeId = watchedRecipeId;
+        }
+        boolean cookingAlreadyKnown = data.isRecipeUnlocked(cookingRecipeId)
+                || data.hasWatchedQueenOfSauceOnDay(daysPlayed);
 
         return new OpenTVScreenPayload(
                 tipsAvailable, cookingAvailable, fishingAvailable, cursedAvailable,
@@ -70,6 +75,24 @@ public final class TVChannelData {
                 currentDay, currentSeason, daysPlayed,
                 blockX, blockY, blockZ
         );
+    }
+
+    public static String getCookingRecipeIdForDay(ServerPlayer player, int daysPlayed, int dayOfWeek) {
+        PlayerStardewData data = PlayerStardewDataAPI.getData(player);
+        String watchedRecipeId = data.getQueenOfSauceRecipeIdForDay(daysPlayed);
+        if (!watchedRecipeId.isBlank()) {
+            return watchedRecipeId;
+        }
+
+        boolean isRerun = dayOfWeek == 2;
+        int whichWeek = (int) (daysPlayed % 224 / 7);
+        if (daysPlayed % 224 == 0) {
+            whichWeek = 32;
+        }
+        if (isRerun) {
+            whichWeek = getRerunWeek(daysPlayed, data);
+        }
+        return getRecipeIdForWeek(whichWeek);
     }
 
     // ==================== Cooking (week → recipe ID, matching Tv_CookingChannel.json) ====================

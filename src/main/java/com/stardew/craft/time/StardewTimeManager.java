@@ -232,7 +232,7 @@ public class StardewTimeManager extends SavedData {
                     com.stardew.craft.farm.FarmInstanceRegistry farmReg =
                             com.stardew.craft.farm.FarmInstanceRegistry.get();
                     for (net.minecraft.server.level.ServerPlayer sp : server.getPlayerList().getPlayers()) {
-                        com.stardew.craft.farm.FarmInstance fi = farmReg.getFarm(sp.getUUID());
+                        com.stardew.craft.farm.FarmInstance fi = farmReg.getFarmForPlayer(sp.getUUID());
                         if (fi != null) {
                             fi.setLastOnlineDay(absDay);
                             fi.setLastOnlineSeason(currentSeason);
@@ -346,10 +346,15 @@ public class StardewTimeManager extends SavedData {
      * 同时处理里程碑邮件（父母信等按天数触发的邮件）。
      */
     private void scheduleMailByDate(net.minecraft.server.level.ServerPlayer player, int season, int day) {
+        int globalDays = (currentYear - 1) * (28 * 4) + currentSeason * 28 + currentDay;
+        schedulePersonalMailForAbsoluteDay(player, globalDays);
+        scheduleGlobalCalendarMail(player, season, day);
+    }
+
+    private void schedulePersonalMailForAbsoluteDay(net.minecraft.server.level.ServerPlayer player, int globalDays) {
         // 初始化玩家的首次加入天数（用于里程碑/父母信件的相对天数计算）
         com.stardew.craft.player.PlayerStardewData pData =
                 com.stardew.craft.player.PlayerDataManager.getPlayerData(player);
-        int globalDays = (currentYear - 1) * (28 * 4) + currentSeason * 28 + currentDay;
         if (pData.getFirstJoinDay() < 0) {
             pData.setFirstJoinDay(globalDays);
         }
@@ -371,6 +376,17 @@ public class StardewTimeManager extends SavedData {
             default -> "";
         };
 
+        // SDV parity: season_day_year 用个人日历触发（spring_4_1 = 进服后第 4 个游戏日早晨）
+        String keyWithYear = personalSeasonName + "_" + personalDay + "_" + personalYear;
+        if (com.stardew.craft.mail.MailRegistry.contains(keyWithYear)) {
+            com.stardew.craft.mail.MailService.addMail(player, keyWithYear);
+        }
+
+        // 父母信件 — 按玩家个人天数里程碑触发
+        scheduleParentMail(player, personalDays);
+    }
+
+    private void scheduleGlobalCalendarMail(net.minecraft.server.level.ServerPlayer player, int season, int day) {
         String seasonName = switch (season) {
             case 0 -> "spring";
             case 1 -> "summer";
@@ -379,20 +395,40 @@ public class StardewTimeManager extends SavedData {
             default -> "";
         };
 
-        // SDV parity: season_day_year 用个人日历触发（spring_4_1 = 进服后第 4 个游戏日早晨）
-        String keyWithYear = personalSeasonName + "_" + personalDay + "_" + personalYear;
-        if (com.stardew.craft.mail.MailRegistry.contains(keyWithYear)) {
-            com.stardew.craft.mail.MailService.addMail(player, keyWithYear);
-        }
-
         // season_day（如 spring_12 = 春12日节日通知）仍按服务器全局日历触发
         String keyNoYear = seasonName + "_" + day;
         if (com.stardew.craft.mail.MailRegistry.contains(keyNoYear)) {
             com.stardew.craft.mail.MailService.addMail(player, keyNoYear);
         }
+    }
 
-        // 父母信件 — 按玩家个人天数里程碑触发
-        scheduleParentMail(player, personalDays);
+    /**
+     * 玩家登录时补跑一次当日邮件调度。
+     *
+     * 用途：
+     * - 补发玩家离线跨日后仍应在“今天”可见的个人日期邮件
+     * - 确保依赖日期邮件的个人剧情前置不会因为玩家不是在 6:00 过夜在线而缺失
+     *
+     * MailService.addMail 内部会做去重，因此重复调用是安全的。
+     */
+    public void syncDateTriggeredMailOnLogin(net.minecraft.server.level.ServerPlayer player) {
+        int currentAbsoluteDay = (currentYear - 1) * (28 * 4) + currentSeason * 28 + currentDay;
+        com.stardew.craft.player.PlayerStardewData pData =
+                com.stardew.craft.player.PlayerDataManager.getPlayerData(player);
+        int firstJoinDay = pData.getFirstJoinDay();
+        if (firstJoinDay < 0) {
+            pData.setFirstJoinDay(currentAbsoluteDay);
+            firstJoinDay = currentAbsoluteDay;
+        }
+
+        // 离线多天后登录时，补跑所有错过的个人日期邮件，
+        // 避免 spring_4_1 这类一次性个人前置被永久漏掉。
+        for (int absoluteDay = firstJoinDay; absoluteDay <= currentAbsoluteDay; absoluteDay++) {
+            schedulePersonalMailForAbsoluteDay(player, absoluteDay);
+        }
+
+        // 全局日历邮件（节日通知等）只补今天，不回放过去的服务器公共广播。
+        scheduleGlobalCalendarMail(player, currentSeason, currentDay);
     }
 
     /**

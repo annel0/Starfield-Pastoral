@@ -35,6 +35,10 @@ public record FarmJoinListRequestPayload() implements CustomPacketPayload {
             if (!(context.player() instanceof ServerPlayer player)) return;
 
             FarmInstanceRegistry registry = FarmInstanceRegistry.get();
+            com.stardew.craft.farm.FarmJoinManager.syncPendingState(
+                    player,
+                    com.stardew.craft.farm.FarmJoinManager.hasPending(player.getUUID())
+            );
 
             // 已有农场不可加入
             if (registry.hasFarm(player.getUUID())) {

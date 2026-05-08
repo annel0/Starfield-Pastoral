@@ -8,6 +8,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.MultifaceBlock;
@@ -130,6 +131,7 @@ public class MineFloorGenerator {
             StardewCraft.LOGGER.info("[MINE] Floor {} already generated today, skipping refresh.", floorNumber);
             return;
         }
+        clearExistingFloorMobs(level, floorNumber);
         manager.clearFloorData(floorNumber);
         
         // 1. 确定房间尺寸（20-50随机）
@@ -213,6 +215,26 @@ public class MineFloorGenerator {
         spawnMonsters(level, random, centerX, centerZ, size, floorNumber, isDark);
         
         StardewCraft.LOGGER.info("[MINE] Floor {} generation complete, stonesLeft: {}", floorNumber, stonesLeft);
+    }
+
+    private static void clearExistingFloorMobs(ServerLevel level, int floorNumber) {
+        BlockPos center = MiningCoordinates.getFloorCenter(floorNumber);
+        int halfSize = MAX_SIZE / 2 + 8;
+        AABB floorBounds = new AABB(
+                center.getX() - halfSize, FLOOR_Y_START - 4, center.getZ() - halfSize,
+                center.getX() + halfSize, FLOOR_Y_END + 8, center.getZ() + halfSize);
+
+        int removed = 0;
+        for (Mob mob : level.getEntitiesOfClass(Mob.class, floorBounds,
+                entity -> entity.getTags().stream().anyMatch(tag -> tag.startsWith("sd_mob_")))) {
+            mob.discard();
+            removed++;
+        }
+        com.stardew.craft.event.MineMonsterSpawnHandler.invalidateFloorMobCount(floorNumber);
+        if (removed > 0) {
+            StardewCraft.LOGGER.info("[MINE] Cleared {} persisted monsters before regenerating floor {}",
+                    removed, floorNumber);
+        }
     }
 
     /**
@@ -973,7 +995,7 @@ public class MineFloorGenerator {
         double stoneEstimate = size * size * FLOOR_HEIGHT * 0.8; // 估算每层石头数量（体积）
         double totalProbability = getTotalOreProbabilityForFloor(floor);
         double expectedOreBlocks = stoneEstimate * totalProbability;
-    double averageVeinSize = 4.5 + getThemeProgress(floor) * 1.0;
+        double averageVeinSize = 4.5 + getThemeProgress(floor) * 1.0;
 
         int count = (int)Math.round(expectedOreBlocks / averageVeinSize);
         return Math.max(6, count);
@@ -993,17 +1015,9 @@ public class MineFloorGenerator {
             double iridium = (floor >= 100) ? 0.004 : 0.0024;
             return (iridium + 0.0136 + 0.0084 + 0.0084 + 0.0078) * depthFactor * ORE_RATE_MULTIPLIER; // iridium + gold + iron + copper + coal
         }
-        // ── 骷髅矿洞 (121+)：铱矿为核心资源，随深度上升后封顶 ──
+        // ── 骷髅矿洞 (121+)：接近原版，先提升出矿密度，再让铱矿随深度变得更常见 ──
         if (floor > 120) {
-            int skullLevel = floor - 120;
-            double depthFactor = getThemeDepthFactor(floor);
-            // 铱矿：基数 0.03，每层 +0.0008，100 层后封顶 0.11 → 到 depthFactor 乘系最高 0.22
-            double iridium = 0.03 + Math.min(skullLevel, 100) * 0.0008;
-            double gold = 0.012 + Math.min(skullLevel, 100) * 0.0004;
-            double iron = Math.min(0.04, 0.02 + skullLevel * 0.0002);
-            double coal = 0.008;
-            double copper = 0.015;
-            return (iridium + gold + iron + copper + coal) * depthFactor * ORE_RATE_MULTIPLIER;
+            return getSkullCavernOreChance(floor) * ORE_RATE_MULTIPLIER;
         }
         return 0.0;
     }
@@ -1062,39 +1076,54 @@ public class MineFloorGenerator {
             return "coal";
         }
 
-        // ── 骷髅矿洞 Skull Cavern (121+) — 铱矿密集，100 层后封顶 ──
+        // ── 骷髅矿洞 Skull Cavern (121+) — 贴近原版的逐层升级节奏 ──
         if (floor > 120) {
-            int skullLevel = floor - 120;
-            // 铱矿：核心资源，基数 0.03，每层 +0.0008，100 层后封顶
-            double iridium = 0.03 + Math.min(skullLevel, 100) * 0.0008;
-            // 金矿：随深度小幅增长，同样封顶
-            double gold = 0.012 + Math.min(skullLevel, 100) * 0.0004;
-            // 铁矿：少量填充
-            double iron = Math.min(0.04, 0.02 + skullLevel * 0.0002);
-            // 煤矿：固定基底
-            double coal = 0.008;
-            // 铜矿：保底（剩余概率）
-            double copper = 0.015;
-            
-            iridium *= rareFactor * ORE_RATE_MULTIPLIER;
-            gold *= rareFactor * ORE_RATE_MULTIPLIER;
-            iron *= commonFactor * ORE_RATE_MULTIPLIER;
-            copper *= commonFactor * ORE_RATE_MULTIPLIER;
-            coal *= commonFactor * ORE_RATE_MULTIPLIER;
-            double total = iridium + gold + iron + copper + coal;
-            double roll = random.nextDouble() * total;
-            cumulative += iridium;
-            if (roll < cumulative) return "iridium";
-            cumulative += gold;
-            if (roll < cumulative) return "gold";
-            cumulative += iron;
-            if (roll < cumulative) return "iron";
-            cumulative += copper;
-            if (roll < cumulative) return "copper";
+            double iridiumChance = getSkullCavernIridiumChance(floor);
+            double goldChance = getSkullCavernGoldChance(floor);
+            double ironChance = getSkullCavernIronChance(floor);
+
+            if (random.nextDouble() < iridiumChance) return "iridium";
+            if (random.nextDouble() < goldChance) return "gold";
+            if (random.nextDouble() < ironChance) return "iron";
             return "coal";
         }
 
         return "coal";
+    }
+
+    private static double getSkullCavernOreChance(int floor) {
+        int skullLevel = floor - 120;
+        double chanceForOre = 0.02 + skullLevel * 0.0005;
+        if (floor >= 130) {
+            chanceForOre += 0.01 * ((Math.min(100, skullLevel) - 10) / 10.0);
+        }
+        return chanceForOre;
+    }
+
+    private static double getSkullCavernIridiumChance(int floor) {
+        int skullLevel = floor - 120;
+        double iridiumBoost = 0.0;
+        if (floor >= 130) {
+            iridiumBoost += 0.001 * ((skullLevel - 10) / 10.0);
+        }
+        iridiumBoost = Math.min(iridiumBoost, 0.004);
+        if (skullLevel > 100) {
+            iridiumBoost += skullLevel / 1000000.0;
+        }
+
+        double vanillaChance = Math.min(100, skullLevel) * (0.0003 + iridiumBoost);
+        double floorBonus = 0.003 + Math.min(skullLevel, 80) * 0.00005;
+        return Math.min(0.32, vanillaChance * 1.35 + floorBonus);
+    }
+
+    private static double getSkullCavernGoldChance(int floor) {
+        int skullLevel = floor - 120;
+        return 0.01 + (floor - Math.min(150, skullLevel)) * 0.0005;
+    }
+
+    private static double getSkullCavernIronChance(int floor) {
+        int skullLevel = floor - 120;
+        return Math.min(0.5, 0.1 + (floor - Math.min(200, skullLevel)) * 0.005);
     }
 
     private static double getThemeDepthFactor(int floor) {
@@ -1253,7 +1282,8 @@ public class MineFloorGenerator {
     }
 
     private static String getPrimaryOreKeyForFloor(int floor) {
-        if (floor > 120) return "iridium";
+        if (floor > 180) return "iridium";
+        if (floor > 120) return "gold";
         if (floor >= 80) return "gold";
         if (floor >= 40) return "iron";
         return "copper";
@@ -1522,10 +1552,10 @@ public class MineFloorGenerator {
 
         List<BlockPos> surfaceStones = collectSurfaceStonePositions(level, centerX, centerZ, size);
         double baseRate = 0.003 * GEM_NODE_RATE_MULTIPLIER;
-        // 骷髅矿：宝石/铱矿节点密度大幅提升（3x + 深度附加）
+        // 骷髅矿：略高于常规层，但不再把铱矿团块当作常态供给
         if (floorNumber > 120) {
             int skullLevel = floorNumber - 120;
-            baseRate *= 3.0 + Math.min(skullLevel * 0.02, 3.0); // skull=1→3.02x, skull=100→5x, skull=150+→6x 封顶
+            baseRate *= 1.15 + Math.min(skullLevel * 0.003, 0.35);
         }
         int targetCount = (int)Math.round(stonePositions.size() * baseRate);
         if (targetCount <= 0) {
@@ -1571,11 +1601,10 @@ public class MineFloorGenerator {
             candidates.add(ModBlocks.DIAMOND_ORE.get());
         }
 
-        // 骷髅矿洞 B 类矿：大块铱矿节点 + 钻石 — 视觉"一坨接着一坨的铱矿"
+        // 骷髅矿洞 B 类矿：仍然偏高端，但不再额外堆叠大块铱矿节点
         if (floorNumber > 120) {
-            // 铱矿（成团大块，骷髅矿标志）x6 权重
-            for (int i = 0; i < 6; i++) candidates.add(ModBlocks.DESERT_IRIDIUM_ORE.get());
-            // 钻石 x2
+            candidates.add(ModBlocks.RUBY_ORE.get());
+            candidates.add(ModBlocks.EMERALD_ORE.get());
             for (int i = 0; i < 2; i++) candidates.add(ModBlocks.DIAMOND_ORE.get());
         }
 
@@ -3524,17 +3553,18 @@ public class MineFloorGenerator {
         float roll = random.nextFloat();
 
         if (theme == FloorTheme.SKULL_CAVERN) {
+            float iridiumRoomChance = getSkullCavernIridiumRoomChance(floorNumber);
             // 骷髅矿专属特殊房间
-            if (roll < 0.12f) {
-                // 铱矿密集洞（12%）
+            if (roll < iridiumRoomChance) {
+                // 铱矿密集洞：深层后才稳定出现
                 generateIridiumTreasureRoom(level, random, centerX, centerZ, halfSize, floorNumber);
-            } else if (roll < 0.20f) {
+            } else if (roll < iridiumRoomChance + 0.08f) {
                 // 岩浆湖洞穴（8%）
                 generateLavaChamber(level, random, centerX, centerZ, halfSize, floorNumber);
-            } else if (roll < 0.23f && floorNumber >= 146) {
+            } else if (roll < iridiumRoomChance + 0.11f && floorNumber >= 146) {
                 // Dino 巢穴（3%，≥146层）
                 generateDinoNest(level, random, centerX, centerZ, halfSize);
-            } else if (roll < 0.28f) {
+            } else if (roll < iridiumRoomChance + 0.16f) {
                 // 远古武器室（5%）——封闭石室，中央武器展示架
                 generateAncientWeaponRoom(level, random, centerX, centerZ, halfSize, floorNumber);
             }
@@ -3775,7 +3805,15 @@ public class MineFloorGenerator {
 
     // ──────── 骷髅矿专属特殊房间 ────────
 
-    /** 铱矿密集洞：小型洞穴，墙壁 40-60% 铱矿石 */
+    private static float getSkullCavernIridiumRoomChance(int floorNumber) {
+        int skullLevel = floorNumber - 120;
+        if (skullLevel < 30) {
+            return 0.0f;
+        }
+        return (float)Math.min(0.035, 0.01 + (skullLevel - 30) * 0.00025);
+    }
+
+    /** 铱矿密集洞：小型洞穴，墙壁少量高密铱矿石 */
     @SuppressWarnings("null")
     private static void generateIridiumTreasureRoom(ServerLevel level, RandomSource random,
                                                       int centerX, int centerZ, int halfSize, int floorNumber) {
@@ -3803,8 +3841,8 @@ public class MineFloorGenerator {
                     if (current.getBlock() == ModBlocks.MINE_BARRIER.get()) continue;
 
                     if (isWall && dy > 0 && dy < roomH - 1) {
-                        // 墙壁 40-60% 铱矿
-                        level.setBlock(pos, random.nextFloat() < 0.50f ? iridiumOre.defaultBlockState() : mainStone.defaultBlockState(), 2);
+                        // 墙壁保留“深层奖励”感，但不再是半个房间都刷铱矿
+                        level.setBlock(pos, random.nextFloat() < 0.32f ? iridiumOre.defaultBlockState() : mainStone.defaultBlockState(), 2);
                     } else if (!isWall) {
                         level.setBlock(pos, Blocks.AIR.defaultBlockState(), 2);
                     }
@@ -3813,7 +3851,7 @@ public class MineFloorGenerator {
         }
 
         // 地面放几颗铱矿碎块
-        for (int i = 0; i < 3 + random.nextInt(3); i++) {
+        for (int i = 0; i < 2 + random.nextInt(2); i++) {
             int ix = rx - roomW / 2 + 2 + random.nextInt(Math.max(1, roomW - 4));
             int iz = rz - roomD / 2 + 2 + random.nextInt(Math.max(1, roomD - 4));
             BlockPos orePos = new BlockPos(ix, baseY, iz);

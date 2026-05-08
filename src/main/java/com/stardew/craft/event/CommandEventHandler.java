@@ -6,6 +6,7 @@ import com.stardew.craft.command.CommunityCenterCommand;
 import com.stardew.craft.command.FarmAdminCommand;
 import com.stardew.craft.command.FarmJoinCommand;
 import com.stardew.craft.command.MailDebugCommand;
+import com.stardew.craft.command.MonsterSummonCommand;
 import com.stardew.craft.command.MuseumDebugCommand;
 import com.stardew.craft.command.AnimalDebugCommand;
 import com.stardew.craft.command.DecorationDebugCommand;
@@ -35,6 +36,7 @@ public class CommandEventHandler {
         OvernightDebugCommand.register(event.getDispatcher());
         NpcDebugCommand.register(event.getDispatcher());
         ShopDebugCommand.register(event.getDispatcher());
+        MonsterSummonCommand.register(event.getDispatcher());
         MailDebugCommand.register(event.getDispatcher());
         CommunityCenterCommand.register(event.getDispatcher());
         FarmAdminCommand.register(event.getDispatcher());

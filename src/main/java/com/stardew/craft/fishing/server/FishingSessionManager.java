@@ -2,6 +2,7 @@ package com.stardew.craft.fishing.server;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.fishing.TreasureChestMenu;
+import com.stardew.craft.fishpond.service.FishPondInteractionService;
 import com.stardew.craft.item.tool.FishingRodItem;
 import com.stardew.craft.fishing.network.FishingCatchVisualPayload;
 import com.stardew.craft.fishing.network.FishingFailVisualPayload;
@@ -155,6 +156,39 @@ public final class FishingSessionManager {
 		session.startHookedAnim(hookedAnimTicks);
 		PacketDistributor.sendToPlayer(player, new com.stardew.craft.fishing.network.FishingHookedAnimPayload(hookedAnimTicks));
 		player.serverLevel().playSound(null, player.blockPosition(), ModSounds.FISH_HIT.get(), net.minecraft.sounds.SoundSource.PLAYERS, 1.0f, 1.0f);
+		return true;
+	}
+
+	@SuppressWarnings("null")
+	public boolean tryPullFishPondCatch(ServerPlayer player) {
+		FishingSession session = sessionsByPlayer.get(player.getUUID());
+		if (session == null || session.state() != FishingSession.State.WAITING_BITE) {
+			return false;
+		}
+		if (!isHookAlive(player.serverLevel(), session)) {
+			return false;
+		}
+
+		ItemStack fish = FishPondInteractionService.pullFishForFishingRod(player.serverLevel(), session.bobberPos());
+		if (fish.isEmpty()) {
+			return false;
+		}
+
+		boolean added = player.getInventory().add(fish.copy());
+		if (!added) {
+			player.drop(fish.copy(), false);
+		}
+
+		player.playNotifySound(ModSounds.PULL_ITEM_FROM_WATER.get(), net.minecraft.sounds.SoundSource.PLAYERS, 1.0f, 1.0f);
+		player.playNotifySound(ModSounds.DWOP.get(), net.minecraft.sounds.SoundSource.PLAYERS, 1.0f, 1.0f);
+
+		var id = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(fish.getItem());
+		PacketDistributor.sendToPlayer(player, new FishingCatchVisualPayload(id, fish.getCount()));
+
+		cleanupHook(player.serverLevel(), session);
+		session.finish();
+		sessionsByPlayer.remove(player.getUUID());
+		clearAllRodCastFlags(player);
 		return true;
 	}
 

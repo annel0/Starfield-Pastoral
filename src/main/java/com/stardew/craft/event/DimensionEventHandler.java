@@ -19,6 +19,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import net.neoforged.neoforge.event.level.SleepFinishedTimeEvent;
+import net.minecraft.network.protocol.game.ClientboundSetTimePacket;
 
 /**
  * 维度事件处理器 - 使用MC原版昼夜循环
@@ -73,13 +74,7 @@ public class DimensionEventHandler {
         }
         dayAdvancing = true;
         try {
-            // 唤醒所有正在睡觉的玩家（先于日结算，防止残留睡眠状态）
-            for (ServerPlayer sp : sourceLevel.getServer().getPlayerList().getPlayers()) {
-                if (sp.isSleeping()) {
-                    sp.stopSleeping();
-                }
-            }
-
+            var server = sourceLevel.getServer();
             StardewTimeManager timeManager = StardewTimeManager.get();
 
             // === 通过 offset 推进虚拟 dayTime，不修改主世界 ===
@@ -88,21 +83,23 @@ public class DimensionEventHandler {
             long newDayTime = (currentDay + 1) * 24000;
             timeManager.setVirtualDayTime(sourceLevel, newDayTime);
 
-            // TimeSyncPacket（在 advanceDayWithSleepTime 后面）会携带最新 virtualDayTime，
-            // 客户端 StardewClientTimeState 自动同步。
+            // === 只发时间包给星露谷维度玩家 ===
+            for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+                ServerLevel playerLevel = player.serverLevel();
+                if (isStardewDimension(playerLevel)) {
+                    player.connection.send(new ClientboundSetTimePacket(
+                        playerLevel.getGameTime(),
+                        newDayTime,
+                        true // 星露谷始终有昼夜循环
+                    ));
+                }
+            }
 
             // 日结算逻辑（作物生长、天气、玩家恢复等）
             try {
                 timeManager.advanceDayWithSleepTime(sleepMinute);
             } catch (Exception e) {
                 StardewCraft.LOGGER.error("Error during advanceDayWithSleepTime (day still advanced to prevent freeze)", e);
-            }
-
-            // 日结算后：乌鸦袭击（针对成熟作物，按稻草人保护范围豁免）
-            try {
-                com.stardew.craft.manager.CrowAttackScheduler.processOvernight(sourceLevel);
-            } catch (Exception e) {
-                StardewCraft.LOGGER.error("Error during CrowAttackScheduler.processOvernight", e);
             }
 
             PacketDistributor.sendToAllPlayers(TimeSyncPacket.fromTimeManager(timeManager));
@@ -133,78 +130,10 @@ public class DimensionEventHandler {
             return;
         }
 
-        // 先让玩家躺在床上（客户端自动弹出原版 InBedChatScreen）
-        net.minecraft.core.BlockPos clickedPos = SleepInteractionHandler.consumePendingBedPos(player);
-        if (clickedPos != null) {
-            // 自定义床（MapDecorStaticBlock）可能是 1×2（单人床）或 2×2（双人床），
-            // 需要根据点击格子在床内的相对位置，计算出该玩家的「床位列」与朝向：
-            //   1. 把点击点（main 或任一 extension）规范化为 main 格；
-            //   2. 列出床的所有水平 extension 方向，第一个为长轴（头-脚方向），第二个为宽轴（双人床左右两列）；
-            //      约定：MAIN→长轴 extension 端为「床头」（headboard 所在端）；
-            //   3. 用点击点相对 main 在宽轴方向的分量决定睡眠列（0=MAIN 列，1=对侧列）；
-            //   4. 让玩家朝向长轴方向（头朝床头），并把身体居中到该列两格中点。
-            // 双人床因此可同时由两个玩家分别躺左右两列，互不冲突。
-            // 原版 BedBlock.getBedOrientation 对非 BedBlock 返回 null，渲染器回落到玩家 yRot。
-            net.minecraft.world.level.block.state.BlockState clickedState = player.level().getBlockState(clickedPos);
-            net.minecraft.core.BlockPos sleepPos = clickedPos;
-            if (clickedState.getBlock() instanceof com.stardew.craft.block.decor.MapDecorStaticBlock decor) {
-                // ── 1. 规范化到 MAIN ──
-                net.minecraft.core.BlockPos mainPos = decor.findMainPos(player.level(), clickedPos, clickedState);
-                if (mainPos == null) mainPos = clickedPos;
-                net.minecraft.world.level.block.state.BlockState mainState = player.level().getBlockState(mainPos);
-                net.minecraft.core.Direction lengthAxis = null;
-                net.minecraft.core.Direction widthAxis = null;
-                if (mainState.getBlock() instanceof com.stardew.craft.block.decor.MapDecorStaticBlock mainDecor) {
-                    net.minecraft.core.Direction facing = mainState.getValue(
-                            com.stardew.craft.block.decor.MapDecorStaticBlock.FACING);
-                    java.util.List<net.minecraft.core.Direction> axes = mainDecor.findAllHorizontalExtensionDirections(facing);
-                    // 长轴：第一个水平 extension（约定为床头方向 / MAIN→headboard）
-                    if (!axes.isEmpty()) lengthAxis = axes.get(0);
-                    // 宽轴：第二个、与长轴垂直的水平 extension（仅双人床有）
-                    if (axes.size() >= 2) {
-                        for (net.minecraft.core.Direction d : axes) {
-                            if (d.getAxis() != lengthAxis.getAxis()) { widthAxis = d; break; }
-                        }
-                    }
-                }
-
-                // ── 2. 决定睡眠列 ──
-                sleepPos = mainPos;
-                if (widthAxis != null) {
-                    int dx = clickedPos.getX() - mainPos.getX();
-                    int dz = clickedPos.getZ() - mainPos.getZ();
-                    int widthComp = dx * widthAxis.getStepX() + dz * widthAxis.getStepZ();
-                    if (widthComp >= 1) {
-                        sleepPos = mainPos.relative(widthAxis);
-                    }
-                }
-
-                // ── 3. yRot：头朝长轴方向（床头端 = MAIN + lengthAxis 的 headboard 那侧） ──
-                if (lengthAxis != null) {
-                    player.setYRot(lengthAxis.toYRot());
-                    player.yRotO = player.getYRot();
-                    player.setYHeadRot(player.getYRot());
-                }
-
-                // 先 startSleeping（会把位置设为 sleepPos + (0.5, 0.6875, 0.5)）
-                player.startSleeping(sleepPos);
-
-                // ── 4. 把身体居中到「该列两格」中点 ──
-                if (lengthAxis != null) {
-                    double cx = sleepPos.getX() + 0.5 + lengthAxis.getStepX() * 0.5;
-                    double cz = sleepPos.getZ() + 0.5 + lengthAxis.getStepZ() * 0.5;
-                    player.setPos(cx, sleepPos.getY() + 0.6875, cz);
-                }
-            } else {
-                player.startSleeping(clickedPos);
-            }
-        }
-
         // 多人投票：只有所有 Stardew 维度玩家都投票后才推进
         if (SleepVoteTracker.castVote(player, sleepMinute)) {
             int effectiveSleepMinute = SleepVoteTracker.getLatestSleepMinute();
             SleepVoteTracker.clearVotes();
-            SleepInteractionHandler.clearAllPendingBedPositions();
             advanceToNextMorning(stardewLevel, effectiveSleepMinute, "sleep_confirm");
         }
     }
@@ -243,12 +172,7 @@ public class DimensionEventHandler {
     }
 
     /**
-     * 进入星露谷维度前校验地图是否已就绪（仅检查，不安装）。
-     * <p>
-     * pregen 安装只在 {@code ServerAboutToStart} 阶段执行（level 尚未加载时），
-     * 这里只做状态检查 + 拦截。在 level 已加载后调用 {@code installIfAvailable()}
-     * 覆盖 .mca 文件是不安全的——内存中的区块不会刷新，且后续 ensurePlaced()
-     * 放置的方块会在重启后被新 .mca 覆盖丢失。
+     * 进入星露谷维度前校验地图是否已就绪（仅预烘焙逻辑）。
      */
     @SuppressWarnings("null")
     @SubscribeEvent
@@ -265,35 +189,40 @@ public class DimensionEventHandler {
             return;
         }
 
-        // 只检查 pregen 是否已就绪，不再调用 installIfAvailable()。
-        // pregen 安装已在 ServerAboutToStart 完成；manager 重置已在 ServerStarting 完成。
-        boolean prebuiltReady = StardewValleyPrebuiltRegionInstaller.hasInstalledPrebuilt(player.server);
+        StardewValleyPrebuiltRegionInstaller.InstallResult result = StardewValleyPrebuiltRegionInstaller.installIfAvailable(player.server);
+        boolean prebuiltReady = result == StardewValleyPrebuiltRegionInstaller.InstallResult.INSTALLED
+            || result == StardewValleyPrebuiltRegionInstaller.InstallResult.ALREADY_PRESENT
+            || StardewValleyPrebuiltRegionInstaller.hasInstalledPrebuilt(player.server);
 
         if (prebuiltReady && !StardewValleyMapBootstrap.isGenerationComplete(stardewLevel)) {
             StardewValleyMapBootstrap.markAsPreGenerated(stardewLevel);
         }
 
-        // 如果 pregenJustInstalled 仍为 true（说明 ServerStarting 时 level 为 null，
-        // 没能执行 portal replacement），在这里补做。
-        if (com.stardew.craft.StardewCraft.pregenJustInstalled) {
+        // pregen region 刚被覆盖会抹掉镇子里所有动态放置的方块（传送触发、屏障墙、
+        // 矿车站点等）。必须重置所有管理器的 SavedData 版本号，让后续
+        // onPlayerChangeDimension 中的 ensurePlaced() 重新执行放置。
+        // 注意：大多数情况在 onServerStarting 中已处理。这里是 fallback，
+        // 用于 onServerStarting 时 level 尚未加载的极端场景。
+        if (result == StardewValleyPrebuiltRegionInstaller.InstallResult.INSTALLED
+                || com.stardew.craft.StardewCraft.pregenJustInstalled) {
             com.stardew.craft.StardewCraft.pregenJustInstalled = false;
             com.stardew.craft.interior.InteriorSubspaceManager.replaceAllPortalsIfReady(
-                stardewLevel, "pregen_region_reinstalled_deferred");
+                stardewLevel, "pregen_region_reinstalled");
 
-            // manager 版本号在 ServerStarting 已经无条件重置，
-            // 但如果 ServerStarting 时 level 为 null 也跳过了，这里兜底重置。
+            // 重置屏障 / 采石场入口 / 矿车站点的放置标记
             com.stardew.craft.farm.FarmEntryBarrierManager.get(stardewLevel).resetForMigration();
             com.stardew.craft.communitycenter.quarry.QuarryAccessManager.get(stardewLevel).resetForMigration();
             com.stardew.craft.minecart.MinecartStationManager.get(stardewLevel).resetForMigration();
+            // 采石场初始石头也在 pregen region 范围内，覆盖后需重新铺
             com.stardew.craft.manager.QuarrySpawnService.resetInitialSpawn(stardewLevel);
 
-            StardewCraft.LOGGER.info("[VALLEY_PREGEN] Deferred portal replacement + manager reset (ServerStarting missed level)");
+            StardewCraft.LOGGER.info("[VALLEY_PREGEN] Reset all manager SavedData versions after pregen reinstall");
         }
 
         if (!prebuiltReady) {
             event.setCanceled(true);
             player.displayClientMessage(net.minecraft.network.chat.Component.literal("§c星露谷地图未预加载完成，已禁止进入。请先打包并接入 pregen region。"), false);
-            StardewCraft.LOGGER.error("[VALLEY_MAP] Denied travel to Stardew Valley: prebuilt region not installed for this save");
+            StardewCraft.LOGGER.error("[VALLEY_MAP] Denied travel to Stardew Valley: prebuilt region not installed for this save (installResult={})", result);
         }
     }
 
@@ -303,24 +232,6 @@ public class DimensionEventHandler {
     @SuppressWarnings("null")
     @SubscribeEvent
     public static void onPlayerChangeDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
-        // 从矿井维度离开 → 重置楼层为 0（无论是否回到星露谷维度）
-        // 这样通过 WarpWand / TeleportTotem / MineTotem 等任意传送方式离开矿井时
-        // 楼层都会归零，下次挖矿从第 0 层开始
-        if (ModMiningDimensions.STARDEW_MINING.equals(event.getFrom())
-                && !ModMiningDimensions.STARDEW_MINING.equals(event.getTo())
-                && event.getEntity() instanceof ServerPlayer serverPlayer) {
-            com.stardew.craft.mining.MiningPlayerData miningData =
-                    com.stardew.craft.mining.MiningDataManager.getPlayerData(serverPlayer);
-            if (miningData != null && miningData.getCurrentFloor() != 0) {
-                miningData.setCurrentFloor(0);
-                com.stardew.craft.mining.MiningDataManager.savePlayerData(serverPlayer, miningData);
-                net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(
-                    serverPlayer,
-                    new com.stardew.craft.network.MiningFloorSyncPacket(0)
-                );
-            }
-        }
-
         // 星露谷维度和矿井维度都需要确保昼夜循环开启
         if (ModDimensions.STARDEW_VALLEY.equals(event.getTo()) || ModMiningDimensions.STARDEW_MINING.equals(event.getTo())) {
             ServerPlayer player = (ServerPlayer) event.getEntity();
@@ -331,10 +242,8 @@ public class DimensionEventHandler {
             com.stardew.craft.quest.StardewQuestEvents.fireWarped(player, location);
 
             if (ModDimensions.STARDEW_VALLEY.equals(event.getTo())) {
-                // 如果是 ModTeleport / CrossDimensionTeleporter 主动传送，不覆盖目标位置
+                // 如果是 CrossDimensionTeleporter 主动传送（如巫师塔入口），不覆盖目标位置
                 if (!com.stardew.craft.interior.CrossDimensionTeleporter.consumeSkipAutoTeleport(player.getUUID())) {
-                    StardewCraft.LOGGER.warn("[DIM] auto-redirect fired for {} -> stardew_valley: no SKIP flag, assuming vanilla source (/tp, /execute in, respawn). Mod code must teleport via ModTeleport.",
-                            player.getName().getString());
                     // 查询玩家的农场出生点
                     com.stardew.craft.farm.FarmInstanceRegistry registry = com.stardew.craft.farm.FarmInstanceRegistry.get();
                     net.minecraft.core.BlockPos spawnPos = registry.getFarmSpawnPoint(player.getUUID());
@@ -357,9 +266,11 @@ public class DimensionEventHandler {
                 scheduleDeferredInit(level);
             }
 
-            // 发送星露谷时间同步包（包含 virtualDayTime，客户端 StardewClientTimeState 处理天空）
+            // 发送星露谷虚拟时间包（不修改全局 GameRule）
             StardewTimeManager timeManager = StardewTimeManager.get();
-            PacketDistributor.sendToPlayer(player, TimeSyncPacket.fromTimeManager(timeManager));
+            long virtualDayTime = timeManager.getVirtualDayTime(level);
+            player.connection.send(new ClientboundSetTimePacket(
+                level.getGameTime(), virtualDayTime, true));
 
             // 发送星露谷天气渲染包（覆盖原版 sendLevelInfo 发的主世界天气）
             {
@@ -377,34 +288,6 @@ public class DimensionEventHandler {
             
             // 同步当前时间到客户端（timeManager 已在前面获取）
             PacketDistributor.sendToPlayer(player, TimeSyncPacket.fromTimeManager(timeManager));
-
-            // 同步淘金点 — 切到星露谷/矿井维度时把该维度下已记录的点位推给客户端
-            try {
-                com.stardew.craft.communitycenter.reward.panning.OrePanPointManager
-                        .get(level).syncToClient(player);
-            } catch (Exception ignored) { /* 不阻塞维度切换 */ }
-
-            // 同步气泡（fish splash points）— 仅在星露谷主维度有意义
-            try {
-                com.stardew.craft.fishing.splash.FishSplashState fs =
-                        com.stardew.craft.fishing.splash.FishSplashState.getStardewState(level);
-                if (fs != null) fs.sendFullSnapshot(player);
-            } catch (Exception ignored) {}
-        }
-        // 离开星露谷/矿井 → 其它维度时，清空客户端淘金点 beam
-        if ((ModDimensions.STARDEW_VALLEY.equals(event.getFrom()) || ModMiningDimensions.STARDEW_MINING.equals(event.getFrom()))
-                && !ModDimensions.STARDEW_VALLEY.equals(event.getTo())
-                && !ModMiningDimensions.STARDEW_MINING.equals(event.getTo())
-                && event.getEntity() instanceof ServerPlayer leavingPlayer) {
-            try {
-                com.stardew.craft.communitycenter.reward.panning.OrePanPointManager.syncEmpty(leavingPlayer);
-            } catch (Exception ignored) {}
-            // 清空客户端气泡缓存
-            try {
-                net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(
-                        leavingPlayer,
-                        com.stardew.craft.network.payload.FishSplashSyncPayload.snapshot(new java.util.LinkedHashMap<>()));
-            } catch (Exception ignored) {}
         }
 
         // 玩家进入矿井维度：确保结构生成并传送到对应层数
@@ -426,10 +309,8 @@ public class DimensionEventHandler {
                 com.stardew.craft.mining.MineFloorGenerator.generateFloor(level, currentFloor);
             }
 
-            // 如果是 ModTeleport / CrossDimensionTeleporter 主动传送，不覆盖目标位置
+            // 如果是 CrossDimensionTeleporter 主动传送（如矿车进入矿井），不覆盖目标位置
             if (!com.stardew.craft.interior.CrossDimensionTeleporter.consumeSkipAutoTeleport(player.getUUID())) {
-                StardewCraft.LOGGER.warn("[DIM] auto-redirect fired for {} -> stardew_mining floor {}: no SKIP flag, assuming vanilla source. Mod code must teleport via ModTeleport.",
-                        player.getName().getString(), currentFloor);
                 // 传送到当前层数的出生点
                 com.stardew.craft.mining.MiningCoordinates.teleportPlayerToFloor(player, level, currentFloor);
             }
@@ -479,11 +360,19 @@ public class DimensionEventHandler {
 
         var server = serverLevel.getServer();
 
-        // 注意：非主世界维度使用 DerivedLevelData，其 setDayTime() 是空操作、
-        // getDayTime() 直接代理到主世界。不要尝试在这里调用 setDayTime。
-        // 正确的虚拟时间通过 TimeSyncPacket + 客户端 StardewClientTimeState 处理。
+        // ── 每 tick 将维度实际 dayTime 对齐到虚拟时间 ──
+        // 原版 ServerLevel.tickTime() 会每 tick 递增维度自身的 dayTime，
+        // 导致它与 virtualDayTime 不断漂移。若有任何代码路径
+        // （sendLevelInfo / synchronizeTime 等）直接读 level.getDayTime()
+        // 并发送给客户端，就会和 mod 发的虚拟时间打架 → 天空闪烁。
+        // 此处强制对齐，使所有原版代码路径读到的都是正确的虚拟时间。
         StardewTimeManager timeManager = StardewTimeManager.get();
         long virtualDayTime = timeManager.getVirtualDayTime(serverLevel);
+        serverLevel.setDayTime(virtualDayTime);
+        ServerLevel miningLevel = server.getLevel(ModMiningDimensions.STARDEW_MINING);
+        if (miningLevel != null) {
+            miningLevel.setDayTime(virtualDayTime);
+        }
 
         // 检查是否有玩家在星露谷相关维度
         var allPlayers = server.getPlayerList().getPlayers();
@@ -565,33 +454,31 @@ public class DimensionEventHandler {
             }
             // 关键：先保存已投票玩家快照，再清空投票
             java.util.Set<java.util.UUID> votedPlayers = SleepVoteTracker.getVotedPlayerSnapshot();
-            // 1. 对每个玩家执行晕倒惩罚（跳过已投睡觉票的玩家——他们选择了睡觉，不算晕倒；
-            //    同时跳过尚未拥有农场的新玩家：他们没有农场出生点，强制传送会 fallback 到旧农场导致卡死）
-            com.stardew.craft.farm.FarmInstanceRegistry farmRegistry =
-                    com.stardew.craft.farm.FarmInstanceRegistry.get();
+            // 1. 对每个玩家执行晕倒惩罚（跳过已投睡觉票的玩家——他们选择了睡觉，不算晕倒）
             for (ServerPlayer sp : stardewPlayers) {
-                    if (!votedPlayers.contains(sp.getUUID()) && farmRegistry.hasFarm(sp.getUUID())) {
+                    if (!votedPlayers.contains(sp.getUUID())) {
                         com.stardew.craft.player.PassOutService.on2AMPassOut(sp);
                     }
             }
             // 2. 推进到次日（内部会消费 PassOutResult 并合并进结算包发送给客户端）
             SleepVoteTracker.clearVotes(); // 2AM 强制推进，清空所有未完成的投票
             advanceToNextMorning(serverLevel, stardewMinutes, "pass_out_2am");
-            // 3. 只传送未投票且已拥有农场的玩家回农场出生点（已投票玩家正常过夜；新玩家没有农场不应被传送）
+            // 3. 只传送未投票的玩家回农场出生点（已投票玩家正常过夜，不惩罚不传送）
             for (ServerPlayer sp : stardewPlayers) {
-                    if (!votedPlayers.contains(sp.getUUID()) && farmRegistry.hasFarm(sp.getUUID())) {
+                    if (!votedPlayers.contains(sp.getUUID())) {
                         com.stardew.craft.player.PassOutService.teleportToFarmSpawn(sp);
                     }
             }
         }
         
         // 每秒（20 ticks）同步UI时间+虚拟天空时间到客户端（仅发给星露谷维度玩家）
-        // virtualDayTime 已包含在 TimeSyncPacket 中，客户端 StardewClientTimeState
-        // 会每 tick 强制覆盖 ClientLevel.dayTime，不再需要 ClientboundSetTimePacket。
         if (serverLevel.getGameTime() % 20 == 0) {
             var syncPacket = TimeSyncPacket.fromTimeManager(timeManager);
             for (ServerPlayer sp : stardewPlayers) {
                 PacketDistributor.sendToPlayer(sp, syncPacket);
+                // 同步虚拟 dayTime 给客户端天空渲染
+                sp.connection.send(new ClientboundSetTimePacket(
+                    sp.serverLevel().getGameTime(), virtualDayTime, true));
             }
         }
 
@@ -615,9 +502,9 @@ public class DimensionEventHandler {
         if (!(event.getLevel() instanceof ServerLevel level)) return;
 
         if (level.dimension() == ModDimensions.STARDEW_VALLEY) {
-            // 我们通过自定义投票系统处理星露谷维度的睡眠推进，
-            // 忽略原版 SleepFinishedTimeEvent 防止双重推进。
-            return;
+            StardewTimeManager timeManager = StardewTimeManager.get();
+            SleepVoteTracker.clearVotes();
+            advanceToNextMorning(level, timeManager.getCurrentTime(), "vanilla_sleep_finished");
         } else {
             // 主世界（或其他维度）睡觉完成 → 原版会推进 overworld dayTime。
             // 为保持星露谷虚拟时间不变，需反向补偿 offset。
@@ -651,11 +538,15 @@ public class DimensionEventHandler {
             // 修改 offset 而非 overworld dayTime
             timeManager.setVirtualDayTime(server.overworld(), newVirtualDayTime);
             
-            // TimeSyncPacket 携带 virtualDayTime，客户端 StardewClientTimeState 自动同步。
+            // 发送时间包给星露谷维度的玩家
             for (ServerPlayer player : server.getPlayerList().getPlayers()) {
                 ServerLevel playerLevel = player.serverLevel();
                 if (isStardewDimension(playerLevel)) {
-                    PacketDistributor.sendToPlayer(player, TimeSyncPacket.fromTimeManager(timeManager));
+                    player.connection.send(new ClientboundSetTimePacket(
+                        playerLevel.getGameTime(),
+                        newVirtualDayTime,
+                        true
+                    ));
                 }
             }
             
@@ -679,10 +570,6 @@ public class DimensionEventHandler {
     /**
      * 将 6 个 ensurePlaced / ensureInitialSpawn 操作排入 TickTask 队列，
      * 每 tick 执行一个，总共 6 tick 完成，不会卡主线程。
-     *
-     * <p>每个任务内部有 SavedData 版本号检查（placedVersion >= CURRENT_VERSION 则跳过），
-     * 所以多次调度不会重复放置。这里的 deferredInitScheduled 只防止同一批多玩家
-     * 并发触发时重复排队。
      */
     private static void scheduleDeferredInit(ServerLevel level) {
         if (deferredInitScheduled) return;
@@ -735,7 +622,6 @@ public class DimensionEventHandler {
                     int season = com.stardew.craft.time.StardewTimeManager.get().getCurrentSeason();
                     com.stardew.craft.manager.ForageSpawnService.ensureInitialSpawn(sdv, season);
                     com.stardew.craft.manager.ArtifactSpotSpawnService.ensureInitialSpawn(sdv, season);
-                    com.stardew.craft.manager.CoalForestClumpSpawnService.ensureInitialSpawn(sdv);
                 }
             } catch (Exception e) {
                 StardewCraft.LOGGER.error("[DEFERRED_INIT] Forage/Artifact failed", e);

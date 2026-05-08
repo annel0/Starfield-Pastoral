@@ -1,9 +1,11 @@
 package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.block.tv.TVChannelData;
 import com.stardew.craft.player.PlayerDataEventHandler;
 import com.stardew.craft.player.PlayerStardewData;
 import com.stardew.craft.player.PlayerStardewDataAPI;
+import com.stardew.craft.time.StardewTimeManager;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -34,8 +36,25 @@ public record TVRecipeUnlockPayload(String recipeId) implements CustomPacketPayl
         context.enqueueWork(() -> {
             if (context.player() instanceof ServerPlayer serverPlayer) {
                 PlayerStardewData data = PlayerStardewDataAPI.getData(serverPlayer);
-                if (!data.isRecipeUnlocked(payload.recipeId)) {
-                    data.unlockRecipe(payload.recipeId);
+                StardewTimeManager timeManager = StardewTimeManager.get();
+                int dayKey = timeManager.getAbsoluteDay();
+                int dayOfWeek = (timeManager.getCurrentDay() - 1) % 7;
+                String expectedRecipeId = TVChannelData.getCookingRecipeIdForDay(serverPlayer, dayKey, dayOfWeek);
+
+                if (data.hasWatchedQueenOfSauceOnDay(dayKey)) {
+                    PlayerDataEventHandler.syncPlayerData(serverPlayer, data);
+                    return;
+                }
+                if (payload.recipeId == null || payload.recipeId.isBlank() || !payload.recipeId.equals(expectedRecipeId)) {
+                    StardewCraft.LOGGER.warn("[TV] Rejected invalid cooking unlock payload from {}: got={}, expected={}",
+                            serverPlayer.getGameProfile().getName(), payload.recipeId, expectedRecipeId);
+                    PlayerDataEventHandler.syncPlayerData(serverPlayer, data);
+                    return;
+                }
+
+                data.markQueenOfSauceWatched(dayKey, expectedRecipeId);
+                if (!data.isRecipeUnlocked(expectedRecipeId)) {
+                    data.unlockRecipe(expectedRecipeId);
                 }
                 PlayerDataEventHandler.syncPlayerData(serverPlayer, data);
             }

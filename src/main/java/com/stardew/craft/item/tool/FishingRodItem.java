@@ -371,8 +371,14 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 			var state = mgr.getState(serverPlayer);
 			if (state != null) {
 				// 已经在钓鱼：
+				// - 等待咬钩(WAITING_BITE)：鱼塘里有鱼时，二次右键直接拉出一条鱼
 				// - 咬钩(BITE_READY)：再次右键进入小游戏
 				// - 其他状态：再次右键收杆取消（不允许再呼出蓄力条）
+				if (state == com.stardew.craft.fishing.server.FishingSession.State.WAITING_BITE
+						&& mgr.tryPullFishPondCatch(serverPlayer)) {
+					player.getCooldowns().addCooldown(this, CAST_COOLDOWN_TICKS);
+					return InteractionResultHolder.consume(stack);
+				}
 				if (state == com.stardew.craft.fishing.server.FishingSession.State.BITE_READY) {
 					boolean accepted = mgr.tryStartMinigame(serverPlayer);
 					if (accepted) {

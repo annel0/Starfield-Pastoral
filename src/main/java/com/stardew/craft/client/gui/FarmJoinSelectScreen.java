@@ -1,5 +1,6 @@
 package com.stardew.craft.client.gui;
 
+import com.stardew.craft.client.farm.FarmJoinClientState;
 import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
 import com.stardew.craft.farm.FarmType;
 import com.stardew.craft.network.payload.FarmJoinRequestPayload;
@@ -262,6 +263,7 @@ public class FarmJoinSelectScreen extends Screen {
     private void submitJoinRequest() {
         if (selectedIndex < 0 || selectedIndex >= sortedFarms.size()) return;
         FarmListSyncPayload.FarmEntry entry = sortedFarms.get(selectedIndex);
+        FarmJoinClientState.setPendingJoinRequest(true);
         PacketDistributor.sendToServer(new FarmJoinRequestPayload(entry.ownerUUID()));
         playUi(ModSounds.NEW_RECIPE.get(), 0.88f, 1.0f);
         this.onClose();

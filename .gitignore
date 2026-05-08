@@ -46,6 +46,8 @@ net/
 software/
 .claude/settings.local.json
 .vscode/
+.codex/
+视频制作/
 resourcepack-template/
 scripts/
 tools/

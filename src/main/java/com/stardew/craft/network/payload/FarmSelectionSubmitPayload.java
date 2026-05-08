@@ -21,7 +21,8 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 @SuppressWarnings("null")
 public record FarmSelectionSubmitPayload(
         String farmTypeId,
-        String farmName
+    String farmName,
+    boolean forceCancelPending
 ) implements CustomPacketPayload {
 
     public static final Type<FarmSelectionSubmitPayload> TYPE =
@@ -31,6 +32,7 @@ public record FarmSelectionSubmitPayload(
             StreamCodec.composite(
                     ByteBufCodecs.STRING_UTF8, FarmSelectionSubmitPayload::farmTypeId,
                     ByteBufCodecs.STRING_UTF8, FarmSelectionSubmitPayload::farmName,
+                    ByteBufCodecs.BOOL, FarmSelectionSubmitPayload::forceCancelPending,
                     FarmSelectionSubmitPayload::new
             );
 
@@ -44,6 +46,18 @@ public record FarmSelectionSubmitPayload(
             if (!(context.player() instanceof ServerPlayer player)) return;
 
             FarmInstanceRegistry registry = FarmInstanceRegistry.get();
+
+            if (com.stardew.craft.farm.FarmJoinManager.hasPending(player.getUUID())) {
+                if (!payload.forceCancelPending()) {
+                    com.stardew.craft.farm.FarmJoinManager.syncPendingState(player, true);
+                    net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,
+                            new OpenFarmSelectionPayload());
+                    player.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
+                            "stardewcraft.farm.join.confirm_cancel_before_create"));
+                    return;
+                }
+                com.stardew.craft.farm.FarmJoinManager.cancelRequestForNewFarm(player, player.server);
+            }
 
             // 防止重复创建
             if (registry.hasFarm(player.getUUID())) {

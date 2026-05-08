@@ -16,6 +16,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,12 +43,15 @@ public final class AreaRestoreCutscene {
     private static ServerLevel activeLevel;
     private static java.util.UUID ownerUUID;
     private static final List<JunimoEntity> spawnedJunimos = new ArrayList<>();
+    private static final ArrayDeque<PendingRestore> pendingRestores = new ArrayDeque<>();
 
     // Phase durations (ticks) — matches SDV millisecond timings
     private static final int PHASE_0_TICKS = 20;    // 1s  (SDV 1000ms)
     private static final int PHASE_1_TICKS = 60;    // 3s  (SDV 3000ms)
     private static final int PHASE_2_TICKS = 104;   // 5.2s (SDV 5200ms)
     private static final int PHASE_3_TICKS = 40;    // 2s  (SDV 2000ms)
+
+    private record PendingRestore(ServerLevel level, int areaId, java.util.UUID ownerUUID) {}
 
     /**
      * 启动区域修复过场。
@@ -63,7 +67,16 @@ public final class AreaRestoreCutscene {
      */
     public static void start(ServerLevel level, int areaId, java.util.UUID owner) {
         if (running) {
-            StardewCraft.LOGGER.warn("[CC-CUTSCENE] Already running, ignoring area {}", areaId);
+            PendingRestore request = new PendingRestore(level, areaId, owner);
+            boolean duplicate = pendingRestores.stream().anyMatch(queued ->
+                    queued.level() == level
+                            && queued.areaId() == areaId
+                            && java.util.Objects.equals(queued.ownerUUID(), owner));
+            if (!duplicate) {
+                pendingRestores.addLast(request);
+                StardewCraft.LOGGER.info("[CC-CUTSCENE] Queued area {} restore for owner {} while another cutscene is running",
+                        areaId, owner);
+            }
             return;
         }
 
@@ -285,6 +298,11 @@ public final class AreaRestoreCutscene {
             }
         }
         spawnedJunimos.clear();
+
+        PendingRestore next = pendingRestores.pollFirst();
+        if (next != null) {
+            start(next.level(), next.areaId(), next.ownerUUID());
+        }
     }
 
     public static boolean isRunning() {

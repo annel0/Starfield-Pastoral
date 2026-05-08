@@ -27,7 +27,7 @@ import java.util.UUID;
  *   <li>{@link FarmCaveChoice#MUSHROOMS}：6 个蘑菇盆按 SDV {@code (BC)128} 概率滚动产菇。</li>
  * </ul>
  *
- * <p>仅处理在线农场 owner 的洞穴（通过 {@link FarmInstanceRegistry} + {@link PlayerInteriorAllocator#isCavePlaced(UUID)}）。
+ * <p>仅处理有在线成员的农场洞穴（owner 或 member 任一在线即可）。
  */
 public final class FarmCaveDailyService {
 
@@ -70,20 +70,23 @@ public final class FarmCaveDailyService {
         FarmInstanceRegistry reg = FarmInstanceRegistry.get();
         PlayerInteriorAllocator alloc = PlayerInteriorAllocator.get(level);
         RandomSource rng = level.getRandom();
+        java.util.Set<UUID> processedOwners = new java.util.HashSet<>();
 
         int fruitCount = 0;
         int mushroomCount = 0;
 
         for (ServerPlayer sp : level.getServer().getPlayerList().getPlayers()) {
-            UUID uuid = sp.getUUID();
-            FarmInstance farm = reg.getFarm(uuid);
-            if (farm == null) continue;            // 只处理 owner（sp==owner 时 getFarm 才返回非空）
-            if (!alloc.isCavePlaced(uuid)) continue;
+            UUID ownerUUID = reg.getOwnerForPlayer(sp.getUUID());
+            if (ownerUUID == null || !processedOwners.add(ownerUUID)) continue;
+
+            FarmInstance farm = reg.getFarm(ownerUUID);
+            if (farm == null) continue;
+            if (!alloc.isCavePlaced(ownerUUID)) continue;
 
             FarmCaveChoice choice = farm.getCaveChoice();
             if (choice == FarmCaveChoice.NONE) continue;
 
-            BlockPos caveOrigin = alloc.getCaveOrigin(uuid);
+            BlockPos caveOrigin = alloc.getCaveOrigin(ownerUUID);
             if (choice == FarmCaveChoice.FRUIT_BATS) {
                 fruitCount += processFruitBats(level, caveOrigin, rng);
             } else if (choice == FarmCaveChoice.MUSHROOMS) {

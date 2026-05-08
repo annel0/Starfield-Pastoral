@@ -12,6 +12,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,11 +38,14 @@ public final class GoodbyeDanceCutscene {
     private static ServerLevel activeLevel;
     private static BlockPos activeCcOrigin;
     private static final List<JunimoEntity> dancingJunimos = new ArrayList<>();
+    private static final ArrayDeque<PendingDance> pendingDances = new ArrayDeque<>();
 
     // Phase durations
     private static final int PHASE_0_TICKS = 40;   // 2s — Junimos appear
     private static final int PHASE_1_TICKS = 120;  // 6s — Dance
     private static final int PHASE_2_TICKS = 60;   // 3s — Flash + farewell
+
+    private record PendingDance(ServerLevel level, BlockPos ccOrigin) {}
 
     /** Center of the main hall (relative to CC origin) */
     private static final BlockPos DANCE_CENTER_OFFSET = new BlockPos(11, 3, 34);
@@ -58,7 +62,15 @@ public final class GoodbyeDanceCutscene {
      * Per-player 版本，指定 CC 原点。
      */
     public static void start(ServerLevel level, BlockPos ccOrigin) {
-        if (running) return;
+        if (running) {
+            BlockPos resolvedOrigin = ccOrigin != null ? ccOrigin : InteriorSubspaceManager.CC_ORIGIN;
+            boolean duplicate = pendingDances.stream().anyMatch(queued ->
+                    queued.level() == level && queued.ccOrigin().equals(resolvedOrigin));
+            if (!duplicate) {
+                pendingDances.addLast(new PendingDance(level, resolvedOrigin));
+            }
+            return;
+        }
 
         running = true;
         activeLevel = level;
@@ -189,12 +201,18 @@ public final class GoodbyeDanceCutscene {
         running = false;
         phase = -1;
         activeLevel = null;
+        activeCcOrigin = null;
         for (JunimoEntity junimo : dancingJunimos) {
             if (junimo.isAlive() && !junimo.isRemoved()) {
                 junimo.startFadeOut();
             }
         }
         dancingJunimos.clear();
+
+        PendingDance next = pendingDances.pollFirst();
+        if (next != null) {
+            start(next.level(), next.ccOrigin());
+        }
     }
 
     public static boolean isRunning() {

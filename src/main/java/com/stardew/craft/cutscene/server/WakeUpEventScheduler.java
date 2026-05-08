@@ -44,6 +44,24 @@ public final class WakeUpEventScheduler {
      * event whose preconditions pass and queues it (dedup).
      */
     public static void enqueueAtNightSettlement(ServerPlayer player) {
+        enqueueEligible(player);
+    }
+
+    /**
+     * Player login catch-up for per-player wake_up cutscenes.
+     *
+     * <p>Overnight settlement only scans players who are online at that moment.
+     * Shared-farm members who were offline would otherwise permanently miss
+     * their own next-morning cutscenes. Re-scan on login, keep queue deduped,
+     * then immediately dispatch the queue head once cutscene data has synced.
+     */
+    public static void syncOnLogin(ServerPlayer player) {
+        if (player == null) return;
+        enqueueEligible(player);
+        dispatchNext(player);
+    }
+
+    private static void enqueueEligible(ServerPlayer player) {
         if (player == null) return;
         ServerLevel level = player.serverLevel();
         WakeUpEventQueueData queue = WakeUpEventQueueData.get(level);

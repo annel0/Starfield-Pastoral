@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:milk_bucket",
+    "stardewcraft:milk",
+    "stardewcraft:large_milk",
+    "stardewcraft:goat_milk",
+    "stardewcraft:large_goat_milk"
+  ]
+}

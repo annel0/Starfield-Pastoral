@@ -21,6 +21,7 @@
     "ItemInHandRendererScytheSwingMixin",
     "CameraShakeMixin",
     "EventCameraMixin",
+    "DrownedRendererMummyCollapseMixin",
     "GameRendererFovMixin",
     "LivingEntitySwingAccessor",
     "PlayerRendererHoePoseMixin",

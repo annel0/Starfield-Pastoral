@@ -130,7 +130,7 @@ public class PlayerDataEventHandler {
                     com.stardew.craft.farm.OfflineFarmCatchUp.catchUp(stardewLevel, player.getUUID());
                     // 老存档/老服务器兼容：补放农场洞穴（早于洞穴系统的存档 cavePlaced=false）
                     com.stardew.craft.farm.FarmInstance ownFarm =
-                            com.stardew.craft.farm.FarmInstanceRegistry.get().getFarm(player.getUUID());
+                            com.stardew.craft.farm.FarmInstanceRegistry.get().getFarmForPlayer(player.getUUID());
                     if (ownFarm != null) {
                         com.stardew.craft.farm.FarmInstanceInitializer.backfillFarmCaveIfMissing(stardewLevel, ownFarm);
                     }
@@ -151,6 +151,13 @@ public class PlayerDataEventHandler {
                         + tm.getCurrentSeason() * 28 + tm.getCurrentDay();
                 pData.setFirstJoinDay(globalDays);
             }
+
+            // 离线跨日后，登录时需要先 flush 已排队到“明天”的邮件，
+            // 再补跑当天日期邮件调度；否则成员/离线玩家会漏掉个人信件，
+            // 进一步卡住依赖邮件的个人剧情与触发。
+            com.stardew.craft.mail.MailService.flushOnLogin(player);
+            tm.syncDateTriggeredMailOnLogin(player);
+
             com.stardew.craft.quest.StardewQuestEvents.fireDayStarted(player, absDay);
         }
     }
@@ -178,6 +185,9 @@ public class PlayerDataEventHandler {
 
             // Clean up E112 wizard cutscene state (remove per-player Junimo + timer)
             com.stardew.craft.interior.WizardQuestHandler.onPlayerLogout(player);
+
+            // Release any NPC dialogue movement lock owned by this player.
+            com.stardew.craft.npc.runtime.NpcInteractionService.onPlayerLogout(player);
 
             // 多人农场：更新最后在线天数 + 卸载农场区块
             {

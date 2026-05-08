@@ -40,6 +40,7 @@ import com.stardew.craft.combat.network.TideMarkPayload;
 import com.stardew.craft.combat.network.WaterRingEffectPayload;
 import com.stardew.craft.combat.network.YetiToothMarkPayload;
 import com.stardew.craft.combat.network.YetiFreezePayload;
+import com.stardew.craft.network.payload.MummyCollapsePayload;
 import com.stardew.craft.combat.network.LavaKatanaMarkPayload;
 import com.stardew.craft.combat.network.LavaKatanaReverbPayload;
 import com.stardew.craft.combat.network.GalaxyDaggerMarkPayload;
@@ -912,6 +913,12 @@ public class PacketHandler {
             com.stardew.craft.network.payload.AnswerNpcQuestionPayload::handle
         );
 
+        registrar.playToServer(
+            com.stardew.craft.network.payload.CloseNpcDialoguePayload.TYPE,
+            com.stardew.craft.network.payload.CloseNpcDialoguePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.CloseNpcDialoguePayload::handle
+        );
+
         registrar.playToClient(
             com.stardew.craft.network.payload.OpenNpcDialogueScreenPayload.TYPE,
             com.stardew.craft.network.payload.OpenNpcDialogueScreenPayload.STREAM_CODEC,
@@ -1028,6 +1035,12 @@ public class PacketHandler {
         );
 
         registrar.playToClient(
+            MummyCollapsePayload.TYPE,
+            MummyCollapsePayload.STREAM_CODEC,
+            MummyCollapsePayload::handle
+        );
+
+        registrar.playToClient(
             com.stardew.craft.network.payload.GalaxySwordRitualPayload.TYPE,
             com.stardew.craft.network.payload.GalaxySwordRitualPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.GalaxySwordRitualPayload::handle
@@ -1052,6 +1065,12 @@ public class PacketHandler {
             com.stardew.craft.network.payload.OpenFarmSelectionPayload.TYPE,
             com.stardew.craft.network.payload.OpenFarmSelectionPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.OpenFarmSelectionPayload::handle
+        );
+
+        registrar.playToClient(
+            com.stardew.craft.network.payload.FarmJoinPendingStatePayload.TYPE,
+            com.stardew.craft.network.payload.FarmJoinPendingStatePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FarmJoinPendingStatePayload::handle
         );
 
         // Farm selection submit (C→S)

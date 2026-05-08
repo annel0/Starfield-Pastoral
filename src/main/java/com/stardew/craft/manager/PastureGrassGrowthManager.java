@@ -79,7 +79,7 @@ public class PastureGrassGrowthManager extends SavedData {
         // 只扫描在线玩家农场边界内的区块，而非玩家视距半径
         com.stardew.craft.farm.FarmInstanceRegistry farmReg = com.stardew.craft.farm.FarmInstanceRegistry.get();
         for (net.minecraft.server.level.ServerPlayer player : level.players()) {
-            com.stardew.craft.farm.FarmInstance farm = farmReg.getFarm(player.getUUID());
+            com.stardew.craft.farm.FarmInstance farm = farmReg.getFarmForPlayer(player.getUUID());
             if (farm == null) continue;
             BlockPos min = farm.getFarmBoundsMin();
             BlockPos max = farm.getFarmBoundsMax();

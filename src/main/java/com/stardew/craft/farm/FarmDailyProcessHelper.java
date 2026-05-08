@@ -75,13 +75,14 @@ public final class FarmDailyProcessHelper {
     }
 
     /**
-     * 获取当前所有在线且拥有农场的玩家 UUID 集合。
+     * 获取当前所有有在线成员的农场 owner UUID 集合。
      */
     public static Set<UUID> getOnlineFarmOwners(ServerLevel level) {
         Set<UUID> owners = new HashSet<>();
         for (ServerPlayer player : level.getServer().getPlayerList().getPlayers()) {
-            if (FarmInstanceRegistry.get().hasFarm(player.getUUID())) {
-                owners.add(player.getUUID());
+            UUID ownerUUID = FarmInstanceRegistry.get().getOwnerForPlayer(player.getUUID());
+            if (ownerUUID != null) {
+                owners.add(ownerUUID);
             }
         }
         return owners;

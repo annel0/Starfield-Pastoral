@@ -41,7 +41,10 @@ public record FarmJoinRequestPayload(UUID targetOwner) implements CustomPacketPa
     public static void handle(FarmJoinRequestPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (!(context.player() instanceof ServerPlayer player)) return;
-            FarmJoinManager.createRequest(player, payload.targetOwner, player.server);
+            boolean created = FarmJoinManager.createRequest(player, payload.targetOwner, player.server);
+            if (!created) {
+                FarmJoinManager.syncPendingState(player, FarmJoinManager.hasPending(player.getUUID()));
+            }
         });
     }
 }

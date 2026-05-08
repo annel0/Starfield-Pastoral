@@ -774,6 +774,9 @@ public class StardewNpcDialogueScreen extends Screen {
     }
 
     private void closeScreen() {
+        net.neoforged.neoforge.network.PacketDistributor.sendToServer(
+            new com.stardew.craft.network.payload.CloseNpcDialoguePayload(this.npcId)
+        );
         if (this.minecraft != null) {
             this.minecraft.setScreen(null);
         }

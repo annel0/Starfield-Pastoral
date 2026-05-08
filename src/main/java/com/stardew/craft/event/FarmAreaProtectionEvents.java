@@ -115,8 +115,9 @@ public class FarmAreaProtectionEvents {
         }
         if (!event.getBlockSnapshot().getState().isAir()) {
             if (event.getBlockSnapshot().getState().is(ModBlocks.ARTIFACT_SPOT_DIRT.get())
-                    || event.getBlockSnapshot().getState().is(ModBlocks.DESERT_ARTIFACT_SPOT.get())) {
-                // 远古斑点（含沙漠变体）：放行，不受区域保护，避免锄完被回滚
+                    || event.getBlockSnapshot().getState().is(ModBlocks.DESERT_ARTIFACT_SPOT.get())
+                    || event.getBlockSnapshot().getState().is(ModBlocks.BEACH_ARTIFACT_SPOT.get())) {
+                // 远古斑点（含沙漠/海滩变体）：放行，不受区域保护，避免锄完被回滚
                 return;
             }
             if (!canModifyAt(player, pos)) {

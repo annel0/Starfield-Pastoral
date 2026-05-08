@@ -66,33 +66,40 @@ public record ShopPickupPayload(
             Item mcItem = BuiltInRegistries.ITEM.get(rl);
             if (mcItem == null || mcItem == Items.AIR) return;
 
-            qty = Math.min(qty, mcItem.getDefaultMaxStackSize());
-            ItemStack stack = new ItemStack(mcItem, qty);
-
             int targetSlot = payload.targetSlot();
-            if (targetSlot >= 0 && targetSlot < player.getInventory().getContainerSize()) {
-                ItemStack existing = player.getInventory().getItem(targetSlot);
-                if (existing.isEmpty()) {
-                    // Slot is empty — place directly
-                    player.getInventory().setItem(targetSlot, stack);
-                } else if (ItemStack.isSameItemSameComponents(existing, stack)
-                        && existing.getCount() < existing.getMaxStackSize()) {
-                    // Same item with room to merge
-                    int canAdd = existing.getMaxStackSize() - existing.getCount();
-                    int toAdd  = Math.min(canAdd, stack.getCount());
-                    existing.grow(toAdd);
-                    if (toAdd < stack.getCount()) {
-                        // Leftover: auto-place remainder
-                        ItemStack leftover = stack.copyWithCount(stack.getCount() - toAdd);
-                        if (!player.getInventory().add(leftover)) player.drop(leftover, false);
+            int maxStackSize = Math.max(1, mcItem.getDefaultMaxStackSize());
+            boolean firstStack = true;
+            while (qty > 0) {
+                int stackSize = Math.min(qty, maxStackSize);
+                ItemStack stack = new ItemStack(mcItem, stackSize);
+
+                if (firstStack && targetSlot >= 0 && targetSlot < player.getInventory().getContainerSize()) {
+                    ItemStack existing = player.getInventory().getItem(targetSlot);
+                    if (existing.isEmpty()) {
+                        // Slot is empty — place directly
+                        player.getInventory().setItem(targetSlot, stack);
+                    } else if (ItemStack.isSameItemSameComponents(existing, stack)
+                            && existing.getCount() < existing.getMaxStackSize()) {
+                        // Same item with room to merge
+                        int canAdd = existing.getMaxStackSize() - existing.getCount();
+                        int toAdd  = Math.min(canAdd, stack.getCount());
+                        existing.grow(toAdd);
+                        if (toAdd < stack.getCount()) {
+                            // Leftover: auto-place remainder
+                            ItemStack leftover = stack.copyWithCount(stack.getCount() - toAdd);
+                            if (!player.getInventory().add(leftover)) player.drop(leftover, false);
+                        }
+                    } else {
+                        // Slot occupied by different item — fall back to auto-place
+                        if (!player.getInventory().add(stack)) player.drop(stack, false);
                     }
                 } else {
-                    // Slot occupied by different item — fall back to auto-place
+                    // targetSlot == -1 or subsequent stacks: auto-place in first available slot
                     if (!player.getInventory().add(stack)) player.drop(stack, false);
                 }
-            } else {
-                // targetSlot == -1: auto-place in first available slot
-                if (!player.getInventory().add(stack)) player.drop(stack, false);
+
+                qty -= stackSize;
+                firstStack = false;
             }
         });
     }

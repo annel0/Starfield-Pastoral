@@ -57,11 +57,7 @@ public final class CrowAttackScheduler {
             if (farm == null) continue;
             // 离线优化：仅处理"任一成员在线"的农场
             if (!onlineOwners.isEmpty()) {
-                boolean anyFarmerOnline = false;
-                for (UUID farmer : farm.getAllFarmers()) {
-                    if (onlineOwners.contains(farmer)) { anyFarmerOnline = true; break; }
-                }
-                if (!anyFarmerOnline) continue;
+                if (!onlineOwners.contains(farm.getOwnerUUID())) continue;
             }
 
             BlockPos minB = farm.getFarmBoundsMin();

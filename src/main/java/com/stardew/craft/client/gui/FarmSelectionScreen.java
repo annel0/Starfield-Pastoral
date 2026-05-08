@@ -2,6 +2,7 @@ package com.stardew.craft.client.gui;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.client.farm.FarmJoinClientState;
 import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
 import com.stardew.craft.farm.FarmType;
 import com.stardew.craft.network.payload.FarmSelectionSubmitPayload;
@@ -9,6 +10,7 @@ import com.stardew.craft.sound.ModSounds;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -494,7 +496,31 @@ public class FarmSelectionScreen extends Screen {
             playUi(ModSounds.SMALL_SELECT.get(), 0.4f, 0.7f);
             return;
         }
-        PacketDistributor.sendToServer(new FarmSelectionSubmitPayload(selectedType.getId(), finalName));
+
+        if (FarmJoinClientState.hasPendingJoinRequest()) {
+            if (this.minecraft != null) {
+                this.minecraft.setScreen(new ConfirmScreen(
+                        confirmed -> {
+                            if (confirmed) {
+                                sendSelection(selectedType.getId(), finalName, true);
+                            } else if (this.minecraft != null) {
+                                this.minecraft.setScreen(this);
+                            }
+                        },
+                        Component.translatable("gui.stardewcraft.farm_selection.pending_create.title"),
+                        Component.translatable("gui.stardewcraft.farm_selection.pending_create.message"),
+                        Component.translatable("gui.stardewcraft.farm_selection.pending_create.confirm"),
+                        Component.translatable("gui.stardewcraft.farm_selection.pending_create.cancel")
+                ));
+            }
+            return;
+        }
+
+        sendSelection(selectedType.getId(), finalName, false);
+    }
+
+    private void sendSelection(String farmTypeId, String farmName, boolean forceCancelPending) {
+        PacketDistributor.sendToServer(new FarmSelectionSubmitPayload(farmTypeId, farmName, forceCancelPending));
         playUi(ModSounds.NEW_RECIPE.get(), 0.88f, 1.0f);
         this.onClose();
     }

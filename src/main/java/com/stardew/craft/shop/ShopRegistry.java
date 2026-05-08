@@ -579,8 +579,9 @@ public final class ShopRegistry {
             List.of(
                 // ---- Joja 独占商品 ----
                 entryAllSeasons("stardewcraft:joja_cola",       75),        // (O)167
-                // Auto Petter — SDV 条件 PLAYER_HAS_SEEN_EVENT Host 502261（用 seenJojaCDForm flag 代理）
-                entryMail("stardewcraft:auto_petter",        50000, "seenJojaCDForm"),
+                // Auto Petter — 原版要求 Joja 路线完成后的 502261 事件；
+                // 本项目在 getFilteredItemsForPlayer 里按 JojaMember + ccIsComplete 过滤。
+                entryAllSeasons("stardewcraft:auto_petter",  50000),
                 // 家具（JojaCatalogue / JojaCouch）不做 — 以后如果加家具系统再补
                 // 壁纸 / 地板 — SDV 每日 RANDOM，250g/份。通过 wallpaper:{id} / flooring:{id}
                 // 前缀条目实现，在 getFilteredItemsForPlayer 中按当前日种子动态注入。
@@ -768,6 +769,13 @@ public final class ShopRegistry {
             }
             // SDV parity: mine-level and mail-flag conditions
             if (!e.meetsPlayerConditions(playerMineLevel, playerMailFlags)) continue;
+            if ("JojaMart".equals(shopId)
+                && "stardewcraft:auto_petter".equals(e.itemId())
+                && (!com.stardew.craft.communitycenter.state.CCStoryFlags.isJojaMember(player)
+                    || !com.stardew.craft.communitycenter.state.CCStoryFlags.hasFlag(
+                        player, com.stardew.craft.communitycenter.state.CCStoryFlags.CC_IS_COMPLETE))) {
+                continue;
+            }
 
             int remaining = ShopStockTracker.getRemaining(playerId, shopId, e.itemId(), e.stock());
             if (remaining == 0) continue;

@@ -117,9 +117,9 @@ public final class NpcCentralMovementService {
                 continue;
             }
 
-            // Pause movement while NPC is in a facing override (dialogue/gift interaction).
-            // The entity should stand still and face the player until the interaction completes.
-            if (npc.isFacingOverrideActive()) {
+            // Dialogue screens can outlive the short turning animation. Keep the NPC
+            // frozen for the full conversation, not just the initial face-player hold.
+            if (NpcInteractionService.isDialogueMovementLocked(npcId) || npc.isFacingOverrideActive()) {
                 npc.getNavigation().stop();
                 npc.setDeltaMovement(Vec3.ZERO);
                 DEBUG_SNAPSHOTS.computeIfAbsent(npcId, k -> new DebugSnapshot()).update("interaction_pause", "<none>", "<none>", 0, 0, false, npc.position(), npc.position(), "none", 0, "<none>");
@@ -427,25 +427,26 @@ public final class NpcCentralMovementService {
         // For far-away targets, give vanilla nav a closer intermediate point
         // to reduce wasted A* exploration and improve partial path quality.
         double dist = Math.sqrt(distSqr);
-        double moveToX, moveToY, moveToZ;
+        double moveToX, moveToZ;
         if (dist > INTERMEDIATE_TARGET_DIST) {
             double ratio = INTERMEDIATE_TARGET_DIST / dist;
             moveToX = npc.getX() + (safeTarget.x - npc.getX()) * ratio;
             moveToZ = npc.getZ() + (safeTarget.z - npc.getZ()) * ratio;
-            moveToY = safeTarget.y; // keep target elevation
             plan.debugRepathReason = "intermediate_" + (int) dist + "m";
         } else {
             moveToX = safeTarget.x;
-            moveToY = safeTarget.y;
             moveToZ = safeTarget.z;
         }
+        Vec3 moveToTarget = dist > INTERMEDIATE_TARGET_DIST
+            ? resolveSafeStepTarget(level, new Vec3(moveToX, npc.getY(), moveToZ))
+            : safeTarget;
 
         // Issue or re-issue moveTo at periodic intervals
         boolean navIdle = npc.getNavigation().isDone();
         boolean repathDue = (now - plan.lastRepathTick >= REPATH_INTERVAL_TICKS);
         if (navIdle || repathDue) {
             // moveTo() returns true if a path was successfully created
-            boolean pathFound = npc.getNavigation().moveTo(moveToX, moveToY, moveToZ, 1.0D);
+            boolean pathFound = npc.getNavigation().moveTo(moveToTarget.x, moveToTarget.y, moveToTarget.z, 1.0D);
             plan.lastRepathTick = now;
 
             if (!pathFound) {

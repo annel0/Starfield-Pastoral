@@ -51,9 +51,13 @@ public class FarmPermissionManager extends SavedData {
 
     /**
      * 获取玩家对某农场的权限等级。
-     * 自己的农场永远返回 PERM_FULL。
+     * 共享农场成员（owner + members）永远返回 PERM_FULL。
      */
     public int getPermission(UUID farmOwner, UUID visitor) {
+        FarmInstance farm = FarmInstanceRegistry.get().getFarm(farmOwner);
+        if (farm != null && farm.isFarmer(visitor)) {
+            return PERM_FULL;
+        }
         if (farmOwner.equals(visitor)) return PERM_FULL;
         Map<UUID, Integer> overrides = playerPermissions.get(farmOwner);
         if (overrides != null && overrides.containsKey(visitor)) {
@@ -88,6 +92,10 @@ public class FarmPermissionManager extends SavedData {
      * 返回 -1 表示没有覆盖（使用默认值）。
      */
     public int getOverridePermission(UUID farmOwner, UUID visitor) {
+        FarmInstance farm = FarmInstanceRegistry.get().getFarm(farmOwner);
+        if (farm != null && farm.isFarmer(visitor)) {
+            return PERM_FULL;
+        }
         Map<UUID, Integer> overrides = playerPermissions.get(farmOwner);
         if (overrides != null && overrides.containsKey(visitor)) {
             return overrides.get(visitor);
@@ -120,6 +128,11 @@ public class FarmPermissionManager extends SavedData {
      * 设置某个农场主人对特定玩家的权限。
      */
     public void setPermission(UUID farmOwner, UUID visitor, int level) {
+        FarmInstance farm = FarmInstanceRegistry.get().getFarm(farmOwner);
+        if (farm != null && farm.isFarmer(visitor)) {
+            removeOverride(farmOwner, visitor);
+            return;
+        }
         level = clampLevel(level);
         playerPermissions.computeIfAbsent(farmOwner, k -> new HashMap<>()).put(visitor, level);
         setDirty();

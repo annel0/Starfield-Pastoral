@@ -101,6 +101,8 @@ public class PlayerStardewData {
     // ============ 配方解锁 ============
     private final Set<String> unlockedRecipes = new HashSet<>();
     private final Map<String, Integer> recipeCraftCounts = new HashMap<>();
+    private int queenOfSauceWatchDay = -1;
+    private String queenOfSauceRecipeId = "";
 
     // ============ 钓鱼记录 ============
     // 用于对齐原版 CatchLimit（例如传奇鱼一次性）
@@ -375,6 +377,8 @@ public class PlayerStardewData {
                 }
             }
         }
+        data.queenOfSauceWatchDay = tag.contains("QueenOfSauceWatchDay") ? tag.getInt("QueenOfSauceWatchDay") : -1;
+        data.queenOfSauceRecipeId = tag.contains("QueenOfSauceRecipeId") ? tag.getString("QueenOfSauceRecipeId") : "";
         data.unlockedWallpaperStyles.add(DecorationStyleRegistry.getDefaultStyleId(DecorationType.WALLPAPER));
         data.unlockedFlooringStyles.add(DecorationStyleRegistry.getDefaultStyleId(DecorationType.FLOORING));
 
@@ -660,6 +664,8 @@ public class PlayerStardewData {
             recipeCraftCountsTag.add(recipeTag);
         }
         tag.put("RecipeCraftCounts", recipeCraftCountsTag);
+        tag.putInt("QueenOfSauceWatchDay", queenOfSauceWatchDay);
+        tag.putString("QueenOfSauceRecipeId", queenOfSauceRecipeId == null ? "" : queenOfSauceRecipeId);
 
         ListTag fishCounts = new ListTag();
         for (Map.Entry<String, Integer> entry : fishCatchCounts.entrySet()) {
@@ -1354,6 +1360,31 @@ public class PlayerStardewData {
             markDirty();
         }
         return changed;
+    }
+
+    public boolean hasWatchedQueenOfSauceOnDay(int dayKey) {
+        return dayKey >= 0 && queenOfSauceWatchDay == dayKey;
+    }
+
+    public String getQueenOfSauceRecipeIdForDay(int dayKey) {
+        if (!hasWatchedQueenOfSauceOnDay(dayKey)) {
+            return "";
+        }
+        return queenOfSauceRecipeId == null ? "" : queenOfSauceRecipeId;
+    }
+
+    public boolean markQueenOfSauceWatched(int dayKey, String recipeId) {
+        if (dayKey < 0) {
+            return false;
+        }
+        String normalizedRecipeId = recipeId == null ? "" : recipeId;
+        if (queenOfSauceWatchDay == dayKey && normalizedRecipeId.equals(queenOfSauceRecipeId)) {
+            return false;
+        }
+        queenOfSauceWatchDay = dayKey;
+        queenOfSauceRecipeId = normalizedRecipeId;
+        markDirty();
+        return true;
     }
 
     public Set<String> getUnlockedRecipes() {

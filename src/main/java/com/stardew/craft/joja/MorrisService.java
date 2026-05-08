@@ -87,10 +87,6 @@ public final class MorrisService {
             speak(player, I18N_NO_MORE_CD);
             return InteractionResult.SUCCESS;
         }
-        // SDV parity: 首次看到 CD form 视同"看过 502261 事件" —— Auto Petter 解锁上架。
-        if (!CCStoryFlags.hasFlag(player, "seenJojaCDForm")) {
-            CCStoryFlags.addFlag(player, "seenJojaCDForm");
-        }
         speak(player, I18N_CD_FORM_OFFER);
         return InteractionResult.SUCCESS;
     }

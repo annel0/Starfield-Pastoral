@@ -9,10 +9,12 @@ import com.stardew.craft.network.ItemPickupHudPacket;
 import com.stardew.craft.player.PlayerStardewDataAPI;
 import com.stardew.craft.player.SkillType;
 import com.stardew.craft.sound.ModSounds;
+import com.stardew.craft.time.StardewTimeManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -106,6 +108,30 @@ public final class FishPondInteractionService {
         ItemPickupHudPacket.sendTo(player, output, output.getCount(), false);
         player.displayClientMessage(Component.translatable("message.stardew_craft.fish_pond_bucket.collected"), true);
         return OutputCollectResult.COLLECTED;
+    }
+
+    public static ItemStack pullFishForFishingRod(ServerLevel level, BlockPos bobberPos) {
+        if (StardewTimeManager.get().getCurrentTime() >= StardewTimeManager.PASS_OUT_TIME) {
+            return ItemStack.EMPTY;
+        }
+
+        FishPondWorldData worldData = FishPondWorldData.get(level);
+        FishPondRecord pond = worldData.findPondContainingWater(level.dimension().location().toString(), bobberPos).orElse(null);
+        if (pond == null || pond.currentPopulation() <= 0 || pond.fishTypeId().isBlank()) {
+            return ItemStack.EMPTY;
+        }
+
+        ResourceLocation fishId = ResourceLocation.tryParse(pond.fishTypeId());
+        if (fishId == null || !BuiltInRegistries.ITEM.containsKey(fishId)) {
+            return ItemStack.EMPTY;
+        }
+
+        pond.setCurrentPopulation(Math.max(0, pond.currentPopulation() - 1));
+        pond.setWaterColor(FishPondDataService.get().resolveWaterColor(pond));
+        worldData.markChanged();
+        FishPondBucketBlockEntity.syncVisualState(level, pond.bucketPos());
+        FishPondColorSyncService.broadcastSnapshot(level);
+        return new ItemStack(BuiltInRegistries.ITEM.get(fishId));
     }
 
     public static ItemAbsorbResult absorbItemEntity(ServerLevel level, FishPondRecord pond, ItemEntity itemEntity) {

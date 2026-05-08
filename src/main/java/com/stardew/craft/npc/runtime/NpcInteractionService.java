@@ -23,9 +23,11 @@ import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 @SuppressWarnings("null")
 public final class NpcInteractionService {
@@ -40,8 +42,69 @@ public final class NpcInteractionService {
 
     private static final String[] WEEKDAY_SHORT = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
     private static final String STARDROP_TEA_ID = "stardewcraft:stardrop_tea";
+    private static final Map<UUID, String> ACTIVE_DIALOGUE_NPC_BY_PLAYER = new HashMap<>();
+    private static final Map<String, Integer> ACTIVE_DIALOGUE_LOCK_COUNTS = new HashMap<>();
 
     private NpcInteractionService() {
+    }
+
+    public static boolean isDialogueMovementLocked(String npcId) {
+        if (npcId == null || npcId.isBlank()) {
+            return false;
+        }
+        return ACTIVE_DIALOGUE_LOCK_COUNTS.getOrDefault(npcId.trim().toLowerCase(Locale.ROOT), 0) > 0;
+    }
+
+    public static void handleDialogueClosed(ServerPlayer player, String npcId) {
+        if (player == null) {
+            return;
+        }
+        endDialogueSession(player.getUUID(), npcId);
+    }
+
+    public static void onPlayerLogout(ServerPlayer player) {
+        if (player == null) {
+            return;
+        }
+        endDialogueSession(player.getUUID(), null);
+    }
+
+    private static void beginDialogueSession(ServerPlayer player, String npcId) {
+        if (player == null || npcId == null || npcId.isBlank()) {
+            return;
+        }
+
+        UUID playerId = player.getUUID();
+        String normalizedNpcId = npcId.trim().toLowerCase(Locale.ROOT);
+        String previousNpcId = ACTIVE_DIALOGUE_NPC_BY_PLAYER.get(playerId);
+        if (normalizedNpcId.equals(previousNpcId)) {
+            return;
+        }
+
+        endDialogueSession(playerId, previousNpcId);
+        ACTIVE_DIALOGUE_NPC_BY_PLAYER.put(playerId, normalizedNpcId);
+        ACTIVE_DIALOGUE_LOCK_COUNTS.merge(normalizedNpcId, 1, Integer::sum);
+    }
+
+    private static void endDialogueSession(UUID playerId, String expectedNpcId) {
+        if (playerId == null) {
+            return;
+        }
+
+        String activeNpcId = ACTIVE_DIALOGUE_NPC_BY_PLAYER.get(playerId);
+        if (activeNpcId == null) {
+            return;
+        }
+
+        if (expectedNpcId != null && !expectedNpcId.isBlank()) {
+            String normalizedExpectedNpcId = expectedNpcId.trim().toLowerCase(Locale.ROOT);
+            if (!normalizedExpectedNpcId.equals(activeNpcId)) {
+                return;
+            }
+        }
+
+        ACTIVE_DIALOGUE_NPC_BY_PLAYER.remove(playerId);
+        ACTIVE_DIALOGUE_LOCK_COUNTS.computeIfPresent(activeNpcId, (key, count) -> count <= 1 ? null : count - 1);
     }
 
     public static InteractionResult onInteract(net.minecraft.world.entity.player.Player player,
@@ -911,6 +974,7 @@ public final class NpcInteractionService {
         if (translateKey == null || translateKey.isBlank()) {
             translateKey = "...";
         }
+        beginDialogueSession(player, npcId);
         PacketDistributor.sendToPlayer(player,
                 new OpenNpcDialogueScreenPayload(npcId, translateKey, points, "", garbleDwarvish));
     }
@@ -920,10 +984,12 @@ public final class NpcInteractionService {
 
         // Wizard tower hub: intercept wizard-specific answer nodes (teleport commands)
         if ("wizard".equals(npcId) && com.stardew.craft.interior.WizardQuestHandler.handleWizardQuestionAnswer(player, nextDialogueNode)) {
+            endDialogueSession(player.getUUID(), npcId);
             return;
         }
         // Morris: Yes/No on membership / CD form
         if ("morris".equals(npcId) && com.stardew.craft.joja.MorrisService.handleAnswer(player, nextDialogueNode)) {
+            endDialogueSession(player.getUUID(), npcId);
             return;
         }
 
@@ -942,8 +1008,11 @@ public final class NpcInteractionService {
             String text = resolveDialogueTextByKey(dialogueRoot, nextDialogueNode, currentDayKey());
             if (text != null && !text.isBlank()) {
                 sendDialoguePacket(player, npcId, text, state.points());
+                return;
             }
         }
+
+        endDialogueSession(player.getUUID(), npcId);
     }
 
     private static String findKeyCaseInsensitive(JsonObject obj, String candidate) {

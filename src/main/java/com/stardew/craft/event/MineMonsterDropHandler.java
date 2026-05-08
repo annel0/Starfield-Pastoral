@@ -1,7 +1,6 @@
 package com.stardew.craft.event;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.core.ModMiningDimensions;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.PlayerStardewData;
@@ -56,7 +55,6 @@ public class MineMonsterDropHandler {
     public static void onLivingDrops(LivingDropsEvent event) {
         LivingEntity entity = event.getEntity();
         if (!(entity.level() instanceof ServerLevel serverLevel)) return;
-        if (!serverLevel.dimension().equals(ModMiningDimensions.STARDEW_MINING)) return;
 
         Set<String> tags = entity.getTags();
         if (tags.stream().noneMatch(t -> t.startsWith("sd_mob_"))) return;

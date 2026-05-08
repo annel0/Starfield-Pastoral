@@ -37,6 +37,7 @@ import com.stardew.craft.item.weapon.WeaponData;
 import com.stardew.craft.item.weapon.WeaponRegistry;
 import com.stardew.craft.item.weapon.WeaponSkillData;
 import com.stardew.craft.effect.ModMobEffects;
+import com.stardew.craft.event.MineMonsterSpawnHandler;
 import com.stardew.craft.player.PlayerStardewDataAPI;
 import com.stardew.craft.player.SkillType;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -602,7 +603,8 @@ public class WeaponCombatEvents {
         if ("burglar_shank".equals(skillId)
             && event.getNewDamage() > 0.0f
             && player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
-            boolean killed = !target.isAlive() || target.getHealth() <= 0.0f;
+            boolean killed = (!MineMonsterSpawnHandler.isCollapsedMummy(target))
+                    && (!target.isAlive() || target.getHealth() <= 0.0f);
             if (killed) {
                 BurglarLootHooks.fireBurglarKill(target, serverPlayer);
                 if (DimensionDamageMapper.isInStardewDimension(target)) {
@@ -621,7 +623,8 @@ public class WeaponCombatEvents {
         }
 
         if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
-            boolean killed = !target.isAlive() || target.getHealth() <= 0.0f;
+            boolean killed = (!MineMonsterSpawnHandler.isCollapsedMummy(target))
+                    && (!target.isAlive() || target.getHealth() <= 0.0f);
             if (killed) {
                 PlayerStardewDataAPI.addExperience(serverPlayer, SkillType.COMBAT, getCombatExperienceOnKill(target));
             }

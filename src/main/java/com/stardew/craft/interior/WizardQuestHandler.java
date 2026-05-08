@@ -271,7 +271,11 @@ public final class WizardQuestHandler {
             CrossDimensionTeleporter.wizardInteriorToStardewOutdoor(player);
         } else {
             // 没有农场 → 发送打开农场选择界面的包
-            net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,
+                com.stardew.craft.farm.FarmJoinManager.syncPendingState(
+                    player,
+                    com.stardew.craft.farm.FarmJoinManager.hasPending(player.getUUID())
+                );
+                net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,
                     new com.stardew.craft.network.payload.OpenFarmSelectionPayload());
             StardewCraft.LOGGER.info("[WIZARD] {} has no farm, opening farm selection screen",
                     player.getName().getString());

@@ -58,7 +58,7 @@ public class FarmCaveCommand {
 
     private static int runGet(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         ServerPlayer player = ctx.getSource().getPlayerOrException();
-        FarmInstance farm = FarmInstanceRegistry.get().getFarm(player.getUUID());
+        FarmInstance farm = FarmInstanceRegistry.get().getFarmForPlayer(player.getUUID());
         if (farm == null) {
             ctx.getSource().sendFailure(Component.literal("§c你还没有农场"));
             return 0;
@@ -78,9 +78,9 @@ public class FarmCaveCommand {
             return 0;
         }
         FarmInstanceRegistry reg = FarmInstanceRegistry.get();
-        FarmInstance farm = reg.getFarm(player.getUUID());
+        FarmInstance farm = reg.getFarmForPlayer(player.getUUID());
         if (farm == null) {
-            ctx.getSource().sendFailure(Component.literal("§c你不是任何农场的主人"));
+            ctx.getSource().sendFailure(Component.literal("§c你不属于任何农场"));
             return 0;
         }
         boolean ok = FarmCaveAPI.setCaveChoice(player, choice);
@@ -123,7 +123,7 @@ public class FarmCaveCommand {
     }
 
     private static int doRebuild(CommandContext<CommandSourceStack> ctx, ServerPlayer target) {
-        FarmInstance farm = FarmInstanceRegistry.get().getFarm(target.getUUID());
+        FarmInstance farm = FarmInstanceRegistry.get().getFarmForPlayer(target.getUUID());
         if (farm == null) {
             ctx.getSource().sendFailure(Component.literal("§c目标无农场"));
             return 0;

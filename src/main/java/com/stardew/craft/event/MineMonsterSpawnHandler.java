@@ -3,18 +3,27 @@ package com.stardew.craft.event;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModMiningDimensions;
 import com.stardew.craft.mining.MiningCoordinates;
+import com.stardew.craft.network.payload.MummyCollapsePayload;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
  * 矿井怪物刷怪事件处理器
@@ -32,6 +41,7 @@ public class MineMonsterSpawnHandler {
     private static final ResourceLocation MOD_ATK = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "mine_mob_atk");
     private static final ResourceLocation MOD_ARMOR = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "mine_mob_armor");
     private static final ResourceLocation MOD_SPEED = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "mine_mob_speed");
+    private static final ResourceLocation MOD_MUMMY_COLLAPSED_HP = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "mummy_collapsed_hp");
 
     /** 每层楼最大怪物数量（房间 80-120 格，面积比 SDV 大 5-10 倍） */
     private static final int MAX_MONSTERS_PER_FLOOR = 30;
@@ -40,6 +50,83 @@ public class MineMonsterSpawnHandler {
     private static final java.util.Map<Integer, Integer> floorMobCounts = new java.util.concurrent.ConcurrentHashMap<>();
     private static long lastCountRefreshTick = 0;
     private static final long COUNT_REFRESH_INTERVAL = 60; // refresh every 3 seconds
+
+        private static final java.util.List<String> SUMMONABLE_MONSTER_IDS = java.util.List.of(
+            "mummy",
+            "serpent",
+            "royal_serpent",
+            "pepper_rex",
+            "big_slime",
+            "green_slime",
+            "frost_jelly",
+            "sludge",
+            "bat",
+            "frost_bat",
+            "lava_bat",
+            "iridium_bat",
+            "rock_crab",
+            "lava_crab",
+            "iridium_crab",
+            "duggy",
+            "grub",
+            "dust_sprite",
+            "bug",
+            "fly",
+            "ghost",
+            "carbon_ghost",
+            "skeleton",
+            "rock_golem",
+            "metal_head",
+            "shadow_brute",
+            "shadow_shaman",
+            "squid_kid"
+        );
+
+    public static void invalidateFloorMobCount(int floor) {
+        floorMobCounts.remove(floor);
+    }
+
+    public static java.util.List<String> getSummonableMonsterIds() {
+        return SUMMONABLE_MONSTER_IDS;
+    }
+
+    public static int inferFloor(ServerPlayer player) {
+        if (player == null) {
+            return 1;
+        }
+        if (!player.serverLevel().dimension().equals(ModMiningDimensions.STARDEW_MINING)) {
+            return 1;
+        }
+        return Math.max(1, Math.round(player.blockPosition().getZ() / (float) MiningCoordinates.FLOOR_SPACING));
+    }
+
+    public static Mob spawnConfiguredMonster(ServerLevel level, String monsterId, Vec3 position, float yaw, int floor) {
+        if (level == null || monsterId == null || monsterId.isBlank() || position == null) {
+            return null;
+        }
+
+        String normalizedId = normalizeMonsterId(monsterId);
+        EntityType<? extends Mob> entityType = getSummonEntityType(normalizedId);
+        if (entityType == null) {
+            return null;
+        }
+
+        Mob mob = entityType.create(level);
+        if (mob == null) {
+            return null;
+        }
+
+        mob.moveTo(position.x, position.y, position.z, yaw, 0.0F);
+        if (!applySummonProfile(mob, normalizedId, floor)) {
+            return null;
+        }
+        if (!level.addFreshEntity(mob)) {
+            return null;
+        }
+
+        invalidateFloorMobCount(floor);
+        return mob;
+    }
 
     @SubscribeEvent
     public static void onEntityJoinLevel(EntityJoinLevelEvent event) {
@@ -82,42 +169,7 @@ public class MineMonsterSpawnHandler {
 
         // Increment cached count for this floor
         floorMobCounts.merge(floor, 1, Integer::sum);
-        EntityType<?> type = mob.getType();
-
-        // 根据MC实体类型 + 楼层分配SDV角色
-        if (type == EntityType.SLIME) {
-            assignSlime(mob, floor);
-        } else if (type == EntityType.PHANTOM) {
-            assignBat(mob, floor);
-        } else if (type == EntityType.SILVERFISH) {
-            assignSilverfish(mob, floor);
-        } else if (type == EntityType.ENDERMITE) {
-            assignEndermite(mob, floor);
-        } else if (type == EntityType.SPIDER) {
-            assignBug(mob, floor);
-        } else if (type == EntityType.CAVE_SPIDER) {
-            assignFly(mob, floor);
-        } else if (type == EntityType.HUSK) {
-            assignGhost(mob, floor);
-        } else if (type == EntityType.SKELETON) {
-            assignSkeleton(mob, floor);
-        } else if (type == EntityType.ZOMBIE) {
-            assignZombie(mob, floor);
-        } else if (type == EntityType.WITHER_SKELETON) {
-            assignWitherSkeleton(mob, floor);
-        } else if (type == EntityType.STRAY) {
-            assignStray(mob, floor);
-        } else if (type == EntityType.BLAZE) {
-            assignBlaze(mob, floor);
-        } else if (type == EntityType.DROWNED) {
-            assignMummy(mob, floor);
-        } else if (type == EntityType.VEX) {
-            assignSerpent(mob, floor);
-        } else if (type == EntityType.HOGLIN) {
-            assignDino(mob, floor);
-        } else if (type == EntityType.MAGMA_CUBE) {
-            assignBigSlime(mob, floor);
-        } else {
+        if (!applyDefaultProfile(mob, floor)) {
             // 不属于矿井怪物映射表：取消生成
             event.setCanceled(true);
         }
@@ -352,6 +404,182 @@ public class MineMonsterSpawnHandler {
         setSDVName(mob, "Big Slime");
     }
 
+    private static boolean applyDefaultProfile(Mob mob, int floor) {
+        EntityType<?> type = mob.getType();
+        if (type == EntityType.SLIME) {
+            assignSlime(mob, floor);
+            return true;
+        }
+        if (type == EntityType.PHANTOM) {
+            assignBat(mob, floor);
+            return true;
+        }
+        if (type == EntityType.SILVERFISH) {
+            assignSilverfish(mob, floor);
+            return true;
+        }
+        if (type == EntityType.ENDERMITE) {
+            assignEndermite(mob, floor);
+            return true;
+        }
+        if (type == EntityType.SPIDER) {
+            assignBug(mob, floor);
+            return true;
+        }
+        if (type == EntityType.CAVE_SPIDER) {
+            assignFly(mob, floor);
+            return true;
+        }
+        if (type == EntityType.HUSK) {
+            assignGhost(mob, floor);
+            return true;
+        }
+        if (type == EntityType.SKELETON) {
+            assignSkeleton(mob, floor);
+            return true;
+        }
+        if (type == EntityType.ZOMBIE) {
+            assignZombie(mob, floor);
+            return true;
+        }
+        if (type == EntityType.WITHER_SKELETON) {
+            assignWitherSkeleton(mob, floor);
+            return true;
+        }
+        if (type == EntityType.STRAY) {
+            assignStray(mob, floor);
+            return true;
+        }
+        if (type == EntityType.BLAZE) {
+            assignBlaze(mob, floor);
+            return true;
+        }
+        if (type == EntityType.DROWNED) {
+            assignMummy(mob, floor);
+            return true;
+        }
+        if (type == EntityType.VEX) {
+            assignSerpent(mob, floor);
+            return true;
+        }
+        if (type == EntityType.HOGLIN) {
+            assignDino(mob, floor);
+            return true;
+        }
+        if (type == EntityType.MAGMA_CUBE) {
+            assignBigSlime(mob, floor);
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean applySummonProfile(Mob mob, String monsterId, int floor) {
+        int resolvedFloor = Math.max(1, floor);
+        switch (monsterId) {
+            case "mummy" -> assignMummy(mob, Math.max(121, resolvedFloor));
+            case "serpent" -> assignSerpent(mob, clampFloor(resolvedFloor, 121, 199));
+            case "royal_serpent" -> assignSerpent(mob, Math.max(200, resolvedFloor));
+            case "pepper_rex" -> assignDino(mob, Math.max(121, resolvedFloor));
+            case "big_slime" -> assignBigSlime(mob, Math.max(121, resolvedFloor));
+            case "green_slime" -> assignSlime(mob, clampFloor(resolvedFloor, 1, 39));
+            case "frost_jelly" -> assignSlime(mob, clampFloor(resolvedFloor, 40, 79));
+            case "sludge" -> assignSlime(mob, clampFloor(resolvedFloor, 80, 119));
+            case "bat" -> assignBat(mob, clampFloor(resolvedFloor, 1, 39));
+            case "frost_bat" -> assignBat(mob, clampFloor(resolvedFloor, 40, 79));
+            case "lava_bat" -> assignBat(mob, clampFloor(resolvedFloor, 80, 119));
+            case "iridium_bat" -> assignBat(mob, Math.max(120, resolvedFloor));
+            case "rock_crab" -> assignRockCrab(mob, clampFloor(resolvedFloor, 1, 39));
+            case "lava_crab" -> assignLavaCrab(mob, clampFloor(resolvedFloor, 80, 119));
+            case "iridium_crab" -> assignIridiumCrab(mob, Math.max(121, resolvedFloor));
+            case "duggy" -> assignDuggy(mob, clampFloor(resolvedFloor, 1, 79));
+            case "grub" -> assignEndermite(mob, clampFloor(resolvedFloor, 1, 39));
+            case "dust_sprite" -> assignEndermite(mob, clampFloor(resolvedFloor, 40, 119));
+            case "bug" -> assignBug(mob, resolvedFloor);
+            case "fly" -> assignFly(mob, resolvedFloor);
+            case "ghost" -> assignGhost(mob, clampFloor(resolvedFloor, 1, 120));
+            case "carbon_ghost" -> assignGhost(mob, Math.max(121, resolvedFloor));
+            case "skeleton" -> assignSkeleton(mob, resolvedFloor);
+            case "rock_golem" -> assignZombie(mob, clampFloor(resolvedFloor, 1, 79));
+            case "metal_head" -> assignZombie(mob, clampFloor(resolvedFloor, 80, 120));
+            case "shadow_brute" -> assignWitherSkeleton(mob, resolvedFloor);
+            case "shadow_shaman" -> assignStray(mob, resolvedFloor);
+            case "squid_kid" -> assignBlaze(mob, resolvedFloor);
+            default -> {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static EntityType<? extends Mob> getSummonEntityType(String monsterId) {
+        return switch (monsterId) {
+            case "mummy" -> EntityType.DROWNED;
+            case "serpent", "royal_serpent" -> EntityType.VEX;
+            case "pepper_rex" -> EntityType.HOGLIN;
+            case "big_slime" -> EntityType.MAGMA_CUBE;
+            case "green_slime", "frost_jelly", "sludge" -> EntityType.SLIME;
+            case "bat", "frost_bat", "lava_bat", "iridium_bat" -> EntityType.PHANTOM;
+            case "rock_crab", "lava_crab", "iridium_crab", "duggy" -> EntityType.SILVERFISH;
+            case "grub", "dust_sprite" -> EntityType.ENDERMITE;
+            case "bug" -> EntityType.SPIDER;
+            case "fly" -> EntityType.CAVE_SPIDER;
+            case "ghost", "carbon_ghost" -> EntityType.HUSK;
+            case "skeleton" -> EntityType.SKELETON;
+            case "rock_golem", "metal_head" -> EntityType.ZOMBIE;
+            case "shadow_brute" -> EntityType.WITHER_SKELETON;
+            case "shadow_shaman" -> EntityType.STRAY;
+            case "squid_kid" -> EntityType.BLAZE;
+            default -> null;
+        };
+    }
+
+    private static String normalizeMonsterId(String monsterId) {
+        return switch (monsterId.toLowerCase(java.util.Locale.ROOT)) {
+            case "slime" -> "green_slime";
+            case "bigslime" -> "big_slime";
+            case "crab" -> "rock_crab";
+            case "dino" -> "pepper_rex";
+            case "golem" -> "rock_golem";
+            case "shadow" -> "shadow_brute";
+            default -> monsterId.toLowerCase(java.util.Locale.ROOT);
+        };
+    }
+
+    private static int clampFloor(int floor, int min, int max) {
+        return Math.max(min, Math.min(max, floor));
+    }
+
+    private static void assignRockCrab(Mob mob, int floor) {
+        float s = getFloorScaling(floor);
+        mob.addTag("sd_mob_crab");
+        setStats(mob, 30 * s, 5 * s, 8, 0.20);
+        setSDVName(mob, "Rock Crab");
+    }
+
+    private static void assignLavaCrab(Mob mob, int floor) {
+        float s = getFloorScaling(floor);
+        mob.addTag("sd_mob_crab");
+        mob.addTag("sd_tier_2");
+        setStats(mob, 120 * s, 15 * s, 12, 0.25);
+        setSDVName(mob, "Lava Crab");
+    }
+
+    private static void assignIridiumCrab(Mob mob, int floor) {
+        float s = getFloorScaling(floor);
+        mob.addTag("sd_mob_crab");
+        mob.addTag("sd_tier_4");
+        mob.addTag("sd_tier_skull");
+        setStats(mob, 300 * s, 28 * s, 16, 0.20);
+        setSDVName(mob, "Iridium Crab");
+    }
+
+    private static void assignDuggy(Mob mob, int floor) {
+        float s = getFloorScaling(floor);
+        mob.addTag("sd_mob_duggy");
+        setStats(mob, 40 * s, 6 * s, 0, 0.20);
+        setSDVName(mob, "Duggy");
+    }
+
     // ======================== 属性设置 ========================
 
     @SuppressWarnings("null")
@@ -415,44 +643,293 @@ public class MineMonsterSpawnHandler {
 
     /** Mummy 倒地标记 tag */
     private static final String MUMMY_COLLAPSED_TAG = "sd_mummy_collapsed";
+    private static final String MUMMY_REVIVE_TICK_TAG = "stardewcraft_mummy_revive_tick";
+    private static final int MUMMY_COLLAPSE_TICKS = 200;
+
+    private static boolean isMummyPermanentKillSource(DamageSource source) {
+        return source != null && (
+                source.is(net.minecraft.world.damagesource.DamageTypes.EXPLOSION)
+                || source.is(net.minecraft.world.damagesource.DamageTypes.PLAYER_EXPLOSION)
+                || source.is(net.minecraft.world.damagesource.DamageTypes.GENERIC_KILL)
+                || source.is(net.minecraft.world.damagesource.DamageTypes.FELL_OUT_OF_WORLD));
+    }
+
+    public static boolean isCollapsedMummy(LivingEntity entity) {
+        return entity instanceof Mob mob
+                && mob.getTags().contains("sd_mob_mummy")
+                && mob.getTags().contains(MUMMY_COLLAPSED_TAG);
+    }
+
+    @SubscribeEvent
+    public static void onMummyIncomingDamage(LivingIncomingDamageEvent event) {
+        if (!(event.getEntity() instanceof Mob mob)) return;
+        if (!mob.getTags().contains("sd_mob_mummy")) return;
+        if (!mob.getTags().contains(MUMMY_COLLAPSED_TAG)) {
+            if (!isMummyPermanentKillSource(event.getSource()) && event.getAmount() >= mob.getHealth()) {
+                StardewCraft.LOGGER.info(
+                        "[MUMMY] incoming fatal hit intercepted entityId={} hp={} dmg={} src={} pos={} tags={}",
+                        mob.getId(),
+                        mob.getHealth(),
+                        event.getAmount(),
+                        describeDamageSource(event.getSource()),
+                        mob.blockPosition(),
+                        mob.getTags());
+                event.setAmount(0.0F);
+                enterMummyCollapseState(mob);
+            }
+            return;
+        }
+
+        // SDV parity: 倒地后的木乃伊不会被普通武器继续打死，
+        // 但炸弹/管理员 kill 仍然可以永久处决。
+        if (!isMummyPermanentKillSource(event.getSource())) {
+            StardewCraft.LOGGER.info(
+                    "[MUMMY] blocked follow-up damage on collapsed mummy entityId={} dmg={} src={} pos={}",
+                    mob.getId(),
+                    event.getAmount(),
+                    describeDamageSource(event.getSource()),
+                    mob.blockPosition());
+            event.setAmount(0.0F);
+        } else {
+            StardewCraft.LOGGER.info(
+                    "[MUMMY] allowing permanent kill damage on collapsed mummy entityId={} dmg={} src={} pos={}",
+                    mob.getId(),
+                    event.getAmount(),
+                    describeDamageSource(event.getSource()),
+                    mob.blockPosition());
+            clearCollapsedStateForPermanentDeath(mob);
+        }
+    }
 
     @SubscribeEvent
     public static void onMummyDeath(net.neoforged.neoforge.event.entity.living.LivingDeathEvent event) {
         if (!(event.getEntity() instanceof Mob mob)) return;
         if (!mob.getTags().contains("sd_mob_mummy")) return;
-        // 已经在倒地状态再次被杀（如炸弹补刀）→ 允许正常死亡
-        if (mob.getTags().contains(MUMMY_COLLAPSED_TAG)) return;
-
-        // 检查伤害源是否是爆炸
-        if (event.getSource() != null && event.getSource().is(net.minecraft.world.damagesource.DamageTypes.EXPLOSION)
-                || (event.getSource() != null && event.getSource().is(net.minecraft.world.damagesource.DamageTypes.PLAYER_EXPLOSION))) {
-            return; // 爆炸 → 正常死亡
+        // 已经在倒地状态：只有炸弹/管理员 kill 才能永久击杀。
+        if (mob.getTags().contains(MUMMY_COLLAPSED_TAG)) {
+            if (isMummyPermanentKillSource(event.getSource())) {
+                StardewCraft.LOGGER.info(
+                        "[MUMMY] collapsed mummy is dying permanently entityId={} src={} pos={}",
+                        mob.getId(),
+                        describeDamageSource(event.getSource()),
+                        mob.blockPosition());
+                clearCollapsedStateForPermanentDeath(mob);
+                return;
+            }
+            StardewCraft.LOGGER.warn(
+                    "[MUMMY] LivingDeathEvent fired for already-collapsed mummy without permanent source entityId={} src={} hp={} pos={}",
+                    mob.getId(),
+                    describeDamageSource(event.getSource()),
+                    mob.getHealth(),
+                    mob.blockPosition());
+            event.setCanceled(true);
+            mob.setHealth(Math.max(1.0F, mob.getHealth()));
+            return;
         }
 
-        // 取消死亡 → 进入"倒地"状态
+        if (isMummyPermanentKillSource(event.getSource())) {
+            StardewCraft.LOGGER.info(
+                    "[MUMMY] non-collapsed mummy received permanent kill source entityId={} src={} pos={}",
+                    mob.getId(),
+                    describeDamageSource(event.getSource()),
+                    mob.blockPosition());
+            return;
+        }
+
+        // 正常武器击杀现在应在 LivingIncomingDamageEvent 阶段被前置截断；
+        // 这里保留兜底，防止有别的伤害路径绕过前置事件直接进入死亡流程。
+        StardewCraft.LOGGER.warn(
+                "[MUMMY] fallback LivingDeathEvent collapse path entityId={} src={} hp={} pos={} tags={}",
+                mob.getId(),
+                describeDamageSource(event.getSource()),
+                mob.getHealth(),
+                mob.blockPosition(),
+                mob.getTags());
         event.setCanceled(true);
+        enterMummyCollapseState(mob);
+    }
+
+    @SubscribeEvent
+    public static void onMummyTick(EntityTickEvent.Post event) {
+        if (!(event.getEntity() instanceof Mob mob)) return;
+        if (!(mob.level() instanceof ServerLevel level)) return;
+        if (!mob.getTags().contains("sd_mob_mummy")) return;
+        if (!mob.getTags().contains(MUMMY_COLLAPSED_TAG)) return;
+        if (mob.isDeadOrDying()) return;
+
+        mob.setNoAi(true);
+        mob.setPose(Pose.STANDING);
+        mob.setSilent(true);
+        mob.setDeltaMovement(Vec3.ZERO);
+        mob.setXRot(0.0F);
+        mob.xRotO = 0.0F;
+        mob.invulnerableTime = 0;
+        mob.hurtTime = 0;
+        mob.deathTime = 0;
+        if (mob.getNavigation() != null) {
+            mob.getNavigation().stop();
+        }
+
+        long reviveTick = mob.getPersistentData().getLong(MUMMY_REVIVE_TICK_TAG);
+        long nowTick = level.getGameTime();
+        if (reviveTick > 0L && nowTick >= reviveTick) {
+            reviveMummy(mob);
+        }
+    }
+
+    private static void syncMummyCollapseState(Mob mob, int durationTicks) {
+        if (!(mob.level() instanceof ServerLevel level)) {
+            return;
+        }
+
+        StardewCraft.LOGGER.info(
+                "[MUMMY] sync collapse state entityId={} durationTicks={} players={} pos={}",
+                mob.getId(),
+                durationTicks,
+                level.players().size(),
+                mob.blockPosition());
+        MummyCollapsePayload payload = new MummyCollapsePayload(mob.getId(), durationTicks);
+        for (ServerPlayer player : level.players()) {
+            PacketDistributor.sendToPlayer(player, payload);
+        }
+    }
+
+    private static void enterMummyCollapseState(Mob mob) {
+        if (mob.getTags().contains(MUMMY_COLLAPSED_TAG)) {
+            StardewCraft.LOGGER.warn(
+                    "[MUMMY] enter collapse requested but tag already present entityId={} hp={} pos={}",
+                    mob.getId(),
+                    mob.getHealth(),
+                    mob.blockPosition());
+            return;
+        }
+
+        StardewCraft.LOGGER.info(
+                "[MUMMY] entering collapse entityId={} hpBefore={} maxHp={} pose={} noAi={} pos={} tags={}",
+                mob.getId(),
+                mob.getHealth(),
+                mob.getAttribute(Attributes.MAX_HEALTH) != null ? mob.getAttribute(Attributes.MAX_HEALTH).getValue() : -1.0,
+                mob.getPose(),
+                mob.isNoAi(),
+                mob.blockPosition(),
+                mob.getTags());
         mob.setHealth(1.0F); // 保留 1 HP 避免被 MC 判定为已死
         mob.addTag(MUMMY_COLLAPSED_TAG);
         mob.setNoAi(true);
-        mob.setInvulnerable(true);
+        mob.setPose(Pose.STANDING);
+        mob.setInvulnerable(false);
         mob.setSilent(true);
-
-        // 10 秒后复活
-        if (mob.level() instanceof ServerLevel serverLevel) {
-            serverLevel.getServer().tell(new net.minecraft.server.TickTask(
-                    serverLevel.getServer().getTickCount() + 200, () -> {
-                if (mob.isAlive() && mob.getTags().contains(MUMMY_COLLAPSED_TAG)) {
-                    mob.removeTag(MUMMY_COLLAPSED_TAG);
-                    mob.setNoAi(false);
-                    mob.setInvulnerable(false);
-                    mob.setSilent(false);
-                    // 复活满血
-                    AttributeInstance maxHp = mob.getAttribute(Attributes.MAX_HEALTH);
-                    if (maxHp != null) {
-                        mob.setHealth((float) maxHp.getValue());
-                    }
-                }
-            }));
+        mob.setDeltaMovement(Vec3.ZERO);
+        mob.setXRot(0.0F);
+        mob.xRotO = 0.0F;
+        mob.invulnerableTime = 0;
+        mob.hurtTime = 0;
+        mob.deathTime = 0;
+        long reviveTick = mob.level().getGameTime() + MUMMY_COLLAPSE_TICKS;
+        mob.getPersistentData().putLong(MUMMY_REVIVE_TICK_TAG, reviveTick);
+        if (mob.getNavigation() != null) {
+            mob.getNavigation().stop();
         }
+        AttributeInstance maxHpAttr = mob.getAttribute(Attributes.MAX_HEALTH);
+        if (maxHpAttr != null) {
+            double currentMaxHp = maxHpAttr.getValue();
+            double collapseDiff = 1.0D - currentMaxHp;
+            maxHpAttr.removeModifier(MOD_MUMMY_COLLAPSED_HP);
+            maxHpAttr.addPermanentModifier(new AttributeModifier(
+                    MOD_MUMMY_COLLAPSED_HP,
+                    collapseDiff,
+                    AttributeModifier.Operation.ADD_VALUE));
+            mob.setHealth(1.0F);
+        }
+        StardewCraft.LOGGER.info(
+                "[MUMMY] collapse state applied entityId={} hpAfter={} pose={} noAi={} xRot={} reviveTick={} pos={} tags={}",
+                mob.getId(),
+                mob.getHealth(),
+                mob.getPose(),
+                mob.isNoAi(),
+                mob.getXRot(),
+            reviveTick,
+                mob.blockPosition(),
+                mob.getTags());
+        syncMummyCollapseState(mob, MUMMY_COLLAPSE_TICKS);
+        StardewCraft.LOGGER.info(
+            "[MUMMY] scheduled revive entityId={} atLevelTick={} currentLevelTick={}",
+            mob.getId(),
+            reviveTick,
+            mob.level().getGameTime());
+    }
+
+    private static void clearCollapsedStateForPermanentDeath(Mob mob) {
+        mob.removeTag(MUMMY_COLLAPSED_TAG);
+        mob.getPersistentData().remove(MUMMY_REVIVE_TICK_TAG);
+        mob.setNoAi(false);
+        mob.setPose(Pose.STANDING);
+        mob.setSilent(false);
+        mob.setXRot(0.0F);
+        mob.xRotO = 0.0F;
+        mob.invulnerableTime = 0;
+        mob.hurtTime = 0;
+        mob.deathTime = 0;
+        AttributeInstance maxHp = mob.getAttribute(Attributes.MAX_HEALTH);
+        if (maxHp != null) {
+            maxHp.removeModifier(MOD_MUMMY_COLLAPSED_HP);
+        }
+        syncMummyCollapseState(mob, 0);
+        StardewCraft.LOGGER.info(
+                "[MUMMY] cleared collapse state for permanent death entityId={} hp={} pose={} noAi={} pos={} tags={}",
+                mob.getId(),
+                mob.getHealth(),
+                mob.getPose(),
+                mob.isNoAi(),
+                mob.blockPosition(),
+                mob.getTags());
+    }
+
+    private static void reviveMummy(Mob mob) {
+        StardewCraft.LOGGER.info(
+            "[MUMMY] revive tick firing entityId={} hpBefore={} pose={} noAi={} levelTick={} pos={}",
+            mob.getId(),
+            mob.getHealth(),
+            mob.getPose(),
+            mob.isNoAi(),
+            mob.level().getGameTime(),
+            mob.blockPosition());
+
+        mob.removeTag(MUMMY_COLLAPSED_TAG);
+        mob.getPersistentData().remove(MUMMY_REVIVE_TICK_TAG);
+        mob.setNoAi(false);
+        mob.setPose(Pose.STANDING);
+        mob.setSilent(false);
+        mob.setXRot(0.0F);
+        mob.xRotO = 0.0F;
+        mob.invulnerableTime = 0;
+        mob.hurtTime = 0;
+        mob.deathTime = 0;
+        AttributeInstance maxHp = mob.getAttribute(Attributes.MAX_HEALTH);
+        if (maxHp != null) {
+            maxHp.removeModifier(MOD_MUMMY_COLLAPSED_HP);
+        }
+        syncMummyCollapseState(mob, 0);
+        if (maxHp != null) {
+            mob.setHealth((float) maxHp.getValue());
+        }
+        StardewCraft.LOGGER.info(
+            "[MUMMY] revive completed entityId={} hpAfter={} pose={} noAi={} levelTick={} pos={} tags={}",
+            mob.getId(),
+            mob.getHealth(),
+            mob.getPose(),
+            mob.isNoAi(),
+            mob.level().getGameTime(),
+            mob.blockPosition(),
+            mob.getTags());
+        }
+
+    private static String describeDamageSource(DamageSource source) {
+        if (source == null) {
+            return "<null>";
+        }
+        String direct = source.getDirectEntity() == null ? "null" : source.getDirectEntity().getType().toString();
+        String attacker = source.getEntity() == null ? "null" : source.getEntity().getType().toString();
+        return source.type().msgId() + "[direct=" + direct + ", attacker=" + attacker + "]";
     }
 }

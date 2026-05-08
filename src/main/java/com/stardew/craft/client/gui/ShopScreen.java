@@ -906,8 +906,11 @@ public class ShopScreen extends Screen {
         ShopItemEntry holdItem = forSale.get(buyHoldItemIndex);
         boolean canAfford = holdItem.price() <= 0 || playerMoney >= holdItem.price();
         boolean inStock   = holdItem.stock() != 0;
-        if (canAfford && inStock && hasTradeItem(holdItem, 1)) {
+        boolean canFitOnCursor = clampPurchaseQuantityToCursor(holdItem, 1) > 0;
+        if (canAfford && inStock && hasTradeItem(holdItem, 1) && canFitOnCursor) {
             playSound(ModSounds.PURCHASE_REPEAT.get());
+        } else if (!canFitOnCursor) {
+            buyHoldActive = false;
         }
 
         tryPurchase(buyHoldItemIndex, true);
@@ -943,6 +946,21 @@ public class ShopScreen extends Screen {
         return mc.player.getInventory().countItem(req.getItem()) >= need;
     }
 
+    private int clampPurchaseQuantityToCursor(ShopItemEntry entry, int requestedQty) {
+        ItemStack salable = resolveStack(entry.itemId());
+        if (salable.isEmpty()) return requestedQty;
+
+        int deliveredPerPurchase = Math.max(1, entry.purchaseStack());
+        int maxStackSize = Math.max(1, salable.getMaxStackSize());
+        int availableSpace = maxStackSize;
+
+        if (!heldItem.isEmpty() && ItemStack.isSameItemSameComponents(heldItem, salable)) {
+            availableSpace = Math.max(0, maxStackSize - heldItem.getCount());
+        }
+
+        return Math.min(requestedQty, availableSpace / deliveredPerPurchase);
+    }
+
     private void tryPurchase(int itemIdx, boolean repeating) {
         if (System.currentTimeMillis()-openedAtMs < SAFETY_MS) return;
         if (purchasePending) return;
@@ -956,12 +974,27 @@ public class ShopScreen extends Screen {
         if (!salable.isEmpty()) {
             qty = Math.min(qty, Math.max(1, salable.getMaxStackSize()));
         }
+        qty = clampPurchaseQuantityToCursor(item, qty);
 
         if (item.stock()!=Integer.MAX_VALUE) qty=Math.min(qty,item.stock());
-        if (qty<=0) { playSound(ModSounds.CANCEL.get()); return; }
+        if (qty<=0) {
+            if (repeating) {
+                buyHoldActive = false;
+            } else {
+                playSound(ModSounds.CANCEL.get());
+            }
+            return;
+        }
 
         int cost=item.price()*qty;
-        if (cost>playerMoney || !hasTradeItem(item, qty)) { playSound(ModSounds.CANCEL.get()); return; }
+        if (cost>playerMoney || !hasTradeItem(item, qty)) {
+            if (repeating) {
+                buyHoldActive = false;
+            } else {
+                playSound(ModSounds.CANCEL.get());
+            }
+            return;
+        }
 
         playerMoney -= cost; // optimistic
         purchasePending = true;

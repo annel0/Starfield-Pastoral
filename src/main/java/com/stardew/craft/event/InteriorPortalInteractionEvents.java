@@ -315,6 +315,10 @@ public class InteriorPortalInteractionEvents {
         com.stardew.craft.farm.FarmInstance myFarm = registry.getFarmForPlayer(player.getUUID());
 
         if (myFarm == null) {
+            com.stardew.craft.farm.FarmJoinManager.syncPendingState(
+                player,
+                com.stardew.craft.farm.FarmJoinManager.hasPending(player.getUUID())
+            );
             net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,
                     new com.stardew.craft.network.payload.OpenFarmSelectionPayload());
             StardewCraft.LOGGER.info("[FARM_ENTRY] {} has no farm, opening selection screen",

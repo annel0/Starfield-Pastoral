@@ -10,12 +10,12 @@ import java.util.function.Supplier;
  * SDV 三种炸弹的参数定义。
  *
  * <p>SDV 原版半径（瓦片 = MC 方块）：Cherry=1, Bomb=2, Mega=3。
- * 本 mod 在原版半径基础上 +20% 作为实际爆炸范围。</p>
+ * 当前实现会在该基础上放大爆炸半径；本次平衡调整将现有半径整体削弱 25%。</p>
  *
  * <pre>
- * Cherry Bomb: radius=1 (+20%=1.2), damage=6~8(r*6~r*8), playerDmg=3(r*3), fuse=2400ms
- * Bomb:        radius=2 (+20%=2.4), damage=12~16,        playerDmg=6,      fuse=2400ms
- * Mega Bomb:   radius=3 (+20%=3.6), damage=18~24,        playerDmg=9,      fuse=2400ms
+ * Cherry Bomb: radius=1 (scaled=1.8), damage=6~8(r*6~r*8), playerDmg=3(r*3), fuse=2400ms
+ * Bomb:        radius=2 (scaled=3.6), damage=12~16,       playerDmg=6,      fuse=2400ms
+ * Mega Bomb:   radius=3 (scaled=5.4), damage=18~24,       playerDmg=9,      fuse=2400ms
  * </pre>
  */
 public enum BombType {
@@ -23,8 +23,8 @@ public enum BombType {
     BOMB("bomb_item", 2, 2400, () -> ModItems.BOMB_ITEM),
     MEGA_BOMB("mega_bomb", 3, 2400, () -> ModItems.MEGA_BOMB);
 
-    /** 爆炸范围相对 SDV 原版的缩放比例 */
-    private static final float RADIUS_SCALE = 2.4f;
+    /** 爆炸范围相对 SDV 原版的缩放比例（较旧实现削弱 25% 后的结果） */
+    private static final float RADIUS_SCALE = 1.8f;
 
     private final String id;
     private final int radius;
@@ -43,7 +43,7 @@ public enum BombType {
     /** SDV 原版半径（用于伤害计算） */
     public int getRadius() { return radius; }
 
-    /** 实际爆炸半径 = SDV 原版 * 1.2 */
+    /** 实际爆炸半径 = SDV 原版 * 1.8 */
     public float getScaledRadius() { return radius * RADIUS_SCALE; }
 
     /** Fuse time in game ticks (20 ticks/sec). SDV uses 2400ms = 48 ticks. */

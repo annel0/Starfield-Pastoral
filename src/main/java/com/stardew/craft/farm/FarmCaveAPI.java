@@ -42,13 +42,13 @@ public final class FarmCaveAPI {
     }
 
     /**
-     * 设置玩家所在农场的洞穴选择。不是 owner 会失败。
+     * 设置玩家所在农场的洞穴选择。共享农场成员与 owner 等价。
      *
-     * @return true 成功；false 玩家无农场或无权限
+     * @return true 成功；false 玩家不属于任何农场
      */
     public static boolean setCaveChoice(ServerPlayer player, FarmCaveChoice choice) {
         FarmInstanceRegistry reg = FarmInstanceRegistry.get();
-        FarmInstance farm = reg.getFarm(player.getUUID());
+        FarmInstance farm = reg.getFarmForPlayer(player.getUUID());
         if (farm == null) return false;
         return applyChoice(farm, choice, reg);
     }

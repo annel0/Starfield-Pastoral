@@ -167,6 +167,10 @@ public final class CrossDimensionTeleporter {
      * 如果玩家已有农场实例，传送到自己的农场出生点；否则传送到公共出生点。
      */
     public static void wizardInteriorToStardewOutdoor(ServerPlayer player) {
+        wizardInteriorToStardewOutdoor(player, false);
+    }
+
+    public static void wizardInteriorToStardewOutdoor(ServerPlayer player, boolean giveStarterItemsInInventory) {
         if (checkCooldown(player)) return;
 
         ServerLevel stardewLevel = player.server.getLevel(ModDimensions.STARDEW_VALLEY);
@@ -199,7 +203,7 @@ public final class CrossDimensionTeleporter {
         markCooldown(player);
 
         // 首次传送到星露谷：给予新手工具六件套
-        giveStarterToolsIfNeeded(player);
+        giveStarterToolsIfNeeded(player, giveStarterItemsInInventory);
 
         StardewCraft.LOGGER.info("[WIZARD] {} teleported from wizard tower interior to Stardew Valley world origin", player.getName().getString());
     }
@@ -230,8 +234,22 @@ public final class CrossDimensionTeleporter {
      * 可从外部调用（如农场入口传送后）。
      */
     public static void giveStarterToolsIfNeeded(ServerPlayer player) {
+        giveStarterToolsIfNeeded(player, false);
+    }
+
+    public static void giveStarterToolsIfNeeded(ServerPlayer player, boolean directToInventory) {
         PlayerStardewData data = PlayerDataManager.getPlayerData(player);
         if (data.isStarterToolsGiven()) return;
+
+        ItemStack[] starterTools = createStarterTools();
+
+        if (directToInventory) {
+            giveStarterItemsToInventory(player, starterTools);
+            data.setStarterToolsGiven(true);
+            StardewCraft.LOGGER.info("[WIZARD] Granted starter items directly to {}'s inventory", player.getName().getString());
+            sendWelcomeAnnouncements(player);
+            return;
+        }
 
         ServerLevel level = player.serverLevel();
 
@@ -246,30 +264,8 @@ public final class CrossDimensionTeleporter {
         // 填充初始物资
         BlockEntity be = level.getBlockEntity(chestPos);
         if (be instanceof WoodenChestBlockEntity chest) {
-            ItemStack[] starterTools = {
-                new ItemStack(ModItems.PICKAXE.get()),
-                new ItemStack(ModItems.AXE.get()),
-                new ItemStack(ModItems.HOE.get()),
-                new ItemStack(ModItems.WATERING_CAN.get()),
-                new ItemStack(ModItems.SCYTHE.get()),
-                // 鱼竿与生锈的剑改由威利/马龙的剧情赠送，不再放入新手箱
-                new ItemStack(ModItems.PARSNIP_SEEDS.get(), 15),
-                new ItemStack(ModItems.MAILBOX.get()),
-                new ItemStack(ModItems.SHIPPING_BIN.get()),
-                new ItemStack(ModItems.BED_1.get()),
-            };
             for (int i = 0; i < starterTools.length && i < chest.getContainerSize(); i++) {
                 chest.setItem(i, starterTools[i]);
-            }
-            // 冬天到达的新玩家：额外赠送温室符文
-            boolean isWinter = com.stardew.craft.time.StardewTimeManager.get().getCurrentSeason() == 3;
-            if (isWinter) {
-                for (int i = 0; i < chest.getContainerSize(); i++) {
-                    if (chest.getItem(i).isEmpty()) {
-                        chest.setItem(i, new ItemStack(ModItems.JUNIMO_GREENHOUSE_RUNE.get()));
-                        break;
-                    }
-                }
             }
             chest.setChanged();
         }
@@ -279,6 +275,41 @@ public final class CrossDimensionTeleporter {
 
         data.setStarterToolsGiven(true);
         StardewCraft.LOGGER.info("[WIZARD] Placed starter chest for {} at {}", player.getName().getString(), chestPos);
+
+        sendWelcomeAnnouncements(player);
+    }
+
+    private static ItemStack[] createStarterTools() {
+        java.util.List<ItemStack> starterItems = new java.util.ArrayList<>();
+        starterItems.add(new ItemStack(ModItems.PICKAXE.get()));
+        starterItems.add(new ItemStack(ModItems.AXE.get()));
+        starterItems.add(new ItemStack(ModItems.HOE.get()));
+        starterItems.add(new ItemStack(ModItems.WATERING_CAN.get()));
+        starterItems.add(new ItemStack(ModItems.SCYTHE.get()));
+        starterItems.add(new ItemStack(ModItems.PARSNIP_SEEDS.get(), 15));
+        starterItems.add(new ItemStack(ModItems.MAILBOX.get()));
+        starterItems.add(new ItemStack(ModItems.SHIPPING_BIN.get()));
+        starterItems.add(new ItemStack(ModItems.BED_1.get()));
+
+        boolean isWinter = com.stardew.craft.time.StardewTimeManager.get().getCurrentSeason() == 3;
+        if (isWinter) {
+            starterItems.add(new ItemStack(ModItems.JUNIMO_GREENHOUSE_RUNE.get()));
+        }
+        return starterItems.toArray(ItemStack[]::new);
+    }
+
+    private static void giveStarterItemsToInventory(ServerPlayer player, ItemStack[] starterTools) {
+        for (ItemStack starterTool : starterTools) {
+            ItemStack remaining = starterTool.copy();
+            boolean added = player.getInventory().add(remaining);
+            if (!added && !remaining.isEmpty()) {
+                player.drop(remaining, false);
+            }
+        }
+        player.inventoryMenu.broadcastChanges();
+    }
+
+    private static void sendWelcomeAnnouncements(ServerPlayer player) {
 
         // 延迟 1 秒发送欢迎公告（让玩家先加载完场景）
         player.server.execute(() ->

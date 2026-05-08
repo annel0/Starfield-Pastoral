@@ -97,6 +97,7 @@ public class FarmJoinCommand {
     /** 打开农场选择界面（含"加入别人的农场"按钮） */
     private static int debugSelectionScreen(CommandContext<CommandSourceStack> ctx) {
         if (!(ctx.getSource().getEntity() instanceof ServerPlayer player)) return 0;
+        FarmJoinManager.syncPendingState(player, FarmJoinManager.hasPending(player.getUUID()));
         net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,
                 new com.stardew.craft.network.payload.OpenFarmSelectionPayload());
         player.sendSystemMessage(Component.literal("§a[DEBUG] 已打开农场选择界面（左栏底部有\"加入别人的农场\"按钮）"));

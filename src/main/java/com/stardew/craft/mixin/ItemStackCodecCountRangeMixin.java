@@ -2,8 +2,8 @@ package com.stardew.craft.mixin;
 
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.Constant;
-import org.spongepowered.asm.mixin.injection.ModifyConstant;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 
 /**
  * Raises the ItemStack CODEC "count" range from [1, 99] to [1, 999].
@@ -15,12 +15,15 @@ import org.spongepowered.asm.mixin.injection.ModifyConstant;
 @Mixin(ItemStack.class)
 public abstract class ItemStackCodecCountRangeMixin {
 
-    @ModifyConstant(
+    @ModifyArg(
             method = "lambda$static$3(Lcom/mojang/serialization/codecs/RecordCodecBuilder$Instance;)Lcom/mojang/datafixers/kinds/App;",
-            constant = @Constant(intValue = 99),
-            require = 1
+        at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/util/ExtraCodecs;intRange(II)Lcom/mojang/serialization/Codec;"
+        ),
+        index = 1
     )
-    private static int stardewcraft$raiseItemStackCodecMaxCount(int original) {
-        return 999;
+    private static int stardewcraft$raiseItemStackCodecMaxCount(int max) {
+    return max == 99 ? 999 : max;
     }
 }

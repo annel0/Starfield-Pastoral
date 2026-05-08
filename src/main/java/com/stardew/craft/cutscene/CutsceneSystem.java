@@ -47,6 +47,10 @@ public final class CutsceneSystem {
             // evaluated without waiting for the player to open the social menu. Without this,
             // auto-triggered enter_area events gated on friendship never fire.
             com.stardew.craft.network.payload.RequestNpcFriendshipOverviewPayload.sendOverviewTo(player);
+
+            // Offline players miss the overnight wake_up scan. Rebuild and dispatch their
+            // personal queue after login sync so shared-farm storylines stay independent.
+            com.stardew.craft.cutscene.server.WakeUpEventScheduler.syncOnLogin(player);
         }
     }
 

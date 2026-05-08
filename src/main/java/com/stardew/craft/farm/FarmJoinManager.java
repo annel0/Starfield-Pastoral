@@ -1,6 +1,8 @@
 package com.stardew.craft.farm;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.interior.CrossDimensionTeleporter;
+import com.stardew.craft.network.payload.FarmJoinPendingStatePayload;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
@@ -8,6 +10,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.Map;
 import java.util.UUID;
@@ -42,6 +45,7 @@ public final class FarmJoinManager {
 
         // 已有待处理请求
         if (pendingRequests.containsKey(reqUUID)) {
+                        syncPendingState(requester, true);
             requester.sendSystemMessage(
                     Component.translatable("stardewcraft.farm.join.already_pending"));
             return false;
@@ -51,6 +55,7 @@ public final class FarmJoinManager {
         FarmInstanceRegistry registry = FarmInstanceRegistry.get();
         FarmInstance farm = registry.getFarm(ownerUUID);
         if (farm == null || !farm.isInitialized()) {
+                        syncPendingState(requester, false);
             requester.sendSystemMessage(
                     Component.translatable("stardewcraft.farm.not_found"));
             return false;
@@ -58,6 +63,7 @@ public final class FarmJoinManager {
 
         // 农场已满
         if (farm.getFarmerCount() >= FarmInstance.MAX_FARMERS) {
+                        syncPendingState(requester, false);
             requester.sendSystemMessage(
                     Component.translatable("stardewcraft.farm.join.farm_full"));
             return false;
@@ -65,6 +71,7 @@ public final class FarmJoinManager {
 
         // 请求者已有农场
         if (registry.hasFarm(reqUUID)) {
+                        syncPendingState(requester, false);
             requester.sendSystemMessage(
                     Component.translatable("stardewcraft.farm.join.already_has_farm"));
             return false;
@@ -80,12 +87,14 @@ public final class FarmJoinManager {
         if (owner != null) {
             sendJoinRequestToOwner(owner, requester.getName().getString(), reqUUID);
         } else {
+                        syncPendingState(requester, false);
             requester.sendSystemMessage(
                     Component.translatable("stardewcraft.farm.join.owner_offline"));
             pendingRequests.remove(reqUUID);
             return false;
         }
 
+                syncPendingState(requester, true);
         requester.sendSystemMessage(
                 Component.translatable("stardewcraft.farm.join.request_sent", farm.getFarmName()));
         StardewCraft.LOGGER.info("[FARM_JOIN] {} requested to join {}'s farm",
@@ -118,6 +127,7 @@ public final class FarmJoinManager {
             // 拒绝
             ServerPlayer requester = server.getPlayerList().getPlayer(requesterUUID);
             if (requester != null) {
+                syncPendingState(requester, false);
                 requester.sendSystemMessage(
                         Component.translatable("stardewcraft.farm.join.rejected",
                                 owner.getName().getString()));
@@ -156,9 +166,11 @@ public final class FarmJoinManager {
 
         ServerPlayer requester = server.getPlayerList().getPlayer(requesterUUID);
         if (requester != null) {
+                        syncPendingState(requester, false);
             requester.sendSystemMessage(
                     Component.translatable("stardewcraft.farm.join.welcome",
                             farmName, owner.getName().getString()));
+                        CrossDimensionTeleporter.wizardInteriorToStardewOutdoor(requester, true);
         }
 
         StardewCraft.LOGGER.info("[FARM_JOIN] {} accepted {}'s join request -> farm '{}'",
@@ -173,12 +185,36 @@ public final class FarmJoinManager {
         return pendingRequests.get(requesterUUID);
     }
 
+        public static boolean hasPending(UUID requesterUUID) {
+                return pendingRequests.containsKey(requesterUUID);
+        }
+
     /**
      * 取消某个请求者的待处理请求。
      */
     public static void cancelRequest(UUID requesterUUID) {
         pendingRequests.remove(requesterUUID);
     }
+
+        public static void cancelRequestForNewFarm(ServerPlayer requester, MinecraftServer server) {
+                JoinRequest request = pendingRequests.remove(requester.getUUID());
+                syncPendingState(requester, false);
+                if (request == null) {
+                        return;
+                }
+
+                requester.sendSystemMessage(Component.translatable("stardewcraft.farm.join.cancelled_for_new_farm"));
+
+                ServerPlayer owner = server.getPlayerList().getPlayer(request.ownerUUID());
+                if (owner != null) {
+                        owner.sendSystemMessage(Component.translatable(
+                                        "stardewcraft.farm.join.cancelled_by_requester",
+                                        request.requesterName()));
+                }
+
+                StardewCraft.LOGGER.info("[FARM_JOIN] {} cancelled a pending join request to create a new farm",
+                                requester.getName().getString());
+        }
 
     /**
      * 清除过期请求。
@@ -187,6 +223,10 @@ public final class FarmJoinManager {
         long now = server.overworld().getGameTime();
         pendingRequests.entrySet().removeIf(e -> now - e.getValue().createdTick > EXPIRE_TICKS);
     }
+
+        public static void syncPendingState(ServerPlayer player, boolean pending) {
+                PacketDistributor.sendToPlayer(player, new FarmJoinPendingStatePayload(pending));
+        }
 
     /**
      * 向农场主人发送带 [接受] [拒绝] 可点击按钮的消息。

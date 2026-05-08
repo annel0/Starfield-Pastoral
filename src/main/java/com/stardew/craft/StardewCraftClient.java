@@ -421,7 +421,6 @@ public class StardewCraftClient {
                 Blocks.ACACIA_LEAVES,
                 Blocks.DARK_OAK_LEAVES,
                 Blocks.MANGROVE_LEAVES,
-                Blocks.CHERRY_LEAVES,
                 Blocks.AZALEA_LEAVES,
                 Blocks.FLOWERING_AZALEA_LEAVES,
                 ModBlocks.WILD_OAK_LEAVES.get(),
