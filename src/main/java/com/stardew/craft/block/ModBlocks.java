@@ -445,7 +445,7 @@ public class ModBlocks {
                         () -> new com.stardew.craft.block.mine.MineLadderBlock(Block.Properties.of()
                                         .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
                                         .sound(net.minecraft.world.level.block.SoundType.LADDER)
-                                        .strength(1.0F, 3.0F)
+                                        .strength(-1.0F, 3600000.0F)
                                         .lightLevel(state -> 15)
                                         .noOcclusion()));
 
@@ -2936,7 +2936,6 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .noOcclusion()
                                         .noLootTable()
                                         .strength(-1.0f, 3600000.0f)
-                                        .replaceable()
                                         .sound(net.minecraft.world.level.block.SoundType.EMPTY)
                                         .pushReaction(net.minecraft.world.level.material.PushReaction.BLOCK)));
 

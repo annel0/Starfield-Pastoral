@@ -92,13 +92,14 @@ public class SiloManagerBlock extends Block {
                 return ItemInteractionResult.CONSUME;
             }
             AnimalWorldData data = AnimalWorldData.get(serverLevel);
-            if (data.getHayCapacity(serverPlayer.getUUID()) <= 0) {
+            java.util.UUID hayOwner = resolveHayOwner(serverLevel, pos, data, serverPlayer.getUUID());
+            if (data.getHayCapacity(hayOwner) <= 0) {
                 serverPlayer.displayClientMessage(
                     Component.translatable("stardewcraft.hud.hay_silo_full"), true);
                 return ItemInteractionResult.CONSUME;
             }
             int requested = stack.getCount();
-            int stored = data.storeHay(serverPlayer.getUUID(), requested);
+            int stored = data.storeHay(hayOwner, requested);
             if (stored <= 0) {
                 serverPlayer.displayClientMessage(
                     Component.translatable("stardewcraft.hud.hay_silo_full"), true);
@@ -216,9 +217,13 @@ public class SiloManagerBlock extends Block {
 
     public static boolean tryBuild(ServerLevel level, BlockPos managerPos, Player player) {
         AnimalWorldData data = AnimalWorldData.get(level);
+        java.util.UUID owner = com.stardew.craft.core.FarmAreaResolver.getOwnerAt(managerPos);
+        if (owner == null) {
+            owner = player.getUUID();
+        }
         Optional<AnimalBuildingRecord> existingOpt = data.findBuildingByManager(
             level.dimension().location().toString(),
-            player.getUUID(),
+            owner,
             "silo",
             managerPos
         );
@@ -239,7 +244,7 @@ public class SiloManagerBlock extends Block {
         String buildingId = data.createOrUpdateBuildingAtManager(
             level,
             targetType,
-            player.getUUID(),
+            owner,
             managerPos,
             "Silo",
             validation.minX(),
@@ -260,6 +265,26 @@ public class SiloManagerBlock extends Block {
             com.stardew.craft.quest.StardewQuestEvents.fireBuildingExists(sp, "Silo");
         }
         return true;
+    }
+
+    private static java.util.UUID resolveHayOwner(ServerLevel level,
+                                                  BlockPos managerPos,
+                                                  AnimalWorldData data,
+                                                  java.util.UUID fallbackOwner) {
+        Optional<AnimalBuildingRecord> existing = data.findBuildingByManagerAnyOwner(
+            level.dimension().location().toString(),
+            "silo",
+            managerPos
+        );
+        if (existing.isPresent()) {
+            try {
+                return java.util.UUID.fromString(existing.get().ownerPlayerUuid());
+            } catch (IllegalArgumentException ignored) {
+                return fallbackOwner;
+            }
+        }
+        java.util.UUID farmOwner = com.stardew.craft.core.FarmAreaResolver.getOwnerAt(managerPos);
+        return farmOwner == null ? fallbackOwner : farmOwner;
     }
 
     public static boolean tryDemolishBuilding(ServerLevel level, BlockPos managerPos, ServerPlayer player) {

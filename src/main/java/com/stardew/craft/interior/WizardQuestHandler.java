@@ -128,6 +128,7 @@ public final class WizardQuestHandler {
      */
     public static boolean handleWizardInteraction(ServerPlayer player) {
         PlayerStardewData data = PlayerDataManager.getPlayerData(player);
+        com.stardew.craft.farm.FarmInstanceRegistry farmRegistry = com.stardew.craft.farm.FarmInstanceRegistry.get();
 
         // ── SDV Event 112 parity: 巫师森林魔法药水 → 解锁 Junimo 文字 ──
         // 玩家看过 JunimoNote（收到巫师邀请信）但尚未解锁 → 触发 cutscene 过场
@@ -145,6 +146,10 @@ public final class WizardQuestHandler {
         }
 
         if (data.isWizardQuestComplete()) {
+            if (farmRegistry.getFarmForPlayer(player.getUUID()) == null) {
+                handleGoStardew(player);
+                return true;
+            }
             // 任务已完成 → 走普通 NPC 对话系统（每日1次限制、对话轮转、好感度）
             return false;
         }

@@ -1,5 +1,6 @@
 package com.stardew.craft.network;
 
+import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.weather.ClientWeatherCache;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
@@ -23,6 +24,10 @@ public final class WeatherSyncPacketClient {
             ResourceLocation dimLoc = ResourceLocation.parse(packet.dimension());
             ResourceKey<Level> dimKey = ResourceKey.create(Registries.DIMENSION, dimLoc);
             ClientWeatherCache.setWeather(dimKey, packet.weatherType(), packet.weatherForTomorrow());
+
+            if (!ModDimensions.STARDEW_VALLEY.equals(dimKey)) {
+                return;
+            }
 
             Minecraft mc = Minecraft.getInstance();
             net.minecraft.client.multiplayer.ClientLevel level = mc.level;

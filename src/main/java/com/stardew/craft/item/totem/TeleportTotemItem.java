@@ -162,6 +162,12 @@ public class TeleportTotemItem extends Item implements IStardewItem {
             return InteractionResultHolder.pass(stack);
         }
 
+        if (totemType == TotemType.FARM
+                && com.stardew.craft.farm.FarmInstanceRegistry.get().getFarmForPlayer(player.getUUID()) == null) {
+            player.displayClientMessage(Component.translatable("message.stardewcraft.totem_no_farm"), true);
+            return InteractionResultHolder.fail(stack);
+        }
+
         // —— 阶段一：动画 + 音效（SDV performUseAction 中的 warp totem 分支）——
 
         // 播放 warrior 音效
@@ -336,7 +342,7 @@ public class TeleportTotemItem extends Item implements IStardewItem {
             }
         }
         return switch (totemType) {
-            case FARM -> new BlockPos(135, -12, 136);
+            case FARM -> player.blockPosition();
             case MOUNTAIN -> new BlockPos(-290, -14, 256);
             case BEACH -> new BlockPos(-189, -14, -142);
             case DESERT -> new BlockPos(-270, -41, 1389);

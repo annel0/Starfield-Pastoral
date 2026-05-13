@@ -319,6 +319,7 @@ public final class CrossDimensionTeleporter {
                 if (com.stardew.craft.time.StardewTimeManager.get().getCurrentSeason() == 3) {
                     sendRuneAnnouncement(player);
                 }
+                OrangeSisterWelcomeService.scheduleIfEligible(player);
             })
         );
     }

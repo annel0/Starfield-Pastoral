@@ -2,22 +2,28 @@ package com.stardew.craft.blockentity;
 
 import com.stardew.craft.animal.data.AnimalWorldData;
 import com.stardew.craft.animal.model.AnimalBuildingRecord;
+import com.stardew.craft.animal.model.FarmAnimalRecord;
 import com.stardew.craft.block.animal.AnimalProduceSpotBlock;
 import com.stardew.craft.block.utility.AutoGrabberBlock;
+import com.stardew.craft.item.quality.QualityHelper;
 import com.stardew.craft.sound.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -117,7 +123,51 @@ public class AutoGrabberBlockEntity extends BlockEntity implements UtilityAutoma
                 }
             }
         }
+        collected += collectHeldAnimalProduce(level, building);
         return collected;
+    }
+
+    private int collectHeldAnimalProduce(ServerLevel level, AnimalBuildingRecord building) {
+        AnimalWorldData data = AnimalWorldData.get(level);
+        int collected = 0;
+        for (Long animalId : building.memberAnimalIds()) {
+            FarmAnimalRecord record = data.getAnimal(animalId).orElse(null);
+            if (record == null || record.currentProduceId().isBlank()) {
+                continue;
+            }
+            if ("pig".equals(record.animalTypeId())) {
+                continue;
+            }
+
+            ItemStack produce = resolveProduceStack(record);
+            if (produce.isEmpty()) {
+                continue;
+            }
+            ItemStack remainder = insertIntoStorage(produce, false);
+            if (!remainder.isEmpty()) {
+                continue;
+            }
+
+            record.setCurrentProduceId("");
+            record.setProduceQuality(0);
+            data.markChanged();
+            collected += produce.getCount();
+        }
+        return collected;
+    }
+
+    private ItemStack resolveProduceStack(FarmAnimalRecord record) {
+        ResourceLocation id = ResourceLocation.tryParse(record.currentProduceId());
+        if (id == null) {
+            return ItemStack.EMPTY;
+        }
+        Item item = BuiltInRegistries.ITEM.get(id);
+        if (item == Items.AIR) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack stack = new ItemStack(item);
+        QualityHelper.setQuality(stack, record.produceQuality());
+        return stack;
     }
 
     private int tryCollectAt(ServerLevel level, BlockPos targetPos, AnimalBuildingRecord building) {

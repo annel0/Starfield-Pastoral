@@ -919,13 +919,13 @@ public class StardewTeleportCommand {
         // game won't immediately re-roll a thunderstorm).
         overworld.setWeatherParameters(0, 0, false, false);
 
-        // Re-broadcast the Stardew dim's authoritative weather so any client
-        // that already cached the bogus storm state gets corrected immediately.
+        // Re-broadcast the Stardew dim's authoritative custom weather so any
+        // client that already cached the bogus storm state gets corrected.
         for (ServerLevel sl : server.getAllLevels()) {
             if (sl.dimension() == com.stardew.craft.core.ModDimensions.STARDEW_VALLEY) {
-                com.stardew.craft.weather.WeatherSavedData.get(sl)
-                    .getWeatherState(sl.dimension())
-                    .applyToLevel(sl);
+                var state = com.stardew.craft.weather.WeatherSavedData.get(sl)
+                    .getWeatherState(sl.dimension());
+                com.stardew.craft.weather.WeatherManager.setWeather(sl, state.getWeatherType());
             }
         }
 

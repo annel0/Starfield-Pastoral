@@ -3,13 +3,10 @@ package com.stardew.craft.weather;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModDimensions;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.GameRules;
-import net.minecraft.world.level.storage.ServerLevelData;
 import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.level.LevelEvent;
-import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
 import java.util.Random;
 
@@ -280,33 +277,7 @@ public class WeatherManager {
                 return;
             }
             WeatherState state = getWeatherState(level);
-            state.applyToLevel(level);
             syncToAllPlayers(level, state);
-        }
-    }
-
-    /**
-     * 持续确保天气保持一致（每秒检查一次）
-     */
-    private static int tickCounter = 0;
-
-    @SubscribeEvent
-    public static void onLevelTick(LevelTickEvent.Post event) {
-        if (!(event.getLevel() instanceof ServerLevel level)) {
-            return;
-        }
-        if (!isStardewLevel(level)) {
-            return;
-        }
-
-        tickCounter++;
-        // 每20 ticks（1秒）检查一次
-        if (tickCounter >= 20) {
-            tickCounter = 0;
-
-            WeatherState state = getWeatherState(level);
-            // 每秒强制同步，确保整天保持目标天气
-            state.applyToLevel(level);
         }
     }
 
@@ -340,58 +311,12 @@ public class WeatherManager {
         /**
          * 应用天气到 Minecraft 世界
          */
-        @SuppressWarnings("null")
         public void applyToLevel(ServerLevel level) {
-            // 禁用原版天气循环——天气完全由 WeatherManager 控制。
-            // rainLevel/thunderLevel 的插值和广播在 advanceWeatherCycle 中
-            // 不受此 game rule 限制，所以客户端仍能收到 RAIN_LEVEL_CHANGE 包。
-            level.getGameRules().getRule(GameRules.RULE_WEATHER_CYCLE).set(false, level.getServer());
-            int durationTicks = 24000 * 365;
-            boolean raining = false;
-            boolean thundering = false;
-            switch (weatherType) {
-                case "Rain":
-                    raining = true;
-                    level.setWeatherParameters(0, durationTicks, true, false);
-                    break;
-                case "Storm":
-                    raining = true;
-                    thundering = true;
-                    level.setWeatherParameters(0, durationTicks, true, true);
-                    break;
-                case "Snow":
-                    // 雪天：晴天（不润湿耕地），客户端渲染器会显示雪花粒子
-                    level.setWeatherParameters(durationTicks, 0, false, false);
-                    break;
-                case "WindSpring":
-                case "WindFall":
-                case "Festival":
-                case "Sun":
-                default:
-                    // 晴天（包括风天和节日）
-                    level.setWeatherParameters(durationTicks, 0, false, false);
-                    break;
-            }
-
-            if (level.getLevelData() instanceof ServerLevelData data) {
-                data.setClearWeatherTime(raining ? 0 : durationTicks);
-                data.setRainTime(raining ? durationTicks : 0);
-                data.setRaining(raining);
-                data.setThunderTime(thundering ? durationTicks : 0);
-                data.setThundering(thundering);
-            }
-
-            if (level.dimension() != Level.OVERWORLD) {
-                ServerLevel overworld = level.getServer().overworld();
-                overworld.setWeatherParameters(raining ? 0 : durationTicks, raining ? durationTicks : 0, raining, thundering);
-                if (overworld.getLevelData() instanceof ServerLevelData overworldData) {
-                    overworldData.setClearWeatherTime(raining ? 0 : durationTicks);
-                    overworldData.setRainTime(raining ? durationTicks : 0);
-                    overworldData.setRaining(raining);
-                    overworldData.setThunderTime(thundering ? durationTicks : 0);
-                    overworldData.setThundering(thundering);
-                }
-            }
+            // Starfield weather is intentionally isolated from vanilla weather.
+            // ServerLevelData/GameRules are shared through Minecraft's primary
+            // level data, so writing them here also rewrites the overworld and
+            // makes /weather clear look ineffective. Gameplay reads this state
+            // through WeatherManager; visuals are synced with WeatherSyncPacket.
         }
 
         /**

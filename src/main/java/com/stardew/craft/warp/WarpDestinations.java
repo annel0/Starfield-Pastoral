@@ -25,7 +25,7 @@ public final class WarpDestinations {
     private static void init() {
         register(new WarpDestination(
                 "farm", "stardewcraft.warp.farm", "stardewcraft.warp.farm.desc",
-                0, 150.5, -12.0, 119.5, ModDimensions.STARDEW_VALLEY));
+            0, 0.0, 0.0, 0.0, ModDimensions.STARDEW_VALLEY, true));
 
         register(new WarpDestination(
                 "town", "stardewcraft.warp.town", "stardewcraft.warp.town.desc",

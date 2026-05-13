@@ -5,6 +5,7 @@ import com.stardew.craft.animal.model.AnimalBuildingRecord;
 import com.stardew.craft.block.utility.AutoFeedTroughBlock;
 import com.stardew.craft.item.ModItems;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -86,11 +87,7 @@ public class AutoFeedTroughBlockEntity extends net.minecraft.world.level.block.e
         }
 
         AnimalWorldData data = AnimalWorldData.get(serverLevel);
-        AnimalBuildingRecord building = data.findBuildingAtAnyOwner(
-            serverLevel.dimension().location().toString(),
-            pos,
-            FEED_BUILDING_FAMILIES
-        ).orElse(null);
+        AnimalBuildingRecord building = resolveFeedBuilding(data, serverLevel, pos);
         if (building == null) {
             return;
         }
@@ -103,6 +100,34 @@ public class AutoFeedTroughBlockEntity extends net.minecraft.world.level.block.e
         }
 
         refillConnectedNetwork(serverLevel, pos, ownerId, 1);
+    }
+
+    private static AnimalBuildingRecord resolveFeedBuilding(AnimalWorldData data, ServerLevel level, BlockPos pos) {
+        String dimensionId = level.dimension().location().toString();
+        for (AnimalBuildingRecord building : data.getBuildings()) {
+            if (!dimensionId.equals(building.dimensionId())) {
+                continue;
+            }
+            if (!FEED_BUILDING_FAMILIES.contains(building.buildingType().family())) {
+                continue;
+            }
+            if (building.isInBounds(pos) || isAdjacentToInteriorAir(building, pos)) {
+                return building;
+            }
+        }
+        return null;
+    }
+
+    private static boolean isAdjacentToInteriorAir(AnimalBuildingRecord building, BlockPos pos) {
+        if (building.interiorAirCells().isEmpty()) {
+            return building.isWithinBoundingBox(pos);
+        }
+        for (Direction direction : Direction.values()) {
+            if (building.interiorAirCells().contains(pos.relative(direction).asLong())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static int refillConnectedNetwork(ServerLevel level, BlockPos origin, UUID ownerPlayerId, int maxHay) {

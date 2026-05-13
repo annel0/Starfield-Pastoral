@@ -199,8 +199,15 @@ public final class EventPlayer {
         // Clear fade
         EventScreenFade.clear();
 
-        // Mark as seen on server
-        PacketDistributor.sendToServer(new MarkEventSeenPayload(eventId));
+        // Mark as seen on server if the client is still connected.
+        // Disconnect-time aborts can reach here after Minecraft has already cleared
+        // its connection; PacketDistributor.sendToServer requires a live connection.
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.getConnection() != null) {
+            PacketDistributor.sendToServer(new MarkEventSeenPayload(eventId));
+        } else {
+            LOGGER.debug("Skipped server cutscene completion for {} because the client is disconnected", eventId);
+        }
 
         // Clean up
         currentEvent = null;
@@ -282,6 +289,7 @@ public final class EventPlayer {
         running = false;
         skippable = false;
         playerFrozen = false;
+        startDimension = null;
         CutsceneAnchorRegistry.clear();
     }
 }

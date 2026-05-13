@@ -1,7 +1,6 @@
 package com.stardew.craft.command;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.stardew.craft.farm.FarmInstance;
 import com.stardew.craft.farm.FarmInstanceRegistry;
@@ -9,6 +8,7 @@ import com.stardew.craft.farm.FarmJoinManager;
 import com.stardew.craft.network.payload.FarmListSyncPayload;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.UuidArgument;
 import net.minecraft.network.chat.*;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -36,12 +36,14 @@ public class FarmJoinCommand {
             Commands.literal("stardew")
                 .then(Commands.literal("farm")
                     .then(Commands.literal("accept")
-                        .then(Commands.argument("uuid", StringArgumentType.string())
+                        .executes(ctx -> handleLatestResponse(ctx, true))
+                        .then(Commands.argument("uuid", UuidArgument.uuid())
                             .executes(ctx -> handleResponse(ctx, true))
                         )
                     )
                     .then(Commands.literal("reject")
-                        .then(Commands.argument("uuid", StringArgumentType.string())
+                        .executes(ctx -> handleLatestResponse(ctx, false))
+                        .then(Commands.argument("uuid", UuidArgument.uuid())
                             .executes(ctx -> handleResponse(ctx, false))
                         )
                     )
@@ -77,16 +79,20 @@ public class FarmJoinCommand {
             return 0;
         }
 
-        String uuidStr = StringArgumentType.getString(ctx, "uuid");
-        UUID requesterUUID;
-        try {
-            requesterUUID = UUID.fromString(uuidStr);
-        } catch (IllegalArgumentException e) {
-            source.sendFailure(Component.literal("Invalid UUID"));
+        UUID requesterUUID = UuidArgument.getUuid(ctx, "uuid");
+
+        boolean success = FarmJoinManager.handleResponse(player, requesterUUID, accept, player.server);
+        return success ? 1 : 0;
+    }
+
+    private static int handleLatestResponse(CommandContext<CommandSourceStack> ctx, boolean accept) {
+        CommandSourceStack source = ctx.getSource();
+        if (!(source.getEntity() instanceof ServerPlayer player)) {
+            source.sendFailure(Component.literal("This command can only be used by players"));
             return 0;
         }
 
-        boolean success = FarmJoinManager.handleResponse(player, requesterUUID, accept, player.server);
+        boolean success = FarmJoinManager.handleLatestResponse(player, accept, player.server);
         return success ? 1 : 0;
     }
 

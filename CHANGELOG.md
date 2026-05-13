@@ -1,5 +1,53 @@
 # Changelog
 
+## 0.3.8-fix3 - 2026-05-13
+
+### Update Log (English)
+
+#### Fixes
+
+- Fixed a Lewis cutscene crash that could happen when the client disconnected while an event was ending.
+- Fixed cutscene movement freezing so vertical motion is preserved and players are less likely to trigger flight checks.
+- Fixed targeted bait losing its target fish data when inserted into and removed from fishing rods.
+- Fixed Stardew Valley weather forcing vanilla overworld rain, so vanilla weather commands work normally again outside the Stardew Valley dimension.
+- Fixed auto-grabbers not collecting held animal products such as cow milk, goat milk, sheep milk, and wool.
+- Fixed auto-feed troughs failing to detect their barn or coop when placed as valid adjacent interior fixtures.
+- Fixed auto-feed trough hay consumption so it now pulls from the owning farm's shared silo storage instead of the interacting player's personal key.
+- Fixed silo, pasture grass, and wheat hay storage ownership so hay is credited to the farm where the action happens.
+
+#### Changes
+
+- Auto-feed troughs now actively refill connected trough networks from silo hay while the chunk is loaded.
+- Shared-farm hay storage now aggregates legacy member-owned hay while using the farm owner as the canonical storage key for new hay.
+- Stardew Valley weather sync now uses the custom Stardew weather state instead of mutating vanilla level weather.
+
+#### Localization
+
+- Added or corrected small English and Chinese localization entries touched by the fix pass.
+
+### 更新日志（中文）
+
+#### 修复
+
+- 修复刘易斯剧情在客户端断开连接、剧情结束回包时可能崩溃的问题。
+- 修复剧情冻结玩家移动时清空竖直速度导致更容易触发飞行检测的问题。
+- 修复针对性鱼饵装入钓竿再取出后丢失目标鱼数据、变回普通鱼饵的问题。
+- 修复星露谷天气强行锁定主世界原版下雨，导致 `/weather` 指令无法正常关雨的问题。
+- 修复自动采集器无法采集牛奶、羊奶、绵羊奶和羊毛等动物持有产物的问题。
+- 修复自动喂食槽在合法贴着室内空气格摆放时识别不到所属鸡舍或畜棚，导致完全不会自动补草的问题。
+- 修复自动喂食槽扣草时没有从所在农场的共享筒仓干草池扣除的问题。
+- 修复筒仓、牧草和小麦产出干草时归属不稳定的问题，现在会优先按所在农场记入干草。
+
+#### 改动
+
+- 自动喂食槽现在会在区块加载时主动从筒仓补充连接的喂食槽网络。
+- 共享农场干草存储现在以农场主人作为新干草的统一归属，同时兼容读取和扣除旧版本成员名下的干草。
+- 星露谷天气同步现在只使用自定义星露谷天气状态，不再改写原版维度天气。
+
+#### 本地化
+
+- 补充或修正了本轮修复涉及的少量英文与中文文本。
+
 ## 0.3.8fix - 2026-05-08
 
 基线版本：release: 0.3.8-alpha

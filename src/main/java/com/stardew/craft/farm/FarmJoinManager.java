@@ -167,6 +167,8 @@ public final class FarmJoinManager {
         ServerPlayer requester = server.getPlayerList().getPlayer(requesterUUID);
         if (requester != null) {
                         syncPendingState(requester, false);
+            com.stardew.craft.player.PlayerDataEventHandler.syncPlayerData(
+                    requester, com.stardew.craft.player.PlayerDataManager.getPlayerData(requester));
             requester.sendSystemMessage(
                     Component.translatable("stardewcraft.farm.join.welcome",
                             farmName, owner.getName().getString()));
@@ -177,6 +179,31 @@ public final class FarmJoinManager {
                 owner.getName().getString(), request.requesterName, farmName);
         return true;
     }
+
+        /**
+         * 无参 accept/reject 的兜底入口：处理该农场主最近一条待处理请求。
+         * 主要给聊天点击按钮使用，避免客户端在本地预解析带 UUID 的 RUN_COMMAND 时直接拦截。
+         */
+        public static boolean handleLatestResponse(ServerPlayer owner, boolean accept, MinecraftServer server) {
+                cleanExpired(server);
+
+                JoinRequest latest = null;
+                for (JoinRequest request : pendingRequests.values()) {
+                        if (!request.ownerUUID.equals(owner.getUUID())) {
+                                continue;
+                        }
+                        if (latest == null || request.createdTick() > latest.createdTick()) {
+                                latest = request;
+                        }
+                }
+
+                if (latest == null) {
+                        owner.sendSystemMessage(Component.translatable("stardewcraft.farm.join.no_pending"));
+                        return false;
+                }
+
+                return handleResponse(owner, latest.requesterUUID(), accept, server);
+        }
 
     /**
      * 获取某个请求者的待处理请求。
@@ -243,7 +270,7 @@ public final class FarmJoinManager {
                 .withColor(0x2E7D32)
                 .withBold(true)
                 .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
-                        "/stardew farm accept " + requesterUUID))
+                        "/stardew farm accept"))
                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
                         Component.translatable("stardewcraft.farm.join.accept.hover"))));
         msg.append(acceptBtn);
@@ -258,7 +285,7 @@ public final class FarmJoinManager {
                 .withColor(0xC62828)
                 .withBold(true)
                 .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
-                        "/stardew farm reject " + requesterUUID))
+                        "/stardew farm reject"))
                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
                         Component.translatable("stardewcraft.farm.join.reject.hover"))));
         msg.append(rejectBtn);

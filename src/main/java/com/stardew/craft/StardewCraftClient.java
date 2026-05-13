@@ -127,27 +127,22 @@ public class StardewCraftClient {
                 ModBlocks.WILD_OAK_TRUNK1.get(),
                 ModBlocks.WILD_OAK_BRANCH1.get(),
                 ModBlocks.WILD_OAK_BRANCH2.get(),
-                ModBlocks.WILD_OAK_LEAVES.get(),
                 ModBlocks.WILD_MAPLE_TRUNK0.get(),
                 ModBlocks.WILD_MAPLE_TRUNK1.get(),
                 ModBlocks.WILD_MAPLE_BRANCH1.get(),
                 ModBlocks.WILD_MAPLE_BRANCH2.get(),
-                ModBlocks.WILD_MAPLE_LEAVES.get(),
                 ModBlocks.WILD_PINE_TRUNK0.get(),
                 ModBlocks.WILD_PINE_TRUNK1.get(),
                 ModBlocks.WILD_PINE_BRANCH1.get(),
                 ModBlocks.WILD_PINE_BRANCH2.get(),
-                ModBlocks.WILD_PINE_LEAVES.get(),
                 ModBlocks.WILD_MAHOGANY_TRUNK0.get(),
                 ModBlocks.WILD_MAHOGANY_TRUNK1.get(),
                 ModBlocks.WILD_MAHOGANY_BRANCH1.get(),
                 ModBlocks.WILD_MAHOGANY_BRANCH2.get(),
-                ModBlocks.WILD_MAHOGANY_LEAVES.get(),
                 ModBlocks.WILD_MYSTIC_TREE_TRUNK0.get(),
                 ModBlocks.WILD_MYSTIC_TREE_TRUNK1.get(),
                 ModBlocks.WILD_MYSTIC_TREE_BRANCH1.get(),
                 ModBlocks.WILD_MYSTIC_TREE_BRANCH2.get(),
-                ModBlocks.WILD_MYSTIC_TREE_LEAVES.get(),
                 ModBlocks.QUARTZ.get(),
                 ModBlocks.EARTH_CRYSTAL.get(),
                 ModBlocks.FROZEN_TEAR.get(),
@@ -337,6 +332,23 @@ public class StardewCraftClient {
                 ModBlocks.EMPTY_TERRACOTTA_POT.get(),
                 ModBlocks.RESERVOIR.get(),
                 ModBlocks.LONG_POTTED_PLANT.get()
+            ));
+
+            ModRenderLayers.registerCutoutMipped(List.of(
+                Blocks.OAK_LEAVES,
+                Blocks.SPRUCE_LEAVES,
+                Blocks.BIRCH_LEAVES,
+                Blocks.JUNGLE_LEAVES,
+                Blocks.ACACIA_LEAVES,
+                Blocks.DARK_OAK_LEAVES,
+                Blocks.MANGROVE_LEAVES,
+                Blocks.AZALEA_LEAVES,
+                Blocks.FLOWERING_AZALEA_LEAVES,
+                ModBlocks.WILD_OAK_LEAVES.get(),
+                ModBlocks.WILD_MAPLE_LEAVES.get(),
+                ModBlocks.WILD_PINE_LEAVES.get(),
+                ModBlocks.WILD_MAHOGANY_LEAVES.get(),
+                ModBlocks.WILD_MYSTIC_TREE_LEAVES.get()
             ));
 
             // Negative-volume models with mixed opaque/transparent faces.

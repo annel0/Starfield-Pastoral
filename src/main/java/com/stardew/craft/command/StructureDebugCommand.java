@@ -11,7 +11,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
@@ -27,6 +26,7 @@ public final class StructureDebugCommand {
     private static final String MARKER_TAG = "sdv_portal_marker:wizard_tower_overworld";
     private static final String TARGET_TAG = "sdv_portal_target:wizard_tower_overworld_enter";
     private static final int PORTAL_HEIGHT = 2;
+    private static final BlockPos WIZARD_TOWER_PORTAL_OFFSET = new BlockPos(6, 0, 3);
 
     private StructureDebugCommand() {}
 
@@ -62,21 +62,16 @@ public final class StructureDebugCommand {
             InteriorSubspaceManager.ensureLoaded(stardewLevel, "wizard_tower");
         }
 
-        // 在门口放置传送方块
-        BlockPos doorPos = findLowestDarkOakDoor(level, placePos, 32, 32, 32);
-        if (doorPos != null) {
-            InteriorSubspaceManager.placePortalTriggerArea(
-                level, doorPos, PORTAL_HEIGHT, 1, 1,
-                MARKER_TAG, TARGET_TAG
-            );
-            source.sendSuccess(() -> Component.literal(
-                "巫师塔已生成于 " + placePos.toShortString() + "，传送门已放置于门口 " + doorPos.toShortString()),
-                true);
-        } else {
-            source.sendSuccess(() -> Component.literal(
-                "巫师塔已生成于 " + placePos.toShortString() + "（未找到门，传送门需手动放置）"),
-                true);
-        }
+        // 调试命令直接按结构固定入口偏移放置 portal；搜索到门时优先对齐门口，
+        // 搜索失败则回退到设计稿里的固定入口坐标，避免再出现“未找到门”。
+        BlockPos portalPos = resolveWizardTowerPortalPos(level, placePos);
+        InteriorSubspaceManager.placePortalTriggerArea(
+            level, portalPos, PORTAL_HEIGHT, 1, 1,
+            MARKER_TAG, TARGET_TAG
+        );
+        source.sendSuccess(() -> Component.literal(
+            "巫师塔已生成于 " + placePos.toShortString() + "，传送门已放置于 " + portalPos.toShortString()),
+            true);
 
         StardewCraft.LOGGER.info("[DEBUG] Player {} spawned wizard tower at {}", player.getName().getString(), placePos);
         return 1;
@@ -85,7 +80,15 @@ public final class StructureDebugCommand {
     /**
      * 在给定区域内搜索最低的深色橡木门（下半部分）。
      */
-    private static BlockPos findLowestDarkOakDoor(ServerLevel level, BlockPos origin, int sx, int sy, int sz) {
+    private static BlockPos resolveWizardTowerPortalPos(ServerLevel level, BlockPos structureOrigin) {
+        BlockPos doorPos = findLowestDoor(level, structureOrigin, 32, 32, 32);
+        if (doorPos != null) {
+            return doorPos;
+        }
+        return structureOrigin.offset(WIZARD_TOWER_PORTAL_OFFSET);
+    }
+
+    private static BlockPos findLowestDoor(ServerLevel level, BlockPos origin, int sx, int sy, int sz) {
         BlockPos lowestDoor = null;
         int lowestY = Integer.MAX_VALUE;
 
@@ -94,7 +97,7 @@ public final class StructureDebugCommand {
                 for (int y = origin.getY(); y < origin.getY() + sy; y++) {
                     BlockPos pos = new BlockPos(x, y, z);
                     BlockState state = level.getBlockState(pos);
-                    if (state.is(Blocks.DARK_OAK_DOOR)
+                    if (state.getBlock() instanceof DoorBlock
                         && state.getValue(DoorBlock.HALF) == DoubleBlockHalf.LOWER
                         && y < lowestY) {
                         lowestY = y;

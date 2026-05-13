@@ -14,6 +14,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 星露谷时间管理系统
@@ -27,6 +28,31 @@ import java.util.List;
  * - 当到达2:00 AM时，跳到下一天（dayTime重置为0）
  */
 public class StardewTimeManager extends SavedData {
+
+    private static final Set<String> IMPLEMENTED_DATE_TRIGGERED_MAIL = Set.of(
+        "spring_2_1",
+        "spring_5_1",
+        "spring_20_1",
+        "spring_25_1",
+        "summer_1",
+        "summer_6_1",
+        "summer_13_1",
+        "summer_19_1",
+        "summer_20_1",
+        "fall_1",
+        "fall_2_1",
+        "fall_6_1",
+        "fall_18_1",
+        "fall_27_1",
+        "winter_1",
+        "winter_2_1",
+        "winter_12_1",
+        "winter_14_1",
+        "winter_27_1",
+        "spring_1_2",
+        "summer_1_2",
+        "winter_1_2"
+    );
     
     private static final String DATA_NAME = "stardew_time_data";
     
@@ -378,7 +404,7 @@ public class StardewTimeManager extends SavedData {
 
         // SDV parity: season_day_year 用个人日历触发（spring_4_1 = 进服后第 4 个游戏日早晨）
         String keyWithYear = personalSeasonName + "_" + personalDay + "_" + personalYear;
-        if (com.stardew.craft.mail.MailRegistry.contains(keyWithYear)) {
+        if (shouldDeliverDateTriggeredMail(keyWithYear)) {
             com.stardew.craft.mail.MailService.addMail(player, keyWithYear);
         }
 
@@ -395,11 +421,16 @@ public class StardewTimeManager extends SavedData {
             default -> "";
         };
 
-        // season_day（如 spring_12 = 春12日节日通知）仍按服务器全局日历触发
+        // season_day 只投递当前已落地的日期信；节日通知与未实现内容先不进入邮箱。
         String keyNoYear = seasonName + "_" + day;
-        if (com.stardew.craft.mail.MailRegistry.contains(keyNoYear)) {
+        if (shouldDeliverDateTriggeredMail(keyNoYear)) {
             com.stardew.craft.mail.MailService.addMail(player, keyNoYear);
         }
+    }
+
+    private boolean shouldDeliverDateTriggeredMail(String mailId) {
+        return IMPLEMENTED_DATE_TRIGGERED_MAIL.contains(mailId)
+            && com.stardew.craft.mail.MailRegistry.contains(mailId);
     }
 
     /**

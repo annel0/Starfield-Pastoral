@@ -36,7 +36,9 @@ public class ClientPlayerDataCache {
     private static int tempMiningLevelBonus = 0;
 
     // 农场名
+    private static boolean hasFarm = false;
     private static String farmName = "";
+    private static String farmOwnerUuid = "";
 
     // 装备槽
     private static String equippedLeftRing = "";
@@ -125,9 +127,17 @@ public class ClientPlayerDataCache {
             }
         }
 
-        // 农场名
-        if (nbt.contains("FarmName")) {
+        // 农场信息
+        hasFarm = nbt.getBoolean("HasFarm");
+        if (hasFarm && nbt.contains("FarmName")) {
             farmName = nbt.getString("FarmName");
+        } else {
+            farmName = "";
+        }
+        if (hasFarm && nbt.hasUUID("FarmOwnerUUID")) {
+            farmOwnerUuid = nbt.getUUID("FarmOwnerUUID").toString();
+        } else {
+            farmOwnerUuid = "";
         }
 
         recipeCraftCounts.clear();
@@ -172,6 +182,25 @@ public class ClientPlayerDataCache {
 
     public static String getFarmName() {
         return farmName;
+    }
+
+    public static boolean hasFarm() {
+        return hasFarm;
+    }
+
+    public static boolean isStoryHost() {
+        if (!hasFarm) {
+            return true;
+        }
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+        net.minecraft.client.player.LocalPlayer player = mc.player;
+        if (player == null) {
+            return true;
+        }
+        if (farmOwnerUuid == null || farmOwnerUuid.isBlank()) {
+            return true;
+        }
+        return farmOwnerUuid.equals(player.getUUID().toString());
     }
 
     /** Update cached money on client (e.g. immediate feedback for geode cost deduction). */
@@ -268,6 +297,9 @@ public class ClientPlayerDataCache {
         unlockedRecipes.clear();
         recipeCraftCounts.clear();
         mailFlags.clear();
+        hasFarm = false;
+        farmName = "";
+        farmOwnerUuid = "";
         tempFishingLevelBonus = 0;
         tempLuckBonus = 0;
         tempMaxEnergyBonus = 0;

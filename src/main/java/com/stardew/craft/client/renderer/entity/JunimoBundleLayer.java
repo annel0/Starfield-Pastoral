@@ -2,12 +2,17 @@ package com.stardew.craft.client.renderer.entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.stardew.craft.StardewCraft;
 import com.stardew.craft.entity.junimo.JunimoEntity;
 import com.stardew.craft.item.ModItems;
+import com.stardew.craft.item.quality.QualityHelper;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.cache.object.GeoBone;
@@ -31,6 +36,7 @@ public class JunimoBundleLayer extends BlockAndItemGeoLayer<JunimoEntity> {
 
     private ItemStack bundleItem;
     private ItemStack starItem;
+    private ItemStack orangeItem;
 
     public JunimoBundleLayer(GeoRenderer<JunimoEntity> renderer) {
         super(renderer);
@@ -46,6 +52,21 @@ public class JunimoBundleLayer extends BlockAndItemGeoLayer<JunimoEntity> {
         return starItem;
     }
 
+    private ItemStack getOrangeItem() {
+        if (orangeItem == null) {
+            net.minecraft.world.item.Item item = BuiltInRegistries.ITEM.get(
+                    ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "orange"));
+            if (item == Items.AIR) {
+                orangeItem = getBundleItem();
+            } else {
+                orangeItem = new ItemStack(item);
+                QualityHelper.setQuality(orangeItem, QualityHelper.IRIDIUM);
+                QualityHelper.ensureQualityModelData(orangeItem);
+            }
+        }
+        return orangeItem;
+    }
+
     @Override
     @Nullable
     protected ItemStack getStackForBone(GeoBone bone, JunimoEntity animatable) {
@@ -53,6 +74,7 @@ public class JunimoBundleLayer extends BlockAndItemGeoLayer<JunimoEntity> {
             int type = animatable.getHoldingType();
             if (type == JunimoEntity.HOLDING_BUNDLE) return getBundleItem();
             if (type == JunimoEntity.HOLDING_STAR)   return getStarItem();
+            if (type == JunimoEntity.HOLDING_ORANGE) return getOrangeItem();
         }
         return null;
     }

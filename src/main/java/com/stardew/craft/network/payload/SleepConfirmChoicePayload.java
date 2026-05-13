@@ -2,6 +2,7 @@ package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.event.DimensionEventHandler;
+import com.stardew.craft.event.SleepInteractionHandler;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -35,6 +36,7 @@ public record SleepConfirmChoicePayload(boolean confirmed, int sleepMinute) impl
                 return;
             }
             if (!payload.confirmed()) {
+                SleepInteractionHandler.consumePendingBedPos(player);
                 return;
             }
             DimensionEventHandler.requestSleepAdvance(player, payload.sleepMinute());

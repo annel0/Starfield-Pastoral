@@ -6,6 +6,7 @@ import com.stardew.craft.farm.FarmInstanceRegistry;
 import com.stardew.craft.sound.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -32,6 +33,17 @@ public final class WarpEffects {
     public static void teleport(ServerPlayer player, WarpDestination dest) {
         ServerLevel departureLevel = player.serverLevel();
 
+        FarmInstance targetFarm = null;
+        if (dest.requiresPlayerFarm()) {
+            targetFarm = FarmInstanceRegistry.get().getFarmForPlayer(player.getUUID());
+            if (targetFarm == null) {
+                player.displayClientMessage(Component.translatable("stardewcraft.warp.farm.unavailable"), true);
+                StardewCraft.LOGGER.info("[WARP] Player {} tried to warp to farm without a farm",
+                        player.getName().getString());
+                return;
+            }
+        }
+
         // 出发地效果
         spawnWarpParticles(departureLevel, player.getX(), player.getY(), player.getZ());
         departureLevel.playSound(null, player.blockPosition(),
@@ -47,14 +59,11 @@ public final class WarpEffects {
 
         // 农场特殊处理：传送到玩家自己的农场出生点
         double tx = dest.x(), ty = dest.y(), tz = dest.z();
-        if ("farm".equals(dest.id())) {
-            FarmInstance farm = FarmInstanceRegistry.get().getFarmForPlayer(player.getUUID());
-            if (farm != null) {
-                BlockPos spawn = farm.getSpawnPoint();
-                tx = spawn.getX() + 0.5;
-                ty = spawn.getY();
-                tz = spawn.getZ() + 0.5;
-            }
+        if (targetFarm != null) {
+            BlockPos spawn = targetFarm.getSpawnPoint();
+            tx = spawn.getX() + 0.5;
+            ty = spawn.getY();
+            tz = spawn.getZ() + 0.5;
         }
 
         player.teleportTo(targetLevel, tx, ty, tz, 180.0f, 0.0f);

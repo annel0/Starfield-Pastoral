@@ -11,6 +11,7 @@
     "ItemStackCodecCountRangeMixin",
     "FishingHookDisableVanillaBiteMixin",
     "PlayerSweepAttackMixin",
+    "LivingEntityStardewBedOrientationMixin",
     "MinecraftServerTimeSyncMixin",
     "ServerLevelSleepMixin"
   ],

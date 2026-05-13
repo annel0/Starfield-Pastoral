@@ -368,9 +368,18 @@ public final class PassOutService {
         // 查询玩家的农场出生点
         com.stardew.craft.farm.FarmInstanceRegistry registry = com.stardew.craft.farm.FarmInstanceRegistry.get();
         net.minecraft.core.BlockPos spawnPos = registry.getFarmSpawnPoint(player.getUUID());
-        double sx = spawnPos != null ? spawnPos.getX() + 0.5 : 150.5;
-        double sy = spawnPos != null ? spawnPos.getY() : -12;
-        double sz = spawnPos != null ? spawnPos.getZ() + 0.5 : 119.5;
+        if (spawnPos == null) {
+            player.displayClientMessage(net.minecraft.network.chat.Component.translatable("stardewcraft.warp.farm.unavailable"), true);
+            LOGGER.warn("[PASS_OUT] Player {} has no farm spawn; skipping farm return teleport.",
+                player.getName().getString());
+            clearKnockedOut(player);
+            PlayerDataEventHandler.syncPlayerData(player, PlayerDataManager.getPlayerData(player));
+            return;
+        }
+
+        double sx = spawnPos.getX() + 0.5;
+        double sy = spawnPos.getY();
+        double sz = spawnPos.getZ() + 0.5;
 
         ModTeleport.to(player, stardewLevel, sx, sy, sz, player.getYRot(), player.getXRot());
 

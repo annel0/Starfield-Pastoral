@@ -39,6 +39,7 @@ public final class EventTriggerChecker {
      * from the server, and before the player's chunks are fully loaded.
      */
     private static final int JOIN_GRACE_TICKS = 4; // ~0.2 seconds
+    private static final int FIRST_JOIN_GRACE_TICKS = 35 * 20;
     private static int joinGraceTicks = JOIN_GRACE_TICKS;
     private static ResourceKey<Level> lastDimension = null;
 
@@ -101,11 +102,14 @@ public final class EventTriggerChecker {
             return;
         }
 
-        // Reset grace on dimension change (login also goes through here
-        // since lastDimension starts null).
+        // Reset grace on dimension change. Initial login gets a longer grace:
+        // auth/login plugins often prompt via chat after the world loads, and
+        // auto-starting a cutscene immediately can hide the GUI until the server
+        // kicks the player for login timeout.
         if (lastDimension != currentDim) {
+            boolean firstDimensionSeen = lastDimension == null;
             lastDimension = currentDim;
-            joinGraceTicks = JOIN_GRACE_TICKS;
+            joinGraceTicks = firstDimensionSeen ? FIRST_JOIN_GRACE_TICKS : JOIN_GRACE_TICKS;
         }
 
         if (joinGraceTicks > 0) {

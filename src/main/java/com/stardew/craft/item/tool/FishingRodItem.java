@@ -38,6 +38,7 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 	private static final String TAG_CAST_ACTIVE = "CastActive";
 	private static final String TAG_PRESERVING = "Preserving";
 	private static final String TAG_DAMAGE = "damage";
+	private static final String TAG_CUSTOM_DATA = "custom_data";
 
 	public enum RodTier {
 		BAMBOO_POLE(false, 0),
@@ -556,6 +557,9 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 		var item = BuiltInRegistries.ITEM.get(id);
 		int count = stored.contains("count", CompoundTag.TAG_INT) ? stored.getInt("count") : 1;
 		ItemStack stack = new ItemStack(item, Math.max(1, count));
+		if (stored.contains(TAG_CUSTOM_DATA, CompoundTag.TAG_COMPOUND)) {
+			stack.set(DataComponents.CUSTOM_DATA, CustomData.of(stored.getCompound(TAG_CUSTOM_DATA)));
+		}
 		if (stack.isDamageableItem() && stored.contains(TAG_DAMAGE, CompoundTag.TAG_INT)) {
 			int dmg = stored.getInt(TAG_DAMAGE);
 			if (dmg > 0) {
@@ -585,6 +589,13 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 		CompoundTag saved = new CompoundTag();
 		saved.putString("id", id.toString());
 		saved.putInt("count", stack.getCount());
+		CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+		if (customData != null) {
+			CompoundTag customDataTag = customData.copyTag();
+			if (!customDataTag.isEmpty()) {
+				saved.put(TAG_CUSTOM_DATA, customDataTag);
+			}
+		}
 		if (stack.isDamageableItem()) {
 			int dmg = stack.getDamageValue();
 			if (dmg > 0) {

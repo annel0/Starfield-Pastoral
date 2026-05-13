@@ -107,7 +107,8 @@ public class WheatCropBlock extends StardewCropBlock {
         int leftover = hayCount;
         if (player instanceof ServerPlayer serverPlayer) {
             AnimalWorldData data = AnimalWorldData.get(level);
-            int stored = data.storeHay(serverPlayer.getUUID(), hayCount);
+            java.util.UUID hayOwner = com.stardew.craft.core.FarmAreaResolver.getOwnerAt(pos);
+            int stored = data.storeHay(hayOwner == null ? serverPlayer.getUUID() : hayOwner, hayCount);
             if (stored > 0) {
                 HayHarvestHudMessagePacket.sendTo(serverPlayer, stored, false);
             }

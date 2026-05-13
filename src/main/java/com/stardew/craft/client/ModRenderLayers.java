@@ -14,4 +14,11 @@ public final class ModRenderLayers {
             ItemBlockRenderTypes.setRenderLayer(block, RenderType.cutout());
         }
     }
+
+    @SuppressWarnings({"null", "deprecation"})
+    public static void registerCutoutMipped(Iterable<Block> blocks) {
+        for (Block block : blocks) {
+            ItemBlockRenderTypes.setRenderLayer(block, RenderType.cutoutMipped());
+        }
+    }
 }

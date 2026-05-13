@@ -1,6 +1,7 @@
 package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.farm.FarmInstanceRegistry;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.warp.WarpDestination;
 import com.stardew.craft.warp.WarpDestinations;
@@ -8,6 +9,7 @@ import com.stardew.craft.warp.WarpEffects;
 import com.stardew.craft.warp.WarpWandSavedData;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -48,6 +50,12 @@ public record WarpWandTeleportPayload(String destinationId) implements CustomPac
             // 校验已解锁
             WarpWandSavedData data = WarpWandSavedData.get();
             if (!data.isUnlocked(player.getUUID(), dest.id())) return;
+
+            if (dest.requiresPlayerFarm()
+                    && FarmInstanceRegistry.get().getFarmForPlayer(player.getUUID()) == null) {
+                player.displayClientMessage(Component.translatable("stardewcraft.warp.farm.unavailable"), true);
+                return;
+            }
 
             // 执行传送
             WarpEffects.teleport(player, dest);

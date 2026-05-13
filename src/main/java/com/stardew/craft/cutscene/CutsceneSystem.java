@@ -5,6 +5,7 @@ import com.stardew.craft.cutscene.data.EventRegistry;
 import com.stardew.craft.cutscene.network.ClientEventSeenCache;
 import com.stardew.craft.cutscene.network.SyncEventRegistryPayload;
 import com.stardew.craft.cutscene.network.SyncEventSeenPayload;
+import com.stardew.craft.cutscene.runtime.EventPlayer;
 import com.stardew.craft.cutscene.runtime.EventTriggerChecker;
 import com.stardew.craft.cutscene.server.EventSeenData;
 import net.minecraft.server.level.ServerPlayer;
@@ -65,6 +66,7 @@ public final class CutsceneSystem {
 
         @SubscribeEvent
         public static void onClientDisconnect(PlayerEvent.PlayerLoggedOutEvent event) {
+            EventPlayer.get().reset();
             ClientEventSeenCache.reset();
             EventTriggerChecker.reset();
         }

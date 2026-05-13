@@ -92,6 +92,9 @@ public record FarmSelectionSubmitPayload(
             StardewCraft.LOGGER.info("[FARM_SELECT] {} created farm '{}' (type={})",
                     player.getName().getString(), name, farmType.getId());
 
+            com.stardew.craft.player.PlayerDataEventHandler.syncPlayerData(
+                    player, com.stardew.craft.player.PlayerDataManager.getPlayerData(player));
+
             // 获取星露谷维度并初始化农场（分帧异步放置 schematic，减少卡顿）
             ServerLevel stardewLevel = player.server.getLevel(com.stardew.craft.core.ModDimensions.STARDEW_VALLEY);
             if (stardewLevel != null && farm != null) {

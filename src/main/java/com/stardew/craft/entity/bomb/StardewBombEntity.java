@@ -213,32 +213,7 @@ public class StardewBombEntity extends Entity {
                     BlockState state = level.getBlockState(pos);
 
                     if (state.isAir()) continue;
-                    // 不破坏不可破坏方块（基岩 / 屏障 / 命令方块 / 末地传送门框 / 强化深板岩 等）
-                    if (isIndestructible(level, pos, state)) continue;
-                    // 不破坏矿井梯子
-                    if (state.is(ModBlocks.MINE_LADDER.get())) continue;
-                    // SDV parity：炸弹不破坏树（树干 / 树枝 / 树苗 / 树叶 等任何树的部分），
-                    // 砍树必须用斧头。
-                    if (com.stardew.craft.tree.WildTrees.isAnyWildTreePart(state)) continue;
-                    // 采石场：只允许炸掉每日/初始生成的石头、矿物等资源块，原始结构不允许被炸毁。
-                    if (level.dimension() == com.stardew.craft.core.ModDimensions.STARDEW_VALLEY
-                            && com.stardew.craft.communitycenter.quarry.QuarryAccessManager.isInQuarryArea(pos)
-                            && !com.stardew.craft.manager.QuarrySpawnService.canBombDestroyInQuarry(state)) {
-                        continue;
-                    }
-                    // 不破坏"玩家正常破坏不掉任何东西"的方块——刷怪笼最典型：
-                    // 它有 Items.SPAWNER 物品形式（创造栏 / 指令可获得），但 loot table 是 EMPTY，
-                    // 所以生存模式破坏 0 掉落。这类方块炸出来玩家什么也得不到，留着不动。
-                    // 植物类同样 loot 可能为空（草丛默认无掉落），但 SDV 炸弹本就要清理它们，所以放行。
-                    if (state.getBlock().getLootTable() == net.minecraft.world.level.storage.loot.BuiltInLootTables.EMPTY
-                            && !isPlantLikeBlock(state)) continue;
-                    // 不破坏小镇区域和非权限农场的方块
-                    if (level.dimension() == com.stardew.craft.core.ModDimensions.STARDEW_VALLEY
-                            && owner instanceof net.minecraft.server.level.ServerPlayer sp
-                            && !sp.isCreative()
-                            && !com.stardew.craft.event.FarmAreaProtectionEvents.canModifyAt(sp, pos)) {
-                        continue;
-                    }
+                    if (!canBombDestroy(level, pos, state)) continue;
 
                     // SDV 炸弹掉落逻辑：矿石掉产物，其余掉自身
                     dropBlockForBomb(level, pos, state);
@@ -252,6 +227,58 @@ public class StardewBombEntity extends Entity {
                 }
             }
         }
+    }
+
+    private boolean canBombDestroy(ServerLevel level, BlockPos pos, BlockState state) {
+        // 不破坏不可破坏方块（基岩 / 屏障 / 命令方块 / 末地传送门框 / 强化深板岩 等）
+        if (isIndestructible(level, pos, state)) return false;
+        // 不破坏矿井梯子和 portal trigger 这类功能方块。
+        if (isBombProtectedBlock(state)) return false;
+        // SDV parity：炸弹不破坏树（树干 / 树枝 / 树苗 / 树叶 等任何树的部分），
+        // 砍树必须用斧头。
+        if (com.stardew.craft.tree.WildTrees.isAnyWildTreePart(state)) return false;
+        // 采石场：只允许炸掉每日/初始生成的石头、矿物等资源块，原始结构不允许被炸毁。
+        if (level.dimension() == com.stardew.craft.core.ModDimensions.STARDEW_VALLEY
+                && com.stardew.craft.communitycenter.quarry.QuarryAccessManager.isInQuarryArea(pos)
+                && !com.stardew.craft.manager.QuarrySpawnService.canBombDestroyInQuarry(state)) {
+            return false;
+        }
+        // 不破坏小镇区域和非权限农场的方块。
+        if (level.dimension() == com.stardew.craft.core.ModDimensions.STARDEW_VALLEY
+                && owner instanceof net.minecraft.server.level.ServerPlayer sp
+                && !sp.isCreative()
+                && !com.stardew.craft.event.FarmAreaProtectionEvents.canModifyAt(sp, pos)) {
+            return false;
+        }
+        // 无掉落表或没有任何炸弹合法结果的方块不应被破坏。
+        if (state.getBlock().getLootTable() == net.minecraft.world.level.storage.loot.BuiltInLootTables.EMPTY) {
+            return false;
+        }
+        return hasMeaningfulBombDrop(state);
+    }
+
+    private static boolean isBombProtectedBlock(BlockState state) {
+        Block block = state.getBlock();
+        return state.is(ModBlocks.MINE_LADDER.get())
+            || block instanceof com.stardew.craft.block.mine.MineLadderBlock
+            || block instanceof com.stardew.craft.block.portal.PortalTriggerBlock;
+    }
+
+    private static boolean hasMeaningfulBombDrop(BlockState state) {
+        Block block = state.getBlock();
+        if (block instanceof com.stardew.craft.block.mine.MineBarrelBlock) {
+            return true;
+        }
+        if (getOreDropItem(state) != null) {
+            return true;
+        }
+        if (state.is(ModBlocks.ARTIFACT_SPOT_DIRT.get())) {
+            return true;
+        }
+        if (isPlantLikeBlock(state)) {
+            return false;
+        }
+        return block.asItem() != net.minecraft.world.item.Items.AIR;
     }
 
     /**

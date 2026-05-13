@@ -17,6 +17,7 @@ import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -104,14 +105,18 @@ public class AnimalWorldData extends SavedData {
     }
 
     public int getHayAmount(UUID ownerPlayerId) {
-        return hayByOwner.getOrDefault(ownerPlayerId.toString(), 0);
+        int total = 0;
+        for (String owner : hayStorageKeys(ownerPlayerId)) {
+            total += hayByOwner.getOrDefault(owner, 0);
+        }
+        return total;
     }
 
     public int getHayCapacity(UUID ownerPlayerId) {
-        String owner = ownerPlayerId.toString();
         int total = 0;
+        Set<String> owners = hayStorageKeys(ownerPlayerId);
         for (AnimalBuildingRecord record : buildings.values()) {
-            if (owner.equals(record.ownerPlayerUuid())) {
+            if (owners.contains(record.ownerPlayerUuid())) {
                 total += Math.max(0, record.hayCapacity());
             }
         }
@@ -135,16 +140,18 @@ public class AnimalWorldData extends SavedData {
         if (amount <= 0) {
             return 0;
         }
-        String owner = ownerPlayerId.toString();
+        String owner = hayStorageOwner(ownerPlayerId);
         int capacity = getHayCapacity(ownerPlayerId);
         if (capacity <= 0) {
             return 0;
         }
-        int current = hayByOwner.getOrDefault(owner, 0);
+        int current = getHayAmount(ownerPlayerId);
         int free = Math.max(0, capacity - current);
         int stored = Math.min(free, amount);
-        hayByOwner.put(owner, current + stored);
-        setDirty();
+        if (stored > 0) {
+            hayByOwner.put(owner, hayByOwner.getOrDefault(owner, 0) + stored);
+            setDirty();
+        }
         return stored;
     }
 
@@ -152,12 +159,48 @@ public class AnimalWorldData extends SavedData {
         if (amount <= 0) {
             return 0;
         }
-        String owner = ownerPlayerId.toString();
-        int current = hayByOwner.getOrDefault(owner, 0);
-        int removed = Math.min(current, amount);
-        hayByOwner.put(owner, current - removed);
-        setDirty();
-        return removed;
+        int remaining = amount;
+        int removedTotal = 0;
+        for (String owner : hayStorageKeys(ownerPlayerId)) {
+            if (remaining <= 0) {
+                break;
+            }
+            int current = hayByOwner.getOrDefault(owner, 0);
+            if (current <= 0) {
+                continue;
+            }
+            int removed = Math.min(current, remaining);
+            hayByOwner.put(owner, current - removed);
+            remaining -= removed;
+            removedTotal += removed;
+        }
+        if (removedTotal > 0) {
+            setDirty();
+        }
+        return removedTotal;
+    }
+
+    private String hayStorageOwner(UUID ownerPlayerId) {
+        UUID farmOwner = com.stardew.craft.farm.FarmInstanceRegistry.get().getOwnerForPlayer(ownerPlayerId);
+        return (farmOwner == null ? ownerPlayerId : farmOwner).toString();
+    }
+
+    private Set<String> hayStorageKeys(UUID ownerPlayerId) {
+        LinkedHashSet<String> owners = new LinkedHashSet<>();
+        var registry = com.stardew.craft.farm.FarmInstanceRegistry.get();
+        UUID farmOwner = registry.getOwnerForPlayer(ownerPlayerId);
+        if (farmOwner != null) {
+            var farm = registry.getFarm(farmOwner);
+            if (farm != null) {
+                for (UUID farmer : farm.getAllFarmers()) {
+                    owners.add(farmer.toString());
+                }
+            } else {
+                owners.add(farmOwner.toString());
+            }
+        }
+        owners.add(ownerPlayerId.toString());
+        return owners;
     }
 
     public int takeHayFromAnyOwner(int amount) {

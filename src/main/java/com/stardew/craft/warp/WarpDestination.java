@@ -14,6 +14,7 @@ import net.minecraft.world.level.Level;
  * @param y         目标 Y 坐标
  * @param z         目标 Z 坐标
  * @param dimension 目标维度
+ * @param requiresPlayerFarm 是否需要动态解析玩家所属农场
  */
 public record WarpDestination(
         String id,
@@ -21,8 +22,14 @@ public record WarpDestination(
         String descKey,
         int cost,
         double x, double y, double z,
-        ResourceKey<Level> dimension
+        ResourceKey<Level> dimension,
+        boolean requiresPlayerFarm
 ) {
+    public WarpDestination(String id, String nameKey, String descKey, int cost,
+                           double x, double y, double z, ResourceKey<Level> dimension) {
+        this(id, nameKey, descKey, cost, x, y, z, dimension, false);
+    }
+
     /** 是否默认解锁（cost == 0） */
     public boolean isFreeByDefault() {
         return cost <= 0;

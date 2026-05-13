@@ -3,6 +3,7 @@ package com.stardew.craft.client.gui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.client.ClientPlayerDataCache;
 import com.stardew.craft.client.warp.WarpWandClientState;
 import com.stardew.craft.network.payload.WarpWandTeleportPayload;
 import com.stardew.craft.network.payload.WarpWandUnlockPayload;
@@ -121,6 +122,8 @@ public class WarpWheelScreen extends Screen {
         for (int i = 0; i < count; i++) {
             WarpDestination dest = destinations.get(i);
             boolean unlocked = WarpWandClientState.isUnlocked(dest.id());
+            boolean available = isDestinationAvailable(dest);
+            boolean active = unlocked && available;
             boolean isHovered = (i == selectedIndex);
 
             // 更新 hover 动画进度
@@ -142,12 +145,14 @@ public class WarpWheelScreen extends Screen {
 
             // 颜色
             float r, green, b, a;
-            if (isHovered && unlocked) {
+            if (isHovered && active) {
                 r = 0.35f; green = 0.61f; b = 0.84f; a = 0.55f;
             } else if (isHovered) {
                 r = 0.50f; green = 0.50f; b = 0.50f; a = 0.40f;
-            } else if (unlocked) {
+            } else if (active) {
                 r = 0.20f; green = 0.42f; b = 0.75f; a = 0.30f;
+            } else if (unlocked) {
+                r = 0.20f; green = 0.20f; b = 0.20f; a = 0.24f;
             } else {
                 r = 0.30f; green = 0.30f; b = 0.30f; a = 0.22f;
             }
@@ -157,10 +162,10 @@ public class WarpWheelScreen extends Screen {
 
             // hover 时画外边缘高亮线
             if (hoverProgress[i] > 0.01f) {
-                float lineAlpha = hoverProgress[i] * (unlocked ? 0.7f : 0.35f);
-                float lr = unlocked ? 0.95f : 0.6f;
-                float lg = unlocked ? 0.85f : 0.6f;
-                float lb = unlocked ? 0.3f  : 0.6f;
+                float lineAlpha = hoverProgress[i] * (active ? 0.7f : 0.35f);
+                float lr = active ? 0.95f : 0.6f;
+                float lg = active ? 0.85f : 0.6f;
+                float lb = active ? 0.3f  : 0.6f;
                 fillArcTriangles(g, cx, cy,
                         animatedOuter + hoverExpand - 2, animatedOuter + hoverExpand,
                         angleStart, angleEnd, lr, lg, lb, lineAlpha);
@@ -183,6 +188,8 @@ public class WarpWheelScreen extends Screen {
         for (int i = 0; i < count; i++) {
             WarpDestination dest = destinations.get(i);
             boolean unlocked = WarpWandClientState.isUnlocked(dest.id());
+            boolean available = isDestinationAvailable(dest);
+            boolean active = unlocked && available;
             boolean isHovered = (i == selectedIndex);
 
             double sectorCenter = START_ANGLE + step * i;
@@ -204,7 +211,7 @@ public class WarpWheelScreen extends Screen {
 
             int alpha;
             int color;
-            if (unlocked) {
+            if (active) {
                 alpha = (int) (textAlpha * (isHovered ? 255 : 200));
                 color = isHovered ? 0xFFF4EED0 : 0xFFDDCCAA;
             } else {
@@ -276,8 +283,15 @@ public class WarpWheelScreen extends Screen {
         if (selectedIndex >= 0 && selectedIndex < destinations.size()) {
             WarpDestination dest = destinations.get(selectedIndex);
             boolean unlocked = WarpWandClientState.isUnlocked(dest.id());
+            boolean available = isDestinationAvailable(dest);
 
-            if (unlocked) {
+            if (!available) {
+                Component disabled = Component.translatable("stardewcraft.warp.farm.unavailable");
+                int disabledW = minecraft.font.width(disabled);
+                g.drawString(minecraft.font, disabled,
+                        cx - disabledW / 2, cy - 4,
+                        0xAA777777, true);
+            } else if (unlocked) {
                 // 已解锁：显示描述
                 Component desc = Component.translatable(dest.descKey());
                 int descW = minecraft.font.width(desc);
@@ -340,6 +354,10 @@ public class WarpWheelScreen extends Screen {
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0 && selectedIndex >= 0 && selectedIndex < destinations.size()) {
             WarpDestination dest = destinations.get(selectedIndex);
+            if (!isDestinationAvailable(dest)) {
+                return true;
+            }
+
             boolean unlocked = WarpWandClientState.isUnlocked(dest.id());
 
             if (unlocked) {
@@ -353,6 +371,10 @@ public class WarpWheelScreen extends Screen {
             return true;
         }
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    private static boolean isDestinationAvailable(WarpDestination dest) {
+        return !dest.requiresPlayerFarm() || ClientPlayerDataCache.hasFarm();
     }
 
     // ── 扇区检测（复用 Emote Wheel 极坐标算法）──

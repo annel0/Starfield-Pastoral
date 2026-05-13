@@ -85,12 +85,14 @@ public final class ServerPreconditionEvaluator {
                 PlayerStardewData data = PlayerDataManager.getPlayerData(player);
                 yield !data.hasMailFlag(p.getString("id"));
             }
-            // See PreconditionEvaluator: is_host is a no-op in this mod — per-player runtime
-            // means there is no multiplayer interference, and dedicated servers would otherwise
-            // block events for everyone (isSingleplayerOwner is always false on dedicated).
-            case "is_host" -> true;
+            case "is_host" -> isStoryHost(player);
             default -> true;
         };
+    }
+
+    private static boolean isStoryHost(ServerPlayer player) {
+        java.util.UUID ownerUuid = com.stardew.craft.farm.FarmInstanceRegistry.get().getOwnerForPlayer(player.getUUID());
+        return ownerUuid == null || ownerUuid.equals(player.getUUID());
     }
 
     private static boolean checkFriendship(ServerPlayer player, ServerLevel level, EventPrecondition p) {

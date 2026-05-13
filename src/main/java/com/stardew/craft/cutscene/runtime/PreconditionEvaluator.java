@@ -54,12 +54,7 @@ public final class PreconditionEvaluator {
             case "not_mail" -> !ClientPlayerDataCache.hasMailFlag(p.getString("id"));
             case "flag" -> ClientPlayerDataCache.hasMailFlag(p.getString("id"));
             case "not_flag" -> !ClientPlayerDataCache.hasMailFlag(p.getString("id"));
-            // SDV parity note: SDV's is_host gates events to the save host in multiplayer.
-            // Our cutscene runtime plays per-player (each client drives its own camera/actors),
-            // so there is no interference between players — every player can trigger the event
-            // locally. On dedicated servers isLocalServer() is false for everyone, which would
-            // otherwise permanently block events like lewis_cc_tour. Treat is_host as a no-op.
-            case "is_host" -> true;
+            case "is_host" -> ClientPlayerDataCache.isStoryHost();
             // Future: dating, married, community_center_done
             default -> true; // unknown conditions pass by default
         };

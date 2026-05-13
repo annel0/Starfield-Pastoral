@@ -30,7 +30,7 @@ public class JunimoEntity extends PathfinderMob implements GeoEntity {
 
     private static final EntityDataAccessor<Integer> DATA_COLOR =
             SynchedEntityData.defineId(JunimoEntity.class, EntityDataSerializers.INT);
-    /** What this Junimo is carrying: 0=nothing, 1=bundle, 2=star. */
+    /** What this Junimo is carrying: 0=nothing, 1=bundle, 2=star, 3=orange. */
     private static final EntityDataAccessor<Integer> DATA_HOLDING_TYPE =
             SynchedEntityData.defineId(JunimoEntity.class, EntityDataSerializers.INT);
     /** SDV parity: bundle color (packed RGB) carried by this Junimo. */
@@ -40,6 +40,7 @@ public class JunimoEntity extends PathfinderMob implements GeoEntity {
     public static final int HOLDING_NONE = 0;
     public static final int HOLDING_BUNDLE = 1;
     public static final int HOLDING_STAR = 2;
+    public static final int HOLDING_ORANGE = 3;
 
     private static final RawAnimation IDLE = RawAnimation.begin().thenLoop("idle");
     private static final RawAnimation WALK = RawAnimation.begin().thenLoop("walk");
@@ -172,6 +173,8 @@ public class JunimoEntity extends PathfinderMob implements GeoEntity {
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putInt("JunimoColor", getJunimoColor());
+        tag.putInt("HoldingType", getHoldingType());
+        tag.putInt("BundleColor", getBundleColor());
         tag.putBoolean("Holding", isHolding());
     }
 
@@ -181,8 +184,13 @@ public class JunimoEntity extends PathfinderMob implements GeoEntity {
         if (tag.contains("JunimoColor")) {
             setJunimoColor(tag.getInt("JunimoColor"));
         }
-        if (tag.contains("Holding")) {
+        if (tag.contains("HoldingType")) {
+            setHoldingType(tag.getInt("HoldingType"));
+        } else if (tag.contains("Holding")) {
             setHolding(tag.getBoolean("Holding"));
+        }
+        if (tag.contains("BundleColor")) {
+            setBundleColor(tag.getInt("BundleColor"));
         }
     }
 

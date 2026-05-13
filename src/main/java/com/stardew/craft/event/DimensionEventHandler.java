@@ -1,6 +1,7 @@
 package com.stardew.craft.event;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.block.ModBlocks;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModMiningDimensions;
 import com.stardew.craft.dimension.StardewValleyMapBootstrap;
@@ -8,8 +9,10 @@ import com.stardew.craft.dimension.StardewValleyPrebuiltRegionInstaller;
 import com.stardew.craft.interior.InteriorSubspaceManager;
 import com.stardew.craft.network.TimeSyncPacket;
 import com.stardew.craft.time.StardewTimeManager;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.block.BedBlock;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityTravelToDimensionEvent;
@@ -101,6 +104,7 @@ public class DimensionEventHandler {
             } catch (Exception e) {
                 StardewCraft.LOGGER.error("Error during advanceDayWithSleepTime (day still advanced to prevent freeze)", e);
             }
+            wakeSleepingStardewPlayers(server);
 
             PacketDistributor.sendToAllPlayers(TimeSyncPacket.fromTimeManager(timeManager));
             lastAnimalTenMinuteDayKey = Integer.MIN_VALUE;
@@ -130,11 +134,35 @@ public class DimensionEventHandler {
             return;
         }
 
+        BlockPos bedPos = SleepInteractionHandler.consumePendingBedPos(player);
+        if (bedPos == null || !isSleepAnchor(player, bedPos)) {
+            return;
+        }
+        if (!player.isSleeping()) {
+            player.startSleeping(bedPos);
+            player.serverLevel().updateSleepingPlayerList();
+        }
+
         // 多人投票：只有所有 Stardew 维度玩家都投票后才推进
         if (SleepVoteTracker.castVote(player, sleepMinute)) {
             int effectiveSleepMinute = SleepVoteTracker.getLatestSleepMinute();
             SleepVoteTracker.clearVotes();
             advanceToNextMorning(stardewLevel, effectiveSleepMinute, "sleep_confirm");
+        }
+    }
+
+    private static boolean isSleepAnchor(ServerPlayer player, BlockPos bedPos) {
+        var state = player.level().getBlockState(bedPos);
+        return state.getBlock() instanceof BedBlock
+                || state.is(ModBlocks.BED_1.get())
+                || state.is(ModBlocks.BED_2.get());
+    }
+
+    private static void wakeSleepingStardewPlayers(net.minecraft.server.MinecraftServer server) {
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+            if (isStardewDimension(player.serverLevel()) && player.isSleeping()) {
+                player.stopSleepInBed(false, false);
+            }
         }
     }
 
@@ -248,14 +276,16 @@ public class DimensionEventHandler {
                     com.stardew.craft.farm.FarmInstanceRegistry registry = com.stardew.craft.farm.FarmInstanceRegistry.get();
                     net.minecraft.core.BlockPos spawnPos = registry.getFarmSpawnPoint(player.getUUID());
                     if (spawnPos == null) {
-                        spawnPos = new net.minecraft.core.BlockPos(150, -12, 119);
-                    }
-                    // 传送前清理
-                    player.closeContainer();
-                    player.stopUsingItem();
+                        StardewCraft.LOGGER.warn("[DIMENSION] Player {} entered Stardew Valley without a farm spawn; skipping farm auto-teleport.",
+                                player.getName().getString());
+                    } else {
+                        // 传送前清理
+                        player.closeContainer();
+                        player.stopUsingItem();
 
-                    preloadChunksAround(level, spawnPos, 2);
-                    player.teleportTo(level, spawnPos.getX() + 0.5D, spawnPos.getY(), spawnPos.getZ() + 0.5D, player.getYRot(), player.getXRot());
+                        preloadChunksAround(level, spawnPos, 2);
+                        player.teleportTo(level, spawnPos.getX() + 0.5D, spawnPos.getY(), spawnPos.getZ() + 0.5D, player.getYRot(), player.getXRot());
+                    }
                 }
 
                 // 旧 FarmInitializer 已废弃，内置农场区域不再初始化（玩家现在有自己的个人农场）

@@ -15,6 +15,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.CanContinueSleepingEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerWakeUpEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.Map;
@@ -54,6 +55,16 @@ public final class SleepInteractionHandler {
         var dim = event.getEntity().level().dimension();
         if (dim == ModDimensions.STARDEW_VALLEY || dim == ModMiningDimensions.STARDEW_MINING) {
             event.setContinueSleeping(true);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerWakeUp(PlayerWakeUpEvent event) {
+        if (!event.updateLevel() || !(event.getEntity() instanceof ServerPlayer player)) {
+            return;
+        }
+        if (SleepVoteTracker.hasVoted(player)) {
+            SleepVoteTracker.revokeVoteAndBroadcast(player);
         }
     }
 

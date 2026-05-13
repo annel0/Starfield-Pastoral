@@ -116,7 +116,8 @@ public class PastureGrassBlock extends BushBlock {
         }
 
         AnimalWorldData data = AnimalWorldData.get(level);
-        int stored = data.storeHay(player.getUUID(), hayCount);
+        java.util.UUID hayOwner = com.stardew.craft.core.FarmAreaResolver.getOwnerAt(pos);
+        int stored = data.storeHay(hayOwner == null ? player.getUUID() : hayOwner, hayCount);
         if (stored > 0) {
             HayHarvestHudMessagePacket.sendTo(player, stored, false);
         }

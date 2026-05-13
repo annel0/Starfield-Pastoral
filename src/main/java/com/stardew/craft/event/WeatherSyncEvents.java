@@ -1,6 +1,7 @@
 package com.stardew.craft.event;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.network.WeatherSyncPacket;
 import com.stardew.craft.weather.ClientWeatherCache;
 import com.stardew.craft.weather.WeatherManager;
@@ -45,6 +46,10 @@ public class WeatherSyncEvents {
     
     @SuppressWarnings("null")
     private static void syncWeatherToPlayer(ServerPlayer player, ServerLevel level) {
+        if (!ModDimensions.STARDEW_VALLEY.equals(level.dimension())) {
+            return;
+        }
+
         WeatherSavedData data = WeatherSavedData.get(level);
         WeatherManager.WeatherState state = data.getWeatherState(level.dimension());
         

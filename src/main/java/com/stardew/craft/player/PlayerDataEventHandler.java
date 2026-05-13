@@ -714,10 +714,19 @@ public class PlayerDataEventHandler {
     public static void syncPlayerData(ServerPlayer player, PlayerStardewData data) {
         PlayerDataSyncPacket packet = PlayerDataSyncPacket.fromPlayerData(data);
         // Inject farm name into sync NBT so client can resolve %farm placeholder
-        com.stardew.craft.farm.FarmInstance farm =
-                com.stardew.craft.farm.FarmInstanceRegistry.get().getFarmForPlayer(player.getUUID());
+        com.stardew.craft.farm.FarmInstanceRegistry farmRegistry = com.stardew.craft.farm.FarmInstanceRegistry.get();
+        com.stardew.craft.farm.FarmInstance farm = farmRegistry.getFarmForPlayer(player.getUUID());
+        packet.data().putBoolean("HasFarm", farm != null);
         if (farm != null && farm.getFarmName() != null) {
             packet.data().putString("FarmName", farm.getFarmName());
+        } else {
+            packet.data().remove("FarmName");
+        }
+        java.util.UUID farmOwner = farmRegistry.getOwnerForPlayer(player.getUUID());
+        if (farmOwner != null) {
+            packet.data().putUUID("FarmOwnerUUID", farmOwner);
+        } else {
+            packet.data().remove("FarmOwnerUUID");
         }
         PacketDistributor.sendToPlayer(player, packet);
         // sync equipment slots
