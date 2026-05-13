@@ -79,7 +79,7 @@ public class AutoFeedTroughBlockEntity extends net.minecraft.world.level.block.e
         if (!(level instanceof ServerLevel serverLevel)) {
             return;
         }
-        if (serverLevel.getGameTime() % REFILL_INTERVAL_TICKS != 0) {
+        if (!shouldRunRefillTick(serverLevel, pos)) {
             return;
         }
         if (blockEntity.hayCount() > 0) {
@@ -100,6 +100,10 @@ public class AutoFeedTroughBlockEntity extends net.minecraft.world.level.block.e
         }
 
         refillConnectedNetwork(serverLevel, pos, ownerId, 1);
+    }
+
+    private static boolean shouldRunRefillTick(ServerLevel level, BlockPos pos) {
+        return Math.floorMod(level.getGameTime() + pos.asLong(), REFILL_INTERVAL_TICKS) == 0;
     }
 
     private static AnimalBuildingRecord resolveFeedBuilding(AnimalWorldData data, ServerLevel level, BlockPos pos) {

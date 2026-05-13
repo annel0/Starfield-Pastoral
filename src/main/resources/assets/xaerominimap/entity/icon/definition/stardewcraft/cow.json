@@ -1,0 +1,9 @@
+{
+	"variants" : {
+		"stardewcraft:textures/entity/animal/cow.png" : "normal_sprite:stardew_cow.png",
+		"default" : "dot"
+	},
+
+	"variantMethod" : "xaero.hud.minimap.radar.icon.definition.BuiltInRadarIconDefinitions.getVariant"
+
+}

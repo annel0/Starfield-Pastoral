@@ -1,7 +1,7 @@
 package com.stardew.craft.client.gui;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
+import com.stardew.craft.client.gui.common.CommonGuiTextures;
 import com.stardew.craft.network.payload.FurnitureCataloguePurchasePayload;
 import com.stardew.craft.network.payload.FurnitureCatalogueResultPayload;
 import com.stardew.craft.shop.ShopItemEntry;
@@ -42,15 +42,10 @@ public class FurnitureCatalogueScreen extends Screen {
     private static final int TAB_H = 48;
     private static final int TAB_GAP = 8;
 
-    // Cursors UV (sprite coords)
-    private static final int ROW_U=384,ROW_V=396,ROW_W=15,ROW_SH=15;
-    private static final int BDR_U=384,BDR_V=373,BDR_W=18,BDR_SH=18;
-    private static final int ICO_U=296,ICO_V=363,ICO_W=18,ICO_SH=18;
-    private static final int ARR_UP_U=421,ARR_UP_V=459,ARR_UP_W=11,ARR_UP_SH=12;
-    private static final int ARR_DN_U=421,ARR_DN_V=472,ARR_DN_W=11,ARR_DN_SH=12;
-    private static final int SCR_F_U=435,SCR_F_V=463,SCR_F_W=6,SCR_F_SH=10;
-    private static final int SCR_B_U=403,SCR_B_V=383,SCR_B_W=6,SCR_B_SH=6;
-    private static final int CLOSE_U=337,CLOSE_V=494,CLOSE_W=12,CLOSE_SH=12;
+    // Cursors sprite dimensions
+    private static final int ARR_UP_W=11,ARR_UP_SH=12;
+    private static final int SCR_F_W=6,SCR_F_SH=10;
+    private static final int CLOSE_W=12,CLOSE_SH=12;
 
     private static final int BG_TINT = 0xBF000000;
 
@@ -66,20 +61,6 @@ public class FurnitureCatalogueScreen extends Screen {
         FLOORING, // Flooring blocks
         FAVOURITES // ★ User favourites
     }
-
-    // Cursors2 UV for tab icons (16×16 sprites)
-    // SDV furniture catalogue tabs from Cursors2.png
-    private static final int[][] TAB_ICON_UV = {
-        {96, 48},   // ALL - star icon
-        {64, 48},   // SEATS - chair
-        {80, 48},   // TABLES - table
-        {64, 64},   // LAMPS - lamp
-        {96, 64},   // WALL_DECOR - flower/decor
-        {80, 64},   // CARPETS - box/other
-        {32, 64},   // WALLPAPER
-        {48, 64},   // FLOORING
-        {96, 48},   // FAVOURITES - reuse star icon
-    };
 
     // ── State ───────────────────────────────────────────────────────────────
     private final List<ShopItemEntry> allItems;
@@ -262,9 +243,7 @@ public class FurnitureCatalogueScreen extends Screen {
         float s4 = s4();
 
         // 1. Main panel box (with shadow)
-        StardewGuiUtil.drawTextureBox(g,
-            StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
-            BDR_U, BDR_V, BDR_W, BDR_SH, panelX, panelY, panelWGui, panelHGui, s4, true);
+        CommonGuiTextures.drawTextureBox(g, panelX, panelY, panelWGui, panelHGui, s4, true);
 
         // 2. Search bar
         drawSearchBar(g, mouseX, mouseY, s4);
@@ -294,19 +273,21 @@ public class FurnitureCatalogueScreen extends Screen {
         // 6. Scroll arrows
         boolean upOn = currentIndex > 0;
         boolean dnOn = currentIndex < Math.max(0, filteredItems.size() - ROWS);
-        if (!upOn) g.setColor(1f,1f,1f,0.4f);
-        StardewGuiUtil.drawFromCursors(g, upArrowX, upArrowY, ARR_UP_U, ARR_UP_V, ARR_UP_W, ARR_UP_SH, s4);
-        if (!upOn) g.setColor(1f,1f,1f,1f);
-        if (!dnOn) g.setColor(1f,1f,1f,0.4f);
-        StardewGuiUtil.drawFromCursors(g, dnArrowX, dnArrowY, ARR_DN_U, ARR_DN_V, ARR_DN_W, ARR_DN_SH, s4);
-        if (!dnOn) g.setColor(1f,1f,1f,1f);
+        if (upOn) {
+            CommonGuiTextures.drawScrollArrowUp(g, upArrowX, upArrowY, s4);
+        } else {
+            CommonGuiTextures.drawScrollArrowUpTint(g, upArrowX, upArrowY, s4, 1f, 1f, 1f, 0.4f);
+        }
+        if (dnOn) {
+            CommonGuiTextures.drawScrollArrowDown(g, dnArrowX, dnArrowY, s4);
+        } else {
+            CommonGuiTextures.drawScrollArrowDownTint(g, dnArrowX, dnArrowY, s4, 1f, 1f, 1f, 0.4f);
+        }
 
         // 7. Scrollbar
         if (filteredItems.size() > ROWS) {
-            StardewGuiUtil.drawTextureBox(g,
-                StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
-                SCR_B_U, SCR_B_V, SCR_B_W, SCR_B_SH, scrRunX, scrRunY, scrRunW, scrRunH, s4, false);
-            StardewGuiUtil.drawFromCursors(g, scrBarX, scrBarY, SCR_F_U, SCR_F_V, SCR_F_W, SCR_F_SH, s4);
+            CommonGuiTextures.drawScrollTrackBox(g, scrRunX, scrRunY, scrRunW, scrRunH, s4);
+            CommonGuiTextures.drawScrollBarThumb(g, scrBarX, scrBarY, s4);
         }
 
         // 8. Close button
@@ -315,7 +296,7 @@ public class FurnitureCatalogueScreen extends Screen {
         float cs = s4 * closeScale;
         int cdx = closeX + closeW / 2 - (int)(CLOSE_W * cs / 2);
         int cdy = closeY + closeH / 2 - (int)(CLOSE_SH * cs / 2);
-        StardewGuiUtil.drawFromCursors(g, cdx, cdy, CLOSE_U, CLOSE_V, CLOSE_W, CLOSE_SH, cs);
+        CommonGuiTextures.drawCloseButton(g, cdx, cdy, cs);
 
         // 9. Tooltip
         if (hoveredRow >= 0) {
@@ -329,9 +310,7 @@ public class FurnitureCatalogueScreen extends Screen {
     // =========================================================================
     private void drawSearchBar(GuiGraphics g, int mouseX, int mouseY, float s4) {
         // Background using texture box (SDV-style input field)
-        StardewGuiUtil.drawTextureBox(g,
-            StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
-            ROW_U, ROW_V, ROW_W, ROW_SH, searchBoxX, searchBoxY, searchBoxW, searchBoxH, s4, false);
+        CommonGuiTextures.drawEntryBox(g, searchBoxX, searchBoxY, searchBoxW, searchBoxH, s4, false);
 
         int textY = searchBoxY + (searchBoxH - font.lineHeight) / 2;
         int textX = searchBoxX + ui(16);
@@ -407,13 +386,9 @@ public class FurnitureCatalogueScreen extends Screen {
             int iconX = drawX + (tabWGui - renderedSize) / 2;
             int iconY = ty + (tabHGui - renderedSize) / 2;
 
-            if (i < TAB_ICON_UV.length) {
-                if (tabs[i] == Tab.FAVOURITES && favs.getFavourites().isEmpty()) {
-                    g.setColor(1f, 1f, 1f, 0.4f);
-                }
-                StardewGuiUtil.drawFromCursors2(g, iconX, iconY,
-                    TAB_ICON_UV[i][0], TAB_ICON_UV[i][1], 16, 16, iconScale);
-                g.setColor(1f, 1f, 1f, 1f);
+            if (i < tabs.length) {
+                float iconAlpha = (tabs[i] == Tab.FAVOURITES && favs.getFavourites().isEmpty()) ? 0.4f : 1.0f;
+                CommonGuiTextures.drawCatalogueTabIconTint(g, iconX, iconY, i, iconScale, 1.0f, 1.0f, 1.0f, iconAlpha);
             }
 
             // Tooltip on hover
@@ -442,15 +417,13 @@ public class FurnitureCatalogueScreen extends Screen {
 
         // Row background
         if (hov) g.setColor(0.961f, 0.871f, 0.702f, 1.0f);
-        StardewGuiUtil.drawTextureBox(g,
-            StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
-            ROW_U, ROW_V, ROW_W, ROW_SH, rowX, rowY, rowWGui, rowHGui, s4, false);
+        CommonGuiTextures.drawEntryBox(g, rowX, rowY, rowWGui, rowHGui, s4, false);
         g.setColor(1f, 1f, 1f, 1f);
 
         // Icon background
         int icoX = rowX + ui(20);
         int icoY = rowY + ui(20);
-        StardewGuiUtil.drawFromCursors(g, icoX, icoY, ICO_U, ICO_V, ICO_W, ICO_SH, s4);
+        CommonGuiTextures.drawItemSlot18(g, icoX, icoY, s4);
 
         // Item icon
         int iconX = rowX + ui(24);
@@ -459,7 +432,7 @@ public class FurnitureCatalogueScreen extends Screen {
             ResourceLocation rl = ResourceLocation.parse(item.itemId());
             Item mcItem = BuiltInRegistries.ITEM.get(rl);
             if (mcItem != null && mcItem != Items.AIR) {
-                g.renderItem(new ItemStack(mcItem), iconX, iconY);
+                CommonGuiTextures.drawItem(g, new ItemStack(mcItem), iconX, iconY, s4);
             }
         } catch (Exception ignored) {}
 
@@ -480,14 +453,11 @@ public class FurnitureCatalogueScreen extends Screen {
         int starX = rowX + rowWGui - starRendered - ui(8);
         int starY = rowY + (rowHGui - starRendered) / 2;
 
-        // Draw star: gold if favourite, dim grey if not
         if (isFav) {
-            g.setColor(1.0f, 0.85f, 0.0f, 1.0f); // gold
+            CommonGuiTextures.drawCatalogueStarTint(g, starX, starY, starScale, 1.0f, 0.85f, 0.0f, 1.0f);
         } else {
-            g.setColor(0.6f, 0.6f, 0.6f, 0.4f); // dim grey
+            CommonGuiTextures.drawCatalogueStarTint(g, starX, starY, starScale, 0.6f, 0.6f, 0.6f, 0.4f);
         }
-        StardewGuiUtil.drawFromCursors2(g, starX, starY, 96, 48, 16, 16, starScale);
-        g.setColor(1f, 1f, 1f, 1f);
     }
 
     // =========================================================================

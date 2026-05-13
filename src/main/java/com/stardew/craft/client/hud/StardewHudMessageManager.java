@@ -2,6 +2,7 @@ package com.stardew.craft.client.hud;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.client.gui.common.CommonGuiTextures;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.sound.ModSounds;
 import net.minecraft.client.Minecraft;
@@ -232,12 +233,8 @@ public final class StardewHudMessageManager {
 		float itemScale = ITEM_ICON_SCALE * Math.max(1f, popScale / UI_SCALE);
 
 		if (message.messageSubject != null) {
-			graphics.pose().pushPose();
-			graphics.pose().translate(iconCenterX, iconCenterY, 0f);
-			graphics.pose().scale(itemScale, itemScale, 1f);
-			graphics.pose().translate(-8f, -8f, 0f);
-			graphics.renderItem(message.messageSubject, 0, 0);
-			graphics.pose().popPose();
+			int itemSize = CommonGuiTextures.itemSize(itemScale);
+			CommonGuiTextures.drawItem(graphics, message.messageSubject, Math.round(iconCenterX - itemSize / 2.0f), Math.round(iconCenterY - itemSize / 2.0f), itemScale);
 		} else if (message.whatType == 3) {
 			graphics.pose().pushPose();
 			graphics.pose().translate(iconCenterX, iconCenterY, 0f);

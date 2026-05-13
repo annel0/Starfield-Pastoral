@@ -58,17 +58,17 @@ public class SiloManagerMenu extends AbstractContainerMenu {
         }
 
         AnimalWorldData data = AnimalWorldData.get(level);
-        Optional<AnimalBuildingRecord> existing = data.findBuildingByManager(
+        Optional<AnimalBuildingRecord> existing = data.findBuildingByManagerAnyOwner(
             level.dimension().location().toString(),
-            serverPlayer.getUUID(),
             "silo",
             managerPos
         );
 
         if (existing.isPresent()) {
+            java.util.UUID hayOwner = ownerUuidOrFallback(existing.get(), serverPlayer.getUUID());
             isFormed = 1;
-            hayAmount = data.getHayAmount(serverPlayer.getUUID());
-            hayCapacity = data.getHayCapacity(serverPlayer.getUUID());
+            hayAmount = data.getHayAmount(hayOwner);
+            hayCapacity = data.getHayCapacity(hayOwner);
             canBuild = 0;
         } else {
             isFormed = 0;
@@ -77,6 +77,14 @@ public class SiloManagerMenu extends AbstractContainerMenu {
             // 检查是否可以建造
             var validation = com.stardew.craft.animal.service.SiloManagerValidationService.validate(level, managerPos);
             canBuild = validation.success() ? 1 : 0;
+        }
+    }
+
+    private static java.util.UUID ownerUuidOrFallback(AnimalBuildingRecord record, java.util.UUID fallback) {
+        try {
+            return java.util.UUID.fromString(record.ownerPlayerUuid());
+        } catch (IllegalArgumentException ex) {
+            return fallback;
         }
     }
 

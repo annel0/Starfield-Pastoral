@@ -16,7 +16,7 @@ import java.util.Objects;
 public class MuscleRemedyItem extends StardewQualityItem {
 
     public MuscleRemedyItem(String typeKey, int basePrice, int edibility, boolean supportsQuality, Properties properties) {
-        super(typeKey, basePrice, edibility, supportsQuality, properties);
+        super(typeKey, basePrice, edibility, supportsQuality, properties, true);
     }
 
     @Override

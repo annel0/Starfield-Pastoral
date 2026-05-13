@@ -1,7 +1,7 @@
 package com.stardew.craft.client.gui.quest;
 
+import com.stardew.craft.client.gui.common.CommonGuiTextures;
 import com.stardew.craft.client.gui.common.StardewRenderMapping;
-import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
 import com.stardew.craft.client.hud.QuestIconHud;
 import com.stardew.craft.quest.StardewQuest;
 import com.stardew.craft.quest.network.ClientQuestData;
@@ -37,23 +37,7 @@ public class QuestLogScreen extends Screen {
     private static final int SDV_HEIGHT = 576;
     private static final int QUESTS_PER_PAGE = 6;
 
-    // ─── Cursors UV（与 SDV 完全一致） ───
-    private static final int BOX_U = 384, BOX_V = 373, BOX_W = 18, BOX_H = 18;
-    private static final int ENTRY_U = 384, ENTRY_V = 396, ENTRY_W = 15, ENTRY_H = 15;
-    private static final int CLOSE_U = 337, CLOSE_V = 494, CLOSE_W = 12, CLOSE_H = 12;
-    private static final int BACK_U = 352, BACK_V = 495, BACK_W = 12, BACK_H = 11;
-    private static final int FWD_U = 365, FWD_V = 495, FWD_W = 12, FWD_H = 11;
-    private static final int CANCEL_U = 322, CANCEL_V = 498, CANCEL_W = 12, CANCEL_H = 12;
-    private static final int REWARD_U = 293, REWARD_V = 360, REWARD_W = 24, REWARD_H = 24;
-    private static final int COIN_U = 280, COIN_V = 410, COIN_W = 16, COIN_H = 16;
-    private static final int NEW_U = 317, NEW_V = 410, NEW_W = 23, NEW_H = 9;
-    private static final int DONE_U = 341, DONE_V = 410, DONE_W = 23, DONE_H = 9;
-    private static final int DOT_U = 395, DOT_V = 497, DOT_W = 3, DOT_H = 8;
-    private static final int TIMED_U = 410, TIMED_V = 501, TIMED_W = 9, TIMED_H = 9;
-    private static final int OBJ_ARROW_U = 412, OBJ_ARROW_V = 495, OBJ_ARROW_W = 5, OBJ_ARROW_H = 4;
-    private static final int UP_U = 421, UP_V = 459, UP_W = 11, UP_H = 12;
-    private static final int DN_U = 421, DN_V = 472, DN_W = 11, DN_H = 12;
-    private static final int SBAR_U = 435, SBAR_V = 463, SBAR_W = 6, SBAR_H = 10;
+    private static final int SBAR_H = 10;
 
     private static final int TEXT_COLOR = 0xFF222222;
     private static final int DARK_BLUE = 0xFF00008B;
@@ -189,35 +173,32 @@ public class QuestLogScreen extends Screen {
 
         // 滚动条（详情页需滚动时）
         if (needsScroll()) {
-            StardewGuiUtil.drawFromCursors(g, scrollBarOuterX, upArrowY, UP_U, UP_V, UP_W, UP_H, s4);
-            StardewGuiUtil.drawFromCursors(g, scrollBarOuterX, dnArrowY, DN_U, DN_V, DN_W, DN_H, s4);
+            CommonGuiTextures.drawScrollArrowUp(g, scrollBarOuterX, upArrowY, s4);
+            CommonGuiTextures.drawScrollArrowDown(g, scrollBarOuterX, dnArrowY, s4);
             int barH = Math.round(SBAR_H * s4);
             float maxScroll = Math.max(1, contentHeight - scissorRectHeight);
             float frac = scrollAmount / maxScroll;
             int barY = scrollTrackTop + Math.round((scrollTrackBottom - scrollTrackTop - barH) * frac);
             // SDV: scrollBar.X = upArrow.X + 12
             int barX = scrollBarOuterX + mapping.ui(12);
-            StardewGuiUtil.drawFromCursors(g, barX, barY, SBAR_U, SBAR_V, SBAR_W, SBAR_H, s4);
+            CommonGuiTextures.drawScrollBarThumb(g, barX, barY, s4);
         }
 
         // 前进/后退箭头
         if (questPage == -1 && currentPage < pages.size() - 1) {
-            StardewGuiUtil.drawFromCursors(g, fwdX, fwdY, FWD_U, FWD_V, FWD_W, FWD_H, s4);
+            CommonGuiTextures.drawForwardArrow(g, fwdX, fwdY, s4);
         }
         if (currentPage > 0 || questPage != -1) {
-            StardewGuiUtil.drawFromCursors(g, backX, backY, BACK_U, BACK_V, BACK_W, BACK_H, s4);
+            CommonGuiTextures.drawBackArrow(g, backX, backY, s4);
         }
 
         // 关闭按钮
-        StardewGuiUtil.drawFromCursors(g, closeX, closeY, CLOSE_U, CLOSE_V, CLOSE_W, CLOSE_H, s4);
+        CommonGuiTextures.drawCloseButton(g, closeX, closeY, s4);
     }
 
     private void renderListPage(GuiGraphics g, int mouseX, int mouseY) {
         // SDV: drawTextureBox (384,373,18,18) 4×
-        StardewGuiUtil.drawTextureBox(g,
-                StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
-                BOX_U, BOX_V, BOX_W, BOX_H,
-                winX, winY, winW, winH, s4, true);
+        CommonGuiTextures.drawTextureBox(g, winX, winY, winW, winH, s4, true);
 
         // SDV: SpriteText.drawStringWithScrollCenteredAt at (xPos+w/2, yPos-64)
         String title = Component.translatable("gui.stardewcraft.quest_log").getString();
@@ -238,36 +219,29 @@ public class QuestLogScreen extends Screen {
             boolean hovered = isIn(mouseX, mouseY, ex, ey, entryW, entryH);
 
             // SDV: drawTextureBox (384,396,15,15), hover → Color.Wheat
-            StardewGuiUtil.drawTextureBox(g,
-                    StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
-                    ENTRY_U, ENTRY_V, ENTRY_W, ENTRY_H,
-                    ex, ey, entryW, entryH, s4, false);
+                CommonGuiTextures.drawEntryBox(g, ex, ey, entryW, entryH, s4, false);
             if (hovered) {
                 g.fill(ex, ey, ex + entryW, ey + entryH, 0x30F5DEB3);
             }
 
             // SDV: new/complete marker or dot/timed icon
             if (q.shouldDisplayAsNew() || q.shouldDisplayAsComplete()) {
-                int mu = q.shouldDisplayAsComplete() ? DONE_U : NEW_U;
-                int mv = q.shouldDisplayAsComplete() ? DONE_V : NEW_V;
-                int mw = q.shouldDisplayAsComplete() ? DONE_W : NEW_W;
-                int mh = q.shouldDisplayAsComplete() ? DONE_H : NEW_H;
                 // SDV: at (bounds.X+68, bounds.Y+44) with origin(11,4) at 4×
                 // Visual top-left = (bounds.X+68 - 11*4, bounds.Y+44 - 4*4)
                 //                 = (bounds.X+24, bounds.Y+28)
                 int markX = ex + mapping.ui(24);
                 int markY = ey + mapping.ui(28);
-                StardewGuiUtil.drawFromCursors(g, markX, markY, mu, mv, mw, mh, s4);
-            } else {
-                int du, dv, dw, dh;
-                if (q.isTimedQuest()) {
-                    du = TIMED_U; dv = TIMED_V; dw = TIMED_W; dh = TIMED_H;
+                if (q.shouldDisplayAsComplete()) {
+                    CommonGuiTextures.drawQuestDone(g, markX, markY, s4);
                 } else {
-                    du = DOT_U; dv = DOT_V; dw = DOT_W; dh = DOT_H;
+                    CommonGuiTextures.drawQuestNew(g, markX, markY, s4);
                 }
-                // SDV: at (bounds.X+32, bounds.Y+28), origin=Zero, scale=4
-                StardewGuiUtil.drawFromCursors(g, ex + mapping.ui(32), ey + mapping.ui(28),
-                        du, dv, dw, dh, s4);
+            } else {
+                if (q.isTimedQuest()) {
+                    CommonGuiTextures.drawQuestTimed(g, ex + mapping.ui(32), ey + mapping.ui(28), s4);
+                } else {
+                    CommonGuiTextures.drawQuestDot(g, ex + mapping.ui(32), ey + mapping.ui(28), s4);
+                }
             }
 
             // SDV: SpriteText.drawString at (bounds.X+132, bounds.Y+20)
@@ -280,10 +254,7 @@ public class QuestLogScreen extends Screen {
         if (shownQuest == null) return;
 
         // SDV: 背景框
-        StardewGuiUtil.drawTextureBox(g,
-                StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
-                BOX_U, BOX_V, BOX_W, BOX_H,
-                winX, winY, winW, winH, s4, true);
+        CommonGuiTextures.drawTextureBox(g, winX, winY, winW, winH, s4, true);
 
         // SDV: 标题居中 at (xPos+w/2, yPos+32)
         Component questTitleComp = shownQuest.getTitleComponent();
@@ -303,7 +274,7 @@ public class QuestLogScreen extends Screen {
             // SDV: clock at (xPos+xOffset+32, yPos+48-8+extraY) = (xPos+xOffset+32, yPos+40+extraY)
             int clockX = winX + xOffset + mapping.ui(32);
             int clockY = winY + mapping.ui(40) + extraYOffset;
-            StardewGuiUtil.drawFromCursors(g, clockX, clockY, TIMED_U, TIMED_V, TIMED_W, TIMED_H, s4);
+            CommonGuiTextures.drawQuestTimed(g, clockX, clockY, s4);
             // SDV: text at (xPos+xOffset+80, yPos+40+extraY)
             String daysText = Component.translatable("gui.stardewcraft.quest_log.days_left",
                     shownQuest.getDaysLeft()).getString();
@@ -353,12 +324,10 @@ public class QuestLogScreen extends Screen {
                         winX + mapping.ui(36), rboxY + mapping.ui(25), TEXT_COLOR, false);
 
                 // SDV: rewardBox.draw — (293,360,24,24) at 4×
-                StardewGuiUtil.drawFromCursors(g, rboxX, rboxY, REWARD_U, REWARD_V, REWARD_W, REWARD_H, s4);
+                CommonGuiTextures.drawRewardSlot(g, rboxX, rboxY, s4);
 
                 // SDV: coin at (rewardBox.X+16, rewardBox.Y+16) at 4×
-                StardewGuiUtil.drawFromCursors(g,
-                        rboxX + mapping.ui(16), rboxY + mapping.ui(16),
-                        COIN_U, COIN_V, COIN_W, COIN_H, s4);
+                CommonGuiTextures.drawQuestCoin(g, rboxX + mapping.ui(16), rboxY + mapping.ui(16), s4);
                 // SDV: money text at (xPos+448, rewardBox.Y+25)
                 g.drawString(font, shownQuest.getMoneyReward() + "g",
                         winX + mapping.ui(448), rboxY + mapping.ui(25), 0xFF2C6E0F, false);
@@ -389,8 +358,7 @@ public class QuestLogScreen extends Screen {
                     g.pose().translate(arrowX, yPos + 2, 0);
                     g.pose().mulPose(com.mojang.math.Axis.ZP.rotationDegrees(90));
                     g.pose().scale(s4, s4, 1.0f);
-                    g.blit(StardewGuiUtil.CURSORS, 0, 0, OBJ_ARROW_U, OBJ_ARROW_V, OBJ_ARROW_W, OBJ_ARROW_H,
-                            StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT);
+                        CommonGuiTextures.drawQuestObjectiveArrow(g, 0, 0, s4);
                     g.pose().popPose();
 
                     // SDV: text at (xPos+128, yPos-8)
@@ -418,8 +386,7 @@ public class QuestLogScreen extends Screen {
 
             // SDV: cancelQuestButton
             if (shownQuest.isCanBeCancelled() && !shownQuest.isCompleted()) {
-                StardewGuiUtil.drawFromCursors(g, cancelX, cancelY,
-                        CANCEL_U, CANCEL_V, CANCEL_W, CANCEL_H, s4);
+                CommonGuiTextures.drawSmallCancelButton(g, cancelX, cancelY, s4);
             }
 
             // 滚动边缘渐隐

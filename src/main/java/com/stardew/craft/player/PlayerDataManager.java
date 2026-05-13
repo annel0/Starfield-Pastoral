@@ -7,6 +7,7 @@ import net.minecraft.world.level.saveddata.SavedData;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 
@@ -41,6 +42,10 @@ public class PlayerDataManager extends SavedData {
      */
     public PlayerStardewData getData(UUID playerUUID) {
         return playerDataMap.get(playerUUID);
+    }
+
+    public Map<UUID, PlayerStardewData> getAllPlayerData() {
+        return Collections.unmodifiableMap(playerDataMap);
     }
     
     /**

@@ -2,6 +2,7 @@ package com.stardew.craft.client.gui;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.client.ClientPlayerDataCache;
+import com.stardew.craft.client.gui.common.CommonGuiTextures;
 import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
 import com.stardew.craft.network.payload.GeodeCrackPayload;
 import com.stardew.craft.network.payload.GeodeClaimPayload;
@@ -550,9 +551,9 @@ public class GeodeMenuScreen extends Screen {
         {
             int hpY = my0 + ui(HPART_OY);
             int tu = ui(64);
-            StardewGuiUtil.drawMenuTileIndex(g, mx0, hpY, tu, tu, 4);
-            StardewGuiUtil.drawMenuTileIndex(g, mx0 + tu, hpY, Math.max(0, mw - tu * 2), tu, 6);
-            StardewGuiUtil.drawMenuTileIndex(g, mx0 + mw - tu, hpY, tu, tu, 7);
+            CommonGuiTextures.drawMenuTile(g, mx0, hpY, tu, tu, 4);
+            CommonGuiTextures.drawMenuTile(g, mx0 + tu, hpY, Math.max(0, mw - tu * 2), tu, 6);
+            CommonGuiTextures.drawMenuTile(g, mx0 + mw - tu, hpY, tu, tu, 7);
         }
 
         // ═══ 4. Vertical upper intersecting partition at xPos + 576, 328px tall ═══
@@ -564,9 +565,9 @@ public class GeodeMenuScreen extends Screen {
         {
             int vpX = mx0 + ui(VPART_OX);
             int tu = ui(64);
-            StardewGuiUtil.drawMenuTileIndex(g, vpX, my0 + ui(64), tu, tu, 44);
-            StardewGuiUtil.drawMenuTileIndex(g, vpX, my0 + ui(128), tu, ui(VPART_H - 32), 63);
-            StardewGuiUtil.drawMenuTileIndex(g, vpX, my0 + ui(VPART_H + 64), tu, tu, 39);
+            CommonGuiTextures.drawMenuTile(g, vpX, my0 + ui(64), tu, tu, 44);
+            CommonGuiTextures.drawMenuTile(g, vpX, my0 + ui(128), tu, ui(VPART_H - 32), 63);
+            CommonGuiTextures.drawMenuTile(g, vpX, my0 + ui(VPART_H + 64), tu, tu, 39);
         }
 
         // ═══ 5. Description text (right panel above partition) ═══
@@ -579,7 +580,7 @@ public class GeodeMenuScreen extends Screen {
         drawInv(g, mouseX, mouseY, s4);
 
         // ═══ 8. Geode background — cursors(0,512,140,78) at 4× ═══
-        StardewGuiUtil.drawFromCursors(g, gsX, gsY, 0, 512, 140, 78, s4);
+        GeodeMenuTextures.drawGeodeSpotBackground(g, gsX, gsY, s4);
 
         // ═══ 9. Geode item / destruction / treasure / sparkle ═══
         if (!geoSpotItem.isEmpty()) {
@@ -634,11 +635,7 @@ public class GeodeMenuScreen extends Screen {
 
     // ── Draw item at SDV drawInMenu scale (16px × s4 = 64 SDV px) ──
     private void drawSdvItem(GuiGraphics g, ItemStack stack, int x, int y, float s4) {
-        g.pose().pushPose();
-        g.pose().translate(x, y, 0);
-        g.pose().scale(s4, s4, 1f);
-        g.renderItem(stack, 0, 0);
-        g.pose().popPose();
+        CommonGuiTextures.drawItem(g, stack, x, y, s4);
     }
 
     // ── Description text ──
@@ -673,7 +670,7 @@ public class GeodeMenuScreen extends Screen {
             g.pose().scale(1.1f, 1.1f, 1f);
             g.pose().translate(-cx, -cy, 0);
         }
-        StardewGuiUtil.drawFromCursors(g, okX, okY, 128, 256, 64, 64, s1());
+        GeodeMenuTextures.drawOkButton(g, okX, okY, s1());
         g.pose().popPose();
     }
 
@@ -795,17 +792,16 @@ public class GeodeMenuScreen extends Screen {
                 // SDV highlightGeodes: geodes bright when nothing held, all bright when holding
                 boolean highlight = !held.isEmpty() || isGeode(stack);
 
-                StardewGuiUtil.drawMenuTileIndex(g, sx, sy, sz, sz, 10);
+                CommonGuiTextures.drawMenuTile(g, sx, sy, sz, sz, 10);
                 if (hov) {
                     g.fill(sx, sy, sx + sz, sy + sz, 0x35FFFFFF);
                 }
 
                 if (!stack.isEmpty()) {
-                    int ix = sx + (sz - 16) / 2;
-                    int iy = sy + (sz - 16) / 2;
+                    int ix = sx + (sz - CommonGuiTextures.itemSize(s4)) / 2;
+                    int iy = sy + (sz - CommonGuiTextures.itemSize(s4)) / 2;
                     if (!highlight) g.setColor(0.62f, 0.62f, 0.62f, 1f);
-                    g.renderItem(stack, ix, iy);
-                    g.renderItemDecorations(font, stack, ix, iy);
+                    CommonGuiTextures.drawItemWithDecorations(g, font, stack, ix, iy, s4);
                     if (!highlight) g.setColor(1f, 1f, 1f, 1f);
                 }
             }

@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "stardewcraft:textures/entity/animal/pig.png": "normal_sprite:stardew_pig.png",
+    "default": "dot"
+  },
+  "variantMethod": "xaero.hud.minimap.radar.icon.definition.BuiltInRadarIconDefinitions.getVariant"
+}

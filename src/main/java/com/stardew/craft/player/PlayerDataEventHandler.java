@@ -42,6 +42,7 @@ public class PlayerDataEventHandler {
             com.stardew.craft.event.SleepVoteTracker.markActive(player);
             // 获取或创建玩家数据（会自动从NBT加载）
             PlayerStardewData data = PlayerDataManager.getPlayerData(player);
+            data.setLastKnownName(player.getName().getString());
             PlayerStardewDataAPI.applyStardewCraftingConditionUnlocks(player);
             StardewCraft.LOGGER.info("Player {} logged in, loaded Stardew data", player.getName().getString());
             

@@ -2,10 +2,10 @@ package com.stardew.craft.client.gui;
 
 import com.stardew.craft.block.ModBlocks;
 import com.stardew.craft.block.tv.TVChannelData;
+import com.stardew.craft.client.gui.common.CommonGuiTextures;
 import com.stardew.craft.client.gui.common.StardewConfirmDialogScreen;
 import com.stardew.craft.client.gui.common.StardewQuestionDialogSpec;
 import com.stardew.craft.client.gui.common.StardewRenderMapping;
-import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
 import com.stardew.craft.client.render.TVScreenOverlayRenderer;
 import com.stardew.craft.fishing.data.FishingDataManager;
 import com.stardew.craft.fishing.data.FishingLocationData;
@@ -503,14 +503,14 @@ public class TVScreen extends Screen {
 
     private void drawTransitionBox(GuiGraphics graphics) {
         if (transitionWidth > 8 && transitionHeight > 8) {
-            StardewGuiUtil.drawTextureBox(graphics, transitionX, transitionY, transitionWidth, transitionHeight);
+            CommonGuiTextures.drawMenuTextureBox(graphics, transitionX, transitionY, transitionWidth, transitionHeight, 1.0f / guiScale(), true);
         }
     }
 
     // ==================== Dialogue Box ====================
 
     private void drawDialogueBox(GuiGraphics graphics) {
-        StardewGuiUtil.drawTextureBox(graphics, boxX, boxY, boxWidth, boxHeight);
+        CommonGuiTextures.drawMenuTextureBox(graphics, boxX, boxY, boxWidth, boxHeight, 1.0f / guiScale(), true);
     }
 
     private void drawDialogueText(GuiGraphics graphics) {
@@ -540,9 +540,7 @@ public class TVScreen extends Screen {
         int iconY = boxY + boxHeight - px(48);
         float s4 = mapping.s4();
 
-        // Triangle arrow from cursors: (232+frame*9, 346, 9, 9)
-        StardewGuiUtil.drawFromCursors(graphics, iconX, iconY,
-                232 + frame * 9, 346, 9, 9, s4);
+        CommonGuiTextures.drawDialogueNextPage(graphics, iconX, iconY, frame, s4);
     }
 
     // ==================== Input ====================

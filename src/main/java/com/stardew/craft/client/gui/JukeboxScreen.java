@@ -1,7 +1,7 @@
 package com.stardew.craft.client.gui;
 
+import com.stardew.craft.client.gui.common.CommonGuiTextures;
 import com.stardew.craft.client.gui.common.StardewRenderMapping;
-import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
 import com.stardew.craft.network.payload.JukeboxSelectPayload;
 import com.stardew.craft.sound.JukeboxTrackRegistry;
 import com.stardew.craft.sound.ModSounds;
@@ -38,16 +38,9 @@ public class JukeboxScreen extends Screen {
     private static final int BOTTOM_MARGIN = 64;
 
     // ── 按钮精灵 UV ──
-    private static final int BACK_U = 352, BACK_V = 495, BACK_W = 12, BACK_H = 11;
-    private static final int FWD_U  = 365, FWD_V  = 495, FWD_W  = 12, FWD_H  = 11;
-    private static final int OK_U   = 175, OK_V   = 379, OK_W   = 16, OK_H   = 15;
-    // cancelButton: standardTileSheet(47) → (192, 256, 64, 64) on cursors
-    private static final int CANCEL_U = 192, CANCEL_V = 256, CANCEL_W = 64, CANCEL_H = 64;
-
-    // ── 卷轴标题背景 UV (from SpriteText) ──
-    private static final int SCROLL_LEFT_U  = 325, SCROLL_V = 318, SCROLL_CAP_W = 12, SCROLL_H = 18;
-    private static final int SCROLL_MID_U   = 337;
-    private static final int SCROLL_RIGHT_U = 338;
+    private static final int BACK_W = 12, BACK_H = 11;
+    private static final int FWD_W = 12, FWD_H = 11;
+    private static final int OK_W = 16, OK_H = 15;
 
     // ── 曲名 drawTextureBox (小面板) UV: (384, 373, 18, 18) from Cursors ──
     // Stardew 的 IClickableMenu.drawTextureBox 默认使用 menuTexture，
@@ -198,23 +191,7 @@ public class JukeboxScreen extends Screen {
 
         int textX = centerX - textWidth / 2;
 
-        // Left cap
-        StardewGuiUtil.drawFromCursors(graphics,
-                textX - (int)(SCROLL_CAP_W * s4), titleY - (int)(3 * s4),
-                SCROLL_LEFT_U, SCROLL_V, SCROLL_CAP_W, SCROLL_H, s4);
-
-        // Middle stretch
-        graphics.pose().pushPose();
-        graphics.pose().translate(textX, titleY - (int)(3 * s4), 0);
-        graphics.pose().scale(textWidth, s4, 1.0f);
-        graphics.blit(StardewGuiUtil.CURSORS, 0, 0, SCROLL_MID_U, SCROLL_V, 1, SCROLL_H,
-                StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT);
-        graphics.pose().popPose();
-
-        // Right cap
-        StardewGuiUtil.drawFromCursors(graphics,
-                textX + textWidth, titleY - (int)(3 * s4),
-                SCROLL_RIGHT_U, SCROLL_V, SCROLL_CAP_W, SCROLL_H, s4);
+        CommonGuiTextures.drawScrollBanner(graphics, textX, titleY - (int)(3 * s4), textWidth, s4);
 
         // Text on top — SDV uses dark brown (Game1.textColor ≈ 0xFF5B5045)
         graphics.drawCenteredString(font, title, centerX, titleY, 0xFF5B5045);
@@ -232,7 +209,7 @@ public class JukeboxScreen extends Screen {
         int panelX = menuX + menuW / 2 - panelW / 2;
         int panelY = menuY + px(64 - 4);
 
-        StardewGuiUtil.drawTextureBoxNoShadow(graphics, panelX, panelY, panelW, panelH);
+        CommonGuiTextures.drawTextureBoxNoShadow(graphics, panelX, panelY, panelW, panelH, s4);
     }
 
     /**
@@ -274,26 +251,22 @@ public class JukeboxScreen extends Screen {
         // Back button ←
         float backScale = isHovering(mouseX, mouseY, backX, backY, backW, backH)
                 ? s4 * 1.1f : s4;
-        StardewGuiUtil.drawFromCursors(graphics, backX, backY,
-                BACK_U, BACK_V, BACK_W, BACK_H, backScale);
+        CommonGuiTextures.drawBackArrow(graphics, backX, backY, backScale);
 
         // Forward button →
         float fwdScale = isHovering(mouseX, mouseY, fwdX, fwdY, fwdW, fwdH)
                 ? s4 * 1.1f : s4;
-        StardewGuiUtil.drawFromCursors(graphics, fwdX, fwdY,
-                FWD_U, FWD_V, FWD_W, FWD_H, fwdScale);
+        CommonGuiTextures.drawForwardArrow(graphics, fwdX, fwdY, fwdScale);
 
         // OK button ✓
         float okScale = isHovering(mouseX, mouseY, okX, okY, okW, okH)
                 ? s4 * 1.1f : s4;
-        StardewGuiUtil.drawFromCursors(graphics, okX, okY,
-                OK_U, OK_V, OK_W, OK_H, okScale);
+        CommonGuiTextures.drawOkCheckSmall(graphics, okX, okY, okScale);
 
         // Cancel button ✕ — standardTileSheet[47] (192,256,64,64) at 1× scale
         float cancelScale = isHovering(mouseX, mouseY, cancelX, cancelY, cancelW, cancelH)
                 ? s4 / 4.0f * 1.1f : s4 / 4.0f;
-        StardewGuiUtil.drawFromCursors(graphics, cancelX, cancelY,
-                CANCEL_U, CANCEL_V, CANCEL_W, CANCEL_H, cancelScale);
+        CommonGuiTextures.drawLargeCancelButton(graphics, cancelX, cancelY, cancelScale);
     }
 
     private boolean isHovering(int mouseX, int mouseY, int x, int y, int w, int h) {

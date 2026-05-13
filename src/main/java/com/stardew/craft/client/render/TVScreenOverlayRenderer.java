@@ -3,9 +3,9 @@ package com.stardew.craft.client.render;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.stardew.craft.StardewCraft;
 import com.stardew.craft.block.decor.MapDecorStaticBlock;
 import com.stardew.craft.block.tv.TVChannelData;
-import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
  * Mirrors original TV.cs TemporaryAnimatedSprite rendering:
  * - Each channel has an opening sprite and (for weather/fortune) a content sprite
  * - Weather and fortune channels have animated overlays on top
- * - Sprites are from cursors.png / cursors2.png / cursors_1_6.png atlases
+ * - Sprites are pre-sliced from Stardew UI atlases into standalone TV textures
  */
 @SuppressWarnings("null")
 public class TVScreenOverlayRenderer {
@@ -70,20 +70,6 @@ public class TVScreenOverlayRenderer {
         activeChannel = 0;
         activeContentPhase = false;
     }
-
-    // ==================== Atlas References ====================
-
-    private static final ResourceLocation CURSORS = StardewGuiUtil.CURSORS;
-    private static final int CW = StardewGuiUtil.CURSORS_WIDTH;   // 704
-    private static final int CH = StardewGuiUtil.CURSORS_HEIGHT;  // 2256
-
-    private static final ResourceLocation CURSORS2 = StardewGuiUtil.CURSORS2;
-    private static final int C2W = StardewGuiUtil.CURSORS2_WIDTH;  // 256
-    private static final int C2H = StardewGuiUtil.CURSORS2_HEIGHT; // 320
-
-    private static final ResourceLocation CURSORS_1_6 = StardewGuiUtil.CURSORS_1_6;
-    private static final int C16W = StardewGuiUtil.CURSORS_1_6_WIDTH;  // 512
-    private static final int C16H = StardewGuiUtil.CURSORS_1_6_HEIGHT; // 512
 
     // ==================== Screen Area Definitions ====================
 
@@ -207,26 +193,26 @@ public class TVScreenOverlayRenderer {
     private static SpriteData getScreenSprite() {
         return switch (activeChannel) {
             case TVChannelData.CHANNEL_WEATHER -> activeContentPhase
-                    ? new SpriteData(CURSORS, CW, CH, 497, 305, 42, 28, 1, 9999)
-                    : new SpriteData(CURSORS, CW, CH, 413, 305, 42, 28, 2, 150);
+                    ? sprite("weather_content", 42, 28, 1, 9999)
+                    : sprite("weather_intro", 42, 28, 2, 150);
             case TVChannelData.CHANNEL_FORTUNE -> {
                 if (activeContentPhase) {
                     if (dailyLuck >= 0.1)
-                        yield new SpriteData(CURSORS_1_6, C16W, C16H, 424, 447, 42, 28, 1, 9999);
+                        yield sprite("fortune_good_content", 42, 28, 1, 9999);
                     else if (dailyLuck <= -0.1)
-                        yield new SpriteData(CURSORS_1_6, C16W, C16H, 424, 476, 42, 28, 1, 9999);
+                        yield sprite("fortune_bad_content", 42, 28, 1, 9999);
                     else
-                        yield new SpriteData(CURSORS, CW, CH, 624, 305, 42, 28, 1, 9999);
+                        yield sprite("fortune_neutral_content", 42, 28, 1, 9999);
                 } else {
-                    yield new SpriteData(CURSORS, CW, CH, 540, 305, 42, 28, 2, 150);
+                    yield sprite("fortune_intro", 42, 28, 2, 150);
                 }
             }
             case TVChannelData.CHANNEL_TIPS ->
-                    new SpriteData(CURSORS, CW, CH, 517, 361, 42, 28, 2, 150);
+                    sprite("tips", 42, 28, 2, 150);
             case TVChannelData.CHANNEL_COOKING ->
-                    new SpriteData(CURSORS, CW, CH, 602, 361, 42, 28, 2, 150);
+                    sprite("cooking", 42, 28, 2, 150);
             case TVChannelData.CHANNEL_FISHING ->
-                    new SpriteData(CURSORS2, C2W, C2H, 172, 33, 42, 28, 2, 150);
+                    sprite("fishing", 42, 28, 2, 150);
             default -> null;
         };
     }
@@ -245,29 +231,37 @@ public class TVScreenOverlayRenderer {
     private static SpriteData getWeatherOverlay() {
         if (weatherId == null) return null;
         return switch (weatherId) {
-            case "Snow"       -> new SpriteData(CURSORS, CW, CH, 465, 346, 13, 13, 4, 100);
-            case "Rain"       -> new SpriteData(CURSORS, CW, CH, 465, 333, 13, 13, 4, 70);
-            case "Storm"      -> new SpriteData(CURSORS, CW, CH, 413, 346, 13, 13, 4, 120);
-            case "WindSpring" -> new SpriteData(CURSORS, CW, CH, 465, 359, 13, 13, 4, 70);
-            case "WindFall"   -> new SpriteData(CURSORS, CW, CH, 413, 359, 13, 13, 4, 70);
-            case "Festival"   -> new SpriteData(CURSORS, CW, CH, 413, 372, 13, 13, 4, 120);
-            default           -> new SpriteData(CURSORS, CW, CH, 413, 333, 13, 13, 4, 100); // Sun
+            case "Snow"       -> sprite("weather_snow", 13, 13, 4, 100);
+            case "Rain"       -> sprite("weather_rain", 13, 13, 4, 70);
+            case "Storm"      -> sprite("weather_storm", 13, 13, 4, 120);
+            case "WindSpring" -> sprite("weather_wind_spring", 13, 13, 4, 70);
+            case "WindFall"   -> sprite("weather_wind_fall", 13, 13, 4, 70);
+            case "Festival"   -> sprite("weather_festival", 13, 13, 4, 120);
+            default           -> sprite("weather_sun", 13, 13, 4, 100);
         };
     }
 
     @Nullable
     private static SpriteData getFortuneOverlay() {
         if (dailyLuck < -0.07) {
-            return new SpriteData(CURSORS, CW, CH, 592, 346, 13, 13, 4, 100);
+            return sprite("fortune_very_bad", 13, 13, 4, 100);
         } else if (dailyLuck < -0.02) {
-            return new SpriteData(CURSORS, CW, CH, 540, 346, 13, 13, 4, 100);
+            return sprite("fortune_bad", 13, 13, 4, 100);
         } else if (dailyLuck > 0.07) {
-            return new SpriteData(CURSORS, CW, CH, 644, 333, 13, 13, 4, 100);
+            return sprite("fortune_very_good", 13, 13, 4, 100);
         } else if (dailyLuck > 0.02) {
-            return new SpriteData(CURSORS, CW, CH, 592, 333, 13, 13, 4, 100);
+            return sprite("fortune_good", 13, 13, 4, 100);
         } else {
-            return new SpriteData(CURSORS, CW, CH, 540, 333, 13, 13, 4, 100);
+            return sprite("fortune_neutral", 13, 13, 4, 100);
         }
+    }
+
+    private static SpriteData sprite(String name, int frameWidth, int frameHeight, int frameCount, int frameTimeMs) {
+        return new SpriteData(tv(name), frameWidth * frameCount, frameHeight, 0, 0, frameWidth, frameHeight, frameCount, frameTimeMs);
+    }
+
+    private static ResourceLocation tv(String name) {
+        return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/tv/" + name + ".png");
     }
 
     // ==================== Quad Drawing ====================

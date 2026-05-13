@@ -382,6 +382,21 @@ public class HoeItem extends Item implements IStardewItem {
 
     @SuppressWarnings("null")
     public List<BlockPos> getAffectedBlocks(Level level, BlockPos startPos, Player player, InteractionHand hand, int chargeLevel) {
+        List<BlockPos> list = collectAffectedBlockPattern(startPos, player, chargeLevel);
+
+        // 只保留“看起来能锄”的格子：上方必须无碰撞体积（空气/作物等），且方块支持 HOE_TILL
+        list.removeIf(pos -> !canTill(level, player, hand, pos));
+
+        return list;
+    }
+
+    public List<BlockPos> getPreviewBlocks(Level level, BlockPos startPos, Player player, int chargeLevel) {
+        List<BlockPos> list = collectAffectedBlockPattern(startPos, player, chargeLevel);
+        list.removeIf(pos -> !hasClearHoeSpace(level, pos));
+        return list;
+    }
+
+    private List<BlockPos> collectAffectedBlockPattern(BlockPos startPos, Player player, int chargeLevel) {
         List<BlockPos> list = new ArrayList<>();
         Direction facing = player.getDirection();
 
@@ -422,20 +437,15 @@ public class HoeItem extends Item implements IStardewItem {
             }
         }
 
-        // 只保留同一Y平面（避免坡地/上下差导致预览穿模）
         int baseY = startPos.getY();
         list.removeIf(p -> p.getY() != baseY);
-
-        // 只保留“看起来能锄”的格子：上方必须无碰撞体积（空气/作物等），且方块支持 HOE_TILL
-        list.removeIf(pos -> !canTill(level, player, hand, pos));
-
         return list;
     }
 
     // 由于 getAffectedBlocks 需要在客户端预览也可用，这里避免直接用 server-only API。
     @SuppressWarnings("null")
     private boolean canTill(Level level, Player player, InteractionHand hand, BlockPos pos) {
-        if (!level.getBlockState(pos.above()).getCollisionShape(level, pos.above()).isEmpty()) {
+        if (!hasClearHoeSpace(level, pos)) {
             return false;
         }
 
@@ -451,6 +461,10 @@ public class HoeItem extends Item implements IStardewItem {
         @SuppressWarnings("null")
         BlockState modified = state.getToolModifiedState(ctx, ItemAbilities.HOE_TILL, false);
         return modified != null && modified != state;
+    }
+
+    private static boolean hasClearHoeSpace(Level level, BlockPos pos) {
+        return level.getBlockState(pos.above()).getCollisionShape(level, pos.above()).isEmpty();
     }
 
     @SuppressWarnings("null")

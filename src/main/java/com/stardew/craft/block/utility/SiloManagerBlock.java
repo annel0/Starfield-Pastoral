@@ -221,9 +221,8 @@ public class SiloManagerBlock extends Block {
         if (owner == null) {
             owner = player.getUUID();
         }
-        Optional<AnimalBuildingRecord> existingOpt = data.findBuildingByManager(
+        Optional<AnimalBuildingRecord> existingOpt = data.findBuildingByManagerAnyOwner(
             level.dimension().location().toString(),
-            owner,
             "silo",
             managerPos
         );
@@ -289,9 +288,8 @@ public class SiloManagerBlock extends Block {
 
     public static boolean tryDemolishBuilding(ServerLevel level, BlockPos managerPos, ServerPlayer player) {
         AnimalWorldData data = AnimalWorldData.get(level);
-        Optional<AnimalBuildingRecord> existingOpt = data.findBuildingByManager(
+        Optional<AnimalBuildingRecord> existingOpt = data.findBuildingByManagerAnyOwner(
             level.dimension().location().toString(),
-            player.getUUID(),
             "silo",
             managerPos
         );
@@ -302,6 +300,11 @@ public class SiloManagerBlock extends Block {
         }
 
         AnimalBuildingRecord existing = existingOpt.get();
+        if (!com.stardew.craft.farm.FarmInstanceRegistry.get()
+                .canOperateBuilding(player.getUUID(), existing.ownerPlayerUuid())) {
+            player.sendSystemMessage(Component.translatable("message.stardew_craft.manager.relocate_owner_mismatch"));
+            return false;
+        }
         int removedAnimals = data.demolishBuildingAndRemoveAnimals(existing.buildingId());
 
         BlockState state = level.getBlockState(managerPos);
@@ -316,9 +319,8 @@ public class SiloManagerBlock extends Block {
 
     public static boolean tryRelocateManager(ServerLevel level, BlockPos managerPos, ServerPlayer player) {
         AnimalWorldData data = AnimalWorldData.get(level);
-        Optional<AnimalBuildingRecord> existingOpt = data.findBuildingByManager(
+        Optional<AnimalBuildingRecord> existingOpt = data.findBuildingByManagerAnyOwner(
             level.dimension().location().toString(),
-            player.getUUID(),
             "silo",
             managerPos
         );
@@ -329,6 +331,11 @@ public class SiloManagerBlock extends Block {
         }
 
         AnimalBuildingRecord existing = existingOpt.get();
+        if (!com.stardew.craft.farm.FarmInstanceRegistry.get()
+                .canOperateBuilding(player.getUUID(), existing.ownerPlayerUuid())) {
+            player.sendSystemMessage(Component.translatable("message.stardew_craft.manager.relocate_owner_mismatch"));
+            return false;
+        }
         data.deactivateBuildingForRelocation(existing.buildingId());
 
         ItemStack managerItem = new ItemStack(ModBlocks.SILO_MANAGER.get().asItem());

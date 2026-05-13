@@ -207,6 +207,10 @@ public class MapDecorStaticBlock extends Block {
     private VoxelShape orientedShape(Direction facing) {
         String key = modelId + "#" + facing.getSerializedName();
         return ORIENTED_SHAPE_CACHE.computeIfAbsent(key, unused -> {
+            VoxelShape compactShape = compactDecorShape(facing);
+            if (compactShape != null) {
+                return compactShape;
+            }
             if (modelId.contains("bonsai")) {
                 if (modelId.contains("wall")) {
                     return Block.box(0, 0, 0, 16, 16, 16);
@@ -220,6 +224,21 @@ public class MapDecorStaticBlock extends Block {
             }
             return rotateShapeY(ModelVoxelShapeCache.shapeFromModelId(modelId), facing);
         });
+    }
+
+    @Nullable
+    private VoxelShape compactDecorShape(Direction facing) {
+        VoxelShape shape = null;
+        if (modelId.contains("bonsai_5_wall")) {
+            shape = Block.box(4.0D, 3.0D, 12.0D, 12.0D, 14.0D, 16.0D);
+        } else if (modelId.contains("bonsai_6_") || modelId.endsWith("/bonsai_6")) {
+            shape = Block.box(4.0D, 0.0D, 4.0D, 12.0D, 8.0D, 12.0D);
+        } else if (modelId.endsWith("/empty_terracotta_pot")) {
+            shape = Block.box(3.0D, 0.0D, 3.0D, 13.0D, 8.0D, 13.0D);
+        } else if (modelId.endsWith("/long_potted_plant")) {
+            shape = Block.box(-6.0D, 0.0D, 4.0D, 22.0D, 8.0D, 12.0D);
+        }
+        return shape == null ? null : rotateShapeForFacing(shape, facing);
     }
 
     private static VoxelShape rotateShapeY(VoxelShape shape, Direction facing) {
@@ -278,7 +297,10 @@ public class MapDecorStaticBlock extends Block {
             // to be spuriously placed in neighbouring cells (which would block block-placement
             // next to the bonsai and leave orphaned extensions after removal).
             VoxelShape shape;
-            if (modelId.contains("bonsai")) {
+            VoxelShape compactShape = compactDecorShape(Direction.NORTH);
+            if (compactShape != null) {
+                shape = compactShape;
+            } else if (modelId.contains("bonsai")) {
                 if (modelId.contains("wall") || modelId.contains("bonsai_6_")) {
                     shape = Block.box(0, 0, 0, 16, 16, 16); // 1×1×1
                 } else {

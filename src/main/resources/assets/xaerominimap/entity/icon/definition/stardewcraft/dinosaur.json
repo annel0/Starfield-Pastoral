@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "stardewcraft:textures/entity/animal/dinosaur.png": "normal_sprite:stardew_dinosaur.png",
+    "default": "dot"
+  },
+  "variantMethod": "xaero.hud.minimap.radar.icon.definition.BuiltInRadarIconDefinitions.getVariant"
+}

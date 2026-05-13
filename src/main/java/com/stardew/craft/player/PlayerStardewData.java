@@ -31,6 +31,7 @@ public class PlayerStardewData {
     
     // 玩家UUID
     private UUID playerUUID;
+    private String lastKnownName = "";
     
     // ============ 基础属性 ============
     private int health;              // 当前生命值
@@ -114,6 +115,7 @@ public class PlayerStardewData {
     // 对齐原版 player.shippedBasic 与 stats.ItemsShipped 的基础数据结构。
     private final Set<String> shippedBasic = new HashSet<>();
     private final Map<String, Integer> itemsShipped = new HashMap<>();
+    private long totalShippingGold;
 
     // ============ 特殊订单规则 ============
     // 对齐原版 PLAYER_SPECIAL_ORDER_RULE_ACTIVE 条件分支。
@@ -121,6 +123,14 @@ public class PlayerStardewData {
 
     // ============ 垃圾桶统计 ============
     private int trashCansChecked;
+
+    // ============ 排行榜统计 ============
+    private int mineBlocksBrokenTotal;
+    private int mineStonesBroken;
+    private int mineOresBroken;
+    private int mineGemOresBroken;
+    private int mineMineralNodesBroken;
+    private int mineBlocksBombed;
 
     // ============ 邮件标记（SDV mailReceived parity） ============
     private final Set<String> mailFlags = new HashSet<>();
@@ -249,6 +259,7 @@ public class PlayerStardewData {
         data.maxEnergy = tag.contains("MaxEnergy") ? tag.getInt("MaxEnergy") : 270;
         data.exhausted = tag.getBoolean("Exhausted");
         data.money = tag.contains("Money") ? tag.getInt("Money") : 500;
+        data.lastKnownName = tag.contains("LastKnownName") ? tag.getString("LastKnownName") : "";
 
         // 晕倒/死亡系统
         data.passedOutFromCombat = tag.getBoolean("PassedOutFromCombat");
@@ -426,6 +437,8 @@ public class PlayerStardewData {
             }
         }
 
+        data.totalShippingGold = tag.contains("TotalShippingGold") ? Math.max(0L, tag.getLong("TotalShippingGold")) : 0L;
+
         data.activeSpecialOrderRules.clear();
         if (tag.contains("ActiveSpecialOrderRules")) {
             ListTag list = tag.getList("ActiveSpecialOrderRules", 8);
@@ -438,6 +451,12 @@ public class PlayerStardewData {
         }
 
         data.trashCansChecked = tag.contains("TrashCansChecked") ? tag.getInt("TrashCansChecked") : 0;
+        data.mineBlocksBrokenTotal = tag.contains("MineBlocksBrokenTotal") ? Math.max(0, tag.getInt("MineBlocksBrokenTotal")) : 0;
+        data.mineStonesBroken = tag.contains("MineStonesBroken") ? Math.max(0, tag.getInt("MineStonesBroken")) : 0;
+        data.mineOresBroken = tag.contains("MineOresBroken") ? Math.max(0, tag.getInt("MineOresBroken")) : 0;
+        data.mineGemOresBroken = tag.contains("MineGemOresBroken") ? Math.max(0, tag.getInt("MineGemOresBroken")) : 0;
+        data.mineMineralNodesBroken = tag.contains("MineMineralNodesBroken") ? Math.max(0, tag.getInt("MineMineralNodesBroken")) : 0;
+        data.mineBlocksBombed = tag.contains("MineBlocksBombed") ? Math.max(0, tag.getInt("MineBlocksBombed")) : 0;
 
         // 邮件标记
         if (tag.contains("MailFlags", 9)) { // 9 = TAG_List
@@ -563,6 +582,7 @@ public class PlayerStardewData {
         tag.putInt("MaxEnergy", maxEnergy);
         tag.putBoolean("Exhausted", exhausted);
         tag.putInt("Money", money);
+        tag.putString("LastKnownName", lastKnownName == null ? "" : lastKnownName);
 
         // 晕倒/死亡系统
         tag.putBoolean("PassedOutFromCombat", passedOutFromCombat);
@@ -703,6 +723,7 @@ public class PlayerStardewData {
             itemsShippedTag.add(shippedTag);
         }
         tag.put("ItemsShipped", itemsShippedTag);
+        tag.putLong("TotalShippingGold", totalShippingGold);
 
         ListTag activeRules = new ListTag();
         for (String rule : activeSpecialOrderRules) {
@@ -713,6 +734,12 @@ public class PlayerStardewData {
         tag.put("ActiveSpecialOrderRules", activeRules);
 
         tag.putInt("TrashCansChecked", trashCansChecked);
+        tag.putInt("MineBlocksBrokenTotal", mineBlocksBrokenTotal);
+        tag.putInt("MineStonesBroken", mineStonesBroken);
+        tag.putInt("MineOresBroken", mineOresBroken);
+        tag.putInt("MineGemOresBroken", mineGemOresBroken);
+        tag.putInt("MineMineralNodesBroken", mineMineralNodesBroken);
+        tag.putInt("MineBlocksBombed", mineBlocksBombed);
 
         // 邮件标记
         if (!mailFlags.isEmpty()) {
@@ -1246,6 +1273,16 @@ public class PlayerStardewData {
         this.money = Math.max(0, money);
         markDirty();
     }
+
+    public String getLastKnownName() { return lastKnownName == null ? "" : lastKnownName; }
+
+    public void setLastKnownName(String name) {
+        String normalized = name == null ? "" : name.trim();
+        if (!normalized.equals(lastKnownName)) {
+            lastKnownName = normalized;
+            markDirty();
+        }
+    }
     
     public int getSkillLevel(SkillType skill) {
         int base = skillLevels[skill.getId()];
@@ -1475,11 +1512,23 @@ public class PlayerStardewData {
         return new HashSet<>(shippedBasic);
     }
 
+    public Map<String, Integer> getAllItemsShipped() {
+        return Collections.unmodifiableMap(itemsShipped);
+    }
+
     public int getItemsShippedCount(String itemId) {
         if (itemId == null || itemId.isBlank()) {
             return 0;
         }
         return Math.max(0, itemsShipped.getOrDefault(itemId, 0));
+    }
+
+    public long getTotalShippingGold() { return totalShippingGold; }
+
+    public void addTotalShippingGold(long amount) {
+        if (amount <= 0L) return;
+        totalShippingGold = Math.max(0L, totalShippingGold + amount);
+        markDirty();
     }
 
     public boolean setSpecialOrderRuleActive(String ruleId, boolean active) {
@@ -1503,6 +1552,45 @@ public class PlayerStardewData {
 
     public void incrementTrashCansChecked() {
         trashCansChecked++;
+        markDirty();
+    }
+
+    public int getMineBlocksBrokenTotal() { return mineBlocksBrokenTotal; }
+
+    public int getMineStonesBroken() { return mineStonesBroken; }
+
+    public int getMineOresBroken() { return mineOresBroken; }
+
+    public int getMineGemOresBroken() { return mineGemOresBroken; }
+
+    public int getMineMineralNodesBroken() { return mineMineralNodesBroken; }
+
+    public int getMineBlocksBombed() { return mineBlocksBombed; }
+
+    public void addMineBlocksBroken(int amount) {
+        if (amount <= 0) return;
+        mineBlocksBrokenTotal = Math.max(0, mineBlocksBrokenTotal + amount);
+        markDirty();
+    }
+
+    public void recordMineBlockBroken(boolean ore, boolean gemOre, boolean mineralNode) {
+        mineBlocksBrokenTotal = Math.max(0, mineBlocksBrokenTotal + 1);
+        if (mineralNode) {
+            mineMineralNodesBroken = Math.max(0, mineMineralNodesBroken + 1);
+        } else if (ore) {
+            mineOresBroken = Math.max(0, mineOresBroken + 1);
+            if (gemOre) {
+                mineGemOresBroken = Math.max(0, mineGemOresBroken + 1);
+            }
+        } else {
+            mineStonesBroken = Math.max(0, mineStonesBroken + 1);
+        }
+        markDirty();
+    }
+
+    public void addMineBlocksBombed(int amount) {
+        if (amount <= 0) return;
+        mineBlocksBombed = Math.max(0, mineBlocksBombed + amount);
         markDirty();
     }
 
@@ -1982,6 +2070,7 @@ public class PlayerStardewData {
     public void markDirty() {
         this.dirty = true;
         this.lastSyncTime = System.currentTimeMillis();
+        com.stardew.craft.leaderboard.LeaderboardService.invalidateCache();
     }
     
     public void markClean() {

@@ -1,5 +1,6 @@
 package com.stardew.craft.client.gui.overnight;
 
+import com.stardew.craft.client.gui.common.CommonGuiTextures;
 import com.stardew.craft.network.payload.PassOutPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -85,9 +86,9 @@ public class PassOutSummaryScreen extends Screen {
             for (int i = 0; i < lostItems.size(); i++) {
                 ItemStack stack = lostItems.get(i);
                 int ix = startX + i * 20;
-                graphics.renderItem(stack, ix, y);
+                CommonGuiTextures.drawItem(graphics, stack, ix, y, 1.0f);
                 if (stack.getCount() > 1) {
-                    graphics.renderItemDecorations(font, stack, ix, y);
+                    CommonGuiTextures.drawItemDecorations(graphics, font, stack, ix, y, 1.0f);
                 }
             }
             y += 24;

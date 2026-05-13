@@ -1,7 +1,7 @@
 package com.stardew.craft.client.gui.quest;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
+import com.stardew.craft.client.gui.common.CommonGuiTextures;
 import com.stardew.craft.client.hud.StardewTimeHud;
 import com.stardew.craft.npc.data.NpcDataRegistry;
 import com.stardew.craft.quest.StardewQuest;
@@ -28,31 +28,21 @@ import java.util.Map;
 public class BillboardScreen extends Screen {
 
     // ─── 纹理 ───
-    private static final ResourceLocation BILLBOARD_TEX =
-        ResourceLocation.fromNamespaceAndPath("stardewcraft", "textures/gui/billboard.png");
-    private static final int BILLBOARD_TEX_W = 338;
-    private static final int BILLBOARD_TEX_H = 512;
-
-    // ─── 日历背景 UV ───
-    private static final int CAL_U = 0, CAL_V = 198, CAL_W = 301, CAL_H = 198;
-    // ─── 每日任务背景 UV ───
-    private static final int QUEST_U = 0, QUEST_V = 0, QUEST_W = 338, QUEST_H = 198;
+    private static final ResourceLocation CALENDAR_BACKGROUND = billboard("calendar_background");
+    private static final ResourceLocation DAILY_QUEST_BACKGROUND = billboard("daily_quest_background");
+    private static final ResourceLocation QUEST_DONE_STAR = billboard("quest_done_star");
+    private static final int CAL_W = 301, CAL_H = 198;
+    private static final int QUEST_W = 338, QUEST_H = 198;
 
     // ─── 日历格子 ───
     @SuppressWarnings("unused")
     private static final int GRID_COLS = 7, GRID_ROWS = 4;
 
-    // ─── 今日高亮（mouseCursors 9-slice source，3×3 per-corner） ───
-    private static final int TODAY_U = 379, TODAY_V = 357;
-
-    // ─── 每日任务完成星标 (billboard.png) ───
-    private static final int STAR_U = 140, STAR_V = 397, STAR_W = 10, STAR_H = 11;
+    // ─── 每日任务完成星标 ───
+    private static final int STAR_W = 10, STAR_H = 11;
 
     // ─── 关闭按钮 ───
-    private static final int CLOSE_U = 337, CLOSE_V = 494, CLOSE_W = 12, CLOSE_H = 12;
-
-    // ─── 接受按钮 9-slice ───
-    private static final int ACCEPT_U = 403, ACCEPT_V = 373, ACCEPT_W = 9, ACCEPT_H = 9;
+    private static final int CLOSE_W = 12, CLOSE_H = 12;
 
     // ─── 颜色 ───
     private static final int TEXT_COLOR = 0xFF404040;
@@ -144,7 +134,7 @@ public class BillboardScreen extends Screen {
         float cs = s4 * closeScale;
         int cdx = closeX + closeW2 / 2 - Math.round(CLOSE_W * cs / 2);
         int cdy = closeY + closeH2 / 2 - Math.round(CLOSE_H * cs / 2);
-        StardewGuiUtil.drawFromCursors(g, cdx, cdy, CLOSE_U, CLOSE_V, CLOSE_W, CLOSE_H, cs);
+        CommonGuiTextures.drawCloseButton(g, cdx, cdy, cs);
 
         // Tab indicators — 用加粗 Component 代替 drawShadow（shadow 边缘在高 guiScale 下会变粗变脏）
         int tabY = windowY - Math.round(32 * s4);
@@ -175,7 +165,7 @@ public class BillboardScreen extends Screen {
      */
     private void renderCalendar(GuiGraphics g, int mouseX, int mouseY) {
         // ── 背景 ──
-        drawBillboard(g, windowX, windowY, CAL_U, CAL_V, CAL_W, CAL_H, s4);
+        drawFull(g, CALENDAR_BACKGROUND, windowX, windowY, CAL_W, CAL_H, s4);
 
         int currentDay = getCurrentDay();
         String currentSeason = StardewTimeHud.getClientTimeCache().getSeasonName().toLowerCase();
@@ -224,7 +214,7 @@ public class BillboardScreen extends Screen {
             if (ClientQuestData.isDailyQuestCompletedOnDay(day)) {
                 int starX = cx + cellSize - Math.round(STAR_W * s4) - Math.round(s4 / 4);
                 int starY = cy + cellSize - Math.round(STAR_H * s4) - Math.round(s4 / 4);
-                drawBillboard(g, starX, starY, STAR_U, STAR_V, STAR_W, STAR_H, s4);
+                drawFull(g, QUEST_DONE_STAR, starX, starY, STAR_W, STAR_H, s4);
             }
 
             // ── 过去日期灰盖（SDV 448-451：staminaRect @ cell.bounds, Color.Gray * 0.25） ──
@@ -236,10 +226,7 @@ public class BillboardScreen extends Screen {
             else if (currentDay == day) {
                 // SDV 源是 3×3 tile pattern（每 1 SDV px 一角），drawTextureBox 内部 cornerSize = srcW/3
                 g.setColor(0.35F, 0.35F, 1.0F, 1.0F);
-                StardewGuiUtil.drawTextureBox(g,
-                    StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
-                    TODAY_U, TODAY_V, 3, 3,
-                    cx, cy, cellSize, cellSize, s4, false);
+                CommonGuiTextures.drawCalendarTodayBox(g, cx, cy, cellSize, cellSize, s4);
                 g.setColor(1.0F, 1.0F, 1.0F, 1.0F);
             }
         }
@@ -305,7 +292,7 @@ public class BillboardScreen extends Screen {
      */
     private void renderDailyQuest(GuiGraphics g, int mouseX, int mouseY) {
         // ── 背景 ──
-        drawBillboard(g, windowX, windowY, QUEST_U, QUEST_V, QUEST_W, QUEST_H, s4);
+        drawFull(g, DAILY_QUEST_BACKGROUND, windowX, windowY, QUEST_W, QUEST_H, s4);
 
         StardewQuest daily = ClientQuestData.getDailyQuest();
 
@@ -367,10 +354,7 @@ public class BillboardScreen extends Screen {
             // SDV: (scale>1 ? LightPink : White) — hover 时按钮染粉
             if (hov) g.setColor(1.0F, 0.7F, 0.75F, 1.0F);
             // SDV 源 Rectangle(403,373,9,9) = 3×3 tile pattern，每 3 SDV px 一角
-            StardewGuiUtil.drawTextureBox(g,
-                StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
-                ACCEPT_U, ACCEPT_V, ACCEPT_W, ACCEPT_H,
-                acceptX, acceptY, acceptW2, acceptH2, s4, false);
+            CommonGuiTextures.drawBillboardAcceptBox(g, acceptX, acceptY, acceptW2, acceptH2, s4);
             if (hov) g.setColor(1.0F, 1.0F, 1.0F, 1.0F);
 
             // SDV: text at (btn.X+12, btn.Y+16) screen px
@@ -395,7 +379,7 @@ public class BillboardScreen extends Screen {
         int baseY = windowY + Math.round(36 * s4);      // SDV 36 SDV px = 144 screen px
         for (int j = 0; j < count; j++) {
             int x = windowX + Math.round((18 + 12 * j) * s4);
-            drawBillboard(g, x, baseY, STAR_U, STAR_V, STAR_W, STAR_H, s4);
+            drawFull(g, QUEST_DONE_STAR, x, baseY, STAR_W, STAR_H, s4);
         }
     }
 
@@ -476,12 +460,14 @@ public class BillboardScreen extends Screen {
 
     // ─── 工具方法 ───
 
-    private void drawBillboard(GuiGraphics g, int x, int y, int u, int v, int w, int h, float scale) {
+    private void drawFull(GuiGraphics g, ResourceLocation texture, int x, int y, int w, int h, float scale) {
         int dw = Math.round(w * scale);
         int dh = Math.round(h * scale);
-        g.blit(BILLBOARD_TEX, x, y, dw, dh,
-            (float) u, (float) v, w, h,
-            BILLBOARD_TEX_W, BILLBOARD_TEX_H);
+        g.blit(texture, x, y, dw, dh, 0.0f, 0.0f, w, h, w, h);
+    }
+
+    private static ResourceLocation billboard(String name) {
+        return ResourceLocation.fromNamespaceAndPath("stardewcraft", "textures/gui/billboard/" + name + ".png");
     }
 
     private int getCurrentDay() {

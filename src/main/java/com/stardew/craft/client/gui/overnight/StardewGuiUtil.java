@@ -20,6 +20,14 @@ public class StardewGuiUtil {
     public static final ResourceLocation MENU_TILES = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/animal_query/menu_tiles.png");
     public static final int MENU_TILES_WIDTH = 256;
     public static final int MENU_TILES_HEIGHT = 1152;
+    private static final ResourceLocation COMMON_TEXTURE_BOX_18 = common("texture_box_18");
+    private static final ResourceLocation COMMON_ENTRY_BOX_15 = common("entry_box_15");
+    private static final ResourceLocation COMMON_SCROLL_TRACK_BOX = common("scroll_track_box");
+    private static final ResourceLocation COMMON_SCROLL_BANNER_BOX_11 = common("scroll_banner_box_11");
+    private static final ResourceLocation COMMON_OPTION_HIGHLIGHT_BOX_3 = common("option_highlight_box_3");
+    private static final ResourceLocation COMMON_CALENDAR_TODAY_BOX_3 = common("calendar_today_box_3");
+    private static final ResourceLocation COMMON_BILLBOARD_ACCEPT_BOX_9 = common("billboard_accept_box_9");
+    private static final ResourceLocation MENU_TEXTURE_BOX_60 = animalQuery("menu_texture_box_60");
 
     public static void drawFromCursors(GuiGraphics graphics, int x, int y, int u, int v, int width, int height, float scale) {
         drawFromCursors(graphics, x, y, u, v, width, height, scale, 1.0f);
@@ -126,20 +134,72 @@ public class StardewGuiUtil {
         int centerY = y + inset;
         int centerW = Math.max(0, width - unit);
         int centerH = Math.max(0, height - unit);
-        drawMenuRegion(graphics, centerX, centerY, centerW, centerH, 64, 128, 64, 64);
+        drawMenuTile(graphics, centerX, centerY, centerW, centerH, 9);
 
-        drawMenuRegion(graphics, x, y, unit, unit, 0, 0, 64, 64);
-        drawMenuRegion(graphics, x + width - unit, y, unit, unit, 192, 0, 64, 64);
-        drawMenuRegion(graphics, x + width - unit, y + height - unit, unit, unit, 192, 192, 64, 64);
-        drawMenuRegion(graphics, x, y + height - unit, unit, unit, 0, 192, 64, 64);
+        drawMenuTile(graphics, x, y, unit, unit, 0);
+        drawMenuTile(graphics, x + width - unit, y, unit, unit, 3);
+        drawMenuTile(graphics, x + width - unit, y + height - unit, unit, unit, 15);
+        drawMenuTile(graphics, x, y + height - unit, unit, unit, 12);
 
-        drawMenuRegion(graphics, x + unit, y, Math.max(0, width - unit * 2), unit, 128, 0, 64, 64);
-        drawMenuRegion(graphics, x + unit, y + height - unit, Math.max(0, width - unit * 2), unit, 128, 192, 64, 64);
-        drawMenuRegion(graphics, x, y + unit, unit, Math.max(0, height - unit * 2), 0, 128, 64, 64);
-        drawMenuRegion(graphics, x + width - unit, y + unit, unit, Math.max(0, height - unit * 2), 192, 128, 64, 64);
+        drawMenuTile(graphics, x + unit, y, Math.max(0, width - unit * 2), unit, 2);
+        drawMenuTile(graphics, x + unit, y + height - unit, Math.max(0, width - unit * 2), unit, 14);
+        drawMenuTile(graphics, x, y + unit, unit, Math.max(0, height - unit * 2), 8);
+        drawMenuTile(graphics, x + width - unit, y + unit, unit, Math.max(0, height - unit * 2), 11);
     }
 
     public static void drawTextureBox(GuiGraphics graphics, ResourceLocation texture, int texWidth, int texHeight, int srcX, int srcY, int srcW, int srcH, int x, int y, int width, int height, float scale, boolean drawShadow) {
+        if (texture.equals(CURSORS)) {
+            if (srcX == 384 && srcY == 373 && srcW == 18 && srcH == 18) {
+                texture = COMMON_TEXTURE_BOX_18;
+                texWidth = 18;
+                texHeight = 18;
+                srcX = 0;
+                srcY = 0;
+            } else if (srcX == 384 && srcY == 396 && srcW == 15 && srcH == 15) {
+                texture = COMMON_ENTRY_BOX_15;
+                texWidth = 15;
+                texHeight = 15;
+                srcX = 0;
+                srcY = 0;
+            } else if (srcX == 403 && srcY == 383 && srcW == 6 && srcH == 6) {
+                texture = COMMON_SCROLL_TRACK_BOX;
+                texWidth = 6;
+                texHeight = 6;
+                srcX = 0;
+                srcY = 0;
+            } else if (srcX == 325 && srcY == 318 && srcW == 11 && srcH == 18) {
+                texture = COMMON_SCROLL_BANNER_BOX_11;
+                texWidth = 11;
+                texHeight = 18;
+                srcX = 0;
+                srcY = 0;
+            } else if (srcX == 375 && srcY == 357 && srcW == 3 && srcH == 3) {
+                texture = COMMON_OPTION_HIGHLIGHT_BOX_3;
+                texWidth = 3;
+                texHeight = 3;
+                srcX = 0;
+                srcY = 0;
+            } else if (srcX == 379 && srcY == 357 && srcW == 3 && srcH == 3) {
+                texture = COMMON_CALENDAR_TODAY_BOX_3;
+                texWidth = 3;
+                texHeight = 3;
+                srcX = 0;
+                srcY = 0;
+            } else if (srcX == 403 && srcY == 373 && srcW == 9 && srcH == 9) {
+                texture = COMMON_BILLBOARD_ACCEPT_BOX_9;
+                texWidth = 9;
+                texHeight = 9;
+                srcX = 0;
+                srcY = 0;
+            }
+        } else if (texture.equals(MENU_TILES) && srcX == 0 && srcY == 256 && srcW == 60 && srcH == 60) {
+            texture = MENU_TEXTURE_BOX_60;
+            texWidth = 60;
+            texHeight = 60;
+            srcX = 0;
+            srcY = 0;
+        }
+
         int cornerSize = srcW / 3;
         int scaledCorner = Math.max(1, (int)(cornerSize * scale));
 
@@ -182,24 +242,27 @@ public class StardewGuiUtil {
         return (float) mc.getWindow().getGuiScale();
     }
 
+    private static ResourceLocation common(String name) {
+        return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/common/" + name + ".png");
+    }
+
+    private static ResourceLocation animalQuery(String name) {
+        return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/animal_query/" + name + ".png");
+    }
+
+    private static ResourceLocation menuTile(int tileIndex) {
+        return animalQuery("menu_tile_" + tileIndex);
+    }
+
     private static void drawMenuTile(GuiGraphics graphics, int x, int y, int width, int height, int tileIndex) {
         if (width <= 0 || height <= 0) {
             return;
         }
-        // Vanilla Game1.getSourceRectForStandardTileSheet(menuTexture, index) defaults to 64x64 tiles.
-        int tileSize = 64;
-        int columns = MENU_TILES_WIDTH / tileSize;
-        int u = (tileIndex % columns) * tileSize;
-        int v = (tileIndex / columns) * tileSize;
-        drawRegion(graphics, MENU_TILES, MENU_TILES_WIDTH, MENU_TILES_HEIGHT, x, y, width, height, u, v, tileSize, tileSize);
+        drawRegion(graphics, menuTile(tileIndex), 64, 64, x, y, width, height, 0, 0, 64, 64);
     }
 
     public static void drawMenuTileIndex(GuiGraphics graphics, int x, int y, int width, int height, int tileIndex) {
         drawMenuTile(graphics, x, y, width, height, tileIndex);
-    }
-
-    private static void drawMenuRegion(GuiGraphics graphics, int x, int y, int width, int height, int u, int v, int srcW, int srcH) {
-        drawRegion(graphics, MENU_TILES, MENU_TILES_WIDTH, MENU_TILES_HEIGHT, x, y, width, height, u, v, srcW, srcH);
     }
 
 }

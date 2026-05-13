@@ -1,6 +1,7 @@
 package com.stardew.craft.client.gui;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import com.stardew.craft.client.gui.common.CommonGuiTextures;
 import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
 import com.stardew.craft.network.payload.WorkbenchCraftPayload;
 import com.stardew.craft.network.payload.WorkbenchCraftResultPayload;
@@ -74,13 +75,10 @@ public class WorkbenchScreen extends Screen {
     private static final int TAB_SIZE = 56;
     private static final int TAB_GAP  = 4;
 
-    // Cursors UV (sprite pixels, rendered at s4() scale)
-    private static final int BDR_U = 384, BDR_V = 373, BDR_W = 18, BDR_H = 18;
-    private static final int ROW_U = 384, ROW_V = 396, ROW_W = 15, ROW_H = 15;
-    private static final int ICO_U = 296, ICO_V = 363, ICO_W = 18, ICO_H = 18;
-    private static final int CLOSE_U = 337, CLOSE_V = 494, CLOSE_W = 12, CLOSE_H = 12;
-    private static final int ARR_L_U = 352, ARR_L_V = 495, ARR_L_W = 12, ARR_L_H = 11;
-    private static final int ARR_R_U = 365, ARR_R_V = 495, ARR_R_W = 12, ARR_R_H = 11;
+    // Cursors sprite dimensions (rendered at s4() scale)
+    private static final int ICO_W = 18, ICO_H = 18;
+    private static final int CLOSE_W = 12, CLOSE_H = 12;
+    private static final int ARR_W = 12, ARR_H = 11;
 
     // Colors (ARGB)
     private static final int C_OVERLAY  = 0xBF000000;
@@ -201,8 +199,8 @@ public class WorkbenchScreen extends Screen {
         float s4 = s4();
         pgY = grdY + gridTotalH + ui(12);
         pgCenterX = grdX + gridTotalW / 2;
-        arrW = (int)(ARR_L_W * s4);
-        arrH = (int)(ARR_L_H * s4);
+        arrW = (int)(ARR_W * s4);
+        arrH = (int)(ARR_H * s4);
         // Arrow positions computed dynamically in drawPageNav based on text width
 
         // ── Preview panel (right of grid + thin divider gap) ──
@@ -316,10 +314,7 @@ public class WorkbenchScreen extends Screen {
         g.fill(0, 0, width, height, C_OVERLAY);
 
         // 2) Main panel (BDR 9-slice with shadow)
-        StardewGuiUtil.drawTextureBox(g,
-            StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
-            BDR_U, BDR_V, BDR_W, BDR_H,
-            pnlX, pnlY, pnlW, pnlH, s4, true);
+        CommonGuiTextures.drawTextureBox(g, pnlX, pnlY, pnlW, pnlH, s4, true);
 
         // 3) Title bar (title text + material icons/counts)
         drawTitle(g);
@@ -374,7 +369,7 @@ public class WorkbenchScreen extends Screen {
             rx -= font.width(bTxt);
             g.drawString(font, bTxt, rx, ty, C_DARK, false);
             rx -= 17; // 16px icon + 1px gap
-            g.renderItem(bonusStack, rx, ty + iconOff);
+            CommonGuiTextures.drawItem(g, bonusStack, rx, ty + iconOff, 1.0f);
             rx -= ui(20); // spacing between bonus and main
         }
 
@@ -384,7 +379,7 @@ public class WorkbenchScreen extends Screen {
         g.drawString(font, mTxt, rx, ty, C_DARK, false);
         rx -= 17;
         if (!matStack.isEmpty()) {
-            g.renderItem(matStack, rx, ty + iconOff);
+            CommonGuiTextures.drawItem(g, matStack, rx, ty + iconOff, 1.0f);
         }
     }
 
@@ -392,6 +387,7 @@ public class WorkbenchScreen extends Screen {
     private void drawTabs(GuiGraphics g, int mx, int my) {
         int n = categories.size();
         int gapGui = ui(TAB_GAP);
+        float scale4 = s4();
 
         for (int i = 0; i < n; i++) {
             int ty = tabFirstY + i * (tabSzGui + gapGui);
@@ -425,19 +421,18 @@ public class WorkbenchScreen extends Screen {
                 g.fill(tx + tw - 1, ty + 2, tx + tw, ty + tabSzGui - 2, bdr);
             }
 
-            // Item icon (0.75× scale = 12px, centered in tab; shifts with active tab)
+            // Item icon (0.75× SDV drawInMenu scale, centered in tab; shifts with active tab)
             ItemStack icon = (i < tabIcons.length) ? tabIcons[i] : ItemStack.EMPTY;
             if (!icon.isEmpty()) {
-                float iconScale = 0.75f;
-                int scaledSz = (int)(16 * iconScale); // 12px
+                float iconScale = 0.75f * scale4;
+                int scaledSz = CommonGuiTextures.itemSize(iconScale);
                 int iconBaseX = active ? tabX + ui(8) : tabX; // shift right when active
                 int iconTw = active ? tabSzGui + ui(8) : tabSzGui;
                 int iconX = iconBaseX + (iconTw - scaledSz) / 2;
                 int iconY = ty + (tabSzGui - scaledSz) / 2;
                 g.pose().pushPose();
-                g.pose().translate(iconX, iconY, 100);
-                g.pose().scale(iconScale, iconScale, 1f);
-                g.renderItem(icon, 0, 0);
+                g.pose().translate(0, 0, 100);
+                CommonGuiTextures.drawItem(g, icon, iconX, iconY, iconScale);
                 g.pose().popPose();
             }
 
@@ -478,7 +473,7 @@ public class WorkbenchScreen extends Screen {
                 }
 
                 // Slot background: ICO sprite (18×18 @ s4 = exactly cellGui)
-                StardewGuiUtil.drawFromCursors(g, cx, cy, ICO_U, ICO_V, ICO_W, ICO_H, s4);
+                CommonGuiTextures.drawItemSlot18(g, cx, cy, s4);
 
                 // Hover highlight
                 if (hov) {
@@ -494,11 +489,11 @@ public class WorkbenchScreen extends Screen {
                 // Item icon (centered in cell)
                 if (!stack.isEmpty()) {
                     if (!canAfford) g.setColor(0.55f, 0.55f, 0.55f, 0.6f);
-                    int ix = cx + (cellGui - 16) / 2;
-                    int iy = cy + (cellGui - 16) / 2;
-                    g.renderItem(stack, ix, iy);
+                    int ix = cx + (cellGui - CommonGuiTextures.itemSize(s4)) / 2;
+                    int iy = cy + (cellGui - CommonGuiTextures.itemSize(s4)) / 2;
+                    CommonGuiTextures.drawItem(g, stack, ix, iy, s4);
                     if (entry.outputCount() > 1) {
-                        g.renderItemDecorations(font, new ItemStack(stack.getItem(), entry.outputCount()), ix, iy);
+                        CommonGuiTextures.drawItemDecorations(g, font, new ItemStack(stack.getItem(), entry.outputCount()), ix, iy, s4);
                     }
                     if (!canAfford) g.setColor(1f, 1f, 1f, 1f);
                 }
@@ -522,22 +517,19 @@ public class WorkbenchScreen extends Screen {
 
         // Left arrow
         if (page <= 0) g.setColor(1f, 1f, 1f, 0.3f);
-        StardewGuiUtil.drawFromCursors(g, arrLX, pgY, ARR_L_U, ARR_L_V, ARR_L_W, ARR_L_H, s4);
+        CommonGuiTextures.drawBackArrow(g, arrLX, pgY, s4);
         if (page <= 0) g.setColor(1f, 1f, 1f, 1f);
 
         // Right arrow
         if (page >= maxPage) g.setColor(1f, 1f, 1f, 0.3f);
-        StardewGuiUtil.drawFromCursors(g, arrRX, pgY, ARR_R_U, ARR_R_V, ARR_R_W, ARR_R_H, s4);
+        CommonGuiTextures.drawForwardArrow(g, arrRX, pgY, s4);
         if (page >= maxPage) g.setColor(1f, 1f, 1f, 1f);
     }
 
     // ── Preview panel ───────────────────────────────────────────────────────
     private void drawPreview(GuiGraphics g, int mx, int my, float s4) {
         // Sub-panel background (ROW 9-slice, no shadow)
-        StardewGuiUtil.drawTextureBox(g,
-            StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
-            ROW_U, ROW_V, ROW_W, ROW_H,
-            prvX, prvY, prvW, prvH, s4, false);
+        CommonGuiTextures.drawEntryBox(g, prvX, prvY, prvW, prvH, s4, false);
 
         if (selIdx < 0 || selIdx >= filtered.size()) {
             String hint = I18n.get("stardewcraft.workbench.select_hint");
@@ -574,16 +566,17 @@ public class WorkbenchScreen extends Screen {
         // ICO + item centered in remaining space above name
         int icoY = prvY + ui(8) + (nameY - ui(4) - prvY - ui(8) - icoRH) / 2;
         int icoX = cx - icoRW / 2;
-        StardewGuiUtil.drawFromCursors(g, icoX, icoY, ICO_U, ICO_V, ICO_W, ICO_H, s4);
+        CommonGuiTextures.drawItemSlot18(g, icoX, icoY, s4);
 
-        // 2× scaled item render centered on the ICO backdrop
+        // 2× SDV drawInMenu render centered on the ICO backdrop
         if (!stack.isEmpty()) {
-            int itmX = cx - 16;
-            int itmY = icoY + (icoRH - 32) / 2;
+            float itemScale = 2.0f * s4;
+            int itemSize = CommonGuiTextures.itemSize(itemScale);
+            int itmX = cx - itemSize / 2;
+            int itmY = icoY + (icoRH - itemSize) / 2;
             g.pose().pushPose();
-            g.pose().translate(itmX, itmY, 100);
-            g.pose().scale(2f, 2f, 1f);
-            g.renderItem(stack, 0, 0);
+            g.pose().translate(0, 0, 100);
+            CommonGuiTextures.drawItem(g, stack, itmX, itmY, itemScale);
             g.pose().popPose();
         }
 
@@ -607,7 +600,7 @@ public class WorkbenchScreen extends Screen {
         g.drawString(font, costLabel, costX, infoY, C_DARK, false);
         if (!matStack.isEmpty()) {
             int iconOff = (font.lineHeight - 16) / 2;
-            g.renderItem(matStack, costX + costLabelW, infoY + iconOff);
+            CommonGuiTextures.drawItem(g, matStack, costX + costLabelW, infoY + iconOff, 1.0f);
         }
         g.drawString(font, costAmount, costX + costLabelW + 17, infoY, C_DARK, false);
         infoY += lineStep;
@@ -671,7 +664,7 @@ public class WorkbenchScreen extends Screen {
         float cs = s4 * clsAnim;
         int rx = clsX + clsW / 2 - (int)(CLOSE_W * cs / 2);
         int ry = clsY + clsH / 2 - (int)(CLOSE_H * cs / 2);
-        StardewGuiUtil.drawFromCursors(g, rx, ry, CLOSE_U, CLOSE_V, CLOSE_W, CLOSE_H, cs);
+        CommonGuiTextures.drawCloseButton(g, rx, ry, cs);
     }
 
     // ── Tooltip ─────────────────────────────────────────────────────────────

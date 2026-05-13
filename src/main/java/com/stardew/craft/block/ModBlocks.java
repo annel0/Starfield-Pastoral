@@ -1408,6 +1408,16 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .strength(1.5F, 3.0F)));
 
         @SuppressWarnings("null")
+        public static final DeferredBlock<Block> FRIENDSHIP_DOOR = BLOCKS.register("friendship_door",
+                        () -> new com.stardew.craft.block.utility.FriendshipDoorBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .strength(3.0F)
+                                        .noOcclusion()
+                                        .ignitedByLava()
+                                        .pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY)));
+
+        @SuppressWarnings("null")
         // 硬度=1.5F（木质），未绑定建筑时可正常挖掉；绑定后由 onDestroyedByPlayer 拦截
         public static final DeferredBlock<Block> COOP_MANAGER = BLOCKS.register("coop_manager",
                         () -> new com.stardew.craft.block.utility.CoopManagerBlock(Block.Properties.of()

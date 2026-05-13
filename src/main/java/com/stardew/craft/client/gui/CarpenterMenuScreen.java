@@ -1,6 +1,6 @@
 package com.stardew.craft.client.gui;
 
-import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
+import com.stardew.craft.client.gui.common.CommonGuiTextures;
 import com.stardew.craft.network.payload.CarpenterPurchasePayload;
 import com.stardew.craft.network.payload.CarpenterPurchaseResultPayload;
 import com.stardew.craft.network.payload.OpenCarpenterMenuPayload;
@@ -43,7 +43,7 @@ public class CarpenterMenuScreen extends Screen {
 
     // Cursors UV coords (sprite pixels, NOT ×4)
     // OK button (green checkmark)
-    private static final int OK_U = 366, OK_V = 373, OK_W = 16, OK_H = 16;
+    private static final int OK_W = 16, OK_H = 16;
     // Cancel button (red X) - standard tile 47: column 47%4=3, row 47/4=11 → u=192, v=704 in 64×64 tiles
     // Actually SDV uses getSourceRectForStandardTileSheet(mouseCursors, 47) which maps to:
     // tile 47 at the mouseCursors spritesheet. The standard tile sheet has 16-wide tiles.
@@ -52,15 +52,8 @@ public class CarpenterMenuScreen extends Screen {
     // 47 % 44 = 3, 47 / 44 = 1 → u = 3*16 = 48, v = 1*16 = 16? No...
     // Actually SDV getSourceRectForStandardTileSheet default tileSize=64:
     // cols = 704 / 64 = 11; row = 47/11=4, col = 47%11=3 → u=192, v=256
-    private static final int CANCEL_U = 192, CANCEL_V = 256, CANCEL_W = 64, CANCEL_H = 64;
-    // Back arrow
-    private static final int BACK_U = 352, BACK_V = 495, BACK_W = 12, BACK_H = 11;
-    // Forward arrow
-    private static final int FWD_U = 365, FWD_V = 495, FWD_W = 12, FWD_H = 11;
-    // Upgrade icon
-    private static final int UPG_U = 402, UPG_V = 328, UPG_W = 9, UPG_H = 13;
-    // Gold coin icon (from cursors_1_6)
-    private static final int GOLD_U = 241, GOLD_V = 303, GOLD_W = 14, GOLD_H = 13;
+    private static final int BACK_W = 12, BACK_H = 11;
+    private static final int FWD_W = 12, FWD_H = 11;
     // Texture box border (from IClickableMenu.drawTextureBox)
     private static final int BOX_U = 384, BOX_V = 373, BOX_W = 18, BOX_H = 18;
     // Scroll banner background (SpriteText scroll: 325,318,11,18 in mouseCursors)
@@ -308,7 +301,7 @@ public class CarpenterMenuScreen extends Screen {
         int sdvTotalW = ui(MAX_VIEWER_W + MAX_DESC_W + SPACE_SIDE * 2 + 64);
 
         // 3. Building viewer box — SDV uses default drawTextureBox (menuTexture)
-        StardewGuiUtil.drawTextureBox(g, viewerX, viewerY, viewerW, viewerH);
+        CommonGuiTextures.drawMenuTextureBox(g, viewerX, viewerY, viewerW, viewerH, 1.0f / guiScale, true);
 
         // 4. Manager block preview (centered in viewer)
         drawManagerPreview(g, bp);
@@ -317,14 +310,14 @@ public class CarpenterMenuScreen extends Screen {
         if (bp.isUpgrade()) {
             int upgX = sdvXPos + ui(MAX_VIEWER_W - 128 + 32);
             int upgY = sdvYPos + ui(8);
-            StardewGuiUtil.drawFromCursors(g, upgX, upgY, UPG_U, UPG_V, UPG_W, UPG_H, s4);
+            CommonGuiTextures.drawCarpenterUpgrade(g, upgX, upgY, s4);
         }
 
         // 6. Building name with scroll banner
         drawNameWithScroll(g, bp, sdvXPos, sdvYPos, s4);
 
         // 7. Description box — SDV uses default drawTextureBox (menuTexture)
-        StardewGuiUtil.drawTextureBox(g, descX, descY, descW, descH);
+        CommonGuiTextures.drawMenuTextureBox(g, descX, descY, descW, descH, 1.0f / guiScale, true);
 
         // 8. Description text
         drawDescription(g, bp, sdvXPos, sdvYPos, s4);
@@ -336,17 +329,15 @@ public class CarpenterMenuScreen extends Screen {
         drawMaterials(g, bp, sdvXPos, sdvYPos, s4);
 
         // 12. Navigation buttons
-        drawButton(g, mouseX, mouseY, backX, backY, BACK_U, BACK_V, BACK_W, BACK_H, s4, currentIndex > 0);
-        drawButton(g, mouseX, mouseY, fwdX, fwdY, FWD_U, FWD_V, FWD_W, FWD_H, s4, currentIndex < blueprints.size() - 1);
+        drawBackArrowButton(g, mouseX, mouseY, currentIndex > 0, s4);
+        drawForwardArrowButton(g, mouseX, mouseY, currentIndex < blueprints.size() - 1, s4);
 
         // 13. OK button (tinted gray if can't build)
         boolean canBuild = canBuildCurrent();
-        if (!canBuild) {
-            g.setColor(0.5f, 0.5f, 0.5f, 0.8f);
-        }
-        StardewGuiUtil.drawFromCursors(g, okX, okY, OK_U, OK_V, OK_W, OK_H, s4);
-        if (!canBuild) {
-            g.setColor(1f, 1f, 1f, 1f);
+        if (canBuild) {
+            CommonGuiTextures.drawOkCheckGreen(g, okX, okY, s4);
+        } else {
+            CommonGuiTextures.drawOkCheckGreenTint(g, okX, okY, s4, 0.5f, 0.5f, 0.5f, 0.8f);
         }
 
         // 14. Cancel button (drawn from menu_tiles, standard tile 47)
@@ -354,7 +345,7 @@ public class CarpenterMenuScreen extends Screen {
         // This is at u=192, v=256 in cursors, drawn at scale 1 (already 64×64)
         // But actually SDV draws it at scale 1f (not 4f like other buttons)
         float cancelScale = 1.0f / guiScale;
-        StardewGuiUtil.drawFromCursors(g, cancelX, cancelY, CANCEL_U, CANCEL_V, CANCEL_W, CANCEL_H, cancelScale);
+        CommonGuiTextures.drawLargeCancelButton(g, cancelX, cancelY, cancelScale);
 
         // 15. Tooltip / hover text
         drawTooltip(g, mouseX, mouseY);
@@ -368,19 +359,15 @@ public class CarpenterMenuScreen extends Screen {
 
         ItemStack stack = new ItemStack(item);
 
-        // Render at 4× default item size (16px → 64px equivalent), centered in viewer
-        float itemScale = 4.0f;
-        int renderSize = (int)(16 * itemScale);
+        // Render at SDV drawInMenu scale (16px → 64 SDV screen pixels), centered in viewer.
+        float itemScale = s4();
+        int renderSize = Math.round(16 * itemScale);
         int centerX = viewerX + viewerW / 2;
         int centerY = viewerY + viewerH / 2;
         int imgX = centerX - renderSize / 2;
         int imgY = centerY - renderSize / 2;
 
-        g.pose().pushPose();
-        g.pose().translate(imgX, imgY, 0);
-        g.pose().scale(itemScale, itemScale, 1.0f);
-        g.renderItem(stack, 0, 0);
-        g.pose().popPose();
+        CommonGuiTextures.drawItem(g, stack, imgX, imgY, itemScale);
     }
 
     private void drawNameWithScroll(GuiGraphics g, CarpenterBlueprint bp, int sdvXPos, int sdvYPos, float s4) {
@@ -401,12 +388,7 @@ public class CarpenterMenuScreen extends Screen {
         int scrollX = nameCenterX - scrollWidth / 2;
         int scrollY = sdvYPos;  // SDV exact: yPositionOnScreen
 
-        // Draw scroll background using cursors texture (325, 318, 11, 18)
-        StardewGuiUtil.drawTextureBox(g,
-            StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
-            SCROLL_U, SCROLL_V, SCROLL_W, SCROLL_H,
-            scrollX, scrollY, scrollWidth, scrollHeight,
-            s4, false);
+        CommonGuiTextures.drawScrollBannerBox(g, scrollX, scrollY, scrollWidth, scrollHeight, s4);
 
         // Draw name text centered on the scroll
         int textX = nameCenterX - nameWidth / 2;
@@ -446,7 +428,7 @@ public class CarpenterMenuScreen extends Screen {
             // Gold icon (from cursors_1_6)
             int goldX = ingX - ui(8);
             int goldY = ingY - ui(4);
-            StardewGuiUtil.drawFromCursors16(g, goldX, goldY, GOLD_U, GOLD_V, GOLD_W, GOLD_H, s4);
+            CommonGuiTextures.drawGoldCoin16(g, goldX, goldY, s4);
 
             // Price text — SDV: (ingredientsPosition.X + 64, ingredientsPosition.Y + 8)
             String priceStr = formatNumber(bp.cost());
@@ -477,11 +459,7 @@ public class CarpenterMenuScreen extends Screen {
                     ItemStack stack = new ItemStack(matItem, mat.count());
                     // SDV drawInMenu at scale 1f = 64×64 screen pixels = ui(64) GUI pixels
                     // MC renderItem draws 16×16, so scale = ui(64)/16 = 4/guiScale = s4
-                    g.pose().pushPose();
-                    g.pose().translate(baseX, baseY, 0);
-                    g.pose().scale(s4, s4, 1.0f);
-                    g.renderItem(stack, 0, 0);
-                    g.pose().popPose();
+                    CommonGuiTextures.drawItem(g, stack, baseX, baseY, s4);
 
                     // Material name + count
                     boolean hasEnough = minecraft != null && minecraft.player != null
@@ -498,16 +476,35 @@ public class CarpenterMenuScreen extends Screen {
         }
     }
 
-    private void drawButton(GuiGraphics g, int mouseX, int mouseY, int x, int y,
-                            int u, int v, int w, int h, float s4, boolean enabled) {
+    private void drawBackArrowButton(GuiGraphics g, int mouseX, int mouseY, boolean enabled, float s4) {
+        drawArrowButton(g, mouseX, mouseY, backX, backY, BACK_W, BACK_H, s4, enabled, false);
+    }
+
+    private void drawForwardArrowButton(GuiGraphics g, int mouseX, int mouseY, boolean enabled, float s4) {
+        drawArrowButton(g, mouseX, mouseY, fwdX, fwdY, FWD_W, FWD_H, s4, enabled, true);
+    }
+
+    private void drawArrowButton(GuiGraphics g, int mouseX, int mouseY, int x, int y,
+                            int w, int h, float s4, boolean enabled, boolean forward) {
+        float red = 1.0f;
+        float green = 1.0f;
+        float blue = 1.0f;
+        float alpha = 1.0f;
         if (!enabled) {
-            g.setColor(0.5f, 0.5f, 0.5f, 0.5f);
+            red = 0.5f;
+            green = 0.5f;
+            blue = 0.5f;
+            alpha = 0.5f;
         } else if (isInside(mouseX, mouseY, x, y, (int)(w * s4), (int)(h * s4))) {
-            // SDV hover: slight brightness increase
-            g.setColor(1.0f, 1.0f, 0.8f, 1.0f);
+            red = 1.0f;
+            green = 1.0f;
+            blue = 0.8f;
         }
-        StardewGuiUtil.drawFromCursors(g, x, y, u, v, w, h, s4);
-        g.setColor(1f, 1f, 1f, 1f);
+        if (forward) {
+            CommonGuiTextures.drawForwardArrowTint(g, x, y, s4, red, green, blue, alpha);
+        } else {
+            CommonGuiTextures.drawBackArrowTint(g, x, y, s4, red, green, blue, alpha);
+        }
     }
 
     private void drawTooltip(GuiGraphics g, int mouseX, int mouseY) {

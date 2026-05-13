@@ -1,6 +1,7 @@
 package com.stardew.craft.client.gui;
 
 import com.stardew.craft.block.ModBlocks;
+import com.stardew.craft.client.gui.common.CommonGuiTextures;
 import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
 import com.stardew.craft.menu.IBuildingManagerMenu;
 import com.stardew.craft.sound.ModSounds;
@@ -25,9 +26,7 @@ import java.util.List;
 @SuppressWarnings("null")
 public class BuildingManagerScreen extends AbstractContainerScreen<AbstractContainerMenu> {
 
-    // Cursors UV (sprite coords)
-    private static final int BDR_U = 384, BDR_V = 373, BDR_W = 18, BDR_SH = 18;
-    private static final int CLOSE_U = 337, CLOSE_V = 494, CLOSE_W = 12, CLOSE_SH = 12;
+    private static final int CLOSE_W = 12, CLOSE_SH = 12;
 
     // Colors
     private static final int COL_TITLE    = 0xFF5B3A1A;
@@ -104,7 +103,7 @@ public class BuildingManagerScreen extends AbstractContainerScreen<AbstractConta
         lineH = fh + 5;                                      // 14 px per text row
 
         // 9-slice corner size in gui pixels = (srcW/3) * s4
-        int borderCorner = Math.max(1, (int)((BDR_W / 3.0f) * s4));
+        int borderCorner = Math.max(1, (int)(6.0f * s4));
         pad = borderCorner + 6;                               // content safely inside border
 
         // Section gap: enough room for the decorative partition + whitespace
@@ -179,7 +178,7 @@ public class BuildingManagerScreen extends AbstractContainerScreen<AbstractConta
 
         // Update close button position (tracks with panel position)
         float s4 = s4();
-        int borderCorner = Math.max(1, (int)((BDR_W / 3.0f) * s4));
+        int borderCorner = Math.max(1, (int)(6.0f * s4));
         closeX = panelX + panelW - borderCorner - closeW;
         closeY = panelY + borderCorner;
 
@@ -231,10 +230,7 @@ public class BuildingManagerScreen extends AbstractContainerScreen<AbstractConta
         int cw = panelW - pad * 2; // content width
 
         // Main panel border (SDV 9-slice)
-        StardewGuiUtil.drawTextureBox(g,
-                StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
-                BDR_U, BDR_V, BDR_W, BDR_SH,
-                panelX, panelY, panelW, panelH, s4, true);
+        CommonGuiTextures.drawTextureBox(g, panelX, panelY, panelW, panelH, s4, true);
 
         int y = panelY + pad;
 
@@ -265,7 +261,7 @@ public class BuildingManagerScreen extends AbstractContainerScreen<AbstractConta
         float cs = s4 * closeScale;
         int cdx = closeX + closeW / 2 - (int)(CLOSE_W * cs / 2);
         int cdy = closeY + closeH / 2 - (int)(CLOSE_SH * cs / 2);
-        StardewGuiUtil.drawFromCursors(g, cdx, cdy, CLOSE_U, CLOSE_V, CLOSE_W, CLOSE_SH, cs);
+        CommonGuiTextures.drawCloseButton(g, cdx, cdy, cs);
 
         // -- Confirm overlay --
         if (confirmType != ConfirmType.NONE) {
@@ -370,11 +366,7 @@ public class BuildingManagerScreen extends AbstractContainerScreen<AbstractConta
 
             // Item icon (scaled to match line height)
             float iconScale = (this.font.lineHeight + 2) / 16.0f;
-            g.pose().pushPose();
-            g.pose().translate(rx, rowY - 1, 0);
-            g.pose().scale(iconScale, iconScale, 1);
-            g.renderItem(row.icon, 0, 0);
-            g.pose().popPose();
+            CommonGuiTextures.drawItem(g, row.icon, rx, rowY - 1, iconScale);
 
             // Count (right-aligned, drawn first to know its width)
             String countStr = row.current + "/" + row.required;
@@ -448,10 +440,7 @@ public class BuildingManagerScreen extends AbstractContainerScreen<AbstractConta
         g.pose().translate(-cxf, -cyf, 0);
 
         float s4 = s4();
-        StardewGuiUtil.drawTextureBox(g,
-                StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
-                BDR_U, BDR_V, BDR_W, BDR_SH,
-                x, y, w, h, s4, false);
+        CommonGuiTextures.drawTextureBox(g, x, y, w, h, s4, false);
 
         int inset = (int)(4 * s4);
         if (!active) {
@@ -490,10 +479,7 @@ public class BuildingManagerScreen extends AbstractContainerScreen<AbstractConta
         g.pose().translate(-cxf, -cyf, 0);
 
         float s4 = s4();
-        StardewGuiUtil.drawTextureBox(g,
-                StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
-                BDR_U, BDR_V, BDR_W, BDR_SH,
-                dx, dy, dw, dh, s4, true);
+        CommonGuiTextures.drawTextureBox(g, dx, dy, dw, dh, s4, true);
 
         int tx = dx + pad;
         int ty = dy + pad;
@@ -545,10 +531,7 @@ public class BuildingManagerScreen extends AbstractContainerScreen<AbstractConta
     private void drawDialogButton(GuiGraphics g, int x, int y, int w, int h,
                                   Component label, boolean active, boolean hovered) {
         float s4 = s4();
-        StardewGuiUtil.drawTextureBox(g,
-                StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
-                BDR_U, BDR_V, BDR_W, BDR_SH,
-                x, y, w, h, s4, false);
+        CommonGuiTextures.drawTextureBox(g, x, y, w, h, s4, false);
 
         int inset = (int)(4 * s4);
         if (!active) {

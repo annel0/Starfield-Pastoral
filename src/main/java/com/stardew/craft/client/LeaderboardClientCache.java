@@ -1,0 +1,77 @@
+package com.stardew.craft.client;
+
+import com.stardew.craft.network.payload.LeaderboardSyncPayload;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@OnlyIn(Dist.CLIENT)
+public final class LeaderboardClientCache {
+    private static String metricId = "";
+    private static int page;
+    private static List<LeaderboardSyncPayload.Entry> rows = new ArrayList<>();
+    private static LeaderboardSyncPayload.Entry selfEntry;
+    private static int totalPlayers;
+    private static long generatedAtMillis;
+    private static String errorKey = "";
+    private static boolean loading;
+
+    private LeaderboardClientCache() {
+    }
+
+    public static void request(String requestedMetricId, int requestedPage) {
+        metricId = requestedMetricId == null ? "" : requestedMetricId;
+        page = Math.max(0, requestedPage);
+        errorKey = "";
+        loading = true;
+    }
+
+    public static void update(LeaderboardSyncPayload payload) {
+        metricId = payload.metricId();
+        page = Math.max(0, payload.page());
+        rows = new ArrayList<>(payload.rows());
+        selfEntry = payload.selfEntry();
+        totalPlayers = payload.totalPlayers();
+        generatedAtMillis = payload.generatedAtMillis();
+        errorKey = payload.errorKey() == null ? "" : payload.errorKey();
+        loading = false;
+    }
+
+    public static boolean hasData(String requestedMetricId, int requestedPage) {
+        return !hasError(requestedMetricId, requestedPage)
+                && !metricId.isBlank()
+                && metricId.equals(requestedMetricId)
+                && page == Math.max(0, requestedPage)
+                && generatedAtMillis > 0;
+    }
+
+    public static boolean isLoading(String requestedMetricId, int requestedPage) {
+        return loading && metricId.equals(requestedMetricId) && page == Math.max(0, requestedPage);
+    }
+
+    public static boolean hasError(String requestedMetricId, int requestedPage) {
+        return !errorKey.isBlank() && metricId.equals(requestedMetricId) && page == Math.max(0, requestedPage);
+    }
+
+    public static String getErrorKey() {
+        return errorKey.isBlank() ? "stardewcraft.leaderboard.error" : errorKey;
+    }
+
+    public static List<LeaderboardSyncPayload.Entry> getRows() {
+        return rows;
+    }
+
+    public static LeaderboardSyncPayload.Entry getSelfEntry() {
+        return selfEntry;
+    }
+
+    public static int getTotalPlayers() {
+        return totalPlayers;
+    }
+
+    public static long getGeneratedAtMillis() {
+        return generatedAtMillis;
+    }
+}

@@ -1129,6 +1129,20 @@ public class PacketHandler {
             com.stardew.craft.network.payload.FarmPermSyncPayload::handle
         );
 
+        // Leaderboard request (C→S) — 请求排行榜快照
+        registrar.playToServer(
+            com.stardew.craft.network.payload.RequestLeaderboardPayload.TYPE,
+            com.stardew.craft.network.payload.RequestLeaderboardPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.RequestLeaderboardPayload::handle
+        );
+
+        // Leaderboard sync (S→C) — 发送排行榜快照到客户端
+        registrar.playToClient(
+            com.stardew.craft.network.payload.LeaderboardSyncPayload.TYPE,
+            com.stardew.craft.network.payload.LeaderboardSyncPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.LeaderboardSyncPayload::handle
+        );
+
         // Farm admin action (C→S) — OP 管理农场操作
         registrar.playToServer(
             com.stardew.craft.network.payload.FarmAdminPayload.TYPE,

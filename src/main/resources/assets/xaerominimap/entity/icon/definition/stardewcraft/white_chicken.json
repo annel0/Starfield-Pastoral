@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "stardewcraft:textures/entity/animal/white_chicken.png": "normal_sprite:stardew_white_chicken.png",
+    "default": "dot"
+  },
+  "variantMethod": "xaero.hud.minimap.radar.icon.definition.BuiltInRadarIconDefinitions.getVariant"
+}

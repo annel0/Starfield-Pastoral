@@ -51,15 +51,6 @@ public class HayHopperBlockEntity extends net.minecraft.world.level.block.entity
         return ownerPlayerId;
     }
 
-    @Nullable
-    private UUID resolveOwner(Player player) {
-        if (ownerPlayerId == null) {
-            ownerPlayerId = player.getUUID();
-            setChanged();
-        }
-        return ownerPlayerId;
-    }
-
     @SuppressWarnings("null")
     public int extractHayToPlayer(Player player) {
         Level currentLevel = level;
@@ -67,12 +58,12 @@ public class HayHopperBlockEntity extends net.minecraft.world.level.block.entity
             return 0;
         }
 
-        UUID owner = resolveOwner(player);
+        AnimalWorldData worldData = AnimalWorldData.get(serverLevel);
+        UUID owner = resolveStorageOwner(player, worldData, serverLevel);
         if (owner == null) {
             return 0;
         }
 
-        AnimalWorldData worldData = AnimalWorldData.get(serverLevel);
         int requested = getRequestedHayAmount(owner, worldData);
         int removed = worldData.takeHay(owner, requested);
         if (removed <= 0) {
@@ -89,6 +80,60 @@ public class HayHopperBlockEntity extends net.minecraft.world.level.block.entity
         return removed;
     }
 
+    @Nullable
+    public UUID resolveStorageOwner(@Nullable Player player) {
+        Level currentLevel = level;
+        if (!(currentLevel instanceof ServerLevel serverLevel)) {
+            return ownerPlayerId != null ? ownerPlayerId : player == null ? null : player.getUUID();
+        }
+        return resolveStorageOwner(player, AnimalWorldData.get(serverLevel), serverLevel);
+    }
+
+    @Nullable
+    private UUID resolveStorageOwner(@Nullable Player player, AnimalWorldData worldData, ServerLevel serverLevel) {
+        Optional<com.stardew.craft.animal.model.AnimalBuildingRecord> building = worldData.findBuildingAtAnyOwner(
+            serverLevel.dimension().location().toString(),
+            worldPosition,
+            FEED_BUILDING_FAMILIES
+        );
+        if (building.isPresent()) {
+            return rememberResolvedOwner(building.get().ownerPlayerUuid());
+        }
+
+        UUID farmOwner = com.stardew.craft.core.FarmAreaResolver.getOwnerAt(worldPosition);
+        if (farmOwner != null) {
+            rememberResolvedOwner(farmOwner);
+            return farmOwner;
+        }
+
+        if (ownerPlayerId != null) {
+            return ownerPlayerId;
+        }
+        if (player == null) {
+            return null;
+        }
+        setOwnerIfAbsent(player.getUUID());
+        return ownerPlayerId;
+    }
+
+    @Nullable
+    private UUID rememberResolvedOwner(String ownerUuid) {
+        try {
+            UUID resolved = UUID.fromString(ownerUuid);
+            rememberResolvedOwner(resolved);
+            return resolved;
+        } catch (IllegalArgumentException ex) {
+            return ownerPlayerId;
+        }
+    }
+
+    private void rememberResolvedOwner(UUID resolved) {
+        if (!resolved.equals(ownerPlayerId)) {
+            ownerPlayerId = resolved;
+            setChanged();
+        }
+    }
+
     private int getRequestedHayAmount(UUID owner, AnimalWorldData worldData) {
         int requested = 1;
         if (!worldData.hasAnySilo(owner)) {
@@ -98,10 +143,9 @@ public class HayHopperBlockEntity extends net.minecraft.world.level.block.entity
         if (!(currentLevel instanceof ServerLevel serverLevel)) {
             return requested;
         }
-        Optional<com.stardew.craft.animal.model.AnimalBuildingRecord> building = worldData.findBuildingAt(
+        Optional<com.stardew.craft.animal.model.AnimalBuildingRecord> building = worldData.findBuildingAtAnyOwner(
             serverLevel.dimension().location().toString(),
             worldPosition,
-            owner,
             FEED_BUILDING_FAMILIES
         );
         if (building.isEmpty()) {
@@ -117,7 +161,9 @@ public class HayHopperBlockEntity extends net.minecraft.world.level.block.entity
         if (!(state.getBlock() instanceof HayHopperBlock)) {
             return;
         }
-        boolean shouldBeFull = AnimalWorldData.get(level).hasAnyStoredHay();
+        AnimalWorldData data = AnimalWorldData.get(level);
+        UUID owner = resolveStorageOwner(null, data, level);
+        boolean shouldBeFull = owner != null && data.getHayAmount(owner) > 0;
         boolean current = state.getValue(HayHopperBlock.FULL);
         if (current != shouldBeFull) {
             level.setBlock(worldPosition, state.setValue(HayHopperBlock.FULL, shouldBeFull), 3);

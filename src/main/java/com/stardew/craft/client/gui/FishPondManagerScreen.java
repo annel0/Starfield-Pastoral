@@ -1,5 +1,6 @@
 package com.stardew.craft.client.gui;
 
+import com.stardew.craft.client.gui.common.CommonGuiTextures;
 import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.menu.FishPondManagerMenu;
@@ -17,8 +18,7 @@ import net.minecraft.world.item.Items;
 
 @SuppressWarnings("null")
 public class FishPondManagerScreen extends AbstractContainerScreen<FishPondManagerMenu> {
-    private static final int BDR_U = 384, BDR_V = 373, BDR_W = 18, BDR_SH = 18;
-    private static final int CLOSE_U = 337, CLOSE_V = 494, CLOSE_W = 12, CLOSE_SH = 12;
+    private static final int CLOSE_W = 12, CLOSE_SH = 12;
 
     private static final int COL_TITLE = 0xFF5B3A1A;
     private static final int COL_SUBTITLE = 0xFF8B7355;
@@ -84,7 +84,7 @@ public class FishPondManagerScreen extends AbstractContainerScreen<FishPondManag
         Minecraft mc = Minecraft.getInstance();
         guiScale = (float) mc.getWindow().getGuiScale();
         float s4 = s4();
-        int borderCorner = Math.max(1, (int) ((BDR_W / 3.0f) * s4));
+        int borderCorner = Math.max(1, (int) (6.0f * s4));
         int fh = this.font.lineHeight;
 
         lineH = fh + 5;
@@ -140,10 +140,7 @@ public class FishPondManagerScreen extends AbstractContainerScreen<FishPondManag
         updateHover(mouseX, mouseY);
 
         float s4 = s4();
-        StardewGuiUtil.drawTextureBox(g,
-            StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
-            BDR_U, BDR_V, BDR_W, BDR_SH,
-            panelX, panelY, panelW, panelH, s4, true);
+        CommonGuiTextures.drawTextureBox(g, panelX, panelY, panelW, panelH, s4, true);
 
         int cx = panelX + pad;
         int cw = panelW - pad * 2;
@@ -207,7 +204,7 @@ public class FishPondManagerScreen extends AbstractContainerScreen<FishPondManag
         float cs = s4 * closeScale;
         int cdx = closeX + closeW / 2 - (int) (CLOSE_W * cs / 2);
         int cdy = closeY + closeH / 2 - (int) (CLOSE_SH * cs / 2);
-        StardewGuiUtil.drawFromCursors(g, cdx, cdy, CLOSE_U, CLOSE_V, CLOSE_W, CLOSE_SH, cs);
+        CommonGuiTextures.drawCloseButton(g, cdx, cdy, cs);
 
         if (confirmType != ConfirmType.NONE) {
             renderConfirmDialog(g, mouseX, mouseY);
@@ -267,12 +264,12 @@ public class FishPondManagerScreen extends AbstractContainerScreen<FishPondManag
     private int renderFormedContent(GuiGraphics g, int x, int y, int width) {
         ItemStack fishPreview = menu.getFishPreviewStack();
         if (fishPreview.isEmpty()) {
-            g.renderItem(new ItemStack(Items.COD), x, y - 3);
+            CommonGuiTextures.drawItem(g, new ItemStack(Items.COD), x, y - 3, 1.0f);
             y = drawWrappedLines(g, this.font.split(menu.getStatusText(), width - 24), x + 20, y, COL_SUBTITLE);
             return y;
         }
 
-        g.renderItem(fishPreview, x, y - 3);
+        CommonGuiTextures.drawItem(g, fishPreview, x, y - 3, 1.0f);
         g.drawString(this.font, fishPreview.getHoverName(), x + 20, y, COL_TEXT, false);
         y += lineH + 2;
 
@@ -290,7 +287,7 @@ public class FishPondManagerScreen extends AbstractContainerScreen<FishPondManag
 
         if (menu.hasGoldenAnimalCracker()) {
             y += 2;
-            g.renderItem(new ItemStack(ModItems.GOLDEN_ANIMAL_CRACKER.get()), x, y - 3);
+            CommonGuiTextures.drawItem(g, new ItemStack(ModItems.GOLDEN_ANIMAL_CRACKER.get()), x, y - 3, 1.0f);
             g.drawString(this.font,
                 Component.translatable("gui.stardew_craft.fish_pond_manager.golden_cracker_yes"),
                 x + 20, y, COL_GOLD, false);
@@ -306,7 +303,7 @@ public class FishPondManagerScreen extends AbstractContainerScreen<FishPondManag
                 x, y, COL_GOLD, true);
             y += lineH;
             ItemStack neededPreview = menu.getNeededItemPreviewStack();
-            g.renderItem(neededPreview.isEmpty() ? new ItemStack(Items.PAPER) : neededPreview, x, y - 3);
+            CommonGuiTextures.drawItem(g, neededPreview.isEmpty() ? new ItemStack(Items.PAPER) : neededPreview, x, y - 3, 1.0f);
             y = drawWrappedLines(g, this.font.split(
                 Component.translatable("gui.stardew_craft.fish_pond_manager.request_needed", menu.getNeededItemCount()),
                 width - 24), x + 20, y, COL_GOLD);
@@ -324,12 +321,8 @@ public class FishPondManagerScreen extends AbstractContainerScreen<FishPondManag
         int labelX = x + this.font.lineHeight + 6;
         int labelWidth = Math.max(24, barX - labelX - 4);
 
-        g.pose().pushPose();
         float iconScale = (this.font.lineHeight + 2) / 16.0f;
-        g.pose().translate(x, y - 1, 0);
-        g.pose().scale(iconScale, iconScale, 1.0f);
-        g.renderItem(icon, 0, 0);
-        g.pose().popPose();
+        CommonGuiTextures.drawItem(g, icon, x, y - 1, iconScale);
 
         g.drawString(this.font, countText, x + width - countWidth, y, met ? COL_OK : COL_RED, false);
         drawRequirementBar(g, barX, y + 2, barWidth, this.font.lineHeight - 2, required > 0 ? (float) Math.min(current, required) / required : 1.0f, met);
@@ -362,17 +355,11 @@ public class FishPondManagerScreen extends AbstractContainerScreen<FishPondManag
                 int drawX = rowStartX + col * iconStep;
                 int drawY = y + row * iconStep;
 
-                g.pose().pushPose();
-                g.pose().translate(drawX, drawY, 0);
-                g.pose().scale(iconScale, iconScale, 1.0f);
                 if (index >= current) {
-                    g.setColor(0.0F, 0.0F, 0.0F, 0.45F);
-                    g.renderItem(fishPreview, 0, 0);
-                    g.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+                    CommonGuiTextures.drawItemTint(g, fishPreview, drawX, drawY, iconScale, 0.0F, 0.0F, 0.0F, 0.45F);
                 } else {
-                    g.renderItem(fishPreview, 0, 0);
+                    CommonGuiTextures.drawItem(g, fishPreview, drawX, drawY, iconScale);
                 }
-                g.pose().popPose();
             }
         }
 
@@ -399,10 +386,7 @@ public class FishPondManagerScreen extends AbstractContainerScreen<FishPondManag
         g.pose().translate(-cxf, -cyf, 0);
 
         float s4 = s4();
-        StardewGuiUtil.drawTextureBox(g,
-            StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
-            BDR_U, BDR_V, BDR_W, BDR_SH,
-            x, y, w, h, s4, false);
+        CommonGuiTextures.drawTextureBox(g, x, y, w, h, s4, false);
         int inset = (int) (4 * s4);
         if (!active) {
             g.fill(x + inset, y + inset, x + w - inset, y + h - inset, 0x50888888);
@@ -434,10 +418,7 @@ public class FishPondManagerScreen extends AbstractContainerScreen<FishPondManag
         g.pose().translate(-cxf, -cyf, 0);
 
         float s4 = s4();
-        StardewGuiUtil.drawTextureBox(g,
-            StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
-            BDR_U, BDR_V, BDR_W, BDR_SH,
-            dx, dy, dw, dh, s4, true);
+        CommonGuiTextures.drawTextureBox(g, dx, dy, dw, dh, s4, true);
 
         int tx = dx + pad;
         int ty = dy + pad;
@@ -478,10 +459,7 @@ public class FishPondManagerScreen extends AbstractContainerScreen<FishPondManag
     private void drawDialogButton(GuiGraphics g, int x, int y, int w, int h,
                                   Component label, boolean active, boolean hovered) {
         float s4 = s4();
-        StardewGuiUtil.drawTextureBox(g,
-            StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
-            BDR_U, BDR_V, BDR_W, BDR_SH,
-            x, y, w, h, s4, false);
+        CommonGuiTextures.drawTextureBox(g, x, y, w, h, s4, false);
 
         int inset = (int) (4 * s4);
         if (!active) {

@@ -1,8 +1,8 @@
 package com.stardew.craft.client.gui;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.client.gui.common.CommonGuiTextures;
 import com.stardew.craft.client.gui.common.StardewRenderMapping;
-import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
 import com.stardew.craft.network.payload.CheckMailboxPayload;
 import com.stardew.craft.network.payload.OpenMailPayload;
 import com.stardew.craft.sound.ModSounds;
@@ -46,11 +46,9 @@ public class LetterViewerScreen extends Screen {
     private static final int SDV_TEXT_MARGIN = 32;
 
     // SDV 翻页按钮：cursors.png (352,495,12,11) 和 (365,495,12,11)
-    private static final int BACK_BTN_U = 352, BACK_BTN_V = 495, BTN_W = 12, BTN_H = 11;
-    private static final int FWD_BTN_U = 365, FWD_BTN_V = 495;
+    private static final int BTN_W = 12, BTN_H = 11;
 
-    // SDV 关闭按钮：cursors.png (337,494,12,12)
-    private static final int CLOSE_BTN_U = 337, CLOSE_BTN_V = 494, CLOSE_BTN_W = 12, CLOSE_BTN_H = 12;
+    private static final int CLOSE_BTN_W = 12, CLOSE_BTN_H = 12;
 
     // 金币图标纹理
     private static final ResourceLocation GOLD_ICON = ResourceLocation.fromNamespaceAndPath(
@@ -361,9 +359,9 @@ public class LetterViewerScreen extends Screen {
                     ItemStack stack = new ItemStack(item, att.count());
                     int iconX = slotX + (int)(4 * bgScale);
                     int iconY = slotY + (int)(4 * bgScale);
-                    graphics.renderItem(stack, iconX, iconY);
+                    CommonGuiTextures.drawItem(graphics, stack, iconX, iconY, bgScale);
                     if (att.count() > 1) {
-                        graphics.renderItemDecorations(font, stack, iconX, iconY);
+                        CommonGuiTextures.drawItemDecorations(graphics, font, stack, iconX, iconY, bgScale);
                     }
                 }
             }
@@ -375,21 +373,18 @@ public class LetterViewerScreen extends Screen {
 
         // 后退按钮
         if (currentPage > 0) {
-            StardewGuiUtil.drawFromCursors(graphics, backBtnX, backBtnY,
-                    BACK_BTN_U, BACK_BTN_V, BTN_W, BTN_H, btnScale);
+                CommonGuiTextures.drawBackArrow(graphics, backBtnX, backBtnY, btnScale);
         }
 
         // 前进按钮
         if (currentPage < pages.size() - 1) {
-            StardewGuiUtil.drawFromCursors(graphics, fwdBtnX, fwdBtnY,
-                    FWD_BTN_U, FWD_BTN_V, BTN_W, BTN_H, btnScale);
+                CommonGuiTextures.drawForwardArrow(graphics, fwdBtnX, fwdBtnY, btnScale);
         }
     }
 
     private void drawCloseButton(GuiGraphics graphics) {
         float btnScale = mapping.s4();
-        StardewGuiUtil.drawFromCursors(graphics, closeBtnX, closeBtnY,
-                CLOSE_BTN_U, CLOSE_BTN_V, CLOSE_BTN_W, CLOSE_BTN_H, btnScale);
+        CommonGuiTextures.drawCloseButton(graphics, closeBtnX, closeBtnY, btnScale);
     }
 
     @Override

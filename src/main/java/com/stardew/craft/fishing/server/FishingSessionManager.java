@@ -1,6 +1,7 @@
 package com.stardew.craft.fishing.server;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.Config;
 import com.stardew.craft.fishing.TreasureChestMenu;
 import com.stardew.craft.fishpond.service.FishPondInteractionService;
 import com.stardew.craft.item.tool.FishingRodItem;
@@ -147,6 +148,11 @@ public final class FishingSessionManager {
 		// SV: non-fish catchables don't trigger the minigame.
 		if (session.skipMinigame()) {
 			finishInstantCatch(player, session);
+			return true;
+		}
+		if (!Config.ENABLE_FISHING_MINIGAME.get()) {
+			session.startMinigame(-1);
+			handleResult(player, session.id(), true, 1.0f, false, 1);
 			return true;
 		}
 

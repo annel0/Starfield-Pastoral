@@ -155,6 +155,10 @@ public final class ModBlockEntities {
 			BLOCK_ENTITIES.register("hay_hopper", () -> BlockEntityType.Builder.of(HayHopperBlockEntity::new, ModBlocks.HAY_HOPPER.get()).build(null));
 
 	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FriendshipDoorBlockEntity>> FRIENDSHIP_DOOR =
+			BLOCK_ENTITIES.register("friendship_door", () -> BlockEntityType.Builder.of(FriendshipDoorBlockEntity::new, ModBlocks.FRIENDSHIP_DOOR.get()).build(null));
+
+	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DeluxeWormBinBlockEntity>> DELUXE_WORM_BIN =
 			BLOCK_ENTITIES.register("deluxe_worm_bin", () -> BlockEntityType.Builder.of(DeluxeWormBinBlockEntity::new, ModBlocks.DELUXE_WORM_BIN.get()).build(null));
 

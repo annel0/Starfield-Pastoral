@@ -70,6 +70,14 @@ public class FarmAreaProtectionEvents {
             }
             return;
         }
+        if (event.getState().is(ModBlocks.CRAB_POT.get()) && !canAccessCrabPot(level, event.getPos(), player)) {
+            event.setCanceled(true);
+            player.displayClientMessage(Component.translatable("message.stardew_craft.crab_pot.not_owner"), true);
+            return;
+        }
+        if (isPublicWaterCrabPot(level, event.getPos())) {
+            return;
+        }
         if (!canModifyAt(player, event.getPos())) {
             event.setCanceled(true);
             player.displayClientMessage(
@@ -111,6 +119,9 @@ public class FarmAreaProtectionEvents {
             event.getBlockSnapshot().restore();
             player.displayClientMessage(
                     Component.translatable("stardewcraft.farm.build_farm_only"), true);
+            return;
+        }
+        if (isPublicWaterCrabPot(level, pos)) {
             return;
         }
         if (!event.getBlockSnapshot().getState().isAir()) {
@@ -351,5 +362,18 @@ public class FarmAreaProtectionEvents {
         int ry = pos.getY() - origin.getY();
         int rz = pos.getZ() - origin.getZ();
         return GreenhouseInteriorCache.get().isOriginalStructureBlock(rx, ry, rz);
+    }
+
+    private static boolean isPublicWaterCrabPot(ServerLevel level, BlockPos pos) {
+        return FarmAreaResolver.getOwnerAt(pos) == null
+                && level.getBlockState(pos).is(ModBlocks.CRAB_POT.get())
+                && level.getFluidState(pos).is(net.minecraft.world.level.material.Fluids.WATER);
+    }
+
+    private static boolean canAccessCrabPot(ServerLevel level, BlockPos pos, ServerPlayer player) {
+        if (level.getBlockEntity(pos) instanceof com.stardew.craft.blockentity.CrabPotBlockEntity crabPot) {
+            return crabPot.canAccess(player.getUUID());
+        }
+        return true;
     }
 }

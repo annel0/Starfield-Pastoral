@@ -5,6 +5,7 @@ import com.stardew.craft.client.CookingIngredientAvailabilityCache;
 import net.minecraft.client.resources.language.I18n;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.client.gui.common.CommonGuiTextures;
 import com.stardew.craft.cooking.service.VanillaCookingRecipeData;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.item.cooking.CookingDishItem;
@@ -190,31 +191,22 @@ public class CookingPotScreen extends AbstractContainerScreen<CookingPotMenu> {
 
             float scale = itemHoverScales[i];
 
-            g.pose().pushPose();
-            g.pose().translate(cx + 8, cy + 8, 0);
-
-            if (scale > 1.0f) {
-                g.pose().scale(scale, scale, 1.0f);
-                float lift = (scale - 1.0f) * -5.0f; // 更有张力的弹升
-                g.pose().translate(0, lift, 0);
-            }
+            float lift = scale > 1.0f ? (scale - 1.0f) * -5.0f : 0.0f;
+            int itemSize = CommonGuiTextures.itemSize(scale);
+            int itemX = Math.round(cx + 8 - itemSize / 2.0f);
+            int itemY = Math.round(cy + 8 + lift - itemSize / 2.0f);
 
             ResourceLocation rl = recipeIds.get(dataIndex);
             boolean unlocked = ClientPlayerDataCache.hasRecipe(rl.getPath());
             boolean craftable = canCraft(rl);
 
             if (!unlocked) {
-                RenderSystem.setShaderColor(0.0F, 0.0F, 0.0F, 1.0F);
-                g.renderItem(stack, -8, -8);
-                RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+                CommonGuiTextures.drawItemTint(g, stack, itemX, itemY, scale, 0.0F, 0.0F, 0.0F, 1.0F);
             } else if (!craftable) {
-                RenderSystem.setShaderColor(0.35F, 0.35F, 0.35F, 1.0F);
-                g.renderItem(stack, -8, -8);
-                RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+                CommonGuiTextures.drawItemTint(g, stack, itemX, itemY, scale, 0.35F, 0.35F, 0.35F, 1.0F);
             } else {
-                g.renderItem(stack, -8, -8);
+                CommonGuiTextures.drawItem(g, stack, itemX, itemY, scale);
             }
-            g.pose().popPose();
         }
 
         g.drawString(this.font, Component.translatable("stardewcraft.ui.cooking_pot.title"), x + 158, y + 6, TITLE_COLOR, true);
@@ -306,15 +298,16 @@ public class CookingPotScreen extends AbstractContainerScreen<CookingPotMenu> {
         int shadowAlpha = (int)(showcaseAlpha * 90 * shadowScale);
         g.fillGradient(px + 65 - shadowWidth, py + 88, px + 65 + shadowWidth, py + 93, (shadowAlpha << 24) | 0x000000, 0x00000000);
 
+        float selectedScale = 4.0f;
+        int selectedSize = CommonGuiTextures.itemSize(selectedScale);
+        int selectedX = px + 65 - selectedSize / 2;
+        int selectedY = Math.round(py + 62 + floatY - selectedSize / 2.0f);
         g.pose().pushPose();
-        g.pose().translate(px + 65, py + 62 + floatY, 150); 
-        g.pose().scale(4.0f, 4.0f, 1.0f);
+        g.pose().translate(0, 0, 150);
         if (!unlocked) {
-            RenderSystem.setShaderColor(0.0F, 0.0F, 0.0F, 1.0F);
-        }
-        g.renderItem(selStack, -8, -8);
-        if (!unlocked) {
-            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+            CommonGuiTextures.drawItemTint(g, selStack, selectedX, selectedY, selectedScale, 0.0F, 0.0F, 0.0F, 1.0F);
+        } else {
+            CommonGuiTextures.drawItem(g, selStack, selectedX, selectedY, selectedScale);
         }
         g.pose().popPose();
 
@@ -385,22 +378,29 @@ public class CookingPotScreen extends AbstractContainerScreen<CookingPotMenu> {
 
                 int rx = startX + i * reqSpacing;
                 
-                g.pose().pushPose();
+                float itemScale;
+                float red;
+                float green;
+                float blue;
                 if (enough) {
-                    RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, showcaseAlpha);
                     float beat = 1.0f + 0.04f * (float)Math.sin(System.currentTimeMillis() / 150.0);
-                    g.pose().translate(rx + 8, startY + 8, 50);
-                    g.pose().scale(beat, beat, 1.0f);
-                    g.renderItem(icon, -8, -8);
+                    itemScale = beat;
+                    red = 1.0F;
+                    green = 1.0F;
+                    blue = 1.0F;
                 } else {
-                    // 让物品变红而不是盖方形蒙版
-                    RenderSystem.setShaderColor(1.0F, 0.4F, 0.4F, showcaseAlpha);
-                    g.pose().translate(rx + 8, startY + 8, 50);
-                    g.pose().scale(0.85f, 0.85f, 1.0f);
-                    g.renderItem(icon, -8, -8);
+                    itemScale = 0.85f;
+                    red = 1.0F;
+                    green = 0.4F;
+                    blue = 0.4F;
                 }
+                int reqItemSize = CommonGuiTextures.itemSize(itemScale);
+                int reqItemX = Math.round(rx + 8 - reqItemSize / 2.0f);
+                int reqItemY = Math.round(startY + 8 - reqItemSize / 2.0f);
+                g.pose().pushPose();
+                g.pose().translate(0, 0, 50);
+                CommonGuiTextures.drawItemTint(g, icon, reqItemX, reqItemY, itemScale, red, green, blue, showcaseAlpha);
                 g.pose().popPose();
-                RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
                 String ratio = has + "/" + need;
                 int ratioColor = enough ? (alphaMask | 0xEEFFEE) : (alphaMask | 0xFF8888);

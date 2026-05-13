@@ -23,7 +23,8 @@ import java.util.List;
 public class DecorationSelectionScreen extends Screen {
 
     private static final ResourceLocation LOCKED_ICON = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/locked.png");
-    private static final ResourceLocation MOUSE_CURSORS_2 = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/mouse_cursors2.png");
+    private static final ResourceLocation WALLPAPER_FRAME = common("decoration_wallpaper_frame");
+    private static final ResourceLocation FLOORING_FRAME = common("decoration_flooring_frame");
     
     private static final int BG_OVERLAY = 0xD8111116;
     private static final int TITLE_COLOR = 0xFFF7F2DB; 
@@ -493,17 +494,9 @@ public class DecorationSelectionScreen extends Screen {
                                     int y,
                                     int w,
                                     int h) {
-        int WALLPAPER_FRAME_SRC_X = 39;
-        int FLOORING_FRAME_SRC_X = 55;
-        int FRAME_SRC_Y = 31;
         int FRAME_SRC_SIZE = 16;
-        int CURSORS2_W = 256;
-        int CURSORS2_H = 320;
-    
-        int frameSrcX = isWallpaper ? WALLPAPER_FRAME_SRC_X : FLOORING_FRAME_SRC_X;
-        graphics.blit(MOUSE_CURSORS_2, x, y, w, h,
-            frameSrcX, FRAME_SRC_Y, FRAME_SRC_SIZE, FRAME_SRC_SIZE,
-            CURSORS2_W, CURSORS2_H);
+        ResourceLocation frameTexture = isWallpaper ? WALLPAPER_FRAME : FLOORING_FRAME;
+        graphics.blit(frameTexture, x, y, w, h, 0.0f, 0.0f, FRAME_SRC_SIZE, FRAME_SRC_SIZE, FRAME_SRC_SIZE, FRAME_SRC_SIZE);
 
         ResourceLocation tex = ResourceLocation.parse(option.texture());
         int srcW = option.sourceWidth();
@@ -528,5 +521,9 @@ public class DecorationSelectionScreen extends Screen {
         graphics.blit(tex, innerX, innerY, innerW, innerH,
             option.sourceX(), option.sourceY(), srcW, srcH,
             option.texWidth(), option.texHeight());
+    }
+
+    private static ResourceLocation common(String name) {
+        return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/common/" + name + ".png");
     }
 }

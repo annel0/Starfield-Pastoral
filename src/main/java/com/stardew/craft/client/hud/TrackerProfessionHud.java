@@ -3,7 +3,7 @@ package com.stardew.craft.client.hud;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.block.nature.ForageBlock;
 import com.stardew.craft.client.ClientPlayerDataCache;
-import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
+import com.stardew.craft.client.gui.common.CommonGuiTextures;
 import com.stardew.craft.player.ProfessionType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -37,12 +37,6 @@ import java.util.List;
 @SuppressWarnings("null")
 @EventBusSubscriber(modid = StardewCraft.MODID, value = Dist.CLIENT)
 public final class TrackerProfessionHud {
-
-    /** SDV arrow sprite in cursors.png: (412, 495, 5, 4) */
-    private static final int ARROW_U = 412;
-    private static final int ARROW_V = 495;
-    private static final int ARROW_W = 5;
-    private static final int ARROW_H = 4;
 
     /** Search radius in blocks around the player */
     private static final int SCAN_RADIUS = 48;
@@ -256,9 +250,7 @@ public final class TrackerProfessionHud {
         float scale = 4.0f / (float) Minecraft.getInstance().getWindow().getGuiScale();
         graphics.pose().scale(scale * 4f, scale * 4f, 1.0f);
         // SDV origin is (2, 2) for a 5x4 sprite — center-ish
-        graphics.blit(StardewGuiUtil.CURSORS,
-            -2, -2, ARROW_U, ARROW_V, ARROW_W, ARROW_H,
-            StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT);
+        CommonGuiTextures.drawQuestObjectiveArrowAtCurrentPose(graphics, -2, -2);
         graphics.pose().popPose();
     }
 }

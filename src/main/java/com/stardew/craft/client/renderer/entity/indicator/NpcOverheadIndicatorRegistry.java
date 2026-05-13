@@ -1,9 +1,10 @@
 package com.stardew.craft.client.renderer.entity.indicator;
 
+import com.stardew.craft.StardewCraft;
 import com.stardew.craft.client.NpcFriendshipClientCache;
-import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
 import com.stardew.craft.entity.npc.StardewNpcEntity;
 import com.stardew.craft.network.payload.RequestNpcFriendshipOverviewPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.client.player.LocalPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 
@@ -14,13 +15,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public final class NpcOverheadIndicatorRegistry {
     private static final long OVERVIEW_REQUEST_INTERVAL_MS = 1500L;
     private static final NpcOverheadIndicator CHAT_AVAILABLE_INDICATOR = new NpcOverheadIndicator(
-        StardewGuiUtil.CURSORS2,
-        180,
-        175,
+        ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/common/social_talk_icon.png"),
+        0,
+        0,
         13,
         11,
-        StardewGuiUtil.CURSORS2_WIDTH,
-        StardewGuiUtil.CURSORS2_HEIGHT,
+        13,
+        11,
         0.065f,
         0.75f
     );

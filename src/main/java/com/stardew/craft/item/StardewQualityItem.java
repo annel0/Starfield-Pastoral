@@ -6,6 +6,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.UseAnim;
 import javax.annotation.Nonnull;
 import java.util.Objects;
 
@@ -25,9 +26,15 @@ public class StardewQualityItem extends Item implements IStardewItem {
 	private final int[] priceByQuality;
 	private final int[] energyByQuality;
 	private final int[] healthByQuality;
+	private final boolean drinkAnimation;
 
 	@SuppressWarnings("null")
 	public StardewQualityItem(String typeKey, int basePrice, int edibility, boolean supportsQuality, Properties properties) {
+		this(typeKey, basePrice, edibility, supportsQuality, properties, false);
+	}
+
+	@SuppressWarnings("null")
+	public StardewQualityItem(String typeKey, int basePrice, int edibility, boolean supportsQuality, Properties properties, boolean drinkAnimation) {
 		super(isEdible(edibility)
 				? properties.food(new FoodProperties.Builder().nutrition(2).saturationModifier(0.3f).alwaysEdible().build())
 				: properties);
@@ -38,6 +45,7 @@ public class StardewQualityItem extends Item implements IStardewItem {
 		this.priceByQuality = buildPriceByQuality(basePrice);
 		this.energyByQuality = buildEnergyByQuality(edibility);
 		this.healthByQuality = buildHealthByQuality(this.energyByQuality);
+		this.drinkAnimation = drinkAnimation;
 	}
 
 	private static boolean isEdible(int edibility) {
@@ -156,6 +164,12 @@ public class StardewQualityItem extends Item implements IStardewItem {
 	@Override
 	public boolean isFood() {
 		return edible;
+	}
+
+	@SuppressWarnings("null")
+	@Override
+	public UseAnim getUseAnimation(ItemStack stack) {
+		return drinkAnimation ? UseAnim.DRINK : super.getUseAnimation(stack);
 	}
 
 	@Override

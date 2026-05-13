@@ -1,5 +1,6 @@
 package com.stardew.craft.client.gui.overnight;
 
+import com.stardew.craft.client.gui.common.CommonGuiTextures;
 import com.stardew.craft.client.hud.StardewTimeHud;
 import com.stardew.craft.network.overnight.OvernightSettlementPayload;
 import com.stardew.craft.sound.ModSounds;
@@ -328,56 +329,59 @@ public class ShippingMenuScreen extends Screen {
         int stardewViewWidth = Math.round(w * guiScale());
 
         if (rainLike) {
-            int skyU = greenRain ? 640 : 639;
+            float skyRed;
+            float skyGreen;
+            float skyBlue;
             if (isWinter) {
-                graphics.setColor(119.0F / 255.0F, 136.0F / 255.0F, 153.0F / 255.0F, alpha);
+                skyRed = 119.0F / 255.0F;
+                skyGreen = 136.0F / 255.0F;
+                skyBlue = 153.0F / 255.0F;
             } else if (greenRain) {
-                graphics.setColor(144.0F / 255.0F, 238.0F / 255.0F, 144.0F / 255.0F, alpha);
+                skyRed = 144.0F / 255.0F;
+                skyGreen = 238.0F / 255.0F;
+                skyBlue = 144.0F / 255.0F;
             } else {
-                graphics.setColor(112.0F / 255.0F, 128.0F / 255.0F, 144.0F / 255.0F, alpha);
+                skyRed = 112.0F / 255.0F;
+                skyGreen = 128.0F / 255.0F;
+                skyBlue = 144.0F / 255.0F;
             }
-            graphics.blit(StardewGuiUtil.CURSORS, 0, 0, w, h, skyU, 858, 1, 184, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT);
-            graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+            ShippingMenuTextures.drawSkyStrip(graphics, w, h, greenRain, skyRed, skyGreen, skyBlue, alpha);
 
             if (greenRain) {
-                graphics.setColor(105.0F / 255.0F, 105.0F / 255.0F, 105.0F / 255.0F, alpha * 0.8f);
-                graphics.blit(StardewGuiUtil.CURSORS, 0, 0, w, h, skyU, 858, 1, 184, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT);
-                graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+                ShippingMenuTextures.drawSkyStrip(graphics, w, h, true, 105.0F / 255.0F, 105.0F / 255.0F, 105.0F / 255.0F, alpha * 0.8f);
             }
 
             for (int x = -244; x < w + 244; x += 244) {
-                StardewGuiUtil.drawFromCursorsTint(graphics, x + px((int) ((weatherX / 2.0f) % 244f)), px(32), 643, 1142, 61, 53, s4(),
+                ShippingMenuTextures.drawWeatherCloudTint(graphics, x + px((int) ((weatherX / 2.0f) % 244f)), px(32), s4(),
                         47.0F / 255.0F, 79.0F / 255.0F, 79.0F / 255.0F, alpha);
             }
 
             for (int i = 0; i < stardewViewWidth; i += 639) {
                 if (isWinter) {
-                    StardewGuiUtil.drawFromCursorsTint(graphics, px(i * 4), h - px(192), 0, 1034, 639, 48, s4(), 1.0F, 1.0F, 1.0F, alpha * 0.25f);
-                    StardewGuiUtil.drawFromCursorsTint(graphics, px(i * 4), h - px(128), 0, 1034, 639, 32, s4(), 1.0F, 1.0F, 1.0F, alpha * 0.5f);
+                    ShippingMenuTextures.drawLandBackTint(graphics, px(i * 4), h - px(192), true, s4(), 1.0F, 1.0F, 1.0F, alpha * 0.25f);
+                    ShippingMenuTextures.drawLandFrontTint(graphics, px(i * 4), h - px(128), true, s4(), 1.0F, 1.0F, 1.0F, alpha * 0.5f);
                 } else {
                     float lowerBackAlpha = 0.5f - (float) Math.max(0, introTimer) / 3500.0f;
-                    StardewGuiUtil.drawFromCursorsTint(graphics, px(i * 4), h - px(192), 0, 737, 639, 48, s4(), 30.0F / 255.0F, 62.0F / 255.0F, 50.0F / 255.0F, lowerBackAlpha);
-                    StardewGuiUtil.drawFromCursorsTint(graphics, px(i * 4), h - px(128), 0, 737, 639, 32, s4(), 30.0F / 255.0F, 62.0F / 255.0F, 50.0F / 255.0F, alpha);
+                    ShippingMenuTextures.drawLandBackTint(graphics, px(i * 4), h - px(192), false, s4(), 30.0F / 255.0F, 62.0F / 255.0F, 50.0F / 255.0F, lowerBackAlpha);
+                    ShippingMenuTextures.drawLandFrontTint(graphics, px(i * 4), h - px(128), false, s4(), 30.0F / 255.0F, 62.0F / 255.0F, 50.0F / 255.0F, alpha);
                 }
             }
 
-            StardewGuiUtil.drawFromCursors(graphics, px(160), h - px(128) + px(24), 653, 880, 10, 10, s4(), alpha);
+            ShippingMenuTextures.drawShippingBin(graphics, px(160), h - px(128) + px(24), s4(), alpha);
 
             for (int x = -244; x < w + 244; x += 244) {
-                StardewGuiUtil.drawFromCursorsTint(graphics, x + px((int) (weatherX % 244f)), px(-32), 643, 1142, 61, 53, s4(),
+                ShippingMenuTextures.drawWeatherCloudTint(graphics, x + px((int) (weatherX % 244f)), px(-32), s4(),
                         112.0F / 255.0F, 128.0F / 255.0F, 144.0F / 255.0F, alpha * 0.85f);
             }
             for (int x = -244; x < w + 244; x += 244) {
-                StardewGuiUtil.drawFromCursorsTint(graphics, x + px((int) ((weatherX * 1.5f) % 244f)), px(-128), 643, 1142, 61, 53, s4(),
+                ShippingMenuTextures.drawWeatherCloudTint(graphics, x + px((int) ((weatherX * 1.5f) % 244f)), px(-128), s4(),
                         119.0F / 255.0F, 136.0F / 255.0F, 153.0F / 255.0F, alpha);
             }
             return;
         }
 
         // ShippingMenu base sky strip (no-rain)
-        graphics.setColor(1.0F, 1.0F, 1.0F, alpha);
-        graphics.blit(StardewGuiUtil.CURSORS, 0, 0, w, h, 639, 858, 1, 184, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT);
-        graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+        ShippingMenuTextures.drawSkyStrip(graphics, w, h, false, 1.0F, 1.0F, 1.0F, alpha);
 
         if (!rainLike) {
             drawNightStars(graphics, alpha, w, h);
@@ -389,35 +393,34 @@ public class ShippingMenuScreen extends Screen {
                     shakeX = ThreadLocalRandom.current().nextInt(-1, 2);
                     shakeY = ThreadLocalRandom.current().nextInt(-1, 2);
                 }
-                StardewGuiUtil.drawFromCursors(graphics, w - px(176) + px(shakeX), px(4 + shakeY), 642, 835, 43, 43, s4(), alpha);
+                ShippingMenuTextures.drawFullMoon(graphics, w - px(176) + px(shakeX), px(4 + shakeY), s4(), alpha);
                 if (timesPokedMoon > 10) {
                     long ms = System.currentTimeMillis();
                     boolean blink = (ms % 4000L < 200L) || (ms % 8000L > 7600L && ms % 8000L < 7800L);
-                    int moonFaceV = 844 + (blink ? 21 : 0);
-                    StardewGuiUtil.drawFromCursors(graphics, w - px(136) + px(shakeX), px(48 + shakeY), 685, moonFaceV, 19, 21, s4(), alpha);
+                    ShippingMenuTextures.drawMoonFace(graphics, w - px(136) + px(shakeX), px(48 + shakeY), blink, s4(), alpha);
                 }
             }
         }
 
         float distantAlpha = Math.max(0.0f, Math.min(1.0f, 0.65f - Math.max(0, introTimer) / 3500.0f));
         if (isWinter) {
-            StardewGuiUtil.drawFromCursorsTint(graphics, px(0), h - px(192), 0, 1034, 639, 48, s4(), 1.0F, 1.0F, 1.0F, distantAlpha * 0.25f);
-            StardewGuiUtil.drawFromCursorsTint(graphics, px(2556), h - px(192), 0, 1034, 639, 48, s4(), 1.0F, 1.0F, 1.0F, distantAlpha * 0.25f);
+            ShippingMenuTextures.drawLandBackTint(graphics, px(0), h - px(192), true, s4(), 1.0F, 1.0F, 1.0F, distantAlpha * 0.25f);
+            ShippingMenuTextures.drawLandBackTint(graphics, px(2556), h - px(192), true, s4(), 1.0F, 1.0F, 1.0F, distantAlpha * 0.25f);
         } else {
-            StardewGuiUtil.drawFromCursorsTint(graphics, px(0), h - px(192), 0, 737, 639, 48, s4(), 0.0F, 20.0F / 255.0F, 40.0F / 255.0F, distantAlpha);
-            StardewGuiUtil.drawFromCursorsTint(graphics, px(2556), h - px(192), 0, 737, 639, 48, s4(), 0.0F, 20.0F / 255.0F, 40.0F / 255.0F, distantAlpha);
+            ShippingMenuTextures.drawLandBackTint(graphics, px(0), h - px(192), false, s4(), 0.0F, 20.0F / 255.0F, 40.0F / 255.0F, distantAlpha);
+            ShippingMenuTextures.drawLandBackTint(graphics, px(2556), h - px(192), false, s4(), 0.0F, 20.0F / 255.0F, 40.0F / 255.0F, distantAlpha);
         }
 
         if (isWinter) {
-            StardewGuiUtil.drawFromCursorsTint(graphics, px(0), h - px(128), 0, 1034, 639, 32, s4(), 1.0F, 1.0F, 1.0F, alpha * 0.5f);
-            StardewGuiUtil.drawFromCursorsTint(graphics, px(2556), h - px(128), 0, 1034, 639, 32, s4(), 1.0F, 1.0F, 1.0F, alpha * 0.5f);
+            ShippingMenuTextures.drawLandFrontTint(graphics, px(0), h - px(128), true, s4(), 1.0F, 1.0F, 1.0F, alpha * 0.5f);
+            ShippingMenuTextures.drawLandFrontTint(graphics, px(2556), h - px(128), true, s4(), 1.0F, 1.0F, 1.0F, alpha * 0.5f);
         } else {
-            StardewGuiUtil.drawFromCursorsTint(graphics, px(0), h - px(128), 0, 737, 639, 32, s4(), 0.0F, 32.0F / 255.0F, 20.0F / 255.0F, alpha);
-            StardewGuiUtil.drawFromCursorsTint(graphics, px(2556), h - px(128), 0, 737, 639, 32, s4(), 0.0F, 32.0F / 255.0F, 20.0F / 255.0F, alpha);
+            ShippingMenuTextures.drawLandFrontTint(graphics, px(0), h - px(128), false, s4(), 0.0F, 32.0F / 255.0F, 20.0F / 255.0F, alpha);
+            ShippingMenuTextures.drawLandFrontTint(graphics, px(2556), h - px(128), false, s4(), 0.0F, 32.0F / 255.0F, 20.0F / 255.0F, alpha);
         }
 
         // Shipping bin icon in background
-        StardewGuiUtil.drawFromCursors(graphics, px(160), h - px(128) + px(24), 653, 880, 10, 10, s4(), alpha);
+        ShippingMenuTextures.drawShippingBin(graphics, px(160), h - px(128) + px(24), s4(), alpha);
     }
 
     @SuppressWarnings("null")
@@ -450,19 +453,19 @@ public class ShippingMenuScreen extends Screen {
                 // Plus button + slot preview are only visible for non-empty non-total categories.
                 if (i < 5 && !categoryItems.get(i).isEmpty()) {
                     boolean hovering = mouseX >= plusButtonX && mouseX <= plusButtonX + plusButtonWidth && mouseY >= plusButtonY && mouseY <= plusButtonY + px(44);
-                    StardewGuiUtil.drawFromCursors(graphics, plusButtonX, plusButtonY, hovering ? 402 : 392, 361, 10, 11, s4());
+                    ShippingMenuTextures.drawPlusButton(graphics, plusButtonX, plusButtonY, hovering, s4());
 
                     // Slot frame behind the preview item
-                    StardewGuiUtil.drawFromCursors(graphics, startX + px(-104), startY + yOffset + px(4), 293, 360, 24, 24, s4());
+                    CommonGuiTextures.drawRewardSlot(graphics, startX + px(-104), startY + yOffset + px(4), s4());
 
                     ItemStack firstStack = categoryItems.get(i).get(0).stack();
-                    graphics.renderItem(firstStack, startX + px(-88), startY + yOffset + px(16));
+                    CommonGuiTextures.drawItem(graphics, firstStack, startX + px(-88), startY + yOffset + px(16), s4());
                 }
 
                 // Texture Box
                 int boxX = startX - itemSlotWidth - categoryLabelsWidth + px(-12);
                 int boxY = startY + yOffset;
-                StardewGuiUtil.drawTextureBoxNoShadow(graphics, boxX, boxY, categoryLabelsWidth, px(104));
+                CommonGuiTextures.drawTextureBoxNoShadow(graphics, boxX, boxY, categoryLabelsWidth, px(104), s4());
 
                 // Name text
                 Component catName = getCategoryName(i);
@@ -470,7 +473,7 @@ public class ShippingMenuScreen extends Screen {
 
                 int dotsX = startX - itemSlotWidth + px(-192 - 24);
                 for (int m = 0; m < 6; m++) {
-                    StardewGuiUtil.drawFromCursors(graphics, dotsX + px(m * 6 * 4), startY + px(12), 355, 476, 7, 11, s4());
+                    ShippingMenuTextures.drawDialDots(graphics, dotsX + px(m * 6 * 4), startY + px(12), s4());
                 }
 
                 // Dial
@@ -481,7 +484,7 @@ public class ShippingMenuScreen extends Screen {
                 // Gold coin icon
                 int coinX = startX - itemSlotWidth + px(-64 - 4);
                 int coinY = startY + px(12);
-                StardewGuiUtil.drawFromCursors(graphics, coinX, coinY, 408, 476, 9, 11, s4());
+                ShippingMenuTextures.drawCoin(graphics, coinX, coinY, s4());
             }
         }
         
@@ -497,7 +500,7 @@ public class ShippingMenuScreen extends Screen {
                 graphics.pose().scale(1.1f, 1.1f, 1f);
                 graphics.pose().translate(-(okX + okWidth/2f), -(okY + okWidth/2f), 0);
             }
-            StardewGuiUtil.drawFromCursors(graphics, okX, okY, 128, 256, 64, 64, 1.0f / guiScale());
+            ShippingMenuTextures.drawOk(graphics, okX, okY, 1.0f / guiScale());
             graphics.pose().popPose();
         }
     }
@@ -508,7 +511,7 @@ public class ShippingMenuScreen extends Screen {
         int xPos = this.width / 2 - boxwidth / 2;
         int yPos = this.height / 2 - boxheight / 2;
 
-        StardewGuiUtil.drawTextureBox(graphics, xPos, yPos, boxwidth, boxheight);
+        CommonGuiTextures.drawMenuTextureBox(graphics, xPos, yPos, boxwidth, boxheight, 1.0f / guiScale(), true);
 
         int currentY = yPos + px(32);
         int startX = xPos + px(32);
@@ -520,8 +523,7 @@ public class ShippingMenuScreen extends Screen {
         for (int i = startIndex; i < endIndex; i++) {
             OvernightSettlementPayload.ShippedItem item = items.get(i);
             
-            // Draw Item
-            graphics.renderItem(item.stack(), startX, currentY);
+            CommonGuiTextures.drawItemWithDecorations(graphics, this.font, item.stack(), startX, currentY, s4());
             
             // Draw Subtotal (Name x Price)
             Component itemName = item.stack().getHoverName();
@@ -564,7 +566,7 @@ public class ShippingMenuScreen extends Screen {
                          graphics.pose().scale(1.125f, 1.125f, 1f);
                graphics.pose().translate(-(backX + px(24)), -(backY + px(22)), 0);
         }
-           StardewGuiUtil.drawFromCursors(graphics, backX, backY, 352, 495, 12, 11, s4());
+          ShippingMenuTextures.drawBack(graphics, backX, backY, s4());
         graphics.pose().popPose();
 
         // Forward button
@@ -584,7 +586,7 @@ public class ShippingMenuScreen extends Screen {
                  graphics.pose().scale(1.125f, 1.125f, 1f);
                   graphics.pose().translate(-(fwX + px(24)), -(fwY + px(22)), 0);
             }
-              StardewGuiUtil.drawFromCursors(graphics, fwX, fwY, 365, 495, 12, 11, s4());
+            ShippingMenuTextures.drawForward(graphics, fwX, fwY, s4());
             graphics.pose().popPose();
         }
     }

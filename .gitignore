@@ -32,10 +32,8 @@ _tmp*
 /*.jar
 docs/
 wiki/
-tools/
 ui_spec/
 resourcepack-template/
-scripts/
 
 # local reference and scratch work
 tmp_models/
@@ -48,9 +46,12 @@ software/
 .vscode/
 .codex/
 视频制作/
+参考/
 resourcepack-template/
-scripts/
-tools/
+scripts/*
+!scripts/extract_ui_atlas_slices.sh
+tools/*
+!tools/ui_atlas_slices.csv
 ui_spec/
 wiki/
 stardewcraft-template-1.21.1.sln

@@ -1,7 +1,6 @@
 package com.stardew.craft.client.gui.common;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
 import com.stardew.craft.sound.ModSounds;
 import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.Util;
@@ -574,10 +573,10 @@ public class StardewNpcDialogueScreen extends Screen {
             int half = 750;
             int triangle = periodic <= half ? periodic : (1500 - periodic);
             int bob = Math.round((triangle / (float) half) * mapping.ui(8));
-            StardewGuiUtil.drawFromCursors(graphics, x, y + bob, 232 + frame * 9, 346, 9, 9, mapping.s4());
+            CommonGuiTextures.drawDialogueNextPage(graphics, x, y + bob, frame, mapping.s4());
         } else {
             int frame = (iconFrameTick / 80) % 11;
-            StardewGuiUtil.drawFromCursors(graphics, x, y - mapping.ui(4), 289 + frame * 11, 342, 11, 12, mapping.s4());
+            CommonGuiTextures.drawDialogueEnd(graphics, x, y - mapping.ui(4), frame, mapping.s4());
         }
     }
 
@@ -600,7 +599,7 @@ public class StardewNpcDialogueScreen extends Screen {
         int textHeight = Math.round(this.font.lineHeight * scale);
         int hoverX = jewelX + jewelSize / 2 - textWidth / 2;
         int hoverY = jewelY - mapping.ui(64);
-        StardewGuiUtil.drawTextureBoxNoShadow(graphics, hoverX - mapping.ui(8), hoverY - mapping.ui(8), textWidth + mapping.ui(16), textHeight + mapping.ui(16));
+        CommonGuiTextures.drawTextureBoxNoShadow(graphics, hoverX - mapping.ui(8), hoverY - mapping.ui(8), textWidth + mapping.ui(16), textHeight + mapping.ui(16), mapping.s4());
 
         graphics.pose().pushPose();
         graphics.pose().translate(hoverX, hoverY, 0.0f);
@@ -617,13 +616,13 @@ public class StardewNpcDialogueScreen extends Screen {
         int xPositionOfPortraitArea = boxX + boxW - mapping.ui(448) + mapping.ui(4);
         int widthOfPortraitArea = boxX + boxW - xPositionOfPortraitArea;
 
-        blitCursorsRect(graphics, xPositionOfPortraitArea - mapping.ui(40), boxY, mapping.ui(36), boxH, 278, 324, 9, 1);
-        StardewGuiUtil.drawFromCursors(graphics, xPositionOfPortraitArea - mapping.ui(40), boxY - mapping.ui(20), 278, 313, 10, 7, mapping.s4());
-        StardewGuiUtil.drawFromCursors(graphics, xPositionOfPortraitArea - mapping.ui(40), boxY + boxH, 278, 328, 10, 8, mapping.s4());
+        CommonGuiTextures.drawDialoguePortraitVerticalStrip(graphics, xPositionOfPortraitArea - mapping.ui(40), boxY, mapping.ui(36), boxH);
+        CommonGuiTextures.drawDialoguePortraitDividerTop(graphics, xPositionOfPortraitArea - mapping.ui(40), boxY - mapping.ui(20), mapping.s4());
+        CommonGuiTextures.drawDialoguePortraitDividerBottom(graphics, xPositionOfPortraitArea - mapping.ui(40), boxY + boxH, mapping.s4());
 
         int portraitBoxX = xPositionOfPortraitArea + mapping.ui(76);
         int portraitBoxY = boxY + boxH / 2 - mapping.ui(148) - mapping.ui(36);
-        StardewGuiUtil.drawFromCursors(graphics, xPositionOfPortraitArea - mapping.ui(8), boxY, 583, 411, 115, 97, mapping.s4());
+        CommonGuiTextures.drawDialoguePortraitFrame(graphics, xPositionOfPortraitArea - mapping.ui(8), boxY, mapping.s4());
 
         int xOffset = newPortraitShakeTimer > 0 ? mapping.ui((int) (Math.random() * 3.0) - 1) : 0;
         drawNpcPortrait(graphics, portraitBoxX + mapping.ui(16) + xOffset, portraitBoxY + mapping.ui(24), page.portraitIndex());
@@ -641,18 +640,8 @@ public class StardewNpcDialogueScreen extends Screen {
         int jewelY = boxY + mapping.ui(256);
         int hearts = Math.max(0, Math.min(14, friendshipPoints / 250));
 
-        int sourceX;
-        int sourceY;
-        if (hearts >= 10) {
-            sourceX = 269;
-            sourceY = 494;
-        } else {
-            int frame = ((int) ((System.currentTimeMillis() % 1000L) / 250L)) * 11;
-            sourceX = 140 + frame;
-            sourceY = 532 + (hearts / 2) * 11;
-        }
-
-        StardewGuiUtil.drawFromCursors(graphics, jewelX, jewelY, sourceX, sourceY, 11, 11, mapping.s4());
+        int frame = (int) ((System.currentTimeMillis() % 1000L) / 250L);
+        CommonGuiTextures.drawFriendshipJewel(graphics, jewelX, jewelY, hearts, frame, mapping.s4());
     }
 
     private void drawNpcPortrait(GuiGraphics graphics, int x, int y, int portraitIndex) {
@@ -749,28 +738,21 @@ public class StardewNpcDialogueScreen extends Screen {
         return Character.toUpperCase(id.charAt(0)) + id.substring(1);
     }
 
-    private void blitCursorsRect(GuiGraphics graphics, int x, int y, int width, int height, int u, int v, int srcW, int srcH) {
-        if (width <= 0 || height <= 0) {
-            return;
-        }
-        graphics.blit(StardewGuiUtil.CURSORS, x, y, width, height, u, v, srcW, srcH, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT);
-    }
-
     private void drawBox(GuiGraphics graphics, int xPos, int yPos, int boxWidth, int boxHeight) {
         if (!transitionInitialized || boxWidth <= 0 || boxHeight <= 0) {
             return;
         }
-        blitCursorsRect(graphics, xPos, yPos, boxWidth, boxHeight, 306, 320, 16, 16);
-        blitCursorsRect(graphics, xPos, yPos - mapping.ui(20), boxWidth, mapping.ui(24), 275, 313, 1, 6);
-        blitCursorsRect(graphics, xPos + mapping.ui(12), yPos + boxHeight, Math.max(0, boxWidth - mapping.ui(20)), mapping.ui(32), 275, 328, 1, 8);
-        blitCursorsRect(graphics, xPos - mapping.ui(32), yPos + mapping.ui(24), mapping.ui(32), Math.max(0, boxHeight - mapping.ui(28)), 264, 325, 8, 1);
-        blitCursorsRect(graphics, xPos + boxWidth, yPos, mapping.ui(28), boxHeight, 293, 324, 7, 1);
+        CommonGuiTextures.drawDialogueBoxFill(graphics, xPos, yPos, boxWidth, boxHeight);
+        CommonGuiTextures.drawDialogueBoxTop(graphics, xPos, yPos - mapping.ui(20), boxWidth, mapping.ui(24));
+        CommonGuiTextures.drawDialogueBoxBottom(graphics, xPos + mapping.ui(12), yPos + boxHeight, Math.max(0, boxWidth - mapping.ui(20)), mapping.ui(32));
+        CommonGuiTextures.drawDialogueBoxLeft(graphics, xPos - mapping.ui(32), yPos + mapping.ui(24), mapping.ui(32), Math.max(0, boxHeight - mapping.ui(28)));
+        CommonGuiTextures.drawDialogueBoxRight(graphics, xPos + boxWidth, yPos, mapping.ui(28), boxHeight);
 
         float s4 = mapping.s4();
-        StardewGuiUtil.drawFromCursors(graphics, xPos - mapping.ui(44), yPos - mapping.ui(28), 261, 311, 14, 13, s4);
-        StardewGuiUtil.drawFromCursors(graphics, xPos + boxWidth - mapping.ui(8), yPos - mapping.ui(28), 291, 311, 12, 11, s4);
-        StardewGuiUtil.drawFromCursors(graphics, xPos + boxWidth - mapping.ui(8), yPos + boxHeight - mapping.ui(8), 291, 326, 12, 12, s4);
-        StardewGuiUtil.drawFromCursors(graphics, xPos - mapping.ui(44), yPos + boxHeight - mapping.ui(4), 261, 327, 14, 11, s4);
+        CommonGuiTextures.drawDialogueQuestionCornerTl(graphics, xPos - mapping.ui(44), yPos - mapping.ui(28), s4);
+        CommonGuiTextures.drawDialogueQuestionCornerTr(graphics, xPos + boxWidth - mapping.ui(8), yPos - mapping.ui(28), s4);
+        CommonGuiTextures.drawDialogueQuestionCornerBr(graphics, xPos + boxWidth - mapping.ui(8), yPos + boxHeight - mapping.ui(8), s4);
+        CommonGuiTextures.drawDialogueQuestionCornerBl(graphics, xPos - mapping.ui(44), yPos + boxHeight - mapping.ui(4), s4);
     }
 
     private void closeScreen() {

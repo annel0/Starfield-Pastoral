@@ -13,6 +13,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -165,7 +166,9 @@ public class CrabPotBlock extends Block implements EntityBlock, SimpleWaterlogge
 			return InteractionResult.PASS;
 		}
 
-		crabPot.setOwnerIfAbsent(player.getUUID());
+		if (!claimOrCheckOwner(player, crabPot)) {
+			return InteractionResult.SUCCESS;
+		}
 
 		// 如果有产物，收获
 		if (crabPot.isReady()) {
@@ -206,6 +209,15 @@ public class CrabPotBlock extends Block implements EntityBlock, SimpleWaterlogge
 		}
 
 		return InteractionResult.PASS;
+	}
+
+	public static boolean claimOrCheckOwner(Player player, CrabPotBlockEntity crabPot) {
+		if (crabPot.canAccess(player.getUUID())) {
+			crabPot.setOwnerIfAbsent(player.getUUID());
+			return true;
+		}
+		player.displayClientMessage(Component.translatable("message.stardew_craft.crab_pot.not_owner"), true);
+		return false;
 	}
 
 	@SuppressWarnings("null")

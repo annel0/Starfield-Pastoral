@@ -288,6 +288,9 @@ public class StardewCraft {
                 // 法师塔指南针
                 output.accept(ModItems.WIZARD_TOWER_COMPASS.get());
 
+                // 好感门：绑定 NPC 的具体门请使用 /stardew friendship_door give 生成。
+                output.accept(ModItems.FRIENDSHIP_DOOR.get());
+
                 // 武器 - 剑类
                 output.accept(ModItems.RUSTY_SWORD.get());
                 output.accept(ModItems.STEEL_SMALLSWORD.get());
@@ -937,8 +940,9 @@ public class StardewCraft {
             NeoForge.EVENT_BUS.register(com.stardew.craft.client.ModClientEvents.class);
         }
 
-        // Register our mod's ModConfigSpec so that FML can create and load the config file for us
-        modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+        // Register our mod's ModConfigSpecs so that FML can create and load the config files for us
+        modContainer.registerConfig(ModConfig.Type.COMMON, Config.COMMON_SPEC);
+        modContainer.registerConfig(ModConfig.Type.CLIENT, Config.CLIENT_SPEC);
 
         // Sync max stack size from config → StackSizeHolder whenever config loads/reloads
         modContainer.getEventBus().addListener((net.neoforged.fml.event.config.ModConfigEvent event) -> {

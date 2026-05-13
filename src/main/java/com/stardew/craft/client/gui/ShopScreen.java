@@ -3,7 +3,7 @@ package com.stardew.craft.client.gui;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
+import com.stardew.craft.client.gui.common.CommonGuiTextures;
 import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.network.payload.OpenShopScreenPayload;
 import com.stardew.craft.network.payload.ShopPurchasePayload;
@@ -46,17 +46,11 @@ public class ShopScreen extends Screen {
     private static final int ROWS     = 4;
     private static final int PORTRAIT_OFFSET = 320;
 
-    // Cursors UV (sprite coords, NOT ×4)
-    private static final int BDR_U=384,BDR_V=373,BDR_W=18,BDR_SH=18;
-    private static final int ROW_U=384,ROW_V=396,ROW_W=15,ROW_SH=15;
-    private static final int ICO_U=296,ICO_V=363,ICO_W=18,ICO_SH=18;
-    private static final int PORT_U=603,PORT_V=414,PORT_W=74,PORT_SH=74;
-    private static final int ARR_UP_U=421,ARR_UP_V=459,ARR_UP_W=11,ARR_UP_SH=12;
-    private static final int ARR_DN_U=421,ARR_DN_V=472,ARR_DN_W=11,ARR_DN_SH=12;
-    private static final int SCR_F_U=435,SCR_F_V=463,SCR_F_W=6,SCR_F_SH=10;
-    private static final int SCR_B_U=403,SCR_B_V=383,SCR_B_W=6,SCR_B_SH=6;
-    private static final int COIN_U=193,COIN_V=373,COIN_W=9,COIN_SH=10;
-    private static final int CLOSE_U=337,CLOSE_V=494,CLOSE_W=12,CLOSE_SH=12;
+    // Cursors sprite dimensions (NOT ×4)
+    private static final int PORT_W=74;
+    private static final int ARR_UP_W=11,ARR_UP_SH=12;
+    private static final int SCR_F_W=6,SCR_F_SH=10;
+    private static final int CLOSE_W=12,CLOSE_SH=12;
 
     // Inventory constants (9-wide × 4-row: hotbar at row-3, main at rows 0-2)
     private static final int INV_COLS  = 9;
@@ -255,9 +249,10 @@ public class ShopScreen extends Screen {
         closeY = panelY - closeH / 2;
 
         // SDV parity: money box = overrideX = xPos-36, overrideY = yPos+height-inv.height-12
-        // Our equiv: panelY + mainHGui - 12  =  invBoxYGui - ui(8) - ui(12)  =  invBoxYGui - ui(20)
+        // Our equiv: panelY + mainHGui - 12. Anchor directly to the main panel so
+        // rounding does not drift when GUI scale is not 4x.
         currencyX = panelX - ui(36);
-        currencyY = invBoxYGui - ui(20);
+        currencyY = panelY + mainHGui - ui(12);
     }
 
     // =========================================================================
@@ -277,15 +272,11 @@ public class ShopScreen extends Screen {
 
         float s4 = s4();
 
-        // 1. Inventory box
-        StardewGuiUtil.drawTextureBox(g,
-            StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
-            BDR_U,BDR_V,BDR_W,BDR_SH, invBoxXGui, invBoxYGui, invBoxWGui, invBoxHGui, s4, false);
+        // 1. Main items box (with shadow)
+        CommonGuiTextures.drawTextureBox(g, panelX, panelY, panelWGui, mainHGui, s4, true);
 
-        // 2. Main items box (with shadow)
-        StardewGuiUtil.drawTextureBox(g,
-            StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
-            BDR_U,BDR_V,BDR_W,BDR_SH, panelX, panelY, panelWGui, mainHGui, s4, true);
+        // 2. Inventory box. Draw after the main panel so its shadow cannot cover inventory.
+        CommonGuiTextures.drawTextureBox(g, invBoxXGui, invBoxYGui, invBoxWGui, invBoxHGui, s4, false);
 
         // 3. Currency
         drawCurrency(g, s4);
@@ -312,19 +303,21 @@ public class ShopScreen extends Screen {
         // 7. Scroll arrows
         boolean upOn = currentIndex > 0;
         boolean dnOn = currentIndex < Math.max(0, forSale.size() - ROWS);
-        if (!upOn) g.setColor(1f,1f,1f,0.4f);
-        StardewGuiUtil.drawFromCursors(g, upArrowX, upArrowY, ARR_UP_U, ARR_UP_V, ARR_UP_W, ARR_UP_SH, s4);
-        if (!upOn) g.setColor(1f,1f,1f,1f);
-        if (!dnOn) g.setColor(1f,1f,1f,0.4f);
-        StardewGuiUtil.drawFromCursors(g, dnArrowX, dnArrowY, ARR_DN_U, ARR_DN_V, ARR_DN_W, ARR_DN_SH, s4);
-        if (!dnOn) g.setColor(1f,1f,1f,1f);
+        if (upOn) {
+            CommonGuiTextures.drawScrollArrowUp(g, upArrowX, upArrowY, s4);
+        } else {
+            CommonGuiTextures.drawScrollArrowUpTint(g, upArrowX, upArrowY, s4, 1f, 1f, 1f, 0.4f);
+        }
+        if (dnOn) {
+            CommonGuiTextures.drawScrollArrowDown(g, dnArrowX, dnArrowY, s4);
+        } else {
+            CommonGuiTextures.drawScrollArrowDownTint(g, dnArrowX, dnArrowY, s4, 1f, 1f, 1f, 0.4f);
+        }
 
         // 8. Scrollbar
         if (forSale.size() > ROWS) {
-            StardewGuiUtil.drawTextureBox(g,
-                StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
-                SCR_B_U,SCR_B_V,SCR_B_W,SCR_B_SH, scrRunX, scrRunY, scrRunW, scrRunH, s4, false);
-            StardewGuiUtil.drawFromCursors(g, scrBarX, scrBarY, SCR_F_U, SCR_F_V, SCR_F_W, SCR_F_SH, s4);
+            CommonGuiTextures.drawScrollTrackBox(g, scrRunX, scrRunY, scrRunW, scrRunH, s4);
+            CommonGuiTextures.drawScrollBarThumb(g, scrBarX, scrBarY, s4);
         }
 
         // 9. Close button
@@ -333,7 +326,7 @@ public class ShopScreen extends Screen {
         float cs = s4 * closeScale;
         int cdx = closeX + closeW/2 - (int)(CLOSE_W *cs/2);
         int cdy = closeY + closeH/2 - (int)(CLOSE_SH*cs/2);
-        StardewGuiUtil.drawFromCursors(g, cdx, cdy, CLOSE_U, CLOSE_V, CLOSE_W, CLOSE_SH, cs);
+        CommonGuiTextures.drawCloseButton(g, cdx, cdy, cs);
 
         // 10. Portrait — SDV ShopMenu.cs L2008-L2024 parity
         // SDV: portrait_draw_position = xPositionOnScreen - 320
@@ -341,7 +334,7 @@ public class ShopScreen extends Screen {
         int portX = panelX - ui(PORTRAIT_OFFSET);
         if (portX > 0 && !ownerNpcId.isEmpty()) {
             // Frame background from cursors (SDV: Utility.drawWithShadow at portrait_draw_position)
-            StardewGuiUtil.drawFromCursors(g, portX, panelY, PORT_U, PORT_V, PORT_W, PORT_SH, s4);
+            CommonGuiTextures.drawShopPortraitFrame(g, portX, panelY, s4);
             int portSize = (int)(PORT_W * s4);
             // Face on top of frame — uses dynamic texture dimensions
             drawNpcPortraitInShop(g, portX, panelY, portSize);
@@ -368,7 +361,7 @@ public class ShopScreen extends Screen {
                 int dlgY = panelY + ui(312);  // SDV: yPositionOnScreen + 312
 
                 // Draw SDV-style tooltip box (same as IClickableMenu.drawHoverText default theme)
-                StardewGuiUtil.drawTextureBox(g, dlgX, dlgY, boxW, boxH);
+                CommonGuiTextures.drawMenuTextureBox(g, dlgX, dlgY, boxW, boxH, 1.0f / guiScale, true);
 
                 // Draw text inside box
                 int textX = dlgX + boxPad;
@@ -382,8 +375,8 @@ public class ShopScreen extends Screen {
 
         // 11. Held item on cursor — centered on cursor tip (MC convention: -8,-8)
         if (!heldItem.isEmpty()) {
-            g.renderItem(heldItem, mouseX - 8, mouseY - 8);
-            g.renderItemDecorations(font, heldItem, mouseX - 8, mouseY - 8);
+            int itemSize = CommonGuiTextures.itemSize(s4);
+            CommonGuiTextures.drawItemWithDecorations(g, font, heldItem, mouseX - itemSize / 2, mouseY - itemSize / 2, s4);
         }
 
         // 12. Tooltip
@@ -454,10 +447,6 @@ public class ShopScreen extends Screen {
     // "position" field which in ShopMenu equals (overrideX, overrideY-172).
     // So banner absolute Y = overrideY - 172 + 172 = overrideY
     //    digit  absolute Y = overrideY - 172 + 196 = overrideY + 24
-    private static final int MONEY_BOX_U = 340, MONEY_BOX_V = 472;
-    private static final int MONEY_BOX_W = 65,  MONEY_BOX_H = 17;
-    private static final int DIGIT_U = 286,  DIGIT_V_BASE = 502;
-    private static final int DIGIT_W = 5,    DIGIT_H = 8;
     private static final int NUM_DIGITS = 8;
 
     private void drawCurrency(GuiGraphics g, float s4) {
@@ -468,8 +457,7 @@ public class ShopScreen extends Screen {
         // sdvScreenPx * s4 (which would be 4× too large).
         int bannerX = currencyX + ui(28);  // ui(28) == 28/guiScale
         int bannerY = currencyY;
-        StardewGuiUtil.drawFromCursors(g, bannerX, bannerY,
-            MONEY_BOX_U, MONEY_BOX_V, MONEY_BOX_W, MONEY_BOX_H, s4);
+        CommonGuiTextures.drawMoneyBox(g, bannerX, bannerY, s4);
 
         // ── Digits ──────────────────────────────────────────────────────────
         // SDV MoneyDial: digits at position + (68, 24) (SDV screen px),
@@ -477,7 +465,7 @@ public class ShopScreen extends Screen {
         // (int)(6*s4) == ui(24) because 6 sprite-px × s4 = 6×4/guiScale ✓
         int digitStartX  = currencyX + ui(68);  // offset is SDV screen-px → ui()
         int digitY       = currencyY + ui(24);   // same
-        int digitSpacing = (int)(6 * s4);        // 6 sprite-px × scale per digit
+        int digitSpacing = Math.round(6 * s4);   // 6 sprite-px × scale per digit
 
         int val = Math.max(0, playerMoney);
         int[] digits = new int[NUM_DIGITS];
@@ -489,14 +477,7 @@ public class ShopScreen extends Screen {
             int d = digits[i];
             if (d > 0 || i == NUM_DIGITS - 1) significant = true;
             if (significant) {
-                int digitV = DIGIT_V_BASE - d * DIGIT_H;
-                // g.setColor() before drawFromCursors() would immediately be
-                // overridden inside drawFromCursorsTint().  Must pass the tint
-                // directly via drawFromCursorsTint (Maroon = #800000 = 0.502,0,0).
-                StardewGuiUtil.drawFromCursorsTint(g,
-                    digitStartX + i * digitSpacing, digitY,
-                    DIGIT_U, digitV, DIGIT_W, DIGIT_H, s4,
-                    0.502f, 0f, 0f, 1f);
+                CommonGuiTextures.drawMoneyDigitTint(g, digitStartX + i * digitSpacing, digitY, d, s4, 0.502f, 0f, 0f, 1f);
             }
         }
     }
@@ -521,18 +502,17 @@ public class ShopScreen extends Screen {
                 ItemStack stack = mc.player.getInventory().getItem(mcSlot);
                 boolean sellable = canSellAt(stack);
 
-                StardewGuiUtil.drawMenuTileIndex(g, sx, sy, sz, sz, 10);
+                CommonGuiTextures.drawMenuTile(g, sx, sy, sz, sz, 10);
                 if (hov) {
                     g.fill(sx, sy, sx + sz, sy + sz, 0x35FFFFFF);
                 }
 
                 if (!stack.isEmpty()) {
-                    int ix = sx + (sz-16)/2;
-                    int iy = sy + (sz-16)/2;
+                    int ix = sx + (sz - CommonGuiTextures.itemSize(s4)) / 2;
+                    int iy = sy + (sz - CommonGuiTextures.itemSize(s4)) / 2;
                     // Only dim the item icon (not the slot background).
                     if (!sellable) g.setColor(0.62f, 0.62f, 0.62f, 1f);
-                    g.renderItem(stack, ix, iy);
-                    g.renderItemDecorations(font, stack, ix, iy);
+                    CommonGuiTextures.drawItemWithDecorations(g, font, stack, ix, iy, s4);
                     if (!sellable) g.setColor(1f, 1f, 1f, 1f);
                 }
             }
@@ -559,15 +539,13 @@ public class ShopScreen extends Screen {
         // Row background tint
         if      (hov && canBuy)    g.setColor(0.961f, 0.871f, 0.702f, 1.0f); // Wheat
         else if (!canBuy)          g.setColor(0.6f,   0.6f,   0.6f,   1.0f); // grey
-        StardewGuiUtil.drawTextureBox(g,
-            StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
-            ROW_U,ROW_V,ROW_W,ROW_SH, rowX, rowY, rowWGui, rowHGui, s4, false);
+        CommonGuiTextures.drawEntryBox(g, rowX, rowY, rowWGui, rowHGui, s4, false);
         g.setColor(1f,1f,1f,1f);
 
         // Icon background (SDV: button.X+32-12, button.Y+24-4)
         int icoX = rowX + ui(20);
         int icoY = rowY + ui(20);
-        StardewGuiUtil.drawFromCursors(g, icoX, icoY, ICO_U, ICO_V, ICO_W, ICO_SH, s4);
+        CommonGuiTextures.drawItemSlot18(g, icoX, icoY, s4);
 
         // Item icon
         int iconX = rowX + ui(24);
@@ -598,11 +576,11 @@ public class ShopScreen extends Screen {
                 canAfford ? 0x404040 : 0x992222, false);
 
             float coinA = canBuy ? 1.0f : 0.25f;
-            if (coinA < 1f) g.setColor(1f,1f,1f,coinA);
-            StardewGuiUtil.drawFromCursors(g,
-                rowX + rowWGui - ui(52), rowY + ui(36),
-                COIN_U, COIN_V, COIN_W, COIN_SH, s4);
-            if (coinA < 1f) g.setColor(1f,1f,1f,1f);
+            if (coinA < 1f) {
+                CommonGuiTextures.drawShopCoinTint(g, rowX + rowWGui - ui(52), rowY + ui(36), s4, 1f, 1f, 1f, coinA);
+            } else {
+                CommonGuiTextures.drawShopCoin(g, rowX + rowWGui - ui(52), rowY + ui(36), s4);
+            }
 
             // SDV: right -= SpriteText.getWidthOfString(price + " ") + 96
             tradeRight -= prW + ui(96);
@@ -623,7 +601,7 @@ public class ShopScreen extends Screen {
 
             if (!trade.isEmpty()) {
                 if (!enough) g.setColor(1f, 1f, 1f, 0.25f);
-                g.renderItem(trade, tx, ty);
+                CommonGuiTextures.drawItem(g, trade, tx, ty, s4);
                 if (!enough) g.setColor(1f, 1f, 1f, 1f);
             }
 
@@ -639,9 +617,9 @@ public class ShopScreen extends Screen {
                 && !"ClintUpgrade".equals(shopId) && !isRecipeItem) {
             String sc = String.valueOf(item.stock());
             // SDV: Utility.drawTinyDigits at icon bottom-right (drawPos + (64-w+3, 47))
-            // MC icon is 16×16 GUI units. Scale 0.75 for small text.
-            int stockX = iconX + 16 - (int)(font.width(sc) * 0.75f) + 1;
-            int stockY = iconY + 12;
+            int iconSize = CommonGuiTextures.itemSize(s4);
+            int stockX = iconX + iconSize - (int)(font.width(sc) * 0.75f) + 1;
+            int stockY = iconY + iconSize - 4;
             g.pose().pushPose();
             g.pose().translate(stockX, stockY, 200);
             g.pose().scale(0.75f, 0.75f, 1f);
@@ -670,27 +648,24 @@ public class ShopScreen extends Screen {
 
             // SDV parity: recipes draw the dish icon at 0.75× scale and semi-transparent
             if (isRecipe) {
-                g.pose().pushPose();
-                // Scale 0.75× around the icon center (8,8 in 16×16 space)
-                float recipeScale = 0.75f;
-                float cx = x + 8f, cy = y + 8f;
-                g.pose().translate(cx, cy, 0);
-                g.pose().scale(recipeScale, recipeScale, 1f);
-                g.pose().translate(-cx, -cy, 0);
+                float recipeScale = s4 * 0.75f;
+                int itemSize = CommonGuiTextures.itemSize(s4);
+                int recipeSize = CommonGuiTextures.itemSize(recipeScale);
+                int recipeX = x + (itemSize - recipeSize) / 2;
+                int recipeY = y + (itemSize - recipeSize) / 2;
                 g.setColor(1f, 1f, 1f, alpha);
-                g.renderItem(new ItemStack(mcItem), x, y);
+                CommonGuiTextures.drawItem(g, new ItemStack(mcItem), recipeX, recipeY, recipeScale);
                 g.setColor(1f, 1f, 1f, 1f);
-                g.pose().popPose();
 
                 // SDV: draw recipe scroll overlay at location+(16,16) at 3× sprite scale
                 // = 48×48 SDV px in a 64×64 slot → 12×12 GUI px in MC's 16×16 item slot
-                int overlaySize = 12;
-                int ox = x + 16 - overlaySize;  // = x + 4
-                int oy = y + 16 - overlaySize;  // = y + 4
+                int overlaySize = Math.round(12.0f * s4);
+                int ox = x + itemSize - overlaySize;
+                int oy = y + itemSize - overlaySize;
                 g.blit(RECIPE_OVERLAY_TEXTURE, ox, oy, overlaySize, overlaySize, 0, 0, 16, 16, 16, 16);
             } else {
                 if (alpha < 1f) g.setColor(1f, 1f, 1f, alpha);
-                g.renderItem(new ItemStack(mcItem), x, y);
+                CommonGuiTextures.drawItem(g, new ItemStack(mcItem), x, y, s4);
                 if (alpha < 1f) g.setColor(1f, 1f, 1f, 1f);
             }
         } catch (Exception ignored) {}
@@ -702,9 +677,6 @@ public class ShopScreen extends Screen {
      * 外层从 mouse_cursors2 采样容器框 (39,31,16,16) / (55,31,16,16)，内层从
      * walls_and_floors 采样小预览（壁纸 8×14 / 地板 14×13），居中叠在框内。
      */
-    private static final ResourceLocation MOUSE_CURSORS_2 = ResourceLocation.fromNamespaceAndPath(
-        StardewCraft.MODID, "textures/gui/mouse_cursors2.png");
-
     private void drawDecorationStyleIcon(GuiGraphics g, String itemId, int x, int y, float alpha) {
         boolean isWp = itemId.startsWith("wallpaper:");
         String styleId = itemId.substring(isWp ? "wallpaper:".length() : "flooring:".length());
@@ -715,14 +687,11 @@ public class ShopScreen extends Screen {
             com.stardew.craft.deco.DecorationStyleRegistry.getStyle(type, styleId);
         if (style == null) return;
 
-        g.setColor(1.0f, 1.0f, 1.0f, alpha);
-
         // 1) 容器框（mouse_cursors2 里 16×16 的小框）
-        int frameSrcX = isWp ? 39 : 55;
-        int frameSrcY = 31;
-        g.blit(MOUSE_CURSORS_2, x, y, 16, 16, frameSrcX, frameSrcY, 16, 16, 256, 320);
+        CommonGuiTextures.drawCategoryFrame(g, x, y, isWp, 1.0f, alpha);
 
         // 2) 内层预览贴图（壁纸 8×14 / 地板 14×13，居中）
+        g.setColor(1.0f, 1.0f, 1.0f, alpha);
         int innerW = isWp ? 8 : 14;
         int innerH = isWp ? 14 : 13;
         int innerX = x + (16 - innerW) / 2;

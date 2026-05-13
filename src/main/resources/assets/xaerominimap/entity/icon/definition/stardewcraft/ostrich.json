@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "stardewcraft:textures/entity/animal/ostrich.png": "normal_sprite:stardew_ostrich.png",
+    "default": "dot"
+  },
+  "variantMethod": "xaero.hud.minimap.radar.icon.definition.BuiltInRadarIconDefinitions.getVariant"
+}

@@ -45,7 +45,7 @@ public final class CookingDishRegistrar {
         register(registry, "fried_egg", 35, 20, List.of(), result);
         register(registry, "fried_mushroom", 200, 54, List.of(new CookingDishItem.DishBuff(CookingDishItem.BuffType.ATTACK, 2, 8400)), result);
         register(registry, "fruit_salad", 450, 105, List.of(), result);
-        register(registry, "ginger_ale", 200, 25, List.of(new CookingDishItem.DishBuff(CookingDishItem.BuffType.LUCK, 1, 6020)), result);
+        registerDrink(registry, "ginger_ale", 200, 25, List.of(new CookingDishItem.DishBuff(CookingDishItem.BuffType.LUCK, 1, 6020)), result);
         register(registry, "glazed_yams", 200, 80, List.of(), result);
         register(registry, "hashbrowns", 120, 36, List.of(new CookingDishItem.DishBuff(CookingDishItem.BuffType.FARMING, 1, 6720)), result);
         register(registry, "ice_cream", 120, 40, List.of(), result);
@@ -89,7 +89,7 @@ public final class CookingDishRegistrar {
         register(registry, "survival_burger", 180, 50, List.of(new CookingDishItem.DishBuff(CookingDishItem.BuffType.FORAGING, 3, 6720)), result);
         register(registry, "tom_kha_soup", 250, 70, List.of(new CookingDishItem.DishBuff(CookingDishItem.BuffType.FARMING, 2, 8400), new CookingDishItem.DishBuff(CookingDishItem.BuffType.MAX_ENERGY, 30, 8400)), result);
         register(registry, "tortilla", 50, 20, List.of(), result);
-        register(registry, "triple_shot_espresso", 450, 3, List.of(new CookingDishItem.DishBuff(CookingDishItem.BuffType.SPEED, 1, 5040)), result);
+        registerDrink(registry, "triple_shot_espresso", 450, 3, List.of(new CookingDishItem.DishBuff(CookingDishItem.BuffType.SPEED, 1, 5040)), result);
         register(registry, "tropical_curry", 500, 60, List.of(new CookingDishItem.DishBuff(CookingDishItem.BuffType.FORAGING, 4, 6020)), result);
         register(registry, "trout_soup", 100, 40, List.of(new CookingDishItem.DishBuff(CookingDishItem.BuffType.FISHING, 1, 5600)), result);
         register(registry, "vegetable_medley", 120, 66, List.of(), result);
@@ -103,12 +103,34 @@ public final class CookingDishRegistrar {
             int edibility,
             List<CookingDishItem.DishBuff> buffs,
             Map<String, DeferredItem<Item>> out) {
+        register(registry, id, sellPrice, edibility, buffs, false, out);
+    }
+
+    private static void registerDrink(
+            DeferredRegister.Items registry,
+            String id,
+            int sellPrice,
+            int edibility,
+            List<CookingDishItem.DishBuff> buffs,
+            Map<String, DeferredItem<Item>> out) {
+        register(registry, id, sellPrice, edibility, buffs, true, out);
+    }
+
+    private static void register(
+            DeferredRegister.Items registry,
+            String id,
+            int sellPrice,
+            int edibility,
+            List<CookingDishItem.DishBuff> buffs,
+            boolean drinkAnimation,
+            Map<String, DeferredItem<Item>> out) {
         @SuppressWarnings("null")
         DeferredItem<Item> item = registry.register(id, () -> new CookingDishItem(
                 sellPrice,
                 edibility,
                 buffs,
-                new Item.Properties().stacksTo(999)
+                new Item.Properties().stacksTo(999),
+                drinkAnimation
         ));
         out.put(id, item);
     }

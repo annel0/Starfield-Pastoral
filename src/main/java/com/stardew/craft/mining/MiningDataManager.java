@@ -7,6 +7,7 @@ import net.minecraft.world.level.saveddata.SavedData;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 
@@ -25,6 +26,7 @@ public class MiningDataManager extends SavedData {
     
     public void clearPlayer(UUID playerId) {
         playerDataMap.remove(playerId);
+        com.stardew.craft.leaderboard.LeaderboardService.invalidateCache();
         setDirty();
     }
 
@@ -42,6 +44,10 @@ public class MiningDataManager extends SavedData {
             uuid -> new MiningPlayerData()
         );
     }
+
+    public static Map<UUID, MiningPlayerData> getAllPlayerData(ServerPlayer player) {
+        return Collections.unmodifiableMap(get(player).playerDataMap);
+    }
     
     /**
      * 保存玩家数据并标记需要保存
@@ -49,6 +55,7 @@ public class MiningDataManager extends SavedData {
     public static void savePlayerData(ServerPlayer player, MiningPlayerData data) {
         MiningDataManager manager = get(player);
         manager.playerDataMap.put(player.getUUID(), data);
+        com.stardew.craft.leaderboard.LeaderboardService.invalidateCache();
         manager.setDirty();
     }
     

@@ -14,6 +14,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 
 /**
@@ -43,15 +44,22 @@ public class CookingDishItem extends Item implements IStardewItem {
     private final int energy;
     private final int health;
     private final List<DishBuff> buffs;
+    private final boolean drinkAnimation;
 
     @SuppressWarnings("null")
     public CookingDishItem(int sellPrice, int edibility, List<DishBuff> buffs, Item.Properties properties) {
+        this(sellPrice, edibility, buffs, properties, false);
+    }
+
+    @SuppressWarnings("null")
+    public CookingDishItem(int sellPrice, int edibility, List<DishBuff> buffs, Item.Properties properties, boolean drinkAnimation) {
         super(properties.food(new FoodProperties.Builder().nutrition(1).saturationModifier(0.1f).alwaysEdible().build()));
         this.sellPrice = sellPrice;
         this.edibility = edibility;
         this.energy = computeEnergy(edibility);
         this.health = computeHealth(this.energy);
         this.buffs = List.copyOf(buffs);
+        this.drinkAnimation = drinkAnimation;
     }
 
     private static int computeEnergy(int edibility) {
@@ -95,6 +103,12 @@ public class CookingDishItem extends Item implements IStardewItem {
 
     public List<DishBuff> getBuffs() {
         return buffs;
+    }
+
+    @SuppressWarnings("null")
+    @Override
+    public UseAnim getUseAnimation(ItemStack stack) {
+        return drinkAnimation ? UseAnim.DRINK : super.getUseAnimation(stack);
     }
 
     @SuppressWarnings("null")

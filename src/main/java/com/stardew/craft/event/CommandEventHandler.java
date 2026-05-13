@@ -5,6 +5,7 @@ import com.stardew.craft.command.BilibiliClaimCommand;
 import com.stardew.craft.command.CommunityCenterCommand;
 import com.stardew.craft.command.FarmAdminCommand;
 import com.stardew.craft.command.FarmJoinCommand;
+import com.stardew.craft.command.FriendshipDoorCommand;
 import com.stardew.craft.command.MailDebugCommand;
 import com.stardew.craft.command.MonsterSummonCommand;
 import com.stardew.craft.command.MuseumDebugCommand;
@@ -28,6 +29,8 @@ public class CommandEventHandler {
     
     @SubscribeEvent
     public static void onRegisterCommands(RegisterCommandsEvent event) {
+        // Keep farm join responses first so /stardew farm accept/reject stay available to non-OP players.
+        FarmJoinCommand.register(event.getDispatcher());
         StardewTeleportCommand.register(event.getDispatcher());
         PlayerDataCommand.register(event.getDispatcher());
         MuseumDebugCommand.register(event.getDispatcher(), event.getBuildContext());
@@ -40,7 +43,7 @@ public class CommandEventHandler {
         MailDebugCommand.register(event.getDispatcher());
         CommunityCenterCommand.register(event.getDispatcher());
         FarmAdminCommand.register(event.getDispatcher());
-        FarmJoinCommand.register(event.getDispatcher());
+        FriendshipDoorCommand.register(event.getDispatcher());
         com.stardew.craft.command.FarmCaveCommand.register(event.getDispatcher());
         StructureDebugCommand.register(event.getDispatcher());
         BilibiliClaimCommand.register(event.getDispatcher());

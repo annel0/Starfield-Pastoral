@@ -1,6 +1,7 @@
 package com.stardew.craft.client.gui;
 
 import com.stardew.craft.block.ModBlocks;
+import com.stardew.craft.client.gui.common.CommonGuiTextures;
 import com.stardew.craft.menu.CoopManagerMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -159,7 +160,7 @@ public class CoopManagerScreen extends AbstractContainerScreen<CoopManagerMenu> 
         for (int i = 0; i < missing.size() && i < maxRows; i++) {
             MissingEntry entry = missing.get(i);
             int rowY = y + i * 16;
-            graphics.renderItem(entry.icon(), this.leftPos + 16, rowY);
+            CommonGuiTextures.drawItem(graphics, entry.icon(), this.leftPos + 16, rowY, 1.0f);
             graphics.drawString(this.font, entry.text(), this.leftPos + 36, rowY + 4, 0xFFE3E3E3, false);
         }
     }

@@ -29,6 +29,8 @@ public final class PlayerGlowHandler {
     private PlayerGlowHandler() {}
 
     private static final int UPDATE_INTERVAL = 4;
+    private static final int SMALL_GLOW_RADIUS = 3;
+    private static final int FULL_GLOW_RADIUS = 6;
     /** 每个玩家上一次放置的光源位置 */
     private static final Map<UUID, Set<BlockPos>> ACTIVE_LIGHTS = new WeakHashMap<>();
 
@@ -57,9 +59,8 @@ public final class PlayerGlowHandler {
         ServerLevel level = player.serverLevel();
         BlockPos center = player.blockPosition();
 
-        // SDV: Small Glow 5 格, Glow/Iridium/Glowstone 10 格
         // MC 中光源衰减 1/格，所以扩散是自然的 — 只需放中心 + 少量扩展点
-        int radius = lightLevel >= 10 ? 4 : 2;
+        int radius = lightLevel >= 10 ? FULL_GLOW_RADIUS : SMALL_GLOW_RADIUS;
 
         Set<BlockPos> newPositions = new HashSet<>();
         BlockState lightState = Blocks.LIGHT.defaultBlockState()

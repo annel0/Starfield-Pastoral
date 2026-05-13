@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "stardewcraft:textures/entity/junimo/junimo_forbidden.png": "normal_sprite:stardew_junimo.png",
+    "default": "dot"
+  },
+  "variantMethod": "xaero.hud.minimap.radar.icon.definition.BuiltInRadarIconDefinitions.getVariant"
+}

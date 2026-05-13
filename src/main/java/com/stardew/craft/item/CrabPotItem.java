@@ -173,6 +173,10 @@ public class CrabPotItem extends StardewBlockItem {
 			return InteractionResult.PASS;
 		}
 
+		if (!com.stardew.craft.block.utility.CrabPotBlock.claimOrCheckOwner(player, be)) {
+			return InteractionResult.SUCCESS;
+		}
+
 		if (be.isReady() || be.hasBait()) {
 			return InteractionResult.PASS;
 		}

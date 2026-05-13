@@ -593,6 +593,7 @@ public class PlayerStardewDataAPI {
         }
 
         if (totalGold > 0) {
+            data.addTotalShippingGold(totalGold);
             data.addMoney(totalGold);
             changed = true;
         }

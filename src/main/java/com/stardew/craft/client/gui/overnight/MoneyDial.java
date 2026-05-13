@@ -84,7 +84,7 @@ public class MoneyDial {
                     yOffset = Mth.sin((float) (System.currentTimeMillis() / 100.53096771240234D + j)) * (currentValue / 1_000_000.0f);
                 }
                 float scale = digitScale + ((moneyShineTimer / 60 == numDigits - j) ? (0.3f / guiScale) : 0.0f);
-                StardewGuiUtil.drawFromCursorsTint(graphics, x + xPosition, (int) (y + yOffset), 286, 502 - currentDigit * 8, 5, 8, scale,
+                ShippingMenuTextures.drawDigit(graphics, x + xPosition, (int) (y + yOffset), currentDigit, scale,
                         128.0F / 255.0F, 0.0F, 0.0F, 1.0F);
             }
             xPosition += digitStep;

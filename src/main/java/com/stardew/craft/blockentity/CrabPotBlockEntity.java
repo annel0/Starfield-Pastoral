@@ -22,6 +22,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.IItemHandler;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.UUID;
 
@@ -44,7 +45,40 @@ public class CrabPotBlockEntity extends BlockEntity implements UtilityAutomation
 	private boolean ready = false;
 	private int lastCheckDay = -1;
 	private UUID ownerPlayerId;
-	private final UtilityItemHandler automationItemHandler = new UtilityItemHandler(this);
+	private static final IItemHandler NO_AUTOMATION = new IItemHandler() {
+		@Override
+		public int getSlots() {
+			return 0;
+		}
+
+		@Override
+		@Nonnull
+		public ItemStack getStackInSlot(int slot) {
+			return ItemStack.EMPTY;
+		}
+
+		@Override
+		@Nonnull
+		public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
+			return stack;
+		}
+
+		@Override
+		@Nonnull
+		public ItemStack extractItem(int slot, int amount, boolean simulate) {
+			return ItemStack.EMPTY;
+		}
+
+		@Override
+		public int getSlotLimit(int slot) {
+			return 0;
+		}
+
+		@Override
+		public boolean isItemValid(int slot, @Nonnull ItemStack stack) {
+			return false;
+		}
+	};
 
 	@SuppressWarnings("null")
 	private static final TagKey<Item> CRAB_POT_ITEMS_TAG = TagKey.create(
@@ -210,6 +244,7 @@ public class CrabPotBlockEntity extends BlockEntity implements UtilityAutomation
 						@SuppressWarnings("null")
 						ResourceLocation id = BuiltInRegistries.ITEM.getKey(h.value());
 						String itemId = id.toString();
+						if (!matchesCrabPotWaterType(itemId, isOcean)) return false;
 						var ruleOpt = FishingDataManager.get().getRuleByItemId(itemId);
 						if (ruleOpt.isEmpty()) return true;
 						var rule = ruleOpt.get();
@@ -230,6 +265,22 @@ public class CrabPotBlockEntity extends BlockEntity implements UtilityAutomation
 		int index = random.nextInt(items.size());
 		Item item = items.get(index).value();
 		return new ItemStack(item);
+	}
+
+	private static boolean matchesCrabPotWaterType(String itemId, boolean isOcean) {
+		boolean oceanCatch = switch (itemId) {
+			case "stardewcraft:lobster", "stardewcraft:crab", "stardewcraft:shrimp", "stardewcraft:clam",
+					"stardewcraft:mussel", "stardewcraft:oyster", "stardewcraft:cockle" -> true;
+			default -> false;
+		};
+		boolean freshwaterCatch = switch (itemId) {
+			case "stardewcraft:crayfish", "stardewcraft:snail", "stardewcraft:periwinkle" -> true;
+			default -> false;
+		};
+		if (!oceanCatch && !freshwaterCatch) {
+			return true;
+		}
+		return isOcean ? oceanCatch : freshwaterCatch;
 	}
 
 	/**
@@ -266,7 +317,7 @@ public class CrabPotBlockEntity extends BlockEntity implements UtilityAutomation
 	}
 
 	public IItemHandler getAutomationItemHandler() {
-		return automationItemHandler;
+		return NO_AUTOMATION;
 	}
 
 	public void setBait(ItemStack baitStack) {
@@ -287,6 +338,10 @@ public class CrabPotBlockEntity extends BlockEntity implements UtilityAutomation
 
 	public UUID getOwnerPlayerId() {
 		return ownerPlayerId;
+	}
+
+	public boolean canAccess(UUID playerId) {
+		return ownerPlayerId == null || ownerPlayerId.equals(playerId);
 	}
 
 	public ItemStack getProduct() {

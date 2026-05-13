@@ -46,10 +46,7 @@ public enum HayHopperJadeProvider implements IBlockComponentProvider, IServerDat
             return;
         }
 
-        UUID owner = hopper.getOwnerPlayerId();
-        if (owner == null && accessor.getPlayer() != null) {
-            owner = accessor.getPlayer().getUUID();
-        }
+        UUID owner = hopper.resolveStorageOwner(accessor.getPlayer());
         if (owner == null) {
             tag.putInt(NBT_HAY, 0);
             tag.putInt(NBT_CAPACITY, 0);

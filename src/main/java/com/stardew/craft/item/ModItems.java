@@ -520,6 +520,9 @@ public class ModItems {
         public static final DeferredItem<Item> HAY_HOPPER = ITEMS.register("hay_hopper",
                         () -> new StardewBlockItem(ModBlocks.HAY_HOPPER.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
 
+        public static final DeferredItem<Item> FRIENDSHIP_DOOR = ITEMS.register("friendship_door",
+                        () -> new FriendshipDoorItem(ModBlocks.FRIENDSHIP_DOOR.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
+
         public static final DeferredItem<Item> COOP_MANAGER = ITEMS.register("coop_manager",
                         () -> new StardewBlockItem(ModBlocks.COOP_MANAGER.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
 
@@ -1102,7 +1105,7 @@ public class ModItems {
 
         // Clinic medicine items (Harvey's hospital shop)
         public static final DeferredItem<Item> ENERGY_TONIC = ITEMS.register("energy_tonic",
-                        () -> new StardewQualityItem("stardewcraft.type.misc", 500, 200, false, new Item.Properties().stacksTo(999)));
+                        () -> new StardewQualityItem("stardewcraft.type.misc", 500, 200, false, new Item.Properties().stacksTo(999), true));
         public static final DeferredItem<Item> MUSCLE_REMEDY = ITEMS.register("muscle_remedy",
                         () -> new com.stardew.craft.item.misc.MuscleRemedyItem("stardewcraft.type.misc", 500, 20, false, new Item.Properties().stacksTo(999)));
 
@@ -1124,13 +1127,13 @@ public class ModItems {
         public static final DeferredItem<Item> OSTRICH_EGG = ITEMS.register("ostrich_egg",
                         () -> new StardewQualityItem("stardewcraft.type.animal_product", 600, 15, true, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> MILK = ITEMS.register("milk",
-                        () -> new StardewQualityItem("stardewcraft.type.animal_product", 125, 15, true, new Item.Properties().stacksTo(999)));
+                        () -> new StardewQualityItem("stardewcraft.type.animal_product", 125, 15, true, new Item.Properties().stacksTo(999), true));
         public static final DeferredItem<Item> LARGE_MILK = ITEMS.register("large_milk",
-                        () -> new StardewQualityItem("stardewcraft.type.animal_product", 190, 20, true, new Item.Properties().stacksTo(999)));
+                        () -> new StardewQualityItem("stardewcraft.type.animal_product", 190, 20, true, new Item.Properties().stacksTo(999), true));
         public static final DeferredItem<Item> GOAT_MILK = ITEMS.register("goat_milk",
-                        () -> new StardewQualityItem("stardewcraft.type.animal_product", 225, 25, true, new Item.Properties().stacksTo(999)));
+                        () -> new StardewQualityItem("stardewcraft.type.animal_product", 225, 25, true, new Item.Properties().stacksTo(999), true));
         public static final DeferredItem<Item> LARGE_GOAT_MILK = ITEMS.register("large_goat_milk",
-                        () -> new StardewQualityItem("stardewcraft.type.animal_product", 345, 35, true, new Item.Properties().stacksTo(999)));
+                        () -> new StardewQualityItem("stardewcraft.type.animal_product", 345, 35, true, new Item.Properties().stacksTo(999), true));
         public static final DeferredItem<Item> WOOL = ITEMS.register("wool",
                         () -> new StardewQualityItem("stardewcraft.type.animal_product", 340, -300, true, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> DUCK_FEATHER = ITEMS.register("duck_feather",

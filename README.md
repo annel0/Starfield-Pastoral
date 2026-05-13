@@ -15,7 +15,7 @@ Current development focus is on expanding feature coverage while tightening Star
 - Minecraft 1.21.1
 - NeoForge 21.1.217
 - Java 21
-- Mod version: 0.3.8fix
+- Mod version: 0.3.8-fix4
 - Mod id: stardewcraft
 
 ## Implemented or In-Progress Systems

@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "stardewcraft:textures/entity/animal/golden_chicken.png": "normal_sprite:stardew_golden_chicken.png",
+    "default": "dot"
+  },
+  "variantMethod": "xaero.hud.minimap.radar.icon.definition.BuiltInRadarIconDefinitions.getVariant"
+}

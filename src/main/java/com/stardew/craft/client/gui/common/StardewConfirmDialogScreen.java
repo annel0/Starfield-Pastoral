@@ -1,6 +1,5 @@
 package com.stardew.craft.client.gui.common;
 
-import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
 import com.stardew.craft.network.payload.SleepConfirmChoicePayload;
 import com.stardew.craft.sound.ModSounds;
 import net.minecraft.Util;
@@ -159,39 +158,20 @@ public class StardewConfirmDialogScreen extends Screen {
         }
     }
 
-    private void blitCursors(GuiGraphics graphics, int x, int y, int width, int height, int u, int v, int srcW, int srcH) {
-        if (width <= 0 || height <= 0) {
-            return;
-        }
-        graphics.blit(
-            StardewGuiUtil.CURSORS,
-            x,
-            y,
-            width,
-            height,
-            u,
-            v,
-            srcW,
-            srcH,
-            StardewGuiUtil.CURSORS_WIDTH,
-            StardewGuiUtil.CURSORS_HEIGHT
-        );
-    }
-
     // Code-level port of Stardew DialogueBox.drawBox for question dialogues.
     private void drawQuestionBoxFrame(GuiGraphics graphics, int xPos, int yPos, int frameWidth, int frameHeight) {
-        blitCursors(graphics, xPos, yPos, frameWidth, frameHeight, 306, 320, 16, 16);
+        CommonGuiTextures.drawDialogueQuestionFill(graphics, xPos, yPos, frameWidth, frameHeight);
 
-        blitCursors(graphics, xPos, yPos - px(20), frameWidth, px(24), 275, 313, 1, 6);
-        blitCursors(graphics, xPos + px(12), yPos + frameHeight, Math.max(0, frameWidth - px(20)), px(32), 275, 328, 1, 8);
-        blitCursors(graphics, xPos - px(32), yPos + px(24), px(32), Math.max(0, frameHeight - px(28)), 264, 325, 8, 1);
-        blitCursors(graphics, xPos + frameWidth, yPos, px(28), frameHeight, 293, 324, 7, 1);
+        CommonGuiTextures.drawDialogueQuestionTop(graphics, xPos, yPos - px(20), frameWidth, px(24));
+        CommonGuiTextures.drawDialogueQuestionBottom(graphics, xPos + px(12), yPos + frameHeight, Math.max(0, frameWidth - px(20)), px(32));
+        CommonGuiTextures.drawDialogueQuestionLeft(graphics, xPos - px(32), yPos + px(24), px(32), Math.max(0, frameHeight - px(28)));
+        CommonGuiTextures.drawDialogueQuestionRight(graphics, xPos + frameWidth, yPos, px(28), frameHeight);
 
         float s4 = mapping.s4();
-        StardewGuiUtil.drawFromCursors(graphics, xPos - px(44), yPos - px(28), 261, 311, 14, 13, s4);
-        StardewGuiUtil.drawFromCursors(graphics, xPos + frameWidth - px(8), yPos - px(28), 291, 311, 12, 11, s4);
-        StardewGuiUtil.drawFromCursors(graphics, xPos + frameWidth - px(8), yPos + frameHeight - px(8), 291, 326, 12, 12, s4);
-        StardewGuiUtil.drawFromCursors(graphics, xPos - px(44), yPos + frameHeight - px(4), 261, 327, 14, 11, s4);
+        CommonGuiTextures.drawDialogueQuestionCornerTl(graphics, xPos - px(44), yPos - px(28), s4);
+        CommonGuiTextures.drawDialogueQuestionCornerTr(graphics, xPos + frameWidth - px(8), yPos - px(28), s4);
+        CommonGuiTextures.drawDialogueQuestionCornerBr(graphics, xPos + frameWidth - px(8), yPos + frameHeight - px(8), s4);
+        CommonGuiTextures.drawDialogueQuestionCornerBl(graphics, xPos - px(44), yPos + frameHeight - px(4), s4);
     }
 
     @Override
@@ -327,9 +307,9 @@ public class StardewConfirmDialogScreen extends Screen {
 
         drawQuestionBoxFrame(graphics, boxX, boxDrawY, boxWidth, boxHeight);
         float s4 = mapping.s4();
-        StardewGuiUtil.drawFromCursors16(graphics, boxX + boxWidth - px(72), boxDrawY - px(88), 495, 461, 17, 19, s4);
+        CommonGuiTextures.drawQuestionExclamation16(graphics, boxX + boxWidth - px(72), boxDrawY - px(88), s4);
         int arrowFrame = (int) ((System.currentTimeMillis() % 900L) / 150L);
-        StardewGuiUtil.drawFromCursors16(graphics, boxX + boxWidth - px(52), boxDrawY - px(72), 470 + arrowFrame * 7, 447, 7, 12, s4);
+        CommonGuiTextures.drawQuestionArrow16(graphics, boxX + boxWidth - px(52), boxDrawY - px(72), arrowFrame, s4);
 
         int textX = boxX + px(8);
         if (!isQuestionBlank()) {
@@ -342,22 +322,13 @@ public class StardewConfirmDialogScreen extends Screen {
             for (int i = 0; i < wrappedResponses.size(); i++) {
                 WrappedResponse response = wrappedResponses.get(i);
                 if (i == selected) {
-                    StardewGuiUtil.drawTextureBox(
+                    CommonGuiTextures.drawOptionHighlightBox(
                         graphics,
-                        StardewGuiUtil.CURSORS,
-                        StardewGuiUtil.CURSORS_WIDTH,
-                        StardewGuiUtil.CURSORS_HEIGHT,
-                        375,
-                        357,
-                        3,
-                        3,
                         boxX + px(4),
                         responseY - px(8),
                         boxWidth - px(8),
                         response.lineHeight() + px(16),
-                        s4,
-                        false
-                    );
+                        s4);
                 }
 
                 float alpha = (selected == i) ? 1.0f : 0.6f;

@@ -206,6 +206,8 @@ public final class MinePickaxeEvents {
 		if (miningExp > 0) {
 			PlayerStardewDataAPI.addExperience(player, SkillType.MINING, miningExp);
 		}
+		com.stardew.craft.player.PlayerDataManager.getPlayerData(player)
+				.recordMineBlockBroken(isStardewOre(state), isGemOre(state), isMineralBlock(state));
 
 		consumeMiningEnergy(player, level);
 	}
@@ -494,6 +496,7 @@ public final class MinePickaxeEvents {
 		if (!isStardewMineBlock(state)) {
 			return null;
 		}
+		com.stardew.craft.player.PlayerDataManager.getPlayerData(player).addMineBlocksBombed(1);
 		Item oreProduct = null;
 		if (isStardewOre(state)) {
 			oreProduct = getOreDropItem(state);

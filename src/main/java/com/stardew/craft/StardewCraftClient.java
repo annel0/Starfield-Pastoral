@@ -83,6 +83,7 @@ public class StardewCraftClient {
 
         event.enqueueWork(() -> {
             ModRenderLayers.registerCutout(List.of(
+                ModBlocks.FRIENDSHIP_DOOR.get(),
                 ModBlocks.WILD_WEEDS.get(),
                 ModBlocks.PASTURE_GRASS.get(),
                 ModBlocks.BLUE_PASTURE_GRASS.get(),
@@ -388,7 +389,7 @@ public class StardewCraftClient {
                 com.stardew.craft.fluid.ModFluids.FLOWING_FISH_POND_WATER.get(),
                 net.minecraft.client.renderer.RenderType.translucent()
             );
-            
+
 			ModItemProperties.register();
         });
     }
@@ -604,7 +605,7 @@ public class StardewCraftClient {
         if (!event.getAtlas().location().equals(InventoryMenu.BLOCK_ATLAS)) {
             return;
         }
-        
+
         StardewCraft.LOGGER.info("Block atlas stitched - fertilizer textures should be available");
     }
 

@@ -205,18 +205,11 @@ public class ElevatorScreen extends AbstractContainerScreen<ElevatorMenu> {
         for (ElevatorButton btn : buttons) {
             boolean hovered = mouseX >= btn.x && mouseX < btn.x + cellGui
                            && mouseY >= btn.y && mouseY < btn.y + cellGui;
-            int srcU = hovered ? 267 : 256;
-
             // SDV: shadow at (bounds.X - 4, bounds.Y + 4), Color.Black * 0.5f, scale 4f
-            StardewGuiUtil.drawFromCursorsTint(graphics,
-                btn.x - px(4), btn.y + px(4),
-                srcU, 256, 10, 10, s4,
-                0.0f, 0.0f, 0.0f, 0.5f);
+            ElevatorTextures.drawButtonTint(graphics, btn.x - px(4), btn.y + px(4), hovered, s4, 0.0f, 0.0f, 0.0f, 0.5f);
 
             // SDV: normal at (bounds.X, bounds.Y), Color.White, scale 4f
-            StardewGuiUtil.drawFromCursors(graphics,
-                btn.x, btn.y,
-                srcU, 256, 10, 10, s4);
+            ElevatorTextures.drawButtonTint(graphics, btn.x, btn.y, hovered, s4, 1.0f, 1.0f, 1.0f, 1.0f);
 
             // SDV: NumberSprite.draw(...)
             boolean isCurrent = (btn.floor == currentFloor);
@@ -263,13 +256,7 @@ public class ElevatorScreen extends AbstractContainerScreen<ElevatorMenu> {
             int digit = num % 10;
             num /= 10;
 
-            int srcX = 512 + (digit * 8) % 48;
-            int srcY = 128 + (digit * 8) / 48 * 8;
-
-            StardewGuiUtil.drawFromCursorsTint(graphics,
-                x, y,
-                srcX, srcY, 8, 8, digitScale,
-                r, g, b, a);
+            ElevatorTextures.drawDigitTint(graphics, x, y, digit, digitScale, r, g, b, a);
 
             // SDV: position.X -= 8f * 0.5f * 4f - 4f = 12 SDV px
             x -= px(12);

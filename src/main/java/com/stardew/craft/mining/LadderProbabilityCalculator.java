@@ -1,5 +1,6 @@
 package com.stardew.craft.mining;
 
+import com.stardew.craft.Config;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 
@@ -38,8 +39,8 @@ public class LadderProbabilityCalculator {
             return 1.0;
         }
         
-    // 基础概率：0.012 + 0.6/max(1, stonesLeft) + luckLevel/100 + dailyLuck/5
-    double baseProbability = 0.012;
+    // 基础概率：config + 0.6/max(1, stonesLeft) + luckLevel/100 + dailyLuck/5
+    double baseProbability = Config.MINE_LADDER_BASE_CHANCE.get();
     baseProbability += 0.6 / Math.max(1, stonesLeft);
         baseProbability += luckLevel / 100.0;
         baseProbability += dailyLuck / 5.0;

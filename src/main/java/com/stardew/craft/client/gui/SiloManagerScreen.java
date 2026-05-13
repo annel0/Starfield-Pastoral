@@ -1,5 +1,6 @@
 package com.stardew.craft.client.gui;
 
+import com.stardew.craft.client.gui.common.CommonGuiTextures;
 import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
 import com.stardew.craft.menu.SiloManagerMenu;
 import com.stardew.craft.sound.ModSounds;
@@ -18,9 +19,7 @@ import net.minecraft.world.entity.player.Inventory;
 @SuppressWarnings("null")
 public class SiloManagerScreen extends AbstractContainerScreen<SiloManagerMenu> {
 
-    // 9-slice border UV
-    private static final int BDR_U = 384, BDR_V = 373, BDR_W = 18, BDR_SH = 18;
-    private static final int CLOSE_U = 337, CLOSE_V = 494, CLOSE_W = 12, CLOSE_SH = 12;
+    private static final int CLOSE_W = 12, CLOSE_SH = 12;
 
     // Colors
     private static final int COL_TITLE    = 0xFF5B3A1A;
@@ -89,7 +88,7 @@ public class SiloManagerScreen extends AbstractContainerScreen<SiloManagerMenu> 
         int fh = this.font.lineHeight;
         lineH = fh + 5;
 
-        int borderCorner = Math.max(1, (int)((BDR_W / 3.0f) * s4));
+        int borderCorner = Math.max(1, (int)(6.0f * s4));
         pad = borderCorner + 6;
         secGap = lineH;
         btnH = fh + 14;
@@ -136,7 +135,7 @@ public class SiloManagerScreen extends AbstractContainerScreen<SiloManagerMenu> 
         btnY = panelY + panelH - pad - btnH;
 
         float s4 = s4();
-        int borderCorner = Math.max(1, (int)((BDR_W / 3.0f) * s4));
+        int borderCorner = Math.max(1, (int)(6.0f * s4));
         closeX = panelX + panelW - borderCorner - closeW;
         closeY = panelY + borderCorner;
 
@@ -179,10 +178,7 @@ public class SiloManagerScreen extends AbstractContainerScreen<SiloManagerMenu> 
         int cx = panelX + pad;
         int cw = panelW - pad * 2;
 
-        StardewGuiUtil.drawTextureBox(g,
-                StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
-                BDR_U, BDR_V, BDR_W, BDR_SH,
-                panelX, panelY, panelW, panelH, s4, true);
+        CommonGuiTextures.drawTextureBox(g, panelX, panelY, panelW, panelH, s4, true);
 
         int y = panelY + pad;
 
@@ -208,7 +204,7 @@ public class SiloManagerScreen extends AbstractContainerScreen<SiloManagerMenu> 
         float cs = s4 * closeScale;
         int cdx = closeX + closeW / 2 - (int)(CLOSE_W * cs / 2);
         int cdy = closeY + closeH / 2 - (int)(CLOSE_SH * cs / 2);
-        StardewGuiUtil.drawFromCursors(g, cdx, cdy, CLOSE_U, CLOSE_V, CLOSE_W, CLOSE_SH, cs);
+        CommonGuiTextures.drawCloseButton(g, cdx, cdy, cs);
 
         // -- Confirm overlay --
         if (confirmType != ConfirmType.NONE) {
@@ -322,10 +318,7 @@ public class SiloManagerScreen extends AbstractContainerScreen<SiloManagerMenu> 
         g.pose().translate(-cxf, -cyf, 0);
 
         float s4 = s4();
-        StardewGuiUtil.drawTextureBox(g,
-                StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
-                BDR_U, BDR_V, BDR_W, BDR_SH,
-                x, y, w, h, s4, false);
+        CommonGuiTextures.drawTextureBox(g, x, y, w, h, s4, false);
 
         int inset = (int)(4 * s4);
         if (!active) {
@@ -363,10 +356,7 @@ public class SiloManagerScreen extends AbstractContainerScreen<SiloManagerMenu> 
         g.pose().translate(-cxf, -cyf, 0);
 
         float s4 = s4();
-        StardewGuiUtil.drawTextureBox(g,
-                StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
-                BDR_U, BDR_V, BDR_W, BDR_SH,
-                dx, dy, dw, dh, s4, true);
+        CommonGuiTextures.drawTextureBox(g, dx, dy, dw, dh, s4, true);
 
         int tx = dx + pad;
         int ty = dy + pad;
@@ -408,10 +398,7 @@ public class SiloManagerScreen extends AbstractContainerScreen<SiloManagerMenu> 
     private void drawDialogButton(GuiGraphics g, int x, int y, int w, int h,
                                   Component label, boolean active, boolean hovered) {
         float s4 = s4();
-        StardewGuiUtil.drawTextureBox(g,
-                StardewGuiUtil.CURSORS, StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT,
-                BDR_U, BDR_V, BDR_W, BDR_SH,
-                x, y, w, h, s4, false);
+        CommonGuiTextures.drawTextureBox(g, x, y, w, h, s4, false);
 
         int inset = (int)(4 * s4);
         if (!active) {

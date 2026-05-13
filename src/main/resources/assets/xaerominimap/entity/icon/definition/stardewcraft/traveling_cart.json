@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "stardewcraft:textures/entity/npc/traveling_cart.png": "normal_sprite:stardew_traveling_cart.png",
+    "default": "dot"
+  },
+  "variantMethod": "xaero.hud.minimap.radar.icon.definition.BuiltInRadarIconDefinitions.getVariant"
+}

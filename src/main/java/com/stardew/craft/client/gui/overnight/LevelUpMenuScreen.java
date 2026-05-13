@@ -2,6 +2,7 @@ package com.stardew.craft.client.gui.overnight;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.client.ClientPlayerDataCache;
+import com.stardew.craft.client.gui.common.CommonGuiTextures;
 import com.stardew.craft.network.overnight.ClientOvernightHandler;
 import com.stardew.craft.network.overnight.OvernightSettlementPayload;
 import com.stardew.craft.network.payload.OvernightProfessionChoicePayload;
@@ -143,7 +144,7 @@ public class LevelUpMenuScreen extends Screen {
         }
 
         // Header ribbon (mouseCursors 363,87,58,22, scale 4)
-        StardewGuiUtil.drawFromCursors(graphics, xPos + guiWidth / 2 - px(116), yPos - px(40), 363, 87, 58, 22, s4());
+        LevelUpMenuTextures.drawHeaderRibbon(graphics, xPos + guiWidth / 2 - px(116), yPos - px(40), s4());
 
         StardewGuiUtil.drawDialogueBoxFrame(graphics, xPos, yPos, guiWidth, guiHeight);
 
@@ -178,11 +179,11 @@ public class LevelUpMenuScreen extends Screen {
             int lineY = yPos + px(SPACE_TOP + 128 + 8 + 64 * 2);
 
             graphics.drawString(this.font, leftName, leftX, textY, leftColor, false);
-            StardewGuiUtil.drawFromCursors(graphics, xPos + px(SPACE_SIDE) + guiWidth / 2 - px(112), yPos + px(SPACE_TOP + 144), (professions[0] % 6) * 16, 624 + (professions[0] / 6) * 16, 16, 16, s4());
+            LevelUpMenuTextures.drawProfession(graphics, xPos + px(SPACE_SIDE) + guiWidth / 2 - px(112), yPos + px(SPACE_TOP + 144), professions[0], s4());
             drawWrappedText(graphics, getProfessionDesc(professions[0]), leftX + px(-4), lineY, guiWidth / 2 - px(64), leftColor, px(16));
 
             graphics.drawString(this.font, rightName, rightX, textY, rightColor, false);
-            StardewGuiUtil.drawFromCursors(graphics, xPos + px(SPACE_SIDE) + guiWidth - px(128), yPos + px(SPACE_TOP + 144), (professions[1] % 6) * 16, 624 + (professions[1] / 6) * 16, 16, 16, s4());
+            LevelUpMenuTextures.drawProfession(graphics, xPos + px(SPACE_SIDE) + guiWidth - px(128), yPos + px(SPACE_TOP + 144), professions[1], s4());
             drawWrappedText(graphics, getProfessionDesc(professions[1]), rightX + px(-4), lineY, guiWidth / 2 - px(48), rightColor, px(16));
         } else {
             drawSkillIcon(graphics, currentSkill, xPos + px(SPACE_SIDE + BORDER_WIDTH), yPos + px(SPACE_TOP + 16));
@@ -216,7 +217,7 @@ public class LevelUpMenuScreen extends Screen {
                     int startX = centerX - totalW / 2;
                     int itemY = lineY + i * rowStep;
                     if (hasIcon) {
-                        graphics.renderItem(entry.icon(), startX, itemY - 4);
+                        CommonGuiTextures.drawItem(graphics, entry.icon(), startX, itemY - 4, 1.0f);
                         graphics.drawString(this.font, message, startX + 20, itemY + 4, 0x3A2A1A, false);
                     } else {
                         graphics.drawString(this.font, message, startX, itemY + 4, 0x3A2A1A, false);
@@ -236,7 +237,7 @@ public class LevelUpMenuScreen extends Screen {
                  graphics.pose().scale(1.1f, 1.1f, 1f);
                  graphics.pose().translate(-(okX + okWidth/2f), -(okY + okWidth/2f), 0);
             }
-            StardewGuiUtil.drawFromCursors(graphics, okX, okY, 128, 256, 64, 64, 1.0f / guiScale());
+            LevelUpMenuTextures.drawOk(graphics, okX, okY, 1.0f / guiScale());
             graphics.pose().popPose();
         }
     }

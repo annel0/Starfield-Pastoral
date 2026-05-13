@@ -2,7 +2,7 @@ package com.stardew.craft.client.hud;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.client.ModKeyMappings;
-import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
+import com.stardew.craft.client.gui.common.CommonGuiTextures;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModMiningDimensions;
 import com.stardew.craft.quest.StardewQuest;
@@ -42,10 +42,9 @@ public class QuestIconHud {
     private static final int TIME_BG_WIDTH = 72;
     private static final int TIME_BG_HEIGHT = 57;
 
-    // ─── Cursors sprite coords ───
-    private static final int ICON_U = 383, ICON_V = 493, ICON_W = 11, ICON_H = 14;
-    private static final int EXCL_U = 395, EXCL_V = 497, EXCL_W = 3, EXCL_H = 8;
-    private static final int PING_U = 128, PING_V = 208, PING_W = 16, PING_H = 16;
+    // ─── Cursors sprite dimensions ───
+    private static final int ICON_W = 11, ICON_H = 14;
+    private static final int PING_W = 16, PING_H = 16;
 
     // ─── 固定缩放比例（与 StardewTimeHud 的 1:1 GUI 坐标体系一致） ───
     private static final float ICON_SCALE = 1.0f;
@@ -110,7 +109,7 @@ public class QuestIconHud {
         int btnX = hudX + TIME_BG_WIDTH - iconW;       // 右对齐 HUD 右边缘
         int btnY = hudY + TIME_BG_HEIGHT + 2;            // 紧贴 HUD 底部下方 2px
 
-        StardewGuiUtil.drawFromCursors(g, btnX, btnY, ICON_U, ICON_V, ICON_W, ICON_H, ICON_SCALE);
+        CommonGuiTextures.drawQuestHudButton(g, btnX, btnY, ICON_SCALE);
 
         // ─── Exclamation "!" pulse ───
         // SDV: at (bounds.X+24, bounds.Y+32), origin(2,4), bounds=44×46 → (54.5%, 69.6%)
@@ -131,8 +130,7 @@ public class QuestIconHud {
             g.pose().pushPose();
             g.pose().translate(exclAnchorX + shakeX, exclAnchorY + shakeY, 0);
             g.pose().scale(exclScale, exclScale, 1.0f);
-            g.blit(StardewGuiUtil.CURSORS, -2, -4, EXCL_U, EXCL_V, EXCL_W, EXCL_H,
-                    StardewGuiUtil.CURSORS_WIDTH, StardewGuiUtil.CURSORS_HEIGHT);
+                CommonGuiTextures.drawQuestDotAtCurrentPose(g, -2, -4);
             g.pose().popPose();
         }
 
@@ -140,11 +138,11 @@ public class QuestIconHud {
         // SDV: (bounds.Left-16, bounds.Bottom+8) at 4×
         // Proportionally: slightly left of icon, below
         if (questPingTimer > 0) {
-            int pingFrame = ((questPingTimer / 200) % 2 != 0) ? 16 : 0;
+            int pingFrame = ((questPingTimer / 200) % 2 != 0) ? 1 : 0;
             int pingW = Math.round(PING_W * ICON_SCALE);
             int pingX = btnX + iconW / 2 - pingW / 2;
             int pingY = btnY + iconH + 2;
-            StardewGuiUtil.drawFromCursors(g, pingX, pingY, PING_U + pingFrame, PING_V, PING_W, PING_H, ICON_SCALE);
+            CommonGuiTextures.drawQuestHudPing(g, pingX, pingY, pingFrame, ICON_SCALE);
         }
 
         // ─── Key hint ───

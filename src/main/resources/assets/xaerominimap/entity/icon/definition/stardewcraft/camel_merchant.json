@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "stardewcraft:textures/entity/camel_merchant/camel_merchant.png": "normal_sprite:camel_merchant.png",
+    "default": "dot"
+  },
+  "variantMethod": "xaero.hud.minimap.radar.icon.definition.BuiltInRadarIconDefinitions.getVariant"
+}
