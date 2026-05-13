@@ -2,18 +2,24 @@ package com.stardew.craft.event;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.block.ModBlocks;
+import com.stardew.craft.block.decor.MapDecorStaticBlock;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModMiningDimensions;
 import com.stardew.craft.network.payload.OpenSleepConfirmScreenPayload;
 import com.stardew.craft.time.StardewTimeManager;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BedBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BedPart;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.CanContinueSleepingEvent;
+import net.neoforged.neoforge.event.entity.player.CanPlayerSleepEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerWakeUpEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -58,11 +64,22 @@ public final class SleepInteractionHandler {
         }
     }
 
+    @SuppressWarnings("null")
+    @SubscribeEvent
+    public static void onCanPlayerSleep(CanPlayerSleepEvent event) {
+        var dim = event.getEntity().level().dimension();
+        if ((dim == ModDimensions.STARDEW_VALLEY || dim == ModMiningDimensions.STARDEW_MINING)
+                && isSleepAnchorState(event.getState())) {
+            event.setProblem(null);
+        }
+    }
+
     @SubscribeEvent
     public static void onPlayerWakeUp(PlayerWakeUpEvent event) {
         if (!event.updateLevel() || !(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
+        consumePendingBedPos(player);
         if (SleepVoteTracker.hasVoted(player)) {
             SleepVoteTracker.revokeVoteAndBroadcast(player);
         }
@@ -81,9 +98,7 @@ public final class SleepInteractionHandler {
             return;
         }
         var state = player.level().getBlockState(event.getPos());
-        boolean isVanillaBed = state.getBlock() instanceof BedBlock;
-        boolean isDecorBed = state.is(ModBlocks.BED_1.get()) || state.is(ModBlocks.BED_2.get());
-        if (!isVanillaBed && !isDecorBed) {
+        if (!isSleepAnchorState(state)) {
             return;
         }
 
@@ -106,9 +121,75 @@ public final class SleepInteractionHandler {
         }
 
         int currentMinute = StardewTimeManager.get().getCurrentTime();
-        storePendingBedPos(player, event.getPos());
-        PacketDistributor.sendToPlayer(player, new OpenSleepConfirmScreenPayload(currentMinute));
+        BlockPos sleepAnchor = resolveSleepAnchor(player.level(), event.getPos(), state);
+        if (!player.isSleeping()) {
+            player.startSleepInBed(sleepAnchor);
+            if (!player.isSleeping()) {
+                player.startSleeping(sleepAnchor);
+                player.serverLevel().updateSleepingPlayerList();
+            }
+        }
+        if (player.isSleeping()) {
+            storePendingBedPos(player, sleepAnchor);
+            PacketDistributor.sendToPlayer(player, new OpenSleepConfirmScreenPayload(currentMinute));
+        }
         event.setCanceled(true);
         event.setCancellationResult(InteractionResult.SUCCESS);
+    }
+
+    private static boolean isSleepAnchorState(BlockState state) {
+        return state.getBlock() instanceof BedBlock
+                || state.is(ModBlocks.BED_1.get())
+                || state.is(ModBlocks.BED_2.get());
+    }
+
+    private static BlockPos resolveSleepAnchor(Level level, BlockPos pos, BlockState state) {
+        if (state.getBlock() instanceof BedBlock && state.getValue(BedBlock.PART) == BedPart.FOOT) {
+            BlockPos headPos = pos.relative(state.getValue(BedBlock.FACING));
+            if (level.getBlockState(headPos).is(state.getBlock())) {
+                return headPos;
+            }
+        }
+        if ((state.is(ModBlocks.BED_1.get()) || state.is(ModBlocks.BED_2.get()))
+                && state.getBlock() instanceof MapDecorStaticBlock decorBlock
+                && state.hasProperty(MapDecorStaticBlock.FACING)) {
+            BlockPos mainPos = decorBlock.findMainPos(level, pos, state);
+            if (mainPos == null) {
+                mainPos = pos;
+            }
+            Direction facing = state.getValue(MapDecorStaticBlock.FACING);
+            LocalCellOffset clickedOffset = unrotateCellOffset(
+                    pos.getX() - mainPos.getX(),
+                    pos.getZ() - mainPos.getZ(),
+                    facing);
+            int laneX = state.is(ModBlocks.BED_2.get()) && clickedOffset.dx() < 0 ? -1 : 0;
+            LocalCellOffset headOffset = rotateCellOffset(laneX, 1, facing);
+            BlockPos headPos = mainPos.offset(headOffset.dx(), 0, headOffset.dz());
+            if (level.getBlockState(headPos).is(state.getBlock())) {
+                return headPos;
+            }
+        }
+        return pos;
+    }
+
+    private static LocalCellOffset rotateCellOffset(int localDx, int localDz, Direction facing) {
+        return switch (facing) {
+            case EAST -> new LocalCellOffset(-localDz, localDx);
+            case SOUTH -> new LocalCellOffset(-localDx, -localDz);
+            case WEST -> new LocalCellOffset(localDz, -localDx);
+            default -> new LocalCellOffset(localDx, localDz);
+        };
+    }
+
+    private static LocalCellOffset unrotateCellOffset(int worldDx, int worldDz, Direction facing) {
+        return switch (facing) {
+            case EAST -> new LocalCellOffset(worldDz, -worldDx);
+            case SOUTH -> new LocalCellOffset(-worldDx, -worldDz);
+            case WEST -> new LocalCellOffset(-worldDz, worldDx);
+            default -> new LocalCellOffset(worldDx, worldDz);
+        };
+    }
+
+    private record LocalCellOffset(int dx, int dz) {
     }
 }

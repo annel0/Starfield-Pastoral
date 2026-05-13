@@ -30,7 +30,7 @@ public abstract class LivingEntityStardewBedOrientationMixin {
         BlockState state = self.level().getBlockState(sleepingPos.get());
         if ((state.is(ModBlocks.BED_1.get()) || state.is(ModBlocks.BED_2.get()))
                 && state.hasProperty(MapDecorStaticBlock.FACING)) {
-            cir.setReturnValue(state.getValue(MapDecorStaticBlock.FACING));
+            cir.setReturnValue(state.getValue(MapDecorStaticBlock.FACING).getOpposite());
         }
     }
 }

@@ -94,7 +94,7 @@ public final class SleepVoteTracker {
         StardewCraft.LOGGER.info("[SleepVote] {}/{} voted, need {} ({}% of {} active, {} total, afk={}s)",
                 votedCount, activeCount, required, sleepPct, activeCount, totalStardewPlayers, afkTimeout);
 
-        // 广播投票进度给所有星露谷维度玩家（用于更新 SleepWaitingOverlayScreen）
+        // 广播投票进度给所有星露谷维度玩家（原版床界面下通过 action bar 可见）
         broadcastVoteProgress(server, votedCount, required);
 
         // 通知所有人投票进度
@@ -247,7 +247,7 @@ public final class SleepVoteTracker {
     }
 
     /**
-     * 每 tick 调用：等待其他人睡觉期间，已投票玩家每秒恢复 1 点能量。
+     * 每 tick 调用：等待其他人睡觉期间，已投票且仍在床上的玩家每秒恢复 1 点能量。
      */
     public static void tickSleepEnergyRegen(MinecraftServer server) {
         if (votes.isEmpty()) {
@@ -258,7 +258,7 @@ public final class SleepVoteTracker {
         if (sleepRegenTickCounter < 20) return;
         sleepRegenTickCounter = 0;
         for (ServerPlayer sp : server.getPlayerList().getPlayers()) {
-            if (votes.containsKey(sp.getUUID()) && isInStardewDimension(sp)) {
+            if (votes.containsKey(sp.getUUID()) && sp.isSleeping() && isInStardewDimension(sp)) {
                 PlayerStardewDataAPI.restoreEnergy(sp, 1.0f);
             }
         }

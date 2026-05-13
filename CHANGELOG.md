@@ -14,12 +14,15 @@
 - Fixed auto-feed troughs failing to detect their barn or coop when placed as valid adjacent interior fixtures.
 - Fixed auto-feed trough hay consumption so it now pulls from the owning farm's shared silo storage instead of the interacting player's personal key.
 - Fixed silo, pasture grass, and wheat hay storage ownership so hay is credited to the farm where the action happens.
+- Fixed Stardew bed interactions so players enter the sleeping pose before confirming sleep, can cancel back out of bed, and no longer get placed at incorrect offsets on custom bed models.
+- Fixed Stardew multiplayer sleep voting so only players who remain in bed count toward the vote, while waiting sleepers continue recovering stamina each second.
 
 #### Changes
 
 - Auto-feed troughs now actively refill connected trough networks from silo hay while the chunk is loaded.
 - Shared-farm hay storage now aggregates legacy member-owned hay while using the farm owner as the canonical storage key for new hay.
 - Stardew Valley weather sync now uses the custom Stardew weather state instead of mutating vanilla level weather.
+- Custom Stardew beds now resolve their sleep anchor to the correct head block and use vanilla sleeping orientation/rendering behavior instead of applying custom entity position offsets.
 
 #### Localization
 
@@ -37,12 +40,15 @@
 - 修复自动喂食槽在合法贴着室内空气格摆放时识别不到所属鸡舍或畜棚，导致完全不会自动补草的问题。
 - 修复自动喂食槽扣草时没有从所在农场的共享筒仓干草池扣除的问题。
 - 修复筒仓、牧草和小麦产出干草时归属不稳定的问题，现在会优先按所在农场记入干草。
+- 修复星露谷床交互流程，现在玩家会先进入躺床状态再确认是否睡觉，取消时会正常起床，并修复自定义床模型上的错误躺床偏移。
+- 修复多人睡觉投票流程，现在只有仍然躺在床上的玩家会计入投票，等待投票期间仍会每秒恢复体力。
 
 #### 改动
 
 - 自动喂食槽现在会在区块加载时主动从筒仓补充连接的喂食槽网络。
 - 共享农场干草存储现在以农场主人作为新干草的统一归属，同时兼容读取和扣除旧版本成员名下的干草。
 - 星露谷天气同步现在只使用自定义星露谷天气状态，不再改写原版维度天气。
+- 自定义星露谷床现在会把睡眠锚点解析到正确的床头格，并使用原版睡眠朝向与渲染逻辑，不再手动给实体叠加位置偏移。
 
 #### 本地化
 

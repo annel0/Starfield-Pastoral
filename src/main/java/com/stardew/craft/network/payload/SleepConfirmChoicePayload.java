@@ -37,6 +37,9 @@ public record SleepConfirmChoicePayload(boolean confirmed, int sleepMinute) impl
             }
             if (!payload.confirmed()) {
                 SleepInteractionHandler.consumePendingBedPos(player);
+                if (player.isSleeping()) {
+                    player.stopSleepInBed(true, true);
+                }
                 return;
             }
             DimensionEventHandler.requestSleepAdvance(player, payload.sleepMinute());

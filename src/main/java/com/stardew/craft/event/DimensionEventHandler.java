@@ -122,6 +122,12 @@ public class DimensionEventHandler {
 
     @SuppressWarnings("null")
     public static void requestSleepAdvance(ServerPlayer player, int sleepMinute) {
+        BlockPos bedPos = SleepInteractionHandler.consumePendingBedPos(player);
+        requestSleepAdvance(player, sleepMinute, bedPos);
+    }
+
+    @SuppressWarnings("null")
+    public static void requestSleepAdvance(ServerPlayer player, int sleepMinute, BlockPos bedPos) {
         if (player == null) {
             return;
         }
@@ -134,13 +140,11 @@ public class DimensionEventHandler {
             return;
         }
 
-        BlockPos bedPos = SleepInteractionHandler.consumePendingBedPos(player);
         if (bedPos == null || !isSleepAnchor(player, bedPos)) {
             return;
         }
         if (!player.isSleeping()) {
-            player.startSleeping(bedPos);
-            player.serverLevel().updateSleepingPlayerList();
+            return;
         }
 
         // 多人投票：只有所有 Stardew 维度玩家都投票后才推进
