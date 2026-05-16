@@ -23,6 +23,8 @@ public final class CCStoryFlags {
     public static final String CC_IS_COMPLETE      = "ccIsComplete";
     /** 玩家已获得骷髅钥匙（SDV mailReceived "HasSkullKey"）——骷髅矿洞通行证 */
     public static final String HAS_SKULL_KEY       = "HasSkullKey";
+    /** SDV specialItems 钱包/去重项：骷髅钥匙 */
+    public static final String SKULL_KEY_SPECIAL_ITEM = "stardewcraft:skull_key";
 
     // ── 巫师邀请信 ──
     /** 巫师邀请信邮件 ID */

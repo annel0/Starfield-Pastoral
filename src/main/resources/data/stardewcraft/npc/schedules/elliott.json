@@ -4,36 +4,36 @@
   "_format": "time -> \"location @namedPointId facing [behavior]\" | {_goto: key} | {_condition: expr}",
 
   "GreenRain": {
-    "800": "elliotthouse @elliott_house_write 1"
+    "800": "elliotthouse @elliott_house_write 0"
   },
 
   "rain": {
-    "800":  "elliotthouse @elliott_house_write 1",
-    "1200": "elliotthouse @elliott_house_piano 1",
-    "1500": "elliotthouse @elliott_house_read 1",
-    "2400": "elliotthouse @elliott_house_sleep 3 elliott_sleep"
+    "800":  "elliotthouse @elliott_house_write 0",
+    "1200": "elliotthouse @elliott_house_piano 0",
+    "1500": "elliotthouse @elliott_house_read 2",
+    "2400": "elliotthouse @elliott_house_sleep 2 elliott_sleep"
   },
 
   "spring": {
-    "800":  "elliotthouse @elliott_house_write 1",
+    "800":  "elliotthouse @elliott_house_write 0",
     "1200": "beach @elliott_beach_walk 2",
     "1500": "town @elliott_town_walk 0",
-    "1800": "elliotthouse @elliott_house_piano 1",
-    "2400": "elliotthouse @elliott_house_sleep 3 elliott_sleep"
+    "1800": "elliotthouse @elliott_house_piano 0",
+    "2400": "elliotthouse @elliott_house_sleep 2 elliott_sleep"
   },
 
   "summer": {
-    "800":  "elliotthouse @elliott_house_write 1",
-    "1130": "forest @elliott_forest_walk 3",
-    "1800": "elliotthouse @elliott_house_read 1",
-    "2400": "elliotthouse @elliott_house_sleep 3 elliott_sleep"
+    "800":  "elliotthouse @elliott_house_write 0",
+    "1130": "forest @elliott_forest_walk 2",
+    "1800": "elliotthouse @elliott_house_read 2",
+    "2400": "elliotthouse @elliott_house_sleep 2 elliott_sleep"
   },
 
   "fall": {
-    "800":  "elliotthouse @elliott_house_write 1",
-    "1130": "archaeologyhouse @elliott_museum_read 1",
-    "1730": "elliotthouse @elliott_house_piano 1",
-    "2400": "elliotthouse @elliott_house_sleep 3 elliott_sleep"
+    "800":  "elliotthouse @elliott_house_write 0",
+    "1130": "archaeologyhouse @elliott_museum_read 0",
+    "1730": "elliotthouse @elliott_house_piano 0",
+    "2400": "elliotthouse @elliott_house_sleep 2 elliott_sleep"
   },
 
   "winter": {
@@ -41,10 +41,10 @@
   },
 
   "friday": {
-    "800":  "elliotthouse @elliott_house_write 1",
+    "800":  "elliotthouse @elliott_house_write 0",
     "1100": "beach @elliott_beach_walk 2",
-    "1700": "saloon @elliott_saloon_seat 3",
-    "2340": "elliotthouse @elliott_house_sleep 3 elliott_sleep"
+    "1700": "saloon @elliott_saloon_seat 0",
+    "2340": "elliotthouse @elliott_house_sleep 2 elliott_sleep"
   },
 
   "sunday": {
@@ -52,9 +52,9 @@
   },
 
   "thursday": {
-    "800":  "elliotthouse @elliott_house_write 1",
-    "1130": "seedshop @elliott_seedshop_visit 3",
-    "1730": "elliotthouse @elliott_house_read 1",
-    "2400": "elliotthouse @elliott_house_sleep 3 elliott_sleep"
+    "800":  "elliotthouse @elliott_house_write 0",
+    "1130": "seedshop @elliott_seedshop_visit 1",
+    "1730": "elliotthouse @elliott_house_read 2",
+    "2400": "elliotthouse @elliott_house_sleep 2 elliott_sleep"
   }
 }

@@ -3,29 +3,29 @@
   "override_vanilla": true,
   "_format": "time -> \"location @namedPointId facing [behavior]\"",
   "GreenRain": {
-    "610": "saloon @clint_saloon_seat 0"
+    "610": "saloon @clint_saloon_seat 1"
   },
   "rain": {
     "_goto": "spring"
   },
   "winter_15": {
     "_note": "Winter 15: visits beach",
-    "850": "blacksmith @clint_blacksmith_anvil 3",
+    "850": "blacksmith @clint_blacksmith_anvil 2",
     "1700": "beach @clint_beach_stay 2",
-    "2400": "blacksmith @clint_blacksmith_sleep 1 clint_sleep"
+    "2400": "blacksmith @clint_blacksmith_sleep 2 clint_sleep"
   },
   "friday": {
     "_note": "Friday: CommunityCenter then Saloon",
-    "850": "communitycenter @clint_town_cc 1",
-    "1700": "saloon @clint_saloon_seat 0",
-    "2400": "blacksmith @clint_blacksmith_sleep 1 clint_sleep"
+    "850": "communitycenter @clint_town_cc 2",
+    "1700": "saloon @clint_saloon_seat 1",
+    "2400": "blacksmith @clint_blacksmith_sleep 2 clint_sleep"
   },
   "spring": {
     "_note": "Default: work at anvil, hammer evening, saloon night",
-    "850": "blacksmith @clint_blacksmith_anvil 3",
-    "1700": "blacksmith @clint_blacksmith_hammer 1 clint_hammer",
-    "1900": "saloon @clint_saloon_seat 0",
-    "2400": "blacksmith @clint_blacksmith_sleep 1 clint_sleep"
+    "850": "blacksmith @clint_blacksmith_anvil 2",
+    "1700": "blacksmith @clint_blacksmith_hammer 0 clint_hammer",
+    "1900": "saloon @clint_saloon_seat 1",
+    "2400": "blacksmith @clint_blacksmith_sleep 2 clint_sleep"
   },
   "summer": {
     "_goto": "spring"

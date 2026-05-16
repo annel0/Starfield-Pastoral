@@ -1,6 +1,7 @@
 package com.stardew.craft.client.gui.quest;
 
 import com.stardew.craft.client.gui.common.CommonGuiTextures;
+import com.stardew.craft.client.gui.common.GuiText;
 import com.stardew.craft.client.gui.common.StardewRenderMapping;
 import com.stardew.craft.client.hud.QuestIconHud;
 import com.stardew.craft.quest.StardewQuest;
@@ -201,12 +202,14 @@ public class QuestLogScreen extends Screen {
         CommonGuiTextures.drawTextureBox(g, winX, winY, winW, winH, s4, true);
 
         // SDV: SpriteText.drawStringWithScrollCenteredAt at (xPos+w/2, yPos-64)
-        String title = Component.translatable("gui.stardewcraft.quest_log").getString();
-        g.drawCenteredString(font, title, winX + winW / 2, winY - mapping.ui(64), 0xFFFFFFFF);
+        Component title = Component.translatable("gui.stardewcraft.quest_log");
+        GuiText.drawCenteredClamped(g, font, title, winX + winW / 2,
+                winY - mapping.ui(64), winW - mapping.ui(64), 0xFFFFFFFF, false);
 
         if (pages.get(currentPage).isEmpty()) {
-            String empty = Component.translatable("gui.stardewcraft.quest_log.empty").getString();
-            g.drawCenteredString(font, empty, winX + winW / 2, winY + winH / 2, 0xFFAAAAAA);
+            Component empty = Component.translatable("gui.stardewcraft.quest_log.empty");
+            GuiText.drawCenteredClamped(g, font, empty, winX + winW / 2,
+                    winY + winH / 2, winW - mapping.ui(96), 0xFFAAAAAA, false);
             return;
         }
 
@@ -245,7 +248,7 @@ public class QuestLogScreen extends Screen {
             }
 
             // SDV: SpriteText.drawString at (bounds.X+132, bounds.Y+20)
-            g.drawString(font, q.getTitleComponent(),
+                g.drawString(font, GuiText.ellipsize(font, q.getTitleComponent(), entryW - mapping.ui(164)),
                     ex + mapping.ui(132), ey + mapping.ui(20), TEXT_COLOR, false);
         }
     }
@@ -259,8 +262,8 @@ public class QuestLogScreen extends Screen {
         // SDV: 标题居中 at (xPos+w/2, yPos+32)
         Component questTitleComp = shownQuest.getTitleComponent();
         String questTitle = questTitleComp.getString();
-        g.drawCenteredString(font, questTitleComp,
-                winX + winW / 2, winY + mapping.ui(32), TEXT_COLOR);
+        GuiText.drawCenteredClamped(g, font, questTitleComp,
+            winX + winW / 2, winY + mapping.ui(32), winW - mapping.ui(128), TEXT_COLOR, false);
 
         // SDV: 计时任务时钟图标 + 剩余天数
         int extraYOffset = 0;
@@ -320,7 +323,7 @@ public class QuestLogScreen extends Screen {
                 // SDV: "Reward" label at (xPos+36, rewardBox.Y+25) — 加粗 Component 代替阴影
                 Component rewardLabel = Component.translatable("gui.stardewcraft.quest_log.reward")
                     .withStyle(net.minecraft.ChatFormatting.BOLD);
-                g.drawString(font, rewardLabel,
+                g.drawString(font, GuiText.ellipsize(font, rewardLabel, mapping.ui(220)),
                         winX + mapping.ui(36), rboxY + mapping.ui(25), TEXT_COLOR, false);
 
                 // SDV: rewardBox.draw — (293,360,24,24) at 4×
@@ -335,8 +338,8 @@ public class QuestLogScreen extends Screen {
                 if (isIn(mouseX, mouseY, rboxX, rboxY, rboxSz, rboxSz)) {
                     Component collectTip = Component.translatable("gui.stardewcraft.quest_log.collect")
                         .withStyle(net.minecraft.ChatFormatting.BOLD);
-                    g.drawCenteredString(font, collectTip,
-                            winX + winW / 2, rboxY + rboxSz + mapping.ui(8), 0xFFFFD700);
+                    GuiText.drawCenteredClamped(g, font, collectTip,
+                            winX + winW / 2, rboxY + rboxSz + mapping.ui(8), winW - mapping.ui(128), 0xFFFFD700, false);
                 }
             }
         } else {

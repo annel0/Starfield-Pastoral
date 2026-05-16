@@ -125,9 +125,9 @@ public final class NpcScheduleRuntimeService {
         cachedWeather = "";
     }
 
-    public static TargetPoint resolveWorldTarget(ServerLevel level, NpcRuntimeState state, Vec3 fallback) {
+    public static TargetPoint resolveWorldTarget(ServerLevel level, NpcRuntimeState state, Vec3 defaultPosition) {
         if (state == null) {
-            return TargetPoint.fallback(fallback);
+            return defaultPosition == null ? null : new TargetPoint(defaultPosition, true, false);
         }
 
         // --- Named-point override (project-native "@point_id" schedule format) ---
@@ -139,12 +139,9 @@ public final class NpcScheduleRuntimeService {
                 com.google.gson.JsonObject points = routePointsRoot.getAsJsonObject("points");
                 if (points.has(pointId)) {
                     com.google.gson.JsonObject pt = points.getAsJsonObject(pointId);
-                    double x = pt.has("x") ? pt.get("x").getAsDouble() : 0;
-                    double y = pt.has("y") ? pt.get("y").getAsDouble() : 0;
-                    double z = pt.has("z") ? pt.get("z").getAsDouble() : 0;
+                    Vec3 position = NpcRoutePlanner.routePointPosition(pt, Vec3.ZERO);
                     boolean indoor = pt.has("indoor") && pt.get("indoor").getAsBoolean();
-                    // Preserve the authored point here; the movement layer will ground/sanitize it if needed.
-                    return new TargetPoint(new Vec3(x, y, z), false, indoor);
+                    return new TargetPoint(position, false, indoor);
                 }
             }
             // Named point defined in schedule but missing from route_points.json — fall through to anchor.
@@ -160,13 +157,18 @@ public final class NpcScheduleRuntimeService {
                 return new TargetPoint(new Vec3(x, anchor.y(), z), anchor.useGroundHeight(), anchor.indoor());
             }
 
-            return new TargetPoint(new Vec3(anchor.x(), anchor.y(), anchor.z()), anchor.useGroundHeight(), anchor.indoor());
+            Vec3 anchorPosition = NpcRoutePlanner.anchorPosition(location, anchor);
+            if (anchorPosition == null) {
+                return null;
+            }
+            boolean useGroundHeight = anchor.portalTarget().isBlank() && anchor.useGroundHeight();
+            return new TargetPoint(anchorPosition, useGroundHeight, anchor.indoor());
         }
 
         if ("town".equals(location) && !warnedMissingTownAnchor) {
             warnedMissingTownAnchor = true;
         }
-        return TargetPoint.fallback(fallback);
+        return null;
     }
 
     public static ScheduleKeyTrace getLastKeyTrace(String npcId) {
@@ -565,7 +567,7 @@ public final class NpcScheduleRuntimeService {
     }
 
     @SuppressWarnings("unused")
-    private static ScheduleNode parseNode(String scheduleKey, int checkpoint, String raw, String fallbackLocation) {
+    private static ScheduleNode parseNode(String scheduleKey, int checkpoint, String raw, String previousLocation) {
         if (raw == null || raw.isBlank()) {
             return null;
         }
@@ -579,10 +581,10 @@ public final class NpcScheduleRuntimeService {
             int startIndex = 0;
             String location;
             if (isInteger(parts[0])) {
-                if (fallbackLocation == null || fallbackLocation.isBlank()) {
+                if (previousLocation == null || previousLocation.isBlank()) {
                     return null;
                 }
-                location = fallbackLocation;
+                location = previousLocation;
             } else {
                 location = parts[0];
                 startIndex = 1;
@@ -672,9 +674,6 @@ public final class NpcScheduleRuntimeService {
     }
 
     public record TargetPoint(Vec3 position, boolean useGroundHeight, boolean indoorTarget) {
-        private static TargetPoint fallback(Vec3 fallback) {
-            return new TargetPoint(fallback, true, false);
-        }
     }
 
     public record ScheduleKeyTrace(

@@ -44,31 +44,10 @@ public final class NpcFriendshipClientCache {
         copy.sort(Comparator
             .comparingInt(Entry::points).reversed()
             .thenComparingInt(Entry::metOrder)
-            .thenComparing(entry -> displayNameForSort(entry.npcId()))
+            .thenComparing(entry -> NpcDisplayNames.sortKey(entry.npcId()))
             .thenComparing(Entry::npcId));
         entries = List.copyOf(copy);
         lastSyncMs = System.currentTimeMillis();
-    }
-
-    private static String displayNameForSort(String npcId) {
-        if (npcId == null || npcId.isBlank()) {
-            return "";
-        }
-        String[] parts = npcId.trim().toLowerCase(Locale.ROOT).split("[_\\s]+");
-        StringBuilder sb = new StringBuilder();
-        for (String part : parts) {
-            if (part == null || part.isBlank()) {
-                continue;
-            }
-            if (!sb.isEmpty()) {
-                sb.append(' ');
-            }
-            sb.append(part.substring(0, 1).toUpperCase(Locale.ROOT));
-            if (part.length() > 1) {
-                sb.append(part.substring(1));
-            }
-        }
-        return sb.toString();
     }
 
     public static List<Entry> entries() {
@@ -113,7 +92,7 @@ public final class NpcFriendshipClientCache {
                 mutable.sort(Comparator
                     .comparingInt(Entry::points).reversed()
                     .thenComparingInt(Entry::metOrder)
-                    .thenComparing(e -> displayNameForSort(e.npcId()))
+                    .thenComparing(e -> NpcDisplayNames.sortKey(e.npcId()))
                     .thenComparing(Entry::npcId));
                 entries = List.copyOf(mutable);
                 lastSyncMs = System.currentTimeMillis();
@@ -132,7 +111,7 @@ public final class NpcFriendshipClientCache {
         mutable.sort(Comparator
             .comparingInt(Entry::points).reversed()
             .thenComparingInt(Entry::metOrder)
-            .thenComparing(e -> displayNameForSort(e.npcId()))
+            .thenComparing(e -> NpcDisplayNames.sortKey(e.npcId()))
             .thenComparing(Entry::npcId));
         entries = List.copyOf(mutable);
         lastSyncMs = System.currentTimeMillis();

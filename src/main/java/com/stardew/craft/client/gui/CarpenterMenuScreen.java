@@ -54,6 +54,7 @@ public class CarpenterMenuScreen extends Screen {
     // cols = 704 / 64 = 11; row = 47/11=4, col = 47%11=3 → u=192, v=256
     private static final int BACK_W = 12, BACK_H = 11;
     private static final int FWD_W = 12, FWD_H = 11;
+    private static final float MANAGER_PREVIEW_SCALE = 3.0f;
     // Texture box border (from IClickableMenu.drawTextureBox)
     private static final int BOX_U = 384, BOX_V = 373, BOX_W = 18, BOX_H = 18;
     // Scroll banner background (SpriteText scroll: 325,318,11,18 in mouseCursors)
@@ -300,8 +301,8 @@ public class CarpenterMenuScreen extends Screen {
         int sdvYPos = height / 2 - ui(MAX_VIEWER_H) / 2 - ui(SPACE_TOP) + ui(32);
         int sdvTotalW = ui(MAX_VIEWER_W + MAX_DESC_W + SPACE_SIDE * 2 + 64);
 
-        // 3. Building viewer box — SDV uses default drawTextureBox (menuTexture)
-        CommonGuiTextures.drawMenuTextureBox(g, viewerX, viewerY, viewerW, viewerH, 1.0f / guiScale, true);
+        // 3. Building viewer box — SDV uses default IClickableMenu.drawTextureBox.
+        CommonGuiTextures.drawTextureBox(g, viewerX, viewerY, viewerW, viewerH, s4, true);
 
         // 4. Manager block preview (centered in viewer)
         drawManagerPreview(g, bp);
@@ -316,8 +317,8 @@ public class CarpenterMenuScreen extends Screen {
         // 6. Building name with scroll banner
         drawNameWithScroll(g, bp, sdvXPos, sdvYPos, s4);
 
-        // 7. Description box — SDV uses default drawTextureBox (menuTexture)
-        CommonGuiTextures.drawMenuTextureBox(g, descX, descY, descW, descH, 1.0f / guiScale, true);
+        // 7. Description box — SDV uses default IClickableMenu.drawTextureBox.
+        CommonGuiTextures.drawTextureBox(g, descX, descY, descW, descH, s4, true);
 
         // 8. Description text
         drawDescription(g, bp, sdvXPos, sdvYPos, s4);
@@ -359,8 +360,7 @@ public class CarpenterMenuScreen extends Screen {
 
         ItemStack stack = new ItemStack(item);
 
-        // Render at SDV drawInMenu scale (16px → 64 SDV screen pixels), centered in viewer.
-        float itemScale = s4();
+        float itemScale = MANAGER_PREVIEW_SCALE * s4();
         int renderSize = Math.round(16 * itemScale);
         int centerX = viewerX + viewerW / 2;
         int centerY = viewerY + viewerH / 2;

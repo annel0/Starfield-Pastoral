@@ -16,6 +16,7 @@ import java.util.*;
  */
 @SuppressWarnings("null")
 public final class MuseumRewardRegistry {
+    public static final String RUSTY_KEY_REWARD_ID = "museum60";
 
     /**
      * @param id          unique reward id (used as claimed-flag)
@@ -60,10 +61,10 @@ public final class MuseumRewardRegistry {
         total("museum35", 35, "stardewcraft:pumpkin_seeds", 9);
         total("museum40", 40, "stardewcraft:iridium_sprinkler", 1);
         total("museum50", 50, "stardewcraft:diamond", 3);
-        total("museum60", 60, "stardewcraft:iridium_bar", 5);
+        totalNoItem(RUSTY_KEY_REWARD_ID, 60);
         total("museum70", 70, "stardewcraft:triple_shot_espresso", 3);
         total("museum80", 80, "stardewcraft:warp_totem_farm", 5);
-        total("museum90", 90, "stardewcraft:mega_bomb", 5);
+        total("museum90", 90, "stardewcraft:magic_rock_candy", 1);
 
         // ── Mineral milestones ──
         mineral("mineral11", 11, "stardewcraft:omni_geode", 3);
@@ -101,6 +102,11 @@ public final class MuseumRewardRegistry {
     private static void total(String id, int threshold, String itemId, int count) {
         REWARDS.add(new MuseumReward(id, ConditionType.TOTAL_COUNT, threshold,
             List.of(), List.of(new RewardItem(itemId, count)), null));
+    }
+
+    private static void totalNoItem(String id, int threshold) {
+        REWARDS.add(new MuseumReward(id, ConditionType.TOTAL_COUNT, threshold,
+            List.of(), List.of(), null));
     }
 
     private static void mineral(String id, int threshold, String itemId, int count) {

@@ -78,5 +78,257 @@
     "id": "levelUp_foraging_2",
     "text": "嘿 @：\n\n你对山野植物的了解越来越深了。\n\n觅食技能提高后，你能找到品质更好的野生物品。\n\n——莱纳斯",
     "background": 0
+  },
+  {
+    "id": "friendshipRecipeCarolineParsnipSoup",
+    "text": "亲爱的@：\n\n我把一份防风草汤的做法抄给你。它味道温和，很适合忙了一天之后暖暖胃。\n\n——卡洛琳",
+    "background": 0,
+    "learnedRecipe": "parsnip_soup",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeCarolineVegetableMedley",
+    "text": "亲爱的@：\n\n这是我常做的蔬菜什锦。只要食材新鲜，做起来并不复杂，希望你会喜欢。\n\n——卡洛琳",
+    "background": 0,
+    "learnedRecipe": "vegetable_medley",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeClintAlgaeSoup",
+    "text": "@：\n\n矿洞里有时候没什么像样的吃的。我把海藻汤的做法写在下面，也许你下矿前能用得上。\n\n——克林特",
+    "background": 0,
+    "learnedRecipe": "algae_soup",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeClintBeanHotpot",
+    "text": "@：\n\n这是豆类火锅的做法。它很实在，热量也够。呃……希望你觉得有用。\n\n——克林特",
+    "background": 0,
+    "learnedRecipe": "bean_hotpot",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeDemetriusFriedMushroom",
+    "text": "@：\n\n蘑菇如果处理得当，营养价值很不错。我附上了炸蘑菇的步骤，供你参考。\n\n——德米特里厄斯",
+    "background": 0,
+    "learnedRecipe": "fried_mushroom",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeDemetriusAutumnsBounty",
+    "text": "@：\n\n秋天的作物很适合搭配成一道丰收佳肴。我整理了一份配方，希望对你的农场生活有帮助。\n\n——德米特里厄斯",
+    "background": 0,
+    "learnedRecipe": "autumn_s_bounty",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeEmilySalad",
+    "text": "嗨，@！\n\n新鲜蔬菜有一种很轻盈的能量。我把沙拉的做法寄给你，愿它让你今天也闪闪发亮。\n\n——艾米丽",
+    "background": 0,
+    "learnedRecipe": "salad",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeEmilyRedPlate",
+    "text": "嗨，@！\n\n红色的食物总让我想到热情和勇气。这道红之盛宴送给你。\n\n——艾米丽",
+    "background": 0,
+    "learnedRecipe": "red_plate",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeEvelynRicePudding",
+    "text": "亲爱的@：\n\n我年轻时常做米布丁。它简单、香甜，也很适合和朋友分享。\n\n——艾芙琳",
+    "background": 0,
+    "learnedRecipe": "rice_pudding",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeGeorgeFriedEel",
+    "text": "@：\n\n别把鳗鱼做得软趴趴的。照这个方法炸，味道会好很多。\n\n——乔治",
+    "background": 0,
+    "learnedRecipe": "fried_eel",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeGeorgeSpicyEel",
+    "text": "@：\n\n既然你已经学会炸鳗鱼了，再试试这个辣一点的版本。别放太多辣椒，除非你真扛得住。\n\n——乔治",
+    "background": 0,
+    "learnedRecipe": "spicy_eel",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeGusSalmonDinner",
+    "text": "你好，@：\n\n这是一份鲑鱼晚餐的配方。好食材配上耐心，往往就能做出让人安心的一餐。\n\n——格斯",
+    "background": 0,
+    "learnedRecipe": "salmon_dinner",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeGusCranberrySauce",
+    "text": "你好，@：\n\n蔓越莓酱很适合节日餐桌，也能让普通的一餐变得明亮。我把做法写在下面。\n\n——格斯",
+    "background": 0,
+    "learnedRecipe": "cranberry_sauce",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeJodiFriedCalamari",
+    "text": "@你好：\n\n我家里很喜欢炸鱿鱼。火候要快，外面酥了就可以出锅。\n\n——乔迪",
+    "background": 0,
+    "learnedRecipe": "fried_calamari",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeJodiIceCream",
+    "text": "@你好：\n\n天气热的时候，没有什么比一份冰淇淋更让人开心了。这个做法你可以留着试试。\n\n——乔迪",
+    "background": 0,
+    "learnedRecipe": "ice_cream",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeKentCrispyBass",
+    "text": "@：\n\n这份香酥鲈鱼的做法很直接。把步骤记牢，处理鱼的时候手要稳。\n\n——肯特",
+    "background": 0,
+    "learnedRecipe": "crispy_bass",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeKentSuperMeal",
+    "text": "@：\n\n干重活前要吃点扎实的东西。这份超级大餐应该能帮你撑过忙碌的一天。\n\n——肯特",
+    "background": 0,
+    "learnedRecipe": "super_meal",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeLeoPoi",
+    "text": "@：\n\n这是我很熟悉的一种食物。把芋头慢慢捣好，味道会变得很温柔。\n\n——雷欧",
+    "background": 0,
+    "learnedRecipe": "poi",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeLeoMangoStickyRice",
+    "text": "@：\n\n芒果和糯米放在一起很好吃。我把做法写给你，希望你也会喜欢。\n\n——雷欧",
+    "background": 0,
+    "learnedRecipe": "mango_sticky_rice",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeLewisSpaghetti",
+    "text": "@你好：\n\n镇长的工作很忙，但一盘意大利面总能让人恢复精神。把这份配方收下吧。\n\n——刘易斯",
+    "background": 0,
+    "learnedRecipe": "spaghetti",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeLewisEggplantParmesan",
+    "text": "@你好：\n\n这是茄子帕尔玛干酪的做法。做得好时，它会比看起来更让人满足。\n\n——刘易斯",
+    "background": 0,
+    "learnedRecipe": "eggplant_parmesan",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeLinusSashimi",
+    "text": "@：\n\n如果鱼足够新鲜，其实不需要太复杂的处理。我把生鱼片的做法写给你。\n\n——莱纳斯",
+    "background": 0,
+    "learnedRecipe": "sashimi",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeLinusFishTaco",
+    "text": "@：\n\n野外生活教会我，简单的食材也能做得很好吃。这是鱼肉塔可的做法。\n\n——莱纳斯",
+    "background": 0,
+    "learnedRecipe": "fish_taco",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeMarniePaleBroth",
+    "text": "嘿，@：\n\n照顾动物的时候，人也得照顾好自己。这份清汤很简单，身体不舒服时尤其合适。\n\n——玛妮",
+    "background": 0,
+    "learnedRecipe": "pale_broth",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeMarnieRhubarbPie",
+    "text": "嘿，@：\n\n大黄派酸甜又爽口。我把做法寄给你，有空可以烤一份。\n\n——玛妮",
+    "background": 0,
+    "learnedRecipe": "rhubarb_pie",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipePamCheeseCauliflower",
+    "text": "嘿，@：\n\n菜花配奶酪，简单又顶饱。我把做法写给你，别烤糊就行。\n\n——潘姆",
+    "background": 0,
+    "learnedRecipe": "cheese_cauliflower",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipePamStuffing",
+    "text": "嘿，@：\n\n这份填料菜谱挺管用，节日不节日都能吃。拿去试试吧。\n\n——潘姆",
+    "background": 0,
+    "learnedRecipe": "stuffing",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipePierreBlueberryTart",
+    "text": "@你好：\n\n蓝莓挞能让新鲜水果卖出更好的味道。作为本地商人，我强烈推荐你试试。\n\n——皮埃尔",
+    "background": 0,
+    "learnedRecipe": "blueberry_tart",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeRobinPumpkinSoup",
+    "text": "@你好：\n\n秋天干完木工活以后，一碗南瓜汤正合适。我把家里的做法抄给你。\n\n——罗宾",
+    "background": 0,
+    "learnedRecipe": "pumpkin_soup",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeSandyTomKhaSoup",
+    "text": "亲爱的@：\n\n沙漠里偶尔也需要一点异国风味。这份冬阴功汤做起来很香，记得趁热喝。\n\n——桑迪",
+    "background": 0,
+    "learnedRecipe": "tom_kha_soup",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeShanePepperPoppers",
+    "text": "@：\n\n辣椒爆弹很简单，也很够劲。别问我为什么会做，照着下面来就行。\n\n——谢恩",
+    "background": 0,
+    "learnedRecipe": "pepper_poppers",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeShaneStrangeBun",
+    "text": "@：\n\n这是奇怪小面包的做法。名字是有点怪，但味道……你自己试试吧。\n\n——谢恩",
+    "background": 0,
+    "learnedRecipe": "strange_bun",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeWillyChowder",
+    "text": "@：\n\n海上风冷，一碗杂烩汤最顶用。我把做法寄给你，愿它给你带来好运。\n\n——威利",
+    "background": 0,
+    "learnedRecipe": "chowder",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeWillyEscargot",
+    "text": "@：\n\n蜗牛也能做成像样的菜，关键是耐心。下面这份焗蜗牛配方你收好。\n\n——威利",
+    "background": 0,
+    "learnedRecipe": "escargot",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeWillyFishStew",
+    "text": "@：\n\n鱼汤炖得久一点，味道会厚很多。这是我常用的鱼肉炖菜做法。\n\n——威利",
+    "background": 0,
+    "learnedRecipe": "fish_stew",
+    "recipeIsCooking": true
+  },
+  {
+    "id": "friendshipRecipeWillyLobsterBisque",
+    "text": "@：\n\n龙虾浓汤是我很珍惜的一份配方。既然我们已经这么熟了，我想你值得学会它。\n\n——威利",
+    "background": 0,
+    "learnedRecipe": "lobster_bisque",
+    "recipeIsCooking": true
   }
 ]

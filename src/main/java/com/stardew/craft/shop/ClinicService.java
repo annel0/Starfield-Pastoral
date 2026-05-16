@@ -18,13 +18,13 @@ import java.util.List;
 public final class ClinicService {
 
     // Counter area: player must be inside this AABB to trigger shop.
-    // Coordinates from user: (15364,73,15362) to (15362,71,15369)
-    private static final int COUNTER_MIN_X = 15362;
-    private static final int COUNTER_MAX_X = 15364;
-    private static final int COUNTER_MIN_Y = 71;
-    private static final int COUNTER_MAX_Y = 73;
-    private static final int COUNTER_MIN_Z = 15362;
-    private static final int COUNTER_MAX_Z = 15369;
+    // Coordinates from user: (0,45,-13) to (7,43,-11)
+    private static final int COUNTER_MIN_X = 0;
+    private static final int COUNTER_MAX_X = 7;
+    private static final int COUNTER_MIN_Y = 43;
+    private static final int COUNTER_MAX_Y = 45;
+    private static final int COUNTER_MIN_Z = -13;
+    private static final int COUNTER_MAX_Z = -11;
 
     private ClinicService() {}
 

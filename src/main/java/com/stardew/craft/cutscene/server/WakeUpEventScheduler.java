@@ -44,7 +44,7 @@ public final class WakeUpEventScheduler {
      * event whose preconditions pass and queues it (dedup).
      */
     public static void enqueueAtNightSettlement(ServerPlayer player) {
-        enqueueEligible(player);
+        enqueueEligible(player, true);
     }
 
     /**
@@ -57,12 +57,16 @@ public final class WakeUpEventScheduler {
      */
     public static void syncOnLogin(ServerPlayer player) {
         if (player == null) return;
-        enqueueEligible(player);
+        enqueueEligible(player, false);
         dispatchNext(player);
     }
 
-    private static void enqueueEligible(ServerPlayer player) {
+    private static void enqueueEligible(ServerPlayer player, boolean allowBackfill) {
         if (player == null) return;
+        if (allowBackfill) {
+            com.stardew.craft.sewer.SewerService.backfillRustyKeyWakeUpEligibility(player);
+        }
+
         ServerLevel level = player.serverLevel();
         WakeUpEventQueueData queue = WakeUpEventQueueData.get(level);
         EventSeenData seen = EventSeenData.get(level);

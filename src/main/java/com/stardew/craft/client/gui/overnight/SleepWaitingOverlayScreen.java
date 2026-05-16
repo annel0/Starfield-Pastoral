@@ -1,5 +1,6 @@
 package com.stardew.craft.client.gui.overnight;
 
+import com.stardew.craft.client.gui.common.GuiText;
 import com.stardew.craft.network.payload.SleepCancelPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -65,21 +66,19 @@ public class SleepWaitingOverlayScreen extends Screen {
 
         // 黑屏后显示文字
         if (ticksOpen >= FADE_IN_TICKS) {
+            int textMaxWidth = Math.max(1, width - 32);
             // "等待其他玩家…"
             Component waitingText = Component.translatable("stardewcraft.sleep.waiting");
-            int textWidth = font.width(waitingText);
-            graphics.drawString(font, waitingText, (width - textWidth) / 2, height / 2 - 16, 0xFFFFFFFF);
+            GuiText.drawWrappedCentered(graphics, font, waitingText, width / 2, height / 2 - 22, textMaxWidth, 0xFFFFFFFF, false, 2);
 
             // 投票进度 "X/Y 位玩家已准备好"
             Component progressText = Component.translatable("stardewcraft.sleep.waiting.progress",
                     votedCount, requiredCount);
-            int progressWidth = font.width(progressText);
-            graphics.drawString(font, progressText, (width - progressWidth) / 2, height / 2 + 4, 0xFFCCCCCC);
+            GuiText.drawCenteredClamped(graphics, font, progressText, width / 2, height / 2 + 4, textMaxWidth, 0xFFCCCCCC, false);
 
             // "按 ESC 取消"
             Component hintText = Component.translatable("stardewcraft.sleep.cancel.hint");
-            int hintWidth = font.width(hintText);
-            graphics.drawString(font, hintText, (width - hintWidth) / 2, height / 2 + 24, 0xFF888888);
+            GuiText.drawCenteredClamped(graphics, font, hintText, width / 2, height / 2 + 24, textMaxWidth, 0xFF888888, false);
         }
     }
 

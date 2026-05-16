@@ -19,6 +19,27 @@ atlas_path() {
     esac
 }
 
+crop_atlas_slice() {
+    local source_png="$1"
+    local dest_png="$2"
+    local u="$3"
+    local v="$4"
+    local w="$5"
+    local h="$6"
+
+    local pixel_width pixel_height padded_png
+    pixel_width="$(sips -g pixelWidth "$source_png" | awk '/pixelWidth:/ { print $2; exit }')"
+    pixel_height="$(sips -g pixelHeight "$source_png" | awk '/pixelHeight:/ { print $2; exit }')"
+    padded_png="$(mktemp -t stardewcraft-ui-atlas-padded).png"
+    cp "$source_png" "$padded_png"
+
+    # sips treats --cropOffset 0 0 as a centered crop. Padding the atlas by one
+    # pixel lets all manifest coordinates be used as true top-left offsets.
+    sips --padToHeightWidth "$((pixel_height + 2))" "$((pixel_width + 2))" "$padded_png" --out "$padded_png" >/dev/null
+    sips --cropOffset "$((v + 1))" "$((u + 1))" --cropToHeightWidth "$h" "$w" "$padded_png" --out "$dest_png" >/dev/null
+    rm -f "$padded_png"
+}
+
 while IFS=, read -r output atlas u v w h || [[ -n "${output:-}" ]]; do
     case "${output:-}" in
         ''|'#'*) continue ;;
@@ -28,15 +49,12 @@ while IFS=, read -r output atlas u v w h || [[ -n "${output:-}" ]]; do
     dest_png="$GUI_DIR/$output.png"
     mkdir -p "$(dirname "$dest_png")"
 
-    tmp_png="$(mktemp -t stardewcraft-ui-slice).png"
-    cp "$source_png" "$tmp_png"
     if [[ "$output" == "animal_query/menu_tile_0" ]]; then
-        sips --cropOffset 0 192 --cropToHeightWidth 64 64 "$tmp_png" --out "$dest_png" >/dev/null
+        crop_atlas_slice "$source_png" "$dest_png" 0 192 64 64
         sips --flip horizontal "$dest_png" --out "$dest_png" >/dev/null
     else
-        sips --cropOffset "$v" "$u" --cropToHeightWidth "$h" "$w" "$tmp_png" --out "$dest_png" >/dev/null
+        crop_atlas_slice "$source_png" "$dest_png" "$u" "$v" "$w" "$h"
     fi
-    rm -f "$tmp_png"
 
     printf 'wrote %s (%sx%s from %s:%s,%s)\n' "$dest_png" "$w" "$h" "$atlas" "$u" "$v"
 done < "$MANIFEST"

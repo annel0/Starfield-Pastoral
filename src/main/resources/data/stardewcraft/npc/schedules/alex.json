@@ -4,39 +4,39 @@
   "_format": "time -> \"location @namedPointId facing [behavior]\" | {_goto: key} | {_condition: expr}",
 
   "GreenRain": {
-    "610": "joshhouse @alex_joshhouse_kitchen 3"
+    "610": "joshhouse @alex_joshhouse_kitchen 1"
   },
 
   "rain": {
-    "800":  "joshhouse @alex_joshhouse_kitchen 3",
+    "800":  "joshhouse @alex_joshhouse_kitchen 1",
     "1300": "joshhouse @alex_joshhouse_weights 2 alex_lift_weights",
-    "1600": "town @alex_town_hangout 2",
-    "1830": "joshhouse @alex_joshhouse_kitchen 3",
-    "2200": "joshhouse @alex_joshhouse_bedroom 1 alex_sleep"
+    "1600": "town @alex_town_hangout 0",
+    "1830": "joshhouse @alex_joshhouse_kitchen 1",
+    "2200": "joshhouse @alex_joshhouse_bedroom 2 alex_sleep"
   },
 
   "summer_13": {
     "_note": "Alex birthday — special schedule: football then visits clinic",
     "800":  "town @alex_town_football 2 alex_football",
     "1030": "joshhouse @alex_joshhouse_weights 2 alex_lift_weights",
-    "1600": "joshhouse @alex_joshhouse_kitchen 3",
-    "2200": "joshhouse @alex_joshhouse_bedroom 1 alex_sleep"
+    "1600": "joshhouse @alex_joshhouse_kitchen 1",
+    "2200": "joshhouse @alex_joshhouse_bedroom 2 alex_sleep"
   },
 
   "spring": {
     "800":  "town @alex_town_football 2 alex_football",
     "1300": "joshhouse @alex_joshhouse_weights 2 alex_lift_weights",
-    "1600": "town @alex_town_hangout 2",
-    "1830": "joshhouse @alex_joshhouse_kitchen 3",
-    "2200": "joshhouse @alex_joshhouse_bedroom 1 alex_sleep"
+    "1600": "town @alex_town_hangout 0",
+    "1830": "joshhouse @alex_joshhouse_kitchen 1",
+    "2200": "joshhouse @alex_joshhouse_bedroom 2 alex_sleep"
   },
 
   "summer": {
-    "730":  "beach @alex_beach_swim 3",
-    "1200": "town @alex_town_hangout 3",
+    "730":  "beach @alex_beach_swim 2",
+    "1200": "town @alex_town_hangout 0",
     "1700": "joshhouse @alex_joshhouse_weights 2 alex_lift_weights",
-    "1900": "joshhouse @alex_joshhouse_kitchen 3",
-    "2200": "joshhouse @alex_joshhouse_bedroom 1 alex_sleep"
+    "1900": "joshhouse @alex_joshhouse_kitchen 1",
+    "2200": "joshhouse @alex_joshhouse_bedroom 2 alex_sleep"
   },
 
   "fall": {
@@ -46,27 +46,27 @@
   "winter": {
     "_note": "No BathHouse interior — weights at home instead",
     "900":  "joshhouse @alex_joshhouse_weights 2 alex_lift_weights",
-    "1500": "joshhouse @alex_joshhouse_kitchen 3",
-    "1800": "town @alex_town_hangout 2",
-    "1930": "joshhouse @alex_joshhouse_kitchen 3",
-    "2200": "joshhouse @alex_joshhouse_bedroom 1 alex_sleep"
+    "1500": "joshhouse @alex_joshhouse_kitchen 1",
+    "1800": "town @alex_town_hangout 0",
+    "1930": "joshhouse @alex_joshhouse_kitchen 1",
+    "2200": "joshhouse @alex_joshhouse_bedroom 2 alex_sleep"
   },
 
   "wednesday": {
     "_note": "Wednesday: football then visits Haley's house",
     "800":  "town @alex_town_football 2 alex_football",
-    "1200": "haleyhouse @alex_haleyhouse_visit 0",
-    "1630": "town @alex_town_hangout 2",
-    "1840": "joshhouse @alex_joshhouse_kitchen 3",
-    "2200": "joshhouse @alex_joshhouse_bedroom 1 alex_sleep"
+    "1200": "haleyhouse @alex_haleyhouse_visit 3",
+    "1630": "town @alex_town_hangout 0",
+    "1840": "joshhouse @alex_joshhouse_kitchen 1",
+    "2200": "joshhouse @alex_joshhouse_bedroom 2 alex_sleep"
   },
 
   "sunday": {
     "_note": "Sunday: football then Saloon for gridball game",
     "800":  "town @alex_town_football 2 alex_football",
-    "1100": "saloon @alex_saloon_seat 1",
-    "1500": "town @alex_town_hangout 2",
-    "1830": "joshhouse @alex_joshhouse_kitchen 3",
-    "2200": "joshhouse @alex_joshhouse_bedroom 1 alex_sleep"
+    "1100": "saloon @alex_saloon_seat 2",
+    "1500": "town @alex_town_hangout 0",
+    "1830": "joshhouse @alex_joshhouse_kitchen 1",
+    "2200": "joshhouse @alex_joshhouse_bedroom 2 alex_sleep"
   }
 }

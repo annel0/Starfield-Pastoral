@@ -268,7 +268,10 @@ public class GeodeLootService {
                 return makeItem("stardewcraft:auto_petter", 1);
             }
 
-            // SDV: 0.2% × rareMod → Lucky Lunch (我们没有，跳过)
+            // SDV: 0.2% × rareMod → Magic Rock Candy
+            if (r.nextDouble() < 0.002 * rareMod) {
+                return new ItemStack(ModItems.MAGIC_ROCK_CANDY.get());
+            }
             // SDV: 0.4% × rareMod → Prismatic Shard
             if (r.nextDouble() < 0.004 * rareMod) {
                 return new ItemStack(ModItems.PRISMATIC_SHARD.get());

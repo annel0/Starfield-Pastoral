@@ -4,10 +4,8 @@ import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.entity.ModEntities;
 import com.stardew.craft.entity.npc.StardewNpcEntity;
-import com.stardew.craft.interior.InteriorSubspaceManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -35,9 +33,6 @@ public final class JojaNpcEvents {
 
     private static final int CHECK_INTERVAL_TICKS = 40;
     private static final double SCAN_RADIUS = 4.0;
-    /** 只在有玩家离 Joja Mart origin 128 方块以内时巡检。 */
-    private static final double PLAYER_NEAR_DIST_SQ = 128.0 * 128.0;
-
     /**
      * 每个 NPC 的固定生成描述：
      * id: NPC 标识（StardewNpcEntity.setNpcId）
@@ -50,8 +45,8 @@ public final class JojaNpcEvents {
     }
 
     /** 坐标与 default_spawns.json 一致 —— 保留那份只是为了兼容未来的 NpcSpawnManager 使用。 */
-    private static final Spawn MORRIS       = new Spawn("morris",       18247.5, 71.0, 18259.5, 90.0f);
-    private static final Spawn JOJA_CASHIER = new Spawn("joja_cashier", 18246.5, 71.0, 18249.5, 0.0f);
+    private static final Spawn MORRIS       = new Spawn("morris",       114.5, 45.0, -22.5, 0.0f);
+    private static final Spawn JOJA_CASHIER = new Spawn("joja_cashier", 104.5, 45.0, -21.5, -90.0f);
 
     private static final Spawn[] SPAWNS = { MORRIS, JOJA_CASHIER };
 
@@ -67,20 +62,16 @@ public final class JojaNpcEvents {
         ServerLevel level = event.getServer().getLevel(ModDimensions.STARDEW_VALLEY);
         if (level == null) return;
 
-        // 只在有玩家靠近 Joja Mart 时巡检
-        BlockPos anchor = InteriorSubspaceManager.JOJA_MART_ORIGIN;
-        boolean anyPlayerNear = false;
-        for (ServerPlayer p : level.players()) {
-            if (p.blockPosition().distSqr(anchor) <= PLAYER_NEAR_DIST_SQ) {
-                anyPlayerNear = true;
-                break;
-            }
-        }
-        if (!anyPlayerNear) return;
-
         for (Spawn s : SPAWNS) {
+            loadSpawnChunk(level, s);
             ensureSingleEntity(level, s);
         }
+        com.stardew.craft.shop.CamelMerchantEvents.forceCheckNow(level);
+        com.stardew.craft.shop.TravelingCartEvents.forceCheckNow(level);
+    }
+
+    private static void loadSpawnChunk(ServerLevel level, Spawn s) {
+        level.getChunk(s.blockPos().getX() >> 4, s.blockPos().getZ() >> 4);
     }
 
     /** 位置偏离目标超过此距离（方块）时，不信 teleportTo，直接 discard + 新建。 */
@@ -186,9 +177,6 @@ public final class JojaNpcEvents {
      * 直接放行。其他情况（chunk 加载出陈旧 NBT 实体）如果位置偏离就 discard，让巡检重建。
      */
     public static void onJojaNpcJoin(StardewNpcEntity npc, String npcId) {
-        // 自己刚造的 —— 已经在正确位置，别动。
-        if (npc.getTags().contains(MARKER_TAG)) return;
-
         Spawn target = null;
         for (Spawn s : SPAWNS) {
             if (s.id.equalsIgnoreCase(npcId)) { target = s; break; }
@@ -205,7 +193,6 @@ public final class JojaNpcEvents {
             npc.discard();
             return;
         }
-        // 位置正常（老存档存的已经在目标附近）：补打 tag + 锁 pose
         npc.addTag(MARKER_TAG);
         forceHoldPose(npc, target);
     }

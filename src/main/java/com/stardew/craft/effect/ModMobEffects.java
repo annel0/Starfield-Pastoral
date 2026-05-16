@@ -121,6 +121,14 @@ public final class ModMobEffects {
         );
 
         /**
+         * 蒜油：怪物不会主动把玩家设为攻击目标。
+         */
+        public static final DeferredHolder<MobEffect, MobEffect> AVOID_MONSTERS = MOB_EFFECTS.register(
+            "avoid_monsters",
+            () -> new SimpleBeneficialEffect(0x7D9B45)
+        );
+
+        /**
          * 庇护：每级降低受到伤害 10%。
          */
         public static final DeferredHolder<MobEffect, MobEffect> SHELTER = MOB_EFFECTS.register(

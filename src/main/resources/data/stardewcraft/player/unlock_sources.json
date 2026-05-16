@@ -1,17 +1,108 @@
 {
+  "skill:farming:1": {
+    "recipes": [
+      "basic_fertilizer",
+      "scarecrow"
+    ]
+  },
+  "skill:farming:2": {
+    "recipes": [
+      "sprinkler",
+      "mayonnaise_machine"
+    ]
+  },
   "skill:farming:3": {
     "recipes": [
+      "bee_house",
+      "speed_gro",
       "farmer_s_lunch"
+    ]
+  },
+  "skill:farming:4": {
+    "recipes": [
+      "basic_retaining_soil",
+      "preserves_jar"
+    ]
+  },
+  "skill:farming:6": {
+    "recipes": [
+      "cheese_press",
+      "quality_sprinkler"
+    ]
+  },
+  "skill:farming:7": {
+    "recipes": [
+      "loom",
+      "quality_retaining_soil"
+    ]
+  },
+  "skill:farming:8": {
+    "recipes": [
+      "keg",
+      "oil_maker",
+      "deluxe_speed_gro"
+    ]
+  },
+  "skill:farming:9": {
+    "recipes": [
+      "seed_maker",
+      "iridium_sprinkler"
+    ]
+  },
+  "skill:fishing:2": {
+    "recipes": [
+      "bait"
+    ]
+  },
+  "skill:fishing:3": {
+    "recipes": [
+      "crab_pot",
+      "dish_o_the_sea"
+    ]
+  },
+  "skill:fishing:4": {
+    "recipes": [
+      "worm_bin",
+      "recycling_machine",
+      "deluxe_bait"
+    ]
+  },
+  "skill:fishing:6": {
+    "recipes": [
+      "trap_bobber",
+      "spinner",
+      "bait_maker",
+      "sonar_bobber"
+    ]
+  },
+  "skill:fishing:7": {
+    "recipes": [
+      "treasure_hunter",
+      "cork_bobber"
+    ]
+  },
+  "skill:fishing:8": {
+    "recipes": [
+      "dressed_spinner",
+      "barbed_hook",
+      "deluxe_worm_bin"
     ]
   },
   "skill:fishing:9": {
     "recipes": [
+      "magnet",
       "seafoam_pudding"
+    ]
+  },
+  "skill:foraging:1": {
+    "recipes": [
+      "field_snack",
+      "wild_seeds_spring"
     ]
   },
   "skill:foraging:2": {
     "recipes": [
-      "survival_burger"
+      "charcoal_kiln"
     ]
   },
   "skill:foraging:3": {
@@ -19,10 +110,90 @@
       "moss_soup"
     ]
   },
+  "skill:foraging:4": {
+    "recipes": [
+      "tapper",
+      "wild_seeds_summer"
+    ]
+  },
+  "skill:foraging:6": {
+    "recipes": [
+      "lightning_rod",
+      "warp_totem_beach",
+      "totem_pole_beach",
+      "wild_seeds_fall"
+    ]
+  },
+  "skill:foraging:7": {
+    "recipes": [
+      "tree_fertilizer",
+      "warp_totem_mountain",
+      "totem_pole_mountain",
+      "wild_seeds_winter"
+    ]
+  },
+  "skill:foraging:8": {
+    "recipes": [
+      "warp_totem_farm",
+      "totem_pole_farm",
+      "survival_burger"
+    ]
+  },
+  "skill:foraging:9": {
+    "recipes": [
+      "rain_totem"
+    ]
+  },
+  "skill:mining:1": {
+    "recipes": [
+      "cherry_bomb"
+    ]
+  },
+  "skill:mining:2": {
+    "recipes": [
+      "mine_ladder"
+    ]
+  },
   "skill:mining:3": {
     "recipes": [
-      "miner_s_treat",
-      "dish_o_the_sea"
+      "miner_s_treat"
+    ]
+  },
+  "skill:mining:4": {
+    "recipes": [
+      "iron_bar",
+      "glowstone_ring"
+    ]
+  },
+  "skill:mining:6": {
+    "recipes": [
+      "bomb_item"
+    ]
+  },
+  "skill:mining:7": {
+    "recipes": [
+      "gold_bar"
+    ]
+  },
+  "skill:mining:8": {
+    "recipes": [
+      "mega_bomb"
+    ]
+  },
+  "skill:mining:9": {
+    "recipes": [
+      "crystalarium"
+    ]
+  },
+  "skill:combat:1": {
+    "recipes": [
+      "bug_steak",
+      "sturdy_ring"
+    ]
+  },
+  "skill:combat:2": {
+    "recipes": [
+      "life_elixir"
     ]
   },
   "skill:combat:3": {
@@ -30,8 +201,25 @@
       "roots_platter"
     ]
   },
+  "skill:combat:4": {
+    "recipes": [
+      "warrior_ring"
+    ]
+  },
+  "skill:combat:6": {
+    "recipes": [
+      "oil_of_garlic"
+    ]
+  },
+  "skill:combat:7": {
+    "recipes": [
+      "ring_of_yoba",
+      "thorns_ring"
+    ]
+  },
   "skill:combat:9": {
     "recipes": [
+      "iridium_band",
       "squid_ink_ravioli"
     ]
   },

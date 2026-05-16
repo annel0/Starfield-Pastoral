@@ -55,6 +55,7 @@ public final class ModSounds {
 	public static final DeferredHolder<SoundEvent, SoundEvent> DIALOGUE_CHARACTER = register("dialogue_character");
 	public static final DeferredHolder<SoundEvent, SoundEvent> DIALOGUE_CHARACTER_CLOSE = register("dialogue_character_close");
 	public static final DeferredHolder<SoundEvent, SoundEvent> SHADOW_DIE = register("shadow_die");
+	public static final DeferredHolder<SoundEvent, SoundEvent> CAVEDRIP = register("cavedrip");
 	public static final DeferredHolder<SoundEvent, SoundEvent> THUD_STEP = register("thud_step");
 	public static final DeferredHolder<SoundEvent, SoundEvent> STONE_STEP = register("stone_step");
 	public static final DeferredHolder<SoundEvent, SoundEvent> HARVEST = register("harvest");
@@ -168,12 +169,16 @@ public final class ModSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_LIBRARY = register("music_library");
     public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_ADVENTURER_GUILD = register("music_adventurer_guild");
     public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_HOSPITAL = register("music_hospital");
+	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_HOSPITAL_AMBIENT = register("music_hospital_ambient");
     public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_ELLIOTT_PIANO = register("music_elliott_piano");
-    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_SEED_SHOP = register("music_seed_shop");
+	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_COMMUNITY_CENTER = register("music_community_center");
+	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_DISTANT_BANJO = register("music_distant_banjo");
+	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_CLUBLOOP = register("music_clubloop");
     public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_OCEAN_AMBIENCE = register("music_ocean_ambience");
     // Desert / Oasis
     public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_DESERT = register("music_desert");
     public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_OASIS = register("music_oasis");
+	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_WOODS = register("music_woods");
 
     // ─── Quest ───
     public static final DeferredHolder<SoundEvent, SoundEvent> QUEST_COMPLETE = register("questcomplete");

@@ -1,6 +1,7 @@
 package com.stardew.craft.client.gui.common;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.client.NpcDisplayNames;
 import com.stardew.craft.sound.ModSounds;
 import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.Util;
@@ -627,7 +628,7 @@ public class StardewNpcDialogueScreen extends Screen {
         int xOffset = newPortraitShakeTimer > 0 ? mapping.ui((int) (Math.random() * 3.0) - 1) : 0;
         drawNpcPortrait(graphics, portraitBoxX + mapping.ui(16) + xOffset, portraitBoxY + mapping.ui(24), page.portraitIndex());
 
-        String displayName = displayNpcName();
+        String displayName = NpcDisplayNames.translated(normalizedNpcId());
         int nameX = xPositionOfPortraitArea + widthOfPortraitArea / 2;
         int nameY = portraitBoxY + mapping.ui(312);
         drawScaledCenteredText(graphics, displayName, nameX, nameY, 0x2E251A);
@@ -728,14 +729,6 @@ public class StardewNpcDialogueScreen extends Screen {
     private String normalizedNpcId() {
         String id = this.npcId.trim().toLowerCase(Locale.ROOT);
         return id.isEmpty() ? "lewis" : id;
-    }
-
-    private String displayNpcName() {
-        String id = normalizedNpcId();
-        if (id.isEmpty()) {
-            return "Lewis";
-        }
-        return Character.toUpperCase(id.charAt(0)) + id.substring(1);
     }
 
     private void drawBox(GuiGraphics graphics, int xPos, int yPos, int boxWidth, int boxHeight) {

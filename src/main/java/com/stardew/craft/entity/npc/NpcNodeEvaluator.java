@@ -78,6 +78,10 @@ public class NpcNodeEvaluator extends WalkNodeEvaluator {
         BlockGetter level = this.currentContext.level();
         for (int i = 0; i < count; i++) {
             Node neighbor = buffer[i];
+            if (neighbor.type == PathType.WATER || neighbor.type == PathType.WATER_BORDER || neighbor.type == PathType.LAVA) {
+                neighbor.costMalus = -1.0F;
+                continue;
+            }
             if (neighbor.type != PathType.WALKABLE
                 && neighbor.type != PathType.DOOR_OPEN
                 && neighbor.type != PathType.DOOR_WOOD_CLOSED) {

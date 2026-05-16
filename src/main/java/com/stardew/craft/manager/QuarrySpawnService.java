@@ -34,7 +34,7 @@ import javax.annotation.Nonnull;
  *   </li>
  * </ul>
  *
- * <p>采石场区域：X ∈ [-493, -416]，Z ∈ [232, 299]，生成平面 Y = -12。
+    * <p>采石场区域：X ∈ [155, 194]，Z ∈ [-140, -101]，只在 Y=80..81 的裸露 coarse dirt 顶面生成。
  */
 @SuppressWarnings("null")
 public final class QuarrySpawnService {
@@ -42,11 +42,12 @@ public final class QuarrySpawnService {
     private static final String INIT_DATA_ID = "stardewcraft_quarry_init";
 
     // ── 区域 ──
-    private static final int AREA_MIN_X = -493;
-    private static final int AREA_MAX_X = -416;
-    private static final int AREA_MIN_Z = 232;
-    private static final int AREA_MAX_Z = 299;
-    private static final int FLOOR_Y = -14;
+    private static final int AREA_MIN_X = 155;
+    private static final int AREA_MAX_X = 194;
+    private static final int AREA_MIN_Z = -140;
+    private static final int AREA_MAX_Z = -101;
+    private static final int FLOOR_MIN_Y = 80;
+    private static final int FLOOR_MAX_Y = 81;
 
     // ── 普通石头：6 种 STARDEW_STONES（等价 SDV ID 32/38/40/42/668/670） ──
     private static final java.util.List<net.neoforged.neoforge.registries.DeferredBlock<Block>> PLAIN_STONES =
@@ -156,26 +157,35 @@ public final class QuarrySpawnService {
     }
 
     private static boolean trySpawnAt(ServerLevel level, RandomSource r, int x, int z) {
-        BlockPos floor = new BlockPos(x, FLOOR_Y, z);
-        BlockPos above = floor.above();
-
         if (!level.hasChunk(x >> 4, z >> 4)) return false;
-        if (!isQuarryFloor(level, floor)) return false;
+        BlockPos floor = findQuarryFloor(level, x, z);
+        if (floor == null) return false;
+        BlockPos above = floor.above();
 
         Block toPlace = pickBlock(r);
         if (toPlace == null) return false;
 
-        // 其他方块（石头/矿石/树苗等）放在 Y=-11 地表上
+        // 其他方块（石头/矿石/树苗等）放在 coarse dirt 顶面上方。
         if (!isReplaceableAbove(level, above)) return false;
         level.setBlock(above, toPlace.defaultBlockState(), Block.UPDATE_ALL);
         return true;
     }
 
-    /** 严格只在 Y=-12 砂土层生成（按用户指定）。兼容已被替换为黄土的格子，避免重复落点。 */
+    /** 在指定 Y 范围内找裸露的 coarse dirt 顶面。 */
+    private static BlockPos findQuarryFloor(ServerLevel level, int x, int z) {
+        for (int y = FLOOR_MAX_Y; y >= FLOOR_MIN_Y; y--) {
+            BlockPos pos = new BlockPos(x, y, z);
+            if (isQuarryFloor(level, pos) && isReplaceableAbove(level, pos.above())) {
+                return pos;
+            }
+        }
+        return null;
+    }
+
+    /** 严格只在裸露 coarse dirt 顶面生成。 */
     private static boolean isQuarryFloor(ServerLevel level, BlockPos pos) {
         BlockState state = level.getBlockState(pos);
-        // 砂土 = coarse_dirt。同时兼容普通泥土/rooted_dirt 边界异常。
-        return state.is(Blocks.COARSE_DIRT) || state.is(Blocks.DIRT) || state.is(Blocks.ROOTED_DIRT);
+        return state.is(Blocks.COARSE_DIRT);
     }
 
     private static boolean isReplaceableAbove(ServerLevel level, BlockPos pos) {

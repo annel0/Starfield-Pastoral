@@ -5,7 +5,6 @@ import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.interior.InteriorSubspaceManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -13,21 +12,18 @@ import net.minecraft.nbt.CompoundTag;
 import javax.annotation.Nonnull;
 
 /**
- * 在公共区域的三个农场入口处放置屏障墙和传送交互实体。
- * 屏障墙使用 barrier 方块（不可见），传送触发方块触发传送到玩家个人农场。
- *
- * 三个入口坐标（旧农场边界的公共区域一侧）：
- * 1. 南入口（镇子方向）: 屏障 198,-14,160 到 210,8,160; 交互 210,-14,161 到 199,-12,161
- * 2. 东入口（背包方向）: 屏障 216,-14,27 到 209,18,27; 交互 209,-15,26 到 216,-13,26
- * 3. 西入口（森林方向）: 屏障 71,-12,123 到 71,8,116; 交互 70,-12,116 到 70,-10,123
+ * 在公共区域的三个农场入口处放置传送触发方块。
+ * 农场内部保持不变；这里仅处理主地图侧入口衔接点。
  */
 @SuppressWarnings("null")
 public class FarmEntryBarrierManager extends SavedData {
 
     private static final String DATA_NAME = "stardew_farm_entry_barriers";
     private static final String TAG_FARM_ENTRY = "sdv_portal_marker:farm_entry";
+    private static final int CURRENT_MAPPING_VERSION = 3;
 
-    private boolean barriersPlaced = false;
+    private boolean triggersPlaced = false;
+    private int mappingVersion = 0;
 
     public FarmEntryBarrierManager() {}
 
@@ -38,70 +34,39 @@ public class FarmEntryBarrierManager extends SavedData {
     }
 
     /**
-     * 重置屏障放置状态，用于迁移时强制重新放置。
+     * 重置入口触发区放置状态，用于迁移时强制重新放置。
      */
     public void resetForMigration() {
-        barriersPlaced = false;
+        triggersPlaced = false;
+        mappingVersion = 0;
         setDirty();
     }
 
-    /**
-     * 确保屏障墙和交互实体已放置。只执行一次。
-     */
+        /**
+         * 确保公共地图侧农场入口触发方块已放置。只执行一次。
+         */
     public void ensureBarriersPlaced(ServerLevel stardewLevel) {
-        if (barriersPlaced) return;
+        if (triggersPlaced && mappingVersion >= CURRENT_MAPPING_VERSION) return;
         if (!ModDimensions.STARDEW_VALLEY.equals(stardewLevel.dimension())) return;
 
-        StardewCraft.LOGGER.info("[FARM_BARRIER] Placing farm entry barriers and interaction entities...");
+        StardewCraft.LOGGER.info("[FARM_ENTRY] Placing farm entry trigger blocks...");
 
-        // ── 入口 1: 南入口（镇子方向） ──
-        // 屏障墙: X 198-210, Y -14 到 8, Z=160
-        placeBarrierWall(stardewLevel, 198, 210, -14, 8, 160, 160);
-        // 交互实体: X 199-210, Y -14 到 -12, Z=161
         spawnFarmEntryInteractions(stardewLevel,
-                new BlockPos(199, -14, 161), new BlockPos(210, -12, 161),
-                "sdv_portal_target:farm_entry_south");
-
-        // ── 入口 2: 东入口 ──
-        // 屏障墙: X 209-216, Y -14 到 18, Z=27
-        placeBarrierWall(stardewLevel, 209, 216, -14, 18, 27, 27);
-        // 交互实体: X 209-216, Y -15 到 -13, Z=26
-        spawnFarmEntryInteractions(stardewLevel,
-                new BlockPos(209, -15, 26), new BlockPos(216, -13, 26),
-                "sdv_portal_target:farm_entry_east");
-
-        // ── 入口 3: 西入口（森林方向） ──
-        // 屏障墙: X=71, Y -12 到 8, Z 116-123
-        placeBarrierWall(stardewLevel, 71, 71, -12, 8, 116, 123);
-        // 交互实体: X=70, Y -12 到 -10, Z 116-123
-        spawnFarmEntryInteractions(stardewLevel,
-                new BlockPos(70, -12, 116), new BlockPos(70, -10, 123),
+                new BlockPos(-63, 64, -44), new BlockPos(-63, 66, -42),
                 "sdv_portal_target:farm_entry_west");
 
-        barriersPlaced = true;
-        setDirty();
-        StardewCraft.LOGGER.info("[FARM_BARRIER] Farm entry barriers placed successfully.");
-    }
+        spawnFarmEntryInteractions(stardewLevel,
+                new BlockPos(-116, 64, -3), new BlockPos(-112, 66, -3),
+                "sdv_portal_target:farm_entry_east");
 
-    /**
-     * 放置 barrier 方块墙。
-     */
-    private void placeBarrierWall(ServerLevel level, int minX, int maxX, int minY, int maxY, int minZ, int maxZ) {
-        int count = 0;
-        for (int x = minX; x <= maxX; x++) {
-            for (int y = minY; y <= maxY; y++) {
-                for (int z = minZ; z <= maxZ; z++) {
-                    BlockPos pos = new BlockPos(x, y, z);
-                    level.getChunk(pos.getX() >> 4, pos.getZ() >> 4);
-                    if (level.getBlockState(pos).isAir()) {
-                        level.setBlock(pos, Blocks.BARRIER.defaultBlockState(), 2);
-                        count++;
-                    }
-                }
-            }
-        }
-        StardewCraft.LOGGER.debug("[FARM_BARRIER] Placed {} barrier blocks ({},{},{}) to ({},{},{})",
-                count, minX, minY, minZ, maxX, maxY, maxZ);
+        spawnFarmEntryInteractions(stardewLevel,
+                new BlockPos(-116, 64, -58), new BlockPos(-112, 66, -58),
+                "sdv_portal_target:farm_entry_south");
+
+        triggersPlaced = true;
+        mappingVersion = CURRENT_MAPPING_VERSION;
+        setDirty();
+        StardewCraft.LOGGER.info("[FARM_ENTRY] Farm entry triggers placed successfully.");
     }
 
     /**
@@ -122,13 +87,15 @@ public class FarmEntryBarrierManager extends SavedData {
     @Override
     @Nonnull
     public CompoundTag save(@Nonnull CompoundTag tag, @Nonnull HolderLookup.Provider registries) {
-        tag.putBoolean("BarriersPlaced", barriersPlaced);
+        tag.putBoolean("TriggersPlaced", triggersPlaced);
+        tag.putInt("MappingVersion", mappingVersion);
         return tag;
     }
 
     private static FarmEntryBarrierManager load(CompoundTag tag, HolderLookup.Provider provider) {
         FarmEntryBarrierManager manager = new FarmEntryBarrierManager();
-        manager.barriersPlaced = tag.getBoolean("BarriersPlaced");
+        manager.triggersPlaced = tag.getBoolean("TriggersPlaced") || tag.getBoolean("BarriersPlaced");
+        manager.mappingVersion = tag.getInt("MappingVersion");
         return manager;
     }
 

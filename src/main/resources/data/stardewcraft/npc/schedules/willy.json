@@ -4,48 +4,48 @@
   "_format": "time -> \"location @namedPointId facing [behavior]\"",
 
   "GreenRain": {
-    "610": "saloon @willy_saloon_seat 3"
+    "610": "saloon @willy_saloon_seat 0"
   },
 
   "rain": {
-    "700": "fishshop @willy_fishshop_counter 3",
+    "700": "fishshop @willy_fishshop_counter 2",
     "1700": "fishshop @willy_fishshop_room 2",
-    "2200": "fishshop @willy_fishshop_sleep 1"
+    "2200": "fishshop @willy_fishshop_sleep 2"
   },
 
   "winter": {
-    "600": "beach @willy_beach_fishing 3",
-    "900": "fishshop @willy_fishshop_counter 3",
+    "600": "beach @willy_beach_fishing 2",
+    "900": "fishshop @willy_fishshop_counter 2",
     "1700": "fishshop @willy_fishshop_room 2",
-    "2200": "fishshop @willy_fishshop_sleep 1"
+    "2200": "fishshop @willy_fishshop_sleep 2"
   },
 
   "Sat": {
-    "600": "beach @willy_beach_fishing 3",
-    "1200": "forest @willy_forest_walk 1",
-    "1500": "town @willy_town_bench 3",
-    "1800": "saloon @willy_saloon_seat 3",
-    "2400": "fishshop @willy_fishshop_sleep 1"
+    "600": "beach @willy_beach_fishing 2",
+    "1200": "forest @willy_forest_walk 2",
+    "1500": "town @willy_town_bench 2",
+    "1800": "saloon @willy_saloon_seat 0",
+    "2400": "fishshop @willy_fishshop_sleep 2"
   },
 
   "Fri": {
-    "600": "beach @willy_beach_fishing 3",
-    "900": "fishshop @willy_fishshop_counter 3",
-    "1700": "saloon @willy_saloon_seat 3",
-    "2400": "fishshop @willy_fishshop_sleep 1"
+    "600": "beach @willy_beach_fishing 2",
+    "900": "fishshop @willy_fishshop_counter 2",
+    "1700": "saloon @willy_saloon_seat 0",
+    "2400": "fishshop @willy_fishshop_sleep 2"
   },
 
   "spring": {
-    "600": "beach @willy_beach_fishing 3",
-    "900": "fishshop @willy_fishshop_counter 3",
-    "1700": "beach @willy_beach_evening 3",
-    "2200": "fishshop @willy_fishshop_sleep 1"
+    "600": "beach @willy_beach_fishing 2",
+    "900": "fishshop @willy_fishshop_counter 2",
+    "1700": "beach @willy_beach_evening 2",
+    "2200": "fishshop @willy_fishshop_sleep 2"
   },
 
   "default": {
-    "600": "beach @willy_beach_fishing 3",
-    "900": "fishshop @willy_fishshop_counter 3",
-    "1700": "beach @willy_beach_evening 3",
-    "2200": "fishshop @willy_fishshop_sleep 1"
+    "600": "beach @willy_beach_fishing 2",
+    "900": "fishshop @willy_fishshop_counter 2",
+    "1700": "beach @willy_beach_evening 2",
+    "2200": "fishshop @willy_fishshop_sleep 2"
   }
 }

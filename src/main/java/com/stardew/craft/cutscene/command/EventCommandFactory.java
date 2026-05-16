@@ -115,6 +115,8 @@ public final class EventCommandFactory {
             case "message"       -> new MessageCommand(obj.get("text").getAsString());
             case "add_quest"     -> new AddQuestCommand(obj.get("quest_id").getAsString());
             case "set_flag"      -> new SetFlagCommand(obj.get("flag").getAsString());
+            case "grant_rusty_key" -> new GrantRustyKeyCommand();
+            case "mark_opened_sewer" -> new MarkOpenedSewerCommand();
             case "show_npc"      -> new ShowNpcCommand(obj.get("npc_id").getAsString());
             case "spawn_entity"  -> new SpawnEntityCommand(
                     obj.get("entity_type").getAsString(),
@@ -140,7 +142,10 @@ public final class EventCommandFactory {
                     getInt(obj, "count", 1)
             );
             case "add_mail"      -> new AddMailCommand(obj.get("id").getAsString());
+            case "add_mail_now"  -> new AddMailNowCommand(obj.get("id").getAsString());
+            case "add_mail_for_tomorrow" -> new AddMailForTomorrowCommand(obj.get("id").getAsString());
             case "add_recipe"    -> new AddRecipeCommand(obj.get("recipe").getAsString());
+            case "apply_unlock_source" -> new ApplyUnlockSourceCommand(obj.get("source").getAsString());
             case "set_cave_choice" -> new SetCaveChoiceCommand(obj.get("choice").getAsString());
 
             case "question"      -> QuestionCommand.fromJson(obj);
@@ -158,6 +163,11 @@ public final class EventCommandFactory {
             case "camera_shake"  -> new CameraShakeCommand(
                     getFloat(obj, "intensity", 0.5f),
                     getInt(obj, "ticks", 20)
+            );
+            case "shake_actor"   -> new ShakeActorCommand(
+                    obj.get("actor").getAsString(),
+                    getInt(obj, "ticks", 20),
+                    getDouble(obj, "amplitude", 0.08)
             );
             case "camera_follow" -> new CameraFollowCommand(
                     obj.get("actor").getAsString(),

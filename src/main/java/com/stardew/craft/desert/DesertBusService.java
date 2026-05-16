@@ -92,9 +92,9 @@ public final class DesertBusService {
     }
 
     /**
-     * 客户端确认后服务端回调——再次校验，启动乘车状态。
-     * 玩家现在所在维度是 stardew_valley，根据玩家所在 X 坐标判断方向：
-     * 位于沙漠区域（X 较小）→ 返程；否则 → 去沙漠。
+    * 客户端确认后服务端回调——再次校验，启动乘车状态。
+    * 玩家现在所在维度是 stardew_valley，根据玩家是否位于沙漠区域判断方向：
+    * 位于沙漠区域 → 返程；否则 → 去沙漠。
      */
     public static void onPlayerConfirmed(ServerPlayer player) {
         if (isRiding(player)) return;
@@ -125,11 +125,9 @@ public final class DesertBusService {
         PacketDistributor.sendToPlayer(player, new DesertBusFadePayload((byte) 0, FADE_OUT_TICKS));
     }
 
-    /**
-     * 根据玩家当前 X 坐标判断方向。沙漠公交站牌在 X≈-350，鹈鹕镇公交站在 X≈82。
-     */
+    /** 根据玩家当前位置是否落在沙漠包围盒内判断方向。 */
     private static int detectDirection(ServerPlayer player) {
-        return player.getX() < -100.0 ? DIR_TO_TOWN : DIR_TO_DESERT;
+        return DesertConstants.isInDesertRegion(player.blockPosition()) ? DIR_TO_TOWN : DIR_TO_DESERT;
     }
 
     public static boolean isRiding(ServerPlayer player) {

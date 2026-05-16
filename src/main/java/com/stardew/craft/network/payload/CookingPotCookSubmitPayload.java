@@ -7,6 +7,7 @@ import com.stardew.craft.blockentity.FridgeBlockEntity;
 import com.stardew.craft.cooking.service.CookingPotService;
 import com.stardew.craft.cooking.service.VanillaCookingRecipeData;
 import com.stardew.craft.item.ModItems;
+import com.stardew.craft.player.PlayerStardewDataAPI;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -107,6 +108,7 @@ public record CookingPotCookSubmitPayload(String recipeItemId, int craftCount) i
                     player.drop(output, false);
                 }
             }
+            PlayerStardewDataAPI.recordRecipeCrafted(player, recipePath, count);
 
             net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player, CookingPotIngredientAvailabilityPayload.fromPlayer(player));
         });

@@ -11,6 +11,7 @@ import com.stardew.craft.npc.data.NpcDataRegistry;
 import com.stardew.craft.network.payload.EmoteBroadcastPayload;
 import com.stardew.craft.network.payload.OpenNpcDialogueScreenPayload;
 import com.stardew.craft.network.payload.SyncNpcFriendshipStatusPayload;
+import com.stardew.craft.player.PlayerStardewDataAPI;
 import com.stardew.craft.time.StardewTimeManager;
 import com.stardew.craft.weather.WeatherManager;
 import net.minecraft.resources.ResourceLocation;
@@ -215,7 +216,6 @@ public final class NpcInteractionService {
             com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(serverPlayer, npcId);
             return com.stardew.craft.shop.SandyService.handleSandyInteraction(serverPlayer, npc);
         }
-
         // Wizard tower hub: intercept wizard NPC for quest/teleport dialogue
         if (npcId.equals("wizard")) {
             if (com.stardew.craft.interior.WizardQuestHandler.handleWizardInteraction(serverPlayer)) {
@@ -231,7 +231,10 @@ public final class NpcInteractionService {
         {
             String pendingEvent = com.stardew.craft.cutscene.server.ServerPreconditionEvaluator
                     .findPendingNpcEvent(serverPlayer, npcId);
-            if (pendingEvent != null) {
+            boolean deferKrobusEventUntilAfterTalk = npcId.equals("krobus")
+                    && held.isEmpty()
+                    && state.lastTalkDayKey() != dayContext.dayKey();
+            if (pendingEvent != null && !deferKrobusEventUntilAfterTalk) {
                 com.stardew.craft.cutscene.server.ServerCutsceneTracker.startEvent(serverPlayer, pendingEvent);
                 return InteractionResult.SUCCESS;
             }
@@ -266,6 +269,9 @@ public final class NpcInteractionService {
             // 当天已对话过不再加好感，但仍要触发任务事件
             // （SDV: 杀完怪/做完条件后回来找 NPC 复命的场景）
             com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(serverPlayer, npcId);
+            if (npcId.equals("krobus") && held.isEmpty()) {
+                return com.stardew.craft.shop.ShadowShopService.handleKrobusInteraction(serverPlayer, npc);
+            }
             return InteractionResult.SUCCESS;
         }
 
@@ -276,6 +282,7 @@ public final class NpcInteractionService {
         boolean garbleDwarvish = npcId.equals("dwarf") && !com.stardew.craft.shop.DwarfService.canUnderstandDwarves(serverPlayer);
         if (!garbleDwarvish) {
             grantConversationFriendship(npcId, state, dayContext, dialogueText);
+            NpcFriendshipRewardService.applyEligibleRewards(serverPlayer, npcId, state.points());
             // Don't grant friendship for unintelligible conversation
         }
         friendshipManager.setDirty();
@@ -394,6 +401,7 @@ public final class NpcInteractionService {
         state.normalizeGiftWeek(dayContext.weekKey());
 
         String resultText = receiveGift(player, npcEntity, held, npcId, state, dayContext);
+        NpcFriendshipRewardService.applyEligibleRewards(player, npcId, state.points());
         friendshipManager.setDirty();
         syncFriendshipStatus(player, npcId, state, dayContext);
         boolean garbleGift = npcId.equals("dwarf") && !com.stardew.craft.shop.DwarfService.canUnderstandDwarves(player);
@@ -501,6 +509,7 @@ public final class NpcInteractionService {
         // StardropTea does NOT count toward daily/weekly gift limits (vanilla parity)
         if (!stardropTea) {
             state.applyGiftCounters(dayContext.dayKey(), dayContext.weekKey());
+            PlayerStardewDataAPI.recordGiftGiven(player);
         }
 
 
@@ -998,6 +1007,7 @@ public final class NpcInteractionService {
         
         if (friendshipDelta != 0) {
             state.addPoints(friendshipDelta, getMaxFriendshipPointsFor(npcId));
+            NpcFriendshipRewardService.applyEligibleRewards(player, npcId, state.points());
             friendshipManager.setDirty();
             DayContext dayContext = currentDayContext((net.minecraft.server.level.ServerLevel) player.level());
             syncFriendshipStatus(player, npcId, state, dayContext);

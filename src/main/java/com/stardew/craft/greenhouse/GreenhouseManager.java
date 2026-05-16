@@ -13,6 +13,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -21,7 +22,7 @@ import java.util.UUID;
  * 温室系统管理器 — 跟踪温室修复状态，提供坐标常量，处理修复流程。
  * <p>
  * 生命周期：
- * 1. FarmInitializer 放置破损温室 (ruins)
+ * 1. 玩家农场初始化时放置破损温室 (ruins)
  * 2. CC Pantry (area 0) 完成后 → repair() 覆盖为修复版 + 生成传送实体
  * 3. 温室内部通过 InteriorSubspaceManager 注册，区块常加载
  * 4. SeasonLocationRules 注册季节豁免规则
@@ -263,8 +264,9 @@ public class GreenhouseManager extends SavedData {
 
     /**
      * 获取指定玩家从温室出来时应传送到的位置。
-     * 查找玩家的农场温室门口位置。如果没有农场则返回默认位置。
+     * 查找玩家的农场温室门口位置；没有农场则取消传送。
      */
+    @Nullable
     public static BlockPos getExitPosForPlayer(net.minecraft.server.level.ServerPlayer player) {
         com.stardew.craft.farm.FarmInstance farm =
             com.stardew.craft.farm.FarmInstanceRegistry.get().getFarmForPlayer(player.getUUID());
@@ -272,8 +274,7 @@ public class GreenhouseManager extends SavedData {
             // 农场温室门口（CW90后门偏移 (8,0,0)）
             return farm.getGreenhousePos().offset(8, 0, 0);
         }
-        // 没有农场 → 默认温室室外位置
-        return OUTDOOR_EXIT_POS;
+        return null;
     }
 
     /**

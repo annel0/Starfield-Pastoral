@@ -6,6 +6,7 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
@@ -45,6 +46,33 @@ public class ShippingBinMenu extends AbstractContainerMenu {
         for (int col = 0; col < 9; col++) {
             this.addSlot(new Slot(playerInventory, col, 8 + col * 18, hotbarY));
         }
+    }
+
+    @Override
+    public void clicked(int slotId, int button, ClickType clickType, Player player) {
+        if (slotId == 0 && clickType == ClickType.PICKUP) {
+            ItemStack carried = getCarried();
+            if (!carried.isEmpty() && ShippingBinBlockEntity.canShip(carried)) {
+                ItemStack toShip = carried.copy();
+                if (button == 1) {
+                    toShip.setCount(1);
+                    carried.shrink(1);
+                    setCarried(carried.isEmpty() ? ItemStack.EMPTY : carried);
+                } else {
+                    setCarried(ItemStack.EMPTY);
+                }
+
+                if (this.container instanceof ShippingBinBlockEntity bin) {
+                    bin.depositFromPlayer(player, toShip);
+                } else {
+                    this.container.setItem(0, toShip);
+                    this.container.setChanged();
+                }
+                return;
+            }
+        }
+
+        super.clicked(slotId, button, clickType, player);
     }
 
     @Override

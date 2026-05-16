@@ -25,12 +25,10 @@ import java.util.List;
 @SuppressWarnings("null")
 public final class TravelingCartEvents {
     private static final String MARKER_TAG = "stardewcraft_traveling_cart";
-    private static final BlockPos POS = new BlockPos(238, -15, 13);
-    private static final float FACING_YAW = 270.0f;
+    private static final BlockPos POS = new BlockPos(-135, 64, 21);
+    private static final float FACING_YAW = 90.0f;
     private static final int CHECK_INTERVAL_TICKS = 40;
     private static final double SCAN_RADIUS = 8.0;
-    private static final double PLAYER_NEAR_DISTANCE_SQ = 128.0 * 128.0;
-
     private static int tickCounter = 0;
 
     private TravelingCartEvents() {
@@ -55,27 +53,27 @@ public final class TravelingCartEvents {
         manager.processDay(time.getAbsoluteDay(), visitDay, time.getCurrentYear());
 
         if (!visitDay) {
+            setSpawnChunkForced(level, false);
             removeManagedEntity(level, manager);
             return;
         }
 
-        boolean anyPlayerNear = false;
-        for (ServerPlayer player : level.players()) {
-            if (player.blockPosition().distSqr(POS) <= PLAYER_NEAR_DISTANCE_SQ) {
-                anyPlayerNear = true;
-                break;
-            }
-        }
-        if (!anyPlayerNear) {
-            return;
-        }
-
+        setSpawnChunkForced(level, true);
+        loadSpawnChunk(level);
         ensureSingleEntity(level, manager);
     }
 
     private static boolean shouldTravelingMerchantVisitToday(int dayOfMonth) {
-        int dayMod = Math.floorMod(dayOfMonth, 7);
-        return Math.floorMod(dayMod, 5) == 0;
+        int dayOfWeek = Math.floorMod(dayOfMonth - 1, 7);
+        return dayOfWeek == 4 || dayOfWeek == 6;
+    }
+
+    private static void loadSpawnChunk(ServerLevel level) {
+        level.getChunk(POS.getX() >> 4, POS.getZ() >> 4);
+    }
+
+    private static void setSpawnChunkForced(ServerLevel level, boolean forced) {
+        level.setChunkForced(POS.getX() >> 4, POS.getZ() >> 4, forced);
     }
 
     private static boolean canOpenShopNow() {
@@ -98,8 +96,14 @@ public final class TravelingCartEvents {
                 TravelingCartEntity.class,
                 scanBox,
                 entity -> entity.getTags().contains(MARKER_TAG));
+
+        if (managed == null && !nearby.isEmpty()) {
+            managed = nearby.get(0);
+            manager.setEntityUuid(managed.getUUID());
+        }
+
         for (TravelingCartEntity entity : nearby) {
-            if (managed == null || !entity.getUUID().equals(managed.getUUID())) {
+            if (!entity.getUUID().equals(managed.getUUID())) {
                 entity.discard();
             }
         }
@@ -157,6 +161,28 @@ public final class TravelingCartEvents {
             return null;
         }
         return entity;
+    }
+
+    public static void forceCheckNow(ServerLevel level) {
+        if (level == null) {
+            return;
+        }
+
+        com.stardew.craft.time.StardewTimeManager time = com.stardew.craft.time.StardewTimeManager.get();
+        boolean visitDay = shouldTravelingMerchantVisitToday(time.getCurrentDay());
+        TravelingCartManager manager = TravelingCartManager.get(level);
+        manager.ensureGuaranteeInitialized(level.getServer().overworld().getSeed(), time.getCurrentYear());
+        manager.processDay(time.getAbsoluteDay(), visitDay, time.getCurrentYear());
+
+        if (!visitDay) {
+            setSpawnChunkForced(level, false);
+            removeManagedEntity(level, manager);
+            return;
+        }
+
+        setSpawnChunkForced(level, true);
+        loadSpawnChunk(level);
+        ensureSingleEntity(level, manager);
     }
 
     private static void forceHoldPose(TravelingCartEntity entity) {

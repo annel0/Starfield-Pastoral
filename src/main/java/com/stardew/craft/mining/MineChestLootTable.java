@@ -56,7 +56,7 @@ public final class MineChestLootTable {
             case 70  -> new ItemStack(ModItems.TEMPERED_BROADSWORD.get());    // (W)33
             case 80  -> new ItemStack(ModItems.FIREWALKER_BOOTS.get());       // (B)512
             case 90  -> new ItemStack(ModItems.SHADOW_DAGGER.get());          // (W)8
-            case 100 -> new ItemStack(ModItems.STAR_SHARDS.get());            // Object 434
+            case 100 -> new ItemStack(ModItems.STARDROP.get());               // Object 434
             case 110 -> new ItemStack(ModItems.SPACE_BOOTS.get());            // (B)514
             case 120 -> new ItemStack(ModItems.SKULL_KEY.get());              // SpecialItem(4) 骷髅钥匙
             default  -> null;

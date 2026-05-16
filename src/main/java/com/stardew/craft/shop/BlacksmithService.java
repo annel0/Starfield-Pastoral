@@ -32,13 +32,13 @@ import java.util.*;
 public final class BlacksmithService {
 
     // Counter area: player must be inside this AABB to trigger shop (instead of dialogue).
-    // Coordinates from user: (13638,71,13635) to (13640,73,13639)
-    private static final int COUNTER_MIN_X = 13638;
-    private static final int COUNTER_MAX_X = 13640;
-    private static final int COUNTER_MIN_Y = 71;
-    private static final int COUNTER_MAX_Y = 73;
-    private static final int COUNTER_MIN_Z = 13635;
-    private static final int COUNTER_MAX_Z = 13639;
+    // Coordinates from user: (102,48,24) to (107,46,26)
+    private static final int COUNTER_MIN_X = 102;
+    private static final int COUNTER_MAX_X = 107;
+    private static final int COUNTER_MIN_Y = 46;
+    private static final int COUNTER_MAX_Y = 48;
+    private static final int COUNTER_MIN_Z = 24;
+    private static final int COUNTER_MAX_Z = 26;
 
     private BlacksmithService() {}
 

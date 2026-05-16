@@ -1,0 +1,32 @@
+{
+  "npc_id": "krobus",
+  "_vanilla_ref": "Krobus gift tastes from Data/NPCGiftTastes.json",
+
+  "loved": [
+    "stardewcraft:void_egg",
+    "stardewcraft:void_essence"
+  ],
+  "_loved_not_yet_in_mod": ["diamond(72)", "iridium_bar(337)", "monster_compendium(Book_Marlon)", "pumpkin(276)", "wild_horseradish(16)"],
+
+  "liked": [
+    "stardewcraft:solar_essence"
+  ],
+  "_liked_not_yet_in_mod": [],
+  "liked_categories": [],
+
+  "neutral": [],
+
+  "disliked": [],
+  "_disliked_not_yet_in_mod": [],
+  "disliked_categories": [],
+
+  "hated": [],
+  "_hated_not_yet_in_mod": [],
+  "hated_categories": [],
+
+  "loved_msg": "This is an amazing gift. For my people, it is a great honor to receive something like this.",
+  "liked_msg": "Thank you very much.",
+  "neutral_msg": "Thank you.",
+  "disliked_msg": "Oh... I don't think I can use this.",
+  "hated_msg": "Please don't bring this to me again."
+}

@@ -441,11 +441,34 @@ public final class ShopRegistry {
                 entryAllSeasons("stardewcraft:cherry_bomb",   450),   // SDV: 450g
                 entryAllSeasons("stardewcraft:bomb_item",    1000),   // SDV: 1000g
                 entryAllSeasons("stardewcraft:mega_bomb",    1600),   // SDV: 1600g
-                entryAllSeasons("stardewcraft:mine_totem",   1000)    // Mine Totem: 1000g
-                // Life Elixir, Oil of Garlic, Miner's Treat → not yet implemented
+                entryAllSeasons("stardewcraft:mine_totem",   1000),   // Mine Totem: 1000g
+                entryAllSeasons("stardewcraft:life_elixir",  2000),   // SDV: 2000g
+                entryAllSeasons("stardewcraft:oil_of_garlic", 3000)   // SDV: 3000g
+                // Miner's Treat → not yet implemented
                 // Rarecrow #6, Cobblestone Path, Weathered Floor recipe → not yet implemented
             ),
             Set.of() // Dwarf doesn't buy items from player
+        ));
+
+        // -------------------------------------------------------------------
+        // Krobus – Shadow Shop
+        // SDV parity baseline: sewer shop, excluding unimplemented furniture/
+        // cohabitation items for now.
+        // -------------------------------------------------------------------
+        REGISTRY.put("ShadowShop", new ShopDefinition(
+            "ShadowShop",
+            "Krobus",
+            "stardewcraft.shop.shadowshop.dialogue",
+            List.of(
+                entryAllSeasons("stardewcraft:void_essence",     100),
+                entryAllSeasons("stardewcraft:solar_essence",     80),
+                entryAllSeasons("stardewcraft:void_egg",        5000),
+                entryStock("stardewcraft:stardrop",            20000, 1),
+                entryStock("stardewcraft:warp_wand",         2000000, 1),
+                entryDay("stardewcraft:omni_geode",              300, 1),
+                entryDayStock("stardewcraft:iridium_sprinkler", 10000, 4, 1)
+            ),
+            Set.of()
         ));
 
         // -------------------------------------------------------------------
@@ -532,16 +555,18 @@ public final class ShopRegistry {
                 entryTradeDay("stardewcraft:cloth",              "stardewcraft:aquamarine",    3, 2),
                 // 10. Crab Cakes ← 3× Prismatic Shard (Thursday, per-player stock 1)
                 entryTradeDayStock("stardewcraft:crab_cakes",    "stardewcraft:prismatic_shard", 3, 3, 1),
-                // 11. Cheese ← 1× Emerald (Friday)
+                // 11. Magic Rock Candy ← 3× Prismatic Shard (Thursday, per-player stock 1)
+                entryTradeDayStock("stardewcraft:magic_rock_candy", "stardewcraft:prismatic_shard", 3, 3, 1),
+                // 12. Cheese ← 1× Emerald (Friday)
                 entryTradeDay("stardewcraft:cheese",             "stardewcraft:emerald",       1, 4),
-                // 12-15. Seed-pack rotation (Saturday) — each pack trades for the next season's
+                // 13-16. Seed-pack rotation (Saturday) — each pack trades for the next season's
                 entryTradeDay("stardewcraft:spring_seeds",       "stardewcraft:summer_seeds",  2, 5),
                 entryTradeDay("stardewcraft:summer_seeds",       "stardewcraft:fall_seeds",    2, 5),
                 entryTradeDay("stardewcraft:fall_seeds",         "stardewcraft:winter_seeds",  2, 5),
                 entryTradeDay("stardewcraft:winter_seeds",       "stardewcraft:spring_seeds",  2, 5),
-                // 16. Staircase (SDV BC:71) → mine_ladder substitute ← 1× Jade (Sunday)
+                // 17. Staircase (SDV BC:71) → mine_ladder substitute ← 1× Jade (Sunday)
                 entryTradeDay("stardewcraft:mine_ladder",        "stardewcraft:jade",          1, 6),
-                // 17. Warp Totem Desert RECIPE ← 10× Iridium Bar
+                // 18. Warp Totem Desert RECIPE ← 10× Iridium Bar
                 entryTradeRecipe("stardewcraft:warp_totem_desert","stardewcraft:iridium_bar", 10)
                 // Skipped (user rule):
                 //   (O)808  Void Ghost Pendant / Krobus marriage item
@@ -675,6 +700,18 @@ public final class ShopRegistry {
                 null, 0, Set.of(), 1, 0, null, -1, 0, 1);
     }
 
+    /** Year-round item sold only on a specific day-of-week (0=Mon..6=Sun). */
+    private static ShopItemEntry entryDay(String id, int price, int dayOfWeek) {
+        return new ShopItemEntry(id, "", "", price, Integer.MAX_VALUE,
+                null, 0, Set.of(), 1, 0, null, dayOfWeek, 0, 1);
+    }
+
+    /** Year-round item, specific day-of-week, per-player limited stock. */
+    private static ShopItemEntry entryDayStock(String id, int price, int dayOfWeek, int stock) {
+        return new ShopItemEntry(id, "", "", price, stock,
+                null, 0, Set.of(), 1, 0, null, dayOfWeek, 0, 1);
+    }
+
     /**
      * Recipe unlock entry: stock 1 (per player, once learned it's gone).
      * Uses "recipe:" prefix so server/client know this is a recipe unlock, not a physical item.
@@ -766,6 +803,16 @@ public final class ShopRegistry {
             if (e.itemId().startsWith("recipe:")) {
                 String recipeId = SaloonService.extractRecipeId(e.itemId());
                 if (data.isRecipeUnlocked(recipeId)) continue;
+            }
+            if ("ShadowShop".equals(shopId)
+                    && "stardewcraft:stardrop".equals(e.itemId())
+                    && data.hasMailFlag(com.stardew.craft.sewer.SewerStoryFlags.SEWER_STARDROP_PURCHASED)) {
+                continue;
+            }
+            if ("ShadowShop".equals(shopId)
+                    && "stardewcraft:warp_wand".equals(e.itemId())
+                    && data.hasMailFlag(com.stardew.craft.sewer.SewerStoryFlags.RETURN_SCEPTER_PURCHASED)) {
+                continue;
             }
             // SDV parity: mine-level and mail-flag conditions
             if (!e.meetsPlayerConditions(playerMineLevel, playerMailFlags)) continue;

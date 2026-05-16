@@ -5,7 +5,7 @@ import net.minecraft.world.level.Level;
 
 /**
  * 农场区域边界判定工具。
- * 坐标与 TotemPoleBlock.FARM_BOUNDS / FarmInitializer 保持一致。
+ * 仅用于旧公共农场外壳保护；玩家实际农场由 FarmInstance 系统管理。
  */
 public final class FarmAreaHelper {
 

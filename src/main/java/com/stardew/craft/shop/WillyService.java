@@ -17,13 +17,13 @@ import java.util.List;
 @SuppressWarnings("null")
 public final class WillyService {
 
-    // Counter area: (17667,71,17669) to (17668,73,17671)
-    private static final int COUNTER_MIN_X = 17667;
-    private static final int COUNTER_MAX_X = 17668;
-    private static final int COUNTER_MIN_Y = 71;
-    private static final int COUNTER_MAX_Y = 73;
-    private static final int COUNTER_MIN_Z = 17669;
-    private static final int COUNTER_MAX_Z = 17671;
+    // Counter area: (67,31,148) to (63,33,145)
+    private static final int COUNTER_MIN_X = 63;
+    private static final int COUNTER_MAX_X = 67;
+    private static final int COUNTER_MIN_Y = 31;
+    private static final int COUNTER_MAX_Y = 33;
+    private static final int COUNTER_MIN_Z = 145;
+    private static final int COUNTER_MAX_Z = 148;
 
     private WillyService() {}
 

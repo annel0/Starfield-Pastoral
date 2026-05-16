@@ -1,6 +1,86 @@
 ﻿{
     "recipes":  [
                     {
+                        "id":  "field_snack",
+                        "unlockCondition":  "s Foraging 1",
+                        "output":  {
+                                       "item":  "stardewcraft:field_snack",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:acorn",
+                                                "count":  1
+                                            },
+                                            {
+                                                "item":  "stardewcraft:maple_seed",
+                                                "count":  1
+                                            },
+                                            {
+                                                "item":  "stardewcraft:pine_cone",
+                                                "count":  1
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "bug_steak",
+                        "unlockCondition":  "s Combat 1",
+                        "output":  {
+                                       "item":  "stardewcraft:bug_steak",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:bug_meat",
+                                                "count":  10
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "life_elixir",
+                        "unlockCondition":  "s Combat 2",
+                        "output":  {
+                                       "item":  "stardewcraft:life_elixir",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:red_mushroom",
+                                                "count":  1
+                                            },
+                                            {
+                                                "item":  "stardewcraft:purple_mushroom",
+                                                "count":  1
+                                            },
+                                            {
+                                                "item":  "stardewcraft:morel",
+                                                "count":  1
+                                            },
+                                            {
+                                                "item":  "stardewcraft:chanterelle",
+                                                "count":  1
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "oil_of_garlic",
+                        "unlockCondition":  "s Combat 6",
+                        "output":  {
+                                       "item":  "stardewcraft:oil_of_garlic",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:garlic",
+                                                "count":  10
+                                            },
+                                            {
+                                                "item":  "stardewcraft:oil",
+                                                "count":  1
+                                            }
+                                        ]
+                    },
+                    {
                         "id":  "trap_bobber",
                         "unlockCondition":  "s Fishing 6",
                         "output":  {
@@ -349,6 +429,42 @@
                                         ]
                     },
                     {
+                        "id":  "speed_gro",
+                        "unlockCondition":  "s Farming 3",
+                        "output":  {
+                                       "item":  "stardewcraft:speed_gro",
+                                       "count":  5
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:pine_tar",
+                                                "count":  1
+                                            },
+                                            {
+                                                "item":  "stardewcraft:moss",
+                                                "count":  5
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "deluxe_speed_gro",
+                        "unlockCondition":  "s Farming 8",
+                        "output":  {
+                                       "item":  "stardewcraft:deluxe_speed_gro",
+                                       "count":  5
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:oak_resin",
+                                                "count":  1
+                                            },
+                                            {
+                                                "item":  "stardewcraft:moss",
+                                                "count":  5
+                                            }
+                                        ]
+                    },
+                    {
                         "id":  "basic_retaining_soil",
                         "unlockCondition":  "s Farming 4",
                         "output":  {
@@ -381,6 +497,38 @@
                                             {
                                                 "item":  "stardewcraft:coal",
                                                 "count":  8
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "bait",
+                        "unlockCondition":  "s Fishing 2",
+                        "output":  {
+                                       "item":  "stardewcraft:bait",
+                                       "count":  5
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:bug_meat",
+                                                "count":  1
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "deluxe_bait",
+                        "unlockCondition":  "s Fishing 4",
+                        "output":  {
+                                       "item":  "stardewcraft:deluxe_bait",
+                                       "count":  5
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:bait",
+                                                "count":  5
+                                            },
+                                            {
+                                                "item":  "stardewcraft:moss",
+                                                "count":  2
                                             }
                                         ]
                     },
@@ -697,6 +845,24 @@
                                         ]
                     },
                     {
+                        "id":  "sonar_bobber",
+                        "unlockCondition":  "s Fishing 6",
+                        "output":  {
+                                       "item":  "stardewcraft:sonar_bobber",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:iron_bar",
+                                                "count":  1
+                                            },
+                                            {
+                                                "item":  "stardewcraft:refined_quartz",
+                                                "count":  2
+                                            }
+                                        ]
+                    },
+                    {
                         "id":  "gold_bar",
                         "unlockCondition":  "s Mining 7",
                         "output":  {
@@ -729,6 +895,28 @@
                                             {
                                                 "item":  "stardewcraft:gold_bar",
                                                 "count":  1
+                                            }
+                                        ]
+                    },
+                    {
+                        "id":  "cork_bobber",
+                        "unlockCondition":  "s Fishing 7",
+                        "output":  {
+                                       "item":  "stardewcraft:cork_bobber",
+                                       "count":  1
+                                   },
+                        "ingredients":  [
+                                            {
+                                                "item":  "stardewcraft:wood_normal",
+                                                "count":  10
+                                            },
+                                            {
+                                                "item":  "stardewcraft:wood_hard",
+                                                "count":  5
+                                            },
+                                            {
+                                                "item":  "stardewcraft:slime_item",
+                                                "count":  10
                                             }
                                         ]
                     },
@@ -866,7 +1054,7 @@
                     },
                     {
                         "id":  "warp_totem_mountain",
-                        "unlockCondition":  "s Mining 8",
+                        "unlockCondition":  "s Foraging 7",
                         "output":  {
                                        "item":  "stardewcraft:warp_totem_mountain",
                                        "count":  1
@@ -888,7 +1076,7 @@
                     },
                     {
                         "id":  "warp_totem_beach",
-                        "unlockCondition":  "s Fishing 8",
+                        "unlockCondition":  "s Foraging 6",
                         "output":  {
                                        "item":  "stardewcraft:warp_totem_beach",
                                        "count":  1
@@ -972,7 +1160,7 @@
                     },
                     {
                         "id":  "totem_pole_mountain",
-                        "unlockCondition":  "s Mining 8",
+                        "unlockCondition":  "s Foraging 7",
                         "output":  {
                                        "item":  "stardewcraft:totem_pole_mountain",
                                        "count":  1
@@ -990,7 +1178,7 @@
                     },
                     {
                         "id":  "totem_pole_beach",
-                        "unlockCondition":  "s Fishing 8",
+                        "unlockCondition":  "s Foraging 6",
                         "output":  {
                                        "item":  "stardewcraft:totem_pole_beach",
                                        "count":  1

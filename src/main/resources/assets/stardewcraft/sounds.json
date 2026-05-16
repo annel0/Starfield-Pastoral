@@ -25,6 +25,14 @@
       }
     ]
   },
+  "cavedrip": {
+    "sounds": [
+      {
+        "name": "stardewcraft:cavedrip",
+        "stream": false
+      }
+    ]
+  },
   "money_dial": {
     "subtitle": "subtitles.stardewcraft.money_dial",
     "sounds": [
@@ -306,6 +314,30 @@
     "sounds": [
       {
         "name": "stardewcraft:dialogue_character_close",
+        "stream": false
+      }
+    ]
+  },
+  "clank": {
+    "sounds": [
+      { "name": "stardewcraft:clank_000000ad", "stream": false },
+      { "name": "stardewcraft:clank_000000cb", "stream": false },
+      { "name": "stardewcraft:clank_000000cc", "stream": false },
+      { "name": "stardewcraft:clank_000000cd", "stream": false }
+    ]
+  },
+  "slime_hit": {
+    "sounds": [
+      {
+        "name": "stardewcraft:slime_hit",
+        "stream": false
+      }
+    ]
+  },
+  "shadowpeep": {
+    "sounds": [
+      {
+        "name": "stardewcraft:shadowpeep",
         "stream": false
       }
     ]
@@ -1040,6 +1072,14 @@
   "music_hospital": {
     "sounds": [
       {
+        "name": "stardewcraft:music/distant_banjo",
+        "stream": true
+      }
+    ]
+  },
+  "music_hospital_ambient": {
+    "sounds": [
+      {
         "name": "stardewcraft:music/hospital_ambient",
         "stream": false
       }
@@ -1053,11 +1093,27 @@
       }
     ]
   },
-  "music_seed_shop": {
+  "music_community_center": {
     "sounds": [
       {
-        "name": "stardewcraft:music/seed_shop",
+        "name": "stardewcraft:music/community_center",
         "stream": false
+      }
+    ]
+  },
+  "music_distant_banjo": {
+    "sounds": [
+      {
+        "name": "stardewcraft:music/distant_banjo",
+        "stream": true
+      }
+    ]
+  },
+  "music_clubloop": {
+    "sounds": [
+      {
+        "name": "stardewcraft:music/clubloop",
+        "stream": true
       }
     ]
   },
@@ -1081,6 +1137,14 @@
     "sounds": [
       {
         "name": "stardewcraft:music/distant_banjo",
+        "stream": true
+      }
+    ]
+  },
+  "music_woods": {
+    "sounds": [
+      {
+        "name": "stardewcraft:music/woods_theme",
         "stream": true
       }
     ]

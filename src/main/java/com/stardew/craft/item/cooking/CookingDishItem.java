@@ -32,7 +32,8 @@ public class CookingDishItem extends Item implements IStardewItem {
         MINING,
         ATTACK,
         DEFENSE,
-        MAGNETIC_RADIUS
+        MAGNETIC_RADIUS,
+        AVOID_MONSTERS
     }
 
     public record DishBuff(BuffType type, int amount, int durationTicks) {}
@@ -189,6 +190,13 @@ public class CookingDishItem extends Item implements IStardewItem {
             case ATTACK -> PlayerStardewDataAPI.applyAttackBuff(player, buff.amount(), buff.durationTicks());
             case DEFENSE -> PlayerStardewDataAPI.applyDefenseBuff(player, buff.amount(), buff.durationTicks());
             case MAGNETIC_RADIUS -> PlayerStardewDataAPI.applyMagneticRadiusBuff(player, buff.amount(), buff.durationTicks());
+            case AVOID_MONSTERS -> player.addEffect(new net.minecraft.world.effect.MobEffectInstance(
+                    com.stardew.craft.effect.ModMobEffects.AVOID_MONSTERS,
+                    buff.durationTicks(),
+                    Math.max(0, buff.amount() - 1),
+                    false,
+                    true,
+                    true));
         }
     }
 
@@ -204,6 +212,7 @@ public class CookingDishItem extends Item implements IStardewItem {
             case ATTACK -> TooltipConstants.ICON_BUFF_WARRIOR_BLESSING;
             case DEFENSE -> TooltipConstants.ICON_BUFF_GUARDIAN_BLESSING;
             case MAGNETIC_RADIUS -> TooltipConstants.ICON_BUFF_MAGNETISM;
+            case AVOID_MONSTERS -> TooltipConstants.ICON_BUFF_AVOID_MONSTERS;
         };
     }
 
@@ -219,6 +228,7 @@ public class CookingDishItem extends Item implements IStardewItem {
             case ATTACK -> "effect.stardewcraft.warrior_blessing";
             case DEFENSE -> "effect.stardewcraft.guardian_blessing";
             case MAGNETIC_RADIUS -> "effect.stardewcraft.magnetism";
+            case AVOID_MONSTERS -> "effect.stardewcraft.avoid_monsters";
         };
     }
 
@@ -234,6 +244,7 @@ public class CookingDishItem extends Item implements IStardewItem {
             case ATTACK -> "stardewcraft.tooltip.buff.attack";
             case DEFENSE -> "stardewcraft.tooltip.buff.defense";
             case MAGNETIC_RADIUS -> "stardewcraft.tooltip.buff.magnetic_radius";
+            case AVOID_MONSTERS -> "stardewcraft.tooltip.buff.avoid_monsters";
         };
     }
 
@@ -247,6 +258,7 @@ public class CookingDishItem extends Item implements IStardewItem {
             case ATTACK -> ChatFormatting.RED;
             case DEFENSE -> ChatFormatting.DARK_AQUA;
             case MAGNETIC_RADIUS -> ChatFormatting.YELLOW;
+            case AVOID_MONSTERS -> ChatFormatting.DARK_GREEN;
         };
     }
 

@@ -332,7 +332,7 @@ public class TeleportTotemItem extends Item implements IStardewItem {
                 && level.getBlockState(headPos).getCollisionShape(level, headPos).isEmpty();
     }
 
-    /** SDV 原版默认传送位置（作为 fallback） */
+    /** SDV 原版默认传送位置。 */
     private BlockPos getDefaultPosition(ServerPlayer player) {
         if (totemType == TotemType.FARM) {
             com.stardew.craft.farm.FarmInstance farm =
@@ -343,9 +343,9 @@ public class TeleportTotemItem extends Item implements IStardewItem {
         }
         return switch (totemType) {
             case FARM -> player.blockPosition();
-            case MOUNTAIN -> new BlockPos(-290, -14, 256);
-            case BEACH -> new BlockPos(-189, -14, -142);
-            case DESERT -> new BlockPos(-270, -41, 1389);
+            case MOUNTAIN -> new BlockPos(75, 81, -104);
+            case BEACH -> new BlockPos(44, 60, 94);
+            case DESERT -> new BlockPos(-203, 64, -157);
         };
     }
 

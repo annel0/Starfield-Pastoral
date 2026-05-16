@@ -6,11 +6,17 @@ import com.stardew.craft.core.ModMiningDimensions;
 import com.stardew.craft.combat.DamageCalculator;
 import com.stardew.craft.combat.WeaponStats;
 import com.stardew.craft.effect.ModMobEffects;
+import com.stardew.craft.item.ModItems;
+import com.stardew.craft.mining.MineRewardClaimManager;
+import com.stardew.craft.mining.MiningDataManager;
+import com.stardew.craft.mining.MiningPlayerData;
 import com.stardew.craft.network.PlayerDataSyncPacket;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -43,7 +49,9 @@ public class PlayerDataEventHandler {
             // 获取或创建玩家数据（会自动从NBT加载）
             PlayerStardewData data = PlayerDataManager.getPlayerData(player);
             data.setLastKnownName(player.getName().getString());
+            handlePregenRelocationIfNeeded(player, data);
             PlayerStardewDataAPI.applyStardewCraftingConditionUnlocks(player);
+            backfillMine100StardropReward(player, data);
             StardewCraft.LOGGER.info("Player {} logged in, loaded Stardew data", player.getName().getString());
             
             // 同步数据到客户端
@@ -95,6 +103,12 @@ public class PlayerDataEventHandler {
                 StardewCraft.LOGGER.warn("Failed to push initial NPC friendship overview on login: {}", ex.getMessage());
             }
 
+            try {
+                com.stardew.craft.npc.runtime.NpcFriendshipRewardService.applyAllEligibleRewards(player);
+            } catch (Exception ex) {
+                StardewCraft.LOGGER.warn("Failed to apply NPC friendship rewards on login: {}", ex.getMessage());
+            }
+
             // 同步 DataManager 数据到客户端（专用服务器客户端缺少 datapack ReloadListener）
             com.stardew.craft.network.DataRegistrySyncPayload.sendFullSync(player);
 
@@ -107,14 +121,15 @@ public class PlayerDataEventHandler {
             // 如果玩家登录时已在星露谷维度，确保农场初始化
             // （PlayerChangedDimensionEvent 在这种情况下不会触发）
             if (player.serverLevel().dimension() == com.stardew.craft.core.ModDimensions.STARDEW_VALLEY) {
-                // 旧 FarmInitializer 已废弃，内置农场区域不再初始化（玩家现在有自己的个人农场）
-                // com.stardew.craft.dimension.FarmInitializer.ensureInitialized(player.serverLevel());
-                // 确保农场入口屏障墙和交互实体已放置（老存档升级兼容）
+                // 确保农场入口触发方块已放置（老存档升级兼容）
                 com.stardew.craft.farm.FarmEntryBarrierManager.get(player.serverLevel())
                         .ensureBarriersPlaced(player.serverLevel());
                 // 采石场访问门（老存档升级兼容）
                 com.stardew.craft.communitycenter.quarry.QuarryAccessManager.get(player.serverLevel())
                         .ensurePlaced(player.serverLevel());
+                // 下水道访问门（老存档升级兼容）
+                com.stardew.craft.sewer.SewerAccessManager.get(player.serverLevel())
+                    .ensurePlaced(player.serverLevel());
                 // 采石场首次铺设（老存档升级兼容）
                 int year = com.stardew.craft.time.StardewTimeManager.get().getCurrentYear();
                 com.stardew.craft.manager.QuarrySpawnService.ensureInitialSpawn(player.serverLevel(), year);
@@ -161,6 +176,60 @@ public class PlayerDataEventHandler {
 
             com.stardew.craft.quest.StardewQuestEvents.fireDayStarted(player, absDay);
         }
+    }
+
+    private static void handlePregenRelocationIfNeeded(ServerPlayer player, PlayerStardewData data) {
+        int requiredVersion = com.stardew.craft.dimension.StardewValleyPrebuiltRegionInstaller
+            .getRequiredRelocationVersion(player.server);
+        if (requiredVersion <= 0 || data.getHandledPregenRelocationVersion() >= requiredVersion) {
+            return;
+        }
+
+        net.minecraft.server.level.ServerLevel stardewLevel =
+            player.server.getLevel(com.stardew.craft.core.ModDimensions.STARDEW_VALLEY);
+        if (stardewLevel == null) {
+            StardewCraft.LOGGER.warn("[VALLEY_PREGEN] Cannot relocate {} for pregen version {}: Stardew level missing",
+                player.getName().getString(), requiredVersion);
+            return;
+        }
+
+        com.stardew.craft.farm.FarmInstance farm =
+            com.stardew.craft.farm.FarmInstanceRegistry.get().getFarmForPlayer(player.getUUID());
+        if (farm == null) {
+            StardewCraft.LOGGER.warn("[VALLEY_PREGEN] Cannot relocate {} for pregen version {}: no farm yet",
+                player.getName().getString(), requiredVersion);
+            return;
+        }
+
+        net.minecraft.core.BlockPos spawn = farm.getSpawnPoint();
+        player.closeContainer();
+        player.stopUsingItem();
+        com.stardew.craft.warp.ModTeleport.to(player, stardewLevel, spawn, farm.getSpawnYaw(), 0.0F);
+        data.setHandledPregenRelocationVersion(requiredVersion);
+        PlayerDataManager.get().savePlayerData(player.getUUID(), data);
+        StardewCraft.LOGGER.info("[VALLEY_PREGEN] Relocated {} to farm spawn after pregen upgrade version {}",
+            player.getName().getString(), requiredVersion);
+    }
+
+    private static void backfillMine100StardropReward(ServerPlayer player, PlayerStardewData data) {
+        if (data.isMine100StardropCompensationProcessed()) {
+            return;
+        }
+
+        MiningPlayerData miningData = MiningDataManager.getPlayerData(player);
+        if (miningData == null || miningData.getMaxFloorReached() < 100) {
+            data.setMine100StardropCompensationProcessed(true);
+            return;
+        }
+
+        ItemStack reward = new ItemStack(ModItems.STARDROP.get());
+        if (!player.getInventory().add(reward)) {
+            player.drop(reward, false);
+        }
+        MineRewardClaimManager.get(player.serverLevel()).markClaimed(player.getUUID(), 100);
+        data.setMine100StardropCompensationProcessed(true);
+        player.sendSystemMessage(Component.literal("版本更新补偿（原100层奖励补发）：星之果实已发放。"));
+        StardewCraft.LOGGER.info("Backfilled mine floor 100 Stardrop reward for {}", player.getGameProfile().getName());
     }
     
     /**

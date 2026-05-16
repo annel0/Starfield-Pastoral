@@ -3,6 +3,7 @@ package com.stardew.craft.client.gui.overnight;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.client.ClientPlayerDataCache;
 import com.stardew.craft.client.gui.common.CommonGuiTextures;
+import com.stardew.craft.client.gui.common.GuiText;
 import com.stardew.craft.network.overnight.ClientOvernightHandler;
 import com.stardew.craft.network.overnight.OvernightSettlementPayload;
 import com.stardew.craft.network.payload.OvernightProfessionChoicePayload;
@@ -153,10 +154,12 @@ public class LevelUpMenuScreen extends Screen {
             drawSkillIcon(graphics, currentSkill, xPos + guiWidth - px(SPACE_SIDE + BORDER_WIDTH + 64), yPos + px(SPACE_TOP + 16));
 
             Component title = Component.translatable("stardewcraft.levelup.title.level_skill", currentLevel, getSkillName(currentSkill));
-            graphics.drawString(this.font, title, xPos + guiWidth / 2 - this.font.width(title) / 2, yPos + px(SPACE_TOP + 16), 0x3A2A1A, false);
+            GuiText.drawCenteredClamped(graphics, this.font, title, xPos + guiWidth / 2,
+                yPos + px(SPACE_TOP + 16), guiWidth - px(240), 0x3A2A1A, false);
 
             Component chooseText = Component.translatable("stardewcraft.levelup.choose_profession");
-            graphics.drawString(this.font, chooseText, xPos + guiWidth / 2 - this.font.width(chooseText) / 2, yPos + px(SPACE_TOP + 64), 0x3A2A1A, false);
+            GuiText.drawCenteredClamped(graphics, this.font, chooseText, xPos + guiWidth / 2,
+                yPos + px(SPACE_TOP + 64), guiWidth - px(160), 0x3A2A1A, false);
 
             // IClickableMenu.drawHorizontalPartition + drawVerticalIntersectingPartition
             int partitionUnit = px(64);
@@ -178,11 +181,13 @@ public class LevelUpMenuScreen extends Screen {
             int textY = yPos + px(SPACE_TOP + 160);
             int lineY = yPos + px(SPACE_TOP + 128 + 8 + 64 * 2);
 
-            graphics.drawString(this.font, leftName, leftX, textY, leftColor, false);
+            graphics.drawString(this.font, GuiText.ellipsize(this.font, leftName, guiWidth / 2 - px(96)),
+                leftX, textY, leftColor, false);
             LevelUpMenuTextures.drawProfession(graphics, xPos + px(SPACE_SIDE) + guiWidth / 2 - px(112), yPos + px(SPACE_TOP + 144), professions[0], s4());
             drawWrappedText(graphics, getProfessionDesc(professions[0]), leftX + px(-4), lineY, guiWidth / 2 - px(64), leftColor, px(16));
 
-            graphics.drawString(this.font, rightName, rightX, textY, rightColor, false);
+            graphics.drawString(this.font, GuiText.ellipsize(this.font, rightName, guiWidth / 2 - px(96)),
+                rightX, textY, rightColor, false);
             LevelUpMenuTextures.drawProfession(graphics, xPos + px(SPACE_SIDE) + guiWidth - px(128), yPos + px(SPACE_TOP + 144), professions[1], s4());
             drawWrappedText(graphics, getProfessionDesc(professions[1]), rightX + px(-4), lineY, guiWidth / 2 - px(48), rightColor, px(16));
         } else {
@@ -190,18 +195,22 @@ public class LevelUpMenuScreen extends Screen {
             drawSkillIcon(graphics, currentSkill, xPos + guiWidth - px(SPACE_SIDE + BORDER_WIDTH + 64), yPos + px(SPACE_TOP + 16));
 
             Component title = Component.translatable("stardewcraft.levelup.title.level_skill", currentLevel, getSkillName(currentSkill));
-            graphics.drawString(this.font, title, xPos + guiWidth / 2 - this.font.width(title) / 2, yPos + px(SPACE_TOP + 16), 0x3A2A1A, false);
+            GuiText.drawCenteredClamped(graphics, this.font, title, xPos + guiWidth / 2,
+                yPos + px(SPACE_TOP + 16), guiWidth - px(240), 0x3A2A1A, false);
 
             Component proficiency = Component.translatable("stardewcraft.levelup.proficiency", getSkillName(currentSkill));
-            graphics.drawString(this.font, proficiency, xPos + guiWidth / 2 - this.font.width(proficiency) / 2, yPos + px(SPACE_TOP + 82), 0x3A2A1A, false);
+            GuiText.drawCenteredClamped(graphics, this.font, proficiency, xPos + guiWidth / 2,
+                yPos + px(SPACE_TOP + 82), guiWidth - px(160), 0x3A2A1A, false);
             Component newRecipesHeader = Component.translatable("stardewcraft.levelup.new_recipes");
-            graphics.drawString(this.font, newRecipesHeader, xPos + guiWidth / 2 - this.font.width(newRecipesHeader) / 2, yPos + px(SPACE_TOP + 130), 0x3A2A1A, false);
+            GuiText.drawCenteredClamped(graphics, this.font, newRecipesHeader, xPos + guiWidth / 2,
+                yPos + px(SPACE_TOP + 130), guiWidth - px(160), 0x3A2A1A, false);
 
             List<RecipeDisplayEntry> unlockedRecipes = getUnlockedRecipeEntries();
             int lineY = yPos + px(SPACE_TOP + 160);
             if (unlockedRecipes.isEmpty()) {
                 Component noneText = Component.translatable("stardewcraft.levelup.new_recipes.none");
-                graphics.drawString(this.font, noneText, xPos + guiWidth / 2 - this.font.width(noneText) / 2, lineY, 0x5A4A3A, false);
+                GuiText.drawCenteredClamped(graphics, this.font, noneText, xPos + guiWidth / 2,
+                    lineY, guiWidth - px(120), 0x5A4A3A, false);
             } else {
                 int centerX = xPos + guiWidth / 2;
                 // SDV 原版行距：每条配方 ≈ 1 tile（16 coord units）。MC 物品图标高 16、字体 9，
@@ -209,7 +218,7 @@ public class LevelUpMenuScreen extends Screen {
                 int rowStep = 22;
                 for (int i = 0; i < unlockedRecipes.size(); i++) {
                     RecipeDisplayEntry entry = unlockedRecipes.get(i);
-                    Component message = entry.displayName();
+                    Component message = GuiText.ellipsize(this.font, entry.displayName(), guiWidth - px(180));
                     int textW = this.font.width(message);
                     boolean hasIcon = !entry.icon().isEmpty();
                     // 总宽度 = 图标(16) + 间距(4) + 文字宽，居中对齐

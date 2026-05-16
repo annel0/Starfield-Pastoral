@@ -57,11 +57,24 @@ public final class ForageSpawnService {
     /**
      * A rectangular region in the Stardew dimension where forage can spawn.
      */
-    private record ZoneRect(int minX, int minZ, int maxX, int maxZ) {
+    private record ZoneRect(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+        boolean containsSurfaceY(int y) {
+            return y >= minY && y <= maxY;
+        }
     }
 
     private static ZoneRect rect(int x1, int z1, int x2, int z2) {
-        return new ZoneRect(Math.min(x1, x2), Math.min(z1, z2), Math.max(x1, x2), Math.max(z1, z2));
+        return rect(x1, Integer.MIN_VALUE, z1, x2, Integer.MAX_VALUE, z2);
+    }
+
+    private static ZoneRect rect(int x1, int y1, int z1, int x2, int y2, int z2) {
+        return new ZoneRect(
+                Math.min(x1, x2),
+                Math.min(y1, y2),
+                Math.min(z1, z2),
+                Math.max(x1, x2),
+                Math.max(y1, y2),
+                Math.max(z1, z2));
     }
 
     private record ForageZone(
@@ -74,8 +87,8 @@ public final class ForageSpawnService {
             SurfaceType surface
     ) {}
 
-    /** 表面要求：GRASS = 必须草方块；ANY_SOLID = 任何固体顶面；DESERT = 露天的砂岩或末地岩。 */
-    private enum SurfaceType { GRASS, ANY_SOLID, DESERT }
+    /** 表面要求：GRASS = 必须草方块；SAND = 必须露天沙子。 */
+    private enum SurfaceType { GRASS, SAND }
 
     // ======================== Zone Definitions (SDV parity) ========================
 
@@ -88,9 +101,7 @@ public final class ForageSpawnService {
             //      Crocus(Winter 0.7), Crystal Fruit(Winter 0.1), Holly(Winter 0.5)
             new ForageZone("Town",
                     List.of(
-                            rect(159, 221, 19, 193),
-                            rect(51, 112, 21, 96),
-                            rect(-1, 80, -18, 69)
+                        rect(-40, 84, -99, 91, 62, 17)
                     ),
                     List.of(
                             new ForageEntry(ModBlocks.FORAGE_DAFFODIL, SPRING, 0.9),
@@ -110,9 +121,7 @@ public final class ForageSpawnService {
             //      Crocus(Winter 0.9), Crystal Fruit(Winter 0.9), Holly(Winter 0.5)
             new ForageZone("Forest",
                     List.of(
-                            rect(197, -110, 134, -194),
-                            rect(252, -114, 231, -138),
-                            rect(302, -11, 221, 35)
+                        rect(-194, 50, 138, -47, 74, -12)
                     ),
                     List.of(
                             new ForageEntry(ModBlocks.FORAGE_WILD_HORSERADISH, SPRING, 0.9),
@@ -135,10 +144,8 @@ public final class ForageSpawnService {
             //      Crystal Fruit(Winter 0.85), Crocus(Winter 0.9), Holly(Winter 0.5)
             new ForageZone("Mountain",
                     List.of(
-                            rect(-239, 161, -196, 188),
-                            rect(-207, 263, -245, 233),
-                            rect(-292, 289, -324, 309),
-                            rect(-72, 294, -105, 312)
+                        rect(-123, 79, -104, -43, 69, -65),
+                        rect(-39, 69, -214, 101, 95, -105)
                     ),
                     List.of(
                             new ForageEntry(ModBlocks.FORAGE_LEEK, SPRING, 0.7),
@@ -157,11 +164,10 @@ public final class ForageSpawnService {
             // ---- Beach ----
             // SDV Beach: Nautilus Shell(Winter 0.8), Rainbow Shell(Summer 0.5),
             //            Coral + Sea Urchin via tidepool logic (simplified: all-season)
-            // requireGrass = false: any solid block
+                // 当前 pregen 沙滩只用露天沙子，采集物也只落在沙子上。
             new ForageZone("Beach",
                     List.of(
-                            rect(-192, -139, -293, -182),
-                            rect(-326, -173, -376, -148)
+                        rect(-4, 65, 77, 239, 57, 186)
                     ),
                     List.of(
                             new ForageEntry(ModBlocks.FORAGE_CORAL, ANY, 0.8),
@@ -169,21 +175,40 @@ public final class ForageSpawnService {
                             new ForageEntry(ModBlocks.FORAGE_NAUTILUS_SHELL, WINTER, 0.8),
                             new ForageEntry(ModBlocks.FORAGE_RAINBOW_SHELL, SUMMER, 0.5)
                     ),
-                    1, 4, 6, SurfaceType.ANY_SOLID),
+                    1, 4, 6, SurfaceType.SAND),
 
             // ---- Desert (Calico Desert) ----
             // SDV: Coconut(全年), Cactus Fruit(夏/秋)
-            // 露天的 sandstone / end_stone 上生成；概率明显低于其它区域，避免沙漠被塑料果子塑料。
+                // 当前 pregen 沙漠只用露天沙子，采集物也只落在沙子上。
             new ForageZone("Desert",
                     List.of(
-                            rect(-372, 1285, -259, 1423)
+                        rect(-310, 53, -241, -158, 107, -113)
                     ),
                     List.of(
                             new ForageEntry(ModBlocks.FORAGE_COCONUT, ANY, 0.35),
                             new ForageEntry(ModBlocks.FORAGE_CACTUS_FRUIT, SUMMER, 0.45),
                             new ForageEntry(ModBlocks.FORAGE_CACTUS_FRUIT, FALL, 0.45)
                     ),
-                    1, 3, 5, SurfaceType.DESERT)
+                        1, 3, 5, SurfaceType.SAND),
+
+                    // ---- Secret Woods ----
+                    // SDV Woods forage source: Content/Data/Locations.json -> Woods.Forage.
+                    new ForageZone("SecretWoods",
+                        List.of(
+                            rect(-265, 67, -1, -183, 86, 42)
+                        ),
+                        List.of(
+                            new ForageEntry(ModBlocks.FORAGE_MOREL, SPRING, 0.5),
+                            new ForageEntry(ModBlocks.FORAGE_COMMON_MUSHROOM, SPRING, 0.25),
+                            new ForageEntry(ModBlocks.FORAGE_WILD_HORSERADISH, SPRING, 0.8),
+                            new ForageEntry(ModBlocks.FORAGE_FIDDLEHEAD_FERN, SUMMER, 0.9),
+                            new ForageEntry(ModBlocks.FORAGE_RED_MUSHROOM, SUMMER, 0.25),
+                            new ForageEntry(ModBlocks.FORAGE_CHANTERELLE, FALL, 0.5),
+                            new ForageEntry(ModBlocks.FORAGE_COMMON_MUSHROOM, FALL, 0.6),
+                            new ForageEntry(ModBlocks.FORAGE_RED_MUSHROOM, FALL, 0.2),
+                            new ForageEntry(ModBlocks.FORAGE_HOLLY, WINTER, 0.9)
+                        ),
+                        1, 4, 6, SurfaceType.GRASS)
     );
 
     // ======================== Spawn Weight for Beach Rects ========================
@@ -255,6 +280,7 @@ public final class ForageSpawnService {
                         surfacePos = surfacePos.below();
                         surfaceState = level.getBlockState(surfacePos);
                     }
+                    if (!rect.containsSurfaceY(surfacePos.getY())) continue;
                     BlockPos placePos = surfacePos.above();
 
                     // Validate surface block
@@ -323,21 +349,8 @@ public final class ForageSpawnService {
         return switch (surface) {
             // Town/Forest/Mountain: must be on grass_block (SDV: "Spawnable" tile property on Back layer)
             case GRASS -> surfaceState.is(Blocks.GRASS_BLOCK);
-            // Beach: any solid block
-            case ANY_SOLID -> surfaceState.isFaceSturdy(level, surfacePos, net.minecraft.core.Direction.UP);
-            // Desert: only sandstone variants or end_stone (起伏的露天岩面，排除平平的沙子表层走道)
-            case DESERT -> isDesertSurface(surfaceState);
+            case SAND -> surfaceState.is(Blocks.SAND);
         };
-    }
-
-    /** 沙漠可生成 forage 的表面：原版 / 切制 / 阔重 / 平滑的砂岩及其台阶 —— 以及末地岩。 */
-    private static boolean isDesertSurface(BlockState state) {
-        Block b = state.getBlock();
-        return b == Blocks.SANDSTONE || b == Blocks.SMOOTH_SANDSTONE
-                || b == Blocks.CHISELED_SANDSTONE || b == Blocks.CUT_SANDSTONE
-                || b == Blocks.RED_SANDSTONE || b == Blocks.SMOOTH_RED_SANDSTONE
-                || b == Blocks.CHISELED_RED_SANDSTONE || b == Blocks.CUT_RED_SANDSTONE
-                || b == Blocks.END_STONE;
     }
 
     /**
@@ -346,6 +359,7 @@ public final class ForageSpawnService {
      */
     private static boolean isReplaceablePlant(BlockState state) {
         Block block = state.getBlock();
+        if (block instanceof ForageBlock) return false;
         // Our mod's wild weeds (杂草)
         if (block instanceof com.stardew.craft.block.nature.WildWeedsBlock) return true;
         // Short grass and fern
@@ -363,26 +377,35 @@ public final class ForageSpawnService {
     }
 
     /**
-     * Count existing ForageBlock instances in a zone using heightmap for fast surface lookup.
-     * Only scans loaded chunks. Samples every other block to reduce cost.
+     * Count existing ForageBlock instances in a zone.
+     * Only scans loaded chunks. The scan is exact so old unpicked forage still counts
+     * against MaxSpawnedForageAtOnce instead of allowing extra seasonal spawns nearby.
      */
     private static int countForageInZone(ServerLevel level, ForageZone zone) {
         int count = 0;
         for (ZoneRect rect : zone.rects) {
-            for (int x = rect.minX; x <= rect.maxX; x += 2) {
-                for (int z = rect.minZ; z <= rect.maxZ; z += 2) {
+            for (int x = rect.minX; x <= rect.maxX; x++) {
+                for (int z = rect.minZ; z <= rect.maxZ; z++) {
                     // Skip unloaded chunks
                     if (!level.hasChunk(x >> 4, z >> 4)) continue;
 
-                    // Heightmap gives the Y of the first motion-blocking block from the top + 1
-                    int surfaceY = level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z);
-                    // Check at surfaceY - 1 (topmost non-air) and surfaceY (in case forage is above a decoration)
-                    BlockPos topPos = new BlockPos(x, surfaceY - 1, z);
-                    BlockState state = level.getBlockState(topPos);
-                    if (state.getBlock() instanceof ForageBlock) {
-                        count++;
-                    }
+                    int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z) - 1;
+                    if (!rect.containsSurfaceY(surfaceY)) continue;
+
+                    count += countForageAtColumn(level, x, z);
                 }
+            }
+        }
+        return count;
+    }
+
+    private static int countForageAtColumn(ServerLevel level, int x, int z) {
+        int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z) - 1;
+        int count = 0;
+        for (int y = surfaceY - 1; y <= surfaceY + 3; y++) {
+            BlockPos pos = new BlockPos(x, y, z);
+            if (level.getBlockState(pos).getBlock() instanceof ForageBlock) {
+                count++;
             }
         }
         return count;
@@ -544,14 +567,10 @@ public final class ForageSpawnService {
 
     private static int countForageInRect(ServerLevel level, int minX, int minZ, int maxX, int maxZ) {
         int count = 0;
-        for (int x = minX; x <= maxX; x += 2) {
-            for (int z = minZ; z <= maxZ; z += 2) {
+        for (int x = minX; x <= maxX; x++) {
+            for (int z = minZ; z <= maxZ; z++) {
                 if (!level.hasChunk(x >> 4, z >> 4)) continue;
-                int surfaceY = level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z);
-                BlockPos topPos = new BlockPos(x, surfaceY - 1, z);
-                if (level.getBlockState(topPos).getBlock() instanceof ForageBlock) {
-                    count++;
-                }
+                count += countForageAtColumn(level, x, z);
             }
         }
         return count;

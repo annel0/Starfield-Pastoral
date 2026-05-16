@@ -2,6 +2,7 @@ package com.stardew.craft.desert;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModDimensions;
+import com.stardew.craft.dimension.StardewValleyPrebuiltRegionInstaller;
 import com.stardew.craft.interior.InteriorSubspaceManager;
 import com.stardew.craft.mining.StructureLoader;
 import net.minecraft.core.BlockPos;
@@ -35,8 +36,8 @@ public final class DesertMapBootstrap {
 
     private DesertMapBootstrap() {}
 
-    // ── 放置版本号：每次改动沙漠结构/门户时 +1，会触发重建 ──
-    private static final int DESERT_VERSION = 1;
+    // 沙漠已经内嵌在 pregen 主地图里，版本跟 pregen 地图版本统一。
+    private static final int DESERT_VERSION = StardewValleyPrebuiltRegionInstaller.CURRENT_PREGEN_VERSION;
     private static final int MAX_CHUNK_WAIT_TICKS = 200;
 
     // ── 分批状态 ──
@@ -59,14 +60,17 @@ public final class DesertMapBootstrap {
 
         DesertSavedData data = DesertSavedData.get(level);
         if (data.version == DESERT_VERSION && data.placed) {
+            placeDesertPortals(level);
             return;
         }
         if (placementInProgress) return;
 
-        StardewCraft.LOGGER.info("[DESERT] Starting desert schem placement. reason={}, version={}", reason, DESERT_VERSION);
-        placementInProgress = true;
-        phase = 1;
-        waitTicks = 0;
+        placeDesertPortals(level);
+        data.version = DESERT_VERSION;
+        data.placed = true;
+        data.setDirty();
+
+        StardewCraft.LOGGER.info("[DESERT] Embedded pregen desert initialized. reason={}, version={}", reason, DESERT_VERSION);
     }
 
     /**

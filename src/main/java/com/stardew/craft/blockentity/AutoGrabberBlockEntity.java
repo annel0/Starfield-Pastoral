@@ -6,6 +6,7 @@ import com.stardew.craft.animal.model.FarmAnimalRecord;
 import com.stardew.craft.block.animal.AnimalProduceSpotBlock;
 import com.stardew.craft.block.utility.AutoGrabberBlock;
 import com.stardew.craft.item.quality.QualityHelper;
+import com.stardew.craft.player.PlayerStardewDataAPI;
 import com.stardew.craft.sound.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
@@ -36,6 +37,7 @@ import net.minecraft.sounds.SoundSource;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
+import java.util.UUID;
 
 @SuppressWarnings("null")
 public class AutoGrabberBlockEntity extends BlockEntity implements UtilityAutomationAccess, Container, MenuProvider {
@@ -67,8 +69,19 @@ public class AutoGrabberBlockEntity extends BlockEntity implements UtilityAutoma
 
         int collected = blockEntity.collectBuildingProduce(serverLevel, building);
         if (collected > 0) {
+            recordOwnerProduce(building.ownerPlayerUuid(), collected);
             blockEntity.setChanged();
             blockEntity.syncToClient();
+        }
+    }
+
+    private static void recordOwnerProduce(String ownerPlayerUuid, int collected) {
+        if (ownerPlayerUuid == null || ownerPlayerUuid.isBlank() || collected <= 0) {
+            return;
+        }
+        try {
+            PlayerStardewDataAPI.recordAnimalProductsCollected(UUID.fromString(ownerPlayerUuid), collected);
+        } catch (IllegalArgumentException ignored) {
         }
     }
 

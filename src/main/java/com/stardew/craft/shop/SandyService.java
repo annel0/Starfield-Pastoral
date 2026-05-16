@@ -18,13 +18,13 @@ import java.util.List;
 public final class SandyService {
 
     // Counter area: player must be inside this AABB to trigger shop.
-    // User coordinates: (18242, 71, 17665) to (18243, 73, 17668)
-    private static final int COUNTER_MIN_X = 18242;
-    private static final int COUNTER_MAX_X = 18243;
-    private static final int COUNTER_MIN_Y = 71;
-    private static final int COUNTER_MAX_Y = 73;
-    private static final int COUNTER_MIN_Z = 17665;
-    private static final int COUNTER_MAX_Z = 17668;
+    // User coordinates: (-251,29,-147) to (-256,32,-148)
+    private static final int COUNTER_MIN_X = -256;
+    private static final int COUNTER_MAX_X = -251;
+    private static final int COUNTER_MIN_Y = 29;
+    private static final int COUNTER_MAX_Y = 32;
+    private static final int COUNTER_MIN_Z = -148;
+    private static final int COUNTER_MAX_Z = -147;
 
     private SandyService() {}
 

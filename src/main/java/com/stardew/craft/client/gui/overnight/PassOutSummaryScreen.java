@@ -1,6 +1,7 @@
 package com.stardew.craft.client.gui.overnight;
 
 import com.stardew.craft.client.gui.common.CommonGuiTextures;
+import com.stardew.craft.client.gui.common.GuiText;
 import com.stardew.craft.network.payload.PassOutPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -61,16 +62,16 @@ public class PassOutSummaryScreen extends Screen {
 
         int centerX = width / 2;
         int y = height / 2 - 60;
+        int textMaxWidth = Math.max(1, width - 32);
 
         // 倒地原因
         Component reason = getReasonText();
-        graphics.drawCenteredString(font, reason, centerX, y, 0xFFDD4444);
-        y += 20;
+        y = GuiText.drawWrappedCentered(graphics, font, reason, centerX, y, textMaxWidth, 0xFFDD4444, false, 2) + 8;
 
         // 金币损失
         if (payload.moneyLost() > 0) {
             Component moneyText = Component.translatable("stardewcraft.passout.money_lost", payload.moneyLost());
-            graphics.drawCenteredString(font, moneyText, centerX, y, 0xFFFFCC00);
+            GuiText.drawCenteredClamped(graphics, font, moneyText, centerX, y, textMaxWidth, 0xFFFFCC00, false);
             y += 16;
         }
 
@@ -79,7 +80,7 @@ public class PassOutSummaryScreen extends Screen {
         if (lostItems != null && !lostItems.isEmpty()) {
             y += 8;
             Component itemsHeader = Component.translatable("stardewcraft.passout.items_lost");
-            graphics.drawCenteredString(font, itemsHeader, centerX, y, 0xFFFF8888);
+            GuiText.drawCenteredClamped(graphics, font, itemsHeader, centerX, y, textMaxWidth, 0xFFFF8888, false);
             y += 16;
 
             int startX = centerX - (lostItems.size() * 20) / 2;
@@ -97,7 +98,7 @@ public class PassOutSummaryScreen extends Screen {
         // 提示
         y += 16;
         Component hint = Component.translatable("stardewcraft.passout.continue");
-        graphics.drawCenteredString(font, hint, centerX, y, 0xFF888888);
+        GuiText.drawCenteredClamped(graphics, font, hint, centerX, y, textMaxWidth, 0xFF888888, false);
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.stardew.craft.client.gui;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.stardew.craft.client.gui.common.CommonGuiTextures;
+import com.stardew.craft.client.gui.common.GuiText;
 import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
 import com.stardew.craft.network.payload.WorkbenchCraftPayload;
 import com.stardew.craft.network.payload.WorkbenchCraftResultPayload;
@@ -356,7 +357,8 @@ public class WorkbenchScreen extends Screen {
 
         // Title text (left)
         String title = I18n.get("stardewcraft.workbench." + wbType.getKey() + ".title");
-        g.drawString(font, title, cntX, ty, C_DARK, false);
+        g.drawString(font, GuiText.ellipsize(font, Component.literal(title), Math.max(1, pnlW - ui(320))),
+            cntX, ty, C_DARK, false);
 
         // Material icons + counts (right-aligned)
         // Layout: [icon] count   [icon] count
@@ -533,10 +535,8 @@ public class WorkbenchScreen extends Screen {
 
         if (selIdx < 0 || selIdx >= filtered.size()) {
             String hint = I18n.get("stardewcraft.workbench.select_hint");
-            g.drawString(font, hint,
-                prvX + (prvW - font.width(hint)) / 2,
-                prvY + prvH / 2 - font.lineHeight / 2,
-                C_GREY, false);
+            GuiText.drawCenteredClamped(g, font, Component.literal(hint), prvX + prvW / 2,
+                prvY + prvH / 2 - font.lineHeight / 2, prvW - ui(24), C_GREY, false);
             return;
         }
 
@@ -557,11 +557,10 @@ public class WorkbenchScreen extends Screen {
         // Name (bold)
         String name = stack.isEmpty() ? entry.itemId().toString() : stack.getHoverName().getString();
         Component boldName = Component.literal(name).withStyle(net.minecraft.ChatFormatting.BOLD);
-        int boldNameW = font.width(boldName);
 
         // Name sits just above divider
         int nameY = divY - ui(4) - font.lineHeight;
-        g.drawString(font, boldName, cx - boldNameW / 2, nameY, C_DARK, false);
+        GuiText.drawCenteredClamped(g, font, boldName, cx, nameY, prvW - ui(24), C_DARK, false);
 
         // ICO + item centered in remaining space above name
         int icoY = prvY + ui(8) + (nameY - ui(4) - prvY - ui(8) - icoRH) / 2;
@@ -608,7 +607,8 @@ public class WorkbenchScreen extends Screen {
         // Output count
         if (entry.outputCount() > 1) {
             String outStr = I18n.get("stardewcraft.workbench.output") + ": \u00d7" + entry.outputCount();
-            g.drawString(font, outStr, cx - font.width(outStr) / 2, infoY, C_DARK, false);
+            GuiText.drawCenteredClamped(g, font, Component.literal(outStr), cx, infoY,
+                prvW - ui(24), C_DARK, false);
             infoY += lineStep;
         }
 
@@ -616,7 +616,8 @@ public class WorkbenchScreen extends Screen {
         boolean ok = effectiveMat() >= entry.cost();
         int maxCraft = entry.cost() > 0 ? effectiveMat() / entry.cost() : 0;
         String maxStr = I18n.get("stardewcraft.workbench.max_craftable") + ": " + maxCraft;
-        g.drawString(font, maxStr, cx - font.width(maxStr) / 2, infoY, ok ? C_GREEN : C_RED, false);
+        GuiText.drawCenteredClamped(g, font, Component.literal(maxStr), cx, infoY,
+            prvW - ui(24), ok ? C_GREEN : C_RED, false);
 
         // ── Craft button ──
         drawCraftBtn(g, mx, my, ok);
@@ -646,11 +647,8 @@ public class WorkbenchScreen extends Screen {
 
         // Label
         String label = I18n.get("stardewcraft.workbench.craft");
-        int lw = font.width(label);
-        g.drawString(font, label,
-            btnX + (btnW - lw) / 2,
-            btnY + (btnH - font.lineHeight) / 2,
-            ok ? C_DARK : C_GREY, false);
+        GuiText.drawCenteredClamped(g, font, Component.literal(label), btnX + btnW / 2,
+            btnY + (btnH - font.lineHeight) / 2, btnW - ui(12), ok ? C_DARK : C_GREY, false);
 
         if (hov && ok) {
             g.renderTooltip(font, Component.literal(I18n.get("stardewcraft.workbench.craft_hint")), mx, my);

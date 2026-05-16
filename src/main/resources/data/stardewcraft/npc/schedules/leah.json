@@ -6,37 +6,37 @@
     "800": "saloon @saloon_indoor_entry 1"
   },
   "rain": {
-    "900": "leahhouse @leah_house_easel 2",
-    "1400": "leahhouse @leah_house_kitchen 3",
-    "1700": "leahhouse @leah_house_easel 2",
-    "2200": "leahhouse @leah_house_sleep 3 leah_sleep"
+    "900": "leahhouse @leah_house_easel 0",
+    "1400": "leahhouse @leah_house_kitchen 1",
+    "1700": "leahhouse @leah_house_easel 0",
+    "2200": "leahhouse @leah_house_sleep 2 leah_sleep"
   },
   "spring": {
-    "900": "leahhouse @leah_house_easel 2",
+    "900": "leahhouse @leah_house_easel 0",
     "1100": "forest @leah_forest_forage 3",
     "1500": "leahhouse @leah_house_kitchen 1",
-    "1800": "saloon @leah_saloon_seat 2",
-    "2300": "leahhouse @leah_house_sleep 3 leah_sleep"
+    "1800": "saloon @leah_saloon_seat 3",
+    "2300": "leahhouse @leah_house_sleep 2 leah_sleep"
   },
   "summer": {
-    "900": "leahhouse @leah_house_easel 2",
-    "1100": "beach @leah_beach_sketch 3",
+    "900": "leahhouse @leah_house_easel 0",
+    "1100": "beach @leah_beach_sketch 2",
     "1500": "leahhouse @leah_house_kitchen 1",
-    "1800": "saloon @leah_saloon_seat 2",
-    "2300": "leahhouse @leah_house_sleep 3 leah_sleep"
+    "1800": "saloon @leah_saloon_seat 3",
+    "2300": "leahhouse @leah_house_sleep 2 leah_sleep"
   },
   "fall": {
-    "900": "leahhouse @leah_house_easel 2",
+    "900": "leahhouse @leah_house_easel 0",
     "1100": "forest @leah_forest_forage 3",
     "1500": "leahhouse @leah_house_kitchen 1",
-    "1800": "saloon @leah_saloon_seat 2",
-    "2300": "leahhouse @leah_house_sleep 3 leah_sleep"
+    "1800": "saloon @leah_saloon_seat 3",
+    "2300": "leahhouse @leah_house_sleep 2 leah_sleep"
   },
   "winter": {
-    "900": "leahhouse @leah_house_easel 2",
+    "900": "leahhouse @leah_house_easel 0",
     "1200": "leahhouse @leah_house_kitchen 1",
     "1500": "museum @leah_museum_browse 3",
-    "1800": "saloon @leah_saloon_seat 2",
-    "2300": "leahhouse @leah_house_sleep 3 leah_sleep"
+    "1800": "saloon @leah_saloon_seat 3",
+    "2300": "leahhouse @leah_house_sleep 2 leah_sleep"
   }
 }

@@ -1465,6 +1465,11 @@ public class PacketHandler {
             com.stardew.craft.network.payload.WarpWandSyncPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.WarpWandSyncPayload::handle
         );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenWarpWheelPayload.TYPE,
+            com.stardew.craft.network.payload.OpenWarpWheelPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenWarpWheelPayload::handle
+        );
         registrar.playToServer(
             com.stardew.craft.network.payload.WarpWandTeleportPayload.TYPE,
             com.stardew.craft.network.payload.WarpWandTeleportPayload.STREAM_CODEC,

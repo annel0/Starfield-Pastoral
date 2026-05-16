@@ -1,0 +1,14 @@
+{
+  "npc_id": "krobus",
+  "entries": {
+    "Introduction": "stardewcraft.npc.krobus.introduction",
+    "default": "stardewcraft.npc.krobus.default",
+    "Mon": "stardewcraft.npc.krobus.mon",
+    "Tue": "stardewcraft.npc.krobus.tue",
+    "Wed": "stardewcraft.npc.krobus.wed",
+    "Thu": "stardewcraft.npc.krobus.thu",
+    "Fri": "stardewcraft.npc.krobus.fri",
+    "Sat": "stardewcraft.npc.krobus.sat",
+    "Sun": "stardewcraft.npc.krobus.sun"
+  }
+}

@@ -222,7 +222,7 @@ public class DimensionEventHandler {
         }
 
         StardewValleyPrebuiltRegionInstaller.InstallResult result = StardewValleyPrebuiltRegionInstaller.installIfAvailable(player.server);
-        boolean prebuiltReady = result == StardewValleyPrebuiltRegionInstaller.InstallResult.INSTALLED
+        boolean prebuiltReady = result.installedOrUpgraded()
             || result == StardewValleyPrebuiltRegionInstaller.InstallResult.ALREADY_PRESENT
             || StardewValleyPrebuiltRegionInstaller.hasInstalledPrebuilt(player.server);
 
@@ -230,20 +230,23 @@ public class DimensionEventHandler {
             StardewValleyMapBootstrap.markAsPreGenerated(stardewLevel);
         }
 
-        // pregen region 刚被覆盖会抹掉镇子里所有动态放置的方块（传送触发、屏障墙、
+        // pregen region 刚被覆盖会抹掉镇子里所有动态放置的方块（传送触发、
         // 矿车站点等）。必须重置所有管理器的 SavedData 版本号，让后续
         // onPlayerChangeDimension 中的 ensurePlaced() 重新执行放置。
-        // 注意：大多数情况在 onServerStarting 中已处理。这里是 fallback，
+        // 注意：大多数情况在 onServerStarting 中已处理。这里处理启动时维度尚未加载的极端路径，
         // 用于 onServerStarting 时 level 尚未加载的极端场景。
-        if (result == StardewValleyPrebuiltRegionInstaller.InstallResult.INSTALLED
+        if (result.installedOrUpgraded()
                 || com.stardew.craft.StardewCraft.pregenJustInstalled) {
             com.stardew.craft.StardewCraft.pregenJustInstalled = false;
+            com.stardew.craft.dimension.StardewBiomePatcher.schedulePregenBiomeMigration(
+                stardewLevel, "pregen_region_reinstalled_travel");
             com.stardew.craft.interior.InteriorSubspaceManager.replaceAllPortalsIfReady(
                 stardewLevel, "pregen_region_reinstalled");
 
-            // 重置屏障 / 采石场入口 / 矿车站点的放置标记
+            // 重置农场入口 / 采石场入口 / 下水道入口 / 矿车站点的放置标记
             com.stardew.craft.farm.FarmEntryBarrierManager.get(stardewLevel).resetForMigration();
             com.stardew.craft.communitycenter.quarry.QuarryAccessManager.get(stardewLevel).resetForMigration();
+            com.stardew.craft.sewer.SewerAccessManager.get(stardewLevel).resetForMigration();
             com.stardew.craft.minecart.MinecartStationManager.get(stardewLevel).resetForMigration();
             // 采石场初始石头也在 pregen region 范围内，覆盖后需重新铺
             com.stardew.craft.manager.QuarrySpawnService.resetInitialSpawn(stardewLevel);
@@ -291,9 +294,6 @@ public class DimensionEventHandler {
                         player.teleportTo(level, spawnPos.getX() + 0.5D, spawnPos.getY(), spawnPos.getZ() + 0.5D, player.getYRot(), player.getXRot());
                     }
                 }
-
-                // 旧 FarmInitializer 已废弃，内置农场区域不再初始化（玩家现在有自己的个人农场）
-                // com.stardew.craft.dimension.FarmInitializer.ensureInitialized(level);
 
                 // 把各 ensurePlaced() 分散到后续 tick 执行，防止同帧堆叠触发 watchdog。
                 // 每个任务本身有 SavedData 版本检查，已完成的会立即跳过（< 1ms）。
@@ -602,8 +602,8 @@ public class DimensionEventHandler {
     private static volatile boolean deferredInitScheduled = false;
 
     /**
-     * 将 6 个 ensurePlaced / ensureInitialSpawn 操作排入 TickTask 队列，
-     * 每 tick 执行一个，总共 6 tick 完成，不会卡主线程。
+    * 将 ensurePlaced / ensureInitialSpawn 操作排入 TickTask 队列，
+    * 每 tick 执行一个，不会卡主线程。
      */
     private static void scheduleDeferredInit(ServerLevel level) {
         if (deferredInitScheduled) return;
@@ -612,7 +612,7 @@ public class DimensionEventHandler {
         var server = level.getServer();
         int baseTick = server.getTickCount() + 1;
 
-        // 任务 1: 农场入口屏障（~731 方块）
+        // 任务 1: 农场入口触发区
         server.tell(new net.minecraft.server.TickTask(baseTick, () -> {
             try {
                 ServerLevel sdv = server.getLevel(ModDimensions.STARDEW_VALLEY);
@@ -624,7 +624,7 @@ public class DimensionEventHandler {
             }
         }));
 
-        // 任务 2: 采石场屏障墙 + 传送触发（~2万方块，最重的操作）
+        // 任务 2: 采石场传送触发
         server.tell(new net.minecraft.server.TickTask(baseTick + 1, () -> {
             try {
                 ServerLevel sdv = server.getLevel(ModDimensions.STARDEW_VALLEY);
@@ -636,8 +636,20 @@ public class DimensionEventHandler {
             }
         }));
 
-        // 任务 3: 矿车站点实体 + 铁轨
+        // 任务 3: 下水道传送触发
         server.tell(new net.minecraft.server.TickTask(baseTick + 2, () -> {
+            try {
+                ServerLevel sdv = server.getLevel(ModDimensions.STARDEW_VALLEY);
+                if (sdv != null) {
+                    com.stardew.craft.sewer.SewerAccessManager.get(sdv).ensurePlaced(sdv);
+                }
+            } catch (Exception e) {
+                StardewCraft.LOGGER.error("[DEFERRED_INIT] SewerAccess failed", e);
+            }
+        }));
+
+        // 任务 4: 矿车站点实体 + 铁轨
+        server.tell(new net.minecraft.server.TickTask(baseTick + 3, () -> {
             try {
                 ServerLevel sdv = server.getLevel(ModDimensions.STARDEW_VALLEY);
                 if (sdv != null) {
@@ -648,8 +660,8 @@ public class DimensionEventHandler {
             }
         }));
 
-        // 任务 4: 地面采集物初始化
-        server.tell(new net.minecraft.server.TickTask(baseTick + 3, () -> {
+        // 任务 5: 地面采集物初始化
+        server.tell(new net.minecraft.server.TickTask(baseTick + 4, () -> {
             try {
                 ServerLevel sdv = server.getLevel(ModDimensions.STARDEW_VALLEY);
                 if (sdv != null) {
@@ -662,8 +674,8 @@ public class DimensionEventHandler {
             }
         }));
 
-        // 任务 5: 采石场石头铺设（强制加载区块 + 5千格扫描）
-        server.tell(new net.minecraft.server.TickTask(baseTick + 4, () -> {
+        // 任务 6: 采石场石头铺设（强制加载区块 + 5千格扫描）
+        server.tell(new net.minecraft.server.TickTask(baseTick + 5, () -> {
             try {
                 ServerLevel sdv = server.getLevel(ModDimensions.STARDEW_VALLEY);
                 if (sdv != null) {
@@ -675,8 +687,8 @@ public class DimensionEventHandler {
             }
         }));
 
-        // 任务 6: 清除调度标记
-        server.tell(new net.minecraft.server.TickTask(baseTick + 5, () -> {
+        // 任务 7: 清除调度标记
+        server.tell(new net.minecraft.server.TickTask(baseTick + 6, () -> {
             deferredInitScheduled = false;
             StardewCraft.LOGGER.info("[DEFERRED_INIT] All deferred init tasks completed.");
         }));

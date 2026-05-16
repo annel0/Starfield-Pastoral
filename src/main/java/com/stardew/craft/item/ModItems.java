@@ -85,7 +85,12 @@ import com.stardew.craft.item.artisan.DriedMushroomsItem;
 import com.stardew.craft.item.artisan.PreserveType;
 import com.stardew.craft.item.artisan.PreservesItem;
 import com.stardew.craft.item.artisan.SmokedFishItem;
+import com.stardew.craft.item.cooking.CookingDishItem;
 import com.stardew.craft.item.cooking.CookingDishRegistrar;
+import com.stardew.craft.item.misc.IridiumMilkItem;
+import com.stardew.craft.item.misc.LifeElixirItem;
+import com.stardew.craft.item.misc.StardropItem;
+import com.stardew.craft.item.misc.StardropTeaItem;
 import com.stardew.craft.item.tool.AutoFeedTroughUpgraderItem;
 import com.stardew.craft.item.tool.HoeItem;
 import com.stardew.craft.item.tool.PaintbrushItem;
@@ -170,6 +175,8 @@ public class ModItems {
 
         public static final DeferredItem<Item> PASTURE_GRASS = blockItem("pasture_grass", ModBlocks.PASTURE_GRASS);
         public static final DeferredItem<Item> BLUE_PASTURE_GRASS = blockItem("blue_pasture_grass", ModBlocks.BLUE_PASTURE_GRASS);
+        public static final DeferredItem<Item> SMALL_BUSH = blockItem("small_bush", ModBlocks.SMALL_BUSH);
+        public static final DeferredItem<Item> BERRY_BUSH = blockItem("berry_bush", ModBlocks.BERRY_BUSH);
 
         // 农场洞穴：蘑菇培养盆（无 CreativeTab 入口，按设计不可获取）
         public static final DeferredItem<Item> MUSHROOM_BOX = blockItem("mushroom_box", ModBlocks.MUSHROOM_BOX);
@@ -1097,7 +1104,36 @@ public class ModItems {
         public static final DeferredItem<Item> GOLDEN_MYSTERY_BOX = ITEMS.register("golden_mystery_box",
                         () -> new SimpleStardewItem("stardewcraft.type.misc", 0, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> STARDROP_TEA = ITEMS.register("stardrop_tea",
-                        () -> new SimpleStardewItem("stardewcraft.type.misc", 77, new Item.Properties().stacksTo(999)));
+                        () -> new StardropTeaItem(new Item.Properties().stacksTo(999).fireResistant()));
+        public static final DeferredItem<Item> STARDROP = ITEMS.register("stardrop",
+                        () -> new StardropItem(new Item.Properties().stacksTo(999).fireResistant()));
+        public static final DeferredItem<Item> IRIDIUM_MILK = ITEMS.register("iridium_milk",
+                        () -> new IridiumMilkItem(new Item.Properties().stacksTo(999).fireResistant()));
+        public static final DeferredItem<Item> FIELD_SNACK = ITEMS.register("field_snack",
+                        () -> new StardewQualityItem("stardewcraft.type.cooking", 20, 18, false, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> MAGIC_ROCK_CANDY = ITEMS.register("magic_rock_candy",
+                        () -> new CookingDishItem(5000, 200, java.util.List.of(
+                                        new CookingDishItem.DishBuff(CookingDishItem.BuffType.MINING, 2, 720 * 20),
+                                        new CookingDishItem.DishBuff(CookingDishItem.BuffType.LUCK, 5, 720 * 20),
+                                        new CookingDishItem.DishBuff(CookingDishItem.BuffType.SPEED, 1, 720 * 20),
+                                        new CookingDishItem.DishBuff(CookingDishItem.BuffType.DEFENSE, 5, 720 * 20),
+                                        new CookingDishItem.DishBuff(CookingDishItem.BuffType.ATTACK, 5, 720 * 20)),
+                                        new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> GREEN_TEA = ITEMS.register("green_tea",
+                        () -> new CookingDishItem(100, 5, java.util.List.of(
+                                        new CookingDishItem.DishBuff(CookingDishItem.BuffType.MAX_ENERGY, 30, 360 * 20),
+                                        new CookingDishItem.DishBuff(CookingDishItem.BuffType.SPEED, 1, 360 * 20)),
+                                        new Item.Properties().stacksTo(999), true));
+        public static final DeferredItem<Item> OIL_OF_GARLIC = ITEMS.register("oil_of_garlic",
+                        () -> new CookingDishItem(1000, 80, java.util.List.of(
+                                        new CookingDishItem.DishBuff(CookingDishItem.BuffType.AVOID_MONSTERS, 1, 600 * 20)),
+                                        new Item.Properties().stacksTo(999), true));
+        public static final DeferredItem<Item> LIFE_ELIXIR = ITEMS.register("life_elixir",
+                        () -> new LifeElixirItem("stardewcraft.type.cooking", 250, 80, false, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> PINA_COLADA = ITEMS.register("pina_colada",
+                        () -> new CookingDishItem(300, 30, java.util.List.of(), new Item.Properties().stacksTo(999), true));
+        public static final DeferredItem<Item> BUG_STEAK = ITEMS.register("bug_steak",
+                        () -> new StardewQualityItem("stardewcraft.type.cooking", 50, 18, false, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> TREASURE_CHEST = ITEMS.register("treasure_chest",
                         () -> new SimpleStardewItem("stardewcraft.type.misc", 5000, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> PEARL = ITEMS.register("pearl",
@@ -1438,6 +1474,8 @@ public class ModItems {
                         () -> new DwarvishTranslationGuideItem(new Item.Properties().stacksTo(1)));
         public static final DeferredItem<Item> SKULL_KEY = ITEMS.register("skull_key",
                         () -> new SkullKeyItem(new Item.Properties().stacksTo(1).fireResistant()));
+        public static final DeferredItem<Item> RUSTY_KEY = ITEMS.register("rusty_key",
+                        () -> new RustyKeyItem(new Item.Properties().stacksTo(1).fireResistant()));
         public static final DeferredItem<Item> CHIPPED_AMPHORA = ITEMS.register("chipped_amphora",
                         () -> new SimpleStardewItem("stardewcraft.type.artifact", 40, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> ARROWHEAD = ITEMS.register("arrowhead",

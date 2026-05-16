@@ -2,6 +2,7 @@ package com.stardew.craft.shop;
 
 import com.stardew.craft.entity.npc.StardewNpcEntity;
 import com.stardew.craft.item.IStardewItem;
+import com.stardew.craft.cutscene.server.EventSeenData;
 import com.stardew.craft.museum.MuseumDonationData;
 import com.stardew.craft.museum.MuseumRewardRegistry;
 import com.stardew.craft.network.MuseumDonationSyncPacket;
@@ -9,6 +10,7 @@ import com.stardew.craft.network.payload.OpenGuntherMenuPayload;
 import com.stardew.craft.network.payload.OpenNpcDialogueScreenPayload;
 import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.PlayerStardewData;
+import com.stardew.craft.sewer.SewerStoryFlags;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
@@ -28,13 +30,13 @@ import java.util.UUID;
 @SuppressWarnings("null")
 public final class GuntherService {
 
-    // Counter area: (13070,71,13057) to (13072,73,13063) — museum
-    private static final int COUNTER_MIN_X = 13070;
-    private static final int COUNTER_MAX_X = 13072;
-    private static final int COUNTER_MIN_Y = 71;
-    private static final int COUNTER_MAX_Y = 73;
-    private static final int COUNTER_MIN_Z = 13057;
-    private static final int COUNTER_MAX_Z = 13063;
+    // Counter area: (107,40,41) to (114,37,44) — museum
+    private static final int COUNTER_MIN_X = 107;
+    private static final int COUNTER_MAX_X = 114;
+    private static final int COUNTER_MIN_Y = 37;
+    private static final int COUNTER_MAX_Y = 40;
+    private static final int COUNTER_MIN_Z = 41;
+    private static final int COUNTER_MAX_Z = 44;
 
     private GuntherService() {}
 
@@ -114,51 +116,49 @@ public final class GuntherService {
             return;
         }
 
-        // Check & grant museum milestone rewards
-        List<MuseumRewardRegistry.MuseumReward> claimable =
-            MuseumRewardRegistry.getClaimableRewards(data, playerId, data.getClaimedMuseumRewards(playerId));
-
-        if (!claimable.isEmpty()) {
-            PlayerStardewData pData = PlayerDataManager.getPlayerData(player);
-            List<String> rewardNames = new ArrayList<>();
-            for (MuseumRewardRegistry.MuseumReward reward : claimable) {
-                // Give reward items
-                for (ItemStack stack : MuseumRewardRegistry.createRewardStacks(reward)) {
-                    if (!player.getInventory().add(stack.copy())) {
-                        player.drop(stack, false);
-                    }
-                }
-                // Unlock recipe if specified
-                if (reward.grantRecipe() != null) {
-                    pData.unlockRecipe(reward.grantRecipe());
-                }
-                // Mark as claimed
-                data.claimReward(playerId, reward.id());
-
-                // Build display name
-                for (MuseumRewardRegistry.RewardItem ri : reward.rewardItems()) {
-                    net.minecraft.world.item.Item item = MuseumRewardRegistry.resolveItem(ri.itemId());
-                    if (item != null) {
-                        String name = new ItemStack(item).getHoverName().getString();
-                        rewardNames.add(ri.count() > 1 ? name + " x" + ri.count() : name);
-                    }
-                }
-            }
-
-            // Show reward dialogue listing all items received
-            // Use a dynamic dialogue — we'll call sendDialogueRaw directly
-            PacketDistributor.sendToPlayer(player, new OpenNpcDialogueScreenPayload(
-                "gunther",
-                "stardewcraft.npc.gunther.reward_granted",
-                0
-            ));
-        } else {
+        boolean grantedRewards = grantUnclaimedMuseumRewards(player, data);
+        if (!grantedRewards) {
             PacketDistributor.sendToPlayer(player, new OpenNpcDialogueScreenPayload(
                 "gunther",
                 "stardewcraft.npc.gunther.donation_ended",
                 0
             ));
         }
+    }
+
+    private static boolean grantUnclaimedMuseumRewards(ServerPlayer player, MuseumDonationData data) {
+        UUID playerId = player.getUUID();
+        List<MuseumRewardRegistry.MuseumReward> claimable =
+            MuseumRewardRegistry.getClaimableRewards(data, playerId, data.getClaimedMuseumRewards(playerId));
+
+        if (claimable.isEmpty()) {
+            return false;
+        }
+
+        PlayerStardewData pData = PlayerDataManager.getPlayerData(player);
+        boolean queuedRustyKeyEvent = false;
+        for (MuseumRewardRegistry.MuseumReward reward : claimable) {
+            if (MuseumRewardRegistry.RUSTY_KEY_REWARD_ID.equals(reward.id())) {
+                EventSeenData.get(player.serverLevel()).markSeen(playerId, SewerStoryFlags.RUSTY_KEY_EVENT_READY);
+                queuedRustyKeyEvent = true;
+            }
+            for (ItemStack stack : MuseumRewardRegistry.createRewardStacks(reward)) {
+                if (!player.getInventory().add(stack.copy())) {
+                    player.drop(stack, false);
+                }
+            }
+            if (reward.grantRecipe() != null) {
+                pData.unlockRecipe(reward.grantRecipe());
+            }
+            data.claimReward(playerId, reward.id());
+        }
+
+        PacketDistributor.sendToPlayer(player, new OpenNpcDialogueScreenPayload(
+            "gunther",
+            queuedRustyKeyEvent ? "stardewcraft.npc.gunther.rusty_key_pending" : "stardewcraft.npc.gunther.reward_granted",
+            0
+        ));
+        return true;
     }
 
     private static void syncDonations(MuseumDonationData data, ServerPlayer player) {

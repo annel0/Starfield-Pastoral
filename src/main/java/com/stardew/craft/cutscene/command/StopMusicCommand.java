@@ -14,7 +14,7 @@ public class StopMusicCommand implements EventCommand {
 
     @Override
     public void start(EventPlayer player) {
-        StardewMusicManager.stopAll();
+        StardewMusicManager.stopForCutsceneSilence();
     }
 
     @Override public void tick(EventPlayer player) {}

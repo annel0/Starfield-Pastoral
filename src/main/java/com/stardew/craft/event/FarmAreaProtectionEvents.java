@@ -4,6 +4,10 @@ import com.stardew.craft.StardewCraft;
 import com.stardew.craft.block.ModBlocks;
 import com.stardew.craft.core.FarmAreaResolver;
 import com.stardew.craft.core.ModDimensions;
+import com.stardew.craft.entity.junimo.JunimoEntity;
+import com.stardew.craft.entity.npc.CamelMerchantEntity;
+import com.stardew.craft.entity.npc.StardewNpcEntity;
+import com.stardew.craft.entity.npc.TravelingCartEntity;
 import com.stardew.craft.farm.FarmInstance;
 import com.stardew.craft.greenhouse.GreenhouseInteriorCache;
 import com.stardew.craft.interior.PlayerInteriorAllocator;
@@ -12,12 +16,15 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.ItemAbilities;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.level.ExplosionEvent;
 
 /**
  * 农场区域保护：
@@ -182,6 +189,19 @@ public class FarmAreaProtectionEvents {
                 .canModify(ownerUUID, player.getUUID());
     }
 
+    public static boolean isProtectedNonFarmArea(ServerLevel level, BlockPos pos) {
+        if (level == null || pos == null || level.dimension() != ModDimensions.STARDEW_VALLEY) {
+            return false;
+        }
+        if (com.stardew.craft.greenhouse.GreenhouseManager.isInGreenhouseInterior(level, pos)) {
+            return false;
+        }
+        if (com.stardew.craft.communitycenter.quarry.QuarryAccessManager.isInQuarryArea(pos)) {
+            return false;
+        }
+        return FarmAreaResolver.isInStardewButNotFarm(level, pos);
+    }
+
     /**
      * 判断玩家是否在别人的受保护农场上（没有 PERM_FULL 权限）。
      * 与 canModifyAt 的区别：非农场区域（城镇等）返回 false（允许交互），
@@ -255,6 +275,83 @@ public class FarmAreaProtectionEvents {
                     event.setCanceled(true);
                 }
             }
+        }
+    }
+
+    @SubscribeEvent
+    public static void onBlockMultiPlace(BlockEvent.EntityMultiPlaceEvent event) {
+        if (!(event.getLevel() instanceof ServerLevel level)) {
+            return;
+        }
+        if (level.dimension() != ModDimensions.STARDEW_VALLEY) {
+            return;
+        }
+        if (event.getEntity() instanceof ServerPlayer player && player.isCreative()) {
+            return;
+        }
+
+        boolean denied = false;
+        for (var snapshot : event.getReplacedBlockSnapshots()) {
+            BlockPos pos = snapshot.getPos();
+            if (event.getEntity() instanceof ServerPlayer player) {
+                if (com.stardew.craft.greenhouse.GreenhouseManager.isInGreenhouseInterior(level, pos)) {
+                    if (canModifyGreenhouseAt(player, level, pos)) {
+                        continue;
+                    }
+                } else if (canModifyAt(player, pos)) {
+                    continue;
+                }
+            } else if (!isProtectedNonFarmArea(level, pos)) {
+                continue;
+            }
+
+            snapshot.restore();
+            denied = true;
+        }
+
+        if (denied && event.getEntity() instanceof ServerPlayer player) {
+            player.displayClientMessage(
+                    Component.translatable("stardewcraft.farm.build_farm_only"), true);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onFluidPlace(BlockEvent.FluidPlaceBlockEvent event) {
+        if (!(event.getLevel() instanceof ServerLevel level)) {
+            return;
+        }
+        if (isProtectedNonFarmArea(level, event.getPos())) {
+            event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onExplosionDetonate(ExplosionEvent.Detonate event) {
+        if (!(event.getLevel() instanceof ServerLevel level)) {
+            return;
+        }
+        event.getAffectedBlocks().removeIf(pos -> isProtectedNonFarmArea(level, pos));
+    }
+
+    @SubscribeEvent
+    public static void onProtectedNonFarmMobJoin(EntityJoinLevelEvent event) {
+        if (!(event.getLevel() instanceof ServerLevel level)) {
+            return;
+        }
+        if (!(event.getEntity() instanceof Mob mob)) {
+            return;
+        }
+        if (mob instanceof StardewNpcEntity || mob instanceof JunimoEntity
+            || mob instanceof CamelMerchantEntity || mob instanceof TravelingCartEntity) {
+            return;
+        }
+        if (!isProtectedNonFarmArea(level, mob.blockPosition())) {
+            return;
+        }
+
+        event.setCanceled(true);
+        if (mob.isAlive()) {
+            mob.discard();
         }
     }
 

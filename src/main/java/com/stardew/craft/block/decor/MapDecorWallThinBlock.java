@@ -86,6 +86,21 @@ public class MapDecorWallThinBlock extends Block {
         return resolveShape(state);
     }
 
+    @Override
+    public boolean propagatesSkylightDown(@Nonnull BlockState state, @Nonnull BlockGetter level, @Nonnull BlockPos pos) {
+        return true;
+    }
+
+    @Override
+    public int getLightBlock(@Nonnull BlockState state, @Nonnull BlockGetter level, @Nonnull BlockPos pos) {
+        return 0;
+    }
+
+    @Override
+    public float getShadeBrightness(@Nonnull BlockState state, @Nonnull BlockGetter level, @Nonnull BlockPos pos) {
+        return 1.0F;
+    }
+
     private VoxelShape resolveShape(BlockState state) {
         String variant = "facing=" + state.getValue(FACING).getSerializedName();
         String blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();

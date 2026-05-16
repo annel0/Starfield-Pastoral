@@ -1,5 +1,164 @@
 # Changelog
 
+## 0.3.9 - 2026-05-17
+
+### Update Log (English)
+
+#### Headline Features
+
+- Added the Stardew Valley 1.6-style Powers wallet page to the V-menu, following the active `PowersTab` / `Powers.json` layout model instead of the older unused skills-page wallet path.
+- Added standalone wallet/power icon assets for Forest Magic, Dwarvish Translation Guide, Rusty Key, Club Card, Special Charm, Skull Key, Magnifying Glass, Dark Talisman, Magic Ink, Bear Paw, Spring Onion Mastery, and Key to the Town.
+- Added client sync for `SpecialItems`, so wallet-style permanent unlocks can be displayed from authoritative player data instead of being inferred only from mail flags.
+- Promoted the Skull Key and Dwarvish Translation Guide toward true Stardew-style special items: permanent, not sellable, not consumed, synced to player special-item data, and visible in the powers page.
+- Added full item-tooltip rendering for item-backed powers in the V-menu, so special items show their real Minecraft/StardewCraft tooltip instead of a simplified hand-written hover label.
+
+#### Wallet, Powers, and Special Items
+
+- Added a new powers tab to the V-menu with the same nine-column icon rhythm used by Stardew Valley's power display.
+- Added locked-power rendering using dark translucent silhouettes and `???` hover text.
+- Added unlock checks that can use either a Stardew mail flag or a synced special-item id, preserving old-save compatibility while supporting the new special-item path.
+- Added Skull Key special-item persistence when the key enters a player's inventory, including `HasSkullKey`, `stardewcraft:skull_key`, save, sync, and obtained feedback.
+- Added Dwarvish Translation Guide special-item persistence using `HasDwarvishTranslationGuide` plus `stardewcraft:dwarvish_translation_guide`.
+- Changed Dwarvish Translation Guide use behavior from instant consume to a short right-click reading action.
+- Added local reading feedback for the Dwarvish Translation Guide: an immediate page-turn sound, additional page-turn sounds during use, and a visible sustained-use animation.
+- Kept Dwarvish Translation Guide completion feedback private to the user instead of broadcasting the read/learn sound to nearby players.
+- Added brown-themed tooltip border styling and special-item tooltip lines for the Dwarvish Translation Guide.
+- Added special-item type presentation for the Dwarvish Translation Guide, matching the Skull Key / Rusty Key style of permanent reward items.
+- Updated Dwarf language access so either the old mail flag or the new special-item unlock lets the player understand Dwarves.
+
+#### UI and Menu Work
+
+- Continued the large UI scale normalization pass, reducing direct large-atlas UV dependence in favor of standalone GUI textures and shared draw helpers.
+- Expanded common GUI texture helpers for powers icons and tintable power rendering.
+- Improved V-menu tooltip routing so inventory-backed UI entries can display native item tooltips with all custom injected Stardew lines intact.
+- Improved inventory, crafting, leaderboard, shop, farm, building, chest, catalogue, quest, overnight, and other Stardew-style screens touched by the scaling pass.
+- Improved GUI consistency for item rendering, menu boxes, tab interactions, hover text, button texture slices, and Stardew-style pixel scaling across GUI scales.
+- Added or refined font and UI resources needed by the newer menu and tooltip presentation.
+
+#### Leaderboards and Player Data
+
+- Extended the leaderboard foundation added in the previous line with more player-data integration, client cache handling, metrics, categories, and snapshot sync refinement.
+- Added player-data fields and sync coverage needed by powers, special items, crafting interactions, ranking snapshots, and other client-side displays.
+- Improved player login synchronization for several gameplay systems that need reliable first-open client state.
+- Added more server-authored data paths so menus do not depend on stale client guesses after login, dimension changes, or world reloads.
+
+#### World, Locations, and Movement
+
+- Continued the pre-generated map coordinate migration work, including a written ledger for tracked coordinate, version, and installation changes.
+- Continued cleanup around Stardew Valley prebuilt-region installation, interior allocation, desert layout handling, quarry access, farm-entry barriers, and cross-dimension teleport placement.
+- Consolidated interior and public-area protection logic so subspace protection is less scattered and easier to reason about.
+- Improved portal hints, interior transitions, NPC routing support, and location-graph behavior touched by the coordinate migration pass.
+- Improved biome patching, forage placement, artifact spots, coal forest clumps, quarry spawning, and map bootstrap behavior around newer world-layout assumptions.
+
+#### NPCs, Shops, Quests, and Events
+
+- Improved NPC movement and route-planning internals, including central movement service behavior, spawn management, path navigation, schedule runtime, and location graph usage.
+- Improved NPC friendship overview sync and friendship-related command/debug paths.
+- Refined shop services and purchase handling across several vendors, including item availability and interaction flows touched by the wallet/special-item work.
+- Refined Dwarf interaction behavior so the language gate follows both legacy and new unlock data.
+- Updated museum reward handling around special item rewards, including the Dwarvish Translation Guide path.
+- Improved event/cutscene payloads, debug commands, camera/player runtime details, and wake-up scheduling touched by this release pass.
+
+#### Items, Tools, Fishing, Warp, and Economy
+
+- Improved Stardew item tooltip injection for special items and related permanent rewards.
+- Improved fishing rod item data handling and treasure screen behavior touched by recent item-data work.
+- Improved warp wand behavior, unlock payloads, teleport payloads, destination handling, and related UI feedback.
+- Improved cooking, crafting inventory actions, shipping-bin menu behavior, and shop purchase payload handling.
+- Added compatibility and category-registration refinements for some vanilla/Stardew item interactions.
+
+#### Audio, Rendering, and Assets
+
+- Improved Stardew music manager behavior and sound registration touched by the current feature pass.
+- Updated several block entity renderers to align with current render helper and resource assumptions.
+- Improved Junimo text/model resources and related community-center UI presentation.
+- Added standalone powers icon resources and recorded source extraction coordinates for future auditing.
+- Updated many model/resource JSON files touched by the latest asset normalization pass.
+
+#### Localization and Documentation
+
+- Added English and Chinese text for the new powers page, wallet entries, special-item tooltips, Dwarvish Translation Guide feedback, and related UI labels.
+- Added or updated documentation for leaderboard planning and pre-generated coordinate migration tracking.
+- Updated the public project version to `0.3.9`.
+
+### 更新日志（中文）
+
+#### 重点内容
+
+- 新增 V 键菜单里的星露谷 1.6 风格“能力 / 钱包”页面，按当前原版 `PowersTab` / `Powers.json` 的显示方式复刻，而不是继续沿用旧版未实际绘制的钱包入口判断。
+- 新增独立钱包/能力图标素材，覆盖森林魔法、矮人语手册、生锈钥匙、会员卡、特殊魅力、骷髅钥匙、放大镜、黑暗护符、魔法墨水、熊掌、青葱技术和城镇钥匙。
+- 新增客户端 `SpecialItems` 同步，让永久特殊物品解锁可以从服务端玩家数据直接显示，不再只能依赖 mail flag 猜测。
+- 将骷髅钥匙和矮人语手册推进到真正的星露谷特殊物品规格：永久保留、不可出售、不会被使用消耗、写入玩家特殊物品数据，并在能力页显示。
+- 能力页里的物品型能力现在直接显示对应物品自己的完整 tooltip，不再只显示手写标题和描述。
+
+#### 钱包、能力页与特殊物品
+
+- 新增 V 键菜单能力页，使用接近原版星露谷的九列图标排布与间距。
+- 新增未解锁能力的黑色半透明剪影显示和 `???` 悬浮提示。
+- 新增能力解锁判定：同一条能力可以同时兼容旧 mail flag 与新 special item id，兼顾老存档和新数据结构。
+- 骷髅钥匙进入玩家背包时会写入 `HasSkullKey` 和 `stardewcraft:skull_key`，并保存、同步和提示获得状态。
+- 矮人语手册现在写入 `HasDwarvishTranslationGuide` 和 `stardewcraft:dwarvish_translation_guide`，成为永久特殊物品。
+- 矮人语手册从“右键瞬间学习并消耗”改为“右键阅读一小段时间后学习”，使用后不消失。
+- 矮人语手册新增本地阅读反馈：开始阅读立刻翻页，中途继续翻页，并使用更明显的持续使用动作。
+- 矮人语手册完成阅读或重复阅读的声音只发给使用者本人，不会广播给附近玩家。
+- 矮人语手册新增棕色主题 tooltip 边框、特殊物品类型显示和状态说明。
+- 矮人语言理解判定现在同时认可旧 mail flag 与新特殊物品解锁，避免老存档失效。
+
+#### UI 与菜单
+
+- 继续推进大规模 UI 缩放规范化，将更多界面从直接采样大图集迁移到独立贴图和共享绘制 helper。
+- 扩展通用 GUI 贴图 helper，支持能力图标和可染色能力图标绘制。
+- 改进 V 键菜单 tooltip 分发，让背包物品型 UI 项可以显示原生物品 tooltip，并保留所有 StardewCraft 注入的自定义行。
+- 继续修正背包、合成、排行榜、商店、农场、建筑、箱子、目录、任务、过夜结算等界面在 UI 缩放迁移中的细节。
+- 改进物品绘制、菜单框、tab 交互、悬浮提示、按钮切片和星露谷像素缩放的一致性。
+- 补充或调整新菜单与 tooltip 表现所需的字体和 UI 资源。
+
+#### 排行榜与玩家数据
+
+- 继续完善上一版加入的排行榜系统，补强客户端缓存、服务端快照、榜单指标、分类和同步路径。
+- 扩展玩家数据字段与同步范围，支撑能力页、特殊物品、合成交互、排行榜快照和其他客户端展示。
+- 改进玩家登录时的多系统同步，减少首次打开菜单时客户端状态过旧的问题。
+- 将更多菜单展示改为服务端权威数据驱动，减少登录、切维度或重载世界后的客户端猜测。
+
+#### 世界、地点与移动
+
+- 继续推进预生成地图坐标迁移，并补充坐标、版本、安装状态的追踪文档。
+- 继续清理星露谷预生成区域安装、室内分配、沙漠布局、采石场访问、农场入口屏障和跨维度传送落点。
+- 合并并简化室内/公共区域保护逻辑，让 subspace 保护不再分散在多套事件里。
+- 改进传送门提示、室内切换、NPC 路由支持和地点图行为，配合坐标迁移后的地图结构。
+- 调整生物群系 patch、采集物、蚯蚓点、煤炭森林树桩、采石场生成和地图 bootstrap 等与新版地图布局相关的行为。
+
+#### NPC、商店、任务与事件
+
+- 改进 NPC 移动和路线规划底层，包括集中移动服务、生成管理、寻路、日程运行和地点图使用。
+- 改进 NPC 好感度概览同步，以及好感度相关命令和调试路径。
+- 调整多个商店服务和购买流程，覆盖商品可用性、交互流程和本轮特殊物品相关改动。
+- 矮人交互逻辑现在会按旧 mail flag 或新特殊物品判断语言是否已解锁。
+- 调整博物馆奖励路径，配合矮人语手册这类特殊物品奖励。
+- 改进事件/剧情网络包、调试命令、镜头/玩家运行细节和早晨唤醒调度等本轮涉及路径。
+
+#### 物品、工具、钓鱼、传送与经济
+
+- 改进 Stardew 物品 tooltip 注入，特别是特殊物品与永久奖励物品的展示。
+- 改进钓竿物品数据处理和宝箱界面相关行为。
+- 改进传送法杖行为、解锁网络包、传送网络包、目的地处理和相关 UI 反馈。
+- 改进烹饪、合成背包操作、出货箱菜单和商店购买网络包处理。
+- 补充部分原版 / Stardew 物品交互兼容和分类注册细节。
+
+#### 音频、渲染与资源
+
+- 改进 Stardew 音乐管理器和本轮功能涉及的声音注册。
+- 调整多个方块实体渲染器，使其更贴合当前渲染 helper 与资源路径假设。
+- 改进祝尼魔文本、模型资源和社区中心相关 UI 表现。
+- 新增独立能力页图标资源，并记录素材来源坐标，方便之后核对。
+- 更新大量本轮资源规范化涉及的模型和资源 JSON。
+
+#### 本地化与文档
+
+- 补充英文和中文的能力页、钱包条目、特殊物品 tooltip、矮人语手册反馈和相关 UI 文本。
+- 新增或更新排行榜规划、预生成坐标迁移等文档。
+- 项目公开版本号更新为 `0.3.9`。
+
 ## 0.3.8-fix4 - 2026-05-14
 
 ### Update Log (English)

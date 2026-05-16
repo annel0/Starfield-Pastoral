@@ -74,6 +74,20 @@ public class ModBlocks {
                                         .instabreak()
                                         .randomTicks()));
 
+        public static final DeferredBlock<Block> SMALL_BUSH = BLOCKS.register("small_bush",
+                        () -> new com.stardew.craft.block.nature.SmallBushBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.PLANT)
+                                        .sound(net.minecraft.world.level.block.SoundType.GRASS)
+                                        .noOcclusion()
+                                        .strength(0.2F)));
+
+        public static final DeferredBlock<Block> BERRY_BUSH = BLOCKS.register("berry_bush",
+                        () -> new com.stardew.craft.block.nature.BerryBushBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.PLANT)
+                                        .sound(net.minecraft.world.level.block.SoundType.GRASS)
+                                        .noOcclusion()
+                                        .strength(0.3F)));
+
         // ---- 采集物方块 (Forage blocks with cross model, drop corresponding items) ----
         @SuppressWarnings("null")
         private static Block.Properties forageProps() {

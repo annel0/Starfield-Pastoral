@@ -1,5 +1,6 @@
 package com.stardew.craft.client.gui;
 
+import com.stardew.craft.client.gui.common.GuiText;
 import com.stardew.craft.menu.ShippingBinMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -41,8 +42,10 @@ public class ShippingBinScreen extends AbstractContainerScreen<ShippingBinMenu> 
 
     @Override
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-        graphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 0x404040, false);
-        graphics.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY, 0x404040, false);
+        GuiText.drawCenteredClamped(graphics, this.font, this.title, this.imageWidth / 2,
+            this.titleLabelY, this.imageWidth - 16, 0x404040, false);
+        graphics.drawString(this.font, GuiText.ellipsize(this.font, this.playerInventoryTitle, this.imageWidth - this.inventoryLabelX - 8),
+            this.inventoryLabelX, this.inventoryLabelY, 0x404040, false);
     }
 
     @Override

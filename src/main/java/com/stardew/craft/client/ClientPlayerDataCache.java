@@ -26,6 +26,7 @@ public class ClientPlayerDataCache {
     private static final java.util.Set<String> unlockedRecipes = new java.util.HashSet<>();
     private static final java.util.Map<String, Integer> recipeCraftCounts = new java.util.HashMap<>();
     private static final java.util.Set<String> mailFlags = new java.util.HashSet<>();
+    private static final java.util.Set<String> specialItems = new java.util.HashSet<>();
 
     // 临时Buff（客户端显示/计算用）
     private static int tempFishingLevelBonus = 0;
@@ -124,6 +125,15 @@ public class ClientPlayerDataCache {
             for (int i = 0; i < flagList.size(); i++) {
                 String flag = flagList.getString(i);
                 if (!flag.isBlank()) mailFlags.add(flag);
+            }
+        }
+
+        specialItems.clear();
+        if (nbt.contains("SpecialItems")) {
+            ListTag itemList = nbt.getList("SpecialItems", Tag.TAG_STRING);
+            for (int i = 0; i < itemList.size(); i++) {
+                String itemId = itemList.getString(i);
+                if (!itemId.isBlank()) specialItems.add(itemId);
             }
         }
 
@@ -274,6 +284,14 @@ public class ClientPlayerDataCache {
         return new java.util.HashSet<>(mailFlags);
     }
 
+    public static boolean hasSpecialItem(String itemId) {
+        return itemId != null && specialItems.contains(itemId);
+    }
+
+    public static java.util.Set<String> getSpecialItems() {
+        return new java.util.HashSet<>(specialItems);
+    }
+
     // Equipment getters/setters
     public static String getEquippedLeftRing() { return equippedLeftRing; }
     public static String getEquippedRightRing() { return equippedRightRing; }
@@ -297,6 +315,7 @@ public class ClientPlayerDataCache {
         unlockedRecipes.clear();
         recipeCraftCounts.clear();
         mailFlags.clear();
+        specialItems.clear();
         hasFarm = false;
         farmName = "";
         farmOwnerUuid = "";

@@ -1,6 +1,7 @@
 package com.stardew.craft.client.gui.overnight;
 
 import com.stardew.craft.client.gui.common.CommonGuiTextures;
+import com.stardew.craft.client.gui.common.GuiText;
 import com.stardew.craft.client.hud.StardewTimeHud;
 import com.stardew.craft.network.overnight.OvernightSettlementPayload;
 import com.stardew.craft.sound.ModSounds;
@@ -433,8 +434,8 @@ public class ShippingMenuScreen extends Screen {
 
         if (scrollDrawY >= 0) {
             Component title = getYesterdayLabel();
-            int textWidth = this.font.width(title);
-            graphics.drawString(this.font, title, centerX - textWidth / 2, scrollDrawY, 0xFFFFFF, false);
+            GuiText.drawCenteredClamped(graphics, this.font, title, centerX, scrollDrawY,
+                Math.max(1, this.width - px(160)), 0xFFFFFF, false);
         }
 
         int yOffset = px(-20);
@@ -469,7 +470,8 @@ public class ShippingMenuScreen extends Screen {
 
                 // Name text
                 Component catName = getCategoryName(i);
-                graphics.drawString(this.font, catName, boxX + px(20), boxY + px(24), 0x663300, false);
+                graphics.drawString(this.font, GuiText.ellipsize(this.font, catName, categoryLabelsWidth - px(40)),
+                    boxX + px(20), boxY + px(24), 0x663300, false);
 
                 int dotsX = startX - itemSlotWidth + px(-192 - 24);
                 for (int m = 0; m < 6; m++) {
@@ -533,15 +535,15 @@ public class ShippingMenuScreen extends Screen {
             
             String dotsAndName = subtotalStr;
             int totalPosX = startX + boxwidth - px(64) - this.font.width(totalStr);
+            int nameX = startX + px(64 + 12);
+            int nameMaxWidth = Math.max(1, totalPosX - nameX - px(16));
             
             while (this.font.width(dotsAndName + totalStr) < boxwidth - px(192)) {
                 dotsAndName += " .";
             }
-            if (this.font.width(dotsAndName + totalStr) >= boxwidth) {
-                 dotsAndName = dotsAndName.substring(0, dotsAndName.length() - 1);
-            }
             
-            graphics.drawString(this.font, dotsAndName, startX + px(64 + 12), currentY + px(12), 0x553311, false);
+            graphics.drawString(this.font, GuiText.ellipsize(this.font, Component.literal(dotsAndName), nameMaxWidth),
+                nameX, currentY + px(12), 0x553311, false);
             graphics.drawString(this.font, totalStr, totalPosX, currentY + px(12), 0x553311, false);
             
             currentY += px(68);

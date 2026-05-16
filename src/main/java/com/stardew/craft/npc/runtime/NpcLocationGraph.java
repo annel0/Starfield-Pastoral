@@ -22,8 +22,8 @@ import java.util.Queue;
  * Data is loaded from {@code npc/events/location_graph.json}. Each edge describes an
  * outdoor walk or walk+warp transition between two locations. The graph is bidirectional.
  * <p>
- * When {@link NpcRoutePlanner} cannot find a profile route for an NPC, it falls back here
- * to automatically stitch a multi-hop route from current location to destination.
+ * When {@link NpcRoutePlanner} cannot find a profile route for an NPC, this graph
+ * automatically stitches a multi-hop route from current location to destination.
  */
 public final class NpcLocationGraph {
 
@@ -152,8 +152,10 @@ public final class NpcLocationGraph {
             if (!isLast && edge.viaIndoor.isEmpty()) {
                 NpcLocationAnchor anchor = NpcDataRegistry.locationAnchors().get(edge.to);
                 if (anchor != null) {
-                    steps.add(NpcRoutePlanner.NpcRouteStep.walk("graph_hop_" + edge.to,
-                        new Vec3(anchor.x(), anchor.y(), anchor.z())));
+                    Vec3 anchorPosition = NpcRoutePlanner.anchorPosition(edge.to, anchor);
+                    if (anchorPosition != null) {
+                        steps.add(NpcRoutePlanner.NpcRouteStep.walk("graph_hop_" + edge.to, anchorPosition));
+                    }
                 }
             }
         }

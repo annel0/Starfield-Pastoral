@@ -2,6 +2,8 @@ package com.stardew.craft.player;
 
 import com.stardew.craft.deco.DecorationStyleRegistry;
 import com.stardew.craft.deco.DecorationType;
+import com.stardew.craft.leaderboard.LeaderboardMetric;
+import com.stardew.craft.leaderboard.LeaderboardPeriod;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
@@ -131,6 +133,17 @@ public class PlayerStardewData {
     private int mineGemOresBroken;
     private int mineMineralNodesBroken;
     private int mineBlocksBombed;
+    private int giftsGivenTotal;
+    private int combatDeaths;
+    private int passOuts2Am;
+    private int passOutsExhaustion;
+    private int animalProductsCollectedTotal;
+    private int leaderboardDayKey = Integer.MIN_VALUE;
+    private int leaderboardWeekKey = Integer.MIN_VALUE;
+    private int leaderboardSeasonKey = Integer.MIN_VALUE;
+    private final Map<String, Long> leaderboardDayValues = new HashMap<>();
+    private final Map<String, Long> leaderboardWeekValues = new HashMap<>();
+    private final Map<String, Long> leaderboardSeasonValues = new HashMap<>();
 
     // ============ 邮件标记（SDV mailReceived parity） ============
     private final Set<String> mailFlags = new HashSet<>();
@@ -165,6 +178,8 @@ public class PlayerStardewData {
     private boolean wizardFirstMet;               // 是否已经看过巫师的初次剧情
     private boolean starterToolsGiven;            // 是否已给予新手工具六件套
     private boolean bilibiliRewardClaimed;          // 是否已领取B站关注奖励（彩虹猫之刃）
+    private boolean mine100StardropCompensationProcessed; // 100层旧奖励修正补偿是否已处理
+    private int handledPregenRelocationVersion;   // 已处理的 pregen 升级回农场版本
     @Nullable
     private BlockPos overworldReturnPos;           // 玩家从主世界进入巫师塔时记录的返回坐标
     @Nullable
@@ -457,6 +472,21 @@ public class PlayerStardewData {
         data.mineGemOresBroken = tag.contains("MineGemOresBroken") ? Math.max(0, tag.getInt("MineGemOresBroken")) : 0;
         data.mineMineralNodesBroken = tag.contains("MineMineralNodesBroken") ? Math.max(0, tag.getInt("MineMineralNodesBroken")) : 0;
         data.mineBlocksBombed = tag.contains("MineBlocksBombed") ? Math.max(0, tag.getInt("MineBlocksBombed")) : 0;
+        data.giftsGivenTotal = tag.contains("GiftsGivenTotal") ? Math.max(0, tag.getInt("GiftsGivenTotal")) : 0;
+        data.combatDeaths = tag.contains("CombatDeaths") ? Math.max(0, tag.getInt("CombatDeaths")) : 0;
+        data.passOuts2Am = tag.contains("PassOuts2Am") ? Math.max(0, tag.getInt("PassOuts2Am")) : 0;
+        data.passOutsExhaustion = tag.contains("PassOutsExhaustion") ? Math.max(0, tag.getInt("PassOutsExhaustion")) : 0;
+        data.animalProductsCollectedTotal = tag.contains("AnimalProductsCollectedTotal") ? Math.max(0, tag.getInt("AnimalProductsCollectedTotal")) : 0;
+        if (tag.contains("LeaderboardPeriodStats", 10)) {
+            CompoundTag statsTag = tag.getCompound("LeaderboardPeriodStats");
+            data.leaderboardDayKey = statsTag.contains("DayKey") ? statsTag.getInt("DayKey") : Integer.MIN_VALUE;
+            data.leaderboardWeekKey = statsTag.contains("WeekKey") ? statsTag.getInt("WeekKey") : Integer.MIN_VALUE;
+            data.leaderboardSeasonKey = statsTag.contains("SeasonKey") ? statsTag.getInt("SeasonKey") : Integer.MIN_VALUE;
+            readLeaderboardValues(statsTag, "DayValues", data.leaderboardDayValues);
+            readLeaderboardValues(statsTag, "WeekValues", data.leaderboardWeekValues);
+            readLeaderboardValues(statsTag, "SeasonValues", data.leaderboardSeasonValues);
+        }
+
 
         // 邮件标记
         if (tag.contains("MailFlags", 9)) { // 9 = TAG_List
@@ -538,6 +568,8 @@ public class PlayerStardewData {
         data.wizardFirstMet = tag.getBoolean("WizardFirstMet");
         data.starterToolsGiven = tag.getBoolean("StarterToolsGiven");
         data.bilibiliRewardClaimed = tag.getBoolean("BilibiliRewardClaimed");
+        data.mine100StardropCompensationProcessed = tag.getBoolean("Mine100StardropCompensationProcessed");
+        data.handledPregenRelocationVersion = tag.contains("HandledPregenRelocationVersion") ? tag.getInt("HandledPregenRelocationVersion") : 0;
         if (tag.contains("OverworldReturnX")) {
             data.overworldReturnPos = new BlockPos(
                 tag.getInt("OverworldReturnX"),
@@ -566,6 +598,38 @@ public class PlayerStardewData {
         data.dirty = false;
         
         return data;
+    }
+
+    private static void readLeaderboardValues(CompoundTag statsTag, String key, Map<String, Long> target) {
+        target.clear();
+        if (!statsTag.contains(key, 9)) {
+            return;
+        }
+        ListTag list = statsTag.getList(key, 10);
+        for (int i = 0; i < list.size(); i++) {
+            CompoundTag entry = list.getCompound(i);
+            String metric = entry.getString("Metric");
+            long value = Math.max(0L, entry.getLong("Value"));
+            if (!metric.isBlank() && value > 0L) {
+                target.put(metric, value);
+            }
+        }
+    }
+
+    private static void writeLeaderboardValues(CompoundTag statsTag, String key, Map<String, Long> values) {
+        ListTag list = new ListTag();
+        for (Map.Entry<String, Long> entry : values.entrySet()) {
+            String metric = entry.getKey();
+            long value = entry.getValue() == null ? 0L : entry.getValue();
+            if (metric == null || metric.isBlank() || value <= 0L) {
+                continue;
+            }
+            CompoundTag valueTag = new CompoundTag();
+            valueTag.putString("Metric", metric);
+            valueTag.putLong("Value", value);
+            list.add(valueTag);
+        }
+        statsTag.put(key, list);
     }
     
     /**
@@ -740,6 +804,19 @@ public class PlayerStardewData {
         tag.putInt("MineGemOresBroken", mineGemOresBroken);
         tag.putInt("MineMineralNodesBroken", mineMineralNodesBroken);
         tag.putInt("MineBlocksBombed", mineBlocksBombed);
+        tag.putInt("GiftsGivenTotal", giftsGivenTotal);
+        tag.putInt("CombatDeaths", combatDeaths);
+        tag.putInt("PassOuts2Am", passOuts2Am);
+        tag.putInt("PassOutsExhaustion", passOutsExhaustion);
+        tag.putInt("AnimalProductsCollectedTotal", animalProductsCollectedTotal);
+        CompoundTag periodStatsTag = new CompoundTag();
+        periodStatsTag.putInt("DayKey", leaderboardDayKey);
+        periodStatsTag.putInt("WeekKey", leaderboardWeekKey);
+        periodStatsTag.putInt("SeasonKey", leaderboardSeasonKey);
+        writeLeaderboardValues(periodStatsTag, "DayValues", leaderboardDayValues);
+        writeLeaderboardValues(periodStatsTag, "WeekValues", leaderboardWeekValues);
+        writeLeaderboardValues(periodStatsTag, "SeasonValues", leaderboardSeasonValues);
+        tag.put("LeaderboardPeriodStats", periodStatsTag);
 
         // 邮件标记
         if (!mailFlags.isEmpty()) {
@@ -819,6 +896,8 @@ public class PlayerStardewData {
         tag.putBoolean("WizardFirstMet", wizardFirstMet);
         tag.putBoolean("StarterToolsGiven", starterToolsGiven);
         tag.putBoolean("BilibiliRewardClaimed", bilibiliRewardClaimed);
+        tag.putBoolean("Mine100StardropCompensationProcessed", mine100StardropCompensationProcessed);
+        tag.putInt("HandledPregenRelocationVersion", handledPregenRelocationVersion);
         if (overworldReturnPos != null) {
             tag.putInt("OverworldReturnX", overworldReturnPos.getX());
             tag.putInt("OverworldReturnY", overworldReturnPos.getY());
@@ -844,6 +923,7 @@ public class PlayerStardewData {
         int oldLevel = skillLevels[skillId];
 
         experiencePoints[skillId] += amount;
+        addLeaderboardPeriodValue(skillMetricId(skill), amount);
         int newLevel = Math.min(10, calculateLevel(experiencePoints[skillId]));
 
         if (newLevel > oldLevel) {
@@ -1451,6 +1531,9 @@ public class PlayerStardewData {
         }
 
         recipeCraftCounts.put(recipeId, next);
+        if (RecipeCatalogData.getCookingRecipeIds().contains(recipeId)) {
+            addLeaderboardPeriodValue(LeaderboardMetric.COOKING_COUNT.id(), craftedAmount);
+        }
         markDirty();
         return true;
     }
@@ -1474,6 +1557,7 @@ public class PlayerStardewData {
         int next = Math.max(0, fishCatchCounts.getOrDefault(itemId, 0)) + amount;
         fishCatchCounts.put(itemId, next);
         preciseFishCaught += amount;
+        addLeaderboardPeriodValue(LeaderboardMetric.FISH_CAUGHT.id(), amount);
         markDirty();
         return true;
     }
@@ -1499,6 +1583,7 @@ public class PlayerStardewData {
         int next = Math.max(0, itemsShipped.getOrDefault(itemId, 0)) + amount;
         if (next != itemsShipped.getOrDefault(itemId, 0)) {
             itemsShipped.put(itemId, next);
+            addLeaderboardPeriodValue(LeaderboardMetric.ITEMS_SHIPPED.id(), amount);
             changed = true;
         }
 
@@ -1528,6 +1613,7 @@ public class PlayerStardewData {
     public void addTotalShippingGold(long amount) {
         if (amount <= 0L) return;
         totalShippingGold = Math.max(0L, totalShippingGold + amount);
+        addLeaderboardPeriodValue(LeaderboardMetric.SHIPPING_VALUE.id(), amount);
         markDirty();
     }
 
@@ -1552,6 +1638,7 @@ public class PlayerStardewData {
 
     public void incrementTrashCansChecked() {
         trashCansChecked++;
+        addLeaderboardPeriodValue(LeaderboardMetric.TRASH_CANS_CHECKED.id(), 1L);
         markDirty();
     }
 
@@ -1570,20 +1657,26 @@ public class PlayerStardewData {
     public void addMineBlocksBroken(int amount) {
         if (amount <= 0) return;
         mineBlocksBrokenTotal = Math.max(0, mineBlocksBrokenTotal + amount);
+        addLeaderboardPeriodValue(LeaderboardMetric.MINE_BLOCKS_BROKEN.id(), amount);
         markDirty();
     }
 
     public void recordMineBlockBroken(boolean ore, boolean gemOre, boolean mineralNode) {
         mineBlocksBrokenTotal = Math.max(0, mineBlocksBrokenTotal + 1);
+        addLeaderboardPeriodValue(LeaderboardMetric.MINE_BLOCKS_BROKEN.id(), 1L);
         if (mineralNode) {
             mineMineralNodesBroken = Math.max(0, mineMineralNodesBroken + 1);
+            addLeaderboardPeriodValue(LeaderboardMetric.MINE_MINERAL_NODES_BROKEN.id(), 1L);
         } else if (ore) {
             mineOresBroken = Math.max(0, mineOresBroken + 1);
+            addLeaderboardPeriodValue(LeaderboardMetric.MINE_ORES_BROKEN.id(), 1L);
             if (gemOre) {
                 mineGemOresBroken = Math.max(0, mineGemOresBroken + 1);
+                addLeaderboardPeriodValue(LeaderboardMetric.MINE_GEM_ORES_BROKEN.id(), 1L);
             }
         } else {
             mineStonesBroken = Math.max(0, mineStonesBroken + 1);
+            addLeaderboardPeriodValue(LeaderboardMetric.MINE_STONES_BROKEN.id(), 1L);
         }
         markDirty();
     }
@@ -1591,7 +1684,116 @@ public class PlayerStardewData {
     public void addMineBlocksBombed(int amount) {
         if (amount <= 0) return;
         mineBlocksBombed = Math.max(0, mineBlocksBombed + amount);
+        addLeaderboardPeriodValue(LeaderboardMetric.MINE_BLOCKS_BOMBED.id(), amount);
         markDirty();
+    }
+
+    public int getGiftsGivenTotal() { return giftsGivenTotal; }
+
+    public void recordGiftGiven() {
+        giftsGivenTotal = Math.max(0, giftsGivenTotal + 1);
+        addLeaderboardPeriodValue(LeaderboardMetric.GIFTS_GIVEN.id(), 1L);
+        markDirty();
+    }
+
+    public int getCombatDeaths() { return combatDeaths; }
+
+    public int getPassOuts2Am() { return passOuts2Am; }
+
+    public int getPassOutsExhaustion() { return passOutsExhaustion; }
+
+    public int getPassOutsTotal() { return Math.max(0, combatDeaths + passOuts2Am + passOutsExhaustion); }
+
+    public void recordCombatDeath() {
+        combatDeaths = Math.max(0, combatDeaths + 1);
+        addLeaderboardPeriodValue(LeaderboardMetric.COMBAT_DEATHS.id(), 1L);
+        addLeaderboardPeriodValue(LeaderboardMetric.PASS_OUTS.id(), 1L);
+        markDirty();
+    }
+
+    public void record2AmPassOut() {
+        passOuts2Am = Math.max(0, passOuts2Am + 1);
+        addLeaderboardPeriodValue(LeaderboardMetric.PASS_OUTS.id(), 1L);
+        markDirty();
+    }
+
+    public void recordExhaustionPassOut() {
+        passOutsExhaustion = Math.max(0, passOutsExhaustion + 1);
+        addLeaderboardPeriodValue(LeaderboardMetric.PASS_OUTS.id(), 1L);
+        markDirty();
+    }
+
+    public int getAnimalProductsCollectedTotal() { return animalProductsCollectedTotal; }
+
+    public void recordAnimalProductsCollected(int amount) {
+        if (amount <= 0) return;
+        animalProductsCollectedTotal = Math.max(0, animalProductsCollectedTotal + amount);
+        addLeaderboardPeriodValue(LeaderboardMetric.ANIMAL_PRODUCTS_COLLECTED.id(), amount);
+        markDirty();
+    }
+
+    public long getLeaderboardPeriodValue(LeaderboardPeriod period, String metricId) {
+        if (period == null || period.isTotal() || metricId == null || metricId.isBlank()) {
+            return 0L;
+        }
+        return switch (period) {
+            case DAY -> leaderboardDayKey == currentLeaderboardDayKey() ? leaderboardDayValues.getOrDefault(metricId, 0L) : 0L;
+            case WEEK -> leaderboardWeekKey == currentLeaderboardWeekKey() ? leaderboardWeekValues.getOrDefault(metricId, 0L) : 0L;
+            case SEASON -> leaderboardSeasonKey == currentLeaderboardSeasonKey() ? leaderboardSeasonValues.getOrDefault(metricId, 0L) : 0L;
+            case TOTAL -> 0L;
+        };
+    }
+
+    public void addLeaderboardPeriodValue(String metricId, long amount) {
+        if (metricId == null || metricId.isBlank() || amount <= 0L) {
+            return;
+        }
+        refreshLeaderboardPeriodKeysForWrite();
+        leaderboardDayValues.merge(metricId, amount, Long::sum);
+        leaderboardWeekValues.merge(metricId, amount, Long::sum);
+        leaderboardSeasonValues.merge(metricId, amount, Long::sum);
+        markDirty();
+    }
+
+    private void refreshLeaderboardPeriodKeysForWrite() {
+        int dayKey = currentLeaderboardDayKey();
+        if (leaderboardDayKey != dayKey) {
+            leaderboardDayKey = dayKey;
+            leaderboardDayValues.clear();
+        }
+        int weekKey = currentLeaderboardWeekKey();
+        if (leaderboardWeekKey != weekKey) {
+            leaderboardWeekKey = weekKey;
+            leaderboardWeekValues.clear();
+        }
+        int seasonKey = currentLeaderboardSeasonKey();
+        if (leaderboardSeasonKey != seasonKey) {
+            leaderboardSeasonKey = seasonKey;
+            leaderboardSeasonValues.clear();
+        }
+    }
+
+    private int currentLeaderboardDayKey() {
+        return com.stardew.craft.time.StardewTimeManager.get().getAbsoluteDay();
+    }
+
+    private int currentLeaderboardWeekKey() {
+        return Math.max(0, currentLeaderboardDayKey() - 1) / 7;
+    }
+
+    private int currentLeaderboardSeasonKey() {
+        com.stardew.craft.time.StardewTimeManager time = com.stardew.craft.time.StardewTimeManager.get();
+        return (time.getCurrentYear() - 1) * 4 + time.getCurrentSeason();
+    }
+
+    private static String skillMetricId(SkillType skill) {
+        return switch (skill) {
+            case FARMING -> LeaderboardMetric.SKILL_FARMING.id();
+            case FISHING -> LeaderboardMetric.SKILL_FISHING.id();
+            case FORAGING -> LeaderboardMetric.SKILL_FORAGING.id();
+            case MINING -> LeaderboardMetric.SKILL_MINING.id();
+            case COMBAT -> LeaderboardMetric.SKILL_COMBAT.id();
+        };
     }
 
     // ──── Mail Flags (SDV mailReceived parity) ────
@@ -1688,6 +1890,7 @@ public class PlayerStardewData {
     public Map<String, Integer> getAllMonsterKills() { return Collections.unmodifiableMap(monsterKillCounts); }
     public void addMonsterKills(String goalKey, int count) {
         monsterKillCounts.merge(goalKey, count, Integer::sum);
+        addLeaderboardPeriodValue(LeaderboardMetric.MONSTERS_SLAIN.id(), count);
         markDirty();
     }
     public boolean hasClaimedSlayerReward(String goalKey) { return claimedSlayerRewards.contains(goalKey); }
@@ -1755,6 +1958,10 @@ public class PlayerStardewData {
     public void setStarterToolsGiven(boolean given) { this.starterToolsGiven = given; markDirty(); }
     public boolean isBilibiliRewardClaimed() { return bilibiliRewardClaimed; }
     public void setBilibiliRewardClaimed(boolean claimed) { this.bilibiliRewardClaimed = claimed; markDirty(); }
+    public boolean isMine100StardropCompensationProcessed() { return mine100StardropCompensationProcessed; }
+    public void setMine100StardropCompensationProcessed(boolean processed) { this.mine100StardropCompensationProcessed = processed; markDirty(); }
+    public int getHandledPregenRelocationVersion() { return handledPregenRelocationVersion; }
+    public void setHandledPregenRelocationVersion(int version) { this.handledPregenRelocationVersion = version; markDirty(); }
 
     public void setDailyLuckForDate(double dailyLuck, int dateKey) {
         this.dailyLuck = dailyLuck;

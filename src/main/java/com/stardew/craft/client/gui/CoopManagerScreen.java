@@ -2,6 +2,7 @@ package com.stardew.craft.client.gui;
 
 import com.stardew.craft.block.ModBlocks;
 import com.stardew.craft.client.gui.common.CommonGuiTextures;
+import com.stardew.craft.client.gui.common.GuiText;
 import com.stardew.craft.menu.CoopManagerMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -161,18 +162,20 @@ public class CoopManagerScreen extends AbstractContainerScreen<CoopManagerMenu> 
             MissingEntry entry = missing.get(i);
             int rowY = y + i * 16;
             CommonGuiTextures.drawItem(graphics, entry.icon(), this.leftPos + 16, rowY, 1.0f);
-            graphics.drawString(this.font, entry.text(), this.leftPos + 36, rowY + 4, 0xFFE3E3E3, false);
+            graphics.drawString(this.font, GuiText.ellipsize(this.font, entry.text(), this.imageWidth - 52),
+                this.leftPos + 36, rowY + 4, 0xFFE3E3E3, false);
         }
     }
 
     @Override
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
         Component titleText = Component.translatable("container.stardew_craft.coop_manager");
-        int titleWidth = this.font.width(titleText);
-        graphics.drawString(this.font, titleText, (this.imageWidth - titleWidth) / 2, 8, 0xFFFFD46A, false);
+        GuiText.drawCenteredClamped(graphics, this.font, titleText, this.imageWidth / 2, 8,
+            this.imageWidth - 24, 0xFFFFD46A, false);
 
         Component stageText = Component.translatable("gui.stardew_craft.coop_manager.stage", stageLabel(menu.getCurrentTier()));
-        graphics.drawString(this.font, stageText, 16, 24, 0xFFFFFFFF, false);
+        graphics.drawString(this.font, GuiText.ellipsize(this.font, stageText, this.imageWidth - 32),
+            16, 24, 0xFFFFFFFF, false);
 
         if (isConfirmMode()) {
             renderConfirmDialogLabels(graphics);
@@ -180,40 +183,52 @@ public class CoopManagerScreen extends AbstractContainerScreen<CoopManagerMenu> 
         }
 
         if (menu.isAtMaxTier()) {
-            graphics.drawString(this.font, Component.translatable("gui.stardew_craft.coop_manager.ready"), 16, 40, 0xFF8FEA8F, false);
+            graphics.drawString(this.font, GuiText.ellipsize(this.font,
+                Component.translatable("gui.stardew_craft.coop_manager.ready"), this.imageWidth - 32),
+                16, 40, 0xFF8FEA8F, false);
             return;
         }
 
         Component targetText = Component.translatable("gui.stardew_craft.coop_manager.target", menu.getTargetTier());
-        graphics.drawString(this.font, targetText, 16, 40, 0xFFE0E0E0, false);
+        graphics.drawString(this.font, GuiText.ellipsize(this.font, targetText, this.imageWidth - 92),
+            16, 40, 0xFFE0E0E0, false);
 
         boolean unenclosed = menu.isEnclosedRequired() && !menu.isEnclosed();
         if (unenclosed) {
-            graphics.drawString(this.font, Component.translatable("gui.stardew_craft.coop_manager.need.enclosed"), 16, 56, 0xFFE68B8B, false);
+            graphics.drawString(this.font, GuiText.ellipsize(this.font,
+                Component.translatable("gui.stardew_craft.coop_manager.need.enclosed"), this.imageWidth - 32),
+                16, 56, 0xFFE68B8B, false);
         } else {
             Component reqSizeText = Component.translatable(
                 "gui.stardew_craft.coop_manager.req_size",
                 menu.getReqInteriorBlocks()
             );
-            graphics.drawString(this.font, reqSizeText, 16, 50, 0xFFBFC6D1, false);
+            graphics.drawString(this.font, GuiText.ellipsize(this.font, reqSizeText, this.imageWidth - 32),
+                16, 50, 0xFFBFC6D1, false);
 
             Component curSizeText = Component.translatable(
                 "gui.stardew_craft.coop_manager.cur_size",
                 menu.getCurInteriorBlocks(), menu.getCurWidth(), menu.getCurLength(), menu.getCurHeight()
             );
-            graphics.drawString(this.font, curSizeText, 16, 60, 0xFFBFC6D1, false);
+            graphics.drawString(this.font, GuiText.ellipsize(this.font, curSizeText, this.imageWidth - 32),
+                16, 60, 0xFFBFC6D1, false);
 
             Component reqFacilityText = Component.translatable(
                 "gui.stardew_craft.coop_manager.req_facilities",
                 menu.getReqFeedTrough(), menu.getReqAutoFeedTrough(), menu.getReqHayHopper(), menu.getReqIncubator()
             );
-            graphics.drawString(this.font, reqFacilityText, 16, 70, 0xFFBFC6D1, false);
+            graphics.drawString(this.font, GuiText.ellipsize(this.font, reqFacilityText, this.imageWidth - 32),
+                16, 70, 0xFFBFC6D1, false);
         }
 
         if (menu.canBuildOrUpgrade()) {
-            graphics.drawString(this.font, Component.translatable("gui.stardew_craft.coop_manager.ready"), 162, 40, 0xFF8FEA8F, false);
+            graphics.drawString(this.font, GuiText.ellipsize(this.font,
+                Component.translatable("gui.stardew_craft.coop_manager.ready"), 44),
+                162, 40, 0xFF8FEA8F, false);
         } else {
-            graphics.drawString(this.font, Component.translatable("gui.stardew_craft.coop_manager.missing"), 146, 40, 0xFFE68B8B, false);
+            graphics.drawString(this.font, GuiText.ellipsize(this.font,
+                Component.translatable("gui.stardew_craft.coop_manager.missing"), 60),
+                146, 40, 0xFFE68B8B, false);
         }
     }
 
@@ -224,22 +239,40 @@ public class CoopManagerScreen extends AbstractContainerScreen<CoopManagerMenu> 
             default -> Component.empty();
         };
 
-        graphics.drawString(this.font, title, 16, 56, 0xFFFFD46A, false);
+        graphics.drawString(this.font, GuiText.ellipsize(this.font, title, this.imageWidth - 32),
+            16, 56, 0xFFFFD46A, false);
+
+        int lineY = 70;
+        int lineW = this.imageWidth - 32;
 
         if (confirmMode == ConfirmDialogMode.DEMOLISH) {
-            graphics.drawString(this.font, Component.translatable("gui.stardew_craft.coop_manager.dialog.demolish.line1"), 16, 70, 0xFFE3E3E3, false);
-            graphics.drawString(this.font, Component.translatable("gui.stardew_craft.coop_manager.dialog.demolish.line2"), 16, 82, 0xFFE3E3E3, false);
+            lineY = GuiText.drawWrapped(graphics, this.font,
+                Component.translatable("gui.stardew_craft.coop_manager.dialog.demolish.line1"),
+                16, lineY, lineW, 0xFFE3E3E3, false, 2);
+            lineY = GuiText.drawWrapped(graphics, this.font,
+                Component.translatable("gui.stardew_craft.coop_manager.dialog.demolish.line2"),
+                16, lineY, lineW, 0xFFE3E3E3, false, 2);
             if (menu.getBoundAnimalCount() > 0) {
-                graphics.drawString(this.font, Component.translatable("gui.stardew_craft.coop_manager.dialog.demolish.blocked_animals", menu.getBoundAnimalCount()), 16, 94, 0xFFE68B8B, false);
+                GuiText.drawWrapped(graphics, this.font,
+                    Component.translatable("gui.stardew_craft.coop_manager.dialog.demolish.blocked_animals", menu.getBoundAnimalCount()),
+                    16, lineY, lineW, 0xFFE68B8B, false, 2);
             } else {
-                graphics.drawString(this.font, Component.translatable("gui.stardew_craft.coop_manager.dialog.demolish.line3"), 16, 94, 0xFFE68B8B, false);
+                GuiText.drawWrapped(graphics, this.font,
+                    Component.translatable("gui.stardew_craft.coop_manager.dialog.demolish.line3"),
+                    16, lineY, lineW, 0xFFE68B8B, false, 2);
             }
             return;
         }
 
-        graphics.drawString(this.font, Component.translatable("gui.stardew_craft.coop_manager.dialog.relocate.line1"), 16, 70, 0xFFE3E3E3, false);
-        graphics.drawString(this.font, Component.translatable("gui.stardew_craft.coop_manager.dialog.relocate.line2"), 16, 82, 0xFFE3E3E3, false);
-        graphics.drawString(this.font, Component.translatable("gui.stardew_craft.coop_manager.dialog.relocate.line3"), 16, 94, 0xFFE68B8B, false);
+        lineY = GuiText.drawWrapped(graphics, this.font,
+            Component.translatable("gui.stardew_craft.coop_manager.dialog.relocate.line1"),
+            16, lineY, lineW, 0xFFE3E3E3, false, 2);
+        lineY = GuiText.drawWrapped(graphics, this.font,
+            Component.translatable("gui.stardew_craft.coop_manager.dialog.relocate.line2"),
+            16, lineY, lineW, 0xFFE3E3E3, false, 2);
+        GuiText.drawWrapped(graphics, this.font,
+            Component.translatable("gui.stardew_craft.coop_manager.dialog.relocate.line3"),
+            16, lineY, lineW, 0xFFE68B8B, false, 2);
     }
 
     private void enterConfirm(ConfirmDialogMode mode) {

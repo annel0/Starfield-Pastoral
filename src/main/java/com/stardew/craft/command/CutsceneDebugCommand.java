@@ -5,8 +5,13 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.stardew.craft.cutscene.data.EventData;
 import com.stardew.craft.cutscene.data.EventRegistry;
+import com.stardew.craft.cutscene.network.CutsceneAnchorPayload;
 import com.stardew.craft.cutscene.network.SyncEventSeenPayload;
+import com.stardew.craft.cutscene.server.WakeUpEventScheduler;
+import com.stardew.craft.farm.FarmInstanceRegistry;
+import net.minecraft.commands.SharedSuggestionProvider;
 import com.stardew.craft.cutscene.server.EventSeenData;
+import net.minecraft.core.BlockPos;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -14,6 +19,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 
 /**
  * Debug commands for the cutscene/event system.
@@ -33,6 +39,12 @@ public final class CutsceneDebugCommand {
                 .then(Commands.literal("event")
                     .then(Commands.literal("play")
                         .then(Commands.argument("eventId", StringArgumentType.string())
+                            .suggests((context, builder) -> SharedSuggestionProvider.suggest(
+                                    EventRegistry.all().stream()
+                                            .map(EventData::id)
+                                            .sorted(Comparator.naturalOrder())
+                                            .toList(),
+                                    builder))
                             .executes(CutsceneDebugCommand::playEvent)
                         )
                     )
@@ -58,6 +70,16 @@ public final class CutsceneDebugCommand {
         // For now, use a simple trigger payload approach:
         // The client will need to fetch the event from its own registry copy
         if (context.getSource().getEntity() instanceof ServerPlayer player) {
+            if (data.trigger() != null && "wake_up".equals(data.trigger().type())) {
+                BlockPos spawn = FarmInstanceRegistry.get().getFarmSpawnPoint(player.getUUID());
+                if (spawn != null) {
+                    PacketDistributor.sendToPlayer(player,
+                            new CutsceneAnchorPayload(WakeUpEventScheduler.FARM_SPAWN_ANCHOR,
+                                    spawn.getX() + 0.5,
+                                    spawn.getY(),
+                                    spawn.getZ() + 0.5));
+                }
+            }
             // Send a trigger packet (and mark server-side cutscene active)
             com.stardew.craft.cutscene.server.ServerCutsceneTracker.startEvent(player, eventId);
             context.getSource().sendSuccess(() -> Component.literal("触发事件: " + eventId), false);

@@ -2,6 +2,7 @@ package com.stardew.craft.client.gui;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.stardew.craft.client.gui.common.CommonGuiTextures;
+import com.stardew.craft.client.gui.common.GuiText;
 import com.stardew.craft.network.payload.FurnitureCataloguePurchasePayload;
 import com.stardew.craft.network.payload.FurnitureCatalogueResultPayload;
 import com.stardew.craft.shop.ShopItemEntry;
@@ -265,9 +266,9 @@ public class FurnitureCatalogueScreen extends Screen {
             String msg = activeTab == Tab.FAVOURITES
                 ? I18n.get("stardewcraft.catalogue.no_favourites")
                 : I18n.get("stardewcraft.catalogue.no_results");
-            g.drawString(font, msg,
-                panelX + panelWGui / 2 - font.width(msg) / 2,
-                panelY + panelHGui / 2 - font.lineHeight / 2, 0x404040, false);
+            GuiText.drawCenteredClamped(g, font, Component.literal(msg),
+                panelX + panelWGui / 2, panelY + panelHGui / 2 - font.lineHeight / 2,
+                Math.max(1, panelWGui - ui(80)), 0x404040, false);
         }
 
         // 6. Scroll arrows
@@ -317,8 +318,9 @@ public class FurnitureCatalogueScreen extends Screen {
 
         // Draw placeholder or search text
         if (searchQuery.isEmpty() && !searchFocused) {
-            String placeholder = I18n.get("stardewcraft.catalogue.search_placeholder");
-            g.drawString(font, placeholder, textX, textY, 0x888888, false);
+            Component placeholder = Component.literal(I18n.get("stardewcraft.catalogue.search_placeholder"));
+            g.drawString(font, GuiText.ellipsize(font, placeholder, searchBoxW - ui(32)),
+                textX, textY, 0x888888, false);
         } else {
             String displayText = searchQuery;
             // Blinking cursor
@@ -326,7 +328,8 @@ public class FurnitureCatalogueScreen extends Screen {
                 cursorBlink++;
                 if (cursorBlink % 40 < 20) displayText += "_";
             }
-            g.drawString(font, displayText, textX, textY, 0x1a1a1a, false);
+            g.drawString(font, GuiText.ellipsize(font, Component.literal(displayText), searchBoxW - ui(32)),
+                textX, textY, 0x1a1a1a, false);
         }
 
         // Focused border highlight (2px golden border)
@@ -437,9 +440,10 @@ public class FurnitureCatalogueScreen extends Screen {
         } catch (Exception ignored) {}
 
         // Name
-        String name = resolveItemName(item);
-        if (name.length() > 35) name = name.substring(0, 35) + "...";
-        g.drawString(font, name, rowX + ui(104), rowY + ui(24), 0x1a1a1a, false);
+        int nameX = rowX + ui(104);
+        int nameMaxWidth = Math.max(ui(120), rowWGui - ui(300));
+        Component name = GuiText.ellipsize(font, Component.literal(resolveItemName(item)), nameMaxWidth);
+        g.drawString(font, name, nameX, rowY + ui(24), 0x1a1a1a, false);
 
         // "Free" label
         String freeLabel = I18n.get("stardewcraft.catalogue.free");

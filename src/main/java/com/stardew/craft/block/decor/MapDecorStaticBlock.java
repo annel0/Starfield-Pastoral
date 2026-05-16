@@ -137,6 +137,21 @@ public class MapDecorStaticBlock extends Block {
         return resolvePartShape(state, level, pos, state.getValue(PART));
     }
 
+    @Override
+    public boolean propagatesSkylightDown(@Nonnull BlockState state, @Nonnull BlockGetter level, @Nonnull BlockPos pos) {
+        return true;
+    }
+
+    @Override
+    public int getLightBlock(@Nonnull BlockState state, @Nonnull BlockGetter level, @Nonnull BlockPos pos) {
+        return 0;
+    }
+
+    @Override
+    public float getShadeBrightness(@Nonnull BlockState state, @Nonnull BlockGetter level, @Nonnull BlockPos pos) {
+        return 1.0F;
+    }
+
     /**
      * Looks up the pre-computed box shape for the given cell (facing + offset).
      */

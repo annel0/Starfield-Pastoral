@@ -107,11 +107,11 @@ public class QuestDataLoader {
 
         // nextQuests (index 5)
         String nextQuestsStr = parts[5].trim();
-        if (!nextQuestsStr.isEmpty()) {
+        if (!nextQuestsStr.isEmpty() && !"null".equalsIgnoreCase(nextQuestsStr) && !"-1".equals(nextQuestsStr)) {
             List<String> nextQuests = new ArrayList<>();
             for (String nq : nextQuestsStr.split("\\s+")) {
                 String cleaned = nq.startsWith("h") ? nq.substring(1) : nq;
-                if (!cleaned.isEmpty()) nextQuests.add(cleaned);
+                if (!cleaned.isEmpty() && !"null".equalsIgnoreCase(cleaned) && !"-1".equals(cleaned)) nextQuests.add(cleaned);
             }
             quest.setNextQuests(nextQuests);
         }
@@ -124,7 +124,7 @@ public class QuestDataLoader {
 
         // rewardDescription (index 7)
         String rewardDesc = parts[7].trim();
-        quest.setRewardDescription(rewardDesc.isEmpty() ? null : rewardDesc);
+        quest.setRewardDescription(rewardDesc.isEmpty() || "null".equalsIgnoreCase(rewardDesc) || "-1".equals(rewardDesc) ? null : rewardDesc);
 
         // canBeCancelled (index 8)
         quest.setCanBeCancelled("true".equalsIgnoreCase(parts[8].trim()));

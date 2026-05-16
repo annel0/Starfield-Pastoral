@@ -18,6 +18,7 @@ public class TooltipConstants {
     public static final String ICON_BUFF_WARRIOR_BLESSING = "\uE017";
     public static final String ICON_BUFF_GUARDIAN_BLESSING = "\uE018";
     public static final String ICON_BUFF_MAGNETISM = "\uE019";
+    public static final String ICON_BUFF_AVOID_MONSTERS = "\uE01A";
 
     // Tooltip placeholder markers (should render as nothing)
     public static final String MARKER_WATER_AMOUNT = "\u200B"; // zero-width space

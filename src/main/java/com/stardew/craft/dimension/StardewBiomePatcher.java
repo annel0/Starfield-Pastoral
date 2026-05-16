@@ -7,6 +7,8 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
@@ -17,6 +19,17 @@ import net.minecraft.world.level.chunk.PalettedContainerRO;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.level.ChunkEvent;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Replaces {@code minecraft:the_void} and {@code minecraft:plains} biomes
@@ -31,17 +44,23 @@ import net.neoforged.neoforge.event.level.ChunkEvent;
 @SuppressWarnings("null")
 public final class StardewBiomePatcher {
 
+    private static final String MANIFEST_RESOURCE = "pregen/stardew_valley/region_manifest.txt";
+    private static final Pattern REGION_FILE_PATTERN = Pattern.compile("^r\\.(-?\\d+)\\.(-?\\d+)\\.mca$", Pattern.CASE_INSENSITIVE);
+    private static final int CHUNKS_PER_TICK = 12;
+
     private static final ResourceKey<Biome> STARDEW_DEFAULT_KEY =
             ResourceKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath("stardewcraft", "stardew_default"));
 
     private static final ResourceKey<Biome> CALICO_DESERT_KEY =
             ResourceKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath("stardewcraft", "calico_desert"));
 
-    // 沙漠 schem 包围盒（世界坐标）
-    private static final int DESERT_MIN_X = DesertConstants.DESERT_ORIGIN.getX();        // -466
-    private static final int DESERT_MAX_X = DESERT_MIN_X + 297;                          // -169
-    private static final int DESERT_MIN_Z = DesertConstants.DESERT_ORIGIN.getZ();        // 1160
-    private static final int DESERT_MAX_Z = DESERT_MIN_Z + 323;                          // 1483
+    // pregen 主地图内嵌沙漠包围盒（世界坐标）
+    private static final int DESERT_MIN_X = DesertConstants.DESERT_BBOX_MIN_X;
+    private static final int DESERT_MAX_X = DesertConstants.DESERT_BBOX_MAX_X;
+    private static final int DESERT_MIN_Z = DesertConstants.DESERT_BBOX_MIN_Z;
+    private static final int DESERT_MAX_Z = DesertConstants.DESERT_BBOX_MAX_Z;
+
+    private static boolean pregenMigrationScheduled = false;
 
     private StardewBiomePatcher() {}
 
@@ -51,6 +70,10 @@ public final class StardewBiomePatcher {
         if (!serverLevel.dimension().equals(ModDimensions.STARDEW_VALLEY)) return;
         if (!(event.getChunk() instanceof LevelChunk chunk)) return;
 
+        patchChunk(serverLevel, chunk);
+    }
+
+    public static boolean patchChunk(ServerLevel serverLevel, LevelChunk chunk) {
         // 判断此 chunk 是否与沙漠区域重叠
         boolean isDesertChunk = isDesertChunk(chunk.getPos());
 
@@ -92,7 +115,113 @@ public final class StardewBiomePatcher {
         if (modified) {
             chunk.setUnsaved(true);
         }
+        return modified;
     }
+
+    public static void schedulePregenBiomeMigration(ServerLevel level, String reason) {
+        if (!level.dimension().equals(ModDimensions.STARDEW_VALLEY)) return;
+        if (pregenMigrationScheduled) {
+            StardewCraft.LOGGER.info("[VALLEY_BIOME] Pregen biome migration already scheduled; skipping duplicate request ({})", reason);
+            return;
+        }
+
+        Queue<ChunkPos> chunks = new ArrayDeque<>();
+        for (RegionCoordinate region : readManifestRegionCoordinates()) {
+            int baseChunkX = region.regionX() * 32;
+            int baseChunkZ = region.regionZ() * 32;
+            for (int chunkOffsetZ = 0; chunkOffsetZ < 32; chunkOffsetZ++) {
+                for (int chunkOffsetX = 0; chunkOffsetX < 32; chunkOffsetX++) {
+                    chunks.add(new ChunkPos(baseChunkX + chunkOffsetX, baseChunkZ + chunkOffsetZ));
+                }
+            }
+        }
+
+        if (chunks.isEmpty()) {
+            StardewCraft.LOGGER.warn("[VALLEY_BIOME] No pregen manifest regions found; biome migration not scheduled ({})", reason);
+            return;
+        }
+
+        pregenMigrationScheduled = true;
+        MinecraftServer server = level.getServer();
+        StardewCraft.LOGGER.info("[VALLEY_BIOME] Scheduling pregen biome migration for {} chunks ({})", chunks.size(), reason);
+        server.tell(new TickTask(server.getTickCount() + 1,
+                () -> runPregenBiomeMigrationBatch(server, reason, chunks, 0, 0)));
+    }
+
+    private static void runPregenBiomeMigrationBatch(
+            MinecraftServer server,
+            String reason,
+            Queue<ChunkPos> chunks,
+            int scannedChunks,
+            int modifiedChunks
+    ) {
+        ServerLevel level = server.getLevel(ModDimensions.STARDEW_VALLEY);
+        if (level == null) {
+            pregenMigrationScheduled = false;
+            StardewCraft.LOGGER.warn("[VALLEY_BIOME] Stardew level missing; biome migration stopped ({})", reason);
+            return;
+        }
+
+        int batchScanned = 0;
+        int batchModified = 0;
+        try {
+            while (batchScanned < CHUNKS_PER_TICK && !chunks.isEmpty()) {
+                ChunkPos chunkPos = chunks.remove();
+                LevelChunk chunk = level.getChunk(chunkPos.x, chunkPos.z);
+                if (patchChunk(level, chunk)) {
+                    batchModified++;
+                }
+                batchScanned++;
+            }
+        } catch (Exception e) {
+            pregenMigrationScheduled = false;
+            StardewCraft.LOGGER.error("[VALLEY_BIOME] Pregen biome migration failed ({})", reason, e);
+            return;
+        }
+
+        int totalScanned = scannedChunks + batchScanned;
+        int totalModified = modifiedChunks + batchModified;
+        if (!chunks.isEmpty()) {
+            server.tell(new TickTask(server.getTickCount() + 1,
+                    () -> runPregenBiomeMigrationBatch(server, reason, chunks, totalScanned, totalModified)));
+            return;
+        }
+
+        level.getChunkSource().save(false);
+        pregenMigrationScheduled = false;
+        StardewCraft.LOGGER.info("[VALLEY_BIOME] Completed pregen biome migration ({}): scanned {} chunks, modified {} chunks",
+                reason, totalScanned, totalModified);
+    }
+
+    private static List<RegionCoordinate> readManifestRegionCoordinates() {
+        List<RegionCoordinate> regions = new ArrayList<>();
+        try (InputStream input = StardewBiomePatcher.class.getClassLoader().getResourceAsStream(MANIFEST_RESOURCE)) {
+            if (input == null) {
+                return regions;
+            }
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String trimmed = line.trim();
+                    if (trimmed.isEmpty() || trimmed.startsWith("#")) {
+                        continue;
+                    }
+                    Matcher matcher = REGION_FILE_PATTERN.matcher(trimmed);
+                    if (!matcher.matches()) {
+                        continue;
+                    }
+                    regions.add(new RegionCoordinate(
+                            Integer.parseInt(matcher.group(1)),
+                            Integer.parseInt(matcher.group(2))));
+                }
+            }
+        } catch (Exception e) {
+            StardewCraft.LOGGER.warn("[VALLEY_BIOME] Failed reading pregen biome migration manifest: {}", e.getMessage());
+        }
+        return regions;
+    }
+
+    private record RegionCoordinate(int regionX, int regionZ) {}
 
     /**
      * Returns true if this chunk's block range overlaps the desert schem bounding box.

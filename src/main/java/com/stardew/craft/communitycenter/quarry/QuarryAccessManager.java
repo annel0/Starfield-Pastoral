@@ -7,21 +7,13 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.saveddata.SavedData;
 
 import javax.annotation.Nonnull;
 
 /**
  * 采石场访问门：工艺室献祭 (ccCraftsRoom) 对应的小镇→采石场通行逻辑。
- *
- * 设计要点：
- * - 小镇这边的桥是永远相连的（视觉上没有断桥），但在 X=-396 这个面上放一堵
- *   barrier 屏障墙，把直接走过去的物理通路封住。
- * - 屏障中间留出的 3×2 方形空洞里放 PortalTriggerBlock（target=quarry_entrance），
- *   玩家右键这里，服务端检查 ccCraftsRoom flag：有 → 传送到桥对面；无 → 提示。
- * - 对面（采石场侧）也放一组 PortalTriggerBlock（target=quarry_exit）作为返程。
- * - 该 manager 用 SavedData 标记 "已放置"，确保老存档升级上来也能补放。
+ * 这里仅放置已迁移的传送触发区；地图屏障已内置，不运行旧墙体放置。
  */
 @SuppressWarnings("null")
 public class QuarryAccessManager extends SavedData {
@@ -30,16 +22,16 @@ public class QuarryAccessManager extends SavedData {
     private static final String TAG_QUARRY = "sdv_portal_marker:quarry_access";
 
     /**
-     * 放置逻辑版本号。坐标或屏障结构有改动时把这个数 +1，老存档下次加载会自动
+    * 放置逻辑版本号。坐标有改动时把这个数 +1，老存档下次加载会自动
      * 清除旧放置标记并重新放置（ensurePlaced 会检测 placedVersion < CURRENT_VERSION）。
      */
-    private static final int CURRENT_VERSION = 2;
+    private static final int CURRENT_VERSION = 3;
 
     // ── 采石场区域（与 QuarrySpawnService 保持一致） ──
-    public static final int QUARRY_MIN_X = -493;
-    public static final int QUARRY_MAX_X = -416;
-    public static final int QUARRY_MIN_Z = 232;
-    public static final int QUARRY_MAX_Z = 299;
+    public static final int QUARRY_MIN_X = 155;
+    public static final int QUARRY_MAX_X = 194;
+    public static final int QUARRY_MIN_Z = -140;
+    public static final int QUARRY_MAX_Z = -101;
 
     /** 判断坐标是否在采石场矩形内（忽略 Y，整个立方柱都算采石场，保证挖深也能操作）。 */
     public static boolean isInQuarryArea(BlockPos pos) {
@@ -49,39 +41,32 @@ public class QuarryAccessManager extends SavedData {
                 && z >= QUARRY_MIN_Z && z <= QUARRY_MAX_Z;
     }
 
-    // ── 屏障墙（X=-396 这一整面） ──
-    private static final int BARRIER_X = -396;
-    private static final int BARRIER_Y_MIN = -20;
-    private static final int BARRIER_Y_MAX = 33;
-    private static final int BARRIER_Z_MIN = 32;
-    private static final int BARRIER_Z_MAX = 412;
+    // ── 镇子侧触发方块 ──
+    private static final int TOWN_TRIGGER_X = 137;
+    private static final int TOWN_TRIGGER_Y_MIN = 81;
+    private static final int TOWN_TRIGGER_Y_MAX = 81;
+    private static final int TOWN_TRIGGER_Z_MIN = -119;
+    private static final int TOWN_TRIGGER_Z_MAX = -115;
 
-    // ── 镇子侧触发方块（X=-395） ──
-    private static final int TOWN_TRIGGER_X = -395;
-    private static final int TOWN_TRIGGER_Y_MIN = -12;
-    private static final int TOWN_TRIGGER_Y_MAX = -11;
-    private static final int TOWN_TRIGGER_Z_MIN = 260;
-    private static final int TOWN_TRIGGER_Z_MAX = 262;
-
-    // ── 采石场侧返程触发方块（X=-397） ──
-    private static final int QUARRY_TRIGGER_X = -397;
-    private static final int QUARRY_TRIGGER_Y_MIN = -12;
-    private static final int QUARRY_TRIGGER_Y_MAX = -11;
-    private static final int QUARRY_TRIGGER_Z_MIN = 260;
-    private static final int QUARRY_TRIGGER_Z_MAX = 262;
+    // ── 采石场侧返程触发方块 ──
+    private static final int QUARRY_TRIGGER_X = 139;
+    private static final int QUARRY_TRIGGER_Y_MIN = 81;
+    private static final int QUARRY_TRIGGER_Y_MAX = 83;
+    private static final int QUARRY_TRIGGER_Z_MIN = -119;
+    private static final int QUARRY_TRIGGER_Z_MAX = -115;
 
     // ── 传送目标 ──
-    /** 镇子 → 采石场：(-398, -12, 261) 面朝西（yaw=90） */
-    public static final double ENTRY_DEST_X = -398 + 0.5;
-    public static final double ENTRY_DEST_Y = -12.0;
-    public static final double ENTRY_DEST_Z = 261 + 0.5;
+    /** 镇子 → 采石场：面朝西。 */
+    public static final double ENTRY_DEST_X = 136 + 0.5;
+    public static final double ENTRY_DEST_Y = 83.0;
+    public static final double ENTRY_DEST_Z = -117 + 0.5;
     public static final float ENTRY_DEST_YAW = 90.0F;
     public static final float ENTRY_DEST_PITCH = 0.0F;
 
-    /** 采石场 → 镇子：落到镇子侧触发方块东侧一格，面朝东（避免立刻再触发） */
-    public static final double EXIT_DEST_X = -394 + 0.5;
-    public static final double EXIT_DEST_Y = -12.0;
-    public static final double EXIT_DEST_Z = 261 + 0.5;
+    /** 采石场 → 镇子：面朝东。 */
+    public static final double EXIT_DEST_X = 140 + 0.5;
+    public static final double EXIT_DEST_Y = 81.0;
+    public static final double EXIT_DEST_Z = -117 + 0.5;
     public static final float EXIT_DEST_YAW = -90.0F;
     public static final float EXIT_DEST_PITCH = 0.0F;
 
@@ -102,7 +87,7 @@ public class QuarryAccessManager extends SavedData {
     }
 
     /**
-     * 确保屏障墙与两侧传送触发方块已放置。基于版本号幂等：
+    * 确保两侧传送触发方块已放置。基于版本号幂等：
      * 如果 placedVersion < CURRENT_VERSION，会重新运行放置逻辑（覆盖旧坐标），
      * 让老存档在坐标被改动后能自动升级。
      */
@@ -110,10 +95,9 @@ public class QuarryAccessManager extends SavedData {
         if (placedVersion >= CURRENT_VERSION) return;
         if (!ModDimensions.STARDEW_VALLEY.equals(stardewLevel.dimension())) return;
 
-        StardewCraft.LOGGER.info("[QUARRY] Placing quarry access barrier + triggers (oldVersion={}, newVersion={})",
+        StardewCraft.LOGGER.info("[QUARRY] Placing quarry access triggers (oldVersion={}, newVersion={})",
                 placedVersion, CURRENT_VERSION);
 
-        placeBarrierWall(stardewLevel);
         placeTrigger(stardewLevel,
                 TOWN_TRIGGER_X, TOWN_TRIGGER_Y_MIN, TOWN_TRIGGER_Z_MIN,
                 TOWN_TRIGGER_X, TOWN_TRIGGER_Y_MAX, TOWN_TRIGGER_Z_MAX,
@@ -126,31 +110,6 @@ public class QuarryAccessManager extends SavedData {
         placedVersion = CURRENT_VERSION;
         setDirty();
         StardewCraft.LOGGER.info("[QUARRY] Quarry access setup complete.");
-    }
-
-    private void placeBarrierWall(ServerLevel level) {
-        int minX = Math.min(BARRIER_X, BARRIER_X);
-        int maxX = minX;
-        int minY = Math.min(BARRIER_Y_MIN, BARRIER_Y_MAX);
-        int maxY = Math.max(BARRIER_Y_MIN, BARRIER_Y_MAX);
-        int minZ = Math.min(BARRIER_Z_MIN, BARRIER_Z_MAX);
-        int maxZ = Math.max(BARRIER_Z_MIN, BARRIER_Z_MAX);
-        int count = 0;
-        for (int x = minX; x <= maxX; x++) {
-            for (int y = minY; y <= maxY; y++) {
-                for (int z = minZ; z <= maxZ; z++) {
-                    BlockPos pos = new BlockPos(x, y, z);
-                    // 保证 chunk 加载
-                    level.getChunk(pos.getX() >> 4, pos.getZ() >> 4);
-                    if (level.getBlockState(pos).isAir()) {
-                        level.setBlock(pos, Blocks.BARRIER.defaultBlockState(), 2);
-                        count++;
-                    }
-                }
-            }
-        }
-        StardewCraft.LOGGER.info("[QUARRY] Placed {} barrier blocks along X={} (Y {}..{}, Z {}..{})",
-                count, BARRIER_X, minY, maxY, minZ, maxZ);
     }
 
     private void placeTrigger(ServerLevel level,

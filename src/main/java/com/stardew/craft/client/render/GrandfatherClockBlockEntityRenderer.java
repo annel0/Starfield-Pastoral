@@ -9,12 +9,10 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
-import software.bernie.geckolib.renderer.GeoBlockRenderer;
-
 import javax.annotation.Nonnull;
 
 @SuppressWarnings("null")
-public class GrandfatherClockBlockEntityRenderer extends GeoBlockRenderer<GrandfatherClockBlockEntity> {
+public class GrandfatherClockBlockEntityRenderer extends StardewGeoBlockRenderer<GrandfatherClockBlockEntity> {
     public GrandfatherClockBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
         super(new GrandfatherClockGeoModel());
     }

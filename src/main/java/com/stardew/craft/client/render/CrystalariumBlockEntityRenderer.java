@@ -18,12 +18,10 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import software.bernie.geckolib.renderer.GeoBlockRenderer;
-
 import javax.annotation.Nonnull;
 
 @SuppressWarnings("null")
-public class CrystalariumBlockEntityRenderer extends GeoBlockRenderer<CrystalariumBlockEntity> {
+public class CrystalariumBlockEntityRenderer extends StardewGeoBlockRenderer<CrystalariumBlockEntity> {
     private static final ResourceLocation BUBBLE_TEX = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/bubble.png");
     private static final float PX = 1.0f / 32.0f;
 

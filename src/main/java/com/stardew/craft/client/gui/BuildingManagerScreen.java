@@ -2,6 +2,7 @@ package com.stardew.craft.client.gui;
 
 import com.stardew.craft.block.ModBlocks;
 import com.stardew.craft.client.gui.common.CommonGuiTextures;
+import com.stardew.craft.client.gui.common.GuiText;
 import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
 import com.stardew.craft.menu.IBuildingManagerMenu;
 import com.stardew.craft.sound.ModSounds;
@@ -283,9 +284,10 @@ public class BuildingManagerScreen extends AbstractContainerScreen<AbstractConta
 
         // Title row: building name + tier stars
         Component name = getBuildingDisplayName();
-        g.drawString(this.font, name, cx, y, COL_TITLE, true);
+        int titleMaxW = tier > 0 ? Math.max(1, cw - 36) : cw;
+        g.drawString(this.font, GuiText.ellipsize(this.font, name, titleMaxW), cx, y, COL_TITLE, true);
         if (tier > 0) {
-            int starX = cx + this.font.width(name) + 6;
+            int starX = cx + Math.min(this.font.width(name), titleMaxW) + 6;
             String stars = "\u2605".repeat(tier);
             int starCol = switch (tier) {
                 case 1 -> 0xFFCD7F32;
@@ -299,7 +301,7 @@ public class BuildingManagerScreen extends AbstractContainerScreen<AbstractConta
         // Stage subtitle
         Component stage = Component.translatable(
                 "gui.stardew_craft." + family + "_manager.stage", stageLabel());
-        g.drawString(this.font, stage, cx, y, COL_SUBTITLE, false);
+        g.drawString(this.font, GuiText.ellipsize(this.font, stage, cw), cx, y, COL_SUBTITLE, false);
         y += lineH;
 
         // Animal count or unbuilt text
@@ -308,7 +310,7 @@ public class BuildingManagerScreen extends AbstractContainerScreen<AbstractConta
             int curAnimals = mgr.getBoundAnimalCount();
             Component animals = Component.literal(
                     "\u2767 " + curAnimals + " / " + maxCap);
-            g.drawString(this.font, animals, cx, y, curAnimals >= maxCap ? COL_RED : COL_TEXT, false);
+                g.drawString(this.font, GuiText.ellipsize(this.font, animals, cw), cx, y, curAnimals >= maxCap ? COL_RED : COL_TEXT, false);
             y += lineH;
 
             // Enclosed status
@@ -318,13 +320,13 @@ public class BuildingManagerScreen extends AbstractContainerScreen<AbstractConta
                 Component encText = Component.literal(icon).append(
                         Component.translatable("gui.stardew_craft." + family + "_manager."
                                 + (enc ? "enclosed_ok" : "need.enclosed")));
-                g.drawString(this.font, encText, cx, y, enc ? COL_OK : COL_RED, false);
+                g.drawString(this.font, GuiText.ellipsize(this.font, encText, cw), cx, y, enc ? COL_OK : COL_RED, false);
                 y += lineH;
             }
         } else {
             Component noBuilding = Component.translatable(
                     "gui.stardew_craft." + family + "_manager.stage.unformed");
-            g.drawString(this.font, noBuilding, cx, y, COL_GRAY, false);
+                g.drawString(this.font, GuiText.ellipsize(this.font, noBuilding, cw), cx, y, COL_GRAY, false);
             y += lineH;
         }
 
@@ -394,9 +396,7 @@ public class BuildingManagerScreen extends AbstractContainerScreen<AbstractConta
             float breathe = 0.6f + 0.4f * Mth.sin(tickCount * 0.1f);
             Component ready = Component.translatable(
                     "gui.stardew_craft." + family + "_manager.ready");
-            int tw = this.font.width(ready);
-            g.drawString(this.font, ready, rx + (rw - tw) / 2, ry,
-                    withAlpha(COL_GOLD, breathe), true);
+            GuiText.drawCenteredClamped(g, this.font, ready, rx + rw / 2, ry, rw, withAlpha(COL_GOLD, breathe), true);
             ry += lineH;
         }
 
@@ -450,9 +450,8 @@ public class BuildingManagerScreen extends AbstractContainerScreen<AbstractConta
         }
 
         int textColor = !active ? 0xFF909090 : (hovered ? COL_TITLE : COL_TEXT);
-        int tw = this.font.width(label);
         int th = this.font.lineHeight;
-        g.drawString(this.font, label, x + (w - tw) / 2, y + (h - th) / 2, textColor, hovered);
+        GuiText.drawCenteredClamped(g, this.font, label, x + w / 2, y + (h - th) / 2, w - 8, textColor, hovered);
         g.pose().popPose();
     }
 
@@ -464,7 +463,12 @@ public class BuildingManagerScreen extends AbstractContainerScreen<AbstractConta
         g.fill(0, 0, this.width, this.height, COL_OVERLAY);
 
         int dw = Math.min(panelW - pad, this.width - 16);
-        int dLines = confirmType == ConfirmType.DEMOLISH ? 4 : 3;
+        int contentWidth = Math.max(1, dw - pad * 2);
+        List<Component> dialogLines = confirmDialogLines();
+        int dLines = 1;
+        for (Component line : dialogLines) {
+            dLines += GuiText.wrappedLineCount(this.font, line, contentWidth, 3);
+        }
         int dh = pad * 2 + dLines * lineH + secGap + btnH;
         int dx = (this.width - dw) / 2;
         int dy = (this.height - dh) / 2;
@@ -489,27 +493,15 @@ public class BuildingManagerScreen extends AbstractContainerScreen<AbstractConta
             case RELOCATE -> Component.translatable("gui.stardew_craft." + family + "_manager.dialog.relocate.title");
             default -> Component.empty();
         };
-        g.drawString(this.font, title, tx, ty, COL_TITLE, true);
+        g.drawString(this.font, GuiText.ellipsize(this.font, title, contentWidth), tx, ty, COL_TITLE, true);
         ty += lineH;
 
-        if (confirmType == ConfirmType.DEMOLISH) {
-            g.drawString(this.font, Component.translatable("gui.stardew_craft." + family + "_manager.dialog.demolish.line1"), tx, ty, COL_TEXT, false);
-            ty += lineH;
-            g.drawString(this.font, Component.translatable("gui.stardew_craft." + family + "_manager.dialog.demolish.line2"), tx, ty, COL_TEXT, false);
-            ty += lineH;
-            if (mgr.getBoundAnimalCount() > 0) {
-                g.drawString(this.font, Component.translatable("gui.stardew_craft." + family + "_manager.dialog.demolish.blocked_animals", mgr.getBoundAnimalCount()), tx, ty, COL_RED_SOFT, false);
-            } else {
-                g.drawString(this.font, Component.translatable("gui.stardew_craft." + family + "_manager.dialog.demolish.line3"), tx, ty, COL_RED, false);
+        for (int i = 0; i < dialogLines.size(); i++) {
+            int color = i == dialogLines.size() - 1 ? COL_RED : COL_TEXT;
+            if (confirmType == ConfirmType.DEMOLISH && i == dialogLines.size() - 1 && mgr.getBoundAnimalCount() > 0) {
+                color = COL_RED_SOFT;
             }
-            ty += lineH;
-        } else if (confirmType == ConfirmType.RELOCATE) {
-            g.drawString(this.font, Component.translatable("gui.stardew_craft." + family + "_manager.dialog.relocate.line1"), tx, ty, COL_TEXT, false);
-            ty += lineH;
-            g.drawString(this.font, Component.translatable("gui.stardew_craft." + family + "_manager.dialog.relocate.line2"), tx, ty, COL_TEXT, false);
-            ty += lineH;
-            g.drawString(this.font, Component.translatable("gui.stardew_craft." + family + "_manager.dialog.relocate.line3"), tx, ty, COL_RED, false);
-            ty += lineH;
+            ty = GuiText.drawWrapped(g, this.font, dialogLines.get(i), tx, ty, contentWidth, color, false, 3) + 3;
         }
 
         int cbW = 70;
@@ -541,9 +533,28 @@ public class BuildingManagerScreen extends AbstractContainerScreen<AbstractConta
         }
 
         int textColor = !active ? 0xFF909090 : (hovered ? COL_TITLE : COL_TEXT);
-        int tw = this.font.width(label);
         int th = this.font.lineHeight;
-        g.drawString(this.font, label, x + (w - tw) / 2, y + (h - th) / 2, textColor, hovered);
+        GuiText.drawCenteredClamped(g, this.font, label, x + w / 2, y + (h - th) / 2, w - 8, textColor, hovered);
+    }
+
+    private List<Component> confirmDialogLines() {
+        if (confirmType == ConfirmType.DEMOLISH) {
+            return List.of(
+                Component.translatable("gui.stardew_craft." + family + "_manager.dialog.demolish.line1"),
+                Component.translatable("gui.stardew_craft." + family + "_manager.dialog.demolish.line2"),
+                mgr.getBoundAnimalCount() > 0
+                    ? Component.translatable("gui.stardew_craft." + family + "_manager.dialog.demolish.blocked_animals", mgr.getBoundAnimalCount())
+                    : Component.translatable("gui.stardew_craft." + family + "_manager.dialog.demolish.line3")
+            );
+        }
+        if (confirmType == ConfirmType.RELOCATE) {
+            return List.of(
+                Component.translatable("gui.stardew_craft." + family + "_manager.dialog.relocate.line1"),
+                Component.translatable("gui.stardew_craft." + family + "_manager.dialog.relocate.line2"),
+                Component.translatable("gui.stardew_craft." + family + "_manager.dialog.relocate.line3")
+            );
+        }
+        return List.of();
     }
 
     // ============================
@@ -592,13 +603,17 @@ public class BuildingManagerScreen extends AbstractContainerScreen<AbstractConta
 
     private boolean handleConfirmClick(int mx, int my) {
         int dw = Math.min(panelW - pad, this.width - 16);
-        int dLines = confirmType == ConfirmType.DEMOLISH ? 4 : 3;
+        int contentWidth = Math.max(1, dw - pad * 2);
+        int dLines = 1;
+        for (Component line : confirmDialogLines()) {
+            dLines += GuiText.wrappedLineCount(this.font, line, contentWidth, 3);
+        }
         int dh = pad * 2 + dLines * lineH + secGap + btnH;
         int dx = (this.width - dw) / 2;
         int dy = (this.height - dh) / 2;
 
-        int cbW = Math.max(60, dw / 3);
-        int cbH = btnH;
+        int cbW = 70;
+        int cbH = this.font.lineHeight + 12;
         int cbY = dy + dh - pad - cbH;
         int confirmBtnX = dx + dw / 2 - cbW - 4;
         int cancelBtnX = dx + dw / 2 + 4;

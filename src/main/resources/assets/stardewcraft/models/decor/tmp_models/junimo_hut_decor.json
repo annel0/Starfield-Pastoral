@@ -1,4 +1,5 @@
 {
+  "ambientocclusion": false,
   "format_version": "1.12.0",
   "credit": "Collision proxy for junimo hut decor occupancy",
   "texture_size": [128, 128],

@@ -4,65 +4,65 @@
   "_format": "time -> \"location @namedPointId facing [behavior]\"",
 
   "GreenRain": {
-    "610": "trailer @pam_trailer_couch 3"
+    "610": "trailer @pam_trailer_couch 2"
   },
 
   "rain": {
-    "600":  "trailer @pam_trailer_couch 3",
+    "600":  "trailer @pam_trailer_couch 2",
     "1200": "trailer @pam_trailer_kitchen 1",
     "1700": "saloon @pam_saloon_seat 3",
-    "2300": "trailer @pam_trailer_sleep 3 pam_sleep"
+    "2300": "trailer @pam_trailer_sleep 0 pam_sleep"
   },
 
   "spring": {
     "_note": "Default spring: trailer morning -> busstop -> saloon evening",
-    "600":  "trailer @pam_trailer_couch 3",
-    "1000": "busstop @pam_busstop_bench 3",
-    "1400": "trailer @pam_trailer_couch 3",
+    "600":  "trailer @pam_trailer_couch 2",
+    "1000": "busstop @pam_busstop_bench 2",
+    "1400": "trailer @pam_trailer_couch 2",
     "1700": "saloon @pam_saloon_seat 3",
-    "2300": "trailer @pam_trailer_sleep 3 pam_sleep"
+    "2300": "trailer @pam_trailer_sleep 0 pam_sleep"
   },
 
   "summer": {
     "_note": "Default summer: trailer -> busstop -> saloon",
-    "600":  "trailer @pam_trailer_couch 3",
-    "1000": "busstop @pam_busstop_bench 3",
-    "1400": "trailer @pam_trailer_couch 3",
+    "600":  "trailer @pam_trailer_couch 2",
+    "1000": "busstop @pam_busstop_bench 2",
+    "1400": "trailer @pam_trailer_couch 2",
     "1700": "saloon @pam_saloon_seat 3",
-    "2300": "trailer @pam_trailer_sleep 3 pam_sleep"
+    "2300": "trailer @pam_trailer_sleep 0 pam_sleep"
   },
 
   "fall": {
     "_note": "Default fall: trailer -> town -> saloon",
-    "600":  "trailer @pam_trailer_couch 3",
-    "1000": "town @pam_town_walk 3",
-    "1400": "trailer @pam_trailer_couch 3",
+    "600":  "trailer @pam_trailer_couch 2",
+    "1000": "town @pam_town_walk 0",
+    "1400": "trailer @pam_trailer_couch 2",
     "1700": "saloon @pam_saloon_seat 3",
-    "2300": "trailer @pam_trailer_sleep 3 pam_sleep"
+    "2300": "trailer @pam_trailer_sleep 0 pam_sleep"
   },
 
   "winter": {
     "_note": "Default winter: mostly indoors",
-    "600":  "trailer @pam_trailer_couch 3",
+    "600":  "trailer @pam_trailer_couch 2",
     "1200": "trailer @pam_trailer_kitchen 1",
     "1700": "saloon @pam_saloon_seat 3",
-    "2300": "trailer @pam_trailer_sleep 3 pam_sleep"
+    "2300": "trailer @pam_trailer_sleep 0 pam_sleep"
   },
 
   "friday": {
     "_note": "Friday: longer saloon stay",
-    "600":  "trailer @pam_trailer_couch 3",
-    "1000": "busstop @pam_busstop_bench 3",
+    "600":  "trailer @pam_trailer_couch 2",
+    "1000": "busstop @pam_busstop_bench 2",
     "1400": "saloon @pam_saloon_seat 3",
-    "2400": "trailer @pam_trailer_sleep 3 pam_sleep"
+    "2400": "trailer @pam_trailer_sleep 0 pam_sleep"
   },
 
   "saturday": {
     "_note": "Saturday: lazy day, late to saloon",
-    "600":  "trailer @pam_trailer_couch 3",
+    "600":  "trailer @pam_trailer_couch 2",
     "1200": "trailer @pam_trailer_kitchen 1",
     "1900": "saloon @pam_saloon_seat 3",
-    "2400": "trailer @pam_trailer_sleep 3 pam_sleep"
+    "2400": "trailer @pam_trailer_sleep 0 pam_sleep"
   },
 
   "default": { "_goto": "spring" }

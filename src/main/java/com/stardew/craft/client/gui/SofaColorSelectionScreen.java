@@ -1,6 +1,7 @@
 package com.stardew.craft.client.gui;
 
 import com.stardew.craft.block.utility.WoodenChestColorPalette;
+import com.stardew.craft.client.gui.common.GuiText;
 import com.stardew.craft.network.payload.ApplySofaColorPayload;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -62,7 +63,8 @@ public class SofaColorSelectionScreen extends Screen {
             }
         }
 
-        graphics.drawCenteredString(this.font, this.title, this.width / 2, panelY - 14, 0xFFFFFF);
+        GuiText.drawCenteredClamped(graphics, this.font, this.title, this.width / 2,
+            panelY - 14, Math.max(1, this.width - 32), 0xFFFFFF, false);
     }
 
     @Override

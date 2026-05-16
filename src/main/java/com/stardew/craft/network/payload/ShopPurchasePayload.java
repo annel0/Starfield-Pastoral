@@ -263,6 +263,24 @@ public record ShopPurchasePayload(
                 ShopStockTracker.recordPurchase(player.getUUID(), payload.shopId(), entry.itemId(), qty);
             }
 
+            if (payload.shopId().equals("ShadowShop")
+                    && entry.itemId().equals("stardewcraft:stardrop")) {
+                com.stardew.craft.player.PlayerStardewData data =
+                    com.stardew.craft.player.PlayerDataManager.getPlayerData(player);
+                data.addMailFlag(com.stardew.craft.sewer.SewerStoryFlags.SEWER_STARDROP_PURCHASED);
+                com.stardew.craft.player.PlayerDataManager.get().savePlayerData(player.getUUID(), data);
+                com.stardew.craft.player.PlayerDataEventHandler.syncPlayerData(player, data);
+            }
+            if (payload.shopId().equals("ShadowShop")
+                    && entry.itemId().equals("stardewcraft:warp_wand")) {
+                com.stardew.craft.player.PlayerStardewData data =
+                    com.stardew.craft.player.PlayerDataManager.getPlayerData(player);
+                data.addMailFlag(com.stardew.craft.sewer.SewerStoryFlags.RETURN_SCEPTER_PURCHASED);
+                data.addSpecialItem(com.stardew.craft.sewer.SewerStoryFlags.RETURN_SCEPTER_SPECIAL_ITEM);
+                com.stardew.craft.player.PlayerDataManager.get().savePlayerData(player.getUUID(), data);
+                com.stardew.craft.player.PlayerDataEventHandler.syncPlayerData(player, data);
+            }
+
             sendResult(player, true, newMoney, entry.itemId(), qty * Math.max(1, entry.purchaseStack()), payload.itemIndex());
         });
     }

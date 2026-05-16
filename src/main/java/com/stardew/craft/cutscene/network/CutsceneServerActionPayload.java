@@ -16,7 +16,7 @@ import org.slf4j.Logger;
 
 /**
  * Client → Server: execute a server-side action from a cutscene command.
- * Supports: "add_quest", "set_flag"
+ * Supports cutscene state changes which must run on the server.
  */
 public record CutsceneServerActionPayload(String action, String value) implements CustomPacketPayload {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -48,6 +48,14 @@ public record CutsceneServerActionPayload(String action, String value) implement
                         com.stardew.craft.communitycenter.network.BundleSyncPayload.sendFullSync(player);
                     }
                 }
+                case "grant_rusty_key" -> {
+                    com.stardew.craft.sewer.SewerService.grantRustyKey(player, false);
+                    LOGGER.debug("Cutscene granted Rusty Key to {}", player.getName().getString());
+                }
+                case "mark_opened_sewer" -> {
+                    com.stardew.craft.sewer.SewerService.markOpenedSewer(player);
+                    LOGGER.debug("Cutscene marked sewer opened for {}", player.getName().getString());
+                }
                 case "add_recipe" -> {
                     PlayerStardewData data = PlayerDataManager.getPlayerData(player);
                     if (data.unlockRecipe(payload.value)) {
@@ -57,6 +65,23 @@ public record CutsceneServerActionPayload(String action, String value) implement
                         // so JEI / crafting UIs see the new recipe immediately.
                         com.stardew.craft.player.PlayerDataEventHandler.syncPlayerData(player, data);
                     }
+                }
+                case "add_mail_now" -> {
+                    com.stardew.craft.mail.MailService.addMail(player, payload.value);
+                    PlayerStardewData data = PlayerDataManager.getPlayerData(player);
+                    com.stardew.craft.player.PlayerDataEventHandler.syncPlayerData(player, data);
+                    LOGGER.debug("Cutscene added mail '{}' for {}", payload.value, player.getName().getString());
+                }
+                case "add_mail_for_tomorrow" -> {
+                    com.stardew.craft.mail.MailService.addMailForTomorrow(player, payload.value);
+                    PlayerStardewData data = PlayerDataManager.getPlayerData(player);
+                    com.stardew.craft.player.PlayerDataEventHandler.syncPlayerData(player, data);
+                    LOGGER.debug("Cutscene queued mail '{}' for tomorrow for {}", payload.value, player.getName().getString());
+                }
+                case "apply_unlock_source" -> {
+                    boolean changed = com.stardew.craft.player.PlayerStardewDataAPI.applyUnlockSource(player, payload.value);
+                    LOGGER.debug("Cutscene applied unlock source '{}' for {} changed={}",
+                            payload.value, player.getName().getString(), changed);
                 }
                 case "set_cave_choice" -> {
                     com.stardew.craft.farm.FarmCaveChoice choice =
@@ -80,7 +105,9 @@ public record CutsceneServerActionPayload(String action, String value) implement
                         var fm = com.stardew.craft.npc.runtime.NpcFriendshipDataManager.get(
                                 (net.minecraft.server.level.ServerLevel) player.level());
                         var state = fm.getOrCreate(player.getUUID(), npcId);
-                        state.addPoints(points, 2500);
+                        state.addPoints(points, com.stardew.craft.npc.runtime.NpcInteractionService.getMaxFriendshipPointsFor(npcId));
+                        fm.setDirty();
+                        com.stardew.craft.npc.runtime.NpcFriendshipRewardService.applyEligibleRewards(player, npcId, state.points());
                         LOGGER.debug("Cutscene added {} friendship to {} for {}", points, npcId,
                                 player.getName().getString());
                     }

@@ -21,7 +21,7 @@ public class NpcPathNavigation extends GroundPathNavigation {
         this.nodeEvaluator = new NpcNodeEvaluator();
         this.nodeEvaluator.setCanPassDoors(true);
         this.nodeEvaluator.setCanOpenDoors(true);
-        this.nodeEvaluator.setCanFloat(true);
+        this.nodeEvaluator.setCanFloat(false);
         return new PathFinder(this.nodeEvaluator, maxVisitedNodes);
     }
 }

@@ -5,6 +5,7 @@ import com.stardew.craft.economy.sell.ProfessionSellPriceService;
 import com.stardew.craft.economy.sell.SellQuote;
 import com.stardew.craft.economy.sell.SellSource;
 import com.stardew.craft.item.IStardewItem;
+import com.stardew.craft.item.ModItems;
 import com.stardew.craft.item.weapon.IStardewWeapon;
 import com.stardew.craft.item.weapon.WeaponData;
 import com.stardew.craft.item.weapon.WeaponSkillData;
@@ -149,12 +150,42 @@ public class ModClientEvents {
                     typeColor = net.minecraft.ChatFormatting.LIGHT_PURPLE;
                 }
 
-                if (stack.getItem() == com.stardew.craft.item.ModItems.SKULL_KEY.get()) {
+                if (stack.getItem() == ModItems.SKULL_KEY.get()) {
                     // 骷髅钥匙：类型名用流动紫金高光
                     customLines.add(Component.translatable("stardewcraft.tooltip.type_prefix")
                             .withStyle(ChatFormatting.WHITE)
                             .append(SkullKeyClientFx.flowingTypeLabel(
                                     Component.translatable(typeKey).getString())));
+                } else if (stack.getItem() == ModItems.DWARVISH_TRANSLATION_GUIDE.get()) {
+                    customLines.add(Component.translatable("stardewcraft.tooltip.type_prefix")
+                        .withStyle(ChatFormatting.WHITE)
+                        .append(DwarvishTranslationGuideClientFx.flowingTypeLabel(
+                            Component.translatable(typeKey).getString())));
+                } else if (stack.getItem() == ModItems.RUSTY_KEY.get()) {
+                    customLines.add(Component.translatable("stardewcraft.tooltip.type_prefix")
+                            .withStyle(ChatFormatting.WHITE)
+                            .append(RustyKeyClientFx.flowingTypeLabel(
+                                    Component.translatable(typeKey).getString())));
+                } else if (stack.getItem() == ModItems.WARP_WAND.get()) {
+                    customLines.add(Component.translatable("stardewcraft.tooltip.type_prefix")
+                        .withStyle(ChatFormatting.WHITE)
+                        .append(WarpWandClientFx.flowingTypeLabel(
+                            Component.translatable(typeKey).getString())));
+                } else if (stack.getItem() == ModItems.STARDROP.get()) {
+                    customLines.add(Component.translatable("stardewcraft.tooltip.type_prefix")
+                        .withStyle(ChatFormatting.WHITE)
+                        .append(SpecialConsumableClientFx.stardropTypeLabel(
+                            Component.translatable(typeKey).getString())));
+                } else if (stack.getItem() == ModItems.STARDROP_TEA.get()) {
+                    customLines.add(Component.translatable("stardewcraft.tooltip.type_prefix")
+                        .withStyle(ChatFormatting.WHITE)
+                        .append(SpecialConsumableClientFx.stardropTypeLabel(
+                            Component.translatable(typeKey).getString())));
+                } else if (stack.getItem() == ModItems.IRIDIUM_MILK.get()) {
+                    customLines.add(Component.translatable("stardewcraft.tooltip.type_prefix")
+                        .withStyle(ChatFormatting.WHITE)
+                        .append(SpecialConsumableClientFx.iridiumMilkTypeLabel(
+                            Component.translatable(typeKey).getString())));
                 } else {
                     customLines.add(Component.translatable("stardewcraft.tooltip.type_prefix") // Type label in white, non-bold.
                             .withStyle(ChatFormatting.WHITE)
@@ -167,7 +198,12 @@ public class ModClientEvents {
                 SellQuote quote = ProfessionSellPriceService.quoteItemForProfessionNames(
                     new java.util.HashSet<>(ClientPlayerDataCache.getProfessions()), stack, SellSource.SHOP_COUNTER);
                 int sellPrice = quote.finalUnitPrice();
-                boolean hidePriceLine = stack.getItem() == com.stardew.craft.item.ModItems.SKULL_KEY.get();
+                boolean hidePriceLine = stack.getItem() == ModItems.SKULL_KEY.get()
+                    || stack.getItem() == ModItems.DWARVISH_TRANSLATION_GUIDE.get()
+                    || stack.getItem() == ModItems.RUSTY_KEY.get()
+                        || stack.getItem() == ModItems.WARP_WAND.get()
+                        || stack.getItem() == ModItems.STARDROP.get()
+                        || stack.getItem() == ModItems.IRIDIUM_MILK.get();
                 if (hidePriceLine) {
                     // 骷髅钥匙：不显示单价行
                 } else if (sellPrice > 0) {

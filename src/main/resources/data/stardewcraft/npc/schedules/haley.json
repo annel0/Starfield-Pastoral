@@ -6,46 +6,46 @@
     "800": "saloon @saloon_indoor_entry 1"
   },
   "rain": {
-    "830": "haleyhouse @haley_haleyhouse_mirror 3",
-    "1030": "haleyhouse @haley_haleyhouse_closet 1",
-    "1200": "haleyhouse @haley_haleyhouse_living 1",
-    "1600": "haleyhouse @haley_haleyhouse_kitchen 3",
-    "1900": "haleyhouse @haley_haleyhouse_living 1",
-    "2200": "haleyhouse @haley_haleyhouse_sleep 3 haley_sleep"
+    "830": "haleyhouse @haley_haleyhouse_mirror 0",
+    "1030": "haleyhouse @haley_haleyhouse_closet 0",
+    "1200": "haleyhouse @haley_haleyhouse_living 2",
+    "1600": "haleyhouse @haley_haleyhouse_kitchen 1",
+    "1900": "haleyhouse @haley_haleyhouse_living 2",
+    "2200": "haleyhouse @haley_haleyhouse_sleep 2 haley_sleep"
   },
   "winter": {
-    "830": "haleyhouse @haley_haleyhouse_mirror 3",
-    "1030": "haleyhouse @haley_haleyhouse_closet 1",
-    "1200": "haleyhouse @haley_haleyhouse_living 1",
-    "1600": "haleyhouse @haley_haleyhouse_kitchen 3",
-    "1900": "haleyhouse @haley_haleyhouse_living 1",
-    "2200": "haleyhouse @haley_haleyhouse_sleep 3 haley_sleep"
+    "830": "haleyhouse @haley_haleyhouse_mirror 0",
+    "1030": "haleyhouse @haley_haleyhouse_closet 0",
+    "1200": "haleyhouse @haley_haleyhouse_living 2",
+    "1600": "haleyhouse @haley_haleyhouse_kitchen 1",
+    "1900": "haleyhouse @haley_haleyhouse_living 2",
+    "2200": "haleyhouse @haley_haleyhouse_sleep 2 haley_sleep"
   },
   "spring_Mon": {
-    "800": "haleyhouse @haley_haleyhouse_closet 1",
-    "1000": "haleyhouse @haley_haleyhouse_living 1",
-    "1100": "forest @haley_forest_photo 3",
-    "1630": "haleyhouse @haley_haleyhouse_living 1",
-    "2000": "haleyhouse @haley_haleyhouse_kitchen 3",
-    "2300": "haleyhouse @haley_haleyhouse_sleep 3 haley_sleep"
+    "800": "haleyhouse @haley_haleyhouse_closet 0",
+    "1000": "haleyhouse @haley_haleyhouse_living 2",
+    "1100": "forest @haley_forest_photo 2",
+    "1630": "haleyhouse @haley_haleyhouse_living 2",
+    "2000": "haleyhouse @haley_haleyhouse_kitchen 1",
+    "2300": "haleyhouse @haley_haleyhouse_sleep 2 haley_sleep"
   },
   "fall_Mon": {
     "_goto": "spring_Mon"
   },
   "spring": {
-    "900": "haleyhouse @haley_haleyhouse_closet 1",
-    "1100": "town @haley_town_square 3",
-    "1630": "haleyhouse @haley_haleyhouse_living 1",
+    "900": "haleyhouse @haley_haleyhouse_closet 0",
+    "1100": "town @haley_town_square 0",
+    "1630": "haleyhouse @haley_haleyhouse_living 2",
     "2000": "haleyhouse @haley_haleyhouse_kitchen 1",
-    "2230": "haleyhouse @haley_haleyhouse_sleep 3 haley_sleep"
+    "2230": "haleyhouse @haley_haleyhouse_sleep 2 haley_sleep"
   },
   "summer": {
-    "840": "haleyhouse @haley_haleyhouse_closet 1",
-    "1030": "beach @haley_beach_sunbathe 3",
+    "840": "haleyhouse @haley_haleyhouse_closet 0",
+    "1030": "beach @haley_beach_sunbathe 2",
     "1330": "town @haley_town_square 0",
-    "1700": "haleyhouse @haley_haleyhouse_living 1",
-    "2000": "haleyhouse @haley_haleyhouse_kitchen 3",
-    "2300": "haleyhouse @haley_haleyhouse_sleep 3 haley_sleep"
+    "1700": "haleyhouse @haley_haleyhouse_living 2",
+    "2000": "haleyhouse @haley_haleyhouse_kitchen 1",
+    "2300": "haleyhouse @haley_haleyhouse_sleep 2 haley_sleep"
   },
   "fall": {
     "_goto": "spring"

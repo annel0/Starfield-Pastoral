@@ -9,12 +9,10 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
-import software.bernie.geckolib.renderer.GeoBlockRenderer;
-
 import javax.annotation.Nonnull;
 
 @SuppressWarnings("null")
-public class PillarGeoBlockEntityRenderer extends GeoBlockRenderer<PillarGeoBlockEntity> {
+public class PillarGeoBlockEntityRenderer extends StardewGeoBlockRenderer<PillarGeoBlockEntity> {
     public PillarGeoBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
         super(new PillarGeoModel());
     }

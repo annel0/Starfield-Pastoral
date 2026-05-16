@@ -13,7 +13,9 @@
     "PlayerSweepAttackMixin",
     "LivingEntityStardewBedOrientationMixin",
     "MinecraftServerTimeSyncMixin",
-    "ServerLevelSleepMixin"
+    "ServerLevelSleepMixin",
+    "LevelWeatherStateMixin",
+    "ServerLevelSkeletonHorseTrapMixin"
   ],
   "client": [
     "GuiGraphicsStackCountScaleMixin",

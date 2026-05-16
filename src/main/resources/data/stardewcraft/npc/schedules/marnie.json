@@ -4,68 +4,68 @@
   "_format": "time -> \"location @namedPointId facing [behavior]\"",
 
   "GreenRain": {
-    "610": "animalshop @marnie_animalshop_counter 3"
+    "610": "animalshop @marnie_animalshop_counter 2"
   },
 
   "rain": {
-    "600":  "animalshop @marnie_animalshop_counter 3",
-    "1200": "animalshop @marnie_animalshop_kitchen 1",
-    "1700": "animalshop @marnie_animalshop_living 3",
+    "600":  "animalshop @marnie_animalshop_counter 2",
+    "1200": "animalshop @marnie_animalshop_kitchen 0",
+    "1700": "animalshop @marnie_animalshop_living 1",
     "2100": "animalshop @marnie_animalshop_sleep 3 marnie_sleep"
   },
 
   "spring": {
     "_note": "Default spring: work counter -> town walk -> saloon evening",
-    "600":  "animalshop @marnie_animalshop_counter 3",
-    "1100": "town @marnie_town_walk 3",
-    "1600": "animalshop @marnie_animalshop_counter 3",
-    "1900": "saloon @marnie_saloon_seat 3",
+    "600":  "animalshop @marnie_animalshop_counter 2",
+    "1100": "town @marnie_town_walk 2",
+    "1600": "animalshop @marnie_animalshop_counter 2",
+    "1900": "saloon @marnie_saloon_seat 0",
     "2230": "animalshop @marnie_animalshop_sleep 3 marnie_sleep"
   },
 
   "summer": {
     "_note": "Default summer: counter -> forest stroll -> saloon",
-    "600":  "animalshop @marnie_animalshop_counter 3",
-    "1100": "forest @marnie_forest_walk 3",
-    "1600": "animalshop @marnie_animalshop_counter 3",
-    "1900": "saloon @marnie_saloon_seat 3",
+    "600":  "animalshop @marnie_animalshop_counter 2",
+    "1100": "forest @marnie_forest_walk 2",
+    "1600": "animalshop @marnie_animalshop_counter 2",
+    "1900": "saloon @marnie_saloon_seat 0",
     "2230": "animalshop @marnie_animalshop_sleep 3 marnie_sleep"
   },
 
   "fall": {
     "_note": "Default fall: counter -> town square -> saloon",
-    "600":  "animalshop @marnie_animalshop_counter 3",
-    "1100": "town @marnie_town_walk 3",
-    "1600": "animalshop @marnie_animalshop_counter 3",
-    "1900": "saloon @marnie_saloon_seat 3",
+    "600":  "animalshop @marnie_animalshop_counter 2",
+    "1100": "town @marnie_town_walk 2",
+    "1600": "animalshop @marnie_animalshop_counter 2",
+    "1900": "saloon @marnie_saloon_seat 0",
     "2230": "animalshop @marnie_animalshop_sleep 3 marnie_sleep"
   },
 
   "winter": {
     "_note": "Default winter: stays indoors more",
-    "600":  "animalshop @marnie_animalshop_counter 3",
-    "1200": "animalshop @marnie_animalshop_kitchen 1",
-    "1500": "animalshop @marnie_animalshop_living 3",
-    "1900": "saloon @marnie_saloon_seat 3",
+    "600":  "animalshop @marnie_animalshop_counter 2",
+    "1200": "animalshop @marnie_animalshop_kitchen 0",
+    "1500": "animalshop @marnie_animalshop_living 1",
+    "1900": "saloon @marnie_saloon_seat 0",
     "2230": "animalshop @marnie_animalshop_sleep 3 marnie_sleep"
   },
 
   "tuesday": {
     "_note": "Tuesday: closed shop day — goes to town",
-    "600":  "animalshop @marnie_animalshop_kitchen 1",
-    "900":  "town @marnie_town_walk 3",
-    "1200": "seedshop @marnie_seedshop_visit 3",
-    "1600": "animalshop @marnie_animalshop_living 3",
-    "1900": "saloon @marnie_saloon_seat 3",
+    "600":  "animalshop @marnie_animalshop_kitchen 0",
+    "900":  "town @marnie_town_walk 2",
+    "1200": "seedshop @marnie_seedshop_visit 2",
+    "1600": "animalshop @marnie_animalshop_living 1",
+    "1900": "saloon @marnie_saloon_seat 0",
     "2230": "animalshop @marnie_animalshop_sleep 3 marnie_sleep"
   },
 
   "monday": {
     "_note": "Monday: shop day",
-    "600":  "animalshop @marnie_animalshop_counter 3",
-    "1200": "animalshop @marnie_animalshop_kitchen 1",
-    "1400": "animalshop @marnie_animalshop_counter 3",
-    "1900": "saloon @marnie_saloon_seat 3",
+    "600":  "animalshop @marnie_animalshop_counter 2",
+    "1200": "animalshop @marnie_animalshop_kitchen 0",
+    "1400": "animalshop @marnie_animalshop_counter 2",
+    "1900": "saloon @marnie_saloon_seat 0",
     "2230": "animalshop @marnie_animalshop_sleep 3 marnie_sleep"
   },
 

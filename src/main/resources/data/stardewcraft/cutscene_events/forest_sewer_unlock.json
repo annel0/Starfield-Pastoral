@@ -1,0 +1,157 @@
+{
+  "id": "forest_sewer_unlock",
+  "skippable": true,
+  "trigger": {
+    "type": "enter_area",
+    "location": "forest",
+    "area_min": [-150, 60, 88],
+    "area_max": [-61, 88, 142]
+  },
+  "preconditions": [
+    { "type": "not_saw_event", "id": "forest_sewer_unlock" },
+    { "type": "flag", "id": "HasRustyKey" },
+    { "type": "not_flag", "id": "OpenedSewer" },
+    { "type": "time", "min": 900, "max": 1600 },
+    { "type": "day_of_week", "days": ["Tue", "Wed", "Fri", "Sat"] }
+  ],
+  "commands": [
+    { "cmd": "comment", "text": "=== SDV Event 318560: Forest sewer unlock ===" },
+
+    { "cmd": "lock_player" },
+    { "cmd": "fade", "mode": "out", "ticks": 10 },
+
+    { "cmd": "hide_npc", "npc_id": "jas" },
+    { "cmd": "hide_npc", "npc_id": "vincent" },
+    { "cmd": "spawn_actor", "actor": "fake_player", "npc_id": "player", "x": -96, "y": 64, "z": 123, "relative": false, "facing": 0 },
+    { "cmd": "spawn_actor", "actor": "jas", "npc_id": "jas", "x": -100, "y": 62, "z": 133, "relative": false, "facing": 180 },
+    { "cmd": "spawn_actor", "actor": "vincent", "npc_id": "vincent", "x": -99, "y": 62, "z": 133, "relative": false, "facing": 180 },
+
+    { "cmd": "camera", "x": -98.971, "y": 65.404, "z": 138.773, "yaw": -177.8, "pitch": 28.5, "relative": false },
+    { "cmd": "music", "track": "music_community_center" },
+    { "cmd": "fade", "mode": "in", "ticks": 20 },
+    { "cmd": "skippable" },
+
+    { "cmd": "move_actor", "actor": "fake_player", "x": -96, "y": 64, "z": 128, "ticks": 50, "relative": false },
+    { "cmd": "pause", "ticks": 20 },
+    { "cmd": "speak", "npc_id": "jas", "text": "event.forest_sewer_unlock.jas.smells" },
+    { "cmd": "pause", "ticks": 12 },
+    { "cmd": "camera", "x": -102.439, "y": 60.921, "z": 134.622, "yaw": -130.0, "pitch": -3.6, "relative": false },
+    { "cmd": "jump", "actor": "vincent", "strength": 0.35 },
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "face_actor", "actor": "vincent", "yaw": 180 },
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "shake_actor", "actor": "vincent", "ticks": 8, "amplitude": 0.08 },
+      { "cmd": "play_sound", "sound": "stardewcraft:clank", "volume": 1.0, "pitch": 1.0 }
+    ]},
+    { "cmd": "pause", "ticks": 16 },
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "shake_actor", "actor": "vincent", "ticks": 8, "amplitude": 0.08 },
+      { "cmd": "play_sound", "sound": "stardewcraft:clank", "volume": 1.0, "pitch": 1.0 }
+    ]},
+    { "cmd": "pause", "ticks": 16 },
+    { "cmd": "speak", "npc_id": "vincent", "text": "event.forest_sewer_unlock.vincent.locked" },
+    { "cmd": "pause", "ticks": 16 },
+    { "cmd": "face_actor", "actor": "jas", "yaw": 180 },
+    { "cmd": "pause", "ticks": 16 },
+    { "cmd": "speak", "npc_id": "jas", "text": "event.forest_sewer_unlock.jas.gunther_key" },
+    { "cmd": "pause", "ticks": 6 },
+    { "cmd": "face_actor", "actor": "vincent", "yaw": 90 },
+    { "cmd": "speak", "npc_id": "vincent", "text": "event.forest_sewer_unlock.vincent.gunther_question" },
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "face_actor", "actor": "jas", "yaw": -90 },
+    { "cmd": "speak", "npc_id": "jas", "text": "event.forest_sewer_unlock.jas.rusty_key" },
+    { "cmd": "stop_music" },
+    { "cmd": "camera", "x": -98.851, "y": 62.039, "z": 134.438, "yaw": 178.4, "pitch": 31.2, "relative": false },
+    { "cmd": "pause", "ticks": 40 },
+    { "cmd": "play_sound", "sound": "stardewcraft:slime_hit", "volume": 1.0, "pitch": 1.0 },
+    { "cmd": "pause", "ticks": 8 },
+    { "cmd": "play_sound", "sound": "stardewcraft:slime_hit", "volume": 1.0, "pitch": 1.0 },
+    { "cmd": "pause", "ticks": 8 },
+    { "cmd": "play_sound", "sound": "stardewcraft:slime_hit", "volume": 1.0, "pitch": 1.0 },
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "emote", "actor": "vincent", "emote": "question" },
+      { "cmd": "emote", "actor": "jas", "emote": "question" }
+    ]},
+    { "cmd": "pause", "ticks": 18 },
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "face_actor", "actor": "vincent", "yaw": 180 },
+      { "cmd": "face_actor", "actor": "jas", "yaw": 180 }
+    ]},
+    { "cmd": "pause", "ticks": 32 },
+    { "cmd": "camera", "x": -92.963, "y": 65.029, "z": 135.706, "yaw": 134.6, "pitch": 29.5, "relative": false },
+    { "cmd": "play_sound", "sound": "stardewcraft:shadowpeep", "volume": 1.0, "pitch": 1.0 },
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "shake_actor", "actor": "vincent", "ticks": 100, "amplitude": 0.08 },
+      { "cmd": "shake_actor", "actor": "jas", "ticks": 100, "amplitude": 0.08 },
+      { "cmd": "jump", "actor": "jas", "strength": 0.35 },
+      { "cmd": "jump", "actor": "vincent", "strength": 0.35 },
+      { "cmd": "face_actor", "actor": "fake_player", "yaw": 90 },
+      { "cmd": "face_actor", "actor": "jas", "yaw": 180 },
+      { "cmd": "face_actor", "actor": "vincent", "yaw": 180 }
+    ]},
+    { "cmd": "pause", "ticks": 30 },
+    { "cmd": "play_sound", "sound": "stardewcraft:shadow_die", "volume": 1.0, "pitch": 1.0 },
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "jump", "actor": "jas", "strength": 0.35 },
+      { "cmd": "jump", "actor": "vincent", "strength": 0.35 }
+    ]},
+    { "cmd": "pause", "ticks": 16 },
+
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "move_actor", "actor": "jas", "x": -96, "y": 62, "z": 133, "ticks": 20, "relative": false },
+      { "cmd": "move_actor", "actor": "vincent", "x": -93, "y": 62, "z": 133, "ticks": 30, "relative": false }
+    ]},
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "move_actor", "actor": "jas", "x": -96, "y": 62, "z": 126, "ticks": 35, "relative": false },
+      { "cmd": "move_actor", "actor": "vincent", "x": -93, "y": 62, "z": 125, "ticks": 40, "relative": false }
+    ]},
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "move_actor", "actor": "jas", "x": -97, "y": 62, "z": 126, "ticks": 8, "relative": false },
+      { "cmd": "move_actor", "actor": "vincent", "x": -94, "y": 62, "z": 125, "ticks": 8, "relative": false }
+    ]},
+    { "cmd": "face_actor", "actor": "fake_player", "yaw": 180 },
+    { "cmd": "face_actor", "actor": "jas", "yaw": 0 },
+    { "cmd": "face_actor", "actor": "vincent", "yaw": 0 },
+    { "cmd": "speak", "npc_id": "jas", "text": "event.forest_sewer_unlock.jas.moving" },
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "shake_actor", "actor": "jas", "ticks": 80, "amplitude": 0.08 },
+      { "cmd": "shake_actor", "actor": "vincent", "ticks": 80, "amplitude": 0.08 }
+    ]},
+    { "cmd": "pause", "ticks": 20 },
+    { "cmd": "face_actor", "actor": "fake_player", "yaw": 180 },
+    { "cmd": "pause", "ticks": 20 },
+    { "cmd": "camera", "x": -100.372, "y": 61.654, "z": 136.637, "yaw": 178.1, "pitch": 7.8, "relative": false },
+    { "cmd": "move_actor", "actor": "fake_player", "x": -96, "y": 64, "z": 134, "ticks": 30, "relative": false },
+    { "cmd": "move_actor", "actor": "fake_player", "x": -100, "y": 62, "z": 134, "ticks": 20, "relative": false },
+    { "cmd": "pause", "ticks": 16 },
+    { "cmd": "emote", "actor": "fake_player", "emote": "pause" },
+    { "cmd": "pause", "ticks": 32 },
+    { "cmd": "play_sound", "sound": "stardewcraft:shadowpeep", "volume": 1.0, "pitch": 1.0 },
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "jump", "actor": "fake_player", "strength": 0.35 },
+      { "cmd": "jump", "actor": "jas", "strength": 0.35 },
+      { "cmd": "jump", "actor": "vincent", "strength": 0.35 },
+      { "cmd": "face_actor", "actor": "fake_player", "yaw": 0 }
+    ]},
+    { "cmd": "pause", "ticks": 20 },
+
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "move_actor", "actor": "jas", "x": -97, "y": 64, "z": 120, "ticks": 30, "relative": false },
+      { "cmd": "move_actor", "actor": "vincent", "x": -94, "y": 64, "z": 119, "ticks": 30, "relative": false }
+    ]},
+    { "cmd": "pause", "ticks": 20 },
+
+    { "cmd": "fade", "mode": "out", "ticks": 15 },
+    { "cmd": "remove_actor", "actor": "jas" },
+    { "cmd": "remove_actor", "actor": "vincent" },
+    { "cmd": "remove_actor", "actor": "fake_player" },
+    { "cmd": "show_npc", "npc_id": "jas" },
+    { "cmd": "show_npc", "npc_id": "vincent" },
+    { "cmd": "camera", "action": "reset" },
+    { "cmd": "unlock_player" },
+    { "cmd": "fade", "mode": "in", "ticks": 15 },
+    { "cmd": "end" }
+  ]
+}

@@ -13,6 +13,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.inventory.ClickAction;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -25,6 +26,8 @@ import net.minecraft.world.entity.projectile.FishingHook;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.common.ItemAbility;
+
+import java.util.function.Consumer;
 
 @SuppressWarnings("null")
 public class FishingRodItem extends net.minecraft.world.item.FishingRodItem implements IStardewItem {
@@ -337,6 +340,18 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 		return tryInsertTackle(rodStack, slot);
 	}
 
+	@Override
+	public boolean overrideOtherStackedOnMe(@SuppressWarnings("null") ItemStack rodStack, @SuppressWarnings("null") ItemStack incoming, @SuppressWarnings("null") Slot slot, @SuppressWarnings("null") ClickAction action, @SuppressWarnings("null") Player player, @SuppressWarnings("null") SlotAccess access) {
+		if (action != ClickAction.SECONDARY || rodStack.isEmpty() || incoming.isEmpty()) {
+			return false;
+		}
+		boolean inserted = tryInsertAttachment(rodStack, incoming, access::set);
+		if (inserted) {
+			slot.setChanged();
+		}
+		return inserted;
+	}
+
 	@SuppressWarnings("null")
 	@Override
 	public InteractionResultHolder<ItemStack> use(@SuppressWarnings("null") Level level, @SuppressWarnings("null") Player player, @SuppressWarnings("null") InteractionHand hand) {
@@ -629,10 +644,29 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 
 	@SuppressWarnings("null")
 	private boolean tryInsertBait(ItemStack rodStack, Slot slot) {
+		boolean inserted = tryInsertBait(rodStack, slot.getItem(), slot::set);
+		if (inserted) {
+			slot.setChanged();
+		}
+		return inserted;
+	}
+
+	@SuppressWarnings("null")
+	public boolean tryInsertAttachment(ItemStack rodStack, ItemStack incoming, Consumer<ItemStack> replaceIncoming) {
+		if (incoming == null || incoming.isEmpty()) {
+			return false;
+		}
+		if (incoming.getMaxStackSize() > 1) {
+			return tryInsertBait(rodStack, incoming, replaceIncoming);
+		}
+		return tryInsertTackle(rodStack, incoming, replaceIncoming);
+	}
+
+	@SuppressWarnings("null")
+	private boolean tryInsertBait(ItemStack rodStack, ItemStack incoming, Consumer<ItemStack> replaceIncoming) {
 		if (!canUseBait()) {
 			return false;
 		}
-		ItemStack incoming = slot.getItem();
 		if (incoming.isEmpty()) {
 			return false;
 		}
@@ -640,8 +674,7 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 		if (existing.isEmpty()) {
 			// Move the entire stack into the rod (matches Stardew: bait is stored as a stack).
 			writeStack(rodStack, TAG_BAIT, incoming.copy());
-			slot.set(ItemStack.EMPTY);
-			slot.setChanged();
+			replaceIncoming.accept(ItemStack.EMPTY);
 			return true;
 		}
 		// Same bait: merge counts into the rod.
@@ -649,23 +682,29 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 			int total = existing.getCount() + incoming.getCount();
 			existing.setCount(total);
 			writeStack(rodStack, TAG_BAIT, existing);
-			slot.set(ItemStack.EMPTY);
-			slot.setChanged();
+			replaceIncoming.accept(ItemStack.EMPTY);
 			return true;
 		}
 		// Different bait: swap (bag-like behavior).
 		writeStack(rodStack, TAG_BAIT, incoming.copy());
-		slot.set(existing);
-		slot.setChanged();
+		replaceIncoming.accept(existing);
 		return true;
 	}
 
 	@SuppressWarnings("null")
 	private boolean tryInsertTackle(ItemStack rodStack, Slot slot) {
+		boolean inserted = tryInsertTackle(rodStack, slot.getItem(), slot::set);
+		if (inserted) {
+			slot.setChanged();
+		}
+		return inserted;
+	}
+
+	@SuppressWarnings("null")
+	private boolean tryInsertTackle(ItemStack rodStack, ItemStack incoming, Consumer<ItemStack> replaceIncoming) {
 		if (getTackleSlots() <= 0) {
 			return false;
 		}
-		ItemStack incoming = slot.getItem();
 		if (incoming.isEmpty()) {
 			return false;
 		}
@@ -677,18 +716,16 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 			writeStack(rodStack, TAG_TACKLE_1, one);
 			incoming.shrink(1);
 			if (incoming.isEmpty()) {
-				slot.set(ItemStack.EMPTY);
+				replaceIncoming.accept(ItemStack.EMPTY);
 			}
-			slot.setChanged();
 			return true;
 		}
 		if (getTackleSlots() >= 2 && getTackle2(rodStack).isEmpty()) {
 			writeStack(rodStack, TAG_TACKLE_2, one);
 			incoming.shrink(1);
 			if (incoming.isEmpty()) {
-				slot.set(ItemStack.EMPTY);
+				replaceIncoming.accept(ItemStack.EMPTY);
 			}
-			slot.setChanged();
 			return true;
 		}
 
@@ -697,7 +734,7 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 		writeStack(rodStack, TAG_TACKLE_1, one);
 		incoming.shrink(1);
 		if (incoming.isEmpty()) {
-			slot.set(existing);
+			replaceIncoming.accept(existing);
 		} else {
 			// Put swapped tackle back onto the slot by adding it.
 			if (!existing.isEmpty()) {
@@ -705,7 +742,6 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 			}
 			// keep the slot stack as-is (it was shrunk)
 		}
-		slot.setChanged();
 		return true;
 	}
 

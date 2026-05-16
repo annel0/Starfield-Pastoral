@@ -1,6 +1,7 @@
 package com.stardew.craft.communitycenter.client;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.client.gui.common.GuiText;
 import com.stardew.craft.client.gui.common.StardewRenderMapping;
 import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
 import com.stardew.craft.communitycenter.data.BundleDataManager;
@@ -479,17 +480,19 @@ public class BundleScreen extends AbstractContainerScreen<BundleMenu> {
             float junimoScale = 3.0f * s4 / 4.0f;
             g.pose().pushPose();
             g.pose().translate(0, 0, 0.2f);
-            JunimoTextRenderer.drawStringCentered(g, areaName, titleX, titleY, junimoScale, 1.0f);
+            JunimoTextRenderer.drawStringCenteredClamped(g, areaName, titleX, titleY,
+                mapping.ui(640), junimoScale, 1.0f);
             g.pose().popPose();
 
             // SDV message: "We will fix the community center for you! Sincerely, Junimos"
-            // Drawn at (xPos + 96, yPos + 96) in junimoText
+            // Drawn at (xPos + 96, yPos + 96) in junimoText, wrapped to stay on the note.
             String junimoMessage = "We will fix the community center for you! Sincerely, Junimos";
             int msgX = menuX + mapping.ui(96);
             int msgY = menuY + mapping.ui(96);
             g.pose().pushPose();
             g.pose().translate(0, 0, 0.2f);
-            JunimoTextRenderer.drawString(g, junimoMessage, msgX, msgY, junimoScale, 1.0f);
+            JunimoTextRenderer.drawStringWrapped(g, junimoMessage, msgX, msgY,
+                mapping.ui(1088), junimoScale, 1.0f);
             g.pose().popPose();
 
             // SDV: returns here — NO bundles, NO present button, NO hover
@@ -514,12 +517,17 @@ public class BundleScreen extends AbstractContainerScreen<BundleMenu> {
         int titleShadow = 0xFF3B3022;
         int titleColor = 0xFF5B5045;
         int titleShadowOff = Math.max(1, mapping.ui(2));
+        int titleMaxWidth = mapping.ui(560);
         g.pose().pushPose();
         g.pose().translate(0, 0, 0.2f);
-        g.drawCenteredString(this.font, displayName, titleX + titleShadowOff, titleY + titleShadowOff, titleShadow);
-        g.drawCenteredString(this.font, displayName, titleX, titleY + titleShadowOff, titleShadow);
-        g.drawCenteredString(this.font, displayName, titleX + titleShadowOff, titleY, titleShadow);
-        g.drawCenteredString(this.font, displayName, titleX, titleY, titleColor);
+        GuiText.drawCenteredClamped(g, this.font, displayName,
+            titleX + titleShadowOff, titleY + titleShadowOff, titleMaxWidth, titleShadow, false);
+        GuiText.drawCenteredClamped(g, this.font, displayName,
+            titleX, titleY + titleShadowOff, titleMaxWidth, titleShadow, false);
+        GuiText.drawCenteredClamped(g, this.font, displayName,
+            titleX + titleShadowOff, titleY, titleMaxWidth, titleShadow, false);
+        GuiText.drawCenteredClamped(g, this.font, displayName,
+            titleX, titleY, titleMaxWidth, titleColor, false);
         g.pose().popPose();
 
         // 5. Bundle orbs
@@ -654,10 +662,11 @@ public class BundleScreen extends AbstractContainerScreen<BundleMenu> {
                 ? Component.translatable("stardewcraft.bundle.name_format",
                         Component.translatable(def.displayNameKey()))
                 : Component.literal("???");
-        int textWidth = this.font.width(bundleName);
-
         int barCenterX = menuX + mapping.ui(936);
         int barY = menuY + mapping.ui(228);
+        int labelMaxWidth = mapping.ui(320);
+        Component shownBundleName = GuiText.ellipsize(this.font, bundleName, labelMaxWidth);
+        int textWidth = this.font.width(shownBundleName);
 
         // Left end: (517, 266, 4, 17) ×4
         int barLeftX = barCenterX - textWidth / 2 - mapping.ui(16);
@@ -685,10 +694,10 @@ public class BundleScreen extends AbstractContainerScreen<BundleMenu> {
         int shadowOff = Math.max(1, mapping.ui(2));
 
         // SDV shadow offsets: (2,2), (0,2), (2,0) in screen pixels
-        g.drawString(this.font, bundleName, textX + shadowOff, textY + shadowOff, shadowColor, false);
-        g.drawString(this.font, bundleName, textX, textY + shadowOff, shadowColor, false);
-        g.drawString(this.font, bundleName, textX + shadowOff, textY, shadowColor, false);
-        g.drawString(this.font, bundleName, textX, textY, textColor, false);
+        g.drawString(this.font, shownBundleName, textX + shadowOff, textY + shadowOff, shadowColor, false);
+        g.drawString(this.font, shownBundleName, textX, textY + shadowOff, shadowColor, false);
+        g.drawString(this.font, shownBundleName, textX + shadowOff, textY, shadowColor, false);
+        g.drawString(this.font, shownBundleName, textX, textY, textColor, false);
 
         // 4. Back button (Cursors tile #44)
         // SDV: xPos + borderWidth*2 + 8, yPos + borderWidth*2 + 4 (borderWidth=32)
@@ -1350,7 +1359,9 @@ public class BundleScreen extends AbstractContainerScreen<BundleMenu> {
      * Uses Cursors (325,318,12,18) left cap, (337,318,1,18) middle, (338,318,12,18) right cap.
      */
     private void drawStringWithScrollCenteredAt(GuiGraphics g, Component text, int centerX, int centerY) {
-        int textWidth = this.font.width(text);
+        int maxTextWidth = Math.min(mapping.ui(620), this.width - mapping.ui(160));
+        Component shownText = GuiText.ellipsize(this.font, text, maxTextWidth);
+        int textWidth = this.font.width(shownText);
         int scrollWidth = textWidth;
         float scrollScale = s4; // SDV draws scroll at 4× scale
 
@@ -1375,7 +1386,7 @@ public class BundleScreen extends AbstractContainerScreen<BundleMenu> {
                 338, 318, 12, 18, scrollScale);
 
         // Draw text centered on top
-        g.drawCenteredString(this.font, text, centerX, y, 0xFF5B5045);
+        g.drawCenteredString(this.font, shownText, centerX, y, 0xFF5B5045);
     }
 
     private void playSound(net.neoforged.neoforge.registries.DeferredHolder<net.minecraft.sounds.SoundEvent, net.minecraft.sounds.SoundEvent> sound) {

@@ -22,13 +22,13 @@ import java.util.List;
 public final class MarnieService {
 
     // Counter area: player must be inside this AABB to trigger shop.
-    // Coordinates from user: (17093,73,18252) to (17092,71,18256)
-    private static final int COUNTER_MIN_X = 17092;
-    private static final int COUNTER_MAX_X = 17093;
-    private static final int COUNTER_MIN_Y = 71;
-    private static final int COUNTER_MAX_Y = 73;
-    private static final int COUNTER_MIN_Z = 18252;
-    private static final int COUNTER_MAX_Z = 18256;
+    // Coordinates from user: (-90,36,22) to (-85,34,25)
+    private static final int COUNTER_MIN_X = -90;
+    private static final int COUNTER_MAX_X = -85;
+    private static final int COUNTER_MIN_Y = 34;
+    private static final int COUNTER_MAX_Y = 36;
+    private static final int COUNTER_MIN_Z = 22;
+    private static final int COUNTER_MAX_Z = 25;
 
     private MarnieService() {}
 

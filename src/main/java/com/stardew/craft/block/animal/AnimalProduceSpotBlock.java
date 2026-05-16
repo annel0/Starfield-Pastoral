@@ -4,6 +4,7 @@ import com.stardew.craft.animal.data.AnimalWorldData;
 import com.stardew.craft.animal.model.AnimalBuildingRecord;
 import com.stardew.craft.blockentity.AnimalProduceSpotBlockEntity;
 import com.stardew.craft.blockentity.ModBlockEntities;
+import com.stardew.craft.player.PlayerStardewDataAPI;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -105,6 +106,9 @@ public class AnimalProduceSpotBlock extends BaseEntityBlock {
             return InteractionResult.CONSUME;
         }
 
+        if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+            PlayerStardewDataAPI.recordAnimalProductsCollected(serverPlayer, stack.getCount());
+        }
         level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 0.6f, 1.0f);
         level.removeBlock(pos, false);
         return InteractionResult.CONSUME;

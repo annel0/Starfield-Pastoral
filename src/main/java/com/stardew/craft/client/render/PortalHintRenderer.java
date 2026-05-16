@@ -11,7 +11,6 @@ import com.stardew.craft.blockentity.PortalTriggerBlockEntity;
 import com.stardew.craft.client.render.ClientStarterChestState;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModMiningDimensions;
-import com.stardew.craft.interior.PortalHintPositions;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.GameRenderer;
@@ -27,7 +26,12 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 
 import java.util.ArrayList;
+import java.util.ArrayDeque;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Renders visual hints near portal interaction entities:
@@ -78,6 +82,7 @@ public final class PortalHintRenderer {
     private static final String EXIT_KEY = "stardewcraft.portal.hint.exit";
     private static final String RETURN_KEY = "stardewcraft.portal.hint.return";
     private static final String CLAIM_KEY = "stardewcraft.portal.hint.claim";
+    private static final String LOCKED_KEY = "stardewcraft.portal.hint.locked";
 
     private static final String BUY_TICKET_KEY = "stardewcraft.portal.hint.buy_ticket";
 
@@ -105,12 +110,7 @@ public final class PortalHintRenderer {
 
         if (!inStardew && !inOverworld && !inMine) return;
 
-        List<PortalHint> hints;
-        if (inStardew || inMine) {
-            hints = findNearbyPortals(player);
-        } else {
-            hints = findOverworldWizardPortals(player);
-        }
+        List<PortalHint> hints = findNearbyPortals(player);
 
         if (hints.isEmpty()) return;
 
@@ -149,43 +149,32 @@ public final class PortalHintRenderer {
     private static List<PortalHint> findNearbyPortals(Player player) {
         List<PortalHint> result = new ArrayList<>();
         Vec3 playerPos = player.position();
-        for (PortalHintPositions.HintInfo info : PortalHintPositions.all()) {
-            if (distSqToHintArea(playerPos, info.pos(), info.xBlocks(), info.heightBlocks(), info.zBlocks()) <= HINT_RANGE_SQ) {
-                result.add(new PortalHint(info.pos(), info.isEnter(),
-                    info.xBlocks(), info.heightBlocks(), info.zBlocks(), info.hintStyle(),
-                    info.destinationKey()));
-            }
-        }
 
-        // Dynamic hints: scan nearby Interaction entities with CustomName "sdv_portal_target:..."
-        // Farm exit portals are at per-player dynamic coordinates and cannot be static.
-        findDynamicEntityHints(player, playerPos, result);
+        findPortalBlockHints(player, playerPos, result);
 
         // Dynamic starter chest hint — 箱子模型比 1 格高，气泡上移 0.4 避免嵌入模型
         Vec3 chestVec = ClientStarterChestState.getHintVec();
         if (chestVec != null && playerPos.distanceToSqr(chestVec) <= HINT_RANGE_SQ) {
             result.add(new PortalHint(chestVec.add(0, 0.4, 0), true, 1, 1, 1,
-                    PortalHintPositions.HintStyle.ENTER, "starter_chest"));
+                    HintStyle.ENTER, "starter_chest", "starter_chest"));
         }
 
         return result;
     }
 
-    private static final String PORTAL_TAG_PREFIX = "sdv_portal_target:";
-
     /**
-     * Scan nearby PortalTriggerBlockEntity blocks for dynamic portal hints.
-     * Groups contiguous blocks with the same targetId into a single hint.
+     * Scan nearby PortalTriggerBlockEntity blocks for portal hints.
+    * Groups contiguous blocks with the same targetId into separate hints.
      */
     @SuppressWarnings("null")
-    private static void findDynamicEntityHints(Player player, Vec3 playerPos, List<PortalHint> result) {
+    private static void findPortalBlockHints(Player player, Vec3 playerPos, List<PortalHint> result) {
         Level level = player.level();
         if (level == null) return;
 
         BlockPos center = player.blockPosition();
         int range = (int) ENTITY_SCAN_RANGE;
 
-        java.util.Map<String, double[]> portalBounds = new java.util.LinkedHashMap<>();
+        Map<String, Set<BlockPos>> portalBlocks = new LinkedHashMap<>();
         for (int dx = -range; dx <= range; dx++) {
             for (int dy = -4; dy <= 4; dy++) {
                 for (int dz = -range; dz <= range; dz++) {
@@ -194,115 +183,150 @@ public final class PortalHintRenderer {
                     BlockEntity be = level.getBlockEntity(pos);
                     if (!(be instanceof PortalTriggerBlockEntity ptbe)) continue;
                     String targetId = ptbe.getTargetId();
-                    if (targetId == null || !isDynamicHintTarget(targetId)) continue;
+                    if (targetId == null || targetId.isBlank()) continue;
 
-                    double ex = pos.getX() + 0.5, ey = pos.getY(), ez = pos.getZ() + 0.5;
-                    double[] bounds = portalBounds.computeIfAbsent(targetId,
-                            k -> new double[]{ex, ey, ez, ex, ey, ez});
-                    bounds[0] = Math.min(bounds[0], ex);
-                    bounds[1] = Math.min(bounds[1], ey);
-                    bounds[2] = Math.min(bounds[2], ez);
-                    bounds[3] = Math.max(bounds[3], ex);
-                    bounds[4] = Math.max(bounds[4], ey);
-                    bounds[5] = Math.max(bounds[5], ez);
+                    portalBlocks.computeIfAbsent(targetId, k -> new LinkedHashSet<>()).add(pos.immutable());
                 }
             }
         }
 
-        for (var entry : portalBounds.entrySet()) {
+        for (var entry : portalBlocks.entrySet()) {
             String targetId = entry.getKey();
-            double[] b = entry.getValue();
-            boolean isEnter = "greenhouse_enter".equals(targetId)
-                    || "farm_cave_enter".equals(targetId)
-                    || "quarry_entrance".equals(targetId)
-                    || "desert_bus".equals(targetId)
-                    || "desert_bus_return".equals(targetId);
-            String locKey;
-            if (targetId.startsWith("farm_exit_")) {
-                locKey = targetId;
-            } else if ("quarry_entrance".equals(targetId) || "quarry_exit".equals(targetId)) {
-                locKey = "quarry";
-            } else if ("desert_bus".equals(targetId)) {
-                locKey = "desert";
-            } else if ("desert_bus_return".equals(targetId)) {
-                locKey = "pelican_town";
-            } else if ("farm_cave_enter".equals(targetId) || "farm_cave_exit".equals(targetId)) {
-                locKey = "farm_cave";
-            } else {
-                locKey = "greenhouse";
-            }
-            Vec3 minPos = new Vec3(b[0], b[1], b[2]);
-            int xBlocks = Math.max(1, (int) Math.round(b[3] - b[0]) + 1);
-            int zBlocks = Math.max(1, (int) Math.round(b[5] - b[2]) + 1);
-            int heightBlocks = Math.max(2, (int) Math.round(b[4] - b[1]) + 1);
-            if (distSqToHintArea(playerPos, minPos, xBlocks, heightBlocks, zBlocks) > HINT_RANGE_SQ) continue;
+            boolean isEnter = isEnterTarget(targetId);
+            String locKey = destinationKeyForTarget(targetId);
+            HintStyle style = styleForTarget(targetId, isEnter);
+            for (PortalBounds bounds : splitConnectedBounds(entry.getValue())) {
+                Vec3 minPos = new Vec3(bounds.minX() + 0.5D, bounds.minY(), bounds.minZ() + 0.5D);
+                int xBlocks = bounds.maxX() - bounds.minX() + 1;
+                int zBlocks = bounds.maxZ() - bounds.minZ() + 1;
+                int heightBlocks = bounds.maxY() - bounds.minY() + 1;
+                if (distSqToHintArea(playerPos, minPos, xBlocks, heightBlocks, zBlocks) > HINT_RANGE_SQ) continue;
 
-            // 采石场入口：根据客户端缓存的 ccCraftsRoom 献祭进度决定边框颜色。
-            // 已完成 → 黄色(ENTER)；未完成 → 灰色(LOCKED)。
-            PortalHintPositions.HintStyle style;
-            if ("quarry_entrance".equals(targetId)) {
-                style = com.stardew.craft.client.ClientPlayerDataCache.hasMailFlag(
-                        com.stardew.craft.communitycenter.state.CCStoryFlags.CC_CRAFTS_ROOM)
-                        ? PortalHintPositions.HintStyle.ENTER
-                        : PortalHintPositions.HintStyle.LOCKED;
-            } else if ("desert_bus".equals(targetId)) {
-                style = com.stardew.craft.client.ClientPlayerDataCache.hasMailFlag(
-                        com.stardew.craft.communitycenter.state.CCStoryFlags.CC_VAULT)
-                        ? PortalHintPositions.HintStyle.ENTER
-                        : PortalHintPositions.HintStyle.LOCKED;
-            } else if ("desert_bus_return".equals(targetId)) {
-                style = PortalHintPositions.HintStyle.ENTER;
-            } else {
-                style = isEnter ? PortalHintPositions.HintStyle.ENTER : PortalHintPositions.HintStyle.EXIT;
+                result.add(new PortalHint(minPos, isEnter, xBlocks, heightBlocks, zBlocks, style, locKey, targetId));
             }
-            result.add(new PortalHint(minPos, isEnter, xBlocks, heightBlocks, zBlocks, style, locKey));
         }
     }
 
-    private static boolean isDynamicHintTarget(String targetId) {
-        return targetId.startsWith("farm_exit_")
-                || "desert_bus_return".equals(targetId)
-                || "greenhouse_enter".equals(targetId)
-                || "greenhouse_exit".equals(targetId)
-                || "farm_cave_enter".equals(targetId)
-                || "farm_cave_exit".equals(targetId)
-                || "quarry_entrance".equals(targetId)
-                || "quarry_exit".equals(targetId)
-                || "desert_bus".equals(targetId);
-    }
+    private static List<PortalBounds> splitConnectedBounds(Set<BlockPos> blocks) {
+        List<PortalBounds> result = new ArrayList<>();
+        Set<BlockPos> remaining = new LinkedHashSet<>(blocks);
+        ArrayDeque<BlockPos> queue = new ArrayDeque<>();
 
-    /**
-     * 主世界：扫描附近的 PortalTriggerBlock 来生成巫师塔 Portal Hint。
-     */
-    @SuppressWarnings("null")
-    private static List<PortalHint> findOverworldWizardPortals(Player player) {
-        List<PortalHint> result = new ArrayList<>();
-        Level level = player.level();
-        if (level == null) return result;
+        while (!remaining.isEmpty()) {
+            BlockPos first = remaining.iterator().next();
+            remaining.remove(first);
+            queue.add(first);
 
-        BlockPos center = player.blockPosition();
-        int range = (int) HINT_RANGE;
-        BlockPos lowestPortal = null;
-        int lowestY = Integer.MAX_VALUE;
+            int minX = first.getX();
+            int minY = first.getY();
+            int minZ = first.getZ();
+            int maxX = first.getX();
+            int maxY = first.getY();
+            int maxZ = first.getZ();
 
-        for (int dx = -range; dx <= range; dx++) {
-            for (int dy = -4; dy <= 4; dy++) {
-                for (int dz = -range; dz <= range; dz++) {
-                    BlockPos pos = center.offset(dx, dy, dz);
-                    if (!level.getBlockState(pos).is(ModBlocks.PORTAL_TRIGGER.get())) continue;
-                    if (pos.getY() < lowestY) {
-                        lowestY = pos.getY();
-                        lowestPortal = pos;
-                    }
-                }
+            while (!queue.isEmpty()) {
+                BlockPos pos = queue.removeFirst();
+                minX = Math.min(minX, pos.getX());
+                minY = Math.min(minY, pos.getY());
+                minZ = Math.min(minZ, pos.getZ());
+                maxX = Math.max(maxX, pos.getX());
+                maxY = Math.max(maxY, pos.getY());
+                maxZ = Math.max(maxZ, pos.getZ());
+
+                addNeighborIfPresent(remaining, queue, pos.east());
+                addNeighborIfPresent(remaining, queue, pos.west());
+                addNeighborIfPresent(remaining, queue, pos.north());
+                addNeighborIfPresent(remaining, queue, pos.south());
+                addNeighborIfPresent(remaining, queue, pos.above());
+                addNeighborIfPresent(remaining, queue, pos.below());
             }
+
+            result.add(new PortalBounds(minX, minY, minZ, maxX, maxY, maxZ));
         }
 
-        if (lowestPortal != null) {
-            Vec3 pos = new Vec3(lowestPortal.getX() + 0.5, lowestPortal.getY(), lowestPortal.getZ() + 0.5);
-            result.add(new PortalHint(pos, true, 1, 2, 1, PortalHintPositions.HintStyle.ENTER, "wizard_tower"));
-        }
         return result;
+    }
+
+    private static void addNeighborIfPresent(Set<BlockPos> remaining, ArrayDeque<BlockPos> queue, BlockPos neighbor) {
+        if (remaining.remove(neighbor)) {
+            queue.add(neighbor);
+        }
+    }
+
+    private static boolean isEnterTarget(String targetId) {
+        return targetId.endsWith("_enter")
+                || targetId.endsWith("_entrance")
+                || targetId.startsWith("farm_entry_")
+                || "mine_entrance".equals(targetId)
+                || "desert_bus".equals(targetId)
+                || "desert_bus_return".equals(targetId)
+                || "wizard_tower_overworld_enter".equals(targetId);
+    }
+
+    private static HintStyle styleForTarget(String targetId, boolean isEnter) {
+        if ("quarry_entrance".equals(targetId)) {
+            return com.stardew.craft.client.ClientPlayerDataCache.hasMailFlag(
+                    com.stardew.craft.communitycenter.state.CCStoryFlags.CC_CRAFTS_ROOM)
+                    ? HintStyle.ENTER
+                    : HintStyle.LOCKED;
+        }
+        if ("desert_bus".equals(targetId)) {
+            return com.stardew.craft.client.ClientPlayerDataCache.hasMailFlag(
+                    com.stardew.craft.communitycenter.state.CCStoryFlags.CC_VAULT)
+                    ? HintStyle.ENTER
+                    : HintStyle.LOCKED;
+        }
+        if ("sewer_enter".equals(targetId)) {
+            return com.stardew.craft.client.ClientPlayerDataCache.hasMailFlag(
+                    com.stardew.craft.sewer.SewerStoryFlags.HAS_RUSTY_KEY)
+                    ? HintStyle.ENTER
+                    : HintStyle.LOCKED;
+        }
+        if (targetId.contains("return_overworld") || "skull_cavern_exit".equals(targetId)) {
+            return HintStyle.RETURN_OVERWORLD;
+        }
+        return isEnter ? HintStyle.ENTER : HintStyle.EXIT;
+    }
+
+    private static String destinationKeyForTarget(String targetId) {
+        return switch (targetId) {
+            case "desert_bus" -> "desert";
+            case "desert_bus_return" -> "pelican_town";
+            case "quarry_entrance", "quarry_exit" -> "quarry";
+            case "sewer_enter" -> "sewer";
+            case "sewer_exit" -> "pelican_town";
+            case "greenhouse_enter", "greenhouse_exit" -> "greenhouse";
+            case "farm_cave_enter", "farm_cave_exit" -> "farm_cave";
+            case "mine_entrance", "mine_exit" -> "mine";
+            case "desert_mine_enter", "skull_cavern_exit" -> "desert_mine";
+            case "oasis_enter", "oasis_exit" -> "oasis";
+            case "community_center_enter", "community_center_exit" -> "community_center";
+            case "wizard_tower_return_overworld" -> "overworld";
+            case "wizard_tower_overworld_enter" -> "wizard_tower";
+            default -> normalizePortalDestinationKey(targetId);
+        };
+    }
+
+    private static String normalizePortalDestinationKey(String targetId) {
+        if (targetId.startsWith("farm_entry_")) {
+            return "farm_" + targetId.substring("farm_entry_".length());
+        }
+        if (targetId.startsWith("farm_exit_")) {
+            return targetId;
+        }
+        String key = targetId;
+        if (key.endsWith("_entrance")) {
+            key = key.substring(0, key.length() - "_entrance".length());
+        } else if (key.endsWith("_enter")) {
+            key = key.substring(0, key.length() - "_enter".length());
+        } else if (key.endsWith("_exit")) {
+            key = key.substring(0, key.length() - "_exit".length());
+        }
+        return switch (key) {
+            case "pierre_house" -> "pierre_shop";
+            case "carpenter_shop" -> "carpenter";
+            default -> key;
+        };
     }
 
     // ======================== fade based on distance ========================
@@ -346,11 +370,11 @@ public final class PortalHintRenderer {
                             x + hint.xBlocks, y + hint.heightBlocks, z + hint.zBlocks).inflate(0.02);
 
         int r, g, b, edgeA, faceA;
-        if (hint.hintStyle == PortalHintPositions.HintStyle.RETURN_OVERWORLD) {
+        if (hint.hintStyle == HintStyle.RETURN_OVERWORLD) {
             r = RET_R; g = RET_G; b = RET_B;
             edgeA = (int) (RET_EDGE_A * alpha);
             faceA = (int) (RET_FACE_A * alpha);
-        } else if (hint.hintStyle == PortalHintPositions.HintStyle.LOCKED) {
+        } else if (hint.hintStyle == HintStyle.LOCKED) {
             r = LOCKED_R; g = LOCKED_G; b = LOCKED_B;
             edgeA = (int) (LOCKED_EDGE_A * alpha);
             faceA = (int) (LOCKED_FACE_A * alpha);
@@ -411,10 +435,11 @@ public final class PortalHintRenderer {
         String hintKey;
         if ("starter_chest".equals(hint.destinationKey)) {
             hintKey = CLAIM_KEY;
-        } else if ("desert".equals(hint.destinationKey)
-                || "pelican_town".equals(hint.destinationKey)) {
+        } else if (hint.hintStyle == HintStyle.LOCKED) {
+            hintKey = LOCKED_KEY;
+        } else if ("desert_bus".equals(hint.targetId)) {
             hintKey = BUY_TICKET_KEY;
-        } else if (hint.hintStyle == PortalHintPositions.HintStyle.RETURN_OVERWORLD) {
+        } else if (hint.hintStyle == HintStyle.RETURN_OVERWORLD || "desert_bus_return".equals(hint.targetId)) {
             hintKey = RETURN_KEY;
         } else if (hint.isEnter) {
             hintKey = ENTER_KEY;
@@ -438,10 +463,10 @@ public final class PortalHintRenderer {
 
         int bgR, bgG, bgB, bgA;
         int borderR, borderG, borderB;
-        if (hint.hintStyle == PortalHintPositions.HintStyle.RETURN_OVERWORLD) {
+        if (hint.hintStyle == HintStyle.RETURN_OVERWORLD) {
             bgR = RET_BG_R; bgG = RET_BG_G; bgB = RET_BG_B; bgA = (int) (RET_BG_A * alpha);
             borderR = RET_R; borderG = RET_G; borderB = RET_B;
-        } else if (hint.hintStyle == PortalHintPositions.HintStyle.LOCKED) {
+        } else if (hint.hintStyle == HintStyle.LOCKED) {
             bgR = LOCKED_BG_R; bgG = LOCKED_BG_G; bgB = LOCKED_BG_B; bgA = (int) (LOCKED_BG_A * alpha);
             borderR = LOCKED_R; borderG = LOCKED_G; borderB = LOCKED_B;
         } else if (hint.isEnter) {
@@ -484,9 +509,9 @@ public final class PortalHintRenderer {
         // Text — two centered lines
         int textAlpha = (int) (255 * alpha);
         int textColor;
-        if (hint.hintStyle == PortalHintPositions.HintStyle.RETURN_OVERWORLD) {
+        if (hint.hintStyle == HintStyle.RETURN_OVERWORLD) {
             textColor = (textAlpha << 24) | (RET_R << 16) | (RET_G << 8) | RET_B;
-        } else if (hint.hintStyle == PortalHintPositions.HintStyle.LOCKED) {
+        } else if (hint.hintStyle == HintStyle.LOCKED) {
             textColor = (textAlpha << 24) | (LOCKED_R << 16) | (LOCKED_G << 8) | LOCKED_B;
         } else if (hint.isEnter) {
             textColor = (textAlpha << 24) | (ENTER_R << 16) | (ENTER_G << 8) | ENTER_B;
@@ -659,6 +684,15 @@ public final class PortalHintRenderer {
 
     // ======================== data ========================
 
+    private enum HintStyle {
+        ENTER,
+        EXIT,
+        RETURN_OVERWORLD,
+        LOCKED
+    }
+
     private record PortalHint(Vec3 pos, boolean isEnter, int xBlocks, int heightBlocks, int zBlocks,
-                               PortalHintPositions.HintStyle hintStyle, String destinationKey) {}
+                               HintStyle hintStyle, String destinationKey, String targetId) {}
+
+    private record PortalBounds(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {}
 }

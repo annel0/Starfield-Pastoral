@@ -65,6 +65,8 @@ public class StardewCraft {
                 output.accept(ModItems.WILD_WEEDS.get());
                 output.accept(ModItems.PASTURE_GRASS.get());
                 output.accept(ModItems.BLUE_PASTURE_GRASS.get());
+                output.accept(ModItems.SMALL_BUSH.get());
+                output.accept(ModItems.BERRY_BUSH.get());
                 output.accept(ModItems.YELLOW_DIRT.get());
                 output.accept(ModItems.LARGE_STUMP.get());
                 output.accept(ModItems.HOLLOW_LOG.get());
@@ -993,9 +995,9 @@ public class StardewCraft {
         var server = event.getServer();
         LOGGER.info("[VALLEY_MAP] Startup: trying prebuilt region install (ServerAboutToStart)");
         var result = com.stardew.craft.dimension.StardewValleyPrebuiltRegionInstaller.installIfAvailable(server);
-        if (result == com.stardew.craft.dimension.StardewValleyPrebuiltRegionInstaller.InstallResult.INSTALLED) {
+        if (result.installedOrUpgraded()) {
             pregenJustInstalled = true;
-            LOGGER.info("[VALLEY_MAP] Prebuilt regions INSTALLED (version upgrade). Will reset managers on level load.");
+            LOGGER.info("[VALLEY_MAP] Prebuilt regions {}. Will reset managers on level load.", result);
         } else if (result == com.stardew.craft.dimension.StardewValleyPrebuiltRegionInstaller.InstallResult.ALREADY_PRESENT) {
             LOGGER.info("[VALLEY_MAP] Prebuilt regions ready (ALREADY_PRESENT).");
         } else {
@@ -1032,17 +1034,20 @@ public class StardewCraft {
                 // 此时 level 已加载，执行所有管理器 reset，确保 ensurePlaced 会重新放置。
                 if (pregenJustInstalled) {
                     pregenJustInstalled = false;
+                    com.stardew.craft.dimension.StardewBiomePatcher.schedulePregenBiomeMigration(
+                        stardewLevel, "pregen_region_reinstalled_startup");
                     com.stardew.craft.interior.InteriorSubspaceManager.replaceAllPortalsIfReady(
                         stardewLevel, "pregen_region_reinstalled_startup");
                     LOGGER.info("[VALLEY_PREGEN] Pregen just installed — portal replacement done (startup path)");
                 }
 
-                // 每次服务器启动都强制重置屏障/采石场/矿车站点的放置版本号。
+                // 每次服务器启动都强制重置农场入口/采石场/下水道/矿车站点的放置版本号。
                 // 这样首个玩家进入星露谷时 ensurePlaced() 一定会重新放置所有方块，
                 // 避免老存档 / 模组更新后方块丢失但 SavedData 版本号仍为最新导致跳过。
                 // 各 manager 内部是幂等的 setBlock 操作，重复放置不会有副作用。
                 com.stardew.craft.farm.FarmEntryBarrierManager.get(stardewLevel).resetForMigration();
                 com.stardew.craft.communitycenter.quarry.QuarryAccessManager.get(stardewLevel).resetForMigration();
+                com.stardew.craft.sewer.SewerAccessManager.get(stardewLevel).resetForMigration();
                 com.stardew.craft.minecart.MinecartStationManager.get(stardewLevel).resetForMigration();
                 com.stardew.craft.manager.QuarrySpawnService.resetInitialSpawn(stardewLevel);
                 LOGGER.info("[VALLEY_INIT] Reset all manager SavedData versions — ensurePlaced will re-run on first player entry");

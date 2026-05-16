@@ -20,6 +20,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.LookControl;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.util.Mth;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
@@ -38,6 +39,9 @@ public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
     private static final RawAnimation WALK = RawAnimation.begin().thenLoop("walk");
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
+    private boolean hasLastServerWalkPosition;
+    private double lastServerWalkX;
+    private double lastServerWalkZ;
 
     /** NPC 转向状态机 */
     private enum FacingState { NONE, TURNING_TO, HOLDING, TURNING_BACK }
@@ -64,8 +68,16 @@ public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
         super(entityType, level);
         this.setPersistenceRequired();
         this.setInvulnerable(true);
+        this.setNoGravity(false);
         // Keep AI loop enabled so MC navigation/pathfinder can run.
         this.setNoAi(false);
+        this.setPathfindingMalus(PathType.WATER, -1.0F);
+        this.setPathfindingMalus(PathType.WATER_BORDER, -1.0F);
+        this.setPathfindingMalus(PathType.LAVA, -1.0F);
+        this.setPathfindingMalus(PathType.DAMAGE_FIRE, -1.0F);
+        this.setPathfindingMalus(PathType.DANGER_FIRE, -1.0F);
+        this.setPathfindingMalus(PathType.DAMAGE_OTHER, -1.0F);
+        this.setPathfindingMalus(PathType.DANGER_OTHER, -1.0F);
         // Replace the default LookControl with one that yields to our facing state machine.
         // Vanilla LookControl.tick() sets yHeadRot every tick, fighting our smooth rotation.
         this.lookControl = new NpcLookControl(this);
@@ -76,7 +88,7 @@ public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
         NpcPathNavigation nav = new NpcPathNavigation(this, level);
         nav.setCanOpenDoors(true);
         nav.setCanPassDoors(true);
-        nav.setCanFloat(true);
+        nav.setCanFloat(false);
         return nav;
     }
 
@@ -166,6 +178,9 @@ public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
 
     @Override
     public void tick() {
+        if (this.isNoGravity()) {
+            this.setNoGravity(false);
+        }
         if (!this.level().isClientSide) {
             if (!hasValidNpcId()) {
                 if (this.tickCount >= INVALID_ID_GRACE_TICKS) {
@@ -195,7 +210,16 @@ public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
         super.tick();
         if (!this.level().isClientSide) {
             // 同步行走状态到客户端（用于 GeckoLib 动画控制器）
-            boolean walking = this.getDeltaMovement().horizontalDistanceSqr() > 1.0E-5D;
+            boolean walking = false;
+            if (hasLastServerWalkPosition) {
+                double dx = this.getX() - lastServerWalkX;
+                double dz = this.getZ() - lastServerWalkZ;
+                double horizontalMoveSqr = dx * dx + dz * dz;
+                walking = horizontalMoveSqr > 1.0E-5D && horizontalMoveSqr < 4.0D;
+            }
+            hasLastServerWalkPosition = true;
+            lastServerWalkX = this.getX();
+            lastServerWalkZ = this.getZ();
             if (walking != isWalking()) {
                 setWalking(walking);
             }

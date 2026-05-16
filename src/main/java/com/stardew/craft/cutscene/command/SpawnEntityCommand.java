@@ -11,7 +11,7 @@ import net.minecraft.world.entity.Entity;
  * spawn_entity: spawn a real entity (not an EventActorEntity) at a position.
  * Currently supports: "junimo"
  * JSON: {"cmd":"spawn_entity", "entity_type":"junimo", "tag":"cage_junimo",
- *        "x":18249.5, "y":71, "z":17097.5, "color":"0x32CD32"}
+ *        "x":0.5, "y":64, "z":0.5, "color":"0x32CD32"}
  */
 public class SpawnEntityCommand implements EventCommand {
     private final String entityType;

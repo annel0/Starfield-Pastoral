@@ -48,6 +48,13 @@ public final class NpcSpawnManager {
     private static final double DWARF_SPAWN_Z = -16.0;
     private static final float  DWARF_SPAWN_YAW = 180.0F;
 
+    private static final String KROBUS_NPC_ID = "krobus";
+    private static final double KROBUS_FIXED_X = 30.5D;
+    private static final double KROBUS_FIXED_Y = 51.0D;
+    private static final double KROBUS_FIXED_Z = 54.5D;
+    private static final float KROBUS_FIXED_YAW = 0.0F;
+    private static final double KROBUS_FIXED_EPSILON_SQ = 1.0e-4D;
+
     private static int tickCounter;
     private static boolean initialSweepDone;
     private static MinecraftServer activeServer;
@@ -114,9 +121,7 @@ public final class NpcSpawnManager {
             // Mining-dimension NPCs don't live in the main level; skip to avoid
             // getTrackedNpc evicting their tracked UUID.
             if (MINING_DIM_NPC_IDS.contains(npcId)) continue;
-            // 根因修复：没有 schedule 的 NPC 不应被"关服回位"代码挪动 ——
-            // resolveWorldTarget 对无 state 的 NPC 会回落到 sharedSpawn（镇里世界出生点），
-            // 曾把 Morris 这种固定 NPC 甩到 (-221,-18,-34)。
+            // 根因修复：没有 schedule 的 NPC 不应被"关服回位"代码挪动。
             if (NpcDataRegistry.schedules().get(npcId) == null) continue;
             StardewNpcEntity npc = getTrackedNpc(level, npcId);
             if (npc == null) continue;
@@ -162,6 +167,10 @@ public final class NpcSpawnManager {
         if (com.stardew.craft.joja.JojaNpcEvents.isJojaMartNpc(npcId)) {
             com.stardew.craft.joja.JojaNpcEvents.onJojaNpcJoin(npc, npcId);
             return false;
+        }
+
+        if (isKrobus(npcId)) {
+            enforceKrobusFixedPosition(npc);
         }
 
         UUID tracked = TRACKED_NPC_UUIDS.get(npcId);
@@ -266,15 +275,22 @@ public final class NpcSpawnManager {
                 yaw = pos.has("yaw") ? pos.get("yaw").getAsFloat() : yaw;
             }
 
-            // Prefer current runtime schedule target so newly spawned NPC starts at the
-            // correct active location instead of a stale static bootstrap point.
-            Vec3 runtimeFallback = resolveRuntimeFallbackSpawn(level, npcId);
-            if (runtimeFallback != null) {
-                x = runtimeFallback.x;
-                y = runtimeFallback.y;
-                z = runtimeFallback.z;
-            } else if (pos == null) {
-                continue;
+            if (isKrobus(npcId)) {
+                x = KROBUS_FIXED_X;
+                y = KROBUS_FIXED_Y;
+                z = KROBUS_FIXED_Z;
+                yaw = KROBUS_FIXED_YAW;
+            } else {
+                // Prefer current runtime schedule target so newly spawned NPC starts at the
+                // correct active location instead of a stale static bootstrap point.
+                Vec3 runtimeScheduleSpawn = resolveRuntimeScheduleSpawn(level, npcId);
+                if (runtimeScheduleSpawn != null) {
+                    x = runtimeScheduleSpawn.x;
+                    y = runtimeScheduleSpawn.y;
+                    z = runtimeScheduleSpawn.z;
+                } else if (pos == null) {
+                    continue;
+                }
             }
 
             double spawnX = x;
@@ -292,12 +308,18 @@ public final class NpcSpawnManager {
                 new Vec3(spawnX, spawnY, spawnZ));
 
             if (hasTrackedNpc(level, npcId)) {
+                if (isKrobus(npcId)) {
+                    enforceKrobusFixedPosition(getTrackedNpc(level, npcId));
+                }
                 TRACKED_MISS_COUNTS.put(npcId, 0);
                 continue;
             }
 
             StardewNpcEntity existing = loadedByNpcId.get(npcId);
             if (existing != null) {
+                if (isKrobus(npcId)) {
+                    enforceKrobusFixedPosition(existing);
+                }
                 TRACKED_NPC_UUIDS.put(npcId, existing.getUUID());
                 TRACKED_MISS_COUNTS.put(npcId, 0);
                 continue;
@@ -311,7 +333,9 @@ public final class NpcSpawnManager {
                 // missing and self-heal by clearing the stale tracked UUID.
                 UUID stillTracked = TRACKED_NPC_UUIDS.get(npcId);
                 if (stillTracked != null) {
-                    if (!promoteStaleTrackedNpcToMissing(level, npcId, stillTracked, false)) {
+                    if (isKrobus(npcId)) {
+                        TRACKED_NPC_UUIDS.remove(npcId, stillTracked);
+                    } else if (!promoteStaleTrackedNpcToMissing(level, npcId, stillTracked, false)) {
                         continue;
                     }
                 }
@@ -340,8 +364,12 @@ public final class NpcSpawnManager {
             npc.setNpcId(npcId);
             npc.moveTo(spawnX, spawnY, spawnZ, yaw, 0.0F);
             npc.setCustomNameVisible(false);
-            // Snap to block surface (fixes floating on slabs/stairs)
-            NpcCentralMovementService.snapToSurface(level, npc);
+            if (isKrobus(npcId)) {
+                enforceKrobusFixedPosition(npc);
+            } else {
+                // Snap to block surface (fixes floating on slabs/stairs)
+                NpcCentralMovementService.snapToSurface(level, npc);
+            }
             boolean added = level.addFreshEntity(npc);
             if (!added) {
                 TRACKED_NPC_UUIDS.remove(npcId);
@@ -638,8 +666,11 @@ public final class NpcSpawnManager {
         return null;
     }
 
-    private static Vec3 resolveRuntimeFallbackSpawn(ServerLevel level, String npcId) {
+    private static Vec3 resolveRuntimeScheduleSpawn(ServerLevel level, String npcId) {
         if (level == null || npcId == null || npcId.isBlank()) {
+            return null;
+        }
+        if (NpcDataRegistry.schedules().get(npcId) == null) {
             return null;
         }
         NpcRuntimeState state = NpcRuntimeDataManager.get(level).states().get(npcId);
@@ -652,8 +683,8 @@ public final class NpcSpawnManager {
             return null;
         }
 
-        // If schedule resolution fell back to world shared spawn, avoid spawning NPC at origin-like
-        // coordinates and let static/explicit spawn points handle bootstrap instead.
+        // If schedule resolution returns the world shared spawn, let static/explicit spawn points
+        // handle bootstrap instead.
         if (target.position().distanceToSqr(sharedSpawn) < 0.25D) {
             return null;
         }
@@ -666,6 +697,29 @@ public final class NpcSpawnManager {
         }
         String result = NpcRoutePlanner.canonicalNpcId(npcId);
         return result.isEmpty() ? null : result;
+    }
+
+    private static boolean isKrobus(String npcId) {
+        return KROBUS_NPC_ID.equals(canonicalNpcId(npcId));
+    }
+
+    private static void enforceKrobusFixedPosition(StardewNpcEntity npc) {
+        if (npc == null || npc.isRemoved() || !npc.isAlive()) {
+            return;
+        }
+
+        npc.getNavigation().stop();
+        double dx = npc.getX() - KROBUS_FIXED_X;
+        double dy = npc.getY() - KROBUS_FIXED_Y;
+        double dz = npc.getZ() - KROBUS_FIXED_Z;
+        if (dx * dx + dy * dy + dz * dz > KROBUS_FIXED_EPSILON_SQ) {
+            npc.moveTo(KROBUS_FIXED_X, KROBUS_FIXED_Y, KROBUS_FIXED_Z, KROBUS_FIXED_YAW, 0.0F);
+        }
+        npc.setYRot(KROBUS_FIXED_YAW);
+        npc.setYHeadRot(KROBUS_FIXED_YAW);
+        npc.setYBodyRot(KROBUS_FIXED_YAW);
+        npc.setDeltaMovement(Vec3.ZERO);
+        npc.hasImpulse = false;
     }
 
     private static boolean promoteStaleTrackedNpcToMissing(ServerLevel level,

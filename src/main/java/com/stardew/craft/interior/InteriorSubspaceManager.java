@@ -2,6 +2,7 @@ package com.stardew.craft.interior;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModDimensions;
+import com.stardew.craft.dimension.StardewValleyPrebuiltRegionInstaller;
 import com.stardew.craft.mining.StructureLoader;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -79,29 +80,31 @@ public final class InteriorSubspaceManager {
     public static final int REGION_MAX_X = 19000;
     public static final int REGION_MAX_Z = 19000;
 
-    // 结构布局版本：当结构清单或坐标大改时 +1，可触发重新装载。
-    private static final int LAYOUT_VERSION = 32;
+    // 固定室内已经内嵌在 pregen 主地图下方，布局版本跟 pregen 地图版本统一。
+    private static final int LAYOUT_VERSION = StardewValleyPrebuiltRegionInstaller.CURRENT_PREGEN_VERSION;
+    private static final int PORTAL_TRIGGER_VERSION = 4;
+    private static final boolean FIXED_INTERIORS_EMBEDDED_IN_PREGEN = true;
 
     private static final String PIERRE_HOUSE_STRUCTURE_PATH = "data/stardewcraft/structures/interior/pierre_house.schem";
-    private static final BlockPos PIERRE_HOUSE_ORIGIN = new BlockPos(12032, 70, 12032);
-    private static final BlockPos PIERRE_INDOOR_SPAWN_OFFSET = new BlockPos(6, 1, 6);
-    private static final BlockPos PIERRE_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(5, 1, 6);
-    private static final BlockPos PIERRE_OUTDOOR_ENTRY_POS = new BlockPos(-159, -18, 54);
-    private static final BlockPos PIERRE_OUTDOOR_INTERACTION_BASE = new BlockPos(-160, -18, 54);
+    private static final BlockPos PIERRE_HOUSE_ORIGIN = BlockPos.ZERO;
+    private static final BlockPos PIERRE_INDOOR_SPAWN_OFFSET = new BlockPos(21, 36, -12);
+    private static final BlockPos PIERRE_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(20, 36, -11);
+    private static final BlockPos PIERRE_OUTDOOR_ENTRY_POS = new BlockPos(27, 64, -6);
+    private static final BlockPos PIERRE_OUTDOOR_INTERACTION_BASE = new BlockPos(27, 65, -8);
 
     private static final String MUSEUM_STRUCTURE_PATH = "data/stardewcraft/structures/interior/museum.schem";
-    private static final BlockPos MUSEUM_ORIGIN = new BlockPos(13056, 70, 13056);
-    private static final BlockPos MUSEUM_INDOOR_SPAWN_OFFSET = new BlockPos(10, 1, 5);
-    private static final BlockPos MUSEUM_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(9, 1, 5);
-    private static final BlockPos MUSEUM_OUTDOOR_ENTRY_POS = new BlockPos(-309, -17, -36);
-    private static final BlockPos MUSEUM_OUTDOOR_EXIT_POS = new BlockPos(-308, -17, -37);
+    private static final BlockPos MUSEUM_ORIGIN = BlockPos.ZERO;
+    private static final BlockPos MUSEUM_INDOOR_SPAWN_OFFSET = new BlockPos(112, 38, 46);
+    private static final BlockPos MUSEUM_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(111, 38, 47);
+    private static final BlockPos MUSEUM_OUTDOOR_ENTRY_POS = new BlockPos(124, 64, 42);
+    private static final BlockPos MUSEUM_OUTDOOR_EXIT_POS = new BlockPos(124, 64, 43);
 
     private static final String BLACKSMITH_STRUCTURE_PATH = "data/stardewcraft/structures/interior/blacksmith.schem";
-    private static final BlockPos BLACKSMITH_ORIGIN = new BlockPos(13632, 70, 13632);
-    private static final BlockPos BLACKSMITH_INDOOR_SPAWN_OFFSET = new BlockPos(3, 1, 8);
-    private static final BlockPos BLACKSMITH_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(1, 1, 8);
-    private static final BlockPos BLACKSMITH_OUTDOOR_ENTRY_POS = new BlockPos(-288, -18, -17);
-    private static final BlockPos BLACKSMITH_OUTDOOR_EXIT_POS = new BlockPos(-288, -18, -19);
+    private static final BlockPos BLACKSMITH_ORIGIN = BlockPos.ZERO;
+    private static final BlockPos BLACKSMITH_INDOOR_SPAWN_OFFSET = new BlockPos(107, 46, 30);
+    private static final BlockPos BLACKSMITH_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(106, 46, 31);
+    private static final BlockPos BLACKSMITH_OUTDOOR_ENTRY_POS = new BlockPos(108, 64, 29);
+    private static final BlockPos BLACKSMITH_OUTDOOR_EXIT_POS = new BlockPos(108, 64, 30);
 
     private static final String TAG_PORTAL_MARKER_OUTSIDE = "sdv_portal_marker:pierre_house_outside";
     private static final String TAG_PORTAL_MARKER_INSIDE = "sdv_portal_marker:pierre_house_inside";
@@ -111,159 +114,167 @@ public final class InteriorSubspaceManager {
     private static final String TAG_PORTAL_MARKER_BLACKSMITH_INSIDE = "sdv_portal_marker:blacksmith_inside";
 
     private static final String SALOON_STRUCTURE_PATH = "data/stardewcraft/structures/interior/saloon.schem";
-    private static final BlockPos SALOON_ORIGIN = new BlockPos(14208, 70, 14208);
-    private static final BlockPos SALOON_INDOOR_SPAWN_OFFSET = new BlockPos(2, 1, 17);
-    private static final BlockPos SALOON_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(1, 1, 17);
-    private static final BlockPos SALOON_OUTDOOR_ENTRY_POS = new BlockPos(-164, -17, 15);
-    private static final BlockPos SALOON_OUTDOOR_EXIT_POS = new BlockPos(-164, -17, 14);
+    private static final BlockPos SALOON_ORIGIN = BlockPos.ZERO;
+    private static final BlockPos SALOON_INDOOR_SPAWN_OFFSET = new BlockPos(26, 36, 18);
+    private static final BlockPos SALOON_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(25, 36, 19);
+    private static final BlockPos SALOON_OUTDOOR_ENTRY_POS = new BlockPos(29, 66, 14);
+    private static final BlockPos SALOON_OUTDOOR_EXIT_POS = new BlockPos(30, 64, 16);
 
     private static final String TAG_PORTAL_MARKER_SALOON_OUTSIDE = "sdv_portal_marker:saloon_outside";
     private static final String TAG_PORTAL_MARKER_SALOON_INSIDE = "sdv_portal_marker:saloon_inside";
 
     private static final String MAYOR_HOUSE_STRUCTURE_PATH = "data/stardewcraft/structures/interior/mayor_house.schem";
-    private static final BlockPos MAYOR_HOUSE_ORIGIN = new BlockPos(14784, 70, 14784);
-    private static final BlockPos MAYOR_HOUSE_INDOOR_SPAWN_OFFSET = new BlockPos(2, 1, 5);
-    private static final BlockPos MAYOR_HOUSE_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(1, 1, 5);
-    private static final BlockPos MAYOR_HOUSE_OUTDOOR_ENTRY_POS = new BlockPos(-197, -17, -22);
-    private static final BlockPos MAYOR_HOUSE_OUTDOOR_EXIT_POS = new BlockPos(-197, -17, -23);
+    private static final BlockPos MAYOR_HOUSE_ORIGIN = BlockPos.ZERO;
+    private static final BlockPos MAYOR_HOUSE_INDOOR_SPAWN_OFFSET = new BlockPos(54, 50, 29);
+    private static final BlockPos MAYOR_HOUSE_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(53, 50, 30);
+    private static final BlockPos MAYOR_HOUSE_OUTDOOR_ENTRY_POS = new BlockPos(50, 66, 34);
+    private static final BlockPos MAYOR_HOUSE_OUTDOOR_EXIT_POS = new BlockPos(50, 64, 37);
 
     private static final String TAG_PORTAL_MARKER_MAYOR_HOUSE_OUTSIDE = "sdv_portal_marker:mayor_house_outside";
     private static final String TAG_PORTAL_MARKER_MAYOR_HOUSE_INSIDE = "sdv_portal_marker:mayor_house_inside";
 
     private static final String CLINIC_STRUCTURE_PATH = "data/stardewcraft/structures/interior/clinic.schem";
-    private static final BlockPos CLINIC_ORIGIN = new BlockPos(15360, 70, 15360);
-    private static final BlockPos CLINIC_INDOOR_SPAWN_OFFSET = new BlockPos(2, 1, 11);
-    private static final BlockPos CLINIC_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(1, 1, 11);
-    private static final BlockPos CLINIC_OUTDOOR_ENTRY_POS = new BlockPos(-146, -18, 60);
-    private static final BlockPos CLINIC_OUTDOOR_EXIT_POS = new BlockPos(-145, -18, 59);
+    private static final BlockPos CLINIC_ORIGIN = BlockPos.ZERO;
+    private static final BlockPos CLINIC_INDOOR_SPAWN_OFFSET = new BlockPos(9, 43, -11);
+    private static final BlockPos CLINIC_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(8, 43, -10);
+    private static final BlockPos CLINIC_OUTDOOR_ENTRY_POS = new BlockPos(13, 65, -8);
+    private static final BlockPos CLINIC_OUTDOOR_EXIT_POS = new BlockPos(13, 64, -6);
 
     private static final String TAG_PORTAL_MARKER_CLINIC_OUTSIDE = "sdv_portal_marker:clinic_outside";
     private static final String TAG_PORTAL_MARKER_CLINIC_INSIDE = "sdv_portal_marker:clinic_inside";
 
     private static final String RIVER_ROAD_1_STRUCTURE_PATH = "data/stardewcraft/structures/interior/1_river_road.schem";
-    private static final BlockPos RIVER_ROAD_1_ORIGIN = new BlockPos(15936, 70, 15936);
-    private static final BlockPos RIVER_ROAD_1_INDOOR_SPAWN_OFFSET = new BlockPos(3, 1, 12);
-    private static final BlockPos RIVER_ROAD_1_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(1, 1, 12);
-    private static final BlockPos RIVER_ROAD_1_OUTDOOR_ENTRY_POS = new BlockPos(-195, -18, 32);
-    private static final BlockPos RIVER_ROAD_1_OUTDOOR_EXIT_POS = new BlockPos(-195, -18, 33);
+    private static final BlockPos RIVER_ROAD_1_ORIGIN = BlockPos.ZERO;
+    private static final BlockPos RIVER_ROAD_1_INDOOR_SPAWN_OFFSET = new BlockPos(48, 22, 4);
+    private static final BlockPos RIVER_ROAD_1_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(47, 22, 5);
+    private static final BlockPos RIVER_ROAD_1_OUTDOOR_ENTRY_POS = new BlockPos(48, 64, 1);
+    private static final BlockPos RIVER_ROAD_1_OUTDOOR_EXIT_POS = new BlockPos(48, 64, 2);
 
     private static final String TAG_PORTAL_MARKER_RIVER_ROAD_1_OUTSIDE = "sdv_portal_marker:1_river_road_outside";
     private static final String TAG_PORTAL_MARKER_RIVER_ROAD_1_INSIDE = "sdv_portal_marker:1_river_road_inside";
 
     private static final String CARPENTER_SHOP_STRUCTURE_PATH = "data/stardewcraft/structures/interior/carpenter_shop.schem";
-    private static final BlockPos CARPENTER_SHOP_ORIGIN = new BlockPos(16512, 70, 16512);
-    private static final BlockPos CARPENTER_SHOP_INDOOR_SPAWN_OFFSET = new BlockPos(13, 5, 7);
-    private static final BlockPos CARPENTER_SHOP_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(12, 5, 7);
-    private static final BlockPos CARPENTER_SHOP_OUTDOOR_ENTRY_POS = new BlockPos(-213, -12, 219);
-    private static final BlockPos CARPENTER_SHOP_OUTDOOR_EXIT_POS = new BlockPos(-213, -12, 218);
+    private static final BlockPos CARPENTER_SHOP_ORIGIN = BlockPos.ZERO;
+    private static final BlockPos CARPENTER_SHOP_INDOOR_SPAWN_OFFSET = new BlockPos(30, 51, -117);
+    private static final BlockPos CARPENTER_SHOP_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(29, 51, -116);
+    private static final BlockPos CARPENTER_SHOP_OUTDOOR_ENTRY_POS = new BlockPos(28, 85, -115);
+    private static final BlockPos CARPENTER_SHOP_OUTDOOR_EXIT_POS = new BlockPos(29, 85, -113);
 
     private static final String TAG_PORTAL_MARKER_CARPENTER_SHOP_OUTSIDE = "sdv_portal_marker:carpenter_shop_outside";
     private static final String TAG_PORTAL_MARKER_CARPENTER_SHOP_INSIDE = "sdv_portal_marker:carpenter_shop_inside";
 
     private static final String WILLOW_LANE_1_STRUCTURE_PATH = "data/stardewcraft/structures/interior/1_willow_lane.schem";
-    private static final BlockPos WILLOW_LANE_1_ORIGIN = new BlockPos(17088, 70, 17088);
-    private static final BlockPos WILLOW_LANE_1_INDOOR_SPAWN_OFFSET = new BlockPos(2, 1, 5);
-    private static final BlockPos WILLOW_LANE_1_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(1, 1, 5);
-    private static final BlockPos WILLOW_LANE_1_OUTDOOR_ENTRY_POS = new BlockPos(-85, -16, -25);
-    private static final BlockPos WILLOW_LANE_1_OUTDOOR_EXIT_POS = new BlockPos(-85, -16, -26);
+    private static final BlockPos WILLOW_LANE_1_ORIGIN = BlockPos.ZERO;
+    private static final BlockPos WILLOW_LANE_1_INDOOR_SPAWN_OFFSET = new BlockPos(-28, 38, 43);
+    private static final BlockPos WILLOW_LANE_1_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(-29, 38, 44);
+    private static final BlockPos WILLOW_LANE_1_OUTDOOR_ENTRY_POS = new BlockPos(-29, 65, 39);
+    private static final BlockPos WILLOW_LANE_1_OUTDOOR_EXIT_POS = new BlockPos(-28, 64, 42);
 
     private static final String TAG_PORTAL_MARKER_WILLOW_LANE_1_OUTSIDE = "sdv_portal_marker:1_willow_lane_outside";
     private static final String TAG_PORTAL_MARKER_WILLOW_LANE_1_INSIDE = "sdv_portal_marker:1_willow_lane_inside";
 
     private static final String WILLOW_LANE_2_STRUCTURE_PATH = "data/stardewcraft/structures/interior/2_willow_lane.schem";
-    private static final BlockPos WILLOW_LANE_2_ORIGIN = new BlockPos(17088, 70, 17664);
-    private static final BlockPos WILLOW_LANE_2_INDOOR_SPAWN_OFFSET = new BlockPos(4, 1, 2);
-    private static final BlockPos WILLOW_LANE_2_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(3, 1, 2);
-    private static final BlockPos WILLOW_LANE_2_OUTDOOR_ENTRY_POS = new BlockPos(-115, -17, -27);
-    private static final BlockPos WILLOW_LANE_2_OUTDOOR_EXIT_POS = new BlockPos(-115, -17, -28);
+    private static final BlockPos WILLOW_LANE_2_ORIGIN = BlockPos.ZERO;
+    private static final BlockPos WILLOW_LANE_2_INDOOR_SPAWN_OFFSET = new BlockPos(-10, 24, 40);
+    private static final BlockPos WILLOW_LANE_2_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(-11, 24, 41);
+    private static final BlockPos WILLOW_LANE_2_OUTDOOR_ENTRY_POS = new BlockPos(-11, 64, 39);
+    private static final BlockPos WILLOW_LANE_2_OUTDOOR_EXIT_POS = new BlockPos(-10, 64, 40);
 
     private static final String TAG_PORTAL_MARKER_WILLOW_LANE_2_OUTSIDE = "sdv_portal_marker:2_willow_lane_outside";
     private static final String TAG_PORTAL_MARKER_WILLOW_LANE_2_INSIDE = "sdv_portal_marker:2_willow_lane_inside";
 
     private static final String MARNIE_RANCH_STRUCTURE_PATH = "data/stardewcraft/structures/interior/marnie_ranch.schem";
-    private static final BlockPos MARNIE_RANCH_ORIGIN = new BlockPos(17088, 70, 18240);
-    private static final BlockPos MARNIE_RANCH_INDOOR_SPAWN_OFFSET = new BlockPos(2, 1, 15);
-    private static final BlockPos MARNIE_RANCH_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(1, 1, 15);
-    private static final BlockPos MARNIE_RANCH_OUTDOOR_ENTRY_POS = new BlockPos(178, -14, -4);
-    private static final BlockPos MARNIE_RANCH_OUTDOOR_EXIT_POS = new BlockPos(178, -14, -5);
+    private static final BlockPos MARNIE_RANCH_ORIGIN = BlockPos.ZERO;
+    private static final BlockPos MARNIE_RANCH_INDOOR_SPAWN_OFFSET = new BlockPos(-86, 34, 25);
+    private static final BlockPos MARNIE_RANCH_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(-87, 34, 26);
+    private static final BlockPos MARNIE_RANCH_OUTDOOR_ENTRY_POS = new BlockPos(-92, 64, 21);
+    private static final BlockPos MARNIE_RANCH_OUTDOOR_EXIT_POS = new BlockPos(-92, 64, 23);
 
     private static final String TAG_PORTAL_MARKER_MARNIE_RANCH_OUTSIDE = "sdv_portal_marker:marnie_ranch_outside";
     private static final String TAG_PORTAL_MARKER_MARNIE_RANCH_INSIDE = "sdv_portal_marker:marnie_ranch_inside";
 
     private static final String LEAH_COTTAGE_STRUCTURE_PATH = "data/stardewcraft/structures/interior/leah_cottage.schem";
-    private static final BlockPos LEAH_COTTAGE_ORIGIN = new BlockPos(17088, 70, 18816);
-    private static final BlockPos LEAH_COTTAGE_INDOOR_SPAWN_OFFSET = new BlockPos(6, 1, 7);
-    private static final BlockPos LEAH_COTTAGE_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(4, 1, 7);
-    private static final BlockPos LEAH_COTTAGE_OUTDOOR_ENTRY_POS = new BlockPos(155, -13, -58);
-    private static final BlockPos LEAH_COTTAGE_OUTDOOR_EXIT_POS = new BlockPos(155, -13, -59);
+    private static final BlockPos LEAH_COTTAGE_ORIGIN = BlockPos.ZERO;
+    private static final BlockPos LEAH_COTTAGE_INDOOR_SPAWN_OFFSET = new BlockPos(-83, 38, 51);
+    private static final BlockPos LEAH_COTTAGE_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(-84, 38, 52);
+    private static final BlockPos LEAH_COTTAGE_OUTDOOR_ENTRY_POS = new BlockPos(-83, 64, 52);
+    private static final BlockPos LEAH_COTTAGE_OUTDOOR_EXIT_POS = new BlockPos(-83, 64, 53);
 
     private static final String TAG_PORTAL_MARKER_LEAH_COTTAGE_OUTSIDE = "sdv_portal_marker:leah_cottage_outside";
     private static final String TAG_PORTAL_MARKER_LEAH_COTTAGE_INSIDE = "sdv_portal_marker:leah_cottage_inside";
 
     private static final String ADVENTURER_GUILD_STRUCTURE_PATH = "data/stardewcraft/structures/interior/adventurer_guild.schem";
-    private static final BlockPos ADVENTURER_GUILD_ORIGIN = new BlockPos(17664, 70, 17088);
-    private static final BlockPos ADVENTURER_GUILD_INDOOR_SPAWN_OFFSET = new BlockPos(2, 1, 6);
-    private static final BlockPos ADVENTURER_GUILD_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(1, 1, 6);
-    private static final BlockPos ADVENTURER_GUILD_OUTDOOR_ENTRY_POS = new BlockPos(-335, -13, 312);
-    private static final BlockPos ADVENTURER_GUILD_OUTDOOR_EXIT_POS = new BlockPos(-334, -13, 311);
+    private static final BlockPos ADVENTURER_GUILD_ORIGIN = BlockPos.ZERO;
+    private static final BlockPos ADVENTURER_GUILD_INDOOR_SPAWN_OFFSET = new BlockPos(106, 60, -143);
+    private static final BlockPos ADVENTURER_GUILD_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(105, 60, -142);
+    private static final BlockPos ADVENTURER_GUILD_OUTDOOR_ENTRY_POS = new BlockPos(106, 81, -142);
+    private static final BlockPos ADVENTURER_GUILD_OUTDOOR_EXIT_POS = new BlockPos(106, 81, -141);
 
     private static final String TAG_PORTAL_MARKER_ADVENTURER_GUILD_OUTSIDE = "sdv_portal_marker:adventurer_guild_outside";
     private static final String TAG_PORTAL_MARKER_ADVENTURER_GUILD_INSIDE = "sdv_portal_marker:adventurer_guild_inside";
 
     private static final String FISH_SHOP_STRUCTURE_PATH = "data/stardewcraft/structures/interior/fish_shop.schem";
-    private static final BlockPos FISH_SHOP_ORIGIN = new BlockPos(17664, 70, 17664);
-    private static final BlockPos FISH_SHOP_INDOOR_SPAWN_OFFSET = new BlockPos(2, 1, 6);
-    private static final BlockPos FISH_SHOP_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(1, 1, 6);
-    private static final BlockPos FISH_SHOP_OUTDOOR_ENTRY_POS = new BlockPos(-238, -15, -211);
-    private static final BlockPos FISH_SHOP_OUTDOOR_EXIT_POS = new BlockPos(-238, -15, -212);
+    private static final BlockPos FISH_SHOP_ORIGIN = BlockPos.ZERO;
+    private static final BlockPos FISH_SHOP_INDOOR_SPAWN_OFFSET = new BlockPos(65, 31, 147);
+    private static final BlockPos FISH_SHOP_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(64, 31, 148);
+    private static final BlockPos FISH_SHOP_OUTDOOR_ENTRY_POS = new BlockPos(64, 60, 150);
+    private static final BlockPos FISH_SHOP_OUTDOOR_EXIT_POS = new BlockPos(64, 60, 151);
 
     private static final String TAG_PORTAL_MARKER_FISH_SHOP_OUTSIDE = "sdv_portal_marker:fish_shop_outside";
     private static final String TAG_PORTAL_MARKER_FISH_SHOP_INSIDE = "sdv_portal_marker:fish_shop_inside";
 
     private static final String ELLIOTT_CABIN_STRUCTURE_PATH = "data/stardewcraft/structures/interior/elliott_cabin.schem";
-    private static final BlockPos ELLIOTT_CABIN_ORIGIN = new BlockPos(17664, 70, 18240);
-    private static final BlockPos ELLIOTT_CABIN_INDOOR_SPAWN_OFFSET = new BlockPos(2, 1, 3);
-    private static final BlockPos ELLIOTT_CABIN_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(1, 1, 3);
-    private static final BlockPos ELLIOTT_CABIN_OUTDOOR_ENTRY_POS = new BlockPos(-267, -13, -152);
-    private static final BlockPos ELLIOTT_CABIN_OUTDOOR_EXIT_POS = new BlockPos(-267, -13, -153);
+    private static final BlockPos ELLIOTT_CABIN_ORIGIN = BlockPos.ZERO;
+    private static final BlockPos ELLIOTT_CABIN_INDOOR_SPAWN_OFFSET = new BlockPos(75, 45, 102);
+    private static final BlockPos ELLIOTT_CABIN_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(74, 45, 103);
+    private static final BlockPos ELLIOTT_CABIN_OUTDOOR_ENTRY_POS = new BlockPos(80, 60, 101);
+    private static final BlockPos ELLIOTT_CABIN_OUTDOOR_EXIT_POS = new BlockPos(80, 60, 102);
 
     private static final String TAG_PORTAL_MARKER_ELLIOTT_CABIN_OUTSIDE = "sdv_portal_marker:elliott_cabin_outside";
     private static final String TAG_PORTAL_MARKER_ELLIOTT_CABIN_INSIDE = "sdv_portal_marker:elliott_cabin_inside";
 
     private static final String WIZARD_TOWER_STRUCTURE_PATH = "data/stardewcraft/structures/interior/wizard_tower.schem";
-    private static final BlockPos WIZARD_TOWER_ORIGIN = new BlockPos(18240, 70, 17088);
-    private static final BlockPos WIZARD_TOWER_INDOOR_SPAWN_OFFSET = new BlockPos(2, 1, 9);
-    private static final BlockPos WIZARD_TOWER_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(1, 1, 9);
-    private static final BlockPos WIZARD_TOWER_OUTDOOR_ENTRY_POS = new BlockPos(340, -1, -42);
-    private static final BlockPos WIZARD_TOWER_OUTDOOR_EXIT_POS = new BlockPos(340, -1, -43);
+    private static final BlockPos WIZARD_TOWER_ORIGIN = BlockPos.ZERO;
+    private static final BlockPos WIZARD_TOWER_INDOOR_SPAWN_OFFSET = new BlockPos(-178, 34, 63);
+    private static final BlockPos WIZARD_TOWER_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(-179, 34, 64);
+    private static final BlockPos WIZARD_TOWER_OUTDOOR_ENTRY_POS = new BlockPos(-179, 69, 50);
+    private static final BlockPos WIZARD_TOWER_OUTDOOR_EXIT_POS = new BlockPos(-179, 69, 51);
 
     private static final String TAG_PORTAL_MARKER_WIZARD_TOWER_OUTSIDE = "sdv_portal_marker:wizard_tower_outside";
     private static final String TAG_PORTAL_MARKER_WIZARD_TOWER_INSIDE = "sdv_portal_marker:wizard_tower_inside";
     private static final String TAG_PORTAL_MARKER_WIZARD_TOWER_RETURN_OVERWORLD = "sdv_portal_marker:wizard_tower_return_overworld";
-    private static final BlockPos WIZARD_TOWER_RETURN_OVERWORLD_BASE = new BlockPos(18249, 71, 17100);
+    private static final BlockPos WIZARD_TOWER_RETURN_OVERWORLD_BASE = new BlockPos(-175, 34, 54);
 
     // ---- 绿洲（沙漠 Oasis / Sandy's shop） ----
     private static final String OASIS_STRUCTURE_PATH = "data/stardewcraft/structures/interior/oasis_interior.schem";
-    public static final BlockPos OASIS_ORIGIN = new BlockPos(18240, 70, 17664);
-    private static final BlockPos OASIS_INDOOR_SPAWN_OFFSET = new BlockPos(2, 1, 4);
-    private static final BlockPos OASIS_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(1, 1, 4);
+    public static final BlockPos OASIS_ORIGIN = BlockPos.ZERO;
+    private static final BlockPos OASIS_INDOOR_SPAWN_OFFSET = new BlockPos(-252, 30, -147);
+    private static final BlockPos OASIS_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(-253, 30, -146);
     /** Oasis 出门后传送到沙漠室外（Oasis 入口旁，Z-1） */
-    public static final BlockPos OASIS_OUTDOOR_EXIT_POS = new BlockPos(-360, -40, 1413);
+    public static final BlockPos OASIS_OUTDOOR_EXIT_POS = new BlockPos(-251, 64, -141);
     private static final String TAG_PORTAL_MARKER_OASIS_INSIDE = "sdv_portal_marker:oasis_inside";
 
     // ---- Joja 超市（JojaMart） ----
     private static final String JOJA_MART_STRUCTURE_PATH = "data/stardewcraft/structures/interior/joja_mart.schem";
-    public static final BlockPos JOJA_MART_ORIGIN = new BlockPos(18240, 70, 18240);
+    public static final BlockPos JOJA_MART_ORIGIN = BlockPos.ZERO;
     /** 进店后玩家落点：origin +(3,1,13)，面朝东（-X 方向是门，看向店内东侧） */
-    private static final BlockPos JOJA_MART_INDOOR_SPAWN_OFFSET = new BlockPos(3, 1, 13);
+    private static final BlockPos JOJA_MART_INDOOR_SPAWN_OFFSET = new BlockPos(108, 45, -19);
     /** 室内出口触发方块基点：origin +(1,1,13)，2 高 x 1 宽 x 2 深（Z+13~14） */
-    private static final BlockPos JOJA_MART_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(1, 1, 13);
+    private static final BlockPos JOJA_MART_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(108, 45, -17);
     /** 出店后玩家落点：镇上 Joja 门外，面朝北（-Z） */
-    public static final BlockPos JOJA_MART_OUTDOOR_EXIT_POS = new BlockPos(-293, -16, 57);
-    /** 室外入口触发方块基点：(-294,-16,59)，4 高 x 4 宽 x 1 深 */
-    private static final BlockPos JOJA_MART_OUTDOOR_ENTRY_BASE = new BlockPos(-294, -16, 59);
+    public static final BlockPos JOJA_MART_OUTDOOR_EXIT_POS = new BlockPos(109, 65, -15);
+    /** 室外入口触发方块基点。 */
+    private static final BlockPos JOJA_MART_OUTDOOR_ENTRY_BASE = new BlockPos(108, 65, -17);
     private static final String TAG_PORTAL_MARKER_JOJA_MART_OUTSIDE = "sdv_portal_marker:joja_mart_outside";
     private static final String TAG_PORTAL_MARKER_JOJA_MART_INSIDE  = "sdv_portal_marker:joja_mart_inside";
+
+    // ---- 拖车（Pam / Penny）----
+    private static final BlockPos TRAILER_INDOOR_SPAWN_OFFSET = new BlockPos(72, 35, 4);
+    private static final BlockPos TRAILER_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(71, 35, 5);
+    private static final BlockPos TRAILER_OUTDOOR_ENTRY_POS = new BlockPos(72, 64, 9);
+    private static final BlockPos TRAILER_OUTDOOR_EXIT_POS = new BlockPos(73, 64, 9);
+    private static final String TAG_PORTAL_MARKER_TRAILER_OUTSIDE = "sdv_portal_marker:trailer_outside";
+    private static final String TAG_PORTAL_MARKER_TRAILER_INSIDE = "sdv_portal_marker:trailer_inside";
 
     // ---- 社区中心 ----
     static final String CC_RUINS_PATH = "data/stardewcraft/structures/interior/community_center_ruins.schem";
@@ -275,8 +286,8 @@ public final class InteriorSubspaceManager {
     public static final BlockPos CC_INDOOR_SPAWN_OFFSET = new BlockPos(16, 1, 37);   // 玩家室内出生点 → 18832,70,18853
     public static final BlockPos CC_INDOOR_EXIT_PORTAL_OFFSET = new BlockPos(17, 1, 37); // 室内出口交互实体基点 → (18833,70,18853)~(18833,71,18854)
     /** CC 出门后传送目标（全体共享） */
-    public static final BlockPos CC_OUTDOOR_EXIT_POS = new BlockPos(-190, -10, 138);
-    private static final BlockPos CC_OUTDOOR_INTERACTION_BASE = new BlockPos(-191, -9, 141); // 室外入口交互实体基点
+    public static final BlockPos CC_OUTDOOR_EXIT_POS = new BlockPos(54, 66, -48);
+    private static final BlockPos CC_OUTDOOR_INTERACTION_BASE = new BlockPos(54, 67, -49); // 室外入口交互实体基点
 
     private static final String TAG_PORTAL_MARKER_CC_OUTSIDE = "sdv_portal_marker:cc_outside";
 
@@ -350,20 +361,20 @@ public final class InteriorSubspaceManager {
                 indoorSpawn.getX() + 0.5D,
                 indoorSpawn.getY(),
                 indoorSpawn.getZ() + 0.5D,
-                -90.0F,
+                180.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.ENTRANCE
             )
         );
 
-        // 出室内：回到固定室外点 -159 -18 54，朝向正北。
+        // 出室内：回到固定室外落点。
         InteriorPortalRegistry.register(
             "pierre_house_exit",
             new InteriorPortalRegistry.PortalTarget(
                 PIERRE_OUTDOOR_ENTRY_POS.getX(),
                 PIERRE_OUTDOOR_ENTRY_POS.getY(),
                 PIERRE_OUTDOOR_ENTRY_POS.getZ(),
-                180.0F,
+                0.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.EXIT
             )
@@ -376,20 +387,20 @@ public final class InteriorSubspaceManager {
                 museumIndoorSpawn.getX() + 0.5D,
                 museumIndoorSpawn.getY(),
                 museumIndoorSpawn.getZ() + 0.5D,
-                -90.0F,
+                180.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.ENTRANCE
             )
         );
 
-        // 出博物馆：回到室外 -308 -17 -37，朝向正北。
+        // 出博物馆：回到室外落点。
         InteriorPortalRegistry.register(
             "museum_exit",
             new InteriorPortalRegistry.PortalTarget(
                 MUSEUM_OUTDOOR_EXIT_POS.getX(),
                 MUSEUM_OUTDOOR_EXIT_POS.getY(),
                 MUSEUM_OUTDOOR_EXIT_POS.getZ(),
-                180.0F,
+                0.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.EXIT
             )
@@ -402,20 +413,20 @@ public final class InteriorSubspaceManager {
                 blacksmithIndoorSpawn.getX() + 0.5D,
                 blacksmithIndoorSpawn.getY(),
                 blacksmithIndoorSpawn.getZ() + 0.5D,
-                -90.0F,
+                180.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.ENTRANCE
             )
         );
 
-        // 出铁匠铺：回到室外 -288 -18 -17，朝向正北。
+        // 出铁匠铺：回到室外落点。
         InteriorPortalRegistry.register(
             "blacksmith_exit",
             new InteriorPortalRegistry.PortalTarget(
                 BLACKSMITH_OUTDOOR_EXIT_POS.getX(),
                 BLACKSMITH_OUTDOOR_EXIT_POS.getY(),
                 BLACKSMITH_OUTDOOR_EXIT_POS.getZ(),
-                180.0F,
+                0.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.EXIT
             )
@@ -431,20 +442,20 @@ public final class InteriorSubspaceManager {
                 saloonIndoorSpawn.getX() + 0.5D,
                 saloonIndoorSpawn.getY(),
                 saloonIndoorSpawn.getZ() + 0.5D,
-                -90.0F,
+                180.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.ENTRANCE
             )
         );
 
-        // 出酒馆：回到室外 -164 -17 14，朝向正北。
+        // 出酒馆：回到室外落点。
         InteriorPortalRegistry.register(
             "saloon_exit",
             new InteriorPortalRegistry.PortalTarget(
                 SALOON_OUTDOOR_EXIT_POS.getX() + 0.5D,
                 SALOON_OUTDOOR_EXIT_POS.getY(),
                 SALOON_OUTDOOR_EXIT_POS.getZ() + 0.5D,
-                180.0F,
+                0.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.EXIT
             )
@@ -466,20 +477,20 @@ public final class InteriorSubspaceManager {
                 mayorHouseIndoorSpawn.getX() + 0.5D,
                 mayorHouseIndoorSpawn.getY(),
                 mayorHouseIndoorSpawn.getZ() + 0.5D,
-                -90.0F,
+                180.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.ENTRANCE
             )
         );
 
-        // 出市长家：回到室外 -197 -17 -23，朝向正北。
+        // 出市长家：回到室外落点。
         InteriorPortalRegistry.register(
             "mayor_house_exit",
             new InteriorPortalRegistry.PortalTarget(
                 MAYOR_HOUSE_OUTDOOR_EXIT_POS.getX() + 0.5D,
                 MAYOR_HOUSE_OUTDOOR_EXIT_POS.getY(),
                 MAYOR_HOUSE_OUTDOOR_EXIT_POS.getZ() + 0.5D,
-                180.0F,
+                0.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.EXIT
             )
@@ -497,20 +508,20 @@ public final class InteriorSubspaceManager {
                 clinicIndoorSpawn.getX() + 0.5D,
                 clinicIndoorSpawn.getY(),
                 clinicIndoorSpawn.getZ() + 0.5D,
-                -90.0F,
+                180.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.ENTRANCE
             )
         );
 
-        // 出诊所：回到室外 -145 -18 59，朝向正北。
+        // 出诊所：回到室外落点。
         InteriorPortalRegistry.register(
             "clinic_exit",
             new InteriorPortalRegistry.PortalTarget(
                 CLINIC_OUTDOOR_EXIT_POS.getX() + 0.5D,
                 CLINIC_OUTDOOR_EXIT_POS.getY(),
                 CLINIC_OUTDOOR_EXIT_POS.getZ() + 0.5D,
-                180.0F,
+                0.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.EXIT
             )
@@ -528,20 +539,20 @@ public final class InteriorSubspaceManager {
                 riverRoad1IndoorSpawn.getX() + 0.5D,
                 riverRoad1IndoorSpawn.getY(),
                 riverRoad1IndoorSpawn.getZ() + 0.5D,
-                -90.0F,
+                180.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.ENTRANCE
             )
         );
 
-        // 出1号河路：回到室外 -195 -18 33，朝向正北。
+        // 出1号河路：回到室外落点。
         InteriorPortalRegistry.register(
             "1_river_road_exit",
             new InteriorPortalRegistry.PortalTarget(
                 RIVER_ROAD_1_OUTDOOR_EXIT_POS.getX() + 0.5D,
                 RIVER_ROAD_1_OUTDOOR_EXIT_POS.getY(),
                 RIVER_ROAD_1_OUTDOOR_EXIT_POS.getZ() + 0.5D,
-                180.0F,
+                0.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.EXIT
             )
@@ -559,20 +570,20 @@ public final class InteriorSubspaceManager {
                 carpenterShopIndoorSpawn.getX() + 0.5D,
                 carpenterShopIndoorSpawn.getY(),
                 carpenterShopIndoorSpawn.getZ() + 0.5D,
-                -90.0F,
+                180.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.ENTRANCE
             )
         );
 
-        // 出木匠铺：回到室外 -213 -12 218，朝向正北。
+        // 出木匠铺：回到室外落点。
         InteriorPortalRegistry.register(
             "carpenter_shop_exit",
             new InteriorPortalRegistry.PortalTarget(
                 CARPENTER_SHOP_OUTDOOR_EXIT_POS.getX() + 0.5D,
                 CARPENTER_SHOP_OUTDOOR_EXIT_POS.getY(),
                 CARPENTER_SHOP_OUTDOOR_EXIT_POS.getZ() + 0.5D,
-                180.0F,
+                0.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.EXIT
             )
@@ -590,20 +601,20 @@ public final class InteriorSubspaceManager {
                 willowLane1IndoorSpawn.getX() + 0.5D,
                 willowLane1IndoorSpawn.getY(),
                 willowLane1IndoorSpawn.getZ() + 0.5D,
-                -90.0F,
+                180.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.ENTRANCE
             )
         );
 
-        // 出1号柳巷：回到室外 -85 -16 -26，朝向正北。
+        // 出1号柳巷：回到室外落点。
         InteriorPortalRegistry.register(
             "1_willow_lane_exit",
             new InteriorPortalRegistry.PortalTarget(
                 WILLOW_LANE_1_OUTDOOR_EXIT_POS.getX() + 0.5D,
                 WILLOW_LANE_1_OUTDOOR_EXIT_POS.getY(),
                 WILLOW_LANE_1_OUTDOOR_EXIT_POS.getZ() + 0.5D,
-                180.0F,
+                0.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.EXIT
             )
@@ -621,20 +632,20 @@ public final class InteriorSubspaceManager {
                 willowLane2IndoorSpawn.getX() + 0.5D,
                 willowLane2IndoorSpawn.getY(),
                 willowLane2IndoorSpawn.getZ() + 0.5D,
-                -90.0F,
+                180.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.ENTRANCE
             )
         );
 
-        // 出2号柳巷：回到室外 -115 -17 -28，朝向正北。
+        // 出2号柳巷：回到室外落点。
         InteriorPortalRegistry.register(
             "2_willow_lane_exit",
             new InteriorPortalRegistry.PortalTarget(
                 WILLOW_LANE_2_OUTDOOR_EXIT_POS.getX() + 0.5D,
                 WILLOW_LANE_2_OUTDOOR_EXIT_POS.getY(),
                 WILLOW_LANE_2_OUTDOOR_EXIT_POS.getZ() + 0.5D,
-                180.0F,
+                0.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.EXIT
             )
@@ -652,20 +663,20 @@ public final class InteriorSubspaceManager {
                 marnieRanchIndoorSpawn.getX() + 0.5D,
                 marnieRanchIndoorSpawn.getY(),
                 marnieRanchIndoorSpawn.getZ() + 0.5D,
-                -90.0F,
+                180.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.ENTRANCE
             )
         );
 
-        // 出马尼牧场：回到室外 178 -14 -5，面朝正北。
+        // 出马尼牧场：回到室外落点。
         InteriorPortalRegistry.register(
             "marnie_ranch_exit",
             new InteriorPortalRegistry.PortalTarget(
                 MARNIE_RANCH_OUTDOOR_EXIT_POS.getX() + 0.5D,
                 MARNIE_RANCH_OUTDOOR_EXIT_POS.getY(),
                 MARNIE_RANCH_OUTDOOR_EXIT_POS.getZ() + 0.5D,
-                180.0F,
+                0.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.EXIT
             )
@@ -683,20 +694,20 @@ public final class InteriorSubspaceManager {
                 leahCottageIndoorSpawn.getX() + 0.5D,
                 leahCottageIndoorSpawn.getY(),
                 leahCottageIndoorSpawn.getZ() + 0.5D,
-                -90.0F,
+                180.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.ENTRANCE
             )
         );
 
-        // 出莉亚小屋：回到室外 155 -13 -59，面朝正北。
+        // 出莉亚小屋：回到室外落点。
         InteriorPortalRegistry.register(
             "leah_cottage_exit",
             new InteriorPortalRegistry.PortalTarget(
                 LEAH_COTTAGE_OUTDOOR_EXIT_POS.getX() + 0.5D,
                 LEAH_COTTAGE_OUTDOOR_EXIT_POS.getY(),
                 LEAH_COTTAGE_OUTDOOR_EXIT_POS.getZ() + 0.5D,
-                180.0F,
+                0.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.EXIT
             )
@@ -714,20 +725,20 @@ public final class InteriorSubspaceManager {
                 adventurerGuildIndoorSpawn.getX() + 0.5D,
                 adventurerGuildIndoorSpawn.getY(),
                 adventurerGuildIndoorSpawn.getZ() + 0.5D,
-                -90.0F,
+                180.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.ENTRANCE
             )
         );
 
-        // 出冒险家公会：回到室外 -334 -13 311，面朝正北。
+        // 出冒险家公会：回到室外落点。
         InteriorPortalRegistry.register(
             "adventurer_guild_exit",
             new InteriorPortalRegistry.PortalTarget(
                 ADVENTURER_GUILD_OUTDOOR_EXIT_POS.getX() + 0.5D,
                 ADVENTURER_GUILD_OUTDOOR_EXIT_POS.getY(),
                 ADVENTURER_GUILD_OUTDOOR_EXIT_POS.getZ() + 0.5D,
-                180.0F,
+                0.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.EXIT
             )
@@ -745,20 +756,20 @@ public final class InteriorSubspaceManager {
                 fishShopIndoorSpawn.getX() + 0.5D,
                 fishShopIndoorSpawn.getY(),
                 fishShopIndoorSpawn.getZ() + 0.5D,
-                -90.0F,
+                180.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.ENTRANCE
             )
         );
 
-        // 出鱼店：回到室外 -238 -15 -212，面朝正北。
+        // 出鱼店：回到室外落点。
         InteriorPortalRegistry.register(
             "fish_shop_exit",
             new InteriorPortalRegistry.PortalTarget(
                 FISH_SHOP_OUTDOOR_EXIT_POS.getX() + 0.5D,
                 FISH_SHOP_OUTDOOR_EXIT_POS.getY(),
                 FISH_SHOP_OUTDOOR_EXIT_POS.getZ() + 0.5D,
-                180.0F,
+                0.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.EXIT
             )
@@ -776,20 +787,20 @@ public final class InteriorSubspaceManager {
                 elliottCabinIndoorSpawn.getX() + 0.5D,
                 elliottCabinIndoorSpawn.getY(),
                 elliottCabinIndoorSpawn.getZ() + 0.5D,
-                -90.0F,
+                180.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.ENTRANCE
             )
         );
 
-        // 出艾利欧特小屋：回到室外 -267 -13 -153，面朝正北。
+        // 出艾利欧特小屋：回到室外落点。
         InteriorPortalRegistry.register(
             "elliott_cabin_exit",
             new InteriorPortalRegistry.PortalTarget(
                 ELLIOTT_CABIN_OUTDOOR_EXIT_POS.getX() + 0.5D,
                 ELLIOTT_CABIN_OUTDOOR_EXIT_POS.getY(),
                 ELLIOTT_CABIN_OUTDOOR_EXIT_POS.getZ() + 0.5D,
-                180.0F,
+                0.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.EXIT
             )
@@ -807,20 +818,20 @@ public final class InteriorSubspaceManager {
                 wizardTowerIndoorSpawn.getX() + 0.5D,
                 wizardTowerIndoorSpawn.getY(),
                 wizardTowerIndoorSpawn.getZ() + 0.5D,
-                -90.0F,
+                180.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.ENTRANCE
             )
         );
 
-        // 出巫师塔：回到室外 340 -1 -43，面朝正北。
+        // 出巫师塔：回到室外落点。
         InteriorPortalRegistry.register(
             "wizard_tower_exit",
             new InteriorPortalRegistry.PortalTarget(
                 WIZARD_TOWER_OUTDOOR_EXIT_POS.getX() + 0.5D,
                 WIZARD_TOWER_OUTDOOR_EXIT_POS.getY(),
                 WIZARD_TOWER_OUTDOOR_EXIT_POS.getZ() + 0.5D,
-                180.0F,
+                0.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.EXIT
             )
@@ -832,27 +843,27 @@ public final class InteriorSubspaceManager {
         BlockPos oasisIndoorSpawn = OASIS_ORIGIN.offset(OASIS_INDOOR_SPAWN_OFFSET);
         BlockPos oasisIndoorExitPortal = OASIS_ORIGIN.offset(OASIS_INDOOR_EXIT_PORTAL_OFFSET);
 
-        // 进绿洲：传送到 origin+(2,1,5)，面朝正东。
+        // 进绿洲：传送到室内入口，面朝北。
         InteriorPortalRegistry.register(
             "oasis_enter",
             new InteriorPortalRegistry.PortalTarget(
                 oasisIndoorSpawn.getX() + 0.5D,
                 oasisIndoorSpawn.getY(),
                 oasisIndoorSpawn.getZ() + 0.5D,
-                -90.0F,
+                180.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.ENTRANCE
             )
         );
 
-        // 出绿洲：回到沙漠 Oasis 入口外侧，面朝正北。
+        // 出绿洲：回到沙漠 Oasis 入口外侧。
         InteriorPortalRegistry.register(
             "oasis_exit",
             new InteriorPortalRegistry.PortalTarget(
                 OASIS_OUTDOOR_EXIT_POS.getX() + 0.5D,
                 OASIS_OUTDOOR_EXIT_POS.getY(),
                 OASIS_OUTDOOR_EXIT_POS.getZ() + 0.5D,
-                180.0F,
+                0.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.EXIT
             )
@@ -871,20 +882,20 @@ public final class InteriorSubspaceManager {
                 jojaMartIndoorSpawn.getX() + 0.5D,
                 jojaMartIndoorSpawn.getY(),
                 jojaMartIndoorSpawn.getZ() + 0.5D,
-                -90.0F,
+                180.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.ENTRANCE
             )
         );
 
-        // 出 Joja：回到镇上 (-293,-16,57)，面朝北。
+        // 出 Joja：回到室外落点。
         InteriorPortalRegistry.register(
             "joja_mart_exit",
             new InteriorPortalRegistry.PortalTarget(
                 JOJA_MART_OUTDOOR_EXIT_POS.getX() + 0.5D,
                 JOJA_MART_OUTDOOR_EXIT_POS.getY(),
                 JOJA_MART_OUTDOOR_EXIT_POS.getZ() + 0.5D,
-                180.0F,
+                0.0F,
                 0.0F,
                 InteriorPortalRegistry.PortalMode.EXIT
             )
@@ -892,10 +903,43 @@ public final class InteriorSubspaceManager {
 
         StardewCraft.LOGGER.info("[INTERIOR] joja_mart indoor exit interaction anchor = {}", jojaMartIndoorExitPortal);
 
+        // ── 拖车（Pam / Penny） ──
+        BlockPos trailerIndoorSpawn = TRAILER_INDOOR_SPAWN_OFFSET;
+        BlockPos trailerIndoorExitPortal = TRAILER_INDOOR_EXIT_PORTAL_OFFSET;
+
+        InteriorPortalRegistry.register(
+            "trailer_enter",
+            new InteriorPortalRegistry.PortalTarget(
+                trailerIndoorSpawn.getX() + 0.5D,
+                trailerIndoorSpawn.getY(),
+                trailerIndoorSpawn.getZ() + 0.5D,
+                180.0F,
+                0.0F,
+                InteriorPortalRegistry.PortalMode.ENTRANCE
+            )
+        );
+
+        InteriorPortalRegistry.register(
+            "trailer_exit",
+            new InteriorPortalRegistry.PortalTarget(
+                TRAILER_OUTDOOR_EXIT_POS.getX() + 0.5D,
+                TRAILER_OUTDOOR_EXIT_POS.getY(),
+                TRAILER_OUTDOOR_EXIT_POS.getZ() + 0.5D,
+                0.0F,
+                0.0F,
+                InteriorPortalRegistry.PortalMode.EXIT
+            )
+        );
+
+        StardewCraft.LOGGER.info("[INTERIOR] trailer indoor exit interaction anchor = {}", trailerIndoorExitPortal);
+
         // CC 和温室门户不再静态注册 — 由 InteriorPortalInteractionEvents 动态解析
     }
 
     public static void register(String id, String structurePath, int x, int y, int z) {
+        if (FIXED_INTERIORS_EMBEDDED_IN_PREGEN) {
+            return;
+        }
         FIXED_STRUCTURES.add(new FixedStructure(id, structurePath, new BlockPos(x, y, z)));
     }
 
@@ -999,6 +1043,7 @@ public final class InteriorSubspaceManager {
 
             InteriorSubspaceSavedData data = InteriorSubspaceSavedData.get(level);
             data.layoutVersion = LAYOUT_VERSION;
+            data.portalTriggerVersion = PORTAL_TRIGGER_VERSION;
             data.initialized = true;
             data.setDirty();
 
@@ -1109,6 +1154,26 @@ public final class InteriorSubspaceManager {
 
         InteriorSubspaceSavedData data = InteriorSubspaceSavedData.get(level);
         if (data.layoutVersion == LAYOUT_VERSION && data.initialized) {
+            if (data.portalTriggerVersion < PORTAL_TRIGGER_VERSION) {
+                ensurePortalInteractions(level);
+                data.portalTriggerVersion = PORTAL_TRIGGER_VERSION;
+                data.setDirty();
+                StardewCraft.LOGGER.info("[INTERIOR] Portal triggers upgraded. reason={}, portalVersion={}",
+                    reason, PORTAL_TRIGGER_VERSION);
+            }
+            return;
+        }
+
+        if (FIXED_INTERIORS_EMBEDDED_IN_PREGEN) {
+            ensurePortalInteractions(level);
+            migrateFarmAndGreenhousePortals(level);
+            restoreMuseumExhibitStands(level);
+            data.layoutVersion = LAYOUT_VERSION;
+            data.portalTriggerVersion = PORTAL_TRIGGER_VERSION;
+            data.initialized = true;
+            data.setDirty();
+            StardewCraft.LOGGER.info("[INTERIOR] Embedded pregen interior layout initialized. reason={}, version={}",
+                reason, LAYOUT_VERSION);
             return;
         }
 
@@ -1141,6 +1206,8 @@ public final class InteriorSubspaceManager {
         }
         StardewCraft.LOGGER.info("[INTERIOR] Re-placing all portal triggers. reason={}", reason);
         ensurePortalInteractions(level);
+        data.portalTriggerVersion = PORTAL_TRIGGER_VERSION;
+        data.setDirty();
         // Farm/greenhouse portals are persisted in the world and only need
         // re-placement on layout version upgrade (handled by batch flow).
         // Skipping them on routine server start avoids loading dozens of
@@ -1156,6 +1223,7 @@ public final class InteriorSubspaceManager {
         InteriorSubspaceSavedData data = InteriorSubspaceSavedData.get(level);
         data.initialized = false;
         data.layoutVersion = 0;
+        data.portalTriggerVersion = 0;
         data.setDirty();
         ensureLoaded(level, reason);
     }
@@ -1179,6 +1247,7 @@ public final class InteriorSubspaceManager {
                 }
             }
         }
+        PlayerInteriorAllocator.get(level).setAllGreenhouseChunksForced(level, force);
 
         interiorChunksForced = force;
         StardewCraft.LOGGER.info("[INTERIOR] Interior structure chunk forcing toggled: {} (reason={})", force, reason);
@@ -1218,20 +1287,22 @@ public final class InteriorSubspaceManager {
         BlockPos mayorHouseIndoorExitPortal = MAYOR_HOUSE_ORIGIN.offset(MAYOR_HOUSE_INDOOR_EXIT_PORTAL_OFFSET);
         BlockPos clinicIndoorExitPortal = CLINIC_ORIGIN.offset(CLINIC_INDOOR_EXIT_PORTAL_OFFSET);
 
-        // 室外入口：固定点，3 宽 x 3 高。(-160,-18,54) → (-158,-16,54)
-        placePortalTriggerArea(level, PIERRE_OUTDOOR_INTERACTION_BASE, 3, 3, 1,
+        removePortalTriggerIfPresent(level, PIERRE_OUTDOOR_INTERACTION_BASE.above(2));
+
+        // 室外入口：固定点，1 宽 x 2 高。
+        placePortalTriggerArea(level, PIERRE_OUTDOOR_INTERACTION_BASE, 2, 1, 1,
             TAG_PORTAL_MARKER_OUTSIDE, "sdv_portal_target:pierre_house_enter");
 
         // 室内出口：结构相对点，2 高 x 1 宽。
-        placePortalTriggerArea(level, indoorExitPortal, 2, 1, 1,
+        placePortalTriggerArea(level, indoorExitPortal, 3, 3, 1,
             TAG_PORTAL_MARKER_INSIDE, "sdv_portal_target:pierre_house_exit");
 
         // 博物馆室外入口：2 高 x 2 宽。
-        placePortalTriggerArea(level, MUSEUM_OUTDOOR_ENTRY_POS, 2, 2, 1,
+        placePortalTriggerArea(level, MUSEUM_OUTDOOR_ENTRY_POS, 2, 1, 1,
             TAG_PORTAL_MARKER_MUSEUM_OUTSIDE, "sdv_portal_target:museum_enter");
 
         // 博物馆室内出口：2 高 x 1 宽。
-        placePortalTriggerArea(level, museumIndoorExitPortal, 2, 1, 1,
+        placePortalTriggerArea(level, museumIndoorExitPortal, 3, 3, 1,
             TAG_PORTAL_MARKER_MUSEUM_INSIDE, "sdv_portal_target:museum_exit");
 
         // 铁匠铺室外入口：2 高 x 1 宽。
@@ -1239,7 +1310,7 @@ public final class InteriorSubspaceManager {
             TAG_PORTAL_MARKER_BLACKSMITH_OUTSIDE, "sdv_portal_target:blacksmith_enter");
 
         // 铁匠铺室内出口：2 高 x 1 宽。
-        placePortalTriggerArea(level, blacksmithIndoorExitPortal, 2, 1, 1,
+        placePortalTriggerArea(level, blacksmithIndoorExitPortal, 3, 3, 1,
             TAG_PORTAL_MARKER_BLACKSMITH_INSIDE, "sdv_portal_target:blacksmith_exit");
 
         // 酒馆室外入口：2 高 x 2 宽。
@@ -1247,7 +1318,7 @@ public final class InteriorSubspaceManager {
             TAG_PORTAL_MARKER_SALOON_OUTSIDE, "sdv_portal_target:saloon_enter");
 
         // 酒馆室内出口：2 高 x 1 宽。
-        placePortalTriggerArea(level, saloonIndoorExitPortal, 2, 1, 1,
+        placePortalTriggerArea(level, saloonIndoorExitPortal, 3, 3, 1,
             TAG_PORTAL_MARKER_SALOON_INSIDE, "sdv_portal_target:saloon_exit");
 
         // 市长家室外入口：2 高 x 2 宽。
@@ -1255,15 +1326,15 @@ public final class InteriorSubspaceManager {
             TAG_PORTAL_MARKER_MAYOR_HOUSE_OUTSIDE, "sdv_portal_target:mayor_house_enter");
 
         // 市长家室内出口：2 高 x 1 宽 x 2 深。
-        placePortalTriggerArea(level, mayorHouseIndoorExitPortal, 2, 1, 2,
+        placePortalTriggerArea(level, mayorHouseIndoorExitPortal, 3, 3, 1,
             TAG_PORTAL_MARKER_MAYOR_HOUSE_INSIDE, "sdv_portal_target:mayor_house_exit");
 
         // 诊所室外入口：2 高 x 3 宽。
-        placePortalTriggerArea(level, CLINIC_OUTDOOR_ENTRY_POS, 2, 3, 1,
+        placePortalTriggerArea(level, CLINIC_OUTDOOR_ENTRY_POS, 2, 1, 1,
             TAG_PORTAL_MARKER_CLINIC_OUTSIDE, "sdv_portal_target:clinic_enter");
 
         // 诊所室内出口：2 高 x 1 宽。
-        placePortalTriggerArea(level, clinicIndoorExitPortal, 2, 1, 1,
+        placePortalTriggerArea(level, clinicIndoorExitPortal, 3, 3, 1,
             TAG_PORTAL_MARKER_CLINIC_INSIDE, "sdv_portal_target:clinic_exit");
 
         BlockPos riverRoad1IndoorExitPortal = RIVER_ROAD_1_ORIGIN.offset(RIVER_ROAD_1_INDOOR_EXIT_PORTAL_OFFSET);
@@ -1273,7 +1344,7 @@ public final class InteriorSubspaceManager {
             TAG_PORTAL_MARKER_RIVER_ROAD_1_OUTSIDE, "sdv_portal_target:1_river_road_enter");
 
         // 1号河路室内出口：2 高 x 1 宽。
-        placePortalTriggerArea(level, riverRoad1IndoorExitPortal, 2, 1, 1,
+        placePortalTriggerArea(level, riverRoad1IndoorExitPortal, 3, 3, 1,
             TAG_PORTAL_MARKER_RIVER_ROAD_1_INSIDE, "sdv_portal_target:1_river_road_exit");
 
         BlockPos carpenterShopIndoorExitPortal = CARPENTER_SHOP_ORIGIN.offset(CARPENTER_SHOP_INDOOR_EXIT_PORTAL_OFFSET);
@@ -1283,7 +1354,7 @@ public final class InteriorSubspaceManager {
             TAG_PORTAL_MARKER_CARPENTER_SHOP_OUTSIDE, "sdv_portal_target:carpenter_shop_enter");
 
         // 木匠铺室内出口：2 高 x 1 宽。
-        placePortalTriggerArea(level, carpenterShopIndoorExitPortal, 2, 1, 1,
+        placePortalTriggerArea(level, carpenterShopIndoorExitPortal, 3, 3, 1,
             TAG_PORTAL_MARKER_CARPENTER_SHOP_INSIDE, "sdv_portal_target:carpenter_shop_exit");
 
         BlockPos willowLane1IndoorExitPortal = WILLOW_LANE_1_ORIGIN.offset(WILLOW_LANE_1_INDOOR_EXIT_PORTAL_OFFSET);
@@ -1293,7 +1364,7 @@ public final class InteriorSubspaceManager {
             TAG_PORTAL_MARKER_WILLOW_LANE_1_OUTSIDE, "sdv_portal_target:1_willow_lane_enter");
 
         // 1号柳巷室内出口：2 高 x 1 宽。
-        placePortalTriggerArea(level, willowLane1IndoorExitPortal, 2, 1, 1,
+        placePortalTriggerArea(level, willowLane1IndoorExitPortal, 3, 3, 1,
             TAG_PORTAL_MARKER_WILLOW_LANE_1_INSIDE, "sdv_portal_target:1_willow_lane_exit");
 
         BlockPos willowLane2IndoorExitPortal = WILLOW_LANE_2_ORIGIN.offset(WILLOW_LANE_2_INDOOR_EXIT_PORTAL_OFFSET);
@@ -1303,7 +1374,7 @@ public final class InteriorSubspaceManager {
             TAG_PORTAL_MARKER_WILLOW_LANE_2_OUTSIDE, "sdv_portal_target:2_willow_lane_enter");
 
         // 2号柳巷室内出口：2 高 x 1 宽。
-        placePortalTriggerArea(level, willowLane2IndoorExitPortal, 2, 1, 1,
+        placePortalTriggerArea(level, willowLane2IndoorExitPortal, 3, 3, 1,
             TAG_PORTAL_MARKER_WILLOW_LANE_2_INSIDE, "sdv_portal_target:2_willow_lane_exit");
 
         BlockPos marnieRanchIndoorExitPortal = MARNIE_RANCH_ORIGIN.offset(MARNIE_RANCH_INDOOR_EXIT_PORTAL_OFFSET);
@@ -1313,27 +1384,27 @@ public final class InteriorSubspaceManager {
             TAG_PORTAL_MARKER_MARNIE_RANCH_OUTSIDE, "sdv_portal_target:marnie_ranch_enter");
 
         // 马尼牧场室内出口：2高 x 1宽。
-        placePortalTriggerArea(level, marnieRanchIndoorExitPortal, 2, 1, 1,
+        placePortalTriggerArea(level, marnieRanchIndoorExitPortal, 3, 3, 1,
             TAG_PORTAL_MARKER_MARNIE_RANCH_INSIDE, "sdv_portal_target:marnie_ranch_exit");
 
         BlockPos leahCottageIndoorExitPortal = LEAH_COTTAGE_ORIGIN.offset(LEAH_COTTAGE_INDOOR_EXIT_PORTAL_OFFSET);
 
         // 莉亚小屋室外入口：2高 x 2宽 x 1深。
-        placePortalTriggerArea(level, LEAH_COTTAGE_OUTDOOR_ENTRY_POS, 2, 2, 1,
+        placePortalTriggerArea(level, LEAH_COTTAGE_OUTDOOR_ENTRY_POS, 1, 2, 1,
             TAG_PORTAL_MARKER_LEAH_COTTAGE_OUTSIDE, "sdv_portal_target:leah_cottage_enter");
 
         // 莉亚小屋室内出口：2高 x 1宽。
-        placePortalTriggerArea(level, leahCottageIndoorExitPortal, 2, 1, 1,
+        placePortalTriggerArea(level, leahCottageIndoorExitPortal, 3, 3, 1,
             TAG_PORTAL_MARKER_LEAH_COTTAGE_INSIDE, "sdv_portal_target:leah_cottage_exit");
 
         BlockPos adventurerGuildIndoorExitPortal = ADVENTURER_GUILD_ORIGIN.offset(ADVENTURER_GUILD_INDOOR_EXIT_PORTAL_OFFSET);
 
         // 冒险家公会室外入口：2高 x 3宽 x 1深。
-        placePortalTriggerArea(level, ADVENTURER_GUILD_OUTDOOR_ENTRY_POS, 2, 3, 1,
+        placePortalTriggerArea(level, ADVENTURER_GUILD_OUTDOOR_ENTRY_POS, 2, 1, 1,
             TAG_PORTAL_MARKER_ADVENTURER_GUILD_OUTSIDE, "sdv_portal_target:adventurer_guild_enter");
 
         // 冒险家公会室内出口：2高 x 1宽。
-        placePortalTriggerArea(level, adventurerGuildIndoorExitPortal, 2, 1, 1,
+        placePortalTriggerArea(level, adventurerGuildIndoorExitPortal, 3, 3, 1,
             TAG_PORTAL_MARKER_ADVENTURER_GUILD_INSIDE, "sdv_portal_target:adventurer_guild_exit");
 
         BlockPos fishShopIndoorExitPortal = FISH_SHOP_ORIGIN.offset(FISH_SHOP_INDOOR_EXIT_PORTAL_OFFSET);
@@ -1343,17 +1414,17 @@ public final class InteriorSubspaceManager {
             TAG_PORTAL_MARKER_FISH_SHOP_OUTSIDE, "sdv_portal_target:fish_shop_enter");
 
         // 鱼店室内出口：2高 x 1宽。
-        placePortalTriggerArea(level, fishShopIndoorExitPortal, 2, 1, 1,
+        placePortalTriggerArea(level, fishShopIndoorExitPortal, 3, 3, 1,
             TAG_PORTAL_MARKER_FISH_SHOP_INSIDE, "sdv_portal_target:fish_shop_exit");
 
         BlockPos elliottCabinIndoorExitPortal = ELLIOTT_CABIN_ORIGIN.offset(ELLIOTT_CABIN_INDOOR_EXIT_PORTAL_OFFSET);
 
         // 艾利欧特小屋室外入口：2高 x 3宽 x 1深。
-        placePortalTriggerArea(level, ELLIOTT_CABIN_OUTDOOR_ENTRY_POS, 2, 3, 1,
+        placePortalTriggerArea(level, ELLIOTT_CABIN_OUTDOOR_ENTRY_POS, 2, 2, 1,
             TAG_PORTAL_MARKER_ELLIOTT_CABIN_OUTSIDE, "sdv_portal_target:elliott_cabin_enter");
 
         // 艾利欧特小屋室内出口：2高 x 1宽。
-        placePortalTriggerArea(level, elliottCabinIndoorExitPortal, 2, 1, 1,
+        placePortalTriggerArea(level, elliottCabinIndoorExitPortal, 3, 3, 1,
             TAG_PORTAL_MARKER_ELLIOTT_CABIN_INSIDE, "sdv_portal_target:elliott_cabin_exit");
 
         BlockPos wizardTowerIndoorExitPortal = WIZARD_TOWER_ORIGIN.offset(WIZARD_TOWER_INDOOR_EXIT_PORTAL_OFFSET);
@@ -1363,26 +1434,33 @@ public final class InteriorSubspaceManager {
             TAG_PORTAL_MARKER_WIZARD_TOWER_OUTSIDE, "sdv_portal_target:wizard_tower_enter");
 
         // 巫师塔室内出口：2高 x 1宽。
-        placePortalTriggerArea(level, wizardTowerIndoorExitPortal, 2, 1, 1,
+        placePortalTriggerArea(level, wizardTowerIndoorExitPortal, 3, 3, 1,
             TAG_PORTAL_MARKER_WIZARD_TOWER_INSIDE, "sdv_portal_target:wizard_tower_exit");
 
         // 巫师塔内部"回到主世界"：2高 x 3宽 x 3深。
-        placePortalTriggerArea(level, WIZARD_TOWER_RETURN_OVERWORLD_BASE, 2, 3, 3,
+        placePortalTriggerArea(level, WIZARD_TOWER_RETURN_OVERWORLD_BASE, 3, 3, 3,
             TAG_PORTAL_MARKER_WIZARD_TOWER_RETURN_OVERWORLD, "sdv_portal_target:wizard_tower_return_overworld");
 
         // 绿洲室内出口：2高 x 1宽 x 1深（室外入口由 DesertMapBootstrap 放置）
         BlockPos oasisIndoorExitPortal = OASIS_ORIGIN.offset(OASIS_INDOOR_EXIT_PORTAL_OFFSET);
-        placePortalTriggerArea(level, oasisIndoorExitPortal, 2, 1, 1,
+        placePortalTriggerArea(level, oasisIndoorExitPortal, 3, 3, 1,
             TAG_PORTAL_MARKER_OASIS_INSIDE, "sdv_portal_target:oasis_exit");
 
-        // Joja 超市室外入口：4高 x 4宽 x 1深，(-294,-16,59) → (-291,-13,59)
-        placePortalTriggerArea(level, JOJA_MART_OUTDOOR_ENTRY_BASE, 4, 4, 1,
+        // Joja 超市室外入口。
+        placePortalTriggerArea(level, JOJA_MART_OUTDOOR_ENTRY_BASE, 2, 2, 1,
             TAG_PORTAL_MARKER_JOJA_MART_OUTSIDE, "sdv_portal_target:joja_mart_enter");
 
         // Joja 超市室内出口：2高 x 1宽 x 2深，Z+13~14
         BlockPos jojaMartIndoorExitPortal = JOJA_MART_ORIGIN.offset(JOJA_MART_INDOOR_EXIT_PORTAL_OFFSET);
-        placePortalTriggerArea(level, jojaMartIndoorExitPortal, 2, 1, 2,
+        placePortalTriggerArea(level, jojaMartIndoorExitPortal, 3, 2, 1,
             TAG_PORTAL_MARKER_JOJA_MART_INSIDE, "sdv_portal_target:joja_mart_exit");
+
+        placePortalTriggerArea(level, TRAILER_OUTDOOR_ENTRY_POS, 2, 2, 1,
+            TAG_PORTAL_MARKER_TRAILER_OUTSIDE, "sdv_portal_target:trailer_enter");
+
+        BlockPos trailerIndoorExitPortal = TRAILER_INDOOR_EXIT_PORTAL_OFFSET;
+        placePortalTriggerArea(level, trailerIndoorExitPortal, 3, 3, 1,
+            TAG_PORTAL_MARKER_TRAILER_INSIDE, "sdv_portal_target:trailer_exit");
 
         // 沙漠公交站传送区域：在空气位置放置触发方块（默认行为，跳过已有非空气方块）
         placePortalTriggerArea(level,
@@ -1406,8 +1484,8 @@ public final class InteriorSubspaceManager {
         placePortalTriggerArea(level, MINE_OUTDOOR_ENTRY_POS, 3, 4, 1,
             TAG_PORTAL_MARKER_MINE_OUTSIDE, "sdv_portal_target:mine_entrance");
 
-        // 社区中心室外入口：2高 x 3宽。
-        placePortalTriggerArea(level, CC_OUTDOOR_INTERACTION_BASE, 2, 3, 1,
+        // 社区中心室外入口：2高 x 1宽 x 1深。
+        placePortalTriggerArea(level, CC_OUTDOOR_INTERACTION_BASE, 2, 1, 1,
             TAG_PORTAL_MARKER_CC_OUTSIDE, "sdv_portal_target:community_center_enter");
 
         // CC 室内出口由 PlayerInteriorAllocator 在每位玩家的 CC 实例中动态放置
@@ -1418,14 +1496,14 @@ public final class InteriorSubspaceManager {
     }
 
     /**
-     * 版本升级时为老存档的农场、温室、农场入口屏障补放 PortalTriggerBlock。
+    * 版本升级时为老存档的农场、温室、农场入口补放 PortalTriggerBlock。
      * <p>
      * 老存档中这些区域使用 Interaction 实体，升级后实体被
      * {@link com.stardew.craft.event.InteriorSubspaceLifecycleEvents#onEntityJoinLevel} 拦截取消加载，
      * 此方法负责在对应位置补放方块，确保传送门可用。
      */
     private static void migrateFarmAndGreenhousePortals(ServerLevel level) {
-        // ── 1. 农场入口屏障：重置 barriersPlaced 让其重新放置 ──
+        // ── 1. 农场入口触发区：重置放置状态让其重新放置 ──
         com.stardew.craft.farm.FarmEntryBarrierManager barrierMgr =
                 com.stardew.craft.farm.FarmEntryBarrierManager.get(level);
         barrierMgr.resetForMigration();
@@ -1538,6 +1616,12 @@ public final class InteriorSubspaceManager {
                                                       String markerTag,
                                                       String targetTag) {
         placePortalTriggerAreaInternal(level, basePos, heightBlocks, xBlocks, zBlocks, markerTag, targetTag, true);
+    }
+
+    private static void removePortalTriggerIfPresent(ServerLevel level, BlockPos pos) {
+        if (level.getBlockState(pos).is(com.stardew.craft.block.ModBlocks.PORTAL_TRIGGER.get())) {
+            level.removeBlock(pos, false);
+        }
     }
 
     private static void placePortalTriggerAreaInternal(ServerLevel level,
@@ -1669,6 +1753,7 @@ public final class InteriorSubspaceManager {
 
     private static final class InteriorSubspaceSavedData extends SavedData {
         private int layoutVersion = 0;
+        private int portalTriggerVersion = 0;
         private boolean initialized = false;
 
         static InteriorSubspaceSavedData get(ServerLevel level) {
@@ -1684,6 +1769,7 @@ public final class InteriorSubspaceManager {
         static InteriorSubspaceSavedData load(net.minecraft.nbt.CompoundTag tag, HolderLookup.Provider provider) {
             InteriorSubspaceSavedData data = new InteriorSubspaceSavedData();
             data.layoutVersion = tag.getInt("layoutVersion");
+            data.portalTriggerVersion = tag.getInt("portalTriggerVersion");
             data.initialized = tag.getBoolean("initialized");
             return data;
         }
@@ -1692,6 +1778,7 @@ public final class InteriorSubspaceManager {
         public @Nonnull net.minecraft.nbt.CompoundTag save(@Nonnull net.minecraft.nbt.CompoundTag tag,
                                                            @Nonnull HolderLookup.Provider provider) {
             tag.putInt("layoutVersion", layoutVersion);
+            tag.putInt("portalTriggerVersion", portalTriggerVersion);
             tag.putBoolean("initialized", initialized);
             return tag;
         }

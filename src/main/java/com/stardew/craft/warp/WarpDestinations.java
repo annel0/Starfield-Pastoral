@@ -29,15 +29,15 @@ public final class WarpDestinations {
 
         register(new WarpDestination(
                 "town", "stardewcraft.warp.town", "stardewcraft.warp.town.desc",
-                100_000, -159.5, -18.0, 54.5, ModDimensions.STARDEW_VALLEY));
+            100_000, 3.5, 64.0, 8.5, ModDimensions.STARDEW_VALLEY));
 
         register(new WarpDestination(
                 "mountain", "stardewcraft.warp.mountain", "stardewcraft.warp.mountain.desc",
-                300_000, -290.5, -14.0, 256.5, ModDimensions.STARDEW_VALLEY));
+            300_000, 75.5, 81.0, -104.5, ModDimensions.STARDEW_VALLEY));
 
         register(new WarpDestination(
                 "beach", "stardewcraft.warp.beach", "stardewcraft.warp.beach.desc",
-                500_000, -189.5, -14.0, -142.5, ModDimensions.STARDEW_VALLEY));
+            500_000, 44.5, 60.0, 94.5, ModDimensions.STARDEW_VALLEY));
     }
 
     private static void register(WarpDestination dest) {

@@ -6,6 +6,7 @@ import com.stardew.craft.cutscene.command.EventCommand;
 import com.stardew.craft.cutscene.command.EventCommandFactory;
 import com.stardew.craft.cutscene.data.EventData;
 import com.stardew.craft.cutscene.network.MarkEventSeenPayload;
+import com.stardew.craft.client.sound.StardewMusicManager;
 import com.stardew.craft.network.payload.ClientNpcVisibilityState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Mob;
@@ -64,6 +65,16 @@ public final class EventPlayer {
         LOGGER.info("Starting cutscene event: {}", event.id());
         currentEvent = event;
         skippable = event.skippable();
+
+        if (event.trigger() != null && "wake_up".equals(event.trigger().type())
+                && CutsceneAnchorRegistry.get("farm_spawn") == null) {
+            Minecraft mc = Minecraft.getInstance();
+            var localPlayer = mc.player;
+            if (localPlayer != null) {
+                CutsceneAnchorRegistry.set("farm_spawn", localPlayer.getX(), localPlayer.getY(), localPlayer.getZ());
+                LOGGER.warn("Wake-up cutscene {} started without farm_spawn anchor; using current player position as fallback", event.id());
+            }
+        }
 
         // NOTE: Do NOT clear the anchor registry here.
         // Server-pushed anchors (e.g. farm_spawn for wake_up events) arrive BEFORE
@@ -199,6 +210,8 @@ public final class EventPlayer {
         // Clear fade
         EventScreenFade.clear();
 
+        StardewMusicManager.releaseCutsceneOverride();
+
         // Mark as seen on server if the client is still connected.
         // Disconnect-time aborts can reach here after Minecraft has already cleared
         // its connection; PacketDistributor.sendToServer requires a live connection.
@@ -282,6 +295,7 @@ public final class EventPlayer {
             hiddenNpcs.clear();
             EventCameraController.release();
             EventScreenFade.clear();
+            StardewMusicManager.releaseCutsceneOverride();
         }
         currentEvent = null;
         commands = List.of();

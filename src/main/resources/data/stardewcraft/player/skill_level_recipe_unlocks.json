@@ -1,164 +1,172 @@
 ﻿{
-    "farming":  {
-                    "1":  [
-                              "scarecrow"
-                          ],
-                    "2":  [
-
-                          ],
-                    "3":  [
-                              "farmer_s_lunch"
-                          ],
-                    "4":  [
-				      "recycling_machine"
-                          ],
-                    "5":  [
-
-                          ],
-                    "6":  [
-
-                          ],
-                    "7":  [
-
-                          ],
-                    "8":  [
-                              "oil_maker"
-                          ],
-                    "9":  [
-
-                          ],
-                    "10":  [
-
-                           ]
-                },
-    "fishing":  {
-                    "1":  [
-
-                          ],
-                    "2":  [
-
-                          ],
-                    "3":  [
-
-                          ],
-                    "4":  [
-
-                          ],
-                    "5":  [
-
-                          ],
-                    "6":  [
-                              "bait_maker"
-                          ],
-                    "7":  [
-
-                          ],
-                    "8":  [
-                              "deluxe_worm_bin"
-                          ],
-                    "9":  [
-                              "seafoam_pudding"
-                          ],
-                    "10":  [
-
-                           ]
-                },
-    "foraging":  {
-                     "1":  [
-                               "wild_seeds_spring"
-                           ],
-                     "2":  [
-                               "survival_burger"
-                           ],
-                     "3":  [
-                               "moss_soup"
-                           ],
-                     "4":  [
-                               "wild_seeds_summer"
-                           ],
-                     "5":  [
-
-                           ],
-                     "6":  [
-                               "lightning_rod",
-                               "wild_seeds_fall"
-                           ],
-                     "7":  [
-                               "wild_seeds_winter"
-                           ],
-                     "8":  [
-
-                           ],
-                     "9":  [
-
-                           ],
-                     "10":  [
-
-                            ]
-                 },
-    "mining":  {
-                   "1":  [
-
-                         ],
-                   "2":  [
-
-                         ],
-                   "3":  [
-                             "miner_s_treat",
-                             "dish_o_the_sea"
-                         ],
-                   "4":  [
-
-                         ],
-                   "5":  [
-
-                         ],
-                   "6":  [
-
-                         ],
-                   "7":  [
-
-                         ],
-                   "8":  [
-
-                         ],
-                   "9":  [
-
-                         ],
-                   "10":  [
-
-                          ]
-               },
-    "combat":  {
-                   "1":  [
-
-                         ],
-                   "2":  [
-
-                         ],
-                   "3":  [
-                             "roots_platter"
-                         ],
-                   "4":  [
-
-                         ],
-                   "5":  [
-
-                         ],
-                   "6":  [
-
-                         ],
-                   "7":  [
-
-                         ],
-                   "8":  [
-
-                         ],
-                   "9":  [
-                             "squid_ink_ravioli"
-                         ],
-                   "10":  [
-
-                          ]
-               }
+      "farming": {
+            "1": [
+                  "basic_fertilizer",
+                  "scarecrow"
+            ],
+            "2": [
+                  "sprinkler",
+                  "mayonnaise_machine"
+            ],
+            "3": [
+                  "bee_house",
+                  "speed_gro",
+                  "farmer_s_lunch"
+            ],
+            "4": [
+                  "basic_retaining_soil",
+                  "preserves_jar"
+            ],
+            "5": [],
+            "6": [
+                  "cheese_press",
+                  "quality_sprinkler"
+            ],
+            "7": [
+                  "loom",
+                  "quality_retaining_soil"
+            ],
+            "8": [
+                  "keg",
+                  "oil_maker",
+                  "deluxe_speed_gro"
+            ],
+            "9": [
+                  "seed_maker",
+                  "iridium_sprinkler"
+            ],
+            "10": []
+      },
+      "fishing": {
+            "1": [],
+            "2": [
+                  "bait"
+            ],
+            "3": [
+                  "crab_pot",
+                  "dish_o_the_sea"
+            ],
+            "4": [
+                  "worm_bin",
+                  "recycling_machine",
+                  "deluxe_bait"
+            ],
+            "5": [],
+            "6": [
+                  "trap_bobber",
+                  "spinner",
+                  "bait_maker",
+                  "sonar_bobber"
+            ],
+            "7": [
+                  "treasure_hunter",
+                  "cork_bobber"
+            ],
+            "8": [
+                  "dressed_spinner",
+                  "barbed_hook",
+                  "deluxe_worm_bin"
+            ],
+            "9": [
+                  "magnet",
+                  "seafoam_pudding"
+            ],
+            "10": []
+      },
+      "foraging": {
+            "1": [
+                  "field_snack",
+                  "wild_seeds_spring"
+            ],
+            "2": [
+                  "charcoal_kiln"
+            ],
+            "3": [
+                  "moss_soup"
+            ],
+            "4": [
+                  "tapper",
+                  "wild_seeds_summer"
+            ],
+            "5": [],
+            "6": [
+                  "lightning_rod",
+                  "warp_totem_beach",
+                  "totem_pole_beach",
+                  "wild_seeds_fall"
+            ],
+            "7": [
+                  "tree_fertilizer",
+                  "warp_totem_mountain",
+                  "totem_pole_mountain",
+                  "wild_seeds_winter"
+            ],
+            "8": [
+                  "warp_totem_farm",
+                  "totem_pole_farm",
+                  "survival_burger"
+            ],
+            "9": [
+                  "rain_totem"
+            ],
+            "10": []
+      },
+      "mining": {
+            "1": [
+                  "cherry_bomb"
+            ],
+            "2": [
+                  "mine_ladder"
+            ],
+            "3": [
+                  "miner_s_treat"
+            ],
+            "4": [
+                  "iron_bar",
+                  "glowstone_ring"
+            ],
+            "5": [],
+            "6": [
+                  "bomb_item"
+            ],
+            "7": [
+                  "gold_bar"
+            ],
+            "8": [
+                  "mega_bomb"
+            ],
+            "9": [
+                  "crystalarium"
+            ],
+            "10": []
+      },
+      "combat": {
+            "1": [
+                  "bug_steak",
+                  "sturdy_ring"
+            ],
+            "2": [
+                  "life_elixir"
+            ],
+            "3": [
+                  "roots_platter"
+            ],
+            "4": [
+                  "warrior_ring"
+            ],
+            "5": [],
+            "6": [
+                  "oil_of_garlic"
+            ],
+            "7": [
+                  "ring_of_yoba",
+                  "thorns_ring"
+            ],
+            "8": [],
+            "9": [
+                  "iridium_band",
+                  "squid_ink_ravioli"
+            ],
+            "10": []
+      }
 }

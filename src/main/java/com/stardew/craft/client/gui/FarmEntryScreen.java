@@ -1,6 +1,7 @@
 package com.stardew.craft.client.gui;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.client.gui.common.GuiText;
 import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
 import com.stardew.craft.farm.FarmPermissionManager;
 import com.stardew.craft.farm.FarmType;
@@ -200,9 +201,8 @@ public class FarmEntryScreen extends Screen {
 
         // 标题
         Component title = this.getTitle().copy().withStyle(ChatFormatting.BOLD);
-        int titleW = this.font.width(title);
-        graphics.drawString(this.font, title,
-                panelX + (panelW - titleW) / 2, contentY + ui(12), 0x582A11, false);
+        GuiText.drawCenteredClamped(graphics, this.font, title, panelX + panelW / 2,
+            contentY + ui(12), panelW - ui(96), 0x582A11, false);
 
         // 标题下方分隔线
         int partY = listY - borderUnit / 2;
@@ -262,18 +262,21 @@ public class FarmEntryScreen extends Screen {
             int textX = iconX + iconW + ui(14);
             int nameY = ry + ui(6);
             int ownerY = nameY + this.font.lineHeight + ui(4);
+                int permReserve = isSelf ? ui(28) : ui(112);
+                int textMaxW = Math.max(ui(80), contentX + contentW - ui(20) - permReserve - textX);
 
             // 农场名（粗体）+ 星号
             int nameColor = locked ? 0x9E9E9E : 0x582A11;
             String farmName = entry.farmName();
             if (isSelf) farmName += " \u2605";
             graphics.drawString(this.font,
-                    Component.literal(farmName).withStyle(ChatFormatting.BOLD),
+                    GuiText.ellipsize(this.font, Component.literal(farmName).withStyle(ChatFormatting.BOLD), textMaxW),
                     textX, nameY, nameColor, false);
 
             // 主人名（第二行）
             int ownerColor = locked ? 0xBDBDBD : 0x8D6E63;
-            graphics.drawString(this.font, entry.ownerName(), textX, ownerY, ownerColor, false);
+                graphics.drawString(this.font, GuiText.ellipsize(this.font, Component.literal(entry.ownerName()), textMaxW),
+                    textX, ownerY, ownerColor, false);
 
             // 权限标签（右对齐，垂直居中）
             if (!isSelf) {
@@ -283,9 +286,10 @@ public class FarmEntryScreen extends Screen {
                     case 1 -> 0xE65100;
                     default -> 0x757575;
                 };
-                int permW = this.font.width(permLabel);
-                graphics.drawString(this.font, permLabel,
-                        contentX + contentW - permW - ui(20),
+                Component shownPerm = GuiText.ellipsize(this.font, Component.literal(permLabel), ui(96));
+                int permW = this.font.width(shownPerm);
+                graphics.drawString(this.font, shownPerm,
+                    contentX + contentW - permW - ui(20),
                         ry + (rowH - this.font.lineHeight) / 2,
                         permColor, false);
             }

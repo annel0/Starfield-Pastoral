@@ -82,10 +82,10 @@ public final class JojaDebugCommand {
                 ServerPlayer sp = ctx.getSource().getPlayerOrException();
                 com.stardew.craft.entity.npc.StardewNpcEntity m =
                     NpcSpawnManager.getTrackedNpc(sp.serverLevel(), "morris");
-                if (m != null) m.teleportTo(18247.5, 71.0, 18259.5);
+                if (m != null) m.teleportTo(114.5, 45.0, -22.5);
                 com.stardew.craft.entity.npc.StardewNpcEntity c =
                     NpcSpawnManager.getTrackedNpc(sp.serverLevel(), "joja_cashier");
-                if (c != null) c.teleportTo(18246.5, 71.0, 18249.5);
+                if (c != null) c.teleportTo(104.5, 45.0, -21.5);
                 ctx.getSource().sendSuccess(() -> Component.literal(
                     "Morris=" + (m != null) + " Cashier=" + (c != null) + " teleported"), false);
                 return 1;

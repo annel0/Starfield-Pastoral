@@ -104,6 +104,37 @@ public final class JunimoTextRenderer {
         g.setColor(1.0f, 1.0f, 1.0f, 1.0f);
     }
 
+    public static void drawStringWrapped(GuiGraphics g, String text, int x, int y,
+                                         int maxWidth, float scale, float alpha) {
+        int lineHeight = Math.max(1, Math.round(GLYPH_H * scale));
+        String[] words = text.split(" ");
+        StringBuilder line = new StringBuilder();
+        int currentY = y;
+
+        for (String word : words) {
+            String candidate = line.isEmpty() ? word : line + " " + word;
+            if (!line.isEmpty() && getStringWidth(candidate, scale) > maxWidth) {
+                drawString(g, line.toString(), x, currentY, scale, alpha);
+                currentY += lineHeight;
+                line.setLength(0);
+                line.append(word);
+            } else {
+                line.setLength(0);
+                line.append(candidate);
+            }
+        }
+
+        if (!line.isEmpty()) {
+            drawString(g, line.toString(), x, currentY, scale, alpha);
+        }
+    }
+
+    public static void drawStringCenteredClamped(GuiGraphics g, String text, int centerX, int y,
+                                                 int maxWidth, float scale, float alpha) {
+        String shown = ellipsize(text, maxWidth, scale);
+        drawStringCentered(g, shown, centerX, y, scale, alpha);
+    }
+
     /**
      * 水平居中绘制 junimoText。
      */
@@ -128,5 +159,21 @@ public final class JunimoTextRenderer {
             width += charW;
         }
         return (int) width;
+    }
+
+    private static String ellipsize(String text, int maxWidth, float scale) {
+        if (maxWidth <= 0 || getStringWidth(text, scale) <= maxWidth) {
+            return text;
+        }
+        String ellipsis = "...";
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < text.length(); i++) {
+            String candidate = out + text.substring(i, i + 1) + ellipsis;
+            if (getStringWidth(candidate, scale) > maxWidth) {
+                break;
+            }
+            out.append(text.charAt(i));
+        }
+        return out + ellipsis;
     }
 }

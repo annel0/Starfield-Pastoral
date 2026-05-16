@@ -1,4 +1,5 @@
 ﻿{
+  "ambientocclusion": false,
   "format_version": "1.12.0",
   "credit": "Collision proxy for bookshelf_3_2 occupancy",
   "texture_size": [64, 64],

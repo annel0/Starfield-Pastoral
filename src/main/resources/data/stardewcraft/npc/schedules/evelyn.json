@@ -4,31 +4,31 @@
   "_format": "time -> \"location @namedPointId facing [behavior]\" | {_goto: key} | {_condition: expr}",
 
   "GreenRain": {
-    "800": "joshhouse @evelyn_joshhouse_stove 1"
+    "800": "joshhouse @evelyn_joshhouse_stove 0"
   },
 
   "rain": {
-    "800":  "joshhouse @evelyn_joshhouse_stove 1",
-    "1040": "joshhouse @evelyn_joshhouse_sofa 2",
-    "1300": "joshhouse @evelyn_joshhouse_fridge 1",
+    "800":  "joshhouse @evelyn_joshhouse_stove 0",
+    "1040": "joshhouse @evelyn_joshhouse_sofa 0",
+    "1300": "joshhouse @evelyn_joshhouse_fridge 0",
     "1630": "joshhouse @evelyn_joshhouse_table 2",
-    "2130": "joshhouse @evelyn_joshhouse_sleep 3 evelyn_sleep"
+    "2130": "joshhouse @evelyn_joshhouse_sleep 2 evelyn_sleep"
   },
 
   "spring": {
-    "800":  "joshhouse @evelyn_joshhouse_stove 1",
-    "1040": "joshhouse @evelyn_joshhouse_sofa 2",
-    "1300": "town @evelyn_town_bench 1",
+    "800":  "joshhouse @evelyn_joshhouse_stove 0",
+    "1040": "joshhouse @evelyn_joshhouse_sofa 0",
+    "1300": "town @evelyn_town_bench 2",
     "1630": "joshhouse @evelyn_joshhouse_table 2",
-    "2130": "joshhouse @evelyn_joshhouse_sleep 3 evelyn_sleep"
+    "2130": "joshhouse @evelyn_joshhouse_sleep 2 evelyn_sleep"
   },
 
   "summer": {
-    "800":  "joshhouse @evelyn_joshhouse_stove 1",
-    "1040": "joshhouse @evelyn_joshhouse_sofa 2",
-    "1300": "town @evelyn_town_garden 3",
+    "800":  "joshhouse @evelyn_joshhouse_stove 0",
+    "1040": "joshhouse @evelyn_joshhouse_sofa 0",
+    "1300": "town @evelyn_town_garden 0",
     "1630": "joshhouse @evelyn_joshhouse_table 2",
-    "2130": "joshhouse @evelyn_joshhouse_sleep 3 evelyn_sleep"
+    "2130": "joshhouse @evelyn_joshhouse_sleep 2 evelyn_sleep"
   },
 
   "fall": {
@@ -36,19 +36,19 @@
   },
 
   "winter": {
-    "800":  "joshhouse @evelyn_joshhouse_stove 1",
-    "1040": "joshhouse @evelyn_joshhouse_sofa 2",
+    "800":  "joshhouse @evelyn_joshhouse_stove 0",
+    "1040": "joshhouse @evelyn_joshhouse_sofa 0",
     "1300": "joshhouse @evelyn_joshhouse_table 2",
-    "1630": "joshhouse @evelyn_joshhouse_fridge 1",
-    "2130": "joshhouse @evelyn_joshhouse_sleep 3 evelyn_sleep"
+    "1630": "joshhouse @evelyn_joshhouse_fridge 0",
+    "2130": "joshhouse @evelyn_joshhouse_sleep 2 evelyn_sleep"
   },
 
   "thursday": {
-    "800":  "joshhouse @evelyn_joshhouse_stove 1",
-    "1040": "joshhouse @evelyn_joshhouse_sofa 2",
-    "1210": "communitycenter @evelyn_communitycenter_visit 2",
+    "800":  "joshhouse @evelyn_joshhouse_stove 0",
+    "1040": "joshhouse @evelyn_joshhouse_sofa 0",
+    "1210": "communitycenter @evelyn_communitycenter_visit 0",
     "1630": "joshhouse @evelyn_joshhouse_table 2",
-    "2130": "joshhouse @evelyn_joshhouse_sleep 3 evelyn_sleep"
+    "2130": "joshhouse @evelyn_joshhouse_sleep 2 evelyn_sleep"
   },
 
   "monday": {

@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.client.gui.common.CommonGuiTextures;
+import com.stardew.craft.client.gui.common.GuiText;
 import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.network.payload.OpenShopScreenPayload;
 import com.stardew.craft.network.payload.ShopPurchasePayload;
@@ -295,9 +296,9 @@ public class ShopScreen extends Screen {
         // 6. Out-of-stock message
         if (forSale.isEmpty()) {
             String msg = "Nothing for sale.";
-            g.drawString(font, msg,
-                panelX + panelWGui/2 - font.width(msg)/2,
-                panelY + mainHGui/2 - font.lineHeight/2, 0x404040, false);
+            GuiText.drawCenteredClamped(g, font, Component.literal(msg),
+                panelX + panelWGui / 2, panelY + mainHGui / 2 - font.lineHeight / 2,
+                Math.max(1, panelWGui - ui(80)), 0x404040, false);
         }
 
         // 7. Scroll arrows
@@ -557,9 +558,11 @@ public class ShopScreen extends Screen {
         drawItemIconAt(g, item.itemId(), iconX, iconY, s4, alpha, isRecipeItem);
 
         // Name — resolved from MC registry (localised), not hardcoded
-        String name = truncateName(resolveItemName(item), item.price() > 0);
+        int nameX = rowX + ui(104);
+        int nameMaxWidth = Math.max(ui(120), rowWGui - ui(item.price() > 0 || item.requiresTrade() ? 360 : 180));
+        Component name = GuiText.ellipsize(font, Component.literal(resolveItemName(item)), nameMaxWidth);
         // SDV SpriteText ItemRowTextColor = Color.Black (0x000000), we approximate with 0x1a1a1a
-        g.drawString(font, name, rowX + ui(104), rowY + ui(28),
+        g.drawString(font, name, nameX, rowY + ui(28),
             canBuy ? 0x1a1a1a : 0x888888, false);
 
         // Price + coin + trade (SDV ShopMenu.cs L1932-1961)
@@ -1092,12 +1095,6 @@ public class ShopScreen extends Screen {
             if (isIn(mx,my,sx,sy,sz,sz)) return (r==3)?c:(9+r*9+c);
         }
         return -1;
-    }
-
-    private String truncateName(String name, boolean hasPrice) {
-        int maxLen=hasPrice?27:37;
-        if (name.length()>maxLen) return name.substring(0,maxLen)+"...";
-        return name;
     }
 
     private int ui(int sdvPx) { return Math.round(sdvPx/guiScale); }

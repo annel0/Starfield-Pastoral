@@ -385,6 +385,18 @@
       "datable": false
     },
     {
+      "id": "krobus",
+      "implemented": true,
+      "pathing_enabled": false,
+      "animation_profile": "idle_only",
+      "age": 0,
+      "manners": 1,
+      "social_anxiety": 1,
+      "optimism": 0,
+      "gender": 0,
+      "datable": false
+    },
+    {
       "id": "sandy",
       "implemented": true,
       "pathing_enabled": false,

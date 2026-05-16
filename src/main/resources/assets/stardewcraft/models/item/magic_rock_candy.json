@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "stardewcraft:item/misc/magic_rock_candy",
+    "particle": "stardewcraft:item/misc/magic_rock_candy"
+  }
+}

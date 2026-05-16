@@ -20,8 +20,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -44,7 +42,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @SuppressWarnings({"null", "unused"})
 public final class CrossDimensionTeleporter {
 
-    private static final String PLAYER_FLAG_INTERIOR = "stardewcraft_interior_space";
     private static final String PLAYER_LAST_PORTAL_TICK = "stardewcraft_last_portal_tick";
     private static final long PORTAL_COOLDOWN_TICKS = 8L;
 
@@ -55,15 +52,12 @@ public final class CrossDimensionTeleporter {
      */
     private static final Set<UUID> SKIP_AUTO_TELEPORT = ConcurrentHashMap.newKeySet();
 
-    // 巫师塔内部亚空间坐标（与 InteriorSubspaceManager 一致）
-    private static final BlockPos WIZARD_TOWER_ORIGIN = new BlockPos(18240, 70, 17088);
-    private static final BlockPos WIZARD_TOWER_INDOOR_SPAWN_OFFSET = new BlockPos(2, 1, 9);
-
-    // 星露谷维度的世界原点（农场出生点）
-    private static final BlockPos STARDEW_WORLD_ORIGIN = new BlockPos(150, -12, 119);
+    // 巫师塔内部坐标（与 InteriorSubspaceManager 一致）
+    private static final BlockPos WIZARD_TOWER_ORIGIN = BlockPos.ZERO;
+    private static final BlockPos WIZARD_TOWER_INDOOR_SPAWN_OFFSET = new BlockPos(-178, 34, 63);
 
     // 星露谷维度的巫师塔室外坐标
-    private static final BlockPos STARDEW_WIZARD_OUTDOOR_POS = new BlockPos(340, 0, -43);
+    private static final BlockPos STARDEW_WIZARD_OUTDOOR_POS = new BlockPos(-179, 69, 51);
 
     private CrossDimensionTeleporter() {}
 
@@ -139,9 +133,8 @@ public final class CrossDimensionTeleporter {
         }
 
         if (returnPos == null) {
-            // Fallback: 使用世界出生点
-            returnPos = overworld.getSharedSpawnPos();
-            StardewCraft.LOGGER.warn("[WIZARD] No overworld return pos recorded, using spawn point");
+            StardewCraft.LOGGER.warn("[WIZARD] No overworld return pos recorded; canceling return teleport");
+            return;
         }
 
         // 传送前清理
@@ -163,8 +156,8 @@ public final class CrossDimensionTeleporter {
     }
 
     /**
-     * 从巫师塔内部前往星露谷室外。
-     * 如果玩家已有农场实例，传送到自己的农场出生点；否则传送到公共出生点。
+    * 从巫师塔内部前往星露谷室外。
+    * 玩家必须已有农场实例；没有农场时不进入旧公共农场区域。
      */
     public static void wizardInteriorToStardewOutdoor(ServerPlayer player) {
         wizardInteriorToStardewOutdoor(player, false);
@@ -183,15 +176,18 @@ public final class CrossDimensionTeleporter {
         player.closeContainer();
         player.stopUsingItem();
 
-        // 查询玩家的农场出生点
-        BlockPos spawnTarget = STARDEW_WORLD_ORIGIN;
         com.stardew.craft.farm.FarmInstanceRegistry registry = com.stardew.craft.farm.FarmInstanceRegistry.get();
         com.stardew.craft.farm.FarmInstance farm = registry.getFarmForPlayer(player.getUUID());
-        if (farm != null) {
-            spawnTarget = farm.getSpawnPoint();
-            StardewCraft.LOGGER.info("[WIZARD] {} teleporting to personal farm spawn at {}",
-                    player.getName().getString(), spawnTarget);
+        if (farm == null) {
+            player.displayClientMessage(Component.literal("请先创建自己的农场。"), true);
+            StardewCraft.LOGGER.warn("[WIZARD] Refused Stardew outdoor teleport for {}: no personal farm",
+                player.getName().getString());
+            return;
         }
+
+        BlockPos spawnTarget = farm.getSpawnPoint();
+        StardewCraft.LOGGER.info("[WIZARD] {} teleporting to personal farm spawn at {}",
+            player.getName().getString(), spawnTarget);
 
         ModTeleport.to(player, stardewLevel,
             spawnTarget.getX() + 0.5,
@@ -205,7 +201,7 @@ public final class CrossDimensionTeleporter {
         // 首次传送到星露谷：给予新手工具六件套
         giveStarterToolsIfNeeded(player, giveStarterItemsInInventory);
 
-        StardewCraft.LOGGER.info("[WIZARD] {} teleported from wizard tower interior to Stardew Valley world origin", player.getName().getString());
+        StardewCraft.LOGGER.info("[WIZARD] {} teleported from wizard tower interior to personal farm spawn", player.getName().getString());
     }
 
     /**
@@ -399,12 +395,10 @@ public final class CrossDimensionTeleporter {
     }
 
     private static void applyInteriorEnter(ServerPlayer player) {
-        player.getPersistentData().putBoolean(PLAYER_FLAG_INTERIOR, true);
-        player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, -1, 0, false, false, false));
+        com.stardew.craft.event.InteriorPortalInteractionEvents.markInteriorEnter(player);
     }
 
     private static void applyInteriorExit(ServerPlayer player) {
-        player.getPersistentData().putBoolean(PLAYER_FLAG_INTERIOR, false);
-        player.removeEffect(MobEffects.NIGHT_VISION);
+        com.stardew.craft.event.InteriorPortalInteractionEvents.clearInteriorState(player);
     }
 }

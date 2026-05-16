@@ -101,33 +101,11 @@ public record RequestNpcFriendshipOverviewPayload() implements CustomPacketPaylo
         rows.sort(Comparator
             .comparingInt(SyncNpcFriendshipOverviewPayload.Entry::points).reversed()
             .thenComparingInt(SyncNpcFriendshipOverviewPayload.Entry::metOrder)
-            .thenComparing(entry -> displayNameForSort(entry.npcId()))
             .thenComparing(SyncNpcFriendshipOverviewPayload.Entry::npcId));
         if (normalizedAnyWeek) {
             friendshipManager.setDirty();
         }
         PacketDistributor.sendToPlayer(player, new SyncNpcFriendshipOverviewPayload(rows));
-    }
-
-    private static String displayNameForSort(String npcId) {
-        if (npcId == null || npcId.isBlank()) {
-            return "";
-        }
-        String[] parts = npcId.trim().toLowerCase(Locale.ROOT).split("[_\\s]+");
-        StringBuilder sb = new StringBuilder();
-        for (String part : parts) {
-            if (part == null || part.isBlank()) {
-                continue;
-            }
-            if (!sb.isEmpty()) {
-                sb.append(' ');
-            }
-            sb.append(part.substring(0, 1).toUpperCase(Locale.ROOT));
-            if (part.length() > 1) {
-                sb.append(part.substring(1));
-            }
-        }
-        return sb.toString();
     }
 
     private static int currentDayKey() {

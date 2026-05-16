@@ -48,7 +48,6 @@ public final class JukeboxTrackRegistry {
         add("adventurer_guild", "stardewcraft.jukebox.adventurer_guild", ModSounds.MUSIC_ADVENTURER_GUILD);
         add("hospital",         "stardewcraft.jukebox.hospital",         ModSounds.MUSIC_HOSPITAL);
         add("elliott_piano",    "stardewcraft.jukebox.elliott_piano",    ModSounds.MUSIC_ELLIOTT_PIANO);
-        add("seed_shop",        "stardewcraft.jukebox.seed_shop",        ModSounds.MUSIC_SEED_SHOP);
         // 矿洞
         add("earth_mine",       "stardewcraft.jukebox.earth_mine",       ModSounds.MUSIC_EARTH_MINE);
         add("frost_mine",       "stardewcraft.jukebox.frost_mine",       ModSounds.MUSIC_FROST_MINE);

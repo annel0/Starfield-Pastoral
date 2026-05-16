@@ -97,6 +97,13 @@
       "ascent": 9,
       "height": 10,
       "chars": ["\uE019"]
+    },
+    {
+      "type": "bitmap",
+      "file": "stardewcraft:mob_effect/avoid_monsters.png",
+      "ascent": 9,
+      "height": 10,
+      "chars": ["\uE01A"]
     }
   ]
 }

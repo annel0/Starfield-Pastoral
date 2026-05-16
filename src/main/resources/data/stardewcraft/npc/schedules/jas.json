@@ -4,22 +4,22 @@
   "_format": "time -> \"location @namedPointId facing [behavior]\" | {_goto: key} | {_condition: expr}",
 
   "GreenRain": {
-    "610": "animalshop @jas_animalshop_kitchen 3"
+    "610": "animalshop @jas_animalshop_kitchen 0"
   },
 
   "rain": {
-    "900":  "animalshop @jas_animalshop_kitchen 1",
-    "1100": "animalshop @jas_animalshop_living 3",
-    "1500": "animalshop @jas_animalshop_read 3 jas_read",
-    "1900": "animalshop @jas_animalshop_bedroom 3",
-    "2100": "animalshop @jas_animalshop_sleep 3 jas_sleep"
+    "900":  "animalshop @jas_animalshop_kitchen 0",
+    "1100": "animalshop @jas_animalshop_living 1",
+    "1500": "animalshop @jas_animalshop_read 0 jas_read",
+    "1900": "animalshop @jas_animalshop_bedroom 2",
+    "2100": "animalshop @jas_animalshop_sleep 2 jas_sleep"
   },
 
   "tuesday": {
-    "900":  "archaeologyhouse @jas_museum_read 3 jas_read",
-    "1400": "town @jas_town_playground 3",
-    "1620": "town @jas_town_walk 1",
-    "1750": "animalshop @jas_animalshop_sleep 3 jas_sleep"
+    "900":  "archaeologyhouse @jas_museum_read 0 jas_read",
+    "1400": "town @jas_town_playground 0",
+    "1620": "town @jas_town_walk 0",
+    "1750": "animalshop @jas_animalshop_sleep 2 jas_sleep"
   },
 
   "wednesday": {
@@ -31,27 +31,27 @@
   },
 
   "saturday": {
-    "1000": "town @jas_town_walk 2",
-    "1200": "town @jas_town_jumprope 0 jas_jumprope",
-    "1700": "town @jas_town_playground 2",
-    "2000": "animalshop @jas_animalshop_sleep 3 jas_sleep"
+    "1000": "town @jas_town_walk 0",
+    "1200": "town @jas_town_jumprope 2 jas_jumprope",
+    "1700": "town @jas_town_playground 0",
+    "2000": "animalshop @jas_animalshop_sleep 2 jas_sleep"
   },
 
   "spring": {
-    "900":  "animalshop @jas_animalshop_kitchen 1",
+    "900":  "animalshop @jas_animalshop_kitchen 0",
     "1100": "forest @jas_forest_jumprope 2 jas_jumprope",
-    "1500": "animalshop @jas_animalshop_read 3 jas_read",
-    "1900": "animalshop @jas_animalshop_bedroom 3",
-    "2100": "animalshop @jas_animalshop_sleep 3 jas_sleep"
+    "1500": "animalshop @jas_animalshop_read 0 jas_read",
+    "1900": "animalshop @jas_animalshop_bedroom 2",
+    "2100": "animalshop @jas_animalshop_sleep 2 jas_sleep"
   },
 
   "summer": {
-    "900":  "animalshop @jas_animalshop_kitchen 1",
+    "900":  "animalshop @jas_animalshop_kitchen 0",
     "1100": "forest @jas_forest_jumprope 2",
-    "1320": "beach @jas_beach_play 0 jas_jumprope",
-    "1600": "animalshop @jas_animalshop_read 3 jas_read",
-    "1900": "animalshop @jas_animalshop_bedroom 3",
-    "2100": "animalshop @jas_animalshop_sleep 3 jas_sleep"
+    "1320": "beach @jas_beach_play 2 jas_jumprope",
+    "1600": "animalshop @jas_animalshop_read 0 jas_read",
+    "1900": "animalshop @jas_animalshop_bedroom 2",
+    "2100": "animalshop @jas_animalshop_sleep 2 jas_sleep"
   },
 
   "fall": {

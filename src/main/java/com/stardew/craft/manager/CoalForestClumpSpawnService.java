@@ -13,19 +13,22 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.saveddata.SavedData;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 
 public final class CoalForestClumpSpawnService {
     private static final String INIT_DATA_ID = "stardewcraft_coal_forest_clumps_init";
-    private static final int MIN_LARGE_STUMP = 9;
-    private static final int MAX_LARGE_STUMP = 11;
-    private static final int MIN_HOLLOW_LOG = 3;
-    private static final int MAX_HOLLOW_LOG = 4;
-    private static final int MAX_ATTEMPTS_PER_SPAWN = 80;
     private static final int CLEAR_MAX_Y = CoalForestArea.MAX_Y + 8;
+    private static final List<BlockPos> LARGE_STUMP_POSITIONS = List.of(
+            new BlockPos(-235, 68, 11),
+            new BlockPos(-237, 68, 6),
+            new BlockPos(-232, 68, 7),
+            new BlockPos(-223, 68, 36),
+            new BlockPos(-212, 68, 35),
+            new BlockPos(-204, 68, 5)
+    );
 
     private CoalForestClumpSpawnService() {
     }
@@ -39,14 +42,17 @@ public final class CoalForestClumpSpawnService {
         clearExisting(level);
 
         RandomSource random = level.getRandom();
-        int largeStumps = randomBetween(random, MIN_LARGE_STUMP, MAX_LARGE_STUMP);
-        int hollowLogs = randomBetween(random, MIN_HOLLOW_LOG, MAX_HOLLOW_LOG);
+        int spawnedLargeStumps = 0;
+        for (BlockPos pos : LARGE_STUMP_POSITIONS) {
+            if (tryPlaceAt(level, random, ModBlocks.LARGE_STUMP.get(), pos)) {
+                spawnedLargeStumps++;
+            } else {
+                StardewCraft.LOGGER.warn("[SECRET_WOODS] Failed to place large stump at {}", pos);
+            }
+        }
 
-        int spawnedLargeStumps = spawnBatch(level, random, ModBlocks.LARGE_STUMP.get(), largeStumps);
-        int spawnedHollowLogs = spawnBatch(level, random, ModBlocks.HOLLOW_LOG.get(), hollowLogs);
-
-        StardewCraft.LOGGER.info("[COAL_FOREST] Daily clump respawn: largeStump={}/{}, hollowLog={}/{}",
-                spawnedLargeStumps, largeStumps, spawnedHollowLogs, hollowLogs);
+        StardewCraft.LOGGER.info("[SECRET_WOODS] Daily stump respawn: largeStump={}/{}",
+                spawnedLargeStumps, LARGE_STUMP_POSITIONS.size());
     }
 
     public static void ensureInitialSpawn(ServerLevel level) {
@@ -64,44 +70,20 @@ public final class CoalForestClumpSpawnService {
         data.setInitialized(true);
     }
 
-    private static int spawnBatch(ServerLevel level, RandomSource random, Block block, int targetCount) {
-        int spawned = 0;
-        for (int index = 0; index < targetCount; index++) {
-            boolean placed = false;
-            for (int attempt = 0; attempt < MAX_ATTEMPTS_PER_SPAWN; attempt++) {
-                int x = randomBetween(random, CoalForestArea.MIN_X, CoalForestArea.MAX_X);
-                int z = randomBetween(random, CoalForestArea.MIN_Z, CoalForestArea.MAX_Z);
-                if (tryPlace(level, random, block, x, z)) {
-                    spawned++;
-                    placed = true;
-                    break;
-                }
-            }
-            if (!placed) {
-                StardewCraft.LOGGER.warn("[COAL_FOREST] Failed to place {} after {} attempts",
-                        block.getDescriptionId(), MAX_ATTEMPTS_PER_SPAWN);
-            }
-        }
-        return spawned;
-    }
-
-    private static boolean tryPlace(ServerLevel level, RandomSource random, Block block, int x, int z) {
+    private static boolean tryPlaceAt(ServerLevel level, RandomSource random, Block block, BlockPos mainPos) {
         if (!(block instanceof ResourceClumpBlock clump)) {
             return false;
         }
 
-        int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z) - 1;
-        BlockPos surfacePos = new BlockPos(x, surfaceY, z);
-        if (!CoalForestArea.containsGround(surfacePos)) {
+        if (!CoalForestArea.containsGround(mainPos)) {
             return false;
         }
 
-        if (!level.getBlockState(surfacePos).is(ModBlocks.YELLOW_DIRT.get())) {
+        if (!level.getBlockState(mainPos.below()).isFaceSturdy(level, mainPos.below(), Direction.UP)) {
             return false;
         }
 
-        BlockPos mainPos = surfacePos.above();
-        if (!level.getBlockState(mainPos).canBeReplaced() || !level.canSeeSky(mainPos)) {
+        if (!level.getBlockState(mainPos).canBeReplaced()) {
             return false;
         }
 
@@ -166,10 +148,6 @@ public final class CoalForestClumpSpawnService {
                 level.getChunk(chunkX, chunkZ);
             }
         }
-    }
-
-    private static int randomBetween(RandomSource random, int min, int max) {
-        return min + random.nextInt(max - min + 1);
     }
 
     private static final class CoalForestClumpInitData extends SavedData {

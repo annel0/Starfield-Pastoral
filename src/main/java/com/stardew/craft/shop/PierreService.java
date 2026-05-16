@@ -18,13 +18,13 @@ import java.util.List;
 public final class PierreService {
 
     // Counter area: player must be inside this AABB to trigger shop.
-    // Coordinates from user: (12049,71,12042) to (12047,73,12035)
-    private static final int COUNTER_MIN_X = 12047;
-    private static final int COUNTER_MAX_X = 12049;
-    private static final int COUNTER_MIN_Y = 71;
-    private static final int COUNTER_MAX_Y = 73;
-    private static final int COUNTER_MIN_Z = 12035;
-    private static final int COUNTER_MAX_Z = 12042;
+    // Coordinates from user: (18,38,-23) to (26,36,-20)
+    private static final int COUNTER_MIN_X = 18;
+    private static final int COUNTER_MAX_X = 26;
+    private static final int COUNTER_MIN_Y = 36;
+    private static final int COUNTER_MAX_Y = 38;
+    private static final int COUNTER_MIN_Z = -23;
+    private static final int COUNTER_MAX_Z = -20;
 
     private PierreService() {}
 

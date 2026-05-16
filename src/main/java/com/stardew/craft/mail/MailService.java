@@ -33,7 +33,11 @@ public class MailService {
     public static void addMail(ServerPlayer player, String mailId) {
         PlayerStardewData data = PlayerDataManager.getPlayerData(player);
         if (data.hasMailFlag(mailId)) return;  // 已读过
+        int before = data.getMailbox().size();
         data.addToMailbox(mailId);
+        if (data.getMailbox().size() != before) {
+            PlayerDataEventHandler.syncPlayerData(player, data);
+        }
     }
 
     /**
@@ -42,7 +46,11 @@ public class MailService {
     public static void addMailForTomorrow(ServerPlayer player, String mailId) {
         PlayerStardewData data = PlayerDataManager.getPlayerData(player);
         if (data.hasMailFlag(mailId)) return;
+        int before = data.getMailForTomorrow().size();
         data.addMailForTomorrow(mailId);
+        if (data.getMailForTomorrow().size() != before) {
+            PlayerDataEventHandler.syncPlayerData(player, data);
+        }
     }
 
     /**
@@ -86,6 +94,15 @@ public class MailService {
         String mailId = data.popMailFromMailbox();
         if (mailId == null) return;
 
+        MailEntry entry = MailRegistry.get(mailId);
+        if (entry == null) {
+            data.addToMailbox(mailId);
+            PlayerDataEventHandler.syncPlayerData(player, data);
+            LOGGER.warn("Mail '{}' not found in registry, keeping it queued", mailId);
+            player.sendSystemMessage(Component.literal("邮件数据暂时不可用，请稍后再试。"));
+            return;
+        }
+
         // 标记为已读
         data.addMailFlag(mailId);
 
@@ -94,16 +111,6 @@ public class MailService {
             if (player.level() instanceof net.minecraft.server.level.ServerLevel lvl) {
                 com.stardew.craft.communitycenter.reward.BulletinReward.onThankYouLetterOpened(player, lvl);
             }
-        }
-
-        MailEntry entry = MailRegistry.get(mailId);
-        if (entry == null) {
-            LOGGER.warn("Mail '{}' not found in registry, skipping", mailId);
-            // 自动尝试下一封
-            if (data.hasMailInMailbox()) {
-                openNextMail(player);
-            }
-            return;
         }
 
         // 处理文本替换
@@ -151,6 +158,7 @@ public class MailService {
         }
 
         int remaining = data.getMailbox().size();
+        PlayerDataEventHandler.syncPlayerData(player, data);
 
         OpenMailPayload payload = new OpenMailPayload(
                 mailId, text, entry.getBackground(),
@@ -177,7 +185,14 @@ public class MailService {
             server.getLevel(com.stardew.craft.core.ModDimensions.STARDEW_VALLEY);
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             PlayerStardewData data = manager.getOrCreateData(player.getUUID());
+            int beforeMailbox = data.getMailbox().size();
+            int beforeTomorrow = data.getMailForTomorrow().size();
             java.util.List<String> flushed = data.deliverTomorrowMail(today);
+            if (data.getMailbox().size() != beforeMailbox
+                    || data.getMailForTomorrow().size() != beforeTomorrow
+                    || !flushed.isEmpty()) {
+                PlayerDataEventHandler.syncPlayerData(player, data);
+            }
             dispatchFlushedFlags(player, stardewLevel, flushed);
         }
     }
@@ -189,7 +204,14 @@ public class MailService {
     public static void flushOnLogin(ServerPlayer player) {
         int today = com.stardew.craft.time.StardewTimeManager.get().getAbsoluteDay();
         PlayerStardewData data = PlayerDataManager.getPlayerData(player);
+        int beforeMailbox = data.getMailbox().size();
+        int beforeTomorrow = data.getMailForTomorrow().size();
         java.util.List<String> flushed = data.deliverTomorrowMail(today);
+        if (data.getMailbox().size() != beforeMailbox
+                || data.getMailForTomorrow().size() != beforeTomorrow
+                || !flushed.isEmpty()) {
+            PlayerDataEventHandler.syncPlayerData(player, data);
+        }
         if (flushed.isEmpty()) return;
         net.minecraft.server.level.ServerLevel stardewLevel =
             player.getServer() == null ? null

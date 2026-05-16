@@ -1,6 +1,7 @@
 package com.stardew.craft.client.gui;
 
 import com.stardew.craft.client.farm.FarmJoinClientState;
+import com.stardew.craft.client.gui.common.GuiText;
 import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
 import com.stardew.craft.farm.FarmType;
 import com.stardew.craft.network.payload.FarmJoinRequestPayload;
@@ -166,9 +167,8 @@ public class FarmJoinSelectScreen extends Screen {
 
         // 标题
         Component title = this.getTitle().copy().withStyle(ChatFormatting.BOLD);
-        int titleW = this.font.width(title);
-        graphics.drawString(this.font, title,
-                panelX + (panelW - titleW) / 2, contentY + ui(12), 0x582A11, false);
+        GuiText.drawCenteredClamped(graphics, this.font, title,
+            panelX + panelW / 2, contentY + ui(12), contentW, 0x582A11, false);
 
         // 标题下方分隔线
         int partY = listY - borderUnit / 2;
@@ -177,19 +177,17 @@ public class FarmJoinSelectScreen extends Screen {
         if (sortedFarms.isEmpty()) {
             // 没有可加入的农场
             Component empty = Component.translatable("gui.stardewcraft.farm_join.empty");
-            int emptyW = this.font.width(empty);
-            graphics.drawString(this.font, empty,
-                    panelX + (panelW - emptyW) / 2, listY + ui(40), 0x9E9E9E, false);
+                GuiText.drawWrappedCentered(graphics, this.font, empty,
+                    panelX + panelW / 2, listY + ui(40), contentW, 0x9E9E9E, false, 2);
         } else {
             drawFarmList(graphics, mouseX, mouseY);
         }
 
         // 底部提示
         Component hint = Component.translatable("gui.stardewcraft.farm_join.hint");
-        int hintW = this.font.width(hint);
-        graphics.drawString(this.font, hint,
-                panelX + (panelW - hintW) / 2, contentY + contentH - ui(4) - this.font.lineHeight,
-                0x8D6E63, false);
+        GuiText.drawCenteredClamped(graphics, this.font, hint,
+            panelX + panelW / 2, contentY + contentH - ui(4) - this.font.lineHeight,
+            contentW, 0x8D6E63, false);
     }
 
     private void drawFarmList(GuiGraphics graphics, int mouseX, int mouseY) {
@@ -230,16 +228,17 @@ public class FarmJoinSelectScreen extends Screen {
 
             // 文字区域
             int textX = iconX + iconW + ui(14);
+                int textMaxW = Math.max(1, contentX + contentW - ui(18) - textX);
             int nameY = ry + ui(6);
             int ownerY = nameY + this.font.lineHeight + ui(4);
 
             // 农场名（粗体）
             graphics.drawString(this.font,
-                    Component.literal(entry.farmName()).withStyle(ChatFormatting.BOLD),
+                    GuiText.ellipsize(this.font, Component.literal(entry.farmName()).withStyle(ChatFormatting.BOLD), textMaxW),
                     textX, nameY, 0x582A11, false);
 
             // 主人名（第二行）
-            graphics.drawString(this.font, entry.ownerName(), textX, ownerY, 0x8D6E63, false);
+                graphics.drawString(this.font, GuiText.ellipsize(this.font, Component.literal(entry.ownerName()), textMaxW), textX, ownerY, 0x8D6E63, false);
         }
 
         graphics.disableScissor();

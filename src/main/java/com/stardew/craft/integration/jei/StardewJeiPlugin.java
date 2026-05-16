@@ -324,6 +324,7 @@ public class StardewJeiPlugin implements IModPlugin {
     private static List<ItemStack> buildCategoryDisplayVariants() {
         List<ItemStack> stacks = new ArrayList<>();
         List<net.minecraft.world.item.Item> cookingIngredients = new ArrayList<>();
+        List<net.minecraft.world.item.Item> crops = new ArrayList<>();
         List<net.minecraft.world.item.Item> fruits = new ArrayList<>();
         List<net.minecraft.world.item.Item> forages = new ArrayList<>();
 
@@ -336,6 +337,8 @@ public class StardewJeiPlugin implements IModPlugin {
             String typeKey = stardewItem.getItemTypeKey();
             if ("stardewcraft.type.cooking_ingredient".equals(typeKey)) {
                 cookingIngredients.add(item);
+            } else if ("stardewcraft.type.crop".equals(typeKey)) {
+                crops.add(item);
             } else if ("stardewcraft.type.fruit".equals(typeKey)) {
                 fruits.add(item);
             } else if ("stardewcraft.type.forage".equals(typeKey)) {
@@ -344,6 +347,7 @@ public class StardewJeiPlugin implements IModPlugin {
         }
 
         stacks.addAll(buildGroupedCategoryStacks(cookingIngredients, false));
+    stacks.addAll(buildGroupedCategoryStacks(crops, true));
         stacks.addAll(buildGroupedCategoryStacks(fruits, true));
         stacks.addAll(buildGroupedCategoryStacks(forages, true));
         return stacks;

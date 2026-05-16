@@ -298,6 +298,12 @@ public class PlayerInteriorAllocator extends SavedData {
         return Collections.unmodifiableSet(cavePlaced);
     }
 
+    public void setAllGreenhouseChunksForced(ServerLevel level, boolean force) {
+        for (UUID uuid : ghPlaced) {
+            forceChunksForGH(level, getGreenhouseOrigin(uuid), force);
+        }
+    }
+
     /** 查找世界坐标所属的洞穴玩家 UUID，不在任何洞穴内返回 null */
     @Nullable
     public UUID findCaveOwner(BlockPos worldPos) {

@@ -111,10 +111,10 @@ public final class NpcDebugCommand {
         );
 
         StardewNpcEntity entity = entities.isEmpty() ? null : entities.get(0);
-        Vec3 fallback = entity != null ? entity.position() : Vec3.atCenterOf(level.getSharedSpawnPos());
-        NpcScheduleRuntimeService.TargetPoint target = NpcScheduleRuntimeService.resolveWorldTarget(level, state, fallback);
+        Vec3 defaultPosition = entity != null ? entity.position() : Vec3.atCenterOf(level.getSharedSpawnPos());
+        NpcScheduleRuntimeService.TargetPoint target = NpcScheduleRuntimeService.resolveWorldTarget(level, state, defaultPosition);
 
-        Vec3 t = target.position();
+        Vec3 t = target == null ? null : target.position();
         String targetText = t == null ? "<none>" : String.format(Locale.ROOT, "(%.1f, %.1f, %.1f)", t.x, t.y, t.z);
         String summary = String.format(
             Locale.ROOT,
@@ -139,8 +139,8 @@ public final class NpcDebugCommand {
         );
 
         StardewNpcEntity entity = entities.isEmpty() ? null : entities.get(0);
-        Vec3 fallback = entity != null ? entity.position() : Vec3.atCenterOf(level.getSharedSpawnPos());
-        NpcScheduleRuntimeService.TargetPoint target = NpcScheduleRuntimeService.resolveWorldTarget(level, state, fallback);
+        Vec3 defaultPosition = entity != null ? entity.position() : Vec3.atCenterOf(level.getSharedSpawnPos());
+        NpcScheduleRuntimeService.TargetPoint target = NpcScheduleRuntimeService.resolveWorldTarget(level, state, defaultPosition);
 
         source.sendSuccess(() -> Component.literal("- 基本状态"), false);
         source.sendSuccess(() -> Component.literal(String.format(
@@ -164,12 +164,18 @@ public final class NpcDebugCommand {
         if (entity == null) {
             source.sendSuccess(() -> Component.literal("- 实体状态"), false);
             source.sendSuccess(() -> Component.literal("  实体: 缺失"), false);
-            source.sendSuccess(() -> Component.literal("  目标: " + formatVec(target.position()) + " indoor=" + target.indoorTarget()), false);
+            source.sendSuccess(() -> Component.literal("  目标: " + formatVec(target == null ? null : target.position())
+                + " indoor=" + (target != null && target.indoorTarget())), false);
             return;
         }
 
         Vec3 pos = entity.position();
-        Vec3 t = target.position();
+        Vec3 t = target == null ? null : target.position();
+        if (t == null) {
+            source.sendSuccess(() -> Component.literal("- 实体状态"), false);
+            source.sendSuccess(() -> Component.literal("  目标: <none>"), false);
+            return;
+        }
         double dx = t.x - pos.x;
         double dz = t.z - pos.z;
         double dist2d = Math.sqrt(dx * dx + dz * dz);
@@ -199,13 +205,13 @@ public final class NpcDebugCommand {
             source.sendSuccess(() -> Component.literal("- 移动快照"), false);
             source.sendSuccess(() -> Component.literal(String.format(
                 Locale.ROOT,
-                "  stage=%s loc=%s point=%s path=%d/%d fallbackTp=%s",
+                "  stage=%s loc=%s point=%s path=%d/%d forcedTp=%s",
                 movement.stage,
                 movement.location,
                 movement.pointId,
                 movement.pathIndex,
                 movement.pathSize,
-                movement.fallbackTeleportUsed
+                movement.forcedTeleportUsed
             )), false);
             source.sendSuccess(() -> Component.literal(String.format(
                 Locale.ROOT,
@@ -215,6 +221,14 @@ public final class NpcDebugCommand {
                 movement.repathReason,
                 movement.noPathTicks,
                 movement.forcedTargetChunk
+            )), false);
+            source.sendSuccess(() -> Component.literal(String.format(
+                Locale.ROOT,
+                "  routeStatus=%s reason=%s missingPoint=%s missingLink=%s",
+                movement.routeStatus,
+                movement.routeDiagnosticReason,
+                movement.missingPointId == null || movement.missingPointId.isBlank() ? "<none>" : movement.missingPointId,
+                movement.missingPortalLinkId == null || movement.missingPortalLinkId.isBlank() ? "<none>" : movement.missingPortalLinkId
             )), false);
         }
 

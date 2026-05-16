@@ -1,4 +1,5 @@
 {
+  "ambientocclusion": false,
   "format_version": "1.12.0",
   "credit": "Collision proxy for pillar_1 occupancy",
   "texture_size": [64, 64],

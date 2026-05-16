@@ -33,7 +33,7 @@ public final class WizardQuestHandler {
     private static final String NPC_ID = "wizard";
 
     // 巫师在巫师塔内部的位置（与 default_spawns.json 一致）
-    private static final BlockPos WIZARD_POS = new BlockPos(18249, 71, 17095);
+    private static final BlockPos WIZARD_POS = new BlockPos(-179, 34, 55);
     private static final double PROXIMITY_RANGE_SQ = 5.0 * 5.0; // 5 格内自动触发
     private static final int PROXIMITY_CHECK_INTERVAL = 20; // 每秒检测一次
     private static final String PROXIMITY_COOLDOWN_TAG = "stardewcraft_wizard_prox_tick";

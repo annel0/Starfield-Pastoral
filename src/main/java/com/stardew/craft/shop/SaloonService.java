@@ -19,13 +19,13 @@ import java.util.List;
 public final class SaloonService {
 
     // Counter area: player must be inside this AABB to trigger shop.
-    // Coordinates from user: (14214,73,14219) to (14212,71,14231)
-    private static final int COUNTER_MIN_X = 14212;
-    private static final int COUNTER_MAX_X = 14214;
-    private static final int COUNTER_MIN_Y = 71;
-    private static final int COUNTER_MAX_Y = 73;
-    private static final int COUNTER_MIN_Z = 14219;
-    private static final int COUNTER_MAX_Z = 14231;
+    // Coordinates from user: (22,38,13) to (32,36,15)
+    private static final int COUNTER_MIN_X = 22;
+    private static final int COUNTER_MAX_X = 32;
+    private static final int COUNTER_MIN_Y = 36;
+    private static final int COUNTER_MAX_Y = 38;
+    private static final int COUNTER_MIN_Z = 13;
+    private static final int COUNTER_MAX_Z = 15;
 
     private SaloonService() {}
 

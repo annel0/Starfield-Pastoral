@@ -102,7 +102,7 @@ public record MineExitActionPayload(Action action) implements CustomPacketPayloa
 		ServerLevel stardew = serverPlayer.server.getLevel(com.stardew.craft.core.ModDimensions.STARDEW_VALLEY);
 		if (stardew == null) return;
 
-		// 使用骷髅矿专用出口坐标 (-339, -42, 1268)，朝南
+		// 使用骷髅矿专用出口坐标，朝南
 		net.minecraft.core.BlockPos arrival = com.stardew.craft.desert.DesertConstants.worldPos(
 				com.stardew.craft.desert.DesertConstants.SKULL_CAVERN_EXIT_OFFSET);
 

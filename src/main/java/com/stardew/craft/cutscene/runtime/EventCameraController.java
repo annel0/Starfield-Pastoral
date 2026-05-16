@@ -118,7 +118,7 @@ public final class EventCameraController {
             posX = Mth.lerp(t, startX, targetX);
             posY = Mth.lerp(t, startY, targetY);
             posZ = Mth.lerp(t, startZ, targetZ);
-            yaw = Mth.lerp(t, startYaw, targetYaw);
+            yaw = Mth.rotLerp(t, startYaw, targetYaw);
             pitch = Mth.lerp(t, startPitch, targetPitch);
         }
     }
@@ -128,7 +128,7 @@ public final class EventCameraController {
     public static double getInterpolatedX(float partialTick) { return Mth.lerp(partialTick, prevX, posX); }
     public static double getInterpolatedY(float partialTick) { return Mth.lerp(partialTick, prevY, posY); }
     public static double getInterpolatedZ(float partialTick) { return Mth.lerp(partialTick, prevZ, posZ); }
-    public static float getInterpolatedYaw(float partialTick) { return Mth.lerp(partialTick, prevYaw, yaw); }
+    public static float getInterpolatedYaw(float partialTick) { return Mth.rotLerp(partialTick, prevYaw, yaw); }
     public static float getInterpolatedPitch(float partialTick) { return Mth.lerp(partialTick, prevPitch, pitch); }
 
     public static boolean isLerping() {

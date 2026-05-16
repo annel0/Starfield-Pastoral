@@ -26,6 +26,7 @@ public final class ModTeleport {
             CrossDimensionTeleporter.markSkipAutoTeleport(player.getUUID());
         }
         player.teleportTo(target, x, y, z, yaw, pitch);
+        com.stardew.craft.event.PlayerLocationStateGuardEvents.reconcileLocationState(player, true);
     }
 
     public static void to(ServerPlayer player, ServerLevel target, BlockPos pos,

@@ -18,12 +18,12 @@ import javax.annotation.Nonnull;
 
 public final class DesertGalaxyPillarBootstrap {
 
-    public static final BlockPos NORTH_PILLAR_POS = new BlockPos(-244, -43, 1339);
-    public static final BlockPos EAST_PILLAR_POS = new BlockPos(-241, -43, 1344);
-    public static final BlockPos WEST_PILLAR_POS = new BlockPos(-247, -43, 1344);
-    public static final BlockPos RITUAL_TRIGGER_POS = new BlockPos(-244, -43, 1342);
+    public static final BlockPos NORTH_PILLAR_POS = new BlockPos(-201, 64, -200);
+    public static final BlockPos EAST_PILLAR_POS = new BlockPos(-198, 64, -205);
+    public static final BlockPos WEST_PILLAR_POS = new BlockPos(-195, 64, -200);
+    public static final BlockPos RITUAL_TRIGGER_POS = new BlockPos(-198, 64, -202);
 
-    private static final int PILLAR_LAYOUT_VERSION = 1;
+    private static final int PILLAR_LAYOUT_VERSION = 2;
     private static final int CHECK_INTERVAL_TICKS = 20;
     private static int tickCounter;
 

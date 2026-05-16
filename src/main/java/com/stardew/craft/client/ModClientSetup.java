@@ -33,6 +33,7 @@ import com.stardew.craft.client.render.HeaterBlockEntityRenderer;
 import com.stardew.craft.client.render.LargeFireplaceBlockEntityRenderer;
 import com.stardew.craft.client.render.ShrineBlockEntityRenderer;
 import com.stardew.craft.client.render.PillarGeoBlockEntityRenderer;
+import com.stardew.craft.client.render.BushBlockEntityRenderer;
 import com.stardew.craft.client.render.RecyclingMachineBlockEntityRenderer;
 import com.stardew.craft.client.render.ShippingBinBlockEntityRenderer;
 import com.stardew.craft.client.render.StoneChestBlockEntityRenderer;
@@ -151,6 +152,7 @@ public final class ModClientSetup {
 		event.registerBlockEntityRenderer(ModBlockEntities.GIANT_CROP.get(), com.stardew.craft.client.render.GiantCropBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.BOOKSHELF_GEO.get(), BookshelfGeoBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.PILLAR_GEO.get(), PillarGeoBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(ModBlockEntities.BUSH.get(), BushBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.FISH_NET.get(), FishNetBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.FISH_POND_BUCKET.get(), FishPondBucketBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.GRANDFATHER_CLOCK.get(), com.stardew.craft.client.render.GrandfatherClockBlockEntityRenderer::new);

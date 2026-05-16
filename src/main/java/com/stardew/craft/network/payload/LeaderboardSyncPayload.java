@@ -2,6 +2,7 @@ package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.leaderboard.LeaderboardMetric;
+import com.stardew.craft.leaderboard.LeaderboardPeriod;
 import com.stardew.craft.leaderboard.LeaderboardService;
 import com.stardew.craft.leaderboard.LeaderboardSnapshot;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -21,6 +22,7 @@ import java.util.UUID;
 @SuppressWarnings("null")
 public record LeaderboardSyncPayload(
         String metricId,
+    String periodId,
     int page,
         List<Entry> rows,
         Entry selfEntry,
@@ -39,6 +41,7 @@ public record LeaderboardSyncPayload(
                 @Override
                 public LeaderboardSyncPayload decode(RegistryFriendlyByteBuf buf) {
                     String metricId = buf.readUtf();
+                    String periodId = buf.readUtf();
                     int page = buf.readVarInt();
                     int count = buf.readVarInt();
                     List<Entry> rows = new ArrayList<>(count);
@@ -49,12 +52,13 @@ public record LeaderboardSyncPayload(
                     int totalPlayers = buf.readVarInt();
                     long generatedAtMillis = buf.readLong();
                     String errorKey = buf.readUtf();
-                    return new LeaderboardSyncPayload(metricId, page, rows, selfEntry, totalPlayers, generatedAtMillis, errorKey);
+                    return new LeaderboardSyncPayload(metricId, periodId, page, rows, selfEntry, totalPlayers, generatedAtMillis, errorKey);
                 }
 
                 @Override
                 public void encode(RegistryFriendlyByteBuf buf, LeaderboardSyncPayload payload) {
                     buf.writeUtf(payload.metricId == null ? LeaderboardMetric.MONEY.id() : payload.metricId);
+                    buf.writeUtf(payload.periodId == null ? LeaderboardPeriod.TOTAL.id() : payload.periodId);
                     buf.writeVarInt(Math.max(0, payload.page));
                     buf.writeVarInt(payload.rows.size());
                     for (Entry entry : payload.rows) {
@@ -84,8 +88,8 @@ public record LeaderboardSyncPayload(
         com.stardew.craft.client.LeaderboardClientCache.update(payload);
     }
 
-    public static void sendToPlayer(ServerPlayer player, LeaderboardMetric metric, int page) {
-        LeaderboardSnapshot snapshot = LeaderboardService.buildSnapshot(player, metric, page);
+    public static void sendToPlayer(ServerPlayer player, LeaderboardMetric metric, LeaderboardPeriod period, int page) {
+        LeaderboardSnapshot snapshot = LeaderboardService.buildSnapshot(player, metric, period, page);
         List<Entry> rows = snapshot.rows().stream()
                 .map(entry -> new Entry(entry.playerId(), entry.playerName(), entry.value(), entry.rank(), entry.online(), entry.self()))
                 .toList();
@@ -97,12 +101,12 @@ public record LeaderboardSyncPayload(
                 snapshot.selfEntry().online(),
                 snapshot.selfEntry().self());
         PacketDistributor.sendToPlayer(player, new LeaderboardSyncPayload(
-                metric.id(), Math.max(0, page), rows, selfEntry, snapshot.totalPlayers(), snapshot.generatedAtMillis(), ""));
+            metric.id(), snapshot.period().id(), Math.max(0, page), rows, selfEntry, snapshot.totalPlayers(), snapshot.generatedAtMillis(), ""));
     }
 
-    public static void sendErrorToPlayer(ServerPlayer player, LeaderboardMetric metric, int page, String errorKey) {
+        public static void sendErrorToPlayer(ServerPlayer player, LeaderboardMetric metric, LeaderboardPeriod period, int page, String errorKey) {
         PacketDistributor.sendToPlayer(player, new LeaderboardSyncPayload(
-                metric.id(), Math.max(0, page), List.of(), null, 0, System.currentTimeMillis(), errorKey));
+            metric.id(), period == null ? LeaderboardPeriod.TOTAL.id() : period.id(), Math.max(0, page), List.of(), null, 0, System.currentTimeMillis(), errorKey));
     }
 
     private static Entry readEntry(RegistryFriendlyByteBuf buf) {

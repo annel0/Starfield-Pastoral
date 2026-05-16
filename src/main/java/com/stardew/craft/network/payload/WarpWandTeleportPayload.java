@@ -3,6 +3,8 @@ package com.stardew.craft.network.payload;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.farm.FarmInstanceRegistry;
 import com.stardew.craft.item.ModItems;
+import com.stardew.craft.player.PlayerDataManager;
+import com.stardew.craft.sewer.SewerStoryFlags;
 import com.stardew.craft.warp.WarpDestination;
 import com.stardew.craft.warp.WarpDestinations;
 import com.stardew.craft.warp.WarpEffects;
@@ -41,6 +43,10 @@ public record WarpWandTeleportPayload(String destinationId) implements CustomPac
             // 校验手持传送魔杖
             if (!player.getMainHandItem().is(ModItems.WARP_WAND.get())
                     && !player.getOffhandItem().is(ModItems.WARP_WAND.get())) {
+                return;
+            }
+            if (!PlayerDataManager.getPlayerData(player).hasMailFlag(SewerStoryFlags.RETURN_SCEPTER_PURCHASED)) {
+                player.displayClientMessage(Component.translatable("stardewcraft.warp_wand.not_purchased"), true);
                 return;
             }
 

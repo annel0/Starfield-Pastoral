@@ -1,0 +1,50 @@
+{
+  "id": "gunther_rusty_key_wake_up",
+  "skippable": false,
+  "trigger": { "type": "wake_up" },
+  "preconditions": [
+    { "type": "not_saw_event", "id": "gunther_rusty_key_wake_up" },
+    { "type": "saw_event", "id": "295672" },
+    { "type": "not_flag", "id": "HasRustyKey" }
+  ],
+  "commands": [
+    { "cmd": "comment", "text": "=== SDV Farm Event 66: Gunther gives Rusty Key — farm-door layout ===" },
+
+    { "cmd": "lock_player" },
+    { "cmd": "fade", "mode": "out", "ticks": 10 },
+
+    { "cmd": "warp", "actor": "player", "x": 0, "y": 0, "z": 0, "anchor": "farm_spawn" },
+    { "cmd": "face_actor", "actor": "player", "yaw": 90 },
+
+    { "cmd": "spawn_actor", "actor": "fake_player", "npc_id": "player",
+      "x": 0, "y": 0, "z": 0, "facing": 90, "anchor": "farm_spawn" },
+
+    { "cmd": "spawn_actor", "actor": "gunther", "npc_id": "gunther",
+      "x": -2, "y": 0, "z": 0, "facing": -90, "anchor": "farm_spawn" },
+
+    { "cmd": "camera", "x": -2.432, "y": 0.378, "z": 2.928,
+      "yaw": -141.4, "pitch": 13.5, "anchor": "farm_spawn" },
+
+    { "cmd": "fade", "mode": "in", "ticks": 20 },
+    { "cmd": "pause", "ticks": 30 },
+
+    { "cmd": "speak", "npc_id": "gunther", "text": "event.gunther_rusty_key.greeting" },
+    { "cmd": "speak", "npc_id": "gunther", "text": "event.gunther_rusty_key.award" },
+    { "cmd": "speak", "npc_id": "gunther", "text": "event.gunther_rusty_key.return_to_work" },
+    { "cmd": "pause", "ticks": 20 },
+    { "cmd": "emote", "actor": "gunther", "emote": "exclamation" },
+    { "cmd": "pause", "ticks": 20 },
+    { "cmd": "speak", "npc_id": "gunther", "text": "event.gunther_rusty_key.forgot" },
+
+    { "cmd": "hold_item", "actor": "gunther", "item": "stardewcraft:rusty_key", "ticks": 40 },
+    { "cmd": "play_sound", "sound": "stardewcraft:reward", "volume": 1.0, "pitch": 1.0 },
+    { "cmd": "grant_rusty_key" },
+    { "cmd": "message", "text": "event.gunther_rusty_key.received" },
+    { "cmd": "pause", "ticks": 40 },
+
+    { "cmd": "remove_actor", "actor": "gunther" },
+    { "cmd": "remove_actor", "actor": "fake_player" },
+    { "cmd": "unlock_player" },
+    { "cmd": "end" }
+  ]
+}

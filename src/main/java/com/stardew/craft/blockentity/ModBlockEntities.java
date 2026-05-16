@@ -210,6 +210,11 @@ public final class ModBlockEntities {
 				ModBlocks.PILLAR.get(), ModBlocks.GALAXY_PILLAR.get()).build(null));
 
 	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BushBlockEntity>> BUSH =
+			BLOCK_ENTITIES.register("bush", () -> BlockEntityType.Builder.of(BushBlockEntity::new,
+				ModBlocks.SMALL_BUSH.get(), ModBlocks.BERRY_BUSH.get()).build(null));
+
+	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FishNetBlockEntity>> FISH_NET =
 			BLOCK_ENTITIES.register("fish_net", () -> BlockEntityType.Builder.of(FishNetBlockEntity::new,
 				ModBlocks.FISH_NET.get()).build(null));

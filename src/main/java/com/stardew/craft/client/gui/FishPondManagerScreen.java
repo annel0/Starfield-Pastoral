@@ -1,6 +1,7 @@
 package com.stardew.craft.client.gui;
 
 import com.stardew.craft.client.gui.common.CommonGuiTextures;
+import com.stardew.craft.client.gui.common.GuiText;
 import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.menu.FishPondManagerMenu;
@@ -149,7 +150,8 @@ public class FishPondManagerScreen extends AbstractContainerScreen<FishPondManag
         int y = panelY + pad;
 
         Component titleText = Component.translatable("container.stardew_craft.fish_pond_manager");
-        g.drawString(this.font, titleText, panelX + (panelW - this.font.width(titleText)) / 2, y, COL_TITLE, true);
+        GuiText.drawCenteredClamped(g, this.font, titleText, panelX + panelW / 2, y,
+            panelW - pad * 2, COL_TITLE, true);
         y += lineH;
 
         Component formedText;
@@ -164,7 +166,8 @@ public class FishPondManagerScreen extends AbstractContainerScreen<FishPondManag
             formedText = Component.translatable("gui.stardew_craft.fish_pond_manager.unformed");
             formedColor = COL_GRAY;
         }
-        g.drawString(this.font, formedText, panelX + (panelW - this.font.width(formedText)) / 2, y, formedColor, false);
+        GuiText.drawCenteredClamped(g, this.font, formedText, panelX + panelW / 2, y,
+            panelW - pad * 2, formedColor, false);
         y += lineH;
 
         StardewGuiUtil.drawHorizontalPartitionSmall(g, contentX, y + secGap / 2 - 2, contentWidth, s4);
@@ -214,8 +217,8 @@ public class FishPondManagerScreen extends AbstractContainerScreen<FishPondManag
     }
 
     private int renderUnformedContent(GuiGraphics g, int x, int y, int width) {
-        g.drawString(this.font,
-            Component.translatable("gui.stardew_craft.fish_pond_manager.requirements"),
+        g.drawString(this.font, GuiText.ellipsize(this.font,
+            Component.translatable("gui.stardew_craft.fish_pond_manager.requirements"), width),
             x, y, COL_GOLD, true);
         y += lineH;
 
@@ -257,7 +260,8 @@ public class FishPondManagerScreen extends AbstractContainerScreen<FishPondManag
             menu.canBuild()
                 ? "gui.stardew_craft.fish_pond_manager.ready"
                 : "gui.stardew_craft.fish_pond_manager.not_ready");
-        g.drawString(this.font, footer, x, y, menu.canBuild() ? COL_GOLD : COL_RED, false);
+        g.drawString(this.font, GuiText.ellipsize(this.font, footer, width), x, y,
+            menu.canBuild() ? COL_GOLD : COL_RED, false);
         return y + lineH;
     }
 
@@ -270,14 +274,15 @@ public class FishPondManagerScreen extends AbstractContainerScreen<FishPondManag
         }
 
         CommonGuiTextures.drawItem(g, fishPreview, x, y - 3, 1.0f);
-        g.drawString(this.font, fishPreview.getHoverName(), x + 20, y, COL_TEXT, false);
+        g.drawString(this.font, GuiText.ellipsize(this.font, fishPreview.getHoverName(), width - 24),
+            x + 20, y, COL_TEXT, false);
         y += lineH + 2;
 
         Component populationText = Component.translatable(
             "gui.stardew_craft.fish_pond_manager.population",
             menu.getCurrentPopulation(),
             menu.getMaxPopulation());
-        g.drawString(this.font, populationText, x, y, COL_TEXT, false);
+        g.drawString(this.font, GuiText.ellipsize(this.font, populationText, width), x, y, COL_TEXT, false);
         y += lineH;
 
         y = drawPopulationIcons(g, fishPreview, x, y, width, menu.getCurrentPopulation(), menu.getMaxPopulation());
@@ -288,8 +293,8 @@ public class FishPondManagerScreen extends AbstractContainerScreen<FishPondManag
         if (menu.hasGoldenAnimalCracker()) {
             y += 2;
             CommonGuiTextures.drawItem(g, new ItemStack(ModItems.GOLDEN_ANIMAL_CRACKER.get()), x, y - 3, 1.0f);
-            g.drawString(this.font,
-                Component.translatable("gui.stardew_craft.fish_pond_manager.golden_cracker_yes"),
+            g.drawString(this.font, GuiText.ellipsize(this.font,
+                Component.translatable("gui.stardew_craft.fish_pond_manager.golden_cracker_yes"), width - 24),
                 x + 20, y, COL_GOLD, false);
             y += lineH;
         }
@@ -298,8 +303,8 @@ public class FishPondManagerScreen extends AbstractContainerScreen<FishPondManag
             y += 2;
             StardewGuiUtil.drawHorizontalPartitionSmall(g, x, y + secGap / 2 - 2, width, s4());
             y += secGap;
-            g.drawString(this.font,
-                Component.translatable("gui.stardew_craft.fish_pond_manager.request_bring"),
+            g.drawString(this.font, GuiText.ellipsize(this.font,
+                Component.translatable("gui.stardew_craft.fish_pond_manager.request_bring"), width),
                 x, y, COL_GOLD, true);
             y += lineH;
             ItemStack neededPreview = menu.getNeededItemPreviewStack();
@@ -327,8 +332,7 @@ public class FishPondManagerScreen extends AbstractContainerScreen<FishPondManag
         g.drawString(this.font, countText, x + width - countWidth, y, met ? COL_OK : COL_RED, false);
         drawRequirementBar(g, barX, y + 2, barWidth, this.font.lineHeight - 2, required > 0 ? (float) Math.min(current, required) / required : 1.0f, met);
 
-        String labelText = this.font.plainSubstrByWidth(label.getString(), labelWidth);
-        g.drawString(this.font, labelText, labelX, y, COL_TEXT, false);
+        g.drawString(this.font, GuiText.ellipsize(this.font, label, labelWidth), labelX, y, COL_TEXT, false);
         return y + lineH;
     }
 
@@ -393,9 +397,9 @@ public class FishPondManagerScreen extends AbstractContainerScreen<FishPondManag
         } else if (hovered) {
             g.fill(x + inset, y + inset, x + w - inset, y + h - inset, 0x30FFD700);
         }
-        int tw = this.font.width(label);
         int textColor = !active ? 0xFF909090 : (hovered ? COL_TITLE : COL_TEXT);
-        g.drawString(this.font, label, x + (w - tw) / 2, y + (h - this.font.lineHeight) / 2, textColor, hovered);
+        GuiText.drawCenteredClamped(g, this.font, label, x + w / 2,
+            y + (h - this.font.lineHeight) / 2, w - 8, textColor, hovered);
         g.pose().popPose();
     }
 
@@ -422,23 +426,22 @@ public class FishPondManagerScreen extends AbstractContainerScreen<FishPondManag
 
         int tx = dx + pad;
         int ty = dy + pad;
-        g.drawString(this.font,
+        g.drawString(this.font, GuiText.ellipsize(this.font,
             Component.translatable(confirmType == ConfirmType.CLEAR
                 ? "gui.stardew_craft.fish_pond_manager.dialog.clear.title"
-                : "gui.stardew_craft.fish_pond_manager.dialog.demolish.title"),
+                : "gui.stardew_craft.fish_pond_manager.dialog.demolish.title"), dw - pad * 2),
             tx, ty, COL_TITLE, true);
         ty += lineH;
-        g.drawString(this.font,
+        ty = GuiText.drawWrapped(g, this.font,
             Component.translatable(confirmType == ConfirmType.CLEAR
                 ? "gui.stardew_craft.fish_pond_manager.dialog.clear.line1"
                 : "gui.stardew_craft.fish_pond_manager.dialog.demolish.line1"),
-            tx, ty, COL_TEXT, false);
-        ty += lineH;
-        g.drawString(this.font,
+            tx, ty, dw - pad * 2, COL_TEXT, false, 2);
+        GuiText.drawWrapped(g, this.font,
             Component.translatable(confirmType == ConfirmType.CLEAR
                 ? "gui.stardew_craft.fish_pond_manager.dialog.clear.line2"
                 : "gui.stardew_craft.fish_pond_manager.dialog.demolish.line2"),
-            tx, ty, COL_RED, false);
+            tx, ty, dw - pad * 2, COL_RED, false, 2);
 
         int cbW = 70;
         int cbH = this.font.lineHeight + 12;
@@ -469,8 +472,8 @@ public class FishPondManagerScreen extends AbstractContainerScreen<FishPondManag
         }
 
         int textColor = !active ? 0xFF909090 : (hovered ? COL_TITLE : COL_TEXT);
-        int tw = this.font.width(label);
-        g.drawString(this.font, label, x + (w - tw) / 2, y + (h - this.font.lineHeight) / 2, textColor, hovered);
+        GuiText.drawCenteredClamped(g, this.font, label, x + w / 2,
+            y + (h - this.font.lineHeight) / 2, w - 8, textColor, hovered);
     }
 
     @Override

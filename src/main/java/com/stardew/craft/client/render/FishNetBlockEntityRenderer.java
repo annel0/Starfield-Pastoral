@@ -9,12 +9,10 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
-import software.bernie.geckolib.renderer.GeoBlockRenderer;
-
 import javax.annotation.Nonnull;
 
 @SuppressWarnings("null")
-public class FishNetBlockEntityRenderer extends GeoBlockRenderer<FishNetBlockEntity> {
+public class FishNetBlockEntityRenderer extends StardewGeoBlockRenderer<FishNetBlockEntity> {
     public FishNetBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
         super(new FishNetGeoModel());
     }

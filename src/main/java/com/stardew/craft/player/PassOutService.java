@@ -4,15 +4,16 @@ import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModMiningDimensions;
 import com.stardew.craft.core.ModTags;
+import com.stardew.craft.event.DimensionEventHandler;
 import com.stardew.craft.item.equipment.StardewBootsItem;
 import com.stardew.craft.item.equipment.StardewRingItem;
 import com.stardew.craft.item.weapon.StardewWeaponItem;
+import com.stardew.craft.time.StardewTimeManager;
 import com.stardew.craft.warp.ModTeleport;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,12 +48,12 @@ public final class PassOutService {
     private static final java.util.Set<java.util.UUID> knockedOutPlayers = java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>());
 
     /**
-     * 2AM 晕倒的惩罚结果（暂存），由 advanceDayWithSleepTime 消费后合并进 OvernightSettlementPayload。
+     * 晕倒的惩罚结果（暂存），由 advanceDayWithSleepTime 消费后合并进 OvernightSettlementPayload。
      * 不再单独发送 PassOutPayload，避免与 OvernightSettlementPayload 客户端画面冲突。
      */
     private static final java.util.Map<java.util.UUID, PassOutResult> pendingPassOutResults = new java.util.concurrent.ConcurrentHashMap<>();
 
-    /** 2AM 晕倒惩罚结果 */
+    /** 晕倒惩罚结果 */
     public record PassOutResult(PassOutType type, int moneyLost, List<net.minecraft.world.item.ItemStack> lostItems) {}
 
     /** 消费指定玩家的晕倒结果（一次性），返回 null 表示该玩家未晕倒 */
@@ -112,6 +113,7 @@ public final class PassOutService {
 
         // 3. 战斗死亡标志（次日体力压到2）
         data.setPassedOutFromCombat(true);
+        data.recordCombatDeath();
 
         // 4. 标记击倒状态（HP 保持 0，免疫后续伤害，直到传送完成）
         knockedOutPlayers.add(player.getUUID());
@@ -120,13 +122,12 @@ public final class PassOutService {
         // 5. 安排死亡邮件
         scheduleDeathMail(player, data, inMine, moneyLost, !lostItems.isEmpty());
 
-        // 6. 发送客户端通知
-        PacketDistributor.sendToPlayer(player,
-                new com.stardew.craft.network.payload.PassOutPayload(
-                        inMine ? PassOutType.COMBAT_MINE : PassOutType.COMBAT_OVERWORLD,
-                        moneyLost, lostItems));
+        PassOutType passOutType = inMine ? PassOutType.COMBAT_MINE : PassOutType.COMBAT_OVERWORLD;
+        pendingPassOutResults.put(player.getUUID(), new PassOutResult(passOutType, moneyLost, List.copyOf(lostItems)));
 
         syncAndSave(player, data);
+
+        advanceDayAfterPassOut(player, "pass_out_combat");
 
         LOGGER.info("[PASSOUT] {} combat death in {} — lost {}g, {} items",
                 player.getName().getString(),
@@ -159,6 +160,7 @@ public final class PassOutService {
 
         // 安排晕倒邮件
         schedulePassOutMail(player, data, moneyLost);
+        data.record2AmPassOut();
 
         // 不再发送单独的 PassOutPayload —— 晕倒数据将合并进 OvernightSettlementPayload，
         // 由客户端在结算流程中统一展示（先渐黑→摘要→升级→出货），避免两个画面冲突。
@@ -196,14 +198,14 @@ public final class PassOutService {
 
         // 安排晕倒邮件
         schedulePassOutMail(player, data, moneyLost);
+        data.recordExhaustionPassOut();
 
-        // 发送客户端通知
-        PacketDistributor.sendToPlayer(player,
-                new com.stardew.craft.network.payload.PassOutPayload(
-                        PassOutType.EXHAUSTION_STAMINA,
-                        moneyLost, List.of()));
+        pendingPassOutResults.put(player.getUUID(),
+            new PassOutResult(PassOutType.EXHAUSTION_STAMINA, moneyLost, List.of()));
 
         syncAndSave(player, data);
+
+        advanceDayAfterPassOut(player, "pass_out_exhaustion");
 
         LOGGER.info("[PASSOUT] {} exhaustion pass out — lost {}g",
                 player.getName().getString(), moneyLost);
@@ -336,6 +338,19 @@ public final class PassOutService {
             mailId = "passedOut_Marlon";
         }
         data.addMailForTomorrow(mailId);
+    }
+
+    private static void advanceDayAfterPassOut(ServerPlayer player, String reason) {
+        var server = player.server;
+        var stardewLevel = server.getLevel(ModDimensions.STARDEW_VALLEY);
+        if (stardewLevel == null) {
+            teleportToFarmSpawn(player);
+            return;
+        }
+
+        int sleepMinute = StardewTimeManager.get().getCurrentTime();
+        DimensionEventHandler.triggerAdvance(stardewLevel, sleepMinute, reason);
+        teleportToFarmSpawn(player);
     }
 
     // ──────────────────────────────────────

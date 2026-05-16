@@ -51,7 +51,6 @@ public final class ArtifactDropService {
     }
 
     private static final Map<String, List<ZoneRect>> ZONE_RECTS = new LinkedHashMap<>();
-    private static final int RELAXED_ZONE_MARGIN = 24;
         private static final String DEFAULT_LOCATION = "Default";
         private static final String BEACH_LOCATION = "Beach";
         private static final String DESERT_LOCATION = "Desert";
@@ -79,38 +78,11 @@ public final class ArtifactDropService {
             );
 
     static {
-        ZONE_RECTS.put("Town", List.of(
-                rect(159, 193, 19, 221),
-                rect(51, 96, 21, 112),
-                rect(-1, 69, -18, 80)
+        ZONE_RECTS.put(MIXED_OUTDOOR_LOCATION, List.of(
+            rect(-151, -237, 200, 79)
         ));
-        ZONE_RECTS.put("Forest", List.of(
-                rect(134, -194, 197, -110),
-                rect(231, -138, 252, -114),
-                rect(221, -11, 302, 35)
-        ));
-        ZONE_RECTS.put("Mountain", List.of(
-                rect(-239, 161, -196, 188),
-                rect(-245, 233, -207, 263),
-                rect(-324, 289, -292, 309),
-                rect(-105, 294, -72, 312)
-        ));
-        // Keep Beach aligned with the forage system's two outdoor beach rectangles.
         ZONE_RECTS.put("Beach", List.of(
-                rect(-293, -182, -192, -139),
-                rect(-376, -173, -326, -148)
-        ));
-        ZONE_RECTS.put("Farm", List.of(
-                rect(-80, -100, 80, 80)
-        ));
-        ZONE_RECTS.put("BusStop", List.of(
-                rect(-20, 80, 20, 130)
-        ));
-        ZONE_RECTS.put("Backwoods", List.of(
-                rect(-100, 130, 20, 190)
-        ));
-        ZONE_RECTS.put("Railroad", List.of(
-                rect(-300, 300, -250, 350)
+            rect(-4, 77, 239, 186)
         ));
     }
 
@@ -513,13 +485,6 @@ public final class ArtifactDropService {
                 }
             }
         }
-        for (Map.Entry<String, List<ZoneRect>> entry : ZONE_RECTS.entrySet()) {
-            for (ZoneRect r : entry.getValue()) {
-                if (containsExpanded(r, x, z, RELAXED_ZONE_MARGIN)) {
-                    return entry.getKey();
-                }
-            }
-        }
         return DEFAULT_LOCATION;
     }
 
@@ -548,11 +513,6 @@ public final class ArtifactDropService {
             }
         }
         return drops;
-    }
-
-    private static boolean containsExpanded(ZoneRect rect, int x, int z, int margin) {
-        return x >= rect.minX - margin && x <= rect.maxX + margin
-                && z >= rect.minZ - margin && z <= rect.maxZ + margin;
     }
 
     // ======================== Main Drop Logic ========================
@@ -663,12 +623,12 @@ public final class ArtifactDropService {
         return new ItemStack(item, count);
     }
 
-    private static ItemStack resolveSpecialQueryDrop(String fallbackItemId, RandomSource random) {
-        DeferredItem<? extends Item> fallbackItem = resolveDropItemId(fallbackItemId);
-        if (fallbackItem == null) {
+    private static ItemStack resolveSpecialQueryDrop(String itemId, RandomSource random) {
+        DeferredItem<? extends Item> item = resolveDropItemId(itemId);
+        if (item == null) {
             return ItemStack.EMPTY;
         }
-        return new ItemStack(fallbackItem.get());
+        return new ItemStack(item.get());
     }
 
     private static int normalizeStackValue(int value) {

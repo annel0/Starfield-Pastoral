@@ -4,44 +4,44 @@
   "_format": "time -> \"location @namedPointId facing [behavior]\"",
 
   "GreenRain": {
-    "600": "sciencehouse @robin_sciencehouse_counter 3",
-    "2200": "sciencehouse @robin_sciencehouse_sleep 0"
+    "600": "sciencehouse @robin_sciencehouse_counter 2",
+    "2200": "sciencehouse @robin_sciencehouse_sleep 2"
   },
 
   "rain": {
-    "600": "sciencehouse @robin_sciencehouse_counter 3",
-    "1800": "sciencehouse @robin_sciencehouse_living 2",
-    "2200": "sciencehouse @robin_sciencehouse_sleep 0"
+    "600": "sciencehouse @robin_sciencehouse_counter 2",
+    "1800": "sciencehouse @robin_sciencehouse_living 0",
+    "2200": "sciencehouse @robin_sciencehouse_sleep 2"
   },
 
   "spring": {
-    "600": "sciencehouse @robin_sciencehouse_counter 3",
-    "1700": "saloon @robin_saloon_seat 3",
-    "2200": "sciencehouse @robin_sciencehouse_sleep 0"
+    "600": "sciencehouse @robin_sciencehouse_counter 2",
+    "1700": "saloon @robin_saloon_seat 0",
+    "2200": "sciencehouse @robin_sciencehouse_sleep 2"
   },
 
   "summer": {
-    "600": "sciencehouse @robin_sciencehouse_counter 3",
-    "1700": "saloon @robin_saloon_seat 3",
-    "2200": "sciencehouse @robin_sciencehouse_sleep 0"
+    "600": "sciencehouse @robin_sciencehouse_counter 2",
+    "1700": "saloon @robin_saloon_seat 0",
+    "2200": "sciencehouse @robin_sciencehouse_sleep 2"
   },
 
   "fall": {
-    "600": "sciencehouse @robin_sciencehouse_counter 3",
-    "1700": "saloon @robin_saloon_seat 3",
-    "2200": "sciencehouse @robin_sciencehouse_sleep 0"
+    "600": "sciencehouse @robin_sciencehouse_counter 2",
+    "1700": "saloon @robin_saloon_seat 0",
+    "2200": "sciencehouse @robin_sciencehouse_sleep 2"
   },
 
   "winter": {
-    "600": "sciencehouse @robin_sciencehouse_counter 3",
-    "1700": "saloon @robin_saloon_seat 3",
-    "2200": "sciencehouse @robin_sciencehouse_sleep 0"
+    "600": "sciencehouse @robin_sciencehouse_counter 2",
+    "1700": "saloon @robin_saloon_seat 0",
+    "2200": "sciencehouse @robin_sciencehouse_sleep 2"
   },
 
   "tuesday": {
-    "600": "sciencehouse @robin_sciencehouse_counter 3",
-    "1100": "town @robin_town_walk 3",
-    "1700": "saloon @robin_saloon_seat 3",
-    "2200": "sciencehouse @robin_sciencehouse_sleep 0"
+    "600": "sciencehouse @robin_sciencehouse_counter 2",
+    "1100": "town @robin_town_walk 2",
+    "1700": "saloon @robin_saloon_seat 0",
+    "2200": "sciencehouse @robin_sciencehouse_sleep 2"
   }
 }

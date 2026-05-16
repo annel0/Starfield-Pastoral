@@ -5,6 +5,6 @@
   "_note": "Wizard stays in wizard_tower all day, never leaves. SDV has no schedule file for Wizard.",
 
   "default": {
-    "600": "wizard_tower @wizard_home 3"
+    "600": "wizard_tower @wizard_home 2"
   }
 }

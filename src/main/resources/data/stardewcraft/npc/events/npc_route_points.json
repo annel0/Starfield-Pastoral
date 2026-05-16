@@ -2,1337 +2,1139 @@
   "event_id": "npc_route_points",
   "points": {
     "_comment_outdoor_generic": "=== 通用室外门点 ===",
-    "manorhouse_outer": {
-      "x": -196.0,
-      "y": -17.0,
-      "z": -22.0,
-      "note": "当前室外门点（旧名，保持兼容）"
-    },
     "towngarden": {
-      "x": -206.0,
-      "y": -18.0,
-      "z": -24.0,
-      "note": "镇中心花园纯室外目标"
-    },
-    "communitycenter_outer": {
-      "x": -190.0,
-      "y": -10.0,
-      "z": 138.0,
-      "note": "社区中心室外点"
-    },
-    "fishshop_outer": {
-      "x": -237.0,
-      "y": -15.0,
-      "z": -212.0,
-      "note": "鱼店室外点，室内暂未实现"
+      "x": 27,
+      "y": 64,
+      "z": 27,
+      "note": "镇中心花园纯室外目标",
+      "indoor": false
     },
     "_comment_seedshop": "=== Pierre's House / SeedShop ===",
-    "seedshop_outdoor_door": {
-      "x": -159.0,
-      "y": -18.0,
-      "z": 54.0,
-      "note": "Seeds Shop 室外入口门点"
-    },
-    "seedshop_outer": {
-      "x": -159.0,
-      "y": -18.0,
-      "z": 54.0,
-      "note": "SeedShop 室外门（旧名，保持兼容）"
-    },
-    "seedshop_indoor_entry": {
-      "x": 12038.5,
-      "y": 71.0,
-      "z": 12038.5,
-      "indoor": true,
-      "note": "SeedShop 室内传送落点"
-    },
-    "seedshop_inner_entry": {
-      "x": 12038.5,
-      "y": 71.0,
-      "z": 12038.5,
-      "indoor": true,
-      "note": "SeedShop 室内传送落点（旧名，保持兼容）"
-    },
     "seedshop_counter": {
-      "x": 12049.5,
-      "y": 71.0,
-      "z": 12038.5,
+      "x": 22,
+      "y": 36,
+      "z": -25,
       "indoor": true,
       "note": "SeedShop 室内柜台目标"
     },
     "_comment_manorhouse": "=== ManorHouse / Mayor's Manor ===",
-    "manorhouse_outdoor_door": {
-      "x": -197.0,
-      "y": -17.0,
-      "z": -22.0,
-      "note": "Mayor House 室外入口门点（MAYOR_HOUSE_OUTDOOR_ENTRY_POS）"
-    },
-    "manorhouse_indoor_entry": {
-      "x": 14786.5,
-      "y": 71.0,
-      "z": 14789.5,
-      "indoor": true,
-      "note": "Mayor House 室内传送落点（origin(14784,70,14784)+offset(2,1,5)）"
-    },
     "_comment_saloon": "=== Saloon ===",
-    "saloon_outdoor_door": {
-      "x": -164.0,
-      "y": -17.0,
-      "z": 15.0,
-      "note": "Saloon 室外入口门点（SALOON_OUTDOOR_ENTRY_POS）"
-    },
-    "saloon_outer": {
-      "x": -163.0,
-      "y": -17.0,
-      "z": 14.0,
-      "note": "Saloon 室外门（旧名，保持兼容）"
-    },
-    "saloon_indoor_entry": {
-      "x": 14210.5,
-      "y": 71.0,
-      "z": 14225.5,
-      "indoor": true,
-      "note": "Saloon 室内传送落点（origin(14208,70,14208)+offset(2,1,17)）"
-    },
     "_comment_blacksmith": "=== Blacksmith ===",
-    "blacksmith_outdoor_door": {
-      "x": -288.0,
-      "y": -18.0,
-      "z": -17.0,
-      "note": "Blacksmith 室外入口门点（BLACKSMITH_OUTDOOR_EXIT_POS）"
-    },
-    "blacksmith_indoor_entry": {
-      "x": 13635.5,
-      "y": 71.0,
-      "z": 13640.5,
-      "indoor": true,
-      "note": "Blacksmith 室内传送落点（origin(13632,70,13632)+offset(3,1,8)）"
-    },
     "_comment_museum": "=== Museum / ArchaeologyHouse ===",
-    "museum_outdoor_door": {
-      "x": -309.0,
-      "y": -17.0,
-      "z": -36.0,
-      "note": "Museum 室外入口门点（MUSEUM_OUTDOOR_ENTRY_POS）"
-    },
-    "museum_indoor_entry": {
-      "x": 13066.5,
-      "y": 71.0,
-      "z": 13061.5,
-      "indoor": true,
-      "note": "Museum 室内传送落点（origin(13056,70,13056)+offset(10,1,5)）"
-    },
     "_comment_clinic": "=== Clinic / Hospital ===",
-    "clinic_outdoor_door": {
-      "x": -146.0,
-      "y": -18.0,
-      "z": 60.0,
-      "note": "Clinic 室外入口门点（CLINIC_OUTDOOR_ENTRY_POS）"
-    },
-    "clinic_indoor_entry": {
-      "x": 15362.5,
-      "y": 71.0,
-      "z": 15371.5,
-      "indoor": true,
-      "note": "Clinic 室内传送落点（origin(15360,70,15360)+offset(2,1,11)）"
-    },
     "_comment_sciencehouse": "=== ScienceHouse / CarpenterShop ===",
-    "sciencehouse_outdoor_door": {
-      "x": -213.0,
-      "y": -12.0,
-      "z": 219.0,
-      "note": "CarpenterShop 室外入口门点（CARPENTER_SHOP_OUTDOOR_ENTRY_POS）"
-    },
-    "sciencehouse_indoor_entry": {
-      "x": 16525.5,
-      "y": 75.0,
-      "z": 16519.5,
-      "indoor": true,
-      "note": "CarpenterShop 室内传送落点（origin(16512,70,16512)+offset(13,5,7)）"
-    },
     "_comment_abigail": "=== Abigail 专属停留点 ===",
-    "abigail_seedshop_outdoor": {
-      "x": -159.0,
-      "y": -18.0,
-      "z": 54.0,
-      "note": "Abigail 种子店室外门点"
-    },
-    "abigail_seedshop_inner_entry": {
-      "x": 12038.5,
-      "y": 71.0,
-      "z": 12038.5,
-      "indoor": true,
-      "note": "Abigail 种子店室内入口（兼容旧引用）"
-    },
     "abigail_seedshop_indoor_target": {
-      "x": 12065.5,
-      "y": 71.0,
-      "z": 12049.5,
+      "x": 32,
+      "y": 37,
+      "z": -39,
       "indoor": true,
       "note": "Abigail SeedShop 白天室内停留点（玩家实测）"
     },
     "abigail_seedshop_gaming": {
-      "x": 12065.5,
-      "y": 71.0,
-      "z": 12037.5,
+      "x": 21,
+      "y": 37,
+      "z": -38,
       "indoor": true,
       "note": "Abigail 游戏机位置（玩家实测）"
     },
     "abigail_seedshop_sleep": {
-      "x": 12060.5,
-      "y": 71.0,
-      "z": 12036.5,
+      "x": 20,
+      "y": 37,
+      "z": -33,
       "indoor": true,
       "note": "Abigail 睡觉位置（玩家实测）"
     },
     "abigail_saloon_indoor_stay": {
-      "x": 14214.5,
-      "y": 71.0,
-      "z": 14212.5,
+      "x": 32,
+      "y": 37,
+      "z": -39,
       "indoor": true,
       "note": "Abigail Saloon 室内停留点（玩家实测）"
     },
     "abigail_museum_indoor_stay": {
-      "x": 13062.5,
-      "y": 71.0,
-      "z": 13068.5,
+      "x": 123,
+      "y": 38,
+      "z": 51,
       "indoor": true,
       "note": "Abigail 博物馆室内停留点（玩家实测）"
     },
     "abigail_clinic_indoor_stay": {
-      "x": 15375.5,
-      "y": 71.0,
-      "z": 15362.5,
+      "x": 0,
+      "y": 43,
+      "z": -23,
       "indoor": true,
       "note": "Abigail 诊所室内停留点（玩家实测）"
     },
     "abigail_sciencehouse_indoor_stay": {
-      "x": 16514.5,
-      "y": 71.375,
-      "z": 16526.5,
+      "x": 39,
+      "y": 46,
+      "z": -107,
       "indoor": true,
       "note": "Abigail ScienceHouse（Sebastian 房间）室内停留点（玩家实测）"
     },
     "abigail_town_stay": {
-      "x": -167.0,
-      "y": -18.0,
-      "z": -27.0,
-      "note": "Abigail 镇上常驻点（玩家实测）"
+      "x": 14,
+      "y": 64,
+      "z": 51,
+      "note": "Abigail 镇上常驻点（玩家实测）",
+      "indoor": false
     },
     "abigail_mountain_flute": {
-      "x": -313.0,
-      "y": -14.0,
-      "z": 266.0,
-      "note": "Abigail 山区吹笛点（玩家实测）"
+      "x": 87,
+      "y": 81,
+      "z": -117,
+      "note": "Abigail 山区吹笛点（玩家实测）",
+      "indoor": false
     },
     "abigail_forest_stay": {
-      "x": 186.0,
-      "y": -15.0,
-      "z": -145.0,
-      "note": "Abigail 森林停留点（玩家实测）"
+      "x": -128,
+      "y": 64,
+      "z": 81,
+      "note": "Abigail 森林停留点（玩家实测）",
+      "indoor": false
     },
     "abigail_beach_stay": {
-      "x": -233.0,
-      "y": -15.0,
-      "z": -147.0,
-      "note": "Abigail 海滩停留点（玩家实测）"
+      "x": 29,
+      "y": 60,
+      "z": 100,
+      "note": "Abigail 海滩停留点（玩家实测）",
+      "indoor": false
     },
     "abigail_railroad_stay": {
-      "x": -95.0,
-      "y": -13.0,
-      "z": 338.0,
-      "note": "Abigail 铁路山区停留点（玩家实测）"
+      "x": 2,
+      "y": 85,
+      "z": -176,
+      "note": "Abigail 铁路山区停留点（玩家实测）",
+      "indoor": false
     },
     "abigail_busstop_stay": {
-      "x": 78.0,
-      "y": -12.0,
-      "z": 202.0,
-      "note": "Abigail 公交站停留点（玩家实测）"
-    },
-    "abigail_archaeologyhouse_stay": {
-      "x": -303.0,
-      "y": -17.0,
-      "z": -38.0,
-      "note": "Abigail 博物馆室外停留点（旧名，保持兼容）"
-    },
-    "abigail_hospital_stay": {
-      "x": -145.0,
-      "y": -18.0,
-      "z": 60.0,
-      "note": "Abigail 医院室外点（旧名，保持兼容）"
-    },
-    "abigail_saloon_stay": {
-      "x": -163.0,
-      "y": -17.0,
-      "z": 14.0,
-      "note": "Abigail 酒吧室外点（旧名，保持兼容）"
-    },
-    "abigail_sciencehouse_stay": {
-      "x": -212.0,
-      "y": -13.0,
-      "z": 218.0,
-      "note": "Abigail 科学屋室外点（旧名，保持兼容）"
-    },
-    "abigail_sebastianroom_outer": {
-      "x": -212.0,
-      "y": -12.0,
-      "z": 219.0,
-      "note": "Abigail 去 Sebastian 房间的室外门点（旧名，兼容）"
-    },
-    "_comment_joshhouse": "=== 1_river_road / JoshHouse 通用门点 ===",
-    "joshhouse_outdoor_door": {
-      "x": -195.0,
-      "y": -18.0,
-      "z": 32.0,
-      "note": "JoshHouse (1_river_road) 室外入口门点"
-    },
-    "joshhouse_indoor_entry": {
-      "x": 15939.5,
-      "y": 71.0,
-      "z": 15948.5,
-      "indoor": true,
-      "note": "JoshHouse (1_river_road) 室内传送落点"
-    },
-    "_comment_haleyhouse": "=== 2_willow_lane / HaleyHouse 通用门点 ===",
-    "haleyhouse_outdoor_door": {
-      "x": -115.0,
-      "y": -17.0,
-      "z": -27.0,
-      "note": "HaleyHouse (2_willow_lane) 室外入口门点"
-    },
-    "haleyhouse_indoor_entry": {
-      "x": 17092.5,
-      "y": 71.0,
-      "z": 17666.5,
-      "indoor": true,
-      "note": "HaleyHouse (2_willow_lane) 室内传送落点"
+      "x": -56,
+      "y": 64,
+      "z": -53,
+      "note": "Abigail 公交站停留点（玩家实测）",
+      "indoor": false
     },
     "_comment_alex": "=== Alex 专属停留点 ===",
     "alex_joshhouse_bedroom": {
-      "x": 15962.5,
-      "y": 71.0,
-      "z": 15960.5,
+      "x": 59,
+      "y": 22,
+      "z": -18,
       "indoor": true,
       "note": "Alex JoshHouse 卧室/睡觉点（玩家实测）"
     },
     "alex_joshhouse_kitchen": {
-      "x": 15942.5,
-      "y": 71.0,
-      "z": 15938.5,
+      "x": 38,
+      "y": 22,
+      "z": 1,
       "indoor": true,
       "note": "Alex JoshHouse 厨房/生活区（玩家实测）"
     },
     "alex_joshhouse_weights": {
-      "x": 15960.5,
-      "y": 71.0,
-      "z": 15953.5,
+      "x": 51,
+      "y": 22,
+      "z": -18,
       "indoor": true,
       "note": "Alex JoshHouse 举重区（玩家实测）"
     },
     "alex_haleyhouse_visit": {
-      "x": 17092.5,
-      "y": 71.0,
-      "z": 17668.5,
+      "x": -5,
+      "y": 24,
+      "z": 38,
       "indoor": true,
       "note": "Alex HaleyHouse 拜访停留点（玩家实测）"
     },
     "alex_town_football": {
-      "x": -202.0,
-      "y": -18.0,
-      "z": 28.0,
-      "note": "Alex 镇上踢球点（玩家实测）"
+      "x": 54,
+      "y": 64,
+      "z": 3,
+      "note": "Alex 镇上踢球点（玩家实测）",
+      "indoor": false
     },
     "alex_town_hangout": {
-      "x": -186.0,
-      "y": -18.0,
-      "z": 13.0,
-      "note": "Alex 镇上闲逛点（玩家实测）"
+      "x": 42,
+      "y": 64,
+      "z": 15,
+      "note": "Alex 镇上闲逛点（玩家实测）",
+      "indoor": false
     },
     "alex_beach_swim": {
-      "x": -196.0,
-      "y": -15.0,
-      "z": -158.0,
-      "note": "Alex 海滩游泳点（玩家实测）"
+      "x": 42,
+      "y": 60,
+      "z": 121,
+      "note": "Alex 海滩游泳点（玩家实测）",
+      "indoor": false
     },
     "alex_saloon_seat": {
-      "x": 14216.5,
-      "y": 71.0,
-      "z": 14254.5,
+      "x": 56,
+      "y": 36,
+      "z": 15,
       "indoor": true,
       "note": "Alex Saloon 看球/喝酒座位（玩家实测）"
     },
     "_comment_clint": "=== Clint 专属停留点 ===",
     "clint_blacksmith_anvil": {
-      "x": 13642.5,
-      "y": 71.0,
-      "z": 13637.5,
+      "x": 104,
+      "y": 46,
+      "z": 22,
       "indoor": true,
       "note": "Clint 铁匠铺工作台（日常工作）"
     },
     "clint_blacksmith_hammer": {
-      "x": 13643.5,
-      "y": 71.0,
-      "z": 13644.5,
+      "x": 112,
+      "y": 46,
+      "z": 21,
       "indoor": true,
       "note": "Clint 铁匠铺锤子区（傍晚打铁）"
     },
     "clint_blacksmith_sleep": {
-      "x": 13653.5,
-      "y": 71.0,
-      "z": 13644.5,
+      "x": 111,
+      "y": 46,
+      "z": 11,
       "indoor": true,
       "note": "Clint 铁匠铺睡觉位"
     },
     "clint_saloon_seat": {
-      "x": 14210.5,
-      "y": 71.0,
-      "z": 14229.5,
+      "x": 15,
+      "y": 36,
+      "z": 17,
       "indoor": true,
       "note": "Clint Saloon 座位"
     },
     "clint_town_cc": {
-      "x": -207.0,
-      "y": -10.0,
-      "z": 142.0,
-      "note": "Clint 社区中心外溜达（周五）"
+      "x": 44,
+      "y": 66,
+      "z": -37,
+      "note": "Clint 社区中心外溜达（周五）",
+      "indoor": false
     },
     "clint_beach_stay": {
-      "x": -246.0,
-      "y": -15.0,
-      "z": -181.0,
-      "note": "Clint 海滩（冬15看海）"
+      "x": 37,
+      "y": 60,
+      "z": 159,
+      "note": "Clint 海滩（冬15看海）",
+      "indoor": false
     },
     "_comment_caroline": "=== Caroline 专属停留点 ===",
     "caroline_seedshop_kitchen": {
-      "x": 12068.5,
-      "y": 71.0,
-      "z": 12072.5,
+      "x": 57,
+      "y": 37,
+      "z": -43,
       "indoor": true,
       "note": "Caroline 种子店厨房（早上做事）"
     },
     "caroline_seedshop_living": {
-      "x": 12057.5,
-      "y": 71.0,
-      "z": 12059.5,
+      "x": 39,
+      "y": 36,
+      "z": -26,
       "indoor": true,
       "note": "Caroline 种子店客厅区"
     },
     "caroline_seedshop_read": {
-      "x": 12065.5,
-      "y": 71.0,
-      "z": 12054.5,
+      "x": 38,
+      "y": 37,
+      "z": -41,
       "indoor": true,
       "note": "Caroline 种子店看书位"
     },
     "caroline_seedshop_exercise": {
-      "x": 12046.5,
-      "y": 71.0,
-      "z": 12061.5,
+      "x": 42,
+      "y": 36,
+      "z": -23,
       "indoor": true,
       "note": "Caroline 种子店锻炼区（朝东）"
     },
     "caroline_seedshop_display": {
-      "x": 12036.5,
-      "y": 71.0,
-      "z": 12053.5,
+      "x": 36,
+      "y": 36,
+      "z": -7,
       "indoor": true,
       "note": "Caroline 种子店展示区"
     },
     "caroline_seedshop_bedroom": {
-      "x": 12069.5,
-      "y": 71.0,
-      "z": 12057.5,
+      "x": 44,
+      "y": 37,
+      "z": -41,
       "indoor": true,
       "note": "Caroline 种子店卧室/睡觉"
     },
     "caroline_seedshop_aerobics": {
-      "x": 12046.5,
-      "y": 71.0,
-      "z": 12061.5,
+      "x": 42,
+      "y": 36,
+      "z": -23,
       "indoor": true,
       "note": "Caroline 有氧运动区（同锻炼区）"
     },
     "caroline_seedshop_diary": {
-      "x": 12065.5,
-      "y": 71.0,
-      "z": 12061.5,
+      "x": 41,
+      "y": 37,
+      "z": -38,
       "indoor": true,
       "note": "Caroline 日记区"
     },
     "caroline_seedshop_mirror": {
-      "x": 12062.5,
-      "y": 71.0,
-      "z": 12072.5,
+      "x": 46,
+      "y": 37,
+      "z": -39,
       "indoor": true,
       "note": "Caroline 镜子位"
     },
     "caroline_town_walk": {
-      "x": -225.0,
-      "y": -18.0,
-      "z": 33.0,
-      "note": "Caroline 镇上散步点"
+      "x": 77,
+      "y": 64,
+      "z": 14,
+      "note": "Caroline 镇上散步点",
+      "indoor": false
     },
     "caroline_town_square": {
-      "x": -118.0,
-      "y": -17.0,
-      "z": 14.0,
-      "note": "Caroline 镇广场（周日下午）"
+      "x": 27,
+      "y": 64,
+      "z": 1,
+      "note": "Caroline 镇广场（周日下午）",
+      "indoor": false
     },
     "caroline_museum_read": {
-      "x": 13062.5,
-      "y": 71.0,
-      "z": 13076.5,
+      "x": 123,
+      "y": 38,
+      "z": 48,
       "indoor": true,
       "note": "Caroline 博物馆看书"
     },
     "caroline_beach_stay": {
-      "x": -270.0,
-      "y": -14.0,
-      "z": -181.0,
-      "note": "Caroline 海滩"
+      "x": 83,
+      "y": 60,
+      "z": 129,
+      "note": "Caroline 海滩",
+      "indoor": false
     },
     "_comment_lewis": "=== Lewis 专属停留点 ===",
     "lewis_manorhouse_living": {
-      "x": 14792.5,
-      "y": 71.0,
-      "z": 14789.5,
+      "x": 56,
+      "y": 50,
+      "z": 21,
       "indoor": true,
       "note": "Lewis 市长家客厅/日常（朝西）"
     },
     "lewis_manorhouse_evening": {
-      "x": 14790.5,
-      "y": 71.0,
-      "z": 14810.5,
+      "x": 66,
+      "y": 53,
+      "z": 22,
       "indoor": true,
       "note": "Lewis 市长家晚间活动区"
     },
     "lewis_manorhouse_bedroom": {
-      "x": 14793.5,
-      "y": 71.0,
-      "z": 14808.5,
+      "x": 71,
+      "y": 53,
+      "z": 20,
       "indoor": true,
       "note": "Lewis 市长家卧室/睡觉"
     },
     "lewis_saloon_seat": {
-      "x": 14214.5,
-      "y": 71.0,
-      "z": 14320.5,
+      "x": 18,
+      "y": 36,
+      "z": 13,
       "indoor": true,
       "note": "Lewis Saloon 喝酒座位（朝东）"
     },
     "lewis_seedshop_visit": {
-      "x": 12049.5,
-      "y": 71.0,
-      "z": 12037.5,
+      "x": 22,
+      "y": 36,
+      "z": -23,
       "indoor": true,
       "note": "Lewis 拜访 Pierre 柜台"
     },
     "lewis_blacksmith_visit": {
-      "x": 13640.5,
-      "y": 71.0,
-      "z": 13638.5,
+      "x": 103,
+      "y": 46,
+      "z": 24,
       "indoor": true,
       "note": "Lewis 视察铁匠铺"
     },
     "lewis_museum_visit": {
-      "x": 13072.5,
-      "y": 71.0,
-      "z": 13062.5,
+      "x": 111,
+      "y": 38,
+      "z": 41,
       "indoor": true,
       "note": "Lewis 博物馆视察"
     },
     "lewis_sciencehouse_visit": {
-      "x": 16527.5,
-      "y": 75.0,
-      "z": 16519.5,
+      "x": 31,
+      "y": 51,
+      "z": -120,
       "indoor": true,
       "note": "Lewis 木匠铺拜访 Robin"
     },
     "lewis_clinic_visit": {
-      "x": 15364.5,
-      "y": 71.0,
-      "z": 15364.5,
+      "x": 4,
+      "y": 43,
+      "z": -13,
       "indoor": true,
       "note": "Lewis 诊所拜访"
     },
     "lewis_towngarden": {
-      "x": -211.0,
-      "y": -18.0,
-      "z": -23.0,
-      "note": "Lewis 花园/浇花（朝东）"
+      "x": 55,
+      "y": 64,
+      "z": 37,
+      "note": "Lewis 花园/浇花（朝东）",
+      "indoor": false
     },
     "lewis_town_bench": {
-      "x": -164.0,
-      "y": -18.0,
-      "z": -3.0,
-      "note": "Lewis 镇上长椅（朝北）"
+      "x": 28,
+      "y": 64,
+      "z": 24,
+      "note": "Lewis 镇上长椅（朝北）",
+      "indoor": false
     },
     "lewis_town_plaza": {
-      "x": -117.0,
-      "y": -17.0,
-      "z": 30.0,
-      "note": "Lewis 广场巡视"
+      "x": 3,
+      "y": 64,
+      "z": 2,
+      "note": "Lewis 广场巡视",
+      "indoor": false
     },
     "lewis_town_statue": {
-      "x": -228.0,
-      "y": -18.0,
-      "z": -54.0,
-      "note": "Lewis 镇上雕像区（周五）"
+      "x": 55,
+      "y": 64,
+      "z": 19,
+      "note": "Lewis 镇上雕像区（周五）",
+      "indoor": false
     },
     "lewis_communitycenter_stay": {
-      "x": -193.0,
-      "y": -10.0,
-      "z": 137.0,
-      "note": "Lewis 社区中心外巡视"
+      "x": 54,
+      "y": 66,
+      "z": -44,
+      "note": "Lewis 社区中心外巡视",
+      "indoor": false
     },
     "lewis_fishshop_visit": {
-      "x": -239.0,
-      "y": -15.0,
-      "z": -217.0,
-      "note": "Lewis 鱼店外（朝北）"
+      "x": 74,
+      "y": 60,
+      "z": 152,
+      "note": "Lewis 鱼店外（朝北）",
+      "indoor": false
     },
     "lewis_animalshop_visit": {
-      "x": 178.0,
-      "y": -13.0,
-      "z": -19.0,
-      "note": "Lewis 牧场外（朝南）"
+      "x": -87,
+      "y": 64,
+      "z": 30,
+      "note": "Lewis 牧场外（朝南）",
+      "indoor": false
     },
     "lewis_beach_stay": {
-      "x": -248.0,
-      "y": -14.0,
-      "z": -147.0,
-      "note": "Lewis 夏季海边（朝北）"
+      "x": 55,
+      "y": 60,
+      "z": 107,
+      "note": "Lewis 夏季海边（朝北）",
+      "indoor": false
     },
     "lewis_forest_stay": {
-      "x": 163.0,
-      "y": -15.0,
-      "z": -137.0,
-      "note": "Lewis 秋季森林"
+      "x": -110,
+      "y": 64,
+      "z": 83,
+      "note": "Lewis 秋季森林",
+      "indoor": false
     },
     "demetrius_sciencehouse_lab": {
-      "x": 16527.5,
-      "y": 75.0,
-      "z": 16537.5,
+      "x": 45,
+      "y": 51,
+      "z": -119,
       "indoor": true,
       "note": "Demetrius 实验台前工作（朝南）"
     },
     "demetrius_sciencehouse_notes": {
-      "x": 16531.5,
-      "y": 75.0,
-      "z": 16532.5,
+      "x": 39,
+      "y": 51,
+      "z": -117,
       "indoor": true,
       "note": "Demetrius 写笔记/读书（朝东）"
     },
     "demetrius_sciencehouse_kitchen": {
-      "x": 16537.5,
-      "y": 77.0,
-      "z": 16544.5,
+      "x": 53,
+      "y": 58,
+      "z": -116,
       "indoor": true,
       "note": "Demetrius 厨房区域（朝北）"
     },
     "demetrius_sciencehouse_bedroom": {
-      "x": 16546.5,
-      "y": 77.0,
-      "z": 16533.5,
+      "x": 42,
+      "y": 58,
+      "z": -125,
       "indoor": true,
       "note": "Demetrius 卧室站立（朝西）"
     },
     "demetrius_sciencehouse_sleep": {
-      "x": 16546.5,
-      "y": 77.0,
-      "z": 16533.5,
+      "x": 45,
+      "y": 58,
+      "z": -126,
       "indoor": true,
       "note": "Demetrius 睡觉位（朝西）"
     },
     "demetrius_saloon_seat": {
-      "x": 14213.5,
-      "y": 71.0,
-      "z": 14212.5,
+      "x": 19,
+      "y": 36,
+      "z": 15,
       "indoor": true,
       "note": "Demetrius 酒馆座位"
     },
     "demetrius_mountain_research": {
-      "x": -256.0,
-      "y": -9.0,
-      "z": 205.0,
-      "note": "Demetrius 山区室外研究（朝南）"
+      "x": 97,
+      "y": 81,
+      "z": -121,
+      "note": "Demetrius 山区室外研究（朝南）",
+      "indoor": false
     },
     "demetrius_town_square": {
-      "x": -163.0,
-      "y": -17.0,
-      "z": -51.0,
-      "note": "Demetrius 镇上闲逛"
-    },
-    "elliotthouse_outdoor_door": {
-      "x": -270.0,
-      "y": -13.0,
-      "z": -158.0,
-      "note": "Elliott 小屋室外门口"
-    },
-    "elliotthouse_indoor_entry": {
-      "x": 17666.5,
-      "y": 71.0,
-      "z": 18243.5,
-      "indoor": true,
-      "note": "Elliott 小屋室内传送落点"
+      "x": 30,
+      "y": 66,
+      "z": -46,
+      "note": "Demetrius 镇上闲逛",
+      "indoor": false
     },
     "elliott_house_piano": {
-      "x": 17670.5,
-      "y": 71.0,
-      "z": 18247.5,
+      "x": 79,
+      "y": 45,
+      "z": 98,
       "indoor": true,
       "note": "Elliott 弹钢琴（朝东）"
     },
     "elliott_house_write": {
-      "x": 17670.5,
-      "y": 71.0,
-      "z": 18247.5,
+      "x": 73,
+      "y": 45,
+      "z": 97,
       "indoor": true,
       "note": "Elliott 写作桌（朝东）"
     },
     "elliott_house_read": {
-      "x": 17670.5,
-      "y": 71.0,
-      "z": 18247.5,
+      "x": 85,
+      "y": 45,
+      "z": 101,
       "indoor": true,
       "note": "Elliott 壁炉旁读书（朝东）"
     },
     "elliott_house_sleep": {
-      "x": 17672.5,
-      "y": 71.0,
-      "z": 18251.5,
+      "x": 83,
+      "y": 45,
+      "z": 96,
       "indoor": true,
       "note": "Elliott 睡觉位（朝西）"
     },
     "elliott_saloon_seat": {
-      "x": 14218.5,
-      "y": 71.0,
-      "z": 14239.5,
+      "x": 23,
+      "y": 36,
+      "z": 17,
       "indoor": true,
       "note": "Elliott 酒馆座位"
     },
     "elliott_beach_walk": {
-      "x": -196.0,
-      "y": -15.0,
-      "z": -151.0,
-      "note": "Elliott 海滩散步（朝北）"
+      "x": 80,
+      "y": 60,
+      "z": 117,
+      "note": "Elliott 海滩散步（朝北）",
+      "indoor": false
     },
     "elliott_museum_read": {
-      "x": 13082.5,
-      "y": 71.0,
-      "z": 13069.5,
+      "x": 119,
+      "y": 38,
+      "z": 38,
       "indoor": true,
       "note": "Elliott 博物馆阅读（朝东）"
     },
     "elliott_seedshop_visit": {
-      "x": 12040.5,
-      "y": 71.0,
-      "z": 12043.5,
+      "x": 31,
+      "y": 36,
+      "z": -14,
       "indoor": true,
       "note": "Elliott 种子店购物（朝南）"
     },
     "elliott_town_walk": {
-      "x": -145.0,
-      "y": -17.0,
-      "z": 35.0,
-      "note": "Elliott 镇上闲逛（朝西）"
+      "x": 43,
+      "y": 64,
+      "z": 53,
+      "note": "Elliott 镇上闲逛（朝西）",
+      "indoor": false
     },
     "elliott_forest_walk": {
-      "x": 238.0,
-      "y": -13.0,
-      "z": -124.0,
-      "note": "Elliott 森林散步"
+      "x": -115,
+      "y": 64,
+      "z": 117,
+      "note": "Elliott 森林散步",
+      "indoor": false
     },
     "evelyn_joshhouse_stove": {
-      "x": 15946.5,
-      "y": 71.0,
-      "z": 15940.5,
+      "x": 40,
+      "y": 22,
+      "z": -3,
       "indoor": true,
       "note": "Evelyn 灶台做饭（朝东）"
     },
     "evelyn_joshhouse_fridge": {
-      "x": 15946.5,
-      "y": 71.0,
-      "z": 15942.5,
+      "x": 42,
+      "y": 22,
+      "z": -3,
       "indoor": true,
       "note": "Evelyn 冰箱旁（朝东）"
     },
     "evelyn_joshhouse_table": {
-      "x": 15941.5,
-      "y": 71.0,
-      "z": 15942.5,
+      "x": 41,
+      "y": 22,
+      "z": 0,
       "indoor": true,
       "note": "Evelyn 餐桌（朝北）"
     },
     "evelyn_joshhouse_sofa": {
-      "x": 15943.5,
-      "y": 71.0,
-      "z": 15960.5,
+      "x": 60,
+      "y": 22,
+      "z": 3,
       "indoor": true,
       "note": "Evelyn 客厅沙发（朝北）"
     },
     "evelyn_joshhouse_sleep": {
-      "x": 15961.5,
-      "y": 71.0,
-      "z": 15939.5,
+      "x": 39,
+      "y": 22,
+      "z": -18,
       "indoor": true,
       "note": "Evelyn 睡觉位（朝西）"
     },
     "evelyn_town_bench": {
-      "x": -167.0,
-      "y": -18.0,
-      "z": -5.0,
-      "note": "Evelyn 镇上长椅（朝东）"
+      "x": 25,
+      "y": 64,
+      "z": 24,
+      "note": "Evelyn 镇上长椅（朝东）",
+      "indoor": false
     },
     "evelyn_town_garden": {
-      "x": -208.0,
-      "y": -18.0,
-      "z": 34.0,
-      "note": "Evelyn 花园浇花（朝南）"
+      "x": 61,
+      "y": 64,
+      "z": 2,
+      "note": "Evelyn 花园浇花（朝南）",
+      "indoor": false
     },
     "evelyn_communitycenter_visit": {
-      "x": -178.0,
-      "y": -10.0,
-      "z": 115.0,
-      "note": "Evelyn 社区中心（朝北）"
+      "x": 42,
+      "y": 66,
+      "z": -33,
+      "note": "Evelyn 社区中心（朝北）",
+      "indoor": false
     },
     "_comment_emily": "=== Emily (HaleyHouse / Saloon / SeedShop / Town / Beach) ===",
     "emily_haleyhouse_room": {
-      "x": 17110.5,
-      "y": 71.0,
-      "z": 17681.5,
+      "x": 6,
+      "y": 24,
+      "z": 25,
       "indoor": true,
       "note": "Emily 卧室起居（朝西）"
     },
     "emily_haleyhouse_sewing": {
-      "x": 17090.5,
-      "y": 71.0,
-      "z": 17680.5,
+      "x": 6,
+      "y": 24,
+      "z": 39,
       "indoor": true,
       "note": "Emily 缝纫机旁（朝东）"
     },
     "emily_haleyhouse_kitchen": {
-      "x": 17097.5,
-      "y": 71.0,
-      "z": 17684.5,
+      "x": 11,
+      "y": 24,
+      "z": 36,
       "indoor": true,
       "note": "Emily 厨房（朝南）"
     },
     "emily_haleyhouse_sleep": {
-      "x": 17111.5,
-      "y": 71.0,
-      "z": 17683.5,
+      "x": 8,
+      "y": 24,
+      "z": 21,
       "indoor": true,
       "note": "Emily 睡觉位（朝西）"
     },
     "emily_saloon_work": {
-      "x": 14216.5,
-      "y": 71.0,
-      "z": 14230.5,
+      "x": 30,
+      "y": 36,
+      "z": 11,
       "indoor": true,
       "note": "Emily 酒吧工作位（朝西）"
     },
     "emily_saloon_exercise": {
-      "x": 14218.5,
-      "y": 71.0,
-      "z": 14234.5,
+      "x": 49,
+      "y": 36,
+      "z": 6,
       "indoor": true,
       "note": "Emily 酒吧健身区（朝西）"
     },
     "emily_seedshop_browse": {
-      "x": 12035.5,
-      "y": 71.0,
-      "z": 12043.5,
+      "x": 32,
+      "y": 36,
+      "z": -10,
       "indoor": true,
       "note": "Emily 杂货店闲逛（朝南）"
     },
     "emily_seedshop_exercise": {
-      "x": 12050.5,
-      "y": 71.0,
-      "z": 12058.5,
+      "x": 39,
+      "y": 36,
+      "z": -19,
       "indoor": true,
       "note": "Emily 杂货店运动区（朝南）"
     },
     "emily_communitycenter_visit": {
-      "x": -186.0,
-      "y": -10.0,
-      "z": 136.0,
-      "note": "Emily 社区中心室外（朝南）"
+      "x": 58,
+      "y": 66,
+      "z": -44,
+      "note": "Emily 社区中心室外（朝南）",
+      "indoor": false
     },
     "emily_town_walk": {
-      "x": -152.0,
-      "y": -10.0,
-      "z": 141.0,
-      "note": "Emily 镇上散步（朝南）"
+      "x": 62,
+      "y": 66,
+      "z": -27,
+      "note": "Emily 镇上散步（朝南）",
+      "indoor": false
     },
     "emily_beach_relax": {
-      "x": -204.0,
-      "y": -15.0,
-      "z": -169.0,
-      "note": "Emily 海滩放松（朝西）"
+      "x": 71,
+      "y": 60,
+      "z": 113,
+      "note": "Emily 海滩放松（朝西）",
+      "indoor": false
     },
     "_comment_george": "=== George (JoshHouse / Town / SeedShop / Saloon / Beach) ===",
     "george_joshhouse_tv": {
-      "x": 15940.5,
-      "y": 71.0,
-      "z": 15956.5,
+      "x": 56,
+      "y": 22,
+      "z": 3,
       "indoor": true,
       "note": "George 看电视位（朝东）"
     },
     "george_joshhouse_kitchen": {
-      "x": 15942.5,
-      "y": 71.0,
-      "z": 15942.5,
+      "x": 42,
+      "y": 22,
+      "z": 2,
       "indoor": true,
       "note": "George 厨房桌旁（朝北）"
     },
     "george_joshhouse_stove": {
-      "x": 15940.5,
-      "y": 71.0,
-      "z": 15962.5,
+      "x": 44,
+      "y": 22,
+      "z": -12,
       "indoor": true,
       "note": "George 火炉旁（朝北）"
     },
     "george_joshhouse_sleep": {
-      "x": 15960.5,
-      "y": 71.0,
-      "z": 15940.5,
+      "x": 42,
+      "y": 22,
+      "z": -17,
       "indoor": true,
       "note": "George 睡觉位（朝西）"
     },
     "george_town_bench": {
-      "x": -164.0,
-      "y": -18.0,
-      "z": -8.0,
-      "note": "George 镇上长凳（朝北）"
+      "x": 26,
+      "y": 64,
+      "z": 24,
+      "note": "George 镇上长凳（朝北）",
+      "indoor": false
     },
     "george_seedshop_visit": {
-      "x": 12040.5,
-      "y": 71.0,
-      "z": 12046.5,
+      "x": 28,
+      "y": 36,
+      "z": -14,
       "indoor": true,
       "note": "George 杂货店购物（朝南）"
     },
     "george_saloon_visit": {
-      "x": 14212.5,
-      "y": 71.0,
-      "z": 14241.5,
+      "x": 30,
+      "y": 36,
+      "z": 18,
       "indoor": true,
       "note": "George 酒吧座位（朝北）"
     },
     "george_beach_spot": {
-      "x": -201.0,
-      "y": -15.0,
-      "z": -189.0,
-      "note": "George 海滩散步（朝南）"
+      "x": 47,
+      "y": 60,
+      "z": 118,
+      "note": "George 海滩散步（朝南）",
+      "indoor": false
     },
     "_comment_gus": "=== Gus (Saloon / SeedShop / Town / Beach) ===",
     "gus_saloon_counter": {
-      "x": 14216.5,
-      "y": 71.0,
-      "z": 14223.5,
+      "x": 25,
+      "y": 36,
+      "z": 11,
       "indoor": true,
       "note": "Gus 吧台工作位（朝西）"
     },
     "gus_saloon_kitchen": {
-      "x": 14219.5,
-      "y": 71.0,
-      "z": 14228.5,
+      "x": 30,
+      "y": 36,
+      "z": 9,
       "indoor": true,
       "note": "Gus 厨房备餐（朝东）"
     },
     "gus_saloon_clean": {
-      "x": 14212.5,
-      "y": 71.0,
-      "z": 14235.5,
+      "x": 38,
+      "y": 36,
+      "z": 14,
       "indoor": true,
       "note": "Gus 清洁打扫（朝东）"
     },
     "gus_saloon_sit": {
-      "x": 14217.5,
-      "y": 71.0,
-      "z": 14233.5,
+      "x": 26,
+      "y": 36,
+      "z": 10,
       "indoor": true,
       "note": "Gus 坐下休息（朝南）"
     },
     "gus_seedshop_visit": {
-      "x": 12049.5,
-      "y": 71.0,
-      "z": 12044.5,
+      "x": 38,
+      "y": 36,
+      "z": -12,
       "indoor": true,
       "note": "Gus 杂货店购物（朝南）"
     },
     "gus_communitycenter_visit": {
-      "x": -180.0,
-      "y": -10.0,
-      "z": 121.0,
-      "note": "Gus 社区中心室外（朝南）"
+      "x": 58,
+      "y": 66,
+      "z": -36,
+      "note": "Gus 社区中心室外（朝南）",
+      "indoor": false
     },
     "gus_town_walk": {
-      "x": -227.0,
-      "y": -18.0,
-      "z": -51.0,
-      "note": "Gus 镇上散步（朝北）"
+      "x": 74,
+      "y": 64,
+      "z": -3,
+      "note": "Gus 镇上散步（朝北）",
+      "indoor": false
     },
     "gus_beach_spot": {
-      "x": -217.0,
-      "y": -14.0,
-      "z": -136.0,
-      "note": "Gus 海滩散步（朝西）"
+      "x": 86,
+      "y": 60,
+      "z": 119,
+      "note": "Gus 海滩散步（朝西）",
+      "indoor": false
     },
     "_comment_animalshop": {
       "note": "=== AnimalShop (Marnie Ranch) 建筑点 ==="
-    },
-    "animalshop_outdoor_door": {
-      "x": 178.0,
-      "y": -14.0,
-      "z": -4.0,
-      "note": "AnimalShop (marnie_ranch) 室外入口门点"
-    },
-    "animalshop_indoor_entry": {
-      "x": 17090.5,
-      "y": 71.0,
-      "z": 18255.5,
-      "indoor": true,
-      "note": "AnimalShop (marnie_ranch) 室内传送落点（origin(17088,70,18240)+offset(2,1,15)）"
     },
     "_comment_haley": {
       "note": "=== Haley 专属点位 ==="
     },
     "haley_haleyhouse_mirror": {
-      "x": 17106.5,
-      "y": 71.0,
-      "z": 17671.5,
+      "x": -4,
+      "y": 24,
+      "z": 23,
       "indoor": true,
       "note": "Haley 卧室梳妆台前（朝西）"
     },
     "haley_haleyhouse_closet": {
-      "x": 17109.5,
-      "y": 71.0,
-      "z": 17671.5,
+      "x": -6,
+      "y": 24,
+      "z": 22,
       "indoor": true,
       "note": "Haley 卧室衣柜前（朝东）"
     },
     "haley_haleyhouse_living": {
-      "x": 17095.5,
-      "y": 71.0,
-      "z": 17669.5,
+      "x": -5,
+      "y": 24,
+      "z": 31,
       "indoor": true,
       "note": "Haley 客厅（朝西）"
     },
     "haley_haleyhouse_kitchen": {
-      "x": 17087.5,
-      "y": 71.0,
-      "z": 17688.5,
+      "x": 9,
+      "y": 24,
+      "z": 34,
       "indoor": true,
       "note": "Haley 厨房（朝北）"
     },
     "haley_haleyhouse_sleep": {
-      "x": 17110.5,
-      "y": 71.0,
-      "z": 17667.5,
+      "x": -9,
+      "y": 24,
+      "z": 22,
       "indoor": true,
       "note": "Haley 床铺（朝西）"
     },
     "haley_town_square": {
-      "x": -145.0,
-      "y": -17.0,
-      "z": 36.0,
-      "note": "Haley 镇广场（朝北）"
+      "x": -10,
+      "y": 64,
+      "z": 2,
+      "note": "Haley 镇广场（朝北）",
+      "indoor": false
     },
     "haley_beach_sunbathe": {
-      "x": -282.0,
-      "y": -14.0,
-      "z": -175.0,
-      "note": "Haley 沙滩晒太阳（朝北）"
+      "x": 59,
+      "y": 60,
+      "z": 102,
+      "note": "Haley 沙滩晒太阳（朝北）",
+      "indoor": false
     },
     "haley_forest_photo": {
-      "x": 204.0,
-      "y": -15.0,
-      "z": -139.0,
-      "note": "Haley 森林拍照（朝西）"
+      "x": -103,
+      "y": 64,
+      "z": 64,
+      "note": "Haley 森林拍照（朝西）",
+      "indoor": false
     },
     "_comment_harvey": {
       "note": "=== Harvey 专属点位 ==="
     },
     "harvey_clinic_desk": {
-      "x": 15366.5,
-      "y": 71.0,
-      "z": 15367.5,
+      "x": 6,
+      "y": 43,
+      "z": -13,
       "indoor": true,
       "note": "Harvey 诊所办公桌（朝西）"
     },
     "harvey_clinic_exam": {
-      "x": 15377.5,
-      "y": 71.0,
-      "z": 15361.5,
+      "x": 1,
+      "y": 43,
+      "z": -23,
       "indoor": true,
       "note": "Harvey 诊所检查室（朝西）"
     },
     "harvey_clinic_lobby": {
-      "x": 15366.5,
-      "y": 71.0,
-      "z": 15375.5,
+      "x": 10,
+      "y": 43,
+      "z": -13,
       "indoor": true,
       "note": "Harvey 诊所大厅（朝西）"
     },
     "harvey_room_main": {
-      "x": 15382.5,
-      "y": 75.0,
-      "z": 15370.5,
+      "x": 15,
+      "y": 48.5,
+      "z": -33,
       "indoor": true,
       "note": "Harvey 房间主区域（Clinic二楼）"
     },
     "harvey_room_sleep": {
-      "x": 15390.5,
-      "y": 75.0,
-      "z": 15375.5,
+      "x": 15,
+      "y": 47,
+      "z": -37,
       "indoor": true,
       "note": "Harvey 床铺（朝西，Clinic二楼）"
     },
     "harvey_room_radio": {
-      "x": 15390.5,
-      "y": 75.0,
-      "z": 15371.5,
+      "x": 8,
+      "y": 47,
+      "z": -36,
       "indoor": true,
       "note": "Harvey 听广播位置（朝西，Clinic二楼）"
     },
     "harvey_room_read": {
-      "x": 15389.5,
-      "y": 75.0,
-      "z": 15369.5,
+      "x": 8,
+      "y": 47,
+      "z": -34,
       "indoor": true,
       "note": "Harvey 阅读位置（朝东，Clinic二楼）"
     },
     "harvey_seedshop_browse": {
-      "x": 12051.5,
-      "y": 71.0,
-      "z": 12045.5,
+      "x": 30,
+      "y": 36,
+      "z": -19,
       "indoor": true,
       "note": "Harvey 种子店内逛（朝西）"
     },
     "harvey_museum_browse": {
-      "x": 13081.5,
-      "y": 71.0,
-      "z": 13076.5,
+      "x": 127,
+      "y": 38,
+      "z": 32,
       "indoor": true,
       "note": "Harvey 博物馆内逛（朝东）"
     },
     "harvey_saloon_seat": {
-      "x": 14210.5,
-      "y": 71.0,
-      "z": 14251.5,
+      "x": 28,
+      "y": 36,
+      "z": 13,
       "indoor": true,
       "note": "Harvey 酒吧座位（朝东）"
     },
     "harvey_town_walk": {
-      "x": -135.0,
-      "y": -17.0,
-      "z": 32.0,
-      "note": "Harvey 镇上散步（朝北）"
+      "x": 41,
+      "y": 64,
+      "z": 16,
+      "note": "Harvey 镇上散步（朝北）",
+      "indoor": false
     },
     "harvey_town_bench": {
-      "x": -165.0,
-      "y": -18.0,
-      "z": -3.0,
-      "note": "Harvey 镇上长椅（朝北）"
+      "x": 28,
+      "y": 64,
+      "z": 24,
+      "note": "Harvey 镇上长椅（朝北）",
+      "indoor": false
     },
     "_comment_jas": {
       "note": "=== Jas 专属点位 ==="
     },
     "jas_animalshop_kitchen": {
-      "x": 17093.5,
-      "y": 71.0,
-      "z": 18272.5,
+      "x": -72,
+      "y": 34,
+      "z": 20,
       "indoor": true,
       "note": "Jas 牧场厨房（朝北）"
     },
     "jas_animalshop_living": {
-      "x": 17092.5,
-      "y": 71.0,
-      "z": 18242.5,
+      "x": -97,
+      "y": 34,
+      "z": 22,
       "indoor": true,
       "note": "Jas 牧场客厅（朝东）"
     },
     "jas_animalshop_read": {
-      "x": 17094.5,
-      "y": 71.0,
-      "z": 18274.5,
+      "x": -99,
+      "y": 34,
+      "z": 9,
       "indoor": true,
       "note": "Jas 牧场阅读角（朝北）"
     },
     "jas_animalshop_bedroom": {
-      "x": 17102.5,
-      "y": 71.0,
-      "z": 18244.5,
+      "x": -100,
+      "y": 34,
+      "z": 12,
       "indoor": true,
       "note": "Jas 卧室（朝西）"
     },
     "jas_animalshop_sleep": {
-      "x": 17105.5,
-      "y": 71.0,
-      "z": 18243.5,
+      "x": -100,
+      "y": 34,
+      "z": 11,
       "indoor": true,
       "note": "Jas 床铺（朝西）"
     },
     "jas_museum_read": {
-      "x": 13072.5,
-      "y": 71.0,
-      "z": 13075.5,
+      "x": 126,
+      "y": 38,
+      "z": 41,
       "indoor": true,
       "note": "Jas 博物馆阅读（朝东）"
     },
     "jas_town_playground": {
-      "x": -98.0,
-      "y": -10.0,
-      "z": 148.0,
-      "note": "Jas 镇上游乐场（朝北）"
+      "x": -10,
+      "y": 66,
+      "z": -64,
+      "note": "Jas 镇上游乐场（朝北）",
+      "indoor": false
     },
     "jas_town_walk": {
-      "x": -193.0,
-      "y": -10.0,
-      "z": 128.0,
-      "note": "Jas 镇上散步（朝南）"
+      "x": -2,
+      "y": 66,
+      "z": -41,
+      "note": "Jas 镇上散步（朝南）",
+      "indoor": false
     },
     "jas_town_jumprope": {
-      "x": -140.0,
-      "y": -17.0,
-      "z": 26.0,
-      "note": "Jas 镇上跳绳（朝东）"
+      "x": -2,
+      "y": 64,
+      "z": 54,
+      "note": "Jas 镇上跳绳（朝东）",
+      "indoor": false
     },
     "jas_forest_jumprope": {
-      "x": 263.0,
-      "y": -13.0,
-      "z": -2.0,
-      "note": "Jas 森林跳绳（朝北）"
+      "x": -148,
+      "y": 64,
+      "z": 19,
+      "note": "Jas 森林跳绳（朝北）",
+      "indoor": false
     },
     "jas_beach_play": {
-      "x": -230.0,
-      "y": -15.0,
-      "z": -156.0,
-      "note": "Jas 沙滩玩耍（朝北）"
+      "x": 30,
+      "y": 60,
+      "z": 112,
+      "note": "Jas 沙滩玩耍（朝北）",
+      "indoor": false
     },
     "_comment_samhouse": "=== Sam's House ===",
-    "samhouse_outdoor_door": {
-      "x": -85.0,
-      "y": -16.0,
-      "z": -25.0,
-      "note": "SamHouse (1_willow_lane) 室外入口门点"
-    },
-    "samhouse_indoor_entry": {
-      "x": 17090.5,
-      "y": 71.0,
-      "z": 17093.5,
-      "indoor": true,
-      "note": "SamHouse (1_willow_lane) 室内传送落点（origin(17088,70,17088)+offset(2,1,5)）"
-    },
     "_comment_leahhouse": {
       "note": "=== LeahHouse (leah_cottage) 建筑点 ==="
-    },
-    "leahhouse_outdoor_door": {
-      "x": 155.0,
-      "y": -13.0,
-      "z": -58.0,
-      "note": "LeahHouse (leah_cottage) 室外入口门点"
-    },
-    "leahhouse_indoor_entry": {
-      "x": 17094.5,
-      "y": 71.0,
-      "z": 18823.5,
-      "indoor": true,
-      "note": "LeahHouse (leah_cottage) 室内传送落点（origin(17088,70,18816)+offset(6,1,7)）"
     },
     "_comment_jodi": {
       "note": "=== Jodi 专属停留点 ==="
     },
     "jodi_samhouse_kitchen": {
-      "x": 17106.5,
-      "y": 71.0,
-      "z": 17094.5,
+      "x": -28,
+      "y": 39,
+      "z": 21,
       "indoor": true,
       "note": "Jodi SamHouse 厨房做饭（朝东）"
     },
     "jodi_samhouse_living": {
-      "x": 17098.5,
-      "y": 71.0,
-      "z": 17090.5,
+      "x": -29,
+      "y": 38,
+      "z": 34,
       "indoor": true,
       "note": "Jodi SamHouse 客厅休息（朝南）"
     },
     "jodi_samhouse_sleep": {
-      "x": 17110.5,
-      "y": 71.0,
-      "z": 17114.5,
+      "x": -13,
+      "y": 39,
+      "z": 18,
       "indoor": true,
       "note": "Jodi SamHouse 睡觉位（朝西）"
     },
     "jodi_samhouse_bedroom": {
-      "x": 17109.5,
-      "y": 71.0,
-      "z": 17111.5,
+      "x": -14,
+      "y": 39,
+      "z": 21,
       "indoor": true,
       "note": "Jodi SamHouse 卧室日常（朝西）"
     },
     "jodi_seedshop_browse": {
-      "x": 12035.5,
-      "y": 71.0,
-      "z": 12051.5,
+      "x": 35,
+      "y": 36,
+      "z": -23,
       "indoor": true,
       "note": "Jodi SeedShop 采购（朝北）"
     },
     "jodi_town_walk": {
-      "x": -117.0,
-      "y": -17.0,
-      "z": 48.0,
-      "note": "Jodi 镇上散步（朝东）"
+      "x": 67,
+      "y": 64,
+      "z": 45,
+      "note": "Jodi 镇上散步（朝东）",
+      "indoor": false
     },
     "_comment_leah": {
       "note": "=== Leah 专属停留点 ==="
     },
     "leah_house_easel": {
-      "x": 17097.5,
-      "y": 71.0,
-      "z": 18821.5,
+      "x": -85,
+      "y": 38,
+      "z": 47,
       "indoor": true,
       "note": "Leah 画架前创作（朝东）"
     },
     "leah_house_kitchen": {
-      "x": 17093.5,
-      "y": 71.0,
-      "z": 18828.5,
+      "x": -76,
+      "y": 38,
+      "z": 47,
       "indoor": true,
       "note": "Leah 厨房（朝西）"
     },
     "leah_house_sleep": {
-      "x": 17099.5,
-      "y": 71.0,
-      "z": 18818.5,
+      "x": -88,
+      "y": 38,
+      "z": 46,
       "indoor": true,
       "note": "Leah 睡觉位（朝西）"
     },
     "leah_forest_forage": {
-      "x": 178.0,
-      "y": -15.0,
-      "z": -149.0,
-      "note": "Leah 森林觅食（朝南）"
+      "x": -112,
+      "y": 64,
+      "z": 114,
+      "note": "Leah 森林觅食（朝南）",
+      "indoor": false
     },
     "leah_beach_sketch": {
-      "x": -287.0,
-      "y": -14.0,
-      "z": -174.0,
-      "note": "Leah 海滩写生（朝北）"
+      "x": 26,
+      "y": 60,
+      "z": 99,
+      "note": "Leah 海滩写生（朝北）",
+      "indoor": false
     },
     "leah_museum_browse": {
-      "x": 13072.5,
-      "y": 71.0,
-      "z": 13068.5,
+      "x": 118,
+      "y": 38,
+      "z": 40,
       "indoor": true,
       "note": "Leah 博物馆浏览（朝北）"
     },
     "leah_saloon_seat": {
-      "x": 14211.5,
-      "y": 71.0,
-      "z": 14220.5,
+      "x": 33,
+      "y": 36,
+      "z": 11,
       "indoor": true,
       "note": "Leah 酒吧座位（朝南）"
     },
@@ -1340,102 +1142,110 @@
       "note": "=== Linus 专属停留点 ==="
     },
     "linus_tent_fire": {
-      "x": -217.0,
-      "y": -2.0,
-      "z": 266.0,
-      "note": "Linus 帐篷旁篝火（朝西）"
+      "x": 54,
+      "y": 85,
+      "z": -146,
+      "note": "Linus 帐篷旁篝火（朝西）",
+      "indoor": false
     },
     "linus_tent_inside": {
-      "x": -218.0,
-      "y": -1.0,
-      "z": 275.0,
-      "note": "Linus 帐篷内部（朝南）"
+      "x": 52,
+      "y": 85,
+      "z": -154,
+      "note": "Linus 帐篷内部（朝南）",
+      "indoor": false
     },
     "linus_tent_sleep": {
-      "x": -217.0,
-      "y": -1.0,
-      "z": 282.0,
-      "note": "Linus 帐篷睡觉位（朝东）"
+      "x": -83,
+      "y": 85,
+      "z": -154,
+      "note": "Linus 帐篷睡觉位（朝东）",
+      "indoor": false
     },
     "linus_mountain_forage": {
-      "x": -277.0,
-      "y": -12.0,
-      "z": 205.0,
-      "note": "Linus 山区觅食（朝东）"
+      "x": 71,
+      "y": 81,
+      "z": -121,
+      "note": "Linus 山区觅食（朝东）",
+      "indoor": false
     },
     "linus_beach_fish": {
-      "x": -260.0,
-      "y": -15.0,
-      "z": -220.0,
-      "note": "Linus 海滩钓鱼（朝北）"
+      "x": 90,
+      "y": 60,
+      "z": 130,
+      "note": "Linus 海滩钓鱼（朝北）",
+      "indoor": false
     },
     "linus_town_dumpster": {
-      "x": -171.0,
-      "y": -18.0,
-      "z": 17.0,
-      "note": "Linus 镇上翻垃圾桶（朝东）"
+      "x": 33,
+      "y": 64,
+      "z": 13,
+      "note": "Linus 镇上翻垃圾桶（朝东）",
+      "indoor": false
     },
     "_comment_marnie": {
       "note": "=== Marnie 专属停留点 ==="
     },
     "marnie_animalshop_counter": {
-      "x": 17095.5,
-      "y": 71.0,
-      "z": 18253.5,
+      "x": -88,
+      "y": 24,
+      "z": 21,
       "indoor": true,
       "note": "Marnie 牧场柜台/工作位（朝西）"
     },
     "marnie_animalshop_kitchen": {
-      "x": 17096.5,
-      "y": 71.0,
-      "z": 18268.5,
+      "x": -72,
+      "y": 34,
+      "z": 20,
       "indoor": true,
       "note": "Marnie 牧场厨房（朝东）"
     },
     "marnie_animalshop_living": {
-      "x": 17095.5,
-      "y": 71.0,
-      "z": 18247.5,
+      "x": -97,
+      "y": 34,
+      "z": 21,
       "indoor": true,
       "note": "Marnie 牧场客厅（朝西）"
     },
     "marnie_animalshop_sleep": {
-      "x": 17107.5,
-      "y": 71.0,
-      "z": 18254.5,
+      "x": -87,
+      "y": 34,
+      "z": 9,
       "indoor": true,
       "note": "Marnie 牧场卧室/睡觉位（朝西）"
     },
     "marnie_saloon_seat": {
-      "x": 14211.5,
-      "y": 71.0,
-      "z": 14219.5,
+      "x": 36,
+      "y": 36,
+      "z": 12,
       "indoor": true,
       "note": "Marnie 酒吧座位（朝南）"
     },
     "marnie_town_walk": {
-      "x": -137.0,
-      "y": -17.0,
-      "z": 9.0,
-      "note": "Marnie 镇上散步（朝北）"
+      "x": -21,
+      "y": 64,
+      "z": 8,
+      "note": "Marnie 镇上散步（朝北）",
+      "indoor": false
     },
     "marnie_forest_walk": {
-      "x": 229.0,
-      "y": -13.0,
-      "z": -70.0,
-      "note": "Marnie 森林散步（朝南）"
+      "x": -128,
+      "y": 64,
+      "z": 57,
+      "note": "Marnie 森林散步（朝南）",
+      "indoor": false
     },
     "marnie_seedshop_visit": {
-      "x": 12036.5,
-      "y": 71.0,
-      "z": 12055.5,
+      "x": 33,
+      "y": 36,
+      "z": -25,
       "indoor": true,
       "note": "Marnie 杂货店采购（朝东）"
     },
     "marnie_carpenter_visit": {
-      "x": 16525.5,
-      "y": 75.0,
-      "z": 16533.5,
+      "x": 29,
+      "y": 51,
+      "z": -119,
       "indoor": true,
       "note": "Marnie 木匠店拜访（朝西）"
     },
@@ -1443,517 +1253,550 @@
       "note": "=== Trailer (Pam's Home) 建筑点 ==="
     },
     "trailer_outdoor_door": {
-      "x": -231.0,
-      "y": -18.0,
-      "z": 20.0,
-      "note": "Trailer (Pam's Home) 室外入口门点（朝南）"
+      "x": 72,
+      "y": 64,
+      "z": 9,
+      "note": "Trailer (Pam's Home) 室外入口门点（朝南）",
+      "indoor": false
     },
     "_comment_maru": {
       "note": "=== Maru 专属停留点 ==="
     },
     "maru_sciencehouse_tinker": {
-      "x": 16525.5,
-      "y": 75.0,
-      "z": 16533.5,
+      "x": 42,
+      "y": 51,
+      "z": -121,
       "indoor": true,
       "note": "Maru ScienceHouse 修理/发明工作台（朝西）"
     },
     "maru_sciencehouse_telescope": {
-      "x": 16542.5,
-      "y": 77.0,
-      "z": 16519.5,
+      "x": 32,
+      "y": 58,
+      "z": -123,
       "indoor": true,
       "note": "Maru ScienceHouse 望远镜（朝北）"
     },
     "maru_sciencehouse_sleep": {
-      "x": 16546.5,
-      "y": 77.0,
-      "z": 16519.5,
+      "x": 25,
+      "y": 58,
+      "z": -125,
       "indoor": true,
       "note": "Maru ScienceHouse 卧室/睡觉位（朝西）"
     },
     "maru_clinic_work": {
-      "x": 15375.5,
-      "y": 71.0,
-      "z": 15362.5,
+      "x": 2,
+      "y": 43,
+      "z": -15,
       "indoor": true,
       "note": "Maru 诊所护士工作台（朝东）"
     },
     "maru_saloon_visit": {
-      "x": 14210.5,
-      "y": 71.0,
-      "z": 14154.5,
+      "x": 40,
+      "y": 36,
+      "z": 17,
       "indoor": true,
       "note": "Maru 酒吧座位（朝南）"
     },
     "maru_town_walk": {
-      "x": -118.0,
-      "y": -17.0,
-      "z": 17.0,
-      "note": "Maru 镇上散步（朝东）"
+      "x": 81,
+      "y": 64,
+      "z": 48,
+      "note": "Maru 镇上散步（朝东）",
+      "indoor": false
     },
     "_comment_pam": {
       "note": "=== Pam 专属停留点 ==="
     },
     "pam_trailer_couch": {
-      "x": -231.0,
-      "y": -18.0,
-      "z": 20.0,
-      "note": "Pam 拖车客厅/沙发（朝南）— 暂用室外门坐标"
+      "x": 75,
+      "y": 35,
+      "z": 0,
+      "note": "Pam 拖车客厅/沙发（朝南）— 暂用室外门坐标",
+      "indoor": true
     },
     "pam_trailer_kitchen": {
-      "x": -231.0,
-      "y": -18.0,
-      "z": 20.0,
-      "note": "Pam 拖车厨房（朝南）— 暂用室外门坐标"
+      "x": 76,
+      "y": 35,
+      "z": 3,
+      "note": "Pam 拖车厨房（朝南）— 暂用室外门坐标",
+      "indoor": true
     },
     "pam_trailer_sleep": {
-      "x": -231.0,
-      "y": -18.0,
-      "z": 20.0,
-      "note": "Pam 拖车睡觉位（朝南）— 暂用室外门坐标"
+      "x": 73,
+      "y": 35,
+      "z": 1,
+      "note": "Pam 拖车睡觉位（朝南）— 暂用室外门坐标",
+      "indoor": true
     },
     "pam_saloon_seat": {
-      "x": 14216.5,
-      "y": 71.0,
-      "z": 14233.5,
+      "x": 34,
+      "y": 36,
+      "z": 15,
       "indoor": true,
       "note": "Pam 酒吧常驻座位"
     },
     "pam_busstop_bench": {
-      "x": 69.0,
-      "y": -12.0,
-      "z": 207.0,
-      "note": "Pam 公交站等车点（朝北）"
+      "x": -62,
+      "y": 64,
+      "z": -61,
+      "note": "Pam 公交站等车点（朝北）",
+      "indoor": false
     },
     "pam_town_walk": {
-      "x": -37.0,
-      "y": -16.0,
-      "z": 59.0,
-      "note": "Pam 镇上闲逛（朝南）"
+      "x": 52,
+      "y": 64,
+      "z": 62,
+      "note": "Pam 镇上闲逛（朝南）",
+      "indoor": false
     },
     "_comment_penny": {
       "note": "=== Penny 专属停留点 ==="
     },
     "penny_trailer_sleep": {
-      "x": -233.0,
-      "y": -18.0,
-      "z": 20.0,
-      "note": "Penny 拖车睡觉位（朝北）- 暂按你提供的临时点"
+      "x": 61,
+      "y": 35,
+      "z": 4,
+      "note": "Penny 拖车睡觉位（朝北）- 暂按你提供的临时点",
+      "indoor": true
     },
     "penny_trailer_kitchen": {
-      "x": -233.0,
-      "y": -18.0,
-      "z": 20.0,
-      "note": "Penny 拖车厨房（朝北）- 暂按你提供的临时点"
+      "x": 76,
+      "y": 35,
+      "z": 1,
+      "note": "Penny 拖车厨房（朝北）- 暂按你提供的临时点",
+      "indoor": true
     },
     "penny_trailer_reading": {
-      "x": -233.0,
-      "y": -18.0,
-      "z": 20.0,
-      "note": "Penny 拖车阅读位（朝北）- 暂按你提供的临时点"
+      "x": 65,
+      "y": 35,
+      "z": -2,
+      "note": "Penny 拖车阅读位（朝北）- 暂按你提供的临时点",
+      "indoor": true
     },
     "penny_museum_tutor": {
-      "x": 13075.5,
-      "y": 71.0,
-      "z": 13076.5,
+      "x": 127,
+      "y": 38,
+      "z": 38,
       "indoor": true,
       "note": "Penny 博物馆授课位（朝西）"
     },
     "penny_town_walk": {
-      "x": -272.0,
-      "y": -18.0,
-      "z": -28.0,
-      "note": "Penny 镇上散步（朝北）"
+      "x": 70,
+      "y": 64,
+      "z": -21,
+      "note": "Penny 镇上散步（朝北）",
+      "indoor": false
     },
     "penny_town_bench": {
-      "x": -163.0,
-      "y": -18.0,
-      "z": -3.0,
-      "note": "Penny 镇上长椅"
+      "x": 28,
+      "y": 64,
+      "z": 22,
+      "note": "Penny 镇上长椅",
+      "indoor": false
     },
     "_comment_pierre": {
       "note": "=== Pierre 专属停留点 ==="
     },
     "pierre_seedshop_counter": {
-      "x": 12051.5,
-      "y": 71.0,
-      "z": 12038.5,
+      "x": 22,
+      "y": 36,
+      "z": -25,
       "indoor": true,
       "note": "Pierre 种子店柜台"
     },
     "pierre_seedshop_sleep": {
-      "x": 12067.5,
-      "y": 71.0,
-      "z": 12058.5,
+      "x": 41,
+      "y": 37,
+      "z": -41,
       "indoor": true,
       "note": "Pierre 种子店睡觉位（朝西）"
     },
     "pierre_seedshop_living": {
-      "x": 12042.5,
-      "y": 71.0,
-      "z": 12060.5,
+      "x": 55,
+      "y": 37,
+      "z": -38,
       "indoor": true,
       "note": "Pierre 种子店起居区（朝东）"
     },
     "pierre_saloon_seat": {
-      "x": 14217.5,
-      "y": 71.0,
-      "z": 14209.5,
+      "x": 53,
+      "y": 36,
+      "z": 10,
       "indoor": true,
       "note": "Pierre 酒吧座位（朝东）"
     },
     "pierre_town_walk": {
-      "x": -133.0,
-      "y": -10.0,
-      "z": 123.0,
-      "note": "Pierre 镇上散步（朝东）"
+      "x": -10,
+      "y": 66,
+      "z": -46,
+      "note": "Pierre 镇上散步（朝东）",
+      "indoor": false
     },
     "_comment_robin": {
       "note": "=== Robin 专属停留点 ==="
     },
     "robin_sciencehouse_counter": {
-      "x": 16530.5,
-      "y": 75.0,
-      "z": 16520.5,
+      "x": 32,
+      "y": 51,
+      "z": -122,
       "indoor": true,
       "note": "Robin 木匠店柜台（朝西）"
     },
     "robin_sciencehouse_sleep": {
-      "x": 16545.5,
-      "y": 77.0,
-      "z": 16536.5,
+      "x": 48,
+      "y": 58,
+      "z": -125,
       "indoor": true,
       "note": "Robin 木匠店睡觉位（朝西）"
     },
     "robin_sciencehouse_living": {
-      "x": 16540.5,
-      "y": 77.0,
-      "z": 16544.5,
+      "x": 55,
+      "y": 58,
+      "z": -121,
       "indoor": true,
       "note": "Robin 木匠店起居区（朝东）"
     },
     "robin_saloon_seat": {
-      "x": 14216.5,
-      "y": 71.0,
-      "z": 14253.5,
+      "x": 40,
+      "y": 36,
+      "z": 17,
       "indoor": true,
       "note": "Robin 酒吧座位（朝西）"
     },
     "robin_town_walk": {
-      "x": -210.0,
-      "y": -9.0,
-      "z": 136.0,
-      "note": "Robin 镇上散步（朝北）"
+      "x": 76,
+      "y": 66,
+      "z": -49,
+      "note": "Robin 镇上散步（朝北）",
+      "indoor": false
     },
     "sam_samhouse_guitar": {
-      "x": 17100.5,
-      "y": 71.0,
-      "z": 17109.5,
+      "x": -11,
+      "y": 39,
+      "z": 31,
       "indoor": true,
       "note": "Sam 房间弹吉他（朝西）"
     },
     "sam_samhouse_living": {
-      "x": 17098.5,
-      "y": 71.0,
-      "z": 17090.5,
+      "x": -27,
+      "y": 38,
+      "z": 36,
       "indoor": true,
       "note": "Sam 家客厅（朝南）"
     },
     "sam_samhouse_sleep": {
-      "x": 17101.5,
-      "y": 71.0,
-      "z": 17111.5,
+      "x": -8,
+      "y": 39,
+      "z": 27,
       "indoor": true,
       "note": "Sam 房间床（朝西）"
     },
     "_comment_sam_outdoor": "=== Sam outdoor destinations ===",
     "sam_museum_work": {
-      "x": 13065.5,
-      "y": 71.0,
-      "z": 13089.5,
+      "x": 123,
+      "y": 38,
+      "z": 38,
       "indoor": true,
       "note": "Sam 博物馆工作台（朝东）"
     },
     "sam_town_skateboard": {
-      "x": -95.0,
-      "y": -16.0,
-      "z": -27.0,
-      "note": "Sam 镇上玩滑板（朝北）"
+      "x": -15,
+      "y": 64,
+      "z": 42,
+      "note": "Sam 镇上玩滑板（朝北）",
+      "indoor": false
     },
     "sam_town_walk": {
-      "x": -145.0,
-      "y": -17.0,
-      "z": 20.0,
-      "note": "Sam 镇上散步（朝南）"
+      "x": -4,
+      "y": 64,
+      "z": 52,
+      "note": "Sam 镇上散步（朝南）",
+      "indoor": false
     },
     "sam_saloon_pool": {
-      "x": 14214.5,
-      "y": 71.0,
-      "z": 14251.5,
+      "x": 58,
+      "y": 36,
+      "z": 13,
       "indoor": true,
       "note": "Sam 酒吧台球桌（朝南）"
     },
     "sam_beach_hangout": {
-      "x": -279.0,
-      "y": -14.0,
-      "z": -163.0,
-      "note": "Sam 沙滩闲逛（朝南）"
+      "x": -166,
+      "y": 64,
+      "z": 57,
+      "note": "Sam 沙滩闲逛（朝南）",
+      "indoor": false
     },
     "sam_forest_walk": {
-      "x": 243.0,
-      "y": -13.0,
-      "z": -23.0,
-      "note": "Sam 森林散步（朝北）"
+      "x": -166,
+      "y": 64,
+      "z": 57,
+      "note": "Sam 森林散步（朝北）",
+      "indoor": false
     },
     "_comment_sebastian": "=== Sebastian's Room / Destinations ===",
     "sebastian_room_computer": {
-      "x": 16519.5,
-      "y": 71.0,
-      "z": 16535.5,
+      "x": 41,
+      "y": 80,
+      "z": -109,
       "indoor": true,
       "note": "Sebastian 房间电脑前（朝北）"
     },
     "sebastian_room_desk": {
-      "x": 16515.5,
-      "y": 71.0,
-      "z": 16530.5,
+      "x": 36,
+      "y": 80,
+      "z": -108,
       "indoor": true,
       "note": "Sebastian 房间书桌（朝北）"
     },
     "sebastian_room_bed": {
-      "x": 16515.5,
-      "y": 71.0,
-      "z": 16535.5,
+      "x": 43,
+      "y": 80,
+      "z": -105,
       "indoor": true,
       "note": "Sebastian 房间床（朝北）"
     },
     "sebastian_saloon_pool": {
-      "x": 14213.5,
-      "y": 71.0,
-      "z": 14255.5,
+      "x": 55,
+      "y": 36,
+      "z": 15,
       "indoor": true,
       "note": "Sebastian 酒吧台球桌（朝北）"
     },
     "sebastian_town_walk": {
-      "x": -209.0,
-      "y": -10.0,
-      "z": 97.0,
-      "note": "Sebastian 镇上散步（朝北）"
+      "x": 75,
+      "y": 66,
+      "z": -47,
+      "note": "Sebastian 镇上散步（朝北）",
+      "indoor": false
     },
     "sebastian_town_smoke": {
-      "x": -209.0,
-      "y": -10.0,
-      "z": 97.0,
-      "note": "Sebastian 镇上抽烟（朝北）"
+      "x": 88,
+      "y": 81,
+      "z": -101,
+      "note": "Sebastian 镇上抽烟（朝北）",
+      "indoor": false
     },
     "sebastian_samhouse_keyboard": {
-      "x": 17098.5,
-      "y": 71.0,
-      "z": 17109.5,
+      "x": -12,
+      "y": 39,
+      "z": 29,
       "indoor": true,
       "note": "Sebastian 在Sam家弹键盘（朝西）"
     },
     "sebastian_samhouse_hangout": {
-      "x": 17096.5,
-      "y": 71.0,
-      "z": 17111.5,
+      "x": -31,
+      "y": 38,
+      "z": 37,
       "indoor": true,
       "note": "Sebastian 在Sam家闲逛（朝东）"
     },
     "sebastian_mountain_smoke": {
-      "x": -252.0,
-      "y": -5.0,
-      "z": 176.0,
-      "note": "Sebastian 山上抽烟（朝南）"
+      "x": 51,
+      "y": 85,
+      "z": -109,
+      "note": "Sebastian 山上抽烟（朝南）",
+      "indoor": false
     },
     "sebastian_mountain_walk": {
-      "x": -285.0,
-      "y": -10.0,
-      "z": 199.0,
-      "note": "Sebastian 山上散步（朝南）"
+      "x": 87,
+      "y": 81,
+      "z": -111,
+      "note": "Sebastian 山上散步（朝南）",
+      "indoor": false
     },
     "sebastian_mountain_cliff": {
-      "x": -312.0,
-      "y": -15.0,
-      "z": 261.0,
-      "note": "Sebastian 山上悬崖边（朝北）"
+      "x": 90,
+      "y": 81,
+      "z": -101,
+      "note": "Sebastian 山上悬崖边（朝北）",
+      "indoor": false
     },
     "sebastian_sciencehouse_hall": {
-      "x": 16528.5,
-      "y": 75.0,
-      "z": 16514.5,
+      "x": 40,
+      "y": 46,
+      "z": -110,
       "indoor": true,
       "note": "Sebastian 科学屋走廊（朝南）"
     },
     "_comment_shane": "=== Shane 路线点 ===",
     "shane_animalshop_room": {
-      "x": 17104.5,
-      "y": 71.0,
-      "z": 18265.5,
+      "x": -76,
+      "y": 34,
+      "z": 11,
       "indoor": true,
       "note": "Shane 房间（Marnie家）"
     },
     "shane_animalshop_sleep": {
-      "x": 17108.5,
-      "y": 71.0,
-      "z": 18273.5,
+      "x": -68,
+      "y": 34,
+      "z": 8,
       "indoor": true,
       "note": "Shane 睡觉位置"
     },
     "shane_animalshop_outside": {
-      "x": 156.0,
-      "y": -13.0,
-      "z": -18.0,
-      "note": "Shane Marnie家门外"
+      "x": -81,
+      "y": 64,
+      "z": 32,
+      "note": "Shane Marnie家门外",
+      "indoor": false
     },
     "shane_animalshop_chickens": {
-      "x": 156.0,
-      "y": -13.0,
-      "z": -18.0,
-      "note": "Shane 看鸡（Marnie牧场旁）"
+      "x": -77,
+      "y": 64,
+      "z": 37,
+      "note": "Shane 看鸡（Marnie牧场旁）",
+      "indoor": false
     },
     "shane_saloon_drink": {
-      "x": 14216.5,
-      "y": 71.0,
-      "z": 14218.5,
+      "x": 21,
+      "y": 36,
+      "z": 11,
       "indoor": true,
       "note": "Shane 酒吧喝酒位"
     },
     "shane_saloon_seat": {
-      "x": 14210.5,
-      "y": 71.0,
-      "z": 14252.5,
+      "x": 21,
+      "y": 36,
+      "z": 11,
       "indoor": true,
       "note": "Shane 酒吧座位"
     },
     "shane_seedshop_browse": {
-      "x": 12051.5,
-      "y": 71.0,
-      "z": 12043.5,
+      "x": 19,
+      "y": 36,
+      "z": -18,
       "indoor": true,
       "note": "Shane 杂货店逛逛"
     },
     "_comment_vincent": "=== Vincent 路线点 ===",
     "vincent_samhouse_play": {
-      "x": 17091.5,
-      "y": 71.0,
-      "z": 17103.5,
+      "x": -17,
+      "y": 39,
+      "z": 39,
       "indoor": true,
       "note": "Vincent Sam家玩耍"
     },
     "vincent_samhouse_kitchen": {
-      "x": 17106.5,
-      "y": 71.0,
-      "z": 17090.5,
+      "x": -29,
+      "y": 39,
+      "z": 32,
       "indoor": true,
       "note": "Vincent Sam家厨房"
     },
     "vincent_samhouse_sleep": {
-      "x": 17093.5,
-      "y": 71.0,
-      "z": 17099.5,
+      "x": -21,
+      "y": 39,
+      "z": 38,
       "indoor": true,
       "note": "Vincent Sam家睡觉"
     },
     "vincent_town_playground": {
-      "x": -119.0,
-      "y": -10.0,
-      "z": 118.0,
-      "note": "Vincent 镇上游乐场"
+      "x": -18,
+      "y": 66,
+      "z": -66,
+      "note": "Vincent 镇上游乐场",
+      "indoor": false
     },
     "vincent_town_walk": {
-      "x": -123.0,
-      "y": -10.0,
-      "z": 91.0,
-      "note": "Vincent 镇上散步"
+      "x": -9,
+      "y": 66,
+      "z": -41,
+      "note": "Vincent 镇上散步",
+      "indoor": false
     },
     "vincent_beach_play": {
-      "x": -230.0,
-      "y": -15.0,
-      "z": -188.0,
-      "note": "Vincent 海滩玩耍"
+      "x": 39,
+      "y": 60,
+      "z": 97,
+      "note": "Vincent 海滩玩耍",
+      "indoor": false
     },
     "vincent_museum_read": {
-      "x": 13071.5,
-      "y": 71.0,
-      "z": 13075.5,
+      "x": 128,
+      "y": 38,
+      "z": 41,
       "indoor": true,
       "note": "Vincent 博物馆看书"
     },
     "_comment_willy": "=== Willy 路线点 ===",
     "fishshop_outdoor_door": {
-      "x": -237.0,
-      "y": -15.0,
-      "z": -212.0,
-      "note": "鱼店室外入口门点"
+      "x": 65,
+      "y": 60,
+      "z": 150,
+      "note": "鱼店室外入口门点",
+      "indoor": false
     },
     "fishshop_indoor_entry": {
-      "x": 17666.5,
-      "y": 71.0,
-      "z": 17670.5,
+      "x": 65,
+      "y": 31,
+      "z": 147,
       "indoor": true,
       "note": "鱼店室内传送落点"
     },
     "willy_fishshop_counter": {
-      "x": 17670.5,
-      "y": 71.0,
-      "z": 17670.5,
+      "x": 65,
+      "y": 31,
+      "z": 143,
       "indoor": true,
       "note": "Willy 鱼店柜台"
     },
     "willy_fishshop_room": {
-      "x": 17670.5,
-      "y": 71.0,
-      "z": 17670.5,
+      "x": 62,
+      "y": 37,
+      "z": 146,
       "indoor": true,
       "note": "Willy 鱼店卧室（暂同柜台）"
     },
     "willy_fishshop_sleep": {
-      "x": 17670.5,
-      "y": 71.0,
-      "z": 17670.5,
+      "x": 67,
+      "y": 37,
+      "z": 142,
       "indoor": true,
       "note": "Willy 鱼店睡觉（暂同柜台）"
     },
     "willy_beach_fishing": {
-      "x": -229.0,
-      "y": -15.0,
-      "z": -220.0,
-      "note": "Willy 海滩钓鱼位"
+      "x": 71,
+      "y": 60,
+      "z": 155,
+      "note": "Willy 海滩钓鱼位",
+      "indoor": false
     },
     "willy_beach_evening": {
-      "x": -260.0,
-      "y": -15.0,
-      "z": -220.0,
-      "note": "Willy 海滩傍晚位"
+      "x": 48,
+      "y": 60,
+      "z": 133,
+      "note": "Willy 海滩傍晚位",
+      "indoor": false
     },
     "willy_saloon_seat": {
-      "x": 14210.5,
-      "y": 71.0,
-      "z": 14233.5,
+      "x": 35,
+      "y": 36,
+      "z": 17,
       "indoor": true,
       "note": "Willy 酒吧座位"
     },
     "willy_forest_walk": {
-      "x": 217.0,
-      "y": -13.0,
-      "z": -67.0,
-      "note": "Willy 森林散步"
+      "x": -110,
+      "y": 64,
+      "z": 116,
+      "note": "Willy 森林散步",
+      "indoor": false
     },
     "willy_town_bench": {
-      "x": -167.0,
-      "y": -18.0,
-      "z": -5.0,
-      "note": "Willy 镇上长椅"
+      "x": -2,
+      "y": 66,
+      "z": -53,
+      "note": "Willy 镇上长椅",
+      "indoor": false
     },
     "_comment_gunther": {
       "note": "=== Gunther 专属停留点 ==="
     },
     "gunther_counter": {
-      "x": 13074.5,
-      "y": 71.0,
-      "z": 13060.5,
+      "x": 111,
+      "y": 38,
+      "z": 39,
       "indoor": true,
       "note": "Gunther 博物馆柜台"
     },
@@ -1961,9 +1804,9 @@
       "note": "=== Marlon 专属停留点 ==="
     },
     "marlon_counter": {
-      "x": 17672.5,
-      "y": 71.0,
-      "z": 17093.5,
+      "x": 105,
+      "y": 60,
+      "z": -149,
       "indoor": true,
       "note": "Marlon 冒险家公会柜台"
     },
@@ -1971,9 +1814,9 @@
       "note": "=== Wizard 专属停留点 ==="
     },
     "wizard_home": {
-      "x": 18249.5,
-      "y": 71.0,
-      "z": 17095.5,
+      "x": -179,
+      "y": 34,
+      "z": 55,
       "indoor": true,
       "note": "Wizard 法师塔内"
     },
@@ -1981,11 +1824,153 @@
       "note": "=== Sandy 专属停留点 ==="
     },
     "sandy_oasis_counter": {
-      "x": 18245.5,
-      "y": 71.0,
-      "z": 17666.5,
+      "x": -254,
+      "y": 30,
+      "z": -150,
       "indoor": true,
       "note": "Sandy 绿洲柜台工作位（朝西）"
+    },
+    "_comment_krobus": {
+      "note": "=== Krobus 专属停留点 ==="
+    },
+    "krobus_sewer_shop": {
+      "x": 30,
+      "y": 51,
+      "z": 54,
+      "indoor": true,
+      "note": "Krobus 下水道固定位置（朝南）"
+    },
+    "desert_npc_points": {
+      "x": -254,
+      "y": 30,
+      "z": -150,
+      "indoor": false
+    },
+    "seedshop_outdoor_door": {
+      "x": 27,
+      "y": 66,
+      "z": -8,
+      "indoor": false
+    },
+    "manorhouse_outdoor_door": {
+      "x": 50.5,
+      "y": 66.5,
+      "z": 34,
+      "indoor": false
+    },
+    "saloon_outdoor_door": {
+      "x": 29.5,
+      "y": 66.5,
+      "z": 14,
+      "indoor": false
+    },
+    "blacksmith_outdoor_door": {
+      "x": 108,
+      "y": 64.5,
+      "z": 29,
+      "indoor": false
+    },
+    "museum_outdoor_door": {
+      "x": 124,
+      "y": 64.5,
+      "z": 42,
+      "indoor": false
+    },
+    "clinic_outdoor_door": {
+      "x": 13,
+      "y": 65.5,
+      "z": -8,
+      "indoor": false
+    },
+    "riverroad1_outdoor_door": {
+      "x": 48,
+      "y": 64.5,
+      "z": 1,
+      "indoor": false
+    },
+    "sciencehouse_outdoor_door": {
+      "x": 28.5,
+      "y": 85.5,
+      "z": -115,
+      "indoor": false
+    },
+    "samhouse_outdoor_door": {
+      "x": -28.5,
+      "y": 65.5,
+      "z": 39,
+      "indoor": false
+    },
+    "haleyhouse_outdoor_door": {
+      "x": -10.5,
+      "y": 64.5,
+      "z": 39,
+      "indoor": false
+    },
+    "animalshop_outdoor_door": {
+      "x": -91.5,
+      "y": 64.5,
+      "z": 21,
+      "indoor": false
+    },
+    "leahhouse_outdoor_door": {
+      "x": -82.5,
+      "y": 64,
+      "z": 52,
+      "indoor": false
+    },
+    "adventurer_guild_outdoor_door": {
+      "x": 106,
+      "y": 81.5,
+      "z": -142,
+      "indoor": false
+    },
+    "fishshop_outer": {
+      "x": 64.5,
+      "y": 60.5,
+      "z": 150,
+      "indoor": false
+    },
+    "elliott_cabin_outdoor_door": {
+      "x": 80.5,
+      "y": 60.5,
+      "z": 101,
+      "indoor": false
+    },
+    "wizard_tower_outdoor_door": {
+      "x": -179,
+      "y": 69.5,
+      "z": 50,
+      "indoor": false
+    },
+    "joja_mart_outdoor_door": {
+      "x": 108.5,
+      "y": 65.5,
+      "z": -17,
+      "indoor": false
+    },
+    "communitycenter_outer": {
+      "x": 54,
+      "y": 67.5,
+      "z": -49,
+      "indoor": false
+    },
+    "seedshop_outer": {
+      "x": 27,
+      "y": 66,
+      "z": -8,
+      "indoor": false
+    },
+    "joshhouse_outdoor_door": {
+      "x": 48,
+      "y": 64.5,
+      "z": 1,
+      "indoor": false
+    },
+    "elliotthouse_outdoor_door": {
+      "x": 80.5,
+      "y": 60.5,
+      "z": 101,
+      "indoor": false
     }
   }
 }

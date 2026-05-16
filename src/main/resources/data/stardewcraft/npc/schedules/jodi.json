@@ -6,34 +6,34 @@
     "800": "saloon @saloon_indoor_entry 1"
   },
   "rain": {
-    "830": "samhouse @jodi_samhouse_kitchen 3",
-    "1100": "samhouse @jodi_samhouse_living 1",
-    "1500": "samhouse @jodi_samhouse_kitchen 2",
-    "1900": "samhouse @jodi_samhouse_living 3",
-    "2200": "samhouse @jodi_samhouse_sleep 3 jodi_sleep"
+    "830": "samhouse @jodi_samhouse_kitchen 0",
+    "1100": "samhouse @jodi_samhouse_living 2",
+    "1500": "samhouse @jodi_samhouse_kitchen 0",
+    "1900": "samhouse @jodi_samhouse_living 2",
+    "2200": "samhouse @jodi_samhouse_sleep 2 jodi_sleep"
   },
   "spring": {
-    "830": "samhouse @jodi_samhouse_kitchen 3",
-    "1100": "seedshop @jodi_seedshop_browse 2",
-    "1400": "samhouse @jodi_samhouse_living 1",
-    "1700": "samhouse @jodi_samhouse_kitchen 3",
-    "2200": "samhouse @jodi_samhouse_sleep 3 jodi_sleep"
+    "830": "samhouse @jodi_samhouse_kitchen 0",
+    "1100": "seedshop @jodi_seedshop_browse 3",
+    "1400": "samhouse @jodi_samhouse_living 2",
+    "1700": "samhouse @jodi_samhouse_kitchen 0",
+    "2200": "samhouse @jodi_samhouse_sleep 2 jodi_sleep"
   },
   "summer": {
-    "830": "samhouse @jodi_samhouse_kitchen 3",
-    "1000": "town @jodi_town_walk 2",
-    "1300": "samhouse @jodi_samhouse_living 1",
-    "1700": "samhouse @jodi_samhouse_kitchen 3",
-    "2200": "samhouse @jodi_samhouse_sleep 3 jodi_sleep"
+    "830": "samhouse @jodi_samhouse_kitchen 0",
+    "1000": "town @jodi_town_walk 0",
+    "1300": "samhouse @jodi_samhouse_living 2",
+    "1700": "samhouse @jodi_samhouse_kitchen 0",
+    "2200": "samhouse @jodi_samhouse_sleep 2 jodi_sleep"
   },
   "fall": {
     "_goto": "spring"
   },
   "winter": {
-    "830": "samhouse @jodi_samhouse_kitchen 3",
-    "1100": "samhouse @jodi_samhouse_living 1",
-    "1400": "samhouse @jodi_samhouse_bedroom 3",
-    "1700": "samhouse @jodi_samhouse_kitchen 3",
-    "2200": "samhouse @jodi_samhouse_sleep 3 jodi_sleep"
+    "830": "samhouse @jodi_samhouse_kitchen 0",
+    "1100": "samhouse @jodi_samhouse_living 2",
+    "1400": "samhouse @jodi_samhouse_bedroom 2",
+    "1700": "samhouse @jodi_samhouse_kitchen 0",
+    "2200": "samhouse @jodi_samhouse_sleep 2 jodi_sleep"
   }
 }

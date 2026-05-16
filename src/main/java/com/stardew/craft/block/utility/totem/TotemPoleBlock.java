@@ -41,10 +41,9 @@ import java.util.List;
 public class TotemPoleBlock extends MapUtilityStaticBlock implements EntityBlock {
     public static final BooleanProperty ACTIVATED = BooleanProperty.create("activated");
     private static final PlacementBounds FARM_BOUNDS = PlacementBounds.of(311, 36, 154, 103, -18, 37);
-    private static final PlacementBounds MOUNTAIN_BOUNDS = PlacementBounds.of(-174, 41, 172, -537, -33, 372);
-    private static final PlacementBounds BEACH_BOUNDS = PlacementBounds.of(-464, 32, -98, -175, -33, -244);
-    // 沙漠区域（围绕系统柱坐标 -270,-41,1389 的合理范围）
-    private static final PlacementBounds DESERT_BOUNDS = PlacementBounds.of(-350, 36, 1300, -200, -50, 1470);
+    private static final PlacementBounds MOUNTAIN_BOUNDS = PlacementBounds.of(-52, 77, -233, 140, 112, -91);
+    private static final PlacementBounds BEACH_BOUNDS = PlacementBounds.of(-15, 59, 82, 174, 76, 174);
+    private static final PlacementBounds DESERT_BOUNDS = PlacementBounds.of(-302, 56, -240, -156, 86, -112);
 
     private final TotemType totemType;
 

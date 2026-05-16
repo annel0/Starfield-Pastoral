@@ -35,7 +35,10 @@ public final class StardewValleyPrebuiltRegionInstaller {
     private static final String MANIFEST_RESOURCE = "pregen/stardew_valley/region_manifest.txt";
     private static final String REGION_RESOURCE_PREFIX = "pregen/stardew_valley/region/";
     private static final String MARKER_FILE = "stardew_valley_pregen_installed.marker";
+    private static final String RELOCATION_MARKER_FILE = "stardew_valley_pregen_relocation.marker";
     private static final Pattern REGION_FILE_PATTERN = Pattern.compile("^r\\.(-?\\d+)\\.(-?\\d+)\\.mca$", Pattern.CASE_INSENSITIVE);
+    private static final int REGION_BLOCK_SIZE = 512;
+    private static final int PROTECTED_PLAYER_REGION_MIN = 36;
 
     /**
      * 预置地图版本号。改动 jar 里的 .mca 文件后把这个数 +1，
@@ -44,22 +47,30 @@ public final class StardewValleyPrebuiltRegionInstaller {
      * 注意：覆盖会抹掉玩家在 pregen 区域内放的方块（比如摆了椅子、铺了地板之类）。
      * 所以每次 +1 都是"强制小镇重置"的操作，要和版本发布节奏绑定。
      */
-    private static final int CURRENT_PREGEN_VERSION = 3;
+    public static final int CURRENT_PREGEN_VERSION = 4;
 
     private static final String MARKER_VERSION_PREFIX = "version=";
 
     public enum InstallResult {
         INSTALLED,
+        UPGRADED,
         ALREADY_PRESENT,
         NO_PREBUILT,
-        FAILED
+        FAILED;
+
+        public boolean installedOrUpgraded() {
+            return this == INSTALLED || this == UPGRADED;
+        }
     }
 
     public static InstallResult installIfAvailable(MinecraftServer server) {
         try {
             Path worldRoot = server.getWorldPath(LevelResource.ROOT);
             Path marker = worldRoot.resolve(MARKER_FILE);
-            Path targetRegionDir = getTargetRegionDir(worldRoot);
+            Path targetDimensionDir = getTargetDimensionDir(worldRoot);
+            Path targetRegionDir = targetDimensionDir.resolve("region");
+            Path targetEntitiesDir = targetDimensionDir.resolve("entities");
+            Path targetPoiDir = targetDimensionDir.resolve("poi");
 
             List<String> files = readManifest();
             if (files.isEmpty()) {
@@ -85,18 +96,19 @@ public final class StardewValleyPrebuiltRegionInstaller {
 
             Files.createDirectories(targetRegionDir);
 
-            // 升级时清除 region/ 中新 manifest 不再包含的多余 .mca 文件。
-            // manifest 中存在的文件由后续 Files.copy(REPLACE_EXISTING) 直接覆写。
-            // 运行时 BiomePatcher 等也可能产生 manifest 之外的 .mca，
-            // 这些残留文件如果不清除会和新 pregen 内容冲突 → 区块错位。
+            // 升级时清除旧公共地图/旧固定室内留下的 .mca，但保留玩家农场和动态 CC/GH/农场洞穴区域。
+            // region/ 中当前 manifest 文件由后续 Files.copy(REPLACE_EXISTING) 覆写；entities/poi/ 没有
+            // pregen 资源源文件，必须删除对应旧文件，避免旧实体/POI 留在新地图上。
             if (hasRegions) {
                 Set<String> manifestFileNames = new HashSet<>();
                 for (String f : files) {
                     manifestFileNames.add(f.toLowerCase());
                 }
-                int deleted = cleanStaleRegionFiles(targetRegionDir, manifestFileNames);
+                int deleted = cleanManagedMcaFiles(targetRegionDir, manifestFileNames, true);
+                deleted += cleanManagedMcaFiles(targetEntitiesDir, manifestFileNames, false);
+                deleted += cleanManagedMcaFiles(targetPoiDir, manifestFileNames, false);
                 if (deleted > 0) {
-                    StardewCraft.LOGGER.info("[VALLEY_PREGEN] Removed {} stale .mca files not in new manifest", deleted);
+                    StardewCraft.LOGGER.info("[VALLEY_PREGEN] Removed {} old pregen/interior .mca files", deleted);
                 }
             }
 
@@ -115,10 +127,13 @@ public final class StardewValleyPrebuiltRegionInstaller {
             }
 
             writeMarker(marker, copied, CURRENT_PREGEN_VERSION);
+            if (upgrading) {
+                writeRelocationMarker(worldRoot.resolve(RELOCATION_MARKER_FILE), CURRENT_PREGEN_VERSION);
+            }
 
             StardewCraft.LOGGER.info("[VALLEY_PREGEN] {} prebuilt regions (version {}): {} files",
                 upgrading ? "Upgraded" : "Installed", CURRENT_PREGEN_VERSION, copied);
-            return InstallResult.INSTALLED;
+            return upgrading ? InstallResult.UPGRADED : InstallResult.INSTALLED;
         } catch (Exception e) {
             StardewCraft.LOGGER.error("[VALLEY_PREGEN] Failed installing prebuilt regions: {}", e.getMessage(), e);
             return InstallResult.FAILED;
@@ -129,6 +144,23 @@ public final class StardewValleyPrebuiltRegionInstaller {
         Files.writeString(marker,
             "installed=" + fileCount + "\n" + MARKER_VERSION_PREFIX + version + "\n",
             StandardCharsets.UTF_8);
+    }
+
+    private static void writeRelocationMarker(Path marker, int version) throws IOException {
+        Files.writeString(marker, MARKER_VERSION_PREFIX + version + "\n", StandardCharsets.UTF_8);
+    }
+
+    public static int getRequiredRelocationVersion(MinecraftServer server) {
+        try {
+            Path marker = server.getWorldPath(LevelResource.ROOT).resolve(RELOCATION_MARKER_FILE);
+            if (!Files.exists(marker)) {
+                return 0;
+            }
+            return readMarkerVersion(marker);
+        } catch (Exception e) {
+            StardewCraft.LOGGER.warn("[VALLEY_PREGEN] Failed reading relocation marker: {}", e.getMessage());
+            return 0;
+        }
     }
 
     private static int readMarkerVersion(Path marker) {
@@ -241,12 +273,15 @@ public final class StardewValleyPrebuiltRegionInstaller {
         return result;
     }
 
-    private static Path getTargetRegionDir(Path worldRoot) {
+    private static Path getTargetDimensionDir(Path worldRoot) {
         return worldRoot
             .resolve("dimensions")
             .resolve("stardewcraft")
-            .resolve("stardew_valley")
-            .resolve("region");
+            .resolve("stardew_valley");
+    }
+
+    private static Path getTargetRegionDir(Path worldRoot) {
+        return getTargetDimensionDir(worldRoot).resolve("region");
     }
 
     private static boolean hasAnyRegionFiles(Path targetRegionDir) throws IOException {
@@ -261,27 +296,46 @@ public final class StardewValleyPrebuiltRegionInstaller {
         }
     }
 
-    /**
-     * 删除 region 目录中不在新 manifest 里的多余 .mca 文件。
-     * manifest 里有的文件由 Files.copy(REPLACE_EXISTING) 直接覆写，不需要删除。
-     */
-    private static int cleanStaleRegionFiles(Path regionDir, Set<String> keepLowerCase) {
+    private static int cleanManagedMcaFiles(Path dir, Set<String> manifestLowerCase, boolean keepManifestFiles) {
         int deleted = 0;
-        try (Stream<Path> stream = Files.list(regionDir)) {
+        if (!Files.isDirectory(dir)) {
+            return 0;
+        }
+        try (Stream<Path> stream = Files.list(dir)) {
             for (Path file : stream.toList()) {
                 String name = file.getFileName().toString();
                 if (!name.toLowerCase().endsWith(".mca") || !Files.isRegularFile(file)) {
                     continue;
                 }
-                if (!keepLowerCase.contains(name.toLowerCase())) {
-                    Files.delete(file);
-                    deleted++;
+                String lowerName = name.toLowerCase();
+                if (isProtectedPlayerRegionFile(name)) {
+                    continue;
                 }
+                if (keepManifestFiles && manifestLowerCase.contains(lowerName)) {
+                    continue;
+                }
+                Files.delete(file);
+                deleted++;
             }
         } catch (IOException e) {
-            StardewCraft.LOGGER.warn("[VALLEY_PREGEN] Failed cleaning stale region files in {}: {}", regionDir, e.getMessage());
+            StardewCraft.LOGGER.warn("[VALLEY_PREGEN] Failed cleaning old .mca files in {}: {}", dir, e.getMessage());
         }
         return deleted;
+    }
+
+    private static boolean isProtectedPlayerRegionFile(String name) {
+        Matcher matcher = REGION_FILE_PATTERN.matcher(name);
+        if (!matcher.matches()) {
+            return false;
+        }
+        int rx = Integer.parseInt(matcher.group(1));
+        int rz = Integer.parseInt(matcher.group(2));
+        int maxBlockX = (rx + 1) * REGION_BLOCK_SIZE - 1;
+        int maxBlockZ = (rz + 1) * REGION_BLOCK_SIZE - 1;
+        boolean farmRegion = maxBlockX >= com.stardew.craft.farm.FarmInstanceAllocator.FARM_REGION_START
+            && maxBlockZ >= com.stardew.craft.farm.FarmInstanceAllocator.FARM_REGION_START;
+        boolean dynamicInteriorRegion = rx >= PROTECTED_PLAYER_REGION_MIN && rz >= PROTECTED_PLAYER_REGION_MIN;
+        return farmRegion || dynamicInteriorRegion;
     }
 
     private static List<String> readManifest() throws IOException {

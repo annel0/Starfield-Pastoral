@@ -52,14 +52,28 @@ public final class ArtifactSpotSpawnService {
 
     // ======================== Zone Definition ========================
 
-    private record ZoneRect(int minX, int minZ, int maxX, int maxZ) {
+    private record ZoneRect(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
         boolean contains(int x, int z) {
             return x >= minX && x <= maxX && z >= minZ && z <= maxZ;
+        }
+
+        boolean containsSurfaceY(int y) {
+            return y >= minY && y <= maxY;
         }
     }
 
     private static ZoneRect rect(int x1, int z1, int x2, int z2) {
-        return new ZoneRect(Math.min(x1, x2), Math.min(z1, z2), Math.max(x1, x2), Math.max(z1, z2));
+        return rect(x1, Integer.MIN_VALUE, z1, x2, Integer.MAX_VALUE, z2);
+    }
+
+    private static ZoneRect rect(int x1, int y1, int z1, int x2, int y2, int z2) {
+        return new ZoneRect(
+                Math.min(x1, x2),
+                Math.min(y1, y2),
+                Math.min(z1, z2),
+                Math.max(x1, x2),
+                Math.max(y1, y2),
+                Math.max(z1, z2));
     }
 
     /**
@@ -72,38 +86,20 @@ public final class ArtifactSpotSpawnService {
         }
     }
 
-    /** 表面类型：YELLOW_DIRT → 黄土；BEACH_SANDSTONE → 海滩露天沙地/砂岩；DESERT_SANDSTONE → 沙漠砂岩/沙地。 */
-    private enum SurfaceKind { YELLOW_DIRT, BEACH_SANDSTONE, DESERT_SANDSTONE }
+    /** 表面类型：YELLOW_DIRT → 黄土；BEACH_SAND → 海滩沙子；DESERT_SAND → 沙漠沙子。 */
+    private enum SurfaceKind { YELLOW_DIRT, BEACH_SAND, DESERT_SAND }
 
     // SDV locations mapped to MC coordinates
     private static final SpawnZone[] ZONES = {
-            new SpawnZone("Town",
-                    new ZoneRect[]{ rect(19, 193, 159, 221), rect(21, 96, 51, 112), rect(-18, 69, -1, 80) },
-                    140, 30),
-            new SpawnZone("Forest",
-                    new ZoneRect[]{ rect(134, -194, 197, -110), rect(231, -138, 252, -114), rect(221, -11, 302, 35) },
-                    170, 90),
-            new SpawnZone("Mountain",
-                    new ZoneRect[]{ rect(-239, 161, -196, 188), rect(-245, 233, -207, 263), rect(-324, 289, -292, 309), rect(-105, 294, -72, 312) },
-                    250, 150),
+            new SpawnZone("MainMap",
+                new ZoneRect[]{ rect(200, 63, 79, -151, 91, -237) },
+                352, 317),
             new SpawnZone("Beach",
-                    new ZoneRect[]{ rect(-293, -182, -192, -139), rect(-376, -173, -326, -148) },
-                    190, 45, SurfaceKind.BEACH_SANDSTONE),
-            new SpawnZone("Farm",
-                    new ZoneRect[]{ rect(-80, -100, 80, 80) },
-                    160, 180),
-            new SpawnZone("BusStop",
-                    new ZoneRect[]{ rect(-20, 80, 20, 130) },
-                    40, 50),
-            new SpawnZone("Backwoods",
-                    new ZoneRect[]{ rect(-100, 130, 20, 190) },
-                    120, 60),
-            new SpawnZone("Railroad",
-                    new ZoneRect[]{ rect(-300, 300, -250, 350) },
-                    50, 50),
+                new ZoneRect[]{ rect(-4, 65, 77, 239, 57, 186) },
+                244, 110, SurfaceKind.BEACH_SAND),
             new SpawnZone("Desert",
-                    new ZoneRect[]{ rect(-372, 1285, -259, 1423) },
-                    113, 138, SurfaceKind.DESERT_SANDSTONE),
+                new ZoneRect[]{ rect(-310, 53, -241, -158, 107, -113) },
+                153, 129, SurfaceKind.DESERT_SAND),
     };
 
     // ======================== Daily Spawn (called from StardewTimeManager) ========================
@@ -140,7 +136,7 @@ public final class ArtifactSpotSpawnService {
             boolean overCap = existingCount > threshold && (season != 3 || existingCount > MAX_SPOTS_WINTER);
 
             // 3a. 沙漠区：低概率 bbox 扫描，配合每区块硬上限 1 个，避免堆积
-            if (zone.surface == SurfaceKind.DESERT_SANDSTONE) {
+            if (zone.surface == SurfaceKind.DESERT_SAND) {
                 if (overCap && existingCount > DESERT_DAILY_CAP) continue;
                 // 削后的每方块概率：沙漠 bbox = 113×138 ≈ 15600 格 × 0.00015 ≈ 期望每天 2.3 个尝试
                 final double perBlockChance = 0.00015;
@@ -172,7 +168,7 @@ public final class ArtifactSpotSpawnService {
                 if (season == 3) {
                     chanceForNewAttempt += 0.10;
                 }
-                if (zone.surface == SurfaceKind.BEACH_SANDSTONE) {
+                if (zone.surface == SurfaceKind.BEACH_SAND) {
                     // Beach 稍微提高一点刷新体感，避免沙滩长时间空窗。
                     chanceForNewAttempt += 0.05;
                 }
@@ -229,7 +225,7 @@ public final class ArtifactSpotSpawnService {
                     for (int dz = 0; dz < 16; dz++) {
                         int x = savedChunkX + dx;
                         int z = savedChunkZ + dz;
-                        SurfaceKind surface = surfaceKindAt(x, z);
+                        SurfaceKind surface = surfaceKindAt(serverLevel, x, z);
                         if (surface == null) continue;
                         if (random.nextDouble() >= 0.0002) continue;
                         int surfaceY = serverLevel.getHeight(Heightmap.Types.WORLD_SURFACE, x, z) - 1;
@@ -284,10 +280,11 @@ public final class ArtifactSpotSpawnService {
         return false;
     }
 
-    private static SurfaceKind surfaceKindAt(int x, int z) {
+    private static SurfaceKind surfaceKindAt(ServerLevel level, int x, int z) {
+        int surfaceY = level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z) - 1;
         for (SpawnZone zone : ZONES) {
             for (ZoneRect rect : zone.rects) {
-                if (rect.contains(x, z)) {
+                if (rect.contains(x, z) && rect.containsSurfaceY(surfaceY)) {
                     return zone.surface;
                 }
             }
@@ -304,41 +301,39 @@ public final class ArtifactSpotSpawnService {
         BlockPos pos = new BlockPos(x, surfaceY, z);
         BlockState state = level.getBlockState(pos);
 
+        if (!isSurfaceYInZone(x, surfaceY, z, surface)) return false;
         if (!matchesSurface(state, surface)) return false;
 
         BlockPos above = pos.above();
         return level.getBlockState(above).isAir() && level.canSeeSky(above);
     }
 
+    private static boolean isSurfaceYInZone(int x, int y, int z, SurfaceKind surface) {
+        for (SpawnZone zone : ZONES) {
+            if (zone.surface != surface) continue;
+            for (ZoneRect rect : zone.rects) {
+                if (rect.contains(x, z) && rect.containsSurfaceY(y)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     /** 判断表面是否为该区域可生成远古斑点的原始方块。 */
     private static boolean matchesSurface(BlockState state, SurfaceKind surface) {
         return switch (surface) {
             case YELLOW_DIRT -> state.is(ModBlocks.YELLOW_DIRT.get());
-            case BEACH_SANDSTONE -> state.is(net.minecraft.world.level.block.Blocks.SANDSTONE)
-                    || state.is(net.minecraft.world.level.block.Blocks.SAND);
-            case DESERT_SANDSTONE -> isAnySandstone(state);
+            case BEACH_SAND, DESERT_SAND -> state.is(net.minecraft.world.level.block.Blocks.SAND);
         };
-    }
-
-    /** 匹配所有砂岩变种（普通/红色 × 原始/切制/雕纹/平滑）以及沙子。 */
-    private static boolean isAnySandstone(BlockState state) {
-        return state.is(net.minecraft.world.level.block.Blocks.SANDSTONE)
-                || state.is(net.minecraft.world.level.block.Blocks.CUT_SANDSTONE)
-                || state.is(net.minecraft.world.level.block.Blocks.CHISELED_SANDSTONE)
-                || state.is(net.minecraft.world.level.block.Blocks.SMOOTH_SANDSTONE)
-                || state.is(net.minecraft.world.level.block.Blocks.RED_SANDSTONE)
-                || state.is(net.minecraft.world.level.block.Blocks.CUT_RED_SANDSTONE)
-                || state.is(net.minecraft.world.level.block.Blocks.CHISELED_RED_SANDSTONE)
-                || state.is(net.minecraft.world.level.block.Blocks.SMOOTH_RED_SANDSTONE)
-                || state.is(net.minecraft.world.level.block.Blocks.SAND);
     }
 
     /** 返回该表面类型对应的远古斑点方块。 */
     private static Block spotBlockFor(SurfaceKind surface) {
         return switch (surface) {
             case YELLOW_DIRT -> ModBlocks.ARTIFACT_SPOT_DIRT.get();
-            case BEACH_SANDSTONE -> ModBlocks.BEACH_ARTIFACT_SPOT.get();
-            case DESERT_SANDSTONE -> ModBlocks.DESERT_ARTIFACT_SPOT.get();
+            case BEACH_SAND -> ModBlocks.BEACH_ARTIFACT_SPOT.get();
+            case DESERT_SAND -> ModBlocks.DESERT_ARTIFACT_SPOT.get();
         };
     }
 
@@ -354,8 +349,7 @@ public final class ArtifactSpotSpawnService {
     private static Block underlyingBlockFor(SurfaceKind surface) {
         return switch (surface) {
             case YELLOW_DIRT -> ModBlocks.YELLOW_DIRT.get();
-            case BEACH_SANDSTONE -> net.minecraft.world.level.block.Blocks.SAND;
-            case DESERT_SANDSTONE -> net.minecraft.world.level.block.Blocks.SANDSTONE;
+            case BEACH_SAND, DESERT_SAND -> net.minecraft.world.level.block.Blocks.SAND;
         };
     }
 
@@ -451,7 +445,7 @@ public final class ArtifactSpotSpawnService {
         if (!data.isDesertInitialized()) {
             RandomSource random = level.getRandom();
             for (SpawnZone zone : ZONES) {
-                if (zone.surface != SurfaceKind.DESERT_SANDSTONE) continue;
+                if (zone.surface != SurfaceKind.DESERT_SAND) continue;
                 // 削后的首次补扫概率：原 0.0008 → 0.0003，配合 DESERT_DAILY_CAP 与每区块上限
                 final double perBlockChance = 0.0003;
                 int placed = 0;

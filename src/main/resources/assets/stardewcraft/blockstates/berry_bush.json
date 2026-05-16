@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "part=main": { "model": "stardewcraft:block/bush/empty_berry" },
+    "part=extension": { "model": "stardewcraft:block/bush/empty_berry" }
+  }
+}

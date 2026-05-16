@@ -33,9 +33,9 @@ public class SystemTotemManager {
     private static final int SYSTEM_ID_DESERT = 3;
 
     /** 系统柱坐标 */
-    private static final BlockPos POS_MOUNTAIN = new BlockPos(-290, -14, 256);
-    private static final BlockPos POS_BEACH = new BlockPos(-189, -14, -142);
-    private static final BlockPos POS_DESERT = new BlockPos(-270, -41, 1389);
+    private static final BlockPos POS_MOUNTAIN = new BlockPos(75, 81, -105);
+    private static final BlockPos POS_BEACH = new BlockPos(44, 60, 93);
+    private static final BlockPos POS_DESERT = new BlockPos(-203, 64, -157);
 
     @SubscribeEvent
     public static void onLevelLoad(LevelEvent.Load event) {

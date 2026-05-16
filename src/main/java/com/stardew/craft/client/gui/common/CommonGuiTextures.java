@@ -106,6 +106,20 @@ public final class CommonGuiTextures {
     private static final SdvTexture SKILL_BAR_BIG_FILLED = SdvTexture.full(common("skill_bar_big_filled"), 14, 9);
     private static final SdvTexture SOCIAL_HEART_FILLED = SdvTexture.full(common("social_heart_filled"), 7, 6);
     private static final SdvTexture SOCIAL_HEART_EMPTY = SdvTexture.full(common("social_heart_empty"), 7, 6);
+    private static final SdvTexture[] POWER_ICONS = new SdvTexture[] {
+        SdvTexture.full(power("forest_magic"), 16, 16),
+        SdvTexture.full(power("dwarvish_translation_guide"), 16, 16),
+        SdvTexture.full(power("rusty_key"), 16, 16),
+        SdvTexture.full(power("club_card"), 16, 16),
+        SdvTexture.full(power("special_charm"), 16, 16),
+        SdvTexture.full(power("skull_key"), 16, 16),
+        SdvTexture.full(power("magnifying_glass"), 16, 16),
+        SdvTexture.full(power("dark_talisman"), 16, 16),
+        SdvTexture.full(power("magic_ink"), 16, 16),
+        SdvTexture.full(power("bear_paw"), 16, 16),
+        SdvTexture.full(power("spring_onion_mastery"), 16, 16),
+        SdvTexture.full(power("key_to_the_town"), 16, 16)
+    };
 
     private CommonGuiTextures() {
     }
@@ -460,6 +474,10 @@ public final class CommonGuiTextures {
         texture.drawPixelZoomTint(graphics, x, y, scale, red, green, blue, alpha);
     }
 
+    public static void drawPowerIconTint(GuiGraphics graphics, int x, int y, int powerIndex, float scale, float red, float green, float blue, float alpha) {
+        POWER_ICONS[clampFrame(powerIndex, POWER_ICONS.length)].drawPixelZoomTint(graphics, x, y, scale, red, green, blue, alpha);
+    }
+
     public static int itemSize(float scale) {
         return Math.round(16.0f * scale);
     }
@@ -528,6 +546,10 @@ public final class CommonGuiTextures {
 
     private static ResourceLocation common(String name) {
         return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/common/" + name + ".png");
+    }
+
+    private static ResourceLocation power(String name) {
+        return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/powers/" + name + ".png");
     }
 
     private static ResourceLocation animalQuery(String name) {

@@ -343,8 +343,8 @@ public class StardewTeleportCommand {
             }
 
             InteriorSubspaceManager.ensureLoaded(stardewLevel, "manual_tp_origin");
-            ModTeleport.to(player, stardewLevel, 12032.5D, 70.0D, 12032.5D, player.getYRot(), player.getXRot());
-            context.getSource().sendSuccess(() -> Component.literal("已传送到室内结构原点附近: 12032 70 12032"), false);
+            ModTeleport.to(player, stardewLevel, 21.5D, 36.0D, -12.5D, 180.0F, 0.0F);
+            context.getSource().sendSuccess(() -> Component.literal("已传送到内嵌 SeedShop 室内落点: 21 36 -12"), false);
             return 1;
         } catch (Exception e) {
             sendFailureMsg(context, "传送室内原点失败: " + e.getMessage());

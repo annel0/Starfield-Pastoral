@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 
 /**
  * 玩家星露谷数据 API
@@ -748,6 +749,59 @@ public class PlayerStardewDataAPI {
             PlayerDataEventHandler.syncPlayerData(player, data);
         }
         return changed;
+    }
+
+    public static void recordGiftGiven(ServerPlayer player) {
+        if (player == null) {
+            return;
+        }
+        PlayerStardewData data = getData(player);
+        data.recordGiftGiven();
+        PlayerDataEventHandler.syncPlayerData(player, data);
+    }
+
+    public static void recordCombatDeath(ServerPlayer player) {
+        if (player == null) {
+            return;
+        }
+        PlayerStardewData data = getData(player);
+        data.recordCombatDeath();
+        PlayerDataEventHandler.syncPlayerData(player, data);
+    }
+
+    public static void record2AmPassOut(ServerPlayer player) {
+        if (player == null) {
+            return;
+        }
+        PlayerStardewData data = getData(player);
+        data.record2AmPassOut();
+        PlayerDataEventHandler.syncPlayerData(player, data);
+    }
+
+    public static void recordExhaustionPassOut(ServerPlayer player) {
+        if (player == null) {
+            return;
+        }
+        PlayerStardewData data = getData(player);
+        data.recordExhaustionPassOut();
+        PlayerDataEventHandler.syncPlayerData(player, data);
+    }
+
+    public static void recordAnimalProductsCollected(ServerPlayer player, int amount) {
+        if (player == null || amount <= 0) {
+            return;
+        }
+        PlayerStardewData data = getData(player);
+        data.recordAnimalProductsCollected(amount);
+        PlayerDataEventHandler.syncPlayerData(player, data);
+    }
+
+    public static void recordAnimalProductsCollected(UUID playerId, int amount) {
+        if (playerId == null || amount <= 0) {
+            return;
+        }
+        PlayerStardewData data = PlayerDataManager.getPlayerData(playerId);
+        data.recordAnimalProductsCollected(amount);
     }
 
     public static boolean applyUnlockSource(ServerPlayer player, String sourceId) {

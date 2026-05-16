@@ -1,0 +1,41 @@
+{
+  "id": "pierre_year_one_seed_notice_wake_up",
+  "skippable": false,
+  "trigger": { "type": "wake_up" },
+  "preconditions": [
+    { "type": "not_saw_event", "id": "pierre_year_one_seed_notice_wake_up" },
+    { "type": "season", "season": "winter" },
+    { "type": "day_of_week", "days": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] },
+    { "type": "days_played", "min": 85, "max": 112 }
+  ],
+  "commands": [
+    { "cmd": "comment", "text": "=== SDV Farm Event 102: Pierre year-one seed notice ===" },
+
+    { "cmd": "lock_player" },
+    { "cmd": "fade", "mode": "out", "ticks": 10 },
+
+    { "cmd": "warp", "actor": "player", "x": 0, "y": 0, "z": 0, "anchor": "farm_spawn" },
+    { "cmd": "face_actor", "actor": "player", "yaw": 90 },
+
+    { "cmd": "spawn_actor", "actor": "fake_player", "npc_id": "player",
+      "x": 0, "y": 0, "z": 0, "facing": 90, "anchor": "farm_spawn" },
+
+    { "cmd": "spawn_actor", "actor": "pierre", "npc_id": "pierre",
+      "x": -2, "y": 0, "z": 0, "facing": -90, "anchor": "farm_spawn" },
+
+    { "cmd": "camera", "x": -2.432, "y": 0.378, "z": 2.928,
+      "yaw": -141.4, "pitch": 13.5, "anchor": "farm_spawn" },
+
+    { "cmd": "fade", "mode": "in", "ticks": 20 },
+    { "cmd": "pause", "ticks": 30 },
+
+    { "cmd": "speak", "npc_id": "pierre", "text": "event.pierre_seed_notice.greeting" },
+    { "cmd": "speak", "npc_id": "pierre", "text": "event.pierre_seed_notice.new_seeds" },
+    { "cmd": "speak", "npc_id": "pierre", "text": "event.pierre_seed_notice.competitor" },
+
+    { "cmd": "remove_actor", "actor": "pierre" },
+    { "cmd": "remove_actor", "actor": "fake_player" },
+    { "cmd": "unlock_player" },
+    { "cmd": "end" }
+  ]
+}

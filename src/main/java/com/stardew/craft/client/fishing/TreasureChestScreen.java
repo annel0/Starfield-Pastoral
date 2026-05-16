@@ -1,6 +1,7 @@
 package com.stardew.craft.client.fishing;
 
 
+import com.stardew.craft.client.gui.common.GuiText;
 import com.stardew.craft.fishing.TreasureChestMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -55,9 +56,13 @@ public class TreasureChestScreen extends AbstractContainerScreen<TreasureChestMe
 				? Component.translatable("stardewcraft.treasure.golden.title")
 				: Component.translatable("stardewcraft.treasure.title");
 		int titleColor = this.menu.isGolden() ? 0xFFD700 : 0x404040;
-		graphics.drawString(this.font, title, this.titleLabelX, this.titleLabelY, titleColor, false);
+		int titleMaxWidth = this.imageWidth - this.titleLabelX - 8;
+		graphics.drawString(this.font, GuiText.ellipsize(this.font, title, titleMaxWidth),
+				this.titleLabelX, this.titleLabelY, titleColor, false);
 		
 		// 绘制"背包"文字
-		graphics.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY, 0x404040, false);
+		int inventoryMaxWidth = this.imageWidth - this.inventoryLabelX - 8;
+		graphics.drawString(this.font, GuiText.ellipsize(this.font, this.playerInventoryTitle, inventoryMaxWidth),
+				this.inventoryLabelX, this.inventoryLabelY, 0x404040, false);
 	}
 }

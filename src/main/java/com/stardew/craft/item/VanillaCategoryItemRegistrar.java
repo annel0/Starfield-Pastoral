@@ -15,6 +15,7 @@ public final class VanillaCategoryItemRegistrar {
     private record Entry(String id, String typeKey, int price, int edibility, boolean supportsQuality) {}
 
     private static final List<Entry> ENTRIES = List.of(
+        new Entry("lumber", "stardewcraft.type.resource", 2, 10, false),
         new Entry("wild_horseradish", "stardewcraft.type.forage", 50, 5, true),
         new Entry("daffodil", "stardewcraft.type.forage", 30, 0, true),
         new Entry("leek", "stardewcraft.type.forage", 60, 16, true),
@@ -44,6 +45,7 @@ public final class VanillaCategoryItemRegistrar {
         new Entry("crocus", "stardewcraft.type.forage", 60, 0, true),
         new Entry("vinegar", "stardewcraft.type.cooking_ingredient", 100, 5, false),
         new Entry("rice", "stardewcraft.type.cooking_ingredient", 100, 5, false),
+        new Entry("unmilled_rice", "stardewcraft.type.crop", 30, 1, true),
         new Entry("rice_shoot", "stardewcraft.type.seed", 20, -300, false),
         new Entry("apple", "stardewcraft.type.fruit", 100, 15, true),
         new Entry("apricot", "stardewcraft.type.fruit", 50, 15, true),
@@ -56,6 +58,7 @@ public final class VanillaCategoryItemRegistrar {
         new Entry("taro_root", "stardewcraft.type.cooking_ingredient", 100, 15, true),
         new Entry("pineapple", "stardewcraft.type.cooking_ingredient", 300, 55, true),
         new Entry("mango", "stardewcraft.type.fruit", 130, 40, true),
+        new Entry("qi_fruit", "stardewcraft.type.crop", 1, 1, true),
         new Entry("salmonberry", "stardewcraft.type.forage", 75, 10, true)
     );
 

@@ -4,65 +4,65 @@
   "_format": "time -> \"location @namedPointId facing [behavior]\"",
 
   "GreenRain": {
-    "610": "samhouse @vincent_samhouse_play 3"
+    "610": "samhouse @vincent_samhouse_play 0"
   },
 
   "rain": {
-    "900": "samhouse @vincent_samhouse_play 3",
-    "1400": "samhouse @vincent_samhouse_kitchen 1",
+    "900": "samhouse @vincent_samhouse_play 0",
+    "1400": "samhouse @vincent_samhouse_kitchen 2",
     "2000": "samhouse @vincent_samhouse_sleep 2"
   },
 
   "summer": {
-    "900": "samhouse @vincent_samhouse_play 3",
-    "1100": "beach @vincent_beach_play 3",
-    "1700": "samhouse @vincent_samhouse_kitchen 1",
+    "900": "samhouse @vincent_samhouse_play 0",
+    "1100": "beach @vincent_beach_play 2",
+    "1700": "samhouse @vincent_samhouse_kitchen 2",
     "2000": "samhouse @vincent_samhouse_sleep 2"
   },
 
   "Tue": {
-    "900": "samhouse @vincent_samhouse_play 3",
-    "1030": "museum @vincent_museum_read 1",
-    "1400": "town @vincent_town_playground 3",
-    "1700": "samhouse @vincent_samhouse_kitchen 1",
+    "900": "samhouse @vincent_samhouse_play 0",
+    "1030": "museum @vincent_museum_read 3",
+    "1400": "town @vincent_town_playground 2",
+    "1700": "samhouse @vincent_samhouse_kitchen 2",
     "2000": "samhouse @vincent_samhouse_sleep 2"
   },
 
   "Wed": {
-    "900": "samhouse @vincent_samhouse_play 3",
-    "1030": "museum @vincent_museum_read 1",
-    "1400": "town @vincent_town_playground 3",
-    "1700": "samhouse @vincent_samhouse_kitchen 1",
+    "900": "samhouse @vincent_samhouse_play 0",
+    "1030": "museum @vincent_museum_read 3",
+    "1400": "town @vincent_town_playground 2",
+    "1700": "samhouse @vincent_samhouse_kitchen 2",
     "2000": "samhouse @vincent_samhouse_sleep 2"
   },
 
   "Fri": {
-    "900": "samhouse @vincent_samhouse_play 3",
-    "1030": "museum @vincent_museum_read 1",
-    "1400": "town @vincent_town_playground 3",
-    "1700": "samhouse @vincent_samhouse_kitchen 1",
+    "900": "samhouse @vincent_samhouse_play 0",
+    "1030": "museum @vincent_museum_read 3",
+    "1400": "town @vincent_town_playground 2",
+    "1700": "samhouse @vincent_samhouse_kitchen 2",
     "2000": "samhouse @vincent_samhouse_sleep 2"
   },
 
   "Sat": {
-    "900": "samhouse @vincent_samhouse_play 3",
-    "1100": "town @vincent_town_playground 3",
-    "1500": "town @vincent_town_walk 1",
-    "1700": "samhouse @vincent_samhouse_kitchen 1",
+    "900": "samhouse @vincent_samhouse_play 0",
+    "1100": "town @vincent_town_playground 2",
+    "1500": "town @vincent_town_walk 2",
+    "1700": "samhouse @vincent_samhouse_kitchen 2",
     "2000": "samhouse @vincent_samhouse_sleep 2"
   },
 
   "spring": {
-    "900": "samhouse @vincent_samhouse_play 3",
-    "1200": "town @vincent_town_playground 3",
-    "1700": "samhouse @vincent_samhouse_kitchen 1",
+    "900": "samhouse @vincent_samhouse_play 0",
+    "1200": "town @vincent_town_playground 2",
+    "1700": "samhouse @vincent_samhouse_kitchen 2",
     "2000": "samhouse @vincent_samhouse_sleep 2"
   },
 
   "default": {
-    "900": "samhouse @vincent_samhouse_play 3",
-    "1200": "town @vincent_town_playground 3",
-    "1700": "samhouse @vincent_samhouse_kitchen 1",
+    "900": "samhouse @vincent_samhouse_play 0",
+    "1200": "town @vincent_town_playground 2",
+    "1700": "samhouse @vincent_samhouse_kitchen 2",
     "2000": "samhouse @vincent_samhouse_sleep 2"
   }
 }

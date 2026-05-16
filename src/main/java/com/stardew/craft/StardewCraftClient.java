@@ -374,6 +374,10 @@ public class StardewCraftClient {
                 net.minecraft.client.renderer.RenderType.translucent()
             );
             net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
+                ModBlocks.FISH_SHOP_COUNTER.get(),
+                net.minecraft.client.renderer.RenderType.translucent()
+            );
+            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
                 ModBlocks.LIGHTNING_ROD.get(),
                 net.minecraft.client.renderer.RenderType.translucent()
             );

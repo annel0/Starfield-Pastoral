@@ -1,0 +1,9 @@
+{
+  "npc_id": "krobus",
+  "override_vanilla": true,
+  "_format": "time -> \"location @namedPointId facing [behavior]\"",
+  "_note": "Krobus stays in the sewer all day and does not path.",
+  "default": {
+    "600": "sewer @krobus_sewer_shop 2"
+  }
+}

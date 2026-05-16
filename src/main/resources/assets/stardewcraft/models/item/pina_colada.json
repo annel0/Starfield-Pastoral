@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "stardewcraft:item/misc/pina_colada",
+    "particle": "stardewcraft:item/misc/pina_colada"
+  }
+}

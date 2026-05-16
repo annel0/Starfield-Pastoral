@@ -54,6 +54,24 @@ public class WildWeedsBlock extends Block {
 
 	@SuppressWarnings("null")
 	@Override
+	public boolean propagatesSkylightDown(BlockState state, BlockGetter level, BlockPos pos) {
+		return true;
+	}
+
+	@SuppressWarnings("null")
+	@Override
+	public int getLightBlock(BlockState state, BlockGetter level, BlockPos pos) {
+		return 0;
+	}
+
+	@SuppressWarnings("null")
+	@Override
+	public float getShadeBrightness(BlockState state, BlockGetter level, BlockPos pos) {
+		return 1.0F;
+	}
+
+	@SuppressWarnings("null")
+	@Override
 	public @Nullable BlockState getStateForPlacement(@SuppressWarnings("null") BlockPlaceContext context) {
 		int season = StardewTimeManager.get().getCurrentSeason();
 		if (context.getLevel().dimension() != ModDimensions.STARDEW_VALLEY) {

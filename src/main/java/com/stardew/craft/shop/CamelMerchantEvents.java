@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * 沙漠骆驼商人占位逻辑（GeckoLib 自定义实体 {@link CamelMerchantEntity}）。
  * <ul>
- *   <li>位置固定 (-255, -42, 1310)，朝南（yaw=0），无 AI、不可移动、不可受伤、不可消失。</li>
+ *   <li>位置固定，朝南（yaw=0），无 AI、不可移动、不可受伤、不可消失。</li>
  *   <li>每存档持久化管理，玩家靠近时确保唯一实例。</li>
  *   <li>右键交互不会触发原版交易，直接打开 ShopRegistry "DesertTrade"。</li>
  *   <li>多人服务器安全：所有逻辑均运行在服务端单线程内。</li>
@@ -37,7 +37,7 @@ public final class CamelMerchantEvents {
     private static final String MARKER_TAG = "stardewcraft_camel_merchant";
 
     /** 固定位置（沙漠骆驼商人）。 */
-    public static final BlockPos POS = new BlockPos(-255, -42, 1310);
+    public static final BlockPos POS = new BlockPos(-193, 64, -185);
 
     /** 朝南，yaw=0；MC 中南方向 = +Z。 */
     private static final float FACING_YAW = 0.0f;
@@ -47,9 +47,6 @@ public final class CamelMerchantEvents {
 
     /** 重复实体清理 / 位置矫正的检测半径（方块）。 */
     private static final double SCAN_RADIUS = 6.0;
-
-    /** 仅在玩家距离骆驼商人 ≤ 此距离时才尝试加载/巡检（避免无玩家时强加载区块）。 */
-    private static final double PLAYER_NEAR_DISTANCE_SQ = 128.0 * 128.0;
 
     private static int tickCounter = 0;
 
@@ -63,16 +60,15 @@ public final class CamelMerchantEvents {
         ServerLevel level = event.getServer().getLevel(ModDimensions.STARDEW_VALLEY);
         if (level == null) return;
 
-        boolean anyPlayerNear = false;
-        for (ServerPlayer p : level.players()) {
-            if (p.blockPosition().distSqr(POS) <= PLAYER_NEAR_DISTANCE_SQ) {
-                anyPlayerNear = true;
-                break;
-            }
-        }
-        if (!anyPlayerNear) return;
-
+        loadSpawnChunk(level);
         ensureSingleEntity(level);
+    }
+
+    private static void loadSpawnChunk(ServerLevel level) {
+        int chunkX = POS.getX() >> 4;
+        int chunkZ = POS.getZ() >> 4;
+        level.setChunkForced(chunkX, chunkZ, true);
+        level.getChunk(chunkX, chunkZ);
     }
 
     private static void ensureSingleEntity(ServerLevel level) {
@@ -102,8 +98,14 @@ public final class CamelMerchantEvents {
         List<CamelMerchantEntity> nearby = level.getEntitiesOfClass(
                 CamelMerchantEntity.class, scanBox,
                 e -> e.getTags().contains(MARKER_TAG));
+
+        if (managed == null && !nearby.isEmpty()) {
+            managed = nearby.get(0);
+            mgr.setVillagerUuid(managed.getUUID());
+        }
+
         for (CamelMerchantEntity e : nearby) {
-            if (managed == null || !e.getUUID().equals(managed.getUUID())) {
+            if (!e.getUUID().equals(managed.getUUID())) {
                 e.discard();
             }
         }
@@ -141,6 +143,14 @@ public final class CamelMerchantEvents {
             return null;
         }
         return e;
+    }
+
+    public static void forceCheckNow(ServerLevel level) {
+        if (level == null) {
+            return;
+        }
+        loadSpawnChunk(level);
+        ensureSingleEntity(level);
     }
 
     /** 每个 tick 强制把实体锁死在固定位置/朝向 + 各种状态位上，防止任何外力扰动。 */

@@ -1,6 +1,7 @@
 package com.stardew.craft.client.gui;
 
 import com.stardew.craft.client.gui.common.CommonGuiTextures;
+import com.stardew.craft.client.gui.common.GuiText;
 import com.stardew.craft.client.gui.common.StardewRenderMapping;
 import com.stardew.craft.network.payload.JukeboxSelectPayload;
 import com.stardew.craft.sound.JukeboxTrackRegistry;
@@ -181,7 +182,7 @@ public class JukeboxScreen extends Screen {
      * 使用 Cursors (325,318,12,18) / (337,318,1,18) / (338,318,12,18)
      */
     private void drawScrollTitle(GuiGraphics graphics) {
-        Component title = Component.translatable("stardewcraft.jukebox.title");
+        Component title = GuiText.ellipsize(font, Component.translatable("stardewcraft.jukebox.title"), Math.max(1, menuW - px(64)));
         int textWidth = font.width(title);
 
         int centerX = menuX + menuW / 2;
@@ -204,7 +205,7 @@ public class JukeboxScreen extends Screen {
     private void drawSongPanel(GuiGraphics graphics) {
         // 使用最大宽度字符串计算面板宽度（和 SDV 一样固定宽度）
         int maxTextWidth = font.width(MAX_WIDTH_STRING);
-        int panelW = maxTextWidth + px(32);
+        int panelW = Math.min(maxTextWidth + px(32), Math.max(px(96), menuW - px(32)));
         int panelH = px(80);
         int panelX = menuX + menuW / 2 - panelW / 2;
         int panelY = menuY + px(64 - 4);
@@ -222,9 +223,10 @@ public class JukeboxScreen extends Screen {
 
         int centerX = menuX + menuW / 2;
         int textY = menuY + menuH / 2 - px(16);
+        int maxWidth = Math.min(font.width(MAX_WIDTH_STRING), Math.max(1, menuW - px(64)));
 
         // SDV: drawTextWithShadow — Game1.textColor (0xFF5B5045)
-        graphics.drawCenteredString(font, songName, centerX, textY, 0xFF5B5045);
+        GuiText.drawCenteredClamped(graphics, font, songName, centerX, textY, maxWidth, 0xFF5B5045, false);
     }
 
     /**

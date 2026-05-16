@@ -3,6 +3,7 @@ package com.stardew.craft.client.gui;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.client.farm.FarmJoinClientState;
+import com.stardew.craft.client.gui.common.GuiText;
 import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
 import com.stardew.craft.farm.FarmType;
 import com.stardew.craft.network.payload.FarmSelectionSubmitPayload;
@@ -279,9 +280,8 @@ public class FarmSelectionScreen extends Screen {
         // 标题
         Component title = Component.translatable("gui.stardewcraft.farm_selection.title")
                 .withStyle(ChatFormatting.BOLD);
-        int titleW = this.font.width(title);
-        graphics.drawString(this.font, title,
-                panelX + (panelW - titleW) / 2, contentY + ui(12), 0x582A11, false);
+        GuiText.drawCenteredClamped(graphics, this.font, title,
+            panelX + panelW / 2, contentY + ui(12), contentW, 0x582A11, false);
 
         // 标题下方水平分隔线
         StardewGuiUtil.drawHorizontalPartition(graphics, panelX, partY, panelW, s4());
@@ -359,7 +359,9 @@ public class FarmSelectionScreen extends Screen {
             int nameColor = isSelected ? 0x582A11 : (isUnlocked ? 0x3E2723 : 0x9E9E9E);
             int nameX = iconX + iconW + ui(10);
             int nameY = ry + (rowH - this.font.lineHeight) / 2;
-            graphics.drawString(this.font, name, nameX, nameY, nameColor, false);
+            int checkW = isSelected && isUnlocked ? this.font.width("\u2714") + ui(8) : 0;
+            int nameMaxW = Math.max(1, listX + listW - ui(8) - checkW - nameX);
+            graphics.drawString(this.font, GuiText.ellipsize(this.font, Component.literal(name), nameMaxW), nameX, nameY, nameColor, false);
 
             // 选中勾号
             if (isSelected && isUnlocked) {
@@ -393,7 +395,7 @@ public class FarmSelectionScreen extends Screen {
         // 类型大标题（与右栏顶端留出间距）
         Component displayName = Component.literal(selectedType.getDisplayName().getString())
                 .withStyle(ChatFormatting.BOLD);
-        graphics.drawString(this.font, displayName, rightX, rightY + ui(8), 0x582A11, false);
+        graphics.drawString(this.font, GuiText.ellipsize(this.font, displayName, rightW - ui(8)), rightX, rightY + ui(8), 0x582A11, false);
 
         // 描述文字（标题下方留出 28sdv px 间距，自动折行）
         int descY = rightY + ui(36);
@@ -408,7 +410,7 @@ public class FarmSelectionScreen extends Screen {
         // ---- 名称输入区域 ----
         // "农场名称：" 标签
         String nameLabel = Component.translatable("gui.stardewcraft.farm_selection.farm_name").getString();
-        graphics.drawString(this.font, nameLabel, rightX, nameAreaY, 0x582A11, false);
+        graphics.drawString(this.font, GuiText.ellipsize(this.font, Component.literal(nameLabel), rightW - ui(8)), rightX, nameAreaY, 0x582A11, false);
 
         // 下划线（位于 EditBox 下方）
         int lineY = nameField.getY() + nameField.getHeight() + 2;
@@ -468,9 +470,10 @@ public class FarmSelectionScreen extends Screen {
 
         Component text = Component.translatable("gui.stardewcraft.farm_selection.join_farm");
         int textColor = hovered ? 0x582A11 : 0x8D6E63;
-        int tw = this.font.width(text);
-        graphics.drawString(this.font, text,
-                joinBtnX + (joinBtnW - tw) / 2,
+        Component shown = GuiText.ellipsize(this.font, text, joinBtnW - ui(12));
+        int tw = this.font.width(shown);
+        graphics.drawString(this.font, shown,
+            joinBtnX + (joinBtnW - tw) / 2,
                 joinBtnY + (joinBtnH - this.font.lineHeight) / 2,
                 textColor, false);
     }

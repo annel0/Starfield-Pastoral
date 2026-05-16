@@ -1,6 +1,7 @@
 package com.stardew.craft.client.gui;
 
 import com.stardew.craft.block.utility.WoodenChestColorPalette;
+import com.stardew.craft.client.gui.common.GuiText;
 import com.stardew.craft.menu.StoneChestMenu;
 import com.stardew.craft.network.payload.StoneChestColorSelectPayload;
 import net.minecraft.client.gui.GuiGraphics;
@@ -66,8 +67,10 @@ public class StoneChestScreen extends AbstractContainerScreen<StoneChestMenu> {
 
     @Override
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-        graphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 0x404040, false);
-        graphics.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY, 0x404040, false);
+        graphics.drawString(this.font, GuiText.ellipsize(this.font, this.title, this.imageWidth - this.titleLabelX - 8),
+            this.titleLabelX, this.titleLabelY, 0x404040, false);
+        graphics.drawString(this.font, GuiText.ellipsize(this.font, this.playerInventoryTitle, this.imageWidth - this.inventoryLabelX - 8),
+            this.inventoryLabelX, this.inventoryLabelY, 0x404040, false);
     }
 
     @Override

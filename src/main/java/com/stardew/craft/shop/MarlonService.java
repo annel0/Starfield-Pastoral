@@ -22,13 +22,13 @@ import java.util.List;
 @SuppressWarnings("null")
 public final class MarlonService {
 
-    // Counter area: (17669,71,17090) to (17670,73,17096) — adventure guild
-    private static final int COUNTER_MIN_X = 17669;
-    private static final int COUNTER_MAX_X = 17670;
-    private static final int COUNTER_MIN_Y = 71;
-    private static final int COUNTER_MAX_Y = 73;
-    private static final int COUNTER_MIN_Z = 17090;
-    private static final int COUNTER_MAX_Z = 17096;
+    // Counter area: (107,59,-144) to (101,62,-147) — adventure guild
+    private static final int COUNTER_MIN_X = 101;
+    private static final int COUNTER_MAX_X = 107;
+    private static final int COUNTER_MIN_Y = 59;
+    private static final int COUNTER_MAX_Y = 62;
+    private static final int COUNTER_MIN_Z = -147;
+    private static final int COUNTER_MAX_Z = -144;
 
     private MarlonService() {}
 

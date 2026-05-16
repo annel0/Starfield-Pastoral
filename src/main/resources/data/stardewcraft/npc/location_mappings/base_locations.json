@@ -53,9 +53,6 @@
       "use_schedule_tile_offset": false
     },
     "seedshop": {
-      "x": 12032.5,
-      "y": 71.0,
-      "z": 12032.5,
       "indoor": true,
       "portal_target": "pierre_house_enter",
       "use_ground_height": false,
@@ -64,9 +61,6 @@
       "indoor_entry_point": "seedshop_inner_entry"
     },
     "manorhouse": {
-      "x": 14786.5,
-      "y": 71.0,
-      "z": 14789.5,
       "indoor": true,
       "portal_target": "mayor_house_enter",
       "use_ground_height": false,
@@ -74,9 +68,6 @@
       "indoor_entry_point": "manorhouse_indoor_entry"
     },
     "hospital": {
-      "x": 15362.5,
-      "y": 71.0,
-      "z": 15371.5,
       "indoor": true,
       "portal_target": "clinic_enter",
       "use_ground_height": false,
@@ -84,9 +75,6 @@
       "indoor_entry_point": "clinic_indoor_entry"
     },
     "animalshop": {
-      "x": 17090.5,
-      "y": 71.0,
-      "z": 18255.5,
       "indoor": true,
       "portal_target": "marnie_ranch_enter",
       "use_ground_height": false,
@@ -94,9 +82,6 @@
       "indoor_entry_point": "animalshop_indoor_entry"
     },
     "archaeologyhouse": {
-      "x": 13066.5,
-      "y": 71.0,
-      "z": 13061.5,
       "indoor": true,
       "portal_target": "museum_enter",
       "use_ground_height": false,
@@ -104,23 +89,16 @@
       "indoor_entry_point": "museum_indoor_entry"
     },
     "adventurer_guild": {
-      "x": 17664.5,
-      "y": 71.0,
-      "z": 17088.5,
       "indoor": true,
+      "portal_target": "adventurer_guild_enter",
       "use_ground_height": false
     },
     "oasis": {
-      "x": 18245.5,
-      "y": 71.0,
-      "z": 17666.5,
       "indoor": true,
+      "portal_target": "oasis_enter",
       "use_ground_height": false
     },
     "sciencehouse": {
-      "x": 16525.5,
-      "y": 75.0,
-      "z": 16519.5,
       "indoor": true,
       "portal_target": "carpenter_shop_enter",
       "use_ground_height": false,
@@ -128,9 +106,6 @@
       "indoor_entry_point": "sciencehouse_indoor_entry"
     },
     "sebastianroom": {
-      "x": 16519.5,
-      "y": 71.0,
-      "z": 16535.5,
       "indoor": true,
       "portal_target": "carpenter_shop_enter",
       "use_ground_height": false,
@@ -153,9 +128,6 @@
       "use_ground_height": true
     },
     "saloon": {
-      "x": 14210.5,
-      "y": 71.0,
-      "z": 14225.5,
       "indoor": true,
       "portal_target": "saloon_enter",
       "use_ground_height": false,
@@ -191,17 +163,12 @@
       "use_ground_height": true
     },
     "fishshop": {
-      "x": -237.0,
-      "y": -15.0,
-      "z": -212.0,
       "indoor": false,
+      "portal_target": "fish_shop_enter",
       "use_ground_height": true,
       "outdoor_door_point": "fishshop_outer"
     },
     "samhouse": {
-      "x": 17090.5,
-      "y": 71.0,
-      "z": 17093.5,
       "indoor": true,
       "portal_target": "1_willow_lane_enter",
       "use_ground_height": false,
@@ -209,16 +176,11 @@
       "indoor_entry_point": "samhouse_indoor_entry"
     },
     "jojamart": {
-      "x": -292.0,
-      "y": -16.0,
-      "z": 59.0,
       "indoor": false,
+      "portal_target": "joja_mart_enter",
       "use_ground_height": true
     },
     "blacksmith": {
-      "x": 13635.5,
-      "y": 71.0,
-      "z": 13640.5,
       "indoor": true,
       "portal_target": "blacksmith_enter",
       "use_ground_height": false,
@@ -226,9 +188,6 @@
       "indoor_entry_point": "blacksmith_indoor_entry"
     },
     "elliotthouse": {
-      "x": 17666.5,
-      "y": 71.0,
-      "z": 18243.5,
       "indoor": true,
       "portal_target": "elliott_cabin_enter",
       "use_ground_height": false,
@@ -236,9 +195,6 @@
       "indoor_entry_point": "elliotthouse_indoor_entry"
     },
     "haleyhouse": {
-      "x": 17092.5,
-      "y": 71.0,
-      "z": 17666.5,
       "indoor": true,
       "portal_target": "2_willow_lane_enter",
       "use_ground_height": false,
@@ -246,9 +202,6 @@
       "indoor_entry_point": "haleyhouse_indoor_entry"
     },
     "joshhouse": {
-      "x": 15939.5,
-      "y": 71.0,
-      "z": 15948.5,
       "indoor": true,
       "portal_target": "1_river_road_enter",
       "use_ground_height": false,
@@ -263,9 +216,6 @@
       "use_ground_height": true
     },
     "leahhouse": {
-      "x": 17094.5,
-      "y": 71.0,
-      "z": 18823.5,
       "indoor": true,
       "portal_target": "leah_cottage_enter",
       "use_ground_height": false,
@@ -273,10 +223,8 @@
       "indoor_entry_point": "leahhouse_indoor_entry"
     },
     "wizard_tower": {
-      "x": 18249.5,
-      "y": 71.0,
-      "z": 17095.5,
       "indoor": true,
+      "portal_target": "wizard_tower_enter",
       "use_ground_height": false
     }
   }

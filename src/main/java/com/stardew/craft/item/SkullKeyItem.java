@@ -1,6 +1,7 @@
 package com.stardew.craft.item;
 
 import com.stardew.craft.communitycenter.state.CCStoryFlags;
+import com.stardew.craft.player.PlayerDataEventHandler;
 import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.PlayerStardewData;
 import net.minecraft.network.chat.Component;
@@ -63,8 +64,18 @@ public class SkullKeyItem extends Item implements IStardewItem {
         if (level.isClientSide) return;
         if (!(entity instanceof ServerPlayer sp)) return;
         PlayerStardewData data = PlayerDataManager.getPlayerData(sp);
+        boolean changed = false;
         if (!data.hasMailFlag(CCStoryFlags.HAS_SKULL_KEY)) {
             data.addMailFlag(CCStoryFlags.HAS_SKULL_KEY);
+            changed = true;
+        }
+        if (!data.hasSpecialItem(CCStoryFlags.SKULL_KEY_SPECIAL_ITEM)) {
+            data.addSpecialItem(CCStoryFlags.SKULL_KEY_SPECIAL_ITEM);
+            changed = true;
+        }
+        if (changed) {
+            PlayerDataManager.get().savePlayerData(sp.getUUID(), data);
+            PlayerDataEventHandler.syncPlayerData(sp, data);
             sp.playSound(net.minecraft.sounds.SoundEvents.PLAYER_LEVELUP, 1.0f, 1.0f);
             sp.sendSystemMessage(Component.translatable("stardewcraft.item.skull_key.obtained"));
         }

@@ -21,9 +21,9 @@ import java.util.List;
 public final class RobinService {
 
     // Counter AABB (world coordinates)
-    private static final int COUNTER_MIN_X = 16526, COUNTER_MAX_X = 16528;
-    private static final int COUNTER_MIN_Y = 75,    COUNTER_MAX_Y = 77;
-    private static final int COUNTER_MIN_Z = 16518, COUNTER_MAX_Z = 16523;
+    private static final int COUNTER_MIN_X = 28, COUNTER_MAX_X = 33;
+    private static final int COUNTER_MIN_Y = 51, COUNTER_MAX_Y = 53;
+    private static final int COUNTER_MIN_Z = -120, COUNTER_MAX_Z = -117;
 
     private static final List<CarpenterBlueprint> BLUEPRINTS = List.of(
         new CarpenterBlueprint(

@@ -1,5 +1,6 @@
 package com.stardew.craft.client.gui;
 
+import com.stardew.craft.client.gui.common.GuiText;
 import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
 import com.stardew.craft.network.payload.GilClaimRewardPayload;
 import com.stardew.craft.network.payload.OpenGilGoalsPayload;
@@ -82,7 +83,7 @@ public class GilGoalsScreen extends Screen {
 
         // Title — centered
         int titleY = boxY + 20;
-        g.drawCenteredString(font, title, boxX + boxW / 2, titleY, COL_TITLE);
+        GuiText.drawCenteredClamped(g, font, title, boxX + boxW / 2, titleY, boxW - INNER_PAD * 2, COL_TITLE, false);
 
         // Separator line below title
         int sepY = titleY + font.lineHeight + 6;
@@ -118,7 +119,8 @@ public class GilGoalsScreen extends Screen {
         String hint = goals.stream().anyMatch(g2 -> g2.currentKills() >= g2.requiredKills() && !g2.claimed())
             ? "\u2728 " + Component.translatable("stardewcraft.gil.hint_ready").getString()
             : Component.translatable("stardewcraft.gil.hint_keep").getString();
-        g.drawCenteredString(font, hint, boxX + boxW / 2, boxY + boxH - 18, 0xFF9E9E9E);
+        GuiText.drawCenteredClamped(g, font, Component.literal(hint), boxX + boxW / 2, boxY + boxH - 18,
+            boxW - INNER_PAD * 2, 0xFF9E9E9E, false);
     }
 
     private void drawGoalRow(GuiGraphics g, int index, int rowY, int mouseX, int mouseY) {
@@ -141,7 +143,8 @@ public class GilGoalsScreen extends Screen {
             ? Component.translatable(registry.translationKey())
             : Component.literal(goal.goalKey());
         int nameColor = claimed ? COL_CLAIMED : COL_NAME;
-        g.drawString(font, goalName, leftX, rowY + 4, nameColor);
+        int nameMaxW = Math.max(20, rightEdge - leftX - BAR_WIDTH - 52);
+        g.drawString(font, GuiText.ellipsize(font, goalName, nameMaxW), leftX, rowY + 4, nameColor);
 
         // Progress bar
         int barX = leftX;
@@ -172,7 +175,7 @@ public class GilGoalsScreen extends Screen {
             g.drawString(font, "\u2713", rightEdge - font.width("\u2713"), rowY + 10, COL_CHECK);
         } else if (completed) {
             // Draw claim button
-            int btnW = font.width(Component.translatable("stardewcraft.gil.claim").getString()) + 12;
+            int btnW = Math.min(font.width(Component.translatable("stardewcraft.gil.claim").getString()) + 12, Math.max(40, rightEdge - (barX + BAR_WIDTH + 50)));
             int btnH = 16;
             int btnX = rightEdge - btnW;
             int btnY = rowY + 8;
@@ -181,8 +184,8 @@ public class GilGoalsScreen extends Screen {
             g.fill(btnX, btnY, btnX + btnW, btnY + btnH, hovered ? COL_CLAIM_HOVER : COL_CLAIM_BG);
             g.fill(btnX, btnY, btnX + btnW, btnY + 1, 0x40FFFFFF); // highlight top
             g.fill(btnX, btnY + btnH - 1, btnX + btnW, btnY + btnH, 0x40000000); // shadow bottom
-            g.drawString(font, Component.translatable("stardewcraft.gil.claim"),
-                btnX + 6, btnY + 4, COL_CLAIM_TEXT);
+            GuiText.drawCenteredClamped(g, font, Component.translatable("stardewcraft.gil.claim"),
+                btnX + btnW / 2, btnY + 4, btnW - 6, COL_CLAIM_TEXT, false);
         } else {
             // Reward preview text
             if (registry != null && registry.rewardItemId() != null) {
@@ -206,7 +209,10 @@ public class GilGoalsScreen extends Screen {
                 if (rowY < clipTop || rowY + ROW_HEIGHT > clipBottom) continue;
 
                 int rightEdge = boxX + boxW - INNER_PAD - 8;
-                int btnW = font.width(Component.translatable("stardewcraft.gil.claim").getString()) + 12;
+                int leftX = boxX + INNER_PAD + 8;
+                int barX = leftX;
+                int btnW = Math.min(font.width(Component.translatable("stardewcraft.gil.claim").getString()) + 12,
+                    Math.max(40, rightEdge - (barX + BAR_WIDTH + 50)));
                 int btnX = rightEdge - btnW;
                 int btnY = rowY + 8;
 

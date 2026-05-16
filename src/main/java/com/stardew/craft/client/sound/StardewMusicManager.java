@@ -4,6 +4,10 @@ import com.stardew.craft.client.hud.MiningFloorHud;
 import com.stardew.craft.client.hud.StardewTimeHud;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModMiningDimensions;
+import com.stardew.craft.desert.DesertConstants;
+import com.stardew.craft.interior.InteriorRegionRegistry;
+import com.stardew.craft.interior.InteriorSubspaceManager;
+import com.stardew.craft.manager.CoalForestArea;
 import com.stardew.craft.sound.ModSounds;
 import com.stardew.craft.time.StardewTimeManager;
 import com.stardew.craft.weather.ClientWeatherCache;
@@ -21,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -44,39 +47,54 @@ public final class StardewMusicManager {
     /** SDV: EarthMine = floors 1-39, FrostMine = floors 40-79. */
     private static final int FROST_MINE_START = 40;
 
-    /** Interior region boundaries (client-side mirror of InteriorSubspaceManager). */
-    private static final int INTERIOR_MIN = 10001;
-    private static final int INTERIOR_MAX = 19000;
+    private static final int NO_TIME_LIMIT = -1;
+    private static final int COMMUNITY_CENTER_WIDTH = 23;
+    private static final int COMMUNITY_CENTER_HEIGHT = 8;
+    private static final int COMMUNITY_CENTER_LENGTH = 69;
+    private static final int COMMUNITY_CENTER_Z_STRIDE = 128;
+    private static final int GREENHOUSE_SLOT_SIZE = 64;
 
-    /**
-     * Known interior locations with their origin coordinates and associated music.
-     * Null music means "fall through to outdoor seasonal music".
-     */
-    private record InteriorEntry(String id, int x, int z, @Nullable DeferredHolder<SoundEvent, SoundEvent> music) {}
+    private record InteriorMusicDefinition(
+            @Nullable DeferredHolder<SoundEvent, SoundEvent> music,
+            int startTimeHhmm
+    ) {}
 
-    private static final List<InteriorEntry> INTERIORS = List.of(
-        new InteriorEntry("saloon",           14208, 14208, ModSounds.MUSIC_SALOON),
-        new InteriorEntry("wizard_tower",     18240, 17088, ModSounds.MUSIC_WIZARD_TOWER),
-        new InteriorEntry("museum",           13056, 13056, ModSounds.MUSIC_LIBRARY),
-        new InteriorEntry("adventurer_guild", 17664, 17088, ModSounds.MUSIC_ADVENTURER_GUILD),
-        new InteriorEntry("clinic",           15360, 15360, ModSounds.MUSIC_HOSPITAL),
-        new InteriorEntry("elliott_cabin",    17664, 18240, ModSounds.MUSIC_ELLIOTT_PIANO),
-        new InteriorEntry("pierre_house",     12032, 12032, ModSounds.MUSIC_SPRINGTOWN),
-        new InteriorEntry("fish_shop",        17664, 17664, null),
-        new InteriorEntry("marnie_ranch",     17088, 18240, ModSounds.MUSIC_MARNIE_SHOP),
-        new InteriorEntry("carpenter_shop",   16512, 16512, ModSounds.MUSIC_MARNIE_SHOP),
-        // Residential — use springtown (general town/indoor music)
-        new InteriorEntry("blacksmith",       13632, 13632, ModSounds.MUSIC_SPRINGTOWN),
-        new InteriorEntry("mayor_house",      14784, 14784, ModSounds.MUSIC_SPRINGTOWN),
-        new InteriorEntry("1_river_road",     15936, 15936, ModSounds.MUSIC_SPRINGTOWN),
-        new InteriorEntry("1_willow_lane",    17088, 17088, ModSounds.MUSIC_SPRINGTOWN),
-        new InteriorEntry("2_willow_lane",    17088, 17664, ModSounds.MUSIC_SPRINGTOWN),
-        new InteriorEntry("leah_cottage",     17088, 18816, ModSounds.MUSIC_SPRINGTOWN),
-        // Desert
-        new InteriorEntry("oasis",            18240, 17664, ModSounds.MUSIC_OASIS)
+    private record InteriorTrackChoice(@Nullable SoundEvent track) {}
+
+    private static InteriorMusicDefinition music(@Nullable DeferredHolder<SoundEvent, SoundEvent> music) {
+        return music(music, NO_TIME_LIMIT);
+    }
+
+    private static InteriorMusicDefinition music(
+            @Nullable DeferredHolder<SoundEvent, SoundEvent> music,
+            int startTimeHhmm
+    ) {
+        return new InteriorMusicDefinition(music, startTimeHhmm);
+    }
+
+    private static final Map<String, InteriorMusicDefinition> FIXED_INTERIOR_MUSIC = Map.ofEntries(
+        Map.entry("pierre_house",     music(null)),
+        Map.entry("museum",           music(ModSounds.MUSIC_LIBRARY)),
+        Map.entry("blacksmith",       music(null)),
+        Map.entry("saloon",           music(ModSounds.MUSIC_SALOON, 1700)),
+        Map.entry("mayor_house",      music(null)),
+        Map.entry("clinic",           music(ModSounds.MUSIC_DISTANT_BANJO)),
+        Map.entry("1_river_road",     music(null)),
+        Map.entry("carpenter_shop",   music(ModSounds.MUSIC_MARNIE_SHOP)),
+        Map.entry("1_willow_lane",    music(null)),
+        Map.entry("2_willow_lane",    music(null)),
+        Map.entry("marnie_ranch",     music(ModSounds.MUSIC_MARNIE_SHOP)),
+        Map.entry("leah_cottage",     music(ModSounds.MUSIC_DISTANT_BANJO)),
+        Map.entry("adventurer_guild", music(ModSounds.MUSIC_ADVENTURER_GUILD)),
+        Map.entry("fish_shop",        music(null)),
+        Map.entry("elliott_cabin",    music(ModSounds.MUSIC_COMMUNITY_CENTER)),
+        Map.entry("wizard_tower",     music(ModSounds.MUSIC_WIZARD_TOWER)),
+        Map.entry("oasis",            music(ModSounds.MUSIC_DISTANT_BANJO)),
+        Map.entry("joja_mart",        music(ModSounds.MUSIC_HOSPITAL_AMBIENT))
     );
 
     private static int tickCounter = CHECK_INTERVAL - 1; // evaluate on first tick
+    private static int sewerAmbientCooldown = 0;
 
     /** The currently-playing music instance, or null. */
     @Nullable
@@ -115,6 +133,16 @@ public final class StardewMusicManager {
         currentMusic = instance;
         currentTrackEvent = event;
         mc.getSoundManager().play(instance);
+    }
+
+    public static void stopForCutsceneSilence() {
+        stopCurrentMusicInstances();
+        cutsceneOverride = true;
+    }
+
+    public static void releaseCutsceneOverride() {
+        cutsceneOverride = false;
+        tickCounter = CHECK_INTERVAL - 1;
     }
 
     private record JukeboxPlayback(String trackId, StardewMusicInstance sound) {}
@@ -200,6 +228,8 @@ public final class StardewMusicManager {
         // Don't override cutscene music
         if (cutsceneOverride) return;
 
+        tickSewerAmbient(mc);
+
         // Periodic track evaluation
         tickCounter++;
         if (tickCounter >= CHECK_INTERVAL) {
@@ -213,6 +243,19 @@ public final class StardewMusicManager {
      */
     public static void stopAll() {
         cutsceneOverride = false;
+        stopCurrentMusicInstances();
+        // 清除所有唱片机播放
+        for (JukeboxPlayback pb : activeJukeboxes.values()) {
+            if (pb.sound() != null) {
+                pb.sound().stopNow();
+                Minecraft.getInstance().getSoundManager().stop(pb.sound());
+            }
+        }
+        activeJukeboxes.clear();
+        tickCounter = 0;
+    }
+
+    private static void stopCurrentMusicInstances() {
         if (currentMusic != null) {
             currentMusic.stopNow();
             Minecraft.getInstance().getSoundManager().stop(currentMusic);
@@ -224,15 +267,6 @@ public final class StardewMusicManager {
             Minecraft.getInstance().getSoundManager().stop(fadingOut);
             fadingOut = null;
         }
-        // 清除所有唱片机播放
-        for (JukeboxPlayback pb : activeJukeboxes.values()) {
-            if (pb.sound() != null) {
-                pb.sound().stopNow();
-                Minecraft.getInstance().getSoundManager().stop(pb.sound());
-            }
-        }
-        activeJukeboxes.clear();
-        tickCounter = 0;
     }
 
     // ────────────────────────── Jukebox helpers ──────────────────────────
@@ -323,9 +357,17 @@ public final class StardewMusicManager {
         }
 
         // ── Interior music (highest priority in Stardew overworld) ──
-        SoundEvent interiorTrack = pickInteriorTrack(mc);
+        InteriorTrackChoice interiorTrack = pickInteriorTrack(mc);
         if (interiorTrack != null) {
-            return interiorTrack;
+            return interiorTrack.track();
+        }
+
+        if (isPlayerInSewerRegion(mc)) {
+            return null;
+        }
+
+        if (isPlayerInSecretWoods(mc)) {
+            return ModSounds.MUSIC_WOODS.get();
         }
 
         // ── Desert outdoor music (Calico Desert uses "wavy") ──
@@ -403,48 +445,132 @@ public final class StardewMusicManager {
 
     /**
      * Checks if the player is in the Calico Desert outdoor area.
-     * Desert schem bounds: X ∈ [-466, -169], Z ∈ [1160, 1483]
      */
     private static boolean isPlayerInDesert(Minecraft mc) {
         if (mc.player == null) return false;
-        int px = mc.player.getBlockX();
-        int pz = mc.player.getBlockZ();
-        return px >= -466 && px <= -169 && pz >= 1160 && pz <= 1483;
+        return DesertConstants.isInDesertRegion(mc.player.blockPosition());
+    }
+
+    private static boolean isPlayerInSecretWoods(Minecraft mc) {
+        if (mc.player == null) return false;
+        return CoalForestArea.containsColumn(mc.player.blockPosition());
+    }
+
+    private static boolean isPlayerInSewerRegion(Minecraft mc) {
+        if (mc.player == null) return false;
+        BlockPos pos = mc.player.blockPosition();
+        return pos.getX() >= -1 && pos.getX() <= 39
+            && pos.getY() >= 49 && pos.getY() <= 58
+            && pos.getZ() >= 36 && pos.getZ() <= 67;
+    }
+
+    private static void tickSewerAmbient(Minecraft mc) {
+        if (!isPlayerInSewerRegion(mc) || mc.level == null || mc.player == null) {
+            sewerAmbientCooldown = 0;
+            return;
+        }
+        if (sewerAmbientCooldown > 0) {
+            sewerAmbientCooldown--;
+            return;
+        }
+        if (mc.level.random.nextInt(900) == 0) {
+            mc.level.playLocalSound(
+                mc.player.getX(),
+                mc.player.getY(),
+                mc.player.getZ(),
+                ModSounds.CAVEDRIP.get(),
+                SoundSource.AMBIENT,
+                0.8F,
+                1.0F,
+                false
+            );
+            sewerAmbientCooldown = 200;
+        }
     }
 
     /**
-     * Checks if the player is inside an interior subspace and returns the matching music.
-     * Interior subspaces are at X/Z ∈ [10001, 19000] in the Stardew dimension.
+     * Checks if the player is inside a fixed interior region and returns its original SDV music.
+     * A matched region with null music means the original location has no location-specific track.
      */
     @Nullable
-    private static SoundEvent pickInteriorTrack(Minecraft mc) {
+    private static InteriorTrackChoice pickInteriorTrack(Minecraft mc) {
         if (mc.player == null) return null;
 
         int px = mc.player.getBlockX();
+        int py = mc.player.getBlockY();
         int pz = mc.player.getBlockZ();
 
-        // Fast reject: not in interior region
-        if (px < INTERIOR_MIN || px > INTERIOR_MAX || pz < INTERIOR_MIN || pz > INTERIOR_MAX) {
-            return null;
-        }
-
-        // Find the nearest interior origin
-        InteriorEntry nearest = null;
-        long bestDist = Long.MAX_VALUE;
-        for (InteriorEntry entry : INTERIORS) {
-            long dx = (long) px - entry.x;
-            long dz = (long) pz - entry.z;
-            long dist = dx * dx + dz * dz;
-            if (dist < bestDist) {
-                bestDist = dist;
-                nearest = entry;
+        InteriorMusicDefinition fixedInteriorMusic = InteriorRegionRegistry.fixedInteriorAt(new BlockPos(px, py, pz))
+                .map(region -> FIXED_INTERIOR_MUSIC.get(region.id()))
+                .orElse(null);
+        if (fixedInteriorMusic != null) {
+            if (!isInteriorMusicTimeActive(fixedInteriorMusic)) {
+                return new InteriorTrackChoice(null);
             }
+            return new InteriorTrackChoice(fixedInteriorMusic.music == null ? null : fixedInteriorMusic.music.get());
         }
-
-        if (nearest != null && nearest.music != null) {
-            return nearest.music.get();
+        InteriorTrackChoice perPlayerInteriorTrack = pickPerPlayerInteriorTrack(px, py, pz);
+        if (perPlayerInteriorTrack != null) {
+            return perPlayerInteriorTrack;
         }
         return null;
+    }
+
+    @Nullable
+    private static InteriorTrackChoice pickPerPlayerInteriorTrack(int x, int y, int z) {
+        if (isInsideRepeatedZSlot(
+                x,
+                y,
+                z,
+                InteriorSubspaceManager.CC_ORIGIN,
+                COMMUNITY_CENTER_WIDTH,
+                COMMUNITY_CENTER_HEIGHT,
+                COMMUNITY_CENTER_LENGTH,
+                COMMUNITY_CENTER_Z_STRIDE
+        )) {
+            return new InteriorTrackChoice(ModSounds.MUSIC_COMMUNITY_CENTER.get());
+        }
+        if (isInsideRepeatedZSlot(
+                x,
+                y,
+                z,
+                InteriorSubspaceManager.GREENHOUSE_INTERIOR_ORIGIN,
+                GREENHOUSE_SLOT_SIZE,
+                GREENHOUSE_SLOT_SIZE,
+                GREENHOUSE_SLOT_SIZE,
+                GREENHOUSE_SLOT_SIZE
+        )) {
+            return new InteriorTrackChoice(null);
+        }
+        return null;
+    }
+
+    private static boolean isInsideRepeatedZSlot(
+            int x,
+            int y,
+            int z,
+            BlockPos base,
+            int width,
+            int height,
+            int length,
+            int zStride
+    ) {
+        int rx = x - base.getX();
+        int ry = y - base.getY();
+        int rz = z - base.getZ();
+        if (rx < 0 || rx >= width || ry < 0 || ry >= height || rz < 0) {
+            return false;
+        }
+        return rz % zStride < length;
+    }
+
+    private static boolean isInteriorMusicTimeActive(InteriorMusicDefinition definition) {
+        if (definition.startTimeHhmm == NO_TIME_LIMIT) return true;
+        StardewTimeManager timeCache = StardewTimeHud.getClientTimeCache();
+        if (timeCache == null) return false;
+        int minutes = timeCache.getCurrentTime();
+        int hhmm = (minutes / 60) * 100 + (minutes % 60);
+        return hhmm >= definition.startTimeHhmm;
     }
 
     // ────────────────────────── Playback ──────────────────────────

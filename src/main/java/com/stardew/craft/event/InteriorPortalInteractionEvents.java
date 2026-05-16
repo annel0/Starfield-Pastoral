@@ -170,6 +170,18 @@ public class InteriorPortalInteractionEvents {
             return;
         }
 
+        // 下水道入口（需要生锈的钥匙）
+        if ("sewer_enter".equals(targetId)) {
+            handleSewerEntrance(player);
+            return;
+        }
+
+        // 下水道出口（无条件返程）
+        if ("sewer_exit".equals(targetId)) {
+            handleSewerExit(player);
+            return;
+        }
+
         // 巫师塔 → 回主世界
         if ("wizard_tower_return_overworld".equals(targetId)) {
             CrossDimensionTeleporter.wizardInteriorToOverworld(player);
@@ -251,18 +263,31 @@ public class InteriorPortalInteractionEvents {
 
     private static void applyInteriorFlag(ServerPlayer player, InteriorPortalRegistry.PortalMode mode) {
         if (mode == InteriorPortalRegistry.PortalMode.ENTRANCE) {
-            player.getPersistentData().putBoolean(PLAYER_FLAG_INTERIOR, true);
-            player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, -1, 0, false, false, false));
+            markInteriorEnter(player);
             return;
         }
         if (mode == InteriorPortalRegistry.PortalMode.EXIT) {
-            player.getPersistentData().putBoolean(PLAYER_FLAG_INTERIOR, false);
-            player.removeEffect(MobEffects.NIGHT_VISION);
+            clearInteriorState(player);
         }
+    }
+
+    public static void markInteriorEnter(ServerPlayer player) {
+        player.getPersistentData().putBoolean(PLAYER_FLAG_INTERIOR, true);
+        player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, -1, 0, false, false, false));
+    }
+
+    public static void clearInteriorState(ServerPlayer player) {
+        player.getPersistentData().putBoolean(PLAYER_FLAG_INTERIOR, false);
+        player.removeEffect(MobEffects.NIGHT_VISION);
     }
 
     public static boolean isPlayerInInteriorSpace(ServerPlayer player) {
         return player.getPersistentData().getBoolean(PLAYER_FLAG_INTERIOR);
+    }
+
+    public static boolean isRecentPortalTeleport(ServerPlayer player, long graceTicks) {
+        long last = player.getPersistentData().getLong(PLAYER_LAST_PORTAL_TICK);
+        return player.serverLevel().getGameTime() - last <= graceTicks;
     }
 
     @SubscribeEvent
@@ -331,9 +356,9 @@ public class InteriorPortalInteractionEvents {
                 player.getName().getString(), entryTag);
     }
 
-    private static final net.minecraft.core.BlockPos EXIT_SOUTH_TARGET = new net.minecraft.core.BlockPos(200, -14, 162);
-    private static final net.minecraft.core.BlockPos EXIT_EAST_TARGET = new net.minecraft.core.BlockPos(212, -14, 24);
-    private static final net.minecraft.core.BlockPos EXIT_WEST_TARGET = new net.minecraft.core.BlockPos(68, -12, 119);
+    private static final net.minecraft.core.BlockPos PUBLIC_EAST_FARM_TARGET = new net.minecraft.core.BlockPos(-62, 64, -43);
+    private static final net.minecraft.core.BlockPos PUBLIC_SOUTH_FARM_TARGET = new net.minecraft.core.BlockPos(-114, 64, -2);
+    private static final net.minecraft.core.BlockPos PUBLIC_NORTH_FARM_TARGET = new net.minecraft.core.BlockPos(-114, 69, -64);
 
     private static void handleFarmExit(ServerPlayer player, String exitId) {
         long now = player.serverLevel().getGameTime();
@@ -349,13 +374,20 @@ public class InteriorPortalInteractionEvents {
         }
 
         net.minecraft.core.BlockPos target = switch (exitId) {
-            case "farm_exit_south" -> EXIT_SOUTH_TARGET;
-            case "farm_exit_east" -> EXIT_EAST_TARGET;
-            case "farm_exit_west" -> EXIT_WEST_TARGET;
-            default -> EXIT_SOUTH_TARGET;
+            case "farm_exit_south" -> PUBLIC_NORTH_FARM_TARGET;
+            case "farm_exit_east" -> PUBLIC_SOUTH_FARM_TARGET;
+            case "farm_exit_west" -> PUBLIC_EAST_FARM_TARGET;
+            default -> PUBLIC_EAST_FARM_TARGET;
         };
 
-        player.teleportTo(target.getX() + 0.5, target.getY(), target.getZ() + 0.5);
+        float yaw = switch (exitId) {
+            case "farm_exit_south" -> 180.0F;
+            case "farm_exit_east" -> 0.0F;
+            case "farm_exit_west" -> -90.0F;
+            default -> -90.0F;
+        };
+
+        player.teleportTo(player.serverLevel(), target.getX() + 0.5, target.getY(), target.getZ() + 0.5, yaw, 0.0F);
         StardewCraft.LOGGER.info("[FARM_EXIT] {} exited farm via {} to {}",
                 player.getName().getString(), exitId, target);
     }
@@ -437,7 +469,7 @@ public class InteriorPortalInteractionEvents {
         StardewCraft.LOGGER.info("[SKULL_CAVERN] {} entered skull cavern lobby at {}", player.getName().getString(), spawn);
     }
 
-    /** 骷髅矿大厅出口：传回沙漠 (-339, -42, 1268) 朝南 */
+    /** 骷髅矿大厅出口：传回沙漠，朝南 */
     private static void handleSkullCavernExit(ServerPlayer player) {
         ServerLevel stardewLevel = player.server.getLevel(ModDimensions.STARDEW_VALLEY);
         if (stardewLevel == null) {
@@ -582,6 +614,7 @@ public class InteriorPortalInteractionEvents {
         player.teleportTo(level,
             spawnPos.getX() + 0.5D, spawnPos.getY(), spawnPos.getZ() + 0.5D,
             -90.0F, 0.0F);
+        com.stardew.craft.manager.FertilizerManager.get(level).syncAllFertilizersToPlayer(player);
         player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
         applyInteriorFlag(player, InteriorPortalRegistry.PortalMode.ENTRANCE);
 
@@ -704,6 +737,49 @@ public class InteriorPortalInteractionEvents {
         player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
     }
 
+    private static void handleSewerEntrance(ServerPlayer player) {
+        long now = player.serverLevel().getGameTime();
+        long last = player.getPersistentData().getLong(PLAYER_LAST_PORTAL_TICK);
+        if (now - last < PORTAL_COOLDOWN_TICKS) return;
+
+        com.stardew.craft.player.PlayerStardewData data =
+                com.stardew.craft.player.PlayerDataManager.getPlayerData(player);
+        if (!com.stardew.craft.sewer.SewerService.hasRustyKey(data)) {
+            player.displayClientMessage(
+                    net.minecraft.network.chat.Component.translatable("stardewcraft.portal.sewer.locked"),
+                    true);
+            player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
+            return;
+        }
+
+        player.closeContainer();
+        player.stopUsingItem();
+        player.teleportTo(player.serverLevel(),
+                com.stardew.craft.sewer.SewerAccessManager.ENTRY_DEST_X,
+                com.stardew.craft.sewer.SewerAccessManager.ENTRY_DEST_Y,
+                com.stardew.craft.sewer.SewerAccessManager.ENTRY_DEST_Z,
+                com.stardew.craft.sewer.SewerAccessManager.ENTRY_DEST_YAW,
+                com.stardew.craft.sewer.SewerAccessManager.ENTRY_DEST_PITCH);
+        player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
+        com.stardew.craft.sewer.SewerService.markOpenedSewer(player);
+    }
+
+    private static void handleSewerExit(ServerPlayer player) {
+        long now = player.serverLevel().getGameTime();
+        long last = player.getPersistentData().getLong(PLAYER_LAST_PORTAL_TICK);
+        if (now - last < PORTAL_COOLDOWN_TICKS) return;
+
+        player.closeContainer();
+        player.stopUsingItem();
+        player.teleportTo(player.serverLevel(),
+                com.stardew.craft.sewer.SewerAccessManager.EXIT_DEST_X,
+                com.stardew.craft.sewer.SewerAccessManager.EXIT_DEST_Y,
+                com.stardew.craft.sewer.SewerAccessManager.EXIT_DEST_Z,
+                com.stardew.craft.sewer.SewerAccessManager.EXIT_DEST_YAW,
+                com.stardew.craft.sewer.SewerAccessManager.EXIT_DEST_PITCH);
+        player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
+    }
+
     private static void handleGreenhouseExit(ServerPlayer player) {
         long now = player.serverLevel().getGameTime();
         long last = player.getPersistentData().getLong(PLAYER_LAST_PORTAL_TICK);
@@ -713,10 +789,17 @@ public class InteriorPortalInteractionEvents {
         player.stopUsingItem();
 
         net.minecraft.core.BlockPos exitPos = com.stardew.craft.greenhouse.GreenhouseManager.getExitPosForPlayer(player);
+        if (exitPos == null) {
+            player.displayClientMessage(net.minecraft.network.chat.Component.literal("请先创建自己的农场。"), true);
+            StardewCraft.LOGGER.warn("[GREENHOUSE] Refused greenhouse exit for {}: no personal farm",
+                    player.getName().getString());
+            return;
+        }
 
         player.teleportTo(player.serverLevel(),
             exitPos.getX() + 0.5D, exitPos.getY(), exitPos.getZ() + 0.5D,
             -90.0F, 0.0F);
+        com.stardew.craft.manager.FertilizerManager.get(player.serverLevel()).syncAllFertilizersToPlayer(player);
         player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
         applyInteriorFlag(player, InteriorPortalRegistry.PortalMode.EXIT);
     }

@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.client.ClientPlayerDataCache;
+import com.stardew.craft.client.gui.common.GuiText;
 import com.stardew.craft.client.warp.WarpWandClientState;
 import com.stardew.craft.network.payload.WarpWandTeleportPayload;
 import com.stardew.craft.network.payload.WarpWandUnlockPayload;
@@ -287,17 +288,13 @@ public class WarpWheelScreen extends Screen {
 
             if (!available) {
                 Component disabled = Component.translatable("stardewcraft.warp.farm.unavailable");
-                int disabledW = minecraft.font.width(disabled);
-                g.drawString(minecraft.font, disabled,
-                        cx - disabledW / 2, cy - 4,
-                        0xAA777777, true);
+                GuiText.drawCenteredClamped(g, minecraft.font, disabled, cx, cy - 4,
+                    Math.round(CENTER_PREVIEW_RADIUS * 2.0f), 0xAA777777, true);
             } else if (unlocked) {
                 // 已解锁：显示描述
                 Component desc = Component.translatable(dest.descKey());
-                int descW = minecraft.font.width(desc);
-                g.drawString(minecraft.font, desc,
-                        cx - descW / 2, cy - 4,
-                        0xAA999999, true);
+                GuiText.drawWrappedCentered(g, minecraft.font, desc, cx, cy - 9,
+                    Math.round(CENTER_PREVIEW_RADIUS * 2.0f), 0xAA999999, true, 2);
             } else {
                 // 未解锁：锁图标 + 价格
                 RenderSystem.enableBlend();
@@ -315,11 +312,9 @@ public class WarpWheelScreen extends Screen {
         } else {
             // 无选中：显示物品名称
             Component hint = Component.translatable("item.stardewcraft.warp_wand");
-            int hintW = minecraft.font.width(hint);
             int alpha = (int) (eased * 180);
-            g.drawString(minecraft.font, hint,
-                    cx - hintW / 2, cy - 4,
-                    (alpha << 24) | 0xCCCCCC, true);
+                GuiText.drawCenteredClamped(g, minecraft.font, hint, cx, cy - 4,
+                    Math.round(CENTER_PREVIEW_RADIUS * 2.0f), (alpha << 24) | 0xCCCCCC, true);
         }
     }
 

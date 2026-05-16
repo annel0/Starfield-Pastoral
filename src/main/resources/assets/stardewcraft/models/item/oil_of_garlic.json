@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "stardewcraft:item/misc/oil_of_garlic",
+    "particle": "stardewcraft:item/misc/oil_of_garlic"
+  }
+}

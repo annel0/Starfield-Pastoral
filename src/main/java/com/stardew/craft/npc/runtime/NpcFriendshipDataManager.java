@@ -66,6 +66,24 @@ public final class NpcFriendshipDataManager extends SavedData {
         return state == null ? 0 : Math.max(0, state.points());
     }
 
+    public Map<String, Integer> getPointsForPlayer(UUID playerId) {
+        if (playerId == null) {
+            return Map.of();
+        }
+        Map<String, FriendshipState> npcMap = playerState.get(playerId);
+        if (npcMap == null || npcMap.isEmpty()) {
+            return Map.of();
+        }
+        Map<String, Integer> result = new HashMap<>();
+        for (Map.Entry<String, FriendshipState> entry : npcMap.entrySet()) {
+            FriendshipState state = entry.getValue();
+            if (state != null && state.points() > 0) {
+                result.put(entry.getKey(), Math.max(0, state.points()));
+            }
+        }
+        return Map.copyOf(result);
+    }
+
     public static NpcFriendshipDataManager load(CompoundTag tag, HolderLookup.Provider provider) {
         NpcFriendshipDataManager manager = new NpcFriendshipDataManager();
         int playerCount = tag.getInt("PlayerCount");

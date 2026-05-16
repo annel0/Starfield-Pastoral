@@ -22,6 +22,7 @@ public final class DwarfService {
 
     /** Mail flag set when the player obtains the Dwarvish Translation Guide. */
     public static final String MAIL_FLAG = "HasDwarvishTranslationGuide";
+    public static final String SPECIAL_ITEM_ID = "stardewcraft:dwarvish_translation_guide";
 
     private DwarfService() {}
 
@@ -31,7 +32,7 @@ public final class DwarfService {
      */
     public static boolean canUnderstandDwarves(ServerPlayer player) {
         PlayerStardewData data = PlayerDataManager.getPlayerData(player);
-        return data.hasMailFlag(MAIL_FLAG);
+        return data.hasMailFlag(MAIL_FLAG) || data.hasSpecialItem(SPECIAL_ITEM_ID);
     }
 
     /**

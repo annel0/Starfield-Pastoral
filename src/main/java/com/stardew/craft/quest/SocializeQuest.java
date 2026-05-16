@@ -7,6 +7,7 @@ import com.stardew.craft.npc.runtime.NpcInteractionService;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.ArrayList;
@@ -91,13 +92,27 @@ public class SocializeQuest extends StardewQuest {
 
     @Override
     public List<String> getObjectiveDescriptions() {
-        int greeted = total - whoToGreet.size();
-        return Collections.singletonList(
-            objectiveText.isEmpty()
-                ? ("打招呼 " + greeted + "/" + total)
-                : objectiveText
-        );
+        if (objectiveText == null || objectiveText.isEmpty() || ".".equals(objectiveText)) {
+            return Collections.emptyList();
+        }
+        return Collections.singletonList(objectiveText);
     }
+
+    @Override
+    public List<Component> getObjectiveComponents() {
+        if (objectiveText == null || objectiveText.isEmpty() || ".".equals(objectiveText)) {
+            return Collections.emptyList();
+        }
+        return Collections.singletonList(Component.literal(objectiveText));
+    }
+
+    @Override
+    public int getCurrentObjectiveCount() {
+        int greeted = total - whoToGreet.size();
+        return Math.max(0, greeted);
+    }
+
+    @Override public int getTotalObjectiveCount() { return total; }
 
     @Override
     protected void saveExtra(CompoundTag tag) {
@@ -117,12 +132,9 @@ public class SocializeQuest extends StardewQuest {
                 whoToGreet.add(list.getString(i));
             }
         }
-        sanitizeWhoToGreet();
     }
 
     public List<String> getWhoToGreet() { return whoToGreet; }
     public int getTotal() { return total; }
-    @Override public int getCurrentObjectiveCount() { return total - whoToGreet.size(); }
-    @Override public int getTotalObjectiveCount() { return total; }
     public void setTotal(int total) { this.total = total; }
 }

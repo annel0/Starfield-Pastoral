@@ -1,5 +1,6 @@
 package com.stardew.craft.client.gui.overnight;
 
+import com.stardew.craft.client.gui.common.GuiText;
 import com.stardew.craft.network.payload.PassOutAckPayload;
 import com.stardew.craft.network.payload.PassOutPayload;
 import com.stardew.craft.player.PassOutService;
@@ -91,8 +92,8 @@ public class PassOutOverlayScreen extends Screen {
                 messageKey = "stardewcraft.passout.exhaustion";
             }
             Component text = Component.translatable(messageKey);
-            int textWidth = font.width(text);
-            graphics.drawString(font, text, (width - textWidth) / 2, height / 2 - 4, 0xFFFFFFFF);
+            GuiText.drawCenteredClamped(graphics, font, text, width / 2, height / 2 - 4,
+                Math.max(1, width - 32), 0xFFFFFFFF, false);
         }
     }
 

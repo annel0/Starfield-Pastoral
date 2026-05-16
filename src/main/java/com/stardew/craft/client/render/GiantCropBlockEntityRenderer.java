@@ -7,10 +7,8 @@ import com.stardew.craft.block.crop.giant.GiantCropBlock;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.world.level.block.state.BlockState;
-import software.bernie.geckolib.renderer.GeoBlockRenderer;
-
 @SuppressWarnings("null")
-public class GiantCropBlockEntityRenderer extends GeoBlockRenderer<GiantCropBlockEntity> {
+public class GiantCropBlockEntityRenderer extends StardewGeoBlockRenderer<GiantCropBlockEntity> {
 
     public GiantCropBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
         super(new GiantCropGeoModel());

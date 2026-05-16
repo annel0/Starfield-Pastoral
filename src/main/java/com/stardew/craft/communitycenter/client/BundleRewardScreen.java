@@ -2,6 +2,7 @@ package com.stardew.craft.communitycenter.client;
 
 import com.stardew.craft.communitycenter.data.BundleDataManager;
 import com.stardew.craft.communitycenter.menu.BundleRewardMenu;
+import com.stardew.craft.client.gui.common.GuiText;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -57,8 +58,12 @@ public class BundleRewardScreen extends AbstractContainerScreen<BundleRewardMenu
                 ? Component.translatable("stardewcraft.bundle.rewards.title",
                     Component.translatable(displayKey))
                 : Component.translatable("stardewcraft.bundle.rewards");
-        g.drawString(this.font, title, this.titleLabelX, this.titleLabelY, 0x404040, false);
-        g.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY, 0x404040, false);
+        int titleMaxWidth = this.imageWidth - this.titleLabelX - 8;
+        int inventoryMaxWidth = this.imageWidth - this.inventoryLabelX - 8;
+        g.drawString(this.font, GuiText.ellipsize(this.font, title, titleMaxWidth),
+            this.titleLabelX, this.titleLabelY, 0x404040, false);
+        g.drawString(this.font, GuiText.ellipsize(this.font, this.playerInventoryTitle, inventoryMaxWidth),
+            this.inventoryLabelX, this.inventoryLabelY, 0x404040, false);
     }
 
     @Override
