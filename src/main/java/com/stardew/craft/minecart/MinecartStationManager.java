@@ -24,10 +24,10 @@ import java.util.List;
  *
  * <p>站点位置（实体坐标）：
  * <ul>
- *   <li>Town: (-312, -17, -14) @ STARDEW_VALLEY</li>
+ *   <li>Town: (123, 64, 26) @ STARDEW_VALLEY</li>
  *   <li>Mines: (-7, 66, -12) @ STARDEW_MINING, 前置铺 (-16..-7, 66, -12) 的铁轨</li>
- *   <li>Bus: (85, -12, 223) @ STARDEW_VALLEY</li>
- *   <li>Quarry: (-471, -13, 293) @ STARDEW_VALLEY</li>
+ *   <li>Bus: (-76, 64, -70) @ STARDEW_VALLEY</li>
+ *   <li>Quarry: (187, 81, -141) @ STARDEW_VALLEY</li>
  * </ul>
  */
 @SuppressWarnings("null")
@@ -36,7 +36,12 @@ public class MinecartStationManager extends SavedData {
     private static final String DATA_NAME = "stardew_minecart_stations";
 
     /** 改站点坐标或铁轨范围后 +1，老存档会清旧实体再重放。 */
-    private static final int CURRENT_VERSION = 1;
+    private static final int CURRENT_VERSION = 2;
+
+    private static final BlockPos TOWN_STATION = new BlockPos(123, 64, 26);
+    private static final BlockPos MINES_STATION = new BlockPos(-7, 66, -12);
+    private static final BlockPos BUS_STATION = new BlockPos(-76, 64, -70);
+    private static final BlockPos QUARRY_STATION = new BlockPos(187, 81, -141);
 
     private int placedVersion = 0;
 
@@ -72,10 +77,10 @@ public class MinecartStationManager extends SavedData {
         placeRails(mine, -16, 66, -12, -7);
 
         // 四个站点实体
-        spawnStation(sdv,  new BlockPos(-312, -17, -14), "town");
-        spawnStation(mine, new BlockPos(-7,   66,  -12), "mines");
-        spawnStation(sdv,  new BlockPos(85,   -12, 223), "bus");
-        spawnStation(sdv,  new BlockPos(-471, -13, 293), "quarry");
+        spawnStation(sdv, TOWN_STATION, "town");
+        spawnStation(mine, MINES_STATION, "mines");
+        spawnStation(sdv, BUS_STATION, "bus");
+        spawnStation(sdv, QUARRY_STATION, "quarry");
 
         placedVersion = CURRENT_VERSION;
         setDirty();

@@ -10,7 +10,7 @@
     { "id": "carpenter_shop", "ledger_id": "music_region_carpenter_shop", "min": [20, 45, -132], "max": [63, 61, -102], "aliases": ["carpenter_shop", "sciencehouse", "carpenter", "sebastianroom"] },
     { "id": "1_willow_lane", "ledger_id": "music_region_1_willow_lane", "min": [-32, 38, 18], "max": [-6, 42, 44], "aliases": ["1_willow_lane", "samhouse"] },
     { "id": "2_willow_lane", "ledger_id": "music_region_2_willow_lane", "min": [-11, 23, 16], "max": [14, 29, 42], "aliases": ["2_willow_lane", "haleyhouse"] },
-    { "id": "marnie_ranch", "ledger_id": "music_region_marnie_ranch", "min": [-101, 32, 8], "max": [-66, 39, 26], "aliases": ["marnie_ranch", "animalshop", "marnieranch"] },
+    { "id": "marnie_ranch", "ledger_id": "music_region_marnie_ranch", "min": [-101, 24, 8], "max": [-66, 39, 26], "aliases": ["marnie_ranch", "animalshop", "marnieranch"] },
     { "id": "leah_cottage", "ledger_id": "music_region_leah_cottage", "min": [-90, 37, 46], "max": [-75, 42, 57], "aliases": ["leah_cottage", "leahhouse"] },
     { "id": "adventurer_guild", "ledger_id": "music_region_adventurer_guild", "min": [101, 60, -158], "max": [113, 64, -142], "aliases": ["adventurer_guild"] },
     { "id": "fish_shop", "ledger_id": "music_region_fish_shop", "min": [52, 25, 122], "max": [76, 41, 150], "aliases": ["fish_shop", "fishshop", "willyshop"] },

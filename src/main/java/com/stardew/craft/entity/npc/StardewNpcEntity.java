@@ -116,7 +116,7 @@ public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
         return Mob.createMobAttributes()
             .add(Attributes.MAX_HEALTH, 20.0D)
             .add(Attributes.MOVEMENT_SPEED, 0.20D)
-            .add(Attributes.FOLLOW_RANGE, 48.0D)
+            .add(Attributes.FOLLOW_RANGE, 384.0D)
             .add(Attributes.STEP_HEIGHT, 0.6D);
     }
 

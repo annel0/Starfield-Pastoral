@@ -7,16 +7,21 @@ import com.stardew.craft.interior.CrossDimensionTeleporter;
 import com.stardew.craft.interior.InteriorPortalRegistry;
 import com.stardew.craft.interior.InteriorSubspaceManager;
 import com.stardew.craft.interior.PlayerInteriorAllocator;
+import com.stardew.craft.network.payload.DesertBusFadePayload;
+import com.stardew.craft.sound.ModSounds;
 import com.stardew.craft.mining.MineEntranceBootstrap;
 import com.stardew.craft.warp.ModTeleport;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
@@ -31,8 +36,15 @@ public class InteriorPortalInteractionEvents {
 
     private static final String PLAYER_FLAG_INTERIOR = "stardewcraft_interior_space";
     private static final String PLAYER_LAST_PORTAL_TICK = "stardewcraft_last_portal_tick";
+    private static final String PLAYER_PENDING_PORTAL_ID = "stardewcraft_pending_portal_id";
+    private static final String PLAYER_PENDING_PORTAL_START = "stardewcraft_pending_portal_start";
 
     private static final long PORTAL_COOLDOWN_TICKS = 8L;
+    private static final int PORTAL_FADE_OUT_TICKS = 12;
+    private static final int PORTAL_WARP_AT = 12;
+    private static final int PORTAL_FADE_IN_AT = 14;
+    private static final int PORTAL_FADE_IN_TICKS = 12;
+    private static final int PORTAL_TOTAL_TICKS = PORTAL_FADE_IN_AT + PORTAL_FADE_IN_TICKS + 2;
 
     // ======================== 旧实体兼容入口（已废弃，Interaction 实体由 InteriorSubspaceLifecycleEvents 拦截取消加载） ========================
 
@@ -234,20 +246,7 @@ public class InteriorPortalInteractionEvents {
         long last = player.getPersistentData().getLong(PLAYER_LAST_PORTAL_TICK);
         if (now - last < PORTAL_COOLDOWN_TICKS) return;
 
-        InteriorPortalRegistry.PortalTarget t = resolved.get();
-
-        // 传送前清理
-        player.closeContainer();
-        player.stopUsingItem();
-
-        player.teleportTo(
-            player.serverLevel(),
-            t.x(), t.y(), t.z(),
-            t.yaw(), t.pitch()
-        );
-
-        applyInteriorFlag(player, t.mode());
-        player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
+        beginPortalTransition(player, targetId, now);
     }
 
     // ======================== 工具方法 ========================
@@ -269,6 +268,56 @@ public class InteriorPortalInteractionEvents {
         if (mode == InteriorPortalRegistry.PortalMode.EXIT) {
             clearInteriorState(player);
         }
+    }
+
+    private static void beginPortalTransition(ServerPlayer player, String targetId, long now) {
+        player.closeContainer();
+        player.stopUsingItem();
+        player.setDeltaMovement(0.0D, 0.0D, 0.0D);
+
+        player.getPersistentData().putString(PLAYER_PENDING_PORTAL_ID, targetId);
+        player.getPersistentData().putLong(PLAYER_PENDING_PORTAL_START, now);
+        player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
+
+        playPlayerSound(player, ModSounds.DOOR_CLOSE.get(), 0.9F, 1.0F);
+        PacketDistributor.sendToPlayer(player, new DesertBusFadePayload((byte) 0, PORTAL_FADE_OUT_TICKS));
+    }
+
+    private static void tickPendingPortalTransition(ServerPlayer player) {
+        long start = player.getPersistentData().getLong(PLAYER_PENDING_PORTAL_START);
+        if (start == 0L) return;
+
+        long elapsed = player.serverLevel().getGameTime() - start;
+        if (elapsed == PORTAL_WARP_AT) {
+            String targetId = player.getPersistentData().getString(PLAYER_PENDING_PORTAL_ID);
+            Optional<InteriorPortalRegistry.PortalTarget> resolved = InteriorPortalRegistry.resolve(targetId);
+            if (resolved.isEmpty()) {
+                clearPendingPortalTransition(player);
+                return;
+            }
+
+            InteriorPortalRegistry.PortalTarget target = resolved.get();
+            player.teleportTo(
+                player.serverLevel(),
+                target.x(), target.y(), target.z(),
+                target.yaw(), target.pitch()
+            );
+            applyInteriorFlag(player, target.mode());
+        } else if (elapsed == PORTAL_FADE_IN_AT) {
+            PacketDistributor.sendToPlayer(player, new DesertBusFadePayload((byte) 1, PORTAL_FADE_IN_TICKS));
+        } else if (elapsed >= PORTAL_TOTAL_TICKS) {
+            clearPendingPortalTransition(player);
+        }
+    }
+
+    private static void clearPendingPortalTransition(ServerPlayer player) {
+        player.getPersistentData().remove(PLAYER_PENDING_PORTAL_ID);
+        player.getPersistentData().remove(PLAYER_PENDING_PORTAL_START);
+    }
+
+    private static void playPlayerSound(ServerPlayer player, SoundEvent sound, float volume, float pitch) {
+        player.serverLevel().playSound(null, player.getX(), player.getY(), player.getZ(),
+            sound, SoundSource.PLAYERS, volume, pitch);
     }
 
     public static void markInteriorEnter(ServerPlayer player) {
@@ -293,6 +342,7 @@ public class InteriorPortalInteractionEvents {
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         if (!event.getEntity().level().isClientSide && event.getEntity() instanceof ServerPlayer player) {
+            tickPendingPortalTransition(player);
             if (player.tickCount % 40 == 0) {
                 if (isPlayerInInteriorSpace(player)) {
                     if (!player.hasEffect(MobEffects.NIGHT_VISION)) {
@@ -325,9 +375,9 @@ public class InteriorPortalInteractionEvents {
 
     // ======================== 矿井跨维度传送 ========================
 
-    private static final double MINE_OUTDOOR_X = -285.5;
-    private static final double MINE_OUTDOOR_Y = -12.0;
-    private static final double MINE_OUTDOOR_Z = 314.5;
+    private static final double MINE_OUTDOOR_X = 84.5;
+    private static final double MINE_OUTDOOR_Y = 81.0;
+    private static final double MINE_OUTDOOR_Z = -145.5;
     // 矿井大厅落点统一走 MiningCoordinates（0 层中心 (0,64,0)、出生点 (0.5,66,-7.5) 面朝北）。
 
     private static void handleFarmEntry(ServerPlayer player, String entryTag) {

@@ -8,6 +8,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
+import net.minecraft.world.phys.AABB;
 
 import java.util.Set;
 
@@ -16,16 +17,17 @@ import java.util.Set;
  * blocks, making NPCs strongly prefer roads, paths, planks and other
  * constructed surfaces — just like Stardew Valley originals.
  *
- * <p>Road/paved blocks: costMalus stays at vanilla default (0).
- * Off-road natural terrain: costMalus += {@link #OFF_ROAD_PENALTY}.
+ * <p>Yellow dirt is the preferred Stardew road surface, other road/paved blocks
+ * are still cheap, and ordinary terrain is expensive.
  * This causes the A* inside vanilla PathFinder to strongly prefer road nodes
  * when a road path exists, while still allowing off-road navigation when
  * no road is available.</p>
  */
 public class NpcNodeEvaluator extends WalkNodeEvaluator {
 
-    /** Extra cost SET on WALKABLE nodes whose surface is NOT a road block. */
-    private static final float OFF_ROAD_PENALTY = 4.0F;
+    private static final float YELLOW_DIRT_COST = 0.0F;
+    private static final float ROAD_COST = 1.0F;
+    private static final float OFF_ROAD_COST = 6.0F;
 
     /**
      * Set of vanilla blocks considered "road" or "paved" surfaces.
@@ -76,15 +78,21 @@ public class NpcNodeEvaluator extends WalkNodeEvaluator {
         if (this.currentContext == null) return count;
 
         BlockGetter level = this.currentContext.level();
+        int accepted = 0;
         for (int i = 0; i < count; i++) {
             Node neighbor = buffer[i];
             if (neighbor.type == PathType.WATER || neighbor.type == PathType.WATER_BORDER || neighbor.type == PathType.LAVA) {
                 neighbor.costMalus = -1.0F;
                 continue;
             }
+            if (neighbor.type != PathType.DOOR_WOOD_CLOSED && !hasNpcClearance(neighbor)) {
+                neighbor.costMalus = -1.0F;
+                continue;
+            }
             if (neighbor.type != PathType.WALKABLE
                 && neighbor.type != PathType.DOOR_OPEN
                 && neighbor.type != PathType.DOOR_WOOD_CLOSED) {
+                buffer[accepted++] = neighbor;
                 continue;
             }
 
@@ -98,12 +106,32 @@ public class NpcNodeEvaluator extends WalkNodeEvaluator {
             // is returned as a neighbor of multiple parent nodes. Using += would
             // accumulate the penalty each time, inflating cost to infinity and
             // making the pathfinder give up.
-            if (!isRoadBlock(surfaceBlock)) {
-                neighbor.costMalus = OFF_ROAD_PENALTY;
+            if (isYellowDirt(surfaceBlock)) {
+                neighbor.costMalus = YELLOW_DIRT_COST;
+            } else if (isRoadBlock(surfaceBlock)) {
+                neighbor.costMalus = ROAD_COST;
+            } else {
+                neighbor.costMalus = OFF_ROAD_COST;
             }
-            // Road blocks keep vanilla default costMalus (0.0)
+            buffer[accepted++] = neighbor;
         }
-        return count;
+        return accepted;
+    }
+
+    private boolean hasNpcClearance(Node node) {
+        if (this.mob == null) return true;
+        double halfWidth = this.mob.getBbWidth() * 0.5D;
+        double x = node.x + 0.5D;
+        double z = node.z + 0.5D;
+        AABB box = new AABB(
+            x - halfWidth,
+            node.y,
+            z - halfWidth,
+            x + halfWidth,
+            node.y + this.mob.getBbHeight(),
+            z + halfWidth
+        ).deflate(1.0E-7D);
+        return this.mob.level().noCollision(this.mob, box);
     }
 
     /**
@@ -113,7 +141,11 @@ public class NpcNodeEvaluator extends WalkNodeEvaluator {
     private static boolean isRoadBlock(Block block) {
         if (ROAD_BLOCKS.contains(block)) return true;
         // Mod blocks (resolved at runtime to avoid class-load ordering issues)
-        if (block == com.stardew.craft.block.ModBlocks.YELLOW_DIRT.get()) return true;
+        if (isYellowDirt(block)) return true;
         return false;
+    }
+
+    private static boolean isYellowDirt(Block block) {
+        return block == com.stardew.craft.block.ModBlocks.YELLOW_DIRT.get();
     }
 }

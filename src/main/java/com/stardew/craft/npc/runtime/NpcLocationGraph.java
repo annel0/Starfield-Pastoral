@@ -43,7 +43,7 @@ public final class NpcLocationGraph {
 
     // ---- loading ----
 
-    static void reload() {
+    public static void reload() {
         JsonObject root = NpcDataRegistry.events().get("location_graph");
         if (root == null || !root.has("edges") || !root.get("edges").isJsonArray()) {
             adjacency = Collections.emptyMap();
@@ -120,8 +120,9 @@ public final class NpcLocationGraph {
 
     /**
      * Convert a graph route into a sequence of {@link NpcRoutePlanner.NpcRouteStep}s.
-     * For each hop: walk to via_outdoor (if set), warp to via_indoor (if set),
-     * walk to destination anchor.
+     * Each edge is interpreted in its directed BFS direction. Outdoor -> indoor
+     * means walk to the outdoor door and WARP to the indoor entry; indoor ->
+     * outdoor means walk to that interior's exit and WARP to its outdoor exit.
      */
     static List<NpcRoutePlanner.NpcRouteStep> toRouteSteps(GraphRoute route, Vec3 finalTarget) {
         if (route == null || route.edges.isEmpty()) return Collections.emptyList();
@@ -131,31 +132,37 @@ public final class NpcLocationGraph {
         for (int i = 0; i < route.edges.size(); i++) {
             Edge edge = route.edges.get(i);
             boolean isLast = (i == route.edges.size() - 1);
+            NpcLocationAnchor fromAnchor = NpcDataRegistry.locationAnchors().get(edge.from);
+            NpcLocationAnchor toAnchor = NpcDataRegistry.locationAnchors().get(edge.to);
+            boolean fromIndoor = fromAnchor != null && fromAnchor.indoor();
+            boolean toIndoor = toAnchor != null && toAnchor.indoor();
 
-            // Walk to outdoor transition point if defined
-            if (!edge.viaOutdoor.isEmpty()) {
-                Vec3 outdoor = NpcRoutePlanner.pointFromConfig(edge.viaOutdoor, null);
+            if (!fromIndoor && toIndoor) {
+                Vec3 outdoor = !edge.viaOutdoor.isEmpty()
+                    ? NpcRoutePlanner.pointFromConfig(edge.viaOutdoor, null)
+                    : NpcRoutePlanner.outdoorDoorForLocation(edge.to);
+                Vec3 indoor = !edge.viaIndoor.isEmpty()
+                    ? NpcRoutePlanner.pointFromConfig(edge.viaIndoor, null)
+                    : NpcRoutePlanner.indoorEntryForLocation(edge.to);
                 if (outdoor != null) {
                     steps.add(NpcRoutePlanner.NpcRouteStep.walk("graph_outdoor_" + edge.to, outdoor));
                 }
-            }
-
-            // Warp to indoor entry if defined
-            if (!edge.viaIndoor.isEmpty()) {
-                Vec3 indoor = NpcRoutePlanner.pointFromConfig(edge.viaIndoor, null);
                 if (indoor != null) {
                     steps.add(NpcRoutePlanner.NpcRouteStep.warp("graph_indoor_" + edge.to, indoor));
                 }
-            }
-
-            // For intermediate hops without warp, walk to the destination location anchor
-            if (!isLast && edge.viaIndoor.isEmpty()) {
-                NpcLocationAnchor anchor = NpcDataRegistry.locationAnchors().get(edge.to);
-                if (anchor != null) {
-                    Vec3 anchorPosition = NpcRoutePlanner.anchorPosition(edge.to, anchor);
-                    if (anchorPosition != null) {
-                        steps.add(NpcRoutePlanner.NpcRouteStep.walk("graph_hop_" + edge.to, anchorPosition));
-                    }
+            } else if (fromIndoor && !toIndoor) {
+                Vec3 indoorExit = NpcRoutePlanner.indoorExitForLocation(edge.from);
+                Vec3 outdoorExit = NpcRoutePlanner.outdoorExitForLocation(edge.from);
+                if (indoorExit != null) {
+                    steps.add(NpcRoutePlanner.NpcRouteStep.walk("graph_indoor_exit_" + edge.from, indoorExit));
+                }
+                if (outdoorExit != null) {
+                    steps.add(NpcRoutePlanner.NpcRouteStep.warp("graph_outdoor_exit_" + edge.from, outdoorExit));
+                }
+            } else if (!isLast && !edge.viaOutdoor.isEmpty()) {
+                Vec3 outdoor = NpcRoutePlanner.pointFromConfig(edge.viaOutdoor, null);
+                if (outdoor != null) {
+                    steps.add(NpcRoutePlanner.NpcRouteStep.walk("graph_hop_" + edge.to, outdoor));
                 }
             }
         }
@@ -171,6 +178,21 @@ public final class NpcLocationGraph {
     /** Check if the graph has any edges loaded. */
     static boolean isAvailable() {
         return !adjacency.isEmpty();
+    }
+
+    static String outdoorNeighborFor(String location) {
+        String canonicalLocation = canonical(location);
+        if (canonicalLocation.isEmpty() || adjacency.isEmpty()) {
+            return "";
+        }
+        for (Edge edge : adjacency.getOrDefault(canonicalLocation, Collections.emptyList())) {
+            String candidate = edge.to.equals(canonicalLocation) ? edge.from : edge.to;
+            NpcLocationAnchor anchor = NpcDataRegistry.locationAnchors().get(candidate);
+            if (anchor == null || !anchor.indoor()) {
+                return candidate;
+            }
+        }
+        return "";
     }
 
     private static String canonical(String loc) {

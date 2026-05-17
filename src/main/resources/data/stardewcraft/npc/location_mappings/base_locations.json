@@ -57,60 +57,73 @@
       "portal_target": "pierre_house_enter",
       "use_ground_height": false,
       "use_schedule_tile_offset": false,
-      "outdoor_door_point": "seedshop_outer",
-      "indoor_entry_point": "seedshop_inner_entry"
+      "outdoor_door_point": "seedshop_outdoor_door",
+      "indoor_entry_point": "seedshop_indoor_entry",
+      "indoor_exit_point": "seedshop_indoor_exit"
     },
     "manorhouse": {
       "indoor": true,
       "portal_target": "mayor_house_enter",
       "use_ground_height": false,
       "outdoor_door_point": "manorhouse_outdoor_door",
-      "indoor_entry_point": "manorhouse_indoor_entry"
+      "indoor_entry_point": "manorhouse_indoor_entry",
+      "indoor_exit_point": "manorhouse_indoor_exit"
     },
     "hospital": {
       "indoor": true,
       "portal_target": "clinic_enter",
       "use_ground_height": false,
       "outdoor_door_point": "clinic_outdoor_door",
-      "indoor_entry_point": "clinic_indoor_entry"
+      "indoor_entry_point": "clinic_indoor_entry",
+      "indoor_exit_point": "clinic_indoor_exit"
     },
     "animalshop": {
       "indoor": true,
       "portal_target": "marnie_ranch_enter",
       "use_ground_height": false,
       "outdoor_door_point": "animalshop_outdoor_door",
-      "indoor_entry_point": "animalshop_indoor_entry"
+      "indoor_entry_point": "animalshop_indoor_entry",
+      "indoor_exit_point": "animalshop_indoor_exit"
     },
     "archaeologyhouse": {
       "indoor": true,
       "portal_target": "museum_enter",
       "use_ground_height": false,
       "outdoor_door_point": "museum_outdoor_door",
-      "indoor_entry_point": "museum_indoor_entry"
+      "indoor_entry_point": "museum_indoor_entry",
+      "indoor_exit_point": "museum_indoor_exit"
     },
     "adventurer_guild": {
       "indoor": true,
       "portal_target": "adventurer_guild_enter",
-      "use_ground_height": false
+      "use_ground_height": false,
+      "outdoor_door_point": "adventurer_guild_outdoor_door",
+      "indoor_entry_point": "adventurer_guild_indoor_entry",
+      "indoor_exit_point": "adventurer_guild_indoor_exit"
     },
     "oasis": {
       "indoor": true,
       "portal_target": "oasis_enter",
-      "use_ground_height": false
+      "use_ground_height": false,
+      "outdoor_door_point": "oasis_outdoor_door",
+      "indoor_entry_point": "oasis_indoor_entry",
+      "indoor_exit_point": "oasis_indoor_exit"
     },
     "sciencehouse": {
       "indoor": true,
       "portal_target": "carpenter_shop_enter",
       "use_ground_height": false,
       "outdoor_door_point": "sciencehouse_outdoor_door",
-      "indoor_entry_point": "sciencehouse_indoor_entry"
+      "indoor_entry_point": "sciencehouse_indoor_entry",
+      "indoor_exit_point": "sciencehouse_indoor_exit"
     },
     "sebastianroom": {
       "indoor": true,
       "portal_target": "carpenter_shop_enter",
       "use_ground_height": false,
       "outdoor_door_point": "sciencehouse_outdoor_door",
-      "indoor_entry_point": "sciencehouse_indoor_entry"
+      "indoor_entry_point": "sciencehouse_indoor_entry",
+      "indoor_exit_point": "sciencehouse_indoor_exit"
     },
     "communitycenter": {
       "x": -190.0,
@@ -132,7 +145,8 @@
       "portal_target": "saloon_enter",
       "use_ground_height": false,
       "outdoor_door_point": "saloon_outdoor_door",
-      "indoor_entry_point": "saloon_indoor_entry"
+      "indoor_entry_point": "saloon_indoor_entry",
+      "indoor_exit_point": "saloon_indoor_exit"
     },
     "mountain": {
       "x": -284.0,
@@ -163,50 +177,60 @@
       "use_ground_height": true
     },
     "fishshop": {
-      "indoor": false,
+      "indoor": true,
       "portal_target": "fish_shop_enter",
-      "use_ground_height": true,
-      "outdoor_door_point": "fishshop_outer"
+      "use_ground_height": false,
+      "outdoor_door_point": "fishshop_outer",
+      "indoor_entry_point": "fishshop_indoor_entry",
+      "indoor_exit_point": "fishshop_indoor_exit"
     },
     "samhouse": {
       "indoor": true,
       "portal_target": "1_willow_lane_enter",
       "use_ground_height": false,
       "outdoor_door_point": "samhouse_outdoor_door",
-      "indoor_entry_point": "samhouse_indoor_entry"
+      "indoor_entry_point": "samhouse_indoor_entry",
+      "indoor_exit_point": "samhouse_indoor_exit"
     },
     "jojamart": {
-      "indoor": false,
+      "indoor": true,
       "portal_target": "joja_mart_enter",
-      "use_ground_height": true
+      "use_ground_height": false,
+      "outdoor_door_point": "joja_mart_outdoor_door",
+      "indoor_entry_point": "joja_mart_indoor_entry",
+      "indoor_exit_point": "joja_mart_indoor_exit"
     },
     "blacksmith": {
       "indoor": true,
       "portal_target": "blacksmith_enter",
       "use_ground_height": false,
       "outdoor_door_point": "blacksmith_outdoor_door",
-      "indoor_entry_point": "blacksmith_indoor_entry"
+      "indoor_entry_point": "blacksmith_indoor_entry",
+      "indoor_exit_point": "blacksmith_indoor_exit"
     },
     "elliotthouse": {
       "indoor": true,
       "portal_target": "elliott_cabin_enter",
       "use_ground_height": false,
       "outdoor_door_point": "elliotthouse_outdoor_door",
-      "indoor_entry_point": "elliotthouse_indoor_entry"
+      "indoor_entry_point": "elliotthouse_indoor_entry",
+      "indoor_exit_point": "elliotthouse_indoor_exit"
     },
     "haleyhouse": {
       "indoor": true,
       "portal_target": "2_willow_lane_enter",
       "use_ground_height": false,
       "outdoor_door_point": "haleyhouse_outdoor_door",
-      "indoor_entry_point": "haleyhouse_indoor_entry"
+      "indoor_entry_point": "haleyhouse_indoor_entry",
+      "indoor_exit_point": "haleyhouse_indoor_exit"
     },
     "joshhouse": {
       "indoor": true,
       "portal_target": "1_river_road_enter",
       "use_ground_height": false,
       "outdoor_door_point": "joshhouse_outdoor_door",
-      "indoor_entry_point": "joshhouse_indoor_entry"
+      "indoor_entry_point": "joshhouse_indoor_entry",
+      "indoor_exit_point": "joshhouse_indoor_exit"
     },
     "trailer": {
       "x": -231.0,
@@ -220,12 +244,16 @@
       "portal_target": "leah_cottage_enter",
       "use_ground_height": false,
       "outdoor_door_point": "leahhouse_outdoor_door",
-      "indoor_entry_point": "leahhouse_indoor_entry"
+      "indoor_entry_point": "leahhouse_indoor_entry",
+      "indoor_exit_point": "leahhouse_indoor_exit"
     },
     "wizard_tower": {
       "indoor": true,
       "portal_target": "wizard_tower_enter",
-      "use_ground_height": false
+      "use_ground_height": false,
+      "outdoor_door_point": "wizard_tower_outdoor_door",
+      "indoor_entry_point": "wizard_tower_indoor_entry",
+      "indoor_exit_point": "wizard_tower_indoor_exit"
     }
   }
 }

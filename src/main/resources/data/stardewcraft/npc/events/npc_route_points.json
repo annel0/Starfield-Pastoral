@@ -1536,22 +1536,22 @@
     },
     "_comment_sebastian": "=== Sebastian's Room / Destinations ===",
     "sebastian_room_computer": {
-      "x": 41,
-      "y": 80,
+      "x": 43,
+      "y": 46,
       "z": -109,
       "indoor": true,
       "note": "Sebastian 房间电脑前（朝北）"
     },
     "sebastian_room_desk": {
-      "x": 36,
-      "y": 80,
-      "z": -108,
+      "x": 39,
+      "y": 46,
+      "z": -107,
       "indoor": true,
       "note": "Sebastian 房间书桌（朝北）"
     },
     "sebastian_room_bed": {
-      "x": 43,
-      "y": 80,
+      "x": 44,
+      "y": 46,
       "z": -105,
       "indoor": true,
       "note": "Sebastian 房间床（朝北）"
@@ -1971,6 +1971,222 @@
       "y": 60.5,
       "z": 101,
       "indoor": false
+    },
+    "seedshop_indoor_entry": {
+      "x": 21,
+      "y": 36,
+      "z": -12,
+      "indoor": true
+    },
+    "seedshop_indoor_exit": {
+      "x": 20,
+      "y": 36,
+      "z": -11,
+      "indoor": true
+    },
+    "museum_indoor_entry": {
+      "x": 112,
+      "y": 38,
+      "z": 46,
+      "indoor": true
+    },
+    "museum_indoor_exit": {
+      "x": 111,
+      "y": 38,
+      "z": 47,
+      "indoor": true
+    },
+    "blacksmith_indoor_entry": {
+      "x": 107,
+      "y": 46,
+      "z": 30,
+      "indoor": true
+    },
+    "blacksmith_indoor_exit": {
+      "x": 106,
+      "y": 46,
+      "z": 31,
+      "indoor": true
+    },
+    "saloon_indoor_entry": {
+      "x": 26,
+      "y": 36,
+      "z": 18,
+      "indoor": true
+    },
+    "saloon_indoor_exit": {
+      "x": 25,
+      "y": 36,
+      "z": 19,
+      "indoor": true
+    },
+    "manorhouse_indoor_entry": {
+      "x": 54,
+      "y": 50,
+      "z": 29,
+      "indoor": true
+    },
+    "manorhouse_indoor_exit": {
+      "x": 53,
+      "y": 50,
+      "z": 30,
+      "indoor": true
+    },
+    "clinic_indoor_entry": {
+      "x": 9,
+      "y": 43,
+      "z": -11,
+      "indoor": true
+    },
+    "clinic_indoor_exit": {
+      "x": 8,
+      "y": 43,
+      "z": -10,
+      "indoor": true
+    },
+    "joshhouse_indoor_entry": {
+      "x": 48,
+      "y": 22,
+      "z": 4,
+      "indoor": true
+    },
+    "joshhouse_indoor_exit": {
+      "x": 47,
+      "y": 22,
+      "z": 5,
+      "indoor": true
+    },
+    "sciencehouse_indoor_entry": {
+      "x": 30,
+      "y": 51,
+      "z": -117,
+      "indoor": true
+    },
+    "sciencehouse_indoor_exit": {
+      "x": 29,
+      "y": 51,
+      "z": -116,
+      "indoor": true
+    },
+    "samhouse_indoor_entry": {
+      "x": -28,
+      "y": 38,
+      "z": 43,
+      "indoor": true
+    },
+    "samhouse_indoor_exit": {
+      "x": -29,
+      "y": 38,
+      "z": 44,
+      "indoor": true
+    },
+    "haleyhouse_indoor_entry": {
+      "x": -10,
+      "y": 24,
+      "z": 40,
+      "indoor": true
+    },
+    "haleyhouse_indoor_exit": {
+      "x": -11,
+      "y": 24,
+      "z": 41,
+      "indoor": true
+    },
+    "animalshop_indoor_entry": {
+      "x": -86,
+      "y": 34,
+      "z": 25,
+      "indoor": true
+    },
+    "animalshop_indoor_exit": {
+      "x": -87,
+      "y": 34,
+      "z": 26,
+      "indoor": true
+    },
+    "leahhouse_indoor_entry": {
+      "x": -83,
+      "y": 38,
+      "z": 51,
+      "indoor": true
+    },
+    "leahhouse_indoor_exit": {
+      "x": -84,
+      "y": 38,
+      "z": 52,
+      "indoor": true
+    },
+    "fishshop_indoor_exit": {
+      "x": 64,
+      "y": 31,
+      "z": 148,
+      "indoor": true
+    },
+    "elliotthouse_indoor_entry": {
+      "x": 75,
+      "y": 45,
+      "z": 102,
+      "indoor": true
+    },
+    "elliotthouse_indoor_exit": {
+      "x": 74,
+      "y": 45,
+      "z": 103,
+      "indoor": true
+    },
+    "wizard_tower_indoor_entry": {
+      "x": -178,
+      "y": 34,
+      "z": 63,
+      "indoor": true
+    },
+    "wizard_tower_indoor_exit": {
+      "x": -179,
+      "y": 34,
+      "z": 64,
+      "indoor": true
+    },
+    "adventurer_guild_indoor_entry": {
+      "x": 106,
+      "y": 60,
+      "z": -143,
+      "indoor": true
+    },
+    "adventurer_guild_indoor_exit": {
+      "x": 105,
+      "y": 60,
+      "z": -142,
+      "indoor": true
+    },
+    "oasis_outdoor_door": {
+      "x": -251,
+      "y": 64,
+      "z": -141,
+      "indoor": false
+    },
+    "oasis_indoor_entry": {
+      "x": -252,
+      "y": 30,
+      "z": -147,
+      "indoor": true
+    },
+    "oasis_indoor_exit": {
+      "x": -253,
+      "y": 30,
+      "z": -146,
+      "indoor": true
+    },
+    "joja_mart_indoor_entry": {
+      "x": 108,
+      "y": 45,
+      "z": -19,
+      "indoor": true
+    },
+    "joja_mart_indoor_exit": {
+      "x": 108,
+      "y": 45,
+      "z": -17,
+      "indoor": true
     }
   }
 }

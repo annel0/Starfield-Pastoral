@@ -29,7 +29,7 @@
 |---|---|---|---|---|
 | pregen manifest | `src/main/resources/pregen/stardew_valley/region_manifest.txt` |  | 待测 | 必须和新的 `.mca` 文件列表一致。 |
 | pregen region 文件 | `src/main/resources/pregen/stardew_valley/region/*.mca` |  | 待测 | 替换旧地图 region。 |
-| pregen 安装版本 | `StardewValleyPrebuiltRegionInstaller.CURRENT_PREGEN_VERSION = 3` |  | 待测 | 新地图打包后必须 +1，否则老存档不会覆盖安装。 |
+| pregen 安装版本 | `StardewValleyPrebuiltRegionInstaller.CURRENT_PREGEN_VERSION = 5` |  | 已应用 | 新地图打包后必须 +1，否则老存档不会覆盖安装。 |
 | 固定室内 schem 放置 | `InteriorSubspaceManager.FIXED_STRUCTURES` / `interior/*.schem` | pregen 内嵌，不再运行时放置 | 已应用 | 只保留传送触发方块补放和目标注册；坐标待重测。 |
 | 沙漠 schem 放置 | `data/stardewcraft/structures/desert.schem` | pregen 内嵌，不再运行时放置 | 已应用 | `DesertMapBootstrap` 只补放沙漠传送触发方块；坐标待重测。 |
 | 室内/沙漠布局版本 | `InteriorSubspaceManager.LAYOUT_VERSION = 32`, `DesertMapBootstrap.DESERT_VERSION = 1` | 跟随 `CURRENT_PREGEN_VERSION` | 已应用 | 子系统不再单独维护地图版本号。 |

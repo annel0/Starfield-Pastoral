@@ -34,7 +34,7 @@ import javax.annotation.Nonnull;
  *   </li>
  * </ul>
  *
-    * <p>采石场区域：X ∈ [155, 194]，Z ∈ [-140, -101]，只在 Y=80..81 的裸露 coarse dirt 顶面生成。
+    * <p>采石场区域：X ∈ [155, 194]，Z ∈ [-140, -101]，只在 Y=80..81 的裸露采石场土面生成。
  */
 @SuppressWarnings("null")
 public final class QuarrySpawnService {
@@ -88,10 +88,15 @@ public final class QuarrySpawnService {
         if (!level.dimension().equals(com.stardew.craft.core.ModDimensions.STARDEW_VALLEY)) return;
 
         int n = Math.min(16, 5 + year * 2);
-        RandomSource random = level.getRandom();
+        java.util.List<long[]> forced = forceQuarryChunks(level);
         int placed = 0;
-        for (int i = 0; i < n; i++) {
-            if (trySpawnOne(level, random)) placed++;
+        try {
+            RandomSource random = level.getRandom();
+            for (int i = 0; i < n; i++) {
+                if (trySpawnOne(level, random)) placed++;
+            }
+        } finally {
+            releaseQuarryChunks(level, forced);
         }
         StardewCraft.LOGGER.info("[QUARRY] onNewDay year={} attempts={} placed={}", year, n, placed);
     }
@@ -118,15 +123,7 @@ public final class QuarrySpawnService {
         StardewCraft.LOGGER.info("[QUARRY] Running initial dense spawn (year={}, fillChance={})", year, INITIAL_FILL_CHANCE);
 
         // 强制加载采石场覆盖的区块，保证 setBlock 不被 chunk unloaded 跳过。
-        java.util.List<long[]> forced = new java.util.ArrayList<>();
-        int cxMin = AREA_MIN_X >> 4, cxMax = AREA_MAX_X >> 4;
-        int czMin = AREA_MIN_Z >> 4, czMax = AREA_MAX_Z >> 4;
-        for (int cx = cxMin; cx <= cxMax; cx++) {
-            for (int cz = czMin; cz <= czMax; cz++) {
-                level.setChunkForced(cx, cz, true);
-                forced.add(new long[]{cx, cz});
-            }
-        }
+        java.util.List<long[]> forced = forceQuarryChunks(level);
 
         try {
             RandomSource r = level.getRandom();
@@ -140,12 +137,34 @@ public final class QuarrySpawnService {
                 }
             }
             StardewCraft.LOGGER.info("[QUARRY] Initial dense spawn done: attempts={} placed={}", attempts, placed);
-        } finally {
-            for (long[] c : forced) {
-                level.setChunkForced((int) c[0], (int) c[1], false);
+            if (placed <= 0) {
+                StardewCraft.LOGGER.warn("[QUARRY] Initial dense spawn placed nothing; leaving initialization pending for retry");
+                return;
             }
+        } finally {
+            releaseQuarryChunks(level, forced);
         }
         data.markInitialized();
+    }
+
+    private static java.util.List<long[]> forceQuarryChunks(ServerLevel level) {
+        java.util.List<long[]> forced = new java.util.ArrayList<>();
+        int cxMin = AREA_MIN_X >> 4, cxMax = AREA_MAX_X >> 4;
+        int czMin = AREA_MIN_Z >> 4, czMax = AREA_MAX_Z >> 4;
+        for (int cx = cxMin; cx <= cxMax; cx++) {
+            for (int cz = czMin; cz <= czMax; cz++) {
+                level.setChunkForced(cx, cz, true);
+                level.getChunk(cx, cz);
+                forced.add(new long[]{cx, cz});
+            }
+        }
+        return forced;
+    }
+
+    private static void releaseQuarryChunks(ServerLevel level, java.util.List<long[]> forced) {
+        for (long[] chunk : forced) {
+            level.setChunkForced((int) chunk[0], (int) chunk[1], false);
+        }
     }
 
     // ======================== 核心：一次随机放置尝试 ========================
@@ -171,7 +190,7 @@ public final class QuarrySpawnService {
         return true;
     }
 
-    /** 在指定 Y 范围内找裸露的 coarse dirt 顶面。 */
+    /** 在指定 Y 范围内找裸露的采石场土面。 */
     private static BlockPos findQuarryFloor(ServerLevel level, int x, int z) {
         for (int y = FLOOR_MAX_Y; y >= FLOOR_MIN_Y; y--) {
             BlockPos pos = new BlockPos(x, y, z);
@@ -182,10 +201,10 @@ public final class QuarrySpawnService {
         return null;
     }
 
-    /** 严格只在裸露 coarse dirt 顶面生成。 */
+    /** 严格只在裸露采石场土面生成。 */
     private static boolean isQuarryFloor(ServerLevel level, BlockPos pos) {
         BlockState state = level.getBlockState(pos);
-        return state.is(Blocks.COARSE_DIRT);
+        return state.is(Blocks.COARSE_DIRT) || state.is(ModBlocks.YELLOW_DIRT.get());
     }
 
     private static boolean isReplaceableAbove(ServerLevel level, BlockPos pos) {
@@ -257,7 +276,7 @@ public final class QuarrySpawnService {
      * 初始化版本号。改动采石场区域、放置密度、可生成方块表等任何会影响「初始面貌」的参数时
      * 把这个数 +1，老存档下次进入星露谷会重新铺一遍。
      */
-    public static final int CURRENT_VERSION = 2;
+    public static final int CURRENT_VERSION = 3;
 
     public static class QuarryInitData extends SavedData {
         private int initializedVersion;

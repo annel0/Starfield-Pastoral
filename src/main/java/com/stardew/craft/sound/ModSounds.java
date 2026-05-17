@@ -41,6 +41,8 @@ public final class ModSounds {
 	public static final DeferredHolder<SoundEvent, SoundEvent> SPRING_BIRDS = register("spring_birds");
 	// 宝箱打开音效
 	public static final DeferredHolder<SoundEvent, SoundEvent> OPEN_CHEST = register("open_chest");
+	public static final DeferredHolder<SoundEvent, SoundEvent> DOOR_OPEN = register("door_open");
+	public static final DeferredHolder<SoundEvent, SoundEvent> DOOR_CLOSE = register("door_close");
 	public static final DeferredHolder<SoundEvent, SoundEvent> DOOR_CREAK = register("door_creak");
 	public static final DeferredHolder<SoundEvent, SoundEvent> DOOR_CREAK_REVERSE = register("door_creak_reverse");
 	public static final DeferredHolder<SoundEvent, SoundEvent> WOODY_STEP = register("woody_step");

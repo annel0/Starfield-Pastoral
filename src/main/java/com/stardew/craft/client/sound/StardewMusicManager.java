@@ -39,7 +39,7 @@ public final class StardewMusicManager {
     private static final Logger LOG = LoggerFactory.getLogger(StardewMusicManager.class);
 
     /** How often (in ticks) to re-evaluate which track should play. */
-    private static final int CHECK_INTERVAL = 40; // 2 seconds
+    private static final int CHECK_INTERVAL = 10; // 0.5 seconds
 
     /** SDV: nightTime starts around 18:00 (1080 in SDV time units). */
     private static final int NIGHT_TIME = 1080;
@@ -73,7 +73,7 @@ public final class StardewMusicManager {
     }
 
     private static final Map<String, InteriorMusicDefinition> FIXED_INTERIOR_MUSIC = Map.ofEntries(
-        Map.entry("pierre_house",     music(null)),
+        Map.entry("pierre_house",     music(ModSounds.MUSIC_SPRINGTOWN)),
         Map.entry("museum",           music(ModSounds.MUSIC_LIBRARY)),
         Map.entry("blacksmith",       music(null)),
         Map.entry("saloon",           music(ModSounds.MUSIC_SALOON, 1700)),
@@ -89,7 +89,7 @@ public final class StardewMusicManager {
         Map.entry("fish_shop",        music(null)),
         Map.entry("elliott_cabin",    music(ModSounds.MUSIC_COMMUNITY_CENTER)),
         Map.entry("wizard_tower",     music(ModSounds.MUSIC_WIZARD_TOWER)),
-        Map.entry("oasis",            music(ModSounds.MUSIC_DISTANT_BANJO)),
+        Map.entry("oasis",            music(ModSounds.MUSIC_OASIS)),
         Map.entry("joja_mart",        music(ModSounds.MUSIC_HOSPITAL_AMBIENT))
     );
 
@@ -109,6 +109,9 @@ public final class StardewMusicManager {
     private static StardewMusicInstance fadingOut;
     private static int fadeOutTicks = 0;
     private static final int FADE_OUT_DURATION = 40; // 2 seconds fade
+    private static int fadeInTicks = 0;
+    private static final int FADE_IN_DURATION = 40;
+    private static final float FADE_IN_START_VOLUME = 0.05F;
 
     // ────────────────────────── Jukebox suppression ──────────────────────────
 
@@ -224,6 +227,7 @@ public final class StardewMusicManager {
 
         // Process fade-out
         tickFadeOut();
+        tickFadeIn();
 
         // Don't override cutscene music
         if (cutsceneOverride) return;
@@ -505,9 +509,12 @@ public final class StardewMusicManager {
                 .orElse(null);
         if (fixedInteriorMusic != null) {
             if (!isInteriorMusicTimeActive(fixedInteriorMusic)) {
-                return new InteriorTrackChoice(null);
+                return null;
             }
-            return new InteriorTrackChoice(fixedInteriorMusic.music == null ? null : fixedInteriorMusic.music.get());
+            if (fixedInteriorMusic.music == null) {
+                return null;
+            }
+            return new InteriorTrackChoice(fixedInteriorMusic.music.get());
         }
         InteriorTrackChoice perPlayerInteriorTrack = pickPerPlayerInteriorTrack(px, py, pz);
         if (perPlayerInteriorTrack != null) {
@@ -588,13 +595,23 @@ public final class StardewMusicManager {
         currentTrackEvent = null;
 
         if (newTrack != null) {
-            startPlaying(newTrack);
+            startPlaying(newTrack, true);
         }
     }
 
     private static void startPlaying(SoundEvent event) {
+        startPlaying(event, false);
+    }
+
+    private static void startPlaying(SoundEvent event, boolean fadeIn) {
         LOG.info("[StardewMusic] Playing: {}", event.getLocation());
         StardewMusicInstance instance = new StardewMusicInstance(event);
+        if (fadeIn) {
+            instance.setFadeVolume(FADE_IN_START_VOLUME);
+            fadeInTicks = 0;
+        } else {
+            fadeInTicks = FADE_IN_DURATION;
+        }
         Minecraft.getInstance().getSoundManager().play(instance);
         currentMusic = instance;
         currentTrackEvent = event;
@@ -613,6 +630,15 @@ public final class StardewMusicManager {
         } else {
             fading.setFadeVolume(1.0f - progress);
         }
+    }
+
+    private static void tickFadeIn() {
+        StardewMusicInstance current = currentMusic;
+        if (current == null || current.isStopped() || fadeInTicks >= FADE_IN_DURATION) return;
+
+        fadeInTicks++;
+        float progress = (float) fadeInTicks / FADE_IN_DURATION;
+        current.setFadeVolume(Math.max(FADE_IN_START_VOLUME, progress));
     }
 
     // ────────────────────────── Sound Instance ──────────────────────────

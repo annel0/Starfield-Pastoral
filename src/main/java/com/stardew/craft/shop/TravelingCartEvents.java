@@ -45,6 +45,9 @@ public final class TravelingCartEvents {
         if (level == null) {
             return;
         }
+        if (level.players().isEmpty()) {
+            return;
+        }
 
         com.stardew.craft.time.StardewTimeManager time = com.stardew.craft.time.StardewTimeManager.get();
         boolean visitDay = shouldTravelingMerchantVisitToday(time.getCurrentDay());

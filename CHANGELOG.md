@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.3.9fix1 - 2026-05-17
+
+### Update Log (English)
+
+#### Fixes
+
+- Raised the overworld wizard tower structure template by one block so newly generated towers no longer sink one block into the ground.
+- Stopped Joja Mart NPC maintenance from running while no players are in the Stardew Valley dimension, preventing repeated Morris and cashier fresh-spawn loops while players are in the Overworld.
+- Stopped Joja's maintenance tick from redundantly forcing camel merchant and traveling cart checks; those static merchants now also skip their own timed checks when Stardew Valley has no players.
+- Disabled NPC movement debug snapshot/log work by default behind the `stardewcraft.npcMovementDebug` system property, removing hot-path debug overhead during normal play.
+
+#### Changes
+
+- Bumped `StardewValleyPrebuiltRegionInstaller.CURRENT_PREGEN_VERSION` to `5` so existing saves reinstall the updated pregen layout.
+- Updated the public mod version to `0.3.9fix1`.
+- Reduced NPC runtime bookkeeping by caching implemented movement entries and refreshing runtime/pathing metadata only when NPC capability data changes.
+- Improved NPC path evaluation so NPCs avoid tall or cross-cell decor collisions such as Joja Mart shelves instead of treating those blocks as walkable space.
+
+### 更新日志（中文）
+
+#### 修复
+
+- 将主世界法师塔结构模板整体抬高一格，新生成的法师塔不再陷进地里一格。
+- Joja 超市 NPC 巡检现在只会在星露谷维度有玩家时运行，避免玩家在主世界时 Morris 和收银员反复 fresh-spawn 并拖慢服务器。
+- 移除 Joja tick 对骆驼商人和旅行货车的重复强制巡检；这两个静态商人自己的定时巡检也会在星露谷无人时跳过。
+- NPC 移动调试快照和日志默认关闭，仅在设置 `stardewcraft.npcMovementDebug` 时启用，减少正常游玩时的热路径开销。
+
+#### 变更
+
+- 将 `StardewValleyPrebuiltRegionInstaller.CURRENT_PREGEN_VERSION` 提升到 `5`，让旧存档重新安装更新后的 pregen 地图布局。
+- 项目公开版本号更新为 `0.3.9fix1`。
+- 缓存 NPC movement entry，并让 runtime/pathing 元数据只在 NPC capability 数据变化时刷新，减少每 tick 重复 bookkeeping。
+- 改进 NPC 寻路节点判定，让 NPC 避开超市货架这类高碰撞或跨格装饰方块，不再把它们当成可走空间。
+
 ## 0.3.9 - 2026-05-17
 
 ### Update Log (English)

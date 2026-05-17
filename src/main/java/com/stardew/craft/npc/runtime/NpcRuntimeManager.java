@@ -27,28 +27,30 @@ public final class NpcRuntimeManager {
         }
 
         RuntimeSnapshot snapshot = SNAPSHOTS.computeIfAbsent(server, key -> new RuntimeSnapshot());
-        refreshFromData(snapshot);
-        syncRuntimeState(level, snapshot);
+        boolean refreshed = refreshFromData(snapshot);
+        if (refreshed || !snapshot.syncedRuntimeState) {
+            syncRuntimeState(level, snapshot);
+            snapshot.syncedRuntimeState = true;
+        }
 
         if (!snapshot.loggedOnce) {
             snapshot.loggedOnce = true;
         }
     }
 
-    private static int lastCapabilitiesVersion = -1;
+    private static Map<String, NpcCapabilityProfile> lastCapabilitiesSnapshot = Map.of();
 
-    private static void refreshFromData(RuntimeSnapshot snapshot) {
-        // NPC 能力数据只在 datapack reload 时变化，用版本号避免每 tick 重建
-        int currentVersion = NpcDataRegistry.capabilities().size();
-        if (currentVersion == lastCapabilitiesVersion && !snapshot.implementedNpcIds.isEmpty()) {
-            return;
+    private static boolean refreshFromData(RuntimeSnapshot snapshot) {
+        Map<String, NpcCapabilityProfile> capabilities = NpcDataRegistry.capabilities();
+        if (capabilities == lastCapabilitiesSnapshot && !snapshot.implementedNpcIds.isEmpty()) {
+            return false;
         }
-        lastCapabilitiesVersion = currentVersion;
+        lastCapabilitiesSnapshot = capabilities;
 
         snapshot.implementedNpcIds.clear();
         snapshot.pathingNpcIds.clear();
 
-        for (NpcCapabilityProfile profile : NpcDataRegistry.capabilities().values()) {
+        for (NpcCapabilityProfile profile : capabilities.values()) {
             if (!profile.implemented()) {
                 continue;
             }
@@ -58,6 +60,7 @@ public final class NpcRuntimeManager {
                 snapshot.pathingNpcIds.add(profile.npcId());
             }
         }
+        return true;
     }
 
     private static void syncRuntimeState(ServerLevel level, RuntimeSnapshot snapshot) {
@@ -81,6 +84,7 @@ public final class NpcRuntimeManager {
     private static final class RuntimeSnapshot {
         private final Set<String> implementedNpcIds = ConcurrentHashMap.newKeySet();
         private final Set<String> pathingNpcIds = ConcurrentHashMap.newKeySet();
+        private boolean syncedRuntimeState;
         private boolean loggedOnce;
     }
 }

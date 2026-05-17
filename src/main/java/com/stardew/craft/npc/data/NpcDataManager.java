@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.stardew.craft.npc.runtime.NpcLocationGraph;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
@@ -118,6 +119,7 @@ public final class NpcDataManager {
             NpcDataRegistry.replaceLocationMappings(locationMappings);
             NpcDataRegistry.replaceLocationAliases(locationAliases);
             NpcDataRegistry.replaceLocationAnchors(locationAnchors);
+            NpcLocationGraph.reload();
             NpcDataDiagnostics.validateAndLog(capabilities, dialogues, filteredSchedules, tastes);
 
         }
@@ -269,8 +271,9 @@ public final class NpcDataManager {
                     boolean useScheduleTileOffset = readBoolean(obj, "use_schedule_tile_offset", false);
                     String outdoorDoorPoint = readString(obj, "outdoor_door_point");
                     String indoorEntryPoint = readString(obj, "indoor_entry_point");
+                    String indoorExitPoint = readString(obj, "indoor_exit_point");
 
-                    anchors.put(name, new NpcLocationAnchor(x, y, z, indoor, portalTarget, useGround, useScheduleTileOffset, outdoorDoorPoint, indoorEntryPoint));
+                    anchors.put(name, new NpcLocationAnchor(x, y, z, indoor, portalTarget, useGround, useScheduleTileOffset, outdoorDoorPoint, indoorEntryPoint, indoorExitPoint));
                     locations.add(name);
                 }
             }

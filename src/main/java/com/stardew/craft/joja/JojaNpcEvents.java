@@ -61,13 +61,12 @@ public final class JojaNpcEvents {
 
         ServerLevel level = event.getServer().getLevel(ModDimensions.STARDEW_VALLEY);
         if (level == null) return;
+        if (level.players().isEmpty()) return;
 
         for (Spawn s : SPAWNS) {
             loadSpawnChunk(level, s);
             ensureSingleEntity(level, s);
         }
-        com.stardew.craft.shop.CamelMerchantEvents.forceCheckNow(level);
-        com.stardew.craft.shop.TravelingCartEvents.forceCheckNow(level);
     }
 
     private static void loadSpawnChunk(ServerLevel level, Spawn s) {

@@ -66,7 +66,7 @@ public final class NpcSpawnManager {
     private static long cachedScanGameTime = Long.MIN_VALUE;
     private static List<StardewNpcEntity> cachedAllNpcs = List.of();
     private static Set<String> cachedImplementedIds = Set.of();
-    private static long cachedImplementedIdsVersion = -1;
+    private static Map<String, NpcCapabilityProfile> cachedImplementedCapabilities = Map.of();
 
     private NpcSpawnManager() {
     }
@@ -89,16 +89,16 @@ public final class NpcSpawnManager {
      * Returns cached implemented NPC IDs, refreshed when NpcDataRegistry changes.
      */
     private static Set<String> getCachedImplementedIds() {
-        long version = NpcDataRegistry.capabilities().size(); // simple change detector
-        if (version != cachedImplementedIdsVersion) {
+        Map<String, NpcCapabilityProfile> capabilities = NpcDataRegistry.capabilities();
+        if (capabilities != cachedImplementedCapabilities) {
             Set<String> ids = new HashSet<>();
-            for (Map.Entry<String, NpcCapabilityProfile> entry : NpcDataRegistry.capabilities().entrySet()) {
+            for (Map.Entry<String, NpcCapabilityProfile> entry : capabilities.entrySet()) {
                 if (entry.getValue().implemented()) {
                     ids.add(canonicalNpcId(entry.getValue().npcId()));
                 }
             }
             cachedImplementedIds = ids;
-            cachedImplementedIdsVersion = version;
+            cachedImplementedCapabilities = capabilities;
         }
         return cachedImplementedIds;
     }
@@ -763,7 +763,7 @@ public final class NpcSpawnManager {
         LAST_SPAWN_GAME_TIME.clear();
         cachedScanGameTime = Long.MIN_VALUE;
         cachedAllNpcs = List.of();
-        cachedImplementedIdsVersion = -1;
+        cachedImplementedCapabilities = Map.of();
     }
 
     private static void discardWithReason(StardewNpcEntity npc, String reason) {

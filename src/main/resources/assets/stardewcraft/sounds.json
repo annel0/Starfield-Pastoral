@@ -230,6 +230,22 @@
       }
     ]
   },
+  "door_open": {
+    "sounds": [
+      {
+        "name": "stardewcraft:dooropen",
+        "stream": false
+      }
+    ]
+  },
+  "door_close": {
+    "sounds": [
+      {
+        "name": "stardewcraft:doorclose",
+        "stream": false
+      }
+    ]
+  },
   "woody_step": {
     "sounds": [
       {

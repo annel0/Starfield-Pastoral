@@ -12,6 +12,8 @@ import net.minecraft.world.level.pathfinder.PathFinder;
  */
 public class NpcPathNavigation extends GroundPathNavigation {
 
+    private static final int MIN_NPC_PATH_NODE_BUDGET = 8192;
+
     public NpcPathNavigation(Mob mob, Level level) {
         super(mob, level);
     }
@@ -22,6 +24,6 @@ public class NpcPathNavigation extends GroundPathNavigation {
         this.nodeEvaluator.setCanPassDoors(true);
         this.nodeEvaluator.setCanOpenDoors(true);
         this.nodeEvaluator.setCanFloat(false);
-        return new PathFinder(this.nodeEvaluator, maxVisitedNodes);
+        return new PathFinder(this.nodeEvaluator, Math.max(maxVisitedNodes, MIN_NPC_PATH_NODE_BUDGET));
     }
 }

@@ -34,7 +34,7 @@ public final class MinecartMenuService {
     public static final Destination TOWN = new Destination(
             "town", "stardewcraft.minecart.dest.town",
             ModDimensions.STARDEW_VALLEY,
-            -312.0 + 0.5, -17.0, -15.0 + 0.5, 180.0F, null);
+            123.0 + 0.5, 64.0, 26.0 + 0.5, 180.0F, null);
 
     public static final Destination MINES = new Destination(
             "mines", "stardewcraft.minecart.dest.mines",
@@ -44,12 +44,12 @@ public final class MinecartMenuService {
     public static final Destination BUS = new Destination(
             "bus", "stardewcraft.minecart.dest.bus",
             ModDimensions.STARDEW_VALLEY,
-            85.0 + 0.5, -12.0, 223.0 + 0.5, 180.0F, null);
+            -76.0 + 0.5, 64.0, -70.0 + 0.5, 180.0F, null);
 
     public static final Destination QUARRY = new Destination(
             "quarry", "stardewcraft.minecart.dest.quarry",
             ModDimensions.STARDEW_VALLEY,
-            -471.0 + 0.5, -13.0, 292.0 + 0.5, 180.0F, CCStoryFlags.CC_CRAFTS_ROOM);
+            187.0 + 0.5, 81.0, -141.0 + 0.5, 180.0F, CCStoryFlags.CC_CRAFTS_ROOM);
 
     private static final List<Destination> ALL = List.of(TOWN, MINES, BUS, QUARRY);
 

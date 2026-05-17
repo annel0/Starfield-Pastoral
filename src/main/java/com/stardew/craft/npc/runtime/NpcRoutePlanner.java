@@ -7,6 +7,7 @@ import com.stardew.craft.interior.InteriorPortalRegistry;
 import com.stardew.craft.interior.InteriorSubspaceManager;
 import com.stardew.craft.npc.data.NpcDataRegistry;
 import com.stardew.craft.npc.data.NpcLocationAnchor;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec3;
 
@@ -29,10 +30,6 @@ final class NpcRoutePlanner {
 
     // ── Hot-path caches ──
     private static final Map<String, String> CANONICAL_NPC_ID_CACHE = new HashMap<>();
-    private static List<Vec3> cachedIndoorEntryPoints = null;
-    private static Map<Vec3, Vec3> cachedIndoorToOutdoorMap = null;
-    /** Reference to the locationAnchors map at the time the indoor cache was built. */
-    private static Map<String, NpcLocationAnchor> cachedIndoorAnchorSource = null;
     private static boolean portalTargetsInitialized = false;
 
     private NpcRoutePlanner() {
@@ -43,31 +40,28 @@ final class NpcRoutePlanner {
         MISSING_CONFIG_POINT_LOGGED.clear();
         HARD_ENDPOINT_WARNED.clear();
         CANONICAL_NPC_ID_CACHE.clear();
-        cachedIndoorEntryPoints = null;
-        cachedIndoorToOutdoorMap = null;
-        cachedIndoorAnchorSource = null;
         portalTargetsInitialized = false;
+        NpcLocationGraph.reload();
     }
 
     // ---- public route resolution entry point ----
 
     static NpcRouteContext resolveRoute(ServerLevel level, String npcId, NpcRuntimeState state) {
+        return resolveRoute(level, npcId, state, null);
+    }
+
+    static NpcRouteContext resolveRoute(ServerLevel level, String npcId, NpcRuntimeState state, BlockPos npcPos) {
         String canonicalNpcId = canonicalNpcId(npcId);
         if (state == null) {
             return NpcRouteContext.invalid("", "missing_runtime_state", "", "");
         }
-        if (state != null) {
-            String namedPointId = state.namedPointId();
-            if (namedPointId != null && !namedPointId.isBlank()) {
-                NpcRouteContext directScheduleRoute = resolveGenericScheduleRoute(level, canonicalNpcId, state);
-                if (directScheduleRoute != null) {
-                    return directScheduleRoute;
-                }
-            }
-        }
         NpcRouteContext profileRoute = resolveProfileRoute(canonicalNpcId, state);
         if (profileRoute != null) {
             return profileRoute;
+        }
+        NpcRouteContext graphRoute = resolveGraphRoute(level, canonicalNpcId, state, npcPos);
+        if (graphRoute != null) {
+            return graphRoute;
         }
         NpcRouteContext genericRoute = resolveGenericScheduleRoute(level, canonicalNpcId, state);
         return genericRoute == null
@@ -82,59 +76,85 @@ final class NpcRoutePlanner {
         return CANONICAL_NPC_ID_CACHE.computeIfAbsent(npcId, k -> k.trim().toLowerCase(Locale.ROOT));
     }
 
-    private static void ensureIndoorCaches() {
-        // Invalidate if the underlying data source has been replaced (e.g. /reload).
-        Map<String, NpcLocationAnchor> currentAnchors = NpcDataRegistry.locationAnchors();
-        if (cachedIndoorEntryPoints != null && cachedIndoorAnchorSource == currentAnchors) return;
-        List<Vec3> entries = new ArrayList<>();
-        Map<Vec3, Vec3> indoorToOutdoor = new HashMap<>();
-        for (Map.Entry<String, NpcLocationAnchor> entry : currentAnchors.entrySet()) {
-            NpcLocationAnchor anchor = entry.getValue();
-            if (anchor.indoorEntryPoint().isEmpty()) continue;
-            Vec3 entryVec = pointFromConfigStrict(anchor.indoorEntryPoint(), null, entry.getKey());
-            if (entryVec == null) continue;
-            entries.add(entryVec);
-            if (!anchor.outdoorDoorPoint().isEmpty()) {
-                Vec3 outdoor = pointFromConfigStrict(anchor.outdoorDoorPoint(), null, entry.getKey());
-                if (outdoor != null) {
-                    indoorToOutdoor.put(entryVec, outdoor);
-                }
-            }
+    static String fixedInteriorLocationAt(BlockPos pos) {
+        if (pos == null) {
+            return "";
         }
-        cachedIndoorEntryPoints = entries;
-        cachedIndoorToOutdoorMap = indoorToOutdoor;
-        cachedIndoorAnchorSource = currentAnchors;
+        return InteriorRegionRegistry.fixedInteriorAt(pos)
+            .map(region -> locationForFixedInteriorRegion(region.id(), region.aliases()))
+            .orElse("");
     }
 
-    static Vec3 nearestKnownIndoorEntry(Vec3 pos) {
-        ensureIndoorCaches();
-        Vec3 nearest = null;
-        double best = Double.MAX_VALUE;
-        for (Vec3 entryVec : cachedIndoorEntryPoints) {
-            double d = pos.distanceToSqr(entryVec);
-            if (d < best) {
-                best = d;
-                nearest = entryVec;
-            }
-        }
-        if (nearest != null) {
-            return nearest;
-        }
-        return nearest;
-    }
-
-    static Vec3 linkedOutdoorDoor(Vec3 indoorEntry) {
-        if (indoorEntry == null) {
+    static Vec3 indoorExitForLocation(String canonicalLocation) {
+        NpcLocationAnchor anchor = anchorForLocation(canonicalLocation);
+        if (anchor == null || anchor.indoorExitPoint().isBlank()) {
             return null;
         }
-        ensureIndoorCaches();
-        // Check cached indoor→outdoor map first
-        for (Map.Entry<Vec3, Vec3> mapped : cachedIndoorToOutdoorMap.entrySet()) {
-            if (indoorEntry.distanceToSqr(mapped.getKey()) < 4.0D) {
-                return mapped.getValue();
+        return pointFromConfigStrict(anchor.indoorExitPoint(), null, canonicalLocation);
+    }
+
+    static Vec3 outdoorExitForLocation(String canonicalLocation) {
+        NpcLocationAnchor anchor = anchorForLocation(canonicalLocation);
+        if (anchor == null) {
+            return null;
+        }
+        if (!anchor.portalTarget().isBlank()) {
+            Vec3 portalExit = portalTargetPosition(exitPortalTargetId(anchor.portalTarget()));
+            if (portalExit != null) {
+                return portalExit;
             }
         }
+        if (!anchor.outdoorDoorPoint().isBlank()) {
+            return pointFromConfigStrict(anchor.outdoorDoorPoint(), null, canonicalLocation);
+        }
         return null;
+    }
+
+    static Vec3 outdoorDoorForLocation(String canonicalLocation) {
+        NpcLocationAnchor anchor = anchorForLocation(canonicalLocation);
+        if (anchor == null || anchor.outdoorDoorPoint().isBlank()) {
+            return null;
+        }
+        return pointFromConfigStrict(anchor.outdoorDoorPoint(), null, canonicalLocation);
+    }
+
+    static Vec3 indoorEntryForLocation(String canonicalLocation) {
+        NpcLocationAnchor anchor = anchorForLocation(canonicalLocation);
+        if (anchor == null || anchor.indoorEntryPoint().isBlank()) {
+            return null;
+        }
+        return pointFromConfigStrict(anchor.indoorEntryPoint(), null, canonicalLocation);
+    }
+
+    private static NpcLocationAnchor anchorForLocation(String location) {
+        String canonical = canonicalLocation(location);
+        return canonical.isBlank() ? null : NpcDataRegistry.locationAnchors().get(canonical);
+    }
+
+    private static String locationForFixedInteriorRegion(String regionId, List<String> aliases) {
+        List<String> candidates = new ArrayList<>();
+        if (regionId != null && !regionId.isBlank()) {
+            candidates.add(regionId);
+        }
+        if (aliases != null) {
+            candidates.addAll(aliases);
+        }
+        for (String candidate : candidates) {
+            String canonical = canonicalLocation(candidate);
+            NpcLocationAnchor anchor = NpcDataRegistry.locationAnchors().get(canonical);
+            if (anchor != null && anchor.indoor()) {
+                return canonical;
+            }
+        }
+        return "";
+    }
+
+    private static String canonicalLocation(String location) {
+        if (location == null || location.isBlank()) {
+            return "";
+        }
+        String raw = location.trim().toLowerCase(Locale.ROOT);
+        return NpcDataRegistry.locationAliases().getOrDefault(raw, raw);
     }
 
     static Vec3 anchorPosition(String canonicalLocation, NpcLocationAnchor anchor) {
@@ -431,6 +451,45 @@ final class NpcRoutePlanner {
         destination.add(NpcRouteStep.warp("indoor_entry", indoorEntry));
         destination.add(NpcRouteStep.walk("indoor_target", target.position()));
         return NpcRouteContext.ready(canonicalLocation, destination);
+    }
+
+    private static NpcRouteContext resolveGraphRoute(ServerLevel level,
+                                                     String canonicalNpcId,
+                                                     NpcRuntimeState state,
+                                                     BlockPos npcPos) {
+        if (state == null || !NpcLocationGraph.isAvailable()) {
+            return null;
+        }
+        String destinationLocation = canonicalLocation(state.locationName());
+        if (destinationLocation.isBlank()) {
+            return null;
+        }
+
+        NpcScheduleRuntimeService.TargetPoint target = NpcScheduleRuntimeService.resolveWorldTarget(level, state, null);
+        if (target == null || target.position() == null) {
+            return null;
+        }
+
+        String currentInteriorLocation = fixedInteriorLocationAt(npcPos);
+        String sourceLocation = currentInteriorLocation.isBlank()
+            ? "town"
+            : NpcLocationGraph.outdoorNeighborFor(currentInteriorLocation);
+        if (sourceLocation.isBlank()) {
+            sourceLocation = "town";
+        }
+        if (sourceLocation.equals(destinationLocation)) {
+            return null;
+        }
+
+        NpcLocationGraph.GraphRoute graphRoute = NpcLocationGraph.findRoute(sourceLocation, destinationLocation);
+        if (graphRoute == null || graphRoute.edges().isEmpty()) {
+            return null;
+        }
+        List<NpcRouteStep> graphSteps = NpcLocationGraph.toRouteSteps(graphRoute, target.position());
+        if (graphSteps.isEmpty()) {
+            return null;
+        }
+        return NpcRouteContext.ready(destinationLocation, graphSteps);
     }
 
     private static Vec3 resolveOutdoorDoorForLocation(String canonicalLocation) {

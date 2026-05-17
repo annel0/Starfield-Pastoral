@@ -1,12 +1,13 @@
 package com.stardew.craft.npc.runtime;
 
+import com.stardew.craft.StardewCraft;
 import com.stardew.craft.entity.npc.StardewNpcEntity;
 import com.stardew.craft.interior.InteriorRegionRegistry;
 import com.stardew.craft.interior.InteriorSubspaceManager;
 import com.stardew.craft.npc.data.NpcCapabilityProfile;
 import com.stardew.craft.npc.data.NpcDataRegistry;
 import net.minecraft.core.BlockPos;
-import net.minecraft.util.Mth;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
@@ -16,7 +17,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.level.levelgen.Heightmap;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,7 +47,7 @@ import java.util.UUID;
 @SuppressWarnings("null")
 public final class NpcCentralMovementService {
     /** Distance² threshold for considering a step target reached (2D horizontal). */
-    private static final double STEP_REACH_SQR = 2.25D; // 1.5 blocks
+    private static final double STEP_REACH_SQR = 4.0D; // 2 blocks
     /** Periodic re-path interval (~1.0s). Citizens2 uses updatePathRate=20 by default. */
     private static final int REPATH_INTERVAL_TICKS = 20;
     /**
@@ -62,35 +62,34 @@ public final class NpcCentralMovementService {
      */
     private static final double PROGRESS_MIN_DISP_SQR = 0.04D;
     /** How many consecutive "no progress" checks before re-pathing. */
-    private static final int STUCK_REPATH_CHECKS = 1;
-    /** How many consecutive moveTo() failures before forcing an immediate recalculation. */
-    private static final int NAV_FAIL_REPATH_THRESHOLD = 2;
+    private static final int STUCK_REPATH_CHECKS = 4;
+    /** How many consecutive moveTo() failures before surfacing a throttled path warning. */
+    private static final int NAV_FAIL_REPATH_THRESHOLD = 3;
     /** Door close timeout after an NPC opened the door. */
     private static final int DOOR_CLOSE_TIMEOUT_TICKS = 30;
-    /** Vertical scan above preferred Y when correcting a bad route point. */
-    private static final int SAFE_TARGET_SCAN_UP = 3;
-    /** Vertical scan below preferred Y when correcting a bad route point. */
-    private static final int SAFE_TARGET_SCAN_DOWN = 8;
-    /** Horizontal radius to search inside interiors before giving up on a bad authored column. */
-    private static final int INTERIOR_SAFE_TARGET_RADIUS = 2;
-    /**
-     * When the step target is beyond this distance, use an intermediate
-     * moveTo target ~40 blocks in the direction of the real target.
-     * Vanilla nav creates partial paths up to FOLLOW_RANGE anyway, but
-     * giving it a closer target reduces wasted A* exploration.
-     */
-    private static final double INTERMEDIATE_TARGET_DIST = 40.0D;
+    private static final int MOVE_STATUS_LOG_INTERVAL_TICKS = 100;
+    private static final int NO_PROGRESS_LOG_INTERVAL_TICKS = 40;
+    private static final boolean MOVEMENT_DEBUG_ENABLED = Boolean.getBoolean("stardewcraft.npcMovementDebug");
 
     private static final Map<String, NpcRoutePlan> ACTIVE_PLANS = new HashMap<>();
     private static final Map<String, String> LAST_NODE_SIGNATURE = new HashMap<>();
     private static final Map<String, DebugSnapshot> DEBUG_SNAPSHOTS = new HashMap<>();
+    private static Map<String, NpcCapabilityProfile> cachedCapabilities = Map.of();
+    private static List<NpcMovementEntry> cachedMovementEntries = List.of();
     private static MinecraftServer activeServer;
 
     private NpcCentralMovementService() {
     }
 
     public static DebugSnapshot getDebugSnapshot(String npcId) {
+        if (!movementDebugEnabled()) {
+            return null;
+        }
         return DEBUG_SNAPSHOTS.get(npcId == null ? "" : npcId.toLowerCase());
+    }
+
+    private static boolean movementDebugEnabled() {
+        return MOVEMENT_DEBUG_ENABLED;
     }
 
     public static void tick(ServerLevel level) {
@@ -98,13 +97,9 @@ public final class NpcCentralMovementService {
         Map<String, NpcRuntimeState> runtimeStates = NpcRuntimeDataManager.get(level).states();
         Set<String> activeNpcIds = new HashSet<>();
 
-        for (Map.Entry<String, NpcCapabilityProfile> capabilityEntry : NpcDataRegistry.capabilities().entrySet()) {
-            NpcCapabilityProfile profile = capabilityEntry.getValue();
-            if (profile == null || !profile.implemented()) {
-                continue;
-            }
-
-            String npcId = NpcRoutePlanner.canonicalNpcId(profile.npcId());
+        for (NpcMovementEntry movementEntry : movementEntries()) {
+            String npcId = movementEntry.npcId();
+            NpcCapabilityProfile profile = movementEntry.profile();
             activeNpcIds.add(npcId);
             // Skip NPCs that live in a different dimension (e.g. dwarf in mining)
             if (NpcSpawnManager.isMiningDimensionNpc(npcId)) continue;
@@ -121,7 +116,9 @@ public final class NpcCentralMovementService {
             if (NpcInteractionService.isDialogueMovementLocked(npcId) || npc.isFacingOverrideActive()) {
                 npc.getNavigation().stop();
                 stopHorizontalMotionPreserveGravity(npc);
-                DEBUG_SNAPSHOTS.computeIfAbsent(npcId, k -> new DebugSnapshot()).update("interaction_pause", "<none>", "<none>", 0, 0, false, npc.position(), npc.position(), "none", 0, "<none>");
+                if (movementDebugEnabled()) {
+                    updateDebugSnapshot(npcId, "interaction_pause", "<none>", "<none>", 0, 0, false, npc.position(), npc.position(), "none", 0, "<none>", null, null);
+                }
                 continue;
             }
 
@@ -131,28 +128,33 @@ public final class NpcCentralMovementService {
                 npc.getNavigation().stop();
                 stopHorizontalMotionPreserveGravity(npc);
                 applyFacing(npc, state);
-                DEBUG_SNAPSHOTS.computeIfAbsent(npcId, k -> new DebugSnapshot()).update("pathing_disabled", "<none>", "<none>", 0, 0, false, npc.position(), npc.position(), "none", 0, "<none>");
+                if (movementDebugEnabled()) {
+                    updateDebugSnapshot(npcId, "pathing_disabled", "<none>", "<none>", 0, 0, false, npc.position(), npc.position(), "none", 0, "<none>", null, null);
+                }
                 continue;
             }
 
-            NpcRoutePlanner.NpcRouteContext route = NpcRoutePlanner.resolveRoute(level, npcId, state);
+            NpcRoutePlanner.NpcRouteContext route = NpcRoutePlanner.resolveRoute(level, npcId, state, npc.blockPosition());
             if (route == null || !route.ready()) {
                 npc.getNavigation().stop();
                 stopHorizontalMotionPreserveGravity(npc);
                 applyFacing(npc, state);
-                DebugSnapshot snapshot = DEBUG_SNAPSHOTS.computeIfAbsent(npcId, k -> new DebugSnapshot());
-                snapshot.update(route == null ? "no_route" : route.status.name().toLowerCase(java.util.Locale.ROOT),
-                    route == null ? "<none>" : route.canonicalLocation,
-                    route == null ? "<none>" : route.missingPointId,
-                    0,
-                    0,
-                    false,
-                    npc.position(),
-                    npc.position(),
-                    route == null ? "none" : route.diagnosticReason,
-                    0,
-                    "<none>");
-                snapshot.updateRoute(route);
+                if (movementDebugEnabled()) {
+                    updateDebugSnapshot(npcId,
+                        route == null ? "no_route" : route.status.name().toLowerCase(java.util.Locale.ROOT),
+                        route == null ? "<none>" : route.canonicalLocation,
+                        route == null ? "<none>" : route.missingPointId,
+                        0,
+                        0,
+                        false,
+                        npc.position(),
+                        npc.position(),
+                        route == null ? "none" : route.diagnosticReason,
+                        0,
+                        "<none>",
+                        route,
+                        null);
+                }
                 continue;
             }
             boolean nodeChanged = markAndCheckScheduleNodeChange(npcId, state);
@@ -177,11 +179,12 @@ public final class NpcCentralMovementService {
                 npc.getNavigation().stop();
                 stopHorizontalMotionPreserveGravity(npc);
                 applyFacing(npc, state);
-                DebugSnapshot snapshot = DEBUG_SNAPSHOTS.computeIfAbsent(npcId, k -> new DebugSnapshot());
-                snapshot.update("empty_plan", route.canonicalLocation, plan == null ? "<none>" : plan.missingPointId, 0, 0, false, npc.position(), npc.position(), plan == null ? "none" : plan.routeDiagnosticReason, 0, "<none>");
-                snapshot.updateRoute(route);
-                if (plan != null) {
-                    snapshot.updatePlan(plan);
+                if (movementDebugEnabled()) {
+                    updateDebugSnapshot(npcId, "empty_plan", route.canonicalLocation,
+                        plan == null ? "<none>" : plan.missingPointId,
+                        0, 0, false, npc.position(), npc.position(),
+                        plan == null ? "none" : plan.routeDiagnosticReason,
+                        0, "<none>", route, plan);
                 }
                 continue;
             }
@@ -190,22 +193,23 @@ public final class NpcCentralMovementService {
             if ("done".equals(plan.debugStage)) {
                 applyFacing(npc, state);
             }
-            DebugSnapshot snapshot = DEBUG_SNAPSHOTS.computeIfAbsent(npcId, k -> new DebugSnapshot());
-            snapshot.update(
-                plan.debugStage,
-                route.canonicalLocation,
-                plan.debugPointId,
-                plan.steps.size(),
-                plan.currentStepIndex,
-                plan.lastForcedTeleportUsed,
-                plan.debugTarget,
-                plan.debugNextWaypoint,
-                plan.debugRepathReason,
-                level.getGameTime() - plan.lastProgressTick,
-                NpcChunkForceManager.currentForcedTargetChunk(npcId)
-            );
-            snapshot.updateRoute(route);
-            snapshot.updatePlan(plan);
+            if (movementDebugEnabled()) {
+                updateDebugSnapshot(npcId,
+                    plan.debugStage,
+                    route.canonicalLocation,
+                    plan.debugPointId,
+                    plan.steps.size(),
+                    plan.currentStepIndex,
+                    plan.lastForcedTeleportUsed,
+                    plan.debugTarget,
+                    plan.debugNextWaypoint,
+                    plan.debugRepathReason,
+                    level.getGameTime() - plan.lastProgressTick,
+                    NpcChunkForceManager.currentForcedTargetChunk(npcId),
+                    route,
+                    plan
+                );
+            }
         }
 
         NpcChunkForceManager.releaseInactiveForcedChunks(level, activeNpcIds);
@@ -215,6 +219,50 @@ public final class NpcCentralMovementService {
         // Avoid mass forcing interior chunks per tick; indoor transitions are handled by
         // explicit route steps and bounded target chunk forcing.
         InteriorSubspaceManager.setInteriorChunksForced(level, false, "npc_runtime");
+    }
+
+    private static List<NpcMovementEntry> movementEntries() {
+        Map<String, NpcCapabilityProfile> capabilities = NpcDataRegistry.capabilities();
+        if (capabilities == cachedCapabilities) {
+            return cachedMovementEntries;
+        }
+
+        List<NpcMovementEntry> entries = new ArrayList<>();
+        for (NpcCapabilityProfile profile : capabilities.values()) {
+            if (profile == null || !profile.implemented()) {
+                continue;
+            }
+            entries.add(new NpcMovementEntry(NpcRoutePlanner.canonicalNpcId(profile.npcId()), profile));
+        }
+        cachedCapabilities = capabilities;
+        cachedMovementEntries = List.copyOf(entries);
+        return cachedMovementEntries;
+    }
+
+    private record NpcMovementEntry(String npcId, NpcCapabilityProfile profile) {
+    }
+
+    private static void updateDebugSnapshot(String npcId,
+                                            String stage,
+                                            String location,
+                                            String pointId,
+                                            int pathSize,
+                                            int pathIndex,
+                                            boolean forcedTeleportUsed,
+                                            Vec3 target,
+                                            Vec3 nextWaypoint,
+                                            String repathReason,
+                                            long noPathTicks,
+                                            String forcedTargetChunk,
+                                            NpcRoutePlanner.NpcRouteContext route,
+                                            NpcRoutePlan plan) {
+        if (!movementDebugEnabled()) {
+            return;
+        }
+        DebugSnapshot snapshot = DEBUG_SNAPSHOTS.computeIfAbsent(npcId, k -> new DebugSnapshot());
+        snapshot.update(stage, location, pointId, pathSize, pathIndex, forcedTeleportUsed, target, nextWaypoint, repathReason, noPathTicks, forcedTargetChunk);
+        snapshot.updateRoute(route);
+        snapshot.updatePlan(plan);
     }
 
     private static void ensureServerContext(ServerLevel level) {
@@ -229,6 +277,8 @@ public final class NpcCentralMovementService {
         ACTIVE_PLANS.clear();
         LAST_NODE_SIGNATURE.clear();
         DEBUG_SNAPSHOTS.clear();
+        cachedCapabilities = Map.of();
+        cachedMovementEntries = List.of();
         NpcRoutePlanner.resetState();
         NpcChunkForceManager.resetState();
         NpcScheduleRuntimeService.invalidateCache();
@@ -243,12 +293,13 @@ public final class NpcCentralMovementService {
         List<NpcRoutePlanner.NpcRouteStep> expanded = new ArrayList<>();
 
         String npcFixedInterior = InteriorRegionRegistry.fixedInteriorIdAt(npc.blockPosition());
+        String npcInteriorLocation = NpcRoutePlanner.fixedInteriorLocationAt(npc.blockPosition());
         boolean npcInFixedInterior = !npcFixedInterior.isBlank();
-        boolean npcIndoors = npcInFixedInterior || InteriorSubspaceManager.isInteriorRegion(level, npc.blockPosition());
+        boolean npcIndoors = npcInFixedInterior;
         Vec3 finalTarget = route.destinationSteps.get(route.destinationSteps.size() - 1).target;
         String destFixedInterior = InteriorRegionRegistry.fixedInteriorIdAt(BlockPos.containing(finalTarget));
         boolean destInFixedInterior = !destFixedInterior.isBlank();
-        boolean destIndoors = destInFixedInterior || InteriorSubspaceManager.isInteriorRegion(level, BlockPos.containing(finalTarget));
+        boolean destIndoors = destInFixedInterior;
 
         String routeStatus = route.status.name();
         String routeDiagnosticReason = route.diagnosticReason;
@@ -260,11 +311,11 @@ public final class NpcCentralMovementService {
             if (sameFixedInterior) {
                 expanded.add(NpcRoutePlanner.NpcRouteStep.walk("indoor_direct", finalTarget));
             } else {
-                Vec3 exitIndoor = NpcRoutePlanner.nearestKnownIndoorEntry(npc.position());
-                Vec3 exitOutdoor = (exitIndoor != null) ? NpcRoutePlanner.linkedOutdoorDoor(exitIndoor) : null;
+                Vec3 exitIndoor = NpcRoutePlanner.indoorExitForLocation(npcInteriorLocation);
+                Vec3 exitOutdoor = NpcRoutePlanner.outdoorExitForLocation(npcInteriorLocation);
                 if (exitIndoor != null && exitOutdoor != null) {
-                    expanded.add(NpcRoutePlanner.NpcRouteStep.walk("indoor_exit", exitIndoor));
-                    expanded.add(NpcRoutePlanner.NpcRouteStep.warp("outdoor_door", exitOutdoor));
+                    expanded.add(NpcRoutePlanner.NpcRouteStep.walk(npcInteriorLocation + "_indoor_exit", exitIndoor));
+                    expanded.add(NpcRoutePlanner.NpcRouteStep.warp(npcInteriorLocation + "_outdoor_door", exitOutdoor));
                     // Then follow the destination steps (skip the outdoor door we already warped to)
                     for (NpcRoutePlanner.NpcRouteStep ds : route.destinationSteps) {
                         if (ds.mode == NpcRoutePlanner.RouteStepMode.WALK
@@ -276,15 +327,15 @@ public final class NpcCentralMovementService {
                 } else {
                     routeStatus = NpcRoutePlanner.RouteStatus.WAITING_FOR_COORDINATES.name();
                     routeDiagnosticReason = exitIndoor == null ? "missing_indoor_exit_walk_target" : "missing_outdoor_exit_landing";
-                    missingPortalLinkId = npcFixedInterior.isBlank() ? "<unknown>" : npcFixedInterior;
+                    missingPortalLinkId = npcInteriorLocation.isBlank() ? npcFixedInterior : npcInteriorLocation;
                 }
             }
         } else if (npcIndoors) {
-            Vec3 exitIndoor = NpcRoutePlanner.nearestKnownIndoorEntry(npc.position());
-            Vec3 exitOutdoor = NpcRoutePlanner.linkedOutdoorDoor(exitIndoor);
+            Vec3 exitIndoor = NpcRoutePlanner.indoorExitForLocation(npcInteriorLocation);
+            Vec3 exitOutdoor = NpcRoutePlanner.outdoorExitForLocation(npcInteriorLocation);
             if (exitIndoor != null && exitOutdoor != null) {
-                expanded.add(NpcRoutePlanner.NpcRouteStep.walk("indoor_exit", exitIndoor));
-                expanded.add(NpcRoutePlanner.NpcRouteStep.warp("outdoor_door", exitOutdoor));
+                expanded.add(NpcRoutePlanner.NpcRouteStep.walk(npcInteriorLocation + "_indoor_exit", exitIndoor));
+                expanded.add(NpcRoutePlanner.NpcRouteStep.warp(npcInteriorLocation + "_outdoor_door", exitOutdoor));
                 for (NpcRoutePlanner.NpcRouteStep ds : route.destinationSteps) {
                     if (ds.mode == NpcRoutePlanner.RouteStepMode.WALK
                         && ds.target.distanceToSqr(exitOutdoor) < 4.0D) {
@@ -295,32 +346,47 @@ public final class NpcCentralMovementService {
             } else {
                 routeStatus = NpcRoutePlanner.RouteStatus.WAITING_FOR_COORDINATES.name();
                 routeDiagnosticReason = exitIndoor == null ? "missing_indoor_exit_walk_target" : "missing_outdoor_exit_landing";
-                missingPortalLinkId = npcFixedInterior.isBlank() ? "<unknown>" : npcFixedInterior;
+                missingPortalLinkId = npcInteriorLocation.isBlank() ? npcFixedInterior : npcInteriorLocation;
             }
         } else {
             expanded.addAll(route.destinationSteps);
         }
         NpcRoutePlan plan = new NpcRoutePlan(signature, npc.getUUID(), expanded, gameTime);
+        plan.progressCheckX = npc.getX();
+        plan.progressCheckZ = npc.getZ();
         plan.routeStatus = routeStatus;
         plan.routeDiagnosticReason = routeDiagnosticReason;
         plan.missingPointId = missingPointId;
         plan.missingPortalLinkId = missingPortalLinkId;
 
-        // ── Diagnostic: log plan steps once per new plan ──
-        StringBuilder sb = new StringBuilder();
-        sb.append("[NPC_PLAN] npc=").append(npc.getNpcId())
-          .append(" indoor=").append(npcIndoors)
-          .append(" destIndoor=").append(destIndoors)
-          .append(" fixedInterior=").append(npcFixedInterior.isBlank() ? "<none>" : npcFixedInterior)
-          .append(" destFixedInterior=").append(destFixedInterior.isBlank() ? "<none>" : destFixedInterior)
-          .append(" pos=").append(fmt(npc.position()))
-          .append(" steps=[");
-        for (int i = 0; i < expanded.size(); i++) {
-            NpcRoutePlanner.NpcRouteStep s = expanded.get(i);
-            if (i > 0) sb.append(", ");
-            sb.append(s.mode).append(':').append(s.pointId).append('@').append(fmt(s.target));
+        if (movementDebugEnabled()) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("[NPC_PLAN] npc=").append(npc.getNpcId())
+              .append(" indoor=").append(npcIndoors)
+              .append(" destIndoor=").append(destIndoors)
+              .append(" fixedInterior=").append(npcFixedInterior.isBlank() ? "<none>" : npcFixedInterior)
+              .append(" destFixedInterior=").append(destFixedInterior.isBlank() ? "<none>" : destFixedInterior)
+              .append(" pos=").append(fmt(npc.position()))
+              .append(" steps=[");
+            for (int i = 0; i < expanded.size(); i++) {
+                NpcRoutePlanner.NpcRouteStep s = expanded.get(i);
+                if (i > 0) sb.append(", ");
+                sb.append(s.mode).append(':').append(s.pointId).append('@').append(fmt(s.target));
+            }
+            sb.append(']');
+            StardewCraft.LOGGER.info(sb.toString());
+
+            if (!NpcRoutePlanner.RouteStatus.READY.name().equals(routeStatus) || expanded.isEmpty()) {
+                StardewCraft.LOGGER.warn("[NPC_MOVE] {} plan not ready status={} reason={} missingPoint={} missingLink={} npcInterior={} npcFixed={} destFixed={} pos={} target={}",
+                    npc.getNpcId(), routeStatus, routeDiagnosticReason,
+                    missingPointId == null || missingPointId.isBlank() ? "<none>" : missingPointId,
+                    missingPortalLinkId == null || missingPortalLinkId.isBlank() ? "<none>" : missingPortalLinkId,
+                    npcInteriorLocation.isBlank() ? "<none>" : npcInteriorLocation,
+                    npcFixedInterior.isBlank() ? "<none>" : npcFixedInterior,
+                    destFixedInterior.isBlank() ? "<none>" : destFixedInterior,
+                    fmt(npc.position()), fmt(finalTarget));
+            }
         }
-        sb.append(']');
 
         return plan;
     }
@@ -362,37 +428,48 @@ public final class NpcCentralMovementService {
         plan.lastForcedTeleportUsed = false;
         plan.debugRepathReason = "none";
         NpcRoutePlanner.NpcRouteStep step = plan.steps.get(plan.currentStepIndex);
-        Vec3 safeTarget = resolveSafeStepTarget(level, step.target);
+        Vec3 target = step.target;
         plan.debugPointId = step.pointId;
-        plan.debugTarget = safeTarget;
-        plan.debugNextWaypoint = safeTarget;
+        plan.debugTarget = target;
+        plan.debugNextWaypoint = target;
         long now = level.getGameTime();
 
         // ── WARP steps: instant teleport ──
         if (step.mode == NpcRoutePlanner.RouteStepMode.WARP) {
-            NpcChunkForceManager.ensureRouteTargetChunkForced(level, npc.getNpcId(), safeTarget);
+            NpcChunkForceManager.ensureRouteTargetChunkForced(level, npc.getNpcId(), target);
             plan.debugStage = "warp";
-            advanceStepByTeleport(level, npc, plan, safeTarget, now);
+            if (movementDebugEnabled()) {
+                StardewCraft.LOGGER.info("[NPC_MOVE] {} warp step={}/{} point={} from={} to={}",
+                    npc.getNpcId(), plan.currentStepIndex, plan.steps.size(), step.pointId, fmt(npc.position()), fmt(target));
+            }
+            advanceStepByTeleport(level, npc, plan, target, now);
             return false;
         }
 
         // ── WALK steps: delegate to vanilla GroundPathNavigation ──
-        NpcChunkForceManager.ensureRouteTargetChunkForced(level, npc.getNpcId(), safeTarget);
-        NpcChunkForceManager.ensureRouteCorridorChunksForced(level, npc.getNpcId(), npc.position(), safeTarget);
+        NpcChunkForceManager.ensureRouteTargetChunkForced(level, npc.getNpcId(), target);
+        NpcChunkForceManager.ensureRouteCorridorChunksForced(level, npc.getNpcId(), npc.position(), target);
 
         // Open doors near NPC and toward target
         long npcBlockKey = npc.blockPosition().asLong();
+        Vec3 nextPathNode = nextPathNodeTarget(npc);
+        plan.debugNextWaypoint = nextPathNode == null ? target : nextPathNode;
         if (npcBlockKey != plan.lastDoorCheckBlockKey) {
             plan.lastDoorCheckBlockKey = npcBlockKey;
-            tryOpenNearbyDoors(level, npc, plan, safeTarget, safeTarget);
+            tryOpenNearbyDoors(level, npc, plan, target, nextPathNode);
         }
         closeOpenedDoors(level, npc, plan, now, false);
 
         // Check horizontal arrival at step target
-        Vec3 toTarget = new Vec3(safeTarget.x - npc.getX(), 0.0D, safeTarget.z - npc.getZ());
+        Vec3 toTarget = new Vec3(target.x - npc.getX(), 0.0D, target.z - npc.getZ());
         double distSqr = toTarget.lengthSqr();
         if (distSqr <= STEP_REACH_SQR) {
             // Arrived at step target — advance
+            if (movementDebugEnabled()) {
+                StardewCraft.LOGGER.info("[NPC_MOVE] {} reached step={}/{} point={} pos={} target={} dist2d={}",
+                    npc.getNpcId(), plan.currentStepIndex, plan.steps.size(), step.pointId,
+                    fmt(npc.position()), fmt(target), String.format(java.util.Locale.ROOT, "%.2f", Math.sqrt(distSqr)));
+            }
             npc.getNavigation().stop();
             stopHorizontalMotionPreserveGravity(npc);
             plan.currentStepIndex++;
@@ -409,31 +486,19 @@ public final class NpcCentralMovementService {
 
         plan.debugStage = "walk";
 
-        // Compute effective moveTo target.
-        // For far-away targets, give vanilla nav a closer intermediate point
-        // to reduce wasted A* exploration and improve partial path quality.
-        double dist = Math.sqrt(distSqr);
-        double moveToX, moveToZ;
-        if (dist > INTERMEDIATE_TARGET_DIST) {
-            double ratio = INTERMEDIATE_TARGET_DIST / dist;
-            moveToX = npc.getX() + (safeTarget.x - npc.getX()) * ratio;
-            moveToZ = npc.getZ() + (safeTarget.z - npc.getZ()) * ratio;
-            plan.debugRepathReason = "intermediate_" + (int) dist + "m";
-        } else {
-            moveToX = safeTarget.x;
-            moveToZ = safeTarget.z;
-        }
-        Vec3 moveToTarget = dist > INTERMEDIATE_TARGET_DIST
-            ? resolveSafeStepTarget(level, new Vec3(moveToX, npc.getY(), moveToZ))
-            : safeTarget;
-
-        // Issue or re-issue moveTo at periodic intervals
+        // Issue moveTo only when navigation has no active path. Rebuilding an
+        // already active path every second resets vanilla's internal progress.
         boolean navIdle = npc.getNavigation().isDone();
-        boolean repathDue = (now - plan.lastRepathTick >= REPATH_INTERVAL_TICKS);
-        if (navIdle || repathDue) {
+        boolean hasActivePath = npc.getNavigation().getPath() != null && !navIdle;
+        boolean repathDue = now - plan.lastRepathTick >= REPATH_INTERVAL_TICKS;
+        if (!hasActivePath && repathDue) {
             // moveTo() returns true if a path was successfully created
-            boolean pathFound = npc.getNavigation().moveTo(moveToTarget.x, moveToTarget.y, moveToTarget.z, 1.0D);
+            boolean pathFound = npc.getNavigation().moveTo(target.x, target.y, target.z, 1.0D);
             plan.lastRepathTick = now;
+            boolean shouldLogMove = movementDebugEnabled()
+                && (plan.lastMoveCommandLoggedStep != plan.currentStepIndex
+                    || !pathFound
+                    || now - plan.lastMoveStatusLogTick >= MOVE_STATUS_LOG_INTERVAL_TICKS);
 
             if (!pathFound) {
                 plan.consecutiveNavFailures++;
@@ -441,8 +506,18 @@ public final class NpcCentralMovementService {
             } else {
                 plan.consecutiveNavFailures = 0;
                 if (plan.debugRepathReason.equals("none")) {
-                    plan.debugRepathReason = navIdle ? "nav_idle_repath" : "periodic_repath";
+                    plan.debugRepathReason = navIdle ? "nav_idle_repath" : "path_missing_repath";
                 }
+            }
+            if (shouldLogMove) {
+                StardewCraft.LOGGER.info("[NPC_MOVE] {} moveTo step={}/{} point={} result={} reason={} pos={} target={} dist2d={} navIdle={} hasPath={} path={} next={} failures={}",
+                    npc.getNpcId(), plan.currentStepIndex, plan.steps.size(), step.pointId,
+                    pathFound, plan.debugRepathReason, fmt(npc.position()), fmt(target),
+                    String.format(java.util.Locale.ROOT, "%.2f", Math.sqrt(distSqr)), navIdle,
+                    npc.getNavigation().getPath() != null,
+                    pathSummary(npc), fmt(nextPathNodeTarget(npc)), plan.consecutiveNavFailures);
+                plan.lastMoveCommandLoggedStep = plan.currentStepIndex;
+                plan.lastMoveStatusLogTick = now;
             }
         }
 
@@ -466,8 +541,23 @@ public final class NpcCentralMovementService {
             if (dispSqr < PROGRESS_MIN_DISP_SQR) {
                 // No meaningful progress in this check window
                 plan.stuckCheckCount++;
+                if (movementDebugEnabled() && now - plan.lastNoProgressLogTick >= NO_PROGRESS_LOG_INTERVAL_TICKS) {
+                    StardewCraft.LOGGER.info("[NPC_MOVE] {} no_progress step={}/{} point={} checks={} disp={} pos={} target={} navDone={} hasPath={} path={} next={}",
+                        npc.getNpcId(), plan.currentStepIndex, plan.steps.size(), step.pointId,
+                        plan.stuckCheckCount,
+                        String.format(java.util.Locale.ROOT, "%.3f", Math.sqrt(dispSqr)),
+                        fmt(npc.position()), fmt(target), npc.getNavigation().isDone(),
+                        npc.getNavigation().getPath() != null, pathSummary(npc), fmt(nextPathNodeTarget(npc)));
+                    plan.lastNoProgressLogTick = now;
+                }
             } else {
                 // Making real progress — reset
+                if (movementDebugEnabled() && plan.stuckCheckCount > 0) {
+                    StardewCraft.LOGGER.info("[NPC_MOVE] {} progress_resumed step={}/{} point={} disp={} pos={} target={}",
+                        npc.getNpcId(), plan.currentStepIndex, plan.steps.size(), step.pointId,
+                        String.format(java.util.Locale.ROOT, "%.3f", Math.sqrt(dispSqr)),
+                        fmt(npc.position()), fmt(target));
+                }
                 plan.stuckCheckCount = 0;
                 plan.lastProgressTick = now;
             }
@@ -477,19 +567,44 @@ public final class NpcCentralMovementService {
             plan.progressCheckZ = npc.getZ();
         }
 
-        if (plan.stuckCheckCount >= STUCK_REPATH_CHECKS
-            || plan.consecutiveNavFailures >= NAV_FAIL_REPATH_THRESHOLD
-            || npc.getNavigation().isStuck()) {
-            npc.getNavigation().stop();
-            npc.getNavigation().moveTo(safeTarget.x, safeTarget.y, safeTarget.z, 1.0D);
+        boolean navigationStuck = npc.getNavigation().isStuck();
+        boolean noProgressStuck = plan.stuckCheckCount >= STUCK_REPATH_CHECKS;
+        if (noProgressStuck || navigationStuck) {
+            if (navigationStuck) {
+                npc.getNavigation().stop();
+            }
+            boolean pathFound = npc.getNavigation().moveTo(target.x, target.y, target.z, 1.0D);
             plan.lastRepathTick = now;
             plan.debugStage = "stuck_repath";
-            plan.debugRepathReason = npc.getNavigation().isStuck()
+            if (pathFound) {
+                plan.consecutiveNavFailures = 0;
+            } else {
+                plan.consecutiveNavFailures++;
+            }
+            plan.debugRepathReason = navigationStuck
                 ? "navigation_stuck"
-                : plan.consecutiveNavFailures >= NAV_FAIL_REPATH_THRESHOLD
-                    ? "nav_fail_repath_" + plan.consecutiveNavFailures
-                    : "stuck_repath_check" + plan.stuckCheckCount;
+                : "stuck_repath_check" + plan.stuckCheckCount;
+            if (movementDebugEnabled()) {
+                StardewCraft.LOGGER.warn("[NPC_MOVE] {} stuck_repath step={}/{} point={} reason={} pathFound={} pos={} target={} navStuck={} hasPath={} path={} next={} failures={}",
+                    npc.getNpcId(), plan.currentStepIndex, plan.steps.size(), step.pointId,
+                    plan.debugRepathReason, pathFound, fmt(npc.position()), fmt(target), navigationStuck,
+                    npc.getNavigation().getPath() != null, pathSummary(npc), fmt(nextPathNodeTarget(npc)), plan.consecutiveNavFailures);
+            }
             plan.stuckCheckCount = 0;
+            plan.progressCheckTick = now;
+            plan.progressCheckX = npc.getX();
+            plan.progressCheckZ = npc.getZ();
+        } else if (plan.consecutiveNavFailures >= NAV_FAIL_REPATH_THRESHOLD
+            && now - plan.lastNavFailureLogTick >= MOVE_STATUS_LOG_INTERVAL_TICKS) {
+            plan.debugStage = "waiting_for_path";
+            plan.debugRepathReason = "nav_fail_wait_" + plan.consecutiveNavFailures;
+            if (movementDebugEnabled()) {
+                StardewCraft.LOGGER.warn("[NPC_MOVE] {} waiting_for_path step={}/{} point={} failures={} pos={} target={} hasPath={} path={} next={}",
+                    npc.getNpcId(), plan.currentStepIndex, plan.steps.size(), step.pointId,
+                    plan.consecutiveNavFailures, fmt(npc.position()), fmt(target),
+                    npc.getNavigation().getPath() != null, pathSummary(npc), fmt(nextPathNodeTarget(npc)));
+            }
+            plan.lastNavFailureLogTick = now;
         }
 
         return false;
@@ -503,6 +618,14 @@ public final class NpcCentralMovementService {
     private static String buildPlanSignature(NpcRuntimeState state, NpcRoutePlanner.NpcRouteContext route) {
         return state.activeScheduleKey() + "#" + state.scheduleCheckpoint() + "#" + state.scheduleNodeIndex()
             + "#" + route.canonicalLocation + "#" + route.status + "#" + route.diagnosticReason + "#" + route.missingPointId + "#" + route.missingPortalLinkId;
+    }
+
+    private static String pathSummary(StardewNpcEntity npc) {
+        if (npc == null || npc.getNavigation() == null || npc.getNavigation().getPath() == null) {
+            return "<none>";
+        }
+        net.minecraft.world.level.pathfinder.Path path = npc.getNavigation().getPath();
+        return path.getNextNodeIndex() + "/" + path.getNodeCount();
     }
 
     @SuppressWarnings("unused")
@@ -555,20 +678,44 @@ public final class NpcCentralMovementService {
         if (level == null || npc == null) {
             return;
         }
-        BlockPos npcPos = npc.blockPosition();
-        tryOpenDoorAt(level, npc, plan, npcPos);
-        tryOpenDoorAt(level, npc, plan, npcPos.above());
+        tryOpenDoorsAround(level, npc, plan, npc.blockPosition());
 
         if (waypoint != null) {
-            BlockPos wayPos = BlockPos.containing(waypoint);
-            tryOpenDoorAt(level, npc, plan, wayPos);
-            tryOpenDoorAt(level, npc, plan, wayPos.above());
+            tryOpenDoorsAround(level, npc, plan, BlockPos.containing(waypoint));
         }
 
         if (target != null) {
-            BlockPos targetPos = BlockPos.containing(target);
-            tryOpenDoorAt(level, npc, plan, targetPos);
-            tryOpenDoorAt(level, npc, plan, targetPos.above());
+            tryOpenDoorsAround(level, npc, plan, BlockPos.containing(target));
+        }
+    }
+
+    private static Vec3 nextPathNodeTarget(StardewNpcEntity npc) {
+        if (npc == null || npc.getNavigation() == null) {
+            return null;
+        }
+        net.minecraft.world.level.pathfinder.Path path = npc.getNavigation().getPath();
+        if (path == null || path.isDone()) {
+            return null;
+        }
+        int index = path.getNextNodeIndex();
+        if (index < 0 || index >= path.getNodeCount()) {
+            return null;
+        }
+        BlockPos nodePos = path.getNodePos(index);
+        return new Vec3(nodePos.getX() + 0.5D, nodePos.getY(), nodePos.getZ() + 0.5D);
+    }
+
+    private static void tryOpenDoorsAround(ServerLevel level, StardewNpcEntity npc, NpcRoutePlan plan, BlockPos center) {
+        if (center == null) {
+            return;
+        }
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                BlockPos base = center.offset(dx, 0, dz);
+                tryOpenDoorAt(level, npc, plan, base.below());
+                tryOpenDoorAt(level, npc, plan, base);
+                tryOpenDoorAt(level, npc, plan, base.above());
+            }
         }
     }
 
@@ -603,6 +750,11 @@ public final class NpcCentralMovementService {
 
         door.setOpen(npc, level, state, lowerPos, true);
         plan.openedDoors.put(lowerPos.immutable(), level.getGameTime());
+        if (movementDebugEnabled()) {
+            StardewCraft.LOGGER.info("[NPC_MOVE] {} open_door pos={} block={} step={}/{} point={}",
+                npc.getNpcId(), lowerPos.toShortString(), BuiltInRegistries.BLOCK.getKey(state.getBlock()),
+                plan.currentStepIndex, plan.steps.size(), plan.debugPointId);
+        }
     }
 
     private static void closeOpenedDoors(ServerLevel level, StardewNpcEntity npc, NpcRoutePlan plan, long now, boolean force) {
@@ -624,6 +776,10 @@ public final class NpcCentralMovementService {
                 continue;
             }
             door.setOpen(npc, level, state, pos, false);
+            if (movementDebugEnabled()) {
+                StardewCraft.LOGGER.info("[NPC_MOVE] {} close_door pos={} block={} force={}",
+                    npc.getNpcId(), pos.toShortString(), BuiltInRegistries.BLOCK.getKey(state.getBlock()), force);
+            }
             closed.add(pos);
         }
         for (BlockPos pos : closed) {
@@ -696,6 +852,10 @@ public final class NpcCentralMovementService {
         private double progressCheckX, progressCheckZ;
         /** Block key where door detection last ran; skip when unchanged. */
         private long lastDoorCheckBlockKey = Long.MIN_VALUE;
+        private int lastMoveCommandLoggedStep = -1;
+        private long lastMoveStatusLogTick = Long.MIN_VALUE;
+        private long lastNoProgressLogTick = Long.MIN_VALUE;
+        private long lastNavFailureLogTick = Long.MIN_VALUE;
         private final Map<BlockPos, Long> openedDoors = new HashMap<>();
 
         private NpcRoutePlan(String signature, UUID boundEntityUuid, List<NpcRoutePlanner.NpcRouteStep> steps, long now) {
@@ -704,7 +864,7 @@ public final class NpcCentralMovementService {
             this.steps = steps;
             this.currentStepIndex = 0;
             this.lastProgressTick = now;
-            this.lastRepathTick = now;
+            this.lastRepathTick = now - REPATH_INTERVAL_TICKS;
             this.consecutiveNavFailures = 0;
             this.debugStage = "init";
             this.debugPointId = "<none>";
@@ -802,117 +962,5 @@ public final class NpcCentralMovementService {
                 npc.setPos(npc.getX(), surfaceY, npc.getZ());
             }
         }
-    }
-
-    private static Vec3 resolveSafeStepTarget(ServerLevel level, Vec3 rawTarget) {
-        if (level == null || rawTarget == null) {
-            return rawTarget;
-        }
-
-        int baseX = Mth.floor(rawTarget.x);
-        int baseZ = Mth.floor(rawTarget.z);
-        if (level.getChunkSource().getChunkNow(baseX >> 4, baseZ >> 4) == null) {
-            return rawTarget;
-        }
-
-        boolean interiorTarget = InteriorRegionRegistry.isInFixedInterior(BlockPos.containing(rawTarget))
-            || InteriorSubspaceManager.isInteriorRegion(level, BlockPos.containing(rawTarget));
-
-        BlockPos safeStand = resolveColumnSafeStand(level, baseX, baseZ, Mth.floor(rawTarget.y), !interiorTarget, interiorTarget);
-        if (safeStand == null && interiorTarget) {
-            safeStand = resolveNearbyInteriorStand(level, baseX, baseZ, Mth.floor(rawTarget.y));
-        }
-        if (safeStand == null) {
-            return rawTarget;
-        }
-
-        return new Vec3(rawTarget.x, safeStand.getY(), rawTarget.z);
-    }
-
-    private static BlockPos resolveColumnSafeStand(ServerLevel level,
-                                                   int x,
-                                                   int z,
-                                                   int preferredY,
-                                                   boolean allowSurfaceCorrection,
-                                                   boolean interiorTarget) {
-        if (level.getChunkSource().getChunkNow(x >> 4, z >> 4) == null) {
-            return null;
-        }
-
-        for (int y = preferredY + SAFE_TARGET_SCAN_UP; y >= preferredY - SAFE_TARGET_SCAN_DOWN; y--) {
-            BlockPos candidate = new BlockPos(x, y, z);
-            if (isSafeStandPosition(level, candidate, interiorTarget)) {
-                return candidate;
-            }
-        }
-
-        if (!allowSurfaceCorrection) {
-            return null;
-        }
-
-        int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
-        BlockPos surface = new BlockPos(x, surfaceY, z);
-        if (isSafeStandPosition(level, surface, false)) {
-            return surface;
-        }
-        return null;
-    }
-
-    private static BlockPos resolveNearbyInteriorStand(ServerLevel level, int x, int z, int preferredY) {
-        for (int radius = 1; radius <= INTERIOR_SAFE_TARGET_RADIUS; radius++) {
-            for (int dx = -radius; dx <= radius; dx++) {
-                BlockPos north = resolveColumnSafeStand(level, x + dx, z - radius, preferredY, false, true);
-                if (north != null) {
-                    return north;
-                }
-                BlockPos south = resolveColumnSafeStand(level, x + dx, z + radius, preferredY, false, true);
-                if (south != null) {
-                    return south;
-                }
-            }
-            for (int dz = -radius + 1; dz <= radius - 1; dz++) {
-                BlockPos west = resolveColumnSafeStand(level, x - radius, z + dz, preferredY, false, true);
-                if (west != null) {
-                    return west;
-                }
-                BlockPos east = resolveColumnSafeStand(level, x + radius, z + dz, preferredY, false, true);
-                if (east != null) {
-                    return east;
-                }
-            }
-        }
-        return null;
-    }
-
-    private static boolean isSafeStandPosition(ServerLevel level, BlockPos pos, boolean interiorTarget) {
-        if (interiorTarget) {
-            return isSafeInteriorStandPosition(level, pos);
-        }
-        return NpcPathfinder.canStand(level, pos)
-            && level.getFluidState(pos).isEmpty()
-            && level.getFluidState(pos.above()).isEmpty();
-    }
-
-    private static boolean isSafeInteriorStandPosition(ServerLevel level, BlockPos pos) {
-        BlockPos abovePos = pos.above();
-        BlockPos belowPos = pos.below();
-        BlockState feet = level.getBlockState(pos);
-        BlockState head = level.getBlockState(abovePos);
-        BlockState below = level.getBlockState(belowPos);
-
-        if (!feet.getCollisionShape(level, pos).isEmpty() && !NpcPathfinder.isPathDoorPassable(feet)) {
-            return false;
-        }
-        if (!head.getCollisionShape(level, abovePos).isEmpty() && !NpcPathfinder.isPathDoorPassable(head)) {
-            return false;
-        }
-        if (NpcPathfinder.isBarrierBlock(below)) {
-            return false;
-        }
-        if (below.getCollisionShape(level, belowPos).isEmpty()) {
-            return false;
-        }
-        return level.getFluidState(pos).isEmpty()
-            && level.getFluidState(abovePos).isEmpty();
     }
 }

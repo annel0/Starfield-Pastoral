@@ -317,7 +317,7 @@ public final class InteriorSubspaceManager {
 
     // ---- 矿井入口（室外） ----
     private static final String TAG_PORTAL_MARKER_MINE_OUTSIDE = "sdv_portal_marker:mine_entrance";
-    private static final BlockPos MINE_OUTDOOR_ENTRY_POS = new BlockPos(-287, -13, 314);
+    private static final BlockPos MINE_OUTDOOR_ENTRY_POS = new BlockPos(83, 81, -146);
 
     private static final String DATA_NAME = "stardew_interior_subspace_layout";
 
@@ -1480,8 +1480,8 @@ public final class InteriorSubspaceManager {
             com.stardew.craft.desert.DesertConstants.TAG_BUS_RETURN_PORTAL_MARKER,
             com.stardew.craft.desert.DesertConstants.TAG_BUS_RETURN_PORTAL_TARGET);
 
-        // 矿井室外入口：3高 x 4宽 x 1深。
-        placePortalTriggerArea(level, MINE_OUTDOOR_ENTRY_POS, 3, 4, 1,
+        // 矿井室外入口：3高 x 2宽 x 1深。
+        placePortalTriggerArea(level, MINE_OUTDOOR_ENTRY_POS, 3, 2, 1,
             TAG_PORTAL_MARKER_MINE_OUTSIDE, "sdv_portal_target:mine_entrance");
 
         // 社区中心室外入口：2高 x 1宽 x 1深。

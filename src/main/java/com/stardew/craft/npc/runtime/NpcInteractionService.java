@@ -3,9 +3,11 @@ package com.stardew.craft.npc.runtime;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.stardew.craft.emote.EmoteCatalog;
 import com.stardew.craft.emote.EmoteType;
 import com.stardew.craft.entity.npc.StardewNpcEntity;
+import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.npc.data.NpcCapabilityProfile;
 import com.stardew.craft.npc.data.NpcDataRegistry;
 import com.stardew.craft.network.payload.EmoteBroadcastPayload;
@@ -23,11 +25,16 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @SuppressWarnings("null")
@@ -43,8 +50,24 @@ public final class NpcInteractionService {
 
     private static final String[] WEEKDAY_SHORT = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
     private static final String STARDROP_TEA_ID = "stardewcraft:stardrop_tea";
+    private static final String VANILLA_OBJECTS_RESOURCE = "data/stardewcraft/npc/vanilla/data/Objects.json";
+    private static final Set<String> NON_GIFTABLE_TYPE_KEYS = Set.of(
+        "stardewcraft.type.tool",
+        "stardewcraft.type.weapon",
+        "stardewcraft.type.weapon.sword",
+        "stardewcraft.type.weapon.dagger",
+        "stardewcraft.type.weapon.club",
+        "stardewcraft.type.weapon.slingshot",
+        "stardewcraft.type.ring",
+        "stardewcraft.type.boots",
+        "stardewcraft.type.furniture",
+        "stardewcraft.type.utility",
+        "stardewcraft.type.scarecrow",
+        "stardewcraft.type.special"
+    );
     private static final Map<UUID, String> ACTIVE_DIALOGUE_NPC_BY_PLAYER = new HashMap<>();
     private static final Map<String, Integer> ACTIVE_DIALOGUE_LOCK_COUNTS = new HashMap<>();
+    private static volatile Map<String, Boolean> vanillaObjectGiftabilityByName;
 
     private NpcInteractionService() {
     }
@@ -223,6 +246,8 @@ public final class NpcInteractionService {
             }
         }
 
+        boolean hasGiftableHeld = canBeGivenAsGift(held);
+
         // ═══════════════════════════════════════════════════════════════
         // SDV parity: HEART EVENT CHECK — before gifts/dialogue, check
         // if this NPC has a pending interact_npc cutscene event.
@@ -232,7 +257,7 @@ public final class NpcInteractionService {
             String pendingEvent = com.stardew.craft.cutscene.server.ServerPreconditionEvaluator
                     .findPendingNpcEvent(serverPlayer, npcId);
             boolean deferKrobusEventUntilAfterTalk = npcId.equals("krobus")
-                    && held.isEmpty()
+                    && !hasGiftableHeld
                     && state.lastTalkDayKey() != dayContext.dayKey();
             if (pendingEvent != null && !deferKrobusEventUntilAfterTalk) {
                 com.stardew.craft.cutscene.server.ServerCutsceneTracker.startEvent(serverPlayer, pendingEvent);
@@ -243,7 +268,7 @@ public final class NpcInteractionService {
         // Gift flow: if player is holding an item, ask for confirmation before gifting
         // SDV parity: you CAN gift Dwarf without understanding, but friendship won't increase
         // and the response dialogue will be garbled (handled in receiveGift / response)
-        if (!held.isEmpty()) {
+        if (hasGiftableHeld) {
             // NPC smoothly turns to face the player, then opens gift confirm screen
             String npcDisplayName = npc.getDisplayName().getString();
             // 发送物品的翻译键（而不是服务端解析后的字符串）。服务端语言文件通常只有 en_us，
@@ -258,7 +283,7 @@ public final class NpcInteractionService {
 
         if (state.lastTalkDayKey() == dayContext.dayKey()) {
             if (npcId.equals("dwarf")
-                    && held.isEmpty()
+                    && !hasGiftableHeld
                     && com.stardew.craft.shop.DwarfService.canUnderstandDwarves(serverPlayer)) {
                 InteractionResult dwarfResult = com.stardew.craft.shop.DwarfService.handleDwarfInteraction(serverPlayer, npc);
                 if (dwarfResult == InteractionResult.SUCCESS) {
@@ -269,7 +294,7 @@ public final class NpcInteractionService {
             // 当天已对话过不再加好感，但仍要触发任务事件
             // （SDV: 杀完怪/做完条件后回来找 NPC 复命的场景）
             com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(serverPlayer, npcId);
-            if (npcId.equals("krobus") && held.isEmpty()) {
+            if (npcId.equals("krobus") && !hasGiftableHeld) {
                 return com.stardew.craft.shop.ShadowShopService.handleKrobusInteraction(serverPlayer, npc);
             }
             return InteractionResult.SUCCESS;
@@ -394,6 +419,10 @@ public final class NpcInteractionService {
             return;
         }
 
+        if (!canBeGivenAsGift(held)) {
+            return;
+        }
+
         // ── Normal gift processing (no quest matched) ──
         DayContext dayContext = currentDayContext(serverLevel);
         NpcFriendshipDataManager friendshipManager = NpcFriendshipDataManager.get(serverLevel);
@@ -453,6 +482,100 @@ public final class NpcInteractionService {
 
     private static boolean isStardropTea(ItemStack held) {
         return STARDROP_TEA_ID.equals(normalizeItemId(held));
+    }
+
+    private static boolean canBeGivenAsGift(ItemStack held) {
+        if (held.isEmpty()) {
+            return false;
+        }
+        if (isStardropTea(held)) {
+            return true;
+        }
+
+        if (held.getItem() instanceof IStardewItem stardewItem) {
+            String typeKey = stardewItem.getItemTypeKey();
+            if (typeKey != null) {
+                String normalizedTypeKey = typeKey.trim().toLowerCase(Locale.ROOT);
+                if (normalizedTypeKey.startsWith("stardewcraft.tool.")
+                        || NON_GIFTABLE_TYPE_KEYS.contains(normalizedTypeKey)) {
+                    return false;
+                }
+            }
+        } else {
+            return false;
+        }
+
+        Boolean vanillaGiftability = findVanillaObjectGiftability(held);
+        return vanillaGiftability == null || vanillaGiftability;
+    }
+
+    private static Boolean findVanillaObjectGiftability(ItemStack held) {
+        Map<String, Boolean> giftabilityByName = vanillaObjectGiftabilityByName;
+        if (giftabilityByName == null) {
+            giftabilityByName = loadVanillaObjectGiftabilityByName();
+            vanillaObjectGiftabilityByName = giftabilityByName;
+        }
+        if (giftabilityByName.isEmpty()) {
+            return null;
+        }
+
+        ResourceLocation itemId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(held.getItem());
+        String path = itemId.getPath();
+        Boolean found = giftabilityByName.get(normalizeVanillaObjectName(path));
+        if (found != null) {
+            return found;
+        }
+        if (path.endsWith("_item")) {
+            found = giftabilityByName.get(normalizeVanillaObjectName(path.substring(0, path.length() - "_item".length())));
+        }
+        return found;
+    }
+
+    private static Map<String, Boolean> loadVanillaObjectGiftabilityByName() {
+        try (InputStream stream = NpcInteractionService.class.getClassLoader().getResourceAsStream(VANILLA_OBJECTS_RESOURCE)) {
+            if (stream == null) {
+                return Collections.emptyMap();
+            }
+            try (InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
+                JsonObject root = JsonParser.parseReader(reader).getAsJsonObject();
+                Map<String, Boolean> out = new HashMap<>();
+                for (Map.Entry<String, JsonElement> entry : root.entrySet()) {
+                    if (!entry.getValue().isJsonObject()) {
+                        continue;
+                    }
+                    JsonObject objectData = entry.getValue().getAsJsonObject();
+                    boolean canBeGift = !objectData.has("CanBeGivenAsGift")
+                            || objectData.get("CanBeGivenAsGift").getAsBoolean();
+                    String normalizedKey = normalizeVanillaObjectName(entry.getKey());
+                    if (!normalizedKey.isBlank()) {
+                        out.put(normalizedKey, canBeGift);
+                    }
+                    if (objectData.has("Name") && objectData.get("Name").isJsonPrimitive()) {
+                        String normalizedName = normalizeVanillaObjectName(objectData.get("Name").getAsString());
+                        if (!normalizedName.isBlank()) {
+                            out.merge(normalizedName, canBeGift, (oldValue, newValue) -> oldValue && newValue);
+                        }
+                    }
+                }
+                return Collections.unmodifiableMap(out);
+            }
+        } catch (Exception exception) {
+            return Collections.emptyMap();
+        }
+    }
+
+    private static String normalizeVanillaObjectName(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return "";
+        }
+        StringBuilder normalized = new StringBuilder(raw.length());
+        for (int i = 0; i < raw.length(); i++) {
+            char c = Character.toLowerCase(raw.charAt(i));
+            if (Character.isLetterOrDigit(c)) {
+                normalized.append(c);
+            }
+        }
+        return normalized.toString();
     }
 
     private static String receiveGift(ServerPlayer player,
