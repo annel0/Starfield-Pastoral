@@ -89,60 +89,71 @@ public class ModBlocks {
                                         .strength(0.3F)));
 
         // ---- 采集物方块 (Forage blocks with cross model, drop corresponding items) ----
+        private static final int SPRING = 0;
+        private static final int SUMMER = 1;
+        private static final int FALL = 2;
+        private static final int WINTER = 3;
+
         @SuppressWarnings("null")
-        private static Block.Properties forageProps() {
-                return Block.Properties.of()
+        private static Block.Properties forageProps(boolean expiresOutOfSeason) {
+                Block.Properties properties = Block.Properties.of()
                         .mapColor(net.minecraft.world.level.material.MapColor.PLANT)
                         .pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY)
                         .sound(net.minecraft.world.level.block.SoundType.GRASS)
                         .noCollission()
                         .noOcclusion()
                         .instabreak();
+                return expiresOutOfSeason ? properties.randomTicks() : properties;
         }
         @SuppressWarnings("null")
         private static DeferredBlock<Block> forage(String name) {
+                return forage(name, new int[0]);
+        }
+        @SuppressWarnings("null")
+        private static DeferredBlock<Block> forage(String name, int... seasons) {
                 return BLOCKS.register("forage_" + name,
-                        () -> new com.stardew.craft.block.nature.ForageBlock(forageProps())
+                        () -> new com.stardew.craft.block.nature.ForageBlock(forageProps(seasons.length > 0))
                                 .setDrop(() -> new net.minecraft.world.item.ItemStack(
                                         net.minecraft.core.registries.BuiltInRegistries.ITEM.get(
-                                                net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("stardewcraft", name)))));
+                                                net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("stardewcraft", name))))
+                                .setAllowedSeasons(seasons));
         }
 
         // Spring forage
-        public static final DeferredBlock<Block> FORAGE_WILD_HORSERADISH = forage("wild_horseradish");
-        public static final DeferredBlock<Block> FORAGE_DAFFODIL          = forage("daffodil");
-        public static final DeferredBlock<Block> FORAGE_LEEK              = forage("leek");
-        public static final DeferredBlock<Block> FORAGE_DANDELION         = forage("dandelion");
-        public static final DeferredBlock<Block> FORAGE_SPRING_ONION      = forage("spring_onion");
+        public static final DeferredBlock<Block> FORAGE_WILD_HORSERADISH = forage("wild_horseradish", SPRING);
+        public static final DeferredBlock<Block> FORAGE_DAFFODIL          = forage("daffodil", SPRING);
+        public static final DeferredBlock<Block> FORAGE_LEEK              = forage("leek", SPRING);
+        public static final DeferredBlock<Block> FORAGE_DANDELION         = forage("dandelion", SPRING);
+        public static final DeferredBlock<Block> FORAGE_SPRING_ONION      = forage("spring_onion", SPRING);
         // Summer forage
-        public static final DeferredBlock<Block> FORAGE_SPICE_BERRY       = forage("spice_berry");
-        public static final DeferredBlock<Block> FORAGE_SWEET_PEA         = forage("sweet_pea");
-        public static final DeferredBlock<Block> FORAGE_FIDDLEHEAD_FERN   = forage("fiddlehead_fern");
+        public static final DeferredBlock<Block> FORAGE_SPICE_BERRY       = forage("spice_berry", SUMMER);
+        public static final DeferredBlock<Block> FORAGE_SWEET_PEA         = forage("sweet_pea", SUMMER);
+        public static final DeferredBlock<Block> FORAGE_FIDDLEHEAD_FERN   = forage("fiddlehead_fern", SUMMER);
         // Fall forage
-        public static final DeferredBlock<Block> FORAGE_WILD_PLUM         = forage("wild_plum");
-        public static final DeferredBlock<Block> FORAGE_HAZELNUT          = forage("hazelnut");
-        public static final DeferredBlock<Block> FORAGE_BLACKBERRY        = forage("blackberry");
+        public static final DeferredBlock<Block> FORAGE_WILD_PLUM         = forage("wild_plum", FALL);
+        public static final DeferredBlock<Block> FORAGE_HAZELNUT          = forage("hazelnut", FALL);
+        public static final DeferredBlock<Block> FORAGE_BLACKBERRY        = forage("blackberry", FALL);
         // Winter forage
-        public static final DeferredBlock<Block> FORAGE_WINTER_ROOT       = forage("winter_root");
-        public static final DeferredBlock<Block> FORAGE_CRYSTAL_FRUIT     = forage("crystal_fruit");
-        public static final DeferredBlock<Block> FORAGE_CROCUS            = forage("crocus");
-        public static final DeferredBlock<Block> FORAGE_HOLLY             = forage("holly");
+        public static final DeferredBlock<Block> FORAGE_WINTER_ROOT       = forage("winter_root", WINTER);
+        public static final DeferredBlock<Block> FORAGE_CRYSTAL_FRUIT     = forage("crystal_fruit", WINTER);
+        public static final DeferredBlock<Block> FORAGE_CROCUS            = forage("crocus", WINTER);
+        public static final DeferredBlock<Block> FORAGE_HOLLY             = forage("holly", WINTER);
         // Cave / universal
         public static final DeferredBlock<Block> FORAGE_CAVE_CARROT       = forage("cave_carrot");
         // Beach
-        public static final DeferredBlock<Block> FORAGE_NAUTILUS_SHELL    = forage("nautilus_shell");
+        public static final DeferredBlock<Block> FORAGE_NAUTILUS_SHELL    = forage("nautilus_shell", WINTER);
         public static final DeferredBlock<Block> FORAGE_CORAL             = forage("coral");
-        public static final DeferredBlock<Block> FORAGE_RAINBOW_SHELL     = forage("rainbow_shell");
+        public static final DeferredBlock<Block> FORAGE_RAINBOW_SHELL     = forage("rainbow_shell", SUMMER);
         public static final DeferredBlock<Block> FORAGE_SEA_URCHIN        = forage("sea_urchin");
         // Desert / tropical
         public static final DeferredBlock<Block> FORAGE_COCONUT           = forage("coconut");
-        public static final DeferredBlock<Block> FORAGE_CACTUS_FRUIT      = forage("cactus_fruit");
+        public static final DeferredBlock<Block> FORAGE_CACTUS_FRUIT      = forage("cactus_fruit", SUMMER, FALL);
         // Mushrooms (cave)
-        public static final DeferredBlock<Block> FORAGE_COMMON_MUSHROOM   = forage("common_mushroom");
-        public static final DeferredBlock<Block> FORAGE_RED_MUSHROOM      = forage("red_mushroom");
+        public static final DeferredBlock<Block> FORAGE_COMMON_MUSHROOM   = forage("common_mushroom", SPRING, SUMMER, FALL);
+        public static final DeferredBlock<Block> FORAGE_RED_MUSHROOM      = forage("red_mushroom", SUMMER, FALL);
         public static final DeferredBlock<Block> FORAGE_PURPLE_MUSHROOM   = forage("purple_mushroom");
-        public static final DeferredBlock<Block> FORAGE_MOREL             = forage("morel");
-        public static final DeferredBlock<Block> FORAGE_CHANTERELLE       = forage("chanterelle");
+        public static final DeferredBlock<Block> FORAGE_MOREL             = forage("morel", SPRING);
+        public static final DeferredBlock<Block> FORAGE_CHANTERELLE       = forage("chanterelle", FALL);
         public static final DeferredBlock<Block> FORAGE_MAGMA_CAP         = forage("magma_cap");
         // Fruit Cave (SDV FarmCave fruit bats spawns)
         public static final DeferredBlock<Block> FORAGE_SALMONBERRY       = forage("salmonberry");

@@ -2842,7 +2842,7 @@ public class StardewGameMenuScreen extends Screen {
         int y = socialRowPosition(visibleRow);
         boolean datable = DATEABLE_NPCS.contains(normalizeNpcId(entry.npcId()));
 
-        String name = NpcDisplayNames.translated(entry.npcId());
+        String name = socialDisplayName(entry);
         drawSocialPortrait(graphics, entry.npcId(), socialPortraitX(), y);
         // Name centered horizontally between portrait right edge and left partition line
         int nameX = socialNameCenterX() - this.font.width(name) / 2;
@@ -3183,22 +3183,18 @@ public class StardewGameMenuScreen extends Screen {
         filtered.sort(Comparator
             .comparingInt(NpcFriendshipClientCache.Entry::points).reversed()
             .thenComparingInt(NpcFriendshipClientCache.Entry::metOrder)
-            .thenComparing(entry -> displayNameForSort(entry.npcId()))
+            .thenComparing(entry -> socialDisplayName(entry).toLowerCase(Locale.ROOT))
             .thenComparing(NpcFriendshipClientCache.Entry::npcId));
         return filtered;
     }
 
     private boolean hasSocialPortraitAndCharacter(String normalizedNpcId) {
-        ResourceLocation portraitLocation = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/portraits/" + normalizedNpcId + ".png");
-        if (!hasResource(portraitLocation)) {
-            return false;
-        }
         ResourceLocation mugshotLocation = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/mugshots/" + normalizedNpcId + ".png");
         return hasResource(mugshotLocation);
     }
 
-    private String displayNameForSort(String npcId) {
-        return NpcDisplayNames.sortKey(npcId);
+    private String socialDisplayName(NpcFriendshipClientCache.Entry entry) {
+        return entry.met() ? NpcDisplayNames.translated(entry.npcId()) : "???";
     }
 
     private boolean isDatableHeartLocked(NpcFriendshipClientCache.Entry entry) {

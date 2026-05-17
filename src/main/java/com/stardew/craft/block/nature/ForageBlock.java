@@ -5,11 +5,13 @@ import com.stardew.craft.item.quality.QualityHelper;
 import com.stardew.craft.player.PlayerStardewDataAPI;
 import com.stardew.craft.player.ProfessionType;
 import com.stardew.craft.player.SkillType;
+import com.stardew.craft.time.StardewTimeManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
@@ -41,6 +43,7 @@ public class ForageBlock extends BushBlock {
     private static final int FORAGE_XP = 7;
 
     private Supplier<ItemStack> dropSupplier;
+    private int allowedSeasonMask = 0;
 
     @Override
     protected MapCodec<? extends BushBlock> codec() {
@@ -56,6 +59,17 @@ public class ForageBlock extends BushBlock {
         return this;
     }
 
+    public ForageBlock setAllowedSeasons(int... seasons) {
+        int mask = 0;
+        for (int season : seasons) {
+            if (season >= 0 && season <= 3) {
+                mask |= 1 << season;
+            }
+        }
+        this.allowedSeasonMask = mask;
+        return this;
+    }
+
     @SuppressWarnings("null")
     @Override
     protected boolean mayPlaceOn(BlockState state, BlockGetter level, BlockPos pos) {
@@ -63,6 +77,18 @@ public class ForageBlock extends BushBlock {
                 || state.is(BlockTags.DIRT) || state.is(BlockTags.SAND)
                 || state.is(BlockTags.BASE_STONE_OVERWORLD)
                 || state.isFaceSturdy(level, pos, Direction.UP);
+    }
+
+    @SuppressWarnings("null")
+    @Override
+    protected void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        if (allowedSeasonMask == 0 || !level.canSeeSky(pos)) {
+            return;
+        }
+        int currentSeason = StardewTimeManager.get().getCurrentSeason();
+        if ((allowedSeasonMask & (1 << currentSeason)) == 0) {
+            level.removeBlock(pos, false);
+        }
     }
 
     /**

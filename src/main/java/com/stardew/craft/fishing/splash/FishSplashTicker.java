@@ -2,6 +2,7 @@ package com.stardew.craft.fishing.splash;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModDimensions;
+import com.stardew.craft.fishing.WaterFeatureSpawnRules;
 import com.stardew.craft.fishing.data.FishingDataManager;
 import com.stardew.craft.time.StardewTimeManager;
 import net.minecraft.core.BlockPos;
@@ -66,10 +67,12 @@ public final class FishSplashTicker {
 		//    A key gets one generation attempt per 10-min tick regardless of player count.
 		Map<String, ServerPlayer> attemptByKey = new HashMap<>();
 		for (ServerPlayer p : players) {
+			if (WaterFeatureSpawnRules.isBlockedSpawnArea(stardew, p.blockPosition())) continue;
 			Holder<Biome> bh = stardew.getBiome(p.blockPosition());
 			List<String> keys = FishingDataManager.resolveVanillaAlignedLocationKeysStatic(stardew, bh);
 			for (String k : keys) {
 				if ("Default".equals(k)) continue;       // never spawn splash for the fallback bucket
+				if ("Sewer".equals(k)) continue;
 				attemptByKey.putIfAbsent(k, p);
 			}
 		}
@@ -107,6 +110,10 @@ public final class FishSplashTicker {
 	private static void expireExpiredEntries(ServerLevel stardew, FishSplashState state, int nowMin, Random r) {
 		Set<String> toRemove = new HashSet<>();
 		for (Map.Entry<String, FishSplashState.Entry> e : state.view().entrySet()) {
+			if (WaterFeatureSpawnRules.isBlockedSpawnArea(stardew, e.getValue().pos())) {
+				toRemove.add(e.getKey());
+				continue;
+			}
 			int duration = nowMin - e.getValue().createdGameMinutes();
 			if (duration < 0) duration = EXPIRY_MIN_DURATION + 1;
 			if (duration > EXPIRY_MIN_DURATION
@@ -142,6 +149,7 @@ public final class FishSplashTicker {
 				break;
 			}
 			if (surface == null) continue;
+			if (!WaterFeatureSpawnRules.canSpawnAt(level, surface)) continue;
 
 			// Biome key must match.
 			Holder<Biome> bh = level.getBiome(surface);

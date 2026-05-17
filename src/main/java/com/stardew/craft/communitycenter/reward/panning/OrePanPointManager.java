@@ -4,6 +4,7 @@ import com.stardew.craft.StardewCraft;
 import com.stardew.craft.communitycenter.state.CCStoryFlags;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModMiningDimensions;
+import com.stardew.craft.fishing.WaterFeatureSpawnRules;
 import com.stardew.craft.network.payload.PanPointSyncPayload;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -120,7 +121,14 @@ public final class OrePanPointManager extends SavedData {
 
         for (ServerPlayer player : eligible) {
             ServerLevel level = (ServerLevel) player.level();
-            if (mgr.getPoint(player.getUUID(), level) != null) continue;
+            BlockPos existing = mgr.getPoint(player.getUUID(), level);
+            if (existing != null) {
+                if (WaterFeatureSpawnRules.canSpawnAt(level, existing)) {
+                    continue;
+                }
+                mgr.clearPoint(player.getUUID(), level);
+                mgr.syncToClient(player);
+            }
             // SDV: r.NextBool() gate — 50% chance this tick
             if (!r.nextBoolean()) continue;
 
@@ -156,6 +164,7 @@ public final class OrePanPointManager extends SavedData {
                 BlockPos p = new BlockPos(center.getX() + dx, probeY - dy, center.getZ() + dz);
                 if (!level.getFluidState(p).is(Fluids.WATER)) continue;
                 if (!level.getBlockState(p.above()).isAir()) continue;
+                if (!WaterFeatureSpawnRules.canSpawnAt(level, p)) continue;
                 return p;
             }
         }

@@ -48,6 +48,9 @@ import java.util.UUID;
 public final class NpcCentralMovementService {
     /** Distance² threshold for considering a step target reached (2D horizontal). */
     private static final double STEP_REACH_SQR = 4.0D; // 2 blocks
+    /** Final schedule target must be reached tightly, after a short natural fine approach. */
+    private static final double FINAL_STEP_REACH_SQR = 0.04D; // 0.2 blocks
+    private static final double FINAL_APPROACH_SPEED = 0.6D;
     /** Periodic re-path interval (~1.0s). Citizens2 uses updatePathRate=20 by default. */
     private static final int REPATH_INTERVAL_TICKS = 20;
     /**
@@ -67,6 +70,7 @@ public final class NpcCentralMovementService {
     private static final int NAV_FAIL_REPATH_THRESHOLD = 3;
     /** Door close timeout after an NPC opened the door. */
     private static final int DOOR_CLOSE_TIMEOUT_TICKS = 30;
+    private static final double DOOR_OPEN_PROBE_REACH_SQR = 16.0D;
     private static final int MOVE_STATUS_LOG_INTERVAL_TICKS = 100;
     private static final int NO_PROGRESS_LOG_INTERVAL_TICKS = 40;
     private static final boolean MOVEMENT_DEBUG_ENABLED = Boolean.getBoolean("stardewcraft.npcMovementDebug");
@@ -463,7 +467,9 @@ public final class NpcCentralMovementService {
         // Check horizontal arrival at step target
         Vec3 toTarget = new Vec3(target.x - npc.getX(), 0.0D, target.z - npc.getZ());
         double distSqr = toTarget.lengthSqr();
-        if (distSqr <= STEP_REACH_SQR) {
+        boolean finalStep = plan.currentStepIndex == plan.steps.size() - 1;
+        double reachSqr = finalStep ? FINAL_STEP_REACH_SQR : STEP_REACH_SQR;
+        if (distSqr <= reachSqr) {
             // Arrived at step target — advance
             if (movementDebugEnabled()) {
                 StardewCraft.LOGGER.info("[NPC_MOVE] {} reached step={}/{} point={} pos={} target={} dist2d={}",
@@ -484,14 +490,21 @@ public final class NpcCentralMovementService {
             return false;
         }
 
-        plan.debugStage = "walk";
+        boolean finalFineApproach = finalStep && distSqr <= STEP_REACH_SQR;
+        if (finalFineApproach) {
+            npc.getNavigation().stop();
+            npc.getMoveControl().setWantedPosition(target.x, target.y, target.z, FINAL_APPROACH_SPEED);
+            plan.debugStage = "final_approach";
+        } else {
+            plan.debugStage = "walk";
+        }
 
         // Issue moveTo only when navigation has no active path. Rebuilding an
         // already active path every second resets vanilla's internal progress.
         boolean navIdle = npc.getNavigation().isDone();
         boolean hasActivePath = npc.getNavigation().getPath() != null && !navIdle;
         boolean repathDue = now - plan.lastRepathTick >= REPATH_INTERVAL_TICKS;
-        if (!hasActivePath && repathDue) {
+        if (!finalFineApproach && !hasActivePath && repathDue) {
             // moveTo() returns true if a path was successfully created
             boolean pathFound = npc.getNavigation().moveTo(target.x, target.y, target.z, 1.0D);
             plan.lastRepathTick = now;
@@ -673,20 +686,26 @@ public final class NpcCentralMovementService {
     private static void tryOpenNearbyDoors(ServerLevel level,
                                            StardewNpcEntity npc,
                                            NpcRoutePlan plan,
-                                           Vec3 waypoint,
-                                           Vec3 target) {
+                                           Vec3 stepTarget,
+                                           Vec3 nextPathNode) {
         if (level == null || npc == null) {
             return;
         }
         tryOpenDoorsAround(level, npc, plan, npc.blockPosition());
 
-        if (waypoint != null) {
-            tryOpenDoorsAround(level, npc, plan, BlockPos.containing(waypoint));
+        if (nextPathNode != null && isDoorProbeInReach(npc, nextPathNode)) {
+            tryOpenDoorsAround(level, npc, plan, BlockPos.containing(nextPathNode));
         }
 
-        if (target != null) {
-            tryOpenDoorsAround(level, npc, plan, BlockPos.containing(target));
+        if (stepTarget != null && isDoorProbeInReach(npc, stepTarget)) {
+            tryOpenDoorsAround(level, npc, plan, BlockPos.containing(stepTarget));
         }
+    }
+
+    private static boolean isDoorProbeInReach(StardewNpcEntity npc, Vec3 probe) {
+        double dx = probe.x - npc.getX();
+        double dz = probe.z - npc.getZ();
+        return dx * dx + dz * dz <= DOOR_OPEN_PROBE_REACH_SQR;
     }
 
     private static Vec3 nextPathNodeTarget(StardewNpcEntity npc) {

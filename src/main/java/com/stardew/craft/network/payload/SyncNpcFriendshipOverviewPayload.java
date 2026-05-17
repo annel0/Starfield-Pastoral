@@ -15,11 +15,13 @@ import java.util.List;
  * Server -> client friendship overview data for the V-menu social tab.
  */
 public record SyncNpcFriendshipOverviewPayload(List<Entry> entries) implements CustomPacketPayload {
-    public record Entry(String npcId, int points, int hearts, int giftsThisWeek, boolean giftedToday, boolean talkedToday, int metOrder) {
+    public record Entry(String npcId, boolean met, boolean canReceiveGifts, int points, int hearts, int giftsThisWeek, boolean giftedToday, boolean talkedToday, int metOrder) {
         @SuppressWarnings("null")
         public static final StreamCodec<RegistryFriendlyByteBuf, Entry> STREAM_CODEC = StreamCodec.of(
             (buf, entry) -> {
                 buf.writeUtf(entry.npcId());
+                buf.writeBoolean(entry.met());
+                buf.writeBoolean(entry.canReceiveGifts());
                 buf.writeInt(entry.points());
                 buf.writeInt(entry.hearts());
                 buf.writeInt(entry.giftsThisWeek());
@@ -29,6 +31,8 @@ public record SyncNpcFriendshipOverviewPayload(List<Entry> entries) implements C
             },
             buf -> new Entry(
                 buf.readUtf(64),
+                buf.readBoolean(),
+                buf.readBoolean(),
                 buf.readInt(),
                 buf.readInt(),
                 buf.readInt(),
@@ -58,7 +62,7 @@ public record SyncNpcFriendshipOverviewPayload(List<Entry> entries) implements C
     public static void handle(SyncNpcFriendshipOverviewPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             List<com.stardew.craft.client.NpcFriendshipClientCache.Entry> rows = payload.entries().stream()
-                .map(entry -> new com.stardew.craft.client.NpcFriendshipClientCache.Entry(entry.npcId(), entry.points(), entry.hearts(), entry.giftsThisWeek(), entry.giftedToday(), entry.talkedToday(), entry.metOrder()))
+                .map(entry -> new com.stardew.craft.client.NpcFriendshipClientCache.Entry(entry.npcId(), entry.met(), entry.canReceiveGifts(), entry.points(), entry.hearts(), entry.giftsThisWeek(), entry.giftedToday(), entry.talkedToday(), entry.metOrder()))
                 .toList();
             com.stardew.craft.client.NpcFriendshipClientCache.update(rows);
         });

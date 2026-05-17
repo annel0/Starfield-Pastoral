@@ -1187,8 +1187,8 @@
       "note": "=== Marnie 专属停留点 ==="
     },
     "marnie_animalshop_counter": {
-      "x": -88,
-      "y": 24,
+      "x": -87,
+      "y": 34,
       "z": 21,
       "indoor": true,
       "note": "Marnie 牧场柜台/工作位（朝西）"

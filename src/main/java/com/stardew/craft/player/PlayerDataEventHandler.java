@@ -691,6 +691,10 @@ public class PlayerDataEventHandler {
         com.stardew.craft.combat.skill.EternalCollapseTracker.tick(player, gameTime);
             com.stardew.craft.combat.skill.RiftPathDamageTracker.tick(player, gameTime);
 
+        // 温泉运行时：静止时恢复 energy/health，移动时按节奏播放水声，
+        // 进出温泉播放 pullItemFromWater。维度判断在 Registry 内完成。
+        com.stardew.craft.hotspring.HotSpringRuntimeService.tick(player);
+
         applyMagneticPull(player, PlayerDataManager.getPlayerData(player));
 
         // 发光戒指：动态光源

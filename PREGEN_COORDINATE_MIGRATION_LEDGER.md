@@ -88,7 +88,7 @@
 | desert_bus_direction_threshold | 公交方向判断规则 | x < -100 |  |  |  |  |  | 跳过 | `DesertBusService.java` | 已改为根据 `desert_bounds` 判断玩家是否在沙漠内，不再需要录入 X 阈值。 |
 | desert_bus_portal_town_side | 鹈鹕镇公交牌去沙漠触发区 | 81 | -12 | 202 | -66..-65 | 64..65 | -60..-59 | 待测 | `DesertConstants.java`, `DesertMapBootstrap.java` | 旧区域 size `4x4x4`；hint 由实际 PortalTrigger 方块区域自动生成。 min=(-66,64,-60), max=(-65,65,-59) |
 | desert_bus_return_portal | 沙漠返程公交触发区 | -351 | -42 | 1316 | -225..-225 | 65..66 | -179..-179 | 待测 | `DesertConstants.java`, `DesertMapBootstrap.java` | 旧区域 size `2x2x1`；hint 由实际 PortalTrigger 方块区域自动生成。 min=(-225,65,-179), max=(-225,66,-179) |
-| desert_town_return_arrival | 沙漠返程到鹈鹕镇落点 | 71 | -12 | 207 | -225 | 64 | -177 | 待测 | `DesertConstants.java`, `DesertBusService.java` | 朝南 |
+| desert_town_return_arrival | 沙漠返程到鹈鹕镇落点 | 71 | -12 | 207 | -60 | 64 | -61 | 已应用 | `DesertConstants.java`, `DesertBusService.java` | 朝南，yaw=0.0F |
 | skull_cavern_exit_desert | 骷髅矿大厅退出到沙漠落点 | -339 | -42 | 1268 | -246 | 64 | -213 | 待测 | `DesertConstants.java`, `InteriorPortalInteractionEvents.java`, `MineExitActionPayload.java` | 朝南 |
 | desert_mine_portal | 沙漠骷髅矿入口触发区 | -340 | -42 | 1266 | -247..-246 | 64..64 | -215..-215 | 待测 | `DesertConstants.java`, `DesertMapBootstrap.java` | 旧区域 size `3x3x1`；hint 由实际 PortalTrigger 方块区域自动生成。 min=(-247,64,-215), max=(-246,64,-215) |
 | oasis_outdoor_portal | Oasis 室外入口触发区 | -360 | -40 | 1414 | -251..-251 | 64..65 | -142..-142 | 待测 | `DesertConstants.java`, `DesertMapBootstrap.java` | 旧区域 size `2x2x1`；hint 由实际 PortalTrigger 方块区域自动生成。 min=(-251,64,-142), max=(-251,65,-142) |

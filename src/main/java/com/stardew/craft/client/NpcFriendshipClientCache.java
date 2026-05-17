@@ -9,7 +9,7 @@ import java.util.Locale;
  * Client-side cache for NPC friendship overview shown in the V menu social tab.
  */
 public final class NpcFriendshipClientCache {
-    public record Entry(String npcId, int points, int hearts, int giftsThisWeek, boolean giftedToday, boolean talkedToday, int metOrder) {
+    public record Entry(String npcId, boolean met, boolean canReceiveGifts, int points, int hearts, int giftsThisWeek, boolean giftedToday, boolean talkedToday, int metOrder) {
     }
 
     private static List<Entry> entries = List.of();
@@ -38,7 +38,7 @@ public final class NpcFriendshipClientCache {
             int clampedHearts = Math.max(0, Math.min(14, entry.hearts()));
             int clampedGifts = Math.max(0, Math.min(2, entry.giftsThisWeek()));
             int clampedMetOrder = Math.max(0, entry.metOrder());
-            copy.add(new Entry(entry.npcId().trim().toLowerCase(), clampedPoints, clampedHearts, clampedGifts, entry.giftedToday(), entry.talkedToday(), clampedMetOrder));
+            copy.add(new Entry(entry.npcId().trim().toLowerCase(), entry.met(), entry.canReceiveGifts(), clampedPoints, clampedHearts, clampedGifts, entry.giftedToday(), entry.talkedToday(), clampedMetOrder));
         }
 
         copy.sort(Comparator
@@ -82,6 +82,8 @@ public final class NpcFriendshipClientCache {
             if (key.equals(entry.npcId())) {
                 mutable.set(i, new Entry(
                     key,
+                    true,
+                    entry.canReceiveGifts(),
                     Math.max(0, points),
                     Math.max(0, Math.min(14, hearts)),
                     Math.max(0, Math.min(2, giftsThisWeek)),
@@ -101,6 +103,8 @@ public final class NpcFriendshipClientCache {
         }
         mutable.add(new Entry(
             key,
+            true,
+            true,
             Math.max(0, points),
             Math.max(0, Math.min(14, hearts)),
             Math.max(0, Math.min(2, giftsThisWeek)),

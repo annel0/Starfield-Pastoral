@@ -46,7 +46,8 @@ public final class DesertConstants {
     public static final String TAG_BUS_RETURN_PORTAL_MARKER = "sdv_portal_marker:desert_bus_return";
     public static final String TAG_BUS_RETURN_PORTAL_TARGET = "sdv_portal_target:desert_bus_return";
     /** 返程到达点。 */
-    public static final BlockPos TOWN_RETURN_ARRIVAL = new BlockPos(-225, 64, -177);
+    public static final BlockPos TOWN_RETURN_ARRIVAL = new BlockPos(-60, 64, -61);
+    public static final float TOWN_RETURN_YAW = 0.0F;
 
     // ── 公交票价 ──
     public static final int BUS_TICKET_PRICE = 500;

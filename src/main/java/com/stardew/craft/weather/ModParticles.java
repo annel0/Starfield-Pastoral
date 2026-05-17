@@ -29,6 +29,10 @@ public class ModParticles {
         PARTICLES.register("custom_snowflake", () -> new SimpleParticleType(false));
 
     // 暗黄色油泡粒子
-    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> OIL_BUBBLE = 
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> OIL_BUBBLE =
         PARTICLES.register("oil_bubble", () -> new SimpleParticleType(false));
+
+    // 温泉蒸汽（白色、半透明、缓慢上漂）
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> HOT_SPRING_STEAM =
+        PARTICLES.register("hot_spring_steam", () -> new SimpleParticleType(false));
 }

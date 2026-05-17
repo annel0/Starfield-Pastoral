@@ -34,6 +34,14 @@ public final class NpcFriendshipDataManager extends SavedData {
             .computeIfAbsent(npcId, k -> new FriendshipState());
     }
 
+    public FriendshipState get(UUID playerId, String npcId) {
+        if (playerId == null || npcId == null || npcId.isBlank()) {
+            return null;
+        }
+        Map<String, FriendshipState> npcMap = playerState.get(playerId);
+        return npcMap == null ? null : npcMap.get(npcId);
+    }
+
     public int getMaxPointsForNpc(String npcId) {
         if (npcId == null || npcId.isBlank()) {
             return 0;

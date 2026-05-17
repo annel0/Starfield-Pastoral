@@ -25,7 +25,7 @@ public class QuarryAccessManager extends SavedData {
     * 放置逻辑版本号。坐标有改动时把这个数 +1，老存档下次加载会自动
      * 清除旧放置标记并重新放置（ensurePlaced 会检测 placedVersion < CURRENT_VERSION）。
      */
-    private static final int CURRENT_VERSION = 3;
+    private static final int CURRENT_VERSION = 4;
 
     // ── 采石场区域（与 QuarrySpawnService 保持一致） ──
     public static final int QUARRY_MIN_X = 155;
@@ -41,10 +41,10 @@ public class QuarryAccessManager extends SavedData {
                 && z >= QUARRY_MIN_Z && z <= QUARRY_MAX_Z;
     }
 
-    // ── 镇子侧触发方块 ──
+    // ── 镇子侧触发方块（3 格高，覆盖玩家身高） ──
     private static final int TOWN_TRIGGER_X = 137;
     private static final int TOWN_TRIGGER_Y_MIN = 81;
-    private static final int TOWN_TRIGGER_Y_MAX = 81;
+    private static final int TOWN_TRIGGER_Y_MAX = 83;
     private static final int TOWN_TRIGGER_Z_MIN = -119;
     private static final int TOWN_TRIGGER_Z_MAX = -115;
 
@@ -56,18 +56,18 @@ public class QuarryAccessManager extends SavedData {
     private static final int QUARRY_TRIGGER_Z_MAX = -115;
 
     // ── 传送目标 ──
-    /** 镇子 → 采石场：面朝西。 */
-    public static final double ENTRY_DEST_X = 136 + 0.5;
-    public static final double ENTRY_DEST_Y = 83.0;
+    /** 镇子 → 采石场：落在采石场侧（墙东），面朝东走入采石场。 */
+    public static final double ENTRY_DEST_X = 140 + 0.5;
+    public static final double ENTRY_DEST_Y = 81.0;
     public static final double ENTRY_DEST_Z = -117 + 0.5;
-    public static final float ENTRY_DEST_YAW = 90.0F;
+    public static final float ENTRY_DEST_YAW = -90.0F;
     public static final float ENTRY_DEST_PITCH = 0.0F;
 
-    /** 采石场 → 镇子：面朝东。 */
-    public static final double EXIT_DEST_X = 140 + 0.5;
-    public static final double EXIT_DEST_Y = 81.0;
+    /** 采石场 → 镇子：落在镇子侧（墙西），面朝西走回小镇。 */
+    public static final double EXIT_DEST_X = 136 + 0.5;
+    public static final double EXIT_DEST_Y = 83.0;
     public static final double EXIT_DEST_Z = -117 + 0.5;
-    public static final float EXIT_DEST_YAW = -90.0F;
+    public static final float EXIT_DEST_YAW = 90.0F;
     public static final float EXIT_DEST_PITCH = 0.0F;
 
     /** 上次已应用的放置版本。0 = 从未放置。 */

@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.3.9fix2 - 2026-05-17
+
+### Update Log (English)
+
+#### Fixes
+
+- Tightened Stardew Valley social-page parity for NPCs, including Krobus visibility, unknown-name display, gift eligibility, and Introductions quest filtering.
+- Added the original Krobus mugshot crop to the social UI and wired the same mugshot into the Xaero Minimap NPC icon set.
+- Corrected Marnie's animal-shop counter route point and made NPCs finish walking naturally to route-point centers instead of relying on a final snap.
+- Prevented ore-pan sparkle points and fish splash bubbles from spawning in hot spring, farm, and sewer areas, and cleaned up existing invalid water-feature points when encountered.
+- Cleared remaining workspace diagnostics by aligning Bush block-entity non-null annotations, removing unused spawn helper overloads, and normalizing a renderer whitespace issue.
+
+#### Changes
+
+- Updated the public mod version to `0.3.9fix2`.
+
+### 更新日志（中文）
+
+#### 修复
+
+- 进一步对齐星露谷原版社交界面逻辑，包括 Krobus 显示、未认识时的 `???`、送礼资格和打招呼任务过滤。
+- 添加从原版裁出的 Krobus mugshot，并将同一份头像接入 Xaero Minimap 的 NPC 图标适配。
+- 修正 Marnie 动物商店柜台路线点，并让 NPC 在路线终点自然走到方块中心，不再依赖最终吸附。
+- 限制淘金闪光点和钓鱼气泡的生成区域，温泉、农场和下水道区域不再生成，并会清理已存在的非法水面点。
+- 清理剩余工作区诊断：补齐 Bush 方块实体非空标注、删除未使用的生成 helper 重载，并规范一个渲染器文件的空白问题。
+
+#### 变更
+
+- 项目公开版本号更新为 `0.3.9fix2`。
+
 ## 0.3.9fix1 - 2026-05-17
 
 ### Update Log (English)

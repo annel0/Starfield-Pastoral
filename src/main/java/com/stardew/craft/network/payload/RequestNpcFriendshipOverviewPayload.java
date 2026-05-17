@@ -3,6 +3,7 @@ package com.stardew.craft.network.payload;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.npc.data.NpcCapabilityProfile;
 import com.stardew.craft.npc.data.NpcDataRegistry;
+import com.stardew.craft.npc.data.NpcSocialRules;
 import com.stardew.craft.npc.runtime.NpcFriendshipDataManager;
 import com.stardew.craft.time.StardewTimeManager;
 import io.netty.buffer.ByteBuf;
@@ -20,15 +21,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Client -> server request for V-menu social tab friendship data.
  */
 public record RequestNpcFriendshipOverviewPayload() implements CustomPacketPayload {
-    /** NPCs that exist as world entities but do NOT appear in the social overview / friendship list. */
-    private static final Set<String> NON_SOCIAL_NPCS = Set.of("morris", "joja_cashier");
-
     @SuppressWarnings("null")
     public static final Type<RequestNpcFriendshipOverviewPayload> TYPE =
         new Type<>(ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "request_npc_friendship_overview"));
@@ -80,14 +77,26 @@ public record RequestNpcFriendshipOverviewPayload() implements CustomPacketPaylo
             if (npcId == null || npcId.isBlank()) {
                 continue;
             }
-            if (NON_SOCIAL_NPCS.contains(npcId.toLowerCase(Locale.ROOT))) {
+            String normalizedNpcId = npcId.toLowerCase(Locale.ROOT);
+            NpcFriendshipDataManager.FriendshipState state = friendshipManager.get(player.getUUID(), normalizedNpcId);
+            if (!NpcSocialRules.shouldShowOnSocialPage(normalizedNpcId, profile, state, player)) {
                 continue;
             }
+            boolean met = NpcSocialRules.isMet(state);
+            boolean persistentState = state != null;
+            if (state == null) {
+                if (NpcSocialRules.shouldCreateFriendshipForSocialPage(normalizedNpcId)) {
+                    state = friendshipManager.getOrCreate(player.getUUID(), normalizedNpcId);
+                    persistentState = true;
+                    met = NpcSocialRules.isMet(state);
+                } else {
+                    state = new NpcFriendshipDataManager.FriendshipState();
+                }
+            }
 
-            NpcFriendshipDataManager.FriendshipState state = friendshipManager.getOrCreate(player.getUUID(), npcId);
             if (state.lastGiftWeekKey() != weekKey) {
                 state.normalizeGiftWeek(weekKey);
-                normalizedAnyWeek = true;
+                normalizedAnyWeek |= persistentState;
             }
             int points = Math.max(0, state.points());
             int hearts = Math.max(0, Math.min(14, points / 250));
@@ -95,7 +104,17 @@ public record RequestNpcFriendshipOverviewPayload() implements CustomPacketPaylo
             boolean giftedToday = state.lastGiftDayKey() == dayKey;
             boolean talkedToday = state.lastTalkDayKey() == dayKey;
             int metOrder = state.firstMetDayKey() == Integer.MAX_VALUE ? Integer.MAX_VALUE : Math.max(0, state.firstMetDayKey());
-            rows.add(new SyncNpcFriendshipOverviewPayload.Entry(npcId.toLowerCase(Locale.ROOT), points, hearts, gifts, giftedToday, talkedToday, metOrder));
+            rows.add(new SyncNpcFriendshipOverviewPayload.Entry(
+                normalizedNpcId,
+                met,
+                NpcSocialRules.canReceiveGifts(normalizedNpcId, player),
+                points,
+                hearts,
+                gifts,
+                giftedToday,
+                talkedToday,
+                metOrder
+            ));
         }
 
         rows.sort(Comparator

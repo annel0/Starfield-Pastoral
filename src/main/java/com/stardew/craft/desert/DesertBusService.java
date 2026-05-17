@@ -156,7 +156,7 @@ public final class DesertBusService {
                 BlockPos a = DesertConstants.TOWN_RETURN_ARRIVAL;
                 player.teleportTo(stardew,
                     a.getX() + 0.5D, a.getY(), a.getZ() + 0.5D,
-                    Set.of(), 180.0F, 0.0F);
+                    Set.of(), DesertConstants.TOWN_RETURN_YAW, 0.0F);
             } else {
                 BlockPos arrival = DesertConstants.worldPos(DesertConstants.ARRIVAL_OFFSET);
                 player.teleportTo(stardew,

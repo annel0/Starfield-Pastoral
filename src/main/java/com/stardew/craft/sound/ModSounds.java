@@ -172,6 +172,7 @@ public final class ModSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_ADVENTURER_GUILD = register("music_adventurer_guild");
     public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_HOSPITAL = register("music_hospital");
 	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_HOSPITAL_AMBIENT = register("music_hospital_ambient");
+    public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_POOL_AMBIENT = register("music_pool_ambient");
     public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_ELLIOTT_PIANO = register("music_elliott_piano");
 	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_COMMUNITY_CENTER = register("music_community_center");
 	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_DISTANT_BANJO = register("music_distant_banjo");

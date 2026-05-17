@@ -2,6 +2,7 @@ package com.stardew.craft.quest;
 
 import com.stardew.craft.npc.data.NpcCapabilityProfile;
 import com.stardew.craft.npc.data.NpcDataRegistry;
+import com.stardew.craft.npc.data.NpcSocialRules;
 import com.stardew.craft.npc.runtime.NpcFriendshipDataManager;
 import com.stardew.craft.npc.runtime.NpcInteractionService;
 import net.minecraft.nbt.CompoundTag;
@@ -29,10 +30,9 @@ public class SocializeQuest extends StardewQuest {
     }
 
     /**
-     * SDV SocializeQuest.loadQuestInfo() — 首次接受时用注册表中的 NPC 填充 whoToGreet。
-     * SDV 筛选逻辑: IntroductionsQuest flag 或 HomeRegion=="Town"，排除 CanSocialize=false。
-     * 当前实现用“已实装且参与日常移动/社交”的 NPC 作为 Introductions 名单，
-     * 排除 Gunther/Marlon/Wizard/Dwarf/Sandy/Morris 这类静态或未进入日常社交循环的人物。
+    * SDV SocializeQuest.loadQuestInfo() — 首次接受时用注册表中的 NPC 填充 whoToGreet。
+    * 这里用原版 Data/Characters 的 IntroductionsQuest=false / CanSocialize=false 名单
+    * 过滤掉 Gunther、Marlon、Wizard、Dwarf、Krobus、Sandy、Morris 等非打招呼目标。
      */
     @Override
     public void onAccept(ServerPlayer player) {
@@ -47,19 +47,19 @@ public class SocializeQuest extends StardewQuest {
         whoToGreet.clear();
         for (var entry : NpcDataRegistry.capabilities().entrySet()) {
             NpcCapabilityProfile profile = entry.getValue();
-            if (!isIntroductionsNpc(profile)) continue;
+            if (!isIntroductionsNpc(entry.getKey(), profile)) continue;
             whoToGreet.add(entry.getKey());
         }
         total = whoToGreet.size();
     }
 
-    private static boolean isIntroductionsNpc(NpcCapabilityProfile profile) {
-        return profile != null && profile.canRunPathing();
+    private static boolean isIntroductionsNpc(String npcId, NpcCapabilityProfile profile) {
+        return NpcSocialRules.isIntroductionsNpc(npcId, profile);
     }
 
     private void sanitizeWhoToGreet() {
         int before = whoToGreet.size();
-        whoToGreet.removeIf(npcId -> !isIntroductionsNpc(NpcDataRegistry.capabilities().get(npcId)));
+        whoToGreet.removeIf(npcId -> !isIntroductionsNpc(npcId, NpcDataRegistry.capabilities().get(npcId)));
         int removed = before - whoToGreet.size();
         if (removed > 0) {
             total = Math.max(whoToGreet.size(), total - removed);
@@ -75,7 +75,7 @@ public class SocializeQuest extends StardewQuest {
                 if (player.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
                     NpcFriendshipDataManager friendshipMgr = NpcFriendshipDataManager.get(serverLevel);
                     for (var entry : NpcDataRegistry.capabilities().entrySet()) {
-                        if (!isIntroductionsNpc(entry.getValue())) continue;
+                        if (!isIntroductionsNpc(entry.getKey(), entry.getValue())) continue;
                         String knownNpc = entry.getKey();
                         NpcFriendshipDataManager.FriendshipState fs = friendshipMgr.getOrCreate(player.getUUID(), knownNpc);
                         int max = NpcInteractionService.getMaxFriendshipPointsFor(knownNpc);

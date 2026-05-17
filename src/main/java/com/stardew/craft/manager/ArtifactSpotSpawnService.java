@@ -62,10 +62,6 @@ public final class ArtifactSpotSpawnService {
         }
     }
 
-    private static ZoneRect rect(int x1, int z1, int x2, int z2) {
-        return rect(x1, Integer.MIN_VALUE, z1, x2, Integer.MAX_VALUE, z2);
-    }
-
     private static ZoneRect rect(int x1, int y1, int z1, int x2, int y2, int z2) {
         return new ZoneRect(
                 Math.min(x1, x2),

@@ -1101,6 +1101,14 @@
       }
     ]
   },
+  "music_pool_ambient": {
+    "sounds": [
+      {
+        "name": "stardewcraft:music/pool_ambient",
+        "stream": false
+      }
+    ]
+  },
   "music_elliott_piano": {
     "sounds": [
       {

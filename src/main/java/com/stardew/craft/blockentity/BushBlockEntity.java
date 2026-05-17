@@ -15,6 +15,7 @@ import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class BushBlockEntity extends BlockEntity implements GeoBlockEntity {
@@ -53,13 +54,13 @@ public class BushBlockEntity extends BlockEntity implements GeoBlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+    protected void saveAdditional(@Nonnull CompoundTag tag, @Nonnull net.minecraft.core.HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         tag.putInt(TAG_LAST_HARVEST_ABSOLUTE_DAY, lastHarvestAbsoluteDay);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+    protected void loadAdditional(@Nonnull CompoundTag tag, @Nonnull net.minecraft.core.HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         lastHarvestAbsoluteDay = tag.contains(TAG_LAST_HARVEST_ABSOLUTE_DAY) ? tag.getInt(TAG_LAST_HARVEST_ABSOLUTE_DAY) : Integer.MIN_VALUE;
     }
@@ -71,7 +72,7 @@ public class BushBlockEntity extends BlockEntity implements GeoBlockEntity {
     }
 
     @Override
-    public CompoundTag getUpdateTag(net.minecraft.core.HolderLookup.Provider registries) {
+    public CompoundTag getUpdateTag(@Nonnull net.minecraft.core.HolderLookup.Provider registries) {
         CompoundTag tag = super.getUpdateTag(registries);
         saveAdditional(tag, registries);
         return tag;

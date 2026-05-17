@@ -32,8 +32,12 @@ public class ModParticleProviders {
             CustomSnowflakeParticle.Provider::new);
 
         // 注册暗黄色油泡粒子
-        event.registerSpriteSet(ModParticles.OIL_BUBBLE.get(), 
+        event.registerSpriteSet(ModParticles.OIL_BUBBLE.get(),
             OilBubbleParticle.Provider::new);
+
+        // 注册温泉蒸汽粒子
+        event.registerSpriteSet(ModParticles.HOT_SPRING_STEAM.get(),
+            HotSpringSteamParticle.Provider::new);
 
         // 注册斩击轨迹粒子
 
@@ -212,5 +216,79 @@ public class ModParticleProviders {
     /**
      * 斩击轨迹粒子（沿速度方向拉伸的短轨迹）
      */
-    
+
+    /**
+     * 温泉蒸汽：白色、半透明软斑，缓慢上漂，进/出有 alpha 渐变。
+     * 替代 vanilla CAMPFIRE_COSY_SMOKE 的灰色观感。
+     */
+    public static class HotSpringSteamParticle extends TextureSheetParticle {
+
+        private static final int LIFE_MIN = 50;
+        private static final int LIFE_MAX = 90;
+        /** alpha 峰值；过高就糊脸。 */
+        private static final float PEAK_ALPHA = 0.45F;
+
+        @SuppressWarnings("null")
+        protected HotSpringSteamParticle(ClientLevel level, double x, double y, double z,
+                                         double xSpeed, double ySpeed, double zSpeed, SpriteSet sprites) {
+            super(level, x, y, z, xSpeed, ySpeed, zSpeed);
+            this.setSprite(sprites.get(level.random));
+            this.gravity = 0F;
+            this.friction = 0.96F;
+            this.hasPhysics = false;
+            this.lifetime = LIFE_MIN + level.random.nextInt(LIFE_MAX - LIFE_MIN);
+            this.alpha = 0F;
+            this.rCol = 1.0F;
+            this.gCol = 1.0F;
+            this.bCol = 1.0F;
+            this.quadSize = 0.6F + level.random.nextFloat() * 0.7F;
+            // 初速来自调用方（一般微弱）
+            this.xd = xSpeed;
+            this.yd = ySpeed;
+            this.zd = zSpeed;
+        }
+
+        @Override
+        public ParticleRenderType getRenderType() {
+            return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
+        }
+
+        @Override
+        public void tick() {
+            super.tick();
+            // 缓慢上漂 + 微弱横向扰动
+            this.yd += 0.0015;
+            this.xd += (this.random.nextDouble() - 0.5) * 0.0015;
+            this.zd += (this.random.nextDouble() - 0.5) * 0.0015;
+
+            // alpha 三段：前 25% 淡入到峰值，中段维持，后 35% 淡出
+            float t = this.age / (float) this.lifetime;
+            float a;
+            if (t < 0.25F) {
+                a = PEAK_ALPHA * (t / 0.25F);
+            } else if (t < 0.65F) {
+                a = PEAK_ALPHA;
+            } else {
+                a = PEAK_ALPHA * (1F - (t - 0.65F) / 0.35F);
+            }
+            this.alpha = Math.max(0F, a);
+
+            // 体积慢慢扩大，像真的蒸汽散开
+            this.quadSize += 0.015F;
+        }
+
+        public static class Provider implements ParticleProvider<SimpleParticleType> {
+            private final SpriteSet sprite;
+
+            public Provider(SpriteSet sprites) {
+                this.sprite = sprites;
+            }
+
+            @Override
+            public Particle createParticle(@SuppressWarnings("null") SimpleParticleType type, @SuppressWarnings("null") ClientLevel level,
+                    double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
+                return new HotSpringSteamParticle(level, x, y, z, xSpeed, ySpeed, zSpeed, this.sprite);
+            }
+        }
+    }
 }

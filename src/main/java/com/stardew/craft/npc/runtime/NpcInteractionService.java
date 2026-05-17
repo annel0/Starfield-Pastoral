@@ -10,6 +10,7 @@ import com.stardew.craft.entity.npc.StardewNpcEntity;
 import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.npc.data.NpcCapabilityProfile;
 import com.stardew.craft.npc.data.NpcDataRegistry;
+import com.stardew.craft.npc.data.NpcSocialRules;
 import com.stardew.craft.network.payload.EmoteBroadcastPayload;
 import com.stardew.craft.network.payload.OpenNpcDialogueScreenPayload;
 import com.stardew.craft.network.payload.SyncNpcFriendshipStatusPayload;
@@ -246,7 +247,11 @@ public final class NpcInteractionService {
             }
         }
 
-        boolean hasGiftableHeld = canBeGivenAsGift(held);
+        if (!NpcSocialRules.canSocialize(npcId, serverPlayer)) {
+            return InteractionResult.SUCCESS;
+        }
+
+        boolean hasGiftableHeld = NpcSocialRules.canReceiveGifts(npcId, serverPlayer) && canBeGivenAsGift(held);
 
         // ═══════════════════════════════════════════════════════════════
         // SDV parity: HEART EVENT CHECK — before gifts/dialogue, check
@@ -419,7 +424,7 @@ public final class NpcInteractionService {
             return;
         }
 
-        if (!canBeGivenAsGift(held)) {
+        if (!canBeGivenAsGift(held) || !NpcSocialRules.canReceiveGifts(npcId, player)) {
             return;
         }
 

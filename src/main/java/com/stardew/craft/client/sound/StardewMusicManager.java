@@ -370,6 +370,12 @@ public final class StardewMusicManager {
             return null;
         }
 
+        // 露天温泉氛围音乐：玩家落在 mistBounds 内 → pool_ambient。
+        // 优先级高于普通室外/天气/季节音乐，低于矿洞、室内、剧情/事件音乐。
+        if (isPlayerInHotSpringMist(mc)) {
+            return ModSounds.MUSIC_POOL_AMBIENT.get();
+        }
+
         if (isPlayerInSecretWoods(mc)) {
             return ModSounds.MUSIC_WOODS.get();
         }
@@ -458,6 +464,13 @@ public final class StardewMusicManager {
     private static boolean isPlayerInSecretWoods(Minecraft mc) {
         if (mc.player == null) return false;
         return CoalForestArea.containsColumn(mc.player.blockPosition());
+    }
+
+    private static boolean isPlayerInHotSpringMist(Minecraft mc) {
+        if (mc.player == null || mc.level == null) return false;
+        return com.stardew.craft.hotspring.HotSpringAreaRegistry.isInMistArea(
+            mc.level.dimension(),
+            mc.player.getX(), mc.player.getY(), mc.player.getZ());
     }
 
     private static boolean isPlayerInSewerRegion(Minecraft mc) {
