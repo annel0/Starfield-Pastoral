@@ -1,5 +1,73 @@
 # Changelog
 
+## 0.3.10 - 2026-05-19
+
+### Update Log (English)
+
+#### Headline Features
+
+- Added the first mastery-system pass, including mastery data, rewards, menu entry points, mastery blocks, mastery statues, and supporting sync payloads.
+- Added late-game forge and equipment foundations, including the mini forge, anvil/heavy furnace block entities, weapon forge data, combined rings, trinket items, and enchantment guard logic.
+- Added new companion/trinket presentation work for prismatic butterflies, fairy companions, frog/parrot/fairy-style trinkets, Galaxy Soul handling, and related client effects.
+
+#### Combat, Tools, and Player Progression
+
+- Expanded weapon stats, tooltips, cooldown handling, combat events, equipment sync, ring effects, and Curios integration paths.
+- Improved hoe, watering can, scythe, axe, pickaxe, pan, fishing rod, mining, forage, artifact spot, and skull-cavern reward behavior touched by the progression update.
+- Added or refined player-data fields and sync coverage for mastery, equipment, trinkets, forging, progression hints, and related UI state.
+
+#### Furniture, Models, and Interaction Polish
+
+- Rebuilt oak, spruce, and birch table models around the lower 14/16-block tabletop height, with full per-connection top-edge textures instead of rotated texture reuse.
+- Adjusted table display-item placement, table collision/selection shapes, tablecloth height, and table leg/top model composition to match the new table geometry.
+- Replaced oak, spruce, and birch chair models and textures, and raised their sitting height to 9/16-block so seating aligns with the updated models.
+- Added or updated furniture, mastery, forge, statue, forage grape, and item model resources used by the new release content.
+
+#### UI, Menus, Audio, and Assets
+
+- Expanded common GUI texture helpers and continued Stardew-style menu scaling/asset normalization across gameplay screens and tooltip components.
+- Added mini-forge and mastery-related client screens, renderers, item models, GUI resources, and localized text.
+- Added new sound assets and sound registrations for forge, mastery, combat, tool, and utility feedback.
+
+#### Fixes and Behavior Cleanup
+
+- Improved cutscene locking/tracking, NPC spawn/runtime handling, mail behavior, mine drops/spawns, farm/interior protection, pass-out flow, and time/event bookkeeping touched by the release pass.
+- Refined crop, bush, flower placement, sunflower, forage, berry, hot-spring visual, desert artifact spot, and utility block behaviors.
+- Updated the public mod version to `0.3.10`.
+
+### 更新日志（中文）
+
+#### 重点内容
+
+- 加入第一轮精通系统，包括精通数据、奖励、菜单入口、精通方块、精通雕像以及对应的同步网络包。
+- 加入后期锻造与装备系统基础，包括迷你锻造台、铁砧/重型熔炉方块实体、武器锻造数据、合成戒指、饰品物品和附魔保护逻辑。
+- 补充棱彩蝴蝶、仙灵伙伴、青蛙/鹦鹉/仙灵类饰品、银河之魂以及相关客户端特效的表现基础。
+
+#### 战斗、工具与玩家成长
+
+- 扩展武器属性、tooltip、冷却、战斗事件、装备同步、戒指效果和 Curios 兼容路径。
+- 改进锄头、喷壶、镰刀、斧头、镐子、淘盘、钓竿、采矿、采集物、蚯蚓点和骷髅洞奖励等与成长线相关的行为。
+- 补充玩家数据字段与同步范围，用于精通、装备、饰品、锻造、进度提示和相关 UI 状态。
+
+#### 家具、模型与交互打磨
+
+- 重做橡木、杉木、桦木桌模型，使桌面高度统一为 14/16 格，并为所有连接形态接入独立顶面边缘贴图，不再旋转复用材质。
+- 调整桌上物品显示高度、桌子碰撞/选择形状、桌布高度以及桌腿/桌面模型组合，使其匹配新的桌子几何。
+- 替换橡木椅、杉木椅、桦木椅模型和贴图，并将坐下高度提高到 9/16 格，让坐姿贴合新模型。
+- 新增或更新本次内容需要的家具、精通、锻造、雕像、野葡萄和物品模型资源。
+
+#### UI、菜单、音频与资源
+
+- 扩展通用 GUI 贴图 helper，并继续推进星露谷风格菜单缩放和资源规范化。
+- 加入迷你锻造、精通相关客户端界面、渲染器、物品模型、GUI 资源和本地化文本。
+- 新增锻造、精通、战斗、工具和通用反馈所需的声音资源与声音注册。
+
+#### 修复与行为清理
+
+- 改进剧情锁定/追踪、NPC 生成与运行时、邮件、矿井掉落/生成、农场与室内保护、昏倒流程和时间/事件记录等路径。
+- 调整作物、灌木、花卉放置、向日葵、采集物、浆果、温泉视觉、沙漠蚯蚓点和工具方块行为。
+- 项目公开版本号更新为 `0.3.10`。
+
 ## 0.3.9fix2 - 2026-05-17
 
 ### Update Log (English)

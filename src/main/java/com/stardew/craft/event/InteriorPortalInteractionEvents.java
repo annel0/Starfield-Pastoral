@@ -488,18 +488,14 @@ public class InteriorPortalInteractionEvents {
 
         // 传送到 schem 内部 spawn (origin + 3, 1, 3) — ModTeleport 自动跳过维度拦截
         net.minecraft.core.BlockPos spawn = com.stardew.craft.mining.MineFloorGenerator.SKULL_CAVERN_LOBBY_SPAWN;
-        player.setInvulnerable(true);
+        player.invulnerableTime = Math.max(player.invulnerableTime, 20);
         ModTeleport.to(player, mineLevel,
                 spawn.getX() + 0.5D, spawn.getY(), spawn.getZ() + 0.5D,
                 0.0F, 0.0F);
         player.setDeltaMovement(0, 0, 0);
         player.fallDistance = 0;
         player.hurtMarked = true;
-        mineLevel.getServer().tell(new net.minecraft.server.TickTask(
-                mineLevel.getServer().getTickCount() + 10,
-                () -> {
-                    if (!player.isCreative()) player.setInvulnerable(false);
-                }));
+        player.invulnerableTime = Math.max(player.invulnerableTime, 20);
 
         // 更新玩家矿井数据
         com.stardew.craft.mining.MiningPlayerData pData = com.stardew.craft.mining.MiningDataManager.getPlayerData(player);

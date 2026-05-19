@@ -24,13 +24,15 @@ import java.util.UUID;
 @SuppressWarnings("null")
 public class IceSpineEffectEntity extends Entity {
 
-    private static final double MAX_DISTANCE = 6.0;
+    private static final double DEFAULT_MAX_DISTANCE = 6.0;
     private static final double SPEED = 0.5;
 
     private UUID ownerId;
     private float damageMultiplier = 1.8f;
     private String skillId = "yeti_tooth_spine";
     private Vec3 startPos = Vec3.ZERO;
+    private int directFreezeTicks;
+    private double maxDistance = DEFAULT_MAX_DISTANCE;
 
     public IceSpineEffectEntity(EntityType<?> type, Level level) {
         super(type, level);
@@ -50,6 +52,13 @@ public class IceSpineEffectEntity extends Entity {
         Vec3 vel = direction.normalize().scale(SPEED);
         this.setDeltaMovement(vel);
         this.setYRot((float) (Math.atan2(-vel.x, vel.z) * (180.0 / Math.PI)));
+    }
+
+    public IceSpineEffectEntity(Level level, LivingEntity owner, Vec3 start, Vec3 direction, int freezeTicks) {
+        this(level, owner, start, direction, 0.0f, "ice_rod");
+        this.directFreezeTicks = Math.max(1, freezeTicks);
+        this.maxDistance = 30.0;
+        this.setYRot(this.getYRot() + 180.0F);
     }
 
     @Override
@@ -86,7 +95,7 @@ public class IceSpineEffectEntity extends Entity {
 
         @SuppressWarnings("null")
         Vec3 pos = this.position();
-        if (pos.distanceTo(startPos) >= MAX_DISTANCE) {
+        if (pos.distanceTo(startPos) >= maxDistance) {
             this.discard();
             return;
         }
@@ -111,6 +120,13 @@ public class IceSpineEffectEntity extends Entity {
     private void handleHit(LivingEntity target) {
         Entity owner = getOwnerEntity();
         if (!(owner instanceof Player player)) {
+            return;
+        }
+
+        if (directFreezeTicks > 0) {
+            if (target.level() instanceof ServerLevel serverLevel) {
+                YetiToothEffects.applyFreeze(serverLevel, target, directFreezeTicks);
+            }
             return;
         }
 
@@ -157,6 +173,12 @@ public class IceSpineEffectEntity extends Entity {
         if (tag.contains("SkillId")) {
             this.skillId = tag.getString("SkillId");
         }
+        if (tag.contains("DirectFreezeTicks")) {
+            this.directFreezeTicks = tag.getInt("DirectFreezeTicks");
+        }
+        if (tag.contains("MaxDistance")) {
+            this.maxDistance = tag.getDouble("MaxDistance");
+        }
         if (tag.contains("StartX")) {
             this.startPos = new Vec3(tag.getDouble("StartX"), tag.getDouble("StartY"), tag.getDouble("StartZ"));
         }
@@ -170,6 +192,8 @@ public class IceSpineEffectEntity extends Entity {
         }
         tag.putFloat("DamageMultiplier", damageMultiplier);
         tag.putString("SkillId", skillId);
+        tag.putInt("DirectFreezeTicks", directFreezeTicks);
+        tag.putDouble("MaxDistance", maxDistance);
         tag.putDouble("StartX", startPos.x);
         tag.putDouble("StartY", startPos.y);
         tag.putDouble("StartZ", startPos.z);

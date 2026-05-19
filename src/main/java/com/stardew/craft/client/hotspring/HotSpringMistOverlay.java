@@ -1,19 +1,15 @@
 package com.stardew.craft.client.hotspring;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.hotspring.HotSpringAreaRegistry;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
 import net.neoforged.neoforge.client.event.ViewportEvent;
-import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 import java.util.List;
@@ -29,17 +25,12 @@ import java.util.Random;
  * 2. {@link ViewportEvent.RenderFog}      — 缩短雾的近/远平面，让远处真的"看不清"；
  * 3. {@link PlayerTickEvent.Post}         — 在 waterBounds 的水面随机投点，spawn
  *    {@link ParticleTypes#CAMPFIRE_COSY_SMOKE} 缓慢上漂，给水面真实 3D 蒸汽；
- * 4. {@link RenderGuiLayerEvent.Pre}      — 极淡白色全屏 tint（alpha ≤ 0.08），点缀亮度统一，
- *    不带纹理、不动，避免回到 2D 贴片观感。
- *
  * 进入/离开 mistBounds 时通过 fadeAlpha 平滑过渡（FADE_MS）。
  */
 @EventBusSubscriber(modid = StardewCraft.MODID, value = Dist.CLIENT)
 public final class HotSpringMistOverlay {
 
     private static final float FADE_MS = 400f;
-    /** 全屏白 tint 上限，宁可弱也别过强（保留 HUD 可读性）。 */
-    private static final float SCREEN_TINT_ALPHA = 0.10f;
     /** 雾近平面（fade 满时）。 */
     private static final float FOG_NEAR = 2.0f;
     /** 雾远平面（fade 满时）。雾更浓 → 缩短可视距离。 */
@@ -141,25 +132,6 @@ public final class HotSpringMistOverlay {
         event.setNearPlaneDistance(near);
         event.setFarPlaneDistance(far);
         event.setCanceled(true);
-    }
-
-    // ───────── 极轻全屏 tint（无纹理） ─────────
-
-    @SubscribeEvent
-    public static void onRenderGuiLayer(RenderGuiLayerEvent.Pre event) {
-        if (!event.getName().equals(VanillaGuiLayers.HOTBAR)) return;
-        if (fadeAlpha <= 0f) return;
-
-        GuiGraphics gg = event.getGuiGraphics();
-        int sw = gg.guiWidth();
-        int sh = gg.guiHeight();
-        int alpha = Math.min(255, Math.max(0, (int) (SCREEN_TINT_ALPHA * fadeAlpha * 255f)));
-        if (alpha <= 0) return;
-
-        RenderSystem.enableBlend();
-        // 0xAARRGGBB 暖白
-        int color = (alpha << 24) | 0x00FAF5EE;
-        gg.fill(0, 0, sw, sh, color);
     }
 
     private static float lerp(float a, float b, float t) {

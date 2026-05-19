@@ -184,7 +184,8 @@ public class ItemInHandRendererScytheSwingMixin {
 			CallbackInfo ci
 	) {
 		int kind = TOOL_NONE;
-		if ((hand == InteractionHand.MAIN_HAND) && (stack.getItem() instanceof ScytheItem)) {
+		if ((hand == InteractionHand.MAIN_HAND) && (stack.getItem() instanceof ScytheItem
+				|| (stack.getItem() instanceof IStardewWeapon && ScytheSwingAnimationState.isActive()))) {
 			kind = TOOL_SCYTHE;
 		} else if (stack.getItem() instanceof HoeItem) {
 			kind = TOOL_HOE;

@@ -91,7 +91,7 @@ public class WateringCanOverlayRenderer {
         // player.getUseItemRemainingTicks() 返回剩余倒计时。
         // ticksUsed = total - remaining
         int activeTicks = stack.getUseDuration(player) - player.getUseItemRemainingTicks();
-        int chargeLevel = wateringCan.getChargeLevel(activeTicks);
+        int chargeLevel = wateringCan.getChargeLevel(stack, activeTicks);
 
         // 不蓄力(0级/单格)时不显示预览；只有蓄力到1级及以上才显示
         if (chargeLevel == 0) return;

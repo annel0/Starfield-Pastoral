@@ -66,8 +66,13 @@ public class OakTableBlock extends Block implements EntityBlock {
     private final String legNeModel;
     private final String legSeModel;
     private final String legSwModel;
+    private final boolean usesApronModels;
+    private final float displayItemY;
+    private final float clothedDisplayItemY;
 
-    private static final VoxelShape FALLBACK_SHAPE = Block.box(0.0, 0.0, 0.0, 16.0, 11.0, 16.0);
+    private static final float TABLE_DISPLAY_ITEM_Y = 14.02f / 16.0f;
+    private static final float TABLE_CLOTHED_DISPLAY_ITEM_Y = 14.10f / 16.0f;
+    private static final VoxelShape FALLBACK_SHAPE = Block.box(0.0, 0.0, 0.0, 16.0, 14.0, 16.0);
     private final Map<String, VoxelShape> shapeCache = new ConcurrentHashMap<>();
 
     public OakTableBlock(Properties properties) {
@@ -88,6 +93,9 @@ public class OakTableBlock extends Block implements EntityBlock {
         this.legNeModel = modelRoot + "_leg_ne";
         this.legSeModel = modelRoot + "_leg_se";
         this.legSwModel = modelRoot + "_leg_sw";
+        this.usesApronModels = false;
+        this.displayItemY = TABLE_DISPLAY_ITEM_Y;
+        this.clothedDisplayItemY = TABLE_CLOTHED_DISPLAY_ITEM_Y;
 
         registerDefaultState(stateDefinition.any()
             .setValue(NORTH_CONNECTED, false)
@@ -101,6 +109,13 @@ public class OakTableBlock extends Block implements EntityBlock {
             .setValue(HAS_CLOTH, false)
             .setValue(CLOTH_STYLE, CLOTH_STYLE_PINK)
             );
+    }
+
+    public float getDisplayItemY(BlockState state) {
+        if (state != null && state.hasProperty(HAS_CLOTH) && state.getValue(HAS_CLOTH)) {
+            return clothedDisplayItemY;
+        }
+        return displayItemY;
     }
 
     @Override
@@ -395,19 +410,21 @@ public class OakTableBlock extends Block implements EntityBlock {
             shape = Shapes.or(shape, ModelVoxelShapeCache.shapeFromModelId(
                 state.getValue(HAS_CLOTH) ? topClothedModel : topModel
             ));
-            shape = Shapes.or(shape, ModelVoxelShapeCache.shapeFromModelId(apronCoreModel));
+            if (usesApronModels) {
+                shape = Shapes.or(shape, ModelVoxelShapeCache.shapeFromModelId(apronCoreModel));
 
-            if (state.getValue(NORTH_CONNECTED)) {
-                shape = Shapes.or(shape, ModelVoxelShapeCache.shapeFromModelId(apronNModel));
-            }
-            if (state.getValue(EAST_CONNECTED)) {
-                shape = Shapes.or(shape, ModelVoxelShapeCache.shapeFromModelId(apronEModel));
-            }
-            if (state.getValue(SOUTH_CONNECTED)) {
-                shape = Shapes.or(shape, ModelVoxelShapeCache.shapeFromModelId(apronSModel));
-            }
-            if (state.getValue(WEST_CONNECTED)) {
-                shape = Shapes.or(shape, ModelVoxelShapeCache.shapeFromModelId(apronWModel));
+                if (state.getValue(NORTH_CONNECTED)) {
+                    shape = Shapes.or(shape, ModelVoxelShapeCache.shapeFromModelId(apronNModel));
+                }
+                if (state.getValue(EAST_CONNECTED)) {
+                    shape = Shapes.or(shape, ModelVoxelShapeCache.shapeFromModelId(apronEModel));
+                }
+                if (state.getValue(SOUTH_CONNECTED)) {
+                    shape = Shapes.or(shape, ModelVoxelShapeCache.shapeFromModelId(apronSModel));
+                }
+                if (state.getValue(WEST_CONNECTED)) {
+                    shape = Shapes.or(shape, ModelVoxelShapeCache.shapeFromModelId(apronWModel));
+                }
             }
 
             if (shouldRenderLegNw(state)) {

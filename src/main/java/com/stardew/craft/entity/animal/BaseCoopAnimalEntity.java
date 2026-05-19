@@ -325,6 +325,7 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 			return;
 		}
 
+		syncManagedRecordAgeState();
 		updateStationaryRescue();
 		logAiStateSnapshot();
 		tryPlayAmbientAnimalSound();
@@ -337,6 +338,26 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 		}
 
 		if (this.getAge() != 0) {
+			this.setAge(0);
+		}
+	}
+
+	private void syncManagedRecordAgeState() {
+		if (!(this.level() instanceof ServerLevel serverLevel) || managedAnimalId <= 0L) {
+			return;
+		}
+		FarmAnimalRecord record = AnimalWorldData.get(serverLevel).getAnimal(managedAnimalId).orElse(null);
+		if (record == null) {
+			return;
+		}
+		if (!record.animalTypeId().equals(managedAnimalType)) {
+			setManagedAnimalType(record.animalTypeId());
+		}
+		boolean shouldBeBaby = record.isBaby();
+		if (this.isBaby() != shouldBeBaby) {
+			this.setBaby(shouldBeBaby);
+		}
+		if (!shouldBeBaby && this.getAge() != 0) {
 			this.setAge(0);
 		}
 	}

@@ -313,7 +313,39 @@
   "cowboy_monsterhit": {
     "sounds": [
       {
-        "name": "stardewcraft:cowboy_gunshot",
+        "name": "stardewcraft:cowboy_monsterhit",
+        "stream": false
+      }
+    ]
+  },
+  "weed_cut": {
+    "sounds": [
+      {
+        "name": "stardewcraft:weed_cut",
+        "stream": false
+      }
+    ]
+  },
+  "axchop": {
+    "sounds": [
+      {
+        "name": "stardewcraft:axchop",
+        "stream": false
+      }
+    ]
+  },
+  "boulder_crack": {
+    "sounds": [
+      {
+        "name": "stardewcraft:bouldercrack",
+        "stream": false
+      }
+    ]
+  },
+  "metal_tap": {
+    "sounds": [
+      {
+        "name": "stardewcraft:metal_tap",
         "stream": false
       }
     ]
@@ -340,6 +372,16 @@
       { "name": "stardewcraft:clank_000000cb", "stream": false },
       { "name": "stardewcraft:clank_000000cc", "stream": false },
       { "name": "stardewcraft:clank_000000cd", "stream": false }
+    ]
+  },
+  "crafting": {
+    "sounds": [
+      { "name": "stardewcraft:crafting", "stream": false }
+    ]
+  },
+  "debuff_hit": {
+    "sounds": [
+      { "name": "stardewcraft:debuffhit", "stream": false }
     ]
   },
   "slime_hit": {
@@ -505,10 +547,58 @@
       }
     ]
   },
+  "statue_of_blessings": {
+    "sounds": [
+      {
+        "name": "stardewcraft:utility/statue_of_blessings",
+        "stream": false
+      }
+    ]
+  },
+  "stone_button": {
+    "sounds": [
+      {
+        "name": "stardewcraft:utility/stone_button",
+        "stream": false
+      }
+    ]
+  },
+  "button_tap": {
+    "sounds": [
+      {
+        "name": "stardewcraft:utility/button_tap",
+        "stream": false
+      }
+    ]
+  },
   "fishslap": {
     "sounds": [
       {
         "name": "stardewcraft:utility/fishslap",
+        "stream": false
+      }
+    ]
+  },
+  "fairy_heal": {
+    "sounds": [
+      {
+        "name": "stardewcraft:utility/fairy_heal",
+        "stream": false
+      }
+    ]
+  },
+  "frog_slap": {
+    "sounds": [
+      {
+        "name": "stardewcraft:utility/frog_slap",
+        "stream": false
+      }
+    ]
+  },
+  "croak": {
+    "sounds": [
+      {
+        "name": "stardewcraft:utility/croak",
         "stream": false
       }
     ]
@@ -1146,6 +1236,14 @@
       {
         "name": "stardewcraft:music/ocean_ambience",
         "stream": false
+      }
+    ]
+  },
+  "music_grandpas_theme": {
+    "sounds": [
+      {
+        "name": "stardewcraft:music/grandpas_theme",
+        "stream": true
       }
     ]
   },

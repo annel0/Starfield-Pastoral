@@ -5,6 +5,7 @@ import com.stardew.craft.player.ProfessionType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,7 @@ public class ClientPlayerDataCache {
     private static int maxHealth = 100;
     private static float energy = 270.0f;
     private static int maxEnergy = 270;
+    private static int baseMaxEnergy = 270;
     private static int money = 500;  // 默认500金币
     private static int[] experience = new int[5];
     private static int[] skillLevels = new int[5];
@@ -27,6 +29,7 @@ public class ClientPlayerDataCache {
     private static final java.util.Map<String, Integer> recipeCraftCounts = new java.util.HashMap<>();
     private static final java.util.Set<String> mailFlags = new java.util.HashSet<>();
     private static final java.util.Set<String> specialItems = new java.util.HashSet<>();
+    private static int maxMineFloorReached = 0;
 
     // 临时Buff（客户端显示/计算用）
     private static int tempFishingLevelBonus = 0;
@@ -45,12 +48,21 @@ public class ClientPlayerDataCache {
     private static String equippedLeftRing = "";
     private static String equippedRightRing = "";
     private static String equippedBoots = "";
+    private static ItemStack equippedTrinket = ItemStack.EMPTY;
 
     /**
      * True after the server has sent at least one PlayerDataSyncPacket for this session.
      * Gates logic that would otherwise false-negative on an empty cache (e.g. cutscene
      * {@code not_mail}/{@code not_flag} preconditions incorrectly passing before sync).
      */
+    // ============ 精通系统 ============
+    private static long masteryExp = 0L;
+    private static int masteryLevelsSpent = 0;
+    private static final boolean[] claimedMasteryRewards = new boolean[5];
+    private static boolean gotMasteryHint = false;
+    private static boolean visitedMasteryCave = false;
+    private static int unlockedTrinketSlots = 0;
+
     private static volatile boolean syncedFromServer = false;
 
     public static boolean isSynced() { return syncedFromServer; }
@@ -62,9 +74,11 @@ public class ClientPlayerDataCache {
         health = nbt.getInt("Health");
         maxHealth = nbt.getInt("MaxHealth");
         energy = nbt.getFloat("Energy");
+        baseMaxEnergy = nbt.contains("MaxEnergy") ? nbt.getInt("MaxEnergy") : 270;
         tempMaxEnergyBonus = nbt.contains("TempMaxEnergyBonus") ? nbt.getInt("TempMaxEnergyBonus") : 0;
-        maxEnergy = nbt.getInt("MaxEnergy") + tempMaxEnergyBonus;
+        maxEnergy = baseMaxEnergy + tempMaxEnergyBonus;
         money = nbt.getInt("Money");
+        maxMineFloorReached = nbt.contains("MaxMineFloorReached") ? Math.max(0, nbt.getInt("MaxMineFloorReached")) : 0;
 
         tempFishingLevelBonus = nbt.contains("TempFishingLevelBonus") ? nbt.getInt("TempFishingLevelBonus") : 0;
         tempLuckBonus = nbt.contains("TempLuckBonus") ? nbt.getInt("TempLuckBonus") : 0;
@@ -91,6 +105,20 @@ public class ClientPlayerDataCache {
             }
             skillLevels = fallback;
         }
+
+        // 精通系统
+        masteryExp = nbt.contains("MasteryExp") ? nbt.getLong("MasteryExp") : 0L;
+        masteryLevelsSpent = nbt.contains("MasteryLevelsSpent") ? nbt.getInt("MasteryLevelsSpent") : 0;
+        java.util.Arrays.fill(claimedMasteryRewards, false);
+        if (nbt.contains("ClaimedMasteryRewards")) {
+            byte[] bits = nbt.getByteArray("ClaimedMasteryRewards");
+            for (int i = 0; i < Math.min(bits.length, 5); i++) {
+                claimedMasteryRewards[i] = bits[i] != 0;
+            }
+        }
+        gotMasteryHint = nbt.getBoolean("GotMasteryHint");
+        visitedMasteryCave = nbt.getBoolean("VisitedMasteryCave");
+        unlockedTrinketSlots = nbt.contains("UnlockedTrinketSlots") ? nbt.getInt("UnlockedTrinketSlots") : 0;
         
         // 读取职业列表（服务端标准格式为 int[]，同时兼容旧 string-list）
         professions.clear();
@@ -185,6 +213,14 @@ public class ClientPlayerDataCache {
     public static int getMaxEnergy() {
         return maxEnergy;
     }
+
+    public static int getBaseMaxEnergy() {
+        return baseMaxEnergy;
+    }
+
+    public static int getMaxMineFloorReached() {
+        return maxMineFloorReached;
+    }
     
     public static int getMoney() {
         return money;
@@ -225,7 +261,24 @@ public class ClientPlayerDataCache {
     public static int getExperience(SkillType skill) {
         return experience[skill.ordinal()];
     }
-    
+
+    // ============ Mastery 客户端只读 API ============
+    public static long getMasteryExp() { return masteryExp; }
+    public static int getMasteryLevelsSpent() { return masteryLevelsSpent; }
+    public static boolean hasClaimedMasteryReward(SkillType skill) {
+        return claimedMasteryRewards[skill.getId()];
+    }
+    public static boolean gotMasteryHint() { return gotMasteryHint; }
+    public static boolean visitedMasteryCave() { return visitedMasteryCave; }
+    public static int getUnlockedTrinketSlots() { return unlockedTrinketSlots; }
+
+    /** 客户端：当前玩家是否 5 项技能均 Lv10。 */
+    public static boolean hasAllSkillsMaxed() {
+        for (int i = 0; i < 5; i++) if (skillLevels[i] < 10) return false;
+        return true;
+    }
+
+
     public static int getSkillLevel(SkillType skill) {
         int level = skillLevels[skill.ordinal()];
         if (skill == SkillType.FISHING) level += tempFishingLevelBonus;
@@ -296,9 +349,13 @@ public class ClientPlayerDataCache {
     public static String getEquippedLeftRing() { return equippedLeftRing; }
     public static String getEquippedRightRing() { return equippedRightRing; }
     public static String getEquippedBoots() { return equippedBoots; }
+    public static ItemStack getEquippedTrinket() { return equippedTrinket.copy(); }
     public static void setEquippedLeftRing(String id) { equippedLeftRing = id == null ? "" : id; }
     public static void setEquippedRightRing(String id) { equippedRightRing = id == null ? "" : id; }
     public static void setEquippedBoots(String id) { equippedBoots = id == null ? "" : id; }
+    public static void setEquippedTrinket(ItemStack stack) {
+        equippedTrinket = stack == null ? ItemStack.EMPTY : stack.copy();
+    }
 
     /**
      * 重置所有缓存（用于退出世界时）
@@ -308,6 +365,7 @@ public class ClientPlayerDataCache {
         maxHealth = 100;
         energy = 270.0f;
         maxEnergy = 270;
+        baseMaxEnergy = 270;
         money = 0;
         experience = new int[5];
         skillLevels = new int[5];
@@ -316,6 +374,7 @@ public class ClientPlayerDataCache {
         recipeCraftCounts.clear();
         mailFlags.clear();
         specialItems.clear();
+        maxMineFloorReached = 0;
         hasFarm = false;
         farmName = "";
         farmOwnerUuid = "";

@@ -59,6 +59,18 @@ public final class ModBlockEntities {
 			BLOCK_ENTITIES.register("furnace", () -> BlockEntityType.Builder.of(FurnaceBlockEntity::new, ModBlocks.FURNACE.get()).build(null));
 
 	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<HeavyFurnaceBlockEntity>> HEAVY_FURNACE =
+			BLOCK_ENTITIES.register("heavy_furnace", () -> BlockEntityType.Builder.of(HeavyFurnaceBlockEntity::new, ModBlocks.HEAVY_FURNACE.get()).build(null));
+
+	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AnvilBlockEntity>> ANVIL =
+			BLOCK_ENTITIES.register("anvil_mastery", () -> BlockEntityType.Builder.of(AnvilBlockEntity::new, ModBlocks.ANVIL_MASTERY.get()).build(null));
+
+	public static BlockEntityType<AnvilBlockEntity> anvil() {
+		return ANVIL.get();
+	}
+
+	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CharcoalKilnBlockEntity>> CHARCOAL_KILN =
 			BLOCK_ENTITIES.register("charcoal_kiln", () -> BlockEntityType.Builder.of(CharcoalKilnBlockEntity::new, ModBlocks.CHARCOAL_KILN.get()).build(null));
 
@@ -247,6 +259,11 @@ public final class ModBlockEntities {
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MailboxBlockEntity>> MAILBOX =
 			BLOCK_ENTITIES.register("mailbox", () -> BlockEntityType.Builder.of(MailboxBlockEntity::new,
 				ModBlocks.MAILBOX.get()).build(null));
+
+	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MasteryStatueBlockEntity>> MASTERY_STATUE =
+			BLOCK_ENTITIES.register("mastery_statue", () -> BlockEntityType.Builder.of(MasteryStatueBlockEntity::new,
+				ModBlocks.STATUE_OF_BLESSINGS.get(), ModBlocks.STATUE_OF_DWARF_KING.get()).build(null));
 
 	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MineChestBlockEntity>> MINE_CHEST =

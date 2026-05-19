@@ -87,6 +87,7 @@ import com.stardew.craft.item.artisan.PreservesItem;
 import com.stardew.craft.item.artisan.SmokedFishItem;
 import com.stardew.craft.item.cooking.CookingDishItem;
 import com.stardew.craft.item.cooking.CookingDishRegistrar;
+import com.stardew.craft.item.misc.GalaxySoulItem;
 import com.stardew.craft.item.misc.IridiumMilkItem;
 import com.stardew.craft.item.misc.LifeElixirItem;
 import com.stardew.craft.item.misc.StardropItem;
@@ -132,6 +133,7 @@ public class ModItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(StardewCraft.MODID);
         public static final java.util.Map<String, DeferredItem<Item>> COOKING_DISHES = CookingDishRegistrar.registerAll(ITEMS);
                 public static final java.util.Map<String, DeferredItem<Item>> VANILLA_CATEGORY_ITEMS = VanillaCategoryItemRegistrar.registerAll(ITEMS);
+        public static final DeferredItem<Item> DRAGON_TOOTH = VANILLA_CATEGORY_ITEMS.get("dragon_tooth");
 
         private static Item.Properties blockItemProps() {
                 return new Item.Properties().stacksTo(999);
@@ -139,6 +141,10 @@ public class ModItems {
 
         private static DeferredItem<Item> blockItem(String name, DeferredBlock<?> block) {
                 return ITEMS.register(name, () -> new BlockItem(block.get(), blockItemProps()));
+        }
+
+        private static DeferredItem<Item> stoneConvertibleBlockItem(String name, DeferredBlock<?> block) {
+                return ITEMS.register(name, () -> new StoneConvertibleBlockItem(block.get(), blockItemProps()));
         }
 
         // 閲庤崏鏂瑰潡鐗╁搧锛氫富鍏ュ彛浣跨敤缁熶竴 wild_weeds銆?
@@ -190,13 +196,13 @@ public class ModItems {
         public static final DeferredItem<Item> MINE_BARRIER = blockItem("mine_barrier", ModBlocks.MINE_BARRIER);
         public static final DeferredItem<Item> MINE_BARREL = blockItem("mine_barrel", ModBlocks.MINE_BARREL);
 
-        public static final DeferredItem<Item> EARTH_SHALE = blockItem("earth_shale", ModBlocks.EARTH_SHALE);
-        public static final DeferredItem<Item> FROST_GNEISS = blockItem("frost_gneiss", ModBlocks.FROST_GNEISS);
-        public static final DeferredItem<Item> LAVA_BASALT = blockItem("lava_basalt", ModBlocks.LAVA_BASALT);
+        public static final DeferredItem<Item> EARTH_SHALE = stoneConvertibleBlockItem("earth_shale", ModBlocks.EARTH_SHALE);
+        public static final DeferredItem<Item> FROST_GNEISS = stoneConvertibleBlockItem("frost_gneiss", ModBlocks.FROST_GNEISS);
+        public static final DeferredItem<Item> LAVA_BASALT = stoneConvertibleBlockItem("lava_basalt", ModBlocks.LAVA_BASALT);
 
-        public static final DeferredItem<Item> DARK_EARTH_SHALE = blockItem("dark_earth_shale", ModBlocks.DARK_EARTH_SHALE);
-        public static final DeferredItem<Item> DARK_FROST_GNEISS = blockItem("dark_frost_gneiss", ModBlocks.DARK_FROST_GNEISS);
-        public static final DeferredItem<Item> DARK_LAVA_BASALT = blockItem("dark_lava_basalt", ModBlocks.DARK_LAVA_BASALT);
+        public static final DeferredItem<Item> DARK_EARTH_SHALE = stoneConvertibleBlockItem("dark_earth_shale", ModBlocks.DARK_EARTH_SHALE);
+        public static final DeferredItem<Item> DARK_FROST_GNEISS = stoneConvertibleBlockItem("dark_frost_gneiss", ModBlocks.DARK_FROST_GNEISS);
+        public static final DeferredItem<Item> DARK_LAVA_BASALT = stoneConvertibleBlockItem("dark_lava_basalt", ModBlocks.DARK_LAVA_BASALT);
 
         // ========== 涓荤煶澶村彉浣撶墿鍝侊細鍙伴樁銆佹ゼ姊€佸 ==========
         
@@ -230,12 +236,12 @@ public class ModItems {
         public static final DeferredItem<Item> DARK_LAVA_BASALT_STAIRS = blockItem("dark_lava_basalt_stairs", ModBlocks.DARK_LAVA_BASALT_STAIRS);
         public static final DeferredItem<Item> DARK_LAVA_BASALT_WALL = blockItem("dark_lava_basalt_wall", ModBlocks.DARK_LAVA_BASALT_WALL);
 
-        public static final DeferredItem<Item> BANDED_MARBLE = blockItem("banded_marble", ModBlocks.BANDED_MARBLE);
-        public static final DeferredItem<Item> LIMESTONE = blockItem("limestone", ModBlocks.LIMESTONE);
-        public static final DeferredItem<Item> MOSSY_SANDSTONE = blockItem("mossy_sandstone", ModBlocks.MOSSY_SANDSTONE);
-        public static final DeferredItem<Item> CRACKED_SLATE = blockItem("cracked_slate", ModBlocks.CRACKED_SLATE);
-        public static final DeferredItem<Item> SCORIA = blockItem("scoria", ModBlocks.SCORIA);
-        public static final DeferredItem<Item> SALT_ROCK = blockItem("salt_rock", ModBlocks.SALT_ROCK);
+        public static final DeferredItem<Item> BANDED_MARBLE = stoneConvertibleBlockItem("banded_marble", ModBlocks.BANDED_MARBLE);
+        public static final DeferredItem<Item> LIMESTONE = stoneConvertibleBlockItem("limestone", ModBlocks.LIMESTONE);
+        public static final DeferredItem<Item> MOSSY_SANDSTONE = stoneConvertibleBlockItem("mossy_sandstone", ModBlocks.MOSSY_SANDSTONE);
+        public static final DeferredItem<Item> CRACKED_SLATE = stoneConvertibleBlockItem("cracked_slate", ModBlocks.CRACKED_SLATE);
+        public static final DeferredItem<Item> SCORIA = stoneConvertibleBlockItem("scoria", ModBlocks.SCORIA);
+        public static final DeferredItem<Item> SALT_ROCK = stoneConvertibleBlockItem("salt_rock", ModBlocks.SALT_ROCK);
 
         // ========== 瑁呴グ鐭虫潗鍙樹綋鐗╁搧锛氬彴闃躲€佹ゼ姊€佸 ==========
         
@@ -314,10 +320,10 @@ public class ModItems {
                         () -> new BlockItem(ModBlocks.LAVA_COAL_ORE.get(), new Item.Properties().stacksTo(999)));
 
         // 骷髅矿洞方块物品
-        public static final DeferredItem<Item> DESERT_BEDROCK = blockItem("desert_bedrock", ModBlocks.DESERT_BEDROCK);
-        public static final DeferredItem<Item> DARK_DESERT_BEDROCK = blockItem("dark_desert_bedrock", ModBlocks.DARK_DESERT_BEDROCK);
-        public static final DeferredItem<Item> SULFUR_ROCK = blockItem("sulfur_rock", ModBlocks.SULFUR_ROCK);
-        public static final DeferredItem<Item> WEATHERED_STONE = blockItem("weathered_stone", ModBlocks.WEATHERED_STONE);
+        public static final DeferredItem<Item> DESERT_BEDROCK = stoneConvertibleBlockItem("desert_bedrock", ModBlocks.DESERT_BEDROCK);
+        public static final DeferredItem<Item> DARK_DESERT_BEDROCK = stoneConvertibleBlockItem("dark_desert_bedrock", ModBlocks.DARK_DESERT_BEDROCK);
+        public static final DeferredItem<Item> SULFUR_ROCK = stoneConvertibleBlockItem("sulfur_rock", ModBlocks.SULFUR_ROCK);
+        public static final DeferredItem<Item> WEATHERED_STONE = stoneConvertibleBlockItem("weathered_stone", ModBlocks.WEATHERED_STONE);
 
         // 骷髅矿建材变体
         public static final DeferredItem<Item> DESERT_BEDROCK_SLAB = blockItem("desert_bedrock_slab", ModBlocks.DESERT_BEDROCK_SLAB);
@@ -346,7 +352,7 @@ public class ModItems {
 
         public static final DeferredItem<Item> QUICKSAND = blockItem("quicksand", ModBlocks.QUICKSAND);
         public static final DeferredItem<Item> TOXIC_SPORE_BLOCK = blockItem("toxic_spore_block", ModBlocks.TOXIC_SPORE_BLOCK);
-        public static final DeferredItem<Item> UNSTABLE_ROCK = blockItem("unstable_rock", ModBlocks.UNSTABLE_ROCK);
+        public static final DeferredItem<Item> UNSTABLE_ROCK = stoneConvertibleBlockItem("unstable_rock", ModBlocks.UNSTABLE_ROCK);
 
         // 鐭跨墿鐭跨煶鑺傜偣锛堝疂鐭崇熆锛屾櫠娲炰骇鐗╀笉鍋氾級
         public static final DeferredItem<Item> AMETHYST_ORE = ITEMS.register("amethyst_ore",
@@ -454,6 +460,20 @@ public class ModItems {
                                         () -> new StardewBlockItem(ModBlocks.FURNACE.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
                 public static final DeferredItem<Item> CHARCOAL_KILN = ITEMS.register("charcoal_kiln",
                                                                         () -> new StardewBlockItem(ModBlocks.CHARCOAL_KILN.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
+
+        // ─── Mastery reward items ───
+        public static final DeferredItem<Item> HEAVY_FURNACE = ITEMS.register("heavy_furnace",
+                () -> new StardewBlockItem(ModBlocks.HEAVY_FURNACE.get(), "stardewcraft.type.utility", -1, "item.stardewcraft.heavy_furnace.desc", new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> STATUE_OF_BLESSINGS = ITEMS.register("statue_of_blessings",
+                () -> new StardewBlockItem(ModBlocks.STATUE_OF_BLESSINGS.get(), "stardewcraft.type.magic", -1, "item.stardewcraft.statue_of_blessings.desc", new Item.Properties().stacksTo(1)));
+        public static final DeferredItem<Item> STATUE_OF_DWARF_KING = ITEMS.register("statue_of_dwarf_king",
+                () -> new StardewBlockItem(ModBlocks.STATUE_OF_DWARF_KING.get(), "stardewcraft.type.magic", -1, "item.stardewcraft.statue_of_dwarf_king.desc", new Item.Properties().stacksTo(1)));
+        public static final DeferredItem<Item> ANVIL_MASTERY = ITEMS.register("anvil_mastery",
+                () -> new StardewBlockItem(ModBlocks.ANVIL_MASTERY.get(), "stardewcraft.type.utility", -1, "item.stardewcraft.anvil_mastery.desc", new Item.Properties().stacksTo(1)));
+        public static final DeferredItem<Item> MINI_FORGE = ITEMS.register("mini_forge",
+                () -> new StardewBlockItem(ModBlocks.MINI_FORGE.get(), "stardewcraft.type.utility", -1, "item.stardewcraft.mini_forge.desc", new Item.Properties().stacksTo(1)));
+        public static final DeferredItem<Item> TREASURE_TOTEM = ITEMS.register("treasure_totem",
+                () -> new com.stardew.craft.item.mastery.TreasureTotemItem("stardewcraft.type.magic", -1, new Item.Properties().stacksTo(999)));
 
         public static final DeferredItem<Item> LIGHTNING_ROD = ITEMS.register("lightning_rod",
                         () -> new StardewBlockItem(ModBlocks.LIGHTNING_ROD.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
@@ -1109,6 +1129,8 @@ public class ModItems {
                         () -> new StardropItem(new Item.Properties().stacksTo(999).fireResistant()));
         public static final DeferredItem<Item> IRIDIUM_MILK = ITEMS.register("iridium_milk",
                         () -> new IridiumMilkItem(new Item.Properties().stacksTo(999).fireResistant()));
+        public static final DeferredItem<Item> GALAXY_SOUL = ITEMS.register("galaxy_soul",
+                        () -> new GalaxySoulItem(new Item.Properties().stacksTo(999).fireResistant()));
         public static final DeferredItem<Item> FIELD_SNACK = ITEMS.register("field_snack",
                         () -> new StardewQualityItem("stardewcraft.type.cooking", 20, 18, false, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> MAGIC_ROCK_CANDY = ITEMS.register("magic_rock_candy",
@@ -1325,6 +1347,8 @@ public class ModItems {
 
         public static final DeferredItem<Item> BATTERY_PACK = ITEMS.register("battery_pack",
                         () -> new SimpleStardewItem("stardewcraft.type.resource", 500, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> CINDER_SHARD = ITEMS.register("cinder_shard",
+                        () -> new SimpleStardewItem("stardewcraft.type.resource", 50, new Item.Properties().stacksTo(999)));
 
         public static final DeferredItem<Item> RADIOACTIVE_ORE = ITEMS.register("radioactive_ore",
                                         () -> new SimpleStardewItem("stardewcraft.type.resource", 300, new Item.Properties().stacksTo(999)));
@@ -2338,6 +2362,12 @@ public class ModItems {
     public static final DeferredItem<Item> FEMUR = ITEMS.register("femur",
             () -> new com.stardew.craft.item.weapon.StardewClubItem("femur", new Item.Properties().stacksTo(1)));
 
+    public static final DeferredItem<Item> GALAXY_HAMMER = ITEMS.register("galaxy_hammer",
+            () -> new com.stardew.craft.item.weapon.StardewClubItem("galaxy_hammer", new Item.Properties().stacksTo(1)));
+
+    public static final DeferredItem<Item> INFINITY_GAVEL = ITEMS.register("infinity_gavel",
+            () -> new com.stardew.craft.item.weapon.StardewClubItem("infinity_gavel", new Item.Properties().stacksTo(1)));
+
     public static final DeferredItem<Item> WOODEN_BLADE = ITEMS.register("wooden_blade",
             () -> new com.stardew.craft.item.weapon.StardewWeaponItem("wooden_blade", new Item.Properties().stacksTo(1)));
 
@@ -2557,9 +2587,9 @@ public class ModItems {
     public static final DeferredItem<Item> YELLOW_DIRT = blockItem("yellow_dirt", com.stardew.craft.block.ModBlocks.YELLOW_DIRT);
     // 远古斑点黄土
     public static final DeferredItem<Item> ARTIFACT_SPOT_DIRT = blockItem("artifact_spot_dirt", com.stardew.craft.block.ModBlocks.ARTIFACT_SPOT_DIRT);
-    // 沙漠远古斑点（砂岩变体）
+        // 沙漠远古斑点（沙子变体）
     public static final DeferredItem<Item> DESERT_ARTIFACT_SPOT = blockItem("desert_artifact_spot", com.stardew.craft.block.ModBlocks.DESERT_ARTIFACT_SPOT);
-        // 海滩远古斑点（砂岩变体）
+                // 海滩远古斑点（沙子变体）
         public static final DeferredItem<Item> BEACH_ARTIFACT_SPOT = blockItem("beach_artifact_spot", com.stardew.craft.block.ModBlocks.BEACH_ARTIFACT_SPOT);
 
     // ── 怪物掉落物品 (Monster Loot) ────────────────────────────────────────
@@ -2589,6 +2619,24 @@ public class ModItems {
             () -> new com.stardew.craft.item.bomb.StardewBombItem(com.stardew.craft.item.bomb.BombType.BOMB, 50, new Item.Properties().stacksTo(999)));
     public static final DeferredItem<Item> MEGA_BOMB = ITEMS.register("mega_bomb",
             () -> new com.stardew.craft.item.bomb.StardewBombItem(com.stardew.craft.item.bomb.BombType.MEGA_BOMB, 50, new Item.Properties().stacksTo(999)));
+
+    // ============ 饰品 (Trinkets, SDV 1.6 Mastery) ============
+    public static final DeferredItem<Item> MAGIC_HAIR_DYE = ITEMS.register("magic_hair_dye",
+            () -> new com.stardew.craft.item.trinket.StardewTrinketItem(com.stardew.craft.item.trinket.TrinketType.MAGIC_HAIR_DYE, new Item.Properties()));
+    public static final DeferredItem<Item> FROG_EGG = ITEMS.register("frog_egg",
+            () -> new com.stardew.craft.item.trinket.StardewTrinketItem(com.stardew.craft.item.trinket.TrinketType.FROG_EGG, new Item.Properties()));
+    public static final DeferredItem<Item> MAGIC_QUIVER = ITEMS.register("magic_quiver",
+            () -> new com.stardew.craft.item.trinket.StardewTrinketItem(com.stardew.craft.item.trinket.TrinketType.MAGIC_QUIVER, new Item.Properties()));
+    public static final DeferredItem<Item> FAIRY_BOX = ITEMS.register("fairy_box",
+            () -> new com.stardew.craft.item.trinket.StardewTrinketItem(com.stardew.craft.item.trinket.TrinketType.FAIRY_BOX, new Item.Properties()));
+    public static final DeferredItem<Item> PARROT_EGG = ITEMS.register("parrot_egg",
+            () -> new com.stardew.craft.item.trinket.StardewTrinketItem(com.stardew.craft.item.trinket.TrinketType.PARROT_EGG, new Item.Properties()));
+    public static final DeferredItem<Item> ICE_ROD = ITEMS.register("ice_rod",
+            () -> new com.stardew.craft.item.trinket.StardewTrinketItem(com.stardew.craft.item.trinket.TrinketType.ICE_ROD, new Item.Properties()));
+    public static final DeferredItem<Item> IRIDIUM_SPUR = ITEMS.register("iridium_spur",
+            () -> new com.stardew.craft.item.trinket.StardewTrinketItem(com.stardew.craft.item.trinket.TrinketType.IRIDIUM_SPUR, new Item.Properties()));
+    public static final DeferredItem<Item> BASILISK_PAW = ITEMS.register("basilisk_paw",
+            () -> new com.stardew.craft.item.trinket.StardewTrinketItem(com.stardew.craft.item.trinket.TrinketType.BASILISK_PAW, new Item.Properties()));
 
     public static final DeferredItem<Item> SMALL_GLOW_RING = ITEMS.register("small_glow_ring",
             () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.SMALL_GLOW_RING, 100, new Item.Properties()));
@@ -2649,6 +2697,9 @@ public class ModItems {
     // 结婚戒指 — 纯装饰，暂无结婚系统
     public static final DeferredItem<Item> WEDDING_RING = ITEMS.register("wedding_ring",
             () -> new com.stardew.craft.item.equipment.StardewRingItem(com.stardew.craft.item.equipment.RingType.WEDDING_RING, 50, new Item.Properties()));
+
+    public static final DeferredItem<Item> COMBINED_RING = ITEMS.register("combined_ring",
+            () -> new com.stardew.craft.item.equipment.CombinedRingItem(new Item.Properties()));
 
     // ============ 靴子 (Boots) ============
     public static final DeferredItem<Item> SNEAKERS = ITEMS.register("sneakers",

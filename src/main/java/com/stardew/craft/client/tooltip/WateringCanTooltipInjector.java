@@ -39,12 +39,13 @@ public final class WateringCanTooltipInjector {
                 if (TooltipConstants.MARKER_WATER_AMOUNT.equals(text)) {
                     int water = can.getWater(stack);
                     int max = can.getTier().getCapacity();
-                    elements.set(i, Either.right(new WaterAmountTooltipComponent(water, max)));
+                    boolean bottomless = can.isBottomless(stack);
+                    elements.set(i, Either.right(new WaterAmountTooltipComponent(water, max, bottomless)));
                     continue;
                 }
 
                 if (TooltipConstants.MARKER_MAX_CHARGE_RANGE.equals(text)) {
-                    int maxCharge = can.getTier().getMaxChargeLevel();
+                    int maxCharge = can.getEffectiveMaxChargeLevel(stack);
                     int rows = 1;
                     int cols = 1;
                     if (maxCharge == 1) {
@@ -56,9 +57,12 @@ public final class WateringCanTooltipInjector {
                     } else if (maxCharge == 3) {
                         rows = 3;
                         cols = 3;
-                    } else if (maxCharge >= 4) {
+                    } else if (maxCharge == 4) {
                         rows = 3;
                         cols = 6;
+                    } else if (maxCharge >= 5) {
+                        rows = 5;
+                        cols = 5;
                     }
 
                     elements.set(i, Either.right(new MaxChargeRangeTooltipComponent(rows, cols)));

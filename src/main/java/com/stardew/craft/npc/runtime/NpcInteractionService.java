@@ -311,7 +311,7 @@ public final class NpcInteractionService {
         // SDV parity: Dwarf dialogue is garbled if player doesn't have translation guide
         boolean garbleDwarvish = npcId.equals("dwarf") && !com.stardew.craft.shop.DwarfService.canUnderstandDwarves(serverPlayer);
         if (!garbleDwarvish) {
-            grantConversationFriendship(npcId, state, dayContext, dialogueText);
+            grantConversationFriendship(npcId, state, dayContext, dialogueText, serverPlayer);
             NpcFriendshipRewardService.applyEligibleRewards(serverPlayer, npcId, state.points());
             // Don't grant friendship for unintelligible conversation
         }
@@ -474,7 +474,8 @@ public final class NpcInteractionService {
     private static void grantConversationFriendship(String npcId,
                                                     NpcFriendshipDataManager.FriendshipState state,
                                                     DayContext dayContext,
-                                                    String dialogueText) {
+                                                    String dialogueText,
+                                                    net.minecraft.server.level.ServerPlayer player) {
         if (state.lastTalkDayKey() == dayContext.dayKey()) {
             return;
         }
@@ -482,7 +483,9 @@ public final class NpcInteractionService {
             return;
         }
         state.setLastTalkDayKey(dayContext.dayKey());
-        state.addPoints(20, getMaxFriendshipPointsFor(npcId));
+        // SDV NPC.cs:2933 — Blessing of Friendship: 寒暄好感 60（默认 20）
+        int amount = (player != null && player.hasEffect(com.stardew.craft.effect.ModMobEffects.STATUE_OF_BLESSINGS_4)) ? 60 : 20;
+        state.addPoints(amount, getMaxFriendshipPointsFor(npcId));
     }
 
     private static boolean isStardropTea(ItemStack held) {

@@ -49,6 +49,9 @@ public final class ArtifactSpotSpawnService {
     private static final int MAX_SPOTS_WINTER = 4;
     // 沙漠区因 bbox 巨大，单独给一个略宽的硬上限，超过后停止 bbox 扫描
     private static final int DESERT_DAILY_CAP = 12;
+    private static final double BEACH_SAND_DAILY_CHANCE = 0.0004D;
+    private static final double DESERT_SAND_DAILY_CHANCE = 0.00015D;
+    private static final double SAND_CHUNK_LOAD_CHANCE = 0.0008D;
 
     // ======================== Zone Definition ========================
 
@@ -109,9 +112,8 @@ public final class ArtifactSpotSpawnService {
         RandomSource random = level.getRandom();
 
         for (SpawnZone zone : ZONES) {
-            // 0. Revert farmland back to yellow_dirt in non-farm zones
-            //    (artifact spots dug by players become farmland, should reset daily)
-            //    Desert variant tills to vanilla sandstone, no daily revert needed.
+            // 0. Revert public yellow-dirt farmland back to yellow_dirt in non-farm zones.
+            //    Sand-backed artifact spots till directly back to sand and need no farmland reset.
             if (!"Farm".equals(zone.name) && zone.surface == SurfaceKind.YELLOW_DIRT) {
                 for (ZoneRect rect : zone.rects) {
                     revertFarmlandInRect(level, rect);
@@ -131,31 +133,25 @@ public final class ArtifactSpotSpawnService {
             int threshold = "Farm".equals(zone.name) ? MAX_SPOTS_FARM : MAX_SPOTS_NON_FARM;
             boolean overCap = existingCount > threshold && (season != 3 || existingCount > MAX_SPOTS_WINTER);
 
-            // 3a. 沙漠区：低概率 bbox 扫描，配合每区块硬上限 1 个，避免堆积
-            if (zone.surface == SurfaceKind.DESERT_SAND) {
-                if (overCap && existingCount > DESERT_DAILY_CAP) continue;
-                // 削后的每方块概率：沙漠 bbox = 113×138 ≈ 15600 格 × 0.00015 ≈ 期望每天 2.3 个尝试
-                final double perBlockChance = 0.00015;
-                for (ZoneRect rect : zone.rects) {
-                    for (int x = rect.minX; x <= rect.maxX; x++) {
-                        for (int z = rect.minZ; z <= rect.maxZ; z++) {
-                            if (!level.hasChunk(x >> 4, z >> 4)) continue;
-                            if (random.nextDouble() >= perBlockChance) continue;
-                            if (chunkAlreadyHasSpot(level, x >> 4, z >> 4, zone.surface)) continue;
-                            if (canSpawnArtifactSpot(level, x, z, zone.surface)) {
-                                int surfaceY = level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z) - 1;
-                                BlockPos pos = new BlockPos(x, surfaceY, z);
-                                level.setBlock(pos, spotStateFor(level.getBlockState(pos), zone.surface), Block.UPDATE_ALL);
-                            }
-                        }
-                    }
+            // 3a. 沙滩/沙漠：在明确包围区域内扫描露天沙子，替换为对应远古斑点。
+            //     这些区域的 pregen 地表现在都是 sand，不再以 sandstone 作为底块。
+            if (isSandSurface(zone.surface)) {
+                int cap = sandZoneDailyCap(zone, season);
+                if (existingCount >= cap) continue;
+                double perBlockChance = zone.surface == SurfaceKind.DESERT_SAND
+                        ? DESERT_SAND_DAILY_CHANCE
+                        : BEACH_SAND_DAILY_CHANCE;
+                int remaining = cap - existingCount;
+                int placed = spawnInLoadedSandZone(level, zone, random, perBlockChance, remaining);
+                if (placed == 0 && existingCount == 0) {
+                    placeOneLoadedSandSpot(level, zone, random);
                 }
                 continue;
             }
 
             if (overCap) continue;
 
-            // 3b. SDV spawn loop: chanceForNewArtifactAttempt（黄土/海滩区域）
+            // 3b. SDV spawn loop: chanceForNewArtifactAttempt（黄土区域）
             double chanceForNewAttempt = 1.0;
             while (random.nextDouble() < chanceForNewAttempt) {
                 // SDV: *= 0.75, winter +0.10
@@ -163,10 +159,6 @@ public final class ArtifactSpotSpawnService {
                 chanceForNewAttempt *= 0.75;
                 if (season == 3) {
                     chanceForNewAttempt += 0.10;
-                }
-                if (zone.surface == SurfaceKind.BEACH_SAND) {
-                    // Beach 稍微提高一点刷新体感，避免沙滩长时间空窗。
-                    chanceForNewAttempt += 0.05;
                 }
 
                 // Pick a random rect
@@ -223,11 +215,12 @@ public final class ArtifactSpotSpawnService {
                         int z = savedChunkZ + dz;
                         SurfaceKind surface = surfaceKindAt(serverLevel, x, z);
                         if (surface == null) continue;
-                        if (random.nextDouble() >= 0.0002) continue;
+                        double chunkLoadChance = isSandSurface(surface) ? SAND_CHUNK_LOAD_CHANCE : 0.0002D;
+                        if (random.nextDouble() >= chunkLoadChance) continue;
                         int surfaceY = serverLevel.getHeight(Heightmap.Types.WORLD_SURFACE, x, z) - 1;
                         BlockPos pos = new BlockPos(x, surfaceY, z);
                         if (canSpawnArtifactSpot(serverLevel, x, z, surface)) {
-                                serverLevel.setBlock(pos, spotStateFor(serverLevel.getBlockState(pos), surface),
+                            serverLevel.setBlock(pos, spotStateFor(serverLevel.getBlockState(pos), surface),
                                     Block.UPDATE_ALL);
                             return;
                         }
@@ -322,6 +315,64 @@ public final class ArtifactSpotSpawnService {
             case YELLOW_DIRT -> state.is(ModBlocks.YELLOW_DIRT.get());
             case BEACH_SAND, DESERT_SAND -> state.is(net.minecraft.world.level.block.Blocks.SAND);
         };
+    }
+
+    private static boolean isSandSurface(SurfaceKind surface) {
+        return surface == SurfaceKind.BEACH_SAND || surface == SurfaceKind.DESERT_SAND;
+    }
+
+    private static int sandZoneDailyCap(SpawnZone zone, int season) {
+        if (zone.surface == SurfaceKind.DESERT_SAND) {
+            return DESERT_DAILY_CAP;
+        }
+        return season == 3 ? MAX_SPOTS_WINTER + 1 : MAX_SPOTS_NON_FARM + 1;
+    }
+
+    private static int spawnInLoadedSandZone(ServerLevel level, SpawnZone zone, RandomSource random,
+                                            double perBlockChance, int maxPlacements) {
+        int placed = 0;
+        for (ZoneRect rect : zone.rects) {
+            for (int x = rect.minX; x <= rect.maxX; x++) {
+                for (int z = rect.minZ; z <= rect.maxZ; z++) {
+                    if (placed >= maxPlacements) return placed;
+                    if (!level.hasChunk(x >> 4, z >> 4)) continue;
+                    if (random.nextDouble() >= perBlockChance) continue;
+                    if (chunkAlreadyHasSpot(level, x >> 4, z >> 4, zone.surface)) continue;
+                    if (tryPlaceArtifactSpot(level, x, z, zone.surface)) {
+                        placed++;
+                    }
+                }
+            }
+        }
+        return placed;
+    }
+
+    private static boolean placeOneLoadedSandSpot(ServerLevel level, SpawnZone zone, RandomSource random) {
+        BlockPos chosen = null;
+        int seen = 0;
+        for (ZoneRect rect : zone.rects) {
+            for (int x = rect.minX; x <= rect.maxX; x++) {
+                for (int z = rect.minZ; z <= rect.maxZ; z++) {
+                    if (!level.hasChunk(x >> 4, z >> 4)) continue;
+                    if (!canSpawnArtifactSpot(level, x, z, zone.surface)) continue;
+                    seen++;
+                    if (random.nextInt(seen) == 0) {
+                        int surfaceY = level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z) - 1;
+                        chosen = new BlockPos(x, surfaceY, z);
+                    }
+                }
+            }
+        }
+        if (chosen == null) return false;
+        return tryPlaceArtifactSpot(level, chosen.getX(), chosen.getZ(), zone.surface);
+    }
+
+    private static boolean tryPlaceArtifactSpot(ServerLevel level, int x, int z, SurfaceKind surface) {
+        if (!canSpawnArtifactSpot(level, x, z, surface)) return false;
+        int surfaceY = level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z) - 1;
+        BlockPos pos = new BlockPos(x, surfaceY, z);
+        level.setBlock(pos, spotStateFor(level.getBlockState(pos), surface), Block.UPDATE_ALL);
+        return true;
     }
 
     /** 返回该表面类型对应的远古斑点方块。 */

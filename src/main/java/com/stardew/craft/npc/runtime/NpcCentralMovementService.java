@@ -92,6 +92,16 @@ public final class NpcCentralMovementService {
         return DEBUG_SNAPSHOTS.get(npcId == null ? "" : npcId.toLowerCase());
     }
 
+    public static void resetMovementPlan(String npcId) {
+        String key = NpcRoutePlanner.canonicalNpcId(npcId);
+        if (key.isBlank()) {
+            return;
+        }
+        ACTIVE_PLANS.remove(key);
+        LAST_NODE_SIGNATURE.remove(key);
+        DEBUG_SNAPSHOTS.remove(key);
+    }
+
     private static boolean movementDebugEnabled() {
         return MOVEMENT_DEBUG_ENABLED;
     }
@@ -490,23 +500,17 @@ public final class NpcCentralMovementService {
             return false;
         }
 
-        boolean finalFineApproach = finalStep && distSqr <= STEP_REACH_SQR;
-        if (finalFineApproach) {
-            npc.getNavigation().stop();
-            npc.getMoveControl().setWantedPosition(target.x, target.y, target.z, FINAL_APPROACH_SPEED);
-            plan.debugStage = "final_approach";
-        } else {
-            plan.debugStage = "walk";
-        }
+        plan.debugStage = finalStep ? "final_walk" : "walk";
 
         // Issue moveTo only when navigation has no active path. Rebuilding an
         // already active path every second resets vanilla's internal progress.
         boolean navIdle = npc.getNavigation().isDone();
         boolean hasActivePath = npc.getNavigation().getPath() != null && !navIdle;
         boolean repathDue = now - plan.lastRepathTick >= REPATH_INTERVAL_TICKS;
-        if (!finalFineApproach && !hasActivePath && repathDue) {
+        if (!hasActivePath && repathDue) {
             // moveTo() returns true if a path was successfully created
-            boolean pathFound = npc.getNavigation().moveTo(target.x, target.y, target.z, 1.0D);
+            double speed = finalStep ? FINAL_APPROACH_SPEED : 1.0D;
+            boolean pathFound = npc.getNavigation().moveTo(target.x, target.y, target.z, speed);
             plan.lastRepathTick = now;
             boolean shouldLogMove = movementDebugEnabled()
                 && (plan.lastMoveCommandLoggedStep != plan.currentStepIndex
@@ -586,7 +590,8 @@ public final class NpcCentralMovementService {
             if (navigationStuck) {
                 npc.getNavigation().stop();
             }
-            boolean pathFound = npc.getNavigation().moveTo(target.x, target.y, target.z, 1.0D);
+            double speed = finalStep ? FINAL_APPROACH_SPEED : 1.0D;
+            boolean pathFound = npc.getNavigation().moveTo(target.x, target.y, target.z, speed);
             plan.lastRepathTick = now;
             plan.debugStage = "stuck_repath";
             if (pathFound) {

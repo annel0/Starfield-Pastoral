@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:copper_pan",
+    "stardewcraft:steel_pan",
+    "stardewcraft:gold_pan",
+    "stardewcraft:iridium_pan"
+  ]
+}

@@ -32,8 +32,8 @@ public class TableDisplayBlockEntityRenderer implements BlockEntityRenderer<Tabl
 
         float y = 16.02f / 16.0f;
         BlockState state = be.getBlockState();
-        if (state.getBlock() instanceof OakTableBlock && state.hasProperty(OakTableBlock.HAS_CLOTH) && state.getValue(OakTableBlock.HAS_CLOTH)) {
-            y = 16.10f / 16.0f;
+        if (state.getBlock() instanceof OakTableBlock tableBlock) {
+            y = tableBlock.getDisplayItemY(state);
         } else if (state.getBlock() instanceof SpruceCounterBlock) {
             y = 16.02f / 16.0f;
         } else if (state.getBlock() instanceof OakRoundTableBlock) {

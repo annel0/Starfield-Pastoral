@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=south": { "model": "stardewcraft:block/mastery/anvil_mastery" },
+    "facing=west": { "model": "stardewcraft:block/mastery/anvil_mastery", "y": 90 },
+    "facing=north": { "model": "stardewcraft:block/mastery/anvil_mastery", "y": 180 },
+    "facing=east": { "model": "stardewcraft:block/mastery/anvil_mastery", "y": 270 }
+  }
+}

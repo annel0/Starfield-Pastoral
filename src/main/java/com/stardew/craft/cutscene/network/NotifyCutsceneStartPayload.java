@@ -29,7 +29,7 @@ public record NotifyCutsceneStartPayload(String eventId) implements CustomPacket
     public static void handle(NotifyCutsceneStartPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             ServerPlayer player = (ServerPlayer) context.player();
-            ServerCutsceneTracker.markActive(player.getUUID());
+            ServerCutsceneTracker.markActive(player);
         });
     }
 

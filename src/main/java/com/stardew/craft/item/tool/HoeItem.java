@@ -2,6 +2,7 @@ package com.stardew.craft.item.tool;
 
 import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.item.ModItems;
+import com.stardew.craft.enchantment.StardewEnchantments;
 import com.stardew.craft.player.PlayerStardewDataAPI;
 import com.stardew.craft.player.SkillType;
 import com.stardew.craft.core.ModDimensions;
@@ -101,6 +102,16 @@ public class HoeItem extends Item implements IStardewItem {
         return -1;
     }
 
+    @Override
+    public boolean isEnchantable(@SuppressWarnings("null") ItemStack stack) {
+        return stack.getMaxStackSize() == 1;
+    }
+
+    @Override
+    public int getEnchantmentValue() {
+        return Math.max(1, (tier.getMaxChargeLevel() + 1) * 5);
+    }
+
     // ================= 使用逻辑（按水壶风格） =================
 
     @Override
@@ -154,8 +165,8 @@ public class HoeItem extends Item implements IStardewItem {
                 BlockState preTillState = level.getBlockState(pos);
                 boolean tilled = tillTile(serverLevel, player, hand, pos);
                 if (tilled) {
-                    rollBuriedDrops(serverLevel, pos, preTillState, player instanceof ServerPlayer sp ? sp : null);
-                    applyStaminaAndCooldown(player, 0);
+                    rollBuriedDrops(serverLevel, pos, preTillState, player instanceof ServerPlayer sp ? sp : null, stackFromContext(context));
+                    applyStaminaAndCooldown(player, stackFromContext(context), 0);
                 }
             }
             return InteractionResult.SUCCESS;
@@ -194,11 +205,12 @@ public class HoeItem extends Item implements IStardewItem {
 
         int usedTicks = getUseDuration(stack, livingEntity) - remainingUseDuration;
 
-        // 与喷壶保持一致：每 15 ticks 升一级，并播放提示音
-        int ticksPerLevel = 15;
+        // 与喷壶保持一致：每级蓄力播放提示音
+        int ticksPerLevel = StardewEnchantments.has(stack, StardewEnchantments.SWIFT) ? 10 : 15;
         if (usedTicks > 0 && usedTicks % ticksPerLevel == 0) {
             int currentLevel = usedTicks / ticksPerLevel;
-            if (currentLevel <= tier.maxChargeLevel) {
+            int maxChargeLevel = getEffectiveMaxChargeLevel(stack);
+            if (currentLevel <= maxChargeLevel) {
                 float pitch = 0.8f + (currentLevel * 0.2f);
                 level.playSound(null, player.getX(), player.getY(), player.getZ(),
                         SoundEvents.NOTE_BLOCK_CHIME.value(), SoundSource.PLAYERS, 0.5f, pitch);
@@ -219,7 +231,7 @@ public class HoeItem extends Item implements IStardewItem {
         if (activeTicks < TAP_THRESHOLD_TICKS) {
             chargeLevel = 0;
         } else {
-            chargeLevel = getChargeLevel(activeTicks);
+            chargeLevel = getChargeLevel(stack, activeTicks);
         }
 
         // 获取目标方块（以视线命中为准）
@@ -290,12 +302,12 @@ public class HoeItem extends Item implements IStardewItem {
                 BlockState preTillState = level.getBlockState(pos);
                 if (tillTile((ServerLevel) level, player, usedHand, pos)) {
                     tilledAny = true;
-                    rollBuriedDrops((ServerLevel) level, pos, preTillState, player instanceof ServerPlayer sp ? sp : null);
+                    rollBuriedDrops((ServerLevel) level, pos, preTillState, player instanceof ServerPlayer sp ? sp : null, stack);
                 }
             }
 
             if (tilledAny) {
-                applyStaminaAndCooldown(player, chargeLevel);
+                applyStaminaAndCooldown(player, stack, chargeLevel);
             }
         } else {
             // 客户端仅做一点粒子反馈（避免完全无反馈）
@@ -342,9 +354,10 @@ public class HoeItem extends Item implements IStardewItem {
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
-    private void applyStaminaAndCooldown(Player player, int chargeLevel) {
+    private void applyStaminaAndCooldown(Player player, ItemStack stack, int chargeLevel) {
         // 扣除能量 (Stamina)
-        if (!player.isCreative() && player instanceof ServerPlayer serverPlayer) {
+        if (!player.isCreative() && player instanceof ServerPlayer serverPlayer
+                && !StardewEnchantments.has(stack, StardewEnchantments.EFFICIENT)) {
             int farmingLevel = PlayerStardewDataAPI.getSkillLevel(serverPlayer, SkillType.FARMING);
             float staminaCost = (2.0f * (chargeLevel + 1)) - (farmingLevel * 0.1f);
             PlayerStardewDataAPI.consumeEnergy(serverPlayer, staminaCost);
@@ -358,12 +371,25 @@ public class HoeItem extends Item implements IStardewItem {
      * 与喷壶保持一致：每 15 ticks 升一级。
      */
     public int getChargeLevel(int ticksUsed) {
-        int ticksPerLevel = 15;
+        return getChargeLevel(ItemStack.EMPTY, ticksUsed);
+    }
+
+    public int getChargeLevel(ItemStack stack, int ticksUsed) {
+        int ticksPerLevel = StardewEnchantments.has(stack, StardewEnchantments.SWIFT) ? 10 : 15;
         int level = ticksUsed / ticksPerLevel;
-        if (level > tier.maxChargeLevel) {
-            level = tier.maxChargeLevel;
+        int maxChargeLevel = getEffectiveMaxChargeLevel(stack);
+        if (level > maxChargeLevel) {
+            level = maxChargeLevel;
         }
         return level;
+    }
+
+    public int getEffectiveMaxChargeLevel(ItemStack stack) {
+        int maxChargeLevel = tier.maxChargeLevel;
+        if (StardewEnchantments.has(stack, StardewEnchantments.EXPANSIVE)) {
+            maxChargeLevel = Math.min(5, maxChargeLevel + 1);
+        }
+        return maxChargeLevel;
     }
 
     /**
@@ -509,12 +535,16 @@ public class HoeItem extends Item implements IStardewItem {
      * - 普通黄土/泥土 → 仅粘土 3% / 混合种子 1%
      */
     @SuppressWarnings("null")
-    private void rollBuriedDrops(ServerLevel level, BlockPos tilledPos, BlockState preTillState, ServerPlayer player) {
+    private void rollBuriedDrops(ServerLevel level, BlockPos tilledPos, BlockState preTillState, ServerPlayer player, ItemStack tool) {
         if (preTillState.is(com.stardew.craft.block.ModBlocks.ARTIFACT_SPOT_DIRT.get())
                 || preTillState.is(com.stardew.craft.block.ModBlocks.DESERT_ARTIFACT_SPOT.get())
                 || preTillState.is(com.stardew.craft.block.ModBlocks.BEACH_ARTIFACT_SPOT.get())) {
             // 远古斑点：完整古物掉落表（SDV ContinueOnDrop 可产出多个物品）
             List<ItemStack> drops = com.stardew.craft.manager.ArtifactDropService.rollAllDrops(level, tilledPos, player);
+            if (StardewEnchantments.has(tool, StardewEnchantments.GENEROUS)) {
+                drops = new ArrayList<>(drops);
+                drops.addAll(com.stardew.craft.manager.ArtifactDropService.rollAllDrops(level, tilledPos, player));
+            }
             for (ItemStack drop : drops) {
                 if (!drop.isEmpty()) {
                     Block.popResource(level, tilledPos.above(), drop);
@@ -523,12 +553,18 @@ public class HoeItem extends Item implements IStardewItem {
             return;
         }
         // 普通锄地：少量概率出粘土/混合种子
-        if (level.random.nextDouble() < 0.03) {
+        double archaeologistMul = StardewEnchantments.has(tool, StardewEnchantments.ARCHAEOLOGIST) ? 2.0 : 1.0;
+        int generousCount = StardewEnchantments.has(tool, StardewEnchantments.GENEROUS) ? 2 : 1;
+        if (level.random.nextDouble() < 0.03 * archaeologistMul) {
+            for (int i = 0; i < generousCount; i++) {
             Block.popResource(level, tilledPos.above(), new ItemStack(ModItems.CLAY.get()));
+            }
             return;
         }
-        if (level.random.nextDouble() < 0.01) {
+        if (level.random.nextDouble() < 0.01 * archaeologistMul) {
+            for (int i = 0; i < generousCount; i++) {
             Block.popResource(level, tilledPos.above(), new ItemStack(ModItems.MIXED_SEEDS.get()));
+            }
         }
     }
 

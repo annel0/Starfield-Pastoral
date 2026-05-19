@@ -1,6 +1,7 @@
 package com.stardew.craft.block.mine;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.item.trinket.TrinketDropService;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -83,6 +84,9 @@ public class MineBarrelBlock extends Block {
         if (r.nextFloat() < 0.20f) {
             return;
         }
+
+        int effectiveMineLevel = floor == 77377 ? 5000 : floor;
+        TrinketDropService.trySpawnContainerDrop(level, pos, 1.0 + effectiveMineLevel * 0.001);
 
         // SDV: 0.81% mystery_box
         if (r.nextDouble() < 0.0081) {

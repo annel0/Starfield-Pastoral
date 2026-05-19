@@ -4,8 +4,8 @@
   "trigger": {
     "type": "enter_area",
     "location": "town",
-    "area_min": [-30, 16, -79],
-    "area_max": [116, 63, 55]
+    "area_min": [-31, 62, -73],
+    "area_max": [74, 83, -7]
   },
   "preconditions": [
     { "type": "not_saw_event", "id": "lewis_cc_tour" },

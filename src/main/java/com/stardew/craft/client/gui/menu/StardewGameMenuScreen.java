@@ -9,10 +9,14 @@ import com.stardew.craft.client.gui.common.CommonGuiTextures;
 import com.stardew.craft.client.gui.common.StardewRenderMapping;
 import com.stardew.craft.client.gui.overnight.LevelUpMenuTextures;
 import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
+import com.stardew.craft.communitycenter.network.BundleClientData;
 import com.stardew.craft.communitycenter.state.CCStoryFlags;
+import com.stardew.craft.item.misc.StardropItem;
 import com.stardew.craft.leaderboard.LeaderboardMetric;
 import com.stardew.craft.leaderboard.LeaderboardPeriod;
 import com.stardew.craft.item.ModItems;
+import com.stardew.craft.item.equipment.CombinedRingData;
+import com.stardew.craft.mastery.MasteryProgress;
 import com.stardew.craft.player.ProfessionType;
 import com.stardew.craft.player.SkillType;
 import com.stardew.craft.network.payload.LeaderboardSyncPayload;
@@ -38,7 +42,6 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -64,12 +67,23 @@ public class StardewGameMenuScreen extends Screen {
     private static final int INVENTORY_ROWS = 4;
     private static final int INVENTORY_SLOT_SDV = 64;
     private static final int INVENTORY_GAP_SDV = 4;
-    private static final int INVENTORY_TOP_SDV = 440;
+    private static final int INVENTORY_TOP_SDV = 432;
     private static final long INVENTORY_DOUBLE_CLICK_MS = 250L;
+
+    private static final int CRAFTING_GRID_X_SDV = 64;
+    private static final int CRAFTING_GRID_Y_SDV = 104;
+    private static final int CRAFTING_RECIPE_SLOT_SDV = 88;
+    private static final int CRAFTING_RECIPE_STEP_SDV = 96;
+    private static final int CRAFTING_RECIPE_ITEM_SDV = 80;
+    private static final int CRAFTING_RECIPE_COLUMNS = 7;
+    private static final int CRAFTING_RECIPE_ROWS = 3;
+    private static final int CRAFTING_RECIPES_PER_PAGE = CRAFTING_RECIPE_COLUMNS * CRAFTING_RECIPE_ROWS;
+    private static final int CRAFTING_PARTITION_Y_SDV = 384;
 
     private static final int BORDER_WIDTH = 32;
     private static final int MENU_WIDTH_SDV = 800 + BORDER_WIDTH * 2;
     private static final int MENU_HEIGHT_SDV = 700 + BORDER_WIDTH * 2;
+    private static final int SKILLS_PAGE_HEIGHT_SDV = 600 + BORDER_WIDTH * 2;
     private static final int TAB_Y_OFFSET_SDV = -56;
     private static final int TAB_START_X_SDV = 64;
     private static final int TAB_STEP_SDV = 64;
@@ -150,15 +164,12 @@ public class StardewGameMenuScreen extends Screen {
     private List<ItemStack> craftingRecipeStacks = List.of();
     private List<String> craftingRecipeIds = List.of();
     private List<List<RecipeCell>> craftingPages = List.of();
-    private final float[] recipeHoverScale = new float[40];
+    private final float[] recipeHoverScale = new float[CRAFTING_RECIPES_PER_PAGE];
     private int hoveredCraftingIndex = -1;
     private float upButtonScale = 1.0f;
     private float downButtonScale = 1.0f;
     private float trashCanLidRotation;
     private boolean trashCanLidSoundPlayed;
-    
-    private int currentFocusIndex = -1;
-    private float showcaseAlpha = 0.0f;
     private int socialScroll;
     private boolean socialScrolling;
     private LeaderboardMetric leaderboardMetric = LeaderboardMetric.MONEY;
@@ -205,9 +216,6 @@ public class StardewGameMenuScreen extends Screen {
     }
 
     private record RecipeCell(int recipeIndex, int x, int y, boolean bigCraftable) {
-    }
-
-    private record RecipeEntry(String id, ItemStack stack, int rank) {
     }
 
     private record LeaderboardLayout(
@@ -1847,6 +1855,10 @@ public class StardewGameMenuScreen extends Screen {
     private int skillsHoveredBarX = 0;
     private int skillsHoveredBarY = 0;
 
+    private int skillsLowerPartitionY() {
+        return menuY + ui(96 + SKILLS_PAGE_HEIGHT_SDV / 2 + 21);
+    }
+
     /**
      * SDV NumberSprite.draw equivalent.
      * Draws a number using digit sprites from cursors.png at (512,128), 8x8 per digit, 6 per row (48px wide).
@@ -1956,7 +1968,7 @@ public class StardewGameMenuScreen extends Screen {
         }
 
         // --- Horizontal separator ---
-        int sepY = menuY + spaceTop + ui((int)(menuHeight * guiScale() / 2f) + 21);
+        int sepY = skillsLowerPartitionY();
         int sepX = menuX + spaceSide * 2;
         int sepW = menuWidth - spaceSide * 4 - ui(8);
         graphics.fill(sepX, sepY, sepX + sepW, sepY + ui(4), 0xFFD68F54);
@@ -2116,12 +2128,198 @@ public class StardewGameMenuScreen extends Screen {
                 skillsHoveredProfessionId, s4);
         }
 
-        // --- Lower section: horizontal separator already drawn above ---
+        drawSkillsLowerSection(graphics);
+        drawSkillsMasteryProgress(graphics);
 
         // --- Hover tooltip ---
         if (!skillsHoverText.isEmpty()) {
             drawSkillsTooltip(graphics, mouseX, mouseY, skillsHoverTitle, skillsHoverText);
         }
+    }
+
+    private void drawSkillsLowerSection(GuiGraphics graphics) {
+        float s4 = mapping.s4();
+        BundleClientData bundleData = BundleClientData.INSTANCE;
+
+        graphics.enableScissor(menuX, menuY, menuX + menuWidth, menuY + menuHeight);
+        try {
+            int x = menuX + ui(32 * 2);
+            int y = skillsLowerPartitionY();
+            boolean isJoja = ClientPlayerDataCache.hasMailFlag("JojaMember");
+            boolean canReadJunimoText = bundleData.canReadJunimoText()
+                || ClientPlayerDataCache.hasMailFlag(CCStoryFlags.CAN_READ_JUNIMO)
+                || ClientPlayerDataCache.hasMailFlag("canReadJunimoText");
+
+            x += ui(80);
+            y += ui(16);
+            if (isJoja || canReadJunimoText) {
+                if (isJoja) {
+                    CommonGuiTextures.drawSkillsJojaLogo16(graphics, x - ui(80), y - ui(16), s4, 0.7f);
+                } else {
+                    CommonGuiTextures.drawSkillsCcRoom16(graphics, x, y, areaComplete(bundleData, 5, "ccBulletin"), false, s4, 0.7f);
+                }
+                CommonGuiTextures.drawSkillsCcRoom16(graphics, x + ui(60), y + ui(28), areaComplete(bundleData, 3, "ccBoilerRoom"), isJoja, s4, 0.7f);
+                CommonGuiTextures.drawSkillsCcRoom16(graphics, x + ui(60), y + ui(88), areaComplete(bundleData, 4, "ccVault"), isJoja, s4, 0.7f);
+                CommonGuiTextures.drawSkillsCcRoom16(graphics, x - ui(60), y + ui(28), areaComplete(bundleData, 1, "ccCraftsRoom"), isJoja, s4, 0.7f);
+                CommonGuiTextures.drawSkillsCcRoom16(graphics, x - ui(60), y + ui(88), areaComplete(bundleData, 2, "ccFishTank"), isJoja, s4, 0.7f);
+                CommonGuiTextures.drawSkillsCcRoom16(graphics, x, y + ui(120), areaComplete(bundleData, 0, "ccPantry"), isJoja, s4, 0.7f);
+            } else {
+                CommonGuiTextures.drawSkillsCcUnknown16(graphics, x - ui(80), y - ui(16), s4, 0.7f);
+            }
+
+            x += ui(124);
+            graphics.fill(x, y - ui(16), x + ui(4), y - ui(16) + ui(600 / 3 - 32 - 4), 0xFFD68F54);
+
+            int xHouseOffset = 0;
+            String houseText = Component.translatable("stardewcraft.skills_page.house_level", 1).getString();
+            if (Math.round(this.font.width(houseText) * sdvTextScale() * guiScale()) > 120) {
+                xHouseOffset -= ui(20);
+            }
+            y += ui(108);
+            x += ui(28);
+            CommonGuiTextures.drawSkillsHouseIcon(graphics, x + xHouseOffset + ui(20), y - ui(4), s4, 0.7f);
+            drawScaledSdvTextWithShadow(graphics, houseText, x + xHouseOffset + ui(72), y, sdvTextScale(), SDV_TEXT_COLOR);
+
+            x += ui(180);
+            y -= ui(8);
+            boolean drawSkull = false;
+            int lowestLevel = ClientPlayerDataCache.getMaxMineFloorReached();
+            if (lowestLevel > 120) {
+                lowestLevel -= 120;
+                drawSkull = true;
+            }
+            CommonGuiTextures.drawSkillsMineIcon16(graphics, x + ui(8), y, lowestLevel != 0, s4, 0.7f);
+            if (lowestLevel != 0) {
+                drawScaledSdvTextWithShadow(graphics, Integer.toString(lowestLevel), x + ui(72) + (drawSkull ? ui(8) : 0), y + ui(8), sdvTextScale(), SDV_TEXT_COLOR);
+            }
+            if (drawSkull) {
+                CommonGuiTextures.drawSkillsSkullIcon16(graphics, x + ui(40), y + ui(24), s4, 0.7f);
+            }
+
+            x += ui(120);
+            int stardropsFound = Math.max(0, Math.min(7, (ClientPlayerDataCache.getBaseMaxEnergy() - 270) / StardropItem.MAX_ENERGY_GAIN));
+            CommonGuiTextures.drawSkillsStardropIcon16(graphics, x + ui(32), y - ui(4), stardropsFound > 0, s4, 0.7f);
+            if (stardropsFound > 0) {
+                int stardropColor = stardropsFound >= 7 ? 0xFFA01EEB : SDV_TEXT_COLOR;
+                drawScaledSdvTextWithShadow(graphics, "x " + stardropsFound, x + ui(88), y + ui(8), sdvTextScale(), stardropColor);
+            }
+        } finally {
+            graphics.disableScissor();
+        }
+    }
+
+    private boolean areaComplete(BundleClientData bundleData, int areaId, String vanillaMailFlag) {
+        return bundleData.isAreaComplete(areaId) || ClientPlayerDataCache.hasMailFlag(vanillaMailFlag);
+    }
+
+    private void drawSkillsMasteryProgress(GuiGraphics graphics) {
+        long masteryExp = ClientPlayerDataCache.getMasteryExp();
+        int masteryBaseYSdv = 492;
+        if (masteryExp == 0L) {
+            CommonGuiTextures.drawSkillsMasteryEmpty16Tint(graphics, menuX + ui(292), menuY + ui(477),
+                mapping.s4(), 1.0f, 1.0f, 1.0f, 0.7f);
+            return;
+        }
+
+        int masteryLevel = MasteryProgress.currentLevel(masteryExp);
+        String masteryText = Component.translatable("stardewcraft.mastery.menu.overview").getString();
+        if (masteryText.endsWith(":")) {
+            masteryText = masteryText.substring(0, masteryText.length() - 1);
+        }
+
+        float textScale = sdvTextScale();
+        int masteryTextWidthSdv = Math.round(this.font.width(masteryText) * textScale * guiScale());
+        int xOffsetSdv = masteryTextWidthSdv - 64;
+
+        drawScaledSdvText(graphics, masteryText, menuX + ui(256), menuY + ui(masteryBaseYSdv), textScale, SDV_TEXT_COLOR);
+
+        int iconX = menuX + ui(xOffsetSdv + 332);
+        int iconY = menuY + ui(484);
+        CommonGuiTextures.drawMasteryIcon16Tint(graphics, iconX + ui(4), iconY + ui(4),
+            mapping.s4(), 0.0f, 0.0f, 0.0f, 0.35f);
+        CommonGuiTextures.drawMasteryIcon16Tint(graphics, iconX, iconY,
+            mapping.s4(), 1.0f, 1.0f, 1.0f, 1.0f);
+
+        float widthScale = 0.64f - (masteryTextWidthSdv - 100.0f) / 800.0f;
+
+        int shadowX = menuX + ui(xOffsetSdv + 380) - Math.max(1, ui(1));
+        int darkX = menuX + ui(xOffsetSdv + 384);
+        int midX = menuX + ui(xOffsetSdv + 388);
+        int masteryBaseY = menuY + ui(masteryBaseYSdv);
+        graphics.fill(shadowX, masteryBaseY, shadowX + ui(Math.round(584.0f * widthScale)) + ui(4), masteryBaseY + ui(40), 0x59000000);
+        graphics.fill(darkX, masteryBaseY - ui(4), darkX + ui(Math.round(((masteryLevel >= MasteryProgress.MAX_LEVEL) ? 144.0f : 146.0f) * 4.0f * widthScale)) + ui(4), masteryBaseY - ui(4) + ui(40), 0xFF3C3C19);
+        graphics.fill(midX, masteryBaseY, midX + ui(Math.round(576.0f * widthScale)), masteryBaseY + ui(32), 0xFFAD814F);
+
+        drawMasteryProgressBar(graphics, menuX + ui(xOffsetSdv + 276), menuY + ui(348), widthScale);
+
+        int levelNumberX = menuX + ui(xOffsetSdv + 408 + Math.round(584.0f * widthScale));
+        int levelNumberY = masteryBaseY + ui(20);
+        drawNumberSprite(graphics, masteryLevel, levelNumberX, levelNumberY, 0x000000, 0.35f);
+        drawNumberSprite(graphics, masteryLevel, levelNumberX + ui(4), levelNumberY - ui(4), 0xF4A460, masteryLevel == 0 ? 0.75f : 1.0f);
+    }
+
+    private void drawMasteryProgressBar(GuiGraphics graphics, int topLeftX, int topLeftY, float widthScale) {
+        long masteryExp = ClientPlayerDataCache.getMasteryExp();
+        int levelsAchieved = MasteryProgress.currentLevel(masteryExp);
+        long currentProgressXp = masteryExp - MasteryProgress.expForLevel(levelsAchieved);
+        long expNeeded = MasteryProgress.expForLevel(levelsAchieved + 1) - MasteryProgress.expForLevel(levelsAchieved);
+        if (expNeeded <= 0L) {
+            expNeeded = 1L;
+        }
+
+        int barWidthSdv = levelsAchieved >= MasteryProgress.MAX_LEVEL
+            ? Math.round(576.0f * widthScale)
+            : Math.round(576.0f * currentProgressXp / expNeeded * widthScale);
+        if (levelsAchieved < MasteryProgress.MAX_LEVEL && barWidthSdv <= 0) {
+            return;
+        }
+
+        int light = 0xFF3CB450;
+        int med = 0xFF00713E;
+        int medDark = 0xFF005032;
+        int dark = 0xFF003C1E;
+        if (levelsAchieved >= MasteryProgress.MAX_LEVEL) {
+            light = 0xFFDCDCDC;
+            med = 0xFF8C8C8C;
+            medDark = 0xFF505050;
+            dark = med;
+        } else if (widthScale != 1.0f) {
+            dark = medDark;
+        }
+
+        int x = topLeftX + ui(112);
+        int y = topLeftY + ui(144);
+        int barWidth = ui(barWidthSdv);
+        graphics.fill(x, y, x + barWidth, y + ui(32), med);
+        graphics.fill(x, y + ui(4), x + ui(4), y + ui(32), medDark);
+        if (barWidthSdv > 8) {
+            graphics.fill(x, y + ui(28), x + barWidth - ui(8), y + ui(32), medDark);
+            graphics.fill(x + ui(4), y, x + barWidth, y + ui(4), light);
+            graphics.fill(x - ui(8) + barWidth, y, x - ui(4) + barWidth, y + ui(28), light);
+            graphics.fill(x - ui(4) + barWidth, y, x + barWidth, y + ui(32), dark);
+        }
+
+        if (levelsAchieved < MasteryProgress.MAX_LEVEL) {
+            String text = currentProgressXp + "/" + expNeeded;
+            float textScale = sdvTextScale();
+            int textWidth = Math.round(this.font.width(text) * textScale);
+            int textX = topLeftX + ui(112) + ui(Math.round(288.0f * widthScale)) - textWidth / 2;
+            int textY = topLeftY + ui(146);
+            drawScaledSdvText(graphics, text, textX, textY, textScale, 0xBFFFFFFF);
+        }
+    }
+
+    private void drawScaledSdvText(GuiGraphics graphics, String text, int x, int y, float scale, int color) {
+        graphics.pose().pushPose();
+        graphics.pose().translate(x, y, 0);
+        graphics.pose().scale(scale, scale, 1.0f);
+        graphics.drawString(this.font, Component.literal(text), 0, 0, color, false);
+        graphics.pose().popPose();
+    }
+
+    private void drawScaledSdvTextWithShadow(GuiGraphics graphics, String text, int x, int y, float scale, int color) {
+        drawScaledSdvText(graphics, text, x + ui(4), y + ui(4), scale, 0x59000000);
+        drawScaledSdvText(graphics, text, x, y, scale, color);
     }
 
     private void drawPowersPage(GuiGraphics graphics, int mouseX, int mouseY) {
@@ -2313,10 +2511,13 @@ public class StardewGameMenuScreen extends Screen {
     private static final int INV_PAGE_EQUIP_Y0 = 356;    // Left Ring
     private static final int INV_PAGE_EQUIP_Y1 = 420;    // Right Ring
     private static final int INV_PAGE_EQUIP_Y2 = 484;    // Boots
+    private static final int INV_PAGE_TRINKET_X = 248;
+    private static final int INV_PAGE_TRINKET_Y = 484;
 
     // Empty-slot placeholder tiles (from menu_tiles.png, SDV: getSourceRectForStandardTileSheet)
     private static final int EMPTY_RING_TILE = 41;
     private static final int EMPTY_BOOTS_TILE = 40;
+    private static final int EMPTY_TRINKET_TILE = 70;
 
     // --- Player model area (lower-center, SDV: x=120, y=296 from menu origin) ---
     private static final int INV_PAGE_PLAYER_BG_X = 120;
@@ -2372,6 +2573,9 @@ public class StardewGameMenuScreen extends Screen {
         drawInvEquipSlot(graphics, 0, leftRingId, mouseX, mouseY);
         drawInvEquipSlot(graphics, 1, rightRingId, mouseX, mouseY);
         drawInvEquipSlot(graphics, 2, bootsId, mouseX, mouseY);
+        if (ClientPlayerDataCache.getUnlockedTrinketSlots() > 0) {
+            drawInvTrinketSlot(graphics, ClientPlayerDataCache.getEquippedTrinket(), mouseX, mouseY);
+        }
 
         // ── 4. Player model with day/night background ──
         drawPlayerModelArea(graphics, mouseX, mouseY);
@@ -2526,6 +2730,14 @@ public class StardewGameMenuScreen extends Screen {
                 : index == 1 ? INV_PAGE_EQUIP_Y1 : INV_PAGE_EQUIP_Y2);
     }
 
+    private int invTrinketSlotX() {
+        return menuX + ui(INV_PAGE_TRINKET_X);
+    }
+
+    private int invTrinketSlotY() {
+        return menuY + ui(INV_PAGE_TRINKET_Y);
+    }
+
     private void drawInvEquipSlot(GuiGraphics graphics, int index, String itemId,
                                    int mouseX, int mouseY) {
         int x = menuX + ui(INV_PAGE_EQUIP_X);
@@ -2538,18 +2750,36 @@ public class StardewGameMenuScreen extends Screen {
         if (hasItem) {
             // SDV: filled slot uses tile 10 + item drawn on top
             CommonGuiTextures.drawMenuTile(graphics, x, y, size, size, 10);
-            ResourceLocation rl = ResourceLocation.tryParse(itemId);
-            if (rl != null) {
-                Item item = BuiltInRegistries.ITEM.get(rl);
-                ItemStack stack = new ItemStack(item);
-                if (!stack.isEmpty()) {
-                    CommonGuiTextures.drawItemCenteredInBox(graphics, stack, x, y, size, size, mapping.s4());
-                }
+            ItemStack stack = CombinedRingData.stackFromEquipmentSlot(itemId);
+            if (!stack.isEmpty()) {
+                CommonGuiTextures.drawItemCenteredInBox(graphics, stack, x, y, size, size, mapping.s4());
             }
         } else {
             // SDV: empty ring → tile 41, empty boots → tile 40
             int placeholderTile = (index <= 1) ? EMPTY_RING_TILE : EMPTY_BOOTS_TILE;
             CommonGuiTextures.drawMenuTile(graphics, x, y, size, size, placeholderTile);
+        }
+
+        if (hovered) {
+            graphics.pose().pushPose();
+            graphics.pose().translate(0, 0, 100);
+            graphics.fill(x, y, x + size, y + size, 0x35FFFFFF);
+            graphics.pose().popPose();
+        }
+    }
+
+    private void drawInvTrinketSlot(GuiGraphics graphics, ItemStack stack, int mouseX, int mouseY) {
+        int x = invTrinketSlotX();
+        int y = invTrinketSlotY();
+        int size = ui(INV_PAGE_EQUIP_SIZE);
+        boolean hovered = mouseX >= x && mouseX < x + size
+                && mouseY >= y && mouseY < y + size;
+
+        if (!stack.isEmpty()) {
+            CommonGuiTextures.drawMenuTile(graphics, x, y, size, size, 10);
+            CommonGuiTextures.drawItemCenteredInBox(graphics, stack, x, y, size, size, mapping.s4());
+        } else {
+            CommonGuiTextures.drawMenuTile(graphics, x, y, size, size, EMPTY_TRINKET_TILE);
         }
 
         if (hovered) {
@@ -2567,6 +2797,13 @@ public class StardewGameMenuScreen extends Screen {
             int y = invEquipSlotY(i);
             if (mouseX >= x && mouseX < x + size && mouseY >= y && mouseY < y + size) {
                 return i;
+            }
+        }
+        if (ClientPlayerDataCache.getUnlockedTrinketSlots() > 0) {
+            int trinketX = invTrinketSlotX();
+            int trinketY = invTrinketSlotY();
+            if (mouseX >= trinketX && mouseX < trinketX + size && mouseY >= trinketY && mouseY < trinketY + size) {
+                return 3;
             }
         }
         return -1;
@@ -2724,6 +2961,17 @@ public class StardewGameMenuScreen extends Screen {
         // Equipment slot tooltips
         int equipSlot = invPageHoveredEquip(mouseX, mouseY);
         if (equipSlot >= 0) {
+            if (equipSlot == 3) {
+                ItemStack trinket = ClientPlayerDataCache.getEquippedTrinket();
+                if (!trinket.isEmpty()) {
+                    graphics.renderTooltip(this.font, trinket, mouseX, mouseY);
+                    return;
+                }
+                graphics.renderTooltip(this.font,
+                        Component.translatable("stardewcraft.equipment.slot.trinket"),
+                        mouseX, mouseY);
+                return;
+            }
             String itemId = switch (equipSlot) {
                 case 0 -> ClientPlayerDataCache.getEquippedLeftRing();
                 case 1 -> ClientPlayerDataCache.getEquippedRightRing();
@@ -2731,14 +2979,10 @@ public class StardewGameMenuScreen extends Screen {
                 default -> "";
             };
             if (!itemId.isEmpty()) {
-                ResourceLocation rl = ResourceLocation.tryParse(itemId);
-                if (rl != null) {
-                    Item item = BuiltInRegistries.ITEM.get(rl);
-                    ItemStack stack = new ItemStack(item);
-                    if (!stack.isEmpty()) {
-                        graphics.renderTooltip(this.font, stack, mouseX, mouseY);
-                        return;
-                    }
+                ItemStack stack = CombinedRingData.stackFromEquipmentSlot(itemId);
+                if (!stack.isEmpty()) {
+                    graphics.renderTooltip(this.font, stack, mouseX, mouseY);
+                    return;
                 }
             }
             Component label = switch (equipSlot) {
@@ -3248,37 +3492,19 @@ public class StardewGameMenuScreen extends Screen {
     private void rebuildCraftingEntries() {
         List<String> recipeIds = new ArrayList<>(RecipeCatalogData.getCraftingRecipeIds());
 
-        List<RecipeEntry> entries = new ArrayList<>();
+        List<String> validIds = new ArrayList<>();
+        List<ItemStack> stacks = new ArrayList<>();
         for (String recipeId : recipeIds) {
+            if (!ClientPlayerDataCache.hasRecipe(recipeId)) {
+                continue;
+            }
+
             ItemStack stack = resolveRecipeResultStack(recipeId);
             if (stack.isEmpty()) {
                 continue;
             }
-
-            boolean unlocked = ClientPlayerDataCache.hasRecipe(recipeId);
-            int rank;
-            if (!unlocked) {
-                rank = 2;
-            } else {
-                boolean craftable = computeMaxCraftsClient(getRecipeIngredients(recipeId), 1) > 0;
-                rank = craftable ? 0 : 1;
-            }
-            entries.add(new RecipeEntry(recipeId, stack, rank));
-        }
-
-        entries.sort((a, b) -> {
-            int rankCmp = Integer.compare(a.rank(), b.rank());
-            if (rankCmp != 0) {
-                return rankCmp;
-            }
-            return a.id().compareTo(b.id());
-        });
-
-        List<String> validIds = new ArrayList<>(entries.size());
-        List<ItemStack> stacks = new ArrayList<>(entries.size());
-        for (RecipeEntry entry : entries) {
-            validIds.add(entry.id());
-            stacks.add(entry.stack());
+            validIds.add(recipeId);
+            stacks.add(stack);
         }
 
         this.craftingRecipeIds = validIds;
@@ -3315,105 +3541,21 @@ public class StardewGameMenuScreen extends Screen {
             return pages;
         }
 
-        List<RecipeCell> currentPage = new ArrayList<>();
-        int capacity = 40;
-        int currentCount = 0;
-
         for (int recipeIndex = 0; recipeIndex < craftingRecipeIds.size(); recipeIndex++) {
-            if (currentCount >= capacity) {
-                pages.add(currentPage);
-                currentPage = new ArrayList<>();
-                currentCount = 0;
+            int local = recipeIndex % CRAFTING_RECIPES_PER_PAGE;
+            if (local == 0) {
+                pages.add(new ArrayList<>());
             }
-            int x = currentCount % 10;
-            int y = currentCount / 10;
-            currentPage.add(new RecipeCell(recipeIndex, x, y, false));
-            currentCount++;
-        }
-        if (!currentPage.isEmpty()) {
-            pages.add(currentPage);
+            int x = local % CRAFTING_RECIPE_COLUMNS;
+            int y = local / CRAFTING_RECIPE_COLUMNS;
+            pages.get(pages.size() - 1).add(new RecipeCell(recipeIndex, x, y, false));
         }
 
         return pages;
     }
 
-    private boolean isBigCraftable(ItemStack stack) {
-        return !stack.isEmpty() && stack.getItem() instanceof BlockItem;
-    }
-
-    private void updateVisualFocus() {
-        int targetIndex = hoveredCraftingIndex;
-        if (targetIndex != currentFocusIndex) {
-            float lerpFactor = 0.2f;
-            this.showcaseAlpha = Mth.lerp(lerpFactor, this.showcaseAlpha, 0.0f);
-            if (this.showcaseAlpha < 0.05f) {
-                this.currentFocusIndex = targetIndex;
-                if (targetIndex != -1) {
-                    this.showcaseAlpha = 0.05f; 
-                }
-            }
-        } else if (targetIndex != -1) {
-            if (this.showcaseAlpha < 1.0f) {
-                this.showcaseAlpha = Mth.lerp(0.15f, this.showcaseAlpha, 1.0f);
-            }
-        } else {
-            this.showcaseAlpha = 0.0f;
-        }
-    }
-
-    private void drawElegantShowcase(GuiGraphics g, int px, int py, int focusIdx) {
-        if (focusIdx < 0 || focusIdx >= craftingRecipeStacks.size()) return;
-
-        ItemStack stack = craftingRecipeStacks.get(focusIdx);
-        if (stack.isEmpty()) return;
-
-        String recipeId = craftingRecipeIds.get(focusIdx);
-        boolean unlocked = ClientPlayerDataCache.hasRecipe(recipeId);
-
-        int alphaBits = Math.max(0, Math.min(255, (int) (this.showcaseAlpha * 255))) << 24;
-        if ((alphaBits & 0xFF000000) == 0) return;
-
-        g.pose().pushPose();
-        g.pose().translate(px, py, 300);
-
-        Component title = unlocked ? stack.getHoverName().copy().withStyle(net.minecraft.ChatFormatting.BOLD)
-                : Component.literal("???").withStyle(net.minecraft.ChatFormatting.BOLD);
-
-        float titleScale = 1.5f;
-        int tw = this.font.width(title);
-        
-        int tx = (ui(240) - (int)(tw * titleScale)) / 2;
-        g.pose().pushPose();
-        g.pose().translate(tx, ui(20), 0);
-        g.pose().scale(titleScale, titleScale, 1.0f);
-        g.drawString(this.font, title, 1, 1, alphaBits | 0x2d170a, false);
-        g.drawString(this.font, title, 0, 0, alphaBits | 0xFFFFFF, false);
-        g.pose().popPose();
-
-        int dropY = ui(120);
-        float floatY = (float)Math.sin((System.currentTimeMillis() % 6000) / 6000.0f * Math.PI * 2) * 5.0f;
-
-        g.pose().pushPose();
-        g.pose().translate(ui(120), dropY + ui(30), 0);
-        g.pose().scale(4.0f * mapping.s4(), 4.0f * mapping.s4(), 1.0f);
-        g.fill(-8, -4, 8, 4, 0x44000000 | (alphaBits & 0xFF000000));
-        g.pose().popPose();
-
-        float dropItemScale = 6.0f * mapping.s4();
-        int dropItemSize = CommonGuiTextures.itemSize(dropItemScale);
-        int dropItemX = ui(120) - dropItemSize / 2;
-        int dropItemY = Math.round(dropY + floatY) - dropItemSize / 2;
-        if (!unlocked) {
-            CommonGuiTextures.drawItemTint(g, stack, dropItemX, dropItemY, dropItemScale, 0.0F, 0.0F, 0.0F, 1.0F);
-        } else {
-            CommonGuiTextures.drawItem(g, stack, dropItemX, dropItemY, dropItemScale);
-        }
-
-        g.pose().popPose();
-    }
-
     private void drawCraftingPage(GuiGraphics graphics, int mouseX, int mouseY) {
-        StardewGuiUtil.drawHorizontalPartition(graphics, menuX, menuY + ui(400), menuWidth, mapping.s4());
+        StardewGuiUtil.drawHorizontalPartition(graphics, menuX, menuY + ui(CRAFTING_PARTITION_Y_SDV), menuWidth, mapping.s4());
 
         drawPlayerInventory(graphics, mouseX, mouseY);
         drawTrashCan(graphics, mouseX, mouseY);
@@ -3433,15 +3575,15 @@ public class StardewGameMenuScreen extends Screen {
                 continue;
             }
 
-            int x = menuX + ui(80 + cellData.x() * 72);
-            int y = menuY + ui(80 + cellData.y() * 72);
-            int h = cellData.bigCraftable() ? ui(128) : ui(64);
+            int x = recipeCellX(cellData);
+            int y = recipeCellY(cellData);
+            int w = recipeCellWidth();
+            int h = recipeCellHeight(cellData);
 
             ItemStack stack = craftingRecipeStacks.get(index);
             String recipeId = craftingRecipeIds.get(index);
-            boolean unlocked = ClientPlayerDataCache.hasRecipe(recipeId);
             boolean craftable = computeMaxCraftsClient(getRecipeIngredients(recipeId), 1) > 0;
-            boolean hovered = recipeContains(mouseX, mouseY, x, y, h, ui(4));
+            boolean hovered = recipeContains(mouseX, mouseY, x, y, w, h, ui(4));
 
             if (local >= 0 && local < recipeHoverScale.length) {
                 recipeHoverScale[local] = stepScale(recipeHoverScale[local], hovered ? 1.1f : 1.0f, 0.02f);
@@ -3450,21 +3592,18 @@ public class StardewGameMenuScreen extends Screen {
                     ? recipeHoverScale[local]
                     : 1.0f;
 
-            int baseSlot = ui(64);
-            float itemScale = mapping.s4() * scale;
+            float itemScale = mapping.s4() * (CRAFTING_RECIPE_ITEM_SDV / 64.0f) * scale;
             int itemSize = CommonGuiTextures.itemSize(itemScale);
-            int itemX = x + (baseSlot - itemSize) / 2;
-            int itemY = y + (baseSlot - itemSize) / 2;
+            int itemX = x + (w - itemSize) / 2;
+            int itemY = y + (h - itemSize) / 2;
 
-            if (!unlocked) {
-                CommonGuiTextures.drawItemTint(graphics, stack, itemX, itemY, itemScale, 0.0F, 0.0F, 0.0F, 1.0F);
-            } else if (!craftable) {
-                CommonGuiTextures.drawItemTint(graphics, stack, itemX, itemY, itemScale, 0.35F, 0.35F, 0.35F, 1.0F);
+            if (!craftable) {
+                CommonGuiTextures.drawItemTint(graphics, stack, itemX, itemY, itemScale, 0.41F, 0.41F, 0.41F, 0.4F);
             } else {
                 CommonGuiTextures.drawItem(graphics, stack, itemX, itemY, itemScale);
             }
 
-            if (unlocked && hasShiftDown()) {
+            if (hasShiftDown()) {
                 int maxCrafts = computeMaxCraftsClient(getRecipeIngredients(recipeId), 999);
                 if (maxCrafts > 0) {
                     ItemStack countStack = stack.copy();
@@ -3473,7 +3612,7 @@ public class StardewGameMenuScreen extends Screen {
                 } else if (stack.getCount() > 1) {
                     CommonGuiTextures.drawItemDecorations(graphics, this.font, stack, itemX, itemY, itemScale);
                 }
-            } else if (stack.getCount() > 1 && unlocked) {
+            } else if (stack.getCount() > 1) {
                 CommonGuiTextures.drawItemDecorations(graphics, this.font, stack, itemX, itemY, itemScale);
             }
         }
@@ -3621,10 +3760,9 @@ public class StardewGameMenuScreen extends Screen {
 
         List<RecipeCell> page = craftingPages.get(currentCraftingPage);
         for (RecipeCell cellData : page) {
-            int x = menuX + ui(80 + cellData.x() * 72);
-            int y = menuY + ui(80 + cellData.y() * 72);
-            int h = cellData.bigCraftable() ? ui(128) : ui(64);
-            if (recipeContains(mouseX, mouseY, x, y, h, pad)) {
+            int x = recipeCellX(cellData);
+            int y = recipeCellY(cellData);
+            if (recipeContains(mouseX, mouseY, x, y, recipeCellWidth(), recipeCellHeight(cellData), pad)) {
                 return cellData.recipeIndex();
             }
         }
@@ -3637,19 +3775,19 @@ public class StardewGameMenuScreen extends Screen {
     }
 
     private int pageUpButtonY() {
-        return craftingGridY() - ui(16);
+        return craftingGridY();
     }
 
     private int pageDownButtonY() {
-        return craftingGridY() + ui(280);
+        return craftingGridY() + ui((CRAFTING_RECIPE_ROWS - 1) * CRAFTING_RECIPE_STEP_SDV + 32);
     }
 
     private int craftingGridX() {
-        return menuX + ui(80);
+        return menuX + ui(CRAFTING_GRID_X_SDV);
     }
 
     private int craftingGridY() {
-        return menuY + ui(80);
+        return menuY + ui(CRAFTING_GRID_Y_SDV);
     }
 
     private int inventoryStartX() {
@@ -3692,8 +3830,24 @@ public class StardewGameMenuScreen extends Screen {
         return menuY + menuHeight - ui(360);
     }
 
-    private boolean recipeContains(double mouseX, double mouseY, int x, int y, int h, int pad) {
-        return mouseX >= x - pad && mouseX < x + ui(64) + pad && mouseY >= y - pad && mouseY < y + h + pad;
+    private int recipeCellX(RecipeCell cellData) {
+        return craftingGridX() + ui(cellData.x() * CRAFTING_RECIPE_STEP_SDV);
+    }
+
+    private int recipeCellY(RecipeCell cellData) {
+        return craftingGridY() + ui(cellData.y() * CRAFTING_RECIPE_STEP_SDV);
+    }
+
+    private int recipeCellWidth() {
+        return ui(CRAFTING_RECIPE_SLOT_SDV);
+    }
+
+    private int recipeCellHeight(RecipeCell cellData) {
+        return ui(cellData.bigCraftable() ? CRAFTING_RECIPE_SLOT_SDV * 2 : CRAFTING_RECIPE_SLOT_SDV);
+    }
+
+    private boolean recipeContains(double mouseX, double mouseY, int x, int y, int w, int h, int pad) {
+        return mouseX >= x - pad && mouseX < x + w + pad && mouseY >= y - pad && mouseY < y + h + pad;
     }
 
     private boolean isCraftableClient(int recipeIndex) {
@@ -3988,12 +4142,6 @@ public class StardewGameMenuScreen extends Screen {
 
         if (hoveredCraftingIndex >= 0 && hoveredCraftingIndex < craftingRecipeStacks.size()) {
             String recipeId = craftingRecipeIds.get(hoveredCraftingIndex);
-            boolean unlocked = ClientPlayerDataCache.hasRecipe(recipeId);
-
-            if (!unlocked) {
-                graphics.renderTooltip(this.font, Component.literal("???").withStyle(ChatFormatting.BOLD), mouseX, mouseY);
-                return;
-            }
 
             ItemStack output = craftingRecipeStacks.get(hoveredCraftingIndex);
             List<RecipeRequirement> requirements = getRecipeRequirements(recipeId);

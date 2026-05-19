@@ -68,7 +68,7 @@ public class WeaponStats {
         
         CompoundTag weaponTag = tag.getCompound(TAG_STARDEW_WEAPON);
         
-        return builder()
+        WeaponStats baseStats = builder()
             .weaponType(WeaponType.fromId(weaponTag.getInt(TAG_WEAPON_TYPE)))
             .minDamage(weaponTag.getFloat(TAG_MIN_DAMAGE))
             .maxDamage(weaponTag.getFloat(TAG_MAX_DAMAGE))
@@ -79,8 +79,88 @@ public class WeaponStats {
             .precision(weaponTag.getFloat(TAG_PRECISION))
             .knockback(weaponTag.getFloat(TAG_KNOCKBACK))
             .build();
+        return applyForgeData(baseStats, WeaponForgeData.read(stack));
     }
-    
+
+    public static WeaponStats applyForgeData(WeaponStats baseStats, WeaponForgeData.State forgeState) {
+        float minDamage = baseStats.minDamage;
+        float maxDamage = baseStats.maxDamage;
+        float critChance = baseStats.critChance;
+        float bonusCritPower = baseStats.bonusCritPower;
+        int speed = baseStats.speed;
+        int defense = baseStats.defense;
+        float knockback = baseStats.knockback;
+
+        for (WeaponForgeData.GemForge forge : forgeState.gemForges()) {
+            int level = Math.max(0, forge.level());
+            if (level <= 0) {
+                continue;
+            }
+            switch (normalizeGemId(forge.itemId())) {
+                case "emerald" -> speed += 5 * level;
+                case "aquamarine" -> critChance += 0.046f * level;
+                case "ruby" -> {
+                    minDamage += Math.max(1, (int) (baseStats.minDamage * 0.1f)) * level;
+                    maxDamage += Math.max(1, (int) (baseStats.maxDamage * 0.1f)) * level;
+                }
+                case "amethyst" -> knockback += level;
+                case "topaz" -> defense += level;
+                case "jade" -> bonusCritPower += 10.0f * level;
+                default -> {
+                }
+            }
+        }
+
+        for (WeaponForgeData.DragonToothBonus dragonToothBonus : WeaponForgeData.dragonToothBonuses(forgeState.dragonToothEnchantment())) {
+            switch (dragonToothBonus.kind()) {
+                case "attack" -> {
+                    minDamage += dragonToothBonus.level();
+                    maxDamage += dragonToothBonus.level();
+                }
+                case "defense" -> defense += dragonToothBonus.level();
+                case "speed" -> speed += dragonToothBonus.level();
+                case "crit" -> critChance += 0.02f * dragonToothBonus.level();
+                case "crit_power" -> bonusCritPower += 25.0f * dragonToothBonus.level();
+                case "lightweight" -> knockback = Math.max(0.0f, knockback - dragonToothBonus.level());
+                default -> {
+                }
+            }
+        }
+
+        return builder()
+            .weaponType(baseStats.weaponType)
+            .minDamage(minDamage)
+            .maxDamage(maxDamage)
+            .critChance(critChance)
+            .bonusCritChance(baseStats.bonusCritChance)
+            .bonusCritPower(bonusCritPower)
+            .speed(speed)
+            .defense(defense)
+            .precision(baseStats.precision)
+            .knockback(knockback)
+            .build();
+    }
+
+    private static String normalizeGemId(String itemId) {
+        if (itemId == null || itemId.isEmpty()) {
+            return "";
+        }
+        String normalized = itemId.toLowerCase(java.util.Locale.ROOT);
+        int colon = normalized.indexOf(':');
+        if (colon >= 0 && colon + 1 < normalized.length()) {
+            normalized = normalized.substring(colon + 1);
+        }
+        return switch (normalized) {
+            case "(o)60", "60" -> "emerald";
+            case "(o)62", "62" -> "aquamarine";
+            case "(o)64", "64" -> "ruby";
+            case "(o)66", "66" -> "amethyst";
+            case "(o)68", "68" -> "topaz";
+            case "(o)70", "70" -> "jade";
+            default -> normalized;
+        };
+    }
+
     /**
      * 将武器属性写入物品NBT
      */

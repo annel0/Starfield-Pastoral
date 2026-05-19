@@ -4,6 +4,7 @@ import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModTags;
 import com.stardew.craft.core.ModMiningDimensions;
+import com.stardew.craft.enchantment.StardewEnchantments;
 import com.stardew.craft.item.tool.StardewPickaxeItem;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.player.PlayerStardewDataAPI;
@@ -97,7 +98,7 @@ public final class MinePickaxeEvents {
 		}
 
 		ItemStack tool = player.getMainHandItem();
-		int stardewTier = getStardewPickaxeTier(tool);
+		int stardewTier = getEffectiveStardewPickaxeTier(tool);
 		int requiredTier = getRequiredTier(state);
 
 		// 非模组镐子：只能挖 tier 0 的石头和煤矿，不能挖铁矿及以上、宝石矿、矿物节点
@@ -170,7 +171,7 @@ public final class MinePickaxeEvents {
 
 		ItemStack tool = player.getMainHandItem();
 		int requiredTier = getRequiredTier(state);
-		int stardewTier = getStardewPickaxeTier(tool);
+		int stardewTier = getEffectiveStardewPickaxeTier(tool);
 
 		if (!isPickaxeLike(tool)) {
 			event.setCanceled(true); // 不是镐子，阻止破坏
@@ -319,7 +320,9 @@ public final class MinePickaxeEvents {
 		double chanceModifier = dailyLuck / 2.0 + miningLevel * 0.005 + luckLevel * 0.001;
 		int excavatorMultiplier = PlayerStardewDataAPI.hasProfession(player, ProfessionType.EXCAVATOR) ? 2 : 1;
 
-		double geodeChance = GEODE_BASE_CHANCE * (1.0 + chanceModifier) * excavatorMultiplier;
+		// SDV GameLocation.cs:14833 + MineShaft.cs:3671 — Dwarf Statue _4: geode 概率 ×1.25
+		double dwarfGeodeMultiplier = player.hasEffect(com.stardew.craft.effect.ModMobEffects.DWARF_STATUE_4) ? 1.25 : 1.0;
+		double geodeChance = GEODE_BASE_CHANCE * (1.0 + chanceModifier) * excavatorMultiplier * dwarfGeodeMultiplier;
 		if (level.getRandom().nextDouble() < geodeChance) {
 			Item geode = pickGeodeItemForFloor(floorNumber);
 			if (geode != null) {
@@ -328,7 +331,7 @@ public final class MinePickaxeEvents {
 		}
 
 		// 普通矿井 20 层以上仍可额外掉落万能晶洞
-		if (floorNumber >= 20 && level.getRandom().nextDouble() < OMNI_GEODE_EXTRA_CHANCE * (1.0 + chanceModifier) * excavatorMultiplier) {
+		if (floorNumber >= 20 && level.getRandom().nextDouble() < OMNI_GEODE_EXTRA_CHANCE * (1.0 + chanceModifier) * excavatorMultiplier * dwarfGeodeMultiplier) {
 			event.getDrops().add(makeDrop(level, pos, new ItemStack(ModItems.OMNI_GEODE.get(), 1)));
 		}
 
@@ -360,6 +363,9 @@ public final class MinePickaxeEvents {
 	 * 公式: cost = TIER_ENERGY_COSTS[tier] - miningLevel × 0.05, 下限 0.5
 	 */
 	private static void consumeMiningEnergy(ServerPlayer player, ServerLevel level) {
+		if (StardewEnchantments.has(player.getMainHandItem(), StardewEnchantments.EFFICIENT)) {
+			return;
+		}
 		int tier = getStardewPickaxeTier(player.getMainHandItem());
 		float baseCost = (tier >= 0 && tier < TIER_ENERGY_COSTS.length)
 				? TIER_ENERGY_COSTS[tier] : TIER_ENERGY_COSTS[0];
@@ -440,7 +446,9 @@ public final class MinePickaxeEvents {
 		if (r.nextDouble() < oreDropChance) {
 			// SDV: 在矿石掉落内，25% 概率额外掉煤炭；Prospector(Burrower) ×2
 			int burrowerMultiplier = PlayerStardewDataAPI.hasProfession(player, ProfessionType.PROSPECTOR) ? 2 : 1;
-			if (r.nextDouble() < 0.25 * burrowerMultiplier) {
+			// SDV MineShaft.cs:3698 — Dwarf Statue _2: 矿洞内额外 +0.10 coal chance
+			double dwarfCoalBonus = player.hasEffect(com.stardew.craft.effect.ModMobEffects.DWARF_STATUE_2) ? 0.10 : 0.0;
+			if (r.nextDouble() < 0.25 * burrowerMultiplier + dwarfCoalBonus) {
 				event.getDrops().add(makeDrop(level, pos, new ItemStack(ModItems.COAL.get(), 1)));
 			}
 		}
@@ -463,6 +471,10 @@ public final class MinePickaxeEvents {
 		// count = addedOres + r.Next(1, 4) + (rand < luckLevel/100 ? 1 : 0) + (rand < miningLevel/100 ? 1 : 0)
 		// (note: SV uses LuckLevel (buff) here, not DailyLuck)
 		int addedOres = PlayerStardewDataAPI.hasProfession(player, ProfessionType.MINER) ? 1 : 0;
+		// SDV GameLocation.cs:14861 — Dwarf Statue _0: 每个采矿点 +1 矿石
+		if (player.hasEffect(com.stardew.craft.effect.ModMobEffects.DWARF_STATUE_0)) {
+			addedOres++;
+		}
 		int luckLevel = PlayerStardewDataAPI.getLuckBuffLevel(player);
 		int miningLevel = PlayerStardewDataAPI.getSkillLevel(player, SkillType.MINING);
 
@@ -535,21 +547,23 @@ public final class MinePickaxeEvents {
 		RandomSource r = level.getRandom();
 
 		// 主晶洞
-		if (r.nextDouble() < GEODE_BASE_CHANCE * (1.0 + chanceMod) * excavatorMul) {
+		double dwarfGeodeMultiplier = player.hasEffect(com.stardew.craft.effect.ModMobEffects.DWARF_STATUE_4) ? 1.25 : 1.0;
+		if (r.nextDouble() < GEODE_BASE_CHANCE * (1.0 + chanceMod) * excavatorMul * dwarfGeodeMultiplier) {
 			Item geode = pickGeodeItemForFloor(floorNumber);
 			if (geode != null) {
 				net.minecraft.world.level.block.Block.popResource(level, pos, new ItemStack(geode, 1));
 			}
 		}
 		// 万能晶洞
-		if (floorNumber >= 20 && r.nextDouble() < OMNI_GEODE_EXTRA_CHANCE * (1.0 + chanceMod) * excavatorMul) {
+		if (floorNumber >= 20 && r.nextDouble() < OMNI_GEODE_EXTRA_CHANCE * (1.0 + chanceMod) * excavatorMul * dwarfGeodeMultiplier) {
 			net.minecraft.world.level.block.Block.popResource(level, pos, new ItemStack(ModItems.OMNI_GEODE.get(), 1));
 		}
 		// 5% 矿石额外掉落 → 25% 内出煤（Prospector x2）
 		double oreDropChance = 0.05 * (1.0 + (dailyLuck / 2.0 + miningLevel * 0.005 + luckBuff * 0.001));
 		if (r.nextDouble() < oreDropChance) {
 			int burrowerMul = PlayerStardewDataAPI.hasProfession(player, ProfessionType.PROSPECTOR) ? 2 : 1;
-			if (r.nextDouble() < 0.25 * burrowerMul) {
+			double dwarfCoalBonus = player.hasEffect(com.stardew.craft.effect.ModMobEffects.DWARF_STATUE_2) ? 0.10 : 0.0;
+			if (r.nextDouble() < 0.25 * burrowerMul + dwarfCoalBonus) {
 				net.minecraft.world.level.block.Block.popResource(level, pos, new ItemStack(ModItems.COAL.get(), 1));
 			}
 		}
@@ -608,6 +622,14 @@ public final class MinePickaxeEvents {
 			};
 		}
 		return -1;
+	}
+
+	private static int getEffectiveStardewPickaxeTier(ItemStack tool) {
+		int tier = getStardewPickaxeTier(tool);
+		if (tier >= 0 && StardewEnchantments.has(tool, StardewEnchantments.POWERFUL)) {
+			return Math.min(4, tier + 1);
+		}
+		return tier;
 	}
 
 	@SuppressWarnings("null")
@@ -678,6 +700,9 @@ public final class MinePickaxeEvents {
 
 	private static float computeDigSpeed(Player player, ItemStack tool, float baseToolSpeed) {
 		float speed = baseToolSpeed;
+		if (StardewEnchantments.has(tool, StardewEnchantments.POWERFUL)) {
+			speed *= 1.25F;
+		}
 
 		if (speed > 1.0F) {
 			int efficiency = getItemEnchantmentLevel(player, tool, Enchantments.EFFICIENCY);

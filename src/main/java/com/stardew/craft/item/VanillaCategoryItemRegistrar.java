@@ -59,7 +59,8 @@ public final class VanillaCategoryItemRegistrar {
         new Entry("pineapple", "stardewcraft.type.cooking_ingredient", 300, 55, true),
         new Entry("mango", "stardewcraft.type.fruit", 130, 40, true),
         new Entry("qi_fruit", "stardewcraft.type.crop", 1, 1, true),
-        new Entry("salmonberry", "stardewcraft.type.forage", 75, 10, true)
+        new Entry("salmonberry", "stardewcraft.type.forage", 75, 10, true),
+        new Entry("dragon_tooth", "stardewcraft.type.resource", 500, -300, false)
     );
 
     private VanillaCategoryItemRegistrar() {

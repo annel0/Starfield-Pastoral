@@ -231,6 +231,7 @@ public class StardewTimeManager extends SavedData {
 
                 // 对齐 Stardew 的日结算语义：先确定“今天”的天气，再结算昨夜生长。
                 com.stardew.craft.weather.WeatherManager.applyWeatherForNewDay(stardewLevel, currentDay);
+                com.stardew.craft.npc.runtime.NpcSpawnManager.resetScheduledNpcsForNewDay(stardewLevel);
                 // 确保所有室内区块（含温室）在日结算期间已加载，
                 // 否则 growDaily / waterDaily 会因 isLoaded(pos)==false 跳过温室作物。
                 com.stardew.craft.interior.InteriorSubspaceManager.setInteriorChunksForced(stardewLevel, true, "daily_settlement");
@@ -294,6 +295,7 @@ public class StardewTimeManager extends SavedData {
                 if (player.isCreative()) {
                     com.stardew.craft.player.PlayerStardewDataAPI.cureExhaustion(player);
                     com.stardew.craft.player.PlayerStardewDataAPI.restoreEnergy(player, com.stardew.craft.player.PlayerStardewDataAPI.getMaxEnergy(player));
+                    com.stardew.craft.mastery.MasteryBuffLifecycle.clearAllDailyMasteryBuffs(player);
                 } else {
                     com.stardew.craft.player.PlayerStardewDataAPI.sleep(player, timeWentToSleepMinutes);
                     // 战斗死亡次日体力压到2
@@ -321,6 +323,9 @@ public class StardewTimeManager extends SavedData {
 
                 // Quest: day started
                 com.stardew.craft.quest.StardewQuestEvents.fireDayStarted(player, absDay);
+
+                // 精通系统：5×Lv10 首次达成 → 早上推送 MasteryHint
+                com.stardew.craft.mastery.MasteryOnboardingService.checkOnMorning(player);
 
                 List<OvernightSettlementPayload.LevelUpData> overnightLevelUps = new ArrayList<>(settlementPayload.levelUps());
                 for (PlayerStardewData.SkillLevelUp levelUp : appliedLevelUps) {

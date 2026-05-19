@@ -40,6 +40,11 @@ public class FurnaceBlockEntity extends TimedProductionBlockEntity {
         super(ModBlockEntities.FURNACE.get(), pos, state);
     }
 
+    /** 子类（如 HeavyFurnaceBlockEntity）使用，避免硬编码到 FURNACE 类型。 */
+    protected FurnaceBlockEntity(net.minecraft.world.level.block.entity.BlockEntityType<?> type, BlockPos pos, BlockState state) {
+        super(type, pos, state);
+    }
+
     @Override
     public net.neoforged.neoforge.items.IItemHandler getAutomationItemHandler() {
         return super.getAutomationItemHandler();
@@ -165,7 +170,7 @@ public class FurnaceBlockEntity extends TimedProductionBlockEntity {
         return InsertResult.success();
     }
 
-    private void startWork(ItemStack inputStack, ItemStack output, int minutesUntilReady, int inputCount, Player player) {
+    protected void startWork(ItemStack inputStack, ItemStack output, int minutesUntilReady, int inputCount, Player player) {
         input = inputStack.copy();
         input.setCount(Math.min(inputCount, input.getMaxStackSize()));
         product = output;
@@ -278,7 +283,7 @@ public class FurnaceBlockEntity extends TimedProductionBlockEntity {
         }
     }
 
-    private static boolean consumeCoal(Player player) {
+    protected static boolean consumeCoal(Player player) {
         if (player == null) {
             return false;
         }
@@ -298,7 +303,7 @@ public class FurnaceBlockEntity extends TimedProductionBlockEntity {
         return false;
     }
 
-    private static boolean hasCoal(Player player) {
+    protected static boolean hasCoal(Player player) {
         if (player == null) {
             return false;
         }

@@ -345,6 +345,9 @@ public class FarmAreaProtectionEvents {
             || mob instanceof CamelMerchantEntity || mob instanceof TravelingCartEntity) {
             return;
         }
+        if (mob.getPersistentData().getBoolean("StardewTrinketParrot")) {
+            return;
+        }
         if (!isProtectedNonFarmArea(level, mob.blockPosition())) {
             return;
         }

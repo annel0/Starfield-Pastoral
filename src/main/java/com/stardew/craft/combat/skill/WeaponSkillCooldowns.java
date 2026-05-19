@@ -1,5 +1,6 @@
 package com.stardew.craft.combat.skill;
 
+import com.stardew.craft.enchantment.StardewEnchantments;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -57,6 +58,9 @@ public final class WeaponSkillCooldowns {
     private static int applyProfessionModifiers(Player player, int durationTicks) {
         if (durationTicks <= 0) {
             return durationTicks;
+        }
+        if (StardewEnchantments.has(player.getMainHandItem(), StardewEnchantments.ARTFUL)) {
+            durationTicks = Math.max(1, durationTicks / 2);
         }
         if (player instanceof ServerPlayer serverPlayer && PlayerStardewDataAPI.hasProfession(serverPlayer, ProfessionType.ACROBAT)) {
             return Math.max(1, durationTicks / 2);

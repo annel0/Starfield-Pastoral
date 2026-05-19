@@ -343,6 +343,7 @@ public final class PassOutService {
     private static void advanceDayAfterPassOut(ServerPlayer player, String reason) {
         var server = player.server;
         var stardewLevel = server.getLevel(ModDimensions.STARDEW_VALLEY);
+        com.stardew.craft.mastery.MasteryBuffLifecycle.clearAllDailyMasteryBuffs(player);
         if (stardewLevel == null) {
             teleportToFarmSpawn(player);
             return;

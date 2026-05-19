@@ -1,6 +1,7 @@
 package com.stardew.craft.compat;
 
 import com.stardew.craft.combat.equipment.EquipmentStats;
+import com.stardew.craft.item.equipment.CombinedRingItem;
 import com.stardew.craft.item.equipment.StardewBootsItem;
 import com.stardew.craft.item.equipment.StardewRingItem;
 import net.minecraft.server.level.ServerPlayer;
@@ -20,11 +21,15 @@ public final class CuriosEquipmentReader {
     public static void mergeFromCurios(ServerPlayer player, EquipmentStats.Builder builder) {
         CuriosApi.getCuriosInventory(player).ifPresent(handler -> {
             handler.findCurios(stack ->
-                    stack.getItem() instanceof StardewRingItem || stack.getItem() instanceof StardewBootsItem
+                    stack.getItem() instanceof StardewRingItem
+                            || stack.getItem() instanceof CombinedRingItem
+                            || stack.getItem() instanceof StardewBootsItem
             ).forEach(slotResult -> {
                 ItemStack stack = slotResult.stack();
                 if (stack.getItem() instanceof StardewRingItem ring) {
                     builder.merge(ring.getEquipmentStats());
+                } else if (stack.getItem() instanceof CombinedRingItem ring) {
+                    builder.merge(ring.getEquipmentStats(stack));
                 } else if (stack.getItem() instanceof StardewBootsItem boots) {
                     builder.merge(boots.getEquipmentStats());
                 }

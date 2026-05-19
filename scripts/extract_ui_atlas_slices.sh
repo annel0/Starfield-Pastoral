@@ -10,6 +10,7 @@ atlas_path() {
         cursors) printf '%s\n' "$GUI_DIR/cursors.png" ;;
         mouse_cursors2) printf '%s\n' "$GUI_DIR/mouse_cursors2.png" ;;
         cursors_1_6) printf '%s\n' "$GUI_DIR/cursors_1_6.png" ;;
+        forge_menu) printf '%s\n' "$GUI_DIR/forge/forge_menu.png" ;;
         menu_tiles) printf '%s\n' "$GUI_DIR/animal_query/menu_tiles.png" ;;
         billboard) printf '%s\n' "$GUI_DIR/billboard.png" ;;
         *)
@@ -49,12 +50,7 @@ while IFS=, read -r output atlas u v w h || [[ -n "${output:-}" ]]; do
     dest_png="$GUI_DIR/$output.png"
     mkdir -p "$(dirname "$dest_png")"
 
-    if [[ "$output" == "animal_query/menu_tile_0" ]]; then
-        crop_atlas_slice "$source_png" "$dest_png" 0 192 64 64
-        sips --flip horizontal "$dest_png" --out "$dest_png" >/dev/null
-    else
-        crop_atlas_slice "$source_png" "$dest_png" "$u" "$v" "$w" "$h"
-    fi
+    crop_atlas_slice "$source_png" "$dest_png" "$u" "$v" "$w" "$h"
 
     printf 'wrote %s (%sx%s from %s:%s,%s)\n' "$dest_png" "$w" "$h" "$atlas" "$u" "$v"
 done < "$MANIFEST"

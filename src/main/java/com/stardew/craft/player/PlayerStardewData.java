@@ -4,9 +4,11 @@ import com.stardew.craft.deco.DecorationStyleRegistry;
 import com.stardew.craft.deco.DecorationType;
 import com.stardew.craft.leaderboard.LeaderboardMetric;
 import com.stardew.craft.leaderboard.LeaderboardPeriod;
+import com.stardew.craft.mastery.MasteryProgress;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -41,9 +43,11 @@ public class PlayerStardewData {
     
     private float energy;            // 当前能量值（精力值）
     private int maxEnergy;           // 最大能量值（基础270）
+    private int stardropsConsumed;    // 已食用星之果实数量
     private boolean exhausted;       // 是否处于疲惫状态
     
     private int money;               // 金币数量
+    private long totalMoneyEarned;    // SDV totalMoneyEarned：累计赚到的金币（不随花费减少）
     
     // ============ 技能系统 ============
     // 技能等级（0-10级）
@@ -58,6 +62,19 @@ public class PlayerStardewData {
 
     // SDV parity: newLevels — 白天获得的等级提升列表，睡觉时消费（用于升级动画 + 职业选择）
     private final List<SkillLevelUp> pendingNewLevels = new ArrayList<>();
+
+    // ============ 精通系统 (Mastery) ============
+    // SDV parity: StatKeys.MasteryExp / MasteryLevelsSpent / Mastery(skill)
+    private long masteryExp;                       // 累积精通经验（满级 100k）
+    private int masteryLevelsSpent;                // 已花掉的精通等级数
+    private final boolean[] claimedMasteryRewards = new boolean[5]; // 各技能 pedestal 奖励是否已领（0-4）
+    private boolean gotMasteryHint;                // 是否已收到 mastery_hint 邮件
+    private boolean visitedMasteryCave;            // 是否首次进入过山洞（cutscene 标记）
+    private int unlockedTrinketSlots;              // Mastery4 领奖后置 1
+    private boolean blessedByStatueToday;          // 今天右键过 Statue of Blessings 拿过 buff（早晨清零）
+    private int blessingOfWatersRemaining;         // statue_of_blessings_3: 今天剩余的水域祝福次数
+    /** 客户端动画用：每次升级 push 一次，UI 消费后清掉。 */
+    private final List<Integer> pendingMasteryLevelUps = new ArrayList<>();
     
     // ============ 其他数据 ============
     private long lastSyncTime;       // 最后一次同步时间
@@ -191,6 +208,7 @@ public class PlayerStardewData {
     private String equippedLeftRing = "";
     private String equippedRightRing = "";
     private String equippedBoots = "";
+    private net.minecraft.world.item.ItemStack equippedTrinket = net.minecraft.world.item.ItemStack.EMPTY;
     private long lastPhoenixReviveDay = -1;  // 凤凰戒指：上次复活的游戏日（每天只能复活一次）
 
     // ============ 工具升级（铁匠铺） ============
@@ -229,8 +247,10 @@ public class PlayerStardewData {
         this.maxHealth = 100;
         this.energy = 270f;
         this.maxEnergy = 270;
+        this.stardropsConsumed = 0;
         this.exhausted = false;
         this.money = 500;  // 初始金币
+        this.totalMoneyEarned = 500L;
         this.lastSyncTime = System.currentTimeMillis();
         this.dirty = false;
 
@@ -272,8 +292,14 @@ public class PlayerStardewData {
         data.maxHealth = tag.contains("MaxHealth") ? tag.getInt("MaxHealth") : 100;
         data.energy = tag.contains("Energy") ? tag.getFloat("Energy") : 270f;
         data.maxEnergy = tag.contains("MaxEnergy") ? tag.getInt("MaxEnergy") : 270;
+        data.stardropsConsumed = tag.contains("StardropsConsumed")
+            ? Math.max(0, Math.min(7, tag.getInt("StardropsConsumed")))
+            : Math.max(0, Math.min(7, (data.maxEnergy - 270) / 34));
         data.exhausted = tag.getBoolean("Exhausted");
         data.money = tag.contains("Money") ? tag.getInt("Money") : 500;
+        data.totalMoneyEarned = tag.contains("TotalMoneyEarned")
+            ? Math.max(0L, tag.getLong("TotalMoneyEarned"))
+            : Math.max(data.money, data.totalShippingGold);
         data.lastKnownName = tag.contains("LastKnownName") ? tag.getString("LastKnownName") : "";
 
         // 晕倒/死亡系统
@@ -342,6 +368,26 @@ public class PlayerStardewData {
         
         // 元数据
         data.lastSyncTime = tag.getLong("LastSyncTime");
+
+        // 精通系统
+        data.masteryExp = tag.contains("MasteryExp") ? tag.getLong("MasteryExp") : 0L;
+        data.masteryLevelsSpent = tag.contains("MasteryLevelsSpent") ? tag.getInt("MasteryLevelsSpent") : 0;
+        if (tag.contains("ClaimedMasteryRewards")) {
+            byte[] bits = tag.getByteArray("ClaimedMasteryRewards");
+            for (int i = 0; i < Math.min(bits.length, 5); i++) {
+                data.claimedMasteryRewards[i] = bits[i] != 0;
+            }
+        }
+        data.gotMasteryHint = tag.getBoolean("GotMasteryHint");
+        data.visitedMasteryCave = tag.getBoolean("VisitedMasteryCave");
+        data.unlockedTrinketSlots = tag.contains("UnlockedTrinketSlots") ? tag.getInt("UnlockedTrinketSlots") : 0;
+        data.blessedByStatueToday = tag.getBoolean("BlessedByStatueToday");
+        data.blessingOfWatersRemaining = tag.contains("BlessingOfWatersRemaining") ? Math.max(0, tag.getInt("BlessingOfWatersRemaining")) : 0;
+        data.pendingMasteryLevelUps.clear();
+        if (tag.contains("PendingMasteryLevelUps")) {
+            int[] mlu = tag.getIntArray("PendingMasteryLevelUps");
+            for (int lvl : mlu) data.pendingMasteryLevelUps.add(lvl);
+        }
 
         // 运气
         data.dailyLuck = tag.contains("DailyLuck") ? tag.getDouble("DailyLuck") : 0.0;
@@ -453,6 +499,9 @@ public class PlayerStardewData {
         }
 
         data.totalShippingGold = tag.contains("TotalShippingGold") ? Math.max(0L, tag.getLong("TotalShippingGold")) : 0L;
+        if (!tag.contains("TotalMoneyEarned")) {
+            data.totalMoneyEarned = Math.max(data.totalMoneyEarned, data.totalShippingGold);
+        }
 
         data.activeSpecialOrderRules.clear();
         if (tag.contains("ActiveSpecialOrderRules")) {
@@ -550,6 +599,9 @@ public class PlayerStardewData {
         data.equippedLeftRing = tag.contains("EquippedLeftRing") ? tag.getString("EquippedLeftRing") : "";
         data.equippedRightRing = tag.contains("EquippedRightRing") ? tag.getString("EquippedRightRing") : "";
         data.equippedBoots = tag.contains("EquippedBoots") ? tag.getString("EquippedBoots") : "";
+        data.equippedTrinket = tag.contains("EquippedTrinket", Tag.TAG_COMPOUND)
+            ? com.stardew.craft.item.trinket.StardewTrinketItem.loadStackFromTag(tag.getCompound("EquippedTrinket"))
+            : net.minecraft.world.item.ItemStack.EMPTY;
         data.lastPhoenixReviveDay = tag.contains("LastPhoenixReviveDay") ? tag.getLong("LastPhoenixReviveDay") : -1;
 
         data.toolBeingUpgraded = tag.contains("ToolBeingUpgraded") ? tag.getString("ToolBeingUpgraded") : "";
@@ -644,8 +696,10 @@ public class PlayerStardewData {
         tag.putInt("MaxHealth", maxHealth);
         tag.putFloat("Energy", energy);
         tag.putInt("MaxEnergy", maxEnergy);
+        tag.putInt("StardropsConsumed", stardropsConsumed);
         tag.putBoolean("Exhausted", exhausted);
         tag.putInt("Money", money);
+        tag.putLong("TotalMoneyEarned", totalMoneyEarned);
         tag.putString("LastKnownName", lastKnownName == null ? "" : lastKnownName);
 
         // 晕倒/死亡系统
@@ -692,6 +746,23 @@ public class PlayerStardewData {
         
         // 元数据
         tag.putLong("LastSyncTime", lastSyncTime);
+
+        // 精通系统
+        tag.putLong("MasteryExp", masteryExp);
+        tag.putInt("MasteryLevelsSpent", masteryLevelsSpent);
+        byte[] claimedBits = new byte[5];
+        for (int i = 0; i < 5; i++) claimedBits[i] = (byte) (claimedMasteryRewards[i] ? 1 : 0);
+        tag.putByteArray("ClaimedMasteryRewards", claimedBits);
+        tag.putBoolean("GotMasteryHint", gotMasteryHint);
+        tag.putBoolean("VisitedMasteryCave", visitedMasteryCave);
+        tag.putInt("UnlockedTrinketSlots", unlockedTrinketSlots);
+        tag.putBoolean("BlessedByStatueToday", blessedByStatueToday);
+        tag.putInt("BlessingOfWatersRemaining", blessingOfWatersRemaining);
+        if (!pendingMasteryLevelUps.isEmpty()) {
+            int[] mlu = new int[pendingMasteryLevelUps.size()];
+            for (int i = 0; i < mlu.length; i++) mlu[i] = pendingMasteryLevelUps.get(i);
+            tag.putIntArray("PendingMasteryLevelUps", mlu);
+        }
 
         // 运气
         tag.putDouble("DailyLuck", dailyLuck);
@@ -879,6 +950,7 @@ public class PlayerStardewData {
         if (!equippedLeftRing.isEmpty()) tag.putString("EquippedLeftRing", equippedLeftRing);
         if (!equippedRightRing.isEmpty()) tag.putString("EquippedRightRing", equippedRightRing);
         if (!equippedBoots.isEmpty()) tag.putString("EquippedBoots", equippedBoots);
+        if (!equippedTrinket.isEmpty()) tag.put("EquippedTrinket", com.stardew.craft.item.trinket.StardewTrinketItem.saveStackToTag(equippedTrinket));
         if (lastPhoenixReviveDay >= 0) tag.putLong("LastPhoenixReviveDay", lastPhoenixReviveDay);
 
         // 工具升级
@@ -922,6 +994,12 @@ public class PlayerStardewData {
         int skillId = skill.getId();
         int oldLevel = skillLevels[skillId];
 
+        // SDV parity (Farmer.cs:3041): original checks Farmer.Level >= 25 before converting
+        // skill exp to mastery exp. This mod has the five visible skills, so that maps to 5x Lv10.
+        if (hasAllSkillsMaxed()) {
+            addMasteryExp(MasteryProgress.masteryExpFromSkillGain(skillId, amount));
+        }
+
         experiencePoints[skillId] += amount;
         addLeaderboardPeriodValue(skillMetricId(skill), amount);
         int newLevel = Math.min(10, calculateLevel(experiencePoints[skillId]));
@@ -944,6 +1022,103 @@ public class PlayerStardewData {
 
     public int getLevelByExperience(SkillType skill) {
         return calculateLevel(experiencePoints[skill.getId()]);
+    }
+
+    // ============ Mastery API ============
+
+    public long getMasteryExp() { return masteryExp; }
+
+    public int getMasteryLevel() { return MasteryProgress.currentLevel(masteryExp); }
+
+    public int getMasteryLevelsSpent() { return masteryLevelsSpent; }
+
+    public int getUnspentMasteryLevels() {
+        return MasteryProgress.unspentLevels(masteryExp, masteryLevelsSpent);
+    }
+
+    public boolean hasAllSkillsMaxed() {
+        for (SkillType skill : SkillType.values()) {
+            if (getRawSkillLevel(skill) < 10) return false;
+        }
+        return true;
+    }
+
+    public int getMaxedSkillCount() {
+        int count = 0;
+        for (SkillType skill : SkillType.values()) {
+            if (getRawSkillLevel(skill) >= 10) count++;
+        }
+        return count;
+    }
+
+    public boolean hasClaimedMasteryReward(SkillType skill) {
+        return claimedMasteryRewards[skill.getId()];
+    }
+
+    /** Mastery2 != 0 / Mastery1 != 0 等行为判定 — SDV stats.Get(StatKeys.Mastery(skill)) != 0。 */
+    public boolean hasMastery(SkillType skill) {
+        return claimedMasteryRewards[skill.getId()];
+    }
+
+    public boolean isGotMasteryHint() { return gotMasteryHint; }
+    public void setGotMasteryHint(boolean v) { gotMasteryHint = v; markDirty(); }
+
+    public boolean hasVisitedMasteryCave() { return visitedMasteryCave; }
+    public void setVisitedMasteryCave(boolean v) { visitedMasteryCave = v; markDirty(); }
+
+    public int getUnlockedTrinketSlots() { return unlockedTrinketSlots; }
+
+    public boolean isBlessedByStatueToday() { return blessedByStatueToday; }
+    public void setBlessedByStatueToday(boolean v) { blessedByStatueToday = v; markDirty(); }
+
+    public int getBlessingOfWatersRemaining() { return Math.max(0, blessingOfWatersRemaining); }
+    public void setBlessingOfWatersRemaining(int value) { blessingOfWatersRemaining = Math.max(0, value); markDirty(); }
+    public int consumeBlessingOfWatersUse() {
+        if (blessingOfWatersRemaining <= 0) return 0;
+        blessingOfWatersRemaining--;
+        markDirty();
+        return blessingOfWatersRemaining;
+    }
+
+    public List<Integer> drainPendingMasteryLevelUps() {
+        if (pendingMasteryLevelUps.isEmpty()) return Collections.emptyList();
+        List<Integer> out = new ArrayList<>(pendingMasteryLevelUps);
+        pendingMasteryLevelUps.clear();
+        markDirty();
+        return out;
+    }
+
+    /** 累计 mastery exp，并在跨越阈值时推入 pendingMasteryLevelUps（供客户端 UI 提示）。 */
+    public void addMasteryExp(long amount) {
+        if (amount <= 0) return;
+        int oldLevel = MasteryProgress.currentLevel(masteryExp);
+        masteryExp += amount;
+        int newLevel = MasteryProgress.currentLevel(masteryExp);
+        for (int lvl = oldLevel + 1; lvl <= newLevel; lvl++) {
+            pendingMasteryLevelUps.add(lvl);
+        }
+        markDirty();
+    }
+
+    /** 服务端发奖路径调用：标记技能 pedestal 已领 + 自增 spent。Combat 额外解锁饰品槽。 */
+    public boolean claimMasteryReward(SkillType skill) {
+        if (claimedMasteryRewards[skill.getId()]) return false;
+        if (getUnspentMasteryLevels() <= 0) return false;
+        claimedMasteryRewards[skill.getId()] = true;
+        masteryLevelsSpent++;
+        if (skill == SkillType.COMBAT) {
+            unlockedTrinketSlots = Math.max(unlockedTrinketSlots, 1);
+        }
+        markDirty();
+        return true;
+    }
+
+    /** 全部 5 个奖励都已领取，用于触发完成 cutscene。 */
+    public boolean hasClaimedAllMasteryRewards() {
+        for (boolean b : claimedMasteryRewards) {
+            if (!b) return false;
+        }
+        return true;
     }
 
     /**
@@ -1247,6 +1422,10 @@ public class PlayerStardewData {
         // 我们的 sleepTime 使用“分钟(0..1560)”表示（6:00=360，2:00=1560），
         // 这里转换成 SV 的 clock 格式（例如 6:00 -> 600，2:00 -> 2600）。
 
+        // 每日重置：Statue of Blessings 祝福标记
+        blessedByStatueToday = false;
+        blessingOfWatersRemaining = 0;
+
         float oldEnergy = energy;
 
         int hour = sleepTime / 60;
@@ -1286,6 +1465,7 @@ public class PlayerStardewData {
     public void addMoney(int amount) {
         if (amount > 0) {
             money += amount;
+            totalMoneyEarned = Math.max(0L, totalMoneyEarned + amount);
             markDirty();
         }
     }
@@ -1345,6 +1525,19 @@ public class PlayerStardewData {
         this.energy = Math.min(this.energy, getEffectiveMaxEnergy());
         markDirty();
     }
+
+    public int getStardropsConsumed() { return stardropsConsumed; }
+    public boolean canConsumeStardrop(int maxConsumed) { return stardropsConsumed < maxConsumed; }
+    public boolean consumeStardrop(int energyGain, int maxConsumed) {
+        if (!canConsumeStardrop(maxConsumed)) {
+            return false;
+        }
+        stardropsConsumed++;
+        maxEnergy = Math.max(270, maxEnergy + Math.max(0, energyGain));
+        energy = getEffectiveMaxEnergy();
+        markDirty();
+        return true;
+    }
     
     public boolean isExhausted() { return exhausted; }
     
@@ -1353,6 +1546,8 @@ public class PlayerStardewData {
         this.money = Math.max(0, money);
         markDirty();
     }
+
+    public long getTotalMoneyEarned() { return totalMoneyEarned; }
 
     public String getLastKnownName() { return lastKnownName == null ? "" : lastKnownName; }
 
@@ -1908,6 +2103,11 @@ public class PlayerStardewData {
     public void setEquippedRightRing(String id) { this.equippedRightRing = id != null ? id : ""; markDirty(); }
     public String getEquippedBoots() { return equippedBoots; }
     public void setEquippedBoots(String id) { this.equippedBoots = id != null ? id : ""; markDirty(); }
+    public net.minecraft.world.item.ItemStack getEquippedTrinket() { return equippedTrinket.copy(); }
+    public void setEquippedTrinket(net.minecraft.world.item.ItemStack stack) {
+        this.equippedTrinket = stack == null ? net.minecraft.world.item.ItemStack.EMPTY : stack.copyWithCount(1);
+        markDirty();
+    }
     public long getLastPhoenixReviveDay() { return lastPhoenixReviveDay; }
     public void setLastPhoenixReviveDay(long day) { this.lastPhoenixReviveDay = day; markDirty(); }
 

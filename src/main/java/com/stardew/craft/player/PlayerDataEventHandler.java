@@ -136,6 +136,9 @@ public class PlayerDataEventHandler {
                 // 矿车站点 + 矿井铁轨（老存档升级兼容）
                 com.stardew.craft.minecart.MinecartStationManager.get(player.serverLevel())
                         .ensurePlaced(player.server);
+                // 精通山洞站点（门/讲台/蜡烛/展示实体/interaction）（老存档升级兼容）
+                com.stardew.craft.mastery.MasterySiteInstaller.get(player.serverLevel())
+                        .ensurePlaced(player.serverLevel());
             }
 
             // 多人农场：离线追赶——批量推进离线期间的作物/树苗生长
@@ -246,6 +249,9 @@ public class PlayerDataEventHandler {
 
             // Clean up all combat tracker static maps (prevents memory leak)
             com.stardew.craft.combat.CombatTrackerCleanup.onPlayerLogout(player.getUUID());
+
+            // Clean up active trinket companions/state.
+            com.stardew.craft.item.trinket.TrinketEffectHandler.onPlayerLogout(player);
 
             // Clean up tree chopping state
             com.stardew.craft.event.WildTreeChopEvents.removePlayer(player.getUUID());
@@ -361,6 +367,11 @@ public class PlayerDataEventHandler {
             return;
         }
 
+        if (com.stardew.craft.item.trinket.TrinketEffectHandler.cancelBasiliskDamage(player, event.getSource())) {
+            event.setAmount(0.0f);
+            return;
+        }
+
         @SuppressWarnings("null")
         MobEffectInstance shelter = player.getEffect(ModMobEffects.SHELTER);
         if (shelter != null) {
@@ -369,6 +380,8 @@ public class PlayerDataEventHandler {
 
         if (player.level().dimension() != ModDimensions.STARDEW_VALLEY
             && player.level().dimension() != ModMiningDimensions.STARDEW_MINING) {
+            com.stardew.craft.item.trinket.TrinketEffectHandler.onReceiveDamage(player,
+                    Math.max(1, (int) Math.ceil(amount * com.stardew.craft.combat.DimensionDamageMapper.getHealthRatio())));
             event.setAmount(amount);
             return;
         }
@@ -459,6 +472,7 @@ public class PlayerDataEventHandler {
         if (sdDamage < 1) {
             sdDamage = 1;
         }
+        com.stardew.craft.item.trinket.TrinketEffectHandler.onReceiveDamage(player, sdDamage);
 
         long nowTick = player.level().getGameTime();
 
@@ -527,6 +541,10 @@ public class PlayerDataEventHandler {
             updateAfkTracking(player);
         }
 
+        if (!player.isCreative() && !player.isSpectator() && player.isInvulnerable()) {
+            player.setInvulnerable(false);
+        }
+
         // Buff同步/过期驱动（不依赖维度）：
         // - MobEffect 负责 UI/持续时间（也支持 /effect 指令）
         // - PlayerStardewData 负责把加成落到星露谷数值体系里
@@ -557,9 +575,14 @@ public class PlayerDataEventHandler {
 
             @SuppressWarnings("null")
             MobEffectInstance spirit = player.getEffect(ModMobEffects.SPIRIT_BLESSING);
-            if (spirit != null) {
-                int bonus = ModMobEffects.spiritLuckLevelBonus(spirit.getAmplifier());
-                long endTick = now + spirit.getDuration();
+            @SuppressWarnings("null")
+            MobEffectInstance statueLuck = player.getEffect(ModMobEffects.STATUE_OF_BLESSINGS_1);
+            if (spirit != null || statueLuck != null) {
+                int bonus = (spirit != null ? ModMobEffects.spiritLuckLevelBonus(spirit.getAmplifier()) : 0)
+                          + (statueLuck != null ? 1 : 0); // SDV Buffs.json: LuckLevel=1.0
+                long endTick = now + Math.max(
+                    spirit != null ? spirit.getDuration() : 0L,
+                    statueLuck != null ? statueLuck.getDuration() : 0L);
                 changed |= data.setTempLuckBonusDirect(bonus, endTick);
             } else {
                 changed |= data.clearTempLuckBonus();
@@ -638,6 +661,8 @@ public class PlayerDataEventHandler {
 
         // 森林赐福：持续治疗
         long gameTime = player.level().getGameTime();
+        com.stardew.craft.item.trinket.TrinketEffectHandler.tick(player);
+        com.stardew.craft.mastery.PrismaticButterflyService.tickPlayer(player);
         com.stardew.craft.combat.skill.ForestBlessingTracker.tick(player, gameTime);
         // 钢脊之怒：姿态过期转为弱势命中
         com.stardew.craft.combat.skill.SteelSpineFuryState.tick(player, gameTime);
@@ -802,12 +827,15 @@ public class PlayerDataEventHandler {
         } else {
             packet.data().remove("FarmOwnerUUID");
         }
+        com.stardew.craft.mining.MiningPlayerData miningData = com.stardew.craft.mining.MiningDataManager.getPlayerData(player);
+        packet.data().putInt("MaxMineFloorReached", miningData != null ? miningData.getMaxFloorReached() : 0);
         PacketDistributor.sendToPlayer(player, packet);
         // sync equipment slots
         PacketDistributor.sendToPlayer(player, new com.stardew.craft.network.payload.EquipmentSyncPayload(
                 data.getEquippedLeftRing(),
                 data.getEquippedRightRing(),
-                data.getEquippedBoots()
+            data.getEquippedBoots(),
+            data.getEquippedTrinket()
         ));
     }
 

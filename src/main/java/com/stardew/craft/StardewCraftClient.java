@@ -332,7 +332,9 @@ public class StardewCraftClient {
                 ModBlocks.STANDING_HOE.get(),
                 ModBlocks.EMPTY_TERRACOTTA_POT.get(),
                 ModBlocks.RESERVOIR.get(),
-                ModBlocks.LONG_POTTED_PLANT.get()
+                ModBlocks.LONG_POTTED_PLANT.get(),
+                ModBlocks.STATUE_OF_BLESSINGS.get(),
+                ModBlocks.STATUE_OF_DWARF_KING.get()
             ));
 
             ModRenderLayers.registerCutoutMipped(List.of(

@@ -1,8 +1,10 @@
 package com.stardew.craft.item.tool;
 
 import com.stardew.craft.communitycenter.reward.panning.OrePanPointManager;
+import com.stardew.craft.enchantment.StardewEnchantments;
 import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.item.ModItems;
+import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.PlayerStardewDataAPI;
 import com.stardew.craft.player.SkillType;
 import net.minecraft.ChatFormatting;
@@ -82,6 +84,9 @@ public class PanItem extends Item implements IStardewItem {
     @Override public String getItemTypeKey() { return "stardewcraft.type.tool"; }
     @Override public int getSellPrice(ItemStack stack) { return -1; }
 
+    @Override public boolean isEnchantable(@javax.annotation.Nonnull ItemStack stack) { return stack.getMaxStackSize() == 1; }
+    @Override public int getEnchantmentValue() { return Math.max(1, tier.upgradeLevel() * 5); }
+
     /**
      * Use duration in ticks — 40 ticks (2 seconds) for all tiers, roughly
      * matching SDV's {@code FarmerSprite.animateOnce(303, 50f, 4)} panning
@@ -101,7 +106,8 @@ public class PanItem extends Item implements IStardewItem {
         ItemStack held = player.getItemInHand(hand);
 
         // Do full validation on BOTH sides so client gets correct "swing vs no-swing" feedback.
-        BlockHitResult hit = raycastWater(player, REACH_TILES + 1);
+        double reachTiles = getReachTiles(held);
+        BlockHitResult hit = raycastWater(player, reachTiles + 1);
         if (hit == null || hit.getType() != HitResult.Type.BLOCK) {
             return InteractionResultHolder.pass(held);
         }
@@ -131,7 +137,7 @@ public class PanItem extends Item implements IStardewItem {
 
         double dx = Math.abs(waterPos.getX() + 0.5 - (activePoint.getX() + 0.5));
         double dz = Math.abs(waterPos.getZ() + 0.5 - (activePoint.getZ() + 0.5));
-        if (dx > REACH_TILES || dz > REACH_TILES) {
+        if (dx > reachTiles || dz > reachTiles) {
             sp.sendSystemMessage(Component.translatable("stardewcraft.copper_pan.too_far"));
             return InteractionResultHolder.fail(held);
         }
@@ -173,7 +179,7 @@ public class PanItem extends Item implements IStardewItem {
         BlockPos activePoint = mgr.getPoint(sp.getUUID(), sl);
         if (activePoint == null) return stack; // point moved/cleared during use — no-op
 
-        performPan(sp, sl, activePoint, mgr, getUpgradeLevel());
+        performPan(sp, sl, activePoint, mgr, stack, getUpgradeLevel());
         return stack;
     }
 
@@ -189,11 +195,11 @@ public class PanItem extends Item implements IStardewItem {
 
     /** Main pan action — roll loot, give items, clear point, grant XP. */
     private static void performPan(ServerPlayer player, ServerLevel level, BlockPos point,
-                                    OrePanPointManager mgr, int upgradeLevel) {
+                                    OrePanPointManager mgr, ItemStack pan, int upgradeLevel) {
         int timesPanned = mgr.incrementTimesPanned(player.getUUID());
 
         int daysPlayed = totalDaysPlayed(level);
-        List<ItemStack> loot = rollLoot(point, daysPlayed, player, timesPanned, upgradeLevel);
+        List<ItemStack> loot = rollLoot(point, daysPlayed, player, timesPanned, upgradeLevel, pan);
 
         // ── 物品发放：生成物品实体从淘金点弹向玩家，拾取时触发 HUD ──
         for (ItemStack stack : loot) {
@@ -256,6 +262,10 @@ public class PanItem extends Item implements IStardewItem {
     // ──────────────── Loot logic — SDV Pan.getPanItems (upgradeLevel-aware) ────────────────
 
     public static List<ItemStack> rollLoot(BlockPos point, int daysPlayed, ServerPlayer who, int timesPanned, int upgradeLevel) {
+        return rollLoot(point, daysPlayed, who, timesPanned, upgradeLevel, ItemStack.EMPTY);
+    }
+
+    public static List<ItemStack> rollLoot(BlockPos point, int daysPlayed, ServerPlayer who, int timesPanned, int upgradeLevel, ItemStack pan) {
         List<ItemStack> items = new ArrayList<>();
         long seed = hashSeed(point.getX(), point.getZ() * 1000L, daysPlayed, (long) timesPanned * 77L);
         Random r = new Random(seed);
@@ -274,7 +284,8 @@ public class PanItem extends Item implements IStardewItem {
         } else if (roll < 0.6) {
             whichOre = ModItems.IRON_ORE.get();
         }
-        if (whichOre != ModItems.IRIDIUM_ORE.get() && r.nextDouble() < 0.10) {
+        double boneChance = StardewEnchantments.has(pan, StardewEnchantments.ARCHAEOLOGIST) ? 0.20 : 0.10;
+        if (whichOre != ModItems.IRIDIUM_ORE.get() && r.nextDouble() < boneChance) {
             whichOre = ModItems.BONE_FRAGMENT.get();
         }
 
@@ -283,7 +294,7 @@ public class PanItem extends Item implements IStardewItem {
         orePieces += (L - 1);  // SDV: orePieces += upgradeLevel - 1
 
         // Extra item roll loop — SDV: numRolls = upgradeLevel; extraChance = (L-1)*0.04
-        int numRolls = L;
+        int numRolls = L + (StardewEnchantments.has(pan, StardewEnchantments.GENEROUS) ? 2 : 0);
         double extraChance = (L - 1) * 0.04;
 
         while (r.nextDouble() - dailyLuck < 0.4 + luckLevel * 0.04 + extraChance && numRolls > 0) {
@@ -312,20 +323,27 @@ public class PanItem extends Item implements IStardewItem {
                 extraCount = 1;
             }
 
-            // SDV mystery box 5% — golden variant on Mining mastery (not modelled; always regular)
+            // SDV mystery box 5% — golden variant after Foraging Mastery.
             if (r.nextDouble() < 0.05) {
-                items.add(new ItemStack(ModItems.MYSTERY_BOX.get()));
+                Item box = PlayerDataManager.getPlayerData(who).hasMastery(SkillType.FORAGING)
+                        ? ModItems.GOLDEN_MYSTERY_BOX.get()
+                        : ModItems.MYSTERY_BOX.get();
+                items.add(new ItemStack(box));
             }
 
             if (whichExtra != null && whichExtra != Items.AIR) {
                 items.add(new ItemStack(whichExtra, extraCount));
+            }
+            if (StardewEnchantments.has(pan, StardewEnchantments.FISHER) && r.nextDouble() < 0.10) {
+                items.add(new ItemStack(ModItems.SUNFISH.get()));
             }
             numRolls--;
         }
 
         // Bonus coal — SDV: while (r.NextDouble() < 0.05) amount++;
         int bonusCoal = 0;
-        while (r.nextDouble() < 0.05) bonusCoal++;
+        double bonusCoalChance = StardewEnchantments.has(pan, StardewEnchantments.ARCHAEOLOGIST) ? 0.20 : 0.05;
+        while (r.nextDouble() < bonusCoalChance) bonusCoal++;
         if (bonusCoal > 0) {
             items.add(new ItemStack(ModItems.COAL.get(), bonusCoal));
         }
@@ -345,6 +363,10 @@ public class PanItem extends Item implements IStardewItem {
     private static int totalDaysPlayed(ServerLevel level) {
         com.stardew.craft.time.StardewTimeManager t = com.stardew.craft.time.StardewTimeManager.get();
         return (t.getCurrentYear() - 1) * (28 * 4) + t.getCurrentSeason() * 28 + t.getCurrentDay();
+    }
+
+    private static double getReachTiles(ItemStack stack) {
+        return REACH_TILES + (StardewEnchantments.has(stack, StardewEnchantments.EXPANSIVE) ? 1.0 : 0.0);
     }
 
     private static BlockHitResult raycastWater(net.minecraft.world.entity.player.Player player, double reach) {

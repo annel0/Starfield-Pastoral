@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.PlayerStardewData;
+import com.stardew.craft.player.SkillType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -170,13 +171,12 @@ public class TreasureLootManager extends SimplePreparableReloadListener<Treasure
 
 			// SDV: Mystery Box (8% + avgDailyLuck/5)
 			if (random.nextDouble() < 0.08 + dailyLuck / 5.0) {
-				// SDV: 有 Fishing Mastery → Golden Mystery Box，否则普通
-				boolean hasMastery = fishingLevel >= 10;
-				addItem(treasures, hasMastery ? "stardewcraft:golden_mystery_box" : "stardewcraft:mystery_box", 1);
+				boolean hasForagingMastery = hasMastery(player, SkillType.FORAGING);
+				addItem(treasures, hasForagingMastery ? "stardewcraft:golden_mystery_box" : "stardewcraft:mystery_box", 1);
 			}
 
-			// SDV: Golden Animal Cracker (Farming mastery + 5%) — 用 fishingLevel>=10 近似
-			if (fishingLevel >= 10 && random.nextDouble() < 0.05) {
+			// SDV: Golden Animal Cracker (Farming mastery + 5%)
+			if (hasMastery(player, SkillType.FARMING) && random.nextDouble() < 0.05) {
 				addItem(treasures, "stardewcraft:golden_animal_cracker", 1);
 			}
 
@@ -480,6 +480,12 @@ public class TreasureLootManager extends SimplePreparableReloadListener<Treasure
 			case 3 -> "winter";
 			default -> "spring";
 		};
+	}
+
+	private boolean hasMastery(@Nullable ServerPlayer player, SkillType skill) {
+		if (player == null) return false;
+		PlayerStardewData data = PlayerDataManager.getPlayerData(player);
+		return data != null && data.hasMastery(skill);
 	}
 
 	private void addItem(List<ItemStack> treasures, String itemId, int count) {

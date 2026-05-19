@@ -31,9 +31,11 @@ public final class WaterAmountClientTooltipComponent implements ClientTooltipCom
 
     private final int water;
     private final int max;
+    private final boolean bottomless;
 
     public WaterAmountClientTooltipComponent(WaterAmountTooltipComponent component) {
-        this.water = Math.max(0, component.water());
+        this.bottomless = component.bottomless();
+        this.water = bottomless ? Math.max(1, component.max()) : Math.max(0, component.water());
         this.max = Math.max(1, component.max());
     }
 
@@ -55,7 +57,7 @@ public final class WaterAmountClientTooltipComponent implements ClientTooltipCom
         int labelWidth = font.width(LABEL);
         int barX = x + labelWidth + LABEL_SPACING;
 
-        float fillRatio = Math.min(1.0f, Math.max(0.0f, (float) water / (float) max));
+        float fillRatio = bottomless ? 1.0f : Math.min(1.0f, Math.max(0.0f, (float) water / (float) max));
         int fillWidth = (int) (FILL_WIDTH * fillRatio);
 
         RenderSystem.enableBlend();
@@ -74,23 +76,39 @@ public final class WaterAmountClientTooltipComponent implements ClientTooltipCom
             int fy = y + FILL_OFFSET_Y;
 
             // 只保留“左->右”柔和渐变；不做上下高光/阴影（避免出现上下渐变）
-            blitHorizontalGradient(
-                graphics,
-                fx,
-                fy,
-                fillWidth,
-                FILL_HEIGHT,
-                0x1E / 255f,
-                0x86 / 255f,
-                0xFF / 255f,
-                0x4F / 255f,
-                0xB6 / 255f,
-                0xFF / 255f,
-                1.0f);
+            if (bottomless) {
+                blitHorizontalGradient(
+                    graphics,
+                    fx,
+                    fy,
+                    fillWidth,
+                    FILL_HEIGHT,
+                    0x98 / 255f,
+                    0x38 / 255f,
+                    0xFF / 255f,
+                    0xD8 / 255f,
+                    0x82 / 255f,
+                    0xFF / 255f,
+                    1.0f);
+            } else {
+                blitHorizontalGradient(
+                    graphics,
+                    fx,
+                    fy,
+                    fillWidth,
+                    FILL_HEIGHT,
+                    0x1E / 255f,
+                    0x86 / 255f,
+                    0xFF / 255f,
+                    0x4F / 255f,
+                    0xB6 / 255f,
+                    0xFF / 255f,
+                    1.0f);
+            }
         }
 
         // 中间数字
-        String text = water + "/" + max;
+        String text = bottomless ? "∞/∞" : water + "/" + max;
         int textWidth = Minecraft.getInstance().font.width(text);
         int textX = barX + BAR_WIDTH / 2 - textWidth / 2;
         int textY = y + BAR_HEIGHT / 2 - 4;

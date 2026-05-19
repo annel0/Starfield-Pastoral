@@ -136,6 +136,79 @@ public final class NpcSpawnManager {
     }
 
     /**
+     * Overnight recovery: after the date, weather, and 6:00 clock are authoritative,
+     * snap loaded scheduled NPCs back to their resolved morning schedule target.
+     */
+    public static void resetScheduledNpcsForNewDay(ServerLevel level) {
+        if (level == null || !ModDimensions.STARDEW_VALLEY.equals(level.dimension())) {
+            return;
+        }
+
+        ensureServerContext(level);
+        NpcScheduleRuntimeService.invalidateCache();
+        NpcScheduleRuntimeService.tick(level);
+
+        Set<String> implementedIds = getCachedImplementedIds();
+        Map<String, StardewNpcEntity> loadedByNpcId = collectAndDeduplicateLoaded(level, implementedIds);
+        Map<String, NpcRuntimeState> runtimeStates = NpcRuntimeDataManager.get(level).states();
+        Vec3 sharedSpawn = Vec3.atCenterOf(level.getSharedSpawnPos());
+
+        int moved = 0;
+        int skipped = 0;
+        for (Map.Entry<String, NpcCapabilityProfile> entry : NpcDataRegistry.capabilities().entrySet()) {
+            NpcCapabilityProfile profile = entry.getValue();
+            if (profile == null || !profile.implemented()) {
+                continue;
+            }
+
+            String npcId = canonicalNpcId(profile.npcId());
+            if (npcId == null || npcId.isBlank()) {
+                continue;
+            }
+            if (MINING_DIM_NPC_IDS.contains(npcId)) {
+                continue;
+            }
+            if (com.stardew.craft.joja.JojaNpcEvents.isJojaMartNpc(npcId)) {
+                continue;
+            }
+            if (NpcDataRegistry.schedules().get(npcId) == null) {
+                continue;
+            }
+
+            NpcRuntimeState state = runtimeStates.get(npcId);
+            if (state == null) {
+                skipped++;
+                continue;
+            }
+            NpcScheduleRuntimeService.TargetPoint target = NpcScheduleRuntimeService.resolveWorldTarget(level, state, sharedSpawn);
+            if (target == null || target.position() == null) {
+                skipped++;
+                continue;
+            }
+
+            StardewNpcEntity npc = getTrackedNpc(level, npcId);
+            if (npc == null) {
+                npc = loadedByNpcId.get(npcId);
+            }
+            if (npc == null || npc.isRemoved() || !npc.isAlive()) {
+                skipped++;
+                continue;
+            }
+
+            NpcChunkForceManager.ensureRouteTargetChunkForced(level, npcId, target.position());
+            moveNpcToScheduleTarget(level, npc, target.position(), state);
+            TRACKED_NPC_UUIDS.put(npcId, npc.getUUID());
+            TRACKED_MISS_COUNTS.put(npcId, 0);
+            NpcCentralMovementService.resetMovementPlan(npcId);
+            moved++;
+        }
+
+        if (moved > 0 || skipped > 0) {
+            StardewCraft.LOGGER.info("[NPC_DAILY_RESET] reset scheduled NPCs for new day: moved={}, skipped={}", moved, skipped);
+        }
+    }
+
+    /**
      * Called when a player enters the Stardew Valley dimension.
      * Forces an immediate full sweep to clean up duplicates and snap NPCs.
      */
@@ -689,6 +762,36 @@ public final class NpcSpawnManager {
             return null;
         }
         return target.position();
+    }
+
+    private static void moveNpcToScheduleTarget(ServerLevel level, StardewNpcEntity npc, Vec3 target, NpcRuntimeState state) {
+        npc.getNavigation().stop();
+        npc.moveTo(target.x, target.y, target.z, yawFromSdvFacing(state.facing()), 0.0F);
+        NpcCentralMovementService.snapToSurface(level, npc);
+        npc.setDeltaMovement(Vec3.ZERO);
+        npc.hasImpulse = false;
+        applyScheduleFacing(npc, state);
+        npc.setWalking(false);
+    }
+
+    private static void applyScheduleFacing(StardewNpcEntity npc, NpcRuntimeState state) {
+        if (npc == null || state == null || npc.isFacingOverrideActive() || npc.isIdleLookActive()) {
+            return;
+        }
+        float yaw = yawFromSdvFacing(state.facing());
+        npc.setYRot(yaw);
+        npc.setYHeadRot(yaw);
+        npc.setYBodyRot(yaw);
+    }
+
+    private static float yawFromSdvFacing(int facing) {
+        return switch (facing) {
+            case 0 -> 180.0F;
+            case 1 -> -90.0F;
+            case 2 -> 0.0F;
+            case 3 -> 90.0F;
+            default -> 0.0F;
+        };
     }
 
     private static String canonicalNpcId(String npcId) {

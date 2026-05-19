@@ -2,6 +2,7 @@ package com.stardew.craft.event;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.item.ModItems;
+import com.stardew.craft.item.trinket.TrinketDropService;
 import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.PlayerStardewData;
 import com.stardew.craft.shop.MonsterSlayerGoalRegistry;
@@ -114,6 +115,10 @@ public class MineMonsterDropHandler {
             dropPepperRex(drops, entity, random);
         }
 
+        if (event.getSource() != null && event.getSource().getEntity() instanceof ServerPlayer player) {
+            TrinketDropService.tryAddMonsterDrop(drops, entity, player, random);
+        }
+
         // ---- Monster Slayer kill tracking (SDV Gil goals) ----
         if (event.getSource() != null && event.getSource().getEntity() instanceof ServerPlayer player) {
             for (String tag : tags) {
@@ -129,6 +134,7 @@ public class MineMonsterDropHandler {
                     com.stardew.craft.quest.StardewQuestEvents.fireMonsterSlain(player, tag);
                 }
             }
+            MiningBlockBreakHandler.tryCreateLadderFromMonsterDrop(serverLevel, player, entity.blockPosition());
         }
     }
 

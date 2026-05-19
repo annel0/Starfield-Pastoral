@@ -77,7 +77,7 @@ public class HoeOverlayRenderer {
         }
 
         int activeTicks = stack.getUseDuration(player) - player.getUseItemRemainingTicks();
-        int chargeLevel = hoe.getChargeLevel(activeTicks);
+        int chargeLevel = hoe.getChargeLevel(stack, activeTicks);
         if (chargeLevel == 0) {
             return;
         }

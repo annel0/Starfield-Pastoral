@@ -31,6 +31,7 @@ import net.minecraft.world.level.Level;
 
 public class StardropItem extends Item implements IStardewItem {
     public static final int MAX_ENERGY_GAIN = 34;
+    public static final int MAX_CONSUMES = 7;
 
     private static final int NAME_BASE_RGB = 0xA35DFF;
     private static final int NAME_HIGHLIGHT_RGB = 0xF8E7FF;
@@ -88,6 +89,10 @@ public class StardropItem extends Item implements IStardewItem {
     @Override
     public InteractionResultHolder<ItemStack> use(@Nonnull Level level, @Nonnull Player player, @Nonnull InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
+        if (!level.isClientSide && player instanceof ServerPlayer serverPlayer && !canConsumeStardrop(serverPlayer)) {
+            sendLimitMessage(serverPlayer);
+            return InteractionResultHolder.fail(stack);
+        }
         player.startUsingItem(hand);
         return InteractionResultHolder.consume(stack);
     }
@@ -97,8 +102,10 @@ public class StardropItem extends Item implements IStardewItem {
             @Nonnull LivingEntity livingEntity) {
         if (!level.isClientSide && livingEntity instanceof ServerPlayer serverPlayer) {
             PlayerStardewData data = PlayerStardewDataAPI.getData(serverPlayer);
-            data.setMaxEnergy(data.getMaxEnergy() + MAX_ENERGY_GAIN);
-            data.setEnergy(data.getMaxEnergy());
+            if (!data.consumeStardrop(MAX_ENERGY_GAIN, MAX_CONSUMES)) {
+                sendLimitMessage(serverPlayer);
+                return stack;
+            }
             PlayerDataEventHandler.syncPlayerData(serverPlayer, data);
             serverPlayer.setHealth(serverPlayer.getMaxHealth());
             serverPlayer.awardStat(Stats.ITEM_USED.get(this));
@@ -108,6 +115,15 @@ public class StardropItem extends Item implements IStardewItem {
             }
         }
         return stack;
+    }
+
+    private static boolean canConsumeStardrop(ServerPlayer player) {
+        return PlayerStardewDataAPI.getData(player).canConsumeStardrop(MAX_CONSUMES);
+    }
+
+    private static void sendLimitMessage(ServerPlayer player) {
+        player.displayClientMessage(Component.translatable("stardewcraft.item.stardrop.limit_reached")
+                .withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xD9B6FF))), true);
     }
 
     private static void playStardropFeedback(ServerPlayer player) {

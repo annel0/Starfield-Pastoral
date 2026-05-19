@@ -3,6 +3,7 @@ package com.stardew.craft.network;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.event.ScytheHarvestEvents;
 import com.stardew.craft.item.tool.ScytheItem;
+import com.stardew.craft.item.weapon.IStardewWeapon;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -39,28 +40,37 @@ public record ScytheSwingPayload() implements CustomPacketPayload {
 			if (!(context.player() instanceof ServerPlayer player)) {
 				return;
 			}
-			if (!(player.getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof ScytheItem scythe)) {
-				return;
-			}
-			if (player.getCooldowns().isOnCooldown(scythe)) {
+			var mainHand = player.getItemInHand(InteractionHand.MAIN_HAND);
+			if (player.getCooldowns().isOnCooldown(mainHand.getItem())) {
 				return;
 			}
 			if (!(player.level() instanceof ServerLevel level)) {
 				return;
 			}
 
-			boolean didSomething = ScytheHarvestEvents.harvestSwing(level, player, scythe);
+			boolean scytheSwing = mainHand.getItem() instanceof ScytheItem;
+			boolean weaponGrassSwing = !scytheSwing && mainHand.getItem() instanceof IStardewWeapon;
+			if (!scytheSwing && !weaponGrassSwing) {
+				return;
+			}
+
+			boolean didSomething = scytheSwing
+					? ScytheHarvestEvents.harvestSwing(level, player, (ScytheItem) mainHand.getItem())
+					: ScytheHarvestEvents.harvestWeaponGrassSwing(level, player, mainHand);
+			if (weaponGrassSwing && !didSomething) {
+				return;
+			}
 			spawnSweepParticle(level, player);
 
 			float volume = didSomething ? 0.8F : 0.6F;
 			float pitch = didSomething ? 1.0F : 1.1F;
 			level.playSound(null, player.blockPosition(), SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS, volume, pitch);
 
-			int cooldownTicks = scythe.getCooldownTicks();
+			int cooldownTicks = scytheSwing ? ((ScytheItem) mainHand.getItem()).getCooldownTicks() : DEFAULT_COOLDOWN_TICKS;
 			if (cooldownTicks <= 0) {
 				cooldownTicks = DEFAULT_COOLDOWN_TICKS;
 			}
-			player.getCooldowns().addCooldown(scythe, cooldownTicks);
+			player.getCooldowns().addCooldown(mainHand.getItem(), cooldownTicks);
 		});
 	}
 

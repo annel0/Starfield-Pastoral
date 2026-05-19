@@ -152,7 +152,13 @@ public class PacketHandler {
             com.stardew.craft.network.payload.PassOutAckPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.PassOutAckPayload::handle
         );
-        
+
+        registrar.playToServer(
+            com.stardew.craft.network.payload.RequestClaimMasteryRewardPayload.TYPE,
+            com.stardew.craft.network.payload.RequestClaimMasteryRewardPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.RequestClaimMasteryRewardPayload::handle
+        );
+
         // 服务端 -> 客户端
         registrar.playToClient(
             PlayerDataSyncPacket.TYPE,
@@ -266,6 +272,30 @@ public class PacketHandler {
             com.stardew.craft.network.payload.OpenTreasureChestPayload.TYPE,
             com.stardew.craft.network.payload.OpenTreasureChestPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.OpenTreasureChestPayload::handle
+        );
+
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenMasteryMenuPayload.TYPE,
+            com.stardew.craft.network.payload.OpenMasteryMenuPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenMasteryMenuPayload::handle
+        );
+
+        registrar.playToClient(
+            com.stardew.craft.network.payload.MasteryHintPayload.TYPE,
+            com.stardew.craft.network.payload.MasteryHintPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.MasteryHintPayload::handle
+        );
+
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenDwarfStatueChoicePayload.TYPE,
+            com.stardew.craft.network.payload.OpenDwarfStatueChoicePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenDwarfStatueChoicePayload::handle
+        );
+
+        registrar.playToServer(
+            com.stardew.craft.network.payload.ChooseDwarfStatueBuffPayload.TYPE,
+            com.stardew.craft.network.payload.ChooseDwarfStatueBuffPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.ChooseDwarfStatueBuffPayload::handle
         );
 
 		registrar.playToClient(

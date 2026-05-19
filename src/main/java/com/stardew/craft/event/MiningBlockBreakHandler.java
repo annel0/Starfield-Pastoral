@@ -197,6 +197,41 @@ public class MiningBlockBreakHandler {
             }
         }
     }
+
+    public static void tryCreateLadderFromMonsterDrop(ServerLevel serverLevel, ServerPlayer player, BlockPos pos) {
+        if (!isMiningDimension(serverLevel)) {
+            return;
+        }
+
+        int floorNumber = getFloorNumber(pos);
+        MineFloorDataManager manager = MineFloorDataManager.get(serverLevel);
+        MineFloorData floorData = manager.getFloorData(floorNumber);
+        if (floorData == null || floorData.hasLadderFound()) {
+            return;
+        }
+
+        double extraLadderChance = player.hasEffect(com.stardew.craft.effect.ModMobEffects.DWARF_STATUE_1) ? 0.07D : 0.0D;
+        if (serverLevel.getRandom().nextDouble() >= 0.15D + extraLadderChance) {
+            return;
+        }
+
+        BlockPos ladderPos = pos.immutable();
+        floorData.setLadderFound(true);
+        floorData.setLadderPos(ladderPos);
+        manager.setFloorData(floorNumber, floorData);
+
+        serverLevel.getServer().execute(() -> {
+            net.minecraft.world.level.block.state.BlockState ladderState =
+                    ModBlocks.MINE_LADDER.get().defaultBlockState()
+                            .setValue(com.stardew.craft.block.mine.MineLadderBlock.SHAFT, false);
+            serverLevel.setBlock(ladderPos, ladderState, 3);
+            serverLevel.playSound(null, ladderPos, ModSounds.HOE_HIT.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
+            for (ServerPlayer p : serverLevel.players()) {
+                PacketDistributor.sendToPlayer(p, new LadderSyncPacket(floorNumber, true, ladderPos, false));
+                p.displayClientMessage(Component.translatable("message.stardewcraft.ladder_found"), false);
+            }
+        });
+    }
     
     /**
      * 检查是否在矿井维度

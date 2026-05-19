@@ -37,6 +37,20 @@ public class ScytheItem extends Item implements IStardewItem {
 	}
 
 	@Override
+	public boolean isEnchantable(@SuppressWarnings("null") net.minecraft.world.item.ItemStack stack) {
+		return stack.getMaxStackSize() == 1;
+	}
+
+	@Override
+	public int getEnchantmentValue() {
+		return switch (tier) {
+			case NORMAL -> 5;
+			case GOLD -> 15;
+			case IRIDIUM -> 20;
+		};
+	}
+
+	@Override
 	public boolean canAttackBlock(@SuppressWarnings("null") BlockState state, @SuppressWarnings("null") Level level, @SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") Player player) {
 		// 镰刀不用于挖掘/破坏方块；左键逻辑由事件驱动（收割/清理）。
 		return false;

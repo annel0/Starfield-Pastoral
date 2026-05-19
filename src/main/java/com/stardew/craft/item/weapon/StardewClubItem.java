@@ -1,6 +1,7 @@
 package com.stardew.craft.item.weapon;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.combat.WeaponForgeData;
 import com.stardew.craft.combat.WeaponStats;
 import com.stardew.craft.combat.skill.FemurSlamTracker;
 import com.stardew.craft.combat.skill.WeaponSkillCooldowns;
@@ -148,6 +149,16 @@ public class StardewClubItem extends Item implements IStardewItem, IStardewWeapo
     }
 
     @Override
+    public boolean isEnchantable(@SuppressWarnings("null") ItemStack stack) {
+        return stack.getMaxStackSize() == 1;
+    }
+
+    @Override
+    public int getEnchantmentValue() {
+        return weaponData == null ? 10 : Math.max(1, weaponData.getLevel() * 2);
+    }
+
+    @Override
     public void appendHoverText(@SuppressWarnings("null") ItemStack stack, @SuppressWarnings("null") Item.TooltipContext context, @SuppressWarnings("null") List<Component> tooltipComponents, @SuppressWarnings("null") TooltipFlag tooltipFlag) {
         if (weaponData != null) {
             ensureWeaponStats(stack);
@@ -250,6 +261,7 @@ public class StardewClubItem extends Item implements IStardewItem, IStardewWeapo
             @SuppressWarnings("null")
             CustomData data = stack.get(DataComponents.CUSTOM_DATA);
             if (data != null && data.copyTag().contains(WeaponStats.TAG_STARDEW_WEAPON)) {
+                WeaponForgeData.ensure(stack);
                 return;
             }
         }
@@ -265,5 +277,6 @@ public class StardewClubItem extends Item implements IStardewItem, IStardewWeapo
             .knockback(weaponData.getWeight())
             .build()
             .writeToItemStack(stack);
+        WeaponForgeData.ensure(stack);
     }
 }

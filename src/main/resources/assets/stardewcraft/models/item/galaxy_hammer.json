@@ -1,0 +1,26 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "stardewcraft:item/weapon/club/galaxy_hammer"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 719501
+      },
+      "model": "stardewcraft:item/forge_appearance/femur"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 744791
+      },
+      "model": "stardewcraft:item/forge_appearance/galaxy_hammer"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 793450
+      },
+      "model": "stardewcraft:item/forge_appearance/infinity_gavel"
+    }
+  ]
+}

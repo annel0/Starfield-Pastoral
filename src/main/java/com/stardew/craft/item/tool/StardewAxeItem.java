@@ -94,4 +94,15 @@ public class StardewAxeItem extends AxeItem implements IStardewItem {
 		// 星露谷工具不可出售
 		return -1;
 	}
+
+	@Override
+	public boolean isEnchantable(@SuppressWarnings("null") ItemStack stack) {
+		return stack.getMaxStackSize() == 1;
+	}
+
+	@Override
+	public int getEnchantmentValue() {
+		return Math.max(1, (tier.getLevel() + 1) * 5);
+	}
+
 }

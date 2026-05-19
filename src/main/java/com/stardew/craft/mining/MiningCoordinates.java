@@ -50,8 +50,9 @@ public class MiningCoordinates {
         int z = (floor == 0) ? -8 : floor * FLOOR_SPACING + 14;
         double z_pos = z + 0.5;
 
-        // 传送前给予无敌帧（防止 fall damage / 撞击伤害）
-        player.setInvulnerable(true);
+        // 传送前给予短暂无敌帧（防止 fall damage / 撞击伤害）。不要使用 setInvulnerable(true)，
+        // 该状态会写入玩家实体，若延迟恢复任务被跳过会导致存档永久无敌。
+        player.invulnerableTime = Math.max(player.invulnerableTime, 20);
 
         ModTeleport.to(player, level, x, y, z_pos, 180.0f, 0.0f);
 
@@ -60,15 +61,7 @@ public class MiningCoordinates {
         player.fallDistance = 0;
         player.hurtMarked = true; // 同步到客户端
 
-        // 延迟 10 tick（0.5秒）后取消无敌
-        level.getServer().tell(new net.minecraft.server.TickTask(
-            level.getServer().getTickCount() + 10,
-            () -> {
-                if (!player.isCreative()) {
-                    player.setInvulnerable(false);
-                }
-            }
-        ));
+        player.invulnerableTime = Math.max(player.invulnerableTime, 20);
 
         StardewCraft.LOGGER.info("[MINE] Teleported player {} to floor {} at ({}, {}, {})", 
             player.getName().getString(), floor, x, y, z);

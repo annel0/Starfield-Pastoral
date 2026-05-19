@@ -1,43 +1,63 @@
 {
-    "parent":  "minecraft:item/handheld",
-    "textures":  {
-                     "layer0":  "stardewcraft:item/weapon/club/femur",
-                     "particle":  "stardewcraft:item/weapon/club/femur"
-                 },
-    "display":  {
-                    "first_person_right_hand":  {
-                                                    "rotation":  [
-                                                                     0,
-                                                                     -90,
-                                                                     25
-                                                                 ],
-                                                    "translation":  [
-                                                                        1.13,
-                                                                        3.2,
-                                                                        1.13
-                                                                    ],
-                                                    "scale":  [
-                                                                  0.68,
-                                                                  0.68,
-                                                                  0.68
-                                                              ]
-                                                },
-                    "first_person_left_hand":  {
-                                                   "rotation":  [
-                                                                    0,
-                                                                    90,
-                                                                    -25
-                                                                ],
-                                                   "translation":  [
-                                                                       -1.13,
-                                                                       3.2,
-                                                                       1.13
-                                                                   ],
-                                                   "scale":  [
-                                                                 0.68,
-                                                                 0.68,
-                                                                 0.68
-                                                             ]
-                                               }
-                }
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "stardewcraft:item/weapon/club/femur",
+    "particle": "stardewcraft:item/weapon/club/femur"
+  },
+  "display": {
+    "first_person_right_hand": {
+      "rotation": [
+        0,
+        -90,
+        25
+      ],
+      "translation": [
+        1.13,
+        3.2,
+        1.13
+      ],
+      "scale": [
+        0.68,
+        0.68,
+        0.68
+      ]
+    },
+    "first_person_left_hand": {
+      "rotation": [
+        0,
+        90,
+        -25
+      ],
+      "translation": [
+        -1.13,
+        3.2,
+        1.13
+      ],
+      "scale": [
+        0.68,
+        0.68,
+        0.68
+      ]
+    }
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 719501
+      },
+      "model": "stardewcraft:item/forge_appearance/femur"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 744791
+      },
+      "model": "stardewcraft:item/forge_appearance/galaxy_hammer"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 793450
+      },
+      "model": "stardewcraft:item/forge_appearance/infinity_gavel"
+    }
+  ]
 }

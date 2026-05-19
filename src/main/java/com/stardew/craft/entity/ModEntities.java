@@ -12,6 +12,8 @@ import com.stardew.craft.entity.projectile.TideAnchorProjectileEntity;
 import com.stardew.craft.entity.projectile.TemperedBilletProjectileEntity;
 import com.stardew.craft.entity.bomb.StardewBombEntity;
 import com.stardew.craft.entity.effect.IceSpineEffectEntity;
+import com.stardew.craft.entity.mastery.PrismaticButterflyEntity;
+import com.stardew.craft.entity.trinket.FairyCompanionEntity;
 import com.stardew.craft.entity.animal.BaseCoopAnimalEntity;
 import com.stardew.craft.entity.animal.CowEntity;
 import com.stardew.craft.entity.animal.DinosaurEntity;
@@ -82,6 +84,24 @@ public final class ModEntities {
 					.clientTrackingRange(32)
 					.updateInterval(1)
 					.build("ice_spine_effect")
+	);
+
+	public static final DeferredHolder<EntityType<?>, EntityType<PrismaticButterflyEntity>> PRISMATIC_BUTTERFLY = ENTITY_TYPES.register(
+			"prismatic_butterfly",
+			() -> EntityType.Builder.<PrismaticButterflyEntity>of(PrismaticButterflyEntity::new, MobCategory.MISC)
+					.sized(0.6F, 0.6F)
+					.clientTrackingRange(64)
+					.updateInterval(1)
+					.build("prismatic_butterfly")
+	);
+
+	public static final DeferredHolder<EntityType<?>, EntityType<FairyCompanionEntity>> FAIRY_COMPANION = ENTITY_TYPES.register(
+			"fairy_companion",
+			() -> EntityType.Builder.<FairyCompanionEntity>of(FairyCompanionEntity::new, MobCategory.MISC)
+					.sized(0.5F, 0.5F)
+					.clientTrackingRange(64)
+					.updateInterval(1)
+					.build("fairy_companion")
 	);
 
 	public static final DeferredHolder<EntityType<?>, EntityType<StardewBombEntity>> STARDEW_BOMB = ENTITY_TYPES.register(

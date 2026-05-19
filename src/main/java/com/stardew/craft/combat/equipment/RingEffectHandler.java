@@ -1,6 +1,7 @@
 package com.stardew.craft.combat.equipment;
 
 import com.stardew.craft.item.equipment.RingType;
+import com.stardew.craft.item.equipment.CombinedRingData;
 import com.stardew.craft.item.equipment.StardewRingItem;
 import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.PlayerStardewData;
@@ -104,6 +105,14 @@ public class RingEffectHandler {
 
     private static void addRingType(String itemId, List<RingType> list) {
         if (itemId == null || itemId.isEmpty()) return;
+        if (CombinedRingData.isEncodedEquipmentSlot(itemId)) {
+            for (net.minecraft.world.item.ItemStack ringStack : CombinedRingData.splitEquipmentSlot(itemId)) {
+                if (ringStack.getItem() instanceof StardewRingItem ring) {
+                    list.add(ring.getRingType());
+                }
+            }
+            return;
+        }
         ResourceLocation rl = ResourceLocation.tryParse(itemId);
         if (rl == null) return;
         Item item = BuiltInRegistries.ITEM.get(rl);
@@ -125,6 +134,15 @@ public class RingEffectHandler {
 
     private static float getAttackMultFromRing(String itemId) {
         if (itemId == null || itemId.isEmpty()) return 0f;
+        if (CombinedRingData.isEncodedEquipmentSlot(itemId)) {
+            float total = 0f;
+            for (net.minecraft.world.item.ItemStack ringStack : CombinedRingData.splitEquipmentSlot(itemId)) {
+                if (ringStack.getItem() instanceof StardewRingItem ring) {
+                    total += ring.getRingType().getAttackMultiplier();
+                }
+            }
+            return total;
+        }
         ResourceLocation rl = ResourceLocation.tryParse(itemId);
         if (rl == null) return 0f;
         Item item = BuiltInRegistries.ITEM.get(rl);

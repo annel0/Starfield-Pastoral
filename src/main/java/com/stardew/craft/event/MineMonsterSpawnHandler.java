@@ -5,6 +5,7 @@ import com.stardew.craft.core.ModMiningDimensions;
 import com.stardew.craft.mining.MiningCoordinates;
 import com.stardew.craft.network.payload.MummyCollapsePayload;
 import net.minecraft.network.chat.Component;
+import com.stardew.craft.enchantment.StardewEnchantments;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
@@ -651,7 +652,9 @@ public class MineMonsterSpawnHandler {
                 source.is(net.minecraft.world.damagesource.DamageTypes.EXPLOSION)
                 || source.is(net.minecraft.world.damagesource.DamageTypes.PLAYER_EXPLOSION)
                 || source.is(net.minecraft.world.damagesource.DamageTypes.GENERIC_KILL)
-                || source.is(net.minecraft.world.damagesource.DamageTypes.FELL_OUT_OF_WORLD));
+                || source.is(net.minecraft.world.damagesource.DamageTypes.FELL_OUT_OF_WORLD)
+                || (source.getEntity() instanceof net.minecraft.world.entity.player.Player player
+                    && StardewEnchantments.has(player.getMainHandItem(), StardewEnchantments.CRUSADER)));
     }
 
     public static boolean isCollapsedMummy(LivingEntity entity) {

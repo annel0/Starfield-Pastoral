@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "stardewcraft:item/crops/fall/grape",
+    "particle": "stardewcraft:item/crops/fall/grape"
+  }
+}

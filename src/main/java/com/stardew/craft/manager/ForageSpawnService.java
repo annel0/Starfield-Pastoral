@@ -134,7 +134,7 @@ public final class ForageSpawnService {
 
             // ---- Mountain ----
             // SDV: Leek(Spring 0.7), Wild Horseradish(Spring 0.5),
-            //      Spice Berry(Summer 0.5), Grape(Summer 0.8) → use sweet_pea as substitute,
+            //      Spice Berry(Summer 0.5), Grape(Summer 0.8),
             //      Common Mushroom(Fall 0.4) → skipped,
             //      Wild Plum(Fall 0.4), Hazelnut(Fall 0.9),
             //      Crystal Fruit(Winter 0.85), Crocus(Winter 0.9), Holly(Winter 0.5)
@@ -147,7 +147,7 @@ public final class ForageSpawnService {
                             new ForageEntry(ModBlocks.FORAGE_LEEK, SPRING, 0.7),
                             new ForageEntry(ModBlocks.FORAGE_WILD_HORSERADISH, SPRING, 0.5),
                             new ForageEntry(ModBlocks.FORAGE_SPICE_BERRY, SUMMER, 0.5),
-                            new ForageEntry(ModBlocks.FORAGE_SWEET_PEA, SUMMER, 0.8),
+                            new ForageEntry(ModBlocks.FORAGE_GRAPE, SUMMER, 0.8),
                             // Common mushroom skipped
                             new ForageEntry(ModBlocks.FORAGE_WILD_PLUM, FALL, 0.4),
                             new ForageEntry(ModBlocks.FORAGE_HAZELNUT, FALL, 0.9),

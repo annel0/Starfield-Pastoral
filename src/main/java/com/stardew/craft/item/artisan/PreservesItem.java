@@ -153,7 +153,30 @@ public class PreservesItem extends Item implements IStardewItem {
     }
 
     public int getColor(ItemStack stack) {
+        int resolved = resolveColorFromSource(stack);
+        if (resolved >= 0) {
+            return resolved;
+        }
         return getIntTag(stack, TAG_COLOR, -1);
+    }
+
+    @SuppressWarnings("null")
+    private int resolveColorFromSource(ItemStack stack) {
+        if (preserveType == PreserveType.CAVIAR) {
+            return -1;
+        }
+        ResourceLocation sourceId = getSourceItemId(stack);
+        if (sourceId == null) {
+            return -1;
+        }
+        if ((preserveType == PreserveType.ROE || preserveType == PreserveType.AGED_ROE)
+                && "sturgeon".equals(sourceId.getPath())) {
+            return STURGEON_ROE_COLOR;
+        }
+        return PreservesIngredientDataManager.getData(sourceId)
+                .map(PreservesIngredientDataManager.IngredientData::getColorRgb)
+                .filter(color -> color >= 0)
+                .orElse(-1);
     }
 
     private int getBasePrice() {

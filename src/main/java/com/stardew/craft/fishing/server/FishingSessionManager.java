@@ -4,6 +4,7 @@ import com.stardew.craft.StardewCraft;
 import com.stardew.craft.Config;
 import com.stardew.craft.fishing.TreasureChestMenu;
 import com.stardew.craft.fishpond.service.FishPondInteractionService;
+import com.stardew.craft.enchantment.StardewEnchantments;
 import com.stardew.craft.item.tool.FishingRodItem;
 import com.stardew.craft.fishing.network.FishingCatchVisualPayload;
 import com.stardew.craft.fishing.network.FishingFailVisualPayload;
@@ -62,15 +63,13 @@ public final class FishingSessionManager {
 		}
 
 		// Stardew Valley timing (StardewValley.Tools.FishingRod.calculateTimeUntilFishingBite)
-		int fishingLevel = PlayerStardewDataAPI.getSkillLevel(player, SkillType.FISHING);
+		ItemStack rod = com.stardew.craft.item.tool.FishingRodItem.findRod(player);
+		int fishingLevel = StardewEnchantments.effectiveFishingLevel(player, rod);
 		RandomSource random = player.getRandom();
 		final int minFishingBiteTimeMs = 600;
 		final int maxFishingBiteTimeMs = 30000;
 		int ticksUntilBite;
 
-		// 获取鱼竿
-		ItemStack rod = com.stardew.craft.item.tool.FishingRodItem.findRod(player);
-		
 		if (rod != null && rod.getItem() instanceof com.stardew.craft.item.tool.FishingRodItem fishingRodItem) {
 			// Spinner & Dressed Spinner: reduce the MAX bite time by 5s/10s each (stackable).
 			int reductionTimeMs = 0;
@@ -251,10 +250,21 @@ public final class FishingSessionManager {
 				}
 			}
 		}
+
+		int minigameDifficulty = session.difficulty();
+		float minigameEscapeLossPerTick = escapeLossPerTick;
+		if (PlayerStardewDataAPI.consumeBlessingOfWatersUse(player)) {
+			if (minigameDifficulty > 20) {
+				minigameDifficulty = session.isPlannedCatchLegendaryFish()
+						? Math.round(minigameDifficulty * 0.75f)
+						: Math.round(minigameDifficulty / 2.0f);
+			}
+			minigameEscapeLossPerTick *= 0.5f;
+		}
 		
 		PacketDistributor.sendToPlayer(player, new com.stardew.craft.fishing.network.StartMinigamePayload(
 				session.id(),
-				session.difficulty(),
+				minigameDifficulty,
 				session.motionTypeId(),
 				session.isPlannedCatchLegendaryFish(),
 				session.ticksUntilTimeout(),
@@ -263,7 +273,7 @@ public final class FishingSessionManager {
 				hasSonarBobber,
 				sonarFishItemId,
 				barSizeBonus,
-				escapeLossPerTick,
+				minigameEscapeLossPerTick,
 				barbedHookCount,
 				leadBobberCount
 		));
@@ -489,7 +499,7 @@ public final class FishingSessionManager {
 			
 			// SV: junk/non-fish catchables don't consume tackle durability.
 			if (!session.skipMinigame()) {
-				com.stardew.craft.item.tool.FishingRodItem.consumeTackleDurability(rod);
+				com.stardew.craft.item.tool.FishingRodItem.consumeTackleDurability(player, rod);
 			}
 		} else {
 			PlayerStardewDataAPI.addExperience(player, SkillType.FISHING, 2);
@@ -559,6 +569,10 @@ public final class FishingSessionManager {
 			}
 
 			if (before == FishingSession.State.WAITING_BITE && session.state() == FishingSession.State.BITE_READY) {
+				if (StardewEnchantments.has(getRodFromPlayer(player), StardewEnchantments.AUTO_HOOK)) {
+					tryStartMinigame(player);
+					continue;
+				}
 				// Bite prompt: show a clear visual cue (exclamation + bobber dip) without chat spam.
 				int hookId = session.hookEntityId();
 				PacketDistributor.sendToPlayer(player, new com.stardew.craft.fishing.network.FishingBitePromptPayload(hookId, 10));
@@ -720,7 +734,7 @@ public final class FishingSessionManager {
 	@SuppressWarnings("null")
 	private void generateAndGiveTreasure(ServerPlayer player, FishingSession session) {
 		com.stardew.craft.fishing.data.TreasureLootManager lootMgr = getLootManager();
-		int fishingLevel = com.stardew.craft.player.PlayerStardewDataAPI.getSkillLevel(player, com.stardew.craft.player.SkillType.FISHING);
+		int fishingLevel = StardewEnchantments.effectiveFishingLevel(player, getRodFromPlayer(player));
 		double dailyLuck = PlayerStardewDataAPI.getDailyLuck(player);
 		int luckBuffLevel = Math.max(0, PlayerStardewDataAPI.getLuckBuffLevel(player));
 		dailyLuck += 0.01D * luckBuffLevel;

@@ -61,7 +61,7 @@ public final class FlowerPlacement {
             matureState = matureState.setValue(StardewCropBlock.PLACED_BY_PLAYER, Boolean.TRUE);
         }
         ItemStack stack = context.getItemInHand();
-        matureState = applyFlowerColor(matureState, stack);
+        matureState = applyFlowerColor(matureState, stack, flowerBlock);
 
         boolean isDouble = matureState.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF);
         BlockPos upperPos = lowerPos.above();
@@ -109,14 +109,17 @@ public final class FlowerPlacement {
         return InteractionResult.sidedSuccess(false);
     }
 
-    private static BlockState applyFlowerColor(BlockState state, ItemStack stack) {
+    private static BlockState applyFlowerColor(BlockState state, ItemStack stack, Block flowerBlock) {
         Integer color = readFlowerColor(stack);
         if (color == null) {
             return state;
         }
+        int blockColor = flowerBlock instanceof FairyRoseCropBlock
+            ? FairyRoseCropBlock.itemColorToBlockColor(color)
+            : color;
         for (Property<?> prop : state.getProperties()) {
             if ("color".equals(prop.getName()) && prop instanceof IntegerProperty ip) {
-                int clamped = clampToProperty(ip, color);
+                int clamped = clampToProperty(ip, blockColor);
                 return state.setValue(ip, clamped);
             }
         }

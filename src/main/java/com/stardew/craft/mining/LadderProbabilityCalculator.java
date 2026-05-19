@@ -1,6 +1,8 @@
 package com.stardew.craft.mining;
 
 import com.stardew.craft.Config;
+import com.stardew.craft.effect.ModMobEffects;
+import com.stardew.craft.player.PlayerStardewDataAPI;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 
@@ -39,20 +41,20 @@ public class LadderProbabilityCalculator {
             return 1.0;
         }
         
-    // 基础概率：config + 0.6/max(1, stonesLeft) + luckLevel/100 + dailyLuck/5
+    // 基础概率：config + 1/max(1, stonesLeft) + luckLevel/100 + dailyLuck/5
     double baseProbability = Config.MINE_LADDER_BASE_CHANCE.get();
-    baseProbability += 0.6 / Math.max(1, stonesLeft);
+    baseProbability += 1.0 / Math.max(1, stonesLeft);
         baseProbability += luckLevel / 100.0;
         baseProbability += dailyLuck / 5.0;
         
-        // 如果本层没有敌人了，额外+0.02
+        // 如果本层没有敌人了，额外+0.04
         if (enemyCount == 0) {
-            baseProbability += 0.02;
+            baseProbability += 0.04;
         }
         
-        // 如果有矮人雕像buff，概率×1.15
+        // SDV MineShaft.cs:3630 — dwarfStatue_1: chanceForLadderDown *= 1.25
         if (hasDwarfBuff) {
-            baseProbability *= 1.15;
+            baseProbability *= 1.25;
         }
         
         // 确保概率在0-1之间
@@ -80,9 +82,9 @@ public class LadderProbabilityCalculator {
         }
         
         // 获取玩家数据
-        int luckLevel = 0; // TODO: 从玩家数据获取幸运等级
-        double dailyLuck = getDailyLuck(player); // TODO: 从玩家数据获取每日幸运
-        boolean hasDwarfBuff = false; // TODO: 检查玩家是否有矮人雕像buff
+        int luckLevel = PlayerStardewDataAPI.getLuckBuffLevel(player);
+        double dailyLuck = getDailyLuck(player);
+        boolean hasDwarfBuff = player.hasEffect(ModMobEffects.DWARF_STATUE_1);
         
         // 计算概率
         double probability = calculateProbability(
@@ -102,7 +104,6 @@ public class LadderProbabilityCalculator {
      * TODO: 从PlayerStardewDataAPI获取
      */
     private static double getDailyLuck(ServerPlayer player) {
-        // 暂时返回0，后续对接PlayerStardewDataAPI
-        return 0.0;
+        return PlayerStardewDataAPI.getDailyLuck(player);
     }
 }

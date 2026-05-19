@@ -71,6 +71,7 @@ public class BerryBushBlock extends Block implements EntityBlock {
 
     public static final EnumProperty<Part> PART = EnumProperty.create("part", Part.class);
     public static final List<int[]> CELL_OFFSETS;
+    private static final double BERRY_BLOOM_CHANCE = 0.4D;
     private static final VoxelShape[] OUTLINE_SHAPES = new VoxelShape[18];
     private static final VoxelShape[] COLLISION_SHAPES = new VoxelShape[18];
 
@@ -235,10 +236,20 @@ public class BerryBushBlock extends Block implements EntityBlock {
         if (!(blockEntity instanceof BushBlockEntity bush) || bush.getLastHarvestAbsoluteDay() == time.getAbsoluteDay()) {
             return InteractionResult.PASS;
         }
+        if (!hasBerriesToday(mainPos, berry, time.getAbsoluteDay())) {
+            return InteractionResult.PASS;
+        }
         if (player instanceof ServerPlayer serverPlayer && level instanceof ServerLevel serverLevel) {
             harvest(serverLevel, mainPos, serverPlayer, bush, berry, time.getAbsoluteDay());
         }
         return InteractionResult.CONSUME;
+    }
+
+    private static boolean hasBerriesToday(BlockPos mainPos, BerryKind berry, int absoluteDay) {
+        long seed = ((long) absoluteDay * 0x9E3779B97F4A7C15L)
+            ^ mainPos.asLong()
+            ^ ((long) berry.ordinal() * 0xBF58476D1CE4E5B9L);
+        return net.minecraft.util.RandomSource.create(seed).nextDouble() < BERRY_BLOOM_CHANCE;
     }
 
     private void harvest(ServerLevel level, BlockPos mainPos, ServerPlayer player, BushBlockEntity bush, BerryKind berry, int absoluteDay) {
@@ -251,7 +262,11 @@ public class BerryBushBlock extends Block implements EntityBlock {
         QualityHelper.setQuality(stack, PlayerStardewDataAPI.hasProfession(player, ProfessionType.BOTANIST)
             ? QualityHelper.IRIDIUM
             : QualityHelper.NORMAL);
-        popResource(level, mainPos, stack);
+        ItemStack remaining = stack.copy();
+        player.addItem(remaining);
+        if (!remaining.isEmpty()) {
+            player.drop(remaining, false);
+        }
         PlayerStardewDataAPI.addExperience(player, SkillType.FORAGING, count);
         bush.setLastHarvestAbsoluteDay(absoluteDay);
         level.playSound(null, mainPos, SoundEvents.SWEET_BERRY_BUSH_PICK_BERRIES, SoundSource.BLOCKS, 1.0F, 0.9F + level.random.nextFloat() * 0.2F);

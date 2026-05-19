@@ -1367,6 +1367,84 @@
                             { "item":  "stardewcraft:coal", "count":  1 },
                             { "item":  "stardewcraft:fiber", "count":  20 }
                         ]
+                    },
+                    {
+                        "id":  "heavy_furnace",
+                        "unlockCondition":  "null",
+                        "output":  { "item":  "stardewcraft:heavy_furnace", "count":  1 },
+                        "ingredients":  [
+                            { "item":  "stardewcraft:furnace", "count":  2 },
+                            { "item":  "stardewcraft:iron_bar", "count":  3 },
+                            { "item":  "stardewcraft:stone", "count":  50 }
+                        ]
+                    },
+                    {
+                        "id":  "anvil",
+                        "unlockCondition":  "null",
+                        "output":  { "item":  "stardewcraft:anvil_mastery", "count":  1 },
+                        "ingredients":  [
+                            { "item":  "stardewcraft:iron_bar", "count":  50 }
+                        ]
+                    },
+                    {
+                        "id":  "mini_forge",
+                        "unlockCondition":  "null",
+                        "output":  { "item":  "stardewcraft:mini_forge", "count":  1 },
+                        "ingredients":  [
+                            { "item":  "stardewcraft:dragon_tooth", "count":  5 },
+                            { "item":  "stardewcraft:iron_bar", "count":  10 },
+                            { "item":  "stardewcraft:gold_bar", "count":  10 },
+                            { "item":  "stardewcraft:iridium_bar", "count":  5 }
+                        ]
+                    },
+                    {
+                        "id":  "mystic_tree_seed",
+                        "unlockCondition":  "null",
+                        "output":  { "item":  "stardewcraft:mystic_tree_seed", "count":  1 },
+                        "ingredients":  [
+                            { "item":  "stardewcraft:acorn", "count":  5 },
+                            { "item":  "stardewcraft:maple_seed", "count":  5 },
+                            { "item":  "stardewcraft:pine_cone", "count":  5 },
+                            { "item":  "stardewcraft:mahogany_seed", "count":  5 }
+                        ]
+                    },
+                    {
+                        "id":  "treasure_totem",
+                        "unlockCondition":  "null",
+                        "output":  { "item":  "stardewcraft:treasure_totem", "count":  1 },
+                        "ingredients":  [
+                            { "item":  "stardewcraft:wood_hard", "count":  5 },
+                            { "item":  "stardewcraft:mystic_syrup", "count":  1 },
+                            { "item":  "stardewcraft:moss", "count":  10 }
+                        ]
+                    },
+                    {
+                        "id":  "statue_of_blessings",
+                        "unlockCondition":  "null",
+                        "output":  { "item":  "stardewcraft:statue_of_blessings", "count":  1 },
+                        "ingredients":  [
+                            { "item":  "stardewcraft:stone", "count":  999 },
+                            { "item":  "stardewcraft:fiber", "count":  999 },
+                            { "item":  "stardewcraft:sap", "count":  999 },
+                            { "item":  "stardewcraft:moss", "count":  333 }
+                        ]
+                    },
+                    {
+                        "id":  "statue_of_dwarf_king",
+                        "unlockCondition":  "null",
+                        "output":  { "item":  "stardewcraft:statue_of_dwarf_king", "count":  1 },
+                        "ingredients":  [
+                            { "item":  "stardewcraft:iridium_bar", "count":  20 }
+                        ]
+                    },
+                    {
+                        "id":  "challenge_bait",
+                        "unlockCondition":  "null",
+                        "output":  { "item":  "stardewcraft:challenge_bait", "count":  5 },
+                        "ingredients":  [
+                            { "item":  "stardewcraft:bone_fragment", "count":  5 },
+                            { "item":  "stardewcraft:moss", "count":  2 }
+                        ]
                     }
                 ]
 }

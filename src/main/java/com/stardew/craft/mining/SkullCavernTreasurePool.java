@@ -1,6 +1,10 @@
 package com.stardew.craft.mining;
 
 import com.stardew.craft.item.ModItems;
+import com.stardew.craft.item.trinket.StardewTrinketItem;
+import com.stardew.craft.player.PlayerDataManager;
+import com.stardew.craft.player.SkillType;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
@@ -13,8 +17,6 @@ import java.util.function.Supplier;
  * 26 选 1 均匀分布，与原版 1:1 对齐。
  * 原版中暂未移植到本模组的物品（家具、帽子、饰品盒等）回滚到 {@code Omni Geode ×5}
  * 以保留权重结构——这是 SDV default 分支本身的掉落。
- * <p>
- * 前置 0.02 金色动物饼干 / 0.045 随机饰品分支本模组不存在 Mastery/Trinket 系统，已省略。
  */
 public final class SkullCavernTreasurePool {
 
@@ -25,6 +27,21 @@ public final class SkullCavernTreasurePool {
      * @return 非空 ItemStack；若某 case 对应的物品未注册，回滚到 Omni Geode ×5。
      */
     public static ItemStack roll(RandomSource random) {
+        return roll(random, null);
+    }
+
+    public static ItemStack roll(RandomSource random, ServerPlayer player) {
+        if (player != null
+                && PlayerDataManager.getPlayerData(player).hasMastery(SkillType.FARMING)
+                && random.nextDouble() < 0.02) {
+            return stack(ModItems.GOLDEN_ANIMAL_CRACKER, 1);
+        }
+        if (StardewTrinketItem.canSpawnFor(player) && random.nextDouble() < 0.045) {
+            ItemStack trinket = StardewTrinketItem.createRandomNaturalTrinket(random, player);
+            if (!trinket.isEmpty()) {
+                return trinket;
+            }
+        }
         return switch (random.nextInt(26)) {
             // case 0: (O)288 Pale Ale ×5
             case 0 -> stack(ModItems.PALE_ALE, 5);

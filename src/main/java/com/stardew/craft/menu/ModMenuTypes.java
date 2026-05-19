@@ -68,6 +68,11 @@ public class ModMenuTypes {
             () -> new MenuType<>(CookingPotMenu::new, FeatureFlags.DEFAULT_FLAGS));
 
     @SuppressWarnings("null")
+    public static final DeferredHolder<MenuType<?>, MenuType<MiniForgeMenu>> MINI_FORGE =
+        MENU_TYPES.register("mini_forge",
+            () -> new MenuType<>(MiniForgeMenu::new, FeatureFlags.DEFAULT_FLAGS));
+
+    @SuppressWarnings("null")
     public static final DeferredHolder<MenuType<?>, MenuType<WoodenChestMenu>> WOODEN_CHEST =
         MENU_TYPES.register("wooden_chest",
             () -> new MenuType<>(WoodenChestMenu::new, FeatureFlags.DEFAULT_FLAGS));

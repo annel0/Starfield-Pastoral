@@ -1,6 +1,7 @@
 package com.stardew.craft.entity.bomb;
 
 import com.stardew.craft.block.ModBlocks;
+import com.stardew.craft.effect.ModMobEffects;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.item.bomb.BombType;
 import com.stardew.craft.sound.ModSounds;
@@ -430,6 +431,9 @@ public class StardewBombEntity extends Entity {
             DamageSource source = level.damageSources().explosion(this, owner);
 
             if (entity instanceof Player) {
+                if (entity.hasEffect(ModMobEffects.DWARF_STATUE_3)) {
+                    continue;
+                }
                 entity.hurt(source, type.getPlayerDamage());
             } else if (entity instanceof Mob) {
                 int damage = type.getMinDamage()

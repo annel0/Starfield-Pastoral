@@ -89,6 +89,26 @@ public final class CommonGuiTextures {
     private static final SdvTexture FRIENDSHIP_JEWEL_MAX = SdvTexture.full(common("friendship_jewel_max"), 11, 11);
     private static final SdvTexture QUESTION_EXCLAMATION_1_6 = SdvTexture.full(common("question_exclamation_1_6"), 17, 19);
     private static final SdvTexture[] QUESTION_ARROW_1_6 = frames("question_arrow_1_6_", 6, 7, 12);
+    private static final SdvTexture MASTERY_ICON_1_6 = SdvTexture.full(common("mastery_icon_1_6"), 11, 11);
+    private static final SdvTexture SKILLS_MASTERY_EMPTY_1_6 = SdvTexture.full(common("skills_mastery_empty_1_6"), 142, 12);
+    private static final SdvTexture SKILLS_CC_ROOM_INCOMPLETE_1_6 = SdvTexture.full(common("skills_cc_room_incomplete_1_6"), 11, 11);
+    private static final SdvTexture SKILLS_CC_ROOM_COMPLETE_1_6 = SdvTexture.full(common("skills_cc_room_complete_1_6"), 11, 11);
+    private static final SdvTexture SKILLS_JOJA_ROOM_INCOMPLETE_1_6 = SdvTexture.full(common("skills_joja_room_incomplete_1_6"), 11, 11);
+    private static final SdvTexture SKILLS_JOJA_ROOM_COMPLETE_1_6 = SdvTexture.full(common("skills_joja_room_complete_1_6"), 11, 11);
+    private static final SdvTexture SKILLS_JOJA_LOGO_1_6 = SdvTexture.full(common("skills_joja_logo_1_6"), 51, 48);
+    private static final SdvTexture SKILLS_CC_UNKNOWN_1_6 = SdvTexture.full(common("skills_cc_unknown_1_6"), 52, 47);
+    private static final SdvTexture SKILLS_HOUSE_ICON = SdvTexture.full(common("skills_house_icon"), 10, 10);
+    private static final SdvTexture SKILLS_MINE_EMPTY_1_6 = SdvTexture.full(common("skills_mine_empty_1_6"), 13, 13);
+    private static final SdvTexture SKILLS_MINE_ICON_1_6 = SdvTexture.full(common("skills_mine_icon_1_6"), 13, 13);
+    private static final SdvTexture SKILLS_SKULL_ICON_1_6 = SdvTexture.full(common("skills_skull_icon_1_6"), 8, 9);
+    private static final SdvTexture SKILLS_STARDROP_ICON_1_6 = SdvTexture.full(common("skills_stardrop_icon_1_6"), 12, 14);
+    private static final SdvTexture SKILLS_STARDROP_EMPTY_1_6 = SdvTexture.full(common("skills_stardrop_empty_1_6"), 12, 14);
+    private static final SdvTexture[] SKILLS_DOODLES_1_6 = new SdvTexture[] {
+        SdvTexture.full(common("skills_doodle_spring_1_6"), 33, 23),
+        SdvTexture.full(common("skills_doodle_summer_1_6"), 33, 23),
+        SdvTexture.full(common("skills_doodle_fall_1_6"), 33, 23),
+        SdvTexture.full(common("skills_doodle_winter_1_6"), 33, 23)
+    };
     private static final SdvTexture[] GAME_MENU_TABS = frames("game_menu_tab_", 10, 16, 16);
     private static final SdvTexture GAME_MENU_ORGANIZE = SdvTexture.full(common("game_menu_organize"), 16, 16);
     private static final SdvTexture GAME_MENU_TRASH_BODY_0 = SdvTexture.full(common("game_menu_trash_body_0"), 18, 26);
@@ -437,6 +457,54 @@ public final class CommonGuiTextures {
 
     public static void drawQuestionArrow16(GuiGraphics graphics, int x, int y, int frame, float scale) {
         QUESTION_ARROW_1_6[clampFrame(frame, QUESTION_ARROW_1_6.length)].drawPixelZoom(graphics, x, y, scale);
+    }
+
+    public static void drawMasteryIcon16Tint(GuiGraphics graphics, int x, int y, float scale, float red, float green, float blue, float alpha) {
+        MASTERY_ICON_1_6.drawPixelZoomTint(graphics, x, y, scale, red, green, blue, alpha);
+    }
+
+    public static void drawSkillsMasteryEmpty16Tint(GuiGraphics graphics, int x, int y, float scale, float red, float green, float blue, float alpha) {
+        SKILLS_MASTERY_EMPTY_1_6.drawPixelZoomTint(graphics, x, y, scale, red, green, blue, alpha);
+    }
+
+    public static void drawSkillsCcRoom16(GuiGraphics graphics, int x, int y, boolean complete, boolean joja, float scale, float alpha) {
+        SdvTexture texture;
+        if (joja) {
+            texture = complete ? SKILLS_JOJA_ROOM_COMPLETE_1_6 : SKILLS_JOJA_ROOM_INCOMPLETE_1_6;
+        } else {
+            texture = complete ? SKILLS_CC_ROOM_COMPLETE_1_6 : SKILLS_CC_ROOM_INCOMPLETE_1_6;
+        }
+        texture.drawPixelZoomTint(graphics, x, y, scale, 1.0f, 1.0f, 1.0f, alpha);
+    }
+
+    public static void drawSkillsJojaLogo16(GuiGraphics graphics, int x, int y, float scale, float alpha) {
+        SKILLS_JOJA_LOGO_1_6.drawPixelZoomTint(graphics, x, y, scale, 1.0f, 1.0f, 1.0f, alpha);
+    }
+
+    public static void drawSkillsCcUnknown16(GuiGraphics graphics, int x, int y, float scale, float alpha) {
+        SKILLS_CC_UNKNOWN_1_6.drawPixelZoomTint(graphics, x, y, scale, 1.0f, 1.0f, 1.0f, alpha);
+    }
+
+    public static void drawSkillsHouseIcon(GuiGraphics graphics, int x, int y, float scale, float alpha) {
+        SKILLS_HOUSE_ICON.drawPixelZoomTint(graphics, x, y, scale, 1.0f, 1.0f, 1.0f, alpha);
+    }
+
+    public static void drawSkillsMineIcon16(GuiGraphics graphics, int x, int y, boolean reachedMine, float scale, float alpha) {
+        SdvTexture texture = reachedMine ? SKILLS_MINE_ICON_1_6 : SKILLS_MINE_EMPTY_1_6;
+        texture.drawPixelZoomTint(graphics, x, y, scale, 1.0f, 1.0f, 1.0f, alpha);
+    }
+
+    public static void drawSkillsSkullIcon16(GuiGraphics graphics, int x, int y, float scale, float alpha) {
+        SKILLS_SKULL_ICON_1_6.drawPixelZoomTint(graphics, x, y, scale, 1.0f, 1.0f, 1.0f, alpha);
+    }
+
+    public static void drawSkillsStardropIcon16(GuiGraphics graphics, int x, int y, boolean foundAny, float scale, float alpha) {
+        SdvTexture texture = foundAny ? SKILLS_STARDROP_ICON_1_6 : SKILLS_STARDROP_EMPTY_1_6;
+        texture.drawPixelZoomTint(graphics, x, y, scale, 1.0f, 1.0f, 1.0f, alpha);
+    }
+
+    public static void drawSkillsDoodle16(GuiGraphics graphics, int x, int y, int seasonIndex, float scale, float alpha) {
+        SKILLS_DOODLES_1_6[clampFrame(seasonIndex, SKILLS_DOODLES_1_6.length)].drawPixelZoomTint(graphics, x, y, scale, 1.0f, 1.0f, 1.0f, alpha);
     }
 
     public static void drawGameMenuTab(GuiGraphics graphics, int x, int y, int tabIndex, float scale) {

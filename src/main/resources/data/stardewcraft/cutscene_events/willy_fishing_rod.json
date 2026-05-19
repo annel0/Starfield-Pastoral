@@ -4,8 +4,8 @@
   "trigger": {
     "type": "enter_area",
     "location": "beach",
-    "area_min": [-18, 18, 79],
-    "area_max": [175, 55, 83]
+    "area_min": [-18, 54, 82],
+    "area_max": [173, 90, 185]
   },
   "preconditions": [
     { "type": "not_saw_event", "id": "willy_fishing_rod" },

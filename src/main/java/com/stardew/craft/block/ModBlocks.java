@@ -128,6 +128,7 @@ public class ModBlocks {
         // Summer forage
         public static final DeferredBlock<Block> FORAGE_SPICE_BERRY       = forage("spice_berry", SUMMER);
         public static final DeferredBlock<Block> FORAGE_SWEET_PEA         = forage("sweet_pea", SUMMER);
+        public static final DeferredBlock<Block> FORAGE_GRAPE             = forage("grape", SUMMER);
         public static final DeferredBlock<Block> FORAGE_FIDDLEHEAD_FERN   = forage("fiddlehead_fern", SUMMER);
         // Fall forage
         public static final DeferredBlock<Block> FORAGE_WILD_PLUM         = forage("wild_plum", FALL);
@@ -1232,6 +1233,49 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                                                 .lightLevel(state -> state.getValue(com.stardew.craft.block.utility.FurnaceBlock.WORKING) ? 15 : 0)
                                                                 .strength(1.5F, 3.0F)));
 
+                // ─── Mastery reward blocks ───
+                @SuppressWarnings("null")
+                public static final DeferredBlock<Block> HEAVY_FURNACE = BLOCKS.register("heavy_furnace",
+                                        () -> new com.stardew.craft.block.mastery.HeavyFurnaceBlock(Block.Properties.of()
+                                                                .mapColor(net.minecraft.world.level.material.MapColor.METAL)
+                                                                .sound(net.minecraft.world.level.block.SoundType.METAL)
+                                                                .noOcclusion()
+                                                                .lightLevel(state -> state.getValue(com.stardew.craft.block.utility.FurnaceBlock.WORKING) ? 15 : 0)
+                                                                .strength(2.5F, 6.0F)));
+
+                @SuppressWarnings("null")
+                public static final DeferredBlock<Block> STATUE_OF_BLESSINGS = BLOCKS.register("statue_of_blessings",
+                                        () -> new com.stardew.craft.block.mastery.StatueOfBlessingsBlock(Block.Properties.of()
+                                                                .mapColor(net.minecraft.world.level.material.MapColor.STONE)
+                                                                .sound(net.minecraft.world.level.block.SoundType.STONE)
+                                                                .noOcclusion()
+                                                                .strength(2.0F, 6.0F)));
+
+                @SuppressWarnings("null")
+                public static final DeferredBlock<Block> STATUE_OF_DWARF_KING = BLOCKS.register("statue_of_dwarf_king",
+                                        () -> new com.stardew.craft.block.mastery.StatueOfDwarfKingBlock(Block.Properties.of()
+                                                                .mapColor(net.minecraft.world.level.material.MapColor.STONE)
+                                                                .sound(net.minecraft.world.level.block.SoundType.STONE)
+                                                                .noOcclusion()
+                                                                .strength(2.0F, 6.0F)));
+
+                @SuppressWarnings("null")
+                public static final DeferredBlock<Block> ANVIL_MASTERY = BLOCKS.register("anvil_mastery",
+                                        () -> new com.stardew.craft.block.mastery.AnvilBlock(Block.Properties.of()
+                                                                .mapColor(net.minecraft.world.level.material.MapColor.METAL)
+                                                                .sound(net.minecraft.world.level.block.SoundType.ANVIL)
+                                                                .noOcclusion()
+                                                                .strength(3.0F, 6.0F)));
+
+                @SuppressWarnings("null")
+                public static final DeferredBlock<Block> MINI_FORGE = BLOCKS.register("mini_forge",
+                                        () -> new com.stardew.craft.block.mastery.MiniForgeBlock(Block.Properties.of()
+                                                                .mapColor(net.minecraft.world.level.material.MapColor.METAL)
+                                                                .sound(net.minecraft.world.level.block.SoundType.METAL)
+                                                                .noOcclusion()
+                                                                .lightLevel(s -> 7)
+                                                                .strength(2.5F, 6.0F)));
+
                 @SuppressWarnings("null")
                 public static final DeferredBlock<Block> CHARCOAL_KILN = BLOCKS.register("charcoal_kiln",
                                                 () -> new com.stardew.craft.block.utility.CharcoalKilnBlock(Block.Properties.of()
@@ -1574,7 +1618,7 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
                                         .sound(net.minecraft.world.level.block.SoundType.WOOD)
                                         .noOcclusion()
-                                        .strength(0.2F), "stardewcraft:decor/common/chair_1", 7.0D / 16.0D));
+                                        .strength(0.2F), "stardewcraft:decor/common/chair_1", 9.0D / 16.0D));
 
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> CHAIR_2 = BLOCKS.register("chair_2",
@@ -1582,7 +1626,7 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
                                         .sound(net.minecraft.world.level.block.SoundType.WOOD)
                                         .noOcclusion()
-                                        .strength(0.2F), "stardewcraft:decor/common/chair_2", 7.0D / 16.0D));
+                                        .strength(0.2F), "stardewcraft:decor/common/chair_2", 9.0D / 16.0D));
 
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> CHAIR_3 = BLOCKS.register("chair_3",
@@ -1590,7 +1634,7 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
                                         .sound(net.minecraft.world.level.block.SoundType.WOOD)
                                         .noOcclusion()
-                                        .strength(0.2F), "stardewcraft:decor/common/chair_3", 7.0D / 16.0D));
+                                        .strength(0.2F), "stardewcraft:decor/common/chair_3", 9.0D / 16.0D));
 
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> LIGHT_1 = BLOCKS.register("light_1",
@@ -2948,19 +2992,18 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .sound(net.minecraft.world.level.block.SoundType.GRAVEL)
                                         .strength(0.5F)));
 
-        // 沙漠远古斑点（砂岩变体）— 锄头锄后变回普通砂岩
+        // 沙漠远古斑点（沙子变体）— 锄头锄后变回普通沙子
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> DESERT_ARTIFACT_SPOT = BLOCKS.register("desert_artifact_spot",
                         () -> new com.stardew.craft.block.nature.ArtifactSpotBlock(
-                                        Block.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.SANDSTONE),
-                                        net.minecraft.world.level.block.Blocks.SANDSTONE));
+                                        Block.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.SAND),
+                                        net.minecraft.world.level.block.Blocks.SAND));
 
-        // 海滩远古斑点（沙滩变体）— 记住原始底块，沙子版回沙子，砂岩版回砂岩
+        // 海滩远古斑点（沙子变体）— 锄头锄后变回普通沙子
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> BEACH_ARTIFACT_SPOT = BLOCKS.register("beach_artifact_spot",
                         () -> new com.stardew.craft.block.nature.ArtifactSpotBlock(
-                                        Block.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.SANDSTONE),
-                                        net.minecraft.world.level.block.Blocks.SANDSTONE,
+                                        Block.Properties.ofFullCopy(net.minecraft.world.level.block.Blocks.SAND),
                                         net.minecraft.world.level.block.Blocks.SAND));
 
         // 传送触发方块（隐形，无碰撞，不可破坏）— 替代 Interaction 实体

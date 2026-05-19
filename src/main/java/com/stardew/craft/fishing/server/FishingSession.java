@@ -1,6 +1,8 @@
 package com.stardew.craft.fishing.server;
 
+import com.stardew.craft.enchantment.StardewEnchantments;
 import com.stardew.craft.fishing.data.FishingDataManager;
+import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.SkillType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -201,7 +203,8 @@ public final class FishingSession {
 				// 找到鱼了！计算鱼的大小和初始品质
 				// SDV原版公式：fishSize = (clearWaterDistance/5) * random(min,max)/5 * favBait * ±10%
 				// MC中用castPower替代clearWaterDistance/5，下限0.2（SDV短抛至少戉1格离岸距离=0.2）
-				int fishingLevel = com.stardew.craft.player.PlayerStardewDataAPI.getSkillLevel(player, SkillType.FISHING);
+				ItemStack rod = com.stardew.craft.item.tool.FishingRodItem.findRod(player);
+				int fishingLevel = StardewEnchantments.effectiveFishingLevel(player, rod);
 
 				// 1. 抛竿力度因子（SDV: clearWaterDistance/5，范围0.2-1.0）
 				this.fishSize = Math.max(0.2, (double) this.castPower);
@@ -216,7 +219,7 @@ public final class FishingSession {
 				}
 
 				// 3. 偏爱饵料加成（Targeted Bait匹配目标鱼时×1.2）
-				ItemStack rod = com.stardew.craft.item.tool.FishingRodItem.findRod(player);
+				rod = com.stardew.craft.item.tool.FishingRodItem.findRod(player);
 				if (rod != null && rod.getItem() instanceof com.stardew.craft.item.tool.FishingRodItem fishingRodItem) {
 					ItemStack baitStack = fishingRodItem.getAttachmentsForTooltip(rod).bait();
 					if (!baitStack.isEmpty() && baitStack.getItem() instanceof com.stardew.craft.item.SpecificBaitItem) {
@@ -341,7 +344,7 @@ public final class FishingSession {
 			treasureLoot = List.of();
 			return;
 		}
-		int fishingLevel = com.stardew.craft.player.PlayerStardewDataAPI.getSkillLevel(player, SkillType.FISHING);
+		int fishingLevel = StardewEnchantments.effectiveFishingLevel(player, rod);
 		
 		// 基础概率 15%
 		double treasureChance = BASE_TREASURE_CHANCE;
@@ -382,7 +385,7 @@ public final class FishingSession {
 		if (hasTreasure) {
 			double goldenChance = 0.25 + dailyLuck;
 			goldenChance = net.minecraft.util.Mth.clamp(goldenChance, 0.0, 1.0);
-			if (fishingLevel >= 10 && random.nextDouble() < goldenChance) {
+			if (PlayerDataManager.getPlayerData(player).hasMastery(SkillType.FISHING) && random.nextDouble() < goldenChance) {
 				goldenTreasure = true;
 			}
 		}

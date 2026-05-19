@@ -1,43 +1,129 @@
 {
-    "parent":  "minecraft:item/handheld",
-    "textures":  {
-                     "layer0":  "stardewcraft:item/weapon/dagger/iron_dirk",
-                     "particle":  "stardewcraft:item/weapon/dagger/iron_dirk"
-                 },
-    "display":  {
-                    "first_person_right_hand":  {
-                                                    "rotation":  [
-                                                                     0,
-                                                                     -90,
-                                                                     25
-                                                                 ],
-                                                    "translation":  [
-                                                                        1.13,
-                                                                        3.2,
-                                                                        1.13
-                                                                    ],
-                                                    "scale":  [
-                                                                  0.68,
-                                                                  0.68,
-                                                                  0.68
-                                                              ]
-                                                },
-                    "first_person_left_hand":  {
-                                                   "rotation":  [
-                                                                    0,
-                                                                    90,
-                                                                    -25
-                                                                ],
-                                                   "translation":  [
-                                                                       -1.13,
-                                                                       3.2,
-                                                                       1.13
-                                                                   ],
-                                                   "scale":  [
-                                                                 0.68,
-                                                                 0.68,
-                                                                 0.68
-                                                             ]
-                                               }
-                }
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "stardewcraft:item/weapon/dagger/iron_dirk",
+    "particle": "stardewcraft:item/weapon/dagger/iron_dirk"
+  },
+  "display": {
+    "first_person_right_hand": {
+      "rotation": [
+        0,
+        -90,
+        25
+      ],
+      "translation": [
+        1.13,
+        3.2,
+        1.13
+      ],
+      "scale": [
+        0.68,
+        0.68,
+        0.68
+      ]
+    },
+    "first_person_left_hand": {
+      "rotation": [
+        0,
+        90,
+        -25
+      ],
+      "translation": [
+        -1.13,
+        3.2,
+        1.13
+      ],
+      "scale": [
+        0.68,
+        0.68,
+        0.68
+      ]
+    }
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 761830
+      },
+      "model": "stardewcraft:item/forge_appearance/broken_trident"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 767078
+      },
+      "model": "stardewcraft:item/forge_appearance/burglars_shank"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 796584
+      },
+      "model": "stardewcraft:item/forge_appearance/carving_knife"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 742161
+      },
+      "model": "stardewcraft:item/forge_appearance/crystal_dagger"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 747434
+      },
+      "model": "stardewcraft:item/forge_appearance/dragontooth_shiv"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 702597
+      },
+      "model": "stardewcraft:item/forge_appearance/dwarf_dagger"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 756698
+      },
+      "model": "stardewcraft:item/forge_appearance/elf_blade"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 743675
+      },
+      "model": "stardewcraft:item/forge_appearance/galaxy_dagger"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 799043
+      },
+      "model": "stardewcraft:item/forge_appearance/infinity_dagger"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 764847
+      },
+      "model": "stardewcraft:item/forge_appearance/iridium_needle"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 735895
+      },
+      "model": "stardewcraft:item/forge_appearance/iron_dirk"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 709483
+      },
+      "model": "stardewcraft:item/forge_appearance/shadow_dagger"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 760057
+      },
+      "model": "stardewcraft:item/forge_appearance/wicked_kris"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 746758
+      },
+      "model": "stardewcraft:item/forge_appearance/wind_spire"
+    }
+  ]
 }

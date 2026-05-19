@@ -293,6 +293,16 @@ public class StardewCraft {
                 // 好感门：绑定 NPC 的具体门请使用 /stardew friendship_door give 生成。
                 output.accept(ModItems.FRIENDSHIP_DOOR.get());
 
+                // 饰品
+                output.accept(ModItems.MAGIC_HAIR_DYE.get());
+                output.accept(ModItems.FROG_EGG.get());
+                output.accept(ModItems.MAGIC_QUIVER.get());
+                output.accept(ModItems.FAIRY_BOX.get());
+                output.accept(ModItems.PARROT_EGG.get());
+                output.accept(ModItems.ICE_ROD.get());
+                output.accept(ModItems.IRIDIUM_SPUR.get());
+                output.accept(ModItems.BASILISK_PAW.get());
+
                 // 武器 - 剑类
                 output.accept(ModItems.RUSTY_SWORD.get());
                 output.accept(ModItems.STEEL_SMALLSWORD.get());
@@ -1050,6 +1060,7 @@ public class StardewCraft {
                 com.stardew.craft.sewer.SewerAccessManager.get(stardewLevel).resetForMigration();
                 com.stardew.craft.minecart.MinecartStationManager.get(stardewLevel).resetForMigration();
                 com.stardew.craft.manager.QuarrySpawnService.resetInitialSpawn(stardewLevel);
+                com.stardew.craft.mastery.MasterySiteInstaller.get(stardewLevel).resetForMigration();
                 LOGGER.info("[VALLEY_INIT] Reset all manager SavedData versions — ensurePlaced will re-run on first player entry");
             } else {
                 LOGGER.info("[VALLEY_MAP] Stardew level not loaded at startup, will mark pre-generated on first travel.");

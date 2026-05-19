@@ -1,6 +1,9 @@
 {
   "variants": {
-    "": {
+    "sand_backed=false": {
+      "model": "stardewcraft:block/desert_artifact_spot"
+    },
+    "sand_backed=true": {
       "model": "stardewcraft:block/desert_artifact_spot"
     }
   }

@@ -1,6 +1,7 @@
 package com.stardew.craft.cutscene.server;
 
 import com.stardew.craft.StardewCraft;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -9,6 +10,7 @@ import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 /**
  * Cutscene 期间禁止玩家主动行为：破坏方块、放置方块、使用物品、攻击与交互实体等。
@@ -73,9 +75,20 @@ public final class CutsceneInteractionLock {
         }
     }
 
+    @SubscribeEvent
+    public static void onPlayerTick(PlayerTickEvent.Post event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            ServerCutsceneTracker.tickProtection(player);
+        }
+    }
+
     // 玩家离线时兜底清理，避免下线后残留活动标记
     @SubscribeEvent
     public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
-        ServerCutsceneTracker.clear(event.getEntity().getUUID());
+        if (event.getEntity() instanceof ServerPlayer player) {
+            ServerCutsceneTracker.clear(player);
+        } else {
+            ServerCutsceneTracker.clear(event.getEntity().getUUID());
+        }
     }
 }

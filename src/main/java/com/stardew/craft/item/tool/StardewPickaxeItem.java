@@ -63,6 +63,16 @@ public class StardewPickaxeItem extends PickaxeItem implements IStardewItem {
 		return -1;
 	}
 
+	@Override
+	public boolean isEnchantable(@SuppressWarnings("null") ItemStack stack) {
+		return stack.getMaxStackSize() == 1;
+	}
+
+	@Override
+	public int getEnchantmentValue() {
+		return Math.max(1, (stardewTier + 1) * 5);
+	}
+
 	@SuppressWarnings("null")
 	@Override
 	public float getDestroySpeed(@SuppressWarnings("null") ItemStack stack, @SuppressWarnings("null") BlockState state) {

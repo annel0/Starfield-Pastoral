@@ -1,5 +1,6 @@
 package com.stardew.craft.player;
 
+import com.stardew.craft.effect.ModMobEffects;
 import com.stardew.craft.time.StardewTimeManager;
 import com.stardew.craft.mining.MiningDataManager;
 import com.stardew.craft.network.overnight.OvernightSettlementPayload;
@@ -198,10 +199,35 @@ public class PlayerStardewDataAPI {
      * @return 是否成功（能量是否足够）
      */
     public static boolean consumeEnergy(ServerPlayer player, float amount) {
+        if (amount > 0.0f && player.hasEffect(ModMobEffects.STATUE_OF_BLESSINGS_2)) {
+            return true;
+        }
         PlayerStardewData data = getData(player);
         boolean success = data.consumeEnergy(amount);
         PlayerDataEventHandler.syncPlayerData(player, data);
         return success;
+    }
+
+    public static int getBlessingOfWatersRemaining(ServerPlayer player) {
+        return getData(player).getBlessingOfWatersRemaining();
+    }
+
+    public static boolean consumeBlessingOfWatersUse(ServerPlayer player) {
+        if (!player.hasEffect(ModMobEffects.STATUE_OF_BLESSINGS_3)) {
+            return false;
+        }
+        PlayerStardewData data = getData(player);
+        if (data.getBlessingOfWatersRemaining() <= 0) {
+            player.removeEffect(ModMobEffects.STATUE_OF_BLESSINGS_3);
+            PlayerDataEventHandler.syncPlayerData(player, data);
+            return false;
+        }
+        int remaining = data.consumeBlessingOfWatersUse();
+        if (remaining <= 0) {
+            player.removeEffect(ModMobEffects.STATUE_OF_BLESSINGS_3);
+        }
+        PlayerDataEventHandler.syncPlayerData(player, data);
+        return true;
     }
     
     /**
@@ -232,6 +258,7 @@ public class PlayerStardewDataAPI {
      */
     public static void sleep(ServerPlayer player, int sleepTime) {
         getData(player).sleep(sleepTime);
+        com.stardew.craft.mastery.MasteryBuffLifecycle.clearAllDailyMasteryBuffs(player);
     }
     
     // ============ 生命值相关 ============

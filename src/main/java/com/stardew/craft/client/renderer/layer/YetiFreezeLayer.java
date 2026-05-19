@@ -10,6 +10,7 @@ import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 
 public class YetiFreezeLayer<T extends LivingEntity, M extends EntityModel<T>> extends RenderLayer<T, M> {
@@ -33,9 +34,12 @@ public class YetiFreezeLayer<T extends LivingEntity, M extends EntityModel<T>> e
         if (!YetiFreezeClientState.isFrozen(entity.getId(), nowTick)) {
             return;
         }
+        if (entity.getType() == EntityType.WARDEN) {
+            return;
+        }
 
-        RenderType renderType = RenderType.entityTranslucent(ICE_TEXTURE);
-        int color = FastColor.ARGB32.color(160, 200, 220, 255);
+        RenderType renderType = RenderType.entityTranslucentCull(ICE_TEXTURE);
+        int color = FastColor.ARGB32.color(92, 185, 225, 255);
         getParentModel().renderToBuffer(
             poseStack,
             buffer.getBuffer(renderType),

@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "#minecraft:axes",
+    "#stardewcraft:hoes",
+    "#stardewcraft:watering_cans",
+    "#stardewcraft:pickaxes"
+  ]
+}

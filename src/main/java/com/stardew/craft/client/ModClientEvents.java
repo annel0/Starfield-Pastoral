@@ -145,6 +145,8 @@ public class ModClientEvents {
                 } else if ("stardewcraft.type.boots".equals(typeKey)) {
                     // 靴子：深绿色
                     typeColor = net.minecraft.ChatFormatting.DARK_GREEN;
+                } else if ("stardewcraft.type.trinket".equals(typeKey)) {
+                    typeColor = net.minecraft.ChatFormatting.LIGHT_PURPLE;
                 } else if ("stardewcraft.type.magic".equals(typeKey)) {
                     // 魔法：紫色
                     typeColor = net.minecraft.ChatFormatting.LIGHT_PURPLE;
@@ -185,6 +187,16 @@ public class ModClientEvents {
                     customLines.add(Component.translatable("stardewcraft.tooltip.type_prefix")
                         .withStyle(ChatFormatting.WHITE)
                         .append(SpecialConsumableClientFx.iridiumMilkTypeLabel(
+                            Component.translatable(typeKey).getString())));
+                } else if (stack.getItem() == ModItems.GALAXY_SOUL.get()) {
+                    customLines.add(Component.translatable("stardewcraft.tooltip.type_prefix")
+                        .withStyle(ChatFormatting.WHITE)
+                        .append(GalaxySoulClientFx.prismaticTypeLabel(
+                            Component.translatable(typeKey).getString())));
+                } else if (stack.getItem() instanceof com.stardew.craft.item.trinket.StardewTrinketItem) {
+                    customLines.add(Component.translatable("stardewcraft.tooltip.type_prefix")
+                        .withStyle(ChatFormatting.WHITE)
+                        .append(TrinketClientFx.trinketTypeLabel(
                             Component.translatable(typeKey).getString())));
                 } else {
                     customLines.add(Component.translatable("stardewcraft.tooltip.type_prefix") // Type label in white, non-bold.
@@ -270,7 +282,11 @@ public class ModClientEvents {
                             customLines.add(Component.empty());
                             continue;
                         }
-                        customLines.add(Component.literal(line).withStyle(i == 0 ? ChatFormatting.GRAY : ChatFormatting.DARK_GRAY));
+                        if (stack.getItem() == ModItems.GALAXY_SOUL.get()) {
+                            customLines.add(GalaxySoulClientFx.prismaticDescriptionLine(line, i * 0.18F));
+                        } else {
+                            customLines.add(Component.literal(line).withStyle(i == 0 ? ChatFormatting.GRAY : ChatFormatting.DARK_GRAY));
+                        }
                     }
                 }
 
@@ -340,6 +356,7 @@ public class ModClientEvents {
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
         com.stardew.craft.client.sound.StardewMusicManager.onClientTick();
+        com.stardew.craft.client.mastery.MasteryCandleFlameClient.onClientTick();
         com.stardew.craft.client.emote.EmoteBubbleClientState.tick();
         com.stardew.craft.client.fishpond.ClientFishPondJumpEffects.onClientTick(event);
         com.stardew.craft.client.emote.EmoteWheelClient.onClientTick();

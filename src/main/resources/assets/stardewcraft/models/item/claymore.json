@@ -1,43 +1,201 @@
 {
-    "parent":  "minecraft:item/handheld",
-    "textures":  {
-                     "layer0":  "stardewcraft:item/weapon/sword/claymore",
-                     "particle":  "stardewcraft:item/weapon/sword/claymore"
-                 },
-    "display":  {
-                    "first_person_right_hand":  {
-                                                    "rotation":  [
-                                                                     0,
-                                                                     -90,
-                                                                     25
-                                                                 ],
-                                                    "translation":  [
-                                                                        1.13,
-                                                                        3.2,
-                                                                        1.13
-                                                                    ],
-                                                    "scale":  [
-                                                                  0.68,
-                                                                  0.68,
-                                                                  0.68
-                                                              ]
-                                                },
-                    "first_person_left_hand":  {
-                                                   "rotation":  [
-                                                                    0,
-                                                                    90,
-                                                                    -25
-                                                                ],
-                                                   "translation":  [
-                                                                       -1.13,
-                                                                       3.2,
-                                                                       1.13
-                                                                   ],
-                                                   "scale":  [
-                                                                 0.68,
-                                                                 0.68,
-                                                                 0.68
-                                                             ]
-                                               }
-                }
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "stardewcraft:item/weapon/sword/claymore",
+    "particle": "stardewcraft:item/weapon/sword/claymore"
+  },
+  "display": {
+    "first_person_right_hand": {
+      "rotation": [
+        0,
+        -90,
+        25
+      ],
+      "translation": [
+        1.13,
+        3.2,
+        1.13
+      ],
+      "scale": [
+        0.68,
+        0.68,
+        0.68
+      ]
+    },
+    "first_person_left_hand": {
+      "rotation": [
+        0,
+        90,
+        -25
+      ],
+      "translation": [
+        -1.13,
+        3.2,
+        1.13
+      ],
+      "scale": [
+        0.68,
+        0.68,
+        0.68
+      ]
+    }
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 788864
+      },
+      "model": "stardewcraft:item/forge_appearance/bone_sword"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 782644
+      },
+      "model": "stardewcraft:item/forge_appearance/claymore"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 715097
+      },
+      "model": "stardewcraft:item/forge_appearance/cutlass"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 749394
+      },
+      "model": "stardewcraft:item/forge_appearance/dark_sword"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 709935
+      },
+      "model": "stardewcraft:item/forge_appearance/dragontooth_cutlass"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 771042
+      },
+      "model": "stardewcraft:item/forge_appearance/dwarf_sword"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 787321
+      },
+      "model": "stardewcraft:item/forge_appearance/forest_sword"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 717772
+      },
+      "model": "stardewcraft:item/forge_appearance/galaxy_sword"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 717451
+      },
+      "model": "stardewcraft:item/forge_appearance/holy_blade"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 783327
+      },
+      "model": "stardewcraft:item/forge_appearance/infinity_blade"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 704249
+      },
+      "model": "stardewcraft:item/forge_appearance/insect_head"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 760534
+      },
+      "model": "stardewcraft:item/forge_appearance/iron_edge"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 781495
+      },
+      "model": "stardewcraft:item/forge_appearance/lava_katana"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 777097
+      },
+      "model": "stardewcraft:item/forge_appearance/meowmere"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 761435
+      },
+      "model": "stardewcraft:item/forge_appearance/neptunes_glaive"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 715395
+      },
+      "model": "stardewcraft:item/forge_appearance/obsidian_edge"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 707859
+      },
+      "model": "stardewcraft:item/forge_appearance/ossified_blade"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 761045
+      },
+      "model": "stardewcraft:item/forge_appearance/pirate_sword"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 794965
+      },
+      "model": "stardewcraft:item/forge_appearance/rusty_sword"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 778605
+      },
+      "model": "stardewcraft:item/forge_appearance/silver_saber"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 735492
+      },
+      "model": "stardewcraft:item/forge_appearance/steel_falchion"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 760904
+      },
+      "model": "stardewcraft:item/forge_appearance/steel_smallsword"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 786524
+      },
+      "model": "stardewcraft:item/forge_appearance/tempered_broadsword"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 739585
+      },
+      "model": "stardewcraft:item/forge_appearance/templars_blade"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 784077
+      },
+      "model": "stardewcraft:item/forge_appearance/wooden_blade"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 781096
+      },
+      "model": "stardewcraft:item/forge_appearance/yeti_tooth"
+    }
+  ]
 }

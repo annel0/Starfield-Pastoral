@@ -48,12 +48,12 @@ public class CowEntity extends BaseCoopAnimalEntity {
 
     @Override
     public @Nonnull InteractionResult mobInteract(@Nonnull Player player, @Nonnull InteractionHand hand) {
-        if (hand == InteractionHand.MAIN_HAND && !this.level().isClientSide && !this.isBaby()) {
+        if (hand == InteractionHand.MAIN_HAND && !this.level().isClientSide) {
             ItemStack held = player.getItemInHand(hand);
             if (held.is(ModItems.MILK_PAIL.get()) && this.level() instanceof ServerLevel serverLevel && getManagedAnimalId() > 0L) {
                 AnimalWorldData data = AnimalWorldData.get(serverLevel);
                 FarmAnimalRecord record = data.getAnimal(getManagedAnimalId()).orElse(null);
-                if (record != null && !record.currentProduceId().isBlank()) {
+                if (record != null && !record.isBaby() && !record.currentProduceId().isBlank()) {
                     ItemStack produce = resolveProduceStack(record);
                     if (!produce.isEmpty()) {
                         if (!player.addItem(produce.copy())) {

@@ -1,9 +1,13 @@
 package com.stardew.craft.client;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.event.ScytheHarvestEvents;
 import com.stardew.craft.item.tool.ScytheItem;
+import com.stardew.craft.item.weapon.IStardewWeapon;
 import com.stardew.craft.network.ScytheSwingPayload;
 import net.minecraft.client.Minecraft;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.InteractionHand;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -36,7 +40,11 @@ public final class ScytheClientInputHandler {
 		var player = mc.player;
 		@SuppressWarnings("null")
 		var mainHandStack = player.getItemInHand(InteractionHand.MAIN_HAND);
-		if (!(mainHandStack.getItem() instanceof ScytheItem)) {
+		boolean scythe = mainHandStack.getItem() instanceof ScytheItem;
+		boolean weaponGrassCut = !scythe
+				&& mainHandStack.getItem() instanceof IStardewWeapon
+				&& isLookingAtWeaponCuttableGrass(mc);
+		if (!scythe && !weaponGrassCut) {
 			wasAttackDown = false;
 			ScytheSwingAnimationState.reset();
 			return;
@@ -60,5 +68,14 @@ public final class ScytheClientInputHandler {
 		if (isAttackDown && mc.gameMode != null) {
 			mc.gameMode.stopDestroyBlock();
 		}
+	}
+
+	private static boolean isLookingAtWeaponCuttableGrass(Minecraft mc) {
+		var level = mc.level;
+		if (level == null || !(mc.hitResult instanceof BlockHitResult hit)
+				|| hit.getType() != HitResult.Type.BLOCK) {
+			return false;
+		}
+		return ScytheHarvestEvents.isWeaponGrassCuttingState(level.getBlockState(hit.getBlockPos()));
 	}
 }

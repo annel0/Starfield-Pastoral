@@ -31,6 +31,7 @@ public class MailService {
      * 立即投递邮件到玩家信箱。如果玩家已收过（mailFlags）或信箱中已有，则忽略。
      */
     public static void addMail(ServerPlayer player, String mailId) {
+        if (!canQueueReadableMail(player, mailId, "mailbox")) return;
         PlayerStardewData data = PlayerDataManager.getPlayerData(player);
         if (data.hasMailFlag(mailId)) return;  // 已读过
         int before = data.getMailbox().size();
@@ -44,6 +45,7 @@ public class MailService {
      * 安排邮件于次日投递。如果已收过或已安排，则忽略。
      */
     public static void addMailForTomorrow(ServerPlayer player, String mailId) {
+        if (!canQueueReadableMail(player, mailId, "mailForTomorrow")) return;
         PlayerStardewData data = PlayerDataManager.getPlayerData(player);
         if (data.hasMailFlag(mailId)) return;
         int before = data.getMailForTomorrow().size();
@@ -91,16 +93,22 @@ public class MailService {
             return;
         }
 
-        String mailId = data.popMailFromMailbox();
-        if (mailId == null) return;
+        String mailId;
+        MailEntry entry;
+        while (true) {
+            mailId = data.popMailFromMailbox();
+            if (mailId == null) {
+                PlayerDataEventHandler.syncPlayerData(player, data);
+                player.sendSystemMessage(Component.translatable("stardewcraft.mailbox.empty"));
+                return;
+            }
 
-        MailEntry entry = MailRegistry.get(mailId);
-        if (entry == null) {
-            data.addToMailbox(mailId);
-            PlayerDataEventHandler.syncPlayerData(player, data);
-            LOGGER.warn("Mail '{}' not found in registry, keeping it queued", mailId);
-            player.sendSystemMessage(Component.literal("邮件数据暂时不可用，请稍后再试。"));
-            return;
+            entry = MailRegistry.get(mailId);
+            if (entry != null) break;
+
+            data.addMailFlag(mailId);
+            LOGGER.warn("Discarded unreadable queued mail '{}' for {} because no mail entry is registered",
+                    mailId, player.getName().getString());
         }
 
         // 标记为已读
@@ -168,6 +176,20 @@ public class MailService {
         );
 
         PacketDistributor.sendToPlayer(player, payload);
+    }
+
+    private static boolean canQueueReadableMail(ServerPlayer player, String mailId, String queueName) {
+        if (mailId == null || mailId.isBlank()) {
+            LOGGER.warn("Ignoring blank readable mail id for {} queue on {}",
+                    queueName, player.getName().getString());
+            return false;
+        }
+        if (!MailRegistry.contains(mailId)) {
+            LOGGER.warn("Ignoring unregistered readable mail '{}' for {} queue on {}",
+                    mailId, queueName, player.getName().getString());
+            return false;
+        }
+        return true;
     }
 
     /**

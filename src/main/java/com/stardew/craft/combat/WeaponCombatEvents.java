@@ -32,16 +32,19 @@ import com.stardew.craft.combat.network.BurglarShankLootPayload;
 import com.stardew.craft.combat.network.DamageNumberPayload;
 import com.stardew.craft.combat.network.CrystalDaggerBurstPayload;
 import com.stardew.craft.combat.network.SteelSpineFuryStrikePayload;
+import com.stardew.craft.enchantment.StardewEnchantments;
 import com.stardew.craft.item.weapon.IStardewWeapon;
 import com.stardew.craft.item.weapon.WeaponData;
 import com.stardew.craft.item.weapon.WeaponRegistry;
 import com.stardew.craft.item.weapon.WeaponSkillData;
 import com.stardew.craft.effect.ModMobEffects;
 import com.stardew.craft.event.MineMonsterSpawnHandler;
+import com.stardew.craft.item.ModItems;
 import com.stardew.craft.player.PlayerStardewDataAPI;
 import com.stardew.craft.player.SkillType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -314,6 +317,19 @@ public class WeaponCombatEvents {
             return;
         }
 
+        // SDV GameLocation.cs:4683 — Blessing of Fangs: +10% 武器暴击概率
+        if (player instanceof net.minecraft.server.level.ServerPlayer sp5
+                && sp5.hasEffect(com.stardew.craft.effect.ModMobEffects.STATUE_OF_BLESSINGS_5)) {
+            skillContext = SkillContext.builder()
+                .skillId(skillContext.getSkillId())
+                .tier(skillContext.getTier())
+                .damageMultiplier(skillContext.getDamageMultiplier())
+                .ignoreDefense(skillContext.isIgnoreDefense())
+                .guaranteedCrit(skillContext.isGuaranteedCrit())
+                .critChanceBonus(skillContext.getCritChanceBonus() + 0.1f)
+                .build();
+        }
+
         com.stardew.craft.combat.equipment.EquipmentStats equipStats = null;
         if (player instanceof net.minecraft.server.level.ServerPlayer sp) {
             equipStats = com.stardew.craft.combat.equipment.EquipmentResolver.getMergedStats(sp);
@@ -392,6 +408,20 @@ public class WeaponCombatEvents {
             && DarkSwordBloodMoonTracker.isActive(serverPlayer, nowTick);
         if (bloodMoonActive) {
             finalDamage *= DarkSwordBloodMoonTracker.getDamageBonusMultiplier((net.minecraft.server.level.ServerPlayer) player, nowTick);
+        }
+
+        if (!result.isDodged() && finalDamage > 0.0f) {
+            if (StardewEnchantments.has(weapon, StardewEnchantments.BUG_KILLER)
+                    && StardewEnchantments.isBugKillerTarget(target)) {
+                finalDamage *= 2.0f;
+            }
+            if (StardewEnchantments.has(weapon, StardewEnchantments.CRUSADER)
+                    && StardewEnchantments.isCrusaderTarget(target)) {
+                finalDamage *= 1.5f;
+            }
+            if (hasDragonToothBonus(weapon, "slime_slayer") && isDragonToothSlimeSlayerTarget(target)) {
+                finalDamage = finalDamage * 1.33f + 1.0f;
+            }
         }
 
         if (isNormalAttack && !isSweepTarget && sweepWeaponType == WeaponType.CLUB) {
@@ -570,6 +600,13 @@ public class WeaponCombatEvents {
                 player.attack(target);
             }
         }
+
+        if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer
+                && !result.isDodged()
+                && finalDamage > 0) {
+            com.stardew.craft.item.trinket.TrinketEffectHandler.onDamageMonster(
+                    serverPlayer, target, Math.max(1, Math.round(finalDamage)), result.isCrit());
+        }
     }
 
 
@@ -622,10 +659,20 @@ public class WeaponCombatEvents {
             return;
         }
 
+        boolean killedByPlayer = (!MineMonsterSpawnHandler.isCollapsedMummy(target))
+                && (!target.isAlive() || target.getHealth() <= 0.0f);
+        if (killedByPlayer
+                && StardewEnchantments.has(player.getMainHandItem(), StardewEnchantments.VAMPIRIC)
+                && player.getRandom().nextFloat() < 0.09f) {
+            player.heal(Math.max(1.0f, player.getMaxHealth() * 0.10f));
+        }
+
         if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
-            boolean killed = (!MineMonsterSpawnHandler.isCollapsedMummy(target))
-                    && (!target.isAlive() || target.getHealth() <= 0.0f);
+            boolean killed = killedByPlayer;
             if (killed) {
+                if (hasDragonToothBonus(player.getMainHandItem(), "slime_gatherer") && isDragonToothSlimeGathererTarget(target)) {
+                    dropDragonToothSlimeGatherer(target, serverPlayer);
+                }
                 PlayerStardewDataAPI.addExperience(serverPlayer, SkillType.COMBAT, getCombatExperienceOnKill(target));
             }
         }
@@ -1062,6 +1109,29 @@ public class WeaponCombatEvents {
             case "vex" -> 10;
             default -> 3;
         };
+    }
+
+    private static boolean hasDragonToothBonus(ItemStack weapon, String kind) {
+        return WeaponForgeData.dragonToothBonuses(WeaponForgeData.read(weapon).dragonToothEnchantment()).stream()
+                .anyMatch(bonus -> kind.equals(bonus.kind()));
+    }
+
+    private static boolean isDragonToothSlimeSlayerTarget(LivingEntity target) {
+        return target.getTags().contains("sd_mob_slime");
+    }
+
+    private static boolean isDragonToothSlimeGathererTarget(LivingEntity target) {
+        var tags = target.getTags();
+        return tags.contains("sd_mob_slime") || tags.contains("sd_mob_bigslime_skull");
+    }
+
+    private static void dropDragonToothSlimeGatherer(LivingEntity target, net.minecraft.server.level.ServerPlayer player) {
+        int bound = Math.max(1, (int) Math.ceil(Math.sqrt(target.getMaxHealth()) / 3.0));
+        int toDrop = 1 + player.getRandom().nextInt(bound);
+        ItemEntity itemEntity = new ItemEntity(target.level(), target.getX(), target.getY(), target.getZ(),
+                new ItemStack(ModItems.SLIME_ITEM.get(), toDrop));
+        itemEntity.setDefaultPickUpDelay();
+        target.level().addFreshEntity(itemEntity);
     }
 
     private static float calculateKnockbackStrength(WeaponStats stats) {

@@ -1132,6 +1132,23 @@ public class WeaponRegistry {
                 .icon(WeaponIcons.SKILL_FEMUR_1)
                 .build())
             .build());
+
+        register(WeaponData.builder("galaxy_hammer")
+            .type(WeaponType.CLUB)
+            .level(13)
+            .damage(70, 90)
+            .speed(-2)
+            .critChance(0.02)
+            .build());
+
+        register(WeaponData.builder("infinity_gavel")
+            .type(WeaponType.CLUB)
+            .level(17)
+            .damage(100, 120)
+            .speed(-2)
+            .defense(1)
+            .critChance(0.02)
+            .build());
         
         // TODO: 后续添加更多武器
     }

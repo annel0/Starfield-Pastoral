@@ -1,0 +1,63 @@
+package com.stardew.craft.client;
+
+import com.stardew.craft.StardewCraft;
+import com.stardew.craft.combat.ForgeEnchantmentGuard;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
+
+@EventBusSubscriber(modid = StardewCraft.MODID, value = Dist.CLIENT)
+public final class StardewEnchantmentTooltipFx {
+    private StardewEnchantmentTooltipFx() {
+    }
+
+    @SubscribeEvent
+    public static void onItemTooltip(ItemTooltipEvent event) {
+        ItemStack stack = event.getItemStack();
+        if (stack.isEmpty()) {
+            return;
+        }
+
+        Map<String, Component> protectedLabels = new HashMap<>();
+        collectProtectedLabels(stack.get(DataComponents.ENCHANTMENTS), protectedLabels);
+        collectProtectedLabels(stack.get(DataComponents.STORED_ENCHANTMENTS), protectedLabels);
+        if (protectedLabels.isEmpty()) {
+            return;
+        }
+
+        List<Component> tooltip = event.getToolTip();
+        for (int i = 0; i < tooltip.size(); i++) {
+            Component replacement = protectedLabels.get(tooltip.get(i).getString());
+            if (replacement != null) {
+                tooltip.set(i, replacement);
+            }
+        }
+    }
+
+    private static void collectProtectedLabels(ItemEnchantments enchantments, Map<String, Component> labels) {
+        if (enchantments == null || enchantments.isEmpty()) {
+            return;
+        }
+        for (var entry : enchantments.entrySet()) {
+            Holder<Enchantment> enchantment = entry.getKey();
+            if (!ForgeEnchantmentGuard.isProtectedForgeEnchantment(enchantment)) {
+                continue;
+            }
+            Component label = Enchantment.getFullname(enchantment, entry.getIntValue())
+                    .copy()
+                    .withStyle(ChatFormatting.LIGHT_PURPLE);
+            labels.put(label.getString(), label);
+        }
+    }
+}

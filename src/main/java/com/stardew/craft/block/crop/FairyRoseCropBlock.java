@@ -79,10 +79,18 @@ public class FairyRoseCropBlock extends StardewCropBlock {
     }
 
     /**
-     * 方块颜色 → 物品颜色映射表。
+     * 方块颜色 ↔ 物品颜色映射表。
      * block color 0→item 5, 1→4, 2→3, 3→1, 4→0, 5→2
      */
     private static final int[] BLOCK_TO_ITEM_COLOR = {5, 4, 3, 1, 0, 2};
+    private static final int[] ITEM_TO_BLOCK_COLOR = {4, 3, 5, 2, 1, 0};
+
+    public static int itemColorToBlockColor(int itemColor) {
+        if (itemColor < 0 || itemColor >= ITEM_TO_BLOCK_COLOR.length) {
+            return itemColor;
+        }
+        return ITEM_TO_BLOCK_COLOR[itemColor];
+    }
 
     @SuppressWarnings("null")
     @Override

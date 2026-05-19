@@ -1,6 +1,7 @@
 package com.stardew.craft.event;
 
 import com.stardew.craft.entity.FallenOakTreeEntity;
+import com.stardew.craft.enchantment.StardewEnchantments;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.item.tool.StardewAxeItem;
 import com.stardew.craft.manager.CoalForestArea;
@@ -140,14 +141,22 @@ public final class WildTreeChopEvents {
 	}
 
 	private static double getStardewAxeDamageMultiplier(ItemStack tool) {
+		boolean powerful = StardewEnchantments.has(tool, StardewEnchantments.POWERFUL);
 		if (tool.getItem() instanceof StardewAxeItem stardewAxe) {
-			return switch (stardewAxe.getStardewTier()) {
-				case STARTER -> 0.55;
-				case COPPER -> 0.75;
-				case STEEL -> 1.0;
-				case GOLD -> 1.5;
-				case IRIDIUM -> 5.0;
+			int tier = stardewAxe.getStardewTier().ordinal();
+			if (powerful) {
+				tier = Math.min(4, tier + 2);
+			}
+			return switch (tier) {
+				case 0 -> 0.55;
+				case 1 -> 0.75;
+				case 2 -> 1.0;
+				case 3 -> 1.5;
+				default -> 5.0;
 			};
+		}
+		if (powerful) {
+			return 1.0;
 		}
 		// Any other axe acts like tier-0 when chopping our wild trees.
 		return OTHER_AXE_DAMAGE_MULTIPLIER;
@@ -358,6 +367,10 @@ public final class WildTreeChopEvents {
 		if (player.isCreative()) {
 			return;
 		}
+		if (StardewEnchantments.has(player.getMainHandItem(), StardewEnchantments.EFFICIENT)) {
+			MINING.remove(player.getUUID());
+			return;
+		}
 		if (player.level().dimension() != ModDimensions.STARDEW_VALLEY) {
 			return;
 		}
@@ -421,6 +434,9 @@ public final class WildTreeChopEvents {
 		if (!isHardwoodTree(def) && PlayerStardewDataAPI.hasProfession(player, ProfessionType.FORESTER)) {
 			base = Math.max(1, Mth.floor(base * 1.25f));
 		}
+		if (StardewEnchantments.has(player.getMainHandItem(), StardewEnchantments.SHAVING)) {
+			base += isHardwoodTree(def) ? level.random.nextInt(2) + 1 : level.random.nextInt(4) + 2;
+		}
 		return base;
 	}
 
@@ -438,6 +454,9 @@ public final class WildTreeChopEvents {
 		};
 		if (!isHardwoodTree(def) && PlayerStardewDataAPI.hasProfession(player, ProfessionType.FORESTER)) {
 			base = Math.max(1, Mth.floor(base * 1.25f));
+		}
+		if (StardewEnchantments.has(player.getMainHandItem(), StardewEnchantments.SHAVING)) {
+			base += isHardwoodTree(def) ? 1 : level.random.nextInt(3) + 1;
 		}
 		return base;
 	}

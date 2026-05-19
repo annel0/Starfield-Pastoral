@@ -1,0 +1,87 @@
+{
+  "ambientocclusion": false,
+  "parent": "block/block",
+  "textures": {
+    "0": "stardewcraft:block/decor/common/birch_table_top_edge_1_n",
+    "particle": "stardewcraft:block/decor/common/birch_table_top_edge_1_n"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        12,
+        0
+      ],
+      "to": [
+        16,
+        14,
+        16
+      ],
+      "rotation": {
+        "angle": 0,
+        "axis": "y",
+        "origin": [
+          0,
+          2,
+          0
+        ]
+      },
+      "faces": {
+        "north": {
+          "uv": [
+            4.25,
+            0,
+            8.25,
+            0.5
+          ],
+          "texture": "#0"
+        },
+        "east": {
+          "uv": [
+            4.25,
+            0.75,
+            8.25,
+            1.25
+          ],
+          "texture": "#0"
+        },
+        "south": {
+          "uv": [
+            4.25,
+            1.5,
+            8.25,
+            2
+          ],
+          "texture": "#0"
+        },
+        "west": {
+          "uv": [
+            4.25,
+            2.25,
+            8.25,
+            2.75
+          ],
+          "texture": "#0"
+        },
+        "up": {
+          "uv": [
+            4,
+            4,
+            0,
+            0
+          ],
+          "texture": "#0"
+        },
+        "down": {
+          "uv": [
+            4,
+            4.25,
+            0,
+            8.25
+          ],
+          "texture": "#0"
+        }
+      }
+    }
+  ]
+}

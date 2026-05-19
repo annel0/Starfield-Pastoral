@@ -1,6 +1,7 @@
 package com.stardew.craft.item.weapon;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.combat.WeaponForgeData;
 import com.stardew.craft.combat.WeaponStats;
 import com.stardew.craft.combat.skill.SkillContext;
 import com.stardew.craft.combat.skill.WeaponSkillAnimationLock;
@@ -227,7 +228,7 @@ public class StardewWeaponItem extends SwordItem implements IStardewItem, IStard
         // 武器无法出售
         return -1;
     }
-    
+
     // ============== Tooltip ==============
     
     @Override
@@ -3730,6 +3731,7 @@ public class StardewWeaponItem extends SwordItem implements IStardewItem, IStard
             @SuppressWarnings("null")
             CustomData data = stack.get(DataComponents.CUSTOM_DATA);
             if (data != null && data.copyTag().contains(WeaponStats.TAG_STARDEW_WEAPON)) {
+                WeaponForgeData.ensure(stack);
                 return;
             }
         }
@@ -3745,6 +3747,7 @@ public class StardewWeaponItem extends SwordItem implements IStardewItem, IStard
                 .knockback(weaponData.getWeight())
                 .build()
                 .writeToItemStack(stack);
+            WeaponForgeData.ensure(stack);
     }
 
     private static LivingEntity findTargetEntity(Player player, double range) {

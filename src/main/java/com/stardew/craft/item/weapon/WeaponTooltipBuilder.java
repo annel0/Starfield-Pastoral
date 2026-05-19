@@ -1,8 +1,13 @@
 package com.stardew.craft.item.weapon;
 
+import com.stardew.craft.combat.WeaponForgeData;
+import com.stardew.craft.combat.WeaponStats;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
@@ -14,7 +19,6 @@ import java.util.List;
  */
 public class WeaponTooltipBuilder {
     
-    @SuppressWarnings("unused")
     private final ItemStack stack;
     private final WeaponData data;
     private final boolean expanded;
@@ -46,6 +50,7 @@ public class WeaponTooltipBuilder {
             addEmptyLine();
             addWeaponLevel();
             addAttributes();
+            addForgeStatus();
             addEmptyLine();
             addSeparator();
             addSkillsCompact();
@@ -81,10 +86,10 @@ public class WeaponTooltipBuilder {
      * 格式: ⚔ 2-5 伤害
      */
     @SuppressWarnings("null")
-    private MutableComponent buildDamage() {
+    private MutableComponent buildDamage(WeaponStats stats) {
         MutableComponent line = Component.empty();
         line.append(WeaponIcons.icon(WeaponIcons.ICON_DAMAGE));
-        line.append(Component.translatable("stardewcraft.weapon.tooltip.damage_range", data.getDamageMin(), data.getDamageMax())
+        line.append(Component.translatable("stardewcraft.weapon.tooltip.damage_range", formatNumber(stats.getMinDamage()), formatNumber(stats.getMaxDamage()))
                 .withStyle(ChatFormatting.RED));
         line.append(Component.translatable("stardewcraft.weapon.tooltip.damage").withStyle(ChatFormatting.GRAY));
         return line;
@@ -95,18 +100,19 @@ public class WeaponTooltipBuilder {
      */
     @SuppressWarnings("null")
     private void addAttributes() {
-        MutableComponent damageLine = buildDamage();
-        MutableComponent speedLine = buildAttribute(WeaponIcons.ICON_SPEED, "stardewcraft.weapon.tooltip.speed", data.getSpeed(), true);
+        WeaponStats stats = WeaponStats.fromItemStack(stack);
+        MutableComponent damageLine = buildDamage(stats);
+        MutableComponent speedLine = buildAttribute(WeaponIcons.ICON_SPEED, "stardewcraft.weapon.tooltip.speed", stats.getSpeed(), true);
         lines.add(buildPairLine(damageLine, speedLine));
 
-        double critChance = data.getCritChance();
+        double critChance = stats.getCritChance();
         MutableComponent critLine = Component.empty();
         critLine.append(WeaponIcons.icon(WeaponIcons.ICON_CRIT_CHANCE));
         critLine.append(Component.translatable("stardewcraft.weapon.tooltip.attr_value", formatPercent(critChance))
                 .withStyle(ChatFormatting.YELLOW));
         critLine.append(Component.translatable("stardewcraft.weapon.tooltip.crit_chance").withStyle(ChatFormatting.GRAY));
 
-        int critPowerBonus = (int) Math.round((data.getCritPower() - 1.0) * 100.0);
+        int critPowerBonus = (int) Math.round(stats.getBonusCritPower());
         MutableComponent critPowerLine = Component.empty();
         critPowerLine.append(WeaponIcons.icon(WeaponIcons.ICON_CRIT_POWER));
         critPowerLine.append(Component.translatable("stardewcraft.weapon.tooltip.crit_damage_value", critPowerBonus)
@@ -116,17 +122,68 @@ public class WeaponTooltipBuilder {
         lines.add(buildPairLine(critLine, critPowerLine));
 
         java.util.List<MutableComponent> extras = new java.util.ArrayList<>();
-        if (data.getDefense() != 0) {
-            extras.add(buildAttribute(WeaponIcons.ICON_DEFENSE, "stardewcraft.weapon.tooltip.defense", data.getDefense(), true));
+        if (stats.getDefense() != 0) {
+            extras.add(buildAttribute(WeaponIcons.ICON_DEFENSE, "stardewcraft.weapon.tooltip.defense", stats.getDefense(), true));
         }
-        if (data.getWeight() != 0) {
-            extras.add(buildAttribute(WeaponIcons.ICON_WEIGHT, "stardewcraft.weapon.tooltip.weight", data.getWeight(), true));
+        int knockback = Math.round(stats.getKnockback());
+        if (knockback != 0) {
+            extras.add(buildAttribute(WeaponIcons.ICON_WEIGHT, "stardewcraft.weapon.tooltip.weight", knockback, true));
         }
         for (int i = 0; i < extras.size(); i += 2) {
             MutableComponent left = extras.get(i);
             MutableComponent right = (i + 1 < extras.size()) ? extras.get(i + 1) : null;
             lines.add(buildPairLine(left, right));
         }
+    }
+
+    private void addForgeStatus() {
+        WeaponForgeData.State state = WeaponForgeData.read(stack);
+        int forgeLevels = totalGemForgeLevels(state);
+        if (forgeLevels > 0 && !state.diamondForge()) {
+            lines.add(Component.translatable("stardewcraft.weapon.tooltip.forged", forgeLevels, 3)
+                    .withStyle(ChatFormatting.DARK_RED));
+        }
+        if (state.diamondForge()) {
+            lines.add(Component.translatable("stardewcraft.weapon.tooltip.diamond_forge")
+                    .withStyle(ChatFormatting.DARK_AQUA));
+        }
+        if (state.galaxySoulLevel() > 0) {
+            lines.add(Component.translatable("stardewcraft.weapon.tooltip.galaxy_forged", state.galaxySoulLevel(), 3)
+                    .withStyle(ChatFormatting.DARK_RED));
+        }
+        if (!state.appearanceWeaponId().isEmpty()) {
+            Component appearanceName = appearanceName(state.appearanceWeaponId());
+            lines.add(Component.translatable("stardewcraft.weapon.tooltip.appearance", appearanceName)
+                    .withStyle(ChatFormatting.GRAY));
+        }
+        if (!state.dragonToothEnchantment().isEmpty()) {
+            for (WeaponForgeData.DragonToothBonus bonus : WeaponForgeData.dragonToothBonuses(state.dragonToothEnchantment())) {
+                lines.add(Component.translatable("stardewcraft.weapon.tooltip.dragon_tooth", formatDragonTooth(bonus))
+                        .withStyle(ChatFormatting.DARK_PURPLE));
+            }
+        }
+    }
+
+    private static int totalGemForgeLevels(WeaponForgeData.State state) {
+        int total = 0;
+        for (WeaponForgeData.GemForge forge : state.gemForges()) {
+            total += Math.max(0, forge.level());
+        }
+        return total;
+    }
+
+    private static Component appearanceName(String itemId) {
+        ResourceLocation location = ResourceLocation.tryParse(itemId);
+        if (location == null) {
+            return Component.literal(itemId);
+        }
+        Item item = BuiltInRegistries.ITEM.get(location);
+        ItemStack appearanceStack = new ItemStack(item);
+        return appearanceStack.isEmpty() ? Component.literal(itemId) : appearanceStack.getHoverName();
+    }
+
+    private static Component formatDragonTooth(WeaponForgeData.DragonToothBonus bonus) {
+        return Component.translatable("stardewcraft.weapon.tooltip.dragon_tooth." + bonus.kind(), bonus.level());
     }
     
     @SuppressWarnings("null")
@@ -346,6 +403,13 @@ public class WeaponTooltipBuilder {
      */
     private String formatPercent(double value) {
         return (int)(value * 100) + "%";
+    }
+
+    private String formatNumber(float value) {
+        if (Math.abs(value - Math.round(value)) < 0.001f) {
+            return Integer.toString(Math.round(value));
+        }
+        return String.format(java.util.Locale.ROOT, "%.1f", value);
     }
     
 }

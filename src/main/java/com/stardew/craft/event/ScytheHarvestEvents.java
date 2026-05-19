@@ -4,13 +4,17 @@ import com.stardew.craft.StardewCraft;
 import com.stardew.craft.block.crop.StardewCropBlock;
 import com.stardew.craft.block.nature.PastureGrassBlock;
 import com.stardew.craft.block.nature.WildWeedsBlock;
+import com.stardew.craft.enchantment.StardewEnchantments;
 import com.stardew.craft.item.tool.ScytheItem;
+import com.stardew.craft.item.ModItems;
+import com.stardew.craft.item.weapon.IStardewWeapon;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
@@ -36,10 +40,17 @@ public final class ScytheHarvestEvents {
 	@SubscribeEvent
 	public static void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
 		var player = event.getEntity();
+		ItemStack mainHand = player.getItemInHand(InteractionHand.MAIN_HAND);
+		boolean scythe = mainHand.getItem() instanceof ScytheItem;
+		boolean weaponGrassCut = isWeaponGrassCuttingStack(mainHand)
+				&& isWeaponGrassCuttingState(player.level().getBlockState(event.getPos()));
 		if (!player.level().isClientSide) {
+			if (weaponGrassCut) {
+				event.setCanceled(true);
+			}
 			return;
 		}
-		if (!(player.getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof ScytheItem)) {
+		if (!scythe && !weaponGrassCut) {
 			return;
 		}
 
@@ -52,7 +63,9 @@ public final class ScytheHarvestEvents {
 		if (!(event.getEntity() instanceof ServerPlayer player)) {
 			return;
 		}
-		if (!(player.getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof ScytheItem)) {
+		ItemStack mainHand = player.getItemInHand(InteractionHand.MAIN_HAND);
+		if (!(mainHand.getItem() instanceof ScytheItem)
+				&& !(isWeaponGrassCuttingStack(mainHand) && isWeaponGrassCuttingState(event.getState()))) {
 			return;
 		}
 		// 进一步确保不会进入挖掘进度。
@@ -64,7 +77,9 @@ public final class ScytheHarvestEvents {
 		if (!(event.getPlayer() instanceof ServerPlayer player)) {
 			return;
 		}
-		if (player.getItemInHand(InteractionHand.MAIN_HAND).getItem() instanceof ScytheItem) {
+		ItemStack mainHand = player.getItemInHand(InteractionHand.MAIN_HAND);
+		if (mainHand.getItem() instanceof ScytheItem
+				|| (isWeaponGrassCuttingStack(mainHand) && isWeaponGrassCuttingState(event.getState()))) {
 			event.setCanceled(true);
 		}
 	}
@@ -81,8 +96,40 @@ public final class ScytheHarvestEvents {
 	}
 
 	public static boolean harvestSwing(ServerLevel level, ServerPlayer player, ScytheItem scythe) {
+		return harvestSwingInternal(level, player, scythe, ItemStack.EMPTY, false);
+	}
+
+	public static boolean harvestHaymakerSwing(ServerLevel level, ServerPlayer player, ItemStack weapon) {
+		return harvestWeaponGrassSwing(level, player, weapon);
+	}
+
+	public static boolean harvestWeaponGrassSwing(ServerLevel level, ServerPlayer player, ItemStack weapon) {
+		return harvestSwingInternal(level, player, null, weapon,
+				StardewEnchantments.has(weapon, StardewEnchantments.HAYMAKER));
+	}
+
+	public static boolean isWeaponGrassCuttingStack(ItemStack stack) {
+		return stack != null && !stack.isEmpty() && stack.getItem() instanceof IStardewWeapon;
+	}
+
+	public static boolean isWeaponGrassCuttingState(BlockState state) {
+		if (state == null || state.isAir()) {
+			return false;
+		}
+		Block block = state.getBlock();
+		return block instanceof WildWeedsBlock
+				|| block instanceof PastureGrassBlock
+				|| block == Blocks.SHORT_GRASS
+				|| block == Blocks.FERN
+				|| block == Blocks.TALL_GRASS
+				|| block == Blocks.LARGE_FERN
+				|| block instanceof TallGrassBlock
+				|| block instanceof DeadBushBlock;
+	}
+
+	private static boolean harvestSwingInternal(ServerLevel level, ServerPlayer player, ScytheItem scythe, ItemStack tool, boolean haymaker) {
 		boolean didSomething = false;
-		boolean forceScytheHarvest = scythe.getTier() == ScytheItem.Tier.IRIDIUM;
+		boolean forceScytheHarvest = scythe != null && scythe.getTier() == ScytheItem.Tier.IRIDIUM;
 		BlockPos origin = player.blockPosition();
 		Vec3 look = player.getLookAngle();
 		double lookX = look.x;
@@ -122,7 +169,7 @@ public final class ScytheHarvestEvents {
 						}
 					}
 
-					if (tryHarvestAt(level, player, scythe, pos, forceScytheHarvest)) {
+					if (tryHarvestAt(level, player, scythe, tool, pos, forceScytheHarvest, haymaker)) {
 						didSomething = true;
 					}
 				}
@@ -133,7 +180,7 @@ public final class ScytheHarvestEvents {
 	}
 
 	@SuppressWarnings("null")
-	private static boolean tryHarvestAt(ServerLevel level, ServerPlayer player, ScytheItem scythe, BlockPos pos, boolean forceScytheHarvest) {
+	private static boolean tryHarvestAt(ServerLevel level, ServerPlayer player, ScytheItem scythe, ItemStack tool, BlockPos pos, boolean forceScytheHarvest, boolean haymaker) {
 		@SuppressWarnings("null")
 		BlockState state = level.getBlockState(pos);
 		if (state.isAir()) {
@@ -157,6 +204,7 @@ public final class ScytheHarvestEvents {
 		}
 
 		if (state.getBlock() instanceof StardewCropBlock crop) {
+			if (scythe == null) return false;
 			if (!canModify) return false; // 公共区域不允许收割作物
 			return crop.tryHarvestByTool(level, pos, state, player, forceScytheHarvest);
 		}
@@ -165,11 +213,21 @@ public final class ScytheHarvestEvents {
 			if (isPublicArea) {
 				com.stardew.craft.farm.PublicAreaBlockTracker.get().recordRemoval(pos, state);
 			}
-			return WildWeedsBlock.cutWithScythe(level, pos, player);
+			boolean cut = WildWeedsBlock.cutWithScythe(level, pos, player);
+			if (cut && haymaker) {
+				if (level.random.nextFloat() < 0.50f) {
+					Block.popResource(level, pos, new ItemStack(ModItems.FIBER.get()));
+				}
+				if (level.random.nextFloat() < 0.33f) {
+					Block.popResource(level, pos, new ItemStack(ModItems.HAY.get()));
+				}
+			}
+			return cut;
 		}
 
 		// 过季枯萎的作物：任何镰刀都可清除（原版行为）。无掉落。
 		if (state.getBlock() instanceof com.stardew.craft.block.crop.DeadCropBlock) {
+			if (scythe == null) return false;
 			if (isPublicArea) {
 				com.stardew.craft.farm.PublicAreaBlockTracker.get().recordRemoval(pos, state);
 			}
@@ -179,6 +237,9 @@ public final class ScytheHarvestEvents {
 
 		if (state.getBlock() instanceof PastureGrassBlock) {
 			if (!canModify) return false; // 公共区域不允许砍牧草
+			if (scythe == null) {
+				return cutPastureGrassWithWeapon(level, pos, player, haymaker);
+			}
 			return PastureGrassBlock.cutWithScythe(level, pos, player, scythe);
 		}
 		// 原版杂草/草丛：short_grass, fern, tall_grass, large_fern, dead_bush
@@ -190,7 +251,13 @@ public final class ScytheHarvestEvents {
 				com.stardew.craft.farm.PublicAreaBlockTracker.get().recordRemoval(pos, state);
 			}
 			level.destroyBlock(pos, true, player);
+			if (haymaker && level.random.nextFloat() < 0.33f) {
+				Block.popResource(level, pos, new ItemStack(ModItems.FIBER.get()));
+			}
 			return true;
+		}
+		if (scythe == null) {
+			return false;
 		}
 		// 原版差异：铱镰刀（66）能更广泛地“用镰刀收割作物”。
 		if (scythe.getTier() != ScytheItem.Tier.IRIDIUM) {
@@ -204,5 +271,24 @@ public final class ScytheHarvestEvents {
 
 		// 只破坏作物类方块；不会破坏普通方块。
 		return level.destroyBlock(pos, true, player);
+	}
+
+	private static boolean cutPastureGrassWithWeapon(ServerLevel level, BlockPos pos, ServerPlayer player, boolean haymaker) {
+		BlockState state = level.getBlockState(pos);
+		if (!(state.getBlock() instanceof PastureGrassBlock)) {
+			return false;
+		}
+		level.removeBlock(pos, false);
+		float hayChance = haymaker ? 0.75f : 0.50f;
+		if (level.random.nextFloat() >= hayChance) {
+			return true;
+		}
+		java.util.UUID hayOwner = com.stardew.craft.core.FarmAreaResolver.getOwnerAt(pos);
+		int stored = com.stardew.craft.animal.data.AnimalWorldData.get(level)
+				.storeHay(hayOwner == null ? player.getUUID() : hayOwner, 1);
+		if (stored > 0) {
+			com.stardew.craft.network.HayHarvestHudMessagePacket.sendTo(player, stored, false);
+		}
+		return true;
 	}
 }

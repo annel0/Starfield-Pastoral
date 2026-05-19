@@ -98,7 +98,7 @@ public record CraftingMenuInventoryActionPayload(int action, int slotIndex, bool
         ItemStack slotStack = inv.items.get(slotIndex);
         ItemStack carried = player.containerMenu.getCarried();
 
-        if (rightClick && tryHandleFishingRodAttachment(player, inv, slotIndex, slotStack, carried)) {
+        if (tryHandleFishingRodAttachment(player, inv, slotIndex, slotStack, carried, rightClick)) {
             syncInventory(player);
             return;
         }
@@ -164,17 +164,41 @@ public record CraftingMenuInventoryActionPayload(int action, int slotIndex, bool
         syncInventory(player);
     }
 
-    private static boolean tryHandleFishingRodAttachment(ServerPlayer player, Inventory inv, int slotIndex, ItemStack slotStack, ItemStack carried) {
-        if (slotStack.isEmpty() || carried.isEmpty()) {
-            return false;
+    private static boolean tryHandleFishingRodAttachment(ServerPlayer player, Inventory inv, int slotIndex,
+                                                         ItemStack slotStack, ItemStack carried, boolean rightClick) {
+        if (slotStack.getItem() instanceof FishingRodItem rod) {
+            if (carried.isEmpty()) {
+                if (!rightClick || !rod.hasAttachmentSlots()) {
+                    return false;
+                }
+                ItemStack popped = rod.popOneAttachment(slotStack);
+                if (!popped.isEmpty()) {
+                    player.containerMenu.setCarried(popped);
+                }
+                return true;
+            }
+            if (!rightClick && !rod.canAcceptAttachment(carried)) {
+                return false;
+            }
+            return rod.tryInsertAttachment(slotStack, carried, replacement -> player.containerMenu.setCarried(replacement));
         }
 
         if (carried.getItem() instanceof FishingRodItem rod) {
+            if (slotStack.isEmpty()) {
+                if (!rightClick || !rod.hasAttachmentSlots()) {
+                    return false;
+                }
+                ItemStack popped = rod.popOneAttachment(carried);
+                if (popped.isEmpty()) {
+                    return false;
+                }
+                inv.setItem(slotIndex, popped);
+                return true;
+            }
+            if (!rightClick && !rod.canAcceptAttachment(slotStack)) {
+                return false;
+            }
             return rod.tryInsertAttachment(carried, slotStack, replacement -> inv.setItem(slotIndex, replacement));
-        }
-
-        if (slotStack.getItem() instanceof FishingRodItem rod) {
-            return rod.tryInsertAttachment(slotStack, carried, replacement -> player.containerMenu.setCarried(replacement));
         }
 
         return false;

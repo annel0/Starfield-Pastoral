@@ -1,6 +1,5 @@
 package com.stardew.craft.block.utility;
 
-import com.stardew.craft.block.ModBlocks;
 import com.stardew.craft.block.shape.ModelVoxelShapeCache;
 import com.stardew.craft.blockentity.FurnaceBlockEntity;
 import com.stardew.craft.blockentity.InsertResult;
@@ -94,7 +93,7 @@ public class FurnaceBlock extends Block implements EntityBlock {
         if (state.getValue(PART) == Part.EXTENSION) {
             return List.of();
         }
-        return List.of(new ItemStack(ModBlocks.FURNACE.get()));
+        return List.of(new ItemStack(asItem()));
     }
 
     @SuppressWarnings("null")
@@ -278,7 +277,7 @@ public class FurnaceBlock extends Block implements EntityBlock {
     @Override
     public BlockState playerWillDestroy(@SuppressWarnings("null") Level level, @SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") BlockState state, @SuppressWarnings("null") Player player) {
         if (!level.isClientSide && state.getValue(PART) == Part.EXTENSION && !player.isCreative()) {
-            popResource(level, pos, new ItemStack(ModBlocks.FURNACE.get()));
+            popResource(level, pos, new ItemStack(asItem()));
         }
         return super.playerWillDestroy(level, pos, state, player);
     }

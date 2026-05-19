@@ -2,7 +2,9 @@ package com.stardew.craft.item.tool;
 
 import com.stardew.craft.fishing.server.FishingSessionManager;
 import com.stardew.craft.fishing.FishingCastPower;
+import com.stardew.craft.enchantment.StardewEnchantments;
 import com.stardew.craft.item.IStardewItem;
+import com.stardew.craft.item.ModItems;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.player.PlayerStardewDataAPI;
 import com.stardew.craft.player.SkillType;
@@ -103,6 +105,21 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 		return "stardewcraft.type.fishing";
 	}
 
+	@Override
+	public boolean isEnchantable(@SuppressWarnings("null") ItemStack stack) {
+		return stack.getMaxStackSize() == 1;
+	}
+
+	@Override
+	public int getEnchantmentValue() {
+		return switch (tier) {
+			case BAMBOO_POLE, TRAINING_ROD -> 5;
+			case FIBERGLASS_ROD -> 10;
+			case IRIDIUM_ROD -> 15;
+			case ADVANCED_IRIDIUM_ROD -> 20;
+		};
+	}
+
 	public Attachments getAttachmentsForTooltip(ItemStack rodStack) {
 		return new Attachments(getBait(rodStack), getTackle1(rodStack), getTackle2(rodStack));
 	}
@@ -200,11 +217,12 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 	/**
 	 * 该钓竿是否拥有 Preserving 效果（SV：50% 概率不消耗鱼饵）。
 	 *
-	 * 当前实现：从钓竿 CustomData 根节点读取布尔值 TAG_PRESERVING。
+	 * 兼容旧 CustomData 标记；正式效果读取 MC 附魔 stardewcraft:preserving。
 	 */
 	public static boolean hasPreserving(ItemStack rodStack) {
 		CompoundTag root = getRootOrNull(rodStack);
-		return root != null && root.getBoolean(TAG_PRESERVING);
+		return StardewEnchantments.has(rodStack, StardewEnchantments.PRESERVING)
+				|| (root != null && root.getBoolean(TAG_PRESERVING));
 	}
 
 	/**
@@ -242,7 +260,14 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 	 * 消耗渔具耐久度（钓鱼成功后调用）
 	 */
 	public static void consumeTackleDurability(ItemStack rodStack) {
+		consumeTackleDurability(null, rodStack);
+	}
+
+	public static void consumeTackleDurability(ServerPlayer player, ItemStack rodStack) {
 		if (!(rodStack.getItem() instanceof FishingRodItem rod)) {
+			return;
+		}
+		if (player != null && hasPreserving(rodStack) && player.getRandom().nextFloat() < 0.5f) {
 			return;
 		}
 		// 渔具耐久度：使用 Minecraft 原版耐久条（ItemStack damage）。
@@ -297,10 +322,13 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 			if (target.isEmpty()) {
 				return false;
 			}
-			if (target.getMaxStackSize() > 1) {
+			if (isBaitItem(target)) {
 				return tryInsertBait(rodStack, slot);
 			}
-			return tryInsertTackle(rodStack, slot);
+			if (isTackleItem(target)) {
+				return tryInsertTackle(rodStack, slot);
+			}
+			return false;
 		}
 		if (rodStack.isEmpty()) {
 			return false;
@@ -331,13 +359,13 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 			return false;
 		}
 
-		// Provisional rule (until we add explicit bait/tackle items):
-		// - stackable items behave like bait
-		// - non-stackable items behave like tackle
-		if (target.getMaxStackSize() > 1) {
+		if (isBaitItem(target)) {
 			return tryInsertBait(rodStack, slot);
 		}
-		return tryInsertTackle(rodStack, slot);
+		if (isTackleItem(target)) {
+			return tryInsertTackle(rodStack, slot);
+		}
+		return false;
 	}
 
 	@Override
@@ -656,10 +684,47 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 		if (incoming == null || incoming.isEmpty()) {
 			return false;
 		}
-		if (incoming.getMaxStackSize() > 1) {
+		if (isBaitItem(incoming)) {
 			return tryInsertBait(rodStack, incoming, replaceIncoming);
 		}
-		return tryInsertTackle(rodStack, incoming, replaceIncoming);
+		if (isTackleItem(incoming)) {
+			return tryInsertTackle(rodStack, incoming, replaceIncoming);
+		}
+		return false;
+	}
+
+	public boolean hasAttachmentSlots() {
+		return canUseBait() || getTackleSlots() > 0;
+	}
+
+	public boolean canAcceptAttachment(ItemStack incoming) {
+		if (incoming == null || incoming.isEmpty()) {
+			return false;
+		}
+		return (isBaitItem(incoming) && canUseBait()) || (isTackleItem(incoming) && getTackleSlots() > 0);
+	}
+
+	private static boolean isBaitItem(ItemStack stack) {
+		return stack.is(ModItems.BAIT.get())
+				|| stack.is(ModItems.MAGNET.get())
+				|| stack.is(ModItems.WILD_BAIT.get())
+				|| stack.is(ModItems.MAGIC_BAIT.get())
+				|| stack.is(ModItems.DELUXE_BAIT.get())
+				|| stack.is(ModItems.CHALLENGE_BAIT.get())
+				|| stack.is(ModItems.TARGETED_BAIT.get());
+	}
+
+	private static boolean isTackleItem(ItemStack stack) {
+		return stack.is(ModItems.SPINNER.get())
+				|| stack.is(ModItems.DRESSED_SPINNER.get())
+				|| stack.is(ModItems.TRAP_BOBBER.get())
+				|| stack.is(ModItems.CORK_BOBBER.get())
+				|| stack.is(ModItems.LEAD_BOBBER.get())
+				|| stack.is(ModItems.TREASURE_HUNTER.get())
+				|| stack.is(ModItems.BARBED_HOOK.get())
+				|| stack.is(ModItems.CURIOSITY_LURE.get())
+				|| stack.is(ModItems.QUALITY_BOBBER.get())
+				|| stack.is(ModItems.SONAR_BOBBER.get());
 	}
 
 	@SuppressWarnings("null")
@@ -745,7 +810,7 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 		return true;
 	}
 
-	private ItemStack popOneAttachment(ItemStack rodStack) {
+	public ItemStack popOneAttachment(ItemStack rodStack) {
 		// Pop order: tackle2 -> tackle1 -> bait
 		if (getTackleSlots() >= 2) {
 			ItemStack t2 = getTackle2(rodStack);

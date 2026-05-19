@@ -15,7 +15,8 @@
     "MinecraftServerTimeSyncMixin",
     "ServerLevelSleepMixin",
     "LevelWeatherStateMixin",
-    "ServerLevelSkeletonHorseTrapMixin"
+    "ServerLevelSkeletonHorseTrapMixin",
+    "DoorBlockMasteryCollisionMixin"
   ],
   "client": [
     "GuiGraphicsStackCountScaleMixin",
@@ -31,7 +32,8 @@
     "PlayerRendererWateringCanPoseMixin",
     "ClientLevelTickTimeMixin",
     "ClientSetTimeMixin",
-    "ClientWeatherPacketMixin"
+    "ClientWeatherPacketMixin",
+    "DoorBlockMasteryCollisionClientMixin"
   ],
   "injectors": {
     "defaultRequire": 1

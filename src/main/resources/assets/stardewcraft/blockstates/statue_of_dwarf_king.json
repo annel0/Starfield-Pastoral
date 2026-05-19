@@ -1,0 +1,12 @@
+{
+  "variants": {
+    "facing=south,part=main": { "model": "stardewcraft:block/mastery/statue_of_dwarf_king" },
+    "facing=west,part=main": { "model": "stardewcraft:block/mastery/statue_of_dwarf_king", "y": 90 },
+    "facing=north,part=main": { "model": "stardewcraft:block/mastery/statue_of_dwarf_king", "y": 180 },
+    "facing=east,part=main": { "model": "stardewcraft:block/mastery/statue_of_dwarf_king", "y": 270 },
+    "facing=south,part=extension": { "model": "stardewcraft:block/mastery/statue_of_dwarf_king_extension" },
+    "facing=west,part=extension": { "model": "stardewcraft:block/mastery/statue_of_dwarf_king_extension" },
+    "facing=north,part=extension": { "model": "stardewcraft:block/mastery/statue_of_dwarf_king_extension" },
+    "facing=east,part=extension": { "model": "stardewcraft:block/mastery/statue_of_dwarf_king_extension" }
+  }
+}

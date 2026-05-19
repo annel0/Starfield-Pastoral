@@ -1,6 +1,7 @@
 package com.stardew.craft.item.tool;
 
 import com.stardew.craft.item.IStardewItem;
+import com.stardew.craft.enchantment.StardewEnchantments;
 import com.stardew.craft.player.PlayerStardewDataAPI;
 import com.stardew.craft.player.SkillType;
 import com.stardew.craft.core.ModDimensions;
@@ -141,6 +142,16 @@ public class WateringCanItem extends Item implements IStardewItem {
         return "stardewcraft.tool.watering_can";
     }
 
+    @Override
+    public boolean isEnchantable(@Nonnull ItemStack stack) {
+        return stack.getMaxStackSize() == 1;
+    }
+
+    @Override
+    public int getEnchantmentValue() {
+        return Math.max(1, (tier.getMaxChargeLevel() + 1) * 5);
+    }
+
     // ================= 使用逻辑 =================
 
     @Override
@@ -205,7 +216,7 @@ public class WateringCanItem extends Item implements IStardewItem {
         }
 
         int useDuration = this.getUseDuration(stack, entity) - timeCharged;
-        int chargeLevel = getChargeLevel(useDuration);
+        int chargeLevel = getChargeLevel(stack, useDuration);
 
         // 能量为 0 时：拦截耗能动作（仅星露谷维度）。
         if (!level.isClientSide
@@ -260,15 +271,16 @@ public class WateringCanItem extends Item implements IStardewItem {
 
             // 原版(星露谷)手感：每“浇到一格”消耗 1 点水；蓄力只是改变浇到的格子数量。
             // 如果水不够，则只浇前面的若干格（而不是一次性扣一大段）。
-            int waterLeft = player.isCreative() ? Integer.MAX_VALUE : getWater(stack);
+            boolean bottomless = isBottomless(stack);
+            int waterLeft = (player.isCreative() || bottomless) ? Integer.MAX_VALUE : getWater(stack);
             for (BlockPos pos : targetPositions) {
-                if (!player.isCreative() && waterLeft <= 0) {
+                if (!player.isCreative() && !bottomless && waterLeft <= 0) {
                     break;
                 }
 
                 if (waterTile(level, pos)) {
                     wateredAny = true;
-                    if (!player.isCreative()) {
+                    if (!player.isCreative() && !bottomless) {
                         waterLeft -= 1;
                     }
 
@@ -284,11 +296,12 @@ public class WateringCanItem extends Item implements IStardewItem {
 
             if (wateredAny) {
                 // 扣水
-                if (!player.isCreative()) {
+                if (!player.isCreative() && !bottomless) {
                     setWater(stack, Math.max(0, waterLeft));
                     
                     // 扣除能量 (Stamina)
-                    if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
+                    if (!level.isClientSide && player instanceof ServerPlayer serverPlayer
+                            && !StardewEnchantments.has(stack, StardewEnchantments.EFFICIENT)) {
                         int farmingLevel = PlayerStardewDataAPI.getSkillLevel(serverPlayer, SkillType.FARMING);
                         // 原版公式: Stamina -= (2 * (power + 1)) - (FarmingLevel * 0.1)
                         float staminaCost = (2.0f * (chargeLevel + 1)) - (farmingLevel * 0.1f);
@@ -342,14 +355,15 @@ public class WateringCanItem extends Item implements IStardewItem {
         
         // 每 20 ticks (1秒) 提升一级
         // 星露谷原版大约是 600ms - 800ms，这里调整为 15 ticks (0.75s) 让手感更紧凑
-        int ticksPerLevel = 15;
+        int ticksPerLevel = StardewEnchantments.has(stack, StardewEnchantments.SWIFT) ? 10 : 15;
         
         if (usedTicks > 0 && usedTicks % ticksPerLevel == 0) {
             int currentLevel = usedTicks / ticksPerLevel;
             
             // 只有在未达到最高等级时才播放音效，或者每级都播？
             // 星露谷里每升一级都有音效，直到最高级
-            if (currentLevel <= tier.maxChargeLevel) {
+            int maxChargeLevel = getEffectiveMaxChargeLevel(stack);
+            if (currentLevel <= maxChargeLevel) {
                  // 使用音符盒声音模拟 'Ding'
                  // 音调随等级升高
                  float pitch = 0.8f + (currentLevel * 0.2f);
@@ -365,13 +379,26 @@ public class WateringCanItem extends Item implements IStardewItem {
      * 根据按住的时间长短
      */
     public int getChargeLevel(int ticksUsed) {
+        return getChargeLevel(ItemStack.EMPTY, ticksUsed);
+    }
+
+    public int getChargeLevel(ItemStack stack, int ticksUsed) {
         // 与 onUseTick 保持一致
-        int ticksPerLevel = 15;
+        int ticksPerLevel = StardewEnchantments.has(stack, StardewEnchantments.SWIFT) ? 10 : 15;
         int level = ticksUsed / ticksPerLevel; 
-        if (level > tier.maxChargeLevel) {
-            level = tier.maxChargeLevel;
+        int maxChargeLevel = getEffectiveMaxChargeLevel(stack);
+        if (level > maxChargeLevel) {
+            level = maxChargeLevel;
         }
         return level;
+    }
+
+    public int getEffectiveMaxChargeLevel(ItemStack stack) {
+        int maxChargeLevel = tier.maxChargeLevel;
+        if (StardewEnchantments.has(stack, StardewEnchantments.EXPANSIVE)) {
+            maxChargeLevel = Math.min(5, maxChargeLevel + 1);
+        }
+        return maxChargeLevel;
     }
 
 
@@ -462,6 +489,12 @@ public class WateringCanItem extends Item implements IStardewItem {
                 BlockPos lPos = base.relative(left);
                 if (lPos.getY() == startPos.getY()) list.add(lPos);
             }
+        } else if (chargeLevel >= 5) { // Expansive (5x5，以瞄准方块为中心)
+            for (int dx = -2; dx <= 2; dx++) {
+                for (int dz = -2; dz <= 2; dz++) {
+                    list.add(startPos.offset(dx, 0, dz));
+                }
+            }
         } else {
             // 默认 fallback
             list.add(startPos);
@@ -485,15 +518,26 @@ public class WateringCanItem extends Item implements IStardewItem {
     // ================= 水量/耐久显示 =================
 
     public int getWater(ItemStack stack) {
+        if (isBottomless(stack)) {
+            return tier.capacity;
+        }
         // 由于耐久度是反着来的 (Damage 0 = Full, Damage Max = Empty)
         // Water = MaxDamage - Damage
         return stack.getMaxDamage() - stack.getDamageValue();
     }
 
     public void setWater(ItemStack stack, int amount) {
+        if (isBottomless(stack)) {
+            stack.setDamageValue(0);
+            return;
+        }
         // Damage = MaxDamage - Water
         int damage = stack.getMaxDamage() - amount;
         stack.setDamageValue(damage);
+    }
+
+    public boolean isBottomless(ItemStack stack) {
+        return StardewEnchantments.has(stack, StardewEnchantments.BOTTOMLESS);
     }
 
     @Override
@@ -502,10 +546,20 @@ public class WateringCanItem extends Item implements IStardewItem {
         return true;
     }
     
-    // 显示为蓝色耐久条
     @Override
     public int getBarColor(@Nonnull ItemStack stack) {
+        if (isBottomless(stack)) {
+            return 0xC060FF;
+        }
         return 0x44AAFF; 
+    }
+
+    @Override
+    public int getBarWidth(@Nonnull ItemStack stack) {
+        if (isBottomless(stack)) {
+            return 13;
+        }
+        return super.getBarWidth(stack);
     }
     
     // 即使是满的也始终显示条，或者仅在不满时显示？原版逻辑是 stack.isDamaged() 才显示。

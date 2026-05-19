@@ -88,6 +88,10 @@ public class SunflowerCropBlock extends StardewCropBlock {
                                      int fertilizerLevel, int farmingLevel) {
         super.spawnHarvestDrops(level, pos, state, random, fertilizerLevel, farmingLevel);
 
+        if (state.hasProperty(PLACED_BY_PLAYER) && state.getValue(PLACED_BY_PLAYER)) {
+            return;
+        }
+
         int seedCount = 0;
         for (int i = 0; i < 2; i++) {
             if (random.nextFloat() < 0.5f) {

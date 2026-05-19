@@ -1,8 +1,11 @@
 package com.stardew.craft.compat;
 
+import com.stardew.craft.item.equipment.CombinedRingData;
+import com.stardew.craft.item.equipment.CombinedRingItem;
 import com.stardew.craft.item.equipment.RingType;
 import com.stardew.craft.item.equipment.StardewRingItem;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 import top.theillusivec4.curios.api.CuriosApi;
 
 import java.util.List;
@@ -19,9 +22,15 @@ public final class CuriosRingReader {
      */
     public static void addRingTypesFromCurios(ServerPlayer player, List<RingType> result) {
         CuriosApi.getCuriosInventory(player).ifPresent(handler -> {
-            handler.findCurios(stack -> stack.getItem() instanceof StardewRingItem).forEach(slotResult -> {
+            handler.findCurios(stack -> stack.getItem() instanceof StardewRingItem || stack.getItem() instanceof CombinedRingItem).forEach(slotResult -> {
                 if (slotResult.stack().getItem() instanceof StardewRingItem ring) {
                     result.add(ring.getRingType());
+                } else if (slotResult.stack().getItem() instanceof CombinedRingItem) {
+                    for (ItemStack ringStack : CombinedRingData.split(slotResult.stack())) {
+                        if (ringStack.getItem() instanceof StardewRingItem ring) {
+                            result.add(ring.getRingType());
+                        }
+                    }
                 }
             });
         });

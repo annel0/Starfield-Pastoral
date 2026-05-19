@@ -73,6 +73,10 @@ public class MineChestBlockEntity extends net.minecraft.world.level.block.entity
      * 获取（或首次生成）指定玩家的库存。
      */
     public NonNullList<ItemStack> getOrCreatePlayerInventory(UUID playerId) {
+        return getOrCreatePlayerInventory(playerId, null);
+    }
+
+    private NonNullList<ItemStack> getOrCreatePlayerInventory(UUID playerId, @Nullable net.minecraft.server.level.ServerPlayer player) {
         int floor = getFloorNumber();
         // 骷髅矿井宝藏室每日刷新：新的一天清空所有玩家的宝箱库存，重新生成奖励
         if (MineChestLootTable.isSkullCavernTreasureFloor(floor)) {
@@ -95,8 +99,8 @@ public class MineChestBlockEntity extends net.minecraft.world.level.block.entity
                             ^ playerId.getMostSignificantBits()
                             ^ playerId.getLeastSignificantBits()
                             ^ (worldPosition.asLong() * 132897987541L);
-                    reward = com.stardew.craft.mining.SkullCavernTreasurePool.roll(
-                            net.minecraft.util.RandomSource.create(seed));
+                        reward = com.stardew.craft.mining.SkullCavernTreasurePool.roll(
+                            net.minecraft.util.RandomSource.create(seed), player);
                 } else {
                     reward = MineChestLootTable.getRewardForFloor(floor);
                 }
@@ -208,7 +212,8 @@ public class MineChestBlockEntity extends net.minecraft.world.level.block.entity
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
         UUID playerId = player.getUUID();
-        NonNullList<ItemStack> inv = getOrCreatePlayerInventory(playerId);
+        NonNullList<ItemStack> inv = getOrCreatePlayerInventory(playerId,
+            player instanceof net.minecraft.server.level.ServerPlayer serverPlayer ? serverPlayer : null);
         int floor = getFloorNumber();
         boolean rewardPresentOnOpen = !inv.get(MineChestLootTable.REWARD_SLOT).isEmpty()
                 && !hasClaimedReward(playerId, floor);

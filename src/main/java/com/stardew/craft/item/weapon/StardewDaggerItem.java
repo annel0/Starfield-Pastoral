@@ -1,6 +1,7 @@
 package com.stardew.craft.item.weapon;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.combat.WeaponForgeData;
 import com.stardew.craft.combat.WeaponStats;
 import com.stardew.craft.combat.skill.SkillContext;
 import com.stardew.craft.combat.skill.WeaponSkillAnimationLock;
@@ -201,7 +202,17 @@ public class StardewDaggerItem extends Item implements IStardewItem, IStardewWea
         // 武器无法出售
         return -1;
     }
-    
+
+    @Override
+    public boolean isEnchantable(@SuppressWarnings("null") ItemStack stack) {
+        return stack.getMaxStackSize() == 1;
+    }
+
+    @Override
+    public int getEnchantmentValue() {
+        return weaponData == null ? 10 : Math.max(1, weaponData.getLevel() * 2);
+    }
+
     // ============== Tooltip ==============
     
     @Override
@@ -3704,6 +3715,7 @@ public class StardewDaggerItem extends Item implements IStardewItem, IStardewWea
             @SuppressWarnings("null")
             CustomData data = stack.get(DataComponents.CUSTOM_DATA);
             if (data != null && data.copyTag().contains(WeaponStats.TAG_STARDEW_WEAPON)) {
+                WeaponForgeData.ensure(stack);
                 return;
             }
         }
@@ -3719,6 +3731,7 @@ public class StardewDaggerItem extends Item implements IStardewItem, IStardewWea
                 .knockback(weaponData.getWeight())
                 .build()
                 .writeToItemStack(stack);
+            WeaponForgeData.ensure(stack);
     }
 
     private static LivingEntity findTargetEntity(Player player, double range) {

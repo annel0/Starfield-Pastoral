@@ -1,0 +1,7 @@
+{
+  "ambientocclusion": false,
+  "textures": {
+    "particle": "stardewcraft:block/mastery/statue_of_dwarf_king"
+  },
+  "elements": []
+}

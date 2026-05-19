@@ -48,6 +48,7 @@ import com.stardew.craft.client.render.FishNetBlockEntityRenderer;
 import com.stardew.craft.client.render.FishPondBucketBlockEntityRenderer;
 import com.stardew.craft.client.render.AutoFeedTroughBlockEntityRenderer;
 import com.stardew.craft.client.render.AnimalProduceSpotBlockEntityRenderer;
+import com.stardew.craft.client.render.AnvilBlockEntityRenderer;
 import com.stardew.craft.client.render.MuseumExhibitStandBlockEntityRenderer;
 import com.stardew.craft.client.render.TableDisplayBlockEntityRenderer;
 import com.stardew.craft.client.render.OfficeStoolBlockEntityRenderer;
@@ -88,6 +89,8 @@ public final class ModClientSetup {
 		event.registerEntityRenderer(ModEntities.TEMPERED_BILLET_PROJECTILE.get(), TemperedBilletProjectileRenderer::new);
 		event.registerEntityRenderer(ModEntities.ELF_BLADE_LEAF.get(), ElfBladeLeafRenderer::new);
 		event.registerEntityRenderer(ModEntities.ICE_SPINE_EFFECT.get(), IceSpineEffectRenderer::new);
+		event.registerEntityRenderer(ModEntities.PRISMATIC_BUTTERFLY.get(), com.stardew.craft.client.renderer.entity.PrismaticButterflyRenderer::new);
+		event.registerEntityRenderer(ModEntities.FAIRY_COMPANION.get(), com.stardew.craft.client.renderer.entity.FairyCompanionRenderer::new);
 		event.registerEntityRenderer(ModEntities.STARDEW_BOMB.get(), com.stardew.craft.client.renderer.entity.StardewBombEntityRenderer::new);
 		event.registerEntityRenderer(ModEntities.CROW.get(), com.stardew.craft.client.renderer.entity.CrowEntityRenderer::new);
 		event.registerEntityRenderer(ModEntities.DUCK.get(), CoopAnimalGeoRenderer::new);
@@ -113,6 +116,7 @@ public final class ModClientSetup {
 				com.stardew.craft.client.renderer.entity.TravelingCartGeoRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.TAPPER.get(), TapperBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.KEG.get(), KegBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(ModBlockEntities.ANVIL.get(), AnvilBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.PRESERVES_JAR.get(), PreservesJarBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.DEHYDRATOR.get(), DehydratorBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.BAIT_MAKER.get(), BaitMakerBlockEntityRenderer::new);
@@ -127,6 +131,7 @@ public final class ModClientSetup {
 		event.registerBlockEntityRenderer(ModBlockEntities.CRYSTALARIUM.get(), CrystalariumBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.SEED_MAKER.get(), SeedMakerBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.FURNACE.get(), FurnaceBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(ModBlockEntities.HEAVY_FURNACE.get(), FurnaceBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.CHARCOAL_KILN.get(), CharcoalKilnBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.LIGHTNING_ROD.get(), LightningRodBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.SOLAR_PANEL.get(), SolarPanelBlockEntityRenderer::new);
@@ -174,6 +179,7 @@ public final class ModClientSetup {
 		event.register(ModMenuTypes.ANIMAL_QUERY.get(), AnimalQueryScreen::new);
 		event.register(ModMenuTypes.TREASURE_CHEST.get(), com.stardew.craft.client.fishing.TreasureChestScreen::new);
 		event.register(ModMenuTypes.COOKING_POT.get(), com.stardew.craft.client.gui.CookingPotScreen::new);
+		event.register(ModMenuTypes.MINI_FORGE.get(), com.stardew.craft.client.gui.MiniForgeScreen::new);
 		event.register(ModMenuTypes.WOODEN_CHEST.get(), WoodenChestScreen::new);
 		event.register(ModMenuTypes.STONE_CHEST.get(), StoneChestScreen::new);
 		event.register(ModMenuTypes.SHIPPING_BIN.get(), ShippingBinScreen::new);

@@ -1,6 +1,8 @@
 package com.stardew.craft.combat.equipment;
 
 import com.stardew.craft.item.equipment.StardewBootsItem;
+import com.stardew.craft.item.equipment.CombinedRingData;
+import com.stardew.craft.item.equipment.CombinedRingItem;
 import com.stardew.craft.item.equipment.StardewRingItem;
 import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.PlayerStardewData;
@@ -8,6 +10,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 
 /**
  * Resolves the merged EquipmentStats from a player's currently equipped rings and boots.
@@ -38,6 +41,13 @@ public final class EquipmentResolver {
 
     private static void resolveRing(String itemId, EquipmentStats.Builder builder) {
         if (itemId == null || itemId.isEmpty()) return;
+        if (CombinedRingData.isEncodedEquipmentSlot(itemId)) {
+            ItemStack stack = CombinedRingData.stackFromEquipmentSlot(itemId);
+            if (stack.getItem() instanceof CombinedRingItem ring) {
+                builder.merge(ring.getEquipmentStats(stack));
+            }
+            return;
+        }
         ResourceLocation rl = ResourceLocation.tryParse(itemId);
         if (rl == null) return;
         Item item = BuiltInRegistries.ITEM.get(rl);

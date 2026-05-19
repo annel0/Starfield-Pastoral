@@ -12,6 +12,7 @@ import com.stardew.craft.time.StardewTimeManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.animal.Parrot;
 import net.minecraft.world.level.block.BedBlock;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -209,6 +210,9 @@ public class DimensionEventHandler {
     @SuppressWarnings("null")
     @SubscribeEvent
     public static void onTravelToDimension(EntityTravelToDimensionEvent event) {
+        if (event.getEntity() instanceof Parrot) {
+            return;
+        }
         if (!(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
@@ -248,6 +252,7 @@ public class DimensionEventHandler {
             com.stardew.craft.communitycenter.quarry.QuarryAccessManager.get(stardewLevel).resetForMigration();
             com.stardew.craft.sewer.SewerAccessManager.get(stardewLevel).resetForMigration();
             com.stardew.craft.minecart.MinecartStationManager.get(stardewLevel).resetForMigration();
+            com.stardew.craft.mastery.MasterySiteInstaller.get(stardewLevel).resetForMigration();
             // 采石场初始石头也在 pregen region 范围内，覆盖后需重新铺
             com.stardew.craft.manager.QuarrySpawnService.resetInitialSpawn(stardewLevel);
 
@@ -674,8 +679,20 @@ public class DimensionEventHandler {
             }
         }));
 
-        // 任务 6: 采石场石头铺设（强制加载区块 + 5千格扫描）
+        // 任务 5.5: 精通山洞站点（门/讲台/蜡烛/展示实体）
         server.tell(new net.minecraft.server.TickTask(baseTick + 5, () -> {
+            try {
+                ServerLevel sdv = server.getLevel(ModDimensions.STARDEW_VALLEY);
+                if (sdv != null) {
+                    com.stardew.craft.mastery.MasterySiteInstaller.get(sdv).ensurePlaced(sdv);
+                }
+            } catch (Exception e) {
+                StardewCraft.LOGGER.error("[DEFERRED_INIT] MasterySite failed", e);
+            }
+        }));
+
+        // 任务 6: 采石场石头铺设（强制加载区块 + 5千格扫描）
+        server.tell(new net.minecraft.server.TickTask(baseTick + 6, () -> {
             try {
                 ServerLevel sdv = server.getLevel(ModDimensions.STARDEW_VALLEY);
                 if (sdv != null) {
@@ -688,7 +705,7 @@ public class DimensionEventHandler {
         }));
 
         // 任务 7: 清除调度标记
-        server.tell(new net.minecraft.server.TickTask(baseTick + 6, () -> {
+        server.tell(new net.minecraft.server.TickTask(baseTick + 7, () -> {
             deferredInitScheduled = false;
             StardewCraft.LOGGER.info("[DEFERRED_INIT] All deferred init tasks completed.");
         }));

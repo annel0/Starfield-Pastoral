@@ -35,7 +35,7 @@ public final class HoeTooltipInjector {
             if (el.left().isPresent()) {
                 String text = el.left().get().getString();
                 if (TooltipConstants.MARKER_MAX_CHARGE_RANGE.equals(text)) {
-                    int maxCharge = hoe.getTier().getMaxChargeLevel();
+                    int maxCharge = hoe.getEffectiveMaxChargeLevel(stack);
 
                     int rows = 1;
                     int cols = 1;
