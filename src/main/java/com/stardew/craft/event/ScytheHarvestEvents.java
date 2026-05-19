@@ -19,8 +19,10 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.DeadBushBlock;
+import net.minecraft.world.level.block.DoublePlantBlock;
 import net.minecraft.world.level.block.TallGrassBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -36,6 +38,8 @@ public final class ScytheHarvestEvents {
 	// 这里用 XZ 平面计算（高度用 3 个平面兜底，适配台阶/坡地）。
 	private static final double SWING_RADIUS_BLOCKS = 2.9;
 	private static final double COS_HALF_ANGLE = Math.cos(Math.toRadians(85.0));
+	private static final float STARDEW_VANILLA_BRUSH_FIBER_CHANCE = 0.20f;
+	private static final float STARDEW_VANILLA_BRUSH_MIXED_SEEDS_CHANCE = 0.03f;
 
 	@SubscribeEvent
 	public static void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
@@ -249,6 +253,17 @@ public final class ScytheHarvestEvents {
 				|| block instanceof TallGrassBlock || block instanceof DeadBushBlock) {
 			if (isPublicArea) {
 				com.stardew.craft.farm.PublicAreaBlockTracker.get().recordRemoval(pos, state);
+				recordPairedVanillaBrushRemoval(level, pos, state);
+			}
+			if (inStardew) {
+				removeVanillaBrushBlock(level, pos, state);
+				if (!player.isCreative()) {
+					spawnStardewVanillaBrushDrops(level, pos);
+					if (haymaker && level.random.nextFloat() < 0.33f) {
+						Block.popResource(level, pos, new ItemStack(ModItems.FIBER.get()));
+					}
+				}
+				return true;
 			}
 			level.destroyBlock(pos, true, player);
 			if (haymaker && level.random.nextFloat() < 0.33f) {
@@ -271,6 +286,38 @@ public final class ScytheHarvestEvents {
 
 		// 只破坏作物类方块；不会破坏普通方块。
 		return level.destroyBlock(pos, true, player);
+	}
+
+	private static void spawnStardewVanillaBrushDrops(ServerLevel level, BlockPos pos) {
+		if (level.random.nextFloat() < STARDEW_VANILLA_BRUSH_FIBER_CHANCE) {
+			Block.popResource(level, pos, new ItemStack(ModItems.FIBER.get()));
+		}
+		if (level.random.nextFloat() < STARDEW_VANILLA_BRUSH_MIXED_SEEDS_CHANCE) {
+			Block.popResource(level, pos, new ItemStack(ModItems.MIXED_SEEDS.get()));
+		}
+	}
+
+	private static void removeVanillaBrushBlock(ServerLevel level, BlockPos pos, BlockState state) {
+		if (state.hasProperty(DoublePlantBlock.HALF)) {
+			DoubleBlockHalf half = state.getValue(DoublePlantBlock.HALF);
+			BlockPos otherPos = half == DoubleBlockHalf.LOWER ? pos.above() : pos.below();
+			if (level.getBlockState(otherPos).is(state.getBlock())) {
+				level.removeBlock(otherPos, false);
+			}
+		}
+		level.removeBlock(pos, false);
+	}
+
+	private static void recordPairedVanillaBrushRemoval(ServerLevel level, BlockPos pos, BlockState state) {
+		if (!state.hasProperty(DoublePlantBlock.HALF)) {
+			return;
+		}
+		DoubleBlockHalf half = state.getValue(DoublePlantBlock.HALF);
+		BlockPos otherPos = half == DoubleBlockHalf.LOWER ? pos.above() : pos.below();
+		BlockState otherState = level.getBlockState(otherPos);
+		if (otherState.is(state.getBlock())) {
+			com.stardew.craft.farm.PublicAreaBlockTracker.get().recordRemoval(otherPos, otherState);
+		}
 	}
 
 	private static boolean cutPastureGrassWithWeapon(ServerLevel level, BlockPos pos, ServerPlayer player, boolean haymaker) {

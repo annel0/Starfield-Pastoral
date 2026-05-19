@@ -637,6 +637,8 @@ public class StardewCraft {
                         output.accept(item);
                     } else if ("stardewcraft.type.furniture".equals(typeKey)) {
                         // 家具已在前面按类别显式排序，跳过自动循环
+                    } else if ("stardewcraft.type.festival_decoration".equals(typeKey)) {
+                        output.accept(item);
                     } else if ("stardewcraft.type.cooking".equals(typeKey)) {
                         output.accept(item);
                     } else if ("stardewcraft.type.fruit".equals(typeKey)) {

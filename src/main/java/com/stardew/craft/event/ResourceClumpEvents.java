@@ -95,8 +95,14 @@ public final class ResourceClumpEvents {
             return;
         }
 
-        clump.breakClump(player.serverLevel(), pos, state, player);
-        consumeEnergyForClumpBreak(player, clump, pos);
+        player.server.execute(() -> {
+            BlockState currentState = player.serverLevel().getBlockState(pos);
+            if (!(currentState.getBlock() instanceof ResourceClumpBlock currentClump)) {
+                return;
+            }
+            currentClump.breakClump(player.serverLevel(), pos, currentState, player);
+            consumeEnergyForClumpBreak(player, currentClump, pos);
+        });
     }
 
     @SubscribeEvent

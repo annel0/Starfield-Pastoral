@@ -416,7 +416,13 @@ public final class ForgeRuleService {
         if (!isWeaponForgeTarget(left) || !isWeaponForgeTarget(right)) {
             return false;
         }
-        if (!(left.getItem() instanceof IStardewWeapon) || !(right.getItem() instanceof IStardewWeapon)) {
+        if (!(left.getItem() instanceof IStardewWeapon leftWeapon)
+                || !(right.getItem() instanceof IStardewWeapon rightWeapon)) {
+            return false;
+        }
+        if (leftWeapon.getWeaponData() == null
+                || rightWeapon.getWeaponData() == null
+                || leftWeapon.getWeaponData().getWeaponType() != rightWeapon.getWeaponData().getWeaponType()) {
             return false;
         }
         String appearanceWeaponId = BuiltInRegistries.ITEM.getKey(right.getItem()).toString();

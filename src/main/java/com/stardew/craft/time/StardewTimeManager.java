@@ -149,6 +149,7 @@ public class StardewTimeManager extends SavedData {
                     .performTenMinuteUpdate(server);
                 com.stardew.craft.weather.LightningStrikeScheduler
                     .performTenMinuteUpdate(server);
+                com.stardew.craft.festival.FestivalService.onTimeChanged(server);
             }
         }
 
@@ -222,6 +223,7 @@ public class StardewTimeManager extends SavedData {
             @SuppressWarnings("null")
             ServerLevel stardewLevel = server.getLevel(ModDimensions.STARDEW_VALLEY);
             if (stardewLevel != null) {
+                com.stardew.craft.festival.FestivalService.onNewDay(stardewLevel);
                 if (seasonChanged) {
                     // 先恢复公共区域被砍的杂草，再刷新季节外观
                     com.stardew.craft.farm.PublicAreaBlockTracker.get().restoreAll(stardewLevel);
@@ -248,6 +250,8 @@ public class StardewTimeManager extends SavedData {
                 com.stardew.craft.manager.ForageSpawnService.onNewDayForestFarms(stardewLevel, currentSeason);
                 com.stardew.craft.manager.ArtifactSpotSpawnService.onNewDay(stardewLevel, currentSeason);
                 com.stardew.craft.manager.QuarrySpawnService.onNewDay(stardewLevel, getCurrentYear());
+                com.stardew.craft.manager.CoalForestClumpSpawnService.onNewDay(stardewLevel);
+                com.stardew.craft.manager.SecretWoodsAccessManager.ensureEntranceReady(stardewLevel);
                 com.stardew.craft.manager.FarmCaveDailyService.onNewDay(stardewLevel);
                 } finally {
                     // 日结算完成后立即释放室内区块，避免 784 区块永久 force-loaded

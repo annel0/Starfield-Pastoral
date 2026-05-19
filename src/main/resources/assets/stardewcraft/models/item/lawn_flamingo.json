@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:decor/festival/lawn_flamingo",
+  "textures": {
+    "particle": "stardewcraft:block/decor/festival/lawn_flamingo"
+  }
+}

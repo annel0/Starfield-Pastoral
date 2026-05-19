@@ -27,7 +27,13 @@ public class ChairBlock extends MapUtilityStaticBlock {
             return InteractionResult.SUCCESS;
         }
 
-        SofaSeatEntity seat = SofaSeatEntity.getOrCreate((net.minecraft.server.level.ServerLevel) level, pos, seatYOffset);
+        BlockPos mainPos = resolveMainPos(level, pos, state);
+        BlockState mainState = level.getBlockState(mainPos);
+        if (!(mainState.getBlock() instanceof ChairBlock)) {
+            return InteractionResult.PASS;
+        }
+
+        SofaSeatEntity seat = SofaSeatEntity.getOrCreate((net.minecraft.server.level.ServerLevel) level, mainPos, seatYOffset);
         if (seat == null) {
             return InteractionResult.PASS;
         }
@@ -42,15 +48,26 @@ public class ChairBlock extends MapUtilityStaticBlock {
 
         Vec3 seatPos = seat.position();
         player.teleportTo(seatPos.x, seatPos.y, seatPos.z);
-        player.setYBodyRot(state.getValue(FACING).toYRot() + 180.0F);
-        player.setYRot(state.getValue(FACING).toYRot() + 180.0F);
+        player.setYBodyRot(mainState.getValue(FACING).toYRot() + 180.0F);
+        player.setYRot(mainState.getValue(FACING).toYRot() + 180.0F);
         return InteractionResult.CONSUME;
+    }
+
+    private BlockPos resolveMainPos(Level level, BlockPos pos, BlockState state) {
+        if (state.getValue(PART) == Part.MAIN) {
+            return pos;
+        }
+        BlockPos resolved = findMainPos(level, pos, state);
+        if (resolved != null) {
+            return resolved;
+        }
+        return pos;
     }
 
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
         if (!state.is(newState.getBlock()) && !level.isClientSide) {
-            SofaSeatEntity.removeForPos((net.minecraft.server.level.ServerLevel) level, pos);
+            SofaSeatEntity.removeForPos((net.minecraft.server.level.ServerLevel) level, resolveMainPos(level, pos, state));
         }
         super.onRemove(state, level, pos, newState, isMoving);
     }

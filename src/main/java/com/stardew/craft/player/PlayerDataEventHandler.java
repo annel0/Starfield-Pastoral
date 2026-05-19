@@ -133,6 +133,8 @@ public class PlayerDataEventHandler {
                 // 采石场首次铺设（老存档升级兼容）
                 int year = com.stardew.craft.time.StardewTimeManager.get().getCurrentYear();
                 com.stardew.craft.manager.QuarrySpawnService.ensureInitialSpawn(player.serverLevel(), year);
+                com.stardew.craft.manager.CoalForestClumpSpawnService.ensureInitialSpawn(player.serverLevel());
+                com.stardew.craft.manager.SecretWoodsAccessManager.ensureEntranceReady(player.serverLevel());
                 // 矿车站点 + 矿井铁轨（老存档升级兼容）
                 com.stardew.craft.minecart.MinecartStationManager.get(player.serverLevel())
                         .ensurePlaced(player.server);
@@ -146,6 +148,8 @@ public class PlayerDataEventHandler {
                 net.minecraft.server.level.ServerLevel stardewLevel =
                         player.server.getLevel(com.stardew.craft.core.ModDimensions.STARDEW_VALLEY);
                 if (stardewLevel != null) {
+                    com.stardew.craft.manager.CoalForestClumpSpawnService.ensureInitialSpawn(stardewLevel);
+                    com.stardew.craft.manager.SecretWoodsAccessManager.ensureEntranceReady(stardewLevel);
                     com.stardew.craft.farm.OfflineFarmCatchUp.catchUp(stardewLevel, player.getUUID());
                     // 老存档/老服务器兼容：补放农场洞穴（早于洞穴系统的存档 cavePlaced=false）
                     com.stardew.craft.farm.FarmInstance ownFarm =
@@ -724,6 +728,7 @@ public class PlayerDataEventHandler {
 
         // 发光戒指：动态光源
         PlayerGlowHandler.tick(player);
+        com.stardew.craft.manager.SecretWoodsAccessManager.tickPlayer(player);
 
         // 法师塔指南针：服务端查找最近结构
         if (player.getMainHandItem().getItem() instanceof com.stardew.craft.item.tool.WizardTowerCompassItem

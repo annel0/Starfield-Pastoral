@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:decor/festival/plush_bunny",
+  "textures": {
+    "particle": "stardewcraft:block/decor/festival/plush_bunny"
+  }
+}

@@ -5,6 +5,8 @@ import com.google.gson.JsonObject;
 import com.stardew.craft.npc.data.NpcCapabilityProfile;
 import com.stardew.craft.npc.data.NpcLocationAnchor;
 import com.stardew.craft.npc.data.NpcDataRegistry;
+import com.stardew.craft.festival.FestivalDefinition;
+import com.stardew.craft.festival.FestivalService;
 import com.stardew.craft.time.StardewTimeManager;
 import com.stardew.craft.weather.WeatherManager;
 import net.minecraft.server.level.ServerLevel;
@@ -257,6 +259,14 @@ public final class NpcScheduleRuntimeService {
         String weekdayShort = WEEKDAY_SHORT[weekdayIndex];
         String weather = activeWeather == null ? "" : activeWeather.toLowerCase(Locale.ROOT);
         int hearts = Math.max(0, friendship.getPointsForNpc(schedulePlayerId, canonicalNpcId(npcId)) / NpcInteractionService.POINTS_PER_HEART);
+
+        for (FestivalDefinition festival : FestivalService.getActivePassiveFestivalsToday()) {
+            int dayOfFestival = festival.dayOfFestival(timeManager.getCurrentSeason(), day);
+            if (dayOfFestival > 0) {
+                candidates.add(festival.id() + "_" + dayOfFestival);
+            }
+            candidates.add(festival.id());
+        }
 
         // 1) <season>_<day>
         candidates.add(season + "_" + day);

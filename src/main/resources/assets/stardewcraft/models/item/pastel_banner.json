@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:decor/festival/pastel_banner",
+  "textures": {
+    "particle": "stardewcraft:block/decor/festival/pastel_banner"
+  }
+}

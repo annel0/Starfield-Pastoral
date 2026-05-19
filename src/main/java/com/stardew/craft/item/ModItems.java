@@ -667,6 +667,18 @@ public class ModItems {
         public static final DeferredItem<Item> BIRCH_TABLE = ITEMS.register("birch_table",
                         () -> new StardewBlockItem(ModBlocks.BIRCH_TABLE.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
 
+        public static final DeferredItem<Item> PASTEL_BANNER = ITEMS.register("pastel_banner",
+                        () -> new StardewBlockItem(ModBlocks.PASTEL_BANNER.get(), "stardewcraft.type.festival_decoration", 500, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> FLOWER_BASKET = ITEMS.register("flower_basket",
+                        () -> new StardewBlockItem(ModBlocks.FLOWER_BASKET.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> PLUSH_BUNNY = ITEMS.register("plush_bunny",
+                        () -> new StardewBlockItem(ModBlocks.PLUSH_BUNNY.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> LAWN_FLAMINGO = ITEMS.register("lawn_flamingo",
+                        () -> new StardewBlockItem(ModBlocks.LAWN_FLAMINGO.get(), "stardewcraft.type.festival_decoration", 50, new Item.Properties().stacksTo(999)));
+
         public static final DeferredItem<Item> SPRUCE_COUNTER = ITEMS.register("spruce_counter",
                         () -> new StardewBlockItem(ModBlocks.SPRUCE_COUNTER.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
 

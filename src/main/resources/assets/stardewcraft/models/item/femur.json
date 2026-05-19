@@ -43,19 +43,19 @@
   "overrides": [
     {
       "predicate": {
-        "custom_model_data": 719501
+        "custom_model_data": 700201
       },
       "model": "stardewcraft:item/forge_appearance/femur"
     },
     {
       "predicate": {
-        "custom_model_data": 744791
+        "custom_model_data": 700202
       },
       "model": "stardewcraft:item/forge_appearance/galaxy_hammer"
     },
     {
       "predicate": {
-        "custom_model_data": 793450
+        "custom_model_data": 700203
       },
       "model": "stardewcraft:item/forge_appearance/infinity_gavel"
     }

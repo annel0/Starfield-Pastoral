@@ -585,6 +585,18 @@ public final class ShopRegistry {
             Set.of()
         ));
 
+        REGISTRY.put("Festival_EggFestival_Pierre", new ShopDefinition(
+            "Festival_EggFestival_Pierre",
+            "Pierre",
+            "stardewcraft.shop.eggfestival.dialogue",
+            List.of(
+                entryAllSeasons("stardewcraft:lawn_flamingo", 400),
+                entryStock("stardewcraft:plush_bunny", 2000, 1),
+                entryAllSeasons("stardewcraft:pastel_banner", 1000)
+            ),
+            Set.of()
+        ));
+
         // -------------------------------------------------------------------
         // Joja Mart — SDV source: 源文件/Content/Data/Shops.json "Joja" section.
         //

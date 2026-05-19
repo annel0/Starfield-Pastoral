@@ -1,0 +1,57 @@
+package com.stardew.craft.festival;
+
+import java.util.List;
+import java.util.Map;
+
+public record FestivalDefinition(
+    String id,
+    FestivalType type,
+    String sourceName,
+    String sourceDisplayToken,
+    String sourceCondition,
+    int season,
+    int startDay,
+    int endDay,
+    int startTime,
+    int endTime,
+    boolean showOnCalendar,
+    boolean onlyShowStartMessageOnFirstDay,
+    String startMessageToken,
+    String locationKey,
+    String mapOverlayId,
+    Map<String, String> mapReplacements,
+    List<String> shopIds,
+    String mechanicId
+) {
+    public FestivalDefinition {
+        if (id == null || id.isBlank()) {
+            throw new IllegalArgumentException("festival id must not be blank");
+        }
+        if (type == null) {
+            throw new IllegalArgumentException("festival type must not be null");
+        }
+        if (season < 0 || season > 3) {
+            throw new IllegalArgumentException("season must be 0..3");
+        }
+        if (startDay < 1 || startDay > 28 || endDay < startDay || endDay > 28) {
+            throw new IllegalArgumentException("festival day range must be within 1..28");
+        }
+        sourceName = sourceName == null ? id : sourceName;
+        sourceDisplayToken = sourceDisplayToken == null ? "" : sourceDisplayToken;
+        sourceCondition = sourceCondition == null ? "" : sourceCondition;
+        startMessageToken = startMessageToken == null ? "" : startMessageToken;
+        locationKey = locationKey == null ? "" : locationKey;
+        mapOverlayId = mapOverlayId == null ? "" : mapOverlayId;
+        mapReplacements = mapReplacements == null ? Map.of() : Map.copyOf(mapReplacements);
+        shopIds = shopIds == null ? List.of() : List.copyOf(shopIds);
+        mechanicId = mechanicId == null ? "" : mechanicId;
+    }
+
+    public boolean isDate(int season, int day) {
+        return this.season == season && day >= startDay && day <= endDay;
+    }
+
+    public int dayOfFestival(int season, int day) {
+        return isDate(season, day) ? day - startDay + 1 : -1;
+    }
+}

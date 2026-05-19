@@ -2,6 +2,7 @@ package com.stardew.craft.combat;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -24,6 +25,50 @@ public final class WeaponForgeData {
     public static final String TAG_DIAMOND_FORGE = "DiamondForge";
     public static final int APPEARANCE_CUSTOM_MODEL_DATA_BASE = 700_000;
     private static final int APPEARANCE_CUSTOM_MODEL_DATA_RANGE = 100_000;
+    private static final Map<String, Integer> APPEARANCE_CUSTOM_MODEL_DATA_BY_ITEM_ID = Map.ofEntries(
+            Map.entry("stardewcraft:bone_sword", 700001),
+            Map.entry("stardewcraft:claymore", 700002),
+            Map.entry("stardewcraft:cutlass", 700003),
+            Map.entry("stardewcraft:dark_sword", 700004),
+            Map.entry("stardewcraft:dragontooth_cutlass", 700005),
+            Map.entry("stardewcraft:dwarf_sword", 700006),
+            Map.entry("stardewcraft:forest_sword", 700007),
+            Map.entry("stardewcraft:galaxy_sword", 700008),
+            Map.entry("stardewcraft:holy_blade", 700009),
+            Map.entry("stardewcraft:infinity_blade", 700010),
+            Map.entry("stardewcraft:insect_head", 700011),
+            Map.entry("stardewcraft:iron_edge", 700012),
+            Map.entry("stardewcraft:lava_katana", 700013),
+            Map.entry("stardewcraft:meowmere", 700014),
+            Map.entry("stardewcraft:neptunes_glaive", 700015),
+            Map.entry("stardewcraft:obsidian_edge", 700016),
+            Map.entry("stardewcraft:ossified_blade", 700017),
+            Map.entry("stardewcraft:pirate_sword", 700018),
+            Map.entry("stardewcraft:rusty_sword", 700019),
+            Map.entry("stardewcraft:silver_saber", 700020),
+            Map.entry("stardewcraft:steel_falchion", 700021),
+            Map.entry("stardewcraft:steel_smallsword", 700022),
+            Map.entry("stardewcraft:tempered_broadsword", 700023),
+            Map.entry("stardewcraft:templars_blade", 700024),
+            Map.entry("stardewcraft:wooden_blade", 700025),
+            Map.entry("stardewcraft:yeti_tooth", 700026),
+            Map.entry("stardewcraft:broken_trident", 700101),
+            Map.entry("stardewcraft:burglars_shank", 700102),
+            Map.entry("stardewcraft:carving_knife", 700103),
+            Map.entry("stardewcraft:crystal_dagger", 700104),
+            Map.entry("stardewcraft:dragontooth_shiv", 700105),
+            Map.entry("stardewcraft:dwarf_dagger", 700106),
+            Map.entry("stardewcraft:elf_blade", 700107),
+            Map.entry("stardewcraft:galaxy_dagger", 700108),
+            Map.entry("stardewcraft:infinity_dagger", 700109),
+            Map.entry("stardewcraft:iridium_needle", 700110),
+            Map.entry("stardewcraft:iron_dirk", 700111),
+            Map.entry("stardewcraft:shadow_dagger", 700112),
+            Map.entry("stardewcraft:wicked_kris", 700113),
+            Map.entry("stardewcraft:wind_spire", 700114),
+            Map.entry("stardewcraft:femur", 700201),
+            Map.entry("stardewcraft:galaxy_hammer", 700202),
+            Map.entry("stardewcraft:infinity_gavel", 700203));
 
     private WeaponForgeData() {
     }
@@ -199,7 +244,7 @@ public final class WeaponForgeData {
         if (itemId == null || itemId.isEmpty()) {
             return 0;
         }
-        return APPEARANCE_CUSTOM_MODEL_DATA_BASE + Math.floorMod(itemId.hashCode(), APPEARANCE_CUSTOM_MODEL_DATA_RANGE);
+        return APPEARANCE_CUSTOM_MODEL_DATA_BY_ITEM_ID.getOrDefault(itemId, 0);
     }
 
     private static void syncAppearanceModelData(ItemStack stack, String appearanceWeaponId) {
@@ -207,10 +252,19 @@ public final class WeaponForgeData {
             return;
         }
         if (appearanceWeaponId != null && !appearanceWeaponId.isEmpty()) {
-            stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(appearanceCustomModelData(appearanceWeaponId)));
+            int modelData = appearanceCustomModelData(appearanceWeaponId);
+            if (modelData != 0) {
+                stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(modelData));
+            } else {
+                clearAppearanceModelData(stack);
+            }
             return;
         }
 
+        clearAppearanceModelData(stack);
+    }
+
+    private static void clearAppearanceModelData(ItemStack stack) {
         CustomModelData modelData = stack.get(DataComponents.CUSTOM_MODEL_DATA);
         if (modelData != null && isAppearanceCustomModelData(modelData.value())) {
             stack.remove(DataComponents.CUSTOM_MODEL_DATA);

@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.3.10-fix1 - 2026-05-20
+
+### Update Log (English)
+
+#### Fixes
+
+- Fixed Stardew Valley pregen upgrades by synchronizing the region manifest with the bundled region files and bumping the pregen version, allowing existing saves to reinstall the updated map data.
+- Added Secret Woods access handling for existing saves, including per-player unlocked entrance visibility and collision behavior after clearing the hollow log.
+- Reworked the locked Secret Woods boundary so blocked players are pushed back with an actionbar warning instead of being repeatedly teleported and camera-locked.
+- Restored reliable Secret Woods resource-clump chopping by deferring custom clump removal until after the canceled vanilla break event finishes processing.
+- Changed Secret Woods slime refreshing to run lazily when an unlocked player actually enters the loaded Secret Woods area, instead of trying to spawn entities during farm wake-up while the area may be unloaded.
+
+#### Changes
+
+- Updated the public mod version to `0.3.10-fix1`.
+
+### 更新日志（中文）
+
+#### 修复
+
+- 修复星露谷预生成地图升级：同步 region manifest 与实际打包的 region 文件，并提升 pregen 版本，让老存档能重新安装更新后的地图数据。
+- 补上秘密森林入口的老档兼容逻辑，包括砍开空心木桩后的玩家独立入口可见性与碰撞状态。
+- 重做未解锁秘密森林时的边界阻挡：现在只会 actionbar 提示并把玩家推回入口外，不再反复传送导致视角/移动被锁住。
+- 修复秘密森林资源簇砍伐不稳定的问题：自定义资源簇移除延后一 tick 执行，避免被取消的原版破坏事件同步复原。
+- 调整秘密森林史莱姆刷新时机：改为已解锁玩家实际进入已加载的秘密森林区域时按天懒刷新，不再在农场睡醒结算时尝试生成远处实体。
+
+#### 变更
+
+- 项目公开版本号更新为 `0.3.10-fix1`。
+
 ## 0.3.10 - 2026-05-19
 
 ### Update Log (English)

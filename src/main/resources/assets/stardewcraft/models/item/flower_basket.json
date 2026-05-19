@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:decor/festival/flower_basket",
+  "textures": {
+    "particle": "stardewcraft:block/decor/festival/flower_basket"
+  }
+}

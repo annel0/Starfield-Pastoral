@@ -59,6 +59,12 @@ public class BushGeoModel extends GeoModel<BushBlockEntity> {
         if (be.getLastHarvestAbsoluteDay() == time.getAbsoluteDay()) {
             return BerryBushBlock.BerryKind.NONE;
         }
-        return BerryBushBlock.getBloomBerry(time.getCurrentSeason(), time.getCurrentDay());
+        BerryBushBlock.BerryKind berry = BerryBushBlock.getBloomBerry(time.getCurrentSeason(), time.getCurrentDay());
+        if (berry == BerryBushBlock.BerryKind.NONE) {
+            return BerryBushBlock.BerryKind.NONE;
+        }
+        return BerryBushBlock.hasBerriesToday(be.getBlockPos(), berry, time.getAbsoluteDay())
+            ? berry
+            : BerryBushBlock.BerryKind.NONE;
     }
 }

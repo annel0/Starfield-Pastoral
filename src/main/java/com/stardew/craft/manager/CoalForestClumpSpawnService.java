@@ -22,13 +22,12 @@ public final class CoalForestClumpSpawnService {
     private static final String INIT_DATA_ID = "stardewcraft_coal_forest_clumps_init";
     private static final int CLEAR_MAX_Y = CoalForestArea.MAX_Y + 8;
     private static final List<BlockPos> LARGE_STUMP_POSITIONS = List.of(
-            new BlockPos(-235, 68, 11),
-            new BlockPos(-237, 68, 6),
-            new BlockPos(-232, 68, 7),
-            new BlockPos(-223, 68, 36),
+            new BlockPos(-205, 68, 5),
+            new BlockPos(-235, 68, 9),
+            new BlockPos(-231, 68, 7),
+            new BlockPos(-237, 68, 5),
             new BlockPos(-212, 68, 35),
-            new BlockPos(-204, 68, 5)
-    );
+            new BlockPos(-223, 68, 35));
 
     private CoalForestClumpSpawnService() {
     }

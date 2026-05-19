@@ -41,6 +41,7 @@ animal_query/menu_tile_44,menu_tiles,0,704,64,64
 animal_query/menu_tile_59,menu_tiles,192,896,64,64
 animal_query/menu_tile_62,menu_tiles,128,960,64,64
 animal_query/menu_tile_63,menu_tiles,192,960,64,64
+animal_query/menu_tile_70,menu_tiles,128,1088,64,64
 common/scroll_banner_box_11,cursors,325,318,11,18
 common/option_highlight_box_3,cursors,375,357,3,3
 common/calendar_today_box_3,cursors,379,357,3,3
@@ -90,6 +91,19 @@ common/carpenter_upgrade,cursors,402,328,9,13
 # Geode menu cursors.png slices.
 geode/geode_spot_background,cursors,0,512,140,78
 geode/geode_ok_button,cursors,128,256,64,64
+
+# Forge menu LooseSprites/ForgeMenu slices.
+forge/background,forge_menu,0,0,142,80
+forge/ingredient_slot,forge_menu,142,0,16,16
+forge/start_button,forge_menu,0,80,13,14
+forge/start_button_alt,forge_menu,0,94,13,14
+forge/arrow,forge_menu,142,16,17,17
+forge/cost_10,forge_menu,142,38,17,10
+forge/cost_15,forge_menu,142,48,17,10
+forge/cost_20,forge_menu,142,58,17,10
+forge/unforge,forge_menu,143,69,11,10
+forge/ring_filled,forge_menu,0,96,16,16
+forge/ring_empty,forge_menu,16,96,16,16
 
 # Level-up menu cursors.png slices.
 overnight/levelup_header_ribbon,cursors,363,87,58,22
@@ -264,6 +278,25 @@ common/question_arrow_1_6_2,cursors_1_6,484,447,7,12
 common/question_arrow_1_6_3,cursors_1_6,491,447,7,12
 common/question_arrow_1_6_4,cursors_1_6,498,447,7,12
 common/question_arrow_1_6_5,cursors_1_6,505,447,7,12
+common/mastery_icon_1_6,cursors_1_6,457,298,11,11
+common/skills_mastery_empty_1_6,cursors_1_6,366,236,142,12
+common/skills_cc_room_incomplete_1_6,cursors_1_6,363,298,11,11
+common/skills_cc_room_complete_1_6,cursors_1_6,374,298,11,11
+common/skills_joja_room_incomplete_1_6,cursors_1_6,363,309,11,11
+common/skills_joja_room_complete_1_6,cursors_1_6,374,309,11,11
+common/skills_joja_logo_1_6,cursors_1_6,363,250,51,48
+common/skills_cc_unknown_1_6,cursors_1_6,414,250,52,47
+common/skills_house_icon,cursors,653,880,10,10
+common/skills_mine_empty_1_6,cursors_1_6,434,315,13,13
+common/skills_mine_icon_1_6,cursors_1_6,385,315,13,13
+common/skills_skull_icon_1_6,cursors_1_6,412,319,8,9
+common/skills_stardrop_icon_1_6,cursors_1_6,399,314,12,14
+common/skills_stardrop_empty_1_6,cursors_1_6,421,314,12,14
+common/skills_doodle_spring_1_6,cursors_1_6,394,120,33,23
+common/skills_doodle_summer_1_6,cursors_1_6,394,143,33,23
+common/skills_doodle_fall_1_6,cursors_1_6,394,166,33,23
+common/skills_doodle_winter_1_6,cursors_1_6,394,189,33,23
+entity/trinket/fairy_companion,cursors,16,592,64,16
 common/decoration_wallpaper_frame,mouse_cursors2,39,31,16,16
 common/decoration_flooring_frame,mouse_cursors2,55,31,16,16
 

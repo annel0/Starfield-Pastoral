@@ -13,12 +13,15 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @SuppressWarnings("null")
@@ -33,6 +36,7 @@ public class IceSpineEffectEntity extends Entity {
     private Vec3 startPos = Vec3.ZERO;
     private int directFreezeTicks;
     private double maxDistance = DEFAULT_MAX_DISTANCE;
+    private final Set<UUID> hitTargets = new HashSet<>();
 
     public IceSpineEffectEntity(EntityType<?> type, Level level) {
         super(type, level);
@@ -57,7 +61,7 @@ public class IceSpineEffectEntity extends Entity {
     public IceSpineEffectEntity(Level level, LivingEntity owner, Vec3 start, Vec3 direction, int freezeTicks) {
         this(level, owner, start, direction, 0.0f, "ice_rod");
         this.directFreezeTicks = Math.max(1, freezeTicks);
-        this.maxDistance = 30.0;
+        this.maxDistance = 3000.0 / 64.0;
         this.setYRot(this.getYRot() + 180.0F);
     }
 
@@ -103,13 +107,22 @@ public class IceSpineEffectEntity extends Entity {
         @SuppressWarnings("null")
         AABB box = this.getBoundingBox().inflate(0.4, 0.8, 0.4);
         for (LivingEntity target : this.level().getEntitiesOfClass(LivingEntity.class, box, e -> e.isPickable() && e.isAlive())) {
-            if (isOwner(target)) {
+            if (!canHit(target)) {
                 continue;
             }
             handleHit(target);
-            this.discard();
-            return;
+            hitTargets.add(target.getUUID());
         }
+    }
+
+    private boolean canHit(LivingEntity target) {
+        if (isOwner(target) || hitTargets.contains(target.getUUID())) {
+            return false;
+        }
+        if (directFreezeTicks > 0) {
+            return target instanceof Enemy && !(target instanceof Player);
+        }
+        return true;
     }
 
     private boolean isOwner(LivingEntity target) {

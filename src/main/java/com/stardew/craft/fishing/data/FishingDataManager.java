@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModMiningDimensions;
+import com.stardew.craft.festival.FestivalService;
 import com.stardew.craft.item.SpecificBaitItem;
 import com.stardew.craft.player.PlayerStardewData;
 import com.stardew.craft.player.PlayerStardewDataAPI;
@@ -764,8 +765,18 @@ public final class FishingDataManager {
 			}
 			case "IS_PASSIVE_FESTIVAL_OPEN": {
 				// IS_PASSIVE_FESTIVAL_OPEN <festivalId> [TIME hhmm hhmm]
-				// Mod has no passive festival system → always false.
-				return false;
+				if (parts.length < 2 || !FestivalService.isPassiveFestivalOpen(parts[1])) return false;
+				if (parts.length >= 5 && parts[2].equalsIgnoreCase("TIME")) {
+					try {
+						int min = Integer.parseInt(parts[3]);
+						int max = Integer.parseInt(parts[4]);
+						int now = currentStardewTime();
+						return now >= min && now < max;
+					} catch (NumberFormatException ex) {
+						return false;
+					}
+				}
+				return true;
 			}
 			default:
 				// Unknown predicate: be permissive (matches previous behavior).

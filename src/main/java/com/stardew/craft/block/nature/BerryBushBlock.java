@@ -245,7 +245,7 @@ public class BerryBushBlock extends Block implements EntityBlock {
         return InteractionResult.CONSUME;
     }
 
-    private static boolean hasBerriesToday(BlockPos mainPos, BerryKind berry, int absoluteDay) {
+    public static boolean hasBerriesToday(BlockPos mainPos, BerryKind berry, int absoluteDay) {
         long seed = ((long) absoluteDay * 0x9E3779B97F4A7C15L)
             ^ mainPos.asLong()
             ^ ((long) berry.ordinal() * 0xBF58476D1CE4E5B9L);

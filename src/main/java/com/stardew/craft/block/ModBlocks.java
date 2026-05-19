@@ -213,7 +213,7 @@ public class ModBlocks {
 
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> HOLLOW_LOG = BLOCKS.register("hollow_log",
-                        () -> new com.stardew.craft.block.decor.ResourceClumpBlock(Block.Properties.of()
+                        () -> new com.stardew.craft.block.decor.SecretWoodsEntranceLogBlock(Block.Properties.of()
                                         .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
                                         .sound(net.minecraft.world.level.block.SoundType.WOOD)
                                         .noOcclusion()
@@ -1770,7 +1770,7 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
                                         .sound(net.minecraft.world.level.block.SoundType.WOOD)
                                         .noOcclusion()
-                                        .strength(0.2F), "stardewcraft:decor/common/dining_chair_wood", 8.0D / 16.0D));
+                                        .strength(0.2F), "stardewcraft:decor/common/dining_chair_wood", 9.0D / 16.0D));
 
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> ARCADE_MACHINE = BLOCKS.register("arcade_machine",
@@ -1819,6 +1819,38 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .sound(net.minecraft.world.level.block.SoundType.WOOD)
                                         .noOcclusion()
                                         .strength(0.2F), "birch_table"));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> PASTEL_BANNER = BLOCKS.register("pastel_banner",
+                        () -> new com.stardew.craft.block.decor.MapDecorWallStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOL)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOL)
+                                        .noOcclusion()
+                                        .strength(0.8F), "stardewcraft:decor/festival/pastel_banner"));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> FLOWER_BASKET = BLOCKS.register("flower_basket",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOL)
+                                        .noOcclusion()
+                                        .strength(2.0F, 3.0F), "stardewcraft:decor/festival/flower_basket"));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> PLUSH_BUNNY = BLOCKS.register("plush_bunny",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOL)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOL)
+                                        .noOcclusion()
+                                        .strength(0.8F), "stardewcraft:decor/festival/plush_bunny"));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> LAWN_FLAMINGO = BLOCKS.register("lawn_flamingo",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOL)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOL)
+                                        .noOcclusion()
+                                        .strength(0.8F), "stardewcraft:decor/festival/lawn_flamingo"));
 
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> SPRUCE_COUNTER = BLOCKS.register("spruce_counter",

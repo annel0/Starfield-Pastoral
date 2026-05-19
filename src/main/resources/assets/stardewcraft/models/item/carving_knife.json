@@ -43,85 +43,85 @@
   "overrides": [
     {
       "predicate": {
-        "custom_model_data": 761830
+        "custom_model_data": 700101
       },
       "model": "stardewcraft:item/forge_appearance/broken_trident"
     },
     {
       "predicate": {
-        "custom_model_data": 767078
+        "custom_model_data": 700102
       },
       "model": "stardewcraft:item/forge_appearance/burglars_shank"
     },
     {
       "predicate": {
-        "custom_model_data": 796584
+        "custom_model_data": 700103
       },
       "model": "stardewcraft:item/forge_appearance/carving_knife"
     },
     {
       "predicate": {
-        "custom_model_data": 742161
+        "custom_model_data": 700104
       },
       "model": "stardewcraft:item/forge_appearance/crystal_dagger"
     },
     {
       "predicate": {
-        "custom_model_data": 747434
+        "custom_model_data": 700105
       },
       "model": "stardewcraft:item/forge_appearance/dragontooth_shiv"
     },
     {
       "predicate": {
-        "custom_model_data": 702597
+        "custom_model_data": 700106
       },
       "model": "stardewcraft:item/forge_appearance/dwarf_dagger"
     },
     {
       "predicate": {
-        "custom_model_data": 756698
+        "custom_model_data": 700107
       },
       "model": "stardewcraft:item/forge_appearance/elf_blade"
     },
     {
       "predicate": {
-        "custom_model_data": 743675
+        "custom_model_data": 700108
       },
       "model": "stardewcraft:item/forge_appearance/galaxy_dagger"
     },
     {
       "predicate": {
-        "custom_model_data": 799043
+        "custom_model_data": 700109
       },
       "model": "stardewcraft:item/forge_appearance/infinity_dagger"
     },
     {
       "predicate": {
-        "custom_model_data": 764847
+        "custom_model_data": 700110
       },
       "model": "stardewcraft:item/forge_appearance/iridium_needle"
     },
     {
       "predicate": {
-        "custom_model_data": 735895
+        "custom_model_data": 700111
       },
       "model": "stardewcraft:item/forge_appearance/iron_dirk"
     },
     {
       "predicate": {
-        "custom_model_data": 709483
+        "custom_model_data": 700112
       },
       "model": "stardewcraft:item/forge_appearance/shadow_dagger"
     },
     {
       "predicate": {
-        "custom_model_data": 760057
+        "custom_model_data": 700113
       },
       "model": "stardewcraft:item/forge_appearance/wicked_kris"
     },
     {
       "predicate": {
-        "custom_model_data": 746758
+        "custom_model_data": 700114
       },
       "model": "stardewcraft:item/forge_appearance/wind_spire"
     }

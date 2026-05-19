@@ -33,7 +33,8 @@
     "ClientLevelTickTimeMixin",
     "ClientSetTimeMixin",
     "ClientWeatherPacketMixin",
-    "DoorBlockMasteryCollisionClientMixin"
+    "DoorBlockMasteryCollisionClientMixin",
+    "ItemBlockRenderTypesLeavesMixin"
   ],
   "injectors": {
     "defaultRequire": 1

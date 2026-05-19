@@ -103,6 +103,9 @@ public class ModClientEvents {
                 } else if ("stardewcraft.type.furniture".equals(typeKey)) {
                     // 家具：青色
                     typeColor = net.minecraft.ChatFormatting.DARK_AQUA;
+                } else if ("stardewcraft.type.festival_decoration".equals(typeKey)) {
+                    // 节日装饰：紫色
+                    typeColor = net.minecraft.ChatFormatting.LIGHT_PURPLE;
                 } else if ("stardewcraft.type.scarecrow".equals(typeKey)) {
                     // 稻草人：稻草黄（区别于家具）
                     typeColor = net.minecraft.ChatFormatting.YELLOW;

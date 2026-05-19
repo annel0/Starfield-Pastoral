@@ -319,6 +319,10 @@ public class StardewCraftClient {
                 ModBlocks.LEANING_SWORD.get(),
                 ModBlocks.LEAH_SCULPTURE.get(),
                 ModBlocks.EASEL.get(),
+                ModBlocks.PASTEL_BANNER.get(),
+                ModBlocks.FLOWER_BASKET.get(),
+                ModBlocks.PLUSH_BUNNY.get(),
+                ModBlocks.LAWN_FLAMINGO.get(),
                 ModBlocks.BLUE_BEAR_PLUSHIE.get(),
                 ModBlocks.SAFE_BOX.get(),
                 ModBlocks.BROKEN_SAFE_BOX.get(),
@@ -446,7 +450,9 @@ public class StardewCraftClient {
                 ModBlocks.WILD_MAPLE_LEAVES.get(),
                 ModBlocks.WILD_PINE_LEAVES.get(),
                 ModBlocks.WILD_MAHOGANY_LEAVES.get(),
-                ModBlocks.WILD_MYSTIC_TREE_LEAVES.get());
+                ModBlocks.WILD_MYSTIC_TREE_LEAVES.get(),
+                ModBlocks.SMALL_BUSH.get(),
+                ModBlocks.BERRY_BUSH.get());
 
         event.register((state, level, pos, tintIndex) -> {
             if (tintIndex != 0) {
@@ -501,7 +507,7 @@ public class StardewCraftClient {
         };
     }
 
-    private static int resolveSeasonalLeafColor(BlockState state, BlockAndTintGetter level, BlockPos pos) {
+    public static int resolveSeasonalLeafColor(BlockState state, BlockAndTintGetter level, BlockPos pos) {
         if (!isRenderingStardewValley() || !StardewTimeHud.isTimeSynced()) {
             return getVanillaLeafColor(state, level, pos);
         }
