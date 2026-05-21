@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:decor/festival/holiday_ribbon_post_empty",
+  "textures": {
+    "particle": "stardewcraft:block/decor/festival/holiday_ribbon_post_empty"
+  }
+}

@@ -67,6 +67,7 @@ public class QuestIconHud {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null) return;
         if (mc.options.hideGui || mc.player.isSpectator()) return;
+        if (com.stardew.craft.client.hud.FestivalHudState.hidden()) return;
 
         @SuppressWarnings("null")
         boolean isStardew = mc.level.dimension() == ModDimensions.STARDEW_VALLEY

@@ -104,6 +104,7 @@ public final class GuntherService {
         MuseumDonationData data = MuseumDonationData.get(player.serverLevel());
         UUID playerId = player.getUUID();
         if (!data.isDonationModeActive(playerId)) return;
+        data.ensureManagedStandLayout(player.serverLevel(), playerId);
         MuseumDonationData.EndSessionResult result = data.endDonationMode(playerId);
         syncDonations(data, player);
 
@@ -165,6 +166,7 @@ public final class GuntherService {
         UUID playerId = player.getUUID();
         List<String> ids = new ArrayList<>(data.getDonatedItems(playerId));
         PacketDistributor.sendToPlayer(player, new MuseumDonationSyncPacket(ids));
+        com.stardew.craft.block.utility.MuseumExhibitStandBlock.syncStands(player.serverLevel(), data, player);
     }
 
     /**

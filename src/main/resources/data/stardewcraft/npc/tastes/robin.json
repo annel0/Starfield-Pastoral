@@ -1,24 +1,59 @@
 {
   "npc_id": "robin",
   "_vanilla_ref": "224=Spaghetti 426=Goat Cheese 636=Peach Book_Woodcutting=Woody's Secret",
-
   "loved": [
+    "stardewcraft:spaghetti",
     "stardewcraft:goat_cheese",
     "stardewcraft:peach"
   ],
-  "_loved_not_yet_in_mod": ["spaghetti(224)", "book_woodcutting"],
-
-  "liked": [],
-  "_liked_not_yet_in_mod": ["cheese(424)", "maple_syrup(709)", "skillbook_2"],
-  "liked_categories": ["milk"],
-
+  "_loved_not_yet_in_mod": [
+    "book_woodcutting"
+  ],
+  "liked": [
+    "stardewcraft:cheese",
+    "stardewcraft:wood_hard",
+    "stardewcraft:milk",
+    "stardewcraft:large_milk",
+    "stardewcraft:goat_milk",
+    "stardewcraft:large_goat_milk",
+    "stardewcraft:coconut",
+    "stardewcraft:cactus_fruit",
+    "stardewcraft:rhubarb",
+    "stardewcraft:melon",
+    "stardewcraft:blueberry",
+    "stardewcraft:hot_pepper",
+    "stardewcraft:starfruit",
+    "stardewcraft:cranberries",
+    "stardewcraft:salmonberry",
+    "stardewcraft:spice_berry",
+    "stardewcraft:grape",
+    "stardewcraft:strawberry",
+    "stardewcraft:wild_plum",
+    "stardewcraft:blackberry",
+    "stardewcraft:crystal_fruit",
+    "stardewcraft:ancient_fruit",
+    "stardewcraft:apple",
+    "stardewcraft:apricot",
+    "stardewcraft:orange",
+    "stardewcraft:pomegranate",
+    "stardewcraft:cherry",
+    "stardewcraft:banana",
+    "stardewcraft:pineapple",
+    "stardewcraft:mango",
+    "stardewcraft:qi_fruit"
+  ],
+  "_liked_not_yet_in_mod": [
+    "skillbook_2"
+  ],
+  "liked_categories": [
+    "milk"
+  ],
   "neutral": [],
-
-  "disliked": [],
-  "_disliked_not_yet_in_mod": ["wild_horseradish(16)", "clay(330)"],
-
+  "disliked": [
+    "stardewcraft:wild_horseradish",
+    "stardewcraft:clay"
+  ],
   "hated": [],
-
   "loved_msg": "This is for me? Wow, I absolutely love it!!",
   "liked_msg": "Thanks! This is really nice!",
   "neutral_msg": "Thank you. This might come in handy.",

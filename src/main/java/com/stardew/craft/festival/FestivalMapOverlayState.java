@@ -10,6 +10,7 @@ public final class FestivalMapOverlayState {
     private int day;
     private FestivalMapOverlayPhase phase;
     private int cursor;
+    private FestivalMapPatch runtimePatch;
 
     public FestivalMapOverlayState(String overlayId) {
         this.overlayId = overlayId == null ? "" : overlayId;
@@ -44,6 +45,10 @@ public final class FestivalMapOverlayState {
         return cursor;
     }
 
+    public FestivalMapPatch runtimePatch() {
+        return runtimePatch;
+    }
+
     public void begin(String festivalId, int year, int season, int day, FestivalMapOverlayPhase phase) {
         this.festivalId = festivalId == null ? "" : festivalId;
         this.year = year;
@@ -51,6 +56,14 @@ public final class FestivalMapOverlayState {
         this.day = day;
         this.phase = phase == null ? FestivalMapOverlayPhase.NONE : phase;
         this.cursor = 0;
+    }
+
+    public void setRuntimePatch(FestivalMapPatch runtimePatch) {
+        this.runtimePatch = runtimePatch;
+    }
+
+    public void clearRuntimePatch() {
+        this.runtimePatch = null;
     }
 
     public void setPhase(FestivalMapOverlayPhase phase) {
@@ -70,6 +83,9 @@ public final class FestivalMapOverlayState {
         tag.putInt("Day", day);
         tag.putString("Phase", phase.name());
         tag.putInt("Cursor", cursor);
+        if (runtimePatch != null) {
+            tag.put("RuntimePatch", runtimePatch.save());
+        }
         return tag;
     }
 
@@ -81,6 +97,9 @@ public final class FestivalMapOverlayState {
         state.day = tag.getInt("Day");
         state.phase = parsePhase(tag.getString("Phase"));
         state.cursor = tag.getInt("Cursor");
+        if (tag.contains("RuntimePatch", net.minecraft.nbt.Tag.TAG_COMPOUND)) {
+            state.runtimePatch = FestivalMapPatch.load(tag.getCompound("RuntimePatch"));
+        }
         return state;
     }
 

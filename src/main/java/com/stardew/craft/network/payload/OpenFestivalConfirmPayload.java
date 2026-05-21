@@ -1,0 +1,75 @@
+package com.stardew.craft.network.payload;
+
+import com.stardew.craft.StardewCraft;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+
+import java.util.List;
+import java.util.Locale;
+
+@SuppressWarnings("null")
+public record OpenFestivalConfirmPayload(Action action) implements CustomPacketPayload {
+    public enum Action {
+        ENTER,
+        EXIT,
+        START_CONTEST,
+        END_CONTEST,
+        FESTIVAL_END;
+
+        static Action parse(String value) {
+            try {
+                return Action.valueOf(value.toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException ex) {
+                return ENTER;
+            }
+        }
+    }
+
+    public static final Type<OpenFestivalConfirmPayload> TYPE =
+        new Type<>(ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "open_festival_confirm"));
+
+    public static final StreamCodec<FriendlyByteBuf, OpenFestivalConfirmPayload> STREAM_CODEC = StreamCodec.of(
+        (buf, payload) -> buf.writeUtf(payload.action().name()),
+        buf -> new OpenFestivalConfirmPayload(Action.parse(buf.readUtf(32)))
+    );
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    public static void handle(OpenFestivalConfirmPayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(OpenFestivalConfirmPayload payload) {
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+        if (mc.player == null) {
+            return;
+        }
+        Component question = switch (payload.action()) {
+            case EXIT -> Component.translatable("message.stardewcraft.festival.exit_confirm");
+            case START_CONTEST -> Component.translatable("message.stardewcraft.festival.egg.start_confirm");
+            case END_CONTEST -> Component.translatable("message.stardewcraft.festival.egg.end_contest_confirm");
+            case FESTIVAL_END -> Component.translatable("message.stardewcraft.festival.egg.festival_end_confirm");
+            case ENTER -> Component.translatable("message.stardewcraft.festival.egg.enter_confirm");
+        };
+        mc.setScreen(com.stardew.craft.client.gui.common.StardewConfirmDialogScreen.createQuestionDialog(
+            com.stardew.craft.client.gui.common.StardewQuestionDialogSpec.of(
+                question,
+                List.of(
+                    Component.translatable("message.stardewcraft.festival.confirm.yes"),
+                    Component.translatable("message.stardewcraft.festival.confirm.no")
+                ),
+                index -> PacketDistributor.sendToServer(new FestivalConfirmPayload(payload.action(), index == 0)),
+                -1
+            )
+        ));
+    }
+}

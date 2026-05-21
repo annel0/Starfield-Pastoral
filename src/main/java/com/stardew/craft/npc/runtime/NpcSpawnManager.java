@@ -32,6 +32,7 @@ public final class NpcSpawnManager {
     private static final int RESPAWN_COOLDOWN_TICKS = 400;
     private static final int TRACKED_ENTITY_RECOVERY_MISSES = 30;
     private static final Set<String> FORCE_SPAWN_IDS = java.util.Collections.synchronizedSet(new HashSet<>());
+    private static final Set<String> SUPPRESSED_SPAWN_IDS = java.util.Collections.synchronizedSet(new HashSet<>());
     private static final AABB GLOBAL_NPC_SCAN = new AABB(-3.0E7, -2048.0, -3.0E7, 3.0E7, 4096.0, 3.0E7);
 
     /** NPCs that live in the mining dimension instead of Stardew Valley. */
@@ -107,7 +108,44 @@ public final class NpcSpawnManager {
      * 标记指定 NPC 下次 tick 时立即生成，跳过 miss-count 和冷却检测。
      */
     public static void forceSpawnNpc(String npcId) {
-        FORCE_SPAWN_IDS.add(canonicalNpcId(npcId));
+        String canonicalId = canonicalNpcId(npcId);
+        if (canonicalId == null || canonicalId.isBlank() || SUPPRESSED_SPAWN_IDS.contains(canonicalId)) {
+            return;
+        }
+        FORCE_SPAWN_IDS.add(canonicalId);
+    }
+
+    public static void temporarilyRemoveNpc(ServerLevel level, String npcId) {
+        if (level == null) {
+            return;
+        }
+        String canonicalId = canonicalNpcId(npcId);
+        if (canonicalId == null || canonicalId.isBlank()) {
+            return;
+        }
+        SUPPRESSED_SPAWN_IDS.add(canonicalId);
+        FORCE_SPAWN_IDS.remove(canonicalId);
+        UUID trackedUuid = TRACKED_NPC_UUIDS.remove(canonicalId);
+        TRACKED_MISS_COUNTS.remove(canonicalId);
+        LAST_SPAWN_GAME_TIME.remove(canonicalId);
+
+        if (trackedUuid != null && level.getEntity(trackedUuid) instanceof StardewNpcEntity trackedNpc) {
+            discardWithReason(trackedNpc, "temporarily_removed");
+        }
+        for (StardewNpcEntity entity : getCachedAllNpcs(level)) {
+            if (canonicalId.equals(canonicalNpcId(entity.getNpcId()))) {
+                discardWithReason(entity, "temporarily_removed_duplicate");
+            }
+        }
+    }
+
+    public static void resumeNpcSpawn(String npcId) {
+        String canonicalId = canonicalNpcId(npcId);
+        if (canonicalId == null || canonicalId.isBlank()) {
+            return;
+        }
+        SUPPRESSED_SPAWN_IDS.remove(canonicalId);
+        forceSpawnNpc(canonicalId);
     }
 
     /**
@@ -329,6 +367,16 @@ public final class NpcSpawnManager {
             String npcId = canonicalNpcId(profile.npcId());
             // Skip NPCs that belong in the mining dimension
             if (MINING_DIM_NPC_IDS.contains(npcId)) {
+                continue;
+            }
+            if (SUPPRESSED_SPAWN_IDS.contains(npcId)) {
+                FORCE_SPAWN_IDS.remove(npcId);
+                StardewNpcEntity existing = getTrackedNpc(level, npcId);
+                if (existing != null) {
+                    discardWithReason(existing, "suppressed_spawn_tick");
+                }
+                TRACKED_NPC_UUIDS.remove(npcId);
+                TRACKED_MISS_COUNTS.remove(npcId);
                 continue;
             }
             // Skip Joja Mart NPCs — handled by JojaNpcEvents (固定生成，与骆驼商人同套机制)
@@ -726,6 +774,46 @@ public final class NpcSpawnManager {
         return npc;
     }
 
+    public static boolean snapNpcToCurrentSchedule(ServerLevel level, String npcId) {
+        if (level == null || npcId == null || npcId.isBlank()) {
+            return false;
+        }
+        if (!ModDimensions.STARDEW_VALLEY.equals(level.dimension())) {
+            return false;
+        }
+        String canonicalId = canonicalNpcId(npcId);
+        if (canonicalId == null || canonicalId.isBlank()) {
+            return false;
+        }
+        if (MINING_DIM_NPC_IDS.contains(canonicalId) || com.stardew.craft.joja.JojaNpcEvents.isJojaMartNpc(canonicalId)) {
+            return false;
+        }
+        if (NpcDataRegistry.schedules().get(canonicalId) == null) {
+            return false;
+        }
+        StardewNpcEntity npc = getTrackedNpc(level, canonicalId);
+        if (npc == null) {
+            return false;
+        }
+        NpcScheduleRuntimeService.invalidateCache();
+        NpcScheduleRuntimeService.tick(level);
+        NpcRuntimeState state = NpcRuntimeDataManager.get(level).states().get(canonicalId);
+        if (state == null) {
+            return false;
+        }
+        Vec3 sharedSpawn = Vec3.atCenterOf(level.getSharedSpawnPos());
+        NpcScheduleRuntimeService.TargetPoint target = NpcScheduleRuntimeService.resolveWorldTarget(level, state, sharedSpawn);
+        if (target == null || target.position() == null) {
+            return false;
+        }
+        NpcChunkForceManager.ensureRouteTargetChunkForced(level, canonicalId, target.position());
+        moveNpcToScheduleTarget(level, npc, target.position(), state);
+        TRACKED_NPC_UUIDS.put(canonicalId, npc.getUUID());
+        TRACKED_MISS_COUNTS.put(canonicalId, 0);
+        NpcCentralMovementService.resetMovementPlan(canonicalId);
+        return true;
+    }
+
     private static JsonObject resolveSpawnPos(JsonObject spawns, String canonicalNpcId, String rawNpcId) {
         if (spawns == null) {
             return null;
@@ -864,6 +952,7 @@ public final class NpcSpawnManager {
         TRACKED_NPC_UUIDS.clear();
         TRACKED_MISS_COUNTS.clear();
         LAST_SPAWN_GAME_TIME.clear();
+        SUPPRESSED_SPAWN_IDS.clear();
         cachedScanGameTime = Long.MIN_VALUE;
         cachedAllNpcs = List.of();
         cachedImplementedCapabilities = Map.of();

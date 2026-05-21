@@ -48,9 +48,11 @@ import java.util.UUID;
 public final class NpcCentralMovementService {
     /** Distance² threshold for considering a step target reached (2D horizontal). */
     private static final double STEP_REACH_SQR = 4.0D; // 2 blocks
-    /** Final schedule target must be reached tightly, after a short natural fine approach. */
-    private static final double FINAL_STEP_REACH_SQR = 0.04D; // 0.2 blocks
-    private static final double FINAL_APPROACH_SPEED = 0.6D;
+    /** Final schedule target must be reached tightly enough for display placement. */
+    private static final double FINAL_STEP_REACH_SQR = 0.25D; // 0.5 blocks
+    private static final double NAV_DONE_STEP_REACH_SQR = 2.25D; // 1.5 blocks
+    private static final double FINAL_APPROACH_DISTANCE_SQR = 1.0D; // final 1 block only
+    private static final double FINAL_APPROACH_SPEED = 0.9D;
     /** Periodic re-path interval (~1.0s). Citizens2 uses updatePathRate=20 by default. */
     private static final int REPATH_INTERVAL_TICKS = 20;
     /**
@@ -76,6 +78,8 @@ public final class NpcCentralMovementService {
     private static final boolean MOVEMENT_DEBUG_ENABLED = Boolean.getBoolean("stardewcraft.npcMovementDebug");
 
     private static final Map<String, NpcRoutePlan> ACTIVE_PLANS = new HashMap<>();
+    private static final Map<String, NpcRoutePlan> AUTHORED_PLANS = new HashMap<>();
+    private static final Map<String, AuthoredDebugSnapshot> AUTHORED_DEBUG_SNAPSHOTS = new HashMap<>();
     private static final Map<String, String> LAST_NODE_SIGNATURE = new HashMap<>();
     private static final Map<String, DebugSnapshot> DEBUG_SNAPSHOTS = new HashMap<>();
     private static Map<String, NpcCapabilityProfile> cachedCapabilities = Map.of();
@@ -98,8 +102,185 @@ public final class NpcCentralMovementService {
             return;
         }
         ACTIVE_PLANS.remove(key);
+        AUTHORED_PLANS.keySet().removeIf(planKey -> planKey.startsWith(key + ":"));
+        AUTHORED_DEBUG_SNAPSHOTS.keySet().removeIf(planKey -> planKey.startsWith(key + ":"));
         LAST_NODE_SIGNATURE.remove(key);
         DEBUG_SNAPSHOTS.remove(key);
+    }
+
+    public static void resetAuthoredMovementPlan(String npcId, String owner) {
+        String key = authoredPlanKey(npcId, owner);
+        if (key.isBlank()) {
+            return;
+        }
+        AUTHORED_PLANS.remove(key);
+        AUTHORED_DEBUG_SNAPSHOTS.remove(key);
+    }
+
+    public static AuthoredDebugSnapshot getAuthoredDebugSnapshot(String npcId, String owner) {
+        String key = authoredPlanKey(npcId, owner);
+        return key.isBlank() ? null : AUTHORED_DEBUG_SNAPSHOTS.get(key);
+    }
+
+    public static boolean tickAuthoredWalkTarget(ServerLevel level,
+                                                StardewNpcEntity npc,
+                                                String owner,
+                                                String pointId,
+                                                Vec3 target) {
+        if (level == null || npc == null || target == null) {
+            return false;
+        }
+        ensureServerContext(level);
+        String key = authoredPlanKey(npc.getNpcId(), owner);
+        if (key.isBlank()) {
+            return false;
+        }
+
+        long now = level.getGameTime();
+        String signature = key + "#" + pointId + "#"
+            + String.format(java.util.Locale.ROOT, "%.3f,%.3f,%.3f", target.x, target.y, target.z);
+        NpcRoutePlan plan = AUTHORED_PLANS.get(key);
+        boolean needsNewPlan = plan == null
+            || !signature.equals(plan.signature)
+            || !npc.getUUID().equals(plan.boundEntityUuid);
+        if (needsNewPlan) {
+            if (plan != null) {
+                closeOpenedDoors(level, npc, plan, now, true);
+                npc.getNavigation().stop();
+                stopHorizontalMotionPreserveGravity(npc);
+            }
+            plan = new NpcRoutePlan(signature, npc.getUUID(), List.of(NpcRoutePlanner.NpcRouteStep.walk(pointId, target)), now);
+            plan.progressCheckX = npc.getX();
+            plan.progressCheckZ = npc.getZ();
+            AUTHORED_PLANS.put(key, plan);
+        }
+
+        executePlanTick(level, npc, plan);
+        return plan.currentStepIndex >= plan.steps.size();
+    }
+
+    public static int tickAuthoredWalkRoute(ServerLevel level,
+                                           StardewNpcEntity npc,
+                                           String owner,
+                                           String routeId,
+                                           List<Vec3> targets,
+                                           boolean loop) {
+        if (level == null || npc == null || targets == null || targets.isEmpty()) {
+            return -1;
+        }
+        ensureServerContext(level);
+        String key = authoredPlanKey(npc.getNpcId(), owner);
+        if (key.isBlank()) {
+            return -1;
+        }
+
+        long now = level.getGameTime();
+        String signature = authoredRouteSignature(key, routeId, targets, loop);
+        NpcRoutePlan plan = AUTHORED_PLANS.get(key);
+        boolean needsNewPlan = plan == null
+            || !signature.equals(plan.signature)
+            || !npc.getUUID().equals(plan.boundEntityUuid);
+        if (needsNewPlan) {
+            if (plan != null) {
+                closeOpenedDoors(level, npc, plan, now, true);
+                npc.getNavigation().stop();
+                stopHorizontalMotionPreserveGravity(npc);
+            }
+            List<NpcRoutePlanner.NpcRouteStep> steps = new ArrayList<>();
+            String pointPrefix = routeId == null || routeId.isBlank() ? "authored" : routeId.trim();
+            for (int i = 0; i < targets.size(); i++) {
+                steps.add(NpcRoutePlanner.NpcRouteStep.walk(pointPrefix + "_" + i, targets.get(i)));
+            }
+            plan = new NpcRoutePlan(signature, npc.getUUID(), steps, now);
+            plan.tightStepArrival = true;
+            plan.acceptNavigationDoneArrival = true;
+            plan.progressCheckX = npc.getX();
+            plan.progressCheckZ = npc.getZ();
+            AUTHORED_PLANS.put(key, plan);
+        }
+
+        if (plan.currentStepIndex >= plan.steps.size()) {
+            if (!loop) {
+                return -1;
+            }
+            restartAuthoredRoutePlan(level, npc, plan, now);
+        }
+
+        int previousStepIndex = plan.currentStepIndex;
+        executePlanTick(level, npc, plan);
+        int reachedStepIndex = plan.currentStepIndex > previousStepIndex ? previousStepIndex : -1;
+        if (loop && plan.currentStepIndex >= plan.steps.size()) {
+            restartAuthoredRoutePlan(level, npc, plan, now);
+        }
+        updateAuthoredDebugSnapshot(key, npc, plan, now);
+        return reachedStepIndex;
+    }
+
+    private static String authoredRouteSignature(String key, String routeId, List<Vec3> targets, boolean loop) {
+        StringBuilder signature = new StringBuilder(key)
+            .append('#')
+            .append(routeId == null ? "" : routeId.trim())
+            .append("#loop=")
+            .append(loop);
+        for (Vec3 target : targets) {
+            signature.append('#').append(String.format(java.util.Locale.ROOT, "%.3f,%.3f,%.3f", target.x, target.y, target.z));
+        }
+        return signature.toString();
+    }
+
+    private static void restartAuthoredRoutePlan(ServerLevel level, StardewNpcEntity npc, NpcRoutePlan plan, long now) {
+        closeOpenedDoors(level, npc, plan, now, true);
+        npc.getNavigation().stop();
+        stopHorizontalMotionPreserveGravity(npc);
+        plan.currentStepIndex = 0;
+        plan.consecutiveNavFailures = 0;
+        plan.lastProgressTick = now;
+        plan.stuckCheckCount = 0;
+        plan.progressCheckTick = now;
+        plan.progressCheckX = npc.getX();
+        plan.progressCheckZ = npc.getZ();
+        plan.lastRepathTick = now - REPATH_INTERVAL_TICKS;
+        plan.lastSuccessfulMoveCommandStep = -1;
+        plan.debugStage = "loop_restart";
+    }
+
+    private static void updateAuthoredDebugSnapshot(String key, StardewNpcEntity npc, NpcRoutePlan plan, long now) {
+        if (key == null || key.isBlank() || npc == null || plan == null) {
+            return;
+        }
+        boolean hasPath = npc.getNavigation().getPath() != null;
+        boolean navDone = npc.getNavigation().isDone();
+        BlockPos navTarget = npc.getNavigation().getTargetPos();
+        AuthoredDebugSnapshot snapshot = AUTHORED_DEBUG_SNAPSHOTS.computeIfAbsent(key, ignored -> new AuthoredDebugSnapshot());
+        snapshot.stage = plan.debugStage;
+        snapshot.pointId = plan.debugPointId;
+        snapshot.pathSize = plan.steps.size();
+        snapshot.pathIndex = Math.min(plan.currentStepIndex, plan.steps.size());
+        snapshot.target = plan.debugTarget;
+        snapshot.nextWaypoint = plan.debugNextWaypoint;
+        snapshot.repathReason = plan.debugRepathReason;
+        snapshot.navFailures = plan.consecutiveNavFailures;
+        snapshot.hasPath = hasPath;
+        snapshot.navDone = navDone;
+        snapshot.navTarget = navTarget == null ? "<none>" : navTarget.toShortString();
+        snapshot.position = npc.position();
+        snapshot.lastTick = now;
+    }
+
+    public static void stopAuthoredMovement(StardewNpcEntity npc) {
+        if (npc == null) {
+            return;
+        }
+        npc.getNavigation().stop();
+        stopHorizontalMotionPreserveGravity(npc);
+    }
+
+    private static String authoredPlanKey(String npcId, String owner) {
+        String npcKey = NpcRoutePlanner.canonicalNpcId(npcId);
+        if (npcKey.isBlank() || owner == null || owner.isBlank()) {
+            return "";
+        }
+        return npcKey + ":" + owner.trim().toLowerCase(java.util.Locale.ROOT);
     }
 
     private static boolean movementDebugEnabled() {
@@ -122,6 +303,12 @@ public final class NpcCentralMovementService {
             if (com.stardew.craft.joja.JojaNpcEvents.isJojaMartNpc(npcId)) continue;
             StardewNpcEntity npc = NpcSpawnManager.getTrackedNpc(level, npcId);
             if (npc == null) {
+                continue;
+            }
+
+            if (com.stardew.craft.festival.EggFestivalNpcService.controlsNpc(npcId)) {
+                ACTIVE_PLANS.remove(npcId);
+                LAST_NODE_SIGNATURE.remove(npcId);
                 continue;
             }
 
@@ -289,6 +476,8 @@ public final class NpcCentralMovementService {
 
         activeServer = level.getServer();
         ACTIVE_PLANS.clear();
+        AUTHORED_PLANS.clear();
+        AUTHORED_DEBUG_SNAPSHOTS.clear();
         LAST_NODE_SIGNATURE.clear();
         DEBUG_SNAPSHOTS.clear();
         cachedCapabilities = Map.of();
@@ -478,7 +667,8 @@ public final class NpcCentralMovementService {
         Vec3 toTarget = new Vec3(target.x - npc.getX(), 0.0D, target.z - npc.getZ());
         double distSqr = toTarget.lengthSqr();
         boolean finalStep = plan.currentStepIndex == plan.steps.size() - 1;
-        double reachSqr = finalStep ? FINAL_STEP_REACH_SQR : STEP_REACH_SQR;
+        boolean tightStep = finalStep || plan.tightStepArrival;
+        double reachSqr = tightStep ? FINAL_STEP_REACH_SQR : STEP_REACH_SQR;
         if (distSqr <= reachSqr) {
             // Arrived at step target — advance
             if (movementDebugEnabled()) {
@@ -500,6 +690,25 @@ public final class NpcCentralMovementService {
             return false;
         }
 
+        if (plan.acceptNavigationDoneArrival
+            && plan.lastSuccessfulMoveCommandStep == plan.currentStepIndex
+            && npc.getNavigation().isDone()
+            && distSqr <= NAV_DONE_STEP_REACH_SQR) {
+            npc.getNavigation().stop();
+            stopHorizontalMotionPreserveGravity(npc);
+            plan.currentStepIndex++;
+            plan.consecutiveNavFailures = 0;
+            plan.lastProgressTick = now;
+            plan.stuckCheckCount = 0;
+            plan.progressCheckTick = now;
+            plan.progressCheckX = npc.getX();
+            plan.progressCheckZ = npc.getZ();
+            plan.lastRepathTick = now;
+            plan.debugStage = "nav_done_reached";
+            plan.debugRepathReason = "navigation_completed";
+            return false;
+        }
+
         plan.debugStage = finalStep ? "final_walk" : "walk";
 
         // Issue moveTo only when navigation has no active path. Rebuilding an
@@ -509,7 +718,7 @@ public final class NpcCentralMovementService {
         boolean repathDue = now - plan.lastRepathTick >= REPATH_INTERVAL_TICKS;
         if (!hasActivePath && repathDue) {
             // moveTo() returns true if a path was successfully created
-            double speed = finalStep ? FINAL_APPROACH_SPEED : 1.0D;
+            double speed = movementSpeedForStep(tightStep, distSqr);
             boolean pathFound = npc.getNavigation().moveTo(target.x, target.y, target.z, speed);
             plan.lastRepathTick = now;
             boolean shouldLogMove = movementDebugEnabled()
@@ -521,6 +730,7 @@ public final class NpcCentralMovementService {
                 plan.consecutiveNavFailures++;
                 plan.debugRepathReason = "moveTo_fail_" + plan.consecutiveNavFailures;
             } else {
+                plan.lastSuccessfulMoveCommandStep = plan.currentStepIndex;
                 plan.consecutiveNavFailures = 0;
                 if (plan.debugRepathReason.equals("none")) {
                     plan.debugRepathReason = navIdle ? "nav_idle_repath" : "path_missing_repath";
@@ -590,11 +800,12 @@ public final class NpcCentralMovementService {
             if (navigationStuck) {
                 npc.getNavigation().stop();
             }
-            double speed = finalStep ? FINAL_APPROACH_SPEED : 1.0D;
+            double speed = movementSpeedForStep(tightStep, distSqr);
             boolean pathFound = npc.getNavigation().moveTo(target.x, target.y, target.z, speed);
             plan.lastRepathTick = now;
             plan.debugStage = "stuck_repath";
             if (pathFound) {
+                plan.lastSuccessfulMoveCommandStep = plan.currentStepIndex;
                 plan.consecutiveNavFailures = 0;
             } else {
                 plan.consecutiveNavFailures++;
@@ -631,6 +842,10 @@ public final class NpcCentralMovementService {
     private static void stopHorizontalMotionPreserveGravity(StardewNpcEntity npc) {
         Vec3 movement = npc.getDeltaMovement();
         npc.setDeltaMovement(0.0D, movement.y, 0.0D);
+    }
+
+    private static double movementSpeedForStep(boolean tightStep, double distSqr) {
+        return tightStep && distSqr <= FINAL_APPROACH_DISTANCE_SQR ? FINAL_APPROACH_SPEED : 1.0D;
     }
 
     private static String buildPlanSignature(NpcRuntimeState state, NpcRoutePlanner.NpcRouteContext route) {
@@ -868,6 +1083,9 @@ public final class NpcCentralMovementService {
         private String routeDiagnosticReason;
         private String missingPointId;
         private String missingPortalLinkId;
+        private boolean tightStepArrival;
+        private boolean acceptNavigationDoneArrival;
+        private int lastSuccessfulMoveCommandStep;
         /** Displacement-based progress detection: consecutive "no progress" checks. */
         private int stuckCheckCount;
         /** Tick when last progress check was performed. */
@@ -900,6 +1118,9 @@ public final class NpcCentralMovementService {
             this.routeDiagnosticReason = "none";
             this.missingPointId = "";
             this.missingPortalLinkId = "";
+            this.tightStepArrival = false;
+            this.acceptNavigationDoneArrival = false;
+            this.lastSuccessfulMoveCommandStep = -1;
             this.stuckCheckCount = 0;
             this.progressCheckTick = now;
             this.progressCheckX = 0.0D;
@@ -970,6 +1191,22 @@ public final class NpcCentralMovementService {
             this.missingPointId = plan.missingPointId;
             this.missingPortalLinkId = plan.missingPortalLinkId;
         }
+    }
+
+    public static final class AuthoredDebugSnapshot {
+        public String stage = "<none>";
+        public String pointId = "<none>";
+        public int pathSize;
+        public int pathIndex;
+        public Vec3 target = Vec3.ZERO;
+        public Vec3 nextWaypoint = Vec3.ZERO;
+        public String repathReason = "none";
+        public int navFailures;
+        public boolean hasPath;
+        public boolean navDone;
+        public String navTarget = "<none>";
+        public Vec3 position = Vec3.ZERO;
+        public long lastTick;
     }
 
     /**

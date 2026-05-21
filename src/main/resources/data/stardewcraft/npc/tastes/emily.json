@@ -8,19 +8,40 @@
     "stardewcraft:amethyst",
     "stardewcraft:topaz",
     "stardewcraft:jade",
+    "stardewcraft:survival_burger",
     "stardewcraft:cloth",
-    "stardewcraft:wool"
+    "stardewcraft:wool",
+    "stardewcraft:parrot_egg"
   ],
-  "_loved_not_yet_in_mod": ["survival_burger(241)", "ParrotEgg"],
-  "liked": [],
-  "_liked_not_yet_in_mod": ["daffodil(18)", "fire_quartz(82)", "frozen_tear(84)", "earth_crystal(86)", "salad(196)", "vegetable_medley(200)", "bean_hotpot(207)", "red_plate(230)", "autumn_bounty(235)", "sweet_pea(402)", "crocus(418)"],
+  "liked": [
+    "stardewcraft:daffodil",
+    "stardewcraft:fire_quartz",
+    "stardewcraft:frozen_tear",
+    "stardewcraft:earth_crystal",
+    "stardewcraft:salad",
+    "stardewcraft:vegetable_medley",
+    "stardewcraft:bean_hotpot",
+    "stardewcraft:red_plate",
+    "stardewcraft:sweet_pea",
+    "stardewcraft:crocus"
+  ],
+  "_liked_not_yet_in_mod": [
+    "autumn_bounty(235)"
+  ],
   "neutral": [],
-  "disliked": [],
-  "_disliked_not_yet_in_mod": ["cave_carrot(78)", "rice_pudding(232)", "ice_cream(233)", "fried_eel(225)", "spicy_eel(226)"],
-  "hated": [
-    "stardewcraft:fish_taco"
+  "disliked": [
+    "stardewcraft:cave_carrot",
+    "stardewcraft:rice_pudding",
+    "stardewcraft:ice_cream",
+    "stardewcraft:fried_eel",
+    "stardewcraft:spicy_eel"
   ],
-  "_hated_not_yet_in_mod": ["salmon_dinner(212)", "sashimi(227)", "maki_roll(228)"],
+  "hated": [
+    "stardewcraft:salmon_dinner",
+    "stardewcraft:fish_taco",
+    "stardewcraft:sashimi",
+    "stardewcraft:maki_roll"
+  ],
   "loved_msg": "Oh my gosh! I love this! Thank you, @!$h",
   "liked_msg": "Hey, that's really nice of you! Thanks.$h",
   "neutral_msg": "Thanks! That's nice of you.",

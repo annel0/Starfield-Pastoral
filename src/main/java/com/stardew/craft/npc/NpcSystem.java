@@ -78,6 +78,7 @@ public final class NpcSystem {
         NpcScheduleRuntimeService.tick(level);
         NpcSpawnManager.tick(level);
         NpcCentralMovementService.tick(level);
+        com.stardew.craft.festival.EggFestivalService.tickNpcActors(level);
 
         // Tick mining-dimension NPCs (e.g. Dwarf) when any player is in the mine
         if (anyPlayerInMining) {

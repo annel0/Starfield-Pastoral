@@ -4,6 +4,7 @@ import com.stardew.craft.StardewCraft;
 import com.stardew.craft.block.utility.CushionBlock;
 import com.stardew.craft.block.utility.OfficeChair2Block;
 import com.stardew.craft.block.utility.OfficeStoolBlock;
+import com.stardew.craft.block.utility.OakTableBlock;
 import com.stardew.craft.block.utility.SofaBlock;
 import com.stardew.craft.block.utility.WoodenChestColorPalette;
 import com.stardew.craft.item.ModItems;
@@ -74,6 +75,15 @@ public record ApplySofaColorPayload(BlockPos targetPos, int colorIndex) implemen
                         player.level().setBlock(sofaPos, updated, 3);
                     }
                 }
+                return;
+            }
+
+            if (state.getBlock() instanceof OakTableBlock
+                && state.hasProperty(OakTableBlock.HAS_CLOTH)
+                && state.hasProperty(OakTableBlock.CLOTH_STYLE)
+                && state.getValue(OakTableBlock.HAS_CLOTH)
+                && OakTableBlock.isDyeableClothStyle(state.getValue(OakTableBlock.CLOTH_STYLE))) {
+                OakTableBlock.applyClothColorToConnectedTables(player.level(), payload.targetPos(), clamped);
                 return;
             }
 

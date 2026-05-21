@@ -36,7 +36,6 @@ ui_spec/
 resourcepack-template/
 
 # local reference and scratch work
-tmp_models/
 源文件/
 test.java
 mezz/

@@ -3,6 +3,7 @@ package com.stardew.craft.cutscene.command;
 import com.stardew.craft.cutscene.runtime.EventActorEntity;
 import com.stardew.craft.cutscene.runtime.EventPlayerActorEntity;
 import com.stardew.craft.cutscene.runtime.EventPlayer;
+import com.stardew.craft.client.renderer.entity.EventPlayerActorRenderer;
 import com.stardew.craft.entity.ModEntities;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -48,6 +49,8 @@ public class SpawnActorCommand implements EventCommand {
         Mob actor;
         if ("player".equals(npcId)) {
             EventPlayerActorEntity playerActor = new EventPlayerActorEntity(ModEntities.EVENT_PLAYER_ACTOR.get(), level);
+            playerActor.setSkinSourcePlayerId(mc.player.getUUID());
+            playerActor.setSlimSkinModel(EventPlayerActorRenderer.isSlimSkin(mc.player.getUUID()));
             // Copy equipment from local player
             for (net.minecraft.world.entity.EquipmentSlot slot : net.minecraft.world.entity.EquipmentSlot.values()) {
                 playerActor.setItemSlot(slot, mc.player.getItemBySlot(slot).copy());

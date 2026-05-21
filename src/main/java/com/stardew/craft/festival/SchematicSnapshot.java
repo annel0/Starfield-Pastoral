@@ -14,6 +14,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
@@ -38,7 +40,7 @@ final class SchematicSnapshot {
         if (path == null || path.isBlank()) {
             return empty();
         }
-        try (InputStream stream = SchematicSnapshot.class.getClassLoader().getResourceAsStream(path)) {
+        try (InputStream stream = open(path)) {
             if (stream == null) {
                 StardewCraft.LOGGER.error("[FESTIVAL_OVERLAY] Schematic not found: {}", path);
                 return empty();
@@ -92,6 +94,10 @@ final class SchematicSnapshot {
             StardewCraft.LOGGER.error("[FESTIVAL_OVERLAY] Failed to load schematic {}: {}", path, ex.getMessage(), ex);
             return empty();
         }
+    }
+
+    boolean isEmpty() {
+        return width <= 0 || height <= 0 || length <= 0;
     }
 
     int width() {
@@ -158,7 +164,7 @@ final class SchematicSnapshot {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static BlockState parseBlockState(String stateString) {
+    static BlockState parseBlockState(String stateString) {
         String blockId = stateString;
         String propsPart = null;
         int bracketStart = stateString.indexOf('[');
@@ -194,6 +200,45 @@ final class SchematicSnapshot {
             }
         }
         return state;
+    }
+
+    static String formatBlockState(BlockState state) {
+        ResourceLocation id = BuiltInRegistries.BLOCK.getKey(state.getBlock());
+        StringBuilder builder = new StringBuilder(id == null ? "minecraft:air" : id.toString());
+        if (!state.getProperties().isEmpty()) {
+            builder.append('[');
+            boolean first = true;
+            for (Property<?> property : state.getProperties()) {
+                if (!first) {
+                    builder.append(',');
+                }
+                first = false;
+                builder.append(property.getName()).append('=').append(propertyValue(property, state));
+            }
+            builder.append(']');
+        }
+        return builder.toString();
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static String propertyValue(Property property, BlockState state) {
+        return property.getName((Comparable) state.getValue(property));
+    }
+
+    private static InputStream open(String path) throws java.io.IOException {
+        InputStream resource = SchematicSnapshot.class.getClassLoader().getResourceAsStream(path);
+        if (resource != null) {
+            return resource;
+        }
+        Path direct = Path.of(path);
+        if (Files.exists(direct)) {
+            return Files.newInputStream(direct);
+        }
+        Path fromRunDirectory = Path.of("..").resolve(path).normalize();
+        if (Files.exists(fromRunDirectory)) {
+            return Files.newInputStream(fromRunDirectory);
+        }
+        return null;
     }
 
     private static int[] decodeVarIntArray(byte[] data, int expectedCount) {

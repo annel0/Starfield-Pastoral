@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "variant=1": { "model": "stardewcraft:block/festival/egg_festival_egg_1" },
+    "variant=2": { "model": "stardewcraft:block/festival/egg_festival_egg_2" },
+    "variant=3": { "model": "stardewcraft:block/festival/egg_festival_egg_3" },
+    "variant=4": { "model": "stardewcraft:block/festival/egg_festival_egg_4" }
+  }
+}

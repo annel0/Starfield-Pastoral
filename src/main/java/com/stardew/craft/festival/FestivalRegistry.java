@@ -93,6 +93,16 @@ public final class FestivalRegistry {
         return Optional.ofNullable(DEFINITIONS.get(normalizeId(id)));
     }
 
+    public static Optional<FestivalDefinition> getByOverlayId(String overlayId) {
+        if (overlayId == null || overlayId.isBlank()) {
+            return Optional.empty();
+        }
+        String normalized = overlayId.toLowerCase(Locale.ROOT);
+        return DEFINITIONS.values().stream()
+            .filter(definition -> definition.mapOverlayId().toLowerCase(Locale.ROOT).equals(normalized))
+            .findFirst();
+    }
+
     public static Collection<FestivalDefinition> all() {
         return List.copyOf(DEFINITIONS.values());
     }

@@ -1,6 +1,7 @@
 package com.stardew.craft.festival;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.block.portal.PortalTriggerBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -33,8 +34,17 @@ public final class FestivalMapOverlayManager {
         if (state.phase() == FestivalMapOverlayPhase.APPLIED || state.phase() == FestivalMapOverlayPhase.APPLYING) {
             return true;
         }
+        FestivalMapPatch patch = patch(level, definition, state);
+        if (patch == null || patch.width() <= 0 || patch.height() <= 0 || patch.length() <= 0) {
+            return false;
+        }
         state.begin(festival.id(), year, season, day, FestivalMapOverlayPhase.APPLYING);
-        forceChunks(level, patch(definition), true);
+        if (definition.usesRuntimeBase()) {
+            state.setRuntimePatch(patch);
+        } else {
+            state.clearRuntimePatch();
+        }
+        forceChunks(level, patch, true);
         data.setDirty();
         return true;
     }
@@ -52,8 +62,12 @@ public final class FestivalMapOverlayManager {
         if (state.phase() != FestivalMapOverlayPhase.APPLIED) {
             return false;
         }
+        FestivalMapPatch patch = patch(level, definition, state);
+        if (patch == null || patch.width() <= 0 || patch.height() <= 0 || patch.length() <= 0) {
+            return false;
+        }
         state.begin(state.festivalId(), state.year(), state.season(), state.day(), FestivalMapOverlayPhase.RESTORING);
-        forceChunks(level, patch(definition), true);
+        forceChunks(level, patch, true);
         data.setDirty();
         return true;
     }
@@ -89,7 +103,10 @@ public final class FestivalMapOverlayManager {
             if (definition == null) {
                 continue;
             }
-            FestivalMapPatch patch = patch(definition);
+            FestivalMapPatch patch = patch(level, definition, state);
+            if (patch == null) {
+                continue;
+            }
             applyBatch(level, state, patch);
             data.setDirty();
         }
@@ -98,6 +115,9 @@ public final class FestivalMapOverlayManager {
     private static void applyBatch(ServerLevel level, FestivalMapOverlayState state, FestivalMapPatch patch) {
         if (patch.isEmpty()) {
             state.setPhase(state.phase() == FestivalMapOverlayPhase.APPLYING ? FestivalMapOverlayPhase.APPLIED : FestivalMapOverlayPhase.RESTORED);
+            if (state.phase() == FestivalMapOverlayPhase.RESTORED) {
+                state.clearRuntimePatch();
+            }
             forceChunks(level, patch, false);
             return;
         }
@@ -106,6 +126,9 @@ public final class FestivalMapOverlayManager {
         for (int index = state.cursor(); index < end; index++) {
             FestivalMapPatchEntry entry = patch.entries().get(index);
             BlockPos worldPos = patch.origin().offset(entry.relativePos());
+            if (level.getBlockState(worldPos).getBlock() instanceof PortalTriggerBlock) {
+                continue;
+            }
             BlockState targetState = applying ? entry.festivalState() : entry.baseState();
             CompoundTag targetBlockEntity = applying ? entry.festivalBlockEntityTag() : entry.baseBlockEntityTag();
             level.setBlock(worldPos, targetState, Block.UPDATE_CLIENTS);
@@ -114,8 +137,14 @@ public final class FestivalMapOverlayManager {
         state.setCursor(end);
         if (end >= patch.entries().size()) {
             state.setPhase(applying ? FestivalMapOverlayPhase.APPLIED : FestivalMapOverlayPhase.RESTORED);
+            if (!applying) {
+                state.clearRuntimePatch();
+            }
             forceChunks(level, patch, false);
             StardewCraft.LOGGER.info("[FESTIVAL_OVERLAY] {} overlay {} ({} blocks)", applying ? "Applied" : "Restored", state.overlayId(), patch.entries().size());
+            if (applying && "Town-EggFestival".equals(state.overlayId())) {
+                EggFestivalService.tickNpcActors(level);
+            }
         }
     }
 
@@ -143,6 +172,21 @@ public final class FestivalMapOverlayManager {
 
     private static FestivalMapPatch patch(FestivalMapOverlayDefinition definition) {
         return PATCH_CACHE.computeIfAbsent(definition.overlayId(), ignored -> FestivalMapPatch.build(definition));
+    }
+
+    private static FestivalMapPatch patch(ServerLevel level, FestivalMapOverlayDefinition definition, FestivalMapOverlayState state) {
+        if (!definition.usesRuntimeBase()) {
+            return patch(definition);
+        }
+        FestivalMapPatch runtimePatch = state.runtimePatch();
+        if (runtimePatch != null) {
+            return runtimePatch;
+        }
+        if (state.phase() == FestivalMapOverlayPhase.APPLIED || state.phase() == FestivalMapOverlayPhase.RESTORING) {
+            StardewCraft.LOGGER.warn("[FESTIVAL_OVERLAY] Runtime backup for overlay {} is missing", definition.overlayId());
+            return null;
+        }
+        return FestivalMapPatch.buildFromRuntimeBase(level, definition);
     }
 
     private static void forceChunks(ServerLevel level, FestivalMapPatch patch, boolean forced) {

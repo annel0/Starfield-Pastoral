@@ -11,6 +11,8 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.level.Level;
 
+import java.util.UUID;
+
 /**
  * Client-only actor entity that renders as the local player (vanilla PlayerModel).
  * Used when a cutscene event spawns an actor with npc_id "player".
@@ -22,6 +24,8 @@ public class EventPlayerActorEntity extends Mob {
 
     /** When true, arms are raised straight above the head (item-above-head pose). */
     private boolean holdingItemAboveHead = false;
+    private UUID skinSourcePlayerId;
+    private boolean slimSkinModel;
 
     private double walkTrackX, walkTrackZ;
     private boolean walkTrackInit = false;
@@ -74,6 +78,22 @@ public class EventPlayerActorEntity extends Mob {
 
     public void setHoldingItemAboveHead(boolean holding) {
         this.holdingItemAboveHead = holding;
+    }
+
+    public UUID getSkinSourcePlayerId() {
+        return skinSourcePlayerId;
+    }
+
+    public void setSkinSourcePlayerId(UUID playerId) {
+        this.skinSourcePlayerId = playerId;
+    }
+
+    public boolean isSlimSkinModel() {
+        return slimSkinModel;
+    }
+
+    public void setSlimSkinModel(boolean slimSkinModel) {
+        this.slimSkinModel = slimSkinModel;
     }
 
     @Override

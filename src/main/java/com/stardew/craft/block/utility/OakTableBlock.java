@@ -2,8 +2,10 @@ package com.stardew.craft.block.utility;
 
 import com.stardew.craft.block.shape.ModelVoxelShapeCache;
 import com.stardew.craft.blockentity.TableDisplayBlockEntity;
+import com.stardew.craft.item.furniture.FloralTableclothItem;
 import com.stardew.craft.item.furniture.PinkTableclothItem;
 import com.stardew.craft.item.furniture.SkyBlueTableclothItem;
+import com.stardew.craft.item.furniture.BlankTableclothItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvents;
@@ -50,10 +52,13 @@ public class OakTableBlock extends Block implements EntityBlock {
     public static final BooleanProperty SOUTH_WEST_CONNECTED = BooleanProperty.create("south_west_connected");
 
     public static final BooleanProperty HAS_CLOTH = BooleanProperty.create("has_cloth");
-    public static final IntegerProperty CLOTH_STYLE = IntegerProperty.create("cloth_style", 0, 1);
+    public static final IntegerProperty CLOTH_STYLE = IntegerProperty.create("cloth_style", 0, 3);
 
     public static final int CLOTH_STYLE_PINK = 0;
     public static final int CLOTH_STYLE_SKY = 1;
+    public static final int CLOTH_STYLE_FLOWER = 2;
+    public static final int CLOTH_STYLE_BLANK = 3;
+    public static final int DEFAULT_CLOTH_COLOR = WoodenChestColorPalette.size() - 1;
 
     private final String topModel;
     private final String topClothedModel;
@@ -70,9 +75,9 @@ public class OakTableBlock extends Block implements EntityBlock {
     private final float displayItemY;
     private final float clothedDisplayItemY;
 
-    private static final float TABLE_DISPLAY_ITEM_Y = 14.02f / 16.0f;
-    private static final float TABLE_CLOTHED_DISPLAY_ITEM_Y = 14.10f / 16.0f;
-    private static final VoxelShape FALLBACK_SHAPE = Block.box(0.0, 0.0, 0.0, 16.0, 14.0, 16.0);
+    private static final float TABLE_DISPLAY_ITEM_Y = 16.02f / 16.0f;
+    private static final float TABLE_CLOTHED_DISPLAY_ITEM_Y = 16.10f / 16.0f;
+    private static final VoxelShape FALLBACK_SHAPE = Block.box(0.0, 0.0, 0.0, 16.0, 16.0, 16.0);
     private final Map<String, VoxelShape> shapeCache = new ConcurrentHashMap<>();
 
     public OakTableBlock(Properties properties) {
@@ -178,7 +183,7 @@ public class OakTableBlock extends Block implements EntityBlock {
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         // Let dedicated tablecloth items handle right-click first.
-        if (stack.getItem() instanceof PinkTableclothItem || stack.getItem() instanceof SkyBlueTableclothItem) {
+        if (isTableclothItem(stack)) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
 
@@ -297,7 +302,7 @@ public class OakTableBlock extends Block implements EntityBlock {
             .setValue(SOUTH_EAST_CONNECTED, southEast)
             .setValue(SOUTH_WEST_CONNECTED, southWest)
             .setValue(HAS_CLOTH, hasCloth)
-            .setValue(CLOTH_STYLE, normalizeClothStyle(clothStyle));
+                .setValue(CLOTH_STYLE, normalizeClothStyle(clothStyle));
     }
 
     private static boolean isSameTable(BlockState state, Block tableBlock) {
@@ -331,6 +336,9 @@ public class OakTableBlock extends Block implements EntityBlock {
                 level.setBlock(pos, state.setValue(HAS_CLOTH, true).setValue(CLOTH_STYLE, targetStyle), 2);
                 changed = true;
             }
+            if (isDyeableClothStyle(targetStyle) && level.getBlockEntity(pos) instanceof TableDisplayBlockEntity tableBe) {
+                tableBe.setClothColor(DEFAULT_CLOTH_COLOR);
+            }
         }
 
         for (BlockPos pos : cluster) {
@@ -347,8 +355,54 @@ public class OakTableBlock extends Block implements EntityBlock {
         return changed;
     }
 
+    public static boolean applyClothColorToConnectedTables(Level level, BlockPos startPos, int color) {
+        BlockState start = level.getBlockState(startPos);
+        if (!(start.getBlock() instanceof OakTableBlock) || !start.getValue(HAS_CLOTH) || !isDyeableClothStyle(start.getValue(CLOTH_STYLE))) {
+            return false;
+        }
+
+        Block targetBlock = start.getBlock();
+        int targetColor = normalizeClothColor(color);
+        Set<BlockPos> cluster = collectConnectedTables(level, startPos, targetBlock);
+        boolean changed = false;
+
+        for (BlockPos pos : cluster) {
+            BlockState state = level.getBlockState(pos);
+            if (state.getBlock() != targetBlock || !state.getValue(HAS_CLOTH) || !isDyeableClothStyle(state.getValue(CLOTH_STYLE))) {
+                continue;
+            }
+            if (level.getBlockEntity(pos) instanceof TableDisplayBlockEntity tableBe && tableBe.getClothColor() != targetColor) {
+                tableBe.setClothColor(targetColor);
+                changed = true;
+            }
+        }
+
+        return changed;
+    }
+
+    public static boolean isTableclothItem(ItemStack stack) {
+        return stack.getItem() instanceof PinkTableclothItem
+            || stack.getItem() instanceof SkyBlueTableclothItem
+            || stack.getItem() instanceof FloralTableclothItem
+            || stack.getItem() instanceof BlankTableclothItem;
+    }
+
+    public static boolean isDyeableClothStyle(int clothStyle) {
+        return clothStyle == CLOTH_STYLE_FLOWER || clothStyle == CLOTH_STYLE_BLANK;
+    }
+
     private static int normalizeClothStyle(int clothStyle) {
-        return clothStyle == CLOTH_STYLE_SKY ? CLOTH_STYLE_SKY : CLOTH_STYLE_PINK;
+        return switch (clothStyle) {
+            case CLOTH_STYLE_SKY -> CLOTH_STYLE_SKY;
+            case CLOTH_STYLE_FLOWER -> CLOTH_STYLE_FLOWER;
+            case CLOTH_STYLE_BLANK -> CLOTH_STYLE_BLANK;
+            default -> CLOTH_STYLE_PINK;
+        };
+    }
+
+    public static int normalizeClothColor(int clothColor) {
+        int clamped = WoodenChestColorPalette.clampIndex(clothColor);
+        return clamped < 0 ? DEFAULT_CLOTH_COLOR : clamped;
     }
 
     private static Set<BlockPos> collectConnectedTables(Level level, BlockPos startPos, Block tableBlock) {

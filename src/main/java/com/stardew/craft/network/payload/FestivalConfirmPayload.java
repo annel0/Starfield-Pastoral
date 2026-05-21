@@ -1,0 +1,36 @@
+package com.stardew.craft.network.payload;
+
+import com.stardew.craft.StardewCraft;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+
+@SuppressWarnings("null")
+public record FestivalConfirmPayload(OpenFestivalConfirmPayload.Action action, boolean confirmed) implements CustomPacketPayload {
+    public static final Type<FestivalConfirmPayload> TYPE =
+        new Type<>(ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "festival_confirm"));
+
+    public static final StreamCodec<FriendlyByteBuf, FestivalConfirmPayload> STREAM_CODEC = StreamCodec.of(
+        (buf, payload) -> {
+            buf.writeUtf(payload.action().name());
+            buf.writeBoolean(payload.confirmed());
+        },
+        buf -> new FestivalConfirmPayload(OpenFestivalConfirmPayload.Action.parse(buf.readUtf(32)), buf.readBoolean())
+    );
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    public static void handle(FestivalConfirmPayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (context.player() instanceof ServerPlayer player) {
+                com.stardew.craft.festival.EggFestivalService.onPlayerConfirmed(player, payload.action(), payload.confirmed());
+            }
+        });
+    }
+}

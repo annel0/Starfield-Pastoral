@@ -33,6 +33,7 @@ public class TeleportCCCommand implements EventCommand {
         if (done) return;
 
         if (!sent) {
+            player.markRealPlayerMovedByServer();
             PacketDistributor.sendToServer(
                     new CutsceneServerActionPayload("teleport_cc", ""));
             sent = true;

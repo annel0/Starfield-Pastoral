@@ -1,5 +1,71 @@
 # Changelog
 
+## 0.4.0 - 2026-05-21
+
+### Update Log (English)
+
+#### Headline Features
+
+- Added the first active-festival implementation, centered on the Spring 13 Egg Festival with map overlay activation, Pierre's festival shop, festival entry/exit handling, NPC venue takeover, main-event cutscenes, egg hunt scoring, winner resolution, and return-home flow.
+- Integrated Egg Festival story flow with the existing cutscene/event runtime instead of using a separate festival-only timeline, including fade timing, actor staging, camera control, spectator handling, multiplayer actor placement, and dynamic winner dialogue.
+- Added multiplayer-aware Egg Festival actor presentation so cutscene player actors can use sorted participant slots, real player UUIDs, player skins, slim/wide model selection, and copied equipment.
+
+#### Festival, Time, and Map Behavior
+
+- Added festival map overlay state handling for the Egg Festival venue and synchronized NPC runtime behavior with the overlay lifecycle.
+- Added Egg Festival time-freeze behavior so the venue holds the festival sky/time at 9:00 while participants are inside, then advances to the festival end time when the event finishes.
+- Fixed Egg Festival entry checks so the venue opens from the real 9:00 to 14:00 festival window and does not stay blocked by a stale same-day closed session during testing.
+- Restored the original setup/start messaging path for Spring 13, including the setup warning before 9:00 and the festival-start broadcast at 9:00.
+
+#### NPCs, Cutscenes, and Interaction Polish
+
+- Added Egg Festival NPC actor control for free-stage placement, main-event lineup, hunt-stage behavior, award-stage staging, temporary non-contestant removal, and spawn suppression during the contest.
+- Added Lewis start-contest confirmation so clicking Lewis prompts the original ready question before the main Egg Festival cutscene starts.
+- Matched the original NPC fallback winner branch: when no player reaches the egg threshold, Abigail wins, Vincent reacts, Abigail walks up for the prize, and then returns to the lineup.
+- Improved cutscene player/NPC visuals around black fades and award movement so real-stage transitions do not leak on screen and award winners face the expected direction.
+
+#### UI, Audio, Rewards, and Localization
+
+- Added Egg Festival HUD, actionbar timer/count display, scoreboard scoring, whistle/timer/coin/music feedback, and localized festival dialogue and system messages.
+- Added temporary player-facing prize text noting that prize items are not hooked up in this version yet.
+- Expanded English and Simplified Chinese localization for the new festival flow, including setup, entry, hunt, result, and award text.
+
+#### Changes
+
+- Updated the public mod version to `0.4.0`.
+
+### 更新日志（中文）
+
+#### 重点内容
+
+- 加入第一版主动节日实现，核心为春 13 蛋蛋节：包含节日地图 overlay、皮埃尔节日商店、进入/离开处理、NPC 会场接管、主事件剧情、寻蛋计分、胜者判定和结束回家流程。
+- 蛋蛋节剧情流程已接入现有 cutscene/event 运行时，不再使用独立节日时间轴；支持黑屏时机、演员站位、镜头控制、旁观者处理、多人演员排位和动态获胜对白。
+- 多人 cutscene 玩家演员现在会按排序后的参赛槽位同步真实玩家 UUID，并使用对应玩家皮肤、粗/细手臂模型和装备外观。
+
+#### 节日、时间与地图行为
+
+- 加入蛋蛋节会场地图 overlay 状态处理，并让 NPC 运行时随 overlay 生命周期进入或恢复节日状态。
+- 加入蛋蛋节时间冻结：玩家在会场内时，节日天空/时间固定在 9:00；节日结束后推进到原版结束时间。
+- 修复蛋蛋节入口判断：会场现在按真实 9:00 到 14:00 时间窗开放，不会在同日测试时被旧的 closed session 一直挡在“布置中”。
+- 补回春 13 原版风格的布置中提示与 9:00 节日开始广播。
+
+#### NPC、剧情与交互打磨
+
+- 加入蛋蛋节 NPC actor 控制，包括自由阶段站位、主事件队列、寻蛋阶段行为、领奖阶段站位、非参赛 NPC 临时移除和比赛期间生成抑制。
+- 点击刘易斯开始比赛时现在会先弹出原版 ready 确认，不再一点击就直接进入主剧情。
+- 对齐原版 NPC fallback 获胜分支：玩家未达到彩蛋阈值时由阿比盖尔获胜，文森特做朝向反应，阿比盖尔上前领奖后返回队列。
+- 修正 cutscene 黑屏前后的真实站位切换和领奖走向，避免穿帮，并让领奖者朝向符合预期。
+
+#### UI、音频、奖励与本地化
+
+- 加入蛋蛋节 HUD、actionbar 计时/彩蛋数、scoreboard 计分、哨声/倒计时/金币/音乐反馈，以及节日对白和系统提示。
+- 玩家获胜领奖对白暂时标注“本版本暂时未接入奖励”，避免误以为已经发放草帽或兑奖券。
+- 扩展蛋蛋节相关英文和简体中文文本，包括布置、进入、寻蛋、结果和领奖内容。
+
+#### 变更
+
+- 项目公开版本号更新为 `0.4.0`。
+
 ## 0.3.10-fix1 - 2026-05-20
 
 ### Update Log (English)

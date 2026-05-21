@@ -679,6 +679,9 @@ public class ModItems {
         public static final DeferredItem<Item> LAWN_FLAMINGO = ITEMS.register("lawn_flamingo",
                         () -> new StardewBlockItem(ModBlocks.LAWN_FLAMINGO.get(), "stardewcraft.type.festival_decoration", 50, new Item.Properties().stacksTo(999)));
 
+        public static final DeferredItem<Item> HOLIDAY_RIBBON_POST = ITEMS.register("holiday_ribbon_post",
+                        () -> new StardewBlockItem(ModBlocks.HOLIDAY_RIBBON_POST.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
+
         public static final DeferredItem<Item> SPRUCE_COUNTER = ITEMS.register("spruce_counter",
                         () -> new StardewBlockItem(ModBlocks.SPRUCE_COUNTER.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
 
@@ -696,6 +699,12 @@ public class ModItems {
 
         public static final DeferredItem<Item> SKY_BLUE_TABLECLOTH = ITEMS.register("sky_blue_tablecloth",
                         () -> new com.stardew.craft.item.furniture.SkyBlueTableclothItem(new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> FLORAL_TABLECLOTH = ITEMS.register("floral_tablecloth",
+                        () -> new com.stardew.craft.item.furniture.FloralTableclothItem(new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> BLANK_TABLECLOTH = ITEMS.register("blank_tablecloth",
+                        () -> new com.stardew.craft.item.furniture.BlankTableclothItem(new Item.Properties().stacksTo(999)));
 
         public static final DeferredItem<Item> WALLPAPER_BLOCK = ITEMS.register("wallpaper_block",
                         () -> new StardewBlockItem(ModBlocks.WALLPAPER_BLOCK.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));

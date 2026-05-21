@@ -179,6 +179,10 @@ public final class ModBlockEntities {
 			BLOCK_ENTITIES.register("animal_produce_spot", () -> BlockEntityType.Builder.of(AnimalProduceSpotBlockEntity::new, ModBlocks.ANIMAL_PRODUCE_SPOT.get()).build(null));
 
 	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<EggFestivalEggBlockEntity>> EGG_FESTIVAL_EGG =
+			BLOCK_ENTITIES.register("egg_festival_egg", () -> BlockEntityType.Builder.of(EggFestivalEggBlockEntity::new, ModBlocks.EGG_FESTIVAL_EGG.get()).build(null));
+
+	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DecorBlockEntity>> DECOR_BLOCK =
 			BLOCK_ENTITIES.register("decor_block", () -> BlockEntityType.Builder.of(DecorBlockEntity::new, ModBlocks.WALLPAPER_BLOCK.get(), ModBlocks.FLOORING_BLOCK.get()).build(null));
 

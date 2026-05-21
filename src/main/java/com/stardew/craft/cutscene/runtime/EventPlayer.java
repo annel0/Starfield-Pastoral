@@ -9,7 +9,9 @@ import com.stardew.craft.cutscene.network.MarkEventSeenPayload;
 import com.stardew.craft.client.sound.StardewMusicManager;
 import com.stardew.craft.network.payload.ClientNpcVisibilityState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -37,6 +39,9 @@ public final class EventPlayer {
     private boolean running = false;
     private boolean skippable = false;
     private boolean playerFrozen = false;
+    private boolean previousHideGui = false;
+    private boolean realPlayerMovedByServer = false;
+    private PlayerSnapshot playerSnapshot = null;
 
     /** Dimension the cutscene was started in; if the player leaves it, abort. */
     private net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> startDimension = null;
@@ -46,6 +51,8 @@ public final class EventPlayer {
     private final Set<String> hiddenNpcs = new HashSet<>();
 
     private EventPlayer() {}
+
+    private record PlayerSnapshot(double x, double y, double z, float yRot, float xRot, float yHeadRot) {}
 
     public static EventPlayer get() {
         return INSTANCE;
@@ -65,6 +72,8 @@ public final class EventPlayer {
         LOGGER.info("Starting cutscene event: {}", event.id());
         currentEvent = event;
         skippable = event.skippable();
+        realPlayerMovedByServer = false;
+        capturePlayerSnapshot();
 
         if (event.trigger() != null && "wake_up".equals(event.trigger().type())
                 && CutsceneAnchorRegistry.get("farm_spawn") == null) {
@@ -114,7 +123,9 @@ public final class EventPlayer {
         }
 
         // Hide all GUI (like spectator)
-        Minecraft.getInstance().options.hideGui = true;
+        Minecraft mc = Minecraft.getInstance();
+        previousHideGui = mc.options.hideGui;
+        mc.options.hideGui = true;
 
         // Start first command
         if (!commands.isEmpty()) {
@@ -188,9 +199,10 @@ public final class EventPlayer {
 
         // Restore player
         setPlayerFrozen(false);
+        restorePlayerSnapshotIfNeeded();
 
         // Restore GUI
-        Minecraft.getInstance().options.hideGui = false;
+        Minecraft.getInstance().options.hideGui = previousHideGui;
 
         // Remove all actors
         for (Mob actor : actors.values()) {
@@ -229,6 +241,8 @@ public final class EventPlayer {
         running = false;
         skippable = false;
         startDimension = null;
+        realPlayerMovedByServer = false;
+        playerSnapshot = null;
         CutsceneAnchorRegistry.clear();
     }
 
@@ -253,6 +267,49 @@ public final class EventPlayer {
     public void setPlayerFrozen(boolean frozen) {
         this.playerFrozen = frozen;
         // Actual movement suppression is handled in ModClientEvents.onClientTick
+    }
+
+    public void markRealPlayerMovedByServer() {
+        this.realPlayerMovedByServer = true;
+    }
+
+    private void capturePlayerSnapshot() {
+        Minecraft mc = Minecraft.getInstance();
+        LocalPlayer localPlayer = mc.player;
+        if (localPlayer == null) {
+            playerSnapshot = null;
+            return;
+        }
+        playerSnapshot = new PlayerSnapshot(
+                localPlayer.getX(), localPlayer.getY(), localPlayer.getZ(),
+                localPlayer.getYRot(), localPlayer.getXRot(), localPlayer.getYHeadRot());
+    }
+
+    private void restorePlayerSnapshotIfNeeded() {
+        Minecraft mc = Minecraft.getInstance();
+        LocalPlayer localPlayer = mc.player;
+        if (localPlayer == null || playerSnapshot == null || realPlayerMovedByServer) {
+            clearLocalPlayerMotion(localPlayer);
+            return;
+        }
+        if (startDimension != null && (mc.level == null || mc.level.dimension() != startDimension)) {
+            clearLocalPlayerMotion(localPlayer);
+            return;
+        }
+
+        localPlayer.setPos(playerSnapshot.x(), playerSnapshot.y(), playerSnapshot.z());
+        localPlayer.setYRot(playerSnapshot.yRot());
+        localPlayer.setXRot(playerSnapshot.xRot());
+        localPlayer.setYHeadRot(playerSnapshot.yHeadRot());
+        clearLocalPlayerMotion(localPlayer);
+    }
+
+    private static void clearLocalPlayerMotion(LocalPlayer localPlayer) {
+        if (localPlayer == null) {
+            return;
+        }
+        localPlayer.setDeltaMovement(Vec3.ZERO);
+        localPlayer.fallDistance = 0.0F;
     }
 
     // ─── Actor management ───
@@ -284,7 +341,8 @@ public final class EventPlayer {
     public void reset() {
         if (running) {
             setPlayerFrozen(false);
-            Minecraft.getInstance().options.hideGui = false;
+            restorePlayerSnapshotIfNeeded();
+            Minecraft.getInstance().options.hideGui = previousHideGui;
             for (Mob actor : actors.values()) {
                 actor.discard();
             }
@@ -304,6 +362,8 @@ public final class EventPlayer {
         skippable = false;
         playerFrozen = false;
         startDimension = null;
+        realPlayerMovedByServer = false;
+        playerSnapshot = null;
         CutsceneAnchorRegistry.clear();
     }
 }

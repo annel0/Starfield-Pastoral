@@ -31,6 +31,7 @@ public record MarkEventSeenPayload(String eventId) implements CustomPacketPayloa
             ServerPlayer player = (ServerPlayer) context.player();
             // Cutscene ended client-side: release server-side action lock
             com.stardew.craft.cutscene.server.ServerCutsceneTracker.clear(player);
+            com.stardew.craft.festival.EggFestivalService.onCutsceneCompleted(player, payload.eventId);
             EventSeenData data = EventSeenData.get(player.serverLevel());
             data.markSeen(player.getUUID(), payload.eventId);
 

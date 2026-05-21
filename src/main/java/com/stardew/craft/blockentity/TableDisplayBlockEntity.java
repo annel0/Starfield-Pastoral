@@ -7,9 +7,15 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+
+import com.stardew.craft.block.utility.OakTableBlock;
+import com.stardew.craft.network.payload.TableClothColorSyncPayload;
+
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import javax.annotation.Nullable;
 import javax.annotation.Nonnull;
@@ -19,9 +25,11 @@ public class TableDisplayBlockEntity extends BlockEntity {
     private static final String TAG_HAS_DISPLAY_ITEM = "HasDisplayItem";
     private static final String TAG_DISPLAY_ITEM = "DisplayItem";
     private static final String TAG_DISPLAY_YAW = "DisplayYaw";
+    private static final String TAG_CLOTH_COLOR = "ClothColor";
 
     private ItemStack displayItem = ItemStack.EMPTY;
     private float displayYawDegrees = 0.0f;
+    private int clothColor = OakTableBlock.DEFAULT_CLOTH_COLOR;
 
     public TableDisplayBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.TABLE_DISPLAY.get(), pos, state);
@@ -75,9 +83,29 @@ public class TableDisplayBlockEntity extends BlockEntity {
         return displayYawDegrees;
     }
 
+    public int getClothColor() {
+        return clothColor;
+    }
+
+    public void setClothColor(int color) {
+        clothColor = OakTableBlock.normalizeClothColor(color);
+        setChanged();
+        if (level instanceof ServerLevel serverLevel) {
+            serverLevel.sendBlockUpdated(worldPosition, Objects.requireNonNull(getBlockState()), Objects.requireNonNull(getBlockState()), 11);
+            serverLevel.getChunkSource().blockChanged(worldPosition);
+            TableClothColorSyncPayload payload = new TableClothColorSyncPayload(worldPosition, clothColor);
+            for (ServerPlayer player : serverLevel.players()) {
+                if (player.distanceToSqr(worldPosition.getX() + 0.5D, worldPosition.getY() + 0.5D, worldPosition.getZ() + 0.5D) <= 65536.0D) {
+                    PacketDistributor.sendToPlayer(player, payload);
+                }
+            }
+        }
+    }
+
     @Override
     protected void saveAdditional(@Nonnull CompoundTag tag, @Nonnull net.minecraft.core.HolderLookup.Provider provider) {
         super.saveAdditional(tag, provider);
+        tag.putInt(TAG_CLOTH_COLOR, clothColor);
         tag.putBoolean(TAG_HAS_DISPLAY_ITEM, !displayItem.isEmpty());
         if (!displayItem.isEmpty()) {
             net.minecraft.nbt.Tag saved = displayItem.save(provider);
@@ -91,6 +119,9 @@ public class TableDisplayBlockEntity extends BlockEntity {
     @Override
     protected void loadAdditional(@Nonnull CompoundTag tag, @Nonnull net.minecraft.core.HolderLookup.Provider provider) {
         super.loadAdditional(tag, provider);
+        clothColor = tag.contains(TAG_CLOTH_COLOR, Tag.TAG_INT)
+            ? OakTableBlock.normalizeClothColor(tag.getInt(TAG_CLOTH_COLOR))
+            : OakTableBlock.DEFAULT_CLOTH_COLOR;
         if (tag.contains(TAG_HAS_DISPLAY_ITEM, Tag.TAG_BYTE)) {
             if (!tag.getBoolean(TAG_HAS_DISPLAY_ITEM)) {
                 displayItem = ItemStack.EMPTY;

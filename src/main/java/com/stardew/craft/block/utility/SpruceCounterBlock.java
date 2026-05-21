@@ -2,8 +2,6 @@ package com.stardew.craft.block.utility;
 
 import com.stardew.craft.block.decor.MapDecorStaticBlock;
 import com.stardew.craft.blockentity.TableDisplayBlockEntity;
-import com.stardew.craft.item.furniture.PinkTableclothItem;
-import com.stardew.craft.item.furniture.SkyBlueTableclothItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -51,7 +49,7 @@ public class SpruceCounterBlock extends MapDecorStaticBlock implements EntityBlo
 
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        if (stack.getItem() instanceof PinkTableclothItem || stack.getItem() instanceof SkyBlueTableclothItem) {
+        if (OakTableBlock.isTableclothItem(stack)) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
 

@@ -1,13 +1,32 @@
 package com.stardew.craft.festival;
 
+import net.minecraft.core.BlockPos;
+
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
 public final class FestivalMapOverlayRegistry {
     private static final Map<String, FestivalMapOverlayDefinition> DEFINITIONS = new LinkedHashMap<>();
+
+    static {
+        register(new FestivalMapOverlayDefinition(
+            "Town-EggFestival",
+            "Town",
+            new BlockPos(-38, 63, -23),
+            "",
+            "data/stardewcraft/structures/festivals/egg_festival_town.schem",
+            new BlockPos(-38, 63, -23),
+            new BlockPos(67, 68, 52),
+            List.of(),
+            true,
+            true,
+            true
+        ));
+    }
 
     private FestivalMapOverlayRegistry() {
     }
@@ -24,6 +43,10 @@ public final class FestivalMapOverlayRegistry {
             return Optional.empty();
         }
         return Optional.ofNullable(DEFINITIONS.get(normalize(overlayId)));
+    }
+
+    public static boolean isRegistered(String overlayId) {
+        return get(overlayId).isPresent();
     }
 
     public static Collection<FestivalMapOverlayDefinition> all() {

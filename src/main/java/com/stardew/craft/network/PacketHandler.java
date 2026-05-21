@@ -77,6 +77,7 @@ import com.stardew.craft.combat.network.IridiumNeedleThrustStrikePayload;
 import com.stardew.craft.network.payload.ApplySofaColorPayload;
 import com.stardew.craft.network.payload.OpenSofaColorScreenPayload;
 import com.stardew.craft.network.payload.StoneChestColorSelectPayload;
+import com.stardew.craft.network.payload.TableClothColorSyncPayload;
 import com.stardew.craft.network.payload.WoodenChestColorSelectPayload;
 
 @SuppressWarnings("null")
@@ -170,6 +171,12 @@ public class PacketHandler {
             com.stardew.craft.network.payload.PassOutPayload.TYPE,
             com.stardew.craft.network.payload.PassOutPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.PassOutPayload::handle
+        );
+
+        registrar.playToClient(
+            TableClothColorSyncPayload.TYPE,
+            TableClothColorSyncPayload.STREAM_CODEC,
+            TableClothColorSyncPayload::handle
         );
         
         registrar.playToClient(
@@ -1214,6 +1221,33 @@ public class PacketHandler {
             com.stardew.craft.network.payload.DesertBusFadePayload.TYPE,
             com.stardew.craft.network.payload.DesertBusFadePayload.STREAM_CODEC,
             com.stardew.craft.network.payload.DesertBusFadePayload::handle
+        );
+
+        // Festival confirm dialogs and HUD state — S→C open / C→S confirm / S→C HUD sync
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenFestivalConfirmPayload.TYPE,
+            com.stardew.craft.network.payload.OpenFestivalConfirmPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenFestivalConfirmPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.FestivalConfirmPayload.TYPE,
+            com.stardew.craft.network.payload.FestivalConfirmPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FestivalConfirmPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.FestivalHudStatePayload.TYPE,
+            com.stardew.craft.network.payload.FestivalHudStatePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FestivalHudStatePayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.FestivalMusicStatePayload.TYPE,
+            com.stardew.craft.network.payload.FestivalMusicStatePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FestivalMusicStatePayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.EggFestivalCutsceneStatePayload.TYPE,
+            com.stardew.craft.network.payload.EggFestivalCutsceneStatePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.EggFestivalCutsceneStatePayload::handle
         );
 
         // Quest delivery confirm dialog (S→C) and confirmation (C→S)

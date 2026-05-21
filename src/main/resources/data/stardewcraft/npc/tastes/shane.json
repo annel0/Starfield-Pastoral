@@ -1,38 +1,89 @@
 {
   "npc_id": "shane",
   "_vanilla_ref": "206=Pizza 215=Pepper Poppers 260=Hot Pepper 346=Beer",
-
   "loved": [
     "stardewcraft:pizza",
     "stardewcraft:pepper_poppers",
     "stardewcraft:hot_pepper",
     "stardewcraft:beer"
   ],
-
   "liked": [
-    "stardewcraft:pale_ale"
+    "stardewcraft:pale_ale",
+    "stardewcraft:egg_brown",
+    "stardewcraft:large_egg_brown",
+    "stardewcraft:egg_white",
+    "stardewcraft:large_egg_white",
+    "stardewcraft:void_egg",
+    "stardewcraft:duck_egg",
+    "stardewcraft:ostrich_egg",
+    "stardewcraft:golden_egg",
+    "stardewcraft:coconut",
+    "stardewcraft:cactus_fruit",
+    "stardewcraft:rhubarb",
+    "stardewcraft:melon",
+    "stardewcraft:blueberry",
+    "stardewcraft:starfruit",
+    "stardewcraft:cranberries",
+    "stardewcraft:salmonberry",
+    "stardewcraft:spice_berry",
+    "stardewcraft:grape",
+    "stardewcraft:strawberry",
+    "stardewcraft:wild_plum",
+    "stardewcraft:blackberry",
+    "stardewcraft:crystal_fruit",
+    "stardewcraft:ancient_fruit",
+    "stardewcraft:apple",
+    "stardewcraft:apricot",
+    "stardewcraft:orange",
+    "stardewcraft:peach",
+    "stardewcraft:pomegranate",
+    "stardewcraft:cherry",
+    "stardewcraft:banana",
+    "stardewcraft:pineapple",
+    "stardewcraft:mango",
+    "stardewcraft:qi_fruit"
   ],
-  "_liked_not_yet_in_mod": ["eggs_category(-5)", "fruits_category(-79)", "303 already mapped to pale_ale"],
-
-  "neutral": [],
-
+  "_liked_not_yet_in_mod": [
+    "eggs_category(-5)",
+    "fruits_category(-79)",
+    "303 already mapped to pale_ale"
+  ],
+  "neutral": [
+    "stardewcraft:strange_bun"
+  ],
   "disliked": [
     "stardewcraft:seaweed",
-    "stardewcraft:clay"
+    "stardewcraft:clay",
+    "stardewcraft:wild_horseradish",
+    "stardewcraft:daffodil",
+    "stardewcraft:leek",
+    "stardewcraft:dandelion",
+    "stardewcraft:cave_carrot",
+    "stardewcraft:sap",
+    "stardewcraft:morel",
+    "stardewcraft:chanterelle",
+    "stardewcraft:holly",
+    "stardewcraft:spring_onion",
+    "stardewcraft:common_mushroom",
+    "stardewcraft:hazelnut",
+    "stardewcraft:winter_root",
+    "stardewcraft:snow_yam",
+    "stardewcraft:red_mushroom",
+    "stardewcraft:purple_mushroom",
+    "stardewcraft:ginger",
+    "stardewcraft:magma_cap"
   ],
-  "_disliked_not_yet_in_mod": ["fish_category(-81)", "152=algae_soup"],
-
+  "_disliked_not_yet_in_mod": [
+    "fish_category(-81)"
+  ],
   "hated": [
     "stardewcraft:quartz",
     "stardewcraft:pickles"
   ],
-  "_hated_not_yet_in_mod": ["342=pickles already mapped"],
-
   "loved_categories": [],
   "liked_categories": [],
   "disliked_categories": [],
   "hated_categories": [],
-
   "loved_msg": "Oh wow, @! How'd you know this is my favorite?",
   "liked_msg": "This is great! Thanks!",
   "neutral_msg": "Oh, you got me something? Thanks!",

@@ -8,12 +8,14 @@ import com.stardew.craft.event.DimensionEventHandler;
 import com.stardew.craft.item.equipment.StardewBootsItem;
 import com.stardew.craft.item.equipment.StardewRingItem;
 import com.stardew.craft.item.weapon.StardewWeaponItem;
+import com.stardew.craft.network.payload.PassOutPayload;
 import com.stardew.craft.time.StardewTimeManager;
 import com.stardew.craft.warp.ModTeleport;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +26,7 @@ import java.util.Random;
  * <p>
  * 对标 SDV 原版 Farmer.cs / Game1.cs：
  * <ul>
- *   <li>战斗死亡（矿井 vs 非矿井）→ 金币扣除 + 物品丢失 + 次日体力压到2</li>
+ *   <li>战斗死亡（矿井 vs 非矿井）→ 金币扣除 + 物品丢失 + 当日救援，不推进日期</li>
  *   <li>2AM 晕倒 → 金币扣除（min(1000, money/10)）</li>
  * </ul>
  * 创造模式对所有惩罚完全豁免。
@@ -48,8 +50,15 @@ public final class PassOutService {
     private static final java.util.Set<java.util.UUID> knockedOutPlayers = java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>());
 
     /**
-     * 晕倒的惩罚结果（暂存），由 advanceDayWithSleepTime 消费后合并进 OvernightSettlementPayload。
-     * 不再单独发送 PassOutPayload，避免与 OvernightSettlementPayload 客户端画面冲突。
+     * 战斗死亡救援后的保护窗口。防止玩家刚被传送回农场时，残留伤害或危险出生点
+     * 再次触发同一条死亡链。
+     */
+    private static final long COMBAT_DEATH_RECOVERY_TICKS = 20L * 20L;
+    private static final java.util.Map<java.util.UUID, Long> combatDeathRecoveryUntilTick = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /**
+     * 过夜晕倒的惩罚结果（暂存），由 advanceDayWithSleepTime 消费后合并进 OvernightSettlementPayload。
+     * 战斗死亡不写入这里；它是当日个人救援，直接发送 PassOutPayload 给死亡玩家。
      */
     private static final java.util.Map<java.util.UUID, PassOutResult> pendingPassOutResults = new java.util.concurrent.ConcurrentHashMap<>();
 
@@ -72,6 +81,33 @@ public final class PassOutService {
         knockedOutPlayers.remove(player.getUUID());
     }
 
+    public static boolean isInCombatDeathRecovery(ServerPlayer player) {
+        Long untilTick = combatDeathRecoveryUntilTick.get(player.getUUID());
+        if (untilTick == null) {
+            return false;
+        }
+        long now = serverTick(player);
+        if (now <= untilTick) {
+            return true;
+        }
+        combatDeathRecoveryUntilTick.remove(player.getUUID(), untilTick);
+        return false;
+    }
+
+    public static void restoreDuringCombatDeathRecovery(ServerPlayer player) {
+        clearKnockedOut(player);
+        player.setHealth(player.getMaxHealth());
+        player.getFoodData().setFoodLevel(20);
+        player.getFoodData().setSaturation(5.0f);
+
+        PlayerStardewData data = PlayerDataManager.getPlayerData(player);
+        if (data.getHealth() < data.getMaxHealth()) {
+            data.setHealth(data.getMaxHealth());
+            PlayerDataEventHandler.syncPlayerData(player, data);
+            PlayerDataManager.get().setDirty();
+        }
+    }
+
     private PassOutService() {}
 
     // ──────────────────────────────────────
@@ -82,8 +118,13 @@ public final class PassOutService {
      * 由 {@link StardewDamageHooks} 的 KnockoutHandler 调用。
      */
     public static void onCombatDeath(ServerPlayer player, DamageSource source) {
+        if (isInCombatDeathRecovery(player)) {
+            restoreDuringCombatDeathRecovery(player);
+            return;
+        }
+
         // 防重入：同一 tick 不重复处理
-        long currentTick = player.level().getGameTime();
+        long currentTick = serverTick(player);
         Long lastTick = lastKnockoutTick.get(player.getUUID());
         if (lastTick != null && lastTick == currentTick) {
             return;
@@ -111,11 +152,11 @@ public final class PassOutService {
         List<ItemStack> lostItems = loseItemsOnDeath(player, data);
         data.setItemsLostLastDeath(lostItems);
 
-        // 3. 战斗死亡标志（次日体力压到2）
-        data.setPassedOutFromCombat(true);
+        // 3. 战斗死亡统计。战斗死亡只救援本人，不推进到次日。
+        data.setPassedOutFromCombat(false);
         data.recordCombatDeath();
 
-        // 4. 标记击倒状态（HP 保持 0，免疫后续伤害，直到传送完成）
+        // 4. 标记击倒状态（HP 保持 0，免疫后续伤害，直到客户端黑屏完成并 ACK）
         knockedOutPlayers.add(player.getUUID());
         // 不恢复 SDV 血量——保持 0 直到传送后再恢复
 
@@ -123,11 +164,9 @@ public final class PassOutService {
         scheduleDeathMail(player, data, inMine, moneyLost, !lostItems.isEmpty());
 
         PassOutType passOutType = inMine ? PassOutType.COMBAT_MINE : PassOutType.COMBAT_OVERWORLD;
-        pendingPassOutResults.put(player.getUUID(), new PassOutResult(passOutType, moneyLost, List.copyOf(lostItems)));
 
         syncAndSave(player, data);
-
-        advanceDayAfterPassOut(player, "pass_out_combat");
+        PacketDistributor.sendToPlayer(player, new PassOutPayload(passOutType, moneyLost, List.copyOf(lostItems)));
 
         LOGGER.info("[PASSOUT] {} combat death in {} — lost {}g, {} items",
                 player.getName().getString(),
@@ -272,6 +311,14 @@ public final class PassOutService {
         return lostItems;
     }
 
+    private static void grantCombatDeathRecovery(ServerPlayer player) {
+        combatDeathRecoveryUntilTick.put(player.getUUID(), serverTick(player) + COMBAT_DEATH_RECOVERY_TICKS);
+    }
+
+    private static long serverTick(ServerPlayer player) {
+        return player.server.overworld().getGameTime();
+    }
+
     /**
      * SDV 原版：工具、武器、戒指、靴子不可丢失；
      * 非星露谷物品不参与丢失；标记 prevent_loss_on_death 的物品不可丢失。
@@ -359,7 +406,7 @@ public final class PassOutService {
     // ──────────────────────────────────────
 
     /**
-     * 在 sleep() 恢复能量之后调用，若有战斗死亡标志则压到 2。
+     * 旧流程兼容：如果存档里还留有战斗死亡过夜标志，在 sleep() 恢复能量之后压到 2 并清除。
      */
     public static void applyCombatDeathEnergyPenalty(ServerPlayer player) {
         PlayerStardewData data = PlayerDataManager.getPlayerData(player);
@@ -388,8 +435,8 @@ public final class PassOutService {
             player.displayClientMessage(net.minecraft.network.chat.Component.translatable("stardewcraft.warp.farm.unavailable"), true);
             LOGGER.warn("[PASS_OUT] Player {} has no farm spawn; skipping farm return teleport.",
                 player.getName().getString());
-            clearKnockedOut(player);
-            PlayerDataEventHandler.syncPlayerData(player, PlayerDataManager.getPlayerData(player));
+            grantCombatDeathRecovery(player);
+            restoreDuringCombatDeathRecovery(player);
             return;
         }
 
@@ -400,6 +447,7 @@ public final class PassOutService {
         ModTeleport.to(player, stardewLevel, sx, sy, sz, player.getYRot(), player.getXRot());
 
         // 传送完成：清除击倒状态，恢复满血
+        grantCombatDeathRecovery(player);
         clearKnockedOut(player);
         PlayerStardewData data = PlayerDataManager.getPlayerData(player);
         data.setHealth(data.getMaxHealth());

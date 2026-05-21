@@ -1,42 +1,48 @@
 {
   "npc_id": "lewis",
   "loved": [
+    "stardewcraft:autumn_s_bounty",
     "stardewcraft:vegetable_medley",
     "stardewcraft:glazed_yams",
-    "stardewcraft:autumn_s_bounty",
     "stardewcraft:green_tea",
     "stardewcraft:hot_pepper"
   ],
   "liked": [
+    "stardewcraft:parsnip",
     "stardewcraft:coconut",
     "stardewcraft:cactus_fruit",
-    "stardewcraft:parsnip",
     "stardewcraft:potato",
     "stardewcraft:blueberry",
     "stardewcraft:radish",
     "stardewcraft:eggplant",
     "stardewcraft:artichoke",
-    "stardewcraft:bok_choy"
+    "stardewcraft:bok_choy",
+    "stardewcraft:sweet_pea",
+    "stardewcraft:crocus",
+    "stardewcraft:sunflower",
+    "stardewcraft:tulip",
+    "stardewcraft:summer_spangle",
+    "stardewcraft:fairy_rose",
+    "stardewcraft:blue_jazz",
+    "stardewcraft:poppy"
   ],
   "neutral": [],
   "disliked": [
-    "stardewcraft:salmonberry",
     "stardewcraft:wild_horseradish",
+    "stardewcraft:clay",
     "stardewcraft:milk",
     "stardewcraft:large_milk",
     "stardewcraft:goat_milk",
-    "stardewcraft:large_goat_milk",
-    "stardewcraft:clay"
+    "stardewcraft:large_goat_milk"
   ],
   "hated": [
-    "stardewcraft:holly",
     "stardewcraft:quartz"
   ],
-  "loved_msg": "Well, now this is a very fine gift! Thank you!",
-  "liked_msg": "Thanks! This is quite nice.",
-  "neutral_msg": "Thank you, that's thoughtful.",
-  "disliked_msg": "Hmm, well... it's the thought that counts, I suppose.",
-  "hated_msg": "I don't know what to say... this is terrible.",
+  "loved_msg": "Wow, this is my favorite! Thank you!",
+  "liked_msg": "Thanks, this is great!",
+  "neutral_msg": "That's very nice of you. Thanks.",
+  "disliked_msg": "Well, I guess it's the thought that counts...",
+  "hated_msg": "This makes me sick. What a horrendous gift.",
   "loved_categories": [],
   "liked_categories": [],
   "disliked_categories": [],

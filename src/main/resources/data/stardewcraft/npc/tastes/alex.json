@@ -5,15 +5,26 @@
     "stardewcraft:complete_breakfast",
     "stardewcraft:salmon_dinner"
   ],
-  "_loved_not_yet_in_mod": ["book_defense(Book_Defense)"],
+  "_loved_not_yet_in_mod": [
+    "book_defense(Book_Defense)"
+  ],
   "liked": [
     "stardewcraft:egg",
-    "stardewcraft:duck_egg",
+    "stardewcraft:field_snack",
+    "stardewcraft:dinosaur_egg",
+    "stardewcraft:parrot_egg",
+    "stardewcraft:egg_brown",
+    "stardewcraft:large_egg_brown",
+    "stardewcraft:egg_white",
+    "stardewcraft:large_egg_white",
     "stardewcraft:void_egg",
-    "stardewcraft:dinosaur_egg"
+    "stardewcraft:duck_egg",
+    "stardewcraft:ostrich_egg",
+    "stardewcraft:golden_egg"
   ],
-  "_liked_not_yet_in_mod": ["field_snack(403)", "parrot_egg(ParrotEgg)"],
-  "neutral": [],
+  "neutral": [
+    "stardewcraft:frog_egg"
+  ],
   "disliked": [
     "stardewcraft:wild_horseradish",
     "stardewcraft:clay"

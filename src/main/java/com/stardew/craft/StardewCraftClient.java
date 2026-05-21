@@ -21,8 +21,10 @@ import com.stardew.craft.block.utility.DyeableChairBlock;
 import com.stardew.craft.block.utility.OfficeChair2TopRenderBlock;
 import com.stardew.craft.block.utility.OfficeStoolBlock;
 import com.stardew.craft.block.utility.OfficeStoolTopRenderBlock;
+import com.stardew.craft.block.utility.OakTableBlock;
 import com.stardew.craft.block.utility.SofaBlock;
 import com.stardew.craft.block.utility.WoodenChestColorPalette;
+import com.stardew.craft.blockentity.TableDisplayBlockEntity;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BiomeColors;
@@ -87,6 +89,7 @@ public class StardewCraftClient {
                 ModBlocks.WILD_WEEDS.get(),
                 ModBlocks.PASTURE_GRASS.get(),
                 ModBlocks.BLUE_PASTURE_GRASS.get(),
+                ModBlocks.EGG_FESTIVAL_EGG.get(),
                 // Forage blocks (cross model, cutout render)
                 ModBlocks.FORAGE_WILD_HORSERADISH.get(),
                 ModBlocks.FORAGE_DAFFODIL.get(),
@@ -323,6 +326,7 @@ public class StardewCraftClient {
                 ModBlocks.FLOWER_BASKET.get(),
                 ModBlocks.PLUSH_BUNNY.get(),
                 ModBlocks.LAWN_FLAMINGO.get(),
+                ModBlocks.HOLIDAY_RIBBON_POST.get(),
                 ModBlocks.BLUE_BEAR_PLUSHIE.get(),
                 ModBlocks.SAFE_BOX.get(),
                 ModBlocks.BROKEN_SAFE_BOX.get(),
@@ -480,6 +484,12 @@ public class StardewCraftClient {
                 indexValue = state.getValue(OfficeChair2TopRenderBlock.COLOR);
             } else if (state.hasProperty(DyeableChairBlock.COLOR)) {
                 indexValue = state.getValue(DyeableChairBlock.COLOR);
+            } else if (state.hasProperty(OakTableBlock.CLOTH_STYLE)
+                && OakTableBlock.isDyeableClothStyle(state.getValue(OakTableBlock.CLOTH_STYLE))
+                && level != null
+                && pos != null
+                && level.getBlockEntity(pos) instanceof TableDisplayBlockEntity tableBe) {
+                indexValue = tableBe.getClothColor();
             }
             if (indexValue == null) {
                 return 0xFFFFFFFF;
@@ -489,7 +499,7 @@ public class StardewCraftClient {
                 index = 0;
             }
             return 0xFF000000 | (WoodenChestColorPalette.rgbAt(index) & 0xFFFFFF);
-        }, ModBlocks.SOFA.get(), ModBlocks.CUSHION.get(), ModBlocks.OFFICE_STOOL.get(), ModBlocks.OFFICE_STOOL_TOP_RENDER.get(), ModBlocks.OFFICE_CHAIR_2.get(), ModBlocks.OFFICE_CHAIR_2_TOP_RENDER.get(), ModBlocks.STOOL.get(), ModBlocks.DINING_CHAIR_WOOD.get(), ModBlocks.DINING_CHAIR_IRON.get());
+        }, ModBlocks.SOFA.get(), ModBlocks.CUSHION.get(), ModBlocks.OFFICE_STOOL.get(), ModBlocks.OFFICE_STOOL_TOP_RENDER.get(), ModBlocks.OFFICE_CHAIR_2.get(), ModBlocks.OFFICE_CHAIR_2_TOP_RENDER.get(), ModBlocks.STOOL.get(), ModBlocks.DINING_CHAIR_WOOD.get(), ModBlocks.DINING_CHAIR_IRON.get(), ModBlocks.OAK_TABLE.get(), ModBlocks.SPRUCE_TABLE.get(), ModBlocks.BIRCH_TABLE.get());
 
     }
 
@@ -573,6 +583,14 @@ public class StardewCraftClient {
             }
             return 0xFF000000 | (WoodenChestColorPalette.rgbAt(0) & 0xFFFFFF);
         }, ModItems.SOFA.get(), ModItems.CUSHION.get(), ModItems.OFFICE_STOOL.get(), ModItems.OFFICE_CHAIR_2.get(), ModItems.STOOL.get(), ModItems.DINING_CHAIR_WOOD.get(), ModItems.DINING_CHAIR_IRON.get());
+
+        event.register((stack, tintIndex) -> {
+            if (tintIndex != 0) {
+                return 0xFFFFFFFF;
+            }
+            int defaultColor = WoodenChestColorPalette.size() - 1;
+            return 0xFF000000 | (WoodenChestColorPalette.rgbAt(defaultColor) & 0xFFFFFF);
+        }, ModItems.FLORAL_TABLECLOTH.get(), ModItems.BLANK_TABLECLOTH.get());
 
         event.register((stack, tintIndex) -> {
             if (!(stack.getItem() instanceof PreservesItem preservesItem)) {

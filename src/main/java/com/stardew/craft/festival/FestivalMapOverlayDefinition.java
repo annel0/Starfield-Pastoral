@@ -29,4 +29,8 @@ public record FestivalMapOverlayDefinition(
         boundsMax = boundsMax == null ? BlockPos.ZERO : boundsMax;
         safePositions = safePositions == null ? List.of() : List.copyOf(safePositions);
     }
+
+    public boolean usesRuntimeBase() {
+        return baseSchematicPath.isBlank();
+    }
 }

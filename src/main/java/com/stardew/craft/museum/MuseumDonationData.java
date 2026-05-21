@@ -27,6 +27,8 @@ public class MuseumDonationData extends SavedData {
     private static final String TAG_SESSION_PENDING = "session_pending";
     private static final String TAG_STAND_ITEMS = "stand_items";
     private static final String TAG_CLAIMED_REWARDS = "claimed_rewards";
+    private static final String TAG_SCHEMA_VERSION = "schema_version";
+    private static final int CURRENT_SCHEMA_VERSION = 2;
 
     /** Per-player data keyed by UUID string */
     private final Map<String, PlayerMuseumData> playerData = new HashMap<>();
@@ -96,6 +98,7 @@ public class MuseumDonationData extends SavedData {
             playersTag.put(entry.getKey(), playerTag);
         }
         tag.put(TAG_PLAYERS, playersTag);
+        tag.putInt(TAG_SCHEMA_VERSION, CURRENT_SCHEMA_VERSION);
         return tag;
     }
 
@@ -151,7 +154,7 @@ public class MuseumDonationData extends SavedData {
             return new EndSessionResult(false, missing);
         }
 
-        for (String itemId : pData.standDisplayItems.values()) {
+        for (String itemId : getManagedStandItems(pData).values()) {
             pData.donatedItems.add(itemId);
         }
         pData.donationModeActive = false;
@@ -167,7 +170,7 @@ public class MuseumDonationData extends SavedData {
     public void forceEndDonationMode(UUID playerId) {
         PlayerMuseumData pData = playerData.get(playerId.toString());
         if (pData == null) return;
-        for (String itemId : pData.standDisplayItems.values()) {
+        for (String itemId : getManagedStandItems(pData).values()) {
             pData.donatedItems.add(itemId);
         }
         pData.donationModeActive = false;
@@ -179,24 +182,75 @@ public class MuseumDonationData extends SavedData {
     public boolean canDonateItem(UUID playerId, String itemId) {
         PlayerMuseumData pData = resolve(playerId);
         if (pData == null || !pData.donationModeActive) return false;
-        return !pData.standDisplayItems.containsValue(itemId);
+        return !getManagedStandItems(pData).containsValue(itemId);
     }
 
     public Map<String, String> getStandDisplayItems(UUID playerId) {
         PlayerMuseumData pData = resolve(playerId);
         if (pData == null) return Collections.emptyMap();
-        return Collections.unmodifiableMap(pData.standDisplayItems);
+        return Collections.unmodifiableMap(getManagedStandItems(pData));
     }
 
     public void setStandDisplayedItem(UUID playerId, String standKey, String itemId) {
-        if (standKey == null || standKey.isBlank()) return;
+        String normalizedStandKey = MuseumExhibitStandManager.normalizeManagedStandKey(standKey);
+        if (normalizedStandKey == null) return;
         PlayerMuseumData pData = getOrCreate(playerId);
         if (itemId == null || itemId.isBlank()) {
-            if (pData.standDisplayItems.remove(standKey) != null) setDirty();
+            if (pData.standDisplayItems.remove(normalizedStandKey) != null) setDirty();
             return;
         }
-        String old = pData.standDisplayItems.put(standKey, itemId);
+        String old = pData.standDisplayItems.put(normalizedStandKey, itemId);
         if (!itemId.equals(old)) setDirty();
+    }
+
+    public boolean ensureManagedStandLayout(ServerLevel level, UUID playerId) {
+        PlayerMuseumData resolved = resolve(playerId);
+        if (resolved == null) return false;
+
+        PlayerMuseumData pData = playerData.containsKey(playerId.toString())
+            ? resolved
+            : getOrCreate(playerId);
+
+        TreeSet<String> requiredItems = new TreeSet<>(pData.donatedItems);
+        if (pData.donationModeActive) {
+            requiredItems.addAll(pData.sessionPendingItems);
+        }
+        if (requiredItems.isEmpty()) {
+            return false;
+        }
+
+        Map<String, String> managedItems = getManagedStandItems(pData);
+        requiredItems.removeAll(new HashSet<>(managedItems.values()));
+        if (requiredItems.isEmpty()) {
+            return false;
+        }
+
+        List<net.minecraft.core.BlockPos> standPositions = MuseumExhibitStandManager.collectManagedStandPositions(level);
+        if (standPositions.isEmpty()) {
+            return false;
+        }
+
+        Set<String> usedStandKeys = new HashSet<>(managedItems.keySet());
+        Iterator<String> itemIterator = requiredItems.iterator();
+        boolean changed = false;
+        for (net.minecraft.core.BlockPos pos : standPositions) {
+            if (!itemIterator.hasNext()) {
+                break;
+            }
+            String standKey = standKey(level, pos);
+            if (usedStandKeys.contains(standKey)) {
+                continue;
+            }
+            String itemId = itemIterator.next();
+            pData.standDisplayItems.put(standKey, itemId);
+            usedStandKeys.add(standKey);
+            changed = true;
+        }
+
+        if (changed) {
+            setDirty();
+        }
+        return changed;
     }
 
     public void markSessionPendingItem(UUID playerId, String itemId) {
@@ -208,7 +262,7 @@ public class MuseumDonationData extends SavedData {
     private Set<String> getMissingSessionItems(PlayerMuseumData pData) {
         Set<String> requiredItems = new HashSet<>(pData.donatedItems);
         requiredItems.addAll(pData.sessionPendingItems);
-        Set<String> displayed = new HashSet<>(pData.standDisplayItems.values());
+        Set<String> displayed = new HashSet<>(getManagedStandItems(pData).values());
         Set<String> missing = new HashSet<>();
         for (String req : requiredItems) {
             if (!displayed.contains(req)) missing.add(req);
@@ -223,6 +277,18 @@ public class MuseumDonationData extends SavedData {
     }
 
     public record EndSessionResult(boolean success, Set<String> missingItems) {}
+
+    private Map<String, String> getManagedStandItems(PlayerMuseumData pData) {
+        Map<String, String> managed = new HashMap<>();
+        for (Map.Entry<String, String> entry : pData.standDisplayItems.entrySet()) {
+            String normalizedStandKey = MuseumExhibitStandManager.normalizeManagedStandKey(entry.getKey());
+            String itemId = entry.getValue();
+            if (normalizedStandKey != null && itemId != null && !itemId.isBlank()) {
+                managed.put(normalizedStandKey, itemId);
+            }
+        }
+        return managed;
+    }
 
     // ── Museum Reward tracking (per-player) ──
 
@@ -271,7 +337,8 @@ public class MuseumDonationData extends SavedData {
             for (String key : standTag.getAllKeys()) {
                 if (key == null) continue;
                 String itemId = Objects.requireNonNull(standTag.getString(key));
-                if (!itemId.isBlank()) standDisplayItems.put(key, itemId);
+                String normalizedStandKey = MuseumExhibitStandManager.normalizeManagedStandKey(key);
+                if (normalizedStandKey != null && !itemId.isBlank()) standDisplayItems.put(normalizedStandKey, itemId);
             }
 
             if (tag.contains(TAG_CLAIMED_REWARDS, CompoundTag.TAG_LIST)) {

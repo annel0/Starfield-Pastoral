@@ -94,6 +94,26 @@ public final class EventCommandFactory {
                     obj.get("text").getAsString()
             );
 
+            case "egg_festival_players" -> new EggFestivalPlayersCommand(
+                    getString(obj, "action", "spawn_lineup"),
+                    getInt(obj, "ticks", 60)
+            );
+
+            case "egg_festival_speak" -> new EggFestivalSpeakCommand(
+                    getString(obj, "npc_id", "lewis"),
+                    getString(obj, "mode", "winner"),
+                    getString(obj, "text", ""),
+                    getString(obj, "player_text", ""),
+                    getString(obj, "npc_text", "")
+            );
+
+            case "egg_festival_stage" -> new EggFestivalStageCommand(
+                    getString(obj, "stage", "main"),
+                    getInt(obj, "ticks", 10)
+            );
+
+            case "egg_festival_finish" -> new EggFestivalFinishCommand();
+
             case "fade"          -> new FadeCommand(
                     "out".equals(getString(obj, "mode", "out")),
                     getInt(obj, "ticks", 20)

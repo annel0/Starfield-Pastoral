@@ -29,14 +29,16 @@ public final class StardewClientTimeState {
     private static long baseDayTime = -1;
     /** 接收 baseDayTime 时的客户端 gameTime。 */
     private static long baseGameTime = -1;
+    private static boolean timeFrozen;
 
     private StardewClientTimeState() {}
 
     /**
      * 由 TimeSyncPacket 的客户端处理器调用，记录基准时间。
      */
-    public static void onServerTimeSync(long virtualDayTime) {
+    public static void onServerTimeSync(long virtualDayTime, boolean frozen) {
         baseDayTime = virtualDayTime;
+        timeFrozen = frozen;
         Minecraft mc = Minecraft.getInstance();
         if (mc.level != null) {
             baseGameTime = mc.level.getGameTime();
@@ -49,6 +51,7 @@ public final class StardewClientTimeState {
     public static void reset() {
         baseDayTime = -1;
         baseGameTime = -1;
+        timeFrozen = false;
     }
 
     /**
@@ -76,9 +79,9 @@ public final class StardewClientTimeState {
             return; // 尚未收到服务端时间同步
         }
 
-        // 基于上次同步的 baseDayTime + 经过的 tick 数线性插值
+        // 基于上次同步的 baseDayTime + 经过的 tick 数线性插值；节日中则完全冻结。
         long elapsed = level.getGameTime() - baseGameTime;
-        long targetDayTime = baseDayTime + elapsed;
+        long targetDayTime = timeFrozen ? baseDayTime : baseDayTime + elapsed;
 
         // 直接设置正值。tickTime() 已被 ClientLevelTickTimeMixin 取消，
         // handleSetTime 已被 ClientSetTimeMixin 拦截，不会被覆盖。

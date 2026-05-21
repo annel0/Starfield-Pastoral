@@ -159,10 +159,11 @@ public class GeodeLootService {
     public static void handleGeodeClaim(ServerPlayer player) {
         ItemStack treasure = pendingTreasure.remove(player.getUUID());
         if (treasure != null && !treasure.isEmpty()) {
+            ItemStack hudStack = treasure.copy();
             if (!player.getInventory().add(treasure)) {
                 player.drop(treasure, false);
             }
-            ItemPickupHudPacket.sendTo(player, treasure, treasure.getCount(), false);
+            ItemPickupHudPacket.sendTo(player, hudStack, hudStack.getCount(), false);
             player.inventoryMenu.broadcastChanges();
         }
     }

@@ -164,6 +164,24 @@ public final class NpcInteractionService {
         NpcFriendshipDataManager.FriendshipState state = friendshipManager.getOrCreate(serverPlayer.getUUID(), npcId);
         state.normalizeGiftWeek(dayContext.weekKey());
 
+        if (npcId.equals("pierre") && com.stardew.craft.festival.EggFestivalService.tryOpenPierreFestivalShop(serverPlayer)) {
+            return InteractionResult.SUCCESS;
+        }
+
+        if (com.stardew.craft.festival.EggFestivalService.isParticipant(serverPlayer)) {
+            if (npcId.equals("lewis") && com.stardew.craft.festival.EggFestivalService.tryStartMainEvent(serverPlayer)) {
+                return InteractionResult.SUCCESS;
+            }
+            if (com.stardew.craft.festival.EggFestivalService.isEggHuntActive()
+                || com.stardew.craft.festival.EggFestivalService.isMainEventCutsceneActive()) {
+                return InteractionResult.SUCCESS;
+            }
+            if (tryHandleEggFestivalDialogue(serverPlayer, npc, npcId, state, dayContext, friendshipManager)) {
+                return InteractionResult.SUCCESS;
+            }
+            return InteractionResult.SUCCESS;
+        }
+
         // ═══════════════════════════════════════════════════════════════
         // SDV parity: QUEST DELIVERY 最高优先级 —
         // 玩家拿着正好匹配「已接受的交付任务」的物品 + 右键 target NPC，
@@ -326,6 +344,30 @@ public final class NpcInteractionService {
             sendDialoguePacket(serverPlayer, npcId, finalDialogueText, points, finalGarble);
         });
         return InteractionResult.SUCCESS;
+    }
+
+    private static boolean tryHandleEggFestivalDialogue(ServerPlayer player,
+                                                        StardewNpcEntity npc,
+                                                        String npcId,
+                                                        NpcFriendshipDataManager.FriendshipState state,
+                                                        DayContext dayContext,
+                                                        NpcFriendshipDataManager friendshipManager) {
+        String dialogueText = com.stardew.craft.festival.EggFestivalNpcService.resolveDialogueKey(player, npcId);
+        if (dialogueText == null || dialogueText.isBlank()) {
+            return false;
+        }
+
+        boolean canGainFriendship = NpcSocialRules.canSocialize(npcId, player);
+        if (canGainFriendship && state.lastTalkDayKey() != dayContext.dayKey()) {
+            grantConversationFriendship(npcId, state, dayContext, dialogueText, player);
+            NpcFriendshipRewardService.applyEligibleRewards(player, npcId, state.points());
+            friendshipManager.setDirty();
+        }
+        syncFriendshipStatus(player, npcId, state, dayContext);
+        com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(player, npcId);
+        int points = state.points();
+        npc.facePlayerTemporarily(player, 60, () -> sendDialoguePacket(player, npcId, dialogueText, points, false));
+        return true;
     }
 
     /**

@@ -163,6 +163,9 @@ public class StardewTimeHud {
         if (mc.options.hideGui || spectator) {
             return;
         }
+        if (com.stardew.craft.client.hud.FestivalHudState.hidden()) {
+            return;
+        }
         
         @SuppressWarnings("null")
         boolean isStardewDimension = mc.level.dimension() == ModDimensions.STARDEW_VALLEY 

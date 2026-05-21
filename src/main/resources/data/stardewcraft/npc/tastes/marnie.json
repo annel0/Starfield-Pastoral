@@ -2,23 +2,47 @@
   "npc_id": "marnie",
   "_vanilla_ref": "72=diamond 221=pink_cake 240=farmer_s_lunch 608=pumpkin_pie",
   "loved": [
-    "stardewcraft:diamond"
+    "stardewcraft:diamond",
+    "stardewcraft:pink_cake",
+    "stardewcraft:pumpkin_pie"
   ],
-  "_loved_not_yet_in_mod": ["pink_cake(221)", "farmer_s_lunch(240)", "pumpkin_pie(608)"],
+  "_loved_not_yet_in_mod": [
+    "farmer_s_lunch(240)"
+  ],
   "liked": [
-    "stardewcraft:sweet_pea"
+    "stardewcraft:sweet_pea",
+    "stardewcraft:crocus",
+    "stardewcraft:egg_brown",
+    "stardewcraft:large_egg_brown",
+    "stardewcraft:egg_white",
+    "stardewcraft:large_egg_white",
+    "stardewcraft:void_egg",
+    "stardewcraft:duck_egg",
+    "stardewcraft:ostrich_egg",
+    "stardewcraft:golden_egg",
+    "stardewcraft:milk",
+    "stardewcraft:large_milk",
+    "stardewcraft:goat_milk",
+    "stardewcraft:large_goat_milk"
   ],
   "_liked_vanilla_note": "Categories -5(eggs) -6(milk). Item 402=sweet_pea, 418=cranberries(?), SkillBook_0=farming_book. Eggs/milk handled by category; cranberries not confirmed in mod.",
-  "_liked_not_yet_in_mod": ["cranberries(418)", "skillbook_0(SkillBook_0)"],
-  "liked_categories": ["eggs", "milk"],
+  "_liked_not_yet_in_mod": [
+    "skillbook_0(SkillBook_0)"
+  ],
+  "liked_categories": [
+    "eggs",
+    "milk"
+  ],
   "neutral": [],
   "_neutral_vanilla_note": "16=wild_horseradish, 152=seaweed — not yet in mod",
-  "_neutral_not_yet_in_mod": ["wild_horseradish(16)", "seaweed(152)"],
   "disliked": [
-    "stardewcraft:clay"
+    "stardewcraft:wild_horseradish",
+    "stardewcraft:seaweed"
   ],
   "_disliked_vanilla_note": "330=clay",
-  "hated": [],
+  "hated": [
+    "stardewcraft:clay"
+  ],
   "loved_msg": "This is my absolute favorite! You're so sweet, @!$h",
   "liked_msg": "Oh, this is nice. Thank you, dear!$h",
   "neutral_msg": "Oh, for me? Thank you.",

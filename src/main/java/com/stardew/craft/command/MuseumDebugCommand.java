@@ -67,6 +67,7 @@ public class MuseumDebugCommand {
             return 1;
         }
 
+        data.ensureManagedStandLayout(player.serverLevel(), playerId);
         MuseumDonationData.EndSessionResult result = data.endDonationMode(playerId);
         if (!result.success()) {
             context.getSource().sendFailure(Component.translatable("stardewcraft.command.museum.mode.end_blocked", result.missingItems().size()));
@@ -130,5 +131,6 @@ public class MuseumDebugCommand {
 
     private static void syncAll(MuseumDonationData data, ServerPlayer player) {
         PacketDistributor.sendToPlayer(player, new MuseumDonationSyncPacket(List.copyOf(data.getDonatedItems(player.getUUID()))));
+        com.stardew.craft.block.utility.MuseumExhibitStandBlock.syncStands(player.serverLevel(), data, player);
     }
 }

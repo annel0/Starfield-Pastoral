@@ -29,7 +29,7 @@ public record PassOutAckPayload() implements CustomPacketPayload {
 
     public static void handle(PassOutAckPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
-            if (context.player() instanceof ServerPlayer sp) {
+            if (context.player() instanceof ServerPlayer sp && PassOutService.isKnockedOut(sp)) {
                 PassOutService.teleportToFarmSpawn(sp);
             }
         });

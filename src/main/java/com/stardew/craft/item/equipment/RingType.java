@@ -73,10 +73,10 @@ public enum RingType {
             // 光源型 — 提供动态光源 (SDV: Small Glow=5, Glow=10)
             case SMALL_GLOW_RING -> b.lightLevel(5);
             case GLOW_RING -> b.lightLevel(10);
-            // 磁力型
-            case SMALL_MAGNET_RING -> b.magneticRadius(64);
-            case MAGNET_RING -> b.magneticRadius(128);
-            case IRIDIUM_BAND -> { b.magneticRadius(128); b.lightLevel(10); }
+            // 磁力型，数值直接表示 MC 吸附半径（格）。
+            case SMALL_MAGNET_RING -> b.magneticRadius(3);
+            case MAGNET_RING -> b.magneticRadius(6);
+            case IRIDIUM_BAND -> { b.magneticRadius(6); b.lightLevel(10); }
             // attackMult handled separately in combat system
             case AMETHYST_RING -> b.knockbackBonus(0.1f);
             case TOPAZ_RING -> b.defense(1);
@@ -87,7 +87,7 @@ public enum RingType {
             case CRABSHELL_RING -> b.defense(5);
             case LUCKY_RING -> b.luck(1);
             case IMMUNITY_BAND -> b.immunity(4);
-            case GLOWSTONE_RING -> { b.magneticRadius(128); b.lightLevel(10); }
+            case GLOWSTONE_RING -> { b.magneticRadius(6); b.lightLevel(10); }
             // 特殊效果标记
             case SLIME_CHARMER_RING -> b.slimeCharmer(true);
             case RING_OF_YOBA -> b.yobaProtection(true);

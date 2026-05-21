@@ -187,6 +187,17 @@ public class ModBlocks {
                                         .instabreak()));
 
         @SuppressWarnings("null")
+        public static final DeferredBlock<Block> EGG_FESTIVAL_EGG = BLOCKS.register("egg_festival_egg",
+                        () -> new com.stardew.craft.block.festival.EggFestivalEggBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.PLANT)
+                                        .pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY)
+                                        .sound(net.minecraft.world.level.block.SoundType.GRASS)
+                                        .noCollission()
+                                        .noOcclusion()
+                                        .instabreak()
+                                        .noLootTable()));
+
+        @SuppressWarnings("null")
         public static final DeferredBlock<Block> LARGE_STUMP = BLOCKS.register("large_stump",
                         () -> new com.stardew.craft.block.decor.ResourceClumpBlock(Block.Properties.of()
                                         .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
@@ -1786,7 +1797,7 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .mapColor(net.minecraft.world.level.material.MapColor.METAL)
                                         .sound(net.minecraft.world.level.block.SoundType.METAL)
                                         .noOcclusion()
-                                        .strength(0.2F), "stardewcraft:decor/common/dining_chair_iron", 11.0D / 16.0D));
+                                        .strength(0.2F), "stardewcraft:decor/common/dining_chair_iron", 9.0D / 16.0D));
 
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> PHOTO_FRAME = BLOCKS.register("photo_frame",
@@ -1851,6 +1862,14 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .sound(net.minecraft.world.level.block.SoundType.WOOL)
                                         .noOcclusion()
                                         .strength(0.8F), "stardewcraft:decor/festival/lawn_flamingo"));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> HOLIDAY_RIBBON_POST = BLOCKS.register("holiday_ribbon_post",
+                        () -> new com.stardew.craft.block.decor.HolidayRibbonPostBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOL)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOL)
+                                        .noOcclusion()
+                                        .strength(0.8F)));
 
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> SPRUCE_COUNTER = BLOCKS.register("spruce_counter",

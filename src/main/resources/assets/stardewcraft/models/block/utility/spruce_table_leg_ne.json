@@ -1,241 +1,241 @@
 {
-  "ambientocclusion": false,
-  "parent": "block/block",
-  "textures": {
-    "0": "stardewcraft:block/decor/common/spruce_table_top_edge_4_news",
-    "particle": "stardewcraft:block/decor/common/spruce_table_top_edge_4_news"
-  },
-  "elements": [
-    {
-      "from": [
-        13,
-        0,
-        1
-      ],
-      "to": [
-        15,
-        12,
-        3
-      ],
-      "rotation": {
-        "angle": 0,
-        "axis": "y",
-        "origin": [
-          22,
-          -2,
-          -6
-        ]
-      },
-      "faces": {
-        "north": {
-          "uv": [
-            5,
-            6.25,
-            5.5,
-            9.25
-          ],
-          "texture": "#0"
-        },
-        "east": {
-          "uv": [
-            5.75,
-            6.25,
-            6.25,
-            9.25
-          ],
-          "texture": "#0"
-        },
-        "south": {
-          "uv": [
-            6.5,
-            3,
-            7,
-            6
-          ],
-          "texture": "#0"
-        },
-        "west": {
-          "uv": [
-            6.5,
-            6.25,
-            7,
-            9.25
-          ],
-          "texture": "#0"
-        },
-        "up": {
-          "uv": [
-            4.25,
-            11.5,
-            3.75,
-            11
-          ],
-          "texture": "#0"
-        },
-        "down": {
-          "uv": [
-            11.5,
-            3.75,
-            11,
-            4.25
-          ],
-          "texture": "#0"
-        }
-      }
-    },
-    {
-      "from": [
-        11.25,
-        9,
-        1.01
-      ],
-      "to": [
-        13.25,
-        14,
-        2.99
-      ],
-      "rotation": {
-        "angle": 45,
-        "axis": "z",
-        "origin": [
-          12.25,
-          11.5,
-          2
-        ]
-      },
-      "faces": {
-        "north": {
-          "uv": [
-            9.25,
-            0,
-            9.75,
-            1.25
-          ],
-          "texture": "#0"
-        },
-        "east": {
-          "uv": [
-            9.25,
-            1.5,
-            9.75,
-            2.75
-          ],
-          "texture": "#0"
-        },
-        "south": {
-          "uv": [
-            9.5,
-            3,
-            10,
-            4.25
-          ],
-          "texture": "#0"
-        },
-        "west": {
-          "uv": [
-            3.75,
-            9.5,
-            4.25,
-            10.75
-          ],
-          "texture": "#0"
-        },
-        "up": {
-          "uv": [
-            5,
-            11.5,
-            4.5,
-            11
-          ],
-          "texture": "#0"
-        },
-        "down": {
-          "uv": [
-            11.5,
-            4.5,
-            11,
-            5
-          ],
-          "texture": "#0"
-        }
-      }
-    },
-    {
-      "from": [
-        13.01,
-        9,
-        2.75
-      ],
-      "to": [
-        14.99,
-        14,
-        4.75
-      ],
-      "rotation": {
-        "angle": 45,
-        "axis": "x",
-        "origin": [
-          14,
-          11.5,
-          3.75
-        ]
-      },
-      "faces": {
-        "north": {
-          "uv": [
-            4.5,
-            9.5,
-            5,
-            10.75
-          ],
-          "texture": "#0"
-        },
-        "east": {
-          "uv": [
-            9.5,
-            4.5,
-            10,
-            5.75
-          ],
-          "texture": "#0"
-        },
-        "south": {
-          "uv": [
-            5.25,
-            9.5,
-            5.75,
-            10.75
-          ],
-          "texture": "#0"
-        },
-        "west": {
-          "uv": [
-            6,
-            9.5,
-            6.5,
-            10.75
-          ],
-          "texture": "#0"
-        },
-        "up": {
-          "uv": [
-            5.75,
-            11.5,
-            5.25,
-            11
-          ],
-          "texture": "#0"
-        },
-        "down": {
-          "uv": [
-            11.5,
-            5.25,
-            11,
-            5.75
-          ],
-          "texture": "#0"
-        }
-      }
-    }
-  ]
+	"ambientocclusion": false,
+	"parent": "block/block",
+	"textures": {
+		"0": "stardewcraft:block/decor/common/spruce_table_top_edge_4_news",
+		"particle": "stardewcraft:block/decor/common/spruce_table_top_edge_4_news"
+	},
+	"elements": [
+		{
+			"from": [
+				13,
+				0,
+				1
+			],
+			"to": [
+				15,
+				14,
+				3
+			],
+			"rotation": {
+				"angle": 0,
+				"axis": "y",
+				"origin": [
+					22,
+					-2,
+					-6
+				]
+			},
+			"faces": {
+				"north": {
+					"uv": [
+						5,
+						6.25,
+						5.5,
+						9.25
+					],
+					"texture": "#0"
+				},
+				"east": {
+					"uv": [
+						5.75,
+						6.25,
+						6.25,
+						9.25
+					],
+					"texture": "#0"
+				},
+				"south": {
+					"uv": [
+						6.5,
+						3,
+						7,
+						6
+					],
+					"texture": "#0"
+				},
+				"west": {
+					"uv": [
+						6.5,
+						6.25,
+						7,
+						9.25
+					],
+					"texture": "#0"
+				},
+				"up": {
+					"uv": [
+						4.25,
+						11.5,
+						3.75,
+						11
+					],
+					"texture": "#0"
+				},
+				"down": {
+					"uv": [
+						11.5,
+						3.75,
+						11,
+						4.25
+					],
+					"texture": "#0"
+				}
+			}
+		},
+		{
+			"from": [
+				11.25,
+				11,
+				1.01
+			],
+			"to": [
+				13.25,
+				16,
+				2.99
+			],
+			"rotation": {
+				"angle": 45,
+				"axis": "z",
+				"origin": [
+					12.25,
+					13.5,
+					2
+				]
+			},
+			"faces": {
+				"north": {
+					"uv": [
+						9.25,
+						0,
+						9.75,
+						1.25
+					],
+					"texture": "#0"
+				},
+				"east": {
+					"uv": [
+						9.25,
+						1.5,
+						9.75,
+						2.75
+					],
+					"texture": "#0"
+				},
+				"south": {
+					"uv": [
+						9.5,
+						3,
+						10,
+						4.25
+					],
+					"texture": "#0"
+				},
+				"west": {
+					"uv": [
+						3.75,
+						9.5,
+						4.25,
+						10.75
+					],
+					"texture": "#0"
+				},
+				"up": {
+					"uv": [
+						5,
+						11.5,
+						4.5,
+						11
+					],
+					"texture": "#0"
+				},
+				"down": {
+					"uv": [
+						11.5,
+						4.5,
+						11,
+						5
+					],
+					"texture": "#0"
+				}
+			}
+		},
+		{
+			"from": [
+				13.01,
+				11,
+				2.75
+			],
+			"to": [
+				14.99,
+				16,
+				4.75
+			],
+			"rotation": {
+				"angle": 45,
+				"axis": "x",
+				"origin": [
+					14,
+					13.5,
+					3.75
+				]
+			},
+			"faces": {
+				"north": {
+					"uv": [
+						4.5,
+						9.5,
+						5,
+						10.75
+					],
+					"texture": "#0"
+				},
+				"east": {
+					"uv": [
+						9.5,
+						4.5,
+						10,
+						5.75
+					],
+					"texture": "#0"
+				},
+				"south": {
+					"uv": [
+						5.25,
+						9.5,
+						5.75,
+						10.75
+					],
+					"texture": "#0"
+				},
+				"west": {
+					"uv": [
+						6,
+						9.5,
+						6.5,
+						10.75
+					],
+					"texture": "#0"
+				},
+				"up": {
+					"uv": [
+						5.75,
+						11.5,
+						5.25,
+						11
+					],
+					"texture": "#0"
+				},
+				"down": {
+					"uv": [
+						11.5,
+						5.25,
+						11,
+						5.75
+					],
+					"texture": "#0"
+				}
+			}
+		}
+	]
 }

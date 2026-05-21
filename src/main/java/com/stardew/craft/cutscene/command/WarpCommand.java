@@ -42,15 +42,8 @@ public class WarpCommand implements EventCommand {
         if ("player".equals(actorTag)) {
             Minecraft mc = Minecraft.getInstance();
             if (mc.player != null) {
-                double tx = relative ? mc.player.getX() + x : x + ax;
-                double ty = relative ? mc.player.getY() + y : y + ay;
-                double tz = relative ? mc.player.getZ() + z : z + az;
-                // Client-only setPos. Do NOT push to server: in multiplayer that
-                // would teleport the real player so other players see them
-                // overlapping the spawn_actor "fake_player" used for cutscene
-                // visuals. The real player stays where they were; the visible
-                // actor is the fake one.
-                mc.player.setPos(tx, ty, tz);
+                mc.player.setDeltaMovement(net.minecraft.world.phys.Vec3.ZERO);
+                mc.player.fallDistance = 0.0F;
             }
         } else {
             Mob actor = player.getActor(actorTag);

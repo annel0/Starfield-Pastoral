@@ -1,0 +1,57 @@
+{
+  "id": "egg_festival_main_event",
+  "skippable": false,
+  "trigger": { "type": "manual" },
+  "commands": [
+    { "cmd": "lock_player" },
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "fade", "mode": "out", "ticks": 20 },
+    { "cmd": "egg_festival_stage", "stage": "main", "ticks": 10 },
+    { "cmd": "pause", "ticks": 20 },
+
+    { "cmd": "hide_npc", "npc_id": "lewis" },
+    { "cmd": "hide_npc", "npc_id": "abigail" },
+    { "cmd": "hide_npc", "npc_id": "maru" },
+    { "cmd": "hide_npc", "npc_id": "jas" },
+    { "cmd": "hide_npc", "npc_id": "sam" },
+    { "cmd": "hide_npc", "npc_id": "vincent" },
+
+    { "cmd": "spawn_actor", "actor": "lewis", "npc_id": "lewis", "x": 7.5, "y": 64, "z": 4.5, "relative": false, "facing": 0 },
+    { "cmd": "spawn_actor", "actor": "abigail", "npc_id": "abigail", "x": 1.5, "y": 64, "z": 7.5, "relative": false, "facing": 180 },
+    { "cmd": "spawn_actor", "actor": "maru", "npc_id": "maru", "x": 3.5, "y": 64, "z": 7.5, "relative": false, "facing": 180 },
+    { "cmd": "spawn_actor", "actor": "jas", "npc_id": "jas", "x": 5.5, "y": 64, "z": 7.5, "relative": false, "facing": 180 },
+    { "cmd": "spawn_actor", "actor": "sam", "npc_id": "sam", "x": 7.5, "y": 64, "z": 7.5, "relative": false, "facing": 180 },
+    { "cmd": "spawn_actor", "actor": "vincent", "npc_id": "vincent", "x": 9.5, "y": 64, "z": 7.5, "relative": false, "facing": 180 },
+    { "cmd": "egg_festival_players", "action": "spawn_lineup" },
+
+    { "cmd": "camera", "x": 7.531, "y": 68.513, "z": 13.252, "yaw": 179.4, "pitch": 46.5, "relative": false },
+    { "cmd": "fade", "mode": "in", "ticks": 20 },
+    { "cmd": "pause", "ticks": 40 },
+
+    { "cmd": "speak", "npc_id": "lewis", "text": "event.egg_festival.main.intro_1" },
+    { "cmd": "pause", "ticks": 5 },
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "jump", "actor": "jas", "strength": 0.5 },
+      { "cmd": "jump", "actor": "vincent", "strength": 0.5 }
+    ]},
+    { "cmd": "pause", "ticks": 40 },
+    { "cmd": "speak", "npc_id": "lewis", "text": "event.egg_festival.main.intro_2" },
+    { "cmd": "pause", "ticks": 40 },
+    { "cmd": "face_actor", "actor": "lewis", "yaw": 90 },
+    { "cmd": "pause", "ticks": 6 },
+    { "cmd": "face_actor", "actor": "lewis", "yaw": 180 },
+    { "cmd": "pause", "ticks": 6 },
+    { "cmd": "face_actor", "actor": "lewis", "yaw": -90 },
+    { "cmd": "pause", "ticks": 6 },
+    { "cmd": "face_actor", "actor": "lewis", "yaw": 180 },
+    { "cmd": "pause", "ticks": 20 },
+    { "cmd": "speak", "npc_id": "lewis", "text": "event.egg_festival.main.ready" },
+    { "cmd": "pause", "ticks": 40 },
+    { "cmd": "jump", "actor": "lewis", "strength": 0.5 },
+    { "cmd": "pause", "ticks": 40 },
+    { "cmd": "speak", "npc_id": "lewis", "text": "event.egg_festival.main.begin" },
+    { "cmd": "play_sound", "sound": "stardewcraft:whistle" },
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "end" }
+  ]
+}

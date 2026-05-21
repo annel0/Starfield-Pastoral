@@ -1,6 +1,7 @@
 package com.stardew.craft.blockentity;
 
 import com.stardew.craft.museum.MuseumDonationData;
+import com.stardew.craft.museum.MuseumExhibitStandManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -51,6 +52,7 @@ public class MuseumExhibitStandBlockEntity extends BlockEntity {
      */
     public void setDisplayItemForPlayer(UUID playerId, ItemStack stack) {
         if (!(level instanceof ServerLevel serverLevel)) return;
+        if (!MuseumExhibitStandManager.isManagedMuseumStand(serverLevel, worldPosition)) return;
         String standKey = MuseumDonationData.standKey(serverLevel, worldPosition);
         MuseumDonationData data = MuseumDonationData.get(serverLevel);
         if (stack == null || stack.isEmpty()) {
@@ -69,6 +71,7 @@ public class MuseumExhibitStandBlockEntity extends BlockEntity {
      */
     public ItemStack removeDisplayItemForPlayer(UUID playerId) {
         if (!(level instanceof ServerLevel serverLevel)) return ItemStack.EMPTY;
+        if (!MuseumExhibitStandManager.isManagedMuseumStand(serverLevel, worldPosition)) return ItemStack.EMPTY;
         String standKey = MuseumDonationData.standKey(serverLevel, worldPosition);
         MuseumDonationData data = MuseumDonationData.get(serverLevel);
         java.util.Map<String, String> stands = data.getStandDisplayItems(playerId);
@@ -92,6 +95,7 @@ public class MuseumExhibitStandBlockEntity extends BlockEntity {
      */
     public boolean hasDisplayItemForPlayer(UUID playerId) {
         if (!(level instanceof ServerLevel serverLevel)) return false;
+        if (!MuseumExhibitStandManager.isManagedMuseumStand(serverLevel, worldPosition)) return false;
         String standKey = MuseumDonationData.standKey(serverLevel, worldPosition);
         MuseumDonationData data = MuseumDonationData.get(serverLevel);
         java.util.Map<String, String> stands = data.getStandDisplayItems(playerId);

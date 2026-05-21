@@ -4,6 +4,7 @@ import com.stardew.craft.StardewCraft;
 import com.stardew.craft.command.BilibiliClaimCommand;
 import com.stardew.craft.command.CommunityCenterCommand;
 import com.stardew.craft.command.FarmAdminCommand;
+import com.stardew.craft.command.FestivalDebugCommand;
 import com.stardew.craft.command.FarmJoinCommand;
 import com.stardew.craft.command.FriendshipDoorCommand;
 import com.stardew.craft.command.MailDebugCommand;
@@ -43,6 +44,7 @@ public class CommandEventHandler {
         MailDebugCommand.register(event.getDispatcher());
         CommunityCenterCommand.register(event.getDispatcher());
         FarmAdminCommand.register(event.getDispatcher());
+        FestivalDebugCommand.register(event.getDispatcher());
         FriendshipDoorCommand.register(event.getDispatcher());
         com.stardew.craft.command.FarmCaveCommand.register(event.getDispatcher());
         StructureDebugCommand.register(event.getDispatcher());

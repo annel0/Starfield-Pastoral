@@ -1,0 +1,7 @@
+{
+  "parent": "stardewcraft:block/utility/tablecloth_floral_edge_0_none_inner_corner_ne",
+  "textures": {
+    "particle": "stardewcraft:block/decor/common/tablecloth_blank_edge_0_none_inner_corner_ne",
+    "texture": "stardewcraft:block/decor/common/tablecloth_blank_edge_0_none_inner_corner_ne"
+  }
+}

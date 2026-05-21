@@ -1,9 +1,9 @@
 package com.stardew.craft.block.utility;
 
-import com.stardew.craft.block.ModBlocks;
 import com.stardew.craft.blockentity.MuseumExhibitStandBlockEntity;
 import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.museum.MuseumDonationData;
+import com.stardew.craft.museum.MuseumExhibitStandManager;
 import com.stardew.craft.network.MuseumDonationSyncPacket;
 import com.stardew.craft.network.MuseumStandSyncPacket;
 import net.minecraft.core.BlockPos;
@@ -44,10 +44,7 @@ public class MuseumExhibitStandBlock extends MapUtilityStaticBlock implements En
     @SuppressWarnings("null")
     @Override
     protected List<ItemStack> getDrops(@SuppressWarnings("null") BlockState state, @SuppressWarnings("null") LootParams.Builder params) {
-        if (state.getValue(PART) == Part.EXTENSION) {
-            return List.of();
-        }
-        return List.of(new ItemStack(ModBlocks.MUSEUM_EXHIBIT_STAND.get()));
+        return List.of();
     }
 
     @SuppressWarnings("null")
@@ -80,6 +77,10 @@ public class MuseumExhibitStandBlock extends MapUtilityStaticBlock implements En
 
         if (!(level instanceof ServerLevel serverLevel)) {
             return InteractionResult.SUCCESS;
+        }
+
+        if (!MuseumExhibitStandManager.isManagedMuseumStand(serverLevel, pos)) {
+            return InteractionResult.PASS;
         }
 
         BlockEntity be = level.getBlockEntity(pos);
@@ -126,6 +127,10 @@ public class MuseumExhibitStandBlock extends MapUtilityStaticBlock implements En
 
         if (!(level instanceof ServerLevel serverLevel)) {
             return net.minecraft.world.ItemInteractionResult.sidedSuccess(true);
+        }
+
+        if (!MuseumExhibitStandManager.isManagedMuseumStand(serverLevel, pos)) {
+            return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
 
         BlockEntity be = level.getBlockEntity(pos);
@@ -181,7 +186,9 @@ public class MuseumExhibitStandBlock extends MapUtilityStaticBlock implements En
         ItemStack toDisplay = stack.copy();
         toDisplay.setCount(1);
         stand.setDisplayItemForPlayer(playerId, toDisplay);
-        data.markSessionPendingItem(playerId, itemId);
+        if (!data.isDonated(playerId, itemId)) {
+            data.markSessionPendingItem(playerId, itemId);
+        }
 
         if (!player.getAbilities().instabuild) {
             stack.shrink(1);
@@ -207,21 +214,14 @@ public class MuseumExhibitStandBlock extends MapUtilityStaticBlock implements En
      * Sync all museum stand display items for a specific player.
      */
     public static void syncStands(ServerLevel serverLevel, MuseumDonationData data, ServerPlayer player) {
+        data.ensureManagedStandLayout(serverLevel, player.getUUID());
         java.util.Map<String, String> stands = data.getStandDisplayItems(player.getUUID());
-        String dimPrefix = serverLevel.dimension().location().toString() + "|";
         java.util.Map<BlockPos, String> posItems = new java.util.HashMap<>();
         for (java.util.Map.Entry<String, String> entry : stands.entrySet()) {
-            String key = entry.getKey();
-            if (key == null || !key.startsWith(dimPrefix)) continue;
-            String coordPart = key.substring(dimPrefix.length());
-            String[] parts = coordPart.split(",");
-            if (parts.length != 3) continue;
-            try {
-                int x = Integer.parseInt(parts[0]);
-                int y = Integer.parseInt(parts[1]);
-                int z = Integer.parseInt(parts[2]);
-                posItems.put(new BlockPos(x, y, z), entry.getValue());
-            } catch (NumberFormatException ignored) {}
+            BlockPos standPos = MuseumExhibitStandManager.parseManagedStandPos(serverLevel.dimension(), entry.getKey());
+            if (standPos != null) {
+                posItems.put(standPos, entry.getValue());
+            }
         }
         PacketDistributor.sendToPlayer(player, new MuseumStandSyncPacket(posItems));
     }

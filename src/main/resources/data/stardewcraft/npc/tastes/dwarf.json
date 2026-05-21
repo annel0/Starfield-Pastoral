@@ -1,7 +1,6 @@
 {
   "npc_id": "dwarf",
   "_vanilla_ref": "554=Lemon Stone 60=Emerald 62=Aquamarine 64=Ruby 66=Amethyst 68=Topaz 70=Jade 749=Omni Geode 162=Lava Eel",
-
   "loved": [
     "stardewcraft:lemon_stone",
     "stardewcraft:emerald",
@@ -13,23 +12,59 @@
     "stardewcraft:omni_geode",
     "stardewcraft:lava_eel"
   ],
-
   "liked": [
+    "stardewcraft:cave_carrot",
     "stardewcraft:fire_quartz",
     "stardewcraft:frozen_tear",
     "stardewcraft:earth_crystal",
+    "stardewcraft:dwarf_scroll_i",
+    "stardewcraft:dwarf_scroll_ii",
+    "stardewcraft:dwarf_scroll_iii",
+    "stardewcraft:dwarf_scroll_iv",
     "stardewcraft:dwarvish_helm",
     "stardewcraft:dwarf_gadget"
   ],
-  "_liked_not_yet_in_mod": ["cave_carrot(78)", "dwarf_scroll_i(96)", "dwarf_scroll_ii(97)", "dwarf_scroll_iii(98)", "dwarf_scroll_iv(99)"],
-
-  "neutral": [],
-
-  "disliked": [],
+  "neutral": [
+    "stardewcraft:milk",
+    "stardewcraft:large_milk",
+    "stardewcraft:goat_milk",
+    "stardewcraft:large_goat_milk",
+    "stardewcraft:bug_meat",
+    "stardewcraft:slime_item",
+    "stardewcraft:bat_wing",
+    "stardewcraft:solar_essence",
+    "stardewcraft:void_essence"
+  ],
+  "disliked": [
+    "stardewcraft:wild_horseradish",
+    "stardewcraft:clay",
+    "stardewcraft:egg_brown",
+    "stardewcraft:large_egg_brown",
+    "stardewcraft:egg_white",
+    "stardewcraft:large_egg_white",
+    "stardewcraft:void_egg",
+    "stardewcraft:duck_egg",
+    "stardewcraft:ostrich_egg",
+    "stardewcraft:golden_egg",
+    "stardewcraft:daffodil",
+    "stardewcraft:leek",
+    "stardewcraft:dandelion",
+    "stardewcraft:sap",
+    "stardewcraft:morel",
+    "stardewcraft:chanterelle",
+    "stardewcraft:holly",
+    "stardewcraft:spring_onion",
+    "stardewcraft:common_mushroom",
+    "stardewcraft:hazelnut",
+    "stardewcraft:winter_root",
+    "stardewcraft:snow_yam",
+    "stardewcraft:red_mushroom",
+    "stardewcraft:purple_mushroom",
+    "stardewcraft:ginger",
+    "stardewcraft:magma_cap"
+  ],
   "_disliked_vanilla_note": "SDV dislikes: eggs category, Wild Horseradish(16), fish category, Clay(330) — most not yet category-tagged in mod",
-
   "hated": [],
-
   "loved_msg": "Hey, I really love this stuff. You can find great things in the mines.",
   "liked_msg": "Ah, this reminds me of home.",
   "neutral_msg": "An offering! Thank you.",

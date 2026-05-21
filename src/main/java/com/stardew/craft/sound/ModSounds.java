@@ -72,6 +72,7 @@ public final class ModSounds {
 	public static final DeferredHolder<SoundEvent, SoundEvent> BUTTON1 = register("button1");
 	public static final DeferredHolder<SoundEvent, SoundEvent> HAMMER = register("hammer");
 	public static final DeferredHolder<SoundEvent, SoundEvent> COIN = register("coin");
+	public static final DeferredHolder<SoundEvent, SoundEvent> WHISTLE = register("whistle");
 	public static final DeferredHolder<SoundEvent, SoundEvent> MONEY_DIAL = register("money_dial");
 	public static final DeferredHolder<SoundEvent, SoundEvent> TRASHCANLID = register("trashcanlid");
 	public static final DeferredHolder<SoundEvent, SoundEvent> TRASHCAN = register("trashcan");
@@ -192,6 +193,9 @@ public final class ModSounds {
 	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_CLUBLOOP = register("music_clubloop");
     public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_OCEAN_AMBIENCE = register("music_ocean_ambience");
 	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_GRANDPAS_THEME = register("music_grandpas_theme");
+	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_EVENT1 = register("music_event1");
+	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_TICK_TOCK = register("music_tick_tock");
+	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_FALL_FEST = register("music_fall_fest");
     // Desert / Oasis
     public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_DESERT = register("music_desert");
     public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_OASIS = register("music_oasis");

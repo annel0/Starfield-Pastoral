@@ -430,10 +430,10 @@ public class ModClientEvents {
         // ── During cutscene: suppress all player input, freeze movement ──
         if (com.stardew.craft.cutscene.runtime.EventPlayer.get().isPlayerFrozen()
             || com.stardew.craft.client.ritual.GalaxySwordRitualClientState.isPlayerFrozen()) {
-            // Stop horizontal movement while preserving gravity, so cutscenes don't leave
-            // the real player hovering long enough for server fly checks to kick them.
-            net.minecraft.world.phys.Vec3 movement = mc.player.getDeltaMovement();
-            mc.player.setDeltaMovement(0.0D, movement.y, 0.0D);
+            // The server places cutscene players in spectator mode; keep the client-side
+            // body fixed too so local camera/player commands never accumulate fall state.
+            mc.player.setDeltaMovement(net.minecraft.world.phys.Vec3.ZERO);
+            mc.player.fallDistance = 0.0F;
             mc.player.xxa = 0;
             mc.player.zza = 0;
             // Absorb continuous attacks block breaking during cutscenes

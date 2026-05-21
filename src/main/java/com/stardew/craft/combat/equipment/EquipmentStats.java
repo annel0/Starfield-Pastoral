@@ -24,7 +24,7 @@ public class EquipmentStats {
     private int attack = 0;           // 攻击加成
     private float critChance = 0;     // 暴击率加成
     private float critPower = 0;      // 暴击伤害加成
-    private int magneticRadius = 0;   // 磁力半径
+    private int magneticRadius = 0;   // 磁力半径（格）
     private float knockbackBonus = 0; // 击退加成
     private float luck = 0;           // 幸运加成
     private int lightLevel = 0;       // 光源等级 (SDV Glow Ring)

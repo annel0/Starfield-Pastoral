@@ -46,6 +46,10 @@ public record ItemPickupHudPacket(ItemStack stack, int count, boolean expensive)
 
     @SuppressWarnings("null")
     public static void sendTo(ServerPlayer player, ItemStack stack, int count, boolean expensive) {
-        PacketDistributor.sendToPlayer(player, new ItemPickupHudPacket(stack.copyWithCount(Math.max(1, count)), count, expensive));
+        if (player == null || stack == null || stack.isEmpty()) {
+            return;
+        }
+        int displayCount = Math.max(1, count);
+        PacketDistributor.sendToPlayer(player, new ItemPickupHudPacket(stack.copyWithCount(displayCount), displayCount, expensive));
     }
 }

@@ -371,6 +371,8 @@ public class StardewCraft {
                 output.accept(ModItems.TABLEWARE_BLUE.get());
                 output.accept(ModItems.PINK_TABLECLOTH.get());
                 output.accept(ModItems.SKY_BLUE_TABLECLOTH.get());
+                output.accept(ModItems.FLORAL_TABLECLOTH.get());
+                output.accept(ModItems.BLANK_TABLECLOTH.get());
                 // 灯具
                 output.accept(ModItems.LIGHT_1.get());
                 output.accept(ModItems.LIGHT_2.get());

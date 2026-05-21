@@ -151,6 +151,14 @@ public record CutsceneServerActionPayload(String action, String value) implement
                     }
                     LOGGER.debug("Cutscene teleported {} to CC interior", player.getName().getString());
                 }
+                case "egg_festival_award_complete" -> {
+                    com.stardew.craft.festival.EggFestivalService.onCutsceneCompleted(player, "egg_festival_award");
+                    LOGGER.debug("Cutscene completed Egg Festival award for {}", player.getName().getString());
+                }
+                case "egg_festival_blackout" -> {
+                    com.stardew.craft.festival.EggFestivalService.onCutsceneBlackout(player, payload.value);
+                    LOGGER.debug("Cutscene prepared Egg Festival {} stage for {}", payload.value, player.getName().getString());
+                }
                 default -> LOGGER.warn("Unknown cutscene server action: {}", payload.action);
             }
         });

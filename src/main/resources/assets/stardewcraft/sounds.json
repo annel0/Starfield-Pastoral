@@ -464,6 +464,14 @@
       }
     ]
   },
+  "whistle": {
+    "sounds": [
+      {
+        "name": "stardewcraft:whistle",
+        "stream": false
+      }
+    ]
+  },
   "weapon.meow": {
     "sounds": [
       {
@@ -1243,6 +1251,30 @@
     "sounds": [
       {
         "name": "stardewcraft:music/grandpas_theme",
+        "stream": true
+      }
+    ]
+  },
+  "music_event1": {
+    "sounds": [
+      {
+        "name": "stardewcraft:music/event1",
+        "stream": true
+      }
+    ]
+  },
+  "music_tick_tock": {
+    "sounds": [
+      {
+        "name": "stardewcraft:music/tick_tock",
+        "stream": true
+      }
+    ]
+  },
+  "music_fall_fest": {
+    "sounds": [
+      {
+        "name": "stardewcraft:music/fall_fest",
         "stream": true
       }
     ]

@@ -110,7 +110,6 @@ public final class ShopRegistry {
                 entry("stardewcraft:tulip_seeds",       20,  SPRING),
                 entry("stardewcraft:kale_seeds",        70,  SPRING),
                 entry("stardewcraft:blue_jazz_seeds",   30,  SPRING),
-                entry("stardewcraft:strawberry_seeds", 100,  SPRING),
                 entryYear("stardewcraft:garlic_seeds",  40,  SPRING, 2),
 
                 // ---- Summer ----
@@ -592,7 +591,9 @@ public final class ShopRegistry {
             List.of(
                 entryAllSeasons("stardewcraft:lawn_flamingo", 400),
                 entryStock("stardewcraft:plush_bunny", 2000, 1),
-                entryAllSeasons("stardewcraft:pastel_banner", 1000)
+                entryAllSeasons("stardewcraft:strawberry_seeds", 100),
+                entryAllSeasons("stardewcraft:pastel_banner", 1000),
+                entryAllSeasons("stardewcraft:standing_hoe", 1000)
             ),
             Set.of()
         ));

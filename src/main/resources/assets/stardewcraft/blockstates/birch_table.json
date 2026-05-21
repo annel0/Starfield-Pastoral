@@ -715,6 +715,1524 @@
       "apply": {
         "model": "stardewcraft:block/utility/oak_table_cloth_sky_edge_4_nesw"
       }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "false",
+        "south_east_connected": "false",
+        "south_west_connected": "false",
+        "north_west_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_0_none_inner_corners"
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "true",
+        "south_east_connected": "false",
+        "south_west_connected": "false",
+        "north_west_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_0_none_inner_corner_ne_se_sw",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "false",
+        "south_east_connected": "true",
+        "south_west_connected": "false",
+        "north_west_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_0_none_inner_corner_ne_se_sw",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "true",
+        "south_east_connected": "true",
+        "south_west_connected": "false",
+        "north_west_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_0_none_inner_corner_ne_se",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "false",
+        "south_east_connected": "false",
+        "south_west_connected": "true",
+        "north_west_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_0_none_inner_corner_ne_se_sw",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "true",
+        "south_east_connected": "false",
+        "south_west_connected": "true",
+        "north_west_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_0_none_inner_corner_ne_sw",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "false",
+        "south_east_connected": "true",
+        "south_west_connected": "true",
+        "north_west_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_0_none_inner_corner_ne_se",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "true",
+        "south_east_connected": "true",
+        "south_west_connected": "true",
+        "north_west_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_0_none_inner_corner_ne",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "false",
+        "south_east_connected": "false",
+        "south_west_connected": "false",
+        "north_west_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_0_none_inner_corner_ne_se_sw",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "true",
+        "south_east_connected": "false",
+        "south_west_connected": "false",
+        "north_west_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_0_none_inner_corner_ne_se",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "false",
+        "south_east_connected": "true",
+        "south_west_connected": "false",
+        "north_west_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_0_none_inner_corner_ne_sw",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "true",
+        "south_east_connected": "true",
+        "south_west_connected": "false",
+        "north_west_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_0_none_inner_corner_ne",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "false",
+        "south_east_connected": "false",
+        "south_west_connected": "true",
+        "north_west_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_0_none_inner_corner_ne_se",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "true",
+        "south_east_connected": "false",
+        "south_west_connected": "true",
+        "north_west_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_0_none_inner_corner_ne",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "false",
+        "south_east_connected": "true",
+        "south_west_connected": "true",
+        "north_west_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_0_none_inner_corner_ne",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "true",
+        "south_east_connected": "true",
+        "south_west_connected": "true",
+        "north_west_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_0_none"
+      }
+    },
+    {
+      "when": {
+        "north_connected": "false",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "south_west_connected": "true",
+        "south_east_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_1_n",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "north_connected": "false",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "south_west_connected": "false",
+        "south_east_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_1_e_inner_corner_nw",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "north_connected": "false",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "south_west_connected": "true",
+        "south_east_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_1_e_inner_corner_sw",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "north_connected": "false",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "south_west_connected": "false",
+        "south_east_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_1_e_inner_corner_nw_sw",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "false",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_west_connected": "true",
+        "south_west_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_1_n",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "false",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_west_connected": "false",
+        "south_west_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_1_e_inner_corner_nw",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "false",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_west_connected": "true",
+        "south_west_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_1_e_inner_corner_sw",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "false",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_west_connected": "false",
+        "south_west_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_1_e_inner_corner_nw_sw",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "false",
+        "north_east_connected": "true",
+        "north_west_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_1_n",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "false",
+        "north_east_connected": "false",
+        "north_west_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_1_e_inner_corner_nw",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "false",
+        "north_east_connected": "true",
+        "north_west_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_1_e_inner_corner_sw",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "false",
+        "north_east_connected": "false",
+        "north_west_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_1_e_inner_corner_nw_sw",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "false",
+        "south_connected": "true",
+        "south_east_connected": "true",
+        "north_east_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_1_n",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "false",
+        "south_connected": "true",
+        "south_east_connected": "false",
+        "north_east_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_1_e_inner_corner_nw",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "false",
+        "south_connected": "true",
+        "south_east_connected": "true",
+        "north_east_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_1_e_inner_corner_sw",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "false",
+        "south_connected": "true",
+        "south_east_connected": "false",
+        "north_east_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_1_e_inner_corner_nw_sw",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "north_connected": "false",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "false",
+        "west_connected": "true",
+        "south_connected": "true",
+        "south_west_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_2_ne",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "north_connected": "false",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "false",
+        "west_connected": "true",
+        "south_connected": "true",
+        "south_west_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_2_ne_inner_corner_sw",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "false",
+        "west_connected": "true",
+        "south_connected": "false",
+        "north_west_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_2_ne",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "false",
+        "west_connected": "true",
+        "south_connected": "false",
+        "north_west_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_2_ne_inner_corner_sw",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "false",
+        "south_connected": "false",
+        "north_east_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_2_ne",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "false",
+        "south_connected": "false",
+        "north_east_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_2_ne_inner_corner_sw",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "north_connected": "false",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "false",
+        "south_connected": "true",
+        "south_east_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_2_ne",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "north_connected": "false",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "false",
+        "south_connected": "true",
+        "south_east_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_2_ne_inner_corner_sw",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "false",
+        "west_connected": "false",
+        "south_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_2_ew",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "north_connected": "false",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_2_ew",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north_connected": "false",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "false",
+        "west_connected": "true",
+        "south_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_3_nes",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "false",
+        "west_connected": "false",
+        "south_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_3_nes",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north_connected": "false",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "true",
+        "west_connected": "false",
+        "south_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_3_nes",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "north_connected": "false",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "false",
+        "west_connected": "false",
+        "south_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_3_nes",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "north_connected": "false",
+        "has_cloth": "true",
+        "cloth_style": "2",
+        "east_connected": "false",
+        "west_connected": "false",
+        "south_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_floral_edge_4_news"
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "false",
+        "south_east_connected": "false",
+        "south_west_connected": "false",
+        "north_west_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_0_none_inner_corners"
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "true",
+        "south_east_connected": "false",
+        "south_west_connected": "false",
+        "north_west_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_0_none_inner_corner_ne_se_sw",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "false",
+        "south_east_connected": "true",
+        "south_west_connected": "false",
+        "north_west_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_0_none_inner_corner_ne_se_sw",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "true",
+        "south_east_connected": "true",
+        "south_west_connected": "false",
+        "north_west_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_0_none_inner_corner_ne_se",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "false",
+        "south_east_connected": "false",
+        "south_west_connected": "true",
+        "north_west_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_0_none_inner_corner_ne_se_sw",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "true",
+        "south_east_connected": "false",
+        "south_west_connected": "true",
+        "north_west_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_0_none_inner_corner_ne_sw",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "false",
+        "south_east_connected": "true",
+        "south_west_connected": "true",
+        "north_west_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_0_none_inner_corner_ne_se",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "true",
+        "south_east_connected": "true",
+        "south_west_connected": "true",
+        "north_west_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_0_none_inner_corner_ne",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "false",
+        "south_east_connected": "false",
+        "south_west_connected": "false",
+        "north_west_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_0_none_inner_corner_ne_se_sw",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "true",
+        "south_east_connected": "false",
+        "south_west_connected": "false",
+        "north_west_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_0_none_inner_corner_ne_se",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "false",
+        "south_east_connected": "true",
+        "south_west_connected": "false",
+        "north_west_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_0_none_inner_corner_ne_sw",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "true",
+        "south_east_connected": "true",
+        "south_west_connected": "false",
+        "north_west_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_0_none_inner_corner_ne",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "false",
+        "south_east_connected": "false",
+        "south_west_connected": "true",
+        "north_west_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_0_none_inner_corner_ne_se",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "true",
+        "south_east_connected": "false",
+        "south_west_connected": "true",
+        "north_west_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_0_none_inner_corner_ne",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "false",
+        "south_east_connected": "true",
+        "south_west_connected": "true",
+        "north_west_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_0_none_inner_corner_ne",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_east_connected": "true",
+        "south_east_connected": "true",
+        "south_west_connected": "true",
+        "north_west_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_0_none"
+      }
+    },
+    {
+      "when": {
+        "north_connected": "false",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "south_west_connected": "true",
+        "south_east_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_1_n",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "north_connected": "false",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "south_west_connected": "false",
+        "south_east_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_1_e_inner_corner_nw",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "north_connected": "false",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "south_west_connected": "true",
+        "south_east_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_1_e_inner_corner_sw",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "north_connected": "false",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "true",
+        "south_west_connected": "false",
+        "south_east_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_1_e_inner_corner_nw_sw",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "false",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_west_connected": "true",
+        "south_west_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_1_n",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "false",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_west_connected": "false",
+        "south_west_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_1_e_inner_corner_nw",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "false",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_west_connected": "true",
+        "south_west_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_1_e_inner_corner_sw",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "false",
+        "west_connected": "true",
+        "south_connected": "true",
+        "north_west_connected": "false",
+        "south_west_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_1_e_inner_corner_nw_sw",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "false",
+        "north_east_connected": "true",
+        "north_west_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_1_n",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "false",
+        "north_east_connected": "false",
+        "north_west_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_1_e_inner_corner_nw",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "false",
+        "north_east_connected": "true",
+        "north_west_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_1_e_inner_corner_sw",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "false",
+        "north_east_connected": "false",
+        "north_west_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_1_e_inner_corner_nw_sw",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "false",
+        "south_connected": "true",
+        "south_east_connected": "true",
+        "north_east_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_1_n",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "false",
+        "south_connected": "true",
+        "south_east_connected": "false",
+        "north_east_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_1_e_inner_corner_nw",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "false",
+        "south_connected": "true",
+        "south_east_connected": "true",
+        "north_east_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_1_e_inner_corner_sw",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "false",
+        "south_connected": "true",
+        "south_east_connected": "false",
+        "north_east_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_1_e_inner_corner_nw_sw",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "north_connected": "false",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "false",
+        "west_connected": "true",
+        "south_connected": "true",
+        "south_west_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_2_ne",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "north_connected": "false",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "false",
+        "west_connected": "true",
+        "south_connected": "true",
+        "south_west_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_2_ne_inner_corner_sw",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "false",
+        "west_connected": "true",
+        "south_connected": "false",
+        "north_west_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_2_ne",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "false",
+        "west_connected": "true",
+        "south_connected": "false",
+        "north_west_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_2_ne_inner_corner_sw",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "false",
+        "south_connected": "false",
+        "north_east_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_2_ne",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "false",
+        "south_connected": "false",
+        "north_east_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_2_ne_inner_corner_sw",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "north_connected": "false",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "false",
+        "south_connected": "true",
+        "south_east_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_2_ne",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "north_connected": "false",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "false",
+        "south_connected": "true",
+        "south_east_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_2_ne_inner_corner_sw",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "false",
+        "west_connected": "false",
+        "south_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_2_ew",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "north_connected": "false",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "true",
+        "south_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_2_ew",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north_connected": "false",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "false",
+        "west_connected": "true",
+        "south_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_3_nes",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "north_connected": "true",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "false",
+        "west_connected": "false",
+        "south_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_3_nes",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north_connected": "false",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "true",
+        "west_connected": "false",
+        "south_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_3_nes",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "north_connected": "false",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "false",
+        "west_connected": "false",
+        "south_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_3_nes",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "north_connected": "false",
+        "has_cloth": "true",
+        "cloth_style": "3",
+        "east_connected": "false",
+        "west_connected": "false",
+        "south_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/tablecloth_blank_edge_4_news"
+      }
     }
   ]
 }

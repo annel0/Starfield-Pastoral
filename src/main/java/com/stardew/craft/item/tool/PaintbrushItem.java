@@ -1,6 +1,8 @@
 package com.stardew.craft.item.tool;
 
 import com.stardew.craft.block.ModBlocks;
+import com.stardew.craft.block.utility.OakTableBlock;
+import com.stardew.craft.blockentity.TableDisplayBlockEntity;
 import com.stardew.craft.deco.DecorationService;
 import com.stardew.craft.deco.DecorationType;
 import com.stardew.craft.item.IStardewItem;
@@ -45,6 +47,21 @@ public class PaintbrushItem extends Item implements IStardewItem {
         }
 
         if (type == null) {
+            if (context.getPlayer() != null && context.getPlayer().isShiftKeyDown()
+                && clicked.getBlock() instanceof OakTableBlock
+                && clicked.hasProperty(OakTableBlock.HAS_CLOTH)
+                && clicked.hasProperty(OakTableBlock.CLOTH_STYLE)
+                && clicked.getValue(OakTableBlock.HAS_CLOTH)
+                && OakTableBlock.isDyeableClothStyle(clicked.getValue(OakTableBlock.CLOTH_STYLE))) {
+                if (level.isClientSide) {
+                    return InteractionResult.SUCCESS;
+                }
+                if (context.getPlayer() instanceof ServerPlayer serverPlayer
+                    && level.getBlockEntity(pos) instanceof TableDisplayBlockEntity tableBe) {
+                    PacketDistributor.sendToPlayer(serverPlayer, new OpenSofaColorScreenPayload(pos, tableBe.getClothColor()));
+                    return InteractionResult.CONSUME;
+                }
+            }
             if (clicked.getBlock() == ModBlocks.SOFA.get()) {
                 if (level.isClientSide) {
                     return InteractionResult.SUCCESS;

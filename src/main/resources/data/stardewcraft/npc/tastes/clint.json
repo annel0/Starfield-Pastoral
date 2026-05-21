@@ -10,21 +10,37 @@
     "stardewcraft:jade",
     "stardewcraft:gold_bar",
     "stardewcraft:iridium_bar",
+    "stardewcraft:artichoke_dip",
+    "stardewcraft:fiddlehead_risotto",
     "stardewcraft:omni_geode"
-  ],
-  "_loved_not_yet_in_mod": [
-    "artichoke_dip(605)",
-    "fiddlehead_risotto(649)"
   ],
   "liked": [
     "stardewcraft:copper_bar",
-    "stardewcraft:iron_bar",
-    "stardewcraft:gold_ore"
+    "stardewcraft:iron_bar"
   ],
-  "neutral": [],
+  "neutral": [
+    "stardewcraft:refined_quartz",
+    "stardewcraft:copper_ore",
+    "stardewcraft:iron_ore",
+    "stardewcraft:coal",
+    "stardewcraft:gold_ore",
+    "stardewcraft:iridium_ore",
+    "stardewcraft:cinder_shard",
+    "stardewcraft:bone_fragment",
+    "stardewcraft:radioactive_ore",
+    "stardewcraft:radioactive_bar"
+  ],
   "disliked": [
+    "stardewcraft:wild_horseradish",
     "stardewcraft:quartz",
-    "stardewcraft:holly"
+    "stardewcraft:sweet_pea",
+    "stardewcraft:crocus",
+    "stardewcraft:sunflower",
+    "stardewcraft:tulip",
+    "stardewcraft:summer_spangle",
+    "stardewcraft:fairy_rose",
+    "stardewcraft:blue_jazz",
+    "stardewcraft:poppy"
   ],
   "hated": [],
   "loved_categories": [],
