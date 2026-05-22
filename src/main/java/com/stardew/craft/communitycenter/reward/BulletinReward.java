@@ -65,7 +65,8 @@ public final class BulletinReward {
             if (profile.datable()) continue;
 
             String npcId = entry.getKey();
-            mgr.getOrCreate(uuid, npcId).addPoints(FRIENDSHIP_BOOST, MAX_POINTS_NON_DATABLE);
+            int amount = com.stardew.craft.book.BookPowerEffects.applyFriendshipGain(data, FRIENDSHIP_BOOST);
+            mgr.getOrCreate(uuid, npcId).addPoints(amount, MAX_POINTS_NON_DATABLE);
             boosted++;
         }
         mgr.setDirty();

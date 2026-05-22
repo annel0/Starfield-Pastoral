@@ -545,6 +545,8 @@ public class HoeItem extends Item implements IStardewItem {
                 drops = new ArrayList<>(drops);
                 drops.addAll(com.stardew.craft.manager.ArtifactDropService.rollAllDrops(level, tilledPos, player));
             }
+            com.stardew.craft.book.BookAcquisitionService.recordArtifactSpotDugAndMaybeAddDefenseBook(
+                    player, drops, level.random);
             for (ItemStack drop : drops) {
                 if (!drop.isEmpty()) {
                     Block.popResource(level, tilledPos.above(), drop);

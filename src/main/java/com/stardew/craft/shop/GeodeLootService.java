@@ -1,6 +1,7 @@
 package com.stardew.craft.shop;
 
 import com.stardew.craft.item.ModItems;
+import com.stardew.craft.book.BookAcquisitionService;
 import com.stardew.craft.network.ItemPickupHudPacket;
 import com.stardew.craft.network.payload.GeodeCrackResultPayload;
 import com.stardew.craft.player.PlayerStardewDataAPI;
@@ -254,6 +255,7 @@ public class GeodeLootService {
     private static ItemStack getMysteryBoxTreasure(String geodeType, Random r, ServerPlayer player) {
         boolean isGolden = "golden_mystery_box".equals(geodeType);
         double rareMod = isGolden ? 2.0 : 1.0;
+        BookAcquisitionService.recordMysteryBoxOpened(player);
 
         // SDV: rare pool only if opened > 10 or golden
         // We simplify: always enable for golden, require some usage otherwise
@@ -280,6 +282,10 @@ public class GeodeLootService {
             // SDV: 0.8% × rareMod → Treasure Chest
             if (r.nextDouble() < 0.008 * rareMod) {
                 return new ItemStack(ModItems.TREASURE_CHEST.get());
+            }
+            ItemStack book = BookAcquisitionService.rollMysteryBoxBook(player, r, rareMod);
+            if (!book.isEmpty()) {
+                return book;
             }
             // SDV: 1% × rareMod → Pearl / Golden Pumpkin (我们没有golden_pumpkin，只给pearl)
             if (r.nextDouble() < 0.01 * rareMod) {

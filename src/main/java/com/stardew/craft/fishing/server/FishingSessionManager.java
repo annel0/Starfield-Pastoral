@@ -8,6 +8,7 @@ import com.stardew.craft.enchantment.StardewEnchantments;
 import com.stardew.craft.item.tool.FishingRodItem;
 import com.stardew.craft.fishing.network.FishingCatchVisualPayload;
 import com.stardew.craft.fishing.network.FishingFailVisualPayload;
+import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.PlayerStardewDataAPI;
 import com.stardew.craft.player.SkillType;
 import com.stardew.craft.sound.ModSounds;
@@ -747,6 +748,10 @@ public final class FishingSessionManager {
 				dailyLuck,
 				player
 		);
+		com.stardew.craft.book.BookPowerEffects.tryAddRoeTreasure(
+				PlayerDataManager.getPlayerData(player), loot, session.plannedCatch(), player.getRandom());
+		com.stardew.craft.book.BookAcquisitionService.recordFishingTreasureAndMaybeAddRoeBook(
+				player, loot, player.getRandom());
 
 		// 保存战利品到session
 		session.setTreasureLoot(loot);

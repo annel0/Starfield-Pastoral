@@ -29,6 +29,7 @@ public class ClientPlayerDataCache {
     private static final java.util.Map<String, Integer> recipeCraftCounts = new java.util.HashMap<>();
     private static final java.util.Set<String> mailFlags = new java.util.HashSet<>();
     private static final java.util.Set<String> specialItems = new java.util.HashSet<>();
+    private static final java.util.Map<String, Integer> stats = new java.util.HashMap<>();
     private static int maxMineFloorReached = 0;
 
     // 临时Buff（客户端显示/计算用）
@@ -162,6 +163,17 @@ public class ClientPlayerDataCache {
             for (int i = 0; i < itemList.size(); i++) {
                 String itemId = itemList.getString(i);
                 if (!itemId.isBlank()) specialItems.add(itemId);
+            }
+        }
+
+        stats.clear();
+        if (nbt.contains("Stats", Tag.TAG_COMPOUND)) {
+            CompoundTag statsTag = nbt.getCompound("Stats");
+            for (String key : statsTag.getAllKeys()) {
+                int value = Math.max(0, statsTag.getInt(key));
+                if (!key.isBlank() && value > 0) {
+                    stats.put(key, value);
+                }
             }
         }
 
@@ -345,6 +357,17 @@ public class ClientPlayerDataCache {
         return new java.util.HashSet<>(specialItems);
     }
 
+    public static int getStat(String key) {
+        if (key == null || key.isBlank()) {
+            return 0;
+        }
+        return Math.max(0, stats.getOrDefault(key, 0));
+    }
+
+    public static boolean hasStat(String key) {
+        return getStat(key) > 0;
+    }
+
     // Equipment getters/setters
     public static String getEquippedLeftRing() { return equippedLeftRing; }
     public static String getEquippedRightRing() { return equippedRightRing; }
@@ -374,6 +397,7 @@ public class ClientPlayerDataCache {
         recipeCraftCounts.clear();
         mailFlags.clear();
         specialItems.clear();
+        stats.clear();
         maxMineFloorReached = 0;
         hasFarm = false;
         farmName = "";

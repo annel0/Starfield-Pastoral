@@ -1,11 +1,9 @@
 package com.stardew.craft.client;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.economy.sell.ProfessionSellPriceService;
-import com.stardew.craft.economy.sell.SellQuote;
-import com.stardew.craft.economy.sell.SellSource;
 import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.item.ModItems;
+import com.stardew.craft.item.StardewBookItem;
 import com.stardew.craft.item.weapon.IStardewWeapon;
 import com.stardew.craft.item.weapon.WeaponData;
 import com.stardew.craft.item.weapon.WeaponSkillData;
@@ -51,6 +49,10 @@ public class ModClientEvents {
     public static void onItemTooltip(ItemTooltipEvent event) {
         ItemStack stack = event.getItemStack();
         if (stack.getItem() instanceof IStardewItem stardewItem) {
+            if (stack.getItem() instanceof StardewBookItem) {
+                return;
+            }
+
             List<Component> tooltip = event.getToolTip();
 
             // 喷壶把“水量”存进耐久度系统里，因�?F3+H(高级提示) 会额外显示“耐久度：x/y”�?
@@ -209,40 +211,7 @@ public class ModClientEvents {
                 }
             }
             
-                // 第二行：单价（与服务端结算复用同一职业报价逻辑）
-                SellQuote quote = ProfessionSellPriceService.quoteItemForProfessionNames(
-                    new java.util.HashSet<>(ClientPlayerDataCache.getProfessions()), stack, SellSource.SHOP_COUNTER);
-                int sellPrice = quote.finalUnitPrice();
-                boolean hidePriceLine = stack.getItem() == ModItems.SKULL_KEY.get()
-                    || stack.getItem() == ModItems.DWARVISH_TRANSLATION_GUIDE.get()
-                    || stack.getItem() == ModItems.RUSTY_KEY.get()
-                        || stack.getItem() == ModItems.WARP_WAND.get()
-                        || stack.getItem() == ModItems.STARDROP.get()
-                        || stack.getItem() == ModItems.IRIDIUM_MILK.get();
-                if (hidePriceLine) {
-                    // 骷髅钥匙：不显示单价行
-                } else if (sellPrice > 0) {
-                 customLines.add(Component.translatable("stardewcraft.tooltip.price")
-                         .append(": ")
-                         .append(Component.literal(TooltipConstants.ICON_MONEY).withStyle(ChatFormatting.WHITE)) // 图标
-                         .append(Component.literal(" " + sellPrice + " G").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD)));
-            } else {
-                customLines.add(Component.translatable("stardewcraft.tooltip.price")
-                        .append(": ")
-                        .append(Component.literal("X ").withStyle(ChatFormatting.RED))
-                        .append(Component.translatable("stardewcraft.tooltip.not_sellable").withStyle(ChatFormatting.RED, ChatFormatting.BOLD)));
-            }
-            
-            // 第三行：总价 (如果堆叠数量 > 1)
-            if (stack.getCount() > 1 && sellPrice > 0) {
-                long totalPrice = (long) sellPrice * stack.getCount();
-                customLines.add(Component.translatable("stardewcraft.tooltip.total_price")
-                         .append(": ")
-                         .append(Component.literal(TooltipConstants.ICON_MONEY).withStyle(ChatFormatting.WHITE))
-                         .append(Component.literal(" " + totalPrice + " G").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD)));
-            }
-
-            // Tool: watering can extra info (after price, before description).
+            // Tool: watering can extra info (before description).
             if (stack.getItem() instanceof com.stardew.craft.item.tool.WateringCanItem) {
                 customLines.add(Component.literal(TooltipConstants.MARKER_WATER_AMOUNT));
                 customLines.add(Component.literal(TooltipConstants.MARKER_MAX_CHARGE_RANGE));

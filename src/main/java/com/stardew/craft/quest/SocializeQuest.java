@@ -80,7 +80,8 @@ public class SocializeQuest extends StardewQuest {
                         NpcFriendshipDataManager.FriendshipState fs = friendshipMgr.getOrCreate(player.getUUID(), knownNpc);
                         int max = NpcInteractionService.getMaxFriendshipPointsFor(knownNpc);
                         if (fs.points() < max) {
-                            fs.addPoints(100, max);
+                            fs.addPoints(com.stardew.craft.book.BookPowerEffects.applyFriendshipGain(
+                                    com.stardew.craft.player.PlayerDataManager.getPlayerData(player), 100), max);
                         }
                     }
                     friendshipMgr.setDirty();

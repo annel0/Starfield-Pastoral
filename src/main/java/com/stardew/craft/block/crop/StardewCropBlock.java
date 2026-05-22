@@ -1,6 +1,7 @@
 package com.stardew.craft.block.crop;
 
 import com.stardew.craft.block.shape.ModelVoxelShapeCache;
+import com.stardew.craft.book.BookPowerEffects;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.farming.SeasonLocationRules;
 import com.stardew.craft.item.quality.QualityHelper;
@@ -18,6 +19,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -32,6 +34,7 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -411,6 +414,18 @@ public abstract class StardewCropBlock extends Block {
         return false;
     }
     
+    @SuppressWarnings("null")
+    @Override
+    public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
+        if (state.getValue(AGE) > 0 && entity instanceof Player player && player.isSprinting()) {
+            double factor = player instanceof ServerPlayer serverPlayer
+                    ? BookPowerEffects.getGrassSpeedFactor(PlayerDataManager.getPlayerData(serverPlayer))
+                    : 0.800D;
+            entity.makeStuckInBlock(state, new Vec3(factor, 1.0D, factor));
+        }
+        super.entityInside(state, level, pos, entity);
+    }
+
     @SuppressWarnings("null")
     @Override
     protected VoxelShape getShape(@SuppressWarnings("null") BlockState state, @SuppressWarnings("null") BlockGetter level, @SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") CollisionContext context) {

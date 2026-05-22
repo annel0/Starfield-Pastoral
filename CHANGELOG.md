@@ -1,5 +1,55 @@
 # Changelog
 
+## 0.4.1 - 2026-05-23
+
+### Update Log (English)
+
+#### Headline Features
+
+- Added the first full book-system integration pass, including Stardew book definitions, book items, reading flow, persistent read stats, repeat-read XP rules, and the project-specific Animal Catalogue behavior.
+- Added the Bookseller NPC at the Stardew Valley town location with scheduled appearance days, buy/trade menus, no-portrait shop presentation, morning in-town notice, and fixed-position spawning.
+- Added a Stardew-style reading presentation using Minecraft's enchanting-table book model as the 3D page-turning carrier, with imported `book_read` audio and rainbow star finish effects.
+
+#### Book Effects and Sources
+
+- Hooked the retained permanent book powers into gameplay, including movement, horse speed, bomb damage reduction, defense, trash-can odds, artifact value, Marlon recovery cost, wild seeds, woodcutting, diamond drops, crab pots, roe treasure, friendship gains, void monster drops, mystery-box odds, and grass slowdown behavior.
+- Added shop and acquisition coverage for the currently available systems: Marnie Animal Catalogue, Dwarf Bombs book, Bookseller stock/trades, tree chopping, fishing treasure, monster drops, artifact spots, and Mystery Box book drops.
+- Updated Bookseller stock handling so main shop entries are daily per-player limited while trade entries remain repeatable; mapped currently missing trade items to available project items where requested.
+
+#### Polish, Fixes, and Planning
+
+- Fixed book reading settlement so right-click reading now completes effects/consumption instead of only playing the visual, and applied the same timed reading path to the Dwarvish Translation Guide.
+- Fixed Bookseller shop portrait behavior and cutscene return-position handling touched during the book-system pass.
+- Added detailed book-system planning and source-ledger documents, including TODO notes for deferred Golden Walnuts, gift boxes, Prize Ticket, Raccoon, SquidFest, VolcanoShop, DesertFestival, and formal Well Read advancement work.
+
+#### Changes
+
+- Updated the public mod version to `0.4.1`.
+
+### 更新日志（中文）
+
+#### 重点内容
+
+- 加入第一轮完整书籍系统接入，包括星露谷书籍定义、书籍物品、阅读流程、已读统计持久化、重复阅读经验规则，以及本项目专属的动物目录书行为。
+- 加入固定位置书摊老板 NPC，支持按季节日历出没、买书/换书菜单、无头像商店展示、早晨到访提示和固定点生成。
+- 加入星露谷风格读书表现：使用 Minecraft 附魔台书模型作为 3D 翻页载体，并接入原版 `book_read` 音效和彩虹爆星收尾特效。
+
+#### 书本效果与来源
+
+- 将保留的永久书本能力接入实际玩法，包括移速、骑马速度、炸弹减伤、防御、垃圾桶概率、古物售价、马龙找回费用、野生种子、伐木、钻石掉落、蟹笼、鱼籽宝箱、友谊增长、虚空怪物掉落、神秘盒概率和草地减速行为。
+- 补齐当前已有系统能承载的来源：玛妮动物目录、矮人炸弹书、书摊库存/兑换、砍树、钓鱼宝箱、怪物掉落、远古斑点和神秘盒书本掉落。
+- 调整书摊库存逻辑：主商店条目按每日每玩家限购，兑换商店保持可重复兑换；按本项目现有物品对缺失兑换物做映射。
+
+#### 打磨、修复与规划
+
+- 修复书籍右键阅读只播放动画不结算的问题，现在会正确触发效果与消耗；矮人语手册也复用同一套定时阅读结算路径。
+- 修复书摊商店误显示头像的问题，并修正本轮书籍接入过程中触及的 cutscene 结束回原位逻辑。
+- 新增书籍系统详细规划与源码锁定表，记录后续 TODO：Golden Walnuts 条件、一次性礼盒、兑奖券、浣熊、鱿鱼节、火山商店、沙漠节和正式 Well Read advancement。
+
+#### 变更
+
+- 项目公开版本号更新为 `0.4.1`。
+
 ## 0.4.0 - 2026-05-21
 
 ### Update Log (English)

@@ -1,5 +1,6 @@
 package com.stardew.craft.economy.sell;
 
+import com.stardew.craft.book.BookPowerEffects;
 import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.item.artisan.SmokedFishItem;
 import com.stardew.craft.player.PlayerStardewDataAPI;
@@ -55,7 +56,7 @@ public final class ProfessionSellPriceService {
     }
 
     public static SellQuote quoteItem(ServerPlayer player, ItemStack stack, SellSource source) {
-        return quoteItemWithChecker(stack, source, profession -> hasProfession(player, profession));
+        return quoteItemWithChecker(player, stack, source, profession -> hasProfession(player, profession));
     }
 
     public static SellQuote quoteItemForProfessionNames(Set<String> professionNames, ItemStack stack, SellSource source) {
@@ -66,17 +67,21 @@ public final class ProfessionSellPriceService {
             }
         }
 
-        return quoteItemWithChecker(stack, source,
+        return quoteItemWithChecker(null, stack, source,
             profession -> normalizedNames.contains(profession.getName().toLowerCase(Locale.ROOT)));
     }
 
-    private static SellQuote quoteItemWithChecker(ItemStack stack, SellSource source, ProfessionChecker checker) {
+    private static SellQuote quoteItemWithChecker(ServerPlayer player, ItemStack stack, SellSource source, ProfessionChecker checker) {
         if (!(stack.getItem() instanceof IStardewItem stardewItem)) {
             return SellQuote.unsellable(SellContext.forItem(source, ""), stack.getCount());
         }
 
-        int baseUnitPrice = stardewItem.getSellPrice(stack);
         SellContext context = SellContext.forItem(source, stardewItem.getItemTypeKey());
+        int baseUnitPrice = stardewItem.getSellPrice(stack);
+        if (player != null) {
+            baseUnitPrice = BookPowerEffects.applyArtifactSellPrice(
+                    PlayerStardewDataAPI.getData(player), context.itemTypeKey(), baseUnitPrice);
+        }
         return quote(baseUnitPrice, stack.getCount(), context, stack, checker);
     }
 

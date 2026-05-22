@@ -5,6 +5,7 @@ import com.stardew.craft.block.ModBlocks;
 import com.stardew.craft.core.FarmAreaResolver;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.entity.junimo.JunimoEntity;
+import com.stardew.craft.entity.npc.BooksellerEntity;
 import com.stardew.craft.entity.npc.CamelMerchantEntity;
 import com.stardew.craft.entity.npc.StardewNpcEntity;
 import com.stardew.craft.entity.npc.TravelingCartEntity;
@@ -341,7 +342,7 @@ public class FarmAreaProtectionEvents {
         if (!(event.getEntity() instanceof Mob mob)) {
             return;
         }
-        if (mob instanceof StardewNpcEntity || mob instanceof JunimoEntity
+        if (mob instanceof StardewNpcEntity || mob instanceof JunimoEntity || mob instanceof BooksellerEntity
             || mob instanceof CamelMerchantEntity || mob instanceof TravelingCartEntity) {
             return;
         }

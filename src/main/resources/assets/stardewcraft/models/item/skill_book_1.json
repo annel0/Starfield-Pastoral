@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "stardewcraft:item/book/skill_book_1",
+    "particle": "stardewcraft:item/book/skill_book_1"
+  }
+}

@@ -1,6 +1,7 @@
 package com.stardew.craft.blockentity;
 
 import com.stardew.craft.time.StardewTimeManager;
+import com.stardew.craft.book.BookPowerEffects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -171,6 +172,9 @@ public class CrabPotBlockEntity extends BlockEntity implements UtilityAutomation
 			}
 			if (isWild && random.nextDouble() < 0.25) {
 				result.setCount(Math.min(result.getMaxStackSize(), result.getCount() * 2));
+			}
+			if (ownerPlayerId != null) {
+				BookPowerEffects.applyCrabbingDouble(PlayerDataManager.getPlayerData(ownerPlayerId), result, random);
 			}
 		}
 

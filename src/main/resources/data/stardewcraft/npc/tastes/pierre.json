@@ -1,11 +1,8 @@
 {
   "npc_id": "pierre",
-  "_vanilla_ref": "202=Fried Calamari Book_PriceCatalogue=Price Catalogue",
+  "_vanilla_ref": "202=Fried Calamari",
   "loved": [
     "stardewcraft:fried_calamari"
-  ],
-  "_loved_not_yet_in_mod": [
-    "book_pricecatalogue"
   ],
   "liked": [
     "stardewcraft:daffodil",

@@ -1,6 +1,7 @@
 package com.stardew.craft.event;
 
 import com.stardew.craft.entity.FallenOakTreeEntity;
+import com.stardew.craft.book.BookPowerEffects;
 import com.stardew.craft.enchantment.StardewEnchantments;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.item.tool.StardewAxeItem;
@@ -9,6 +10,7 @@ import com.stardew.craft.manager.WildTreeSeedManager;
 import com.stardew.craft.tree.WildTrees;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.player.PlayerStardewDataAPI;
+import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.ProfessionType;
 import com.stardew.craft.player.SkillType;
 import net.minecraft.core.BlockPos;
@@ -309,6 +311,7 @@ public final class WildTreeChopEvents {
 				if (hardwoodBonus > 0) {
 					fallDrops.add(new ItemStack(ModItems.WOOD_HARD.get(), hardwoodBonus));
 				}
+				com.stardew.craft.book.BookAcquisitionService.recordTreeChoppedAndMaybeAddBook(player, fallDrops, level.random);
 				WildTreeSeedManager.get(level).untrackTree(level, snapshot.pivotTrunk0Pos);
 				Direction dir = computeFallDirection(player, snapshot.pivotTrunk0Pos);
 				fellTree(level, snapshot, dir, def, fallDrops);
@@ -437,7 +440,7 @@ public final class WildTreeChopEvents {
 		if (StardewEnchantments.has(player.getMainHandItem(), StardewEnchantments.SHAVING)) {
 			base += isHardwoodTree(def) ? level.random.nextInt(2) + 1 : level.random.nextInt(4) + 2;
 		}
-		return base;
+		return BookPowerEffects.applyWoodcuttingDouble(PlayerDataManager.getPlayerData(player), base, level.random);
 	}
 
 	@SuppressWarnings("null")
@@ -458,7 +461,7 @@ public final class WildTreeChopEvents {
 		if (StardewEnchantments.has(player.getMainHandItem(), StardewEnchantments.SHAVING)) {
 			base += isHardwoodTree(def) ? 1 : level.random.nextInt(3) + 1;
 		}
-		return base;
+		return BookPowerEffects.applyWoodcuttingDouble(PlayerDataManager.getPlayerData(player), base, level.random);
 	}
 
 	private static boolean isHardwoodTree(WildTrees.Def def) {

@@ -1,5 +1,6 @@
 package com.stardew.craft.shop;
 
+import com.stardew.craft.book.BookPowerEffects;
 import com.stardew.craft.entity.npc.StardewNpcEntity;
 import com.stardew.craft.network.payload.OpenGilGoalsPayload;
 import com.stardew.craft.network.payload.OpenMarlonMenuPayload;
@@ -148,7 +149,7 @@ public final class MarlonService {
         List<ShopItemEntry> items = new ArrayList<>();
         for (int i = 0; i < lostItems.size(); i++) {
             ItemStack lost = lostItems.get(i);
-            int price = Math.max(250, getItemSellPrice(lost) * 5);
+            int price = getRecoveryPrice(data, lost);
             var rl = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(lost.getItem());
             // 用真实物品ID显示图标，购买逻辑通过 itemIndex 定位原始 ItemStack
             String realItemId = rl.toString();
@@ -185,7 +186,7 @@ public final class MarlonService {
 
         // 计算价格
         ItemStack chosen = lostItems.get(itemIndex);
-        int price = Math.max(250, getItemSellPrice(chosen) * 5);
+        int price = getRecoveryPrice(data, chosen);
 
         // 扣钱
         int currentMoney = com.stardew.craft.player.PlayerStardewDataAPI.getMoney(player);
@@ -232,5 +233,10 @@ public final class MarlonService {
             if (price > 0) return price;
         }
         return 50;
+    }
+
+    private static int getRecoveryPrice(PlayerStardewData data, ItemStack stack) {
+        int price = Math.max(250, getItemSellPrice(stack) * 5);
+        return BookPowerEffects.applyMarlonRecoveryPrice(data, price);
     }
 }

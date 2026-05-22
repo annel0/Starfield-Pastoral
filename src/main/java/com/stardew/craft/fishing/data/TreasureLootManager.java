@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.stardew.craft.book.BookPowerEffects;
 import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.PlayerStardewData;
 import com.stardew.craft.player.SkillType;
@@ -170,7 +171,9 @@ public class TreasureLootManager extends SimplePreparableReloadListener<Treasure
 			}
 
 			// SDV: Mystery Box (8% + avgDailyLuck/5)
-			if (random.nextDouble() < 0.08 + dailyLuck / 5.0) {
+			double mysteryChance = BookPowerEffects.applyMysteryBoxChance(
+					player == null ? null : PlayerDataManager.getPlayerData(player), 0.08 + dailyLuck / 5.0);
+			if (random.nextDouble() < mysteryChance) {
 				boolean hasForagingMastery = hasMastery(player, SkillType.FORAGING);
 				addItem(treasures, hasForagingMastery ? "stardewcraft:golden_mystery_box" : "stardewcraft:mystery_box", 1);
 			}

@@ -1,7 +1,9 @@
 package com.stardew.craft.block.mine;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.book.BookPowerEffects;
 import com.stardew.craft.item.trinket.TrinketDropService;
+import com.stardew.craft.player.PlayerDataManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -88,8 +90,14 @@ public class MineBarrelBlock extends Block {
         int effectiveMineLevel = floor == 77377 ? 5000 : floor;
         TrinketDropService.trySpawnContainerDrop(level, pos, 1.0 + effectiveMineLevel * 0.001);
 
-        // SDV: 0.81% mystery_box
-        if (r.nextDouble() < 0.0081) {
+        net.minecraft.world.entity.player.Player nearestPlayer = level.getNearestPlayer(
+            pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, 12.0D, false);
+        com.stardew.craft.player.PlayerStardewData playerData = nearestPlayer instanceof net.minecraft.server.level.ServerPlayer serverPlayer
+            ? PlayerDataManager.getPlayerData(serverPlayer)
+            : null;
+
+        // SDV: 0.81% mystery_box, routed through Utility.tryRollMysteryBox multiplier.
+        if (r.nextDouble() < BookPowerEffects.applyMysteryBoxChance(playerData, 0.0081)) {
             drop(level, pos, item("mystery_box"), 1);
             return;
         }

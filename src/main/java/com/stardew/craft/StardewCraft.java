@@ -303,6 +303,11 @@ public class StardewCraft {
                 output.accept(ModItems.IRIDIUM_SPUR.get());
                 output.accept(ModItems.BASILISK_PAW.get());
 
+                // 书籍
+                for (var book : ModItems.BOOKS.values()) {
+                    output.accept(book.get());
+                }
+
                 // 武器 - 剑类
                 output.accept(ModItems.RUSTY_SWORD.get());
                 output.accept(ModItems.STEEL_SMALLSWORD.get());

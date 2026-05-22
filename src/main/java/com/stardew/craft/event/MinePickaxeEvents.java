@@ -4,10 +4,12 @@ import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModTags;
 import com.stardew.craft.core.ModMiningDimensions;
+import com.stardew.craft.book.BookPowerEffects;
 import com.stardew.craft.enchantment.StardewEnchantments;
 import com.stardew.craft.item.tool.StardewPickaxeItem;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.player.PlayerStardewDataAPI;
+import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.ProfessionType;
 import com.stardew.craft.player.SkillType;
 import com.stardew.craft.time.StardewTimeManager;
@@ -463,6 +465,10 @@ public final class MinePickaxeEvents {
 			if (r.nextDouble() < shardChance) {
 				event.getDrops().add(makeDrop(level, pos, new ItemStack(ModItems.PRISMATIC_SHARD.get(), 1)));
 			}
+		}
+
+		if (BookPowerEffects.shouldDropDiamondFromStone(PlayerDataManager.getPlayerData(player), r)) {
+			event.getDrops().add(makeDrop(level, pos, new ItemStack(ModItems.DIAMOND.get(), 1)));
 		}
 	}
 

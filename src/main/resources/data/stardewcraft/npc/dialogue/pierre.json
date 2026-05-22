@@ -3,7 +3,6 @@
   "entries": {
     "Introduction": "stardewcraft.npc.pierre.introduction",
     "AcceptGift_(O)StardropTea": "stardewcraft.npc.pierre.acceptgift_(o)stardroptea",
-    "AcceptGift_(O)Book_PriceCatalogue": "stardewcraft.npc.pierre.acceptgift_(o)book_pricecatalogue",
     "GreenRain": "stardewcraft.npc.pierre.greenrain",
     "GreenRainFinished": "stardewcraft.npc.pierre.greenrainfinished",
     "GreenRain_2": "stardewcraft.npc.pierre.greenrain_2",

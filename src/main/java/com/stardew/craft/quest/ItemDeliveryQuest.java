@@ -1,7 +1,9 @@
 package com.stardew.craft.quest;
 
+import com.stardew.craft.book.BookPowerEffects;
 import com.stardew.craft.npc.runtime.NpcFriendshipDataManager;
 import com.stardew.craft.npc.runtime.NpcInteractionService;
+import com.stardew.craft.player.PlayerDataManager;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -48,6 +50,7 @@ public class ItemDeliveryQuest extends StardewQuest {
             NpcFriendshipDataManager friendshipMgr = NpcFriendshipDataManager.get(serverLevel);
             NpcFriendshipDataManager.FriendshipState fs = friendshipMgr.getOrCreate(player.getUUID(), targetNpc);
             int friendshipBonus = dailyQuest ? 150 : 255;
+            friendshipBonus = BookPowerEffects.applyFriendshipGain(PlayerDataManager.getPlayerData(player), friendshipBonus);
             fs.addPoints(friendshipBonus, NpcInteractionService.getMaxFriendshipPointsFor(targetNpc));
             friendshipMgr.setDirty();
         }

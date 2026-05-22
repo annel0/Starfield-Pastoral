@@ -1,6 +1,7 @@
 package com.stardew.craft.block.nature;
 
 import com.stardew.craft.animal.data.AnimalWorldData;
+import com.stardew.craft.book.BookPowerEffects;
 import com.stardew.craft.block.ModBlocks;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.item.tool.ScytheItem;
@@ -13,12 +14,16 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.BushBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +52,18 @@ public class PastureGrassBlock extends BushBlock {
     @Override
     protected boolean mayPlaceOn(@SuppressWarnings("null") BlockState state, @SuppressWarnings("null") BlockGetter level, @SuppressWarnings("null") BlockPos pos) {
         return state.is(BlockTags.DIRT) || state.is(BlockTags.SAND) || state.is(BlockTags.BASE_STONE_OVERWORLD) || state.isFaceSturdy(level, pos, Direction.UP);
+    }
+
+    @Override
+    @SuppressWarnings("null")
+    public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
+        if (entity instanceof Player player) {
+            double factor = player instanceof ServerPlayer serverPlayer
+                    ? BookPowerEffects.getGrassSpeedFactor(com.stardew.craft.player.PlayerDataManager.getPlayerData(serverPlayer))
+                    : 0.800D;
+            entity.makeStuckInBlock(state, new Vec3(factor, 1.0D, factor));
+        }
+        super.entityInside(state, level, pos, entity);
     }
 
     @SuppressWarnings("null")

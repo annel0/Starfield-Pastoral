@@ -110,6 +110,8 @@ public final class ModClientSetup {
 		event.registerEntityRenderer(ModEntities.EVENT_PLAYER_ACTOR.get(),
 				com.stardew.craft.client.renderer.entity.EventPlayerActorRenderer::new);
 		event.registerEntityRenderer(ModEntities.JUNIMO.get(), JunimoGeoRenderer::new);
+		event.registerEntityRenderer(ModEntities.BOOKSELLER.get(),
+				com.stardew.craft.client.renderer.entity.BooksellerGeoRenderer::new);
 		event.registerEntityRenderer(ModEntities.CAMEL_MERCHANT.get(),
 				com.stardew.craft.client.renderer.entity.CamelMerchantGeoRenderer::new);
 		event.registerEntityRenderer(ModEntities.TRAVELING_CART.get(),

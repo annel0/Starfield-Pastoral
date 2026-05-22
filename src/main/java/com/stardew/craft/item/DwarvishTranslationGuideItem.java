@@ -1,5 +1,6 @@
 package com.stardew.craft.item;
 
+import com.stardew.craft.book.BookService;
 import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.PlayerDataEventHandler;
 import com.stardew.craft.player.PlayerStardewData;
@@ -9,8 +10,6 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -30,7 +29,7 @@ import java.util.List;
  * Dwarvish Translation Guide — permanent special item.
  */
 public class DwarvishTranslationGuideItem extends Item implements IStardewItem {
-    private static final int USE_DURATION_TICKS = 48;
+    private static final int USE_DURATION_TICKS = 21;
 
     private static final float NAME_SWEEP_SPEED = 0.36F;
     private static final float NAME_SWEEP_WIDTH = 0.26F;
@@ -55,9 +54,21 @@ public class DwarvishTranslationGuideItem extends Item implements IStardewItem {
     @Override
     public InteractionResultHolder<ItemStack> use(@Nonnull Level level, @Nonnull Player player, @Nonnull InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        if (level.isClientSide) {
-            level.playLocalSound(player.getX(), player.getY(), player.getZ(),
-                SoundEvents.BOOK_PAGE_TURN, SoundSource.PLAYERS, 0.8F, 0.95F, false);
+        if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
+            int token = BookService.startReadingVisual(serverPlayer, USE_DURATION_TICKS);
+            serverPlayer.server.tell(new net.minecraft.server.TickTask(
+                    serverPlayer.server.getTickCount() + USE_DURATION_TICKS,
+                    () -> {
+                        if (serverPlayer.isRemoved() || !BookService.isReadingTokenActive(serverPlayer, token)) {
+                            return;
+                        }
+                        ItemStack current = serverPlayer.getItemInHand(hand);
+                        if (current.is(this)) {
+                            finishUsingItem(current, serverPlayer.level(), serverPlayer);
+                        } else {
+                            BookService.finishReadingVisual(serverPlayer);
+                        }
+                    }));
         }
         player.startUsingItem(hand);
         return InteractionResultHolder.consume(stack);
@@ -70,26 +81,14 @@ public class DwarvishTranslationGuideItem extends Item implements IStardewItem {
 
     @Override
     public UseAnim getUseAnimation(@Nonnull ItemStack stack) {
-        return UseAnim.BOW;
-    }
-
-    @Override
-    public void onUseTick(@Nonnull Level level, @Nonnull LivingEntity livingEntity,
-                          @Nonnull ItemStack stack, int remainingUseDuration) {
-        if (!level.isClientSide || !(livingEntity instanceof Player player)) {
-            return;
-        }
-        int usedTicks = USE_DURATION_TICKS - remainingUseDuration;
-        if (usedTicks == 18 || usedTicks == 34) {
-            level.playLocalSound(player.getX(), player.getY(), player.getZ(),
-                SoundEvents.BOOK_PAGE_TURN, SoundSource.PLAYERS, 0.65F, 0.9F + usedTicks * 0.01F, false);
-        }
+        return UseAnim.NONE;
     }
 
     @Override
     public @Nonnull ItemStack finishUsingItem(@Nonnull ItemStack stack, @Nonnull Level level,
                                               @Nonnull LivingEntity livingEntity) {
         if (!level.isClientSide && livingEntity instanceof ServerPlayer sp) {
+            BookService.finishReadingVisual(sp);
             PlayerStardewData data = PlayerDataManager.getPlayerData(sp);
             boolean changed = false;
             if (!data.hasMailFlag(DwarfService.MAIL_FLAG)) {
@@ -103,11 +102,9 @@ public class DwarvishTranslationGuideItem extends Item implements IStardewItem {
             if (changed) {
                 PlayerDataManager.get().savePlayerData(sp.getUUID(), data);
                 PlayerDataEventHandler.syncPlayerData(sp, data);
-                sp.playNotifySound(SoundEvents.ENCHANTMENT_TABLE_USE, SoundSource.PLAYERS, 0.85F, 1.1F);
                 sp.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
                         "stardewcraft.item.dwarvish_translation_guide.learned"));
             } else {
-                sp.playNotifySound(SoundEvents.BOOK_PAGE_TURN, SoundSource.PLAYERS, 0.6F, 0.85F);
                 sp.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
                         "stardewcraft.item.dwarvish_translation_guide.already_learned"));
             }

@@ -1,5 +1,6 @@
 package com.stardew.craft.block.utility;
 
+import com.stardew.craft.book.BookPowerEffects;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.mining.MiningDataManager;
 import com.stardew.craft.mining.MiningPlayerData;
@@ -48,8 +49,7 @@ public final class GarbageCanLootTable {
                                     long daySeed, ServerPlayer player) {
         float baseChance = DEFAULT_BASE_CHANCE;
         baseChance += (float) dailyLuck;
-        // 原版 Book_Trash 加成 — 暂无此物品，预留兼容
-        // if (hasBookTrash) baseChance += 0.2f;
+        baseChance += BookPowerEffects.getTrashCanChanceBonus(PlayerDataManager.getPlayerData(player));
 
         Random rng = createGarbageRandom(canId, daySeed);
 

@@ -38,6 +38,38 @@ public class PlayerStardewDataAPI {
         return PlayerDataManager.getPlayerData(player);
     }
 
+    // ============ 通用统计（SDV Stats parity）============
+
+    public static int getStat(ServerPlayer player, String key) {
+        return getData(player).getStat(key);
+    }
+
+    public static boolean setStat(ServerPlayer player, String key, int value) {
+        PlayerStardewData data = getData(player);
+        boolean changed = data.setStat(key, value);
+        if (changed) {
+            PlayerDataEventHandler.syncPlayerData(player, data);
+        }
+        return changed;
+    }
+
+    public static int incrementStat(ServerPlayer player, String key) {
+        return incrementStat(player, key, 1);
+    }
+
+    public static int incrementStat(ServerPlayer player, String key, int amount) {
+        PlayerStardewData data = getData(player);
+        int next = data.incrementStat(key, amount);
+        if (amount > 0) {
+            PlayerDataEventHandler.syncPlayerData(player, data);
+        }
+        return next;
+    }
+
+    public static boolean hasBookPower(ServerPlayer player, String bookId) {
+        return getStat(player, bookId) > 0;
+    }
+
     // ============ 运气相关 ============
 
     /**

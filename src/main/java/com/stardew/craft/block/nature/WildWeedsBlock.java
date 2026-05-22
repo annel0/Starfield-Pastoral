@@ -1,11 +1,15 @@
 package com.stardew.craft.block.nature;
 
+import com.stardew.craft.book.BookPowerEffects;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.item.ModItems;
+import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.time.StardewTimeManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -18,6 +22,7 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
@@ -95,12 +100,23 @@ public class WildWeedsBlock extends Block {
 		}
 	}
 
+	@Override
 	@SuppressWarnings("null")
+	public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
+		if (entity instanceof Player player) {
+			double factor = player instanceof ServerPlayer serverPlayer
+					? BookPowerEffects.getGrassSpeedFactor(PlayerDataManager.getPlayerData(serverPlayer))
+					: 0.800D;
+			entity.makeStuckInBlock(state, new Vec3(factor, 1.0D, factor));
+		}
+		super.entityInside(state, level, pos, entity);
+	}
+
 	@Override
 	public BlockState playerWillDestroy(@SuppressWarnings("null") Level level, @SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") BlockState state, @SuppressWarnings("null") Player player) {
 		if (!level.isClientSide && level instanceof ServerLevel serverLevel) {
 			if (!player.isCreative()) {
-				spawnWeedDrops(serverLevel, pos, serverLevel.getRandom());
+				spawnWeedDrops(serverLevel, pos, serverLevel.getRandom(), player);
 			}
 		}
 		return super.playerWillDestroy(level, pos, state, player);
@@ -120,7 +136,7 @@ public class WildWeedsBlock extends Block {
 			level.removeBlock(pos, false);
 			return true;
 		}
-		spawnWeedDrops(level, pos, level.getRandom());
+		spawnWeedDrops(level, pos, level.getRandom(), player);
 		level.removeBlock(pos, false);
 		return true;
 	}
@@ -196,7 +212,7 @@ public class WildWeedsBlock extends Block {
 	}
 
 	@SuppressWarnings("null")
-	private static void spawnWeedDrops(ServerLevel level, BlockPos pos, RandomSource random) {
+	private static void spawnWeedDrops(ServerLevel level, BlockPos pos, RandomSource random, Player player) {
 		// 原版 cutWeed：
 		// - 50% 掉 Fiber（这里按 1 个 Fiber 实现）
 		// - 否则，小概率掉 Mixed Seeds
@@ -205,7 +221,10 @@ public class WildWeedsBlock extends Block {
 			return;
 		}
 
-		if (random.nextDouble() < 0.05) {
+		double mixedSeedsChance = player instanceof ServerPlayer serverPlayer
+				? BookPowerEffects.getWildSeedsChance(PlayerDataManager.getPlayerData(serverPlayer))
+				: 0.05D;
+		if (random.nextDouble() < mixedSeedsChance) {
 			popResource(level, pos, new ItemStack(ModItems.MIXED_SEEDS.get(), 1));
 		}
 	}

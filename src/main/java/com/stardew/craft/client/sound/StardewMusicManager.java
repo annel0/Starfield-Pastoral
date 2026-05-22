@@ -112,6 +112,8 @@ public final class StardewMusicManager {
     private static int fadeInTicks = 0;
     private static final int FADE_IN_DURATION = 40;
     private static final float FADE_IN_START_VOLUME = 0.05F;
+    private static int musicDuckTicks = 0;
+    private static final float MUSIC_DUCK_VOLUME = 0.35F;
 
     // ────────────────────────── Jukebox suppression ──────────────────────────
 
@@ -146,6 +148,10 @@ public final class StardewMusicManager {
     public static void releaseCutsceneOverride() {
         cutsceneOverride = false;
         tickCounter = CHECK_INTERVAL - 1;
+    }
+
+    public static void duckMusic(int ticks) {
+        musicDuckTicks = Math.max(musicDuckTicks, Math.max(0, ticks));
     }
 
     private record JukeboxPlayback(String trackId, StardewMusicInstance sound) {}
@@ -206,6 +212,10 @@ public final class StardewMusicManager {
         // Suppress vanilla MC music when in Stardew dimensions
         mc.getMusicManager().stopPlaying();
 
+        if (musicDuckTicks > 0) {
+            musicDuckTicks--;
+        }
+
         // 清除已停止的唱片机条目
         cleanupStoppedJukeboxes();
 
@@ -247,6 +257,7 @@ public final class StardewMusicManager {
      */
     public static void stopAll() {
         cutsceneOverride = false;
+        musicDuckTicks = 0;
         stopCurrentMusicInstances();
         // 清除所有唱片机播放
         for (JukeboxPlayback pb : activeJukeboxes.values()) {
@@ -700,6 +711,7 @@ public final class StardewMusicManager {
 
         @Override
         public float getVolume() {
+            float duckScale = musicDuckTicks > 0 ? MUSIC_DUCK_VOLUME : 1.0F;
             // 唱片机模式：根据与玩家距离衰减音量
             if (!this.relative) {
                 Minecraft mc = Minecraft.getInstance();
@@ -713,10 +725,10 @@ public final class StardewMusicManager {
                         return 0.0f;
                     }
                     float distFactor = 1.0f - (float)(dist / maxDist);
-                    return this.volume * this.fadeVolume * distFactor;
+                    return this.volume * this.fadeVolume * duckScale * distFactor;
                 }
             }
-            return this.volume * this.fadeVolume;
+            return this.volume * this.fadeVolume * duckScale;
         }
 
         @Override

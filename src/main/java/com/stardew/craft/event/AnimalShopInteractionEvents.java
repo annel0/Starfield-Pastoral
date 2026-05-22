@@ -42,4 +42,5 @@ public class AnimalShopInteractionEvents {
         AnimalShopService.openForPlayer(player);
         event.setCanceled(true);
     }
+
 }

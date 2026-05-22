@@ -1,6 +1,7 @@
 package com.stardew.craft.client.tooltip;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.tooltip.BookTooltipComponent;
 import com.stardew.craft.tooltip.FishingRodSlotRowTooltipComponent;
 import com.stardew.craft.tooltip.FishingRodSlotsTooltipComponent;
 import com.stardew.craft.tooltip.MaxChargeRangeTooltipComponent;
@@ -17,6 +18,7 @@ public final class ClientTooltipFactoryRegistrar {
 
 	@SubscribeEvent
 	public static void onRegisterTooltipFactories(RegisterClientTooltipComponentFactoriesEvent event) {
+		event.register(BookTooltipComponent.class, BookClientTooltipComponent::new);
 		event.register(MaxChargeRangeTooltipComponent.class, MaxChargeRangeClientTooltipComponent::new);
 		event.register(FishingRodSlotsTooltipComponent.class, FishingRodSlotsClientTooltipComponent::new);
 		event.register(FishingRodSlotRowTooltipComponent.class, FishingRodSlotRowClientTooltipComponent::new);

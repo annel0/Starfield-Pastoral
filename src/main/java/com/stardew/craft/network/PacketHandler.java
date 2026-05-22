@@ -838,6 +838,16 @@ public class PacketHandler {
             com.stardew.craft.network.payload.ShopPickupPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.ShopPickupPayload::handle
         );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenBooksellerMenuPayload.TYPE,
+            com.stardew.craft.network.payload.OpenBooksellerMenuPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenBooksellerMenuPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.BooksellerActionPayload.TYPE,
+            com.stardew.craft.network.payload.BooksellerActionPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.BooksellerActionPayload::handle
+        );
 
         // Carpenter menu (Robin)
         registrar.playToClient(
@@ -1075,6 +1085,12 @@ public class PacketHandler {
             MummyCollapsePayload.TYPE,
             MummyCollapsePayload.STREAM_CODEC,
             MummyCollapsePayload::handle
+        );
+
+        registrar.playToClient(
+            com.stardew.craft.network.payload.ReadBookVisualPayload.TYPE,
+            com.stardew.craft.network.payload.ReadBookVisualPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.ReadBookVisualPayload::handle
         );
 
         registrar.playToClient(

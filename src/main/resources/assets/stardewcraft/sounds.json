@@ -635,6 +635,14 @@
       }
     ]
   },
+  "book_read": {
+    "sounds": [
+      {
+        "name": "stardewcraft:utility/book_read",
+        "stream": false
+      }
+    ]
+  },
   "select": {
     "sounds": [
       {

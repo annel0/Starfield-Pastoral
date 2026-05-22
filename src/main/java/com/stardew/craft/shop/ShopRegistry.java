@@ -83,6 +83,39 @@ public final class ShopRegistry {
         "stardewcraft:skill_book_3",
         "stardewcraft:skill_book_4"
     );
+    private static final List<String> BOOKSELLER_SKILL_BOOKS = List.of(
+        "stardewcraft:skill_book_0",
+        "stardewcraft:skill_book_1",
+        "stardewcraft:skill_book_2",
+        "stardewcraft:skill_book_3",
+        "stardewcraft:skill_book_4"
+    );
+    private static final List<String> BOOKSELLER_RANDOM_POWER_BOOKS = List.of(
+        "stardewcraft:book_trash",
+        "stardewcraft:book_crabbing",
+        "stardewcraft:book_bombs",
+        "stardewcraft:book_roe",
+        "stardewcraft:book_wild_seeds",
+        "stardewcraft:book_woodcutting",
+        "stardewcraft:book_defense",
+        "stardewcraft:book_friendship",
+        "stardewcraft:book_void",
+        "stardewcraft:book_marlon",
+        "stardewcraft:book_artifact"
+    );
+    private static final List<String> BOOKSELLER_TRADE_JELLIES = List.of(
+        "stardewcraft:cave_jelly",
+        "stardewcraft:river_jelly",
+        "stardewcraft:sea_jelly"
+    );
+    private static final List<String> BOOKSELLER_TRADE_BIG_CHESTS = List.of(
+        "stardewcraft:wooden_chest",
+        "stardewcraft:stone_chest"
+    );
+    private static final List<String> BOOKSELLER_TRADE_ARTIFACT_ITEMS = List.of(
+        "stardewcraft:treasure_chest",
+        "stardewcraft:artifact_trove"
+    );
     private static volatile List<String> travelingCartRandomObjectCandidates;
     static {
         // -------------------------------------------------------------------
@@ -247,7 +280,8 @@ public final class ShopRegistry {
                 entryStock("stardewcraft:shears",           3000, 1),
                 entryAllSeasons("stardewcraft:heater",      2000),
                 entryStock("stardewcraft:auto_grabber",    25000, 1),
-                entryStock("stardewcraft:auto_petter",     50000, 1)
+                entryStock("stardewcraft:auto_petter",     50000, 1),
+                entryAllSeasonsYear("stardewcraft:book_animal_catalogue", 5000, 2)
             ),
             Set.of(
                 "stardewcraft.type.animal_product",
@@ -442,7 +476,8 @@ public final class ShopRegistry {
                 entryAllSeasons("stardewcraft:mega_bomb",    1600),   // SDV: 1600g
                 entryAllSeasons("stardewcraft:mine_totem",   1000),   // Mine Totem: 1000g
                 entryAllSeasons("stardewcraft:life_elixir",  2000),   // SDV: 2000g
-                entryAllSeasons("stardewcraft:oil_of_garlic", 3000)   // SDV: 3000g
+                entryAllSeasons("stardewcraft:oil_of_garlic", 3000),  // SDV: 3000g
+                entryStock("stardewcraft:book_bombs",        4000, 1)
                 // Miner's Treat → not yet implemented
                 // Rarecrow #6, Cobblestone Path, Weathered Floor recipe → not yet implemented
             ),
@@ -578,6 +613,22 @@ public final class ShopRegistry {
 
         REGISTRY.put("Traveler", new ShopDefinition(
             "Traveler",
+            "",
+            "",
+            List.of(),
+            Set.of()
+        ));
+
+        REGISTRY.put("Bookseller", new ShopDefinition(
+            "Bookseller",
+            "",
+            "",
+            List.of(),
+            Set.of()
+        ));
+
+        REGISTRY.put("BooksellerTrade", new ShopDefinition(
+            "BooksellerTrade",
             "",
             "",
             List.of(),
@@ -855,6 +906,12 @@ public final class ShopRegistry {
                 appendTravelingCartStock(result, player, data, time, TravelingCartManager.get(stardewLevel));
             }
         }
+        if ("Bookseller".equals(shopId)) {
+            appendBooksellerStock(result, player, data, time);
+        }
+        if ("BooksellerTrade".equals(shopId)) {
+            appendBooksellerTradeStock(result, player, time);
+        }
 
         // SDV parity: Joja 每日 RANDOM 壁纸/地板 — (WP) 0..111 / (FL) 0..39 @ 250g
         // 追加在列表末尾（与 SDV Shops.json Joja 节最后两条 RANDOM_ITEMS 顺序一致）。
@@ -1076,6 +1133,222 @@ public final class ShopRegistry {
                 0,
                 1
         ));
+    }
+
+    private static void appendBooksellerStock(
+            List<ShopItemEntry> result,
+            net.minecraft.server.level.ServerPlayer player,
+            com.stardew.craft.player.PlayerStardewData data,
+            com.stardew.craft.time.StardewTimeManager time) {
+        int absoluteDay = time.getAbsoluteDay();
+        int year = time.getCurrentYear();
+        java.util.UUID playerId = player.getUUID();
+        java.util.Set<String> chosenSkillBooks = new java.util.LinkedHashSet<>();
+
+        if (rollBooksellerChance(player, absoluteDay, "purple", 0.25D)) {
+            addBooksellerEntry(result, playerId, "stardewcraft:purple_book", 15000, 1);
+        }
+
+        addRandomBooksellerSkillBook(result, player, playerId, absoluteDay, chosenSkillBooks,
+                "skill_slot_1", 0.60D, 10000);
+        addRandomBooksellerSkillBook(result, player, playerId, absoluteDay, chosenSkillBooks,
+                "skill_slot_2", 0.80D, 8000);
+        addRandomBooksellerSkillBook(result, player, playerId, absoluteDay, chosenSkillBooks,
+                "skill_slot_3", 1.00D, 5000);
+
+        if (year >= 3) {
+            String itemId = pickBooksellerItem(player, absoluteDay, "random_power", BOOKSELLER_RANDOM_POWER_BOOKS);
+            if (itemId != null) {
+                addBooksellerEntry(result, playerId, itemId, 20000, 1);
+            }
+        }
+
+        addBooksellerEntry(result, playerId, "stardewcraft:book_speed", 15000, 1);
+        if (data.getStat("Book_Speed") > 0) {
+            addBooksellerEntry(result, playerId, "stardewcraft:book_speed2", 35000, 1);
+        }
+        addBooksellerEntry(result, playerId, "stardewcraft:book_horse", 25000, 1);
+        addBooksellerEntry(result, playerId, "stardewcraft:book_grass", 25000, 1);
+
+        // TODO: Replace this Year 3 fallback with GoldenWalnutsFound >= 100 once Ginger Island state exists.
+        if (time.getCurrentYear() >= 3) {
+            addBooksellerEntry(result, playerId, "stardewcraft:book_queen_of_sauce", 50000, Integer.MAX_VALUE);
+        }
+
+        if (rollBooksellerChance(player, absoluteDay, "extra_foraging", 0.33D)) {
+            addBooksellerEntry(result, playerId, "stardewcraft:skill_book_2", 8000, 1);
+        }
+    }
+
+    private static void appendBooksellerTradeStock(
+            List<ShopItemEntry> result,
+            net.minecraft.server.level.ServerPlayer player,
+            com.stardew.craft.time.StardewTimeManager time) {
+        int absoluteDay = time.getAbsoluteDay();
+        java.util.UUID playerId = player.getUUID();
+
+        addBooksellerTradeEntry(result, playerId, "stardewcraft:book_roe",
+                pickBooksellerItem(player, absoluteDay, "roe_jelly", BOOKSELLER_TRADE_JELLIES), 3, 1);
+        addBooksellerTradeEntry(result, playerId, "stardewcraft:book_woodcutting",
+                "stardewcraft:wood_hard", 20, 1);
+        addBooksellerTradeEntry(result, playerId, "stardewcraft:book_defense",
+                "stardewcraft:stuffing", 3, 1);
+        addBooksellerTradeEntry(result, playerId, "stardewcraft:book_void",
+                pickBooksellerItem(player, absoluteDay, "void_big_chest", BOOKSELLER_TRADE_BIG_CHESTS), 1, 2);
+        addBooksellerTradeEntry(result, playerId, "stardewcraft:book_mystery",
+                "stardewcraft:mystery_box", 7, 1);
+        addBooksellerTradeEntry(result, playerId, "stardewcraft:book_artifact",
+                pickBooksellerItem(player, absoluteDay, "artifact_trade", BOOKSELLER_TRADE_ARTIFACT_ITEMS), 3, 1);
+        addBooksellerTradeEntry(result, playerId, "stardewcraft:purple_book",
+                "stardewcraft:fairy_dust", 8, 1);
+        addBooksellerTradeEntry(result, playerId, "stardewcraft:skill_book_0",
+                "stardewcraft:hot_pepper", 2, 1);
+        addBooksellerTradeEntry(result, playerId, "stardewcraft:skill_book_1",
+                "stardewcraft:deluxe_bait", 30, 1);
+        addBooksellerTradeEntry(result, playerId, "stardewcraft:skill_book_2",
+                "stardewcraft:wood_normal", 100, 1);
+        addBooksellerTradeEntry(result, playerId, "stardewcraft:skill_book_3",
+                "stardewcraft:coal", 20, 1);
+        addBooksellerTradeEntry(result, playerId, "stardewcraft:skill_book_4",
+            "stardewcraft:bat_wing", 30, 1);
+    }
+
+    private static void addRandomBooksellerSkillBook(
+            List<ShopItemEntry> result,
+            net.minecraft.server.level.ServerPlayer player,
+            java.util.UUID playerId,
+            int absoluteDay,
+            java.util.Set<String> chosenSkillBooks,
+            String salt,
+            double chance,
+            int price) {
+        if (!rollBooksellerChance(player, absoluteDay, salt + "_chance", chance)) {
+            return;
+        }
+        List<String> candidates = new ArrayList<>();
+        for (String itemId : BOOKSELLER_SKILL_BOOKS) {
+            if (!chosenSkillBooks.contains(itemId) && shopItemExists(itemId)) {
+                candidates.add(itemId);
+            }
+        }
+        if (candidates.isEmpty()) {
+            return;
+        }
+        java.util.Collections.shuffle(candidates, createBooksellerRandom(player, absoluteDay, salt));
+        String itemId = candidates.get(0);
+        chosenSkillBooks.add(itemId);
+        addBooksellerEntry(result, playerId, itemId, price, 1);
+    }
+
+    private static void addBooksellerEntry(
+            List<ShopItemEntry> result,
+            java.util.UUID playerId,
+            String itemId,
+            int price,
+            int stock) {
+        if (!shopItemExists(itemId)) {
+            return;
+        }
+        int remaining = stock == Integer.MAX_VALUE
+                ? Integer.MAX_VALUE
+                : ShopStockTracker.getRemaining(playerId, "Bookseller", itemId, stock);
+        if (remaining == 0) {
+            return;
+        }
+        result.add(new ShopItemEntry(
+                itemId,
+                "",
+                "",
+                price,
+                remaining,
+                null,
+                0,
+                Set.of(),
+                1,
+                0,
+                null,
+                -1,
+                0,
+                1
+        ));
+    }
+
+    private static void addBooksellerTradeEntry(
+            List<ShopItemEntry> result,
+            java.util.UUID playerId,
+            String itemId,
+            String tradeItemId,
+            int tradeCount,
+            int purchaseStack) {
+        if (tradeItemId == null || !shopItemExists(itemId) || !shopItemExists(tradeItemId)) {
+            return;
+        }
+        int stock = Integer.MAX_VALUE;
+        int remaining = ShopStockTracker.getRemaining(playerId, "BooksellerTrade", itemId, stock);
+        if (remaining == 0) {
+            return;
+        }
+        result.add(new ShopItemEntry(
+                itemId,
+                "",
+                "",
+                0,
+                remaining,
+                tradeItemId,
+                tradeCount,
+                Set.of(),
+                1,
+                0,
+                null,
+                -1,
+                0,
+                purchaseStack
+        ));
+    }
+
+    private static String pickBooksellerItem(
+            net.minecraft.server.level.ServerPlayer player,
+            int absoluteDay,
+            String salt,
+            List<String> candidates) {
+        List<String> available = new ArrayList<>();
+        for (String itemId : candidates) {
+            if (shopItemExists(itemId)) {
+                available.add(itemId);
+            }
+        }
+        if (available.isEmpty()) {
+            return null;
+        }
+        java.util.Collections.shuffle(available, createBooksellerRandom(player, absoluteDay, salt));
+        return available.get(0);
+    }
+
+    private static java.util.Random createBooksellerRandom(
+            net.minecraft.server.level.ServerPlayer player,
+            int absoluteDay,
+            String salt) {
+        long worldSeed = player.server.overworld() != null ? player.server.overworld().getSeed() : 0L;
+        long seed = (worldSeed >>> 2) ^ (absoluteDay * 7046029254386353131L) ^ salt.hashCode();
+        return new java.util.Random(seed);
+    }
+
+    private static boolean rollBooksellerChance(
+            net.minecraft.server.level.ServerPlayer player,
+            int absoluteDay,
+            String salt,
+            double chance) {
+        return createBooksellerRandom(player, absoluteDay, salt).nextDouble() < chance;
+    }
+
+    private static boolean shopItemExists(String itemId) {
+        try {
+            net.minecraft.resources.ResourceLocation id = net.minecraft.resources.ResourceLocation.parse(itemId);
+            net.minecraft.world.item.Item item = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(id);
+            return item != null && item != net.minecraft.world.item.Items.AIR;
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 
     private static java.util.Random createTravelingCartRandom(int absoluteDay, String salt) {

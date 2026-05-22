@@ -3,6 +3,7 @@ package com.stardew.craft.player;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModMiningDimensions;
+import com.stardew.craft.book.BookPowerEffects;
 import com.stardew.craft.combat.DamageCalculator;
 import com.stardew.craft.combat.WeaponStats;
 import com.stardew.craft.effect.ModMobEffects;
@@ -444,14 +445,20 @@ public class PlayerDataEventHandler {
                 ? amount
                 : amount * (sdMax / mcMax);
 
+        if (event.getSource().is(net.minecraft.world.damagesource.DamageTypes.EXPLOSION)
+            || event.getSource().is(net.minecraft.world.damagesource.DamageTypes.PLAYER_EXPLOSION)) {
+            sdDamageFloat = BookPowerEffects.applyBombDamageReduction(data, sdDamageFloat);
+        }
+
         // 武器防御（握持生效）
         WeaponStats weaponStats = WeaponStats.fromItemStack(player.getMainHandItem());
         float weaponDefense = weaponStats.getDefense();
         float foodDefense = data.getTempDefenseBonus();
+        float bookDefense = BookPowerEffects.getDefenseBonus(data);
         // 装备防御（戒指+靴子）
         com.stardew.craft.combat.equipment.EquipmentStats eqStats = com.stardew.craft.combat.equipment.EquipmentResolver.getMergedStats(player);
         float equipDefense = eqStats.getDefense();
-        float totalDefense = weaponDefense + foodDefense + equipDefense;
+        float totalDefense = weaponDefense + foodDefense + equipDefense + bookDefense;
         if (totalDefense > 0) {
             float reduction = DamageCalculator.calculateDefenseReductionFromDefense(sdDamageFloat, totalDefense);
             sdDamageFloat = Math.max(0.0f, sdDamageFloat - reduction);
@@ -559,6 +566,8 @@ public class PlayerDataEventHandler {
                 && com.stardew.craft.event.SleepVoteTracker.isInStardewDimension(player)) {
             updateAfkTracking(player);
         }
+
+        com.stardew.craft.book.BookService.tickReadingFreeze(player);
 
         if (!player.isCreative() && !player.isSpectator() && player.isInvulnerable()) {
             player.setInvulnerable(false);
@@ -669,6 +678,7 @@ public class PlayerDataEventHandler {
 
             // 兼容：若存在非 MobEffect 驱动的 timed buff，这里负责过期清理。
             changed |= data.tickTimedBuffs(now);
+            BookPowerEffects.tickMovement(player, data);
 
             if (changed || data.isDirty()) {
                 data.markClean();

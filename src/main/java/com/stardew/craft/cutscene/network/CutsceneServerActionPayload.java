@@ -105,6 +105,8 @@ public record CutsceneServerActionPayload(String action, String value) implement
                         var fm = com.stardew.craft.npc.runtime.NpcFriendshipDataManager.get(
                                 (net.minecraft.server.level.ServerLevel) player.level());
                         var state = fm.getOrCreate(player.getUUID(), npcId);
+                        points = com.stardew.craft.book.BookPowerEffects.applyFriendshipGain(
+                            com.stardew.craft.player.PlayerDataManager.getPlayerData(player), points);
                         state.addPoints(points, com.stardew.craft.npc.runtime.NpcInteractionService.getMaxFriendshipPointsFor(npcId));
                         fm.setDirty();
                         com.stardew.craft.npc.runtime.NpcFriendshipRewardService.applyEligibleRewards(player, npcId, state.points());
@@ -135,6 +137,7 @@ public record CutsceneServerActionPayload(String action, String value) implement
                     }
                 }
                 case "teleport_cc" -> {
+                    com.stardew.craft.cutscene.server.ServerCutsceneTracker.markServerMovedPlayer(player);
                     com.stardew.craft.event.InteriorPortalInteractionEvents.handleCCEntryForCutscene(player);
                     // Send the player their CC interior anchor so any anchor-tagged
                     // commands in the cutscene (Part B) resolve to the correct origin.
@@ -152,10 +155,12 @@ public record CutsceneServerActionPayload(String action, String value) implement
                     LOGGER.debug("Cutscene teleported {} to CC interior", player.getName().getString());
                 }
                 case "egg_festival_award_complete" -> {
+                    com.stardew.craft.cutscene.server.ServerCutsceneTracker.markServerMovedPlayer(player);
                     com.stardew.craft.festival.EggFestivalService.onCutsceneCompleted(player, "egg_festival_award");
                     LOGGER.debug("Cutscene completed Egg Festival award for {}", player.getName().getString());
                 }
                 case "egg_festival_blackout" -> {
+                    com.stardew.craft.cutscene.server.ServerCutsceneTracker.markServerMovedPlayer(player);
                     com.stardew.craft.festival.EggFestivalService.onCutsceneBlackout(player, payload.value);
                     LOGGER.debug("Cutscene prepared Egg Festival {} stage for {}", payload.value, player.getName().getString());
                 }

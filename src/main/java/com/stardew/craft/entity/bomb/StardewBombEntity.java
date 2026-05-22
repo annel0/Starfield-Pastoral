@@ -13,6 +13,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -183,8 +184,8 @@ public class StardewBombEntity extends Entity {
         // 2. SDV 圆形填充图案破坏方块（2D 圆 + 垂直范围 ±scaledRadius）
         destroyBlocksInCircle(serverLevel, center, scaledRadius);
 
-        // 3. 伤害范围内实体（使用 SDV 原版半径计算伤害）
-        damageEntitiesInRadius(serverLevel, center, type, scaledRadius);
+        // 3. 伤害范围内实体（SDV 伤害数值 + MC 3D 空间判定）
+        damageEntitiesInRadius(serverLevel, type);
 
         // 4. SDV 爆炸粒子（按炸弹类型区分规模）
         spawnExplosionParticles(serverLevel, center, type, scaledRadius);
@@ -416,17 +417,19 @@ public class StardewBombEntity extends Entity {
 
     /**
      * SDV 伤害公式：怪物 r*6 ~ r*8，玩家自伤 r*3。
-     * 使用 SDV 原版半径计算伤害，但检测范围用 scaledRadius。
+     * 范围判定改为 MC 3D 友好的水平圆柱：水平半径跟随可见爆炸半径，垂直半径随炸弹等级增长但保持克制。
      */
-    private void damageEntitiesInRadius(ServerLevel level, BlockPos center,
-                                         BombType type, float scaledRadius) {
-        AABB damageBox = new AABB(center).inflate(scaledRadius);
+    private void damageEntitiesInRadius(ServerLevel level, BombType type) {
+        double horizontalRadius = type.getScaledRadius();
+        double verticalRadius = Math.max(1.25D, type.getRadius() * 0.75D);
+        Vec3 center = new Vec3(this.getX(), this.getY() + 0.5D, this.getZ());
+        AABB damageBox = new AABB(center, center).inflate(horizontalRadius, verticalRadius, horizontalRadius);
         List<LivingEntity> entities = level.getEntitiesOfClass(LivingEntity.class, damageBox);
-        double radiusSq = scaledRadius * scaledRadius;
-        double cx = center.getX() + 0.5, cy = center.getY() + 0.5, cz = center.getZ() + 0.5;
 
         for (LivingEntity entity : entities) {
-            if (entity.distanceToSqr(cx, cy, cz) > radiusSq) continue;
+            if (!isInsideBombDamageVolume(entity, center, horizontalRadius, verticalRadius)) {
+                continue;
+            }
 
             DamageSource source = level.damageSources().explosion(this, owner);
 
@@ -441,6 +444,17 @@ public class StardewBombEntity extends Entity {
                 entity.hurt(source, damage);
             }
         }
+    }
+
+    private boolean isInsideBombDamageVolume(Entity entity, Vec3 center, double horizontalRadius, double verticalRadius) {
+        AABB box = entity.getBoundingBox().inflate(0.3D);
+        double closestX = Mth.clamp(center.x, box.minX, box.maxX);
+        double closestY = Mth.clamp(center.y, box.minY, box.maxY);
+        double closestZ = Mth.clamp(center.z, box.minZ, box.maxZ);
+        double dx = closestX - center.x;
+        double dy = Math.abs(closestY - center.y);
+        double dz = closestZ - center.z;
+        return dx * dx + dz * dz <= horizontalRadius * horizontalRadius && dy <= verticalRadius;
     }
 
     /**

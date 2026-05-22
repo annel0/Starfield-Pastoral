@@ -7,6 +7,7 @@ import com.google.gson.JsonParser;
 import com.stardew.craft.emote.EmoteCatalog;
 import com.stardew.craft.emote.EmoteType;
 import com.stardew.craft.entity.npc.StardewNpcEntity;
+import com.stardew.craft.book.BookPowerEffects;
 import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.npc.data.NpcCapabilityProfile;
 import com.stardew.craft.npc.data.NpcDataRegistry;
@@ -14,6 +15,7 @@ import com.stardew.craft.npc.data.NpcSocialRules;
 import com.stardew.craft.network.payload.EmoteBroadcastPayload;
 import com.stardew.craft.network.payload.OpenNpcDialogueScreenPayload;
 import com.stardew.craft.network.payload.SyncNpcFriendshipStatusPayload;
+import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.PlayerStardewDataAPI;
 import com.stardew.craft.time.StardewTimeManager;
 import com.stardew.craft.weather.WeatherManager;
@@ -527,6 +529,7 @@ public final class NpcInteractionService {
         state.setLastTalkDayKey(dayContext.dayKey());
         // SDV NPC.cs:2933 — Blessing of Friendship: 寒暄好感 60（默认 20）
         int amount = (player != null && player.hasEffect(com.stardew.craft.effect.ModMobEffects.STATUE_OF_BLESSINGS_4)) ? 60 : 20;
+        amount = BookPowerEffects.applyFriendshipGain(PlayerDataManager.getPlayerData(player), amount);
         state.addPoints(amount, getMaxFriendshipPointsFor(npcId));
     }
 
@@ -678,6 +681,7 @@ public final class NpcInteractionService {
             finalDelta = 0;
         }
 
+        finalDelta = BookPowerEffects.applyFriendshipGain(PlayerDataManager.getPlayerData(player), finalDelta);
         state.addPoints(finalDelta, getMaxFriendshipPointsFor(npcId));
         // StardropTea does NOT count toward daily/weekly gift limits (vanilla parity)
         if (!stardropTea) {
@@ -1179,7 +1183,8 @@ public final class NpcInteractionService {
         NpcFriendshipDataManager.FriendshipState state = friendshipManager.getOrCreate(player.getUUID(), npcId);
         
         if (friendshipDelta != 0) {
-            state.addPoints(friendshipDelta, getMaxFriendshipPointsFor(npcId));
+            int adjustedDelta = BookPowerEffects.applyFriendshipGain(PlayerDataManager.getPlayerData(player), friendshipDelta);
+            state.addPoints(adjustedDelta, getMaxFriendshipPointsFor(npcId));
             NpcFriendshipRewardService.applyEligibleRewards(player, npcId, state.points());
             friendshipManager.setDirty();
             DayContext dayContext = currentDayContext((net.minecraft.server.level.ServerLevel) player.level());

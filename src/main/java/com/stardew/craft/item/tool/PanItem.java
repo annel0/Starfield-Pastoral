@@ -2,6 +2,7 @@ package com.stardew.craft.item.tool;
 
 import com.stardew.craft.communitycenter.reward.panning.OrePanPointManager;
 import com.stardew.craft.enchantment.StardewEnchantments;
+import com.stardew.craft.book.BookPowerEffects;
 import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.player.PlayerDataManager;
@@ -324,8 +325,9 @@ public class PanItem extends Item implements IStardewItem {
             }
 
             // SDV mystery box 5% — golden variant after Foraging Mastery.
-            if (r.nextDouble() < 0.05) {
-                Item box = PlayerDataManager.getPlayerData(who).hasMastery(SkillType.FORAGING)
+            com.stardew.craft.player.PlayerStardewData data = PlayerDataManager.getPlayerData(who);
+            if (r.nextDouble() < BookPowerEffects.applyMysteryBoxChance(data, 0.05)) {
+                Item box = data.hasMastery(SkillType.FORAGING)
                         ? ModItems.GOLDEN_MYSTERY_BOX.get()
                         : ModItems.MYSTERY_BOX.get();
                 items.add(new ItemStack(box));

@@ -104,6 +104,7 @@ public final class ModSounds {
 	public static final DeferredHolder<SoundEvent, SoundEvent> FIREBALL = register("fireball");
 	public static final DeferredHolder<SoundEvent, SoundEvent> CANCEL = register("cancel");
 	public static final DeferredHolder<SoundEvent, SoundEvent> SELECT = register("select");
+	public static final DeferredHolder<SoundEvent, SoundEvent> BOOK_READ = register("book_read");
 
 	// AnimalQueryMenu / FarmAnimal original cues
 	public static final DeferredHolder<SoundEvent, SoundEvent> SMALL_SELECT = register("small_select");

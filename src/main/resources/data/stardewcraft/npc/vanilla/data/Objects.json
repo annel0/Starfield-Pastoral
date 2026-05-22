@@ -22631,33 +22631,6 @@
     ],
     "CustomFields": null
   },
-  "Book_PriceCatalogue": {
-    "Name": "Price Catalogue",
-    "DisplayName": "[LocalizedText Strings\\Objects:Book_PriceCatalogue_Name]",
-    "Description": "[LocalizedText Strings\\Objects:Book_PriceCatalogue_Description]",
-    "Type": "asdf",
-    "Category": -102,
-    "Price": 1000,
-    "Texture": "TileSheets\\Objects_2",
-    "SpriteIndex": 114,
-    "ColorOverlayFromNextIndex": false,
-    "Edibility": -300,
-    "IsDrink": false,
-    "Buffs": null,
-    "GeodeDropsDefaultItems": false,
-    "GeodeDrops": null,
-    "ArtifactSpotChances": null,
-    "CanBeGivenAsGift": true,
-    "CanBeTrashed": true,
-    "ExcludeFromFishingCollection": false,
-    "ExcludeFromShippingCollection": false,
-    "ExcludeFromRandomSale": false,
-    "ContextTags": [
-      "color_gold",
-      "book_item"
-    ],
-    "CustomFields": null
-  },
   "Book_QueenOfSauce": {
     "Name": "Queen Of Sauce Cookbook",
     "DisplayName": "[LocalizedText Strings\\Objects:Book_QueenOfSauce_Name]",

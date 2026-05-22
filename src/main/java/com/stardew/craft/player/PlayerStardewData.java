@@ -162,6 +162,9 @@ public class PlayerStardewData {
     private final Map<String, Long> leaderboardWeekValues = new HashMap<>();
     private final Map<String, Long> leaderboardSeasonValues = new HashMap<>();
 
+    // ============ 通用统计（SDV Stats parity）============
+    private final Map<String, Integer> stats = new HashMap<>();
+
     // ============ 邮件标记（SDV mailReceived parity） ============
     private final Set<String> mailFlags = new HashSet<>();
 
@@ -536,6 +539,17 @@ public class PlayerStardewData {
             readLeaderboardValues(statsTag, "SeasonValues", data.leaderboardSeasonValues);
         }
 
+        data.stats.clear();
+        if (tag.contains("Stats", 10)) {
+            CompoundTag statsTag = tag.getCompound("Stats");
+            for (String key : statsTag.getAllKeys()) {
+                int value = Math.max(0, statsTag.getInt(key));
+                if (!key.isBlank() && value > 0) {
+                    data.stats.put(key, value);
+                }
+            }
+        }
+
 
         // 邮件标记
         if (tag.contains("MailFlags", 9)) { // 9 = TAG_List
@@ -888,6 +902,18 @@ public class PlayerStardewData {
         writeLeaderboardValues(periodStatsTag, "WeekValues", leaderboardWeekValues);
         writeLeaderboardValues(periodStatsTag, "SeasonValues", leaderboardSeasonValues);
         tag.put("LeaderboardPeriodStats", periodStatsTag);
+
+        if (!stats.isEmpty()) {
+            CompoundTag statsTag = new CompoundTag();
+            for (Map.Entry<String, Integer> entry : stats.entrySet()) {
+                String key = entry.getKey();
+                int value = entry.getValue() == null ? 0 : entry.getValue();
+                if (key != null && !key.isBlank() && value > 0) {
+                    statsTag.putInt(key, value);
+                }
+            }
+            tag.put("Stats", statsTag);
+        }
 
         // 邮件标记
         if (!mailFlags.isEmpty()) {
@@ -1821,6 +1847,45 @@ public class PlayerStardewData {
             markDirty();
         }
         return changed;
+    }
+
+    public int getStat(String key) {
+        if (key == null || key.isBlank()) {
+            return 0;
+        }
+        return Math.max(0, stats.getOrDefault(key, 0));
+    }
+
+    public boolean setStat(String key, int value) {
+        if (key == null || key.isBlank()) {
+            return false;
+        }
+        int normalized = Math.max(0, value);
+        int current = getStat(key);
+        if (current == normalized) {
+            return false;
+        }
+        if (normalized == 0) {
+            stats.remove(key);
+        } else {
+            stats.put(key, normalized);
+        }
+        markDirty();
+        return true;
+    }
+
+    public int incrementStat(String key, int amount) {
+        if (key == null || key.isBlank() || amount <= 0) {
+            return getStat(key);
+        }
+        int next = getStat(key) + amount;
+        stats.put(key, next);
+        markDirty();
+        return next;
+    }
+
+    public Map<String, Integer> getAllStats() {
+        return Collections.unmodifiableMap(stats);
     }
     
     public boolean isDirty() { return dirty; }

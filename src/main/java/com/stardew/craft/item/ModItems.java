@@ -2,6 +2,7 @@ package com.stardew.craft.item;
 
 import com.stardew.craft.block.ModBlocks;
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.book.BookDefinition;
 import com.stardew.craft.item.tool.WateringCanItem;
 import com.stardew.craft.item.crop.fall.AmaranthItem;
 import com.stardew.craft.item.crop.fall.AmaranthSeedItem;
@@ -146,6 +147,42 @@ public class ModItems {
         private static DeferredItem<Item> stoneConvertibleBlockItem(String name, DeferredBlock<?> block) {
                 return ITEMS.register(name, () -> new StoneConvertibleBlockItem(block.get(), blockItemProps()));
         }
+
+        private static java.util.Map<String, DeferredItem<Item>> registerBooks() {
+                java.util.LinkedHashMap<String, DeferredItem<Item>> books = new java.util.LinkedHashMap<>();
+                for (BookDefinition definition : BookDefinition.all()) {
+                        books.put(definition.registryName(), ITEMS.register(definition.registryName(),
+                                        () -> new StardewBookItem(definition, new Item.Properties().stacksTo(999))));
+                }
+                return java.util.Collections.unmodifiableMap(books);
+        }
+
+        public static final java.util.Map<String, DeferredItem<Item>> BOOKS = registerBooks();
+        public static final DeferredItem<Item> SKILL_BOOK_0 = BOOKS.get("skill_book_0");
+        public static final DeferredItem<Item> SKILL_BOOK_1 = BOOKS.get("skill_book_1");
+        public static final DeferredItem<Item> SKILL_BOOK_2 = BOOKS.get("skill_book_2");
+        public static final DeferredItem<Item> SKILL_BOOK_3 = BOOKS.get("skill_book_3");
+        public static final DeferredItem<Item> SKILL_BOOK_4 = BOOKS.get("skill_book_4");
+        public static final DeferredItem<Item> PURPLE_BOOK = BOOKS.get("purple_book");
+        public static final DeferredItem<Item> BOOK_ANIMAL_CATALOGUE = BOOKS.get("book_animal_catalogue");
+        public static final DeferredItem<Item> BOOK_ARTIFACT = BOOKS.get("book_artifact");
+        public static final DeferredItem<Item> BOOK_BOMBS = BOOKS.get("book_bombs");
+        public static final DeferredItem<Item> BOOK_CRABBING = BOOKS.get("book_crabbing");
+        public static final DeferredItem<Item> BOOK_DEFENSE = BOOKS.get("book_defense");
+        public static final DeferredItem<Item> BOOK_DIAMONDS = BOOKS.get("book_diamonds");
+        public static final DeferredItem<Item> BOOK_FRIENDSHIP = BOOKS.get("book_friendship");
+        public static final DeferredItem<Item> BOOK_GRASS = BOOKS.get("book_grass");
+        public static final DeferredItem<Item> BOOK_HORSE = BOOKS.get("book_horse");
+        public static final DeferredItem<Item> BOOK_MARLON = BOOKS.get("book_marlon");
+        public static final DeferredItem<Item> BOOK_MYSTERY = BOOKS.get("book_mystery");
+        public static final DeferredItem<Item> BOOK_QUEEN_OF_SAUCE = BOOKS.get("book_queen_of_sauce");
+        public static final DeferredItem<Item> BOOK_ROE = BOOKS.get("book_roe");
+        public static final DeferredItem<Item> BOOK_SPEED = BOOKS.get("book_speed");
+        public static final DeferredItem<Item> BOOK_SPEED2 = BOOKS.get("book_speed2");
+        public static final DeferredItem<Item> BOOK_TRASH = BOOKS.get("book_trash");
+        public static final DeferredItem<Item> BOOK_VOID = BOOKS.get("book_void");
+        public static final DeferredItem<Item> BOOK_WILD_SEEDS = BOOKS.get("book_wild_seeds");
+        public static final DeferredItem<Item> BOOK_WOODCUTTING = BOOKS.get("book_woodcutting");
 
         // 閲庤崏鏂瑰潡鐗╁搧锛氫富鍏ュ彛浣跨敤缁熶竴 wild_weeds銆?
         // 鏃?seasonal id 淇濈暀涓哄吋瀹瑰埆鍚嶏紙閬垮厤宸叉湁瀛樻。/鐗╁搧涓㈠け锛夈€?

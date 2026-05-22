@@ -260,6 +260,16 @@ public final class ModEntities {
 					.build("junimo")
 	);
 
+	public static final DeferredHolder<EntityType<?>, EntityType<com.stardew.craft.entity.npc.BooksellerEntity>> BOOKSELLER = ENTITY_TYPES.register(
+			"bookseller",
+			() -> EntityType.Builder.<com.stardew.craft.entity.npc.BooksellerEntity>of(
+							com.stardew.craft.entity.npc.BooksellerEntity::new, MobCategory.MISC)
+					.sized(0.7F, 2.1F)
+					.clientTrackingRange(10)
+					.updateInterval(20)
+					.build("bookseller")
+	);
+
 	public static final DeferredHolder<EntityType<?>, EntityType<com.stardew.craft.entity.npc.CamelMerchantEntity>> CAMEL_MERCHANT = ENTITY_TYPES.register(
 			"camel_merchant",
 			() -> EntityType.Builder.<com.stardew.craft.entity.npc.CamelMerchantEntity>of(
@@ -324,6 +334,7 @@ public final class ModEntities {
 		event.put(EVENT_ACTOR.get(), EventActorEntity.createAttributes().build());
 		event.put(EVENT_PLAYER_ACTOR.get(), EventPlayerActorEntity.createAttributes().build());
 		event.put(JUNIMO.get(), JunimoEntity.createAttributes().build());
+		event.put(BOOKSELLER.get(), com.stardew.craft.entity.npc.BooksellerEntity.createAttributes().build());
 		event.put(CAMEL_MERCHANT.get(), com.stardew.craft.entity.npc.CamelMerchantEntity.createAttributes().build());
 		event.put(TRAVELING_CART.get(), com.stardew.craft.entity.npc.TravelingCartEntity.createAttributes().build());
 		event.put(CROW.get(), com.stardew.craft.entity.passive.CrowEntity.createAttributes().build());

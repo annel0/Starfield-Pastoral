@@ -48,8 +48,12 @@ public final class MarnieService {
         marnie.setYRot(0f);
         marnie.setYHeadRot(0f);
 
-        PacketDistributor.sendToPlayer(player, new OpenMarnieMenuPayload());
+        openMenu(player);
         return InteractionResult.SUCCESS;
+    }
+
+    public static void openMenu(ServerPlayer player) {
+        PacketDistributor.sendToPlayer(player, new OpenMarnieMenuPayload());
     }
 
     /**

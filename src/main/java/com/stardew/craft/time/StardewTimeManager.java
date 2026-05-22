@@ -358,6 +358,14 @@ public class StardewTimeManager extends SavedData {
                 // 扫描并排队所有 wake_up 剧情，等客户端关闭结算画面后按序播放
                 com.stardew.craft.cutscene.server.WakeUpEventScheduler.enqueueAtNightSettlement(player);
             }
+
+            if (stardewLevel != null) {
+                java.util.List<net.minecraft.server.level.ServerPlayer> stardewPlayers = server.getPlayerList().getPlayers().stream()
+                    .filter(player -> player.level().dimension() == ModDimensions.STARDEW_VALLEY)
+                    .toList();
+                com.stardew.craft.book.BooksellerSchedule.onNewDay(stardewLevel, stardewPlayers);
+                com.stardew.craft.shop.BooksellerEvents.forceCheckNow(stardewLevel);
+            }
         }
 
         // Reset per-player shop stock for the new day (SDV: SynchronizedShopStock parity)

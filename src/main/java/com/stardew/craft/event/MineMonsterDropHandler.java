@@ -1,6 +1,7 @@
 package com.stardew.craft.event;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.book.BookPowerEffects;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.item.trinket.TrinketDropService;
 import com.stardew.craft.player.PlayerDataManager;
@@ -116,6 +117,8 @@ public class MineMonsterDropHandler {
         }
 
         if (event.getSource() != null && event.getSource().getEntity() instanceof ServerPlayer player) {
+            BookPowerEffects.applyVoidMonsterDropDuplicate(PlayerDataManager.getPlayerData(player), drops, entity, random);
+            com.stardew.craft.book.BookAcquisitionService.recordMonsterKilledAndMaybeAddVoidBook(player, drops, entity, random);
             TrinketDropService.tryAddMonsterDrop(drops, entity, player, random);
         }
 

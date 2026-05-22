@@ -1,7 +1,10 @@
 package com.stardew.craft.cutscene.server;
 
 import com.stardew.craft.cutscene.network.TriggerEventPayload;
+import com.stardew.craft.warp.ModTeleport;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.GameType;
 import net.neoforged.neoforge.network.PacketDistributor;
 
@@ -21,7 +24,26 @@ public final class ServerCutsceneTracker {
 
     private static final Map<UUID, State> ACTIVE = new ConcurrentHashMap<>();
 
-    private record State(GameType originalGameMode) {}
+    private static final class State {
+        private final GameType originalGameMode;
+        private final ResourceKey<Level> originalDimension;
+        private final double x;
+        private final double y;
+        private final double z;
+        private final float yaw;
+        private final float pitch;
+        private boolean restoreOriginalPosition = true;
+
+        private State(ServerPlayer player, GameType originalGameMode) {
+            this.originalGameMode = originalGameMode;
+            this.originalDimension = player.level().dimension();
+            this.x = player.getX();
+            this.y = player.getY();
+            this.z = player.getZ();
+            this.yaw = player.getYRot();
+            this.pitch = player.getXRot();
+        }
+    }
 
     private ServerCutsceneTracker() {}
 
@@ -35,12 +57,20 @@ public final class ServerCutsceneTracker {
     public static void markActive(ServerPlayer player) {
         ACTIVE.computeIfAbsent(player.getUUID(), ignored -> {
             GameType original = player.gameMode.getGameModeForPlayer();
+            State state = new State(player, original);
             protectPlayer(player);
             if (original != GameType.SPECTATOR) {
                 player.setGameMode(GameType.SPECTATOR);
             }
-            return new State(original);
+            return state;
         });
+    }
+
+    public static void markServerMovedPlayer(ServerPlayer player) {
+        State state = ACTIVE.get(player.getUUID());
+        if (state != null) {
+            state.restoreOriginalPosition = false;
+        }
     }
 
     /** 清除玩家的活动状态。 */
@@ -51,9 +81,17 @@ public final class ServerCutsceneTracker {
         }
 
         protectPlayer(player);
-        if (player.gameMode.getGameModeForPlayer() == GameType.SPECTATOR) {
-            player.setGameMode(state.originalGameMode() != null ? state.originalGameMode() : GameType.SURVIVAL);
+        if (state.restoreOriginalPosition) {
+            net.minecraft.server.level.ServerLevel originalLevel = player.server.getLevel(state.originalDimension);
+            if (originalLevel != null) {
+                ModTeleport.to(player, originalLevel, state.x, state.y, state.z, state.yaw, state.pitch);
+            }
         }
+        if (player.gameMode.getGameModeForPlayer() == GameType.SPECTATOR) {
+            player.setGameMode(state.originalGameMode != null ? state.originalGameMode : GameType.SURVIVAL);
+        }
+        player.setDeltaMovement(0.0D, 0.0D, 0.0D);
+        player.fallDistance = 0.0f;
         player.invulnerableTime = Math.max(player.invulnerableTime, 40);
     }
 
