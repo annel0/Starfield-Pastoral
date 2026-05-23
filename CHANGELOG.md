@@ -19,6 +19,7 @@
 #### Polish, Fixes, and Planning
 
 - Fixed book reading settlement so right-click reading now completes effects/consumption instead of only playing the visual, and applied the same timed reading path to the Dwarvish Translation Guide.
+- Restored the default Stardew item tooltip price and stacked total-price lines independently of the removed Price Catalogue book.
 - Fixed Bookseller shop portrait behavior and cutscene return-position handling touched during the book-system pass.
 - Added detailed book-system planning and source-ledger documents, including TODO notes for deferred Golden Walnuts, gift boxes, Prize Ticket, Raccoon, SquidFest, VolcanoShop, DesertFestival, and formal Well Read advancement work.
 
@@ -43,6 +44,7 @@
 #### 打磨、修复与规划
 
 - 修复书籍右键阅读只播放动画不结算的问题，现在会正确触发效果与消耗；矮人语手册也复用同一套定时阅读结算路径。
+- 恢复项目默认的星露谷物品售价与堆叠总价 tooltip，不再受已移除的价格目录书影响。
 - 修复书摊商店误显示头像的问题，并修正本轮书籍接入过程中触及的 cutscene 结束回原位逻辑。
 - 新增书籍系统详细规划与源码锁定表，记录后续 TODO：Golden Walnuts 条件、一次性礼盒、兑奖券、浣熊、鱿鱼节、火山商店、沙漠节和正式 Well Read advancement。
 

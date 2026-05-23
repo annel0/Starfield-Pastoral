@@ -1,6 +1,9 @@
 package com.stardew.craft.client;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.economy.sell.ProfessionSellPriceService;
+import com.stardew.craft.economy.sell.SellQuote;
+import com.stardew.craft.economy.sell.SellSource;
 import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.item.StardewBookItem;
@@ -209,6 +212,38 @@ public class ModClientEvents {
                             .append(Component.translatable(typeKey)
                             .withStyle(typeColor, ChatFormatting.BOLD)));
                 }
+            }
+
+            SellQuote quote = ProfessionSellPriceService.quoteItemForProfessionNames(
+                new java.util.HashSet<>(ClientPlayerDataCache.getProfessions()), stack, SellSource.SHOP_COUNTER);
+            int sellPrice = quote.finalUnitPrice();
+            boolean hidePriceLine = stack.getItem() == ModItems.SKULL_KEY.get()
+                || stack.getItem() == ModItems.DWARVISH_TRANSLATION_GUIDE.get()
+                || stack.getItem() == ModItems.RUSTY_KEY.get()
+                || stack.getItem() == ModItems.WARP_WAND.get()
+                || stack.getItem() == ModItems.STARDROP.get()
+                || stack.getItem() == ModItems.IRIDIUM_MILK.get();
+            if (!hidePriceLine) {
+                if (sellPrice > 0) {
+                    customLines.add(Component.translatable("stardewcraft.tooltip.price")
+                        .append(": ")
+                        .append(Component.literal(TooltipConstants.ICON_MONEY).withStyle(ChatFormatting.WHITE))
+                        .append(Component.literal(" " + sellPrice + " G").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD)));
+                } else {
+                    customLines.add(Component.translatable("stardewcraft.tooltip.price")
+                        .append(": ")
+                        .append(Component.literal("X ").withStyle(ChatFormatting.RED))
+                        .append(Component.translatable("stardewcraft.tooltip.not_sellable")
+                            .withStyle(ChatFormatting.RED, ChatFormatting.BOLD)));
+                }
+            }
+
+            if (stack.getCount() > 1 && sellPrice > 0) {
+                long totalPrice = (long) sellPrice * stack.getCount();
+                customLines.add(Component.translatable("stardewcraft.tooltip.total_price")
+                    .append(": ")
+                    .append(Component.literal(TooltipConstants.ICON_MONEY).withStyle(ChatFormatting.WHITE))
+                    .append(Component.literal(" " + totalPrice + " G").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD)));
             }
             
             // Tool: watering can extra info (before description).
