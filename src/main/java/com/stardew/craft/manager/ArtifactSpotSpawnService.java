@@ -179,6 +179,44 @@ public final class ArtifactSpotSpawnService {
                 }
             }
         }
+
+        spawnOnPlayerFarms(level, season, random);
+    }
+
+    private static void spawnOnPlayerFarms(ServerLevel level, int season, RandomSource random) {
+        for (com.stardew.craft.farm.FarmInstance farm : com.stardew.craft.farm.FarmInstanceRegistry.get().getAllFarms()) {
+            BlockPos min = farm.getFarmBoundsMin();
+            BlockPos max = farm.getFarmBoundsMax();
+            ZoneRect rect = rect(min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ());
+
+            int existingCount = 0;
+            removeAndCountSpots(level, rect, random, SurfaceKind.YELLOW_DIRT);
+            existingCount += countSpotsInRect(level, rect, SurfaceKind.YELLOW_DIRT);
+
+            boolean overCap = existingCount > MAX_SPOTS_FARM && (season != 3 || existingCount > MAX_SPOTS_WINTER);
+            if (overCap) {
+                continue;
+            }
+
+            double chanceForNewAttempt = 1.0D;
+            while (random.nextDouble() < chanceForNewAttempt) {
+                chanceForNewAttempt *= 0.75D;
+                if (season == 3) {
+                    chanceForNewAttempt += 0.10D;
+                }
+
+                int x = rect.minX + random.nextInt(rect.maxX - rect.minX + 1);
+                int z = rect.minZ + random.nextInt(rect.maxZ - rect.minZ + 1);
+                if (!level.hasChunk(x >> 4, z >> 4)) {
+                    continue;
+                }
+                if (canSpawnArtifactSpotInRect(level, x, z, SurfaceKind.YELLOW_DIRT, rect)) {
+                    int surfaceY = level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z) - 1;
+                    BlockPos pos = new BlockPos(x, surfaceY, z);
+                    level.setBlock(pos, spotStateFor(level.getBlockState(pos), SurfaceKind.YELLOW_DIRT), Block.UPDATE_ALL);
+                }
+            }
+        }
     }
 
     // ======================== Chunk Load Spawn ========================
@@ -293,6 +331,19 @@ public final class ArtifactSpotSpawnService {
         if (!isSurfaceYInZone(x, surfaceY, z, surface)) return false;
         if (!matchesSurface(state, surface)) return false;
 
+        BlockPos above = pos.above();
+        return level.getBlockState(above).isAir() && level.canSeeSky(above);
+    }
+
+    private static boolean canSpawnArtifactSpotInRect(ServerLevel level, int x, int z, SurfaceKind surface, ZoneRect rect) {
+        int surfaceY = level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z) - 1;
+        if (!rect.contains(x, z) || !rect.containsSurfaceY(surfaceY)) {
+            return false;
+        }
+        BlockPos pos = new BlockPos(x, surfaceY, z);
+        if (!matchesSurface(level.getBlockState(pos), surface)) {
+            return false;
+        }
         BlockPos above = pos.above();
         return level.getBlockState(above).isAir() && level.canSeeSky(above);
     }

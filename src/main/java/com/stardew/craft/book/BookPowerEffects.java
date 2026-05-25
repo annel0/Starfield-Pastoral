@@ -17,6 +17,8 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -52,6 +54,8 @@ public final class BookPowerEffects {
     );
     private static final double PLAYER_SPEED_STEP = 0.05D;
     private static final double HORSE_SPEED_BONUS = 0.052083333333333336D;
+    private static final double GRASS_SPEED_FACTOR = 0.900D;
+    private static final double GRASS_BOOK_SPEED_FACTOR = 1.030D;
 
     private static final Map<UUID, Integer> LAST_HORSE_BY_PLAYER = new HashMap<>();
 
@@ -151,7 +155,16 @@ public final class BookPowerEffects {
     }
 
     public static double getGrassSpeedFactor(PlayerStardewData data) {
-        return hasPower(data, BOOK_GRASS) ? 0.934D : 0.800D;
+        return getGrassSpeedFactor(hasPower(data, BOOK_GRASS));
+    }
+
+    public static double getGrassSpeedFactor(boolean hasGrassPower) {
+        return hasGrassPower ? GRASS_BOOK_SPEED_FACTOR : GRASS_SPEED_FACTOR;
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    public static double getClientGrassSpeedFactor() {
+        return getGrassSpeedFactor(com.stardew.craft.client.ClientPlayerDataCache.hasStat(BOOK_GRASS));
     }
 
     public static void tickMovement(ServerPlayer player, PlayerStardewData data) {

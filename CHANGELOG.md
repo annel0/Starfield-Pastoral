@@ -1,5 +1,57 @@
 # Changelog
 
+## 0.4.2 - 2026-05-25
+
+### Update Log (English)
+
+#### Headline Features
+
+- Added the first broad Desert Festival implementation pass for the Spring 15-17 festival window, including passive festival activation, desert map makeover behavior, Calico Egg economy support, NPC visit handling, and festival-specific shops/interactions.
+- Added Desert Festival race systems and Stardew-style race UI flow, including room lists, live race screens, snapshot/watch views, single-bet handling, state synchronization, and festival race network payloads.
+- Added Desert Festival Skull Cavern support with Calico Egg stone content, mine HUD synchronization, Marlon challenge/rating menus, challenge progress persistence, egg reward handling, and festival-specific pass-out penalties.
+
+#### Desert Festival Content
+
+- Added Desert Festival vendor coverage, including the Calico Egg shop, rotating villager vendor shops, Shady Guy UI, festival food/dish registration, desert cook dish items, and related item models/localization.
+- Added new festival items and blocks such as Calico Eggs, Calico Egg stones, Calico statues, star plaques, prize tickets, the prize ticket machine, and desert festival reward/utility models.
+- Added festival-specific NPC and route data used by the desert venue, along with portal trigger/Jade support for inspecting location triggers during map interaction work.
+
+#### Gameplay and Stability Fixes
+
+- Reworked farm join approval so farm owners receive an in-game confirmation dialog instead of relying on permission-sensitive chat commands, with queued handling for multiple pending requests.
+- Fixed flower crop growth/Jade behavior by separating decorative placed flowers from planted crops, so planted flowers can grow and show progress while decorative mature flowers stay static.
+- Tuned bomb mining behavior for the 3D Minecraft environment, including smaller effective bomb ranges, reduced bomb-ladder odds from destroyed rocks, and a higher normal-bomb crafting cost.
+- Improved mine ladder highlighting, mine exit/menu behavior, NPC leash protection, Joja Community Center lock messaging, lightning rod model presentation, Bookseller trade direction, and several multiplayer/client presentation paths touched during this pass.
+
+#### Changes
+
+- Updated the public mod version to `0.4.2`.
+
+### 更新日志（中文）
+
+#### 重点内容
+
+- 加入第一轮较完整的沙漠节实现，覆盖春 15-17 的被动节日开启、沙漠地图改造、印花蛋经济、NPC 到访处理，以及节日期间专用商店与交互。
+- 加入沙漠节赛跑系统和星露谷风格赛跑 UI 流程，包括房间列表、实时比赛界面、快照/观赛界面、单次下注、状态同步和对应网络包。
+- 加入沙漠节骷髅洞支持，包括印花蛋石头、矿洞 HUD 同步、马龙挑战/评分菜单、挑战进度持久化、印花蛋奖励和节日期间昏倒惩罚。
+
+#### 沙漠节内容
+
+- 补充沙漠节商店覆盖：印花蛋商店、轮换村民摊位、神秘商人界面、节日料理/菜品注册、沙漠节料理物品，以及相关物品模型与本地化。
+- 新增印花蛋、印花蛋石头、印花雕像、星星牌、兑奖券、兑奖机等节日物品/方块和奖励/功能模型。
+- 加入沙漠会场所需的 NPC 与路线数据，并补充传送触发器/Jade 支持，方便地图交互调试和位置触发查看。
+
+#### 玩法与稳定性修复
+
+- 将加入农场审批改为农场主收到游戏内确认弹窗，不再依赖受权限组影响的聊天命令，并支持多个待处理申请排队显示。
+- 修复花类作物生长和 Jade 信息：区分“装饰用成熟花”和“播种后的花苗”，让花苗能正常生长并显示进度，装饰花保持静态。
+- 针对 Minecraft 3D 环境调整炸弹挖矿：缩小有效爆炸半径、降低炸掉石头出梯子的概率，并上调普通炸弹制作成本。
+- 改进矿井梯子高亮、矿井离开/菜单行为、NPC 防拴绳、Joja 路线社区中心上锁提示、避雷针模型显示、书摊兑换方向，以及本轮触及的若干联机和客户端表现路径。
+
+#### 变更
+
+- 项目公开版本号更新为 `0.4.2`。
+
 ## 0.4.1 - 2026-05-23
 
 ### Update Log (English)

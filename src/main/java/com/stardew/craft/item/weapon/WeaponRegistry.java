@@ -1111,6 +1111,24 @@ public class WeaponRegistry {
                 .build())
             .build());
 
+        register(WeaponData.builder("elliotts_pencil")
+            .type(WeaponType.DAGGER)
+            .level(12)
+            .damage(24, 30)
+            .weight(0.5)
+            .critChance(0.06)
+            .critPower(3.0)
+            .build());
+
+        register(WeaponData.builder("abbys_planchette")
+            .type(WeaponType.DAGGER)
+            .level(12)
+            .damage(24, 30)
+            .weight(0.5)
+            .critChance(0.06)
+            .critPower(3.0)
+            .build());
+
         // ============== 棍棒武器 ==============
         // Lv.2 - 初级
         register(WeaponData.builder("femur")
@@ -1132,6 +1150,60 @@ public class WeaponRegistry {
                 .icon(WeaponIcons.SKILL_FEMUR_1)
                 .build())
             .build());
+        register(WeaponData.builder("alexs_bat")
+            .type(WeaponType.CLUB)
+            .level(12)
+            .damage(40, 55)
+            .speed(-12)
+            .weight(1.5)
+            .critChance(0.02)
+            .critPower(3.0)
+            .build());
+        register(WeaponData.builder("sams_old_guitar")
+            .type(WeaponType.CLUB)
+            .level(12)
+            .damage(40, 55)
+            .speed(-12)
+            .weight(1.5)
+            .critChance(0.02)
+            .critPower(3.0)
+            .build());
+        register(WeaponData.builder("marus_wrench")
+            .type(WeaponType.CLUB)
+            .level(12)
+            .damage(40, 55)
+            .speed(-12)
+            .weight(1.5)
+            .critChance(0.02)
+            .critPower(3.0)
+            .build());
+        register(WeaponData.builder("harveys_mallet")
+            .type(WeaponType.CLUB)
+            .level(12)
+            .damage(40, 55)
+            .speed(-12)
+            .weight(1.5)
+            .critChance(0.02)
+            .critPower(3.0)
+            .build());
+        register(WeaponData.builder("pennys_fryer")
+            .type(WeaponType.CLUB)
+            .level(12)
+            .damage(40, 55)
+            .speed(-12)
+            .weight(1.5)
+            .critChance(0.02)
+            .critPower(3.0)
+            .build());
+        register(WeaponData.builder("sebs_lost_mace")
+            .type(WeaponType.CLUB)
+            .level(12)
+            .damage(40, 55)
+            .speed(-12)
+            .weight(1.5)
+            .critChance(0.02)
+            .critPower(3.0)
+            .build());
 
         register(WeaponData.builder("galaxy_hammer")
             .type(WeaponType.CLUB)
@@ -1148,6 +1220,24 @@ public class WeaponRegistry {
             .speed(-2)
             .defense(1)
             .critChance(0.02)
+            .build());
+        register(WeaponData.builder("leahs_whittler")
+            .type(WeaponType.SWORD)
+            .level(12)
+            .damage(30, 45)
+            .speed(-2)
+            .weight(1.0)
+            .critChance(0.02)
+            .critPower(3.2)
+            .build());
+        register(WeaponData.builder("haleys_iron")
+            .type(WeaponType.SWORD)
+            .level(12)
+            .damage(30, 45)
+            .speed(-2)
+            .weight(1.0)
+            .critChance(0.02)
+            .critPower(3.2)
             .build());
         
         // TODO: 后续添加更多武器

@@ -480,6 +480,7 @@ public class StardewTeleportCommand {
 
             MiningCoordinates.teleportPlayerToFloor(player, mineLevel, targetFloor);
             PacketDistributor.sendToPlayer(player, new MiningFloorSyncPacket(targetFloor));
+            com.stardew.craft.event.MiningBlockBreakHandler.syncLadderStateForPlayer(player, targetFloor);
 
             context.getSource().sendSuccess(
                 () -> Component.literal("已传送到矿井第 " + targetFloor + " 层"),
@@ -522,6 +523,7 @@ public class StardewTeleportCommand {
 
             MiningCoordinates.teleportPlayerToFloor(player, mineLevel, targetFloor);
             PacketDistributor.sendToPlayer(player, new MiningFloorSyncPacket(targetFloor));
+            com.stardew.craft.event.MiningBlockBreakHandler.syncLadderStateForPlayer(player, targetFloor);
 
             final int displayFloor = relative;
             final int internal = targetFloor;

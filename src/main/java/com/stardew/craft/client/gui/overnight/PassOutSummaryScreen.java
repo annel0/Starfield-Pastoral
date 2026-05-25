@@ -2,6 +2,7 @@ package com.stardew.craft.client.gui.overnight;
 
 import com.stardew.craft.client.gui.common.CommonGuiTextures;
 import com.stardew.craft.client.gui.common.GuiText;
+import com.stardew.craft.network.overnight.ClientOvernightHandler;
 import com.stardew.craft.network.payload.PassOutPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -116,8 +117,8 @@ public class PassOutSummaryScreen extends Screen {
     private void close() {
         com.stardew.craft.StardewCraft.LOGGER.info("[OVERNIGHT_CLIENT] PassOutSummaryScreen.close() chainMode={}, siblingCount={}",
             siblingScreens != null, siblingScreens != null ? siblingScreens.size() : -1);
-        if (siblingScreens != null && !siblingScreens.isEmpty()) {
-            Minecraft.getInstance().setScreen(siblingScreens.remove(0));
+        if (siblingScreens != null) {
+            ClientOvernightHandler.openNextScreen("passout_summary");
         } else {
             Minecraft.getInstance().setScreen(null);
         }

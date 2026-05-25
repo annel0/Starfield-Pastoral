@@ -177,6 +177,7 @@ public class StardewCraft {
                 output.accept(ModItems.DESERT_GOLD_ORE.get());
                 output.accept(ModItems.DESERT_IRIDIUM_ORE.get());
                 output.accept(ModItems.DESERT_COAL_ORE.get());
+                output.accept(ModItems.PRIZE_TICKET.get());
 
                 // 骷髅矿洞功能方块
                 output.accept(ModItems.QUICKSAND.get());
@@ -455,6 +456,7 @@ public class StardewCraft {
                 output.accept(ModItems.FISH_SHOP_COUNTER.get());
                 output.accept(ModItems.HOSPITAL_COUNTER.get());
                 output.accept(ModItems.JOJA_VENDING_MACHINE.get());
+                output.accept(ModItems.PRIZE_TICKET_MACHINE.get());
                 output.accept(ModItems.FURNITURE_CATALOGUE.get());
                 output.accept(ModItems.STANDING_HOE.get());
                 output.accept(ModItems.EMPTY_TERRACOTTA_POT.get());
@@ -473,7 +475,6 @@ public class StardewCraft {
                 output.accept(ModItems.BONSAI_1.get());
                 output.accept(ModItems.BONSAI_2.get());
                 output.accept(ModItems.BONSAI_3.get());
-                output.accept(ModItems.BONSAI_4.get());
                 output.accept(ModItems.BONSAI_5_WALL.get());
                 output.accept(ModItems.BONSAI_BUSH.get());
                 output.accept(ModItems.POTTED_PLANT_1.get());
@@ -646,7 +647,8 @@ public class StardewCraft {
                         // 家具已在前面按类别显式排序，跳过自动循环
                     } else if ("stardewcraft.type.festival_decoration".equals(typeKey)) {
                         output.accept(item);
-                    } else if ("stardewcraft.type.cooking".equals(typeKey)) {
+                        } else if ("stardewcraft.type.cooking".equals(typeKey)
+                            || "stardewcraft.type.festival_food".equals(typeKey)) {
                         output.accept(item);
                     } else if ("stardewcraft.type.fruit".equals(typeKey)) {
                         fruitItems.add(item);
@@ -706,6 +708,8 @@ public class StardewCraft {
                         output.accept(item);
                     } else if ("stardewcraft.type.special".equals(typeKey)) {
                         // 特殊物品（骷髅钥匙等纪念物）：不支持品质
+                        output.accept(item);
+                    } else if ("stardewcraft.type.quest".equals(typeKey)) {
                         output.accept(item);
                     } else if ("stardewcraft.type.trash".equals(typeKey)) {
                         // 垃圾物品不支持品质

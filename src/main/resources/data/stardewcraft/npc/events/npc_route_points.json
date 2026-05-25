@@ -9,6 +9,280 @@
       "note": "镇中心花园纯室外目标",
       "indoor": false
     },
+    "desert_bus_town_depart": {
+      "x": -66,
+      "y": 64,
+      "z": -60,
+      "note": "镇上去沙漠的公交传送点",
+      "indoor": false
+    },
+    "desert_bus_town_arrival": {
+      "x": -60,
+      "y": 64,
+      "z": -61,
+      "note": "沙漠返程后到达镇上的公交点",
+      "indoor": false
+    },
+    "desert_bus_arrival": {
+      "x": -225,
+      "y": 64,
+      "z": -177,
+      "note": "公交到达沙漠的点",
+      "indoor": false
+    },
+    "desert_bus_return_depart": {
+      "x": -225,
+      "y": 65,
+      "z": -179,
+      "note": "沙漠返程公交传送点",
+      "indoor": false
+    },
+    "desert_festival_stall_a": {
+      "x": -215,
+      "y": 64,
+      "z": -164,
+      "note": "沙漠节日替摊位 A NPC 站位",
+      "indoor": false
+    },
+    "desert_festival_stall_b": {
+      "x": -238,
+      "y": 64,
+      "z": -163,
+      "note": "沙漠节日替摊位 B NPC 站位",
+      "indoor": false
+    },
+    "desert_festival_marlon": {
+      "x": -229,
+      "y": 64,
+      "z": -210,
+      "note": "沙漠节马龙全天站位，朝南",
+      "indoor": false
+    },
+    "_comment_desert_festival_visitors": "=== Desert Festival NPC visitor positions ===",
+    "desert_festival_visit_robin": {
+      "x": -230,
+      "y": 64,
+      "z": -207,
+      "note": "沙漠节 Robin 站位，朝北",
+      "indoor": false
+    },
+    "desert_festival_visit_linus": {
+      "x": -203,
+      "y": 64,
+      "z": -205,
+      "note": "沙漠节 Linus 站位，朝东",
+      "indoor": false
+    },
+    "desert_festival_visit_harvey": {
+      "x": -222,
+      "y": 64,
+      "z": -197,
+      "note": "沙漠节 Harvey 站位，朝南",
+      "indoor": false
+    },
+    "desert_festival_visit_willy": {
+      "x": -233,
+      "y": 64,
+      "z": -194,
+      "note": "沙漠节 Willy 站位，朝西",
+      "indoor": false
+    },
+    "desert_festival_visit_demetrius": {
+      "x": -238,
+      "y": 64,
+      "z": -182,
+      "note": "沙漠节 Demetrius 站位，朝南",
+      "indoor": false
+    },
+    "desert_festival_visit_alex": {
+      "x": -238,
+      "y": 64,
+      "z": -182,
+      "note": "沙漠节 Alex 站位，同 Demetrius，朝南",
+      "indoor": false
+    },
+    "desert_festival_visit_shane": {
+      "x": -238,
+      "y": 64,
+      "z": -182,
+      "note": "沙漠节 Shane 站位，同 Alex，朝南",
+      "indoor": false
+    },
+    "desert_festival_visit_maru": {
+      "x": -191,
+      "y": 64,
+      "z": -158,
+      "note": "沙漠节 Maru 站位，朝东",
+      "indoor": false
+    },
+    "desert_festival_visit_emily": {
+      "x": -211,
+      "y": 64,
+      "z": -142,
+      "note": "沙漠节 Emily 站位，朝南",
+      "indoor": false
+    },
+    "desert_festival_visit_sandy": {
+      "x": -215,
+      "y": 64,
+      "z": -142,
+      "note": "沙漠节 Sandy 站位，朝南",
+      "indoor": false
+    },
+    "desert_festival_visit_lewis_day1": {
+      "x": -232,
+      "y": 64,
+      "z": -164,
+      "note": "沙漠节 Lewis 第一天站位，朝南",
+      "indoor": false
+    },
+    "desert_festival_visit_lewis_day2": {
+      "x": -222,
+      "y": 64,
+      "z": -170,
+      "note": "沙漠节 Lewis 第二天站位，朝南",
+      "indoor": false
+    },
+    "desert_festival_visit_pam": {
+      "x": -236,
+      "y": 64,
+      "z": -160,
+      "note": "沙漠节 Pam 站位，朝南",
+      "indoor": false
+    },
+    "desert_festival_visit_penny": {
+      "x": -197,
+      "y": 64,
+      "z": -156,
+      "note": "沙漠节 Penny 站位，朝南",
+      "indoor": false
+    },
+    "desert_festival_visit_clint": {
+      "x": -243,
+      "y": 64,
+      "z": -145,
+      "note": "沙漠节 Clint 站位，朝东",
+      "indoor": false
+    },
+    "desert_festival_visit_haley": {
+      "x": -232,
+      "y": 64,
+      "z": -140,
+      "note": "沙漠节 Haley 站位，朝南",
+      "indoor": false
+    },
+    "desert_festival_visit_caroline": {
+      "x": -212,
+      "y": 64,
+      "z": -160,
+      "note": "沙漠节 Caroline 站位，朝南",
+      "indoor": false
+    },
+    "desert_festival_visit_leah": {
+      "x": -182,
+      "y": 64,
+      "z": -150,
+      "note": "沙漠节 Leah 站位，朝东",
+      "indoor": false
+    },
+    "desert_festival_visit_elliott": {
+      "x": -190,
+      "y": 64,
+      "z": -141,
+      "note": "沙漠节 Elliott 站位，朝南",
+      "indoor": false
+    },
+    "desert_festival_visit_sebastian": {
+      "x": -221,
+      "y": 64,
+      "z": -151,
+      "note": "沙漠节 Sebastian 站位，朝南",
+      "indoor": false
+    },
+    "desert_festival_visit_abigail": {
+      "x": -238,
+      "y": 64,
+      "z": -139,
+      "note": "沙漠节 Abigail 站位，朝南",
+      "indoor": false
+    },
+    "desert_festival_visit_sam": {
+      "x": -233,
+      "y": 64,
+      "z": -142,
+      "note": "沙漠节 Sam 站位，朝南",
+      "indoor": false
+    },
+    "desert_festival_visit_gus": {
+      "x": -234,
+      "y": 64,
+      "z": -200,
+      "note": "沙漠节 Gus 站位，朝西",
+      "indoor": false
+    },
+    "desert_festival_visit_marnie": {
+      "x": -207,
+      "y": 64,
+      "z": -186,
+      "note": "沙漠节 Marnie 站位，朝南",
+      "indoor": false
+    },
+    "desert_festival_visit_lewis_day3": {
+      "x": -212,
+      "y": 64,
+      "z": -185,
+      "note": "沙漠节 Lewis 第三天站位，朝南",
+      "indoor": false
+    },
+    "desert_festival_visit_evelyn": {
+      "x": -216,
+      "y": 64,
+      "z": -173,
+      "note": "沙漠节 Evelyn 站位，朝北",
+      "indoor": false
+    },
+    "desert_festival_visit_george": {
+      "x": -214,
+      "y": 64,
+      "z": -173,
+      "note": "沙漠节 George 站位，朝北",
+      "indoor": false
+    },
+    "desert_festival_visit_pierre": {
+      "x": -199,
+      "y": 64,
+      "z": -145,
+      "note": "沙漠节 Pierre 站位，用户未指定，避开第一天重叠补位，朝南",
+      "indoor": false
+    },
+    "desert_festival_visit_jas": {
+      "x": -200,
+      "y": 64,
+      "z": -184,
+      "note": "沙漠节 Jas 站位，用户未指定，避开第三天重叠补位，朝南",
+      "indoor": false
+    },
+    "desert_festival_visit_jodi": {
+      "x": -220,
+      "y": 64,
+      "z": -187,
+      "note": "沙漠节 Jodi 站位，用户未指定，避开第三天重叠补位，朝南",
+      "indoor": false
+    },
+    "desert_festival_visit_kent": {
+      "x": -223,
+      "y": 64,
+      "z": -184,
+      "note": "沙漠节 Kent 站位，用户未指定，避开第三天重叠补位，朝南",
+      "indoor": false
+    },
+    "desert_festival_visit_vincent": {
+      "x": -201,
+      "y": 64,
+      "z": -188,
+      "note": "沙漠节 Vincent 站位，用户未指定，避开第三天重叠补位，朝东",
+      "indoor": false
+    },
     "_comment_seedshop": "=== Pierre's House / SeedShop ===",
     "seedshop_counter": {
       "x": 22,

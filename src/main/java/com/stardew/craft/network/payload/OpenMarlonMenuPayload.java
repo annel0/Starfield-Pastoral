@@ -12,18 +12,25 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import java.util.List;
 
 /**
- * Server → Client: show Marlon's question dialog (Shop / Gil / Recovery / Leave).
+ * Server -> Client: show Marlon's question dialog.
  * hasLostItems: if true, client shows the "Item Recovery" option (SDV parity).
  */
 @SuppressWarnings("null")
-public record OpenMarlonMenuPayload(boolean hasLostItems) implements CustomPacketPayload {
+public record OpenMarlonMenuPayload(boolean hasLostItems, boolean hasDesertFestivalRatingOption,
+                                    boolean hasDesertFestivalChallengeOption,
+                                    boolean desertFestivalBoothOnly) implements CustomPacketPayload {
 
     public static final Type<OpenMarlonMenuPayload> TYPE =
         new Type<>(ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "open_marlon_menu"));
 
     public static final StreamCodec<FriendlyByteBuf, OpenMarlonMenuPayload> STREAM_CODEC = StreamCodec.of(
-        (buf, payload) -> buf.writeBoolean(payload.hasLostItems()),
-        buf -> new OpenMarlonMenuPayload(buf.readBoolean())
+        (buf, payload) -> {
+            buf.writeBoolean(payload.hasLostItems());
+            buf.writeBoolean(payload.hasDesertFestivalRatingOption());
+            buf.writeBoolean(payload.hasDesertFestivalChallengeOption());
+            buf.writeBoolean(payload.desertFestivalBoothOnly());
+        },
+        buf -> new OpenMarlonMenuPayload(buf.readBoolean(), buf.readBoolean(), buf.readBoolean(), buf.readBoolean())
     );
 
     @Override
@@ -40,29 +47,47 @@ public record OpenMarlonMenuPayload(boolean hasLostItems) implements CustomPacke
         net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
         if (mc.player == null) return;
 
-        // Build options list dynamically (SDV: Shop / Recovery / Gil / Leave)
         List<Component> options = new java.util.ArrayList<>();
-        options.add(Component.translatable("stardewcraft.npc.marlon.menu.shop"));       // 0 → Shop
-        options.add(Component.translatable("stardewcraft.npc.marlon.menu.gil"));        // 1 → Gil
-        if (payload.hasLostItems()) {
-            options.add(Component.translatable("stardewcraft.npc.marlon.menu.recovery"));  // 2 → Recovery
+        List<Integer> choices = new java.util.ArrayList<>();
+        Component question = Component.translatable("stardewcraft.npc.marlon.menu.question");
+        if (payload.desertFestivalBoothOnly()) {
+            question = Component.translatable("stardewcraft.npc.marlon.menu.desert_question");
+            options.add(Component.translatable("stardewcraft.npc.marlon.menu.desert_rating"));
+            choices.add(3);
+            options.add(Component.translatable("stardewcraft.npc.marlon.menu.desert_challenge"));
+            choices.add(4);
+        } else {
+            options.add(Component.translatable("stardewcraft.npc.marlon.menu.shop"));
+            choices.add(0);
+            options.add(Component.translatable("stardewcraft.npc.marlon.menu.gil"));
+            choices.add(1);
+            if (payload.hasLostItems()) {
+                options.add(Component.translatable("stardewcraft.npc.marlon.menu.recovery"));
+                choices.add(2);
+            }
+            if (payload.hasDesertFestivalRatingOption()) {
+                options.add(Component.translatable("stardewcraft.npc.marlon.menu.desert_rating"));
+                choices.add(3);
+            }
+            if (payload.hasDesertFestivalChallengeOption()) {
+                options.add(Component.translatable("stardewcraft.npc.marlon.menu.desert_challenge"));
+                choices.add(4);
+            }
         }
-        options.add(Component.translatable("stardewcraft.npc.marlon.menu.leave"));      // last → Leave
+        options.add(Component.translatable("stardewcraft.npc.marlon.menu.leave"));
+        choices.add(-1);
 
         mc.setScreen(com.stardew.craft.client.gui.common.StardewConfirmDialogScreen.createQuestionDialog(
             com.stardew.craft.client.gui.common.StardewQuestionDialogSpec.of(
-                Component.translatable("stardewcraft.npc.marlon.menu.question"),
+                question,
                 options,
                 index -> {
-                    // Map index to choice: 0=Shop, 1=Gil, 2=Recovery (if present), last=Leave
-                    if (index == 0) {
-                        PacketDistributor.sendToServer(new MarlonMenuChoicePayload(0)); // Shop
-                    } else if (index == 1) {
-                        PacketDistributor.sendToServer(new MarlonMenuChoicePayload(1)); // Gil
-                    } else if (payload.hasLostItems() && index == 2) {
-                        PacketDistributor.sendToServer(new MarlonMenuChoicePayload(2)); // Recovery
+                    if (index >= 0 && index < choices.size()) {
+                        int choice = choices.get(index);
+                        if (choice >= 0) {
+                            PacketDistributor.sendToServer(new MarlonMenuChoicePayload(choice));
+                        }
                     }
-                    // else → Leave, do nothing
                 },
                 -1
             )

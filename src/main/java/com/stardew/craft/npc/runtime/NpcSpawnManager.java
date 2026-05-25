@@ -417,6 +417,14 @@ public final class NpcSpawnManager {
             double spawnX = x;
             double spawnY = y;
             double spawnZ = z;
+            boolean desertFestivalMarlon = NpcScheduleRuntimeService.isDesertFestivalMarlonOverride(npcId);
+            if (desertFestivalMarlon) {
+                NpcScheduleRuntimeService.TargetPoint target = NpcScheduleRuntimeService.resolveDesertFestivalMarlonTarget();
+                spawnX = target.position().x;
+                spawnY = target.position().y;
+                spawnZ = target.position().z;
+                yaw = yawFromSdvFacing(NpcScheduleRuntimeService.desertFestivalMarlonFacing());
+            }
 
             // Chunk forcing is fully managed by NpcChunkForceManager now.
             // SpawnManager only tracks UUID→entity mapping.
@@ -429,6 +437,9 @@ public final class NpcSpawnManager {
                 new Vec3(spawnX, spawnY, spawnZ));
 
             if (hasTrackedNpc(level, npcId)) {
+                if (desertFestivalMarlon) {
+                    enforceDesertFestivalMarlonPosition(level, getTrackedNpc(level, npcId));
+                }
                 if (isKrobus(npcId)) {
                     enforceKrobusFixedPosition(getTrackedNpc(level, npcId));
                 }
@@ -438,6 +449,9 @@ public final class NpcSpawnManager {
 
             StardewNpcEntity existing = loadedByNpcId.get(npcId);
             if (existing != null) {
+                if (desertFestivalMarlon) {
+                    enforceDesertFestivalMarlonPosition(level, existing);
+                }
                 if (isKrobus(npcId)) {
                     enforceKrobusFixedPosition(existing);
                 }
@@ -447,6 +461,11 @@ public final class NpcSpawnManager {
             }
 
             boolean forced = FORCE_SPAWN_IDS.remove(npcId);
+            if (desertFestivalMarlon) {
+                TRACKED_NPC_UUIDS.remove(npcId);
+                TRACKED_MISS_COUNTS.remove(npcId);
+                forced = true;
+            }
             if (!forced) {
                 // If a tracked UUID still exists for this NPC but the entity wasn't
                 // found above, give it a short grace window for chunk reload.
@@ -814,6 +833,70 @@ public final class NpcSpawnManager {
         return true;
     }
 
+    public static boolean forceNpcToCurrentSchedule(ServerLevel level, String npcId) {
+        if (level == null || npcId == null || npcId.isBlank()) {
+            return false;
+        }
+        if (!ModDimensions.STARDEW_VALLEY.equals(level.dimension())) {
+            return false;
+        }
+        ensureServerContext(level);
+        String canonicalId = canonicalNpcId(npcId);
+        if (canonicalId == null || canonicalId.isBlank()) {
+            return false;
+        }
+        if (MINING_DIM_NPC_IDS.contains(canonicalId) || com.stardew.craft.joja.JojaNpcEvents.isJojaMartNpc(canonicalId)) {
+            return false;
+        }
+        if (NpcDataRegistry.schedules().get(canonicalId) == null) {
+            return false;
+        }
+
+        NpcScheduleRuntimeService.invalidateCache();
+        NpcScheduleRuntimeService.tick(level);
+        NpcRuntimeState state = NpcRuntimeDataManager.get(level).states().get(canonicalId);
+        if (state == null) {
+            return false;
+        }
+        Vec3 sharedSpawn = Vec3.atCenterOf(level.getSharedSpawnPos());
+        NpcScheduleRuntimeService.TargetPoint target = NpcScheduleRuntimeService.resolveWorldTarget(level, state, sharedSpawn);
+        if (target == null || target.position() == null) {
+            return false;
+        }
+
+        NpcChunkForceManager.ensureRouteTargetChunkForced(level, canonicalId, target.position());
+        StardewNpcEntity npc = getTrackedNpc(level, canonicalId);
+        if (npc == null) {
+            npc = findLoadedNpcById(level, canonicalId, null);
+        }
+        if (npc != null) {
+            moveNpcToScheduleTarget(level, npc, target.position(), state);
+            TRACKED_NPC_UUIDS.put(canonicalId, npc.getUUID());
+            TRACKED_MISS_COUNTS.put(canonicalId, 0);
+            NpcCentralMovementService.resetMovementPlan(canonicalId);
+            return true;
+        }
+
+        TRACKED_NPC_UUIDS.remove(canonicalId);
+        TRACKED_MISS_COUNTS.remove(canonicalId);
+        LAST_SPAWN_GAME_TIME.remove(canonicalId);
+        FORCE_SPAWN_IDS.add(canonicalId);
+        tick(level);
+
+        npc = getTrackedNpc(level, canonicalId);
+        if (npc == null) {
+            npc = findLoadedNpcById(level, canonicalId, null);
+        }
+        if (npc == null) {
+            return false;
+        }
+        moveNpcToScheduleTarget(level, npc, target.position(), state);
+        TRACKED_NPC_UUIDS.put(canonicalId, npc.getUUID());
+        TRACKED_MISS_COUNTS.put(canonicalId, 0);
+        NpcCentralMovementService.resetMovementPlan(canonicalId);
+        return true;
+    }
+
     private static JsonObject resolveSpawnPos(JsonObject spawns, String canonicalNpcId, String rawNpcId) {
         if (spawns == null) {
             return null;
@@ -870,6 +953,24 @@ public final class NpcSpawnManager {
         npc.setYRot(yaw);
         npc.setYHeadRot(yaw);
         npc.setYBodyRot(yaw);
+    }
+
+    private static void enforceDesertFestivalMarlonPosition(ServerLevel level, StardewNpcEntity npc) {
+        if (level == null || npc == null || npc.isRemoved() || !npc.isAlive()) {
+            return;
+        }
+        NpcScheduleRuntimeService.TargetPoint target = NpcScheduleRuntimeService.resolveDesertFestivalMarlonTarget();
+        Vec3 pos = target.position();
+        float yaw = yawFromSdvFacing(NpcScheduleRuntimeService.desertFestivalMarlonFacing());
+        npc.getNavigation().stop();
+        npc.moveTo(pos.x, pos.y, pos.z, yaw, 0.0F);
+        npc.setYRot(yaw);
+        npc.setYHeadRot(yaw);
+        npc.setYBodyRot(yaw);
+        npc.setDeltaMovement(Vec3.ZERO);
+        npc.hasImpulse = false;
+        npc.setWalking(false);
+        NpcCentralMovementService.resetMovementPlan("marlon");
     }
 
     private static float yawFromSdvFacing(int facing) {

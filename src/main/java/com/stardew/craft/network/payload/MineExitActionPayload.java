@@ -94,6 +94,7 @@ public record MineExitActionPayload(Action action) implements CustomPacketPayloa
 			serverPlayer,
 			new com.stardew.craft.network.MiningFloorSyncPacket(targetFloor)
 		);
+		com.stardew.craft.event.MiningBlockBreakHandler.syncLadderStateForPlayer(serverPlayer, targetFloor);
 	}
 
 	/** 骷髅矿出口 → 传送到沙漠矿洞入口附近 */

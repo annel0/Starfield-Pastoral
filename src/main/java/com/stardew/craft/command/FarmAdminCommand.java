@@ -47,9 +47,14 @@ public class FarmAdminCommand {
         dispatcher.register(
             Commands.literal("stardew")
                 .then(Commands.literal("admin")
+                    .requires(FarmAdminCommand::canOpenAdmin)
                     .executes(FarmAdminCommand::openAdmin)
                 )
         );
+    }
+
+    private static boolean canOpenAdmin(CommandSourceStack source) {
+        return source.getEntity() instanceof ServerPlayer player && isStardewOp(player);
     }
 
     /** 检查玩家是否拥有星露谷 OP 权限 */

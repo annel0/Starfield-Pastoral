@@ -4,12 +4,10 @@ import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModMiningDimensions;
 import com.stardew.craft.core.ModTags;
-import com.stardew.craft.event.DimensionEventHandler;
 import com.stardew.craft.item.equipment.StardewBootsItem;
 import com.stardew.craft.item.equipment.StardewRingItem;
 import com.stardew.craft.item.weapon.StardewWeaponItem;
 import com.stardew.craft.network.payload.PassOutPayload;
-import com.stardew.craft.time.StardewTimeManager;
 import com.stardew.craft.warp.ModTeleport;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -69,6 +67,10 @@ public final class PassOutService {
     @javax.annotation.Nullable
     public static PassOutResult consumePassOutResult(java.util.UUID playerId) {
         return pendingPassOutResults.remove(playerId);
+    }
+
+    public static boolean hasPendingPassOutResult(java.util.UUID playerId) {
+        return pendingPassOutResults.containsKey(playerId);
     }
 
     /** 检查玩家是否处于击倒状态（正在黑屏过渡中） */
@@ -149,7 +151,13 @@ public final class PassOutService {
         }
 
         // 2. 物品丢失
-        List<ItemStack> lostItems = loseItemsOnDeath(player, data);
+        List<ItemStack> lostItems;
+        if (com.stardew.craft.festival.desert.DesertFestivalMineService.isInFestivalSkullCavern(player)) {
+            removeDesertFestivalEggPenalty(player);
+            lostItems = List.of();
+        } else {
+            lostItems = loseItemsOnDeath(player, data);
+        }
         data.setItemsLostLastDeath(lostItems);
 
         // 3. 战斗死亡统计。战斗死亡只救援本人，不推进到次日。
@@ -221,8 +229,13 @@ public final class PassOutService {
     /**
      * 由 PlayerDataEventHandler.onPlayerTick() 在 energy ≤ -15 时调用。
      * 惩罚同 2AM 晕倒：金币扣除 + 邮件，无物品丢失。
+     * 体力耗尽属于过夜晕倒；多人时计入睡眠投票，达到阈值后统一进入夜间结算黑屏。
      */
     public static void onExhaustionPassOut(ServerPlayer player) {
+        if (hasPendingPassOutResult(player.getUUID())) {
+            return;
+        }
+
         PlayerStardewData data = PlayerDataManager.getPlayerData(player);
 
         if (player.isCreative()) {
@@ -239,12 +252,13 @@ public final class PassOutService {
         schedulePassOutMail(player, data, moneyLost);
         data.recordExhaustionPassOut();
 
+        data.setEnergy(0.0F);
+
         pendingPassOutResults.put(player.getUUID(),
             new PassOutResult(PassOutType.EXHAUSTION_STAMINA, moneyLost, List.of()));
 
         syncAndSave(player, data);
-
-        advanceDayAfterPassOut(player, "pass_out_exhaustion");
+        com.stardew.craft.event.DimensionEventHandler.requestPassOutAdvance(player);
 
         LOGGER.info("[PASSOUT] {} exhaustion pass out — lost {}g",
                 player.getName().getString(), moneyLost);
@@ -309,6 +323,26 @@ public final class PassOutService {
             }
         }
         return lostItems;
+    }
+
+    private static void removeDesertFestivalEggPenalty(ServerPlayer player) {
+        if (!(player.level() instanceof net.minecraft.server.level.ServerLevel level)) {
+            return;
+        }
+        int eggCount = player.getInventory().countItem(com.stardew.craft.item.ModItems.CALICO_EGG.get());
+        if (eggCount <= 0) {
+            return;
+        }
+        float percent = com.stardew.craft.festival.desert.DesertFestivalMineService.thinShellsActive(level) ? 0.5F : 0.2F;
+        int remaining = Math.max(0, (int)(eggCount * percent));
+        for (int slot = 0; slot < player.getInventory().getContainerSize() && remaining > 0; slot++) {
+            ItemStack stack = player.getInventory().getItem(slot);
+            if (stack.is(com.stardew.craft.item.ModItems.CALICO_EGG.get())) {
+                int take = Math.min(remaining, stack.getCount());
+                stack.shrink(take);
+                remaining -= take;
+            }
+        }
     }
 
     private static void grantCombatDeathRecovery(ServerPlayer player) {
@@ -385,20 +419,6 @@ public final class PassOutService {
             mailId = "passedOut_Marlon";
         }
         data.addMailForTomorrow(mailId);
-    }
-
-    private static void advanceDayAfterPassOut(ServerPlayer player, String reason) {
-        var server = player.server;
-        var stardewLevel = server.getLevel(ModDimensions.STARDEW_VALLEY);
-        com.stardew.craft.mastery.MasteryBuffLifecycle.clearAllDailyMasteryBuffs(player);
-        if (stardewLevel == null) {
-            teleportToFarmSpawn(player);
-            return;
-        }
-
-        int sleepMinute = StardewTimeManager.get().getCurrentTime();
-        DimensionEventHandler.triggerAdvance(stardewLevel, sleepMinute, reason);
-        teleportToFarmSpawn(player);
     }
 
     // ──────────────────────────────────────

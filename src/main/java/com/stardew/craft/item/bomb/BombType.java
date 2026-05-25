@@ -10,30 +10,29 @@ import java.util.function.Supplier;
  * SDV 三种炸弹的参数定义。
  *
  * <p>SDV 原版半径（瓦片 = MC 方块）：Cherry=1, Bomb=2, Mega=3。
- * 当前实现会在该基础上放大爆炸半径；本次平衡调整将现有半径整体削弱 25%。</p>
+ * MC 中炸弹保留 3D 爆破直觉，但中大型炸弹的方块破坏半径需要小于旧实现。</p>
  *
  * <pre>
- * Cherry Bomb: radius=1 (scaled=1.8), damage=6~8(r*6~r*8), playerDmg=3(r*3), fuse=2400ms
- * Bomb:        radius=2 (scaled=3.6), damage=12~16,       playerDmg=6,      fuse=2400ms
- * Mega Bomb:   radius=3 (scaled=5.4), damage=18~24,       playerDmg=9,      fuse=2400ms
+ * Cherry Bomb: radius=1 (break=1.8), damage=6~8(r*6~r*8), playerDmg=3(r*3), fuse=2400ms
+ * Bomb:        radius=2 (break=2.5), damage=12~16,       playerDmg=6,      fuse=2400ms
+ * Mega Bomb:   radius=3 (break=3.5), damage=18~24,       playerDmg=9,      fuse=2400ms
  * </pre>
  */
 public enum BombType {
-    CHERRY_BOMB("cherry_bomb", 1, 2400, () -> ModItems.CHERRY_BOMB),
-    BOMB("bomb_item", 2, 2400, () -> ModItems.BOMB_ITEM),
-    MEGA_BOMB("mega_bomb", 3, 2400, () -> ModItems.MEGA_BOMB);
-
-    /** 爆炸范围相对 SDV 原版的缩放比例（较旧实现削弱 25% 后的结果） */
-    private static final float RADIUS_SCALE = 1.8f;
+    CHERRY_BOMB("cherry_bomb", 1, 1.8f, 2400, () -> ModItems.CHERRY_BOMB),
+    BOMB("bomb_item", 2, 2.5f, 2400, () -> ModItems.BOMB_ITEM),
+    MEGA_BOMB("mega_bomb", 3, 3.5f, 2400, () -> ModItems.MEGA_BOMB);
 
     private final String id;
     private final int radius;
+    private final float blockBreakRadius;
     private final int fuseTimeMs;
     private final Supplier<DeferredItem<Item>> itemSupplier;
 
-    BombType(String id, int radius, int fuseTimeMs, Supplier<DeferredItem<Item>> itemSupplier) {
+    BombType(String id, int radius, float blockBreakRadius, int fuseTimeMs, Supplier<DeferredItem<Item>> itemSupplier) {
         this.id = id;
         this.radius = radius;
+        this.blockBreakRadius = blockBreakRadius;
         this.fuseTimeMs = fuseTimeMs;
         this.itemSupplier = itemSupplier;
     }
@@ -43,8 +42,8 @@ public enum BombType {
     /** SDV 原版半径（用于伤害计算） */
     public int getRadius() { return radius; }
 
-    /** 实际爆炸半径 = SDV 原版 * 1.8 */
-    public float getScaledRadius() { return radius * RADIUS_SCALE; }
+    /** 实际方块破坏半径。伤害仍使用 SDV 原版半径计算。 */
+    public float getScaledRadius() { return blockBreakRadius; }
 
     /** Fuse time in game ticks (20 ticks/sec). SDV uses 2400ms = 48 ticks. */
     public int getFuseTicks() { return fuseTimeMs / 50; }

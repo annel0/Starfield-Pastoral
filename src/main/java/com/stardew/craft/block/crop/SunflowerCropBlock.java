@@ -88,7 +88,7 @@ public class SunflowerCropBlock extends StardewCropBlock {
                                      int fertilizerLevel, int farmingLevel) {
         super.spawnHarvestDrops(level, pos, state, random, fertilizerLevel, farmingLevel);
 
-        if (state.hasProperty(PLACED_BY_PLAYER) && state.getValue(PLACED_BY_PLAYER)) {
+        if (StardewCropBlock.isPlayerPlacedDecorative(level, pos, state)) {
             return;
         }
 
@@ -169,9 +169,8 @@ public class SunflowerCropBlock extends StardewCropBlock {
         }
         // 玩家手动放置的成品花：允许種在泥土/草方块/菌丝等自然地表上
         if (!farmland
-                && state.hasProperty(StardewCropBlock.PLACED_BY_PLAYER)
-                && state.getValue(StardewCropBlock.PLACED_BY_PLAYER)
-                && StardewCropBlock.isNaturalSoil(below)) {
+            && StardewCropBlock.isDecorativeFlowerState(state)
+            && StardewCropBlock.isNaturalSoil(below)) {
             farmland = true;
         }
         if (!farmland) return false;
@@ -232,10 +231,11 @@ public class SunflowerCropBlock extends StardewCropBlock {
         if (lower.getBlock() != this) return;
         BlockPos above = pos.above();
         BlockState upper = level.getBlockState(above);
+        BlockState expectedUpper = lower.setValue(HALF, DoubleBlockHalf.UPPER);
         if (upper.getBlock() != this || upper.getValue(HALF) != DoubleBlockHalf.UPPER) {
-            level.setBlock(above, lower.setValue(HALF, DoubleBlockHalf.UPPER), 3);
-        } else if (upper.getValue(AGE) != lower.getValue(AGE)) {
-            level.setBlock(above, upper.setValue(AGE, lower.getValue(AGE)), 3);
+            level.setBlock(above, expectedUpper, 3);
+        } else if (!upper.equals(expectedUpper)) {
+            level.setBlock(above, expectedUpper, 3);
         }
     }
 }

@@ -2,6 +2,9 @@ package com.stardew.craft.blockentity;
 
 import com.stardew.craft.block.utility.GarbageCanLootTable;
 import com.stardew.craft.block.utility.TrashBinBlock;
+import com.stardew.craft.desert.DesertConstants;
+import com.stardew.craft.festival.desert.DesertFestivalService;
+import com.stardew.craft.item.ModItems;
 import com.stardew.craft.player.PlayerDataEventHandler;
 import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.PlayerStardewData;
@@ -12,6 +15,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -80,7 +84,9 @@ public class TrashBinBlockEntity extends net.minecraft.world.level.block.entity.
         long daySeed = stableDaySeed(today);
 
         String canId = worldPosition.getX() + "_" + worldPosition.getY() + "_" + worldPosition.getZ();
-        GarbageCanLootTable.Result result = GarbageCanLootTable.tryGetItem(canId, dailyLuck, trashCansChecked, daySeed, player);
+        GarbageCanLootTable.Result result = desertFestivalGarbageResult()
+            ? new GarbageCanLootTable.Result(new ItemStack(ModItems.CALICO_EGG.get(), 5 + level.random.nextInt(4)), false, false)
+            : GarbageCanLootTable.tryGetItem(canId, dailyLuck, trashCansChecked, daySeed, player);
 
         // 递增统计
         data.incrementTrashCansChecked();
@@ -105,6 +111,10 @@ public class TrashBinBlockEntity extends net.minecraft.world.level.block.entity.
             itemEntity.setPickUpDelay(10);
             level.addFreshEntity(itemEntity);
         }
+    }
+
+    private boolean desertFestivalGarbageResult() {
+        return DesertFestivalService.isFestivalOpen() && DesertConstants.isInDesertRegion(worldPosition);
     }
 
     // ==================== Tick ====================

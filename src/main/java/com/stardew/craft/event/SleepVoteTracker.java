@@ -73,6 +73,14 @@ public final class SleepVoteTracker {
      * @return true 如果达到阈值（应该推进了）
      */
     public static boolean castVote(ServerPlayer player, int sleepMinute) {
+        return castVoteInternal(player, sleepMinute, true);
+    }
+
+    public static boolean castPassOutVote(ServerPlayer player, int sleepMinute) {
+        return castVoteInternal(player, sleepMinute, false);
+    }
+
+    private static boolean castVoteInternal(ServerPlayer player, int sleepMinute, boolean broadcastProgress) {
         votes.put(player.getUUID(), sleepMinute);
         // 投票本身也算一次活动
         markActive(player);
@@ -93,6 +101,10 @@ public final class SleepVoteTracker {
 
         StardewCraft.LOGGER.info("[SleepVote] {}/{} voted, need {} ({}% of {} active, {} total, afk={}s)",
                 votedCount, activeCount, required, sleepPct, activeCount, totalStardewPlayers, afkTimeout);
+
+        if (!broadcastProgress) {
+            return votedCount >= required;
+        }
 
         // 广播投票进度给所有星露谷维度玩家（原版床界面下通过 action bar 可见）
         broadcastVoteProgress(server, votedCount, required);

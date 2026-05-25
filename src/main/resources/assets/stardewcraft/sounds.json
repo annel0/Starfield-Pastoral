@@ -479,10 +479,6 @@
         "stream": false
       },
       {
-        "name": "stardewcraft:weapon/meow_2",
-        "stream": false
-      },
-      {
         "name": "stardewcraft:weapon/meow_3",
         "stream": false
       }
@@ -571,10 +567,34 @@
       }
     ]
   },
+  "machine_bell": {
+    "sounds": [
+      {
+        "name": "stardewcraft:utility/machine_bell",
+        "stream": false
+      }
+    ]
+  },
+  "button_press": {
+    "sounds": [
+      {
+        "name": "stardewcraft:utility/button_press",
+        "stream": false
+      }
+    ]
+  },
   "button_tap": {
     "sounds": [
       {
         "name": "stardewcraft:utility/button_tap",
+        "stream": false
+      }
+    ]
+  },
+  "ticket_machine_whir": {
+    "sounds": [
+      {
+        "name": "stardewcraft:utility/ticket_machine_whir",
         "stream": false
       }
     ]

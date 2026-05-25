@@ -57,6 +57,19 @@ public class TeleportTotemItem extends Item implements IStardewItem {
         return totemType;
     }
 
+    public boolean performFreeWarp(ServerPlayer player) {
+        if (player == null || !player.isAlive()) {
+            return false;
+        }
+        if (totemType == TotemType.FARM
+                && com.stardew.craft.farm.FarmInstanceRegistry.get().getFarmForPlayer(player.getUUID()) == null) {
+            player.displayClientMessage(Component.translatable("message.stardewcraft.totem_no_farm"), true);
+            return false;
+        }
+        performWarp(player, new ItemStack(this), false);
+        return true;
+    }
+
     @Override
     public String getItemTypeKey() {
         return "stardewcraft.type.magic";
@@ -168,66 +181,53 @@ public class TeleportTotemItem extends Item implements IStardewItem {
             return InteractionResultHolder.fail(stack);
         }
 
-        // —— 阶段一：动画 + 音效（SDV performUseAction 中的 warp totem 分支）——
+        if (player instanceof ServerPlayer sp) {
+            performWarp(sp, stack, !player.isCreative());
+        }
 
-        // 播放 warrior 音效
+        return InteractionResultHolder.consume(stack);
+    }
+
+    private void performWarp(ServerPlayer player, ItemStack stack, boolean consumeStack) {
+        Level level = player.level();
         level.playSound(null, player.blockPosition(), ModSounds.WARRIOR.get(), SoundSource.PLAYERS, 1.0f, 1.0f);
 
-        // 生成粒子效果（SDV: sprinkles + screenGlow + floating totem icons）
         if (level instanceof ServerLevel sl) {
             double px = player.getX();
             double py = player.getY();
             double pz = player.getZ();
-            // SDV: 12个 TemporaryAnimatedSprite(354) 在玩家周围
             for (int i = 0; i < 12; i++) {
                 double ox = (sl.random.nextDouble() - 0.5) * 8.0;
                 double oz = (sl.random.nextDouble() - 0.5) * 8.0;
                 sl.sendParticles(ParticleTypes.END_ROD, px + ox, py + 1.0, pz + oz,
                         1, 0, 0.1, 0, 0.02);
             }
-
-            // SDV: addSprinklesToLocation 16x16 范围 → 许多闪光粒子
             for (int i = 0; i < 24; i++) {
                 double ox = (sl.random.nextDouble() - 0.5) * 6.0;
                 double oz = (sl.random.nextDouble() - 0.5) * 6.0;
                 sl.sendParticles(ParticleTypes.FIREWORK, px + ox, py + 0.5, pz + oz,
                         1, 0, 0.3, 0, 0.05);
             }
-
-            // SDV: 从右到左的横扫光效（x+8 到 x-8）
             for (int dx = 8; dx >= -8; dx--) {
-                // 立即生成（简化延迟逻辑为一次性全部生成）
                 sl.sendParticles(ParticleTypes.END_ROD,
                         px + dx, py + 0.5, pz,
                         1, 0, 0, 0, 0.01);
             }
         }
 
-        // 消耗物品
-        if (!player.isCreative()) {
+        if (consumeStack) {
             stack.shrink(1);
         }
 
-        // SDV: 1000ms 延迟后执行 totemWarpForReal
-        // MC 中使用 scheduledTick 或直接延迟传送
-        // 为了简洁和可靠性，使用服务端调度
-        if (player instanceof ServerPlayer sp) {
-            // 播放 wand 音效
-            level.playSound(null, player.blockPosition(), ModSounds.WAND.get(), SoundSource.PLAYERS, 1.0f, 1.0f);
+        level.playSound(null, player.blockPosition(), ModSounds.WAND.get(), SoundSource.PLAYERS, 1.0f, 1.0f);
+        player.closeContainer();
+        player.stopUsingItem();
 
-            // 传送前清理
-            sp.closeContainer();
-            sp.stopUsingItem();
-
-            // 传送（确保在 Stardew 维度）
-            ServerLevel stardewLevel = sp.server.getLevel(ModDimensions.STARDEW_VALLEY);
-            if (stardewLevel != null) {
-                BlockPos target = resolveTeleportDestination(sp, stack, stardewLevel);
-                ModTeleport.to(sp, stardewLevel, target, sp.getYRot(), sp.getXRot());
-            }
+        ServerLevel stardewLevel = player.server.getLevel(ModDimensions.STARDEW_VALLEY);
+        if (stardewLevel != null) {
+            BlockPos target = resolveTeleportDestination(player, stack, stardewLevel);
+            ModTeleport.to(player, stardewLevel, target, player.getYRot(), player.getXRot());
         }
-
-        return InteractionResultHolder.consume(stack);
     }
 
     /** 解析图腾对应的锚点位置（图腾柱底座坐标） */

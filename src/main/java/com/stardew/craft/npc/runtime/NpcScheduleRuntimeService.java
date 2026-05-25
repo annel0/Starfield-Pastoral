@@ -7,6 +7,9 @@ import com.stardew.craft.npc.data.NpcLocationAnchor;
 import com.stardew.craft.npc.data.NpcDataRegistry;
 import com.stardew.craft.festival.FestivalDefinition;
 import com.stardew.craft.festival.FestivalService;
+import com.stardew.craft.festival.desert.DesertFestivalNpcVisitService;
+import com.stardew.craft.festival.desert.DesertFestivalService;
+import com.stardew.craft.festival.desert.DesertFestivalVendorService;
 import com.stardew.craft.time.StardewTimeManager;
 import com.stardew.craft.weather.WeatherManager;
 import net.minecraft.server.level.ServerLevel;
@@ -40,6 +43,8 @@ public final class NpcScheduleRuntimeService {
     // Schedule resolution cache: only re-resolve when game clock changes.
     private static int cachedScheduleClock = Integer.MIN_VALUE;
     private static String cachedWeather = "";
+    private static int cachedAbsoluteDay = Integer.MIN_VALUE;
+    private static boolean cachedDesertFestivalDay;
 
     private NpcScheduleRuntimeService() {
     }
@@ -47,15 +52,20 @@ public final class NpcScheduleRuntimeService {
     public static void tick(ServerLevel level) {
         StardewTimeManager timeManager = StardewTimeManager.get();
         int currentTime = minutesToScheduleClock(timeManager.getCurrentTime());
+        int absoluteDay = timeManager.getAbsoluteDay();
+        boolean desertFestivalDay = DesertFestivalService.isFestivalDay();
         String activeWeather = WeatherManager.getCurrentWeather(level);
         if (activeWeather == null) activeWeather = "";
 
         // Skip full re-resolution if clock and weather haven't changed since last tick.
-        if (currentTime == cachedScheduleClock && activeWeather.equals(cachedWeather)) {
+        if (currentTime == cachedScheduleClock && activeWeather.equals(cachedWeather)
+            && absoluteDay == cachedAbsoluteDay && desertFestivalDay == cachedDesertFestivalDay) {
             return;
         }
         cachedScheduleClock = currentTime;
         cachedWeather = activeWeather;
+        cachedAbsoluteDay = absoluteDay;
+        cachedDesertFestivalDay = desertFestivalDay;
 
         NpcRuntimeDataManager runtimeData = NpcRuntimeDataManager.get(level);
         boolean changed = false;
@@ -125,6 +135,20 @@ public final class NpcScheduleRuntimeService {
     public static void invalidateCache() {
         cachedScheduleClock = Integer.MIN_VALUE;
         cachedWeather = "";
+        cachedAbsoluteDay = Integer.MIN_VALUE;
+        cachedDesertFestivalDay = false;
+    }
+
+    public static boolean isDesertFestivalMarlonOverride(String npcId) {
+        return npcId != null && "marlon".equalsIgnoreCase(npcId) && DesertFestivalService.isFestivalDay();
+    }
+
+    public static TargetPoint resolveDesertFestivalMarlonTarget() {
+        return new TargetPoint(new Vec3(-228.5D, 64.0D, -209.5D), false, false);
+    }
+
+    public static int desertFestivalMarlonFacing() {
+        return 2;
     }
 
     public static TargetPoint resolveWorldTarget(ServerLevel level, NpcRuntimeState state, Vec3 defaultPosition) {
@@ -194,6 +218,15 @@ public final class NpcScheduleRuntimeService {
                                                   int currentTime,
                                                   StardewTimeManager timeManager,
                                                   String activeWeather) {
+        ScheduleNode desertVendorNode = resolveDesertFestivalVendorNode(npcId, currentTime);
+        if (desertVendorNode != null) {
+            return desertVendorNode;
+        }
+        ScheduleNode desertVisitorNode = resolveDesertFestivalVisitorNode(npcId, currentTime);
+        if (desertVisitorNode != null) {
+            return desertVisitorNode;
+        }
+
         if (scheduleRoot == null) {
             return null;
         }
@@ -242,6 +275,49 @@ public final class NpcScheduleRuntimeService {
             }
         }
         return active;
+    }
+
+    private static ScheduleNode resolveDesertFestivalVendorNode(String npcId, int currentTime) {
+        if (isDesertFestivalMarlonOverride(npcId)) {
+            return new ScheduleNode("desertFestival", 0, "desert", 0, 0, desertFestivalMarlonFacing(), "", "desert_festival_marlon", 0);
+        }
+        int slot = DesertFestivalVendorService.vendorSlotFor(npcId);
+        if (slot < 0) {
+            return null;
+        }
+        int arrivalTime = DesertFestivalVendorService.arrivalTimeForSlot(slot);
+        if (arrivalTime < 0 || currentTime < arrivalTime || currentTime >= DesertFestivalVendorService.closeTime()) {
+            return null;
+        }
+        return new ScheduleNode(
+            "desertFestival",
+            arrivalTime,
+            "desert",
+            0,
+            0,
+            2,
+            "",
+            DesertFestivalVendorService.stallPointForSlot(slot),
+            0
+        );
+    }
+
+    private static ScheduleNode resolveDesertFestivalVisitorNode(String npcId, int currentTime) {
+        DesertFestivalNpcVisitService.VisitEntry visit = DesertFestivalNpcVisitService.currentVisit(npcId, currentTime);
+        if (visit == null) {
+            return null;
+        }
+        return new ScheduleNode(
+            visit.scheduleKey(),
+            visit.arrivalTime(),
+            "desert",
+            0,
+            0,
+            visit.facing(),
+            visit.behavior(),
+            visit.pointId(),
+            0
+        );
     }
 
     private static String selectScheduleKey(ServerLevel level,

@@ -11,6 +11,11 @@ import com.stardew.craft.blockentity.PortalTriggerBlockEntity;
 import com.stardew.craft.client.render.ClientStarterChestState;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModMiningDimensions;
+import com.stardew.craft.festival.desert.DesertFestivalCookService;
+import com.stardew.craft.festival.desert.DesertFestivalRaceService;
+import com.stardew.craft.festival.desert.DesertFestivalService;
+import com.stardew.craft.festival.desert.DesertFestivalSpecialInteractionService;
+import com.stardew.craft.festival.desert.DesertFestivalWillyFishingService;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.GameRenderer;
@@ -77,12 +82,42 @@ public final class PortalHintRenderer {
     private static final int LOCKED_FACE_A = 20;
     private static final int LOCKED_BG_R = 35, LOCKED_BG_G = 35, LOCKED_BG_B = 35, LOCKED_BG_A = 180;
 
+    // Shop style — purple
+    private static final int SHOP_R = 190, SHOP_G = 120, SHOP_B = 255;
+    private static final int SHOP_EDGE_A = 175;
+    private static final int SHOP_FACE_A = 24;
+    private static final int SHOP_BG_R = 55, SHOP_BG_G = 30, SHOP_BG_B = 85, SHOP_BG_A = 185;
+
+    // Desert race style — bright gold
+    private static final int RACE_R = 255, RACE_G = 205, RACE_B = 45;
+    private static final int RACE_EDGE_A = 190;
+    private static final int RACE_FACE_A = 28;
+    private static final int RACE_BG_R = 95, RACE_BG_G = 58, RACE_BG_B = 8, RACE_BG_A = 190;
+
+    // Shady guy style — black
+    private static final int SHADY_R = 25, SHADY_G = 20, SHADY_B = 18;
+    private static final int SHADY_EDGE_A = 210;
+    private static final int SHADY_FACE_A = 36;
+    private static final int SHADY_BG_R = 8, SHADY_BG_G = 7, SHADY_BG_B = 7, SHADY_BG_A = 205;
+
+    // Desert cook style — orange
+    private static final int COOK_R = 255, COOK_G = 145, COOK_B = 45;
+    private static final int COOK_EDGE_A = 190;
+    private static final int COOK_FACE_A = 28;
+    private static final int COOK_BG_R = 90, COOK_BG_G = 45, COOK_BG_B = 12, COOK_BG_A = 190;
+
     // Bubble text — translatable keys
     private static final String ENTER_KEY = "stardewcraft.portal.hint.enter";
     private static final String EXIT_KEY = "stardewcraft.portal.hint.exit";
     private static final String RETURN_KEY = "stardewcraft.portal.hint.return";
     private static final String CLAIM_KEY = "stardewcraft.portal.hint.claim";
     private static final String LOCKED_KEY = "stardewcraft.portal.hint.locked";
+    private static final String OPEN_KEY = "stardewcraft.portal.hint.open";
+    private static final String INTERACT_KEY = "stardewcraft.portal.hint.interact";
+    private static final String RACE_KEY = "stardewcraft.portal.hint.desert_race";
+    private static final String SHADY_KEY = "stardewcraft.portal.hint.shady_guy";
+    private static final String WILLY_CHALLENGE_KEY = "stardewcraft.portal.hint.willy_challenge";
+    private static final String COOK_KEY = "stardewcraft.portal.hint.desert_festival_cook";
 
     private static final String BUY_TICKET_KEY = "stardewcraft.portal.hint.buy_ticket";
 
@@ -282,6 +317,24 @@ public final class PortalHintRenderer {
                     ? HintStyle.ENTER
                     : HintStyle.LOCKED;
         }
+        if (DesertFestivalService.EGG_SHOP_TARGET_ID.equals(targetId)) {
+            return HintStyle.SHOP;
+        }
+        if (DesertFestivalRaceService.RACE_MAN_TARGET_ID.equals(targetId)) {
+            return HintStyle.RACE;
+        }
+        if (DesertFestivalRaceService.SHADY_GUY_TARGET_ID.equals(targetId)) {
+            return HintStyle.SHADY;
+        }
+        if (DesertFestivalSpecialInteractionService.SCHOLAR_TARGET_ID.equals(targetId)) {
+            return HintStyle.INTERACT;
+        }
+        if (DesertFestivalWillyFishingService.TARGET_ID.equals(targetId)) {
+            return HintStyle.INTERACT;
+        }
+        if (DesertFestivalCookService.TARGET_ID.equals(targetId)) {
+            return HintStyle.COOK;
+        }
         if (targetId.contains("return_overworld") || "skull_cavern_exit".equals(targetId)) {
             return HintStyle.RETURN_OVERWORLD;
         }
@@ -292,6 +345,12 @@ public final class PortalHintRenderer {
         return switch (targetId) {
             case "desert_bus" -> "desert";
             case "desert_bus_return" -> "pelican_town";
+            case DesertFestivalService.EGG_SHOP_TARGET_ID -> "desert_festival_egg_shop";
+            case DesertFestivalRaceService.RACE_MAN_TARGET_ID -> "desert_festival_race_man";
+            case DesertFestivalRaceService.SHADY_GUY_TARGET_ID -> "desert_festival_shady_guy";
+            case DesertFestivalSpecialInteractionService.SCHOLAR_TARGET_ID -> "desert_festival_scholar";
+            case DesertFestivalWillyFishingService.TARGET_ID -> "desert_festival_willy_challenge";
+            case DesertFestivalCookService.TARGET_ID -> "desert_festival_cook";
             case "quarry_entrance", "quarry_exit" -> "quarry";
             case "sewer_enter" -> "sewer";
             case "sewer_exit" -> "pelican_town";
@@ -378,6 +437,22 @@ public final class PortalHintRenderer {
             r = LOCKED_R; g = LOCKED_G; b = LOCKED_B;
             edgeA = (int) (LOCKED_EDGE_A * alpha);
             faceA = (int) (LOCKED_FACE_A * alpha);
+        } else if (hint.hintStyle == HintStyle.SHOP) {
+            r = SHOP_R; g = SHOP_G; b = SHOP_B;
+            edgeA = (int) (SHOP_EDGE_A * alpha);
+            faceA = (int) (SHOP_FACE_A * alpha);
+        } else if (hint.hintStyle == HintStyle.RACE) {
+            r = RACE_R; g = RACE_G; b = RACE_B;
+            edgeA = (int) (RACE_EDGE_A * alpha);
+            faceA = (int) (RACE_FACE_A * alpha);
+        } else if (hint.hintStyle == HintStyle.SHADY) {
+            r = SHADY_R; g = SHADY_G; b = SHADY_B;
+            edgeA = (int) (SHADY_EDGE_A * alpha);
+            faceA = (int) (SHADY_FACE_A * alpha);
+        } else if (hint.hintStyle == HintStyle.COOK) {
+            r = COOK_R; g = COOK_G; b = COOK_B;
+            edgeA = (int) (COOK_EDGE_A * alpha);
+            faceA = (int) (COOK_FACE_A * alpha);
         } else if (hint.isEnter) {
             r = ENTER_R; g = ENTER_G; b = ENTER_B;
             edgeA = (int) (ENTER_EDGE_A * alpha);
@@ -437,6 +512,18 @@ public final class PortalHintRenderer {
             hintKey = CLAIM_KEY;
         } else if (hint.hintStyle == HintStyle.LOCKED) {
             hintKey = LOCKED_KEY;
+        } else if (hint.hintStyle == HintStyle.SHOP) {
+            hintKey = OPEN_KEY;
+        } else if (hint.hintStyle == HintStyle.RACE) {
+            hintKey = RACE_KEY;
+        } else if (hint.hintStyle == HintStyle.SHADY) {
+            hintKey = SHADY_KEY;
+        } else if (DesertFestivalWillyFishingService.TARGET_ID.equals(hint.targetId)) {
+            hintKey = WILLY_CHALLENGE_KEY;
+        } else if (DesertFestivalCookService.TARGET_ID.equals(hint.targetId)) {
+            hintKey = COOK_KEY;
+        } else if (hint.hintStyle == HintStyle.INTERACT) {
+            hintKey = INTERACT_KEY;
         } else if ("desert_bus".equals(hint.targetId)) {
             hintKey = BUY_TICKET_KEY;
         } else if (hint.hintStyle == HintStyle.RETURN_OVERWORLD || "desert_bus_return".equals(hint.targetId)) {
@@ -448,16 +535,17 @@ public final class PortalHintRenderer {
         }
         Component line1 = Component.translatable(hintKey);
         Component line2 = Component.translatable("stardewcraft.location." + hint.destinationKey);
+        boolean singleLine = isSingleLineHint(hint.targetId);
         int line1Width = font.width(line1);
         int line2Width = font.width(line2);
-        int maxLineWidth = Math.max(line1Width, line2Width);
+        int maxLineWidth = singleLine ? line1Width : Math.max(line1Width, line2Width);
         int lineHeight = 9;
         int lineSpacing = 2;
 
-        // Bubble dimensions (two lines)
+        // Bubble dimensions
         int padX = 6, padY = 4;
         int bubbleW = maxLineWidth + padX * 2;
-        int bubbleH = lineHeight * 2 + lineSpacing + padY * 2;
+        int bubbleH = lineHeight * (singleLine ? 1 : 2) + (singleLine ? 0 : lineSpacing) + padY * 2;
         float left = -bubbleW / 2.0f;
         float top = -bubbleH / 2.0f;
 
@@ -469,6 +557,18 @@ public final class PortalHintRenderer {
         } else if (hint.hintStyle == HintStyle.LOCKED) {
             bgR = LOCKED_BG_R; bgG = LOCKED_BG_G; bgB = LOCKED_BG_B; bgA = (int) (LOCKED_BG_A * alpha);
             borderR = LOCKED_R; borderG = LOCKED_G; borderB = LOCKED_B;
+        } else if (hint.hintStyle == HintStyle.SHOP) {
+            bgR = SHOP_BG_R; bgG = SHOP_BG_G; bgB = SHOP_BG_B; bgA = (int) (SHOP_BG_A * alpha);
+            borderR = SHOP_R; borderG = SHOP_G; borderB = SHOP_B;
+        } else if (hint.hintStyle == HintStyle.RACE) {
+            bgR = RACE_BG_R; bgG = RACE_BG_G; bgB = RACE_BG_B; bgA = (int) (RACE_BG_A * alpha);
+            borderR = RACE_R; borderG = RACE_G; borderB = RACE_B;
+        } else if (hint.hintStyle == HintStyle.SHADY) {
+            bgR = SHADY_BG_R; bgG = SHADY_BG_G; bgB = SHADY_BG_B; bgA = (int) (SHADY_BG_A * alpha);
+            borderR = SHADY_R; borderG = SHADY_G; borderB = SHADY_B;
+        } else if (hint.hintStyle == HintStyle.COOK) {
+            bgR = COOK_BG_R; bgG = COOK_BG_G; bgB = COOK_BG_B; bgA = (int) (COOK_BG_A * alpha);
+            borderR = COOK_R; borderG = COOK_G; borderB = COOK_B;
         } else if (hint.isEnter) {
             bgR = ENTER_BG_R; bgG = ENTER_BG_G; bgB = ENTER_BG_B; bgA = (int) (ENTER_BG_A * alpha);
             borderR = ENTER_R; borderG = ENTER_G; borderB = ENTER_B;
@@ -513,6 +613,14 @@ public final class PortalHintRenderer {
             textColor = (textAlpha << 24) | (RET_R << 16) | (RET_G << 8) | RET_B;
         } else if (hint.hintStyle == HintStyle.LOCKED) {
             textColor = (textAlpha << 24) | (LOCKED_R << 16) | (LOCKED_G << 8) | LOCKED_B;
+        } else if (hint.hintStyle == HintStyle.SHOP) {
+            textColor = (textAlpha << 24) | (SHOP_R << 16) | (SHOP_G << 8) | SHOP_B;
+        } else if (hint.hintStyle == HintStyle.RACE) {
+            textColor = (textAlpha << 24) | (RACE_R << 16) | (RACE_G << 8) | RACE_B;
+        } else if (hint.hintStyle == HintStyle.SHADY) {
+            textColor = (textAlpha << 24) | 0xEDE2D0;
+        } else if (hint.hintStyle == HintStyle.COOK) {
+            textColor = (textAlpha << 24) | (COOK_R << 16) | (COOK_G << 8) | COOK_B;
         } else if (hint.isEnter) {
             textColor = (textAlpha << 24) | (ENTER_R << 16) | (ENTER_G << 8) | ENTER_B;
         } else {
@@ -534,22 +642,29 @@ public final class PortalHintRenderer {
             0xF000F0
         );
 
-        // Line 2: destination name (centered)
-        float line2X = -line2Width / 2.0f;
-        float line2Y = line1Y + lineHeight + lineSpacing;
-        font.drawInBatch(
-            line2,
-            line2X, line2Y,
-            textColor,
-            true,
-            ps.last().pose(),
-            buf,
-            Font.DisplayMode.NORMAL,
-            0,
-            0xF000F0
-        );
+        if (!singleLine) {
+            // Line 2: destination name (centered)
+            float line2X = -line2Width / 2.0f;
+            float line2Y = line1Y + lineHeight + lineSpacing;
+            font.drawInBatch(
+                line2,
+                line2X, line2Y,
+                textColor,
+                true,
+                ps.last().pose(),
+                buf,
+                Font.DisplayMode.NORMAL,
+                0,
+                0xF000F0
+            );
+        }
 
         ps.popPose();
+    }
+
+    private static boolean isSingleLineHint(String targetId) {
+        return DesertFestivalWillyFishingService.TARGET_ID.equals(targetId)
+            || DesertFestivalCookService.TARGET_ID.equals(targetId);
     }
 
     // ======================== geometry helpers ========================
@@ -688,7 +803,12 @@ public final class PortalHintRenderer {
         ENTER,
         EXIT,
         RETURN_OVERWORLD,
-        LOCKED
+        LOCKED,
+        SHOP,
+        RACE,
+        SHADY,
+        COOK,
+        INTERACT
     }
 
     private record PortalHint(Vec3 pos, boolean isEnter, int xBlocks, int heightBlocks, int zBlocks,

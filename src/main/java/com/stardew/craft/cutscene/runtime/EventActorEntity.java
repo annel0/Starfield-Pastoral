@@ -118,6 +118,9 @@ public class EventActorEntity extends Mob implements GeoEntity {
     public boolean canBeCollidedWith() { return false; }
 
     @Override
+    public boolean canBeLeashed() { return false; }
+
+    @Override
     public Component getName() {
         String npcId = getNpcId();
         if (npcId != null && !npcId.isEmpty()) {

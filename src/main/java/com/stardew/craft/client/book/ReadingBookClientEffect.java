@@ -176,8 +176,15 @@ public final class ReadingBookClientEffect {
 
         for (RainbowExplosion explosion : EXPLOSIONS) {
             Entity entity = minecraft.level != null ? minecraft.level.getEntity(explosion.entityId) : null;
-            Vec3 base = entity != null ? entity.getPosition(partial) : explosion.fallbackPos;
-            Vec3 center = base.add(0.0, 1.86, 0.0).subtract(camera);
+            Vec3 base;
+            if (entity != null) {
+                base = entity.getEyePosition(partial)
+                        .add(entity.getViewVector(partial).normalize().scale(1.48D))
+                        .add(0.0D, -0.48D, 0.0D);
+            } else {
+                base = explosion.fallbackPos.add(forward(explosion.yRot).scale(1.48D)).add(0.0D, 1.14D, 0.0D);
+            }
+            Vec3 center = base.subtract(camera);
             float age = explosion.age + partial;
             float progress = Mth.clamp(age / STAR_DURATION_TICKS, 0.0F, 1.0F);
             int centerFrame = Math.min(CENTER_FRAMES.length - 1, (int) (progress * CENTER_FRAMES.length));
@@ -302,12 +309,14 @@ public final class ReadingBookClientEffect {
     private static final class RainbowExplosion {
         private final int entityId;
         private final Vec3 fallbackPos;
+        private final float yRot;
         private final float rotationOffset;
         private int age;
 
         private RainbowExplosion(int entityId, Vec3 fallbackPos, float yRot) {
             this.entityId = entityId;
             this.fallbackPos = fallbackPos;
+            this.yRot = yRot;
             this.rotationOffset = yRot * Mth.DEG_TO_RAD + (float) (Math.random() * Mth.TWO_PI);
         }
     }

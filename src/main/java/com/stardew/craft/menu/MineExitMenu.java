@@ -106,6 +106,7 @@ public class MineExitMenu extends AbstractContainerMenu {
                 serverPlayer,
                 new MiningFloorSyncPacket(targetFloor)
             );
+            com.stardew.craft.event.MiningBlockBreakHandler.syncLadderStateForPlayer(serverPlayer, targetFloor);
             
             StardewCraft.LOGGER.info("玩家 {} 通过exit传送到第 {} 层", 
                 serverPlayer.getName().getString(), targetFloor);

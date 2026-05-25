@@ -88,6 +88,7 @@ import com.stardew.craft.item.artisan.PreservesItem;
 import com.stardew.craft.item.artisan.SmokedFishItem;
 import com.stardew.craft.item.cooking.CookingDishItem;
 import com.stardew.craft.item.cooking.CookingDishRegistrar;
+import com.stardew.craft.item.cooking.DesertFestivalCookDishRegistrar;
 import com.stardew.craft.item.misc.GalaxySoulItem;
 import com.stardew.craft.item.misc.IridiumMilkItem;
 import com.stardew.craft.item.misc.LifeElixirItem;
@@ -133,6 +134,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 public class ModItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(StardewCraft.MODID);
         public static final java.util.Map<String, DeferredItem<Item>> COOKING_DISHES = CookingDishRegistrar.registerAll(ITEMS);
+        public static final java.util.Map<String, DeferredItem<Item>> DESERT_FESTIVAL_COOK_DISHES = DesertFestivalCookDishRegistrar.registerAll(ITEMS);
                 public static final java.util.Map<String, DeferredItem<Item>> VANILLA_CATEGORY_ITEMS = VanillaCategoryItemRegistrar.registerAll(ITEMS);
         public static final DeferredItem<Item> DRAGON_TOOTH = VANILLA_CATEGORY_ITEMS.get("dragon_tooth");
 
@@ -361,6 +363,8 @@ public class ModItems {
         public static final DeferredItem<Item> DARK_DESERT_BEDROCK = stoneConvertibleBlockItem("dark_desert_bedrock", ModBlocks.DARK_DESERT_BEDROCK);
         public static final DeferredItem<Item> SULFUR_ROCK = stoneConvertibleBlockItem("sulfur_rock", ModBlocks.SULFUR_ROCK);
         public static final DeferredItem<Item> WEATHERED_STONE = stoneConvertibleBlockItem("weathered_stone", ModBlocks.WEATHERED_STONE);
+        public static final DeferredItem<Item> CALICO_EGG_STONE = blockItem("calico_egg_stone", ModBlocks.CALICO_EGG_STONE);
+        public static final DeferredItem<Item> CALICO_STATUE = blockItem("calico_statue", ModBlocks.CALICO_STATUE);
 
         // 骷髅矿建材变体
         public static final DeferredItem<Item> DESERT_BEDROCK_SLAB = blockItem("desert_bedrock_slab", ModBlocks.DESERT_BEDROCK_SLAB);
@@ -485,6 +489,8 @@ public class ModItems {
 
         public static final DeferredItem<Item> FISH_SMOKER = ITEMS.register("fish_smoker",
                         () -> new StardewBlockItem(ModBlocks.FISH_SMOKER.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> PRIZE_TICKET_MACHINE = ITEMS.register("prize_ticket_machine",
+                        () -> new StardewBlockItem(ModBlocks.PRIZE_TICKET_MACHINE.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> RECYCLING_MACHINE = ITEMS.register("recycling_machine",
                         () -> new StardewBlockItem(ModBlocks.RECYCLING_MACHINE.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> COOKING_POT = ITEMS.register("cooking_pot",
@@ -1177,6 +1183,12 @@ public class ModItems {
         public static final DeferredItem<Item> GOLDEN_ANIMAL_CRACKER = ITEMS.register("golden_animal_cracker",
                         () -> new SimpleStardewItem("stardewcraft.type.misc", 1000, new Item.Properties().stacksTo(999)));
 
+        public static final DeferredItem<Item> PRIZE_TICKET = ITEMS.register("prize_ticket",
+                        () -> new SimpleStardewItem("stardewcraft.type.resource", 0, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> CALICO_EGG = ITEMS.register("calico_egg",
+                        () -> new SimpleStardewItem("stardewcraft.type.resource", 0, new Item.Properties().stacksTo(999)));
+
         public static final DeferredItem<Item> MYSTERY_BOX = ITEMS.register("mystery_box",
                         () -> new SimpleStardewItem("stardewcraft.type.misc", 0, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> GOLDEN_MYSTERY_BOX = ITEMS.register("golden_mystery_box",
@@ -1608,6 +1620,8 @@ public class ModItems {
                         () -> new SimpleStardewItem("stardewcraft.type.artifact", 500, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> GOLDEN_RELIC = ITEMS.register("golden_relic",
                         () -> new SimpleStardewItem("stardewcraft.type.artifact", 250, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> GOLDEN_BOBBER = ITEMS.register("golden_bobber",
+                        () -> new SimpleStardewItem("stardewcraft.type.quest", 0, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> STRANGE_DOLL_GREEN = ITEMS.register("strange_doll_green",
                         () -> new SimpleStardewItem("stardewcraft.type.artifact", 1000, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> STRANGE_DOLL_YELLOW = ITEMS.register("strange_doll_yellow",
@@ -2415,10 +2429,26 @@ public class ModItems {
 
     public static final DeferredItem<Item> BROKEN_TRIDENT = ITEMS.register("broken_trident",
             () -> new com.stardew.craft.item.weapon.StardewDaggerItem("broken_trident", new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<Item> ELLIOTTS_PENCIL = ITEMS.register("elliotts_pencil",
+            () -> new com.stardew.craft.item.weapon.StardewDaggerItem("elliotts_pencil", new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<Item> ABBYS_PLANCHETTE = ITEMS.register("abbys_planchette",
+            () -> new com.stardew.craft.item.weapon.StardewDaggerItem("abbys_planchette", new Item.Properties().stacksTo(1)));
 
     // 妫嶆
     public static final DeferredItem<Item> FEMUR = ITEMS.register("femur",
             () -> new com.stardew.craft.item.weapon.StardewClubItem("femur", new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<Item> ALEXS_BAT = ITEMS.register("alexs_bat",
+            () -> new com.stardew.craft.item.weapon.StardewClubItem("alexs_bat", new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<Item> SAMS_OLD_GUITAR = ITEMS.register("sams_old_guitar",
+            () -> new com.stardew.craft.item.weapon.StardewClubItem("sams_old_guitar", new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<Item> MARUS_WRENCH = ITEMS.register("marus_wrench",
+            () -> new com.stardew.craft.item.weapon.StardewClubItem("marus_wrench", new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<Item> HARVEYS_MALLET = ITEMS.register("harveys_mallet",
+            () -> new com.stardew.craft.item.weapon.StardewClubItem("harveys_mallet", new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<Item> PENNYS_FRYER = ITEMS.register("pennys_fryer",
+            () -> new com.stardew.craft.item.weapon.StardewClubItem("pennys_fryer", new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<Item> SEBS_LOST_MACE = ITEMS.register("sebs_lost_mace",
+            () -> new com.stardew.craft.item.weapon.StardewClubItem("sebs_lost_mace", new Item.Properties().stacksTo(1)));
 
     public static final DeferredItem<Item> GALAXY_HAMMER = ITEMS.register("galaxy_hammer",
             () -> new com.stardew.craft.item.weapon.StardewClubItem("galaxy_hammer", new Item.Properties().stacksTo(1)));
@@ -2443,6 +2473,10 @@ public class ModItems {
 
     public static final DeferredItem<Item> IRON_EDGE = ITEMS.register("iron_edge",
             () -> new com.stardew.craft.item.weapon.StardewWeaponItem("iron_edge", new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<Item> LEAHS_WHITTLER = ITEMS.register("leahs_whittler",
+            () -> new com.stardew.craft.item.weapon.StardewWeaponItem("leahs_whittler", new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<Item> HALEYS_IRON = ITEMS.register("haleys_iron",
+            () -> new com.stardew.craft.item.weapon.StardewWeaponItem("haleys_iron", new Item.Properties().stacksTo(1)));
 
     // Lv.4
     public static final DeferredItem<Item> MEOWMERE = ITEMS.register("meowmere",

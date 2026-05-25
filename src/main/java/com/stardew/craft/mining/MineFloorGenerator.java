@@ -2,6 +2,8 @@ package com.stardew.craft.mining;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.block.ModBlocks;
+import com.stardew.craft.block.mastery.TallMasteryBlock;
+import com.stardew.craft.block.mine.CalicoStatueBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -44,7 +46,7 @@ import java.util.List;
 @SuppressWarnings({"null", "unused"})
 public class MineFloorGenerator {
 
-    private static final int GENERATION_VERSION = 19;
+    private static final int GENERATION_VERSION = 20;
     private static final double ORE_RATE_MULTIPLIER = 0.15;
     // A类矿（直接采集）在洞窟表面的概率
     private static final double SURFACE_MINERAL_RATE = 0.012;
@@ -122,6 +124,8 @@ public class MineFloorGenerator {
             return;
         }
 
+        clearLegacyLadderHighlightDisplays(level, floorNumber);
+
         // 每天只生成一次：同一天内进入不刷新
         MineFloorDataManager manager = MineFloorDataManager.get(level);
         MineFloorData existingData = manager.getFloorData(floorNumber);
@@ -186,8 +190,8 @@ public class MineFloorGenerator {
     generateLighting(level, random, centerX, centerZ, size, theme, isDark);
 
     // 6.6 生成木桶（SDV BreakableContainer，洞窟地面散落）
-    if (floorNumber > 0 && floorNumber % 5 != 0) {
-        generateBarrels(level, random, centerX, centerZ, size);
+    if (floorNumber > 0 && (floorNumber % 5 != 0 || floorNumber >= 121)) {
+        generateBarrels(level, random, centerX, centerZ, size, floorNumber);
     }
 
     // 7. 生成矿石（避免被洞窟挖空）
@@ -234,6 +238,25 @@ public class MineFloorGenerator {
         if (removed > 0) {
             StardewCraft.LOGGER.info("[MINE] Cleared {} persisted monsters before regenerating floor {}",
                     removed, floorNumber);
+        }
+    }
+
+    private static void clearLegacyLadderHighlightDisplays(ServerLevel level, int floorNumber) {
+        BlockPos center = MiningCoordinates.getFloorCenter(floorNumber);
+        int halfSize = MAX_SIZE / 2 + 8;
+        AABB floorBounds = new AABB(
+                center.getX() - halfSize, FLOOR_Y_START - 4, center.getZ() - halfSize,
+                center.getX() + halfSize, FLOOR_Y_END + 8, center.getZ() + halfSize);
+        String floorTag = LADDER_HIGHLIGHT_TAG + "_" + floorNumber;
+        int removed = 0;
+        for (Display.BlockDisplay marker : level.getEntitiesOfClass(Display.BlockDisplay.class, floorBounds,
+                entity -> entity.getTags().contains(LADDER_HIGHLIGHT_TAG)
+                        && entity.getTags().contains(floorTag))) {
+            marker.discard();
+            removed++;
+        }
+        if (removed > 0) {
+            StardewCraft.LOGGER.info("[MINE] Removed {} legacy ladder highlight markers on floor {}", removed, floorNumber);
         }
     }
 
@@ -421,6 +444,9 @@ public class MineFloorGenerator {
         int baseCount = Math.max(6, area / (floorNumber > 120 ? 500 : 600)); // 骷髅矿怪物密度更高
         int maxCount = floorNumber > 120 ? 35 : 30; // 骷髅矿上限 35
         int totalCount = Math.min(baseCount + random.nextInt(baseCount / 2 + 1), maxCount);
+        if (floorNumber > 120) {
+            totalCount = com.stardew.craft.festival.desert.DesertFestivalMineService.adjustMonsterCountForCalicoStatues(level, totalCount);
+        }
 
         boolean ghostSpawned = false; // SDV ghostAdded 标记：每层最多 1 只 Ghost
 
@@ -440,6 +466,9 @@ public class MineFloorGenerator {
             // 骷髅矿：isDark 时必出 Carbon Ghost，飞行怪须远离出生点
             double distFromCenter = Math.sqrt((x - centerX) * (x - centerX) + (z - centerZ) * (z - centerZ));
             EntityType<?> type = pickMonsterForFloor(floorNumber, random, isDark, distFromCenter);
+            if (floorNumber > 120) {
+                type = com.stardew.craft.festival.desert.DesertFestivalMineService.applyCalicoStatueInvasion(level, random, type);
+            }
 
             // Ghost 限制：每层最多 1 只（匹配 SDV ghostAdded 标记）
             if (type == EntityType.HUSK) {
@@ -930,6 +959,14 @@ public class MineFloorGenerator {
             }
 
             String oreKey = pickOreKeyForFloor(random, floorNumber);
+
+            if (theme == FloorTheme.SKULL_CAVERN
+                    && com.stardew.craft.festival.desert.DesertFestivalMineService.shouldUseCalicoEggStone(level, floorNumber, random)) {
+                Block calicoStone = com.stardew.craft.festival.desert.DesertFestivalMineService.pickCalicoEggStone(random);
+                int veinSize = getOreVeinSize(random, "calico_egg_stone", floorNumber);
+                totalPlaced += generateOreVein(level, random, x, y, z, veinSize, calicoStone, centerX, centerZ, halfSize);
+                continue;
+            }
 
             Block oreBlock = getOreBlock(theme, oreKey);
             if (oreBlock == null) {
@@ -4544,11 +4581,12 @@ public class MineFloorGenerator {
      * - 基础数量：0-4 个
      * - 仅在洞窟地面（脚下是实体方块、当前是空气、上方也是空气）放置
      * - 避开中心安全区
-     * - 不在 boss 层（floorNumber % 5 == 0）生成
+     * - 普通矿井不在 boss 层（floorNumber % 5 == 0）生成，骷髅矿洞按原版仍可生成
+     * - 沙漠节骷髅矿洞中，Calico Statue 会替换一个符合条件的木桶候选点
      */
     @SuppressWarnings("null")
     private static void generateBarrels(ServerLevel level, RandomSource random,
-                                        int centerX, int centerZ, int size) {
+                                        int centerX, int centerZ, int size, int floorNumber) {
         int halfSize = size / 2;
         // SDV 原版: mineRandom.Next(5) + (int)(AverageDailyLuck * 20)
         // SDV 房间约 40×30=1200 格；我们房间 80~120 边长，面积 6400~14400 格
@@ -4560,6 +4598,8 @@ public class MineFloorGenerator {
 
         int placed = 0;
         int maxAttempts = barrelCount * 40; // 防止无限循环
+        boolean shouldPlaceCalicoStatue = shouldPlaceCalicoStatueOnThisFloor(level, random, floorNumber);
+        boolean placedCalicoStatue = false;
 
         for (int attempt = 0; attempt < maxAttempts && placed < barrelCount; attempt++) {
             int x = centerX - halfSize + 2 + random.nextInt(size - 4);
@@ -4584,7 +4624,13 @@ public class MineFloorGenerator {
                     && belowState.isSolidRender(level, below)
                     && level.getBlockState(above).isAir()) {
 
-                    level.setBlock(pos, com.stardew.craft.block.ModBlocks.MINE_BARREL.get().defaultBlockState(), 2);
+                    if (shouldPlaceCalicoStatue && canPlaceCalicoStatue(level, pos)) {
+                        placeCalicoStatue(level, pos, floorNumber);
+                        shouldPlaceCalicoStatue = false;
+                        placedCalicoStatue = true;
+                    } else {
+                        level.setBlock(pos, com.stardew.craft.block.ModBlocks.MINE_BARREL.get().defaultBlockState(), 2);
+                    }
                     placed++;
                     break;
                 }
@@ -4594,6 +4640,33 @@ public class MineFloorGenerator {
         if (placed > 0) {
             StardewCraft.LOGGER.debug("[MINE] Placed {} barrels in room at ({}, {})", placed, centerX, centerZ);
         }
+        if (placedCalicoStatue) {
+            StardewCraft.LOGGER.debug("[MINE] Replaced one barrel candidate with Calico Statue on floor {}", floorNumber);
+        }
+    }
+
+    private static boolean shouldPlaceCalicoStatueOnThisFloor(ServerLevel level, RandomSource random, int floorNumber) {
+        return floorNumber >= 121
+            && com.stardew.craft.festival.desert.DesertFestivalMineService.isActive()
+            && random.nextBoolean();
+    }
+
+    private static boolean canPlaceCalicoStatue(ServerLevel level, BlockPos pos) {
+        BlockPos backdrop = pos.north();
+        return level.getBlockState(pos).isAir()
+            && level.getBlockState(pos.above()).isAir()
+            && level.getBlockState(pos.below()).isSolidRender(level, pos.below())
+            && level.getBlockState(backdrop).isSolidRender(level, backdrop);
+    }
+
+    private static void placeCalicoStatue(ServerLevel level, BlockPos pos, int floorNumber) {
+        BlockState statueState = ModBlocks.CALICO_STATUE.get().defaultBlockState()
+            .setValue(CalicoStatueBlock.FACING, Direction.SOUTH)
+            .setValue(CalicoStatueBlock.PART, TallMasteryBlock.Part.MAIN)
+            .setValue(CalicoStatueBlock.ACTIVATED, false);
+        level.setBlock(pos, statueState, 2);
+        level.setBlock(pos.above(), statueState.setValue(CalicoStatueBlock.PART, TallMasteryBlock.Part.EXTENSION), 2);
+        StardewCraft.LOGGER.debug("[MINE] Placed Calico Statue on floor {} at {}", floorNumber, pos);
     }
 
     /**

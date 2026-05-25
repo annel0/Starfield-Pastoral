@@ -109,6 +109,8 @@ public class MineBarrelBlock extends Block {
             default -> dropDarkDesert(level, pos, r, floor);
         }
 
+        com.stardew.craft.festival.desert.DesertFestivalMineService.tryAddBarrelEggDrop(level, pos, r);
+
         // SDV parity: 装备掉落（靴子/戒指），独立概率
         dropEquipment(level, pos, r, floor);
     }

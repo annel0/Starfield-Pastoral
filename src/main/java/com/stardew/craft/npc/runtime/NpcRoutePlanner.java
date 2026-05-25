@@ -2,6 +2,7 @@ package com.stardew.craft.npc.runtime;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.stardew.craft.desert.DesertConstants;
 import com.stardew.craft.interior.InteriorRegionRegistry;
 import com.stardew.craft.interior.InteriorPortalRegistry;
 import com.stardew.craft.interior.InteriorSubspaceManager;
@@ -54,6 +55,12 @@ final class NpcRoutePlanner {
         String canonicalNpcId = canonicalNpcId(npcId);
         if (state == null) {
             return NpcRouteContext.invalid("", "missing_runtime_state", "", "");
+        }
+        if (shouldPreferRemoteOutdoorGraphRoute(state, npcPos)) {
+            NpcRouteContext graphRoute = resolveGraphRoute(level, canonicalNpcId, state, npcPos);
+            if (graphRoute != null) {
+                return graphRoute;
+            }
         }
         NpcRouteContext profileRoute = resolveProfileRoute(canonicalNpcId, state);
         if (profileRoute != null) {
@@ -472,7 +479,7 @@ final class NpcRoutePlanner {
 
         String currentInteriorLocation = fixedInteriorLocationAt(npcPos);
         String sourceLocation = currentInteriorLocation.isBlank()
-            ? "town"
+            ? outdoorSourceLocation(npcPos)
             : NpcLocationGraph.outdoorNeighborFor(currentInteriorLocation);
         if (sourceLocation.isBlank()) {
             sourceLocation = "town";
@@ -490,6 +497,23 @@ final class NpcRoutePlanner {
             return null;
         }
         return NpcRouteContext.ready(destinationLocation, graphSteps);
+    }
+
+    private static boolean shouldPreferRemoteOutdoorGraphRoute(NpcRuntimeState state, BlockPos npcPos) {
+        if (npcPos == null || !DesertConstants.isInDesertRegion(npcPos)) {
+            return false;
+        }
+        String destinationLocation = canonicalLocation(state.locationName());
+        return !destinationLocation.isBlank()
+            && !"desert".equals(destinationLocation)
+            && !"oasis".equals(destinationLocation);
+    }
+
+    private static String outdoorSourceLocation(BlockPos npcPos) {
+        if (npcPos != null && DesertConstants.isInDesertRegion(npcPos)) {
+            return "desert";
+        }
+        return "town";
     }
 
     private static Vec3 resolveOutdoorDoorForLocation(String canonicalLocation) {

@@ -145,7 +145,7 @@ public class StardewClubItem extends Item implements IStardewItem, IStardewWeapo
 
     @Override
     public int getSellPrice(ItemStack stack) {
-        return -1;
+        return weaponData == null ? -1 : weaponData.getLevel() * 50;
     }
 
     @Override
@@ -274,7 +274,7 @@ public class StardewClubItem extends Item implements IStardewItem, IStardewWeapo
             .bonusCritPower((float) Math.max(0, (weaponData.getCritPower() - 1.0) * 100.0))
             .speed(weaponData.getSpeed())
             .defense(weaponData.getDefense())
-            .knockback(weaponData.getWeight())
+            .knockback((float) weaponData.getWeight())
             .build()
             .writeToItemStack(stack);
         WeaponForgeData.ensure(stack);

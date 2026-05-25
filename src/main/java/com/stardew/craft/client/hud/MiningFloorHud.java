@@ -23,6 +23,10 @@ public class MiningFloorHud {
     private static final ResourceLocation EMPTY_SLOT = ResourceLocation.fromNamespaceAndPath(
         StardewCraft.MODID, "textures/gui/jei/empty_slot.png"
     );
+    private static final int SLOT_SIZE = 32;
+    private static final int VANILLA_HOTBAR_WIDTH = 182;
+    private static final int HOTBAR_GAP = 4;
+    private static final int SCREEN_MARGIN = 4;
     
     // 客户端缓存的当前层数（由网络包同步）
     private static int currentFloor = 0;
@@ -64,9 +68,11 @@ public class MiningFloorHud {
         GuiGraphics guiGraphics = event.getGuiGraphics();
         Font font = mc.font;
         
-        // 左上角位置
-        int x = 10;
-        int y = 10;
+        int screenWidth = mc.getWindow().getGuiScaledWidth();
+        int screenHeight = mc.getWindow().getGuiScaledHeight();
+        int hotbarX = (screenWidth - VANILLA_HOTBAR_WIDTH) / 2;
+        int x = Math.max(SCREEN_MARGIN, hotbarX - SLOT_SIZE - HOTBAR_GAP);
+        int y = screenHeight - SLOT_SIZE - 1;
         
         // 绘制 empty_slot 背景，放大2倍（32x32）
         // 使用正确的blit方法：指定屏幕坐标、UV坐标、宽高、纹理总大小
@@ -74,8 +80,8 @@ public class MiningFloorHud {
         guiGraphics.blit(EMPTY_SLOT, 
             x, y,           // 屏幕坐标
             0, 0,           // UV起点
-            32, 32,         // 渲染宽高（放大2倍）
-            32, 32);        // 纹理总大小（16x16拉伸到32x32）
+            SLOT_SIZE, SLOT_SIZE,
+            SLOT_SIZE, SLOT_SIZE);
         
         // 层数文本（骷髅矿从 121 开始显示为 0，下一层显示 1...）
         int displayFloor = currentFloor >= 121 ? (currentFloor - 121) : currentFloor;
@@ -92,9 +98,8 @@ public class MiningFloorHud {
         int textWidth = font.width(floorText);
         int textHeight = font.lineHeight;
         
-        // 但实际上empty_slot的中心应该是32x32的正中央：x+16, y+16
-        int textX = x + 16 - textWidth / 2;
-        int textY = y + 16 - textHeight / 2;
+        int textX = x + SLOT_SIZE / 2 - textWidth / 2;
+        int textY = y + SLOT_SIZE / 2 - textHeight / 2;
         
         // 绘制文字（启用阴影=加粗效果）
         guiGraphics.drawString(font, floorText, textX, textY, color, true);

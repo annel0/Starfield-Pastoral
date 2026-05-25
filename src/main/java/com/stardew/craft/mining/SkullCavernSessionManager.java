@@ -46,6 +46,7 @@ public class SkullCavernSessionManager {
 
         if (playersInSkullCavern.isEmpty()) {
             resetSession(miningLevel);
+            com.stardew.craft.festival.desert.DesertFestivalMineService.resetCurrentRun(miningLevel);
         }
     }
 

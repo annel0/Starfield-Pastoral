@@ -16,7 +16,7 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 /**
- * Client-side screen for Gil's monster slayer goals.
+ * Client-side screen for monster slayer goals.
  * SDV-style dialog box with progress bars and claim buttons.
  */
 @OnlyIn(Dist.CLIENT)

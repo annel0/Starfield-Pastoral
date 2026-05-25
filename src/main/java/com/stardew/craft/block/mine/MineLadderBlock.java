@@ -203,10 +203,12 @@ public class MineLadderBlock extends Block {
         if (nextFloor > 120) {
             com.stardew.craft.mining.SkullCavernSessionManager.onPlayerEnter(serverPlayer);
             com.stardew.craft.mining.SkullCavernSessionManager.updateDeepestFloor(nextFloor);
+            com.stardew.craft.festival.desert.DesertFestivalMineService.recordFloorReached(serverPlayer, currentFloor, nextFloor, false);
         }
 
         net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(
             serverPlayer, new MiningFloorSyncPacket(nextFloor));
+        com.stardew.craft.event.MiningBlockBreakHandler.syncLadderStateForPlayer(serverPlayer, nextFloor);
 
         final int floor = nextFloor;
         level.getServer().tell(new net.minecraft.server.TickTask(
@@ -214,7 +216,7 @@ public class MineLadderBlock extends Block {
             () -> com.stardew.craft.mining.MineFloorGenerator.forceClientLightRefresh(level, floor)
         ));
 
-        if (nextFloor % 5 == 0 && nextFloor > previousMaxFloor) {
+        if (nextFloor <= 120 && nextFloor % 5 == 0 && nextFloor > previousMaxFloor) {
             level.getServer().tell(new net.minecraft.server.TickTask(
                 level.getServer().getTickCount() + 30,
                 () -> {
@@ -268,9 +270,11 @@ public class MineLadderBlock extends Block {
         // 骷髅矿会话追踪
         com.stardew.craft.mining.SkullCavernSessionManager.onPlayerEnter(serverPlayer);
         com.stardew.craft.mining.SkullCavernSessionManager.updateDeepestFloor(targetFloor);
+        com.stardew.craft.festival.desert.DesertFestivalMineService.recordFloorReached(serverPlayer, currentFloor, targetFloor, true);
 
         net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(
                 serverPlayer, new MiningFloorSyncPacket(targetFloor));
+        com.stardew.craft.event.MiningBlockBreakHandler.syncLadderStateForPlayer(serverPlayer, targetFloor);
 
         // SD 体力伤害：levelsDown × 3
         int damage = levelsDown * 3;

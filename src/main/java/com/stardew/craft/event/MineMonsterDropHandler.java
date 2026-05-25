@@ -137,6 +137,8 @@ public class MineMonsterDropHandler {
                     com.stardew.craft.quest.StardewQuestEvents.fireMonsterSlain(player, tag);
                 }
             }
+            com.stardew.craft.festival.desert.DesertFestivalMarlonChallengeService.recordMonsterSlain(player, tags);
+            com.stardew.craft.festival.desert.DesertFestivalMineService.tryAddMonsterEggDrop(drops, entity, player, random);
             MiningBlockBreakHandler.tryCreateLadderFromMonsterDrop(serverLevel, player, entity.blockPosition());
         }
     }

@@ -120,10 +120,13 @@ public class ModClientEvents {
                 } else if ("stardewcraft.type.fishing".equals(typeKey)) {
                     // 钓鱼：深蓝色
                     typeColor = net.minecraft.ChatFormatting.DARK_BLUE;
+                } else if ("stardewcraft.type.quest".equals(typeKey)) {
+                    typeColor = net.minecraft.ChatFormatting.BLUE;
                 } else if ("stardewcraft.type.fertilizer".equals(typeKey)) {
                     // 肥料：深青色（棕色调�?
                     typeColor = net.minecraft.ChatFormatting.DARK_AQUA;
-                } else if ("stardewcraft.type.cooking".equals(typeKey)) {
+                } else if ("stardewcraft.type.cooking".equals(typeKey)
+                    || "stardewcraft.type.festival_food".equals(typeKey)) {
                     // 食物：亮橙色系
                     typeColor = net.minecraft.ChatFormatting.GOLD;
                 } else if ("stardewcraft.type.fruit".equals(typeKey)) {

@@ -15,6 +15,7 @@ import java.util.Map;
 
 public final class FestivalMapOverlayManager {
     private static final int BLOCKS_PER_TICK = 1500;
+    private static final int BULK_REPLACE_FLAGS = Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE | Block.UPDATE_SUPPRESS_DROPS;
     private static final Map<String, FestivalMapPatch> PATCH_CACHE = new HashMap<>();
 
     private FestivalMapOverlayManager() {
@@ -131,7 +132,7 @@ public final class FestivalMapOverlayManager {
             }
             BlockState targetState = applying ? entry.festivalState() : entry.baseState();
             CompoundTag targetBlockEntity = applying ? entry.festivalBlockEntityTag() : entry.baseBlockEntityTag();
-            level.setBlock(worldPos, targetState, Block.UPDATE_CLIENTS);
+            level.setBlock(worldPos, targetState, BULK_REPLACE_FLAGS);
             applyBlockEntity(level, worldPos, targetBlockEntity);
         }
         state.setCursor(end);

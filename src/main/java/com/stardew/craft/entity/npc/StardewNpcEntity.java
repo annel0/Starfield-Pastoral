@@ -154,6 +154,11 @@ public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
         return NpcInteractionService.onInteract(player, this, hand);
     }
 
+    @Override
+    public boolean canBeLeashed() {
+        return false;
+    }
+
     public String getNpcId() {
         return this.entityData.get(DATA_NPC_ID);
     }

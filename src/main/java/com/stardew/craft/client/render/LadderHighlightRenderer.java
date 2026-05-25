@@ -6,6 +6,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.block.ModBlocks;
+import com.stardew.craft.block.mine.MineLadderBlock;
 import com.stardew.craft.client.hud.MiningFloorHud;
 import com.stardew.craft.client.mining.ClientMiningState;
 import com.stardew.craft.core.ModMiningDimensions;
@@ -82,6 +84,15 @@ public final class LadderHighlightRenderer {
 
         BlockPos ladderPos = ClientMiningState.getLadderPos();
         if (ladderPos == null) return;
+        if (!mc.level.getChunkSource().hasChunk(ladderPos.getX() >> 4, ladderPos.getZ() >> 4)) return;
+
+        var ladderState = mc.level.getBlockState(ladderPos);
+        if (!ladderState.is(ModBlocks.MINE_LADDER.get())) {
+            ClientMiningState.reset();
+            return;
+        }
+        boolean isShaft = ladderState.hasProperty(MineLadderBlock.SHAFT)
+            && ladderState.getValue(MineLadderBlock.SHAFT);
 
         // 呼吸脉冲
         float time = (System.currentTimeMillis() % 3000) / 3000.0f;
@@ -94,8 +105,8 @@ public final class LadderHighlightRenderer {
         ps.pushPose();
         ps.translate(-cam.x, -cam.y, -cam.z);
 
-        renderGlowOutline(buf, ps, cam, ladderPos, breath, ClientMiningState.isShaft());
-        renderBubble(ps, buf, cam, ladderPos, breath, mc.font, ClientMiningState.isShaft());
+        renderGlowOutline(buf, ps, cam, ladderPos, breath, isShaft);
+        renderBubble(ps, buf, cam, ladderPos, breath, mc.font, isShaft);
 
         ps.popPose();
     }

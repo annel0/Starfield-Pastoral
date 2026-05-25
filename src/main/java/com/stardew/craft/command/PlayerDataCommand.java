@@ -46,6 +46,7 @@ public class PlayerDataCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("stardew")
             .then(Commands.literal("player")
+                .requires(source -> source.hasPermission(2))
                 // 查看数据
                 .then(CommandTargets.executesWithTarget(
                     Commands.literal("info"),

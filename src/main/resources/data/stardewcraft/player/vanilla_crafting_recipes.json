@@ -1275,8 +1275,8 @@
                         "unlockCondition":  "s Mining 6",
                         "output":  { "item":  "stardewcraft:bomb_item", "count":  1 },
                         "ingredients":  [
-                            { "item":  "stardewcraft:iron_ore", "count":  4 },
-                            { "item":  "stardewcraft:coal", "count":  1 }
+                            { "item":  "stardewcraft:iron_ore", "count":  12 },
+                            { "item":  "stardewcraft:coal", "count":  3 }
                         ]
                     },
                     {

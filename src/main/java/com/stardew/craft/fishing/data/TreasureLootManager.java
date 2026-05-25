@@ -203,6 +203,10 @@ public class TreasureLootManager extends SimplePreparableReloadListener<Treasure
 		if (treasures.isEmpty()) {
 			addItem(treasures, "stardewcraft:bait", random.nextInt(1, 4) * 5);
 		}
+		if (com.stardew.craft.festival.desert.DesertFestivalWillyFishingService.shouldForceGoldenBobberTreasure(player)) {
+			treasures.clear();
+			addItem(treasures, "stardewcraft:golden_bobber", 1);
+		}
 
 		return treasures;
 	}

@@ -109,6 +109,9 @@ public class EventPlayerActorEntity extends Mob {
     public boolean canBeCollidedWith() { return false; }
 
     @Override
+    public boolean canBeLeashed() { return false; }
+
+    @Override
     public Component getName() {
         return Component.translatable("entity.stardewcraft.player");
     }

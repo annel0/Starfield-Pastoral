@@ -47,6 +47,7 @@ public class ItemPickupEventHandler {
         // Quest: item received
         String itemId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(original.getItem()).toString();
         com.stardew.craft.quest.StardewQuestEvents.fireItemReceived(player, itemId, count);
+        com.stardew.craft.festival.desert.DesertFestivalMarlonChallengeService.recordItemReceived(player, itemId, count);
 
         // SDV parity: first time a player picks up an ore, set the corresponding
         // mail flag (e.g. "copperFound"). These flags gate early story events

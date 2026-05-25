@@ -32,6 +32,7 @@ import com.stardew.craft.quest.QuestManager;
  */
 @SuppressWarnings("null")
 public class PlayerStardewData {
+    private static final float MIN_ENERGY = -16.0F;
     
     // 玩家UUID
     private UUID playerUUID;
@@ -165,6 +166,10 @@ public class PlayerStardewData {
     // ============ 通用统计（SDV Stats parity）============
     private final Map<String, Integer> stats = new HashMap<>();
 
+    // ============ 兑奖券系统（SDV Prize Machine parity）============
+    private int ticketPrizesClaimed;
+    private int specialOrderPrizeTickets;
+
     // ============ 邮件标记（SDV mailReceived parity） ============
     private final Set<String> mailFlags = new HashSet<>();
 
@@ -200,6 +205,11 @@ public class PlayerStardewData {
     private boolean bilibiliRewardClaimed;          // 是否已领取B站关注奖励（彩虹猫之刃）
     private boolean mine100StardropCompensationProcessed; // 100层旧奖励修正补偿是否已处理
     private int handledPregenRelocationVersion;   // 已处理的 pregen 升级回农场版本
+    private int lastGotDesertFestivalRatingPrizeFromMarlon = Integer.MIN_VALUE;
+    private int desertFestivalMarlonChallengeDay = Integer.MIN_VALUE;
+    private String desertFestivalMarlonChallengeId = "";
+    private int desertFestivalMarlonChallengeProgress;
+    private boolean desertFestivalMarlonChallengeRewardClaimed;
     @Nullable
     private BlockPos overworldReturnPos;           // 玩家从主世界进入巫师塔时记录的返回坐标
     @Nullable
@@ -550,6 +560,9 @@ public class PlayerStardewData {
             }
         }
 
+        data.ticketPrizesClaimed = tag.contains("TicketPrizesClaimed") ? Math.max(0, tag.getInt("TicketPrizesClaimed")) : 0;
+        data.specialOrderPrizeTickets = tag.contains("SpecialOrderPrizeTickets") ? Math.max(0, tag.getInt("SpecialOrderPrizeTickets")) : 0;
+
 
         // 邮件标记
         if (tag.contains("MailFlags", 9)) { // 9 = TAG_List
@@ -636,6 +649,19 @@ public class PlayerStardewData {
         data.bilibiliRewardClaimed = tag.getBoolean("BilibiliRewardClaimed");
         data.mine100StardropCompensationProcessed = tag.getBoolean("Mine100StardropCompensationProcessed");
         data.handledPregenRelocationVersion = tag.contains("HandledPregenRelocationVersion") ? tag.getInt("HandledPregenRelocationVersion") : 0;
+        data.lastGotDesertFestivalRatingPrizeFromMarlon = tag.contains("LastGotDesertFestivalRatingPrizeFromMarlon")
+            ? tag.getInt("LastGotDesertFestivalRatingPrizeFromMarlon")
+            : Integer.MIN_VALUE;
+        data.desertFestivalMarlonChallengeDay = tag.contains("DesertFestivalMarlonChallengeDay")
+            ? tag.getInt("DesertFestivalMarlonChallengeDay")
+            : Integer.MIN_VALUE;
+        data.desertFestivalMarlonChallengeId = tag.contains("DesertFestivalMarlonChallengeId")
+            ? tag.getString("DesertFestivalMarlonChallengeId")
+            : "";
+        data.desertFestivalMarlonChallengeProgress = tag.contains("DesertFestivalMarlonChallengeProgress")
+            ? Math.max(0, tag.getInt("DesertFestivalMarlonChallengeProgress"))
+            : 0;
+        data.desertFestivalMarlonChallengeRewardClaimed = tag.getBoolean("DesertFestivalMarlonChallengeRewardClaimed");
         if (tag.contains("OverworldReturnX")) {
             data.overworldReturnPos = new BlockPos(
                 tag.getInt("OverworldReturnX"),
@@ -657,7 +683,7 @@ public class PlayerStardewData {
         data.maxEnergy = Math.max(270, data.maxEnergy);
         int effectiveMaxEnergy = data.maxEnergy + Math.max(0, data.tempMaxEnergyBonus);
         data.health = Math.max(0, Math.min(data.health, data.maxHealth));
-        data.energy = Math.max(0, Math.min(data.energy, effectiveMaxEnergy));
+        data.energy = Math.max(MIN_ENERGY, Math.min(data.energy, effectiveMaxEnergy));
 
         data.repairMissingProfessionChoices();
 
@@ -915,6 +941,9 @@ public class PlayerStardewData {
             tag.put("Stats", statsTag);
         }
 
+        tag.putInt("TicketPrizesClaimed", ticketPrizesClaimed);
+        tag.putInt("SpecialOrderPrizeTickets", specialOrderPrizeTickets);
+
         // 邮件标记
         if (!mailFlags.isEmpty()) {
             ListTag mailList = new ListTag();
@@ -996,6 +1025,13 @@ public class PlayerStardewData {
         tag.putBoolean("BilibiliRewardClaimed", bilibiliRewardClaimed);
         tag.putBoolean("Mine100StardropCompensationProcessed", mine100StardropCompensationProcessed);
         tag.putInt("HandledPregenRelocationVersion", handledPregenRelocationVersion);
+        tag.putInt("LastGotDesertFestivalRatingPrizeFromMarlon", lastGotDesertFestivalRatingPrizeFromMarlon);
+        tag.putInt("DesertFestivalMarlonChallengeDay", desertFestivalMarlonChallengeDay);
+        if (!desertFestivalMarlonChallengeId.isEmpty()) {
+            tag.putString("DesertFestivalMarlonChallengeId", desertFestivalMarlonChallengeId);
+        }
+        tag.putInt("DesertFestivalMarlonChallengeProgress", desertFestivalMarlonChallengeProgress);
+        tag.putBoolean("DesertFestivalMarlonChallengeRewardClaimed", desertFestivalMarlonChallengeRewardClaimed);
         if (overworldReturnPos != null) {
             tag.putInt("OverworldReturnX", overworldReturnPos.getX());
             tag.putInt("OverworldReturnY", overworldReturnPos.getY());
@@ -1400,6 +1436,10 @@ public class PlayerStardewData {
     private int getEffectiveMaxEnergy() {
         return Math.max(270, maxEnergy + tempMaxEnergyBonus);
     }
+
+    private float clampEnergy(float value) {
+        return Math.max(MIN_ENERGY, Math.min(value, getEffectiveMaxEnergy()));
+    }
     
     /**
      * 消耗能量
@@ -1409,7 +1449,7 @@ public class PlayerStardewData {
         if (amount <= 0) return true;
 
         boolean enough = energy >= amount;
-        energy = Math.max(0f, energy - amount);
+        energy = clampEnergy(energy - amount);
 
         if (energy <= 0) {
             exhausted = true;
@@ -1423,7 +1463,7 @@ public class PlayerStardewData {
      * 恢复能量
      */
     public void restoreEnergy(float amount) {
-        energy = Math.min(energy + amount, getEffectiveMaxEnergy());
+        energy = clampEnergy(energy + amount);
         
         // 恢复到0以上时解除疲惫（需要其他方式治愈）
         // 注意：星露谷中疲惫状态不会自动解除
@@ -1479,7 +1519,7 @@ public class PlayerStardewData {
             energy = oldEnergy;
         }
 
-        energy = Math.max(0.0f, Math.min(energy, getEffectiveMaxEnergy()));
+        energy = clampEnergy(energy);
         markDirty();
     }
     
@@ -1541,7 +1581,7 @@ public class PlayerStardewData {
     
     public float getEnergy() { return energy; }
     public void setEnergy(float energy) {
-        this.energy = Math.max(0, Math.min(energy, getEffectiveMaxEnergy()));
+        this.energy = clampEnergy(energy);
         markDirty();
     }
     
@@ -1887,6 +1927,58 @@ public class PlayerStardewData {
     public Map<String, Integer> getAllStats() {
         return Collections.unmodifiableMap(stats);
     }
+
+    public int getTicketPrizesClaimed() {
+        return Math.max(0, ticketPrizesClaimed);
+    }
+
+    public boolean setTicketPrizesClaimed(int value) {
+        int normalized = Math.max(0, value);
+        if (ticketPrizesClaimed == normalized) {
+            return false;
+        }
+        ticketPrizesClaimed = normalized;
+        markDirty();
+        return true;
+    }
+
+    public int incrementTicketPrizesClaimed() {
+        ticketPrizesClaimed = Math.max(0, ticketPrizesClaimed + 1);
+        markDirty();
+        return ticketPrizesClaimed;
+    }
+
+    public int getSpecialOrderPrizeTickets() {
+        return Math.max(0, specialOrderPrizeTickets);
+    }
+
+    public boolean setSpecialOrderPrizeTickets(int value) {
+        int normalized = Math.max(0, value);
+        if (specialOrderPrizeTickets == normalized) {
+            return false;
+        }
+        specialOrderPrizeTickets = normalized;
+        markDirty();
+        return true;
+    }
+
+    public int addSpecialOrderPrizeTickets(int amount) {
+        if (amount <= 0) {
+            return getSpecialOrderPrizeTickets();
+        }
+        specialOrderPrizeTickets = Math.max(0, specialOrderPrizeTickets + amount);
+        markDirty();
+        return specialOrderPrizeTickets;
+    }
+
+    public boolean consumeSpecialOrderPrizeTicket() {
+        if (specialOrderPrizeTickets <= 0) {
+            return false;
+        }
+        specialOrderPrizeTickets--;
+        markDirty();
+        return true;
+    }
     
     public boolean isDirty() { return dirty; }
 
@@ -2223,6 +2315,31 @@ public class PlayerStardewData {
     public void setStarterToolsGiven(boolean given) { this.starterToolsGiven = given; markDirty(); }
     public boolean isBilibiliRewardClaimed() { return bilibiliRewardClaimed; }
     public void setBilibiliRewardClaimed(boolean claimed) { this.bilibiliRewardClaimed = claimed; markDirty(); }
+
+    public int getLastGotDesertFestivalRatingPrizeFromMarlon() { return lastGotDesertFestivalRatingPrizeFromMarlon; }
+    public void setLastGotDesertFestivalRatingPrizeFromMarlon(int absoluteDay) {
+        this.lastGotDesertFestivalRatingPrizeFromMarlon = absoluteDay;
+        markDirty();
+    }
+    public int getDesertFestivalMarlonChallengeDay() { return desertFestivalMarlonChallengeDay; }
+    public String getDesertFestivalMarlonChallengeId() { return desertFestivalMarlonChallengeId; }
+    public int getDesertFestivalMarlonChallengeProgress() { return desertFestivalMarlonChallengeProgress; }
+    public boolean isDesertFestivalMarlonChallengeRewardClaimed() { return desertFestivalMarlonChallengeRewardClaimed; }
+    public void setDesertFestivalMarlonChallenge(int absoluteDay, String challengeId, int progress, boolean rewardClaimed) {
+        this.desertFestivalMarlonChallengeDay = absoluteDay;
+        this.desertFestivalMarlonChallengeId = challengeId == null ? "" : challengeId;
+        this.desertFestivalMarlonChallengeProgress = Math.max(0, progress);
+        this.desertFestivalMarlonChallengeRewardClaimed = rewardClaimed;
+        markDirty();
+    }
+    public void setDesertFestivalMarlonChallengeProgress(int progress) {
+        this.desertFestivalMarlonChallengeProgress = Math.max(0, progress);
+        markDirty();
+    }
+    public void setDesertFestivalMarlonChallengeRewardClaimed(boolean claimed) {
+        this.desertFestivalMarlonChallengeRewardClaimed = claimed;
+        markDirty();
+    }
     public boolean isMine100StardropCompensationProcessed() { return mine100StardropCompensationProcessed; }
     public void setMine100StardropCompensationProcessed(boolean processed) { this.mine100StardropCompensationProcessed = processed; markDirty(); }
     public int getHandledPregenRelocationVersion() { return handledPregenRelocationVersion; }

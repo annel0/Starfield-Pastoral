@@ -128,6 +128,38 @@ public class DimensionEventHandler {
     }
 
     @SuppressWarnings("null")
+    public static void requestPassOutAdvance(ServerPlayer player) {
+        if (player == null) {
+            return;
+        }
+        if (player.level().dimension() != ModDimensions.STARDEW_VALLEY
+            && player.level().dimension() != ModMiningDimensions.STARDEW_MINING) {
+            return;
+        }
+        ServerLevel stardewLevel = player.server.getLevel(ModDimensions.STARDEW_VALLEY);
+        if (stardewLevel == null) {
+            return;
+        }
+
+        if (player.getVehicle() != null) {
+            player.stopRiding();
+        }
+        if (player.isUsingItem()) {
+            player.stopUsingItem();
+        }
+
+        int sleepMinute = StardewTimeManager.get().getCurrentTime();
+        if (SleepVoteTracker.castPassOutVote(player, sleepMinute)) {
+            int effectiveSleepMinute = SleepVoteTracker.getLatestSleepMinute();
+            java.util.Set<java.util.UUID> votedPlayers = SleepVoteTracker.getVotedPlayerSnapshot();
+            java.util.Set<java.util.UUID> pendingPassOutPlayers = collectPendingPassOutPlayers(player.server, votedPlayers);
+            SleepVoteTracker.clearVotes();
+            advanceToNextMorning(stardewLevel, effectiveSleepMinute, "pass_out_stamina");
+            teleportPlayersToFarmSpawn(player.server, pendingPassOutPlayers);
+        }
+    }
+
+    @SuppressWarnings("null")
     public static void requestSleepAdvance(ServerPlayer player, int sleepMinute, BlockPos bedPos) {
         if (player == null) {
             return;
@@ -151,8 +183,37 @@ public class DimensionEventHandler {
         // 多人投票：只有所有 Stardew 维度玩家都投票后才推进
         if (SleepVoteTracker.castVote(player, sleepMinute)) {
             int effectiveSleepMinute = SleepVoteTracker.getLatestSleepMinute();
+            java.util.Set<java.util.UUID> votedPlayers = SleepVoteTracker.getVotedPlayerSnapshot();
+            java.util.Set<java.util.UUID> pendingPassOutPlayers = collectPendingPassOutPlayers(player.server, votedPlayers);
             SleepVoteTracker.clearVotes();
             advanceToNextMorning(stardewLevel, effectiveSleepMinute, "sleep_confirm");
+            teleportPlayersToFarmSpawn(player.server, pendingPassOutPlayers);
+        }
+    }
+
+    private static java.util.Set<java.util.UUID> collectPendingPassOutPlayers(
+            net.minecraft.server.MinecraftServer server,
+            java.util.Set<java.util.UUID> candidates) {
+        java.util.Set<java.util.UUID> result = new java.util.HashSet<>();
+        for (ServerPlayer sp : server.getPlayerList().getPlayers()) {
+            if (candidates.contains(sp.getUUID())
+                && com.stardew.craft.player.PassOutService.hasPendingPassOutResult(sp.getUUID())) {
+                result.add(sp.getUUID());
+            }
+        }
+        return result;
+    }
+
+    private static void teleportPlayersToFarmSpawn(
+            net.minecraft.server.MinecraftServer server,
+            java.util.Set<java.util.UUID> playerIds) {
+        if (playerIds.isEmpty()) {
+            return;
+        }
+        for (ServerPlayer sp : server.getPlayerList().getPlayers()) {
+            if (playerIds.contains(sp.getUUID())) {
+                com.stardew.craft.player.PassOutService.teleportToFarmSpawn(sp);
+            }
         }
     }
 
@@ -358,6 +419,7 @@ public class DimensionEventHandler {
             com.stardew.craft.network.MiningFloorSyncPacket packet = 
                 new com.stardew.craft.network.MiningFloorSyncPacket(currentFloor);
             net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player, packet);
+            com.stardew.craft.event.MiningBlockBreakHandler.syncLadderStateForPlayer(player, currentFloor);
 
             // 首次进入矿井赠送矿洞图腾
             if (!playerData.hasReceivedMineTotem()) {
@@ -493,6 +555,7 @@ public class DimensionEventHandler {
             }
             // 关键：先保存已投票玩家快照，再清空投票
             java.util.Set<java.util.UUID> votedPlayers = SleepVoteTracker.getVotedPlayerSnapshot();
+                java.util.Set<java.util.UUID> pendingPassOutVoters = collectPendingPassOutPlayers(server, votedPlayers);
             // 1. 对每个玩家执行晕倒惩罚（跳过已投睡觉票的玩家——他们选择了睡觉，不算晕倒）
             for (ServerPlayer sp : stardewPlayers) {
                     if (!votedPlayers.contains(sp.getUUID())) {
@@ -508,6 +571,7 @@ public class DimensionEventHandler {
                         com.stardew.craft.player.PassOutService.teleportToFarmSpawn(sp);
                     }
             }
+            teleportPlayersToFarmSpawn(server, pendingPassOutVoters);
         }
         
         // 每秒（20 ticks）同步UI时间+虚拟天空时间到客户端（仅发给星露谷维度玩家）

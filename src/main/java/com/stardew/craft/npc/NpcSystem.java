@@ -3,18 +3,28 @@ package com.stardew.craft.npc;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModMiningDimensions;
+import com.stardew.craft.cutscene.runtime.EventActorEntity;
+import com.stardew.craft.cutscene.runtime.EventPlayerActorEntity;
+import com.stardew.craft.entity.npc.BooksellerEntity;
+import com.stardew.craft.entity.npc.CamelMerchantEntity;
 import com.stardew.craft.entity.npc.StardewNpcEntity;
+import com.stardew.craft.entity.npc.TravelingCartEntity;
 import com.stardew.craft.npc.data.NpcDataManager;
 import com.stardew.craft.npc.runtime.NpcCentralMovementService;
 import com.stardew.craft.npc.runtime.NpcChunkForceManager;
 import com.stardew.craft.npc.runtime.NpcRuntimeManager;
 import com.stardew.craft.npc.runtime.NpcScheduleRuntimeService;
 import com.stardew.craft.npc.runtime.NpcSpawnManager;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.Items;
+import net.neoforged.bus.api.EventPriority;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 @EventBusSubscriber(modid = StardewCraft.MODID)
@@ -123,5 +133,38 @@ public final class NpcSystem {
                 event.setCanceled(true);
             }
         }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onNpcLeadInteract(PlayerInteractEvent.EntityInteract event) {
+        if (event.getLevel().isClientSide()) {
+            return;
+        }
+        if (isProtectedNpcLikeEntity(event.getTarget())
+                && event.getEntity().getItemInHand(event.getHand()).is(Items.LEAD)) {
+            event.setCanceled(true);
+            event.setCancellationResult(InteractionResult.FAIL);
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onNpcLeadInteractSpecific(PlayerInteractEvent.EntityInteractSpecific event) {
+        if (event.getLevel().isClientSide()) {
+            return;
+        }
+        if (isProtectedNpcLikeEntity(event.getTarget())
+                && event.getEntity().getItemInHand(event.getHand()).is(Items.LEAD)) {
+            event.setCanceled(true);
+            event.setCancellationResult(InteractionResult.FAIL);
+        }
+    }
+
+    private static boolean isProtectedNpcLikeEntity(Entity entity) {
+        return entity instanceof StardewNpcEntity
+                || entity instanceof BooksellerEntity
+                || entity instanceof TravelingCartEntity
+                || entity instanceof CamelMerchantEntity
+                || entity instanceof EventActorEntity
+                || entity instanceof EventPlayerActorEntity;
     }
 }

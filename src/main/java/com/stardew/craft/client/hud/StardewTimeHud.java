@@ -3,6 +3,8 @@ package com.stardew.craft.client.hud;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.client.ClientPlayerDataCache;
 import com.stardew.craft.core.ModDimensions;
+import com.stardew.craft.desert.DesertConstants;
+import com.stardew.craft.item.ModItems;
 import com.stardew.craft.time.StardewTimeManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -45,6 +47,10 @@ public class StardewTimeHud {
     private static final ResourceLocation WEATHER_WINDY_SPRING = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/windy_spring.png");
     @SuppressWarnings("null")
     private static final ResourceLocation WEATHER_WINDY_FALL = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/windy_fall.png");
+    @SuppressWarnings("null")
+    private static final ResourceLocation CALICO_CURRENCY_BG_HOTBAR = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/desert_festival/calico_currency_bg_hotbar.png");
+    @SuppressWarnings("null")
+    private static final ResourceLocation CALICO_RATING_ICON = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/desert_festival/calico_rating_icon.png");
     
     // UI尺寸
     private static final int BG_WIDTH = 72;
@@ -53,6 +59,13 @@ public class StardewTimeHud {
     private static final int POINTER_HEIGHT = 19;
     private static final int ICON_WIDTH = 12;
     private static final int ICON_HEIGHT = 8;
+    private static final int CALICO_CURRENCY_WIDTH = 57;
+    private static final int CALICO_CURRENCY_HEIGHT = 26;
+    private static final int CALICO_RATING_ICON_WIDTH = 19;
+    private static final int CALICO_RATING_ICON_HEIGHT = 21;
+    private static final int VANILLA_HOTBAR_WIDTH = 182;
+    private static final int CALICO_HOTBAR_GAP = 4;
+    private static final int CALICO_SCREEN_MARGIN = 4;
     
     // 指针旋转中心（在背景图内的坐标）
     private static final int POINTER_PIVOT_X = 22;  // 右移3格
@@ -67,7 +80,10 @@ public class StardewTimeHud {
     private static StardewTimeManager clientTimeCache = new StardewTimeManager();
     private static volatile boolean timeSyncedFromServer = false;
     private static MoneyDial moneyDial = new MoneyDial(8, true);
+    private static final MoneyDial calicoEggDial = new MoneyDial(4, false);
     private static int moneyShakeTimer = 0;
+    private static int desertFestivalMineRating = 0;
+    private static int desertFestivalMineRatingShakeTimer = 0;
     @SuppressWarnings("unused")
     private static boolean moneyInitialized = false;
     
@@ -105,6 +121,13 @@ public class StardewTimeHud {
     /** SDV parity: dayTimeMoneyBox.moneyShakeTimer = millis (e.g. 1000 ms for insufficient funds). */
     public static void triggerMoneyShake(int millis) {
         moneyShakeTimer = Math.max(moneyShakeTimer, millis);
+    }
+
+    public static void updateDesertFestivalMineRating(int displayRating, boolean shake) {
+        desertFestivalMineRating = Math.max(0, displayRating);
+        if (shake) {
+            desertFestivalMineRatingShakeTimer = Math.max(desertFestivalMineRatingShakeTimer, 1500);
+        }
     }
     
     public static StardewTimeManager getClientTimeCache() {
@@ -329,6 +352,82 @@ public class StardewTimeHud {
         // 从缓存中获取金币值并传递给MoneyDial
         int currentMoney = ClientPlayerDataCache.getMoney();
         moneyDial.draw(graphics, moneyX, moneyY, currentMoney);
+
+        renderCalicoEggCurrency(graphics);
+        renderDesertFestivalMineRating(graphics);
+    }
+
+    private static void renderCalicoEggCurrency(GuiGraphics graphics) {
+        Minecraft mc = Minecraft.getInstance();
+        var player = mc.player;
+        if (player == null || mc.level == null || mc.level.dimension() != ModDimensions.STARDEW_VALLEY) {
+            return;
+        }
+        boolean inDesert = DesertConstants.isInDesertRegion(player.blockPosition());
+        boolean desertFestivalDay = clientTimeCache.getCurrentSeason() == 0
+                && clientTimeCache.getCurrentDay() >= 15
+            && clientTimeCache.getCurrentDay() <= 17;
+        int count = player.getInventory().countItem(ModItems.CALICO_EGG.get());
+        if (!inDesert || (!desertFestivalDay && count <= 0)) {
+            return;
+        }
+
+        int screenWidth = mc.getWindow().getGuiScaledWidth();
+        int screenHeight = mc.getWindow().getGuiScaledHeight();
+        int hotbarX = (screenWidth - VANILLA_HOTBAR_WIDTH) / 2;
+        int boxX = Math.max(CALICO_SCREEN_MARGIN, hotbarX - CALICO_CURRENCY_WIDTH - CALICO_HOTBAR_GAP);
+        int boxY = screenHeight - CALICO_CURRENCY_HEIGHT - 1;
+        graphics.blit(CALICO_CURRENCY_BG_HOTBAR, boxX, boxY, 0, 0,
+                CALICO_CURRENCY_WIDTH, CALICO_CURRENCY_HEIGHT,
+                CALICO_CURRENCY_WIDTH, CALICO_CURRENCY_HEIGHT);
+        calicoEggDial.draw(graphics, boxX + 7, boxY + 9, count);
+    }
+
+    private static void renderDesertFestivalMineRating(GuiGraphics graphics) {
+        Minecraft mc = Minecraft.getInstance();
+        var player = mc.player;
+        if (player == null || mc.level == null
+                || mc.level.dimension() != com.stardew.craft.core.ModMiningDimensions.STARDEW_MINING
+                || desertFestivalMineRating <= 0) {
+            return;
+        }
+        int currentFloor = (int) Math.max(0, Math.round(player.getZ() / com.stardew.craft.mining.MiningCoordinates.FLOOR_SPACING));
+        if (currentFloor <= 120) {
+            return;
+        }
+        if (desertFestivalMineRatingShakeTimer > 0) {
+            desertFestivalMineRatingShakeTimer -= (int)(mc.getTimer().getRealtimeDeltaTicks() * 50);
+        }
+
+        int screenWidth = mc.getWindow().getGuiScaledWidth();
+        int screenHeight = mc.getWindow().getGuiScaledHeight();
+        int hotbarX = (screenWidth - VANILLA_HOTBAR_WIDTH) / 2;
+        int calicoBoxX = Math.max(CALICO_SCREEN_MARGIN, hotbarX - CALICO_CURRENCY_WIDTH - CALICO_HOTBAR_GAP);
+        int calicoBoxY = screenHeight - CALICO_CURRENCY_HEIGHT - 1;
+        int iconW = CALICO_RATING_ICON_WIDTH;
+        int iconH = CALICO_RATING_ICON_HEIGHT;
+        int x = Math.max(CALICO_SCREEN_MARGIN, calicoBoxX - iconW - CALICO_HOTBAR_GAP);
+        int y = calicoBoxY + (CALICO_CURRENCY_HEIGHT - iconH) / 2;
+        if (desertFestivalMineRatingShakeTimer > 0) {
+            x += (int)(Math.random() * 7 - 3);
+            y += (int)(Math.random() * 7 - 3);
+            drawCenteredScaledText(graphics, mc.font, "+1", x + iconW / 2, y - 10, 0xFFFFFFFF, 0.75F, true);
+        }
+        graphics.blit(CALICO_RATING_ICON, x, y, iconW, iconH, 0, 0,
+            CALICO_RATING_ICON_WIDTH, CALICO_RATING_ICON_HEIGHT,
+            CALICO_RATING_ICON_WIDTH, CALICO_RATING_ICON_HEIGHT);
+        String rating = String.valueOf(desertFestivalMineRating);
+        drawCenteredScaledText(graphics, mc.font, rating, x + iconW / 2, y + iconH / 2 - 1, 0xFF3F2A13, 0.75F, true);
+    }
+
+    private static void drawCenteredScaledText(GuiGraphics graphics, Font font, String text, int centerX, int centerY,
+                                               int color, float scale, boolean shadow) {
+        graphics.pose().pushPose();
+        graphics.pose().scale(scale, scale, 1.0F);
+        int x = Math.round((centerX - font.width(text) * scale / 2.0F) / scale);
+        int y = Math.round((centerY - font.lineHeight * scale / 2.0F) / scale);
+        graphics.drawString(font, text, x, y, color, shadow);
+        graphics.pose().popPose();
     }
     
     /**

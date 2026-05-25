@@ -46,6 +46,10 @@ public final class FestivalWorldData extends SavedData {
         return Optional.ofNullable(sessions.get(sessionKey(festivalId)));
     }
 
+    public Collection<FestivalSessionState> sessions() {
+        return java.util.List.copyOf(sessions.values());
+    }
+
     public FestivalSessionState getOrCreateSession(FestivalDefinition definition, int year, int season, int day) {
         String key = sessionKey(definition.id());
         FestivalSessionState existing = sessions.get(key);

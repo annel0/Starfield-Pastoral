@@ -106,7 +106,7 @@ public class WildWeedsBlock extends Block {
 		if (entity instanceof Player player) {
 			double factor = player instanceof ServerPlayer serverPlayer
 					? BookPowerEffects.getGrassSpeedFactor(PlayerDataManager.getPlayerData(serverPlayer))
-					: 0.800D;
+					: level.isClientSide ? BookPowerEffects.getClientGrassSpeedFactor() : BookPowerEffects.getGrassSpeedFactor(false);
 			entity.makeStuckInBlock(state, new Vec3(factor, 1.0D, factor));
 		}
 		super.entityInside(state, level, pos, entity);

@@ -62,6 +62,7 @@ public class JadePlugin implements IWailaPlugin {
     private static final String NBT_DAYS_GROWN = "Stardew_DaysGrown";
     private static final String NBT_MATURE = "Stardew_Mature";
 	private static final String NBT_BLOCKED = "Stardew_Blocked";
+    private static final String NBT_DECORATIVE = "Stardew_Decorative";
 
     @Override
     public void register(IWailaCommonRegistration registration) {
@@ -195,14 +196,12 @@ public class JadePlugin implements IWailaPlugin {
                 return;
             }
 
-            // 玩家放置的花只是装饰品，不应显示生长进度/浇水信息
-            if (state.hasProperty(StardewCropBlock.PLACED_BY_PLAYER)
-                    && state.getValue(StardewCropBlock.PLACED_BY_PLAYER)) {
-                return;
-            }
-
             int age = state.getValue(Objects.requireNonNull(StardewCropBlock.AGE, "AGE"));
             CropGrowthManager.CropGrowthState gs = CropGrowthManager.get(serverLevel).getState(serverLevel, rootPos);
+            if (StardewCropBlock.isPlayerPlacedDecorative(serverLevel, rootPos, state)) {
+                tag.putBoolean(NBT_DECORATIVE, true);
+                return;
+            }
             int dayInPhase = gs != null ? gs.dayInPhase : 0;
             int phase = gs != null ? gs.phase : 0;
             boolean regrowing = gs != null && gs.regrowing;
@@ -223,9 +222,12 @@ public class JadePlugin implements IWailaPlugin {
                     effectivePhase = age >= StardewCropBlock.MAX_AGE ? StardewCropBlock.MAX_AGE : Math.min(age, StardewCropBlock.MAX_AGE - 1);
                 }
                 
+                int harvestPhase = phaseDays.length;
                 int lastReq = phaseDays.length > StardewCropBlock.MAX_AGE ? phaseDays[StardewCropBlock.MAX_AGE] : 1;
                 lastReq = Math.max(1, lastReq);
-                mature = age >= StardewCropBlock.MAX_AGE && effectivePhase >= StardewCropBlock.MAX_AGE && dayInPhase >= lastReq;
+                mature = age >= StardewCropBlock.MAX_AGE
+                    && (effectivePhase >= harvestPhase
+                    || (effectivePhase >= StardewCropBlock.MAX_AGE && dayInPhase >= lastReq));
                 
                 if (regrowing) {
                     totalDays = cropBlock.getRegrowDaysForDisplay();
@@ -263,14 +265,20 @@ public class JadePlugin implements IWailaPlugin {
             BlockPos rootPos = resolveCropRootPos(accessor);
             BlockState state = accessor.getLevel().getBlockState(rootPos);
             if (state.getBlock() instanceof StardewCropBlock cropBlock) {
-                // 玩家放置的花不显示生长/浇水/成熟等信息
-                if (state.hasProperty(StardewCropBlock.PLACED_BY_PLAYER)
-                        && state.getValue(StardewCropBlock.PLACED_BY_PLAYER)) {
-                    return;
-                }
                 int age = state.getValue(Objects.requireNonNull(StardewCropBlock.AGE, "AGE"));
 
                 CompoundTag serverData = accessor.getServerData();
+                if (serverData != null && serverData.getBoolean(NBT_DECORATIVE)) {
+                    tooltip.add(Component.translatable("stardewcraft.tooltip.decorative_flower")
+                            .withStyle(net.minecraft.ChatFormatting.GRAY));
+                    return;
+                }
+                if ((serverData == null || !serverData.contains(NBT_TOTAL_DAYS))
+                        && StardewCropBlock.isDecorativeFlowerState(state)) {
+                    tooltip.add(Component.translatable("stardewcraft.tooltip.decorative_flower")
+                            .withStyle(net.minecraft.ChatFormatting.GRAY));
+                    return;
+                }
                 if (serverData != null && serverData.contains(NBT_TOTAL_DAYS) && serverData.contains(NBT_DAYS_GROWN)) {
                     int grown = serverData.getInt(NBT_DAYS_GROWN);
                     int total = serverData.getInt(NBT_TOTAL_DAYS);

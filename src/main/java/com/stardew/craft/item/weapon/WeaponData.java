@@ -18,7 +18,7 @@ public class WeaponData {
     private final double critPower;
     private final int speed;
     private final int defense;
-    private final int weight;
+    private final double weight;
     private final WeaponSkillData skill1;
     private final WeaponSkillData skill2;
     private final String loreKey;
@@ -51,7 +51,7 @@ public class WeaponData {
     public double getCritPower() { return critPower; }
     public int getSpeed() { return speed; }
     public int getDefense() { return defense; }
-    public int getWeight() { return weight; }
+    public double getWeight() { return weight; }
     public WeaponSkillData getSkill1() { return skill1; }
     public WeaponSkillData getSkill2() { return skill2; }
     public String getLoreKey() { return loreKey; }
@@ -85,7 +85,7 @@ public class WeaponData {
         private double critPower = 1.0;
         private int speed = 0;
         private int defense = 0;
-        private int weight = 0;
+        private double weight = 0;
         private WeaponSkillData skill1 = null;
         private WeaponSkillData skill2 = null;
         private String loreKey = "";
@@ -139,7 +139,7 @@ public class WeaponData {
             return this;
         }
         
-        public Builder weight(int weight) {
+        public Builder weight(double weight) {
             this.weight = weight;
             return this;
         }

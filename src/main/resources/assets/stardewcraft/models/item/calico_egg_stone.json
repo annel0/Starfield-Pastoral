@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:block/calico_egg_stone",
+  "textures": {
+    "particle": "stardewcraft:block/mine/calico_egg_stone"
+  }
+}

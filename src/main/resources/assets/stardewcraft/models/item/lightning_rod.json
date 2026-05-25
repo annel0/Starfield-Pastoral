@@ -1,7 +1,6 @@
 {
-    "parent":  "item/generated",
+    "parent":  "stardewcraft:block/utility/lightning_rod_runtime",
     "textures":  {
-                     "layer0":  "stardewcraft:item/utility/lightning_rod",
-                     "particle":  "stardewcraft:item/utility/lightning_rod"
+                     "particle":  "stardewcraft:block/utility/lightning_rod"
                  }
 }

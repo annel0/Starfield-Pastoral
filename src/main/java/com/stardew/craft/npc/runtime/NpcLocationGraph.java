@@ -28,7 +28,7 @@ import java.util.Queue;
 public final class NpcLocationGraph {
 
     /** One directed edge in the graph. */
-    record Edge(String from, String to, String viaOutdoor, String viaIndoor, String mode) {
+    record Edge(String from, String to, String viaOutdoor, String viaIndoor, String mode, boolean reversed) {
     }
 
     /** BFS result: ordered list of edges from source to destination. */
@@ -61,11 +61,15 @@ public final class NpcLocationGraph {
 
             String viaOutdoor = str(obj, "via_outdoor");
             String viaIndoor = str(obj, "via_indoor");
+            String reverseViaOutdoor = str(obj, "reverse_via_outdoor");
+            String reverseViaIndoor = str(obj, "reverse_via_indoor");
             String mode = str(obj, "mode");
             if (mode.isEmpty()) mode = "walk";
 
-            Edge forward = new Edge(from, to, viaOutdoor, viaIndoor, mode);
-            Edge reverse = new Edge(to, from, viaOutdoor, viaIndoor, mode);
+            Edge forward = new Edge(from, to, viaOutdoor, viaIndoor, mode, false);
+            Edge reverse = reverseViaOutdoor.isEmpty() && reverseViaIndoor.isEmpty()
+                ? new Edge(to, from, viaOutdoor, viaIndoor, mode, true)
+                : new Edge(to, from, reverseViaOutdoor, reverseViaIndoor, mode, false);
 
             adj.computeIfAbsent(from, k -> new ArrayList<>()).add(forward);
             adj.computeIfAbsent(to, k -> new ArrayList<>()).add(reverse);
@@ -159,6 +163,17 @@ public final class NpcLocationGraph {
                 if (outdoorExit != null) {
                     steps.add(NpcRoutePlanner.NpcRouteStep.warp("graph_outdoor_exit_" + edge.from, outdoorExit));
                 }
+            } else if (!fromIndoor && !toIndoor && isWarpMode(edge.mode)) {
+                String walkPointId = edge.reversed ? edge.viaIndoor : edge.viaOutdoor;
+                String warpPointId = edge.reversed ? edge.viaOutdoor : edge.viaIndoor;
+                Vec3 walkPoint = NpcRoutePlanner.pointFromConfig(walkPointId, null);
+                Vec3 warpPoint = NpcRoutePlanner.pointFromConfig(warpPointId, null);
+                if (walkPoint != null) {
+                    steps.add(NpcRoutePlanner.NpcRouteStep.walk("graph_outdoor_warp_depart_" + edge.to, walkPoint));
+                }
+                if (warpPoint != null) {
+                    steps.add(NpcRoutePlanner.NpcRouteStep.warp("graph_outdoor_warp_arrive_" + edge.to, warpPoint));
+                }
             } else if (!isLast && !edge.viaOutdoor.isEmpty()) {
                 Vec3 outdoor = NpcRoutePlanner.pointFromConfig(edge.viaOutdoor, null);
                 if (outdoor != null) {
@@ -173,6 +188,10 @@ public final class NpcLocationGraph {
         }
 
         return steps;
+    }
+
+    private static boolean isWarpMode(String mode) {
+        return "warp".equalsIgnoreCase(mode) || "walk_warp".equalsIgnoreCase(mode);
     }
 
     /** Check if the graph has any edges loaded. */

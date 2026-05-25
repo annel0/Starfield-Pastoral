@@ -236,6 +236,13 @@ public final class MinePickaxeEvents {
 		ServerLevel level = event.getLevel();
 		BlockPos pos = event.getPos();
 
+		if (com.stardew.craft.festival.desert.DesertFestivalMineService.isCalicoEggStone(state)) {
+			event.getDrops().clear();
+			com.stardew.craft.festival.desert.DesertFestivalMineService.dropCalicoEggStone(level, player, pos, level.getRandom());
+			PlayerStardewDataAPI.addExperience(player, SkillType.MINING, 50);
+			return;
+		}
+
 		if (isStardewOre(state)) {
 			Item dropItem = getOreDropItem(state);
 			if (dropItem != null) {
@@ -264,6 +271,7 @@ public final class MinePickaxeEvents {
 		if (!isMineralBlock(state)) {
 			addGeodeDrop(event, level, player, pos, state);
 			addCoalFromStoneDrop(event, level, player, pos, state);
+			com.stardew.craft.festival.desert.DesertFestivalMineService.tryAddStoneEggDrop(level, player, pos, level.getRandom());
 		}
 	}
 
@@ -516,6 +524,11 @@ public final class MinePickaxeEvents {
 		}
 		com.stardew.craft.player.PlayerDataManager.getPlayerData(player).addMineBlocksBombed(1);
 		Item oreProduct = null;
+		if (com.stardew.craft.festival.desert.DesertFestivalMineService.isCalicoEggStone(state)) {
+			com.stardew.craft.festival.desert.DesertFestivalMineService.dropCalicoEggStone(level, player, pos, level.getRandom());
+			PlayerStardewDataAPI.addExperience(player, SkillType.MINING, 50);
+			return ModItems.CALICO_EGG.get();
+		}
 		if (isStardewOre(state)) {
 			oreProduct = getOreDropItem(state);
 			if (oreProduct != null) {
@@ -531,6 +544,7 @@ public final class MinePickaxeEvents {
 			}
 		} else if (!isMineralBlock(state)) {
 			rollBombStoneExtras(level, player, pos);
+			com.stardew.craft.festival.desert.DesertFestivalMineService.tryAddStoneEggDrop(level, player, pos, level.getRandom());
 		}
 		int miningExp = getMiningExperienceForBlock(state);
 		if (miningExp > 0) {
@@ -671,7 +685,8 @@ public final class MinePickaxeEvents {
 				|| path.equals("mossy_sandstone")
 				|| path.equals("cracked_slate")
 				|| path.equals("scoria")
-				|| path.equals("salt_rock");
+				|| path.equals("salt_rock")
+				|| path.equals("calico_egg_stone");
 	}
 
 	@SuppressWarnings("null")

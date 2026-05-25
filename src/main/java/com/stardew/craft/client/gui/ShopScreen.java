@@ -18,9 +18,11 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -63,6 +65,8 @@ public class ShopScreen extends Screen {
     private static final int BG_TINT = 0xBF000000;
     private static final long BUY_HOLD_INITIAL_DELAY_MS = 320;
     private static final long BUY_HOLD_REPEAT_MS = 95;
+    private static final TagKey<Item> BLACKSMITH_ORES_TAG = itemTag("ores");
+    private static final TagKey<Item> BLACKSMITH_BARS_TAG = itemTag("bars");
 
     // -------------------------------------------------------------------------
     // Runtime state
@@ -195,10 +199,22 @@ public class ShopScreen extends Screen {
             return ItemStack.isSameItemSameComponents(heldItem, stack);
         }
         if (stack.isEmpty()) return false;
-        if (acceptedSellTypeKeys.isEmpty()) return false;
         if (!(stack.getItem() instanceof IStardewItem si)) return false;
         if (si.getSellPrice(stack) <= 0) return false;
-        return acceptedSellTypeKeys.contains(si.getItemTypeKey());
+        return acceptedSellTypeKeys.contains(si.getItemTypeKey()) || matchesShopSpecificSellRule(stack);
+    }
+
+    private boolean matchesShopSpecificSellRule(ItemStack stack) {
+        if (!"Blacksmith".equals(shopId)) {
+            return false;
+        }
+        return stack.is(BLACKSMITH_ORES_TAG)
+            || stack.is(BLACKSMITH_BARS_TAG)
+            || "stardewcraft:coal".equals(BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
+    }
+
+    private static TagKey<Item> itemTag(String path) {
+        return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, path));
     }
 
     // =========================================================================
@@ -333,7 +349,7 @@ public class ShopScreen extends Screen {
         // SDV: portrait_draw_position = xPositionOnScreen - 320
         //      Frame = 74×4 = 296 screen px; face at +20,+20; dialogue at Y+312 via drawHoverText
         int portX = panelX - ui(PORTRAIT_OFFSET);
-        if (portX > 0 && !ownerNpcId.isEmpty()) {
+        if (portX > 0 && shouldDrawOwnerPortrait()) {
             // Frame background from cursors (SDV: Utility.drawWithShadow at portrait_draw_position)
             CommonGuiTextures.drawShopPortraitFrame(g, portX, panelY, s4);
             int portSize = (int)(PORT_W * s4);
@@ -387,6 +403,10 @@ public class ShopScreen extends Screen {
         } else if (hoveredInvSlot >= 0 && heldItem.isEmpty()) {
             drawInvTooltip(g, mouseX, mouseY, hoveredInvSlot);
         }
+    }
+
+    private boolean shouldDrawOwnerPortrait() {
+        return !ownerNpcId.isBlank() && !"JojaMart".equals(shopId);
     }
 
     // =========================================================================

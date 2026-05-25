@@ -17,6 +17,7 @@
     "forest",
     "beach",
     "busstop",
+    "desert",
     "fishshop",
     "samhouse",
     "jojamart",
@@ -175,6 +176,14 @@
       "z": 201.0,
       "indoor": false,
       "use_ground_height": true
+    },
+    "desert": {
+      "x": -225.0,
+      "y": 64.0,
+      "z": -177.0,
+      "indoor": false,
+      "use_ground_height": true,
+      "outdoor_door_point": "desert_bus_arrival"
     },
     "fishshop": {
       "indoor": true,

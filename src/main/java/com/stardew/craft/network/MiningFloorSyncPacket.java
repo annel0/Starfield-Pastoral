@@ -35,6 +35,9 @@ public record MiningFloorSyncPacket(int currentFloor) implements CustomPacketPay
      */
     public static void handle(MiningFloorSyncPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
+            if (com.stardew.craft.client.mining.ClientMiningState.getLadderFloor() != packet.currentFloor()) {
+                com.stardew.craft.client.mining.ClientMiningState.reset();
+            }
             com.stardew.craft.client.hud.MiningFloorHud.setCurrentFloor(packet.currentFloor());
         });
     }

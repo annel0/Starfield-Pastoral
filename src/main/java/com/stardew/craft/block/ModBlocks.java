@@ -1,6 +1,7 @@
 package com.stardew.craft.block;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.block.mine.CalicoStatueBlock;
 import com.stardew.craft.fluid.ModFluids;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SlabBlock;
@@ -596,6 +597,11 @@ public class ModBlocks {
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> WEATHERED_STONE = BLOCKS.register("weathered_stone",
                         () -> new Block(stoneProps(MapColor.TERRACOTTA_WHITE, SoundType.STONE, 5.0F)));
+
+        public static final DeferredBlock<Block> CALICO_EGG_STONE = BLOCKS.register("calico_egg_stone",
+                        () -> new Block(stoneProps(MapColor.COLOR_ORANGE, SoundType.STONE, 5.0F)));
+        public static final DeferredBlock<Block> CALICO_STATUE = BLOCKS.register("calico_statue",
+                        () -> new CalicoStatueBlock(stoneProps(MapColor.COLOR_PURPLE, SoundType.STONE, 5.0F)));
 
         // 骷髅矿主石头/装饰石的建材变体（slab/stairs/wall）
         @SuppressWarnings("null")
@@ -2643,6 +2649,14 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .sound(net.minecraft.world.level.block.SoundType.METAL)
                                         .noOcclusion()
                                         .strength(1.0F, 2.0F)));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> PRIZE_TICKET_MACHINE = BLOCKS.register("prize_ticket_machine",
+                        () -> new com.stardew.craft.block.decor.PrizeTicketMachineBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.METAL)
+                                        .sound(net.minecraft.world.level.block.SoundType.METAL)
+                                        .noOcclusion()
+                                        .strength(-1.0F, 3600000.0F)
+                                        .noLootTable()));
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> WHITE_TEACUP = BLOCKS.register("white_teacup",
                         () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()

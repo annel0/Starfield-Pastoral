@@ -7,6 +7,7 @@ import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModMiningDimensions;
 import com.stardew.craft.festival.FestivalService;
+import com.stardew.craft.festival.desert.DesertFestivalService;
 import com.stardew.craft.item.SpecificBaitItem;
 import com.stardew.craft.player.PlayerStardewData;
 import com.stardew.craft.player.PlayerStardewDataAPI;
@@ -208,7 +209,7 @@ public final class FishingDataManager {
 		List<String> lookupKeys = resolveVanillaAlignedLocationKeys(level, biomeHolder);
 		String fishAreaId = resolveVanillaFishAreaId(biomeHolder);
 
-		List<CandidateRule> candidates = collectCandidatesByKeys(lookupKeys);
+		List<CandidateRule> candidates = collectCandidatesByKeys(lookupKeys, useDesertFestivalPoolOnly(biomeHolder));
 
 		if (candidates.isEmpty()) {
 			// 如果没有任何候选鱼（数据未加载或配置错误），直接返回垃圾
@@ -398,8 +399,14 @@ public final class FishingDataManager {
 	}
 
 	private List<CandidateRule> collectCandidatesByKeys(List<String> lookupKeys) {
+		return collectCandidatesByKeys(lookupKeys, false);
+	}
+
+	private List<CandidateRule> collectCandidatesByKeys(List<String> lookupKeys, boolean skipDefaultPool) {
 		LinkedHashSet<String> uniqueKeys = new LinkedHashSet<>();
-		uniqueKeys.add("Default");
+		if (!skipDefaultPool) {
+			uniqueKeys.add("Default");
+		}
 		uniqueKeys.addAll(lookupKeys);
 
 		boolean hasMappedLocationData = lookupKeys.stream().anyMatch(byLocationKey::containsKey);
@@ -424,6 +431,10 @@ public final class FishingDataManager {
 	}
 
 	private record CandidateRule(SpawnFishRule rule, boolean inherited) {
+	}
+
+	private boolean useDesertFestivalPoolOnly(Holder<Biome> biomeHolder) {
+		return DesertFestivalService.isFestivalDay() && hasBiomeTag(biomeHolder, "stardewcraft:is_desert");
 	}
 
 	/**

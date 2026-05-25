@@ -4,6 +4,8 @@ import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.cutscene.server.ServerCutsceneTracker;
 import com.stardew.craft.farm.FarmInstance;
 import com.stardew.craft.farm.FarmInstanceRegistry;
+import com.stardew.craft.item.ModItems;
+import com.stardew.craft.network.ItemPickupHudPacket;
 import com.stardew.craft.network.TimeSyncPacket;
 import com.stardew.craft.network.payload.EggFestivalCutsceneStatePayload;
 import com.stardew.craft.network.payload.FestivalHudStatePayload;
@@ -28,6 +30,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Interaction;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -560,6 +563,7 @@ public final class EggFestivalService {
         if (awardPlayerWon) {
             for (ServerPlayer winner : winners) {
                 AWARD_WINNER_IDS.add(winner.getUUID());
+                grantWinnerPrizeTicket(winner);
             }
             awardWinnerText = winners.size() == 1
                 ? winners.get(0).getScoreboardName() + "!"
@@ -567,6 +571,16 @@ public final class EggFestivalService {
         } else {
             awardWinnerText = "Abigail!";
         }
+    }
+
+    private static void grantWinnerPrizeTicket(ServerPlayer winner) {
+        ItemStack ticket = new ItemStack(ModItems.PRIZE_TICKET.get());
+        ItemStack hudStack = ticket.copy();
+        if (!winner.getInventory().add(ticket)) {
+            winner.drop(ticket, false);
+        }
+        ItemPickupHudPacket.sendTo(winner, hudStack, hudStack.getCount(), false);
+        winner.inventoryMenu.broadcastChanges();
     }
 
     private static int awardWinnerMask(List<ServerPlayer> participants) {

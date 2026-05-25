@@ -13,6 +13,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.StringRepresentable;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -23,6 +24,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -37,7 +39,7 @@ import java.util.List;
  *   <li>引信时间：48 ticks (2400ms)，引信期间模型加速颤抖</li>
  *   <li>音效：放置 thudStep → 引信 fuse (循环) → 爆炸 explosion</li>
  *   <li>颤抖：shakeIntensity=0.5 + 0.002/tick 加速，完全匹配 SDV</li>
- *   <li>爆炸：2D 圆形填充（XZ 平面）破坏方块，范围 = SDV 原版 +20%</li>
+ *   <li>爆炸：MC 3D 球形破坏，方块破坏半径按炸弹类型单独平衡</li>
  *   <li>伤害：怪物 r*6~r*8，玩家自伤 r*3（r 为 SDV 原版半径）</li>
  *   <li>粒子：45% 概率每格生成碎片或粉尘</li>
  * </ul>
@@ -181,7 +183,7 @@ public class StardewBombEntity extends Entity {
         serverLevel.playSound(null, center, ModSounds.EXPLOSION.get(),
             SoundSource.BLOCKS, 1.5f, 0.9f + random.nextFloat() * 0.2f);
 
-        // 2. SDV 圆形填充图案破坏方块（2D 圆 + 垂直范围 ±scaledRadius）
+        // 2. MC 3D 球形破坏方块，半径由炸弹类型单独平衡
         destroyBlocksInCircle(serverLevel, center, scaledRadius);
 
         // 3. 伤害范围内实体（SDV 伤害数值 + MC 3D 空间判定）
@@ -221,10 +223,10 @@ public class StardewBombEntity extends Entity {
                     dropBlockForBomb(level, pos, state);
                     level.removeBlock(pos, false);
 
-                    // SDV 原版：炸弹炸石头也会触发梯子生成概率 + stonesLeft 递减
+                    // 炸弹炸石头会递减 stonesLeft，但梯子概率低于手挖。
                     if (owner instanceof net.minecraft.server.level.ServerPlayer sp
                             && level.dimension() == com.stardew.craft.core.ModMiningDimensions.STARDEW_MINING) {
-                        com.stardew.craft.event.MiningBlockBreakHandler.handleStoneBreak(level, sp, pos, state);
+                        com.stardew.craft.event.MiningBlockBreakHandler.handleStoneBreakFromBomb(level, sp, pos, state);
                     }
                 }
             }
@@ -236,6 +238,8 @@ public class StardewBombEntity extends Entity {
         if (isIndestructible(level, pos, state)) return false;
         // 不破坏矿井梯子和 portal trigger 这类功能方块。
         if (isBombProtectedBlock(state)) return false;
+        // 多格家具/机器的 extension 格子只是占位。炸它们会触发每格各掉一份的安全网。
+        if (isExtensionPart(state)) return false;
         // SDV parity：炸弹不破坏树（树干 / 树枝 / 树苗 / 树叶 等任何树的部分），
         // 砍树必须用斧头。
         if (com.stardew.craft.tree.WildTrees.isAnyWildTreePart(state)) return false;
@@ -262,7 +266,18 @@ public class StardewBombEntity extends Entity {
     private static boolean isBombProtectedBlock(BlockState state) {
         Block block = state.getBlock();
         return state.is(ModBlocks.MINE_LADDER.get())
+            || state.is(ModBlocks.MINE_EXIT.get())
+            || state.is(ModBlocks.MINE_CHEST.get())
+            || state.is(ModBlocks.MINE_BARRIER.get())
+            || state.is(ModBlocks.ELEVATOR.get())
             || block instanceof com.stardew.craft.block.mine.MineLadderBlock
+            || block instanceof com.stardew.craft.block.mine.ElevatorBlock
+            || block instanceof com.stardew.craft.block.mine.MineExitBlock
+            || block instanceof com.stardew.craft.block.mine.MineChestBlock
+            || block instanceof com.stardew.craft.block.utility.FishPondManagerBlock
+            || block instanceof com.stardew.craft.block.utility.CoopManagerBlock
+            || block instanceof com.stardew.craft.block.utility.BarnManagerBlock
+            || block instanceof com.stardew.craft.block.utility.SiloManagerBlock
             || block instanceof com.stardew.craft.block.portal.PortalTriggerBlock;
     }
 
@@ -280,7 +295,25 @@ public class StardewBombEntity extends Entity {
         if (isPlantLikeBlock(state)) {
             return false;
         }
+        if (isExtensionPart(state)) {
+            return false;
+        }
         return block.asItem() != net.minecraft.world.item.Items.AIR;
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static boolean isExtensionPart(BlockState state) {
+        for (Property property : state.getProperties()) {
+            if (!"part".equals(property.getName())) {
+                continue;
+            }
+            Object value = state.getValue(property);
+            if (value instanceof StringRepresentable named) {
+                return "extension".equals(named.getSerializedName());
+            }
+            return "extension".equals(String.valueOf(value));
+        }
+        return false;
     }
 
     /**
@@ -306,6 +339,10 @@ public class StardewBombEntity extends Entity {
      */
     private void dropBlockForBomb(ServerLevel level, BlockPos pos, BlockState state) {
         Block block = state.getBlock();
+
+        if (isExtensionPart(state)) {
+            return;
+        }
 
         // 0. 木桶：onRemove 已经会调用 dropBarrelLoot，这里不要再 popResource(barrelItem)
         //    否则玩家会同时拿到一个可放置的木桶方块物品。

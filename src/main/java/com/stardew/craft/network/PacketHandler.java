@@ -1006,6 +1006,23 @@ public class PacketHandler {
             com.stardew.craft.network.payload.GeodeCrackResultPayload::handle
         );
 
+        // Prize Ticket Machine
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenPrizeTicketMachinePayload.TYPE,
+            com.stardew.craft.network.payload.OpenPrizeTicketMachinePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenPrizeTicketMachinePayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.PrizeTicketClaimPayload.TYPE,
+            com.stardew.craft.network.payload.PrizeTicketClaimPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.PrizeTicketClaimPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.PrizeTicketClaimResultPayload.TYPE,
+            com.stardew.craft.network.payload.PrizeTicketClaimResultPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.PrizeTicketClaimResultPayload::handle
+        );
+
         registrar.playToClient(
             com.stardew.craft.network.payload.SyncNpcFriendshipOverviewPayload.TYPE,
             com.stardew.craft.network.payload.SyncNpcFriendshipOverviewPayload.STREAM_CODEC,
@@ -1159,6 +1176,20 @@ public class PacketHandler {
             com.stardew.craft.network.payload.FarmJoinRequestPayload.TYPE,
             com.stardew.craft.network.payload.FarmJoinRequestPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.FarmJoinRequestPayload::handle
+        );
+
+        // Farm join invite dialog (S→C) — 农场主确认加入申请
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenFarmJoinInvitePayload.TYPE,
+            com.stardew.craft.network.payload.OpenFarmJoinInvitePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenFarmJoinInvitePayload::handle
+        );
+
+        // Farm join response (C→S) — 农场主同意/拒绝加入申请
+        registrar.playToServer(
+            com.stardew.craft.network.payload.FarmJoinResponsePayload.TYPE,
+            com.stardew.craft.network.payload.FarmJoinResponsePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FarmJoinResponsePayload::handle
         );
 
         // Farm permission update (C→S) — 玩家修改农场权限
@@ -1325,8 +1356,58 @@ public class PacketHandler {
             com.stardew.craft.network.payload.MarlonMenuChoicePayload.STREAM_CODEC,
             com.stardew.craft.network.payload.MarlonMenuChoicePayload::handle
         );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenDesertFestivalMarlonRatingPayload.TYPE,
+            com.stardew.craft.network.payload.OpenDesertFestivalMarlonRatingPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenDesertFestivalMarlonRatingPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.DesertFestivalMarlonRatingClaimPayload.TYPE,
+            com.stardew.craft.network.payload.DesertFestivalMarlonRatingClaimPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.DesertFestivalMarlonRatingClaimPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenDesertFestivalMarlonChallengesPayload.TYPE,
+            com.stardew.craft.network.payload.OpenDesertFestivalMarlonChallengesPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenDesertFestivalMarlonChallengesPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.DesertFestivalMarlonChallengeChoicePayload.TYPE,
+            com.stardew.craft.network.payload.DesertFestivalMarlonChallengeChoicePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.DesertFestivalMarlonChallengeChoicePayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.DesertFestivalMineHudPayload.TYPE,
+            com.stardew.craft.network.payload.DesertFestivalMineHudPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.DesertFestivalMineHudPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenDesertFestivalRacePayload.TYPE,
+            com.stardew.craft.network.payload.OpenDesertFestivalRacePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenDesertFestivalRacePayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.DesertFestivalRaceStatePayload.TYPE,
+            com.stardew.craft.network.payload.DesertFestivalRaceStatePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.DesertFestivalRaceStatePayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.DesertFestivalRaceActionPayload.TYPE,
+            com.stardew.craft.network.payload.DesertFestivalRaceActionPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.DesertFestivalRaceActionPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenDesertFestivalQuestionPayload.TYPE,
+            com.stardew.craft.network.payload.OpenDesertFestivalQuestionPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenDesertFestivalQuestionPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.DesertFestivalQuestionResponsePayload.TYPE,
+            com.stardew.craft.network.payload.DesertFestivalQuestionResponsePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.DesertFestivalQuestionResponsePayload::handle
+        );
 
-        // Gil monster slayer goals (S→C) and reward claim (C→S)
+        // Monster slayer goals (S->C) and reward claim (C->S)
         registrar.playToClient(
             com.stardew.craft.network.payload.OpenGilGoalsPayload.TYPE,
             com.stardew.craft.network.payload.OpenGilGoalsPayload.STREAM_CODEC,

@@ -58,6 +58,7 @@ public class PlayerDataEventHandler {
             handlePregenRelocationIfNeeded(player, data);
             PlayerStardewDataAPI.applyStardewCraftingConditionUnlocks(player);
             backfillMine100StardropReward(player, data);
+            com.stardew.craft.festival.desert.DesertFestivalService.cleanupExpiredEggsOnLogin(player);
             StardewCraft.LOGGER.info("Player {} logged in, loaded Stardew data", player.getName().getString());
             
             // 同步数据到客户端
@@ -463,6 +464,11 @@ public class PlayerDataEventHandler {
             float reduction = DamageCalculator.calculateDefenseReductionFromDefense(sdDamageFloat, totalDefense);
             sdDamageFloat = Math.max(0.0f, sdDamageFloat - reduction);
         }
+        if (dmgSourceEntity != null
+            && player.level() instanceof net.minecraft.server.level.ServerLevel serverLevel
+            && com.stardew.craft.festival.desert.DesertFestivalMineService.isInFestivalSkullCavern(player)) {
+            sdDamageFloat *= com.stardew.craft.festival.desert.DesertFestivalMineService.monsterDamageMultiplier(serverLevel);
+        }
 
         // ── 戒指被动效果 ──
 
@@ -748,7 +754,6 @@ public class PlayerDataEventHandler {
         // 温泉运行时：静止时恢复 energy/health，移动时按节奏播放水声，
         // 进出温泉播放 pullItemFromWater。维度判断在 Registry 内完成。
         com.stardew.craft.hotspring.HotSpringRuntimeService.tick(player);
-
         applyMagneticPull(player, PlayerDataManager.getPlayerData(player));
 
         // 发光戒指：动态光源
@@ -774,6 +779,9 @@ public class PlayerDataEventHandler {
         // SDV: 精疲力竭时持续给予缓慢 I 效果
         {
             PlayerStardewData tickData = PlayerDataManager.getPlayerData(player);
+            if (tickData.getEnergy() <= -15.0F) {
+                PassOutService.onExhaustionPassOut(player);
+            }
             if (tickData.isExhausted()) {
                 player.addEffect(new net.minecraft.world.effect.MobEffectInstance(
                     net.minecraft.world.effect.MobEffects.MOVEMENT_SLOWDOWN, 60, 0, false, false, true));

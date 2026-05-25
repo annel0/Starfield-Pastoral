@@ -11,7 +11,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 /**
  * Client → Server: player chose an option from Marlon's menu.
- * 0 = Shop, 1 = Gil, 2 = Recovery (item recovery)
+ * 0 = Shop, 1 = Monster Slayer Goals, 2 = Recovery, 3 = Desert Festival rating, 4 = Desert Festival challenge
  */
 @SuppressWarnings("null")
 public record MarlonMenuChoicePayload(int choice) implements CustomPacketPayload {
@@ -34,7 +34,7 @@ public record MarlonMenuChoicePayload(int choice) implements CustomPacketPayload
         context.enqueueWork(() -> {
             if (!(context.player() instanceof ServerPlayer player)) return;
             int choice = payload.choice();
-            if (choice < 0 || choice > 2) return;
+            if (choice < 0 || choice > 4) return;
             MarlonService.handleChoice(player, choice);
         });
     }

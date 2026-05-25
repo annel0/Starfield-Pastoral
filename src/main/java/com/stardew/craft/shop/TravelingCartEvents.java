@@ -4,6 +4,8 @@ import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.entity.ModEntities;
 import com.stardew.craft.entity.npc.TravelingCartEntity;
+import com.stardew.craft.festival.desert.DesertFestivalService;
+import com.stardew.craft.festival.desert.DesertFestivalSpecialInteractionService;
 import com.stardew.craft.network.payload.OpenShopScreenPayload;
 import com.stardew.craft.player.PlayerStardewDataAPI;
 import net.minecraft.core.BlockPos;
@@ -229,18 +231,19 @@ public final class TravelingCartEvents {
         if (!(event.getTarget() instanceof TravelingCartEntity cart)) {
             return;
         }
-        if (!cart.getTags().contains(MARKER_TAG)) {
+        boolean regularCart = cart.getTags().contains(MARKER_TAG);
+        boolean festivalCart = cart.getTags().contains(DesertFestivalSpecialInteractionService.FESTIVAL_TRAVELING_CART_MARKER_TAG);
+        if (!regularCart && !festivalCart) {
             return;
         }
 
         event.setCanceled(true);
         event.setCancellationResult(net.minecraft.world.InteractionResult.SUCCESS);
 
-        if (!(event.getEntity() instanceof ServerPlayer player) || !canOpenShopNow()) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
-
-        openTravelingCartShop(player);
+        tryOpenTravelingCartShop(player, regularCart, festivalCart);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -251,12 +254,29 @@ public final class TravelingCartEvents {
         if (!(event.getTarget() instanceof TravelingCartEntity cart)) {
             return;
         }
-        if (!cart.getTags().contains(MARKER_TAG)) {
+        if (!cart.getTags().contains(MARKER_TAG)
+            && !cart.getTags().contains(DesertFestivalSpecialInteractionService.FESTIVAL_TRAVELING_CART_MARKER_TAG)) {
             return;
         }
 
         event.setCanceled(true);
         event.setCancellationResult(net.minecraft.world.InteractionResult.SUCCESS);
+
+        if (event.getEntity() instanceof ServerPlayer player) {
+            boolean regularCart = cart.getTags().contains(MARKER_TAG);
+            boolean festivalCart = cart.getTags().contains(DesertFestivalSpecialInteractionService.FESTIVAL_TRAVELING_CART_MARKER_TAG);
+            tryOpenTravelingCartShop(player, regularCart, festivalCart);
+        }
+    }
+
+    private static void tryOpenTravelingCartShop(ServerPlayer player, boolean regularCart, boolean festivalCart) {
+        if (regularCart && !canOpenShopNow()) {
+            return;
+        }
+        if (festivalCart && !DesertFestivalService.isFestivalOpen()) {
+            return;
+        }
+        openTravelingCartShop(player);
     }
 
     private static void openTravelingCartShop(ServerPlayer player) {

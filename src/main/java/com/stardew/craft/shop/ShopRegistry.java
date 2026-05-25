@@ -4,6 +4,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -16,12 +23,16 @@ import java.util.stream.Collectors;
  *
  *   SeedShop  : crop,fruit,seed,fertilizer,cooking,cooking_ingredient,
  *               animal_product,artisan_goods,artisan_animal_quality,forage
- *   FishShop  : fish,legendary_fish,crabpot (fishing tackle/bait NOT sellable back)
+ *   FishShop  : fish,legendary_fish,crabpot,fishing equipment
  *   AnimalShop: animal_product,artisan_animal_quality
+ *   Blacksmith: mineral plus item tags stardewcraft:ores / stardewcraft:bars / coal
  *
  * Season constants: 0=spring, 1=summer, 2=fall, 3=winter  (matches StardewTimeManager)
  */
 public final class ShopRegistry {
+
+    private static final TagKey<Item> BLACKSMITH_ORES_TAG = itemTag("ores");
+    private static final TagKey<Item> BLACKSMITH_BARS_TAG = itemTag("bars");
 
     private record TravelingCartPortraitEntry(String npcId, String itemId) {}
 
@@ -261,7 +272,8 @@ public final class ShopRegistry {
             Set.of(
                 "stardewcraft.type.fish",
                 "stardewcraft.type.legendary_fish",
-                "stardewcraft.type.crabpot"
+                "stardewcraft.type.crabpot",
+                "stardewcraft.type.fishing"
             )
         ));
 
@@ -335,7 +347,7 @@ public final class ShopRegistry {
                 // 铜锅补购 — 仅对已完成 CC Fish Tank（area 2）的玩家开放
                 entryMail("stardewcraft:copper_pan",         2500, "ccFishTank")
             ),
-            Set.of() // Blacksmith doesn't buy items from player
+            Set.of("stardewcraft.type.mineral")
         ));
 
         // -------------------------------------------------------------------
@@ -456,7 +468,16 @@ public final class ShopRegistry {
                 // protection, soul_sapper, phoenix → obtained via Gil rewards
                 // or crafting, NOT sold by Marlon.
             ),
-            Set.of() // AdventureShop doesn't buy items from player in SDV
+            Set.of(
+                "stardewcraft.type.monster_loot",
+                "stardewcraft.type.boots",
+                "stardewcraft.type.ring",
+                "stardewcraft.type.weapon",
+                "stardewcraft.type.weapon.sword",
+                "stardewcraft.type.weapon.dagger",
+                "stardewcraft.type.weapon.club",
+                "stardewcraft.type.weapon.slingshot"
+            )
         ));
 
         // -------------------------------------------------------------------
@@ -611,6 +632,156 @@ public final class ShopRegistry {
             Set.of() // DesertTrader doesn't buy items from player
         ));
 
+        REGISTRY.put("DesertFestival_EggShop", new ShopDefinition(
+            "DesertFestival_EggShop",
+            "",
+            "",
+            List.of(
+                entryTradeStock("stardewcraft:mystery_box", "stardewcraft:calico_egg", 20, 10),
+                entryTradeDay("stardewcraft:strawberry_seeds", "stardewcraft:calico_egg", 5, 0),
+                entryTrade("stardewcraft:mega_bomb", "stardewcraft:calico_egg", 15),
+                entryTradeDay("stardewcraft:strawberry_seeds", "stardewcraft:calico_egg", 6, 2),
+                entryTradeDayStockStackSize("stardewcraft:mixed_seeds", "stardewcraft:calico_egg", 5, 1, 10, 3),
+                entryTradeDayStock("stardewcraft:magic_rock_candy", "stardewcraft:calico_egg", 250, 2, 1),
+                entryTrade("random:desert_festival_food", "stardewcraft:calico_egg", 10),
+                entryTrade("stardewcraft:skill_book_2", "stardewcraft:calico_egg", 100)
+            ),
+            Set.of()
+        ));
+
+        REGISTRY.put("DesertFestival_Abigail", desertFestivalVendorShop("DesertFestival_Abigail", "abigail", List.of(
+            eggStock("stardewcraft:abbys_planchette", 70, 1)
+        )));
+        REGISTRY.put("DesertFestival_Alex", desertFestivalVendorShop("DesertFestival_Alex", "alex", List.of(
+            eggStock("stardewcraft:muscle_remedy", 25, 1),
+            eggStock("stardewcraft:fried_egg", 10, 5),
+            eggStock("stardewcraft:milk", 10, 5),
+            eggStock("stardewcraft:pancakes", 10, 5),
+            eggStock("stardewcraft:hashbrowns", 10, 5),
+            eggStock("stardewcraft:alexs_bat", 70, 1)
+        )));
+        REGISTRY.put("DesertFestival_Caroline", desertFestivalVendorShop("DesertFestival_Caroline", "caroline", List.of(
+            eggStock("stardewcraft:green_tea", 10, 5),
+            eggStock("stardewcraft:dandelion", 10, 5)
+        )));
+        REGISTRY.put("DesertFestival_Clint", desertFestivalVendorShop("DesertFestival_Clint", "clint", List.of(
+            eggStock("stardewcraft:coal", 5, 50),
+            eggStock("stardewcraft:copper_ore", 2, 100),
+            eggStock("stardewcraft:iron_ore", 4, 100)
+        )));
+        REGISTRY.put("DesertFestival_Demetrius", desertFestivalVendorShop("DesertFestival_Demetrius", "demetrius", List.of(
+            eggStock("stardewcraft:nautilus_shell", 50, 1),
+            eggStock("stardewcraft:spice_berry", 10, 3),
+            eggStock("stardewcraft:deluxe_speed_gro", 2, 100)
+        )));
+        REGISTRY.put("DesertFestival_Elliott", desertFestivalVendorShop("DesertFestival_Elliott", "elliott", List.of(
+            eggStock("stardewcraft:crab", 30, 5),
+            eggStock("stardewcraft:squid_ink", 30, 5),
+            eggStock("stardewcraft:elliotts_pencil", 70, 1)
+        )));
+        REGISTRY.put("DesertFestival_Emily", desertFestivalVendorShop("DesertFestival_Emily", "emily", List.of(
+            eggStock("stardewcraft:cloth", 25, 3),
+            egg("stardewcraft:prismatic_shard", 500),
+            eggStock("stardewcraft:sea_urchin", 5, 5)
+        )));
+        REGISTRY.put("DesertFestival_Evelyn", desertFestivalVendorShop("DesertFestival_Evelyn", "evelyn", List.of(
+            eggStock("stardewcraft:cookie", 20, 5),
+            eggStock("stardewcraft:mixed_seeds", 4, 25),
+            eggStock("stardewcraft:daffodil", 15, 5)
+        )));
+        REGISTRY.put("DesertFestival_George", desertFestivalVendorShop("DesertFestival_George", "george", List.of(
+            eggStock("stardewcraft:coffee", 10, 10),
+            eggStock("stardewcraft:vinegar", 5, 20),
+            eggStock("stardewcraft:morel", 30, 1),
+            eggStock("stardewcraft:artifact_trove", 10, 5)
+        )));
+        REGISTRY.put("DesertFestival_Gus", desertFestivalVendorShop("DesertFestival_Gus", "gus", List.of(
+            eggStock("stardewcraft:escargot", 30, 5),
+            eggStock("stardewcraft:lobster_bisque", 30, 5),
+            eggStock("stardewcraft:squid_ink_ravioli", 30, 5),
+            eggStock("stardewcraft:eggplant_parmesan", 30, 5)
+        )));
+        REGISTRY.put("DesertFestival_Haley", desertFestivalVendorShop("DesertFestival_Haley", "haley", List.of(
+            eggStock("stardewcraft:pink_cake", 20, 5),
+            eggStock("stardewcraft:haleys_iron", 70, 1)
+        )));
+        REGISTRY.put("DesertFestival_Harvey", desertFestivalVendorShop("DesertFestival_Harvey", "harvey", List.of(
+            eggStock("stardewcraft:coffee", 10, 5),
+            eggStock("stardewcraft:harveys_mallet", 70, 1)
+        )));
+        REGISTRY.put("DesertFestival_Jas", desertFestivalVendorShop("DesertFestival_Jas", "jas", List.of(
+            eggStock("stardewcraft:ancient_doll", 1, 1),
+            eggStock("stardewcraft:rabbits_foot", 100, 1),
+            eggStock("stardewcraft:magic_rock_candy", 300, 1)
+        )));
+        REGISTRY.put("DesertFestival_Jodi", desertFestivalVendorShop("DesertFestival_Jodi", "jodi", List.of(
+            eggStock("stardewcraft:crispy_bass", 25, 5),
+            eggStock("stardewcraft:mixed_seeds", 5, 25)
+        )));
+        REGISTRY.put("DesertFestival_Kent", desertFestivalVendorShop("DesertFestival_Kent", "kent", List.of(
+            eggStock("stardewcraft:fiddlehead_fern", 10, 5),
+            eggStock("stardewcraft:hazelnut", 10, 5)
+        )));
+        REGISTRY.put("DesertFestival_Leah", desertFestivalVendorShop("DesertFestival_Leah", "leah", List.of(
+            eggStock("stardewcraft:salad", 20, 5),
+            eggStock("stardewcraft:wood_hard", 10, 10),
+            eggStock("stardewcraft:leahs_whittler", 70, 1)
+        )));
+        REGISTRY.put("DesertFestival_Leo", desertFestivalVendorShop("DesertFestival_Leo", "leo", List.of(
+            eggStock("stardewcraft:poi", 20, 5),
+            eggStock("stardewcraft:tropical_curry", 30, 5)
+        )));
+        REGISTRY.put("DesertFestival_Marnie", desertFestivalVendorShop("DesertFestival_Marnie", "marnie", List.of(
+            eggStock("stardewcraft:grass_starter", 2, 100),
+            eggStock("stardewcraft:hay", 1, 150),
+            eggStock("stardewcraft:truffle_oil", 50, 1)
+        )));
+        REGISTRY.put("DesertFestival_Maru", desertFestivalVendorShop("DesertFestival_Maru", "maru", List.of(
+            eggStock("stardewcraft:iridium_bar", 50, 2),
+            eggStock("stardewcraft:strawberry_seeds", 10, 20),
+            eggStock("stardewcraft:marus_wrench", 70, 1)
+        )));
+        REGISTRY.put("DesertFestival_Pam", desertFestivalVendorShop("DesertFestival_Pam", "pam", List.of(
+            egg("stardewcraft:beer", 20),
+            egg("stardewcraft:mead", 20),
+            egg("stardewcraft:pale_ale", 30)
+        )));
+        REGISTRY.put("DesertFestival_Penny", desertFestivalVendorShop("DesertFestival_Penny", "penny", List.of(
+            eggStock("stardewcraft:pennys_fryer", 70, 1)
+        )));
+        REGISTRY.put("DesertFestival_Pierre", desertFestivalVendorShop("DesertFestival_Pierre", "pierre", List.of(
+            eggStock("stardewcraft:squid", 10, 5),
+            eggStock("stardewcraft:wheat_flour", 2, 100),
+            eggStock("stardewcraft:oil", 4, 100)
+        )));
+        REGISTRY.put("DesertFestival_Robin", desertFestivalVendorShop("DesertFestival_Robin", "robin", List.of(
+            eggStock("stardewcraft:stone", 1, 500),
+            eggStock("stardewcraft:wood_normal", 1, 500)
+        )));
+        REGISTRY.put("DesertFestival_Sam", desertFestivalVendorShop("DesertFestival_Sam", "sam", List.of(
+            eggStock("stardewcraft:maple_bar", 20, 5),
+            eggStock("stardewcraft:joja_cola", 2, 6),
+            eggStock("stardewcraft:sams_old_guitar", 70, 1)
+        )));
+        REGISTRY.put("DesertFestival_Sebastian", desertFestivalVendorShop("DesertFestival_Sebastian", "sebastian", List.of(
+            eggStock("stardewcraft:frozen_geode", 10, 5),
+            eggStock("stardewcraft:energy_tonic", 25, 5),
+            eggStock("stardewcraft:sebs_lost_mace", 70, 1)
+        )));
+        REGISTRY.put("DesertFestival_Shane", desertFestivalVendorShop("DesertFestival_Shane", "shane", List.of(
+            eggStock("stardewcraft:pizza", 5, 5),
+            eggStock("stardewcraft:pepper_poppers", 30, 3)
+        )));
+        REGISTRY.put("DesertFestival_Vincent", desertFestivalVendorShop("DesertFestival_Vincent", "vincent", List.of(
+            eggStock("stardewcraft:fiber", 1, 1),
+            eggStock("stardewcraft:bug_meat", 1, 3),
+            eggStock("stardewcraft:sap", 1, 1),
+            eggStock("stardewcraft:cave_carrot", 2, 1),
+            eggStock("stardewcraft:skeletal_hand", 2, 1),
+            eggStock("stardewcraft:clay", 1, 20),
+            eggStock("stardewcraft:chipped_amphora", 1, 1)
+        )));
+
         REGISTRY.put("Traveler", new ShopDefinition(
             "Traveler",
             "",
@@ -624,7 +795,7 @@ public final class ShopRegistry {
             "",
             "",
             List.of(),
-            Set.of()
+            Set.of("stardewcraft.type.book")
         ));
 
         REGISTRY.put("BooksellerTrade", new ShopDefinition(
@@ -663,8 +834,8 @@ public final class ShopRegistry {
         // -------------------------------------------------------------------
         REGISTRY.put("JojaMart", new ShopDefinition(
             "JojaMart",
-            "joja_cashier",
-            "stardewcraft.shop.jojamart.dialogue",
+            "",
+            "",
             List.of(
                 // ---- Joja 独占商品 ----
                 entryAllSeasons("stardewcraft:joja_cola",       75),        // (O)167
@@ -764,6 +935,18 @@ public final class ShopRegistry {
                 null, 0, Set.of(), 1, 0, null, -1, 0, 1);
     }
 
+    private static ShopDefinition desertFestivalVendorShop(String shopId, String npcId, List<ShopItemEntry> items) {
+        return new ShopDefinition(shopId, npcId, "stardewcraft.festival.desertfestival.dialogue.vendor", items, Set.of());
+    }
+
+    private static ShopItemEntry egg(String id, int eggCost) {
+        return entryTrade(id, "stardewcraft:calico_egg", eggCost);
+    }
+
+    private static ShopItemEntry eggStock(String id, int eggCost, int stock) {
+        return entryTradeStock(id, "stardewcraft:calico_egg", eggCost, stock);
+    }
+
     /** Year-round item sold only on a specific day-of-week (0=Mon..6=Sun). */
     private static ShopItemEntry entryDay(String id, int price, int dayOfWeek) {
         return new ShopItemEntry(id, "", "", price, Integer.MAX_VALUE,
@@ -805,6 +988,12 @@ public final class ShopRegistry {
                 tradeItemId, tradeCount, Set.of(), 1, 0, null, -1, 0, 1);
     }
 
+    /** Year-round trade-only item, per-player limited stock. */
+    private static ShopItemEntry entryTradeStock(String id, String tradeItemId, int tradeCount, int stock) {
+        return new ShopItemEntry(id, "", "", 0, stock,
+                tradeItemId, tradeCount, Set.of(), 1, 0, null, -1, 0, 1);
+    }
+
     /** Year-round trade-only item, sold only on a specific day-of-week (0=Mon..6=Sun). */
     private static ShopItemEntry entryTradeDay(String id, String tradeItemId, int tradeCount, int dayOfWeek) {
         return new ShopItemEntry(id, "", "", 0, Integer.MAX_VALUE,
@@ -815,6 +1004,11 @@ public final class ShopRegistry {
     private static ShopItemEntry entryTradeDayStock(String id, String tradeItemId, int tradeCount, int dayOfWeek, int stock) {
         return new ShopItemEntry(id, "", "", 0, stock,
                 tradeItemId, tradeCount, Set.of(), 1, 0, null, dayOfWeek, 0, 1);
+    }
+    /** Year-round trade-only item, specific day-of-week, limited stock, grants multiple items per purchase. */
+    private static ShopItemEntry entryTradeDayStockStackSize(String id, String tradeItemId, int tradeCount, int dayOfWeek, int stock, int stackPerPurchase) {
+        return new ShopItemEntry(id, "", "", 0, stock,
+                tradeItemId, tradeCount, Set.of(), 1, 0, null, dayOfWeek, 0, stackPerPurchase);
     }
     /** Year-round trade item, specific day-of-week, grants `stack` items per single purchase (SDV MinStack). */
     private static ShopItemEntry entryTradeDayStackSize(String id, String tradeItemId, int tradeCount, int dayOfWeek, int stackPerPurchase) {
@@ -863,6 +1057,11 @@ public final class ShopRegistry {
 
         List<ShopItemEntry> result = new ArrayList<>();
         for (ShopItemEntry e : rawItems) {
+            if ("DesertFestival_EggShop".equals(shopId)
+                    && "random:desert_festival_food".equals(e.itemId())) {
+                appendDesertFestivalEggShopRandomFood(result, playerId, time);
+                continue;
+            }
             // SDV parity: never show recipes the player already knows
             if (e.itemId().startsWith("recipe:")) {
                 String recipeId = SaloonService.extractRecipeId(e.itemId());
@@ -956,6 +1155,26 @@ public final class ShopRegistry {
             return marked;
         }
         return result;
+    }
+
+    private static void appendDesertFestivalEggShopRandomFood(
+            List<ShopItemEntry> result,
+            java.util.UUID playerId,
+            com.stardew.craft.time.StardewTimeManager time) {
+        List<String> foods = List.of(
+            "stardewcraft:spicy_eel",
+            "stardewcraft:crab_cakes",
+            "stardewcraft:eggplant_parmesan",
+            "stardewcraft:pumpkin_soup",
+            "stardewcraft:lucky_lunch"
+        );
+        int index = Math.floorMod((int)(time.getAbsoluteDay() * 1103515245L + 12345L), foods.size());
+        String itemId = foods.get(index);
+        int remaining = ShopStockTracker.getRemaining(playerId, "DesertFestival_EggShop", itemId, 5);
+        if (remaining > 0) {
+            result.add(new ShopItemEntry(itemId, "", "", 0, remaining,
+                "stardewcraft:calico_egg", 10, Set.of(), 1, 0, null, -1, 0, 1));
+        }
     }
 
     private static void appendTravelingCartStock(
@@ -1187,30 +1406,42 @@ public final class ShopRegistry {
         int absoluteDay = time.getAbsoluteDay();
         java.util.UUID playerId = player.getUUID();
 
-        addBooksellerTradeEntry(result, playerId, "stardewcraft:book_roe",
-                pickBooksellerItem(player, absoluteDay, "roe_jelly", BOOKSELLER_TRADE_JELLIES), 3, 1);
-        addBooksellerTradeEntry(result, playerId, "stardewcraft:book_woodcutting",
-                "stardewcraft:wood_hard", 20, 1);
-        addBooksellerTradeEntry(result, playerId, "stardewcraft:book_defense",
-                "stardewcraft:stuffing", 3, 1);
-        addBooksellerTradeEntry(result, playerId, "stardewcraft:book_void",
-                pickBooksellerItem(player, absoluteDay, "void_big_chest", BOOKSELLER_TRADE_BIG_CHESTS), 1, 2);
-        addBooksellerTradeEntry(result, playerId, "stardewcraft:book_mystery",
-                "stardewcraft:mystery_box", 7, 1);
-        addBooksellerTradeEntry(result, playerId, "stardewcraft:book_artifact",
-                pickBooksellerItem(player, absoluteDay, "artifact_trade", BOOKSELLER_TRADE_ARTIFACT_ITEMS), 3, 1);
-        addBooksellerTradeEntry(result, playerId, "stardewcraft:purple_book",
-                "stardewcraft:fairy_dust", 8, 1);
-        addBooksellerTradeEntry(result, playerId, "stardewcraft:skill_book_0",
-                "stardewcraft:hot_pepper", 2, 1);
-        addBooksellerTradeEntry(result, playerId, "stardewcraft:skill_book_1",
-                "stardewcraft:deluxe_bait", 30, 1);
-        addBooksellerTradeEntry(result, playerId, "stardewcraft:skill_book_2",
-                "stardewcraft:wood_normal", 100, 1);
-        addBooksellerTradeEntry(result, playerId, "stardewcraft:skill_book_3",
-                "stardewcraft:coal", 20, 1);
-        addBooksellerTradeEntry(result, playerId, "stardewcraft:skill_book_4",
-            "stardewcraft:bat_wing", 30, 1);
+        addBooksellerTradeEntry(result, playerId,
+            pickBooksellerItem(player, absoluteDay, "roe_jelly", BOOKSELLER_TRADE_JELLIES), 3,
+            "stardewcraft:book_roe", 1);
+        addBooksellerTradeEntry(result, playerId,
+            "stardewcraft:wood_hard", 20,
+            "stardewcraft:book_woodcutting", 1);
+        addBooksellerTradeEntry(result, playerId,
+            "stardewcraft:stuffing", 3,
+            "stardewcraft:book_defense", 1);
+        addBooksellerTradeEntry(result, playerId,
+            pickBooksellerItem(player, absoluteDay, "void_big_chest", BOOKSELLER_TRADE_BIG_CHESTS), 1,
+            "stardewcraft:book_void", 2);
+        addBooksellerTradeEntry(result, playerId,
+            "stardewcraft:mystery_box", 7,
+            "stardewcraft:book_mystery", 1);
+        addBooksellerTradeEntry(result, playerId,
+            pickBooksellerItem(player, absoluteDay, "artifact_trade", BOOKSELLER_TRADE_ARTIFACT_ITEMS), 3,
+            "stardewcraft:book_artifact", 1);
+        addBooksellerTradeEntry(result, playerId,
+            "stardewcraft:fairy_dust", 8,
+            "stardewcraft:purple_book", 1);
+        addBooksellerTradeEntry(result, playerId,
+            "stardewcraft:hot_pepper", 2,
+            "stardewcraft:skill_book_0", 1);
+        addBooksellerTradeEntry(result, playerId,
+            "stardewcraft:deluxe_bait", 30,
+            "stardewcraft:skill_book_1", 1);
+        addBooksellerTradeEntry(result, playerId,
+            "stardewcraft:wood_normal", 100,
+            "stardewcraft:skill_book_2", 1);
+        addBooksellerTradeEntry(result, playerId,
+            "stardewcraft:coal", 20,
+            "stardewcraft:skill_book_3", 1);
+        addBooksellerTradeEntry(result, playerId,
+            "stardewcraft:bat_wing", 30,
+            "stardewcraft:skill_book_4", 1);
     }
 
     private static void addRandomBooksellerSkillBook(
@@ -1276,33 +1507,33 @@ public final class ShopRegistry {
     private static void addBooksellerTradeEntry(
             List<ShopItemEntry> result,
             java.util.UUID playerId,
-            String itemId,
-            String tradeItemId,
-            int tradeCount,
-            int purchaseStack) {
-        if (tradeItemId == null || !shopItemExists(itemId) || !shopItemExists(tradeItemId)) {
+            String rewardItemId,
+            int rewardCount,
+            String requiredBookItemId,
+            int requiredBookCount) {
+        if (rewardItemId == null || requiredBookItemId == null || !shopItemExists(rewardItemId) || !shopItemExists(requiredBookItemId)) {
             return;
         }
         int stock = Integer.MAX_VALUE;
-        int remaining = ShopStockTracker.getRemaining(playerId, "BooksellerTrade", itemId, stock);
+        int remaining = ShopStockTracker.getRemaining(playerId, "BooksellerTrade", rewardItemId, stock);
         if (remaining == 0) {
             return;
         }
         result.add(new ShopItemEntry(
-                itemId,
+                rewardItemId,
                 "",
                 "",
                 0,
                 remaining,
-                tradeItemId,
-                tradeCount,
+                requiredBookItemId,
+                requiredBookCount,
                 Set.of(),
                 1,
                 0,
                 null,
                 -1,
                 0,
-                purchaseStack
+                rewardCount
         ));
     }
 
@@ -1543,15 +1774,28 @@ public final class ShopRegistry {
      *   3. Sell price = IStardewItem.getSellPrice(stack) * sellPercentage (SDV default 1.0).
      *      → we use 1.0, same as SDV default.
      */
-    public static int getSellPrice(net.minecraft.world.item.ItemStack stack,
+    public static int getSellPrice(ItemStack stack,
                                    ShopDefinition shop) {
         if (stack.isEmpty()) return 0;
-        net.minecraft.world.item.Item item = stack.getItem();
+        Item item = stack.getItem();
         if (!(item instanceof com.stardew.craft.item.IStardewItem si)) return 0;
         int basePrice = si.getSellPrice(stack);
         if (basePrice <= 0) return 0;
         String typeKey = si.getItemTypeKey();
-        if (!shop.acceptedSellTypes().contains(typeKey)) return 0;
+        if (!shop.acceptedSellTypes().contains(typeKey) && !matchesShopSpecificSellRule(stack, shop.shopId())) return 0;
         return basePrice; // SDV: sellPercentage default 1.0f
+    }
+
+    private static boolean matchesShopSpecificSellRule(ItemStack stack, String shopId) {
+        if (!"Blacksmith".equals(shopId)) {
+            return false;
+        }
+        return stack.is(BLACKSMITH_ORES_TAG)
+                || stack.is(BLACKSMITH_BARS_TAG)
+                || "stardewcraft:coal".equals(BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
+    }
+
+    private static TagKey<Item> itemTag(String path) {
+        return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("stardewcraft", path));
     }
 }

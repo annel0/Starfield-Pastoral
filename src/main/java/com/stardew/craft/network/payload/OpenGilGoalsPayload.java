@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Server → Client: sends Gil's monster slayer goal progress for all goals.
+ * Server -> Client: sends monster slayer goal progress for all goals.
  */
 @SuppressWarnings("null")
 public record OpenGilGoalsPayload(List<GoalEntry> goals) implements CustomPacketPayload {

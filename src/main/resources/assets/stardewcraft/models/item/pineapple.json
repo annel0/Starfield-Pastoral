@@ -3,5 +3,25 @@
     "textures":  {
                      "layer0":  "stardewcraft:item/cooking_ingredient/pineapple",
                      "particle":  "stardewcraft:item/cooking_ingredient/pineapple"
-                 }
+                 },
+    "overrides":  [
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  1
+                                        },
+                          "model":  "stardewcraft:item/pineapple_silver"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2
+                                        },
+                          "model":  "stardewcraft:item/pineapple_gold"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3
+                                        },
+                          "model":  "stardewcraft:item/pineapple_iridium"
+                      }
+                  ]
 }

@@ -3,6 +3,7 @@ package com.stardew.craft.event;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModMiningDimensions;
+import com.stardew.craft.festival.desert.DesertFestivalService;
 import com.stardew.craft.interior.CrossDimensionTeleporter;
 import com.stardew.craft.interior.InteriorPortalRegistry;
 import com.stardew.craft.interior.InteriorSubspaceManager;
@@ -54,11 +55,31 @@ public class InteriorPortalInteractionEvents {
         if (event.getHand() != InteractionHand.MAIN_HAND) return;
 
         Entity target = event.getTarget();
+        if (target.getTags().contains(com.stardew.craft.festival.desert.DesertFestivalSpecialInteractionService.WARPER_MARKER_TAG)) {
+            com.stardew.craft.festival.desert.DesertFestivalSpecialInteractionService.openWarper(player);
+            event.setCanceled(true);
+            event.setCancellationResult(net.minecraft.world.InteractionResult.SUCCESS);
+            return;
+        }
         Optional<String> targetId = findTagValue(target.getTags(), TAG_TARGET_PREFIX);
         if (targetId.isEmpty()) return;
 
         handlePortalInteraction(player, targetId.get());
         event.setCanceled(true);
+    }
+
+    @SubscribeEvent
+    public static void onEntityInteractSpecific(PlayerInteractEvent.EntityInteractSpecific event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        if (event.getHand() != InteractionHand.MAIN_HAND) return;
+
+        Entity target = event.getTarget();
+        if (!target.getTags().contains(com.stardew.craft.festival.desert.DesertFestivalSpecialInteractionService.WARPER_MARKER_TAG)) {
+            return;
+        }
+        com.stardew.craft.festival.desert.DesertFestivalSpecialInteractionService.openWarper(player);
+        event.setCanceled(true);
+        event.setCancellationResult(net.minecraft.world.InteractionResult.SUCCESS);
     }
 
     // ======================== 公共入口（Block 和 Entity 共用） ========================
@@ -101,6 +122,45 @@ public class InteriorPortalInteractionEvents {
         // 矿井入口
         if ("mine_entrance".equals(targetId)) {
             handleMineEntrance(player);
+            return;
+        }
+
+        // 沙漠节三花蛋商店
+        if (DesertFestivalService.EGG_SHOP_TARGET_ID.equals(targetId)) {
+            DesertFestivalService.openEggShop(player);
+            return;
+        }
+
+        if (com.stardew.craft.festival.desert.DesertFestivalRaceService.RACE_MAN_TARGET_ID.equals(targetId)) {
+            com.stardew.craft.festival.desert.DesertFestivalRaceService.openRaceScreen(player);
+            return;
+        }
+
+        if (com.stardew.craft.festival.desert.DesertFestivalRaceService.SHADY_GUY_TARGET_ID.equals(targetId)) {
+            com.stardew.craft.festival.desert.DesertFestivalRaceService.openShadyGuyScreen(player);
+            return;
+        }
+
+        if (com.stardew.craft.festival.desert.DesertFestivalSpecialInteractionService.SCHOLAR_TARGET_ID.equals(targetId)) {
+            com.stardew.craft.festival.desert.DesertFestivalSpecialInteractionService.openScholar(player);
+            return;
+        }
+
+        if (com.stardew.craft.festival.desert.DesertFestivalSpecialInteractionService.WARPER_TARGET_ID.equals(targetId)) {
+            com.stardew.craft.festival.desert.DesertFestivalSpecialInteractionService.openWarper(player);
+            return;
+        }
+
+        if (com.stardew.craft.festival.desert.DesertFestivalWillyFishingService.TARGET_ID.equals(targetId)) {
+            if (com.stardew.craft.festival.desert.DesertFestivalWillyFishingService.tryCompleteChallengeAtBoard(player)) {
+                return;
+            }
+            com.stardew.craft.festival.desert.DesertFestivalWillyFishingService.openChallengeBoard(player);
+            return;
+        }
+
+        if (com.stardew.craft.festival.desert.DesertFestivalCookService.TARGET_ID.equals(targetId)) {
+            com.stardew.craft.festival.desert.DesertFestivalCookService.openCook(player);
             return;
         }
 

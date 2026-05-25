@@ -3,6 +3,7 @@ package com.stardew.craft.client.gui.overnight;
 import com.stardew.craft.client.gui.common.CommonGuiTextures;
 import com.stardew.craft.client.gui.common.GuiText;
 import com.stardew.craft.client.hud.StardewTimeHud;
+import com.stardew.craft.network.overnight.ClientOvernightHandler;
 import com.stardew.craft.network.overnight.OvernightSettlementPayload;
 import com.stardew.craft.sound.ModSounds;
 import com.stardew.craft.time.StardewTimeManager;
@@ -262,7 +263,12 @@ public class ShippingMenuScreen extends Screen {
     private void closeToNextScreen() {
         com.stardew.craft.StardewCraft.LOGGER.info("[OVERNIGHT_CLIENT] ShippingMenuScreen.closeToNextScreen() siblingCount={}",
             this.siblingScreens != null ? this.siblingScreens.size() : -1);
-        if (this.siblingScreens != null && !this.siblingScreens.isEmpty()) {
+        if (ClientOvernightHandler.isSequenceActive()) {
+            net.neoforged.neoforge.network.PacketDistributor.sendToServer(
+                new com.stardew.craft.cutscene.network.PlayerWokeUpPayload());
+            ClientOvernightHandler.completeSequence("shipping");
+            super.onClose();
+        } else if (this.siblingScreens != null && !this.siblingScreens.isEmpty()) {
             this.minecraft.setScreen(this.siblingScreens.remove(0));
         } else {
             // Overnight flow is fully done — tell the server the player just

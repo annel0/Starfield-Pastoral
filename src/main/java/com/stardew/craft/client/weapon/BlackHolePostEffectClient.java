@@ -32,6 +32,7 @@ public final class BlackHolePostEffectClient {
     );
 
     private static ShaderInstance shader;
+    private static boolean shaderLoadFailed;
 
     private static final List<Effect> EFFECTS = new ArrayList<>();
 
@@ -128,6 +129,9 @@ public final class BlackHolePostEffectClient {
         if (shader != null) {
             return shader;
         }
+        if (shaderLoadFailed) {
+            return null;
+        }
         ResourceManager manager = mc.getResourceManager();
         try {
             ResourceProvider provider = manager;
@@ -136,6 +140,7 @@ public final class BlackHolePostEffectClient {
             shader = new ShaderInstance(provider, shaderId, format);
         } catch (IOException e) {
             StardewCraft.LOGGER.error("Failed to load black hole shader", e);
+            shaderLoadFailed = true;
             shader = null;
         }
         return shader;

@@ -26,6 +26,19 @@ public final class FestivalMapOverlayRegistry {
             true,
             true
         ));
+        register(new FestivalMapOverlayDefinition(
+            "DesertFestival",
+            "Desert",
+            new BlockPos(-273, 62, -228),
+            "",
+            "data/stardewcraft/structures/festivals/desert_festival.schem",
+            new BlockPos(-273, 62, -228),
+            new BlockPos(-181, 77, -135),
+            List.of(),
+            true,
+            true,
+            true
+        ));
     }
 
     private FestivalMapOverlayRegistry() {

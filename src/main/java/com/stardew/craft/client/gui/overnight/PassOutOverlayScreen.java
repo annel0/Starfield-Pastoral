@@ -1,6 +1,7 @@
 package com.stardew.craft.client.gui.overnight;
 
 import com.stardew.craft.client.gui.common.GuiText;
+import com.stardew.craft.network.overnight.ClientOvernightHandler;
 import com.stardew.craft.network.payload.PassOutAckPayload;
 import com.stardew.craft.network.payload.PassOutPayload;
 import com.stardew.craft.player.PassOutService;
@@ -122,11 +123,7 @@ public class PassOutOverlayScreen extends Screen {
 
         if (siblingScreens != null) {
             // 链式模式：推进到结算画面链中的下一个（不发 ACK，服务端已完成日推进）
-            if (!siblingScreens.isEmpty()) {
-                Minecraft.getInstance().setScreen(siblingScreens.remove(0));
-            } else {
-                Minecraft.getInstance().setScreen(null);
-            }
+            ClientOvernightHandler.openNextScreen("passout_overlay");
         } else {
             // 独立模式：发送 ACK 告诉服务端可以传送了，然后显示惩罚摘要
             PacketDistributor.sendToServer(new PassOutAckPayload());

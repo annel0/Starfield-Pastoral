@@ -225,8 +225,7 @@ public class StardewWeaponItem extends SwordItem implements IStardewItem, IStard
     
     @Override
     public int getSellPrice(ItemStack stack) {
-        // 武器无法出售
-        return -1;
+        return weaponData == null ? -1 : weaponData.getLevel() * 50;
     }
 
     // ============== Tooltip ==============
@@ -3744,7 +3743,7 @@ public class StardewWeaponItem extends SwordItem implements IStardewItem, IStard
                 .bonusCritPower((float) Math.max(0, (weaponData.getCritPower() - 1.0) * 100.0))
                 .speed(weaponData.getSpeed())
                 .defense(weaponData.getDefense())
-                .knockback(weaponData.getWeight())
+                .knockback((float) weaponData.getWeight())
                 .build()
                 .writeToItemStack(stack);
             WeaponForgeData.ensure(stack);

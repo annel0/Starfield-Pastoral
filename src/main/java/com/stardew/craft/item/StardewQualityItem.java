@@ -127,6 +127,18 @@ public class StardewQualityItem extends Item implements IStardewItem {
 		int qualityIndex = getQualityIndex(safeStack);
 		int health = healthByQuality[qualityIndex];
 		int energy = energyByQuality[qualityIndex];
+		if (!level.isClientSide
+				&& livingEntity instanceof net.minecraft.server.level.ServerPlayer serverPlayer
+				&& safeLevel instanceof net.minecraft.server.level.ServerLevel serverLevel
+				&& com.stardew.craft.festival.desert.DesertFestivalMineService.isInFestivalSkullCavern(serverPlayer)
+				&& com.stardew.craft.festival.desert.DesertFestivalMineService.meagerMealsActive(serverLevel)) {
+			if (health > 0) {
+				health = Math.max(1, health / 2);
+			}
+			if (energy > 0) {
+				energy = Math.max(1, energy / 2);
+			}
+		}
 
 		ItemStack result = super.finishUsingItem(safeStack, safeLevel, safeEntity);
 

@@ -2,12 +2,9 @@ package com.stardew.craft.farm;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.interior.CrossDimensionTeleporter;
+import com.stardew.craft.network.payload.OpenFarmJoinInvitePayload;
 import com.stardew.craft.network.payload.FarmJoinPendingStatePayload;
-import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.HoverEvent;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.Style;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -82,10 +79,10 @@ public final class FarmJoinManager {
         pendingRequests.put(reqUUID, new JoinRequest(reqUUID, requester.getName().getString(),
                 ownerUUID, tick));
 
-        // 向农场主人发送可点击消息
+        // 向农场主人发送加入申请弹窗
         ServerPlayer owner = server.getPlayerList().getPlayer(ownerUUID);
         if (owner != null) {
-            sendJoinRequestToOwner(owner, requester.getName().getString(), reqUUID);
+            sendJoinRequestToOwner(owner, requester.getName().getString(), reqUUID, farm.getFarmName());
         } else {
                         syncPendingState(requester, false);
             requester.sendSystemMessage(
@@ -256,40 +253,10 @@ public final class FarmJoinManager {
         }
 
     /**
-     * 向农场主人发送带 [接受] [拒绝] 可点击按钮的消息。
+     * 向农场主人发送加入申请弹窗。
      */
-    private static void sendJoinRequestToOwner(ServerPlayer owner, String requesterName, UUID requesterUUID) {
-        MutableComponent msg = Component.translatable("stardewcraft.farm.join.incoming", requesterName);
-        msg.append(Component.literal(" "));
-
-        // [接受] 按钮
-        MutableComponent acceptBtn = Component.literal("[")
-                .append(Component.translatable("stardewcraft.farm.join.accept"))
-                .append("]");
-        acceptBtn.setStyle(Style.EMPTY
-                .withColor(0x2E7D32)
-                .withBold(true)
-                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
-                        "/stardew farm accept"))
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                        Component.translatable("stardewcraft.farm.join.accept.hover"))));
-        msg.append(acceptBtn);
-
-        msg.append(Component.literal(" "));
-
-        // [拒绝] 按钮
-        MutableComponent rejectBtn = Component.literal("[")
-                .append(Component.translatable("stardewcraft.farm.join.reject"))
-                .append("]");
-        rejectBtn.setStyle(Style.EMPTY
-                .withColor(0xC62828)
-                .withBold(true)
-                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
-                        "/stardew farm reject"))
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                        Component.translatable("stardewcraft.farm.join.reject.hover"))));
-        msg.append(rejectBtn);
-
-        owner.sendSystemMessage(msg);
+    private static void sendJoinRequestToOwner(ServerPlayer owner, String requesterName, UUID requesterUUID, String farmName) {
+        owner.sendSystemMessage(Component.translatable("stardewcraft.farm.join.incoming", requesterName));
+        PacketDistributor.sendToPlayer(owner, new OpenFarmJoinInvitePayload(requesterUUID, requesterName, farmName));
     }
 }

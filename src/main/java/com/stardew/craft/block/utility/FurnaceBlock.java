@@ -191,6 +191,9 @@ public class FurnaceBlock extends Block implements EntityBlock {
         if (state.getValue(PART) == Part.EXTENSION) {
             BlockPos mainPos = getMainPos(pos, state);
             BlockState mainState = level.getBlockState(mainPos);
+            if (!mainState.is(this) || mainState.getValue(PART) != Part.MAIN) {
+                return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            }
             return useItemOn(stack, mainState, level, mainPos, player, hand, hit);
         }
 
@@ -238,6 +241,9 @@ public class FurnaceBlock extends Block implements EntityBlock {
         if (state.getValue(PART) == Part.EXTENSION) {
             BlockPos mainPos = getMainPos(pos, state);
             BlockState mainState = level.getBlockState(mainPos);
+            if (!mainState.is(this) || mainState.getValue(PART) != Part.MAIN) {
+                return InteractionResult.PASS;
+            }
             return useWithoutItem(mainState, level, mainPos, player, hit);
         }
 

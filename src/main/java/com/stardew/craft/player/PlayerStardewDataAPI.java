@@ -66,6 +66,57 @@ public class PlayerStardewDataAPI {
         return next;
     }
 
+    public static int getTicketPrizesClaimed(ServerPlayer player) {
+        return getData(player).getTicketPrizesClaimed();
+    }
+
+    public static boolean setTicketPrizesClaimed(ServerPlayer player, int value) {
+        PlayerStardewData data = getData(player);
+        boolean changed = data.setTicketPrizesClaimed(value);
+        if (changed) {
+            PlayerDataEventHandler.syncPlayerData(player, data);
+        }
+        return changed;
+    }
+
+    public static int incrementTicketPrizesClaimed(ServerPlayer player) {
+        PlayerStardewData data = getData(player);
+        int next = data.incrementTicketPrizesClaimed();
+        PlayerDataEventHandler.syncPlayerData(player, data);
+        return next;
+    }
+
+    public static int getSpecialOrderPrizeTickets(ServerPlayer player) {
+        return getData(player).getSpecialOrderPrizeTickets();
+    }
+
+    public static boolean setSpecialOrderPrizeTickets(ServerPlayer player, int value) {
+        PlayerStardewData data = getData(player);
+        boolean changed = data.setSpecialOrderPrizeTickets(value);
+        if (changed) {
+            PlayerDataEventHandler.syncPlayerData(player, data);
+        }
+        return changed;
+    }
+
+    public static int addSpecialOrderPrizeTickets(ServerPlayer player, int amount) {
+        PlayerStardewData data = getData(player);
+        int next = data.addSpecialOrderPrizeTickets(amount);
+        if (amount > 0) {
+            PlayerDataEventHandler.syncPlayerData(player, data);
+        }
+        return next;
+    }
+
+    public static boolean consumeSpecialOrderPrizeTicket(ServerPlayer player) {
+        PlayerStardewData data = getData(player);
+        boolean consumed = data.consumeSpecialOrderPrizeTicket();
+        if (consumed) {
+            PlayerDataEventHandler.syncPlayerData(player, data);
+        }
+        return consumed;
+    }
+
     public static boolean hasBookPower(ServerPlayer player, String bookId) {
         return getStat(player, bookId) > 0;
     }

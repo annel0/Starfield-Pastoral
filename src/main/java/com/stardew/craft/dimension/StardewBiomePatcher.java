@@ -47,6 +47,7 @@ public final class StardewBiomePatcher {
     private static final String MANIFEST_RESOURCE = "pregen/stardew_valley/region_manifest.txt";
     private static final Pattern REGION_FILE_PATTERN = Pattern.compile("^r\\.(-?\\d+)\\.(-?\\d+)\\.mca$", Pattern.CASE_INSENSITIVE);
     private static final int CHUNKS_PER_TICK = 12;
+    private static final boolean ENABLE_EAGER_PREGEN_MIGRATION = Boolean.getBoolean("stardewcraft.eagerPregenBiomeMigration");
 
     private static final ResourceKey<Biome> STARDEW_DEFAULT_KEY =
             ResourceKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath("stardewcraft", "stardew_default"));
@@ -120,6 +121,10 @@ public final class StardewBiomePatcher {
 
     public static void schedulePregenBiomeMigration(ServerLevel level, String reason) {
         if (!level.dimension().equals(ModDimensions.STARDEW_VALLEY)) return;
+        if (!ENABLE_EAGER_PREGEN_MIGRATION) {
+            StardewCraft.LOGGER.info("[VALLEY_BIOME] Skipping eager pregen biome migration ({}); chunks will patch on load", reason);
+            return;
+        }
         if (pregenMigrationScheduled) {
             StardewCraft.LOGGER.info("[VALLEY_BIOME] Pregen biome migration already scheduled; skipping duplicate request ({})", reason);
             return;

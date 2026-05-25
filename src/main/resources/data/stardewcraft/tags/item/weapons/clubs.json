@@ -1,6 +1,12 @@
 {
   "replace": false,
   "values": [
-    "stardewcraft:femur"
+    "stardewcraft:femur",
+    "stardewcraft:alexs_bat",
+    "stardewcraft:sams_old_guitar",
+    "stardewcraft:marus_wrench",
+    "stardewcraft:harveys_mallet",
+    "stardewcraft:pennys_fryer",
+    "stardewcraft:sebs_lost_mace"
   ]
 }

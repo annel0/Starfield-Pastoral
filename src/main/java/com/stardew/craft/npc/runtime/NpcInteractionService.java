@@ -184,6 +184,15 @@ public final class NpcInteractionService {
             return InteractionResult.SUCCESS;
         }
 
+        if (com.stardew.craft.festival.desert.DesertFestivalVendorService.tryOpenVendorShop(serverPlayer, npcId)) {
+            com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(serverPlayer, npcId);
+            return InteractionResult.SUCCESS;
+        }
+
+        if (com.stardew.craft.festival.desert.DesertFestivalWillyFishingService.tryCompleteFishingReport(serverPlayer, npc, npcId)) {
+            return InteractionResult.SUCCESS;
+        }
+
         // ═══════════════════════════════════════════════════════════════
         // SDV parity: QUEST DELIVERY 最高优先级 —
         // 玩家拿着正好匹配「已接受的交付任务」的物品 + 右键 target NPC，
@@ -248,7 +257,8 @@ public final class NpcInteractionService {
             com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(serverPlayer, npcId);
             return com.stardew.craft.shop.GuntherService.handleGuntherInteraction(serverPlayer, npc);
         }
-        if (npcId.equals("marlon") && com.stardew.craft.shop.MarlonService.isPlayerAtCounter(serverPlayer)) {
+        if (npcId.equals("marlon") && (com.stardew.craft.shop.MarlonService.isPlayerAtCounter(serverPlayer)
+            || com.stardew.craft.shop.MarlonService.isPlayerAtDesertFestivalBooth(serverPlayer))) {
             com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(serverPlayer, npcId);
             return com.stardew.craft.shop.MarlonService.handleMarlonInteraction(serverPlayer, npc);
         }
@@ -327,6 +337,9 @@ public final class NpcInteractionService {
 
         // NPC smoothly turns to face the player, then opens dialogue
         String dialogueText = loadCurrentDialogue(serverLevel, npcId, state, dayContext);
+        if (com.stardew.craft.festival.desert.DesertFestivalVendorService.shouldUseVendorDialogue(serverPlayer, npcId)) {
+            dialogueText = "stardewcraft.festival.desertfestival.dialogue.vendor";
+        }
 
         // SDV parity: Dwarf dialogue is garbled if player doesn't have translation guide
         boolean garbleDwarvish = npcId.equals("dwarf") && !com.stardew.craft.shop.DwarfService.canUnderstandDwarves(serverPlayer);
@@ -416,6 +429,7 @@ public final class NpcInteractionService {
         if (!player.getAbilities().instabuild) {
             held.shrink(1);
         }
+        boolean desertFestivalWillyQuest = com.stardew.craft.festival.desert.DesertFestivalWillyFishingService.isWillyChallengeQuest(matching);
         // 走 onItemOfferedToNpc → questComplete（带友好度加成）
         com.stardew.craft.quest.StardewQuestEvents.fireItemOfferedToNpc(player, npcId, itemId);
 
@@ -425,6 +439,10 @@ public final class NpcInteractionService {
 
         // 让 NPC 说一句感谢台词
         StardewNpcEntity npcEntity = NpcSpawnManager.getTrackedNpc(serverLevel, npcId);
+        if (desertFestivalWillyQuest) {
+            com.stardew.craft.festival.desert.DesertFestivalWillyFishingService.handleDeliveredGoldenBobber(player, matching);
+            return;
+        }
         if (npcEntity != null) {
             boolean garbleGift = npcId.equals("dwarf") && !com.stardew.craft.shop.DwarfService.canUnderstandDwarves(player);
             sendDialoguePacket(player, npcId, "stardewcraft.npc.generic.quest_delivery_thanks", 0, garbleGift);

@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.desert.DesertConstants;
+import com.stardew.craft.festival.desert.DesertFestivalService;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModMiningDimensions;
@@ -543,6 +544,11 @@ public final class ArtifactDropService {
         allDrops.sort(Comparator.comparingInt(DropEntry::precedence));
 
         List<ItemStack> results = new ArrayList<>();
+
+        if (DESERT_LOCATION.equals(actualLocation) && DesertFestivalService.isFestivalOpen()) {
+            results.add(new ItemStack(ModItems.CALICO_EGG.get(), 3 + random.nextInt(4)));
+            return results;
+        }
 
         for (DropEntry drop : allDrops) {
             if (random.nextDouble() >= drop.chance) {

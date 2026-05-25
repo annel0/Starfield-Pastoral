@@ -39,7 +39,9 @@ public class CookingDishItem extends Item implements IStardewItem {
     public record DishBuff(BuffType type, int amount, int durationTicks) {}
 
     private static final int INEDIBLE_THRESHOLD = -300;
+    private static final String DEFAULT_TYPE_KEY = "stardewcraft.type.cooking";
 
+    private final String typeKey;
     private final int sellPrice;
     private final int edibility;
     private final int energy;
@@ -49,12 +51,23 @@ public class CookingDishItem extends Item implements IStardewItem {
 
     @SuppressWarnings("null")
     public CookingDishItem(int sellPrice, int edibility, List<DishBuff> buffs, Item.Properties properties) {
-        this(sellPrice, edibility, buffs, properties, false);
+        this(DEFAULT_TYPE_KEY, sellPrice, edibility, buffs, properties, false);
     }
 
     @SuppressWarnings("null")
     public CookingDishItem(int sellPrice, int edibility, List<DishBuff> buffs, Item.Properties properties, boolean drinkAnimation) {
+        this(DEFAULT_TYPE_KEY, sellPrice, edibility, buffs, properties, drinkAnimation);
+    }
+
+    @SuppressWarnings("null")
+    public CookingDishItem(String typeKey, int sellPrice, int edibility, List<DishBuff> buffs, Item.Properties properties) {
+        this(typeKey, sellPrice, edibility, buffs, properties, false);
+    }
+
+    @SuppressWarnings("null")
+    public CookingDishItem(String typeKey, int sellPrice, int edibility, List<DishBuff> buffs, Item.Properties properties, boolean drinkAnimation) {
         super(properties.food(new FoodProperties.Builder().nutrition(1).saturationModifier(0.1f).alwaysEdible().build()));
+        this.typeKey = typeKey == null || typeKey.isBlank() ? DEFAULT_TYPE_KEY : typeKey;
         this.sellPrice = sellPrice;
         this.edibility = edibility;
         this.energy = computeEnergy(edibility);
@@ -79,7 +92,7 @@ public class CookingDishItem extends Item implements IStardewItem {
 
     @Override
     public String getItemTypeKey() {
-        return "stardewcraft.type.cooking";
+        return typeKey;
     }
 
     @Override

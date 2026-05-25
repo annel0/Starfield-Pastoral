@@ -69,6 +69,11 @@ public class CamelMerchantEntity extends PathfinderMob implements GeoEntity {
         return net.minecraft.world.InteractionResult.PASS;
     }
 
+    @Override
+    public boolean canBeLeashed() {
+        return false;
+    }
+
     // ── GeckoLib ────────────────────────────────────────────
 
     @Override

@@ -10,7 +10,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 /**
- * Client → Server: player wants to claim a Gil monster slayer reward.
+ * Client -> Server: player wants to claim a monster slayer reward from Marlon.
  */
 @SuppressWarnings("null")
 public record GilClaimRewardPayload(String goalKey) implements CustomPacketPayload {

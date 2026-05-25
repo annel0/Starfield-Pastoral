@@ -117,9 +117,8 @@ public abstract class StardewCropBlock extends Block {
     // 作物生长阶段 (0-3, 4个阶段)
     public static final IntegerProperty AGE = IntegerProperty.create("age", 0, 3);
     /**
-     * 玩家手动放置（例如用成品花右键草地/泥土）的标记：
-     * 只有在 addExtraProperties 中显式注册该属性的作物方块才能用到。
-     * 标记为 true 的方块不吃耕地限制，可以种在泥土/草地/菌丝/苔藓等自然地表上。
+     * 历史属性名保留为 placed_by_player；实际语义是“成品花装饰放置”。
+     * 它不等同于作物的播种者，播种者记录在 CropGrowthState.planterUuid。
      */
     public static final BooleanProperty PLACED_BY_PLAYER = BooleanProperty.create("placed_by_player");
     public static final int SEED_PHASE = 0;
@@ -128,6 +127,18 @@ public abstract class StardewCropBlock extends Block {
         private final VoxelShape[] outlineShapeByAge;
         private volatile VoxelShape[] modelShapeByAge;
         private volatile boolean modelShapeResolved;
+
+    public static boolean isDecorativeFlowerState(BlockState state) {
+        return state.hasProperty(PLACED_BY_PLAYER)
+                && state.hasProperty(AGE)
+                && state.getValue(PLACED_BY_PLAYER)
+                && state.getValue(AGE) >= MAX_AGE;
+    }
+
+    public static boolean isPlayerPlacedDecorative(ServerLevel level, BlockPos pos, BlockState state) {
+        return isDecorativeFlowerState(state)
+                && CropGrowthManager.get(level).getState(level, pos) == null;
+    }
     
     protected StardewCropBlock(Properties properties) {
         this(properties, false);
@@ -361,8 +372,8 @@ public abstract class StardewCropBlock extends Block {
                     && belowState.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == DoubleBlockHalf.LOWER;
         }
 
-        // 玩家放置的花：允许种在泥土类自然地表上
-        if (state.hasProperty(PLACED_BY_PLAYER) && state.getValue(PLACED_BY_PLAYER)) {
+        // 玩家放置的成品花：允许种在泥土类自然地表上
+        if (isDecorativeFlowerState(state)) {
             if (isNaturalSoil(belowState)) {
                 return true;
             }
@@ -420,7 +431,7 @@ public abstract class StardewCropBlock extends Block {
         if (state.getValue(AGE) > 0 && entity instanceof Player player && player.isSprinting()) {
             double factor = player instanceof ServerPlayer serverPlayer
                     ? BookPowerEffects.getGrassSpeedFactor(PlayerDataManager.getPlayerData(serverPlayer))
-                    : 0.800D;
+                    : level.isClientSide ? BookPowerEffects.getClientGrassSpeedFactor() : BookPowerEffects.getGrassSpeedFactor(false);
             entity.makeStuckInBlock(state, new Vec3(factor, 1.0D, factor));
         }
         super.entityInside(state, level, pos, entity);
@@ -568,16 +579,17 @@ public abstract class StardewCropBlock extends Block {
                     && interactionState.getValue(AGE) == MAX_AGE
                     && isMature(serverLevel, interactionPos, interactionState);
             boolean canGrabHarvest = getHarvestMethod() == HarvestMethod.GRAB;
-            boolean placedByPlayer = interactionState.hasProperty(PLACED_BY_PLAYER)
-                    && interactionState.getValue(PLACED_BY_PLAYER);
+            boolean decorativePlacedFlower = isPlayerPlacedDecorative(serverLevel, interactionPos, interactionState);
             // 如果不是创造模式，生成掉落物并给予经验
             if (mature && canGrabHarvest && !player.isCreative() && player instanceof ServerPlayer serverPlayer) {
                 int farmingLevel = getFarmingLevel(player);
                 int fertilizerLevel = getFertilizerLevel(serverLevel, interactionPos);
                 spawnHarvestDrops(serverLevel, interactionPos, interactionState, level.getRandom(), fertilizerLevel, farmingLevel);
-                spawnHarvestSideProducts(serverLevel, interactionPos, interactionState, level.getRandom(), player, fertilizerLevel, farmingLevel);
+                if (!decorativePlacedFlower) {
+                    spawnHarvestSideProducts(serverLevel, interactionPos, interactionState, level.getRandom(), player, fertilizerLevel, farmingLevel);
+                }
 
-                if (!placedByPlayer) {
+                if (!decorativePlacedFlower) {
                     int farmingExp = getHarvestFarmingExperience(interactionState);
                     if (farmingExp > 0) {
                         PlayerStardewDataAPI.addExperience(serverPlayer, SkillType.FARMING, farmingExp);
@@ -621,11 +633,12 @@ public abstract class StardewCropBlock extends Block {
         spawnHarvestDrops(level, harvestPos, currentState, level.getRandom(), fertilizerLevel, farmingLevel);
 
         // 副产物（如小麦掉落干草）
-        spawnHarvestSideProducts(level, harvestPos, currentState, level.getRandom(), player, fertilizerLevel, farmingLevel);
+        boolean decorativePlacedFlower = isPlayerPlacedDecorative(level, harvestPos, currentState);
+        if (!decorativePlacedFlower) {
+            spawnHarvestSideProducts(level, harvestPos, currentState, level.getRandom(), player, fertilizerLevel, farmingLevel);
+        }
 
-        boolean placedByPlayer = currentState.hasProperty(PLACED_BY_PLAYER)
-                && currentState.getValue(PLACED_BY_PLAYER);
-        if (!placedByPlayer && player instanceof ServerPlayer serverPlayer && !serverPlayer.isCreative()) {
+        if (!decorativePlacedFlower && player instanceof ServerPlayer serverPlayer && !serverPlayer.isCreative()) {
             int farmingExp = getHarvestFarmingExperience(currentState);
             if (farmingExp > 0) {
                 PlayerStardewDataAPI.addExperience(serverPlayer, SkillType.FARMING, farmingExp);
@@ -697,11 +710,11 @@ public abstract class StardewCropBlock extends Block {
      */
     @SuppressWarnings("null")
     protected void spawnHarvestDrops(ServerLevel level, BlockPos pos, BlockState state, RandomSource random, int fertilizerLevel, int farmingLevel) {
-        boolean placedByPlayer = state.hasProperty(PLACED_BY_PLAYER) && state.getValue(PLACED_BY_PLAYER);
-        int quality = placedByPlayer ? QualityHelper.NORMAL : getHarvestQuality(random, fertilizerLevel, farmingLevel);
+        boolean decorativePlacedFlower = isPlayerPlacedDecorative(level, pos, state);
+        int quality = decorativePlacedFlower ? QualityHelper.NORMAL : getHarvestQuality(random, fertilizerLevel, farmingLevel);
 
         // 获取收获数量（玩家放置的花只掉 1 个普通品质，且不受农业等级影响，方便与正常收割的普通品质堆叠）
-        int numToHarvest = placedByPlayer ? 1 : getHarvestCount(random, farmingLevel);
+        int numToHarvest = decorativePlacedFlower ? 1 : getHarvestCount(random, farmingLevel);
 
         // 创建作物物品
         ItemStack harvestItem = getHarvestItem(quality);
@@ -1091,8 +1104,12 @@ public abstract class StardewCropBlock extends Block {
     @Override
     protected void onPlace(@SuppressWarnings("null") BlockState state, @SuppressWarnings("null") Level level, @SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") BlockState oldState, boolean isMoving) {
         if (!state.is(oldState.getBlock())) {
-            // 新放置 (或者方块类型改变)，注册到管理器
+            // 新放置 (或者方块类型改变)，注册到管理器；玩家手放成品花只是装饰，不进入生长表。
             if (level instanceof ServerLevel serverLevel) {
+                if (isDecorativeFlowerState(state)) {
+                    super.onPlace(state, level, pos, oldState, isMoving);
+                    return;
+                }
                 UUID planterUuid = null;
                 net.minecraft.world.entity.player.Player nearest = serverLevel.getNearestPlayer(
                     pos.getX() + 0.5D,

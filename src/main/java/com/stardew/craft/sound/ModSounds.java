@@ -94,7 +94,10 @@ public final class ModSounds {
 	public static final DeferredHolder<SoundEvent, SoundEvent> YOBA = register("yoba");
 	public static final DeferredHolder<SoundEvent, SoundEvent> STATUE_OF_BLESSINGS = register("statue_of_blessings");
 	public static final DeferredHolder<SoundEvent, SoundEvent> STONE_BUTTON = register("stone_button");
+	public static final DeferredHolder<SoundEvent, SoundEvent> MACHINE_BELL = register("machine_bell");
+	public static final DeferredHolder<SoundEvent, SoundEvent> BUTTON_PRESS = register("button_press");
 	public static final DeferredHolder<SoundEvent, SoundEvent> BUTTON_TAP = register("button_tap");
+	public static final DeferredHolder<SoundEvent, SoundEvent> TICKET_MACHINE_WHIR = register("ticket_machine_whir");
 	public static final DeferredHolder<SoundEvent, SoundEvent> FISH_SLAP = register("fishslap");
 	public static final DeferredHolder<SoundEvent, SoundEvent> FAIRY_HEAL = register("fairy_heal");
 	public static final DeferredHolder<SoundEvent, SoundEvent> FROG_SLAP = register("frog_slap");

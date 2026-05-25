@@ -1,10 +1,14 @@
 package com.stardew.craft.quest;
 
+import com.stardew.craft.player.PlayerDataEventHandler;
+import com.stardew.craft.player.PlayerDataManager;
+import com.stardew.craft.player.PlayerStardewData;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -206,6 +210,18 @@ public class StardewQuest {
             QuestManager mgr = QuestManager.of(player);
             if (mgr != null) {
                 mgr.incrementBillboardQuestsDone();
+                int billboardQuestsDone = mgr.getBillboardQuestsDone();
+                PlayerStardewData data = PlayerDataManager.getPlayerData(player);
+                if (billboardQuestsDone >= 1) {
+                    data.addMailFlag("completedFirstBillboardQuest");
+                }
+                if (billboardQuestsDone % 3 == 0) {
+                    givePrizeTicket(player);
+                }
+                if (billboardQuestsDone >= 6) {
+                    data.addMailFlag("gotFirstBillboardPrizeTicket");
+                }
+                PlayerDataEventHandler.syncPlayerData(player, data);
                 // 记录当季第几天完成了每日任务（日历星标用）
                 try {
                     com.stardew.craft.time.StardewTimeManager tm = com.stardew.craft.time.StardewTimeManager.get();
@@ -222,6 +238,16 @@ public class StardewQuest {
         if (moneyReward <= 0 && (rewardDescription == null || rewardDescription.isEmpty())) {
             destroy = true;
         }
+    }
+
+    private static void givePrizeTicket(ServerPlayer player) {
+        ItemStack ticket = new ItemStack(com.stardew.craft.item.ModItems.PRIZE_TICKET.get());
+        ItemStack hudStack = ticket.copy();
+        if (!player.getInventory().add(ticket)) {
+            player.drop(ticket, false);
+        }
+        com.stardew.craft.network.ItemPickupHudPacket.sendTo(player, hudStack, hudStack.getCount(), false);
+        player.inventoryMenu.broadcastChanges();
     }
 
     // ─── 天数推进 ───

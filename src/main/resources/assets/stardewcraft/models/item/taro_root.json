@@ -3,5 +3,25 @@
     "textures":  {
                      "layer0":  "stardewcraft:item/cooking_ingredient/taro_root",
                      "particle":  "stardewcraft:item/cooking_ingredient/taro_root"
-                 }
+                 },
+    "overrides":  [
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  1
+                                        },
+                          "model":  "stardewcraft:item/taro_root_silver"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  2
+                                        },
+                          "model":  "stardewcraft:item/taro_root_gold"
+                      },
+                      {
+                          "predicate":  {
+                                            "custom_model_data":  3
+                                        },
+                          "model":  "stardewcraft:item/taro_root_iridium"
+                      }
+                  ]
 }

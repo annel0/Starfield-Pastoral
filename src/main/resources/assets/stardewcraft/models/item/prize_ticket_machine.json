@@ -1,0 +1,6 @@
+{
+	"parent": "stardewcraft:block/decor/prize_ticket_machine",
+	"textures": {
+		"particle": "stardewcraft:block/decor/prize_ticket_machine"
+	}
+}

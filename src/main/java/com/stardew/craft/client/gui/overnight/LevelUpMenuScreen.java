@@ -296,8 +296,8 @@ public class LevelUpMenuScreen extends Screen {
     
     @Override
     public void onClose() {
-        if (this.siblingScreens != null && !this.siblingScreens.isEmpty()) {
-            this.minecraft.setScreen(this.siblingScreens.remove(0));
+        if (this.siblingScreens != null) {
+            ClientOvernightHandler.openNextScreen("level_up");
         } else {
             super.onClose();
         }

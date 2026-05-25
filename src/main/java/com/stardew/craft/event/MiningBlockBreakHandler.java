@@ -7,6 +7,7 @@ import com.stardew.craft.mining.LadderProbabilityCalculator;
 import com.stardew.craft.mining.MineFloorData;
 import com.stardew.craft.mining.MineFloorDataManager;
 import com.stardew.craft.network.LadderSyncPacket;
+import com.stardew.craft.player.PlayerStardewDataAPI;
 import com.stardew.craft.sound.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -27,6 +28,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
  */
 @EventBusSubscriber(modid = StardewCraft.MODID)
 public class MiningBlockBreakHandler {
+    private static final double NORMAL_LADDER_CHANCE_MULTIPLIER = 1.0D;
+    private static final double BOMB_LADDER_CHANCE_MULTIPLIER = 0.2D;
     
     /**
      * 检查方块是否是可计数的"石头节点"。
@@ -132,6 +135,15 @@ public class MiningBlockBreakHandler {
      */
     @SuppressWarnings("null")
     public static void handleStoneBreak(ServerLevel serverLevel, ServerPlayer player, BlockPos pos, BlockState state) {
+        handleStoneBreak(serverLevel, player, pos, state, NORMAL_LADDER_CHANCE_MULTIPLIER);
+    }
+
+    @SuppressWarnings("null")
+    public static void handleStoneBreakFromBomb(ServerLevel serverLevel, ServerPlayer player, BlockPos pos, BlockState state) {
+        handleStoneBreak(serverLevel, player, pos, state, BOMB_LADDER_CHANCE_MULTIPLIER);
+    }
+
+    private static void handleStoneBreak(ServerLevel serverLevel, ServerPlayer player, BlockPos pos, BlockState state, double ladderChanceMultiplier) {
         Block block = state.getBlock();
 
         // 检查是否是可计数的主石头
@@ -158,8 +170,16 @@ public class MiningBlockBreakHandler {
 
         // 动态楼梯生成：每次挖石后判断概率
         if (!floorData.hasLadderFound()) {
-            boolean shouldSpawn = LadderProbabilityCalculator.shouldGenerateLadder(
-                    floorData.getStonesLeft(), player, floorData, serverLevel.getRandom());
+            double ladderChance = LadderProbabilityCalculator.calculateProbability(
+                    floorData.getStonesLeft(),
+                    PlayerStardewDataAPI.getLuckBuffLevel(player),
+                    PlayerStardewDataAPI.getDailyLuck(player),
+                    floorData.getEnemyCount(),
+                    player.hasEffect(com.stardew.craft.effect.ModMobEffects.DWARF_STATUE_1));
+            if (floorData.getStonesLeft() > 0) {
+                ladderChance *= ladderChanceMultiplier;
+            }
+            boolean shouldSpawn = serverLevel.getRandom().nextDouble() < ladderChance;
             if (shouldSpawn) {
                 // 先标记数据，避免重复生成
                 floorData.setLadderFound(true);
@@ -186,13 +206,7 @@ public class MiningBlockBreakHandler {
                     serverLevel.playSound(null, ladderPos, ModSounds.HOE_HIT.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
 
                     // SDV 原版：显示全局消息提示楼梯已出现（仿 MineShaft.cs:9484）
-                    for (ServerPlayer p : serverLevel.players()) {
-                        PacketDistributor.sendToPlayer(p, new LadderSyncPacket(floorNumber, true, ladderPos, isShaft));
-                        p.displayClientMessage(
-                                Component.translatable(isShaft
-                                        ? "message.stardewcraft.shaft_found"
-                                        : "message.stardewcraft.ladder_found"), false);
-                    }
+                    notifyLadderFoundToPlayers(serverLevel, floorNumber, ladderPos, isShaft);
                 });
             }
         }
@@ -226,11 +240,54 @@ public class MiningBlockBreakHandler {
                             .setValue(com.stardew.craft.block.mine.MineLadderBlock.SHAFT, false);
             serverLevel.setBlock(ladderPos, ladderState, 3);
             serverLevel.playSound(null, ladderPos, ModSounds.HOE_HIT.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
-            for (ServerPlayer p : serverLevel.players()) {
-                PacketDistributor.sendToPlayer(p, new LadderSyncPacket(floorNumber, true, ladderPos, false));
-                p.displayClientMessage(Component.translatable("message.stardewcraft.ladder_found"), false);
-            }
+            notifyLadderFoundToPlayers(serverLevel, floorNumber, ladderPos, false);
         });
+    }
+
+    public static void syncLadderStateForPlayer(ServerPlayer player, int floorNumber) {
+        if (!(player.level() instanceof ServerLevel serverLevel) || !isMiningDimension(serverLevel)) {
+            return;
+        }
+        MineFloorDataManager manager = MineFloorDataManager.get(serverLevel);
+        MineFloorData floorData = manager.getFloorData(floorNumber);
+        if (floorData == null || !floorData.hasLadderFound() || floorData.getLadderPos() == null) {
+            PacketDistributor.sendToPlayer(player, new LadderSyncPacket(floorNumber, false, BlockPos.ZERO, false));
+            return;
+        }
+
+        BlockPos ladderPos = floorData.getLadderPos();
+        BlockState state = serverLevel.getBlockState(ladderPos);
+        if (!state.is(ModBlocks.MINE_LADDER.get())) {
+            floorData.setLadderFound(false);
+            floorData.setLadderPos(null);
+            manager.setFloorData(floorNumber, floorData);
+            PacketDistributor.sendToPlayer(player, new LadderSyncPacket(floorNumber, false, BlockPos.ZERO, false));
+            return;
+        }
+
+        boolean isShaft = state.hasProperty(com.stardew.craft.block.mine.MineLadderBlock.SHAFT)
+                && state.getValue(com.stardew.craft.block.mine.MineLadderBlock.SHAFT);
+        PacketDistributor.sendToPlayer(player, new LadderSyncPacket(floorNumber, true, ladderPos, isShaft));
+    }
+
+    private static void notifyLadderFoundToPlayers(ServerLevel serverLevel, int floorNumber, BlockPos ladderPos, boolean isShaft) {
+        for (ServerPlayer p : serverLevel.players()) {
+            if (!isPlayerOnMiningFloor(p, floorNumber)) {
+                continue;
+            }
+            PacketDistributor.sendToPlayer(p, new LadderSyncPacket(floorNumber, true, ladderPos, isShaft));
+            p.displayClientMessage(
+                    Component.translatable(isShaft
+                            ? "message.stardewcraft.shaft_found"
+                            : "message.stardewcraft.ladder_found"), false);
+        }
+    }
+
+    private static boolean isPlayerOnMiningFloor(ServerPlayer player, int floorNumber) {
+        if (!ModMiningDimensions.STARDEW_MINING.equals(player.level().dimension())) {
+            return false;
+        }
+        return com.stardew.craft.mining.MiningDataManager.getPlayerData(player).getCurrentFloor() == floorNumber;
     }
     
     /**

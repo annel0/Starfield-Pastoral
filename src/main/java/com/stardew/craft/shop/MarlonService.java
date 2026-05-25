@@ -2,6 +2,8 @@ package com.stardew.craft.shop;
 
 import com.stardew.craft.book.BookPowerEffects;
 import com.stardew.craft.entity.npc.StardewNpcEntity;
+import com.stardew.craft.festival.desert.DesertFestivalMarlonChallengeService;
+import com.stardew.craft.festival.desert.DesertFestivalMineService;
 import com.stardew.craft.network.payload.OpenGilGoalsPayload;
 import com.stardew.craft.network.payload.OpenMarlonMenuPayload;
 import com.stardew.craft.player.PlayerDataManager;
@@ -16,9 +18,6 @@ import java.util.List;
 
 /**
  * Server-side handler for Marlon's adventurer's guild interactions.
- * SDV parity: Marlon shows a question dialog with "Shop" / "Gil" / "Leave".
- * - Shop → opens AdventureShop (weapons/boots/rings with mine-level conditions)
- * - Gil  → opens monster slayer goal screen (kill tracking + rewards)
  */
 @SuppressWarnings("null")
 public final class MarlonService {
@@ -31,6 +30,13 @@ public final class MarlonService {
     private static final int COUNTER_MIN_Z = -147;
     private static final int COUNTER_MAX_Z = -144;
 
+    private static final int DESERT_BOOTH_MIN_X = -233;
+    private static final int DESERT_BOOTH_MAX_X = -226;
+    private static final int DESERT_BOOTH_MIN_Y = 63;
+    private static final int DESERT_BOOTH_MAX_Y = 66;
+    private static final int DESERT_BOOTH_MIN_Z = -209;
+    private static final int DESERT_BOOTH_MAX_Z = -205;
+
     private MarlonService() {}
 
     public static boolean isPlayerAtCounter(ServerPlayer player) {
@@ -42,18 +48,32 @@ public final class MarlonService {
             && pz >= COUNTER_MIN_Z && pz <= COUNTER_MAX_Z;
     }
 
+    public static boolean isPlayerAtDesertFestivalBooth(ServerPlayer player) {
+        if (player == null || !DesertFestivalMineService.isActive()) {
+            return false;
+        }
+        int px = (int) Math.floor(player.getX());
+        int py = (int) Math.floor(player.getY());
+        int pz = (int) Math.floor(player.getZ());
+        return px >= DESERT_BOOTH_MIN_X && px <= DESERT_BOOTH_MAX_X
+            && py >= DESERT_BOOTH_MIN_Y && py <= DESERT_BOOTH_MAX_Y
+            && pz >= DESERT_BOOTH_MIN_Z && pz <= DESERT_BOOTH_MAX_Z;
+    }
+
     public static InteractionResult handleMarlonInteraction(ServerPlayer player, StardewNpcEntity marlon) {
-        marlon.setYRot(90f);
-        marlon.setYHeadRot(90f);
+        boolean desertFestivalBooth = isPlayerAtDesertFestivalBooth(player);
+        float yaw = desertFestivalBooth ? 0.0f : 90.0f;
+        marlon.setYRot(yaw);
+        marlon.setYHeadRot(yaw);
 
         boolean hasLost = hasLostItems(player);
-        PacketDistributor.sendToPlayer(player, new OpenMarlonMenuPayload(hasLost));
+        PacketDistributor.sendToPlayer(player, new OpenMarlonMenuPayload(hasLost, desertFestivalBooth, desertFestivalBooth, desertFestivalBooth));
         return InteractionResult.SUCCESS;
     }
 
     /**
      * Handle the player's choice from Marlon's question dialog.
-     * 0 = Shop, 1 = Gil (monster slayer goals), 2 = Recovery (item recovery)
+    * 0 = Shop, 1 = Monster Slayer Goals, 2 = Recovery, 3 = Desert Festival rating, 4 = Desert Festival challenge
      */
     public static void handleChoice(ServerPlayer player, int choice) {
         if (choice == 0) {
@@ -62,6 +82,10 @@ public final class MarlonService {
             openGilGoals(player);
         } else if (choice == 2) {
             openRecoveryShop(player);
+        } else if (choice == 3) {
+            DesertFestivalMineService.openMarlonRatingDialog(player);
+        } else if (choice == 4) {
+            DesertFestivalMarlonChallengeService.openChallengeDialog(player);
         }
     }
 
@@ -95,9 +119,7 @@ public final class MarlonService {
         PacketDistributor.sendToPlayer(player, new OpenGilGoalsPayload(entries));
     }
 
-    /**
-     * Handle a Gil reward claim from the client.
-     */
+    /** Handle a monster slayer reward claim from the client. */
     public static void handleGilClaim(ServerPlayer player, String goalKey) {
         MonsterSlayerGoalRegistry.SlayerGoal goal = MonsterSlayerGoalRegistry.getGoal(goalKey);
         if (goal == null) return;
