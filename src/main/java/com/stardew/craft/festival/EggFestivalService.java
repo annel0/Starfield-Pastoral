@@ -54,6 +54,7 @@ public final class EggFestivalService {
     private static final BlockPos FESTIVAL_MAX = new BlockPos(137, 84, 53);
     private static final AABB FESTIVAL_BOUNDS = inclusiveBox(FESTIVAL_MIN, FESTIVAL_MAX);
     private static final BlockPos ENTRY_POS = new BlockPos(-39, 64, -34);
+    private static final double SAFE_BOUNDARY_MARGIN = 4.0D;
     private static final float SOUTH_YAW = 0.0F;
 
     private static final AABB SHOP_ZONE = inclusiveBox(new BlockPos(-7, 64, -8), new BlockPos(-2, 67, -6));
@@ -115,9 +116,12 @@ public final class EggFestivalService {
     private static final Set<UUID> START_CONTEST_DIALOG_OPEN = new LinkedHashSet<>();
     private static final Set<UUID> EXIT_DIALOG_OPEN = new LinkedHashSet<>();
     private static final Set<UUID> EXIT_VOTES = new LinkedHashSet<>();
+    private static final Set<UUID> EXIT_VOTE_PARTICIPANTS = new LinkedHashSet<>();
     private static final Map<UUID, PlayerPose> DEBUG_RETURN_POSES = new LinkedHashMap<>();
     private static final Map<UUID, Integer> EGG_HUNT_COUNTS = new LinkedHashMap<>();
+    private static final Set<UUID> MAIN_EVENT_CUTSCENE_PARTICIPANTS = new LinkedHashSet<>();
     private static final Set<UUID> MAIN_EVENT_CUTSCENE_DONE = new LinkedHashSet<>();
+    private static final Set<UUID> AWARD_CUTSCENE_PARTICIPANTS = new LinkedHashSet<>();
     private static final Set<UUID> AWARD_CUTSCENE_DONE = new LinkedHashSet<>();
     private static Integer frozenMinute;
     private static Long frozenOverworldDayTime;
@@ -263,6 +267,7 @@ public final class EggFestivalService {
         START_CONTEST_DIALOG_OPEN.clear();
         EXIT_DIALOG_OPEN.clear();
         EXIT_VOTES.clear();
+        EXIT_VOTE_PARTICIPANTS.clear();
         resetMainEventState();
         for (ServerPlayer player : level.players()) {
             DEBUG_RETURN_POSES.putIfAbsent(player.getUUID(), new PlayerPose(player.position(), player.getYRot(), player.getXRot()));
@@ -296,6 +301,7 @@ public final class EggFestivalService {
         START_CONTEST_DIALOG_OPEN.clear();
         EXIT_DIALOG_OPEN.clear();
         EXIT_VOTES.clear();
+        EXIT_VOTE_PARTICIPANTS.clear();
         clearEggHuntEntities(level);
         clearEggHuntScoreboard(level);
         resetMainEventState();
@@ -338,6 +344,8 @@ public final class EggFestivalService {
         if (mainEventPhase == MainEventPhase.MAIN_EVENT_INTRO) {
             if (onlineParticipants(level).isEmpty()) {
                 finishFestival(level);
+            } else if (onlineSnapshotParticipants(level, MAIN_EVENT_CUTSCENE_PARTICIPANTS).isEmpty()) {
+                beginEggHuntOrBlock(level);
             }
             return;
         }
@@ -359,6 +367,9 @@ public final class EggFestivalService {
 
         if (mainEventPhase == MainEventPhase.AWARD_CUTSCENE) {
             if (onlineParticipants(level).isEmpty()) {
+                finishFestival(level);
+            } else if (onlineSnapshotParticipants(level, AWARD_CUTSCENE_PARTICIPANTS).isEmpty()) {
+                mainEventPhase = MainEventPhase.FESTIVAL_ENDING;
                 finishFestival(level);
             }
             return;
@@ -446,9 +457,14 @@ public final class EggFestivalService {
     }
 
     private static void castExitVote(ServerPlayer player) {
+        if (EXIT_VOTE_PARTICIPANTS.isEmpty()) {
+            EXIT_VOTE_PARTICIPANTS.addAll(onlineParticipants(player.serverLevel()).stream().map(ServerPlayer::getUUID).toList());
+        }
+        EXIT_VOTES.retainAll(EXIT_VOTE_PARTICIPANTS);
         EXIT_VOTES.add(player.getUUID());
-        List<ServerPlayer> voters = onlineParticipants(player.serverLevel());
-        if (voters.isEmpty() || EXIT_VOTES.containsAll(voters.stream().map(ServerPlayer::getUUID).toList())) {
+        List<ServerPlayer> voters = onlineSnapshotParticipants(player.serverLevel(), EXIT_VOTE_PARTICIPANTS);
+        int voteCount = voteCount(voters, EXIT_VOTES);
+        if (voters.isEmpty() || voteCount >= voters.size()) {
             finishFestival(player.serverLevel());
             return;
         }
@@ -457,7 +473,7 @@ public final class EggFestivalService {
                 PacketDistributor.sendToPlayer(participant, new OpenFestivalConfirmPayload(OpenFestivalConfirmPayload.Action.EXIT));
             }
             participant.displayClientMessage(Component.translatable(
-                "message.stardewcraft.festival.exit_vote_waiting", EXIT_VOTES.size(), voters.size()), true);
+                "message.stardewcraft.festival.exit_vote_waiting", voteCount, voters.size()), true);
         }
     }
 
@@ -467,6 +483,8 @@ public final class EggFestivalService {
             return;
         }
         mainEventPhase = MainEventPhase.MAIN_EVENT_INTRO;
+        MAIN_EVENT_CUTSCENE_PARTICIPANTS.clear();
+        MAIN_EVENT_CUTSCENE_PARTICIPANTS.addAll(participants.stream().map(ServerPlayer::getUUID).toList());
         MAIN_EVENT_CUTSCENE_DONE.clear();
         mainEventBlackoutPrepared = false;
         EGG_HUNT_COUNTS.clear();
@@ -486,6 +504,8 @@ public final class EggFestivalService {
         }
         prepareAwardResult(participants);
         mainEventPhase = MainEventPhase.AWARD_CUTSCENE;
+        AWARD_CUTSCENE_PARTICIPANTS.clear();
+        AWARD_CUTSCENE_PARTICIPANTS.addAll(participants.stream().map(ServerPlayer::getUUID).toList());
         AWARD_CUTSCENE_DONE.clear();
         awardBlackoutPrepared = false;
         playWhistle(level);
@@ -500,11 +520,11 @@ public final class EggFestivalService {
             return;
         }
         ServerLevel level = player.serverLevel();
-        List<ServerPlayer> participants = onlineParticipants(level);
-        if (participants.isEmpty()) {
-            return;
-        }
         if ("main".equals(stage)) {
+            List<ServerPlayer> participants = onlineSnapshotParticipants(level, MAIN_EVENT_CUTSCENE_PARTICIPANTS);
+            if (participants.isEmpty()) {
+                return;
+            }
             if (mainEventPhase != MainEventPhase.MAIN_EVENT_INTRO || mainEventBlackoutPrepared) {
                 return;
             }
@@ -514,6 +534,10 @@ public final class EggFestivalService {
             return;
         }
         if ("award".equals(stage)) {
+            List<ServerPlayer> participants = onlineSnapshotParticipants(level, AWARD_CUTSCENE_PARTICIPANTS);
+            if (participants.isEmpty()) {
+                return;
+            }
             if (mainEventPhase != MainEventPhase.AWARD_CUTSCENE || awardBlackoutPrepared) {
                 return;
             }
@@ -529,20 +553,20 @@ public final class EggFestivalService {
         }
         if (MAIN_EVENT_CUTSCENE_ID.equals(eventId)) {
             MAIN_EVENT_CUTSCENE_DONE.add(player.getUUID());
-            List<ServerPlayer> participants = onlineParticipants(player.serverLevel());
+            List<ServerPlayer> participants = onlineSnapshotParticipants(player.serverLevel(), MAIN_EVENT_CUTSCENE_PARTICIPANTS);
             if (mainEventPhase == MainEventPhase.MAIN_EVENT_INTRO
                 && !participants.isEmpty()
-                && MAIN_EVENT_CUTSCENE_DONE.containsAll(participants.stream().map(ServerPlayer::getUUID).toList())) {
+                && containsAllOnlineParticipants(MAIN_EVENT_CUTSCENE_DONE, participants)) {
                 beginEggHuntOrBlock(player.serverLevel());
             }
             return;
         }
         if (AWARD_CUTSCENE_ID.equals(eventId)) {
             AWARD_CUTSCENE_DONE.add(player.getUUID());
-            List<ServerPlayer> participants = onlineParticipants(player.serverLevel());
+            List<ServerPlayer> participants = onlineSnapshotParticipants(player.serverLevel(), AWARD_CUTSCENE_PARTICIPANTS);
             if (mainEventPhase == MainEventPhase.AWARD_CUTSCENE
                 && !participants.isEmpty()
-                && AWARD_CUTSCENE_DONE.containsAll(participants.stream().map(ServerPlayer::getUUID).toList())) {
+                && containsAllOnlineParticipants(AWARD_CUTSCENE_DONE, participants)) {
                 mainEventPhase = MainEventPhase.FESTIVAL_ENDING;
                 finishFestival(player.serverLevel());
             }
@@ -661,6 +685,7 @@ public final class EggFestivalService {
         START_CONTEST_DIALOG_OPEN.clear();
         EXIT_DIALOG_OPEN.clear();
         EXIT_VOTES.clear();
+        EXIT_VOTE_PARTICIPANTS.clear();
         clearEggHuntEntities(level);
         clearEggHuntScoreboard(level);
         resetMainEventState();
@@ -761,18 +786,123 @@ public final class EggFestivalService {
 
     private static void moveToLastOutside(ServerLevel level, ServerPlayer player) {
         Vec3 target = LAST_OUTSIDE.get(player.getUUID());
-        if (target == null || FESTIVAL_BOUNDS.contains(target)) {
+        if (!isSafeOutsideReturnTarget(player, target)) {
+            target = findSafeOutsideReturnTarget(player, pushOutside(player.position()));
+        }
+        if (target == null) {
             target = pushOutside(player.position());
         }
         ModTeleport.to(player, level, target.x, target.y, target.z, player.getYRot(), player.getXRot());
+        player.setDeltaMovement(Vec3.ZERO);
+        LAST_OUTSIDE.put(player.getUUID(), target);
     }
 
     private static void moveToLastInside(ServerLevel level, ServerPlayer player) {
         Vec3 target = LAST_INSIDE.get(player.getUUID());
-        if (target == null || !FESTIVAL_BOUNDS.contains(target)) {
+        if (!isSafeInsideReturnTarget(player, target)) {
+            target = findSafeInsideReturnTarget(player, pushInside(player.position()));
+        }
+        if (!isSafeInsideReturnTarget(player, target)) {
+            target = findSafeInsideReturnTarget(player, Vec3.atBottomCenterOf(ENTRY_POS));
+        }
+        if (target == null) {
             target = Vec3.atBottomCenterOf(ENTRY_POS);
         }
         ModTeleport.to(player, level, target.x, target.y, target.z, player.getYRot(), player.getXRot());
+        player.setDeltaMovement(Vec3.ZERO);
+        LAST_INSIDE.put(player.getUUID(), target);
+    }
+
+    private static Vec3 findSafeInsideReturnTarget(ServerPlayer player, Vec3 preferred) {
+        if (isSafeInsideReturnTarget(player, preferred)) {
+            return preferred;
+        }
+        Vec3 base = pushInside(preferred == null ? player.position() : preferred);
+        BlockPos center = BlockPos.containing(base.x, base.y, base.z);
+        for (int radius = 0; radius <= 6; radius++) {
+            for (int dy = -2; dy <= 3; dy++) {
+                for (int dx = -radius; dx <= radius; dx++) {
+                    for (int dz = -radius; dz <= radius; dz++) {
+                        if (Math.max(Math.abs(dx), Math.abs(dz)) != radius) {
+                            continue;
+                        }
+                        Vec3 candidate = pushInside(new Vec3(center.getX() + dx + 0.5D, center.getY() + dy, center.getZ() + dz + 0.5D));
+                        if (isSafeInsideReturnTarget(player, candidate)) {
+                            return candidate;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private static boolean isSafeInsideReturnTarget(ServerPlayer player, Vec3 target) {
+        if (player == null || target == null || !FESTIVAL_BOUNDS.contains(target) || !isInsideSafeMargin(target)) {
+            return false;
+        }
+        return canStandAt(player, target);
+    }
+
+    private static boolean canStandAt(ServerPlayer player, Vec3 target) {
+        BlockPos feet = BlockPos.containing(target.x, target.y, target.z);
+        BlockPos head = feet.above();
+        return player.serverLevel().getFluidState(feet).isEmpty()
+            && player.serverLevel().getFluidState(head).isEmpty()
+            && player.serverLevel().getFluidState(feet.below()).isEmpty()
+            && !player.serverLevel().getBlockState(feet.below()).isAir()
+            && player.serverLevel().noCollision(player, player.getBoundingBox().move(target.subtract(player.position())));
+    }
+
+    private static boolean isInsideSafeMargin(Vec3 position) {
+        return position.x >= FESTIVAL_BOUNDS.minX + SAFE_BOUNDARY_MARGIN
+            && position.x <= FESTIVAL_BOUNDS.maxX - SAFE_BOUNDARY_MARGIN
+            && position.z >= FESTIVAL_BOUNDS.minZ + SAFE_BOUNDARY_MARGIN
+            && position.z <= FESTIVAL_BOUNDS.maxZ - SAFE_BOUNDARY_MARGIN;
+    }
+
+    private static Vec3 pushInside(Vec3 current) {
+        double x = Math.max(FESTIVAL_BOUNDS.minX + SAFE_BOUNDARY_MARGIN, Math.min(FESTIVAL_BOUNDS.maxX - SAFE_BOUNDARY_MARGIN, current.x));
+        double z = Math.max(FESTIVAL_BOUNDS.minZ + SAFE_BOUNDARY_MARGIN, Math.min(FESTIVAL_BOUNDS.maxZ - SAFE_BOUNDARY_MARGIN, current.z));
+        return new Vec3(x, current.y, z);
+    }
+
+    private static Vec3 findSafeOutsideReturnTarget(ServerPlayer player, Vec3 preferred) {
+        if (isSafeOutsideReturnTarget(player, preferred)) {
+            return preferred;
+        }
+        Vec3 base = pushOutside(preferred == null ? player.position() : preferred);
+        BlockPos center = BlockPos.containing(base.x, base.y, base.z);
+        for (int radius = 0; radius <= 6; radius++) {
+            for (int dy = -2; dy <= 3; dy++) {
+                for (int dx = -radius; dx <= radius; dx++) {
+                    for (int dz = -radius; dz <= radius; dz++) {
+                        if (Math.max(Math.abs(dx), Math.abs(dz)) != radius) {
+                            continue;
+                        }
+                        Vec3 candidate = new Vec3(center.getX() + dx + 0.5D, center.getY() + dy, center.getZ() + dz + 0.5D);
+                        if (isSafeOutsideReturnTarget(player, candidate)) {
+                            return candidate;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private static boolean isSafeOutsideReturnTarget(ServerPlayer player, Vec3 target) {
+        return player != null
+            && target != null
+            && isOutsideSafeMargin(target)
+            && canStandAt(player, target);
+    }
+
+    private static boolean isOutsideSafeMargin(Vec3 position) {
+        return position.x <= FESTIVAL_BOUNDS.minX - SAFE_BOUNDARY_MARGIN
+            || position.x >= FESTIVAL_BOUNDS.maxX + SAFE_BOUNDARY_MARGIN
+            || position.z <= FESTIVAL_BOUNDS.minZ - SAFE_BOUNDARY_MARGIN
+            || position.z >= FESTIVAL_BOUNDS.maxZ + SAFE_BOUNDARY_MARGIN;
     }
 
     private static Vec3 pushOutside(Vec3 current) {
@@ -785,13 +915,13 @@ public final class EggFestivalService {
         double south = Math.abs(FESTIVAL_BOUNDS.maxZ - z);
         double min = Math.min(Math.min(left, right), Math.min(north, south));
         if (min == left) {
-            x = FESTIVAL_BOUNDS.minX - 0.25D;
+            x = FESTIVAL_BOUNDS.minX - SAFE_BOUNDARY_MARGIN;
         } else if (min == right) {
-            x = FESTIVAL_BOUNDS.maxX + 0.25D;
+            x = FESTIVAL_BOUNDS.maxX + SAFE_BOUNDARY_MARGIN;
         } else if (min == north) {
-            z = FESTIVAL_BOUNDS.minZ - 0.25D;
+            z = FESTIVAL_BOUNDS.minZ - SAFE_BOUNDARY_MARGIN;
         } else {
-            z = FESTIVAL_BOUNDS.maxZ + 0.25D;
+            z = FESTIVAL_BOUNDS.maxZ + SAFE_BOUNDARY_MARGIN;
         }
         return new Vec3(x, y, z);
     }
@@ -805,6 +935,36 @@ public final class EggFestivalService {
             .filter(EggFestivalService::isParticipant)
             .sorted(Comparator.comparing(ServerPlayer::getScoreboardName, String.CASE_INSENSITIVE_ORDER))
             .toList();
+    }
+
+    private static List<ServerPlayer> onlineSnapshotParticipants(ServerLevel level, Set<UUID> participantIds) {
+        if (level == null || participantIds.isEmpty()) {
+            return List.of();
+        }
+        return level.players().stream()
+            .filter(player -> participantIds.contains(player.getUUID()))
+            .filter(EggFestivalService::isParticipant)
+            .sorted(Comparator.comparing(ServerPlayer::getScoreboardName, String.CASE_INSENSITIVE_ORDER))
+            .toList();
+    }
+
+    private static boolean containsAllOnlineParticipants(Set<UUID> completed, List<ServerPlayer> participants) {
+        for (ServerPlayer participant : participants) {
+            if (!completed.contains(participant.getUUID())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static int voteCount(List<ServerPlayer> voters, Set<UUID> votes) {
+        int count = 0;
+        for (ServerPlayer voter : voters) {
+            if (votes.contains(voter.getUUID())) {
+                count++;
+            }
+        }
+        return count;
     }
 
     private static void syncHud(ServerPlayer player, boolean hidden) {
@@ -831,6 +991,7 @@ public final class EggFestivalService {
         START_CONTEST_DIALOG_OPEN.clear();
         EXIT_DIALOG_OPEN.clear();
         EXIT_VOTES.clear();
+        EXIT_VOTE_PARTICIPANTS.clear();
         clearEggHuntEntities(level);
         clearEggHuntScoreboard(level);
         resetMainEventState();
@@ -1102,7 +1263,9 @@ public final class EggFestivalService {
     }
 
     private static void resetMainEventState() {
+        MAIN_EVENT_CUTSCENE_PARTICIPANTS.clear();
         MAIN_EVENT_CUTSCENE_DONE.clear();
+        AWARD_CUTSCENE_PARTICIPANTS.clear();
         AWARD_CUTSCENE_DONE.clear();
         EGG_HUNT_COUNTS.clear();
         AWARD_WINNER_IDS.clear();

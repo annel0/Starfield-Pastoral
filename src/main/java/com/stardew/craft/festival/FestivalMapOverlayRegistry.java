@@ -27,6 +27,19 @@ public final class FestivalMapOverlayRegistry {
             true
         ));
         register(new FestivalMapOverlayDefinition(
+            "Forest-FlowerFestival",
+            "Forest",
+            new BlockPos(-250, 60, 101),
+            "",
+            "data/stardewcraft/structures/festivals/flower_dance_forest.schem",
+            new BlockPos(-250, 60, 101),
+            new BlockPos(-170, 65, 138),
+            List.of(),
+            true,
+            true,
+            true
+        ));
+        register(new FestivalMapOverlayDefinition(
             "DesertFestival",
             "Desert",
             new BlockPos(-273, 62, -228),

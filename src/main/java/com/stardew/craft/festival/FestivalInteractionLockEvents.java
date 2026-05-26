@@ -16,7 +16,8 @@ public final class FestivalInteractionLockEvents {
     }
 
     private static boolean locked(Player player) {
-        return player instanceof ServerPlayer serverPlayer && EggFestivalService.isParticipant(serverPlayer);
+        return player instanceof ServerPlayer serverPlayer
+            && ActiveFestivalHandlers.isParticipant(serverPlayer);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)

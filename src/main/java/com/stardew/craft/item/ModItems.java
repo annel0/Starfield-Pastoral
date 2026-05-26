@@ -716,6 +716,12 @@ public class ModItems {
         public static final DeferredItem<Item> FLOWER_BASKET = ITEMS.register("flower_basket",
                         () -> new StardewBlockItem(ModBlocks.FLOWER_BASKET.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
 
+        public static final DeferredItem<Item> FLOWER_CLUSTER = ITEMS.register("flower_cluster",
+                        () -> new StardewBlockItem(ModBlocks.FLOWER_CLUSTER.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> SEASONAL_DECOR = ITEMS.register("seasonal_decor",
+                        () -> new StardewBlockItem(ModBlocks.SEASONAL_DECOR.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
+
         public static final DeferredItem<Item> PLUSH_BUNNY = ITEMS.register("plush_bunny",
                         () -> new StardewBlockItem(ModBlocks.PLUSH_BUNNY.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
 

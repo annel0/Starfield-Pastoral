@@ -276,6 +276,9 @@ public class PlayerDataEventHandler {
             // Release any NPC dialogue movement lock owned by this player.
             com.stardew.craft.npc.runtime.NpcInteractionService.onPlayerLogout(player);
 
+            // Clear Flower Dance player-player dance proposals and pair state.
+            com.stardew.craft.festival.FlowerDanceService.onPlayerLogout(player);
+
             // 多人农场：更新最后在线天数 + 卸载农场区块
             {
                 com.stardew.craft.farm.FarmInstanceRegistry registry =

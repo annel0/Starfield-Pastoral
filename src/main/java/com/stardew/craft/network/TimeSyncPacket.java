@@ -59,7 +59,7 @@ public record TimeSyncPacket(
             timeManager.getCurrentSeason(),
             timeManager.getCurrentYear(),
             vdt,
-            com.stardew.craft.festival.EggFestivalService.isTimeFreezeActive()
+            com.stardew.craft.festival.ActiveFestivalHandlers.isAnyTimeFreezeActive()
         );
     }
     

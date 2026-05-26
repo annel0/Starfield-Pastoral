@@ -1307,6 +1307,14 @@
       }
     ]
   },
+  "music_flower_dance": {
+    "sounds": [
+      {
+        "name": "stardewcraft:music/flower_dance",
+        "stream": true
+      }
+    ]
+  },
   "music_desert": {
     "sounds": [
       {

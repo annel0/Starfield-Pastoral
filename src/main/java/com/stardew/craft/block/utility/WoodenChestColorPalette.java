@@ -1,6 +1,22 @@
 package com.stardew.craft.block.utility;
 
 public final class WoodenChestColorPalette {
+    public enum TintMaterial {
+        DIRECT(255),
+        TABLECLOTH(205),
+        SOFA(184),
+        CUSHION(159),
+        OFFICE_SEATING(168),
+        STOOL(184),
+        DINING_CHAIR(228);
+
+        private final int whiteBase;
+
+        TintMaterial(int whiteBase) {
+            this.whiteBase = whiteBase;
+        }
+    }
+
     public static final int[] COLORS_RGB = new int[] {
         0x2B2A28,
         0x4659A8,
@@ -47,5 +63,26 @@ public final class WoodenChestColorPalette {
             return 0xFFFFFF; // default white/uncolored multiplier
         }
         return COLORS_RGB[clampIndex(index)];
+    }
+
+    public static int tintRgbAt(int index, TintMaterial material) {
+        if (index < 0) {
+            return 0xFFFFFF;
+        }
+        int target = rgbAt(index);
+        TintMaterial resolved = material == null ? TintMaterial.DIRECT : material;
+        return compensateForMaterialWhite(target, resolved.whiteBase);
+    }
+
+    private static int compensateForMaterialWhite(int rgb, int whiteBase) {
+        int base = Math.max(1, Math.min(255, whiteBase));
+        int r = compensateChannel((rgb >> 16) & 0xFF, base);
+        int g = compensateChannel((rgb >> 8) & 0xFF, base);
+        int b = compensateChannel(rgb & 0xFF, base);
+        return (r << 16) | (g << 8) | b;
+    }
+
+    private static int compensateChannel(int channel, int whiteBase) {
+        return Math.min(255, Math.round(channel * 255.0F / whiteBase));
     }
 }

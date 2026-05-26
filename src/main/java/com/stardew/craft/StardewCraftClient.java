@@ -324,6 +324,8 @@ public class StardewCraftClient {
                 ModBlocks.EASEL.get(),
                 ModBlocks.PASTEL_BANNER.get(),
                 ModBlocks.FLOWER_BASKET.get(),
+                ModBlocks.FLOWER_CLUSTER.get(),
+                ModBlocks.SEASONAL_DECOR.get(),
                 ModBlocks.PLUSH_BUNNY.get(),
                 ModBlocks.LAWN_FLAMINGO.get(),
                 ModBlocks.HOLIDAY_RIBBON_POST.get(),
@@ -470,26 +472,35 @@ public class StardewCraftClient {
                 return 0xFFFFFFFF;
             }
             Integer indexValue = null;
+            WoodenChestColorPalette.TintMaterial tintMaterial = WoodenChestColorPalette.TintMaterial.DIRECT;
             if (state.hasProperty(SofaBlock.COLOR)) {
                 indexValue = state.getValue(SofaBlock.COLOR);
+                tintMaterial = WoodenChestColorPalette.TintMaterial.SOFA;
             } else if (state.hasProperty(CushionBlock.COLOR)) {
                 indexValue = state.getValue(CushionBlock.COLOR);
+                tintMaterial = WoodenChestColorPalette.TintMaterial.CUSHION;
             } else if (state.hasProperty(OfficeStoolBlock.COLOR)) {
                 indexValue = state.getValue(OfficeStoolBlock.COLOR);
+                tintMaterial = WoodenChestColorPalette.TintMaterial.OFFICE_SEATING;
             } else if (state.hasProperty(OfficeStoolTopRenderBlock.COLOR)) {
                 indexValue = state.getValue(OfficeStoolTopRenderBlock.COLOR);
+                tintMaterial = WoodenChestColorPalette.TintMaterial.OFFICE_SEATING;
             } else if (state.hasProperty(OfficeChair2Block.COLOR)) {
                 indexValue = state.getValue(OfficeChair2Block.COLOR);
+                tintMaterial = WoodenChestColorPalette.TintMaterial.OFFICE_SEATING;
             } else if (state.hasProperty(OfficeChair2TopRenderBlock.COLOR)) {
                 indexValue = state.getValue(OfficeChair2TopRenderBlock.COLOR);
+                tintMaterial = WoodenChestColorPalette.TintMaterial.OFFICE_SEATING;
             } else if (state.hasProperty(DyeableChairBlock.COLOR)) {
                 indexValue = state.getValue(DyeableChairBlock.COLOR);
+                tintMaterial = dyeableChairTintMaterial(state);
             } else if (state.hasProperty(OakTableBlock.CLOTH_STYLE)
                 && OakTableBlock.isDyeableClothStyle(state.getValue(OakTableBlock.CLOTH_STYLE))
                 && level != null
                 && pos != null
                 && level.getBlockEntity(pos) instanceof TableDisplayBlockEntity tableBe) {
                 indexValue = tableBe.getClothColor();
+                tintMaterial = WoodenChestColorPalette.TintMaterial.TABLECLOTH;
             }
             if (indexValue == null) {
                 return 0xFFFFFFFF;
@@ -498,9 +509,19 @@ public class StardewCraftClient {
             if (index < 0) {
                 index = 0;
             }
-            return 0xFF000000 | (WoodenChestColorPalette.rgbAt(index) & 0xFFFFFF);
+            return 0xFF000000 | (WoodenChestColorPalette.tintRgbAt(index, tintMaterial) & 0xFFFFFF);
         }, ModBlocks.SOFA.get(), ModBlocks.CUSHION.get(), ModBlocks.OFFICE_STOOL.get(), ModBlocks.OFFICE_STOOL_TOP_RENDER.get(), ModBlocks.OFFICE_CHAIR_2.get(), ModBlocks.OFFICE_CHAIR_2_TOP_RENDER.get(), ModBlocks.STOOL.get(), ModBlocks.DINING_CHAIR_WOOD.get(), ModBlocks.DINING_CHAIR_IRON.get(), ModBlocks.OAK_TABLE.get(), ModBlocks.SPRUCE_TABLE.get(), ModBlocks.BIRCH_TABLE.get());
 
+    }
+
+    private static WoodenChestColorPalette.TintMaterial dyeableChairTintMaterial(BlockState state) {
+        if (state.is(ModBlocks.STOOL.get())) {
+            return WoodenChestColorPalette.TintMaterial.STOOL;
+        }
+        if (state.is(ModBlocks.DINING_CHAIR_WOOD.get()) || state.is(ModBlocks.DINING_CHAIR_IRON.get())) {
+            return WoodenChestColorPalette.TintMaterial.DINING_CHAIR;
+        }
+        return WoodenChestColorPalette.TintMaterial.DIRECT;
     }
 
     private static int resolveSeasonalGrassColor(BlockAndTintGetter level, BlockPos pos) {

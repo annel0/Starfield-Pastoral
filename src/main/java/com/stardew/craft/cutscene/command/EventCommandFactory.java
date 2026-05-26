@@ -112,6 +112,16 @@ public final class EventCommandFactory {
                     getInt(obj, "ticks", 10)
             );
 
+            case "flower_dance_stage" -> new FlowerDanceStageCommand(
+                    getString(obj, "stage", "main"),
+                    getInt(obj, "ticks", 10)
+            );
+
+            case "flower_dance_dancers" -> new FlowerDanceDancersCommand(
+                    getString(obj, "action", "spawn"),
+                    getInt(obj, "ticks", 220)
+            );
+
             case "egg_festival_finish" -> new EggFestivalFinishCommand();
 
             case "fade"          -> new FadeCommand(

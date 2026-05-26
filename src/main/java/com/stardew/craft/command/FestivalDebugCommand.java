@@ -5,9 +5,9 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.stardew.craft.core.ModDimensions;
-import com.stardew.craft.festival.EggFestivalService;
+import com.stardew.craft.festival.ActiveFestivalHandler;
+import com.stardew.craft.festival.ActiveFestivalHandlers;
 import com.stardew.craft.festival.FestivalDefinition;
-import com.stardew.craft.festival.EggFestivalNpcService;
 import com.stardew.craft.festival.FestivalMapOverlayDefinition;
 import com.stardew.craft.festival.FestivalMapOverlayManager;
 import com.stardew.craft.festival.FestivalMapOverlayRegistry;
@@ -18,8 +18,6 @@ import com.stardew.craft.festival.FestivalSessionPhase;
 import com.stardew.craft.festival.FestivalType;
 import com.stardew.craft.festival.FestivalWorldData;
 import com.stardew.craft.festival.desert.DesertFestivalService;
-import com.stardew.craft.festival.desert.DesertFestivalVendorService;
-import com.stardew.craft.npc.runtime.NpcSpawnManager;
 import com.stardew.craft.npc.runtime.NpcScheduleRuntimeService;
 import com.stardew.craft.time.StardewTimeManager;
 import net.minecraft.commands.CommandSourceStack;
@@ -77,18 +75,18 @@ public final class FestivalDebugCommand {
                 .then(Commands.literal("npc")
                     .then(Commands.literal("apply")
                         .then(Commands.argument("id", StringArgumentType.string())
-                            .suggests((context, builder) -> SharedSuggestionProvider.suggest(Stream.of("spring13"), builder))
+                            .suggests((context, builder) -> SharedSuggestionProvider.suggest(ActiveFestivalHandlers.festivalIds(), builder))
                             .executes(FestivalDebugCommand::applyNpcs)))
                     .then(Commands.literal("restore")
                         .then(Commands.argument("id", StringArgumentType.string())
-                            .suggests((context, builder) -> SharedSuggestionProvider.suggest(Stream.of("spring13"), builder))
+                            .suggests((context, builder) -> SharedSuggestionProvider.suggest(ActiveFestivalHandlers.festivalIds(), builder))
                             .executes(FestivalDebugCommand::restoreNpcs)))
                     .then(Commands.literal("status")
                         .executes(FestivalDebugCommand::npcStatus)))
                 .then(Commands.literal("main")
                     .then(Commands.literal("start")
                         .then(Commands.argument("id", StringArgumentType.string())
-                            .suggests((context, builder) -> SharedSuggestionProvider.suggest(Stream.of("spring13"), builder))
+                            .suggests((context, builder) -> SharedSuggestionProvider.suggest(ActiveFestivalHandlers.mainEventFestivalIds(), builder))
                             .executes(FestivalDebugCommand::startMainEvent)))
                     .then(Commands.literal("status")
                         .executes(FestivalDebugCommand::mainEventStatus)))));
@@ -112,8 +110,9 @@ public final class FestivalDebugCommand {
             return applyPassiveFestival(context, level, festival);
         }
 
-        if (!EggFestivalService.FESTIVAL_ID.equalsIgnoreCase(festival.id())) {
-            context.getSource().sendFailure(Component.literal("当前只支持 Egg Festival 主动节日总调试: spring13"));
+        ActiveFestivalHandler handler = ActiveFestivalHandlers.get(festival).orElse(null);
+        if (handler == null) {
+            context.getSource().sendFailure(Component.literal("当前主动节日未注册调试 handler: " + festival.id()));
             return 0;
         }
 
@@ -130,9 +129,8 @@ public final class FestivalDebugCommand {
             return 0;
         }
 
-        EggFestivalService.startDebugFestival(level);
-        context.getSource().sendSuccess(() -> Component.literal(
-            "已启动 Egg Festival 总调试: 当前日期按 spring13 处理，overlay 应用中，NPC 会在地图应用完成后进入节日点位"), true);
+        handler.startDebugFestival(level);
+        context.getSource().sendSuccess(() -> Component.literal(handler.debugApplyMessage()), true);
         return 1;
     }
 
@@ -165,16 +163,17 @@ public final class FestivalDebugCommand {
             return 1;
         }
 
-        if (!EggFestivalService.FESTIVAL_ID.equalsIgnoreCase(festival.id())) {
-            context.getSource().sendFailure(Component.literal("当前只支持 Egg Festival 主动节日总调试: spring13"));
+        ActiveFestivalHandler handler = ActiveFestivalHandlers.get(festival).orElse(null);
+        if (handler == null) {
+            context.getSource().sendFailure(Component.literal("当前主动节日未注册调试 handler: " + festival.id()));
             return 0;
         }
 
-        EggFestivalService.restoreDebugFestival(level);
-        boolean overlayRestoreStarted = FestivalMapOverlayManager.beginRestore(level, "Town-EggFestival");
+        handler.restoreDebugFestival(level);
+        boolean overlayRestoreStarted = FestivalMapOverlayManager.beginRestore(level, festival.mapOverlayId());
         context.getSource().sendSuccess(() -> Component.literal(overlayRestoreStarted
-            ? "已恢复 Egg Festival 总调试: NPC/玩家状态已恢复，地图 overlay 正在恢复"
-            : "已恢复 Egg Festival 总调试: NPC/玩家状态已恢复，地图 overlay 当前无需恢复或尚未应用"), true);
+            ? "已恢复主动节日总调试: " + festival.id() + "，玩家状态已恢复，地图 overlay 正在恢复"
+            : "已恢复主动节日总调试: " + festival.id() + "，玩家状态已恢复，地图 overlay 当前无需恢复或尚未应用"), true);
         return 1;
     }
 
@@ -244,9 +243,7 @@ public final class FestivalDebugCommand {
             return 0;
         }
 
-        if ("spring13".equalsIgnoreCase(festival.id())) {
-            EggFestivalNpcService.requestDebugStart(level);
-        }
+        ActiveFestivalHandlers.get(festival).ifPresent(handler -> handler.requestDebugNpcs(level));
 
         context.getSource().sendSuccess(() -> Component.literal("已开始应用节日地图 overlay: " + festival.mapOverlayId()), true);
         return 1;
@@ -271,9 +268,7 @@ public final class FestivalDebugCommand {
             return 0;
         }
 
-        if ("Town-EggFestival".equalsIgnoreCase(overlayId.get())) {
-            EggFestivalNpcService.restore(level);
-        }
+        ActiveFestivalHandlers.restoreNpcsForOverlay(level, overlayId.get());
 
         context.getSource().sendSuccess(() -> Component.literal("已开始恢复节日地图 overlay: " + overlayId.get()), true);
         return 1;
@@ -281,8 +276,9 @@ public final class FestivalDebugCommand {
 
     private static int applyNpcs(CommandContext<CommandSourceStack> context) {
         String id = StringArgumentType.getString(context, "id");
-        if (!"spring13".equalsIgnoreCase(id)) {
-            context.getSource().sendFailure(Component.literal("当前只支持 Egg Festival NPC 调试: spring13"));
+        ActiveFestivalHandler handler = ActiveFestivalHandlers.get(id).orElse(null);
+        if (handler == null) {
+            context.getSource().sendFailure(Component.literal("当前主动节日未注册 NPC 调试 handler: " + id));
             return 0;
         }
         ServerLevel level = stardewLevel(context.getSource());
@@ -290,8 +286,8 @@ public final class FestivalDebugCommand {
             context.getSource().sendFailure(Component.literal("Stardew Valley 维度尚未加载"));
             return 0;
         }
-        EggFestivalNpcService.requestDebugStart(level);
-        context.getSource().sendSuccess(() -> Component.literal("已请求 Egg Festival NPC 进入节日点位"), true);
+        handler.requestDebugNpcs(level);
+        context.getSource().sendSuccess(() -> Component.literal("已请求 " + handler.displayName() + " NPC 进入节日点位"), true);
         return 1;
     }
 
@@ -341,8 +337,9 @@ public final class FestivalDebugCommand {
 
     private static int restoreNpcs(CommandContext<CommandSourceStack> context) {
         String id = StringArgumentType.getString(context, "id");
-        if (!"spring13".equalsIgnoreCase(id)) {
-            context.getSource().sendFailure(Component.literal("当前只支持 Egg Festival NPC 调试: spring13"));
+        ActiveFestivalHandler handler = ActiveFestivalHandlers.get(id).orElse(null);
+        if (handler == null) {
+            context.getSource().sendFailure(Component.literal("当前主动节日未注册 NPC 调试 handler: " + id));
             return 0;
         }
         ServerLevel level = stardewLevel(context.getSource());
@@ -350,38 +347,39 @@ public final class FestivalDebugCommand {
             context.getSource().sendFailure(Component.literal("Stardew Valley 维度尚未加载"));
             return 0;
         }
-        EggFestivalNpcService.restore(level);
-        context.getSource().sendSuccess(() -> Component.literal("已恢复 Egg Festival NPC 到当前日程"), true);
+        handler.restoreDebugNpcs(level);
+        context.getSource().sendSuccess(() -> Component.literal("已恢复 " + handler.displayName() + " NPC 到当前日程"), true);
         return 1;
     }
 
     private static int npcStatus(CommandContext<CommandSourceStack> context) {
         ServerLevel level = stardewLevel(context.getSource());
-        context.getSource().sendSuccess(() -> Component.literal(EggFestivalNpcService.debugStatus(level)), false);
+        context.getSource().sendSuccess(() -> Component.literal(ActiveFestivalHandlers.debugNpcStatus(level)), false);
         return 1;
     }
 
     private static int startMainEvent(CommandContext<CommandSourceStack> context) {
         String id = StringArgumentType.getString(context, "id");
-        if (!EggFestivalService.FESTIVAL_ID.equalsIgnoreCase(id)) {
-            context.getSource().sendFailure(Component.literal("当前只支持 Egg Festival 主事件调试: spring13"));
+        ActiveFestivalHandler handler = ActiveFestivalHandlers.get(id).orElse(null);
+        if (handler == null || !handler.supportsMainEventDebug()) {
+            context.getSource().sendFailure(Component.literal("当前主动节日未注册主事件调试 handler: " + id));
             return 0;
         }
         if (!(context.getSource().getEntity() instanceof net.minecraft.server.level.ServerPlayer player)) {
             context.getSource().sendFailure(Component.literal("该命令需要由玩家执行"));
             return 0;
         }
-        if (!EggFestivalService.tryStartMainEvent(player)) {
-            context.getSource().sendFailure(Component.literal("需要先进入 Egg Festival 会场"));
+        if (!handler.tryStartMainEvent(player)) {
+            context.getSource().sendFailure(Component.literal("需要先进入 " + handler.displayName() + " 会场"));
             return 0;
         }
-        context.getSource().sendSuccess(() -> Component.literal("已请求 Egg Festival 主事件 startContest gate"), true);
+        context.getSource().sendSuccess(() -> Component.literal("已请求 " + handler.displayName() + " 主事件"), true);
         return 1;
     }
 
     private static int mainEventStatus(CommandContext<CommandSourceStack> context) {
         ServerLevel level = stardewLevel(context.getSource());
-        context.getSource().sendSuccess(() -> Component.literal(EggFestivalService.debugMainEventStatus(level)), false);
+        context.getSource().sendSuccess(() -> Component.literal(ActiveFestivalHandlers.debugMainEventStatus(level)), false);
         return 1;
     }
 

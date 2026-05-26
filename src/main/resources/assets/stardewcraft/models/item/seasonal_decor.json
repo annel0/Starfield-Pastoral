@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "stardewcraft:item/seasonal_decor",
+    "particle": "stardewcraft:item/seasonal_decor"
+  }
+}

@@ -820,6 +820,19 @@ public final class ShopRegistry {
             Set.of()
         ));
 
+        REGISTRY.put("Festival_FlowerDance_Pierre", new ShopDefinition(
+            "Festival_FlowerDance_Pierre",
+            "Pierre",
+            "stardewcraft.shop.flowerdance.dialogue",
+            List.of(
+                entryAllSeasons("stardewcraft:seasonal_decor", 350),
+                entryAllSeasons("stardewcraft:flower_cluster", 250),
+                entryStock("stardewcraft:daffodil", 50, 10),
+                entryStock("stardewcraft:dandelion", 50, 10)
+            ),
+            Set.of()
+        ));
+
         // -------------------------------------------------------------------
         // Joja Mart — SDV source: 源文件/Content/Data/Shops.json "Joja" section.
         //

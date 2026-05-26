@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "stardewcraft:block/festival/flower_cluster_proxy" },
+    "facing=east": { "model": "stardewcraft:block/festival/flower_cluster_proxy", "y": 90 },
+    "facing=south": { "model": "stardewcraft:block/festival/flower_cluster_proxy", "y": 180 },
+    "facing=west": { "model": "stardewcraft:block/festival/flower_cluster_proxy", "y": 270 }
+  }
+}

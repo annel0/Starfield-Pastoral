@@ -21,6 +21,6 @@ public final class FestivalSystem {
         FestivalMapOverlayManager.tick(level);
         FestivalService.advancePreparingSessions(level);
         FestivalService.tickPassiveFestivals(level);
-        EggFestivalService.tick(level);
+        ActiveFestivalHandlers.tickAll(level);
     }
 }

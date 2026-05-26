@@ -9,6 +9,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -21,6 +22,15 @@ public class NpcGeoRenderer extends GeoEntityRenderer<StardewNpcEntity> {
     public NpcGeoRenderer(EntityRendererProvider.Context context) {
         super(context, new NpcGeoModel());
         this.shadowRadius = 0.35F;
+    }
+
+    @Override
+    public boolean shouldRender(StardewNpcEntity entity, Frustum camera, double camX, double camY, double camZ) {
+        String npcId = entity.getNpcId();
+        if (npcId != null && ClientNpcVisibilityState.isHidden(npcId)) {
+            return false;
+        }
+        return super.shouldRender(entity, camera, camX, camY, camZ);
     }
 
     @Override

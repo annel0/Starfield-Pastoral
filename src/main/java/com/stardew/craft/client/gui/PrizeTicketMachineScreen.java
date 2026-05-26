@@ -54,6 +54,10 @@ public class PrizeTicketMachineScreen extends Screen {
     private static final int FIRST_REWARD_X = 112;
     private static final int REWARD_STEP_X = 88;
     private static final int REWARD_Y = 84;
+    private static final int REWARD_TRACK_CLIP_X = TRACK_X;
+    private static final int REWARD_TRACK_CLIP_Y = TRACK_Y;
+    private static final int REWARD_TRACK_CLIP_RIGHT_X = FIRST_REWARD_X + REWARD_STEP_X * 3;
+    private static final int REWARD_TRACK_CLIP_BOTTOM_Y = TRACK_Y + TRACK_SOURCE_H * 4;
 
     private static final int GET_REWARD_MS = 2000;
     private static final int DISCOVER_MINERAL_MS = 750;
@@ -231,18 +235,28 @@ public class PrizeTicketMachineScreen extends Screen {
             }
         }
 
-        for (int index = 0; index < currentPrizeTrack.size(); index++) {
-            ItemStack stack = currentPrizeTrack.get(index).stack();
-            int jitterX = shaking ? random.nextInt(3) - 1 : 0;
-            int jitterY = shaking ? random.nextInt(3) - 1 : 0;
-            int x = x0 + ui(FIRST_REWARD_X + REWARD_STEP_X * index + slideOffset + jitterX);
-            int y = y0 + ui(REWARD_Y + jitterY);
-            if (index == 0) {
-                graphics.fill(x0 + ui(100), y0 + ui(76), x0 + ui(188), y0 + ui(156), 0x54FFFFE0);
+        graphics.enableScissor(
+            x0 + ui(REWARD_TRACK_CLIP_X),
+            y0 + ui(REWARD_TRACK_CLIP_Y),
+            x0 + ui(REWARD_TRACK_CLIP_RIGHT_X),
+            y0 + ui(REWARD_TRACK_CLIP_BOTTOM_Y)
+        );
+        try {
+            for (int index = 0; index < currentPrizeTrack.size(); index++) {
+                ItemStack stack = currentPrizeTrack.get(index).stack();
+                int jitterX = shaking ? random.nextInt(3) - 1 : 0;
+                int jitterY = shaking ? random.nextInt(3) - 1 : 0;
+                int x = x0 + ui(FIRST_REWARD_X + REWARD_STEP_X * index + slideOffset + jitterX);
+                int y = y0 + ui(REWARD_Y + jitterY);
+                if (index == 0) {
+                    graphics.fill(x0 + ui(100), y0 + ui(76), x0 + ui(188), y0 + ui(156), 0x54FFFFE0);
+                }
+                if (!gettingReward || index != 0) {
+                    CommonGuiTextures.drawItemWithDecorations(graphics, font, stack, x, y, s4());
+                }
             }
-            if (!gettingReward || index != 0) {
-                CommonGuiTextures.drawItemWithDecorations(graphics, font, stack, x, y, s4());
-            }
+        } finally {
+            graphics.disableScissor();
         }
     }
 

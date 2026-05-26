@@ -1,5 +1,55 @@
 # Changelog
 
+## 0.4.3 - 2026-05-26
+
+### Update Log (English)
+
+#### Headline Features
+
+- Added the first active Flower Dance implementation pass for Spring 24, including festival entry, time freeze behavior, HUD hiding, the Forest-FlowerFestival overlay, festival music, Pierre's event shop, and end-of-event return handling.
+- Added Flower Dance NPC participation systems with confirmed venue positions, festival dialogue routing, dance partner invitations, friendship threshold checks, successful invitation friendship rewards, player-player dance invitations, and occupied-partner rejection handling.
+- Added the first Flower Dance main dance cutscene flow, including Lewis start confirmation, selected dance partners, client-side dancer/audience actors, camera setup, hidden real-NPC suppression, and festival-specific cutscene assets.
+
+#### Festival Architecture
+
+- Added a shared active festival handler layer so active festivals can centralize entry, main-event state, NPC interaction locks, Pierre festival shops, and future free-stage exit behavior.
+- Added festival NPC control hooks so central NPC movement yields to active festival actors instead of overwriting festival positions and routes.
+- Expanded festival network payload coverage for Flower Dance NPC invites, player invites, player ask prompts, and cutscene synchronization.
+
+#### Content, Polish, and Planning
+
+- Added Flower Dance decor blocks, block entities, models, textures, structure data, music resources, and the main cutscene event definition.
+- Improved Egg Festival runtime support touched by the shared active-festival flow, including festival lifecycle handling and interaction consistency.
+- Added and updated planning/source-ledger documents for Flower Dance, active festival architecture, festival requirements, story/event migration, mastery, prize ticket, and related implementation tracks.
+
+#### Changes
+
+- Updated the public mod version to `0.4.3`.
+
+### 更新日志（中文）
+
+#### 重点内容
+
+- 加入第一轮主动花舞节实现，覆盖春 24 入场、时间冻结、HUD 隐藏、`Forest-FlowerFestival` 会场覆盖、节日音乐、皮埃尔节日商店，以及节日结束后的回家流程。
+- 加入花舞节 NPC 参与系统，包括已确认会场站位、节日对白路由、NPC 舞伴邀请、好感阈值判断、邀请成功后的好感奖励、玩家互邀，以及舞伴已被占用时的拒绝处理。
+- 加入花舞节主舞 cutscene 首版流程，包括刘易斯开始确认、已选择舞伴入场、客户端舞者/观众演员、镜头设置、真实 NPC 隐藏与阴影抑制，以及花舞节专用 cutscene 资源。
+
+#### 节日架构
+
+- 新增主动节日通用 handler 层，用于集中处理节日入场、主事件状态、NPC 交互锁、皮埃尔节日商店，以及后续自由阶段离场逻辑。
+- 新增节日 NPC 控制钩子，让中央 NPC 移动系统在主动节日期间让位给节日演员，避免覆盖节日站位和路线。
+- 扩展花舞节网络包，支持 NPC 邀舞、玩家互邀、玩家邀请确认和 cutscene 状态同步。
+
+#### 内容、打磨与规划
+
+- 新增花舞节装饰方块、方块实体、模型、贴图、结构数据、音乐资源和主舞 cutscene 事件定义。
+- 改进被主动节日流程触及的复活节运行逻辑，包括节日生命周期和交互一致性。
+- 新增并更新花舞节、主动节日架构、节日需求、剧情/事件迁移、精通、兑奖券等实现规划和源码对照文档。
+
+#### 变更
+
+- 项目公开版本号更新为 `0.4.3`。
+
 ## 0.4.2 - 2026-05-25
 
 ### Update Log (English)

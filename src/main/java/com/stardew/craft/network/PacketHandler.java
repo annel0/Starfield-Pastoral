@@ -1253,6 +1253,43 @@ public class PacketHandler {
             com.stardew.craft.network.payload.ConfirmGiftPayload::handle
         );
 
+        // Flower Dance NPC dance invitation (S→C) and response (C→S)
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenFlowerDanceInvitePayload.TYPE,
+            com.stardew.craft.network.payload.OpenFlowerDanceInvitePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenFlowerDanceInvitePayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.FlowerDanceInviteResponsePayload.TYPE,
+            com.stardew.craft.network.payload.FlowerDanceInviteResponsePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FlowerDanceInviteResponsePayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenFlowerDancePlayerAskPayload.TYPE,
+            com.stardew.craft.network.payload.OpenFlowerDancePlayerAskPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenFlowerDancePlayerAskPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.FlowerDancePlayerAskResponsePayload.TYPE,
+            com.stardew.craft.network.payload.FlowerDancePlayerAskResponsePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FlowerDancePlayerAskResponsePayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenFlowerDancePlayerInvitePayload.TYPE,
+            com.stardew.craft.network.payload.OpenFlowerDancePlayerInvitePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenFlowerDancePlayerInvitePayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.FlowerDancePlayerInviteResponsePayload.TYPE,
+            com.stardew.craft.network.payload.FlowerDancePlayerInviteResponsePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FlowerDancePlayerInviteResponsePayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.FlowerDanceCutsceneStatePayload.TYPE,
+            com.stardew.craft.network.payload.FlowerDanceCutsceneStatePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FlowerDanceCutsceneStatePayload::handle
+        );
+
         // Desert bus ride (confirm dialog + fade) — S→C open / C→S confirm / S→C fade
         registrar.playToClient(
             com.stardew.craft.network.payload.OpenDesertBusConfirmPayload.TYPE,

@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "stardewcraft:block/festival/seasonal_decor_proxy" },
+    "facing=east": { "model": "stardewcraft:block/festival/seasonal_decor_proxy", "y": 90 },
+    "facing=south": { "model": "stardewcraft:block/festival/seasonal_decor_proxy", "y": 180 },
+    "facing=west": { "model": "stardewcraft:block/festival/seasonal_decor_proxy", "y": 270 }
+  }
+}

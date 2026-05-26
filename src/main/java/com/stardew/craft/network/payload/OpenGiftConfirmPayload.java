@@ -17,7 +17,7 @@ import java.util.List;
 @SuppressWarnings("null")
 public record OpenGiftConfirmPayload(
     String npcId,
-    String itemDisplayName,
+    String itemDisplayNameJson,
     String npcDisplayName
 ) implements CustomPacketPayload {
 
@@ -27,10 +27,10 @@ public record OpenGiftConfirmPayload(
     public static final StreamCodec<FriendlyByteBuf, OpenGiftConfirmPayload> STREAM_CODEC = StreamCodec.of(
         (buf, payload) -> {
             buf.writeUtf(payload.npcId(), 64);
-            buf.writeUtf(payload.itemDisplayName(), 256);
+            buf.writeUtf(payload.itemDisplayNameJson(), 1024);
             buf.writeUtf(payload.npcDisplayName(), 256);
         },
-        buf -> new OpenGiftConfirmPayload(buf.readUtf(64), buf.readUtf(256), buf.readUtf(256))
+        buf -> new OpenGiftConfirmPayload(buf.readUtf(64), buf.readUtf(1024), buf.readUtf(256))
     );
 
     @Override
@@ -47,11 +47,10 @@ public record OpenGiftConfirmPayload(
         net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
         if (mc.player == null) return;
 
-        // payload.itemDisplayName() 是物品翻译键（如 item.stardewcraft.fishing_rod），
-        // 包成 Component.translatable 才会用客户端语言文件解析出「鱼竿」。
+        Component itemDisplayName = parseComponent(payload.itemDisplayNameJson(), mc);
         Component question = Component.translatable(
             "stardewcraft.npc.gift.confirm",
-            Component.translatable(payload.itemDisplayName()),
+            itemDisplayName,
             payload.npcDisplayName()
         );
 
@@ -70,5 +69,17 @@ public record OpenGiftConfirmPayload(
                 -1
             )
         ));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static Component parseComponent(String json, net.minecraft.client.Minecraft mc) {
+        try {
+            Component component = Component.Serializer.fromJson(json, mc.level.registryAccess());
+            if (component != null) {
+                return component;
+            }
+        } catch (Exception ignored) {
+        }
+        return Component.literal(json);
     }
 }

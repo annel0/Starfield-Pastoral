@@ -18,6 +18,7 @@ public record OpenFestivalConfirmPayload(Action action) implements CustomPacketP
         ENTER,
         EXIT,
         START_CONTEST,
+        START_DANCE,
         END_CONTEST,
         FESTIVAL_END;
 
@@ -56,9 +57,10 @@ public record OpenFestivalConfirmPayload(Action action) implements CustomPacketP
         Component question = switch (payload.action()) {
             case EXIT -> Component.translatable("message.stardewcraft.festival.exit_confirm");
             case START_CONTEST -> Component.translatable("message.stardewcraft.festival.egg.start_confirm");
+            case START_DANCE -> Component.translatable("message.stardewcraft.festival.flower_dance.start_confirm");
             case END_CONTEST -> Component.translatable("message.stardewcraft.festival.egg.end_contest_confirm");
             case FESTIVAL_END -> Component.translatable("message.stardewcraft.festival.egg.festival_end_confirm");
-            case ENTER -> Component.translatable("message.stardewcraft.festival.egg.enter_confirm");
+            case ENTER -> Component.translatable("message.stardewcraft.festival.enter_confirm");
         };
         mc.setScreen(com.stardew.craft.client.gui.common.StardewConfirmDialogScreen.createQuestionDialog(
             com.stardew.craft.client.gui.common.StardewQuestionDialogSpec.of(

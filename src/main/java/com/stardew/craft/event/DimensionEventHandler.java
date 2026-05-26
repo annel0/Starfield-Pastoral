@@ -468,7 +468,7 @@ public class DimensionEventHandler {
         // 并发送给客户端，就会和 mod 发的虚拟时间打架 → 天空闪烁。
         // 此处强制对齐，使所有原版代码路径读到的都是正确的虚拟时间。
         StardewTimeManager timeManager = StardewTimeManager.get();
-        long virtualDayTime = com.stardew.craft.festival.EggFestivalService.applyTimeFreeze(serverLevel, timeManager);
+        long virtualDayTime = com.stardew.craft.festival.ActiveFestivalHandlers.applyTimeFreeze(serverLevel, timeManager);
         serverLevel.setDayTime(virtualDayTime);
         ServerLevel miningLevel = server.getLevel(ModMiningDimensions.STARDEW_MINING);
         if (miningLevel != null) {

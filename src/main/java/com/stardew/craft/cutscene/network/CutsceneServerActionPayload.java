@@ -164,6 +164,11 @@ public record CutsceneServerActionPayload(String action, String value) implement
                     com.stardew.craft.festival.EggFestivalService.onCutsceneBlackout(player, payload.value);
                     LOGGER.debug("Cutscene prepared Egg Festival {} stage for {}", payload.value, player.getName().getString());
                 }
+                case "flower_dance_stage" -> {
+                    com.stardew.craft.cutscene.server.ServerCutsceneTracker.markServerMovedPlayer(player);
+                    com.stardew.craft.festival.FlowerDanceService.onCutsceneStage(player, payload.value);
+                    LOGGER.debug("Cutscene prepared Flower Dance {} stage for {}", payload.value, player.getName().getString());
+                }
                 default -> LOGGER.warn("Unknown cutscene server action: {}", payload.action);
             }
         });

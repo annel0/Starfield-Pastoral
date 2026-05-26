@@ -183,6 +183,11 @@ public final class ModBlockEntities {
 			BLOCK_ENTITIES.register("egg_festival_egg", () -> BlockEntityType.Builder.of(EggFestivalEggBlockEntity::new, ModBlocks.EGG_FESTIVAL_EGG.get()).build(null));
 
 	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FlowerDanceDecorBlockEntity>> FLOWER_DANCE_DECOR =
+			BLOCK_ENTITIES.register("flower_dance_decor", () -> BlockEntityType.Builder.of(FlowerDanceDecorBlockEntity::new,
+					ModBlocks.FLOWER_CLUSTER.get(), ModBlocks.SEASONAL_DECOR.get()).build(null));
+
+	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DecorBlockEntity>> DECOR_BLOCK =
 			BLOCK_ENTITIES.register("decor_block", () -> BlockEntityType.Builder.of(DecorBlockEntity::new, ModBlocks.WALLPAPER_BLOCK.get(), ModBlocks.FLOORING_BLOCK.get()).build(null));
 

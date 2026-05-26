@@ -166,20 +166,35 @@ public final class NpcInteractionService {
         NpcFriendshipDataManager.FriendshipState state = friendshipManager.getOrCreate(serverPlayer.getUUID(), npcId);
         state.normalizeGiftWeek(dayContext.weekKey());
 
-        if (npcId.equals("pierre") && com.stardew.craft.festival.EggFestivalService.tryOpenPierreFestivalShop(serverPlayer)) {
+        if (npcId.equals("pierre") && com.stardew.craft.festival.ActiveFestivalHandlers.tryOpenPierreFestivalShop(serverPlayer)) {
             return InteractionResult.SUCCESS;
         }
 
-        if (com.stardew.craft.festival.EggFestivalService.isParticipant(serverPlayer)) {
-            if (npcId.equals("lewis") && com.stardew.craft.festival.EggFestivalService.tryStartMainEvent(serverPlayer)) {
+        com.stardew.craft.festival.ActiveFestivalHandler activeFestival = com.stardew.craft.festival.ActiveFestivalHandlers.getParticipating(serverPlayer).orElse(null);
+        if (activeFestival != null) {
+            if (npcId.equals("lewis") && activeFestival.tryStartMainEvent(serverPlayer)) {
                 return InteractionResult.SUCCESS;
             }
-            if (com.stardew.craft.festival.EggFestivalService.isEggHuntActive()
-                || com.stardew.craft.festival.EggFestivalService.isMainEventCutsceneActive()) {
+            if (activeFestival.blocksNpcInteractionDuringMainEvent()) {
                 return InteractionResult.SUCCESS;
             }
-            if (tryHandleEggFestivalDialogue(serverPlayer, npc, npcId, state, dayContext, friendshipManager)) {
+            if ("spring13".equalsIgnoreCase(activeFestival.festivalId())
+                && tryHandleEggFestivalDialogue(serverPlayer, npc, npcId, state, dayContext, friendshipManager)) {
                 return InteractionResult.SUCCESS;
+            }
+            if ("spring24".equalsIgnoreCase(activeFestival.festivalId())) {
+                if (com.stardew.craft.festival.FlowerDanceService.canAskNpcToDance(npcId)
+                    && com.stardew.craft.festival.FlowerDanceService.hasFestivalDialogueSeen(serverPlayer, npcId)
+                    && com.stardew.craft.festival.FlowerDanceService.isNpcDancePartnerTaken(npcId)) {
+                    sendDialoguePacket(serverPlayer, npcId, flowerDanceNpcDialogueKey(npcId, "flowerdance_taken"), state.points());
+                    return InteractionResult.SUCCESS;
+                }
+                if (com.stardew.craft.festival.FlowerDanceService.tryOpenNpcDanceInvite(serverPlayer, npcId)) {
+                    return InteractionResult.SUCCESS;
+                }
+                if (tryHandleFlowerDanceDialogue(serverPlayer, npc, npcId, state, dayContext, friendshipManager)) {
+                    return InteractionResult.SUCCESS;
+                }
             }
             return InteractionResult.SUCCESS;
         }
@@ -306,12 +321,10 @@ public final class NpcInteractionService {
         if (hasGiftableHeld) {
             // NPC smoothly turns to face the player, then opens gift confirm screen
             String npcDisplayName = npc.getDisplayName().getString();
-            // 发送物品的翻译键（而不是服务端解析后的字符串）。服务端语言文件通常只有 en_us，
-            // 对其他语种会直接返回 "item.stardewcraft.xxx" 这种 key。由客户端按本地语言解析。
-            String itemDescriptionId = held.getDescriptionId();
+            String itemDisplayNameJson = serializeGiftItemDisplayName(held, serverLevel);
             npc.facePlayerTemporarily(serverPlayer, 60, () -> {
                 PacketDistributor.sendToPlayer(serverPlayer,
-                    new com.stardew.craft.network.payload.OpenGiftConfirmPayload(npcId, itemDescriptionId, npcDisplayName));
+                    new com.stardew.craft.network.payload.OpenGiftConfirmPayload(npcId, itemDisplayNameJson, npcDisplayName));
             });
             return InteractionResult.SUCCESS;
         }
@@ -382,6 +395,33 @@ public final class NpcInteractionService {
         com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(player, npcId);
         int points = state.points();
         npc.facePlayerTemporarily(player, 60, () -> sendDialoguePacket(player, npcId, dialogueText, points, false));
+        return true;
+    }
+
+    private static boolean tryHandleFlowerDanceDialogue(ServerPlayer player,
+                                                        StardewNpcEntity npc,
+                                                        String npcId,
+                                                        NpcFriendshipDataManager.FriendshipState state,
+                                                        DayContext dayContext,
+                                                        NpcFriendshipDataManager friendshipManager) {
+        String dialogueText = com.stardew.craft.festival.FlowerDanceNpcService.resolveDialogueKey(player, npcId);
+        if (dialogueText == null || dialogueText.isBlank()) {
+            return false;
+        }
+
+        boolean canGainFriendship = NpcSocialRules.canSocialize(npcId, player);
+        if (canGainFriendship && state.lastTalkDayKey() != dayContext.dayKey()) {
+            grantConversationFriendship(npcId, state, dayContext, dialogueText, player);
+            NpcFriendshipRewardService.applyEligibleRewards(player, npcId, state.points());
+            friendshipManager.setDirty();
+        }
+        syncFriendshipStatus(player, npcId, state, dayContext);
+        com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(player, npcId);
+        int points = state.points();
+        npc.facePlayerTemporarily(player, 60, () -> {
+            com.stardew.craft.festival.FlowerDanceService.markFestivalDialogueSeen(player, npcId);
+            sendDialoguePacket(player, npcId, dialogueText, points, false);
+        });
         return true;
     }
 
@@ -504,6 +544,51 @@ public final class NpcInteractionService {
         sendDialoguePacket(player, npcId, resultText, state.points(), garbleGift);
     }
 
+    public static void handleFlowerDanceNpcInviteResponse(ServerPlayer player, String npcId, boolean confirmed) {
+        if (!confirmed || player == null || !(player.level() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+        String canonicalNpcId = npcId == null ? "" : npcId.trim().toLowerCase(Locale.ROOT);
+        if (canonicalNpcId.isBlank() || !com.stardew.craft.festival.FlowerDanceService.isParticipant(player)) {
+            return;
+        }
+        if (!com.stardew.craft.festival.FlowerDanceService.canAskNpcToDance(canonicalNpcId)) {
+            return;
+        }
+
+        NpcFriendshipDataManager friendshipManager = NpcFriendshipDataManager.get(serverLevel);
+        NpcFriendshipDataManager.FriendshipState state = friendshipManager.getOrCreate(player.getUUID(), canonicalNpcId);
+        DayContext dayContext = currentDayContext(serverLevel);
+        state.normalizeGiftWeek(dayContext.weekKey());
+
+        if (com.stardew.craft.festival.FlowerDanceService.hasDancePartner(player)) {
+            sendDialoguePacket(player, canonicalNpcId, "message.stardewcraft.festival.flower_dance.already_have_partner", state.points());
+            return;
+        }
+        if (com.stardew.craft.festival.FlowerDanceService.isNpcDancePartnerTaken(canonicalNpcId)) {
+            sendDialoguePacket(player, canonicalNpcId, flowerDanceNpcDialogueKey(canonicalNpcId, "flowerdance_taken"), state.points());
+            return;
+        }
+        if (state.points() < 1000) {
+            sendDialoguePacket(player, canonicalNpcId, flowerDanceNpcDialogueKey(canonicalNpcId, "flowerdance_decline"), state.points());
+            return;
+        }
+        if (!com.stardew.craft.festival.FlowerDanceService.setNpcDancePartner(player, canonicalNpcId)) {
+            sendDialoguePacket(player, canonicalNpcId, flowerDanceNpcDialogueKey(canonicalNpcId, "flowerdance_taken"), state.points());
+            return;
+        }
+
+        state.addPoints(250, getMaxFriendshipPointsFor(canonicalNpcId));
+        NpcFriendshipRewardService.applyEligibleRewards(player, canonicalNpcId, state.points());
+        friendshipManager.setDirty();
+        syncFriendshipStatus(player, canonicalNpcId, state, dayContext);
+        sendDialoguePacket(player, canonicalNpcId, flowerDanceNpcDialogueKey(canonicalNpcId, "flowerdance_accept"), state.points());
+    }
+
+    private static String flowerDanceNpcDialogueKey(String npcId, String suffix) {
+        return "stardewcraft.npc." + npcId + "." + suffix;
+    }
+
     public static int getMaxFriendshipPointsFor(String npcId) {
         NpcCapabilityProfile profile = NpcDataRegistry.capabilities().get(npcId);
         boolean datable = profile != null && profile.datable();
@@ -578,6 +663,15 @@ public final class NpcInteractionService {
 
         Boolean vanillaGiftability = findVanillaObjectGiftability(held);
         return vanillaGiftability == null || vanillaGiftability;
+    }
+
+    private static String serializeGiftItemDisplayName(ItemStack held, ServerLevel level) {
+        try {
+            return net.minecraft.network.chat.Component.Serializer.toJson(
+                held.getHoverName(), level.registryAccess());
+        } catch (Exception e) {
+            return held.getHoverName().getString();
+        }
     }
 
     private static Boolean findVanillaObjectGiftability(ItemStack held) {

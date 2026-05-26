@@ -143,8 +143,8 @@ public final class FestivalMapOverlayManager {
             }
             forceChunks(level, patch, false);
             StardewCraft.LOGGER.info("[FESTIVAL_OVERLAY] {} overlay {} ({} blocks)", applying ? "Applied" : "Restored", state.overlayId(), patch.entries().size());
-            if (applying && "Town-EggFestival".equals(state.overlayId())) {
-                EggFestivalService.tickNpcActors(level);
+            if (applying) {
+                ActiveFestivalHandlers.onMapOverlayApplied(level, state.overlayId());
             }
         }
     }

@@ -156,6 +156,7 @@ public final class ModClientSetup {
 		event.registerBlockEntityRenderer(ModBlockEntities.LARGE_FIREPLACE.get(), LargeFireplaceBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.SHRINE.get(), ShrineBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.JUNIMO_HUT_DECOR.get(), com.stardew.craft.client.render.JunimoHutDecorBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(ModBlockEntities.FLOWER_DANCE_DECOR.get(), com.stardew.craft.client.render.FlowerDanceDecorBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.GIANT_CROP.get(), com.stardew.craft.client.render.GiantCropBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.BOOKSHELF_GEO.get(), BookshelfGeoBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.PILLAR_GEO.get(), PillarGeoBlockEntityRenderer::new);

@@ -1854,6 +1854,22 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .strength(2.0F, 3.0F), "stardewcraft:decor/festival/flower_basket"));
 
         @SuppressWarnings("null")
+        public static final DeferredBlock<Block> FLOWER_CLUSTER = BLOCKS.register("flower_cluster",
+                        () -> new com.stardew.craft.block.decor.FlowerDanceDecorBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.PLANT)
+                                        .sound(net.minecraft.world.level.block.SoundType.GRASS)
+                                        .noOcclusion()
+                                        .strength(0.4F, 0.8F)));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> SEASONAL_DECOR = BLOCKS.register("seasonal_decor",
+                        () -> new com.stardew.craft.block.decor.FlowerDanceDecorBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.PLANT)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.4F, 0.8F)));
+
+        @SuppressWarnings("null")
         public static final DeferredBlock<Block> PLUSH_BUNNY = BLOCKS.register("plush_bunny",
                         () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
                                         .mapColor(net.minecraft.world.level.material.MapColor.WOOL)

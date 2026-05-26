@@ -24,7 +24,7 @@ public final class FestivalRegistry {
         register(new FestivalDefinition(
             "spring24", FestivalType.ACTIVE, "Flower Dance", "Flower Dance", "",
             SPRING, 24, 24, 900, 1400, true, false, "",
-            "Forest", "Forest-FlowerFestival", Map.of(), List.of(), "flower_dance"
+            "Forest", "Forest-FlowerFestival", Map.of(), List.of("Festival_FlowerDance_Pierre"), "flower_dance"
         ));
         register(new FestivalDefinition(
             "summer11", FestivalType.ACTIVE, "Luau", "Luau", "",

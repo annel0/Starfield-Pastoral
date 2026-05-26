@@ -306,7 +306,7 @@ public final class NpcCentralMovementService {
                 continue;
             }
 
-            if (com.stardew.craft.festival.EggFestivalNpcService.controlsNpc(npcId)) {
+            if (com.stardew.craft.festival.FestivalNpcController.controlsNpc(npcId)) {
                 ACTIVE_PLANS.remove(npcId);
                 LAST_NODE_SIGNATURE.remove(npcId);
                 continue;
