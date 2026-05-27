@@ -11,6 +11,18 @@ public interface PassiveFestivalHandler {
     default void onOpen(ServerLevel level, FestivalDefinition definition, FestivalSessionState session) {
     }
 
+    default void onMapOverlayApplyStarted(ServerLevel level, FestivalDefinition definition, FestivalSessionState session) {
+    }
+
+    default void onMapOverlayApplied(ServerLevel level, FestivalDefinition definition, FestivalSessionState session) {
+    }
+
+    default void onMapOverlayRestoreStarted(ServerLevel level, FestivalDefinition definition, FestivalSessionState session) {
+    }
+
+    default void onMapOverlayRestored(ServerLevel level, FestivalDefinition definition, FestivalSessionState session) {
+    }
+
     default void tick(ServerLevel level, FestivalDefinition definition, FestivalSessionState session) {
     }
 

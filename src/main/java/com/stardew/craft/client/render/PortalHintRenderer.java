@@ -356,6 +356,7 @@ public final class PortalHintRenderer {
             case "sewer_exit" -> "pelican_town";
             case "greenhouse_enter", "greenhouse_exit" -> "greenhouse";
             case "farm_cave_enter", "farm_cave_exit" -> "farm_cave";
+            case "lewis_basement_exit" -> "lewis_basement";
             case "mine_entrance", "mine_exit" -> "mine";
             case "desert_mine_enter", "skull_cavern_exit" -> "desert_mine";
             case "oasis_enter", "oasis_exit" -> "oasis";

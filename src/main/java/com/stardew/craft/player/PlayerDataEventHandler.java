@@ -75,6 +75,10 @@ public class PlayerDataEventHandler {
                     com.stardew.craft.network.TimeSyncPacket.fromTimeManager(tmForSync));
             }
 
+            // Re-sync active festival client state after login. HUD/music are client-local,
+            // so persistent participation tags alone are not enough after reconnect.
+            com.stardew.craft.festival.ActiveFestivalHandlers.onPlayerLogin(player);
+
             // 同步社区中心 bundle 数据到客户端 (星盘渲染等需要)
             com.stardew.craft.communitycenter.network.BundleSyncPayload.sendFullSync(player);
 
@@ -276,8 +280,9 @@ public class PlayerDataEventHandler {
             // Release any NPC dialogue movement lock owned by this player.
             com.stardew.craft.npc.runtime.NpcInteractionService.onPlayerLogout(player);
 
-            // Clear Flower Dance player-player dance proposals and pair state.
-            com.stardew.craft.festival.FlowerDanceService.onPlayerLogout(player);
+            // Let active festivals clear only per-connection state; durable same-day choices
+            // such as Flower Dance partners must survive reconnect.
+            com.stardew.craft.festival.ActiveFestivalHandlers.onPlayerLogout(player);
 
             // 多人农场：更新最后在线天数 + 卸载农场区块
             {
@@ -596,7 +601,7 @@ public class PlayerDataEventHandler {
                 int bonus = ModMobEffects.vigorousMaxEnergyBonus(vigorous.getAmplifier());
                 long endTick = now + vigorous.getDuration();
                 changed |= data.setTempMaxEnergyBonusDirect(bonus, endTick);
-            } else {
+            } else if (!data.hasActiveTempMaxEnergyBonus(now)) {
                 changed |= data.clearTempMaxEnergyBonus();
             }
 

@@ -452,6 +452,8 @@ public final class FishingSessionManager {
 				// Quest: fish caught
 				com.stardew.craft.quest.StardewQuestEvents.fireFishCaught(player, itemId, finalNumCaught);
 			}
+			boolean awardTroutDerbyTag = com.stardew.craft.festival.trout.TroutDerbyService.shouldAwardGoldenTag(
+					player, fish, finalNumCaught);
 			
 			// Give multiple fish if applicable.
 			if (finalNumCaught <= 1) {
@@ -477,7 +479,9 @@ public final class FishingSessionManager {
 
 			// 处理宝箱战利品（在鱼动画之前发送，让客户端知道有宝箱）
 			if (session.hasTreasure() && treasureCaught) {
-				generateAndGiveTreasure(player, session);
+				generateAndGiveTreasure(player, session, awardTroutDerbyTag);
+			} else if (awardTroutDerbyTag) {
+				com.stardew.craft.festival.trout.TroutDerbyService.awardGoldenTagWithoutTreasure(player);
 			}
 
 			// Success SFX: 使用 playNotifySound 确保玩家自己能听到
@@ -733,7 +737,7 @@ public final class FishingSessionManager {
 	 * 生成并给予玩家宝箱战利品 - 通过打开UI显示
 	 */
 	@SuppressWarnings("null")
-	private void generateAndGiveTreasure(ServerPlayer player, FishingSession session) {
+	private void generateAndGiveTreasure(ServerPlayer player, FishingSession session, boolean includeTroutDerbyTag) {
 		com.stardew.craft.fishing.data.TreasureLootManager lootMgr = getLootManager();
 		int fishingLevel = StardewEnchantments.effectiveFishingLevel(player, getRodFromPlayer(player));
 		double dailyLuck = PlayerStardewDataAPI.getDailyLuck(player);
@@ -752,6 +756,9 @@ public final class FishingSessionManager {
 				PlayerDataManager.getPlayerData(player), loot, session.plannedCatch(), player.getRandom());
 		com.stardew.craft.book.BookAcquisitionService.recordFishingTreasureAndMaybeAddRoeBook(
 				player, loot, player.getRandom());
+		if (includeTroutDerbyTag) {
+			loot.add(com.stardew.craft.festival.trout.TroutDerbyService.createGoldenTagStack());
+		}
 
 		// 保存战利品到session
 		session.setTreasureLoot(loot);

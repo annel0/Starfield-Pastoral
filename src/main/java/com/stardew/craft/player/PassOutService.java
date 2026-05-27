@@ -17,7 +17,10 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 晕倒/死亡核心逻辑。
@@ -34,6 +37,10 @@ public final class PassOutService {
 
     private static final org.slf4j.Logger LOGGER = com.mojang.logging.LogUtils.getLogger();
     private static final Random RANDOM = new Random();
+    private static final Map<UUID, RescueTarget> PENDING_RESCUE_TARGETS = new ConcurrentHashMap<>();
+    private static final RescueTarget DESERT_FESTIVAL_MEDICAL_TENT_RESCUE = new RescueTarget(
+        -221.0D, 64.0D, -195.0D, 0.0F, 0.0F
+    );
 
     /**
      * 防止同一 tick 内对同一玩家重复触发 onCombatDeath。
@@ -151,12 +158,15 @@ public final class PassOutService {
         }
 
         // 2. 物品丢失
+        boolean desertFestivalSkullCavernDeath = com.stardew.craft.festival.desert.DesertFestivalMineService.isInFestivalSkullCavern(player);
         List<ItemStack> lostItems;
-        if (com.stardew.craft.festival.desert.DesertFestivalMineService.isInFestivalSkullCavern(player)) {
+        if (desertFestivalSkullCavernDeath) {
             removeDesertFestivalEggPenalty(player);
             lostItems = List.of();
+            PENDING_RESCUE_TARGETS.put(player.getUUID(), DESERT_FESTIVAL_MEDICAL_TENT_RESCUE);
         } else {
             lostItems = loseItemsOnDeath(player, data);
+            PENDING_RESCUE_TARGETS.remove(player.getUUID());
         }
         data.setItemsLostLastDeath(lostItems);
 
@@ -440,6 +450,15 @@ public final class PassOutService {
     //  传送回农场
     // ──────────────────────────────────────
 
+    public static void teleportAfterPassOutAck(ServerPlayer player) {
+        RescueTarget rescueTarget = PENDING_RESCUE_TARGETS.remove(player.getUUID());
+        if (rescueTarget != null && teleportToRescueTarget(player, rescueTarget)) {
+            completeCombatDeathRescue(player);
+            return;
+        }
+        teleportToFarmSpawn(player);
+    }
+
     /**
      * 将玩家传送回星露谷维度农场出生点。
      */
@@ -465,7 +484,18 @@ public final class PassOutService {
         double sz = spawnPos.getZ() + 0.5;
 
         ModTeleport.to(player, stardewLevel, sx, sy, sz, player.getYRot(), player.getXRot());
+        completeCombatDeathRescue(player);
+    }
 
+    private static boolean teleportToRescueTarget(ServerPlayer player, RescueTarget target) {
+        var server = player.server;
+        var stardewLevel = server.getLevel(ModDimensions.STARDEW_VALLEY);
+        if (stardewLevel == null) return false;
+        ModTeleport.to(player, stardewLevel, target.x(), target.y(), target.z(), target.yaw(), target.pitch());
+        return true;
+    }
+
+    private static void completeCombatDeathRescue(ServerPlayer player) {
         // 传送完成：清除击倒状态，恢复满血
         grantCombatDeathRecovery(player);
         clearKnockedOut(player);
@@ -480,6 +510,8 @@ public final class PassOutService {
         miningData.setCurrentFloor(0);
         com.stardew.craft.mining.MiningDataManager.savePlayerData(player, miningData);
     }
+
+    private record RescueTarget(double x, double y, double z, float yaw, float pitch) {}
 
     // ──────────────────────────────────────
     //  工具方法

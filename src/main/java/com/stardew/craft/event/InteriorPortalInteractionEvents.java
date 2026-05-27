@@ -279,6 +279,15 @@ public class InteriorPortalInteractionEvents {
             pdata.setWizardSourceDimension(ModDimensions.STARDEW_VALLEY);
         }
 
+        if (LuckyPurpleShortsWorldEvents.LEWIS_BASEMENT_EXIT_TARGET.equals(targetId)) {
+            InteriorSubspaceManager.ensureLoaded(player.serverLevel(), "lewis_basement_exit");
+            long now = player.serverLevel().getGameTime();
+            long last = player.getPersistentData().getLong(PLAYER_LAST_PORTAL_TICK);
+            if (now - last < PORTAL_COOLDOWN_TICKS) return;
+            beginPortalTransition(player, "mayor_house_enter", now);
+            return;
+        }
+
         // ── 通用 Portal Registry 查找 ──
         Optional<InteriorPortalRegistry.PortalTarget> resolved = InteriorPortalRegistry.resolve(targetId);
         if (resolved.isEmpty()) return;

@@ -191,6 +191,7 @@ public class StardewCraftClient {
                 ModBlocks.RADISH_CROP.get(),
                 ModBlocks.RED_CABBAGE_CROP.get(),
                 ModBlocks.RHUBARB_CROP.get(),
+                ModBlocks.RICE_CROP.get(),
                 ModBlocks.STARFRUIT_CROP.get(),
                 ModBlocks.STRAWBERRY_CROP.get(),
                 ModBlocks.SUMMER_SPANGLE_CROP.get(),
@@ -456,9 +457,11 @@ public class StardewCraftClient {
                 ModBlocks.WILD_MAPLE_LEAVES.get(),
                 ModBlocks.WILD_PINE_LEAVES.get(),
                 ModBlocks.WILD_MAHOGANY_LEAVES.get(),
-                ModBlocks.WILD_MYSTIC_TREE_LEAVES.get(),
                 ModBlocks.SMALL_BUSH.get(),
                 ModBlocks.BERRY_BUSH.get());
+
+        event.register((state, level, pos, tintIndex) -> 0xFFFFFFFF,
+                ModBlocks.WILD_MYSTIC_TREE_LEAVES.get());
 
         event.register((state, level, pos, tintIndex) -> {
             if (tintIndex != 0) {

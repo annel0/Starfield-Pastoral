@@ -27,6 +27,12 @@ public final class SpecialConsumableClientFx {
     private static final int IRIDIUM_BG_TOP = 0xF0061620;
     private static final int IRIDIUM_BG_BOTTOM = 0xF0020810;
 
+    private static final int SHORTS_TOP = 0xFFFFD9FF;
+    private static final int SHORTS_MID = 0xFFB15CFF;
+    private static final int SHORTS_BOTTOM = 0xFF4D157A;
+    private static final int SHORTS_BG_TOP = 0xF01B0628;
+    private static final int SHORTS_BG_BOTTOM = 0xF0070210;
+
     private SpecialConsumableClientFx() {}
 
     @SubscribeEvent
@@ -40,6 +46,8 @@ public final class SpecialConsumableClientFx {
             applyPalette(event, STARDROP_TOP, STARDROP_MID, STARDROP_BOTTOM, STARDROP_BG_TOP, STARDROP_BG_BOTTOM);
         } else if (stack.is(ModItems.IRIDIUM_MILK.get())) {
             applyPalette(event, IRIDIUM_TOP, IRIDIUM_MID, IRIDIUM_BOTTOM, IRIDIUM_BG_TOP, IRIDIUM_BG_BOTTOM);
+        } else if (stack.is(ModItems.LUCKY_PURPLE_SHORTS.get())) {
+            applyPalette(event, SHORTS_TOP, SHORTS_MID, SHORTS_BOTTOM, SHORTS_BG_TOP, SHORTS_BG_BOTTOM);
         }
     }
 
@@ -49,6 +57,10 @@ public final class SpecialConsumableClientFx {
 
     public static MutableComponent iridiumMilkTypeLabel(String raw) {
         return flowingLabel(raw, 0x5BBEEA, 0xF4FDFF, 0.44F, 0.30F);
+    }
+
+    public static MutableComponent luckyPurpleShortsTypeLabel(String raw) {
+        return flowingLabel(raw, 0x9C42FF, 0xFFE28A, 0.48F, 0.34F);
     }
 
     private static void applyPalette(RenderTooltipEvent.Color event, int top, int mid, int bottom, int bgTop, int bgBottom) {

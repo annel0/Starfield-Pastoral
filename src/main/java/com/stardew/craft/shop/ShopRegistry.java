@@ -155,6 +155,7 @@ public final class ShopRegistry {
                 entry("stardewcraft:kale_seeds",        70,  SPRING),
                 entry("stardewcraft:blue_jazz_seeds",   30,  SPRING),
                 entryYear("stardewcraft:garlic_seeds",  40,  SPRING, 2),
+                entryYear("stardewcraft:rice_shoot",    40,  SPRING, 2),
 
                 // ---- Summer ----
                 entry("stardewcraft:melon_seeds",            80, SUMMER),
@@ -222,8 +223,6 @@ public final class ShopRegistry {
                 entry("stardewcraft:pomegranate",         140,  FALL),
                 entryAllSeasons("stardewcraft:pineapple",        300)
                 // TODO: implement proper fruit tree sapling system
-                // NOTE: SDV also sells rice_shoots (O)273 spring/year2, but we don't
-                //   have rice_shoots in the game yet → flagged for user
             ),
             Set.of(
                 "stardewcraft.type.crop",

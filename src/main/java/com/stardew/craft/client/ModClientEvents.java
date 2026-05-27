@@ -199,6 +199,11 @@ public class ModClientEvents {
                         .withStyle(ChatFormatting.WHITE)
                         .append(SpecialConsumableClientFx.iridiumMilkTypeLabel(
                             Component.translatable(typeKey).getString())));
+                } else if (stack.getItem() == ModItems.LUCKY_PURPLE_SHORTS.get()) {
+                    customLines.add(Component.translatable("stardewcraft.tooltip.type_prefix")
+                        .withStyle(ChatFormatting.WHITE)
+                        .append(SpecialConsumableClientFx.luckyPurpleShortsTypeLabel(
+                            Component.translatable(typeKey).getString())));
                 } else if (stack.getItem() == ModItems.GALAXY_SOUL.get()) {
                     customLines.add(Component.translatable("stardewcraft.tooltip.type_prefix")
                         .withStyle(ChatFormatting.WHITE)

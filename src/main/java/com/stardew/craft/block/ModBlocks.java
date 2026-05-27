@@ -787,6 +787,9 @@ public class ModBlocks {
     public static final DeferredBlock<Block> RHUBARB_CROP = BLOCKS.register("rhubarb_crop",
             () -> new com.stardew.craft.block.crop.RhubarbCropBlock());
 
+    public static final DeferredBlock<Block> RICE_CROP = BLOCKS.register("rice_crop",
+            () -> new com.stardew.craft.block.crop.RiceCropBlock());
+
     public static final DeferredBlock<Block> STARFRUIT_CROP = BLOCKS.register("starfruit_crop",
             () -> new com.stardew.craft.block.crop.StarfruitCropBlock());
 
@@ -1167,6 +1170,14 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .sound(net.minecraft.world.level.block.SoundType.WOOD)
                                         .noOcclusion()
                                         .strength(1.5F, 3.0F)));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> LUCKY_PURPLE_SHORTS = BLOCKS.register("lucky_purple_shorts",
+                        () -> new com.stardew.craft.block.utility.LuckyPurpleShortsBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.COLOR_PURPLE)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOL)
+                                        .noOcclusion()
+                                        .strength(0.2F, 0.2F)));
 
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> KEG = BLOCKS.register("keg",

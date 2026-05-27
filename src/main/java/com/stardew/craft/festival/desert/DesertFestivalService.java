@@ -157,7 +157,7 @@ public final class DesertFestivalService {
             DesertFestivalSpecialInteractionService.WARPER_INTERACTION_POS);
         DesertFestivalSpecialInteractionService.spawnWarperInteraction(level);
         DesertFestivalSpecialInteractionService.spawnWarperDisplay(level);
-        DesertFestivalSpecialInteractionService.spawnFestivalTravelingCart(level);
+        DesertFestivalSpecialInteractionService.syncFestivalTravelingCart(level);
     }
 
     public static void removeEggShopInteraction(ServerLevel level) {

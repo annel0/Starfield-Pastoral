@@ -22,6 +22,7 @@
     "GuiGraphicsStackCountScaleMixin",
     "FishingHookRendererLineOriginMixin",
     "FishingHookRendererBiteDipMixin",
+    "FishingHookRendererPurpleShortsBobberMixin",
     "ItemInHandRendererScytheSwingMixin",
     "CameraShakeMixin",
     "EventCameraMixin",

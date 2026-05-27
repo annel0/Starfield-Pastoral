@@ -25,6 +25,7 @@ import com.stardew.craft.block.utility.WormBinBlock;
 import com.stardew.craft.integration.jade.CropFertilizerJadeProvider;
 import com.stardew.craft.integration.jade.FarmlandFertilizerJadeProvider;
 import com.stardew.craft.integration.jade.AnimalProduceSpotJadeProvider;
+import com.stardew.craft.integration.jade.StardewCropFertilizerJadeProvider;
 import com.stardew.craft.manager.CropGrowthManager;
 import com.stardew.craft.block.tree.WildTreeSaplingBlock;
 import com.stardew.craft.manager.TreeGrowthManager;
@@ -69,6 +70,9 @@ public class JadePlugin implements IWailaPlugin {
         registration.registerBlockDataProvider(new CropComponentProvider(), StardewCropBlock.class);
 		registration.registerBlockDataProvider(new TreeSaplingComponentProvider(), WildTreeSaplingBlock.class);
         registration.registerBlockDataProvider(AnimalProduceSpotJadeProvider.INSTANCE, AnimalProduceSpotBlock.class);
+        registration.registerBlockDataProvider(FarmlandFertilizerJadeProvider.INSTANCE, FarmBlock.class);
+        registration.registerBlockDataProvider(CropFertilizerJadeProvider.INSTANCE, CropBlock.class);
+        registration.registerBlockDataProvider(StardewCropFertilizerJadeProvider.INSTANCE, StardewCropBlock.class);
     }
 
     @Override
@@ -80,7 +84,7 @@ public class JadePlugin implements IWailaPlugin {
         registration.registerBlockComponent(FarmlandFertilizerJadeProvider.INSTANCE, FarmBlock.class);
         // 注册作物肥料显示（原版作物 + 本模组作物）
         registration.registerBlockComponent(CropFertilizerJadeProvider.INSTANCE, CropBlock.class);
-        registration.registerBlockComponent(CropFertilizerJadeProvider.INSTANCE, StardewCropBlock.class);
+        registration.registerBlockComponent(StardewCropFertilizerJadeProvider.INSTANCE, StardewCropBlock.class);
         registration.addTooltipCollectedCallback((box, accessor) -> {
             if (accessor instanceof BlockAccessor blockAccessor) {
                 if (shouldHideItemStorage(blockAccessor.getBlockState().getBlock())) {

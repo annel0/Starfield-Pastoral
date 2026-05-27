@@ -69,6 +69,33 @@ public class HeavyFurnaceBlockEntity extends FurnaceBlockEntity {
 
     @Override
     @SuppressWarnings("null")
+    public ItemStack insertAutomation(ItemStack stack, boolean simulate) {
+        if (stack.isEmpty() || !product.isEmpty() || readyAtAbsMinute >= 0) {
+            return stack;
+        }
+        if (isCoalStack(stack)) {
+            return insertCoal(stack, simulate);
+        }
+
+        Recipe recipe = findRecipe(stack);
+        if (recipe == null || stack.getCount() < recipe.inputCount || coalBuffer < COAL_PER_BATCH) {
+            return stack;
+        }
+        if (simulate) {
+            return AutomationStackHelper.remainderAfterInsert(stack, recipe.inputCount);
+        }
+
+        coalBuffer = Math.max(0, coalBuffer - COAL_PER_BATCH);
+        int outputRange = recipe.maxOut - recipe.minOut + 1;
+        int outputCount = recipe.minOut + (level != null ? level.getRandom().nextInt(outputRange) : 0);
+        ItemStack output = new ItemStack(recipe.output.get(), outputCount);
+        ItemStack inputCopy = stack.copy();
+        startWork(inputCopy, output, recipe.minutes, recipe.inputCount, null);
+        return AutomationStackHelper.remainderAfterInsert(stack, recipe.inputCount);
+    }
+
+    @Override
+    @SuppressWarnings("null")
     public InsertResult tryInsertWithResult(ItemStack stack, Player player) {
         if (stack.isEmpty()) return InsertResult.fail();
         if (!product.isEmpty() || readyAtAbsMinute >= 0) return InsertResult.fail();

@@ -32,7 +32,7 @@ public class FurnaceBlockEntity extends TimedProductionBlockEntity {
     private static final String TAG_READY = "ready";
     private static final String TAG_COAL_BUFFER = "coalBuffer";
 
-    private int coalBuffer = 0;
+    protected int coalBuffer = 0;
 
     public record RemainingTime(int days, int hours, int minutes) {}
 
@@ -331,7 +331,7 @@ public class FurnaceBlockEntity extends TimedProductionBlockEntity {
     }
 
     @SuppressWarnings("null")
-    private static boolean isCoalStack(ItemStack stack) {
+    protected static boolean isCoalStack(ItemStack stack) {
         Item coal = ModItems.COAL.get();
         return coal != null && stack.is(coal);
     }
@@ -378,7 +378,7 @@ public class FurnaceBlockEntity extends TimedProductionBlockEntity {
     }
 
     @SuppressWarnings("null")
-    private ItemStack insertCoal(ItemStack stack, boolean simulate) {
+    protected ItemStack insertCoal(ItemStack stack, boolean simulate) {
         if (stack.isEmpty()) {
             return stack;
         }

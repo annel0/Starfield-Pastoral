@@ -4,6 +4,7 @@ import com.stardew.craft.StardewCraft;
 import com.stardew.craft.block.ModBlocks;
 import com.stardew.craft.core.FarmAreaResolver;
 import com.stardew.craft.core.ModDimensions;
+import com.stardew.craft.entity.monster.LuckyPurpleShortsMonsterEntity;
 import com.stardew.craft.entity.junimo.JunimoEntity;
 import com.stardew.craft.entity.npc.BooksellerEntity;
 import com.stardew.craft.entity.npc.CamelMerchantEntity;
@@ -344,6 +345,9 @@ public class FarmAreaProtectionEvents {
         }
         if (mob instanceof StardewNpcEntity || mob instanceof JunimoEntity || mob instanceof BooksellerEntity
             || mob instanceof CamelMerchantEntity || mob instanceof TravelingCartEntity) {
+            return;
+        }
+        if (mob instanceof LuckyPurpleShortsMonsterEntity || mob.getTags().contains(LuckyPurpleShortsMonsterEntity.TAG_MARKER)) {
             return;
         }
         if (mob.getPersistentData().getBoolean("StardewTrinketParrot")) {

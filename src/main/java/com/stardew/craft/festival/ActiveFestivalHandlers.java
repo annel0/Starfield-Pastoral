@@ -31,6 +31,8 @@ public final class ActiveFestivalHandlers {
             EggFestivalNpcService::debugStatus,
             EggFestivalNpcService::controlsNpc,
             EggFestivalService::isParticipant,
+            ActiveFestivalHandlers::noopPlayer,
+            ActiveFestivalHandlers::noopPlayer,
             EggFestivalService::tryOpenPierreFestivalShop,
             () -> EggFestivalService.isEggHuntActive() || EggFestivalService.isMainEventCutsceneActive(),
             EggFestivalService::tryStartMainEvent,
@@ -52,6 +54,8 @@ public final class ActiveFestivalHandlers {
             FlowerDanceNpcService::debugStatus,
             FlowerDanceNpcService::controlsNpc,
             FlowerDanceService::isParticipant,
+            FlowerDanceService::onPlayerLogin,
+            FlowerDanceService::onPlayerLogout,
             FlowerDanceService::tryOpenPierreFestivalShop,
             FlowerDanceService::isMainEventCutsceneActive,
             FlowerDanceService::tryStartMainEvent,
@@ -126,6 +130,18 @@ public final class ActiveFestivalHandlers {
         return Optional.empty();
     }
 
+    public static void onPlayerLogin(ServerPlayer player) {
+        for (ActiveFestivalHandler handler : HANDLERS.values()) {
+            handler.onPlayerLogin(player);
+        }
+    }
+
+    public static void onPlayerLogout(ServerPlayer player) {
+        for (ActiveFestivalHandler handler : HANDLERS.values()) {
+            handler.onPlayerLogout(player);
+        }
+    }
+
     public static boolean tryOpenPierreFestivalShop(ServerPlayer player) {
         for (ActiveFestivalHandler handler : HANDLERS.values()) {
             if (handler.tryOpenPierreFestivalShop(player)) {
@@ -191,6 +207,9 @@ public final class ActiveFestivalHandlers {
     private static void noop(ServerLevel level) {
     }
 
+    private static void noopPlayer(ServerPlayer player) {
+    }
+
     private record DelegateHandler(
         String festivalId,
         String displayName,
@@ -204,6 +223,8 @@ public final class ActiveFestivalHandlers {
         Function<ServerLevel, String> debugNpcStatusAction,
         Predicate<String> controlsNpcAction,
         Predicate<ServerPlayer> participantAction,
+        Consumer<ServerPlayer> playerLoginAction,
+        Consumer<ServerPlayer> playerLogoutAction,
         Predicate<ServerPlayer> pierreShopAction,
         BooleanSupplier npcInteractionLockAction,
         Predicate<ServerPlayer> startMainEventAction,
@@ -260,6 +281,16 @@ public final class ActiveFestivalHandlers {
         @Override
         public boolean isParticipant(ServerPlayer player) {
             return participantAction.test(player);
+        }
+
+        @Override
+        public void onPlayerLogin(ServerPlayer player) {
+            playerLoginAction.accept(player);
+        }
+
+        @Override
+        public void onPlayerLogout(ServerPlayer player) {
+            playerLogoutAction.accept(player);
         }
 
         @Override

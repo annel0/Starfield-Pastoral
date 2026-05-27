@@ -2365,6 +2365,10 @@ public class PlayerStardewData {
         return tempMaxEnergyBonus;
     }
 
+    public boolean hasActiveTempMaxEnergyBonus(long gameTime) {
+        return tempMaxEnergyBonus > 0 && tempMaxEnergyBonusEndTick > gameTime;
+    }
+
     public int getTempFarmingLevelBonus() {
         return tempFarmingLevelBonus;
     }

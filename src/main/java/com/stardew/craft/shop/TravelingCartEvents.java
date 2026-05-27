@@ -276,6 +276,10 @@ public final class TravelingCartEvents {
         if (festivalCart && !DesertFestivalService.isFestivalOpen()) {
             return;
         }
+        if (festivalCart && !DesertFestivalSpecialInteractionService.isFestivalTravelingCartShopOpen()) {
+            player.displayClientMessage(Component.translatable("stardewcraft.desert_festival.traveling_cart.closed"), true);
+            return;
+        }
         openTravelingCartShop(player);
     }
 

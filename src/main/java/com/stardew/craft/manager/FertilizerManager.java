@@ -14,6 +14,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -165,6 +166,24 @@ public class FertilizerManager extends SavedData {
             // 直接同步，不检查区块是否加载（玩家登录时区块可能还没加载）
             FertilizerSyncPacket packet = new FertilizerSyncPacket(gpos.pos(), entry.getValue().getSerializedName());
             PacketDistributor.sendToPlayer(player, packet);
+        }
+    }
+
+    /**
+     * Sync fertilizer data for a chunk after Minecraft has sent that chunk to the client.
+     */
+    public void syncFertilizersInChunkToPlayer(ServerPlayer player, ServerLevel level, ChunkPos chunkPos) {
+        ResourceKey<Level> dimKey = level.dimension();
+        for (Map.Entry<GlobalPos, FertilizerType> entry : fertilizerMap.entrySet()) {
+            GlobalPos gpos = entry.getKey();
+            if (!gpos.dimension().equals(dimKey) || !new ChunkPos(gpos.pos()).equals(chunkPos)) {
+                continue;
+            }
+            if (level.isLoaded(gpos.pos()) && !(level.getBlockState(gpos.pos()).getBlock() instanceof FarmBlock)) {
+                removeFertilizer(level, gpos.pos());
+                continue;
+            }
+            PacketDistributor.sendToPlayer(player, new FertilizerSyncPacket(gpos.pos(), entry.getValue().getSerializedName()));
         }
     }
 

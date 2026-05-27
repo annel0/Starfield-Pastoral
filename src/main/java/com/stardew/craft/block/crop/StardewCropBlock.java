@@ -249,6 +249,16 @@ public abstract class StardewCropBlock extends Block {
         return 0f;
     }
 
+    protected float getAdditionalSpeedBoost(ServerLevel level, BlockPos pos, CropGrowthManager.CropGrowthState growthState) {
+        return 0f;
+    }
+
+    private float getTotalSpeedBoost(ServerLevel level, BlockPos pos, CropGrowthManager.CropGrowthState growthState) {
+        return getSpeedBoost(level, pos)
+                + getAgriculturistSpeedBoost(level, growthState)
+                + getAdditionalSpeedBoost(level, pos, growthState);
+    }
+
     private static int[] applySpeedGroToPhaseDays(int[] phaseDays, float speedBoost) {
         if (phaseDays == null || phaseDays.length == 0 || speedBoost <= 0f) {
             return phaseDays;
@@ -324,7 +334,7 @@ public abstract class StardewCropBlock extends Block {
             return true;
         }
 
-        int[] phaseDays = withHarvestSentinel(applySpeedGroToPhaseDays(getPhaseDays(), getSpeedBoost(level, pos)));
+        int[] phaseDays = withHarvestSentinel(applySpeedGroToPhaseDays(getPhaseDays(), getTotalSpeedBoost(level, pos, growthState)));
         int lastPhase = Math.max(0, phaseDays.length - 1);
 
         if (growthState.phase < lastPhase) {
@@ -657,14 +667,19 @@ public abstract class StardewCropBlock extends Block {
             syncMultiBlockPartnerFromRoot(level, harvestPos, regrowState);
 
             // 标记为“再生长倒计时”状态，让每日生长按 regrowDays 计算
-            int[] phaseDays = withHarvestSentinel(applySpeedGroToPhaseDays(getPhaseDays(), getSpeedBoost(level, harvestPos)));
+            CropGrowthManager.CropGrowthState growthState = CropGrowthManager.get(level).getState(level, harvestPos);
+            int[] phaseDays = withHarvestSentinel(applySpeedGroToPhaseDays(getPhaseDays(), getTotalSpeedBoost(level, harvestPos, growthState)));
             int lastPhase = Math.max(0, phaseDays.length - 1);
             int regrowDays = Math.max(1, getRegrowDays());
             CropGrowthManager.get(level).setRegrowing(level, harvestPos, true, regrowDays, lastPhase);
         } else {
             // 一次性作物：移除方块
-            level.setBlock(harvestPos, Blocks.AIR.defaultBlockState(), 3);
+            level.setBlock(harvestPos, getPostHarvestState(level, harvestPos, currentState), 3);
         }
+    }
+
+    protected BlockState getPostHarvestState(ServerLevel level, BlockPos pos, BlockState harvestedState) {
+        return Blocks.AIR.defaultBlockState();
     }
 
     private int getHarvestFarmingExperience(BlockState state) {
@@ -952,7 +967,7 @@ public abstract class StardewCropBlock extends Block {
             return;
         }
 
-        float speedBoost = getSpeedBoost(level, pos) + getAgriculturistSpeedBoost(level, growthState);
+        float speedBoost = getTotalSpeedBoost(level, pos, growthState);
         int[] phaseDays = withHarvestSentinel(applySpeedGroToPhaseDays(getPhaseDays(), speedBoost));
         if (phaseDays == null || phaseDays.length <= 0) {
             return;

@@ -49,6 +49,7 @@ import com.stardew.craft.item.crop.summer.MelonItem;
 import com.stardew.craft.item.crop.summer.MelonSeedItem;
 import com.stardew.craft.item.crop.spring.ParsnipItem;
 import com.stardew.craft.item.crop.spring.ParsnipSeedItem;
+import com.stardew.craft.item.crop.spring.RiceShootItem;
 import com.stardew.craft.item.crop.summer.PoppyItem;
 import com.stardew.craft.item.crop.summer.PoppySeedItem;
 import com.stardew.craft.item.crop.spring.PotatoItem;
@@ -91,6 +92,7 @@ import com.stardew.craft.item.cooking.CookingDishRegistrar;
 import com.stardew.craft.item.cooking.DesertFestivalCookDishRegistrar;
 import com.stardew.craft.item.misc.GalaxySoulItem;
 import com.stardew.craft.item.misc.IridiumMilkItem;
+import com.stardew.craft.item.misc.LuckyPurpleShortsItem;
 import com.stardew.craft.item.misc.LifeElixirItem;
 import com.stardew.craft.item.misc.StardropItem;
 import com.stardew.craft.item.misc.StardropTeaItem;
@@ -137,6 +139,10 @@ public class ModItems {
         public static final java.util.Map<String, DeferredItem<Item>> DESERT_FESTIVAL_COOK_DISHES = DesertFestivalCookDishRegistrar.registerAll(ITEMS);
                 public static final java.util.Map<String, DeferredItem<Item>> VANILLA_CATEGORY_ITEMS = VanillaCategoryItemRegistrar.registerAll(ITEMS);
         public static final DeferredItem<Item> DRAGON_TOOTH = VANILLA_CATEGORY_ITEMS.get("dragon_tooth");
+        public static final DeferredItem<Item> RICE = VANILLA_CATEGORY_ITEMS.get("rice");
+        public static final DeferredItem<Item> UNMILLED_RICE = VANILLA_CATEGORY_ITEMS.get("unmilled_rice");
+        public static final DeferredItem<Item> RICE_SHOOT = ITEMS.register("rice_shoot",
+                        () -> new RiceShootItem(new Item.Properties().stacksTo(999)));
 
         private static Item.Properties blockItemProps() {
                 return new Item.Properties().stacksTo(999);
@@ -1195,6 +1201,9 @@ public class ModItems {
         public static final DeferredItem<Item> CALICO_EGG = ITEMS.register("calico_egg",
                         () -> new SimpleStardewItem("stardewcraft.type.resource", 0, new Item.Properties().stacksTo(999)));
 
+        public static final DeferredItem<Item> GOLDEN_TAG = ITEMS.register("golden_tag",
+                        () -> new SimpleStardewItem("stardewcraft.type.quest", 0, new Item.Properties().stacksTo(999)));
+
         public static final DeferredItem<Item> MYSTERY_BOX = ITEMS.register("mystery_box",
                         () -> new SimpleStardewItem("stardewcraft.type.misc", 0, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> GOLDEN_MYSTERY_BOX = ITEMS.register("golden_mystery_box",
@@ -1628,6 +1637,8 @@ public class ModItems {
                         () -> new SimpleStardewItem("stardewcraft.type.artifact", 250, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> GOLDEN_BOBBER = ITEMS.register("golden_bobber",
                         () -> new SimpleStardewItem("stardewcraft.type.quest", 0, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> LUCKY_PURPLE_SHORTS = ITEMS.register("lucky_purple_shorts",
+                        () -> new LuckyPurpleShortsItem(ModBlocks.LUCKY_PURPLE_SHORTS.get(), new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> STRANGE_DOLL_GREEN = ITEMS.register("strange_doll_green",
                         () -> new SimpleStardewItem("stardewcraft.type.artifact", 1000, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> STRANGE_DOLL_YELLOW = ITEMS.register("strange_doll_yellow",

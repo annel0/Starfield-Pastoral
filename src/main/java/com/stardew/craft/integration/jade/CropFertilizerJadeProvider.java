@@ -4,9 +4,12 @@ import com.stardew.craft.StardewCraft;
 import com.stardew.craft.block.FertilizerType;
 import com.stardew.craft.client.ClientFertilizerCache;
 import com.stardew.craft.item.ModItems;
+import com.stardew.craft.manager.FertilizerManager;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.CropBlock;
@@ -16,6 +19,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IBlockComponentProvider;
+import snownee.jade.api.IServerDataProvider;
 import snownee.jade.api.ITooltip;
 import snownee.jade.api.config.IPluginConfig;
 
@@ -23,14 +27,40 @@ import snownee.jade.api.config.IPluginConfig;
  * 作物肥料信息Jade提供器
  * 显示作物下方耕地的肥料类型
  */
-public enum CropFertilizerJadeProvider implements IBlockComponentProvider {
+public enum CropFertilizerJadeProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
     INSTANCE;
 
     private static final ResourceLocation UID = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "crop_fertilizer");
+    private static final String DATA_CHECKED = "stardewcraft_fertilizer_checked";
+    private static final String DATA_TYPE = "stardewcraft_fertilizer";
 
     @Override
     public ResourceLocation getUid() {
         return UID;
+    }
+
+    @Override
+    public void appendServerData(CompoundTag tag, BlockAccessor accessor) {
+        if (!(accessor.getLevel() instanceof ServerLevel level)) {
+            return;
+        }
+        if (!(accessor.getBlockState().getBlock() instanceof CropBlock)
+                && !(accessor.getBlockState().getBlock() instanceof com.stardew.craft.block.crop.StardewCropBlock)) {
+            return;
+        }
+        if (com.stardew.craft.block.crop.StardewCropBlock.isDecorativeFlowerState(accessor.getBlockState())) {
+            return;
+        }
+
+        BlockPos farmPos = resolveCropRootPos(accessor).below();
+        if (!(accessor.getLevel().getBlockState(farmPos).getBlock() instanceof FarmBlock)) {
+            return;
+        }
+        tag.putBoolean(DATA_CHECKED, true);
+        FertilizerType type = FertilizerManager.get(level).getFertilizer(level, farmPos);
+        if (type != null) {
+            tag.putString(DATA_TYPE, type.getSerializedName());
+        }
     }
 
     private static BlockPos resolveCropRootPos(BlockAccessor accessor) {
@@ -72,7 +102,14 @@ public enum CropFertilizerJadeProvider implements IBlockComponentProvider {
         if (!(accessor.getLevel().getBlockState(farmPos).getBlock() instanceof FarmBlock)) {
             return;
         }
-        FertilizerType type = ClientFertilizerCache.getFertilizer(farmPos);
+        FertilizerType type = getServerFertilizer(accessor.getServerData());
+        if (type != null) {
+            ClientFertilizerCache.setFertilizer(accessor.getLevel(), farmPos, type);
+        } else if (accessor.getServerData().getBoolean(DATA_CHECKED)) {
+            ClientFertilizerCache.removeFertilizer(accessor.getLevel(), farmPos);
+        } else {
+            type = ClientFertilizerCache.getFertilizer(accessor.getLevel(), farmPos);
+        }
 
         if (type != null) {
             Item fertilizerItem = getFertilizerItem(type);
@@ -81,6 +118,17 @@ public enum CropFertilizerJadeProvider implements IBlockComponentProvider {
                 tooltip.add(Component.translatable("stardewcraft.jade.fertilizer", stack.getHoverName())
                         .withStyle(net.minecraft.ChatFormatting.AQUA));
             }
+        }
+    }
+
+    private FertilizerType getServerFertilizer(CompoundTag data) {
+        if (!data.contains(DATA_TYPE)) {
+            return null;
+        }
+        try {
+            return FertilizerType.valueOf(data.getString(DATA_TYPE).toUpperCase());
+        } catch (IllegalArgumentException ignored) {
+            return null;
         }
     }
 

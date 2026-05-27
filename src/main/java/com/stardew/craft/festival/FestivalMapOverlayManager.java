@@ -32,7 +32,12 @@ public final class FestivalMapOverlayManager {
         }
         FestivalWorldData data = FestivalWorldData.get(level);
         FestivalMapOverlayState state = data.getOrCreateOverlayState(definition.overlayId());
-        if (state.phase() == FestivalMapOverlayPhase.APPLIED || state.phase() == FestivalMapOverlayPhase.APPLYING) {
+        if (state.phase() == FestivalMapOverlayPhase.APPLIED) {
+            notifyPassiveOverlayApplied(level, state);
+            return true;
+        }
+        if (state.phase() == FestivalMapOverlayPhase.APPLYING) {
+            notifyPassiveOverlayApplyStarted(level, state);
             return true;
         }
         FestivalMapPatch patch = patch(level, definition, state);
@@ -45,6 +50,7 @@ public final class FestivalMapOverlayManager {
         } else {
             state.clearRuntimePatch();
         }
+        notifyPassiveOverlayApplyStarted(level, state);
         forceChunks(level, patch, true);
         data.setDirty();
         return true;
@@ -68,6 +74,7 @@ public final class FestivalMapOverlayManager {
             return false;
         }
         state.begin(state.festivalId(), state.year(), state.season(), state.day(), FestivalMapOverlayPhase.RESTORING);
+        notifyPassiveOverlayRestoreStarted(level, state);
         forceChunks(level, patch, true);
         data.setDirty();
         return true;
@@ -132,6 +139,7 @@ public final class FestivalMapOverlayManager {
             }
             BlockState targetState = applying ? entry.festivalState() : entry.baseState();
             CompoundTag targetBlockEntity = applying ? entry.festivalBlockEntityTag() : entry.baseBlockEntityTag();
+            level.removeBlockEntity(worldPos);
             level.setBlock(worldPos, targetState, BULK_REPLACE_FLAGS);
             applyBlockEntity(level, worldPos, targetBlockEntity);
         }
@@ -145,8 +153,51 @@ public final class FestivalMapOverlayManager {
             StardewCraft.LOGGER.info("[FESTIVAL_OVERLAY] {} overlay {} ({} blocks)", applying ? "Applied" : "Restored", state.overlayId(), patch.entries().size());
             if (applying) {
                 ActiveFestivalHandlers.onMapOverlayApplied(level, state.overlayId());
+                notifyPassiveOverlayApplied(level, state);
+            } else {
+                notifyPassiveOverlayRestored(level, state);
             }
         }
+    }
+
+    private static void notifyPassiveOverlayApplied(ServerLevel level, FestivalMapOverlayState state) {
+        notifyPassiveOverlay(level, state, PassiveOverlayEvent.APPLIED);
+    }
+
+    private static void notifyPassiveOverlayApplyStarted(ServerLevel level, FestivalMapOverlayState state) {
+        notifyPassiveOverlay(level, state, PassiveOverlayEvent.APPLY_STARTED);
+    }
+
+    private static void notifyPassiveOverlayRestoreStarted(ServerLevel level, FestivalMapOverlayState state) {
+        notifyPassiveOverlay(level, state, PassiveOverlayEvent.RESTORE_STARTED);
+    }
+
+    private static void notifyPassiveOverlayRestored(ServerLevel level, FestivalMapOverlayState state) {
+        notifyPassiveOverlay(level, state, PassiveOverlayEvent.RESTORED);
+    }
+
+    private static void notifyPassiveOverlay(ServerLevel level, FestivalMapOverlayState state, PassiveOverlayEvent event) {
+        FestivalDefinition definition = FestivalRegistry.get(state.festivalId())
+            .or(() -> FestivalRegistry.getByOverlayId(state.overlayId()))
+            .filter(candidate -> candidate.type() == FestivalType.PASSIVE)
+            .orElse(null);
+        if (definition == null) {
+            return;
+        }
+        FestivalSessionState session = FestivalWorldData.get(level).getOrCreateSession(definition, state.year(), state.season(), state.day());
+        switch (event) {
+            case APPLY_STARTED -> PassiveFestivalHandlers.onMapOverlayApplyStarted(level, definition, session);
+            case APPLIED -> PassiveFestivalHandlers.onMapOverlayApplied(level, definition, session);
+            case RESTORE_STARTED -> PassiveFestivalHandlers.onMapOverlayRestoreStarted(level, definition, session);
+            case RESTORED -> PassiveFestivalHandlers.onMapOverlayRestored(level, definition, session);
+        }
+    }
+
+    private enum PassiveOverlayEvent {
+        APPLY_STARTED,
+        APPLIED,
+        RESTORE_STARTED,
+        RESTORED
     }
 
     private static void applyBlockEntity(ServerLevel level, BlockPos pos, CompoundTag rawTag) {

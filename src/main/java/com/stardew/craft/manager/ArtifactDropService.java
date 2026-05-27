@@ -115,7 +115,7 @@ public final class ArtifactDropService {
     private static final Map<String, List<DropEntry>> LOCATION_DROPS = new LinkedHashMap<>();
     private static final Map<String, DeferredItem<? extends Item>> DROP_ITEM_IDS = Map.ofEntries(
             Map.entry("(O)110", ModItems.RUSTY_SPOON),
-            Map.entry("(O)273", ModItems.VANILLA_CATEGORY_ITEMS.get("rice_shoot")),
+            Map.entry("(O)273", ModItems.RICE_SHOOT),
             Map.entry("(O)330", ModItems.CLAY),
             Map.entry("(O)378", ModItems.COPPER_ORE),
             Map.entry("(O)382", ModItems.COAL),

@@ -724,7 +724,8 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 				|| stack.is(ModItems.BARBED_HOOK.get())
 				|| stack.is(ModItems.CURIOSITY_LURE.get())
 				|| stack.is(ModItems.QUALITY_BOBBER.get())
-				|| stack.is(ModItems.SONAR_BOBBER.get());
+				|| stack.is(ModItems.SONAR_BOBBER.get())
+				|| stack.is(ModItems.LUCKY_PURPLE_SHORTS.get());
 	}
 
 	@SuppressWarnings("null")

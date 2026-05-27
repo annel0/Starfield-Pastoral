@@ -10,6 +10,7 @@ import com.stardew.craft.festival.FestivalService;
 import com.stardew.craft.festival.desert.DesertFestivalNpcVisitService;
 import com.stardew.craft.festival.desert.DesertFestivalService;
 import com.stardew.craft.festival.desert.DesertFestivalVendorService;
+import com.stardew.craft.festival.trout.TroutDerbyService;
 import com.stardew.craft.time.StardewTimeManager;
 import com.stardew.craft.weather.WeatherManager;
 import net.minecraft.server.level.ServerLevel;
@@ -45,6 +46,7 @@ public final class NpcScheduleRuntimeService {
     private static String cachedWeather = "";
     private static int cachedAbsoluteDay = Integer.MIN_VALUE;
     private static boolean cachedDesertFestivalDay;
+    private static boolean cachedTroutDerbyOpen;
 
     private NpcScheduleRuntimeService() {
     }
@@ -54,18 +56,21 @@ public final class NpcScheduleRuntimeService {
         int currentTime = minutesToScheduleClock(timeManager.getCurrentTime());
         int absoluteDay = timeManager.getAbsoluteDay();
         boolean desertFestivalDay = DesertFestivalService.isFestivalDay();
+        boolean troutDerbyOpen = TroutDerbyService.isFestivalOpen();
         String activeWeather = WeatherManager.getCurrentWeather(level);
         if (activeWeather == null) activeWeather = "";
 
         // Skip full re-resolution if clock and weather haven't changed since last tick.
         if (currentTime == cachedScheduleClock && activeWeather.equals(cachedWeather)
-            && absoluteDay == cachedAbsoluteDay && desertFestivalDay == cachedDesertFestivalDay) {
+            && absoluteDay == cachedAbsoluteDay && desertFestivalDay == cachedDesertFestivalDay
+            && troutDerbyOpen == cachedTroutDerbyOpen) {
             return;
         }
         cachedScheduleClock = currentTime;
         cachedWeather = activeWeather;
         cachedAbsoluteDay = absoluteDay;
         cachedDesertFestivalDay = desertFestivalDay;
+        cachedTroutDerbyOpen = troutDerbyOpen;
 
         NpcRuntimeDataManager runtimeData = NpcRuntimeDataManager.get(level);
         boolean changed = false;
@@ -137,6 +142,7 @@ public final class NpcScheduleRuntimeService {
         cachedWeather = "";
         cachedAbsoluteDay = Integer.MIN_VALUE;
         cachedDesertFestivalDay = false;
+        cachedTroutDerbyOpen = false;
     }
 
     public static boolean isDesertFestivalMarlonOverride(String npcId) {
@@ -149,6 +155,10 @@ public final class NpcScheduleRuntimeService {
 
     public static int desertFestivalMarlonFacing() {
         return 2;
+    }
+
+    public static boolean isTroutDerbyWillyOverride(String npcId) {
+        return TroutDerbyService.isWillyScheduleOverride(npcId);
     }
 
     public static TargetPoint resolveWorldTarget(ServerLevel level, NpcRuntimeState state, Vec3 defaultPosition) {
@@ -218,6 +228,10 @@ public final class NpcScheduleRuntimeService {
                                                   int currentTime,
                                                   StardewTimeManager timeManager,
                                                   String activeWeather) {
+        if (isTroutDerbyWillyOverride(npcId)) {
+            return new ScheduleNode(TroutDerbyService.FESTIVAL_ID, 610, "forest", 0, 0,
+                TroutDerbyService.WILLY_FACING, "", TroutDerbyService.WILLY_POINT_ID, 0);
+        }
         ScheduleNode desertVendorNode = resolveDesertFestivalVendorNode(npcId, currentTime);
         if (desertVendorNode != null) {
             return desertVendorNode;

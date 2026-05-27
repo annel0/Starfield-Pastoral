@@ -25,6 +25,7 @@ public final class DesertFestivalHandler implements PassiveFestivalHandler {
 
     @Override
     public void tick(ServerLevel level, FestivalDefinition definition, FestivalSessionState session) {
+        DesertFestivalSpecialInteractionService.syncFestivalTravelingCart(level);
         DesertFestivalRaceService.tick(level.getServer());
         for (ServerPlayer player : level.getServer().getPlayerList().getPlayers()) {
             DesertFestivalMakeoverService.tickPlayer(player);

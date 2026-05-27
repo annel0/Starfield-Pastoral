@@ -65,7 +65,7 @@ public final class FestivalRegistry {
         register(new FestivalDefinition(
             "TroutDerby", FestivalType.PASSIVE, "Trout Derby", "", "",
             SUMMER, 20, 21, 610, 2600, false, true, "[LocalizedText Strings\\1_6_Strings:TroutDerby_NowOpen]",
-            "Forest", "", Map.of(), List.of(), "trout_derby"
+            "Forest", "Forest-TroutDerby", Map.of(), List.of(), "trout_derby"
         ));
         register(new FestivalDefinition(
             "SquidFest", FestivalType.PASSIVE, "SquidFest", "", "",

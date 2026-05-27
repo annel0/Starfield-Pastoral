@@ -13,6 +13,7 @@ import com.stardew.craft.entity.projectile.TemperedBilletProjectileEntity;
 import com.stardew.craft.entity.bomb.StardewBombEntity;
 import com.stardew.craft.entity.effect.IceSpineEffectEntity;
 import com.stardew.craft.entity.mastery.PrismaticButterflyEntity;
+import com.stardew.craft.entity.monster.LuckyPurpleShortsMonsterEntity;
 import com.stardew.craft.entity.trinket.FairyCompanionEntity;
 import com.stardew.craft.entity.animal.BaseCoopAnimalEntity;
 import com.stardew.craft.entity.animal.CowEntity;
@@ -317,6 +318,16 @@ public final class ModEntities {
 					.build("crow")
 	);
 
+	public static final DeferredHolder<EntityType<?>, EntityType<LuckyPurpleShortsMonsterEntity>> LUCKY_PURPLE_SHORTS_MONSTER = ENTITY_TYPES.register(
+			"lucky_purple_shorts_monster",
+			() -> EntityType.Builder.<LuckyPurpleShortsMonsterEntity>of(LuckyPurpleShortsMonsterEntity::new, MobCategory.MONSTER)
+					.sized(0.6F, 0.9F)
+					.clientTrackingRange(16)
+					.updateInterval(2)
+					.noSave()
+					.build("lucky_purple_shorts_monster")
+	);
+
 	@SuppressWarnings("null")
 	public static void onEntityAttributeCreation(EntityAttributeCreationEvent event) {
 		event.put(DUCK.get(), BaseCoopAnimalEntity.createAttributes().build());
@@ -338,6 +349,7 @@ public final class ModEntities {
 		event.put(CAMEL_MERCHANT.get(), com.stardew.craft.entity.npc.CamelMerchantEntity.createAttributes().build());
 		event.put(TRAVELING_CART.get(), com.stardew.craft.entity.npc.TravelingCartEntity.createAttributes().build());
 		event.put(CROW.get(), com.stardew.craft.entity.passive.CrowEntity.createAttributes().build());
+		event.put(LUCKY_PURPLE_SHORTS_MONSTER.get(), LuckyPurpleShortsMonsterEntity.createAttributes().build());
 	}
 
 }

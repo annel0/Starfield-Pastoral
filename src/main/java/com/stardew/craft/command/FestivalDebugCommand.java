@@ -18,6 +18,7 @@ import com.stardew.craft.festival.FestivalSessionPhase;
 import com.stardew.craft.festival.FestivalType;
 import com.stardew.craft.festival.FestivalWorldData;
 import com.stardew.craft.festival.desert.DesertFestivalService;
+import com.stardew.craft.festival.trout.TroutDerbyService;
 import com.stardew.craft.npc.runtime.NpcScheduleRuntimeService;
 import com.stardew.craft.time.StardewTimeManager;
 import net.minecraft.commands.CommandSourceStack;
@@ -208,11 +209,14 @@ public final class FestivalDebugCommand {
     }
 
     private static int forcePassiveFestivalNpcs(ServerLevel level, FestivalDefinition festival) {
-        if (!DesertFestivalService.FESTIVAL_ID.equalsIgnoreCase(festival.id())) {
-            refreshFestivalSchedules(level);
-            return 0;
+        if (DesertFestivalService.FESTIVAL_ID.equalsIgnoreCase(festival.id())) {
+            return DesertFestivalService.forceRefreshNpcSchedules(level);
         }
-        return DesertFestivalService.forceRefreshNpcSchedules(level);
+        if (TroutDerbyService.FESTIVAL_ID.equalsIgnoreCase(festival.id())) {
+            return TroutDerbyService.forceRefreshNpcSchedules(level);
+        }
+        refreshFestivalSchedules(level);
+        return 0;
     }
 
     private static int applyOverlay(CommandContext<CommandSourceStack> context) {

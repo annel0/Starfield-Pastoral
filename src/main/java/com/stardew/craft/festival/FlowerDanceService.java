@@ -8,6 +8,7 @@ import com.stardew.craft.festival.client.FlowerDanceCutsceneClientState;
 import com.stardew.craft.network.TimeSyncPacket;
 import com.stardew.craft.network.payload.FlowerDanceCutsceneStatePayload;
 import com.stardew.craft.network.payload.FestivalHudStatePayload;
+import com.stardew.craft.network.payload.FestivalMusicStatePayload;
 import com.stardew.craft.network.payload.OpenFlowerDancePlayerAskPayload;
 import com.stardew.craft.network.payload.OpenFlowerDancePlayerInvitePayload;
 import com.stardew.craft.network.payload.OpenFestivalConfirmPayload;
@@ -34,6 +35,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -76,6 +78,8 @@ public final class FlowerDanceService {
     private static final Map<UUID, PendingPlayerInvite> PENDING_PLAYER_INVITES = new LinkedHashMap<>();
     private static final Set<UUID> ENTRY_DIALOG_OPEN = new LinkedHashSet<>();
     private static final Set<UUID> START_DANCE_DIALOG_OPEN = new LinkedHashSet<>();
+    private static final Set<UUID> START_DANCE_VOTES = new LinkedHashSet<>();
+    private static final Set<UUID> START_DANCE_VOTE_PARTICIPANTS = new LinkedHashSet<>();
     private static final Set<UUID> EXIT_DIALOG_OPEN = new LinkedHashSet<>();
     private static final Set<UUID> EXIT_VOTES = new LinkedHashSet<>();
     private static final Set<UUID> EXIT_VOTE_PARTICIPANTS = new LinkedHashSet<>();
@@ -98,7 +102,7 @@ public final class FlowerDanceService {
             clearRuntimeState(level);
             return;
         }
-        if (!hasOnlineParticipant(level)) {
+        if (!hasCurrentSessionParticipant(level)) {
             stopTimeFreeze();
         }
         expirePlayerInvites(level);
@@ -124,7 +128,7 @@ public final class FlowerDanceService {
 
     public static long applyTimeFreeze(ServerLevel level, StardewTimeManager timeManager) {
         long currentVirtual = timeManager.getVirtualDayTime(level);
-        if (frozenMinute == null || !hasOnlineParticipant(level)) {
+        if (frozenMinute == null || !hasCurrentSessionParticipant(level)) {
             frozenOverworldDayTime = null;
             return currentVirtual;
         }
@@ -185,8 +189,9 @@ public final class FlowerDanceService {
                 return;
             }
             if (confirmed) {
-                startMainEventAfterConfirmation(player);
+                castStartDanceVote(player);
             } else {
+                START_DANCE_VOTES.remove(player.getUUID());
                 player.displayClientMessage(Component.translatable("message.stardewcraft.festival.flower_dance.start_cancelled"), true);
             }
             return;
@@ -304,6 +309,8 @@ public final class FlowerDanceService {
         }
         DANCE_PARTNERS.put(sender.getUUID(), PartnerSelection.player(target.getUUID()));
         DANCE_PARTNERS.put(target.getUUID(), PartnerSelection.player(sender.getUUID()));
+        cancelPendingPlayerInvitesFor(sender.getUUID());
+        cancelPendingPlayerInvitesFor(target.getUUID());
         sender.displayClientMessage(Component.translatable("message.stardewcraft.festival.flower_dance.player_invite_accepted", target.getScoreboardName()), true);
         target.displayClientMessage(Component.translatable("message.stardewcraft.festival.flower_dance.player_partner_set", sender.getScoreboardName()), true);
     }
@@ -314,12 +321,54 @@ public final class FlowerDanceService {
         }
         UUID playerId = player.getUUID();
         cancelPendingPlayerInvitesFor(playerId);
-        PartnerSelection selection = DANCE_PARTNERS.remove(playerId);
-        if (selection != null && selection.kind() == PartnerKind.PLAYER && selection.playerId() != null) {
-            DANCE_PARTNERS.remove(selection.playerId());
-        }
-        FESTIVAL_DIALOGUE_SEEN.remove(playerId);
+        ENTRY_DIALOG_OPEN.remove(playerId);
+        START_DANCE_DIALOG_OPEN.remove(playerId);
+        EXIT_DIALOG_OPEN.remove(playerId);
         LAST_OUTSIDE_ENTRY.remove(playerId);
+    }
+
+    public static void onPlayerLogin(ServerPlayer player) {
+        if (player == null || !(player.level() instanceof ServerLevel level)) {
+            return;
+        }
+        if (!isActiveFlowerDanceDay()) {
+            clearFlowerDanceClientStateIfNeeded(player);
+            return;
+        }
+        boolean sessionParticipant = FestivalWorldData.get(level).getSession(FESTIVAL_ID)
+            .filter(session -> session.year() == StardewTimeManager.get().getCurrentYear()
+                && session.season() == StardewTimeManager.get().getCurrentSeason()
+                && session.day() == StardewTimeManager.get().getCurrentDay())
+            .filter(session -> session.phase() != FestivalSessionPhase.ENDING
+                && session.phase() != FestivalSessionPhase.RESTORING_MAP
+                && session.phase() != FestivalSessionPhase.CLOSED)
+            .map(session -> session.participants().contains(player.getUUID()))
+            .orElse(false);
+        if (sessionParticipant) {
+            player.getPersistentData().putBoolean(TAG_PARTICIPATING, true);
+        }
+        if (!isParticipant(player)) {
+            clearFlowerDanceClientStateIfNeeded(player);
+            return;
+        }
+        startTimeFreeze(level);
+        forceSyncHud(player, true);
+        if (mainEventPhase == MainEventPhase.MAIN_EVENT) {
+            MAIN_EVENT_CUTSCENE_PARTICIPANTS.add(player.getUUID());
+            MAIN_EVENT_CUTSCENE_DONE.remove(player.getUUID());
+            sendCutsceneState(List.of(player));
+            ServerCutsceneTracker.startEvent(player, MAIN_EVENT_CUTSCENE_ID);
+        }
+    }
+
+    private static void clearFlowerDanceClientStateIfNeeded(ServerPlayer player) {
+        boolean hadFlowerDanceState = player.getPersistentData().getBoolean(TAG_PARTICIPATING)
+            || player.getPersistentData().getBoolean(TAG_HUD_HIDDEN);
+        if (!hadFlowerDanceState) {
+            return;
+        }
+        player.getPersistentData().putBoolean(TAG_PARTICIPATING, false);
+        forceSyncHud(player, false);
     }
 
     public static boolean hasFestivalDialogueSeen(ServerPlayer player, String npcId) {
@@ -338,11 +387,15 @@ public final class FlowerDanceService {
     }
 
     public static boolean tryOpenNpcDanceInvite(ServerPlayer player, String npcId) {
-        if (player == null || !isParticipant(player) || hasDancePartner(player) || !canAskNpcToDance(npcId)) {
+        if (player == null || !isParticipant(player) || !canAskNpcToDance(npcId)) {
             return false;
         }
         if (!hasFestivalDialogueSeen(player, npcId)) {
             return false;
+        }
+        if (hasDancePartner(player)) {
+            player.displayClientMessage(Component.translatable("message.stardewcraft.festival.flower_dance.already_have_partner"), true);
+            return true;
         }
         PacketDistributor.sendToPlayer(player, new OpenFlowerDanceInvitePayload(canonical(npcId)));
         return true;
@@ -366,6 +419,7 @@ public final class FlowerDanceService {
             return false;
         }
         DANCE_PARTNERS.put(player.getUUID(), PartnerSelection.npc(canonical(npcId)));
+        cancelPendingPlayerInvitesFor(player.getUUID());
         return true;
     }
 
@@ -398,6 +452,9 @@ public final class FlowerDanceService {
         FestivalService.setDebugActiveFestival(FESTIVAL_ID);
         startTimeFreeze(level);
         ENTRY_DIALOG_OPEN.clear();
+        START_DANCE_DIALOG_OPEN.clear();
+        START_DANCE_VOTES.clear();
+        START_DANCE_VOTE_PARTICIPANTS.clear();
         EXIT_DIALOG_OPEN.clear();
         EXIT_VOTES.clear();
         EXIT_VOTE_PARTICIPANTS.clear();
@@ -458,7 +515,6 @@ public final class FlowerDanceService {
         boolean insideEntry = ENTRY_TRIGGER_BOUNDS.contains(player.position());
         if (!insideEntry) {
             LAST_OUTSIDE_ENTRY.put(player.getUUID(), player.position());
-            ENTRY_DIALOG_OPEN.remove(player.getUUID());
             if (!isParticipant(player)) {
                 syncHud(player, false);
             }
@@ -487,16 +543,40 @@ public final class FlowerDanceService {
     }
 
     private static void promptStartDance(ServerPlayer player) {
+        if (START_DANCE_VOTES.contains(player.getUUID())) {
+            List<ServerPlayer> voters = onlineVoteParticipants(player.serverLevel(), START_DANCE_VOTE_PARTICIPANTS);
+            int voteCount = voteCount(voters, START_DANCE_VOTES);
+            player.displayClientMessage(Component.translatable(
+                "message.stardewcraft.festival.flower_dance.start_vote_waiting", voteCount, voters.size()), true);
+            return;
+        }
         if (START_DANCE_DIALOG_OPEN.add(player.getUUID())) {
             PacketDistributor.sendToPlayer(player, new OpenFestivalConfirmPayload(OpenFestivalConfirmPayload.Action.START_DANCE));
         }
     }
 
-    private static void startMainEventAfterConfirmation(ServerPlayer player) {
+    private static void castStartDanceVote(ServerPlayer player) {
         if (player == null || !isParticipant(player) || mainEventPhase != MainEventPhase.FREE) {
             return;
         }
-        startMainEventCutscene(player.serverLevel());
+        if (START_DANCE_VOTE_PARTICIPANTS.isEmpty()) {
+            START_DANCE_VOTE_PARTICIPANTS.addAll(onlineParticipants(player.serverLevel()).stream().map(ServerPlayer::getUUID).toList());
+        }
+        START_DANCE_VOTES.retainAll(START_DANCE_VOTE_PARTICIPANTS);
+        START_DANCE_VOTES.add(player.getUUID());
+        List<ServerPlayer> voters = onlineVoteParticipants(player.serverLevel(), START_DANCE_VOTE_PARTICIPANTS);
+        int voteCount = voteCount(voters, START_DANCE_VOTES);
+        if (voters.isEmpty() || voteCount >= voters.size()) {
+            startMainEventCutscene(player.serverLevel());
+            return;
+        }
+        for (ServerPlayer participant : voters) {
+            if (!START_DANCE_VOTES.contains(participant.getUUID()) && START_DANCE_DIALOG_OPEN.add(participant.getUUID())) {
+                PacketDistributor.sendToPlayer(participant, new OpenFestivalConfirmPayload(OpenFestivalConfirmPayload.Action.START_DANCE));
+            }
+            participant.displayClientMessage(Component.translatable(
+                "message.stardewcraft.festival.flower_dance.start_vote_waiting", voteCount, voters.size()), true);
+        }
     }
 
     private static void startMainEventCutscene(ServerLevel level) {
@@ -510,8 +590,11 @@ public final class FlowerDanceService {
         MAIN_EVENT_CUTSCENE_PARTICIPANTS.addAll(participants.stream().map(ServerPlayer::getUUID).toList());
         MAIN_EVENT_CUTSCENE_DONE.clear();
         START_DANCE_DIALOG_OPEN.clear();
+        START_DANCE_VOTES.clear();
+        START_DANCE_VOTE_PARTICIPANTS.clear();
         PENDING_PLAYER_INVITES.clear();
         setSessionPhase(level, FestivalSessionPhase.MAIN_EVENT);
+        broadcastFestivalMusic(level, currentFestivalMusicTrack());
         sendCutsceneState(participants);
         for (ServerPlayer participant : participants) {
             ServerCutsceneTracker.startEvent(participant, MAIN_EVENT_CUTSCENE_ID);
@@ -550,6 +633,8 @@ public final class FlowerDanceService {
             target = pushOutsideEntry(player.position());
         }
         ModTeleport.to(player, level, target.x, target.y, target.z, player.getYRot(), player.getXRot());
+        player.setDeltaMovement(Vec3.ZERO);
+        player.fallDistance = 0.0F;
     }
 
     private static Vec3 pushOutsideEntry(Vec3 current) {
@@ -605,10 +690,11 @@ public final class FlowerDanceService {
         }
         ENTRY_DIALOG_OPEN.clear();
         START_DANCE_DIALOG_OPEN.clear();
+        START_DANCE_VOTES.clear();
+        START_DANCE_VOTE_PARTICIPANTS.clear();
         EXIT_DIALOG_OPEN.clear();
         EXIT_VOTES.clear();
         EXIT_VOTE_PARTICIPANTS.clear();
-        START_DANCE_DIALOG_OPEN.clear();
         MAIN_EVENT_CUTSCENE_PARTICIPANTS.clear();
         MAIN_EVENT_CUTSCENE_DONE.clear();
         mainEventStagePrepared = false;
@@ -669,6 +755,26 @@ public final class FlowerDanceService {
         return level != null && level.players().stream().anyMatch(FlowerDanceService::isParticipant);
     }
 
+    private static boolean hasCurrentSessionParticipant(ServerLevel level) {
+        return currentFlowerDanceSession(level)
+            .map(session -> !session.participants().isEmpty())
+            .orElse(false);
+    }
+
+    private static Optional<FestivalSessionState> currentFlowerDanceSession(ServerLevel level) {
+        if (level == null) {
+            return Optional.empty();
+        }
+        StardewTimeManager time = StardewTimeManager.get();
+        return FestivalWorldData.get(level).getSession(FESTIVAL_ID)
+            .filter(session -> session.year() == time.getCurrentYear()
+                && session.season() == time.getCurrentSeason()
+                && session.day() == time.getCurrentDay())
+            .filter(session -> session.phase() != FestivalSessionPhase.ENDING
+                && session.phase() != FestivalSessionPhase.RESTORING_MAP
+                && session.phase() != FestivalSessionPhase.CLOSED);
+    }
+
     private static List<ServerPlayer> onlineParticipants(ServerLevel level) {
         if (level == null) {
             return List.of();
@@ -718,11 +824,15 @@ public final class FlowerDanceService {
             return;
         }
         if (onlineParticipants(level).isEmpty()) {
-            finishFestival(level);
+            if (!hasCurrentSessionParticipant(level)) {
+                finishFestival(level);
+            }
             return;
         }
         if (onlineSnapshotParticipants(level, MAIN_EVENT_CUTSCENE_PARTICIPANTS).isEmpty()) {
-            finishFestival(level);
+            if (!hasCurrentSessionParticipant(level)) {
+                finishFestival(level);
+            }
         }
     }
 
@@ -774,19 +884,21 @@ public final class FlowerDanceService {
             sourcePairs.add(pairForPlayers(playerId, partnerId));
         }
 
-        for (DefaultDancePair defaultPair : DEFAULT_DANCE_PAIRS) {
-            if (sourcePairs.size() >= 6) {
-                break;
+        List<DefaultDancePair> availableDefaultPairs = DEFAULT_DANCE_PAIRS.stream()
+            .filter(defaultPair -> !occupiedNpcs.contains(defaultPair.femaleNpcId()) && !occupiedNpcs.contains(defaultPair.maleNpcId()))
+            .toList();
+        if (!availableDefaultPairs.isEmpty()) {
+            int defaultPairIndex = 0;
+            while (sourcePairs.size() < MAX_DANCE_PAIRS) {
+                DefaultDancePair defaultPair = availableDefaultPairs.get(defaultPairIndex % availableDefaultPairs.size());
+                occupiedNpcs.add(defaultPair.femaleNpcId());
+                occupiedNpcs.add(defaultPair.maleNpcId());
+                sourcePairs.add(new FlowerDanceCutsceneClientState.DancePair(
+                    FlowerDanceCutsceneClientState.Partner.npc(defaultPair.femaleNpcId()),
+                    FlowerDanceCutsceneClientState.Partner.npc(defaultPair.maleNpcId())
+                ));
+                defaultPairIndex++;
             }
-            if (occupiedNpcs.contains(defaultPair.femaleNpcId()) || occupiedNpcs.contains(defaultPair.maleNpcId())) {
-                continue;
-            }
-            occupiedNpcs.add(defaultPair.femaleNpcId());
-            occupiedNpcs.add(defaultPair.maleNpcId());
-            sourcePairs.add(new FlowerDanceCutsceneClientState.DancePair(
-                FlowerDanceCutsceneClientState.Partner.npc(defaultPair.femaleNpcId()),
-                FlowerDanceCutsceneClientState.Partner.npc(defaultPair.maleNpcId())
-            ));
         }
 
         List<FlowerDanceCutsceneClientState.DancePair> displayPairs = sourceOrderedDisplayPairs(sourcePairs);
@@ -866,12 +978,37 @@ public final class FlowerDanceService {
     }
 
     private static void syncHud(ServerPlayer player, boolean hidden) {
+        syncHud(player, hidden, false);
+    }
+
+    private static void forceSyncHud(ServerPlayer player, boolean hidden) {
+        syncHud(player, hidden, true);
+    }
+
+    private static void syncHud(ServerPlayer player, boolean hidden, boolean force) {
         boolean current = player.getPersistentData().getBoolean(TAG_HUD_HIDDEN);
-        if (current == hidden) {
+        if (!force && current == hidden) {
             return;
         }
         player.getPersistentData().putBoolean(TAG_HUD_HIDDEN, hidden);
         PacketDistributor.sendToPlayer(player, new FestivalHudStatePayload(hidden));
+        syncFestivalMusic(player, hidden ? currentFestivalMusicTrack() : FestivalMusicStatePayload.RELEASE);
+    }
+
+    private static void broadcastFestivalMusic(ServerLevel level, String track) {
+        for (ServerPlayer participant : onlineParticipants(level)) {
+            syncFestivalMusic(participant, track);
+        }
+    }
+
+    private static void syncFestivalMusic(ServerPlayer player, String track) {
+        PacketDistributor.sendToPlayer(player, new FestivalMusicStatePayload(track));
+    }
+
+    private static String currentFestivalMusicTrack() {
+        return mainEventPhase == MainEventPhase.MAIN_EVENT
+            ? FestivalMusicStatePayload.FLOWER_DANCE
+            : FestivalMusicStatePayload.EVENT1;
     }
 
     private static void clearRuntimeState(ServerLevel level) {
@@ -883,6 +1020,8 @@ public final class FlowerDanceService {
         }
         ENTRY_DIALOG_OPEN.clear();
         START_DANCE_DIALOG_OPEN.clear();
+        START_DANCE_VOTES.clear();
+        START_DANCE_VOTE_PARTICIPANTS.clear();
         EXIT_DIALOG_OPEN.clear();
         EXIT_VOTES.clear();
         EXIT_VOTE_PARTICIPANTS.clear();

@@ -4,6 +4,7 @@ import com.stardew.craft.StardewCraft;
 import com.stardew.craft.festival.desert.DesertFestivalCookService;
 import com.stardew.craft.festival.desert.DesertFestivalSpecialInteractionService;
 import com.stardew.craft.festival.desert.DesertFestivalWillyFishingService;
+import com.stardew.craft.festival.trout.TroutDerbyService;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -40,6 +41,10 @@ public record DesertFestivalQuestionResponsePayload(
             if (context.player() instanceof ServerPlayer player) {
                 if ("willy_fishing".equals(payload.context())) {
                     DesertFestivalWillyFishingService.handleQuestionResponse(player, payload.context(), payload.choiceId());
+                    return;
+                }
+                if ("trout_derby_booth".equals(payload.context())) {
+                    TroutDerbyService.handleQuestionResponse(player, payload.choiceId());
                     return;
                 }
                 if (payload.context().startsWith("cook_")) {

@@ -11,7 +11,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 /**
  * C→S: 客户端渐黑完成确认。
- * 服务端收到后传送玩家回农场。
+ * 服务端收到后执行本次击倒救援传送。
  */
 @SuppressWarnings("null")
 public record PassOutAckPayload() implements CustomPacketPayload {
@@ -30,7 +30,7 @@ public record PassOutAckPayload() implements CustomPacketPayload {
     public static void handle(PassOutAckPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (context.player() instanceof ServerPlayer sp && PassOutService.isKnockedOut(sp)) {
-                PassOutService.teleportToFarmSpawn(sp);
+                PassOutService.teleportAfterPassOutAck(sp);
             }
         });
     }

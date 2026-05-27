@@ -48,6 +48,8 @@ public final class UtilityAutomationCapabilities {
             (be, ctx) -> be.getAutomationItemHandler());
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ModBlockEntities.FURNACE.get(),
             (be, ctx) -> be.getAutomationItemHandler());
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ModBlockEntities.HEAVY_FURNACE.get(),
+            (be, ctx) -> be.getAutomationItemHandler());
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ModBlockEntities.CHARCOAL_KILN.get(),
             (be, ctx) -> be.getAutomationItemHandler());
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ModBlockEntities.CASK.get(),
@@ -94,6 +96,7 @@ public final class UtilityAutomationCapabilities {
             ModBlocks.BAIT_MAKER.get(),
             ModBlocks.FISH_SMOKER.get(),
             ModBlocks.FURNACE.get(),
+            ModBlocks.HEAVY_FURNACE.get(),
             ModBlocks.CHARCOAL_KILN.get(),
             ModBlocks.MAYONNAISE_MACHINE.get(),
             ModBlocks.INCUBATOR.get(),

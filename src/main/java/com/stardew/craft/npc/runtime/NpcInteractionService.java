@@ -208,6 +208,11 @@ public final class NpcInteractionService {
             return InteractionResult.SUCCESS;
         }
 
+        if (npcId.equals("willy") && com.stardew.craft.festival.trout.TroutDerbyService.isPlayerAtBooth(serverPlayer)) {
+            com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(serverPlayer, npcId);
+            return com.stardew.craft.festival.trout.TroutDerbyService.handleWillyInteraction(serverPlayer, npc);
+        }
+
         // ═══════════════════════════════════════════════════════════════
         // SDV parity: QUEST DELIVERY 最高优先级 —
         // 玩家拿着正好匹配「已接受的交付任务」的物品 + 右键 target NPC，
@@ -485,7 +490,7 @@ public final class NpcInteractionService {
         }
         if (npcEntity != null) {
             boolean garbleGift = npcId.equals("dwarf") && !com.stardew.craft.shop.DwarfService.canUnderstandDwarves(player);
-            sendDialoguePacket(player, npcId, "stardewcraft.npc.generic.quest_delivery_thanks", 0, garbleGift);
+            sendDialoguePacket(player, npcId, questDeliveryDialogueText(matching), 0, garbleGift);
         }
     }
 
@@ -515,14 +520,16 @@ public final class NpcInteractionService {
         // ── SDV parity: quest delivery intercept (before gift taste processing) ──
         // In SDV NPC.tryToReceiveActiveObject, OnItemOfferedToNpc is checked first.
         // If a delivery quest matches, the item is consumed by the quest; no gift processing.
-        boolean questConsumed = com.stardew.craft.quest.StardewQuestEvents.fireItemOfferedToNpc(player, npcId, giftItemId);
+        com.stardew.craft.quest.ItemDeliveryQuest matchingQuest = findMatchingDeliveryQuest(player, npcId, held);
+        boolean questConsumed = matchingQuest != null
+            && com.stardew.craft.quest.StardewQuestEvents.fireItemOfferedToNpc(player, npcId, giftItemId);
         if (questConsumed) {
             // Quest consumed the item — shrink held stack and send quest-specific dialogue
             if (!player.getAbilities().instabuild) {
                 held.shrink(1);
             }
             boolean garbleGift = npcId.equals("dwarf") && !com.stardew.craft.shop.DwarfService.canUnderstandDwarves(player);
-            sendDialoguePacket(player, npcId, "stardewcraft.npc.generic.quest_delivery_thanks", 0, garbleGift);
+            sendDialoguePacket(player, npcId, questDeliveryDialogueText(matchingQuest), 0, garbleGift);
             return;
         }
 
@@ -1266,6 +1273,13 @@ public final class NpcInteractionService {
      */
     private static void sendDialoguePacket(ServerPlayer player, String npcId, String translateKey, int points) {
         sendDialoguePacket(player, npcId, translateKey, points, false);
+    }
+
+    private static String questDeliveryDialogueText(com.stardew.craft.quest.ItemDeliveryQuest quest) {
+        String targetMessage = quest != null ? quest.getTargetMessage() : "";
+        return targetMessage == null || targetMessage.isBlank()
+            ? "stardewcraft.npc.generic.quest_delivery_thanks"
+            : targetMessage;
     }
 
     private static void sendDialoguePacket(ServerPlayer player, String npcId, String translateKey, int points, boolean garbleDwarvish) {

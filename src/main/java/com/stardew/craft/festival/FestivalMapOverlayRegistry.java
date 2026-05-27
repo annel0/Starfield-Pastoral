@@ -52,6 +52,19 @@ public final class FestivalMapOverlayRegistry {
             true,
             true
         ));
+        register(new FestivalMapOverlayDefinition(
+            "Forest-TroutDerby",
+            "Forest",
+            new BlockPos(-149, 64, 82),
+            "",
+            "data/stardewcraft/structures/festivals/trout_derby_forest.schem",
+            new BlockPos(-149, 64, 82),
+            new BlockPos(-136, 67, 88),
+            List.of(),
+            true,
+            true,
+            true
+        ));
     }
 
     private FestivalMapOverlayRegistry() {

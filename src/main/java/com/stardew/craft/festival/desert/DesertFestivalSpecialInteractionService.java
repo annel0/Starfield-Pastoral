@@ -6,6 +6,7 @@ import com.stardew.craft.item.ModItems;
 import com.stardew.craft.item.totem.TeleportTotemItem;
 import com.stardew.craft.entity.ModEntities;
 import com.stardew.craft.entity.npc.TravelingCartEntity;
+import com.stardew.craft.festival.FestivalService;
 import com.stardew.craft.network.payload.OpenDesertFestivalQuestionPayload;
 import com.stardew.craft.network.payload.OpenNpcDialogueScreenPayload;
 import com.stardew.craft.player.PlayerStardewDataAPI;
@@ -43,6 +44,7 @@ public final class DesertFestivalSpecialInteractionService {
     public static final BlockPos WARPER_INTERACTION_POS = new BlockPos(-208, 65, -214);
 
     public static final String FESTIVAL_TRAVELING_CART_MARKER_TAG = "stardewcraft_desert_festival_traveling_cart";
+    private static final int FESTIVAL_TRAVELING_CART_OPEN_TIME = 1200;
     private static final double FESTIVAL_TRAVELING_CART_X = -191.0D;
     private static final double FESTIVAL_TRAVELING_CART_Y = 64.0D;
     private static final double FESTIVAL_TRAVELING_CART_Z = -198.0D;
@@ -217,6 +219,10 @@ public final class DesertFestivalSpecialInteractionService {
         if (level == null) {
             return;
         }
+        if (!isFestivalTravelingCartPresent()) {
+            removeFestivalTravelingCart(level);
+            return;
+        }
         if (hasFestivalTravelingCart(level)) {
             return;
         }
@@ -237,6 +243,17 @@ public final class DesertFestivalSpecialInteractionService {
         cart.setCustomNameVisible(false);
         cart.addTag(FESTIVAL_TRAVELING_CART_MARKER_TAG);
         level.addFreshEntity(cart);
+    }
+
+    public static void syncFestivalTravelingCart(ServerLevel level) {
+        if (level == null) {
+            return;
+        }
+        if (isFestivalTravelingCartPresent()) {
+            spawnFestivalTravelingCart(level);
+        } else {
+            removeFestivalTravelingCart(level);
+        }
     }
 
     public static void removeFestivalTravelingCart(ServerLevel level) {
@@ -288,6 +305,15 @@ public final class DesertFestivalSpecialInteractionService {
         );
         return !level.getEntitiesOfClass(TravelingCartEntity.class, box,
             entity -> entity.getTags().contains(FESTIVAL_TRAVELING_CART_MARKER_TAG)).isEmpty();
+    }
+
+    public static boolean isFestivalTravelingCartShopOpen() {
+        return isFestivalTravelingCartPresent()
+            && FestivalService.currentTimeOfDay() >= FESTIVAL_TRAVELING_CART_OPEN_TIME;
+    }
+
+    private static boolean isFestivalTravelingCartPresent() {
+        return DesertFestivalService.isFestivalOpen();
     }
 
     private static void handleScholarAnswer(ServerPlayer player, int questionIndex, String choiceId) {

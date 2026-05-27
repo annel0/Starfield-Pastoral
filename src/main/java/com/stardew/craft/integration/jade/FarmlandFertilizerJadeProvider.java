@@ -4,13 +4,17 @@ import com.stardew.craft.StardewCraft;
 import com.stardew.craft.block.FertilizerType;
 import com.stardew.craft.client.ClientFertilizerCache;
 import com.stardew.craft.item.ModItems;
+import com.stardew.craft.manager.FertilizerManager;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.FarmBlock;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IBlockComponentProvider;
+import snownee.jade.api.IServerDataProvider;
 import snownee.jade.api.ITooltip;
 import snownee.jade.api.config.IPluginConfig;
 
@@ -18,14 +22,28 @@ import snownee.jade.api.config.IPluginConfig;
  * 耕地肥料信息Jade提供器
  * 显示耕地上的肥料类型
  */
-public enum FarmlandFertilizerJadeProvider implements IBlockComponentProvider {
+public enum FarmlandFertilizerJadeProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
     INSTANCE;
 
     private static final ResourceLocation UID = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "farmland_fertilizer");
+    private static final String DATA_CHECKED = "stardewcraft_fertilizer_checked";
+    private static final String DATA_TYPE = "stardewcraft_fertilizer";
 
     @Override
     public ResourceLocation getUid() {
         return UID;
+    }
+
+    @Override
+    public void appendServerData(CompoundTag tag, BlockAccessor accessor) {
+        if (!(accessor.getBlockState().getBlock() instanceof FarmBlock) || !(accessor.getLevel() instanceof ServerLevel level)) {
+            return;
+        }
+        tag.putBoolean(DATA_CHECKED, true);
+        FertilizerType type = FertilizerManager.get(level).getFertilizer(level, accessor.getPosition());
+        if (type != null) {
+            tag.putString(DATA_TYPE, type.getSerializedName());
+        }
     }
 
     @Override
@@ -34,7 +52,14 @@ public enum FarmlandFertilizerJadeProvider implements IBlockComponentProvider {
             return;
         }
 
-        FertilizerType type = ClientFertilizerCache.getFertilizer(accessor.getPosition());
+        FertilizerType type = getServerFertilizer(accessor.getServerData());
+        if (type != null) {
+            ClientFertilizerCache.setFertilizer(accessor.getLevel(), accessor.getPosition(), type);
+        } else if (accessor.getServerData().getBoolean(DATA_CHECKED)) {
+            ClientFertilizerCache.removeFertilizer(accessor.getLevel(), accessor.getPosition());
+        } else {
+            type = ClientFertilizerCache.getFertilizer(accessor.getLevel(), accessor.getPosition());
+        }
 
         if (type != null) {
             Item fertilizerItem = getFertilizerItem(type);
@@ -43,6 +68,17 @@ public enum FarmlandFertilizerJadeProvider implements IBlockComponentProvider {
                 tooltip.add(Component.translatable("stardewcraft.jade.fertilizer", stack.getHoverName())
                         .withStyle(net.minecraft.ChatFormatting.AQUA));
             }
+        }
+    }
+
+    private FertilizerType getServerFertilizer(CompoundTag data) {
+        if (!data.contains(DATA_TYPE)) {
+            return null;
+        }
+        try {
+            return FertilizerType.valueOf(data.getString(DATA_TYPE).toUpperCase());
+        } catch (IllegalArgumentException ignored) {
+            return null;
         }
     }
 

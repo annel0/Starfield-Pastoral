@@ -418,12 +418,19 @@ public final class NpcSpawnManager {
             double spawnY = y;
             double spawnZ = z;
             boolean desertFestivalMarlon = NpcScheduleRuntimeService.isDesertFestivalMarlonOverride(npcId);
+            boolean troutDerbyWilly = NpcScheduleRuntimeService.isTroutDerbyWillyOverride(npcId);
             if (desertFestivalMarlon) {
                 NpcScheduleRuntimeService.TargetPoint target = NpcScheduleRuntimeService.resolveDesertFestivalMarlonTarget();
                 spawnX = target.position().x;
                 spawnY = target.position().y;
                 spawnZ = target.position().z;
                 yaw = yawFromSdvFacing(NpcScheduleRuntimeService.desertFestivalMarlonFacing());
+            } else if (troutDerbyWilly) {
+                Vec3 target = com.stardew.craft.festival.trout.TroutDerbyService.willyPosition();
+                spawnX = target.x;
+                spawnY = target.y;
+                spawnZ = target.z;
+                yaw = yawFromSdvFacing(com.stardew.craft.festival.trout.TroutDerbyService.WILLY_FACING);
             }
 
             // Chunk forcing is fully managed by NpcChunkForceManager now.
@@ -440,6 +447,9 @@ public final class NpcSpawnManager {
                 if (desertFestivalMarlon) {
                     enforceDesertFestivalMarlonPosition(level, getTrackedNpc(level, npcId));
                 }
+                if (troutDerbyWilly) {
+                    enforceTroutDerbyWillyPosition(level, getTrackedNpc(level, npcId));
+                }
                 if (isKrobus(npcId)) {
                     enforceKrobusFixedPosition(getTrackedNpc(level, npcId));
                 }
@@ -452,6 +462,9 @@ public final class NpcSpawnManager {
                 if (desertFestivalMarlon) {
                     enforceDesertFestivalMarlonPosition(level, existing);
                 }
+                if (troutDerbyWilly) {
+                    enforceTroutDerbyWillyPosition(level, existing);
+                }
                 if (isKrobus(npcId)) {
                     enforceKrobusFixedPosition(existing);
                 }
@@ -462,6 +475,11 @@ public final class NpcSpawnManager {
 
             boolean forced = FORCE_SPAWN_IDS.remove(npcId);
             if (desertFestivalMarlon) {
+                TRACKED_NPC_UUIDS.remove(npcId);
+                TRACKED_MISS_COUNTS.remove(npcId);
+                forced = true;
+            }
+            if (troutDerbyWilly) {
                 TRACKED_NPC_UUIDS.remove(npcId);
                 TRACKED_MISS_COUNTS.remove(npcId);
                 forced = true;
@@ -971,6 +989,23 @@ public final class NpcSpawnManager {
         npc.hasImpulse = false;
         npc.setWalking(false);
         NpcCentralMovementService.resetMovementPlan("marlon");
+    }
+
+    private static void enforceTroutDerbyWillyPosition(ServerLevel level, StardewNpcEntity npc) {
+        if (level == null || npc == null || npc.isRemoved() || !npc.isAlive()) {
+            return;
+        }
+        Vec3 pos = com.stardew.craft.festival.trout.TroutDerbyService.willyPosition();
+        float yaw = yawFromSdvFacing(com.stardew.craft.festival.trout.TroutDerbyService.WILLY_FACING);
+        npc.getNavigation().stop();
+        npc.moveTo(pos.x, pos.y, pos.z, yaw, 0.0F);
+        npc.setYRot(yaw);
+        npc.setYHeadRot(yaw);
+        npc.setYBodyRot(yaw);
+        npc.setDeltaMovement(Vec3.ZERO);
+        npc.hasImpulse = false;
+        npc.setWalking(false);
+        NpcCentralMovementService.resetMovementPlan(com.stardew.craft.festival.trout.TroutDerbyService.WILLY_NPC_ID);
     }
 
     private static float yawFromSdvFacing(int facing) {

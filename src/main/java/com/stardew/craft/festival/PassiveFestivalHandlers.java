@@ -1,6 +1,7 @@
 package com.stardew.craft.festival;
 
 import com.stardew.craft.festival.desert.DesertFestivalHandler;
+import com.stardew.craft.festival.trout.TroutDerbyHandler;
 import net.minecraft.server.level.ServerLevel;
 
 import java.util.HashMap;
@@ -13,6 +14,7 @@ public final class PassiveFestivalHandlers {
 
     static {
         register(new DesertFestivalHandler());
+        register(new TroutDerbyHandler());
     }
 
     private PassiveFestivalHandlers() {
@@ -35,6 +37,22 @@ public final class PassiveFestivalHandlers {
 
     public static void onOpen(ServerLevel level, FestivalDefinition definition, FestivalSessionState session) {
         get(definition.id()).ifPresent(handler -> handler.onOpen(level, definition, session));
+    }
+
+    public static void onMapOverlayApplyStarted(ServerLevel level, FestivalDefinition definition, FestivalSessionState session) {
+        get(definition.id()).ifPresent(handler -> handler.onMapOverlayApplyStarted(level, definition, session));
+    }
+
+    public static void onMapOverlayApplied(ServerLevel level, FestivalDefinition definition, FestivalSessionState session) {
+        get(definition.id()).ifPresent(handler -> handler.onMapOverlayApplied(level, definition, session));
+    }
+
+    public static void onMapOverlayRestoreStarted(ServerLevel level, FestivalDefinition definition, FestivalSessionState session) {
+        get(definition.id()).ifPresent(handler -> handler.onMapOverlayRestoreStarted(level, definition, session));
+    }
+
+    public static void onMapOverlayRestored(ServerLevel level, FestivalDefinition definition, FestivalSessionState session) {
+        get(definition.id()).ifPresent(handler -> handler.onMapOverlayRestored(level, definition, session));
     }
 
     public static void tick(ServerLevel level, FestivalDefinition definition, FestivalSessionState session) {

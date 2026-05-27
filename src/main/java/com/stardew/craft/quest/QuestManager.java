@@ -66,6 +66,9 @@ public class QuestManager {
         quest.onAccept(player);
         markOwnerDirty(player);
         syncToClient(player);
+        if ("102".equals(quest.getId())) {
+            com.stardew.craft.event.LuckyPurpleShortsWorldEvents.syncVisibility(player);
+        }
     }
 
     public void removeQuest(String questId, ServerPlayer player) {
@@ -304,6 +307,7 @@ public class QuestManager {
                 acceptQuest("15", player);
             }
         }
+
     }
 
     // ─── 内部工具 ───

@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "stardewcraft:block/crops/spring/rice_shoot_stage3_bottom",
+    "particle": "stardewcraft:block/crops/spring/rice_shoot_stage3_bottom"
+  }
+}

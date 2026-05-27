@@ -2057,6 +2057,13 @@
       "note": "Willy 森林散步",
       "indoor": false
     },
+    "trout_derby_willy": {
+      "x": -141,
+      "y": 64,
+      "z": 86,
+      "note": "鳟鱼大赛 Willy 功能交互站位，朝南",
+      "indoor": false
+    },
     "willy_town_bench": {
       "x": -2,
       "y": 66,

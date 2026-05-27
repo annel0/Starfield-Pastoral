@@ -8,6 +8,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.level.ChunkWatchEvent;
 
 /**
  * 肥料数据同步事件处理器
@@ -46,6 +47,16 @@ public class FertilizerSyncEvents {
             manager.syncAllFertilizersToPlayer(player);
             StardewCraft.LOGGER.info("Player {} changed dimension, syncing fertilizers", player.getName().getString());
         }
+    }
+
+    @SubscribeEvent
+    public static void onChunkSent(ChunkWatchEvent.Sent event) {
+        ServerPlayer player = event.getPlayer();
+        ServerLevel level = event.getLevel();
+        if (player.serverLevel() != level) {
+            return;
+        }
+        FertilizerManager.get(level).syncFertilizersInChunkToPlayer(player, level, event.getPos());
     }
     
     /**

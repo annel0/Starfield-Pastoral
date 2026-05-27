@@ -72,7 +72,7 @@ public class FertilizerOverlayRenderer {
         int maxBlockDistanceSq = maxBlockDistance * maxBlockDistance;
 
         // 仅遍历有肥料的位置，避免每帧体积扫描带来的性能波动。
-        for (Map.Entry<BlockPos, FertilizerType> entry : ClientFertilizerCache.snapshot().entrySet()) {
+        for (Map.Entry<BlockPos, FertilizerType> entry : ClientFertilizerCache.snapshot(level).entrySet()) {
             BlockPos pos = entry.getKey();
             FertilizerType type = entry.getValue();
 

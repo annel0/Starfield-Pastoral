@@ -1,5 +1,55 @@
 # Changelog
 
+## 0.4.4 - 2026-05-28
+
+### Update Log (English)
+
+#### Headline Features
+
+- Added the first playable Trout Derby implementation for the Summer 20-21 passive festival window, including Forest overlay support, Willy schedule/interaction handling, Golden Tag content, Rainbow Trout catch rolls, treasure integration, and booth reward exchange.
+- Added Trout Derby presentation support with the project-owned Forest schematic overlay, synchronized item display entities, debug-safe apply/restore behavior, and no-drop bulk block replacement during overlay swaps.
+- Added the Lucky Purple Shorts feature pass, including the quest item, special presentation hooks, placeable shorts block, Lewis/Marnie interaction paths, basement handling, and the purple-shorts fishing bobber renderer path.
+
+#### Farming, UI, and Integration
+
+- Added rice shoot crop content and related crop tags, models, textures, and item registration.
+- Improved fertilizer client synchronization and Jade integration so crop/farmland fertilizer state can be inspected more consistently.
+- Updated NPC model and animation resources touched by the current presentation pass.
+
+#### Festival and Stability Fixes
+
+- Hardened passive festival overlay lifecycle callbacks so passive handlers can respond when overlays start applying, finish applying, start restoring, and finish restoring.
+- Fixed Trout Derby Golden Tag eligibility so debug/forced passive festival sessions use the passive festival open state instead of being blocked by the in-game calendar date alone.
+- Added missing Jade config localization keys and fixed several festival/debug interaction paths touched by Flower Dance, Desert Festival, and Trout Derby work.
+
+#### Changes
+
+- Updated the public mod version to `0.4.4`.
+
+### 更新日志（中文）
+
+#### 重点内容
+
+- 加入第一轮可玩的鳟鱼大赛实现，覆盖夏 20-21 被动节日窗口、森林 overlay、威利日程与交互、黄金标签物品、虹鳟鱼捕获掉落、宝箱整合，以及摊位兑换奖励。
+- 加入鳟鱼大赛表现层支持，包括项目内正式保存的森林 schematic overlay、三个展示实体同步安装/清理、调试 apply/restore 兼容，以及 overlay 批量替换时禁止掉落物品。
+- 加入刘易斯紫色短裤功能批次，包括任务物品、特殊表现钩子、可放置短裤方块、刘易斯/玛妮相关交互、地窖处理，以及紫色短裤鱼漂渲染路径。
+
+#### 农业、界面与集成
+
+- 加入稻苗作物内容，以及对应作物标签、模型、贴图和物品注册。
+- 改进肥料客户端同步与 Jade 集成，让作物/耕地肥料状态能更稳定地被查看。
+- 更新本轮表现层工作触及的 NPC 模型和动画资源。
+
+#### 节日与稳定性修复
+
+- 加固被动节日 overlay 生命周期回调，让 passive handler 能响应 overlay 开始应用、应用完成、开始恢复和恢复完成。
+- 修复鳟鱼大赛黄金标签判定：调试/强制开启的被动节日会使用节日 open 状态，不再被游戏内日期单独挡掉。
+- 补齐 Jade 配置本地化键，并修复花舞节、沙漠节和鳟鱼大赛本轮触及的若干节日/调试交互路径。
+
+#### 变更
+
+- 项目公开版本号更新为 `0.4.4`。
+
 ## 0.4.3 - 2026-05-26
 
 ### Update Log (English)

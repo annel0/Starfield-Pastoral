@@ -38,6 +38,12 @@ public interface ActiveFestivalHandler {
         return false;
     }
 
+    default void onPlayerLogin(ServerPlayer player) {
+    }
+
+    default void onPlayerLogout(ServerPlayer player) {
+    }
+
     default boolean tryOpenPierreFestivalShop(ServerPlayer player) {
         return false;
     }

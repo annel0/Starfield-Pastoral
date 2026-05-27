@@ -13,6 +13,7 @@ import com.stardew.craft.command.MuseumDebugCommand;
 import com.stardew.craft.command.AnimalDebugCommand;
 import com.stardew.craft.command.DecorationDebugCommand;
 import com.stardew.craft.command.PlayerDataCommand;
+import com.stardew.craft.command.StardewPayCommand;
 import com.stardew.craft.command.StardewTeleportCommand;
 import com.stardew.craft.command.OvernightDebugCommand;
 import com.stardew.craft.command.NpcDebugCommand;
@@ -33,6 +34,7 @@ public class CommandEventHandler {
         // Keep farm join responses first so /stardew farm accept/reject stay available to non-OP players.
         FarmJoinCommand.register(event.getDispatcher());
         StardewTeleportCommand.register(event.getDispatcher());
+        StardewPayCommand.register(event.getDispatcher());
         PlayerDataCommand.register(event.getDispatcher());
         MuseumDebugCommand.register(event.getDispatcher(), event.getBuildContext());
         AnimalDebugCommand.register(event.getDispatcher());

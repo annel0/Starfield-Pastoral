@@ -46,7 +46,6 @@ public final class VanillaCategoryItemRegistrar {
         new Entry("vinegar", "stardewcraft.type.cooking_ingredient", 100, 5, false),
         new Entry("rice", "stardewcraft.type.cooking_ingredient", 100, 5, false),
         new Entry("unmilled_rice", "stardewcraft.type.crop", 30, 1, true),
-        new Entry("rice_shoot", "stardewcraft.type.seed", 20, -300, false),
         new Entry("apple", "stardewcraft.type.fruit", 100, 15, true),
         new Entry("apricot", "stardewcraft.type.fruit", 50, 15, true),
         new Entry("orange", "stardewcraft.type.fruit", 100, 15, true),
