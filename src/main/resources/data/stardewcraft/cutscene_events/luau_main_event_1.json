@@ -1,0 +1,8 @@
+{
+  "id": "luau_main_event_1",
+  "skippable": false,
+  "trigger": { "type": "manual" },
+  "commands": [
+    { "cmd": "luau_main_event", "reaction": 1 }
+  ]
+}

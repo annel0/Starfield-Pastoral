@@ -728,6 +728,18 @@ public class ModItems {
         public static final DeferredItem<Item> SEASONAL_DECOR = ITEMS.register("seasonal_decor",
                         () -> new StardewBlockItem(ModBlocks.SEASONAL_DECOR.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
 
+        public static final DeferredItem<Item> LUAU_SOUP_POT = ITEMS.register("luau_soup_pot",
+                        () -> new StardewBlockItem(ModBlocks.LUAU_SOUP_POT.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> LUAU_TORCH = ITEMS.register("luau_torch",
+                        () -> new StardewBlockItem(ModBlocks.LUAU_TORCH.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> LUAU_SPEAKER = ITEMS.register("luau_speaker",
+                        () -> new StardewBlockItem(ModBlocks.LUAU_SPEAKER.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> LUAU_TOTEM = ITEMS.register("luau_totem",
+                        () -> new StardewBlockItem(ModBlocks.LUAU_TOTEM.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
+
         public static final DeferredItem<Item> PLUSH_BUNNY = ITEMS.register("plush_bunny",
                         () -> new StardewBlockItem(ModBlocks.PLUSH_BUNNY.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
 

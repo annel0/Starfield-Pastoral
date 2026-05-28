@@ -124,6 +124,10 @@ public final class EventCommandFactory {
 
             case "egg_festival_finish" -> new EggFestivalFinishCommand();
 
+            case "luau_main_event" -> new LuauMainEventCommand(
+                    getInt(obj, "reaction", 2)
+            );
+
             case "fade"          -> new FadeCommand(
                     "out".equals(getString(obj, "mode", "out")),
                     getInt(obj, "ticks", 20)

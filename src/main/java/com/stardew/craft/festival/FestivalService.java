@@ -165,20 +165,29 @@ public final class FestivalService {
         }
         FestivalWorldData data = FestivalWorldData.get(stardewLevel);
         StardewTimeManager time = StardewTimeManager.get();
-        broadcastActiveFestivalStartIfDue(server, time);
+        broadcastActiveFestivalStartIfDue(server, stardewLevel, data, time);
         advancePassiveFestivalLifecycle(stardewLevel, data, time);
     }
 
-    private static void broadcastActiveFestivalStartIfDue(MinecraftServer server, StardewTimeManager time) {
+    private static void broadcastActiveFestivalStartIfDue(MinecraftServer server, ServerLevel level, FestivalWorldData data, StardewTimeManager time) {
         Optional<FestivalDefinition> definitionOpt = getActiveFestivalToday();
         if (definitionOpt.isEmpty()) {
             return;
         }
         FestivalDefinition definition = definitionOpt.get();
-        if (!"spring13".equalsIgnoreCase(definition.id()) || isDebugActiveFestival(definition.id())) {
+        if (isDebugActiveFestival(definition.id())) {
             return;
         }
-        if (currentTimeOfDay() != definition.startTime()) {
+        String translationKey = activeStartMessageKey(definition.id());
+        if (translationKey.isBlank()) {
+            return;
+        }
+        int now = currentTimeOfDay();
+        if (now < definition.startTime() || now >= definition.endTime()) {
+            return;
+        }
+        FestivalSessionState session = ensureActiveFestivalPrepared(level, data, definition, time).orElse(null);
+        if (session == null || session.phase() != FestivalSessionPhase.OPEN) {
             return;
         }
         String messageKey = time.getCurrentYear() + ":" + time.getCurrentSeason() + ":" + time.getCurrentDay() + ":" + definition.id();
@@ -186,10 +195,22 @@ public final class FestivalService {
             return;
         }
         lastActiveFestivalStartMessageKey = messageKey;
-        Component message = Component.translatable("message.stardewcraft.festival.egg.started");
+        Component message = Component.translatable(translationKey);
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             player.displayClientMessage(message, false);
         }
+    }
+
+    private static String activeStartMessageKey(String festivalId) {
+        if (festivalId == null) {
+            return "";
+        }
+        return switch (festivalId.toLowerCase(Locale.ROOT)) {
+            case "spring13" -> "message.stardewcraft.festival.egg.started";
+            case "spring24" -> "message.stardewcraft.festival.flower_dance.started";
+            case "summer11" -> "message.stardewcraft.festival.luau.started";
+            default -> "";
+        };
     }
 
     private static void broadcastPassiveFestivalStartIfDue(MinecraftServer server, FestivalDefinition definition, FestivalSessionState session) {
@@ -237,13 +258,44 @@ public final class FestivalService {
         if (isDebugActiveFestival(festivalId)) {
             return true;
         }
+        if (level == null) {
+            return false;
+        }
         Optional<FestivalDefinition> definitionOpt = getActiveFestivalToday()
             .filter(definition -> definition.id().equalsIgnoreCase(festivalId))
             .filter(definition -> {
                 int now = currentTimeOfDay();
                 return now >= definition.startTime() && now < definition.endTime();
             });
-        return definitionOpt.isPresent() && !isCurrentSessionRestoring(level, festivalId);
+        if (definitionOpt.isEmpty()) {
+            return false;
+        }
+        FestivalDefinition definition = definitionOpt.get();
+        StardewTimeManager time = StardewTimeManager.get();
+        FestivalSessionState session = ensureActiveFestivalPrepared(level, FestivalWorldData.get(level), definition, time).orElse(null);
+        return session != null && session.phase() == FestivalSessionPhase.OPEN;
+    }
+
+    public static boolean isActiveFestivalEntryClosedForToday(ServerLevel level, String festivalId) {
+        if (isDebugActiveFestival(festivalId) || level == null || festivalId == null || festivalId.isBlank()) {
+            return false;
+        }
+        Optional<FestivalDefinition> definitionOpt = getActiveFestivalToday()
+            .filter(definition -> definition.id().equalsIgnoreCase(festivalId));
+        if (definitionOpt.isEmpty()) {
+            return false;
+        }
+        FestivalDefinition definition = definitionOpt.get();
+        if (currentTimeOfDay() >= definition.endTime()) {
+            return true;
+        }
+        StardewTimeManager time = StardewTimeManager.get();
+        return FestivalWorldData.get(level).getSession(definition.id())
+            .filter(session -> session.year() == time.getCurrentYear()
+                && session.season() == time.getCurrentSeason()
+                && session.day() == time.getCurrentDay())
+            .map(session -> isTerminalSessionPhase(session.phase()))
+            .orElse(false);
     }
 
     public static Optional<FestivalSessionState> openActiveFestival(ServerPlayer player, String festivalId) {
@@ -269,12 +321,11 @@ public final class FestivalService {
             time.getCurrentSeason(),
             time.getCurrentDay()
         );
-        if (session.phase() == FestivalSessionPhase.RESTORING_MAP) {
+        if (session.phase() == FestivalSessionPhase.PREPARING_MAP || isTerminalSessionPhase(session.phase())) {
             return Optional.empty();
         }
-        if (isTerminalSessionPhase(session.phase())) {
-            session.setPhase(FestivalSessionPhase.SCHEDULED);
-            data.setDirty();
+        if (definition.mapOverlayId().isBlank()) {
+            session.setPhase(FestivalSessionPhase.OPEN);
         }
         if (session.phase() == FestivalSessionPhase.SCHEDULED) {
             boolean overlayStarted = FestivalMapOverlayManager.beginApply(
@@ -291,6 +342,46 @@ public final class FestivalService {
         }
         session.addParticipant(player.getUUID());
         data.setDirty();
+        return Optional.of(session);
+    }
+
+    private static Optional<FestivalSessionState> ensureActiveFestivalPrepared(ServerLevel level, FestivalWorldData data,
+                                                                              FestivalDefinition definition, StardewTimeManager time) {
+        if (level == null || data == null || definition == null || time == null || definition.type() != FestivalType.ACTIVE) {
+            return Optional.empty();
+        }
+        FestivalSessionState session = data.getOrCreateSession(
+            definition,
+            time.getCurrentYear(),
+            time.getCurrentSeason(),
+            time.getCurrentDay()
+        );
+        if (isTerminalSessionPhase(session.phase()) || requiresUnregisteredOverlay(definition)) {
+            return Optional.of(session);
+        }
+        if (session.phase() == FestivalSessionPhase.SCHEDULED) {
+            if (definition.mapOverlayId().isBlank()) {
+                session.setPhase(FestivalSessionPhase.OPEN);
+                data.setDirty();
+            } else {
+                boolean overlayStarted = FestivalMapOverlayManager.beginApply(
+                    level,
+                    definition,
+                    time.getCurrentYear(),
+                    time.getCurrentSeason(),
+                    time.getCurrentDay()
+                );
+                if (overlayStarted) {
+                    session.setPhase(FestivalSessionPhase.PREPARING_MAP);
+                    data.setDirty();
+                }
+            }
+        }
+        if (session.phase() == FestivalSessionPhase.PREPARING_MAP
+            && (definition.mapOverlayId().isBlank() || FestivalMapOverlayManager.isApplied(level, definition.mapOverlayId()))) {
+            session.setPhase(FestivalSessionPhase.OPEN);
+            data.setDirty();
+        }
         return Optional.of(session);
     }
 
@@ -339,6 +430,8 @@ public final class FestivalService {
                     if (definition.type() == FestivalType.PASSIVE) {
                         PassiveFestivalHandlers.onOpen(level, definition, session);
                         broadcastPassiveFestivalStartIfDue(level.getServer(), definition, session);
+                    } else if (definition.type() == FestivalType.ACTIVE) {
+                        broadcastActiveFestivalStartIfDue(level.getServer(), level, data, StardewTimeManager.get());
                     }
                     data.setDirty();
                 }
@@ -526,23 +619,6 @@ public final class FestivalService {
 
     private static boolean requiresUnregisteredOverlay(FestivalDefinition definition) {
         return definition != null && !definition.mapOverlayId().isBlank() && !FestivalMapOverlayRegistry.isRegistered(definition.mapOverlayId());
-    }
-
-    private static boolean isCurrentSessionRestoring(ServerLevel level, String festivalId) {
-        if (level == null || festivalId == null || festivalId.isBlank()) {
-            return false;
-        }
-        FestivalDefinition definition = FestivalRegistry.get(festivalId).orElse(null);
-        if (definition == null) {
-            return false;
-        }
-        StardewTimeManager time = StardewTimeManager.get();
-        return FestivalWorldData.get(level).getSession(definition.id())
-            .filter(session -> session.year() == time.getCurrentYear()
-                && session.season() == time.getCurrentSeason()
-                && session.day() == time.getCurrentDay())
-            .map(session -> session.phase() == FestivalSessionPhase.RESTORING_MAP)
-            .orElse(false);
     }
 
     private static boolean isTerminalSessionPhase(FestivalSessionPhase phase) {

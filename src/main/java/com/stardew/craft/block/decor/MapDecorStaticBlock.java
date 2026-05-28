@@ -34,6 +34,26 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings("null")
 public class MapDecorStaticBlock extends Block {
+    private static final ThreadLocal<Integer> DROP_SUPPRESSION_DEPTH = ThreadLocal.withInitial(() -> 0);
+
+    public static void runWithDropsSuppressed(Runnable action) {
+        int previous = DROP_SUPPRESSION_DEPTH.get();
+        DROP_SUPPRESSION_DEPTH.set(previous + 1);
+        try {
+            action.run();
+        } finally {
+            if (previous == 0) {
+                DROP_SUPPRESSION_DEPTH.remove();
+            } else {
+                DROP_SUPPRESSION_DEPTH.set(previous);
+            }
+        }
+    }
+
+    private static boolean dropsSuppressed() {
+        return DROP_SUPPRESSION_DEPTH.get() > 0;
+    }
+
     public enum Part implements StringRepresentable {
         MAIN("main"),
         EXTENSION("extension");
@@ -252,6 +272,10 @@ public class MapDecorStaticBlock extends Block {
             shape = Block.box(3.0D, 0.0D, 3.0D, 13.0D, 8.0D, 13.0D);
         } else if (modelId.endsWith("/long_potted_plant")) {
             shape = Block.box(-6.0D, 0.0D, 4.0D, 22.0D, 8.0D, 12.0D);
+        } else if (modelId.contains("luau_soup_pot_proxy")) {
+            shape = Block.box(-25.66D, 0.0D, -5.26D, 41.66D, 20.1D, 21.26D);
+        } else if (modelId.contains("luau_totem_proxy")) {
+            shape = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 40.0D, 16.0D);
         }
         return shape == null ? null : rotateShapeForFacing(shape, facing);
     }
@@ -521,7 +545,7 @@ public class MapDecorStaticBlock extends Block {
             if (mainPos != null) {
                 // 安全网：EXTENSION 被非玩家方式移除时（如爆炸等），掉落物品
                 // （水流已被 canBeReplaced 拦截，但保留此逻辑以防万一）
-                if (!level.isClientSide && state.getValue(PART) == Part.EXTENSION
+                if (!dropsSuppressed() && !level.isClientSide && state.getValue(PART) == Part.EXTENSION
                         && level.getBlockState(mainPos).is(this)) {
                     popResource(level, mainPos, new ItemStack(this));
                 }

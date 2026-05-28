@@ -261,6 +261,7 @@ public class CropGrowthManager extends SavedData {
                         // onRemove 调用 removeCrop 时会被延迟处理，避免遍历时 CME。
                         cropBlock.growCropOneDay(serverLevel, pos, state, isWatered, growthState);
                         // growthState is mutated in-place
+                        setDirty();
 
                         // SDV: 成熟当日 1% 概率长成 3×3 巨型作物
                         BlockState afterGrow = serverLevel.getBlockState(pos);
@@ -314,6 +315,7 @@ public class CropGrowthManager extends SavedData {
                     // 传 watered=false，确保不会推进生长，但仍会触发“不在季节 -> 枯萎”替换。
                     cropBlock.growCropOneDay(serverLevel, pos, state, false, growthState);
                     // growthState is mutated in-place
+                    setDirty();
                 } else {
                     removeCrop(serverLevel, pos);
                 }

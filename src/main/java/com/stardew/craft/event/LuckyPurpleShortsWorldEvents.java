@@ -170,6 +170,11 @@ public final class LuckyPurpleShortsWorldEvents {
         }
 
         giveShorts(player);
+        PlayerStardewData data = PlayerDataManager.getPlayerData(player);
+        if (data != null) {
+            data.recordBasementShortsStolen();
+            PlayerDataEventHandler.syncPlayerData(player, data);
+        }
         BASEMENT_COLLECTED_THIS_VISIT.add(player.getUUID());
         spawnBasementShortsMonster(player);
         syncVisibility(player);

@@ -20,6 +20,20 @@ public interface IStardewItem {
     }
 
     /**
+     * SDV object base sell price before quality multipliers.
+     */
+    default int getBaseSellPrice(ItemStack stack) {
+        return getSellPrice(stack);
+    }
+
+    /**
+     * SDV object edibility value. -300 means inedible.
+     */
+    default int getEdibility(ItemStack stack) {
+        return isFood() ? Math.round(getEnergy(stack) / 2.5F) : -300;
+    }
+
+    /**
      * Is this item food?
      */
     default boolean isFood() {

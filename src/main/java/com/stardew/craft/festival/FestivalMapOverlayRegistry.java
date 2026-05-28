@@ -40,6 +40,19 @@ public final class FestivalMapOverlayRegistry {
             true
         ));
         register(new FestivalMapOverlayDefinition(
+            "Beach-Luau",
+            "Beach",
+            new BlockPos(30, 59, 88),
+            "",
+            "data/stardewcraft/structures/festivals/luau_beach.schem",
+            new BlockPos(30, 59, 88),
+            new BlockPos(90, 63, 130),
+            List.of(),
+            true,
+            true,
+            true
+        ));
+        register(new FestivalMapOverlayDefinition(
             "DesertFestival",
             "Desert",
             new BlockPos(-273, 62, -228),

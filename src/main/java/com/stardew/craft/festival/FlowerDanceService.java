@@ -72,17 +72,15 @@ public final class FlowerDanceService {
     private static final String TAG_PARTICIPATING = "stardewcraft_flower_dance_participating";
     private static final String TAG_HUD_HIDDEN = "stardewcraft_flower_dance_hud_hidden";
 
+    private static final ActiveFestivalConfirmState CONFIRM_STATE = new ActiveFestivalConfirmState();
     private static final Map<UUID, Vec3> LAST_OUTSIDE_ENTRY = new LinkedHashMap<>();
     private static final Map<UUID, PartnerSelection> DANCE_PARTNERS = new LinkedHashMap<>();
     private static final Map<UUID, Set<String>> FESTIVAL_DIALOGUE_SEEN = new LinkedHashMap<>();
     private static final Map<UUID, PendingPlayerInvite> PENDING_PLAYER_INVITES = new LinkedHashMap<>();
-    private static final Set<UUID> ENTRY_DIALOG_OPEN = new LinkedHashSet<>();
-    private static final Set<UUID> START_DANCE_DIALOG_OPEN = new LinkedHashSet<>();
-    private static final Set<UUID> START_DANCE_VOTES = new LinkedHashSet<>();
-    private static final Set<UUID> START_DANCE_VOTE_PARTICIPANTS = new LinkedHashSet<>();
-    private static final Set<UUID> EXIT_DIALOG_OPEN = new LinkedHashSet<>();
-    private static final Set<UUID> EXIT_VOTES = new LinkedHashSet<>();
-    private static final Set<UUID> EXIT_VOTE_PARTICIPANTS = new LinkedHashSet<>();
+    private static final Set<UUID> START_DANCE_VOTES = CONFIRM_STATE.votes(OpenFestivalConfirmPayload.Action.START_DANCE);
+    private static final Set<UUID> START_DANCE_VOTE_PARTICIPANTS = CONFIRM_STATE.voteParticipants(OpenFestivalConfirmPayload.Action.START_DANCE);
+    private static final Set<UUID> EXIT_VOTES = CONFIRM_STATE.votes(OpenFestivalConfirmPayload.Action.EXIT);
+    private static final Set<UUID> EXIT_VOTE_PARTICIPANTS = CONFIRM_STATE.voteParticipants(OpenFestivalConfirmPayload.Action.EXIT);
     private static Integer frozenMinute;
     private static Long frozenOverworldDayTime;
     private static MainEventPhase mainEventPhase = MainEventPhase.FREE;
@@ -158,18 +156,13 @@ public final class FlowerDanceService {
     }
 
     public static boolean handlesConfirmation(ServerPlayer player, OpenFestivalConfirmPayload.Action action) {
-        if (player == null || action == null) {
-            return false;
-        }
-        if (isParticipant(player) || ENTRY_DIALOG_OPEN.contains(player.getUUID()) || START_DANCE_DIALOG_OPEN.contains(player.getUUID()) || EXIT_DIALOG_OPEN.contains(player.getUUID())) {
-            return action == OpenFestivalConfirmPayload.Action.ENTER
-                || action == OpenFestivalConfirmPayload.Action.START_DANCE
-                || action == OpenFestivalConfirmPayload.Action.EXIT;
-        }
-        return isActiveFlowerDanceDay()
-            && (action == OpenFestivalConfirmPayload.Action.ENTER
-                || action == OpenFestivalConfirmPayload.Action.START_DANCE
-                || action == OpenFestivalConfirmPayload.Action.EXIT);
+        return CONFIRM_STATE.handlesConfirmation(
+            player,
+            action,
+            Set.of(OpenFestivalConfirmPayload.Action.ENTER, OpenFestivalConfirmPayload.Action.START_DANCE, OpenFestivalConfirmPayload.Action.EXIT),
+            FlowerDanceService::isParticipant,
+            FlowerDanceService::isActiveFlowerDanceDay
+        );
     }
 
     public static void onPlayerConfirmed(ServerPlayer player, OpenFestivalConfirmPayload.Action action, boolean confirmed) {
@@ -177,14 +170,14 @@ public final class FlowerDanceService {
             return;
         }
         if (action == OpenFestivalConfirmPayload.Action.ENTER) {
-            ENTRY_DIALOG_OPEN.remove(player.getUUID());
+            CONFIRM_STATE.closeDialog(player, OpenFestivalConfirmPayload.Action.ENTER);
             if (confirmed) {
                 enterFestival(player);
             }
             return;
         }
         if (action == OpenFestivalConfirmPayload.Action.START_DANCE) {
-            START_DANCE_DIALOG_OPEN.remove(player.getUUID());
+            CONFIRM_STATE.closeDialog(player, OpenFestivalConfirmPayload.Action.START_DANCE);
             if (!isParticipant(player)) {
                 return;
             }
@@ -199,7 +192,7 @@ public final class FlowerDanceService {
         if (action != OpenFestivalConfirmPayload.Action.EXIT) {
             return;
         }
-        EXIT_DIALOG_OPEN.remove(player.getUUID());
+        CONFIRM_STATE.closeDialog(player, OpenFestivalConfirmPayload.Action.EXIT);
         if (!isParticipant(player)) {
             return;
         }
@@ -321,9 +314,7 @@ public final class FlowerDanceService {
         }
         UUID playerId = player.getUUID();
         cancelPendingPlayerInvitesFor(playerId);
-        ENTRY_DIALOG_OPEN.remove(playerId);
-        START_DANCE_DIALOG_OPEN.remove(playerId);
-        EXIT_DIALOG_OPEN.remove(playerId);
+        CONFIRM_STATE.clearPlayerDialogs(playerId);
         LAST_OUTSIDE_ENTRY.remove(playerId);
     }
 
@@ -451,13 +442,7 @@ public final class FlowerDanceService {
         }
         FestivalService.setDebugActiveFestival(FESTIVAL_ID);
         startTimeFreeze(level);
-        ENTRY_DIALOG_OPEN.clear();
-        START_DANCE_DIALOG_OPEN.clear();
-        START_DANCE_VOTES.clear();
-        START_DANCE_VOTE_PARTICIPANTS.clear();
-        EXIT_DIALOG_OPEN.clear();
-        EXIT_VOTES.clear();
-        EXIT_VOTE_PARTICIPANTS.clear();
+        CONFIRM_STATE.clearAll();
         LAST_OUTSIDE_ENTRY.clear();
         DANCE_PARTNERS.clear();
         FESTIVAL_DIALOGUE_SEEN.clear();
@@ -495,7 +480,7 @@ public final class FlowerDanceService {
             return;
         }
         if (!FestivalService.isActiveFestivalEntryOpen(player.serverLevel(), FESTIVAL_ID)) {
-            player.displayClientMessage(Component.translatable("message.stardewcraft.festival.flower_dance.setup"), true);
+            player.displayClientMessage(blockedEntryMessage(player.serverLevel()), true);
             return;
         }
         if (FestivalService.openActiveFestival(player, FESTIVAL_ID).isEmpty()) {
@@ -528,7 +513,7 @@ public final class FlowerDanceService {
 
         syncHud(player, false);
         if (!FestivalService.isActiveFestivalEntryOpen(level, FESTIVAL_ID)) {
-            player.displayClientMessage(Component.translatable("message.stardewcraft.festival.flower_dance.setup"), true);
+            player.displayClientMessage(blockedEntryMessage(level), true);
             moveToLastOutsideEntry(level, player);
             return;
         }
@@ -537,9 +522,7 @@ public final class FlowerDanceService {
     }
 
     private static void promptEnter(ServerPlayer player) {
-        if (ENTRY_DIALOG_OPEN.add(player.getUUID())) {
-            PacketDistributor.sendToPlayer(player, new OpenFestivalConfirmPayload(OpenFestivalConfirmPayload.Action.ENTER));
-        }
+        CONFIRM_STATE.prompt(player, OpenFestivalConfirmPayload.Action.ENTER);
     }
 
     private static void promptStartDance(ServerPlayer player) {
@@ -550,9 +533,7 @@ public final class FlowerDanceService {
                 "message.stardewcraft.festival.flower_dance.start_vote_waiting", voteCount, voters.size()), true);
             return;
         }
-        if (START_DANCE_DIALOG_OPEN.add(player.getUUID())) {
-            PacketDistributor.sendToPlayer(player, new OpenFestivalConfirmPayload(OpenFestivalConfirmPayload.Action.START_DANCE));
-        }
+        CONFIRM_STATE.prompt(player, OpenFestivalConfirmPayload.Action.START_DANCE);
     }
 
     private static void castStartDanceVote(ServerPlayer player) {
@@ -571,8 +552,8 @@ public final class FlowerDanceService {
             return;
         }
         for (ServerPlayer participant : voters) {
-            if (!START_DANCE_VOTES.contains(participant.getUUID()) && START_DANCE_DIALOG_OPEN.add(participant.getUUID())) {
-                PacketDistributor.sendToPlayer(participant, new OpenFestivalConfirmPayload(OpenFestivalConfirmPayload.Action.START_DANCE));
+            if (!START_DANCE_VOTES.contains(participant.getUUID())) {
+                CONFIRM_STATE.prompt(participant, OpenFestivalConfirmPayload.Action.START_DANCE);
             }
             participant.displayClientMessage(Component.translatable(
                 "message.stardewcraft.festival.flower_dance.start_vote_waiting", voteCount, voters.size()), true);
@@ -589,9 +570,8 @@ public final class FlowerDanceService {
         MAIN_EVENT_CUTSCENE_PARTICIPANTS.clear();
         MAIN_EVENT_CUTSCENE_PARTICIPANTS.addAll(participants.stream().map(ServerPlayer::getUUID).toList());
         MAIN_EVENT_CUTSCENE_DONE.clear();
-        START_DANCE_DIALOG_OPEN.clear();
-        START_DANCE_VOTES.clear();
-        START_DANCE_VOTE_PARTICIPANTS.clear();
+        CONFIRM_STATE.clearDialog(OpenFestivalConfirmPayload.Action.START_DANCE);
+        CONFIRM_STATE.clearVote(OpenFestivalConfirmPayload.Action.START_DANCE);
         PENDING_PLAYER_INVITES.clear();
         setSessionPhase(level, FestivalSessionPhase.MAIN_EVENT);
         broadcastFestivalMusic(level, currentFestivalMusicTrack());
@@ -658,6 +638,13 @@ public final class FlowerDanceService {
         return new Vec3(x, y, z);
     }
 
+    private static Component blockedEntryMessage(ServerLevel level) {
+        String key = FestivalService.isActiveFestivalEntryClosedForToday(level, FESTIVAL_ID)
+            ? "message.stardewcraft.festival.ended"
+            : "message.stardewcraft.festival.flower_dance.setup";
+        return Component.translatable(key);
+    }
+
     private static void castExitVote(ServerPlayer player) {
         if (EXIT_VOTE_PARTICIPANTS.isEmpty()) {
             EXIT_VOTE_PARTICIPANTS.addAll(onlineParticipants(player.serverLevel()).stream().map(ServerPlayer::getUUID).toList());
@@ -671,8 +658,8 @@ public final class FlowerDanceService {
             return;
         }
         for (ServerPlayer participant : voters) {
-            if (!EXIT_VOTES.contains(participant.getUUID()) && EXIT_DIALOG_OPEN.add(participant.getUUID())) {
-                PacketDistributor.sendToPlayer(participant, new OpenFestivalConfirmPayload(OpenFestivalConfirmPayload.Action.EXIT));
+            if (!EXIT_VOTES.contains(participant.getUUID())) {
+                CONFIRM_STATE.prompt(participant, OpenFestivalConfirmPayload.Action.EXIT);
             }
             participant.displayClientMessage(Component.translatable(
                 "message.stardewcraft.festival.exit_vote_waiting", voteCount, voters.size()), true);
@@ -688,13 +675,7 @@ public final class FlowerDanceService {
             syncHud(participant, false);
             returnToFarm(participant);
         }
-        ENTRY_DIALOG_OPEN.clear();
-        START_DANCE_DIALOG_OPEN.clear();
-        START_DANCE_VOTES.clear();
-        START_DANCE_VOTE_PARTICIPANTS.clear();
-        EXIT_DIALOG_OPEN.clear();
-        EXIT_VOTES.clear();
-        EXIT_VOTE_PARTICIPANTS.clear();
+        CONFIRM_STATE.clearAll();
         MAIN_EVENT_CUTSCENE_PARTICIPANTS.clear();
         MAIN_EVENT_CUTSCENE_DONE.clear();
         mainEventStagePrepared = false;
@@ -1018,13 +999,7 @@ public final class FlowerDanceService {
             }
             syncHud(player, false);
         }
-        ENTRY_DIALOG_OPEN.clear();
-        START_DANCE_DIALOG_OPEN.clear();
-        START_DANCE_VOTES.clear();
-        START_DANCE_VOTE_PARTICIPANTS.clear();
-        EXIT_DIALOG_OPEN.clear();
-        EXIT_VOTES.clear();
-        EXIT_VOTE_PARTICIPANTS.clear();
+        CONFIRM_STATE.clearAll();
         LAST_OUTSIDE_ENTRY.clear();
         DANCE_PARTNERS.clear();
         FESTIVAL_DIALOGUE_SEEN.clear();

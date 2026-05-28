@@ -118,6 +118,7 @@ public final class LeaderboardService {
             case ANIMAL_PRODUCTS_COLLECTED -> playerData == null ? 0L : playerData.getAnimalProductsCollectedTotal();
             case PASS_OUTS -> playerData == null ? 0L : playerData.getPassOutsTotal();
             case COMBAT_DEATHS -> playerData == null ? 0L : playerData.getCombatDeaths();
+            case BASEMENT_SHORTS_STOLEN -> playerData == null ? 0L : playerData.getBasementShortsStolen();
             case TRASH_CANS_CHECKED -> playerData == null ? 0L : playerData.getTrashCansChecked();
         };
     }

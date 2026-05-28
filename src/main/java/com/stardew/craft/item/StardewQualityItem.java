@@ -21,6 +21,7 @@ public class StardewQualityItem extends Item implements IStardewItem {
 
 	private final String typeKey;
 	private final int basePrice;
+	private final int edibility;
 	private final boolean supportsQuality;
 	private final boolean edible;
 	private final int[] priceByQuality;
@@ -40,6 +41,7 @@ public class StardewQualityItem extends Item implements IStardewItem {
 				: properties);
 		this.typeKey = typeKey;
 		this.basePrice = basePrice;
+		this.edibility = edibility;
 		this.supportsQuality = supportsQuality;
 		this.edible = isEdible(edibility);
 		this.priceByQuality = buildPriceByQuality(basePrice);
@@ -171,6 +173,16 @@ public class StardewQualityItem extends Item implements IStardewItem {
 			return basePrice;
 		}
 		return priceByQuality[getQualityIndex(stack)];
+	}
+
+	@Override
+	public int getBaseSellPrice(ItemStack stack) {
+		return basePrice <= 0 ? -1 : basePrice;
+	}
+
+	@Override
+	public int getEdibility(ItemStack stack) {
+		return edibility;
 	}
 
 	@Override

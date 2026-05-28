@@ -48,9 +48,11 @@ public record GrowCropsPayload() implements CustomPacketPayload {
                         
                         if (state.getBlock() instanceof StardewCropBlock) {
                             StardewCropBlock crop = (StardewCropBlock) state.getBlock();
-                            CropGrowthManager.CropGrowthState gs = CropGrowthManager.get(serverLevel).getOrCreateState(serverLevel, pos);
+                            CropGrowthManager cropManager = CropGrowthManager.get(serverLevel);
+                            CropGrowthManager.CropGrowthState gs = cropManager.getOrCreateState(serverLevel, pos);
                             // Debug: 视为“推进一天且已浇水”，避免把所有作物误导成只走 AGE 0-3。
                             crop.growCropOneDay(serverLevel, pos, state, true, gs);
+                            cropManager.setDirty();
 
                             // SDV 对齐：成熟当日 1% 概率长成 3×3 巨型作物
                             BlockState afterGrow = serverLevel.getBlockState(pos);

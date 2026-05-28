@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "stardewcraft:item/luau_totem",
+    "particle": "stardewcraft:item/luau_totem"
+  }
+}

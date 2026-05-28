@@ -1,6 +1,7 @@
 package com.stardew.craft.block.utility;
 
 import com.stardew.craft.block.shape.ModelVoxelShapeCache;
+import com.stardew.craft.blockentity.LuckyPurpleShortsBlockEntity;
 import com.stardew.craft.event.LuckyPurpleShortsWorldEvents;
 import com.stardew.craft.item.ModItems;
 import net.minecraft.core.BlockPos;
@@ -14,9 +15,11 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -27,9 +30,10 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
-public class LuckyPurpleShortsBlock extends Block {
+public class LuckyPurpleShortsBlock extends Block implements EntityBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
 
     private static final VoxelShape[] SHAPES = ModelVoxelShapeCache.horizontalShapes(
@@ -48,7 +52,13 @@ public class LuckyPurpleShortsBlock extends Block {
 
     @Override
     public RenderShape getRenderShape(@SuppressWarnings("null") BlockState state) {
-        return RenderShape.MODEL;
+        return RenderShape.ENTITYBLOCK_ANIMATED;
+    }
+
+    @Override
+    @Nullable
+    public BlockEntity newBlockEntity(@SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") BlockState state) {
+        return new LuckyPurpleShortsBlockEntity(pos, state);
     }
 
     @Override

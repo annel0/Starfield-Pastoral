@@ -19,6 +19,8 @@ public record OpenFestivalConfirmPayload(Action action) implements CustomPacketP
         EXIT,
         START_CONTEST,
         START_DANCE,
+        LUAU_ADD_SOUP,
+        LUAU_START,
         END_CONTEST,
         FESTIVAL_END;
 
@@ -58,6 +60,8 @@ public record OpenFestivalConfirmPayload(Action action) implements CustomPacketP
             case EXIT -> Component.translatable("message.stardewcraft.festival.exit_confirm");
             case START_CONTEST -> Component.translatable("message.stardewcraft.festival.egg.start_confirm");
             case START_DANCE -> Component.translatable("message.stardewcraft.festival.flower_dance.start_confirm");
+            case LUAU_ADD_SOUP -> Component.translatable("message.stardewcraft.festival.luau.add_soup_confirm");
+            case LUAU_START -> Component.translatable("message.stardewcraft.festival.luau.start_confirm");
             case END_CONTEST -> Component.translatable("message.stardewcraft.festival.egg.end_contest_confirm");
             case FESTIVAL_END -> Component.translatable("message.stardewcraft.festival.egg.festival_end_confirm");
             case ENTER -> Component.translatable("message.stardewcraft.festival.enter_confirm");

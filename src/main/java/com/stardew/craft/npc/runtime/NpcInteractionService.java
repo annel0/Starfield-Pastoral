@@ -196,6 +196,10 @@ public final class NpcInteractionService {
                     return InteractionResult.SUCCESS;
                 }
             }
+            if ("summer11".equalsIgnoreCase(activeFestival.festivalId())
+                && tryHandleLuauDialogue(serverPlayer, npc, npcId, state, dayContext, friendshipManager)) {
+                return InteractionResult.SUCCESS;
+            }
             return InteractionResult.SUCCESS;
         }
 
@@ -427,6 +431,31 @@ public final class NpcInteractionService {
             com.stardew.craft.festival.FlowerDanceService.markFestivalDialogueSeen(player, npcId);
             sendDialoguePacket(player, npcId, dialogueText, points, false);
         });
+        return true;
+    }
+
+    private static boolean tryHandleLuauDialogue(ServerPlayer player,
+                                                 StardewNpcEntity npc,
+                                                 String npcId,
+                                                 NpcFriendshipDataManager.FriendshipState state,
+                                                 DayContext dayContext,
+                                                 NpcFriendshipDataManager friendshipManager) {
+        String dialogueText = com.stardew.craft.festival.LuauFestivalService.resolveDialogueKey(player, npcId);
+        if (dialogueText == null || dialogueText.isBlank()) {
+            return false;
+        }
+
+        boolean canGainFriendship = NpcSocialRules.canSocialize(npcId, player);
+        if (canGainFriendship && state.lastTalkDayKey() != dayContext.dayKey()) {
+            grantConversationFriendship(npcId, state, dayContext, dialogueText, player);
+            NpcFriendshipRewardService.applyEligibleRewards(player, npcId, state.points());
+            friendshipManager.setDirty();
+        }
+        syncFriendshipStatus(player, npcId, state, dayContext);
+        com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(player, npcId);
+        com.stardew.craft.festival.LuauFestivalService.markFestivalDialogueSeen(player, npcId);
+        int points = state.points();
+        npc.facePlayerTemporarily(player, 60, () -> sendDialoguePacket(player, npcId, dialogueText, points, false));
         return true;
     }
 

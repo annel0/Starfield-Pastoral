@@ -832,6 +832,18 @@ public final class ShopRegistry {
             Set.of()
         ));
 
+        REGISTRY.put("Festival_Luau_Pierre", new ShopDefinition(
+            "Festival_Luau_Pierre",
+            "Pierre",
+            "stardewcraft.shop.luau.dialogue",
+            List.of(
+                entryAllSeasons("stardewcraft:luau_totem", 1000),
+                entryStock("stardewcraft:starfruit", 3000, 1),
+                entryAllSeasons("stardewcraft:luau_torch", 700)
+            ),
+            Set.of()
+        ));
+
         // -------------------------------------------------------------------
         // Joja Mart — SDV source: 源文件/Content/Data/Shops.json "Joja" section.
         //

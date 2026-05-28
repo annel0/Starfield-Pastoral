@@ -272,25 +272,31 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 		}
 		// 渔具耐久度：使用 Minecraft 原版耐久条（ItemStack damage）。
 		// 每次结算成功对每个已装备渔具 damage + 1，到达 maxDamage 时断裂并从槽位移除。
-		consumeOneTackleDurability(rod, rodStack, TAG_TACKLE_1);
+		if (!consumeOneTackleDurability(rod, rodStack, TAG_TACKLE_1)) {
+			return;
+		}
 		consumeOneTackleDurability(rod, rodStack, TAG_TACKLE_2);
 	}
 
-	private static void consumeOneTackleDurability(FishingRodItem rod, ItemStack rodStack, String tackleKey) {
+	private static boolean consumeOneTackleDurability(FishingRodItem rod, ItemStack rodStack, String tackleKey) {
 		ItemStack tackle = readStack(rodStack, tackleKey);
 		if (tackle.isEmpty()) {
-			return;
+			return true;
+		}
+		if (tackle.is(ModItems.LUCKY_PURPLE_SHORTS.get())) {
+			return false;
 		}
 		if (!tackle.isDamageableItem()) {
-			return;
+			return true;
 		}
 		int nextDamage = tackle.getDamageValue() + 1;
 		if (nextDamage >= tackle.getMaxDamage()) {
 			FishingRodItem.writeStack(rodStack, tackleKey, ItemStack.EMPTY);
-			return;
+			return true;
 		}
 		tackle.setDamageValue(nextDamage);
 		FishingRodItem.writeStack(rodStack, tackleKey, tackle);
+		return true;
 	}
 
 	@Override

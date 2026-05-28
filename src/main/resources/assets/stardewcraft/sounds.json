@@ -1291,6 +1291,14 @@
       }
     ]
   },
+  "music_event2": {
+    "sounds": [
+      {
+        "name": "stardewcraft:music/event2",
+        "stream": true
+      }
+    ]
+  },
   "music_tick_tock": {
     "sounds": [
       {
@@ -1311,6 +1319,22 @@
     "sounds": [
       {
         "name": "stardewcraft:music/flower_dance",
+        "stream": true
+      }
+    ]
+  },
+  "music_settlingin": {
+    "sounds": [
+      {
+        "name": "stardewcraft:music/settlingin",
+        "stream": true
+      }
+    ]
+  },
+  "music_jaunty": {
+    "sounds": [
+      {
+        "name": "stardewcraft:music/jaunty",
         "stream": true
       }
     ]

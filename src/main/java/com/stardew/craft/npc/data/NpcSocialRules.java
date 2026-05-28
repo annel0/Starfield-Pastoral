@@ -21,7 +21,8 @@ public final class NpcSocialRules {
         "gunther",
         "marlon",
         "morris",
-        "joja_cashier"
+        "joja_cashier",
+        "governor"
     );
 
     private static final Set<String> SOCIAL_TAB_ALWAYS_SHOWN = Set.of(
@@ -36,7 +37,8 @@ public final class NpcSocialRules {
     private static final Set<String> SOCIAL_TAB_HIDDEN_ALWAYS = Set.of(
         "gunther",
         "morris",
-        "joja_cashier"
+        "joja_cashier",
+        "governor"
     );
 
     private static final Set<String> INTRODUCTIONS_EXCLUDED = Set.of(
@@ -47,7 +49,8 @@ public final class NpcSocialRules {
         "krobus",
         "sandy",
         "morris",
-        "joja_cashier"
+        "joja_cashier",
+        "governor"
     );
 
     private NpcSocialRules() {

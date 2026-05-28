@@ -1,0 +1,31 @@
+{
+  "variants": {
+    "facing=north,part=main": {
+      "model": "stardewcraft:decor/festival/luau_speaker"
+    },
+    "facing=north,part=extension": {
+      "model": "stardewcraft:block/decor/extensions/luau_festival_extension_empty"
+    },
+    "facing=east,part=main": {
+      "model": "stardewcraft:decor/festival/luau_speaker",
+      "y": 90
+    },
+    "facing=east,part=extension": {
+      "model": "stardewcraft:block/decor/extensions/luau_festival_extension_empty"
+    },
+    "facing=south,part=main": {
+      "model": "stardewcraft:decor/festival/luau_speaker",
+      "y": 180
+    },
+    "facing=south,part=extension": {
+      "model": "stardewcraft:block/decor/extensions/luau_festival_extension_empty"
+    },
+    "facing=west,part=main": {
+      "model": "stardewcraft:decor/festival/luau_speaker",
+      "y": 270
+    },
+    "facing=west,part=extension": {
+      "model": "stardewcraft:block/decor/extensions/luau_festival_extension_empty"
+    }
+  }
+}

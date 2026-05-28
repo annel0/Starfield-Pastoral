@@ -183,9 +183,18 @@ public final class ModBlockEntities {
 			BLOCK_ENTITIES.register("egg_festival_egg", () -> BlockEntityType.Builder.of(EggFestivalEggBlockEntity::new, ModBlocks.EGG_FESTIVAL_EGG.get()).build(null));
 
 	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<LuckyPurpleShortsBlockEntity>> LUCKY_PURPLE_SHORTS =
+			BLOCK_ENTITIES.register("lucky_purple_shorts", () -> BlockEntityType.Builder.of(LuckyPurpleShortsBlockEntity::new, ModBlocks.LUCKY_PURPLE_SHORTS.get()).build(null));
+
+	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FlowerDanceDecorBlockEntity>> FLOWER_DANCE_DECOR =
 			BLOCK_ENTITIES.register("flower_dance_decor", () -> BlockEntityType.Builder.of(FlowerDanceDecorBlockEntity::new,
 					ModBlocks.FLOWER_CLUSTER.get(), ModBlocks.SEASONAL_DECOR.get()).build(null));
+
+	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<LuauFestivalDecorBlockEntity>> LUAU_FESTIVAL_DECOR =
+			BLOCK_ENTITIES.register("luau_festival_decor", () -> BlockEntityType.Builder.of(LuauFestivalDecorBlockEntity::new,
+					ModBlocks.LUAU_SOUP_POT.get(), ModBlocks.LUAU_TOTEM.get()).build(null));
 
 	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DecorBlockEntity>> DECOR_BLOCK =

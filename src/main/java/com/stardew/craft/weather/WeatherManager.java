@@ -2,6 +2,8 @@ package com.stardew.craft.weather;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModDimensions;
+import com.stardew.craft.festival.FestivalRegistry;
+import com.stardew.craft.festival.FestivalType;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -62,12 +64,12 @@ public class WeatherManager {
     /**
      * 应用今天的天气（在新的一天开始时调用）
      */
-    public static void applyWeatherForNewDay(ServerLevel level, int dayOfMonth) {
+    public static void applyWeatherForNewDay(ServerLevel level, int dayOfMonth, String season, int daysPlayed) {
         if (!isStardewLevel(level)) {
             return;
         }
         WeatherState state = getWeatherState(level);
-        state.applyToday(level, dayOfMonth);
+        state.applyToday(level, dayOfMonth, season, daysPlayed);
         WeatherSavedData.get(level).setDirty();
 
         syncToAllPlayers(level, state);
@@ -94,6 +96,12 @@ public class WeatherManager {
             weather = "Storm";
         }
 
+        // SDV: active festival days become "Festival" weather, and passive festivals with
+        // Valley map replacements force Sun. StardewCraft has no separate Festival visuals.
+        if (isFestivalWeatherDay(dayOfMonth, season)) {
+            weather = "Sun";
+        }
+
         // 4. 碎片天气根据季节区分
         if (weather.startsWith("Wind")) {
             if ("spring".equalsIgnoreCase(season)) {
@@ -103,10 +111,32 @@ public class WeatherManager {
             }
         }
 
-        // TODO: 5. 节日天气（需要节日系统支持）
-        // TODO: 6. 被动节日天气（需要节日系统支持）
-
         return weather;
+    }
+
+    private static boolean isFestivalWeatherDay(int dayOfMonth, String season) {
+        int seasonIndex = seasonIndex(season);
+        if (seasonIndex < 0) {
+            return false;
+        }
+        return FestivalRegistry.all().stream()
+            .filter(definition -> definition.type() == FestivalType.ACTIVE || !definition.mapReplacements().isEmpty())
+            .anyMatch(definition -> definition.season() == seasonIndex
+                && dayOfMonth >= definition.startDay()
+                && dayOfMonth <= definition.endDay());
+    }
+
+    private static int seasonIndex(String season) {
+        if (season == null) {
+            return -1;
+        }
+        return switch (season.toLowerCase(java.util.Locale.ROOT)) {
+            case "spring" -> FestivalRegistry.SPRING;
+            case "summer" -> FestivalRegistry.SUMMER;
+            case "fall", "autumn" -> FestivalRegistry.FALL;
+            case "winter" -> FestivalRegistry.WINTER;
+            default -> -1;
+        };
     }
 
     /**
@@ -362,7 +392,9 @@ public class WeatherManager {
             return monthlyNonRainyDayCount;
         }
 
-        private void applyToday(ServerLevel level, int dayOfMonth) {
+        private void applyToday(ServerLevel level, int dayOfMonth, String season, int daysPlayed) {
+            weatherForTomorrow = getWeatherModificationsForDate(dayOfMonth, season, daysPlayed, weatherForTomorrow);
+
             // 将明天的天气变为今天的天气
             weatherType = weatherForTomorrow;
 

@@ -1426,6 +1426,7 @@ public class StardewGameMenuScreen extends Screen {
             case ANIMAL_PRODUCTS_COLLECTED -> ModItems.EGG_WHITE.get();
             case PASS_OUTS -> ModItems.BED_1.get();
             case COMBAT_DEATHS -> ModItems.RUSTY_SWORD.get();
+            case BASEMENT_SHORTS_STOLEN -> ModItems.LUCKY_PURPLE_SHORTS.get();
             case TRASH_CANS_CHECKED -> ModItems.TRASH_BIN.get();
         };
         return new ItemStack(item);

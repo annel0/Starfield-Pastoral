@@ -28,6 +28,7 @@ public enum LeaderboardMetric {
     ANIMAL_PRODUCTS_COLLECTED(LeaderboardCategory.ANIMALS, "animal_products_collected", "stardewcraft.leaderboard.animal_products_collected", "stardewcraft.leaderboard.short.animal_products_collected", "stardewcraft.leaderboard.desc.animal_products_collected", "stardewcraft.leaderboard.value.count", true, true),
     PASS_OUTS(LeaderboardCategory.LIFE, "pass_outs", "stardewcraft.leaderboard.pass_outs", "stardewcraft.leaderboard.short.pass_outs", "stardewcraft.leaderboard.desc.pass_outs", "stardewcraft.leaderboard.value.times", true, true),
     COMBAT_DEATHS(LeaderboardCategory.LIFE, "combat_deaths", "stardewcraft.leaderboard.combat_deaths", "stardewcraft.leaderboard.short.combat_deaths", "stardewcraft.leaderboard.desc.combat_deaths", "stardewcraft.leaderboard.value.times", true, true),
+    BASEMENT_SHORTS_STOLEN(LeaderboardCategory.LIFE, "basement_shorts_stolen", "stardewcraft.leaderboard.basement_shorts_stolen", "stardewcraft.leaderboard.short.basement_shorts_stolen", "stardewcraft.leaderboard.desc.basement_shorts_stolen", "stardewcraft.leaderboard.value.times", true, true),
     TRASH_CANS_CHECKED(LeaderboardCategory.LIFE, "trash_cans_checked", "stardewcraft.leaderboard.trash_cans_checked", "stardewcraft.leaderboard.short.trash_cans_checked", "stardewcraft.leaderboard.desc.trash_cans_checked", "stardewcraft.leaderboard.value.times", true, true);
 
     private final LeaderboardCategory category;

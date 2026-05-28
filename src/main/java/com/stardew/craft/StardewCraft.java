@@ -427,6 +427,10 @@ public class StardewCraft {
                 output.accept(ModItems.PILLAR.get());
                 output.accept(ModItems.SHRINE.get());
                 output.accept(ModItems.JUNIMO_HUT_DECOR.get());
+                output.accept(ModItems.LUAU_SOUP_POT.get());
+                output.accept(ModItems.LUAU_TORCH.get());
+                output.accept(ModItems.LUAU_SPEAKER.get());
+                output.accept(ModItems.LUAU_TOTEM.get());
                 // 稻草人 / Rarecrow
                 output.accept(ModItems.SCARECROW_0.get());
                 output.accept(ModItems.SCARECROW_1.get());

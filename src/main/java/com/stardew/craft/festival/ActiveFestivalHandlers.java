@@ -64,6 +64,29 @@ public final class ActiveFestivalHandlers {
             FlowerDanceService::applyTimeFreeze,
             "已启动 Flower Dance 总调试: 当前日期按 spring24 处理，overlay 应用中，已确认的自由阶段 NPC 会进入节日点位"
         ));
+        register(new DelegateHandler(
+            LuauFestivalService.FESTIVAL_ID,
+            "Luau",
+            LuauFestivalService::tick,
+            LuauFestivalService::startDebugFestival,
+            LuauFestivalService::restoreDebugFestival,
+            LuauFestivalService::debugStatus,
+            LuauFestivalService::tickNpcActors,
+            LuauFestivalService::requestDebugNpcs,
+            LuauFestivalService::restoreNpcs,
+            LuauFestivalService::debugStatus,
+            LuauFestivalService::controlsNpc,
+            LuauFestivalService::isParticipant,
+            LuauFestivalService::onPlayerLogin,
+            LuauFestivalService::onPlayerLogout,
+            LuauFestivalService::tryOpenPierreFestivalShop,
+            LuauFestivalService::isMainEventActive,
+            LuauFestivalService::tryStartMainEvent,
+            LuauFestivalService::debugStatus,
+            LuauFestivalService::isTimeFreezeActive,
+            LuauFestivalService::applyTimeFreeze,
+            "已启动 Luau 总调试: 当前日期按 summer11 处理，overlay 应用中，NPC 会在地图应用完成后进入节日点位"
+        ));
     }
 
     private ActiveFestivalHandlers() {

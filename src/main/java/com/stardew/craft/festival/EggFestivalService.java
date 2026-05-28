@@ -110,13 +110,11 @@ public final class EggFestivalService {
     );
     private static final List<EggSpot> EVEN_YEAR_EGG_SPOTS = ODD_YEAR_EGG_SPOTS;
 
+    private static final ActiveFestivalConfirmState CONFIRM_STATE = new ActiveFestivalConfirmState();
     private static final Map<UUID, Vec3> LAST_OUTSIDE = new LinkedHashMap<>();
     private static final Map<UUID, Vec3> LAST_INSIDE = new LinkedHashMap<>();
-    private static final Set<UUID> ENTRY_DIALOG_OPEN = new LinkedHashSet<>();
-    private static final Set<UUID> START_CONTEST_DIALOG_OPEN = new LinkedHashSet<>();
-    private static final Set<UUID> EXIT_DIALOG_OPEN = new LinkedHashSet<>();
-    private static final Set<UUID> EXIT_VOTES = new LinkedHashSet<>();
-    private static final Set<UUID> EXIT_VOTE_PARTICIPANTS = new LinkedHashSet<>();
+    private static final Set<UUID> EXIT_VOTES = CONFIRM_STATE.votes(OpenFestivalConfirmPayload.Action.EXIT);
+    private static final Set<UUID> EXIT_VOTE_PARTICIPANTS = CONFIRM_STATE.voteParticipants(OpenFestivalConfirmPayload.Action.EXIT);
     private static final Map<UUID, PlayerPose> DEBUG_RETURN_POSES = new LinkedHashMap<>();
     private static final Map<UUID, Integer> EGG_HUNT_COUNTS = new LinkedHashMap<>();
     private static final Set<UUID> MAIN_EVENT_CUTSCENE_PARTICIPANTS = new LinkedHashSet<>();
@@ -198,7 +196,7 @@ public final class EggFestivalService {
             return;
         }
         if (action == OpenFestivalConfirmPayload.Action.ENTER) {
-            ENTRY_DIALOG_OPEN.remove(player.getUUID());
+            CONFIRM_STATE.closeDialog(player, OpenFestivalConfirmPayload.Action.ENTER);
             if (confirmed) {
                 enterFestival(player);
             }
@@ -206,7 +204,7 @@ public final class EggFestivalService {
         }
 
         if (action == OpenFestivalConfirmPayload.Action.START_CONTEST) {
-            START_CONTEST_DIALOG_OPEN.remove(player.getUUID());
+            CONFIRM_STATE.closeDialog(player, OpenFestivalConfirmPayload.Action.START_CONTEST);
             if (!isParticipant(player)) {
                 return;
             }
@@ -222,7 +220,7 @@ public final class EggFestivalService {
             return;
         }
 
-        EXIT_DIALOG_OPEN.remove(player.getUUID());
+        CONFIRM_STATE.closeDialog(player, OpenFestivalConfirmPayload.Action.EXIT);
         if (!isParticipant(player)) {
             return;
         }
@@ -257,17 +255,29 @@ public final class EggFestivalService {
             || mainEventPhase == MainEventPhase.FESTIVAL_ENDING;
     }
 
+    public static boolean handlesConfirmation(ServerPlayer player, OpenFestivalConfirmPayload.Action action) {
+        return CONFIRM_STATE.handlesConfirmation(
+            player,
+            action,
+            Set.of(OpenFestivalConfirmPayload.Action.ENTER, OpenFestivalConfirmPayload.Action.START_CONTEST, OpenFestivalConfirmPayload.Action.EXIT),
+            EggFestivalService::isParticipant,
+            EggFestivalService::isActiveEggFestivalDay
+        );
+    }
+
+    private static boolean isActiveEggFestivalDay() {
+        return FestivalService.getActiveFestivalToday()
+            .filter(definition -> FESTIVAL_ID.equals(definition.id()))
+            .isPresent();
+    }
+
     public static void startDebugFestival(ServerLevel level) {
         if (level == null) {
             return;
         }
         FestivalService.setDebugActiveFestival(FESTIVAL_ID);
         startTimeFreeze(level);
-        ENTRY_DIALOG_OPEN.clear();
-        START_CONTEST_DIALOG_OPEN.clear();
-        EXIT_DIALOG_OPEN.clear();
-        EXIT_VOTES.clear();
-        EXIT_VOTE_PARTICIPANTS.clear();
+        CONFIRM_STATE.clearAll();
         resetMainEventState();
         for (ServerPlayer player : level.players()) {
             DEBUG_RETURN_POSES.putIfAbsent(player.getUUID(), new PlayerPose(player.position(), player.getYRot(), player.getXRot()));
@@ -297,11 +307,7 @@ public final class EggFestivalService {
         DEBUG_RETURN_POSES.clear();
         LAST_OUTSIDE.clear();
         LAST_INSIDE.clear();
-        ENTRY_DIALOG_OPEN.clear();
-        START_CONTEST_DIALOG_OPEN.clear();
-        EXIT_DIALOG_OPEN.clear();
-        EXIT_VOTES.clear();
-        EXIT_VOTE_PARTICIPANTS.clear();
+        CONFIRM_STATE.clearAll();
         clearEggHuntEntities(level);
         clearEggHuntScoreboard(level);
         resetMainEventState();
@@ -399,7 +405,6 @@ public final class EggFestivalService {
 
         syncHud(player, false);
         if (!inside) {
-            ENTRY_DIALOG_OPEN.remove(player.getUUID());
             return;
         }
 
@@ -413,21 +418,15 @@ public final class EggFestivalService {
     }
 
     private static void promptEnter(ServerPlayer player) {
-        if (ENTRY_DIALOG_OPEN.add(player.getUUID())) {
-            PacketDistributor.sendToPlayer(player, new OpenFestivalConfirmPayload(OpenFestivalConfirmPayload.Action.ENTER));
-        }
+        CONFIRM_STATE.prompt(player, OpenFestivalConfirmPayload.Action.ENTER);
     }
 
     private static void promptExit(ServerPlayer player) {
-        if (EXIT_DIALOG_OPEN.add(player.getUUID())) {
-            PacketDistributor.sendToPlayer(player, new OpenFestivalConfirmPayload(OpenFestivalConfirmPayload.Action.EXIT));
-        }
+        CONFIRM_STATE.prompt(player, OpenFestivalConfirmPayload.Action.EXIT);
     }
 
     private static void promptStartContest(ServerPlayer player) {
-        if (START_CONTEST_DIALOG_OPEN.add(player.getUUID())) {
-            PacketDistributor.sendToPlayer(player, new OpenFestivalConfirmPayload(OpenFestivalConfirmPayload.Action.START_CONTEST));
-        }
+        CONFIRM_STATE.prompt(player, OpenFestivalConfirmPayload.Action.START_CONTEST);
     }
 
     private static void startMainEventAfterConfirmation(ServerPlayer player) {
@@ -442,7 +441,7 @@ public final class EggFestivalService {
             return;
         }
         if (!FestivalService.isActiveFestivalEntryOpen(player.serverLevel(), FESTIVAL_ID)) {
-            player.displayClientMessage(Component.translatable("message.stardewcraft.festival.egg.setup"), true);
+            player.displayClientMessage(blockedEntryMessage(player.serverLevel()), true);
             return;
         }
         if (FestivalService.openActiveFestival(player, FESTIVAL_ID).isEmpty()) {
@@ -469,8 +468,8 @@ public final class EggFestivalService {
             return;
         }
         for (ServerPlayer participant : voters) {
-            if (!EXIT_VOTES.contains(participant.getUUID()) && EXIT_DIALOG_OPEN.add(participant.getUUID())) {
-                PacketDistributor.sendToPlayer(participant, new OpenFestivalConfirmPayload(OpenFestivalConfirmPayload.Action.EXIT));
+            if (!EXIT_VOTES.contains(participant.getUUID())) {
+                CONFIRM_STATE.prompt(participant, OpenFestivalConfirmPayload.Action.EXIT);
             }
             participant.displayClientMessage(Component.translatable(
                 "message.stardewcraft.festival.exit_vote_waiting", voteCount, voters.size()), true);
@@ -682,10 +681,7 @@ public final class EggFestivalService {
             syncHud(participant, false);
             returnToFarm(participant);
         }
-        START_CONTEST_DIALOG_OPEN.clear();
-        EXIT_DIALOG_OPEN.clear();
-        EXIT_VOTES.clear();
-        EXIT_VOTE_PARTICIPANTS.clear();
+        CONFIRM_STATE.clearAll();
         clearEggHuntEntities(level);
         clearEggHuntScoreboard(level);
         resetMainEventState();
@@ -780,8 +776,15 @@ public final class EggFestivalService {
     }
 
     private static void blockUnstartedEntry(ServerLevel level, ServerPlayer player) {
-        player.displayClientMessage(Component.translatable("message.stardewcraft.festival.egg.setup"), true);
+        player.displayClientMessage(blockedEntryMessage(level), true);
         moveToLastOutside(level, player);
+    }
+
+    private static Component blockedEntryMessage(ServerLevel level) {
+        String key = FestivalService.isActiveFestivalEntryClosedForToday(level, FESTIVAL_ID)
+            ? "message.stardewcraft.festival.ended"
+            : "message.stardewcraft.festival.egg.setup";
+        return Component.translatable(key);
     }
 
     private static void moveToLastOutside(ServerLevel level, ServerPlayer player) {
@@ -987,11 +990,7 @@ public final class EggFestivalService {
         }
         LAST_OUTSIDE.clear();
         LAST_INSIDE.clear();
-        ENTRY_DIALOG_OPEN.clear();
-        START_CONTEST_DIALOG_OPEN.clear();
-        EXIT_DIALOG_OPEN.clear();
-        EXIT_VOTES.clear();
-        EXIT_VOTE_PARTICIPANTS.clear();
+        CONFIRM_STATE.clearAll();
         clearEggHuntEntities(level);
         clearEggHuntScoreboard(level);
         resetMainEventState();

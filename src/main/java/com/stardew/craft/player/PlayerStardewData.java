@@ -156,6 +156,7 @@ public class PlayerStardewData {
     private int passOuts2Am;
     private int passOutsExhaustion;
     private int animalProductsCollectedTotal;
+    private int basementShortsStolen;
     private int leaderboardDayKey = Integer.MIN_VALUE;
     private int leaderboardWeekKey = Integer.MIN_VALUE;
     private int leaderboardSeasonKey = Integer.MIN_VALUE;
@@ -539,6 +540,7 @@ public class PlayerStardewData {
         data.passOuts2Am = tag.contains("PassOuts2Am") ? Math.max(0, tag.getInt("PassOuts2Am")) : 0;
         data.passOutsExhaustion = tag.contains("PassOutsExhaustion") ? Math.max(0, tag.getInt("PassOutsExhaustion")) : 0;
         data.animalProductsCollectedTotal = tag.contains("AnimalProductsCollectedTotal") ? Math.max(0, tag.getInt("AnimalProductsCollectedTotal")) : 0;
+        data.basementShortsStolen = tag.contains("BasementShortsStolen") ? Math.max(0, tag.getInt("BasementShortsStolen")) : 0;
         if (tag.contains("LeaderboardPeriodStats", 10)) {
             CompoundTag statsTag = tag.getCompound("LeaderboardPeriodStats");
             data.leaderboardDayKey = statsTag.contains("DayKey") ? statsTag.getInt("DayKey") : Integer.MIN_VALUE;
@@ -920,6 +922,7 @@ public class PlayerStardewData {
         tag.putInt("PassOuts2Am", passOuts2Am);
         tag.putInt("PassOutsExhaustion", passOutsExhaustion);
         tag.putInt("AnimalProductsCollectedTotal", animalProductsCollectedTotal);
+        tag.putInt("BasementShortsStolen", basementShortsStolen);
         CompoundTag periodStatsTag = new CompoundTag();
         periodStatsTag.putInt("DayKey", leaderboardDayKey);
         periodStatsTag.putInt("WeekKey", leaderboardWeekKey);
@@ -2081,6 +2084,14 @@ public class PlayerStardewData {
         if (amount <= 0) return;
         animalProductsCollectedTotal = Math.max(0, animalProductsCollectedTotal + amount);
         addLeaderboardPeriodValue(LeaderboardMetric.ANIMAL_PRODUCTS_COLLECTED.id(), amount);
+        markDirty();
+    }
+
+    public int getBasementShortsStolen() { return basementShortsStolen; }
+
+    public void recordBasementShortsStolen() {
+        basementShortsStolen = Math.max(0, basementShortsStolen + 1);
+        addLeaderboardPeriodValue(LeaderboardMetric.BASEMENT_SHORTS_STOLEN.id(), 1L);
         markDirty();
     }
 

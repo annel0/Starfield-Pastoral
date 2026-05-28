@@ -1,5 +1,55 @@
 # Changelog
 
+## 0.4.5 - 2026-05-28
+
+### Update Log (English)
+
+#### Headline Features
+
+- Added the first playable Luau implementation for Summer 11, including beach festival entry, active festival session handling, time freeze behavior, festival music, Pierre's festival shop, and end-of-event return flow.
+- Added the Luau potluck soup system with held-item contribution prompts, Stardew-style ingredient validation and scoring, multiplayer contribution tracking, Governor reaction branches, and final friendship/reaction feedback.
+- Added the Luau main event cutscene flow with Lewis, Marnie, the Governor, festival crowd actors, camera movement, reaction-specific dialogue, music transitions, and event cleanup.
+
+#### Festival Content and Presentation
+
+- Added the Luau beach overlay, soup pot, torches, speaker, totem decor, Governor NPC assets, event music resources, block/item models, textures, blockstates, and localization.
+- Added protected Luau map replacement behavior so festival decor is applied and restored without dropping replaced blocks or allowing the unique soup pot to be broken or picked up.
+- Added Luau NPC participation, dialogue routing, festival shop registration, Governor display name support, and cutscene actor placement polish.
+
+#### Stability and Shared Festival Fixes
+
+- Refactored active festival confirmations into shared state used by Egg Festival, Flower Dance, and Luau so entry, exit, and start votes behave consistently across active festivals.
+- Fixed active festival entry timing and same-day terminal states so players are not offered setup prompts after the venue is actually open or already finished.
+- Added festival-day no-rain behavior based on Stardew Valley source behavior and hardened Luau soup interactions so adding food to the pot no longer also starts eating the held item.
+
+#### Changes
+
+- Updated the public mod version to `0.4.5`.
+
+### 更新日志（中文）
+
+#### 重点内容
+
+- 加入第一轮可玩的夏威夷宴会实现，覆盖夏 11 海滩入场、主动节日会话、时间冻结、节日音乐、皮埃尔节日商店，以及节日结束后的回家流程。
+- 加入夏威夷宴会百乐餐大锅系统，包括手持物投汤确认、星露谷风格食材判定与评分、多人投料记录、州长反应分支，以及最终好感/结果反馈。
+- 加入夏威夷宴会主事件 cutscene 流程，包括刘易斯、玛妮、州长、节日人群演员、镜头移动、分支对白、音乐切换和事件清理。
+
+#### 节日内容与表现
+
+- 加入夏威夷宴会海滩 overlay、大锅、火炬、音响、图腾装饰、州长 NPC 资源、事件音乐、方块/物品模型、贴图、方块状态和本地化。
+- 加入受保护的 Luau 地图替换流程，让节日装饰应用和恢复时不会掉落被替换方块，并保证全服唯一的大锅不可破坏、不可拾取。
+- 加入 Luau NPC 参与、对白路由、节日商店注册、州长显示名，以及 cutscene 演员站位打磨。
+
+#### 稳定性与通用节日修复
+
+- 将主动节日确认状态抽成通用逻辑，复活节、花舞节和夏威夷宴会共用入场、离场和开始投票状态，减少各节日行为漂移。
+- 修复主动节日入场时间和当日终止状态处理，避免会场已经开放或结束时仍弹出错误的搭建中提示。
+- 按星露谷源码行为加入节日当天无雨处理，并加固 Luau 投汤交互，避免向汤里投食物时同时触发吃掉手持物。
+
+#### 变更
+
+- 项目公开版本号更新为 `0.4.5`。
+
 ## 0.4.4 - 2026-05-28
 
 ### Update Log (English)

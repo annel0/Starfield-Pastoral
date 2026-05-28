@@ -233,7 +233,7 @@ public class StardewTimeManager extends SavedData {
                 }
 
                 // 对齐 Stardew 的日结算语义：先确定“今天”的天气，再结算昨夜生长。
-                com.stardew.craft.weather.WeatherManager.applyWeatherForNewDay(stardewLevel, currentDay);
+                com.stardew.craft.weather.WeatherManager.applyWeatherForNewDay(stardewLevel, currentDay, getSeasonName(), totalDaysPlayed);
                 com.stardew.craft.npc.runtime.NpcSpawnManager.resetScheduledNpcsForNewDay(stardewLevel);
                 // 确保所有室内区块（含温室）在日结算期间已加载，
                 // 否则 growDaily / waterDaily 会因 isLoaded(pos)==false 跳过温室作物。

@@ -151,6 +151,7 @@ public final class OfflineFarmCatchUp {
 
                 // 离线期间假设洒水器正常工作 → watered=true
                 cropBlock.growCropOneDay(level, pos, state, true, growthState);
+                cropMgr.setDirty();
             }
         }
     }

@@ -198,9 +198,12 @@ public final class ModSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_OCEAN_AMBIENCE = register("music_ocean_ambience");
 	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_GRANDPAS_THEME = register("music_grandpas_theme");
 	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_EVENT1 = register("music_event1");
+	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_EVENT2 = register("music_event2");
 	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_TICK_TOCK = register("music_tick_tock");
 	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_FALL_FEST = register("music_fall_fest");
 	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_FLOWER_DANCE = register("music_flower_dance");
+	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_SETTLINGIN = register("music_settlingin");
+	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_JAUNTY = register("music_jaunty");
     // Desert / Oasis
     public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_DESERT = register("music_desert");
     public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_OASIS = register("music_oasis");

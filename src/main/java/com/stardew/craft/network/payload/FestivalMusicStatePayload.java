@@ -14,6 +14,7 @@ public record FestivalMusicStatePayload(String track) implements CustomPacketPay
     public static final String NONE = "none";
     public static final String FALL_FEST = "fall_fest";
     public static final String EVENT1 = "event1";
+    public static final String EVENT2 = "event2";
     public static final String TICK_TOCK = "tick_tock";
     public static final String FLOWER_DANCE = "flower_dance";
 
@@ -39,6 +40,7 @@ public record FestivalMusicStatePayload(String track) implements CustomPacketPay
         switch (payload.track()) {
             case FALL_FEST -> com.stardew.craft.client.sound.StardewMusicManager.playForCutscene(ModSounds.MUSIC_FALL_FEST.get());
             case EVENT1 -> com.stardew.craft.client.sound.StardewMusicManager.playForCutscene(ModSounds.MUSIC_EVENT1.get());
+            case EVENT2 -> com.stardew.craft.client.sound.StardewMusicManager.playForCutscene(ModSounds.MUSIC_EVENT2.get());
             case TICK_TOCK -> com.stardew.craft.client.sound.StardewMusicManager.playForCutscene(ModSounds.MUSIC_TICK_TOCK.get());
             case FLOWER_DANCE -> com.stardew.craft.client.sound.StardewMusicManager.playForCutscene(ModSounds.MUSIC_FLOWER_DANCE.get());
             case NONE -> com.stardew.craft.client.sound.StardewMusicManager.stopForCutsceneSilence();

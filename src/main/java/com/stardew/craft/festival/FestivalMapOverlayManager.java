@@ -1,6 +1,7 @@
 package com.stardew.craft.festival;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.block.decor.MapDecorStaticBlock;
 import com.stardew.craft.block.portal.PortalTriggerBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -131,18 +132,20 @@ public final class FestivalMapOverlayManager {
         }
         int end = Math.min(state.cursor() + BLOCKS_PER_TICK, patch.entries().size());
         boolean applying = state.phase() == FestivalMapOverlayPhase.APPLYING;
-        for (int index = state.cursor(); index < end; index++) {
-            FestivalMapPatchEntry entry = patch.entries().get(index);
-            BlockPos worldPos = patch.origin().offset(entry.relativePos());
-            if (level.getBlockState(worldPos).getBlock() instanceof PortalTriggerBlock) {
-                continue;
+        MapDecorStaticBlock.runWithDropsSuppressed(() -> {
+            for (int index = state.cursor(); index < end; index++) {
+                FestivalMapPatchEntry entry = patch.entries().get(index);
+                BlockPos worldPos = patch.origin().offset(entry.relativePos());
+                if (level.getBlockState(worldPos).getBlock() instanceof PortalTriggerBlock) {
+                    continue;
+                }
+                BlockState targetState = applying ? entry.festivalState() : entry.baseState();
+                CompoundTag targetBlockEntity = applying ? entry.festivalBlockEntityTag() : entry.baseBlockEntityTag();
+                level.removeBlockEntity(worldPos);
+                level.setBlock(worldPos, targetState, BULK_REPLACE_FLAGS);
+                applyBlockEntity(level, worldPos, targetBlockEntity);
             }
-            BlockState targetState = applying ? entry.festivalState() : entry.baseState();
-            CompoundTag targetBlockEntity = applying ? entry.festivalBlockEntityTag() : entry.baseBlockEntityTag();
-            level.removeBlockEntity(worldPos);
-            level.setBlock(worldPos, targetState, BULK_REPLACE_FLAGS);
-            applyBlockEntity(level, worldPos, targetBlockEntity);
-        }
+        });
         state.setCursor(end);
         if (end >= patch.entries().size()) {
             state.setPhase(applying ? FestivalMapOverlayPhase.APPLIED : FestivalMapOverlayPhase.RESTORED);

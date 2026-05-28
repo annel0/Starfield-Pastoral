@@ -1881,6 +1881,40 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .strength(0.4F, 0.8F)));
 
         @SuppressWarnings("null")
+        public static final DeferredBlock<Block> LUAU_SOUP_POT = BLOCKS.register("luau_soup_pot",
+                        () -> new com.stardew.craft.block.decor.LuauGeoFestivalDecorBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.STONE)
+                                        .sound(net.minecraft.world.level.block.SoundType.STONE)
+                                        .noOcclusion()
+                                        .strength(-1.0F, 3600000.0F)
+                                        .noLootTable(), "stardewcraft:decor/festival/luau_soup_pot_proxy"));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> LUAU_TORCH = BLOCKS.register("luau_torch",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .lightLevel(state -> 15)
+                                        .noOcclusion()
+                                        .strength(0.6F, 1.0F), "stardewcraft:decor/festival/luau_torch"));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> LUAU_SPEAKER = BLOCKS.register("luau_speaker",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.COLOR_GRAY)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.8F, 1.0F), "stardewcraft:decor/festival/luau_speaker"));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> LUAU_TOTEM = BLOCKS.register("luau_totem",
+                        () -> new com.stardew.craft.block.decor.LuauGeoFestivalDecorBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(1.0F, 2.0F), "stardewcraft:decor/festival/luau_totem_proxy"));
+
+        @SuppressWarnings("null")
         public static final DeferredBlock<Block> PLUSH_BUNNY = BLOCKS.register("plush_bunny",
                         () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
                                         .mapColor(net.minecraft.world.level.material.MapColor.WOOL)

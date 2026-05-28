@@ -29,9 +29,11 @@ public record FestivalConfirmPayload(OpenFestivalConfirmPayload.Action action, b
     public static void handle(FestivalConfirmPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (context.player() instanceof ServerPlayer player) {
-                if (com.stardew.craft.festival.FlowerDanceService.handlesConfirmation(player, payload.action())) {
+                if (com.stardew.craft.festival.LuauFestivalService.handlesConfirmation(player, payload.action())) {
+                    com.stardew.craft.festival.LuauFestivalService.onPlayerConfirmed(player, payload.action(), payload.confirmed());
+                } else if (com.stardew.craft.festival.FlowerDanceService.handlesConfirmation(player, payload.action())) {
                     com.stardew.craft.festival.FlowerDanceService.onPlayerConfirmed(player, payload.action(), payload.confirmed());
-                } else {
+                } else if (com.stardew.craft.festival.EggFestivalService.handlesConfirmation(player, payload.action())) {
                     com.stardew.craft.festival.EggFestivalService.onPlayerConfirmed(player, payload.action(), payload.confirmed());
                 }
             }
