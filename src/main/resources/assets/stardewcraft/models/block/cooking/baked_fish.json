@@ -1,0 +1,10 @@
+{
+  "texture_size": [
+    64,
+    64
+  ],
+  "textures": {
+    "particle": "stardewcraft:block/cooking/baked_fish"
+  },
+  "elements": []
+}

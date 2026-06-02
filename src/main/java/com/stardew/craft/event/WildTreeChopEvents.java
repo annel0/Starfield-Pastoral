@@ -400,8 +400,7 @@ public final class WildTreeChopEvents {
 		if (foragingLevel < 1) {
 			return ItemStack.EMPTY;
 		}
-		// Stardew 是 data.SeedOnChopChance（数据驱动）；此处用 0.2 作为接近原版体感的默认值。
-		if (level.random.nextFloat() >= 0.20f) {
+		if (level.random.nextFloat() >= def.seedOnChopChance()) {
 			return ItemStack.EMPTY;
 		}
 		var seedItem = WildTreeSeedManager.getSeedItem(def);

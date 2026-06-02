@@ -20,6 +20,7 @@ import javax.annotation.Nonnull;
 
 public class LightningRodBlockEntityRenderer implements BlockEntityRenderer<LightningRodBlockEntity> {
     private static final ResourceLocation BUBBLE_TEX = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/bubble.png");
+    private static final ResourceLocation MODEL = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "models/block/utility/lightning_rod.json");
     private static final float PX = 1.0f / 32.0f;
 
     public LightningRodBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
@@ -33,8 +34,7 @@ public class LightningRodBlockEntityRenderer implements BlockEntityRenderer<Ligh
         BlockState state = be.getBlockState();
         Level level = be.getLevel();
 
-        // Block model is rendered by vanilla (RenderShape.MODEL)
-        // BER only handles bubble + product icon when ready
+        BlockbenchElementRenderer.renderNegativeOnly(MODEL, poseStack, buffer, packedLight, packedOverlay);
 
         if (!ready || product.isEmpty() || level == null) {
             return;

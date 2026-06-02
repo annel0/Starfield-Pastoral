@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "stardewcraft:block/cooking/strange_bun"
+    },
+    "facing=east": {
+      "model": "stardewcraft:block/cooking/strange_bun",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "stardewcraft:block/cooking/strange_bun",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "stardewcraft:block/cooking/strange_bun",
+      "y": 270
+    }
+  }
+}

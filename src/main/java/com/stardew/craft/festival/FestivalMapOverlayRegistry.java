@@ -53,6 +53,19 @@ public final class FestivalMapOverlayRegistry {
             true
         ));
         register(new FestivalMapOverlayDefinition(
+            "Beach-Jellies",
+            "Beach",
+            new BlockPos(20, 59, 95),
+            "",
+            "data/stardewcraft/structures/festivals/moonlight_jellies_beach.schem",
+            new BlockPos(20, 59, 95),
+            new BlockPos(92, 63, 166),
+            List.of(),
+            true,
+            true,
+            true
+        ));
+        register(new FestivalMapOverlayDefinition(
             "DesertFestival",
             "Desert",
             new BlockPos(-273, 62, -228),

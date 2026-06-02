@@ -34,6 +34,7 @@ public record MarkEventSeenPayload(String eventId) implements CustomPacketPayloa
             com.stardew.craft.festival.EggFestivalService.onCutsceneCompleted(player, payload.eventId);
             com.stardew.craft.festival.FlowerDanceService.onCutsceneCompleted(player, payload.eventId);
             com.stardew.craft.festival.LuauFestivalService.onCutsceneCompleted(player, payload.eventId);
+            com.stardew.craft.festival.MoonlightJelliesFestivalService.onCutsceneCompleted(player, payload.eventId);
             EventSeenData data = EventSeenData.get(player.serverLevel());
             data.markSeen(player.getUUID(), payload.eventId);
 

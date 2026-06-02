@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "stardewcraft:block/cooking/fried_calamari"
+    },
+    "facing=east": {
+      "model": "stardewcraft:block/cooking/fried_calamari",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "stardewcraft:block/cooking/fried_calamari",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "stardewcraft:block/cooking/fried_calamari",
+      "y": 270
+    }
+  }
+}

@@ -214,7 +214,6 @@ public class MuseumExhibitStandBlock extends MapUtilityStaticBlock implements En
      * Sync all museum stand display items for a specific player.
      */
     public static void syncStands(ServerLevel serverLevel, MuseumDonationData data, ServerPlayer player) {
-        data.ensureManagedStandLayout(serverLevel, player.getUUID());
         java.util.Map<String, String> stands = data.getStandDisplayItems(player.getUUID());
         java.util.Map<BlockPos, String> posItems = new java.util.HashMap<>();
         for (java.util.Map.Entry<String, String> entry : stands.entrySet()) {
@@ -224,5 +223,10 @@ public class MuseumExhibitStandBlock extends MapUtilityStaticBlock implements En
             }
         }
         PacketDistributor.sendToPlayer(player, new MuseumStandSyncPacket(posItems));
+    }
+
+    public static void ensureAndSyncStands(ServerLevel serverLevel, MuseumDonationData data, ServerPlayer player) {
+        data.ensureManagedStandLayout(serverLevel, player.getUUID());
+        syncStands(serverLevel, data, player);
     }
 }

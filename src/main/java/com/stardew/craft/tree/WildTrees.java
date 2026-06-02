@@ -20,7 +20,13 @@ public final class WildTrees {
 			Supplier<Block> branch2,
 			Supplier<Block> leaves,
 			Supplier<Block> sapling0,
-			Supplier<Block> sapling1
+			Supplier<Block> sapling1,
+			float growthChance,
+			float fertilizedGrowthChance,
+			float seedSpreadChance,
+			float seedOnShakeChance,
+			float seedOnChopChance,
+			boolean growsInWinter
 	) {
 		public boolean isAnyPart(BlockState state) {
 			Block b = state.getBlock();
@@ -49,7 +55,13 @@ public final class WildTrees {
 			() -> ModBlocks.WILD_OAK_BRANCH2.get(),
 			() -> ModBlocks.WILD_OAK_LEAVES.get(),
 			() -> ModBlocks.WILD_OAK_SAPLING0.get(),
-			() -> ModBlocks.WILD_OAK_SAPLING1.get()
+			() -> ModBlocks.WILD_OAK_SAPLING1.get(),
+			0.2f,
+			1.0f,
+			0.15f,
+			0.05f,
+			0.75f,
+			false
 	);
 
 	public static final Def MAPLE = new Def(
@@ -60,7 +72,13 @@ public final class WildTrees {
 			() -> ModBlocks.WILD_MAPLE_BRANCH2.get(),
 			() -> ModBlocks.WILD_MAPLE_LEAVES.get(),
 			() -> ModBlocks.WILD_MAPLE_SAPLING0.get(),
-			() -> ModBlocks.WILD_MAPLE_SAPLING1.get()
+			() -> ModBlocks.WILD_MAPLE_SAPLING1.get(),
+			0.2f,
+			1.0f,
+			0.15f,
+			0.05f,
+			0.75f,
+			false
 	);
 
 	public static final Def PINE = new Def(
@@ -71,7 +89,13 @@ public final class WildTrees {
 			() -> ModBlocks.WILD_PINE_BRANCH2.get(),
 			() -> ModBlocks.WILD_PINE_LEAVES.get(),
 			() -> ModBlocks.WILD_PINE_SAPLING0.get(),
-			() -> ModBlocks.WILD_PINE_SAPLING1.get()
+			() -> ModBlocks.WILD_PINE_SAPLING1.get(),
+			0.2f,
+			1.0f,
+			0.15f,
+			0.05f,
+			0.75f,
+			false
 	);
 
 	public static final Def MAHOGANY = new Def(
@@ -82,7 +106,13 @@ public final class WildTrees {
 			() -> ModBlocks.WILD_MAHOGANY_BRANCH2.get(),
 			() -> ModBlocks.WILD_MAHOGANY_LEAVES.get(),
 			() -> ModBlocks.WILD_MAHOGANY_SAPLING0.get(),
-			() -> ModBlocks.WILD_MAHOGANY_SAPLING1.get()
+			() -> ModBlocks.WILD_MAHOGANY_SAPLING1.get(),
+			0.15f,
+			0.6f,
+			0.15f,
+			0.05f,
+			0.5625f,
+			false
 	);
 
 	public static final Def MYSTIC_TREE = new Def(
@@ -93,7 +123,13 @@ public final class WildTrees {
 			() -> ModBlocks.WILD_MYSTIC_TREE_BRANCH2.get(),
 			() -> ModBlocks.WILD_MYSTIC_TREE_LEAVES.get(),
 			() -> ModBlocks.WILD_MYSTIC_TREE_SAPLING0.get(),
-			() -> ModBlocks.WILD_MYSTIC_TREE_SAPLING1.get()
+			() -> ModBlocks.WILD_MYSTIC_TREE_SAPLING1.get(),
+			0.15f,
+			0.3f,
+			0.0f,
+			0.0f,
+			0.0f,
+			false
 	);
 
 	public static final List<Def> ALL = List.of(OAK, MAPLE, PINE, MAHOGANY, MYSTIC_TREE);

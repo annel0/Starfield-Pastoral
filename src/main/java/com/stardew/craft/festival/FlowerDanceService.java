@@ -120,7 +120,9 @@ public final class FlowerDanceService {
             return;
         }
         boolean overlayApplied = FestivalMapOverlayManager.isApplied(level, OVERLAY_ID);
-        boolean venueActive = overlayApplied && (FestivalService.isActiveFestivalEntryOpen(level, FESTIVAL_ID) || hasOnlineParticipant(level));
+        boolean venueActive = overlayApplied
+            && (FestivalService.isActiveFestivalEntryOpen(level, FESTIVAL_ID) || hasOnlineParticipant(level))
+            && (mainEventPhase != MainEventPhase.MAIN_EVENT || !mainEventStagePrepared);
         FlowerDanceNpcService.tick(level, venueActive);
     }
 
@@ -589,6 +591,7 @@ public final class FlowerDanceService {
             return;
         }
         mainEventStagePrepared = true;
+        FlowerDanceNpcService.restore(player.serverLevel());
     }
 
     public static void onCutsceneCompleted(ServerPlayer player, String eventId) {
@@ -868,18 +871,16 @@ public final class FlowerDanceService {
         List<DefaultDancePair> availableDefaultPairs = DEFAULT_DANCE_PAIRS.stream()
             .filter(defaultPair -> !occupiedNpcs.contains(defaultPair.femaleNpcId()) && !occupiedNpcs.contains(defaultPair.maleNpcId()))
             .toList();
-        if (!availableDefaultPairs.isEmpty()) {
-            int defaultPairIndex = 0;
-            while (sourcePairs.size() < MAX_DANCE_PAIRS) {
-                DefaultDancePair defaultPair = availableDefaultPairs.get(defaultPairIndex % availableDefaultPairs.size());
-                occupiedNpcs.add(defaultPair.femaleNpcId());
-                occupiedNpcs.add(defaultPair.maleNpcId());
-                sourcePairs.add(new FlowerDanceCutsceneClientState.DancePair(
-                    FlowerDanceCutsceneClientState.Partner.npc(defaultPair.femaleNpcId()),
-                    FlowerDanceCutsceneClientState.Partner.npc(defaultPair.maleNpcId())
-                ));
-                defaultPairIndex++;
+        for (DefaultDancePair defaultPair : availableDefaultPairs) {
+            if (sourcePairs.size() >= MAX_DANCE_PAIRS) {
+                break;
             }
+            occupiedNpcs.add(defaultPair.femaleNpcId());
+            occupiedNpcs.add(defaultPair.maleNpcId());
+            sourcePairs.add(new FlowerDanceCutsceneClientState.DancePair(
+                FlowerDanceCutsceneClientState.Partner.npc(defaultPair.femaleNpcId()),
+                FlowerDanceCutsceneClientState.Partner.npc(defaultPair.maleNpcId())
+            ));
         }
 
         List<FlowerDanceCutsceneClientState.DancePair> displayPairs = sourceOrderedDisplayPairs(sourcePairs);

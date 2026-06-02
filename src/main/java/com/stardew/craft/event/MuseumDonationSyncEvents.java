@@ -45,7 +45,7 @@ public class MuseumDonationSyncEvents {
         MuseumDonationData data = MuseumDonationData.get(player.serverLevel());
         PacketDistributor.sendToPlayer(player,
                 new MuseumDonationSyncPacket(List.copyOf(data.getDonatedItems(player.getUUID()))));
-        com.stardew.craft.block.utility.MuseumExhibitStandBlock.syncStands(player.serverLevel(), data, player);
+        com.stardew.craft.block.utility.MuseumExhibitStandBlock.ensureAndSyncStands(player.serverLevel(), data, player);
     }
 
     @EventBusSubscriber(modid = StardewCraft.MODID, value = Dist.CLIENT)

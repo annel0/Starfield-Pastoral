@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "stardewcraft:block/cooking/cheese_cauliflower"
+    },
+    "facing=east": {
+      "model": "stardewcraft:block/cooking/cheese_cauliflower",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "stardewcraft:block/cooking/cheese_cauliflower",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "stardewcraft:block/cooking/cheese_cauliflower",
+      "y": 270
+    }
+  }
+}

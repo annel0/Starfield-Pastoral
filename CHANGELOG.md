@@ -1,5 +1,77 @@
 # Changelog
 
+## 0.4.6 - 2026-06-02
+
+### Update Log (English)
+
+#### Dance of the Moonlight Jellies
+
+- Added the first playable Dance of the Moonlight Jellies implementation for Summer 28, including Beach-Jellies overlay support, active festival entry and exit handling, time freeze behavior, festival NPC routing, Lewis start confirmation, Pierre's festival shop, and the 24:00 return flow.
+- Added the Moonlight Jellies main event presentation with the candle-boat release, synchronized boat and lantern movement, moonlight jelly entities, fade-in jelly visuals, event cleanup, ocean ambience, and the source-verified `moonlightJellies` music cue.
+- Added the Summer 28 Demetrius reminder mail and the original-style ending message shown before the event fades out.
+
+#### Content and Presentation
+
+- Added Moonlight Jelly entity resources, renderer support, event music registration, the water lantern decoration, and related models, textures, sounds, cutscene data, language entries, and structure resources.
+- Added placeable cooked dish presentation support and supporting block entity/rendering resources for the current food display pass.
+- Improved presentation details touched by this pass, including lightning rod rendering, museum/debug display behavior, map decor attachment handling, and related Jade/debug integration polish.
+
+#### Changes
+
+- Updated the public mod version to `0.4.6`.
+
+### 更新日志（中文）
+
+#### 月光水母起舞
+
+- 加入第一轮可玩的夏 28「月光水母起舞」实现，覆盖 `Beach-Jellies` 会场 overlay、主动节日进入与离开、时间冻结、节日 NPC 路由、刘易斯开始确认、皮埃尔节日商店，以及结束后 24:00 回家流程。
+- 加入月光水母主事件表现，包括放出烛灯船、船与灯笼同步移动、月光水母实体、渐显式水母视觉、事件清理、海浪环境音乐，以及已按源码索引确认的 `moonlightJellies` 音乐资源。
+- 补充夏 28 德米特里厄斯当天提醒邮件，并在主事件 fade out 前显示接近原版语义的结束文案。
+
+#### 内容与表现
+
+- 加入月光水母实体资源、渲染支持、事件音乐注册、水灯笼装饰，以及相关模型、贴图、音频、cutscene、语言和结构资源。
+- 加入当前食物展示批次所需的可放置料理表现支持，以及对应方块实体和渲染资源。
+- 改进本轮触及的表现细节，包括避雷针渲染、博物馆/调试展示行为、地图装饰贴附处理，以及相关 Jade/调试集成打磨。
+
+#### 变更
+
+- 项目公开版本号更新为 `0.4.6`。
+
+## 0.4.5-fix1 - 2026-05-28
+
+### Update Log (English)
+
+#### Tree Growth and Wild Trees
+
+- Reworked wild tree growth around Stardew-style internal stages and daily growth chances instead of the previous fixed 28-day timer, while keeping the existing two visible sapling blocks as the Minecraft presentation layer.
+- Updated Tree Fertilizer so it marks eligible wild saplings as fertilized and boosts their daily growth chance instead of instantly advancing or maturing the tree, with proper feedback for already-fertilized, mature, or invalid targets.
+- Improved blocked-tree handling so wild saplings keep their saved stage and can retry growth or maturation when the surrounding space becomes valid again.
+- Moved wild-tree seed drops to the tree definition data, including chop, shake, and spread chances, and removed the extra leaf-decay seed drop path so scheduled leaf cleanup does not double-dip rewards.
+
+#### Tooltips, Items, and Parity Fixes
+
+- Expanded Jade wild tree support to show sapling stage, daily growth chance, fertilized growth chance, blocked status, mature tree state, and seed probabilities for mature wild trees.
+- Made Maple Syrup, Mystic Syrup, and Sap edible/drinkable with Stardew-style energy and health effects, including Sap's negative energy behavior.
+- Fixed Desert Trader parity by removing the non-source Crab Cakes Thursday trade; Thursday now matches the original Magic Rock Candy trade.
+- Added English and Simplified Chinese text for the new tree fertilizer feedback and Jade tree tooltip lines.
+
+### 更新日志（中文）
+
+#### 树木生长与野树
+
+- 重做野树生长逻辑：内部改为更接近星露谷的阶段与每日概率推进，不再使用固定 28 天计时；外观仍沿用现有两阶段树苗方块作为 Minecraft 表现层。
+- 调整树肥行为：现在会给符合条件的野树苗打上已施肥状态，提高每日成长概率，而不是立即推进阶段或直接催熟；已施肥、已成熟和无效目标都会给出对应提示。
+- 改进被阻挡树苗的处理：野树苗会保留已保存的阶段，等周围空间恢复有效后继续尝试成长或成熟。
+- 将野树掉种概率改为树种数据驱动，覆盖砍树、摇树和自然扩散概率，并移除树叶定时清理时额外掉种的路径，避免奖励重复结算。
+
+#### 信息显示、物品与对齐修复
+
+- 扩展 Jade 野树信息：现在可显示树苗阶段、每日成长概率、施肥后成长概率、阻挡状态、成熟野树状态，以及成熟树的掉种/扩散概率。
+- 枫糖浆、神秘糖浆和树液现在可食用/饮用，并接入星露谷式体力和生命效果，包括树液的负体力效果。
+- 修正沙漠骆驼商人对齐问题：移除非源码的周四蟹黄糕兑换，周四兑换现在只保留原版魔法糖冰棍。
+- 补充树肥反馈和 Jade 树木提示所需的英文与简体中文文本。
+
 ## 0.4.5 - 2026-05-28
 
 ### Update Log (English)

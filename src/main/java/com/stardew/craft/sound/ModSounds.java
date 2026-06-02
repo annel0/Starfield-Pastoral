@@ -202,6 +202,7 @@ public final class ModSounds {
 	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_TICK_TOCK = register("music_tick_tock");
 	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_FALL_FEST = register("music_fall_fest");
 	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_FLOWER_DANCE = register("music_flower_dance");
+	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_MOONLIGHT_JELLIES = register("music_moonlight_jellies");
 	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_SETTLINGIN = register("music_settlingin");
 	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_JAUNTY = register("music_jaunty");
     // Desert / Oasis

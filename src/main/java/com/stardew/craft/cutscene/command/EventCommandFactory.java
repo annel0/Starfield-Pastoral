@@ -117,6 +117,11 @@ public final class EventCommandFactory {
                     getInt(obj, "ticks", 10)
             );
 
+            case "moonlight_jellies_stage" -> new MoonlightJelliesStageCommand(
+                    getString(obj, "stage", "release"),
+                    getInt(obj, "ticks", 10)
+            );
+
             case "flower_dance_dancers" -> new FlowerDanceDancersCommand(
                     getString(obj, "action", "spawn"),
                     getInt(obj, "ticks", 220)

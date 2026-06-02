@@ -27,8 +27,12 @@ import com.stardew.craft.integration.jade.FarmlandFertilizerJadeProvider;
 import com.stardew.craft.integration.jade.AnimalProduceSpotJadeProvider;
 import com.stardew.craft.integration.jade.StardewCropFertilizerJadeProvider;
 import com.stardew.craft.manager.CropGrowthManager;
+import com.stardew.craft.block.tree.WildOakBranchBlock;
+import com.stardew.craft.block.tree.WildOakLeavesBlock;
+import com.stardew.craft.block.tree.WildOakTrunkBlock;
 import com.stardew.craft.block.tree.WildTreeSaplingBlock;
 import com.stardew.craft.manager.TreeGrowthManager;
+import com.stardew.craft.tree.WildTrees;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -63,12 +67,23 @@ public class JadePlugin implements IWailaPlugin {
     private static final String NBT_DAYS_GROWN = "Stardew_DaysGrown";
     private static final String NBT_MATURE = "Stardew_Mature";
 	private static final String NBT_BLOCKED = "Stardew_Blocked";
+    private static final String NBT_TREE_STAGE = "Stardew_TreeStage";
+    private static final String NBT_TREE_MAX_STAGE = "Stardew_TreeMaxStage";
+    private static final String NBT_TREE_FERTILIZED = "Stardew_TreeFertilized";
+    private static final String NBT_TREE_GROWTH_CHANCE = "Stardew_TreeGrowthChance";
+    private static final String NBT_TREE_FERTILIZED_CHANCE = "Stardew_TreeFertilizedChance";
+    private static final String NBT_TREE_SEED_SHAKE_CHANCE = "Stardew_TreeSeedShakeChance";
+    private static final String NBT_TREE_SEED_SPREAD_CHANCE = "Stardew_TreeSeedSpreadChance";
+    private static final String NBT_TREE_SEED_CHOP_CHANCE = "Stardew_TreeSeedChopChance";
     private static final String NBT_DECORATIVE = "Stardew_Decorative";
 
     @Override
     public void register(IWailaCommonRegistration registration) {
         registration.registerBlockDataProvider(new CropComponentProvider(), StardewCropBlock.class);
 		registration.registerBlockDataProvider(new TreeSaplingComponentProvider(), WildTreeSaplingBlock.class);
+        registration.registerBlockDataProvider(new TreeSaplingComponentProvider(), WildOakTrunkBlock.class);
+        registration.registerBlockDataProvider(new TreeSaplingComponentProvider(), WildOakBranchBlock.class);
+        registration.registerBlockDataProvider(new TreeSaplingComponentProvider(), WildOakLeavesBlock.class);
         registration.registerBlockDataProvider(AnimalProduceSpotJadeProvider.INSTANCE, AnimalProduceSpotBlock.class);
         registration.registerBlockDataProvider(FarmlandFertilizerJadeProvider.INSTANCE, FarmBlock.class);
         registration.registerBlockDataProvider(CropFertilizerJadeProvider.INSTANCE, CropBlock.class);
@@ -79,6 +94,9 @@ public class JadePlugin implements IWailaPlugin {
     public void registerClient(IWailaClientRegistration registration) {
         registration.registerBlockComponent(new CropComponentProvider(), StardewCropBlock.class);
         registration.registerBlockComponent(new TreeSaplingComponentProvider(), WildTreeSaplingBlock.class);
+        registration.registerBlockComponent(new TreeSaplingComponentProvider(), WildOakTrunkBlock.class);
+        registration.registerBlockComponent(new TreeSaplingComponentProvider(), WildOakBranchBlock.class);
+        registration.registerBlockComponent(new TreeSaplingComponentProvider(), WildOakLeavesBlock.class);
         registration.registerBlockComponent(AnimalProduceSpotJadeProvider.INSTANCE, AnimalProduceSpotBlock.class);
         // 注册耕地肥料显示
         registration.registerBlockComponent(FarmlandFertilizerJadeProvider.INSTANCE, FarmBlock.class);
@@ -126,38 +144,78 @@ public class JadePlugin implements IWailaPlugin {
                 return;
             }
             BlockState state = accessor.getBlockState();
-            if (!(state.getBlock() instanceof WildTreeSaplingBlock)) {
+            WildTrees.Def def = WildTrees.findByAnyPart(state);
+            boolean isSapling = state.getBlock() instanceof WildTreeSaplingBlock;
+            if (def == null && !isSapling) {
+                return;
+            }
+            if (isSapling) {
+                def = ((WildTreeSaplingBlock) state.getBlock()).getDef();
+            }
+            if (def == null) {
                 return;
             }
 
             TreeGrowthManager mgr = TreeGrowthManager.get(serverLevel);
             BlockPos pos = Objects.requireNonNull(accessor.getPosition(), "position");
-            int grown = mgr.getDaysGrown(serverLevel, pos);
-            grown = Math.max(0, Math.min(grown, TOTAL_DAYS));
-            tag.putInt(NBT_TOTAL_DAYS, TOTAL_DAYS);
-            tag.putInt(NBT_DAYS_GROWN, grown);
-            tag.putBoolean(NBT_BLOCKED, mgr.isBlockedNow(serverLevel, pos));
+            tag.putFloat(NBT_TREE_GROWTH_CHANCE, def.growthChance());
+            tag.putFloat(NBT_TREE_FERTILIZED_CHANCE, def.fertilizedGrowthChance());
+            tag.putFloat(NBT_TREE_SEED_SHAKE_CHANCE, def.seedOnShakeChance());
+            tag.putFloat(NBT_TREE_SEED_SPREAD_CHANCE, def.seedSpreadChance());
+            tag.putFloat(NBT_TREE_SEED_CHOP_CHANCE, def.seedOnChopChance());
+            if (isSapling) {
+                int grown = mgr.getDaysGrown(serverLevel, pos);
+                grown = Math.max(0, Math.min(grown, TOTAL_DAYS));
+                tag.putInt(NBT_TOTAL_DAYS, TOTAL_DAYS);
+                tag.putInt(NBT_DAYS_GROWN, grown);
+                tag.putInt(NBT_TREE_STAGE, mgr.getGrowthStage(serverLevel, pos));
+                tag.putInt(NBT_TREE_MAX_STAGE, TreeGrowthManager.matureGrowthStage());
+                tag.putBoolean(NBT_TREE_FERTILIZED, mgr.isFertilized(serverLevel, pos));
+                tag.putBoolean(NBT_BLOCKED, mgr.isBlockedNow(serverLevel, pos));
+            } else {
+                tag.putBoolean(NBT_MATURE, true);
+            }
         }
 
         @Override
         public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
-            if (!(accessor.getBlockState().getBlock() instanceof WildTreeSaplingBlock)) {
+            BlockState state = accessor.getBlockState();
+            if (!(state.getBlock() instanceof WildTreeSaplingBlock) && WildTrees.findByAnyPart(state) == null) {
                 return;
             }
 
             CompoundTag serverData = accessor.getServerData();
-            if (serverData != null && serverData.contains(NBT_TOTAL_DAYS) && serverData.contains(NBT_DAYS_GROWN)) {
-                int grown = serverData.getInt(NBT_DAYS_GROWN);
-                int total = serverData.getInt(NBT_TOTAL_DAYS);
-                int remaining = Math.max(0, total - grown);
-                String progressText = grown + "/" + total;
-                tooltip.add(Component.translatable("stardewcraft.tooltip.growth_stage", progressText));
-                tooltip.add(Component.translatable("stardewcraft.tooltip.remaining_days", remaining));
+            if (serverData == null) {
+                return;
+            }
+            if (serverData.contains(NBT_TREE_STAGE) && serverData.contains(NBT_TREE_MAX_STAGE)) {
+                int stage = serverData.getInt(NBT_TREE_STAGE);
+                int maxStage = serverData.getInt(NBT_TREE_MAX_STAGE);
+                tooltip.add(Component.translatable("stardewcraft.tooltip.tree_stage", stage, maxStage));
+                tooltip.add(Component.translatable("stardewcraft.tooltip.tree_growth_chance", formatChance(serverData.getFloat(NBT_TREE_GROWTH_CHANCE))));
+                if (serverData.getBoolean(NBT_TREE_FERTILIZED)) {
+                    tooltip.add(Component.translatable("stardewcraft.tooltip.tree_fertilized",
+                            formatChance(serverData.getFloat(NBT_TREE_FERTILIZED_CHANCE)))
+                            .withStyle(net.minecraft.ChatFormatting.GREEN));
+                }
                 if (serverData.getBoolean(NBT_BLOCKED)) {
                     tooltip.add(Component.translatable("stardewcraft.tooltip.tree_blocked")
                             .withStyle(net.minecraft.ChatFormatting.RED));
                 }
+            } else if (serverData.getBoolean(NBT_MATURE)) {
+                tooltip.add(Component.translatable("stardewcraft.tooltip.tree_mature"));
+                tooltip.add(Component.translatable("stardewcraft.tooltip.tree_seed_shake_chance", formatChance(serverData.getFloat(NBT_TREE_SEED_SHAKE_CHANCE))));
+                tooltip.add(Component.translatable("stardewcraft.tooltip.tree_seed_spread_chance", formatChance(serverData.getFloat(NBT_TREE_SEED_SPREAD_CHANCE))));
+                tooltip.add(Component.translatable("stardewcraft.tooltip.tree_seed_chop_chance", formatChance(serverData.getFloat(NBT_TREE_SEED_CHOP_CHANCE))));
             }
+        }
+
+        private static String formatChance(float chance) {
+            float percent = chance * 100.0f;
+            if (Math.abs(percent - Math.round(percent)) < 0.01f) {
+                return Integer.toString(Math.round(percent)) + "%";
+            }
+            return String.format(java.util.Locale.ROOT, "%.1f%%", percent);
         }
 
         @Override

@@ -2,7 +2,9 @@ package com.stardew.craft.item;
 
 import com.stardew.craft.block.tree.WildTreeSaplingBlock;
 import com.stardew.craft.manager.TreeGrowthManager;
+import com.stardew.craft.tree.WildTrees;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -12,10 +14,7 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
-/**
- * 树肥 - 对齐 SDV Tree Fertilizer：右键野生树苗，立即推进到下一阶段。
- * sapling0 → sapling1，sapling1 → 成熟树（若空间不足则标记为待成熟）。
- */
+/** 树肥 - 对齐 SDV Tree Fertilizer：右键未成熟野树苗后提高每日生长概率，不会立即催熟。 */
 public class TreeFertilizerItem extends SimpleStardewItem {
 
 	public TreeFertilizerItem(int sellPrice, Properties properties) {
@@ -31,6 +30,10 @@ public class TreeFertilizerItem extends SimpleStardewItem {
 		BlockState state = level.getBlockState(pos);
 
 		if (!(state.getBlock() instanceof WildTreeSaplingBlock)) {
+			if (!level.isClientSide && WildTrees.findByAnyPart(state) != null && context.getPlayer() != null) {
+				context.getPlayer().displayClientMessage(Component.translatable("stardewcraft.tree_fertilizer.mature"), true);
+				return InteractionResult.CONSUME;
+			}
 			return InteractionResult.PASS;
 		}
 
@@ -40,14 +43,13 @@ public class TreeFertilizerItem extends SimpleStardewItem {
 
 		ServerLevel serverLevel = (ServerLevel) level;
 		TreeGrowthManager manager = TreeGrowthManager.get(serverLevel);
-		boolean advanced = manager.fertilize(serverLevel, pos);
+		boolean alreadyFertilized = manager.isFertilized(serverLevel, pos);
+		boolean fertilized = manager.fertilize(serverLevel, pos);
 
-		if (advanced) {
-			// Consume one item
+		if (fertilized) {
 			if (context.getPlayer() != null && !context.getPlayer().isCreative()) {
 				context.getItemInHand().shrink(1);
 			}
-			// Effects
 			level.playSound(null, pos, SoundEvents.BONE_MEAL_USE, SoundSource.BLOCKS, 1.0f, 1.0f);
 			serverLevel.sendParticles(ParticleTypes.HAPPY_VILLAGER,
 					pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5,
@@ -55,6 +57,13 @@ public class TreeFertilizerItem extends SimpleStardewItem {
 			return InteractionResult.CONSUME;
 		}
 
-		return InteractionResult.PASS;
+		if (context.getPlayer() != null) {
+			context.getPlayer().displayClientMessage(Component.translatable(
+					alreadyFertilized
+							? "stardewcraft.tree_fertilizer.already"
+							: "stardewcraft.tree_fertilizer.cannot"
+			), true);
+		}
+		return InteractionResult.CONSUME;
 	}
 }

@@ -90,6 +90,7 @@ public class StardewCraftClient {
                 ModBlocks.PASTURE_GRASS.get(),
                 ModBlocks.BLUE_PASTURE_GRASS.get(),
                 ModBlocks.EGG_FESTIVAL_EGG.get(),
+                ModBlocks.WATER_LANTERN.get(),
                 // Forage blocks (cross model, cutout render)
                 ModBlocks.FORAGE_WILD_HORSERADISH.get(),
                 ModBlocks.FORAGE_DAFFODIL.get(),
@@ -365,35 +366,7 @@ public class StardewCraftClient {
                 ModBlocks.WILD_MYSTIC_TREE_LEAVES.get()
             ));
 
-            // Negative-volume models with mixed opaque/transparent faces.
-            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
-                ModBlocks.OIL_MAKER.get(),
-                net.minecraft.client.renderer.RenderType.translucent()
-            );
-            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
-                ModBlocks.MUSEUM_EXHIBIT_STAND.get(),
-                net.minecraft.client.renderer.RenderType.translucent()
-            );
-            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
-                ModBlocks.TABLE_LANTERN.get(),
-                net.minecraft.client.renderer.RenderType.translucent()
-            );
-            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
-                ModBlocks.JUKEBOX.get(),
-                net.minecraft.client.renderer.RenderType.translucent()
-            );
-            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
-                ModBlocks.BEAKER.get(),
-                net.minecraft.client.renderer.RenderType.translucent()
-            );
-            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
-                ModBlocks.FISH_SHOP_COUNTER.get(),
-                net.minecraft.client.renderer.RenderType.translucent()
-            );
-            net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
-                ModBlocks.LIGHTNING_ROD.get(),
-                net.minecraft.client.renderer.RenderType.translucent()
-            );
+            registerNegativeVolumeModels();
             net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
                 ModBlocks.FISH_POND_WATER.get(),
                 net.minecraft.client.renderer.RenderType.translucent()
@@ -407,8 +380,25 @@ public class StardewCraftClient {
                 net.minecraft.client.renderer.RenderType.translucent()
             );
 
-			ModItemProperties.register();
+            ModItemProperties.register();
         });
+    }
+
+    private static void registerNegativeVolumeModels() {
+        List<net.minecraft.world.level.block.Block> blocks = new java.util.ArrayList<>(List.of(
+            ModBlocks.OIL_MAKER.get(),
+            ModBlocks.MUSEUM_EXHIBIT_STAND.get(),
+            ModBlocks.TABLE_LANTERN.get(),
+            ModBlocks.JUKEBOX.get(),
+            ModBlocks.BEAKER.get(),
+            ModBlocks.FISH_SHOP_COUNTER.get(),
+            ModBlocks.LIGHTNING_ROD.get()
+        ));
+        ModBlocks.PLACED_COOKING_FOODS.values().forEach(block -> blocks.add(block.get()));
+        blocks.forEach(block -> net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(
+            block,
+            net.minecraft.client.renderer.RenderType.translucent()
+        ));
     }
 
     @SuppressWarnings("null")
@@ -664,4 +654,3 @@ public class StardewCraftClient {
     }
 
 }
-

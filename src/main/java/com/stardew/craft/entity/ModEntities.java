@@ -12,6 +12,7 @@ import com.stardew.craft.entity.projectile.TideAnchorProjectileEntity;
 import com.stardew.craft.entity.projectile.TemperedBilletProjectileEntity;
 import com.stardew.craft.entity.bomb.StardewBombEntity;
 import com.stardew.craft.entity.effect.IceSpineEffectEntity;
+import com.stardew.craft.entity.festival.MoonlightJellyEntity;
 import com.stardew.craft.entity.mastery.PrismaticButterflyEntity;
 import com.stardew.craft.entity.monster.LuckyPurpleShortsMonsterEntity;
 import com.stardew.craft.entity.trinket.FairyCompanionEntity;
@@ -94,6 +95,15 @@ public final class ModEntities {
 					.clientTrackingRange(64)
 					.updateInterval(1)
 					.build("prismatic_butterfly")
+	);
+
+	public static final DeferredHolder<EntityType<?>, EntityType<MoonlightJellyEntity>> MOONLIGHT_JELLY = ENTITY_TYPES.register(
+			"moonlight_jelly",
+			() -> EntityType.Builder.<MoonlightJellyEntity>of(MoonlightJellyEntity::new, MobCategory.MISC)
+					.sized(1.2F, 1.2F)
+					.clientTrackingRange(64)
+					.updateInterval(1)
+					.build("moonlight_jelly")
 	);
 
 	public static final DeferredHolder<EntityType<?>, EntityType<FairyCompanionEntity>> FAIRY_COMPANION = ENTITY_TYPES.register(

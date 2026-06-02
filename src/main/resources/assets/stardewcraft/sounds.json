@@ -1323,6 +1323,14 @@
       }
     ]
   },
+  "music_moonlight_jellies": {
+    "sounds": [
+      {
+        "name": "stardewcraft:music/moonlight_jellies",
+        "stream": true
+      }
+    ]
+  },
   "music_settlingin": {
     "sounds": [
       {

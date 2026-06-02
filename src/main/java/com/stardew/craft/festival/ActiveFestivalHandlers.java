@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -33,6 +34,7 @@ public final class ActiveFestivalHandlers {
             EggFestivalService::isParticipant,
             ActiveFestivalHandlers::noopPlayer,
             ActiveFestivalHandlers::noopPlayer,
+            ActiveFestivalHandlers::noopDialogueSeen,
             EggFestivalService::tryOpenPierreFestivalShop,
             () -> EggFestivalService.isEggHuntActive() || EggFestivalService.isMainEventCutsceneActive(),
             EggFestivalService::tryStartMainEvent,
@@ -56,6 +58,7 @@ public final class ActiveFestivalHandlers {
             FlowerDanceService::isParticipant,
             FlowerDanceService::onPlayerLogin,
             FlowerDanceService::onPlayerLogout,
+            FlowerDanceService::markFestivalDialogueSeen,
             FlowerDanceService::tryOpenPierreFestivalShop,
             FlowerDanceService::isMainEventCutsceneActive,
             FlowerDanceService::tryStartMainEvent,
@@ -79,6 +82,7 @@ public final class ActiveFestivalHandlers {
             LuauFestivalService::isParticipant,
             LuauFestivalService::onPlayerLogin,
             LuauFestivalService::onPlayerLogout,
+            LuauFestivalService::markFestivalDialogueSeen,
             LuauFestivalService::tryOpenPierreFestivalShop,
             LuauFestivalService::isMainEventActive,
             LuauFestivalService::tryStartMainEvent,
@@ -86,6 +90,30 @@ public final class ActiveFestivalHandlers {
             LuauFestivalService::isTimeFreezeActive,
             LuauFestivalService::applyTimeFreeze,
             "已启动 Luau 总调试: 当前日期按 summer11 处理，overlay 应用中，NPC 会在地图应用完成后进入节日点位"
+        ));
+        register(new DelegateHandler(
+            MoonlightJelliesFestivalService.FESTIVAL_ID,
+            "Dance of the Moonlight Jellies",
+            MoonlightJelliesFestivalService::tick,
+            MoonlightJelliesFestivalService::startDebugFestival,
+            MoonlightJelliesFestivalService::restoreDebugFestival,
+            MoonlightJelliesFestivalService::debugStatus,
+            MoonlightJelliesFestivalService::tickNpcActors,
+            MoonlightJelliesFestivalService::requestDebugNpcs,
+            MoonlightJelliesFestivalService::restoreNpcs,
+            MoonlightJelliesFestivalService::debugStatus,
+            MoonlightJelliesFestivalService::controlsNpc,
+            MoonlightJelliesFestivalService::isParticipant,
+            MoonlightJelliesFestivalService::onPlayerLogin,
+            MoonlightJelliesFestivalService::onPlayerLogout,
+            MoonlightJelliesFestivalService::markFestivalDialogueSeen,
+            MoonlightJelliesFestivalService::tryOpenPierreFestivalShop,
+            MoonlightJelliesFestivalService::isMainEventActive,
+            MoonlightJelliesFestivalService::tryStartMainEvent,
+            MoonlightJelliesFestivalService::debugStatus,
+            MoonlightJelliesFestivalService::isTimeFreezeActive,
+            MoonlightJelliesFestivalService::applyTimeFreeze,
+            "已启动 Moonlight Jellies 总调试: 当前日期按 summer28 处理，overlay 应用中，NPC 会在地图应用完成后进入节日点位"
         ));
     }
 
@@ -132,12 +160,9 @@ public final class ActiveFestivalHandlers {
     }
 
     public static boolean controlsNpc(String npcId) {
-        for (ActiveFestivalHandler handler : HANDLERS.values()) {
-            if (handler.controlsNpc(npcId)) {
-                return true;
-            }
-        }
-        return false;
+        return currentActiveHandler()
+            .map(handler -> handler.controlsNpc(npcId))
+            .orElse(false);
     }
 
     public static boolean isParticipant(ServerPlayer player) {
@@ -145,12 +170,11 @@ public final class ActiveFestivalHandlers {
     }
 
     public static Optional<ActiveFestivalHandler> getParticipating(ServerPlayer player) {
-        for (ActiveFestivalHandler handler : HANDLERS.values()) {
-            if (handler.isParticipant(player)) {
-                return Optional.of(handler);
-            }
+        if (player == null) {
+            return Optional.empty();
         }
-        return Optional.empty();
+        return currentActiveHandler()
+            .filter(handler -> handler.isParticipant(player));
     }
 
     public static void onPlayerLogin(ServerPlayer player) {
@@ -166,12 +190,9 @@ public final class ActiveFestivalHandlers {
     }
 
     public static boolean tryOpenPierreFestivalShop(ServerPlayer player) {
-        for (ActiveFestivalHandler handler : HANDLERS.values()) {
-            if (handler.tryOpenPierreFestivalShop(player)) {
-                return true;
-            }
-        }
-        return false;
+        return getParticipating(player)
+            .map(handler -> handler.tryOpenPierreFestivalShop(player))
+            .orElse(false);
     }
 
     public static void restoreNpcsForOverlay(ServerLevel level, String overlayId) {
@@ -227,10 +248,18 @@ public final class ActiveFestivalHandlers {
         return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
     }
 
+    private static Optional<ActiveFestivalHandler> currentActiveHandler() {
+        return FestivalService.getActiveFestivalToday()
+            .flatMap(definition -> get(definition.id()));
+    }
+
     private static void noop(ServerLevel level) {
     }
 
     private static void noopPlayer(ServerPlayer player) {
+    }
+
+    private static void noopDialogueSeen(ServerPlayer player, String npcId) {
     }
 
     private record DelegateHandler(
@@ -248,6 +277,7 @@ public final class ActiveFestivalHandlers {
         Predicate<ServerPlayer> participantAction,
         Consumer<ServerPlayer> playerLoginAction,
         Consumer<ServerPlayer> playerLogoutAction,
+        BiConsumer<ServerPlayer, String> npcDialogueSeenAction,
         Predicate<ServerPlayer> pierreShopAction,
         BooleanSupplier npcInteractionLockAction,
         Predicate<ServerPlayer> startMainEventAction,
@@ -314,6 +344,11 @@ public final class ActiveFestivalHandlers {
         @Override
         public void onPlayerLogout(ServerPlayer player) {
             playerLogoutAction.accept(player);
+        }
+
+        @Override
+        public void onNpcDialogueSeen(ServerPlayer player, String npcId) {
+            npcDialogueSeenAction.accept(player, npcId);
         }
 
         @Override

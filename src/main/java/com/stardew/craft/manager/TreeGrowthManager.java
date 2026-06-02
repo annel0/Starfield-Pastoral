@@ -1,6 +1,7 @@
 package com.stardew.craft.manager;
 
 import com.stardew.craft.block.tree.WildTreeSaplingBlock;
+import com.stardew.craft.time.StardewTimeManager;
 import com.stardew.craft.tree.WildTrees;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
@@ -23,44 +24,46 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 野生树苗生长管理器：每天结算一次生长（28天成熟），中间 2 阶段。
- * 与 CropGrowthManager 一样，使用 SavedData 记录位置，避免 chunk unload 丢状态。
+ * 野生树苗生长管理器：内部按 Stardew Valley 野树的 0..5 生长阶段和每日概率推进，
+ * 外观仍映射到项目已有的两种树苗方块。
  */
 public class TreeGrowthManager extends SavedData {
 	private static final String DATA_NAME = "stardew_tree_manager";
 
-	private static final int TOTAL_DAYS = 28;
-	private static final int STAGE1_DAY = 14;
+	private static final int LEGACY_TOTAL_DAYS = 28;
+	private static final int LEGACY_STAGE1_DAY = 14;
+	private static final int SAPLING1_GROWTH_STAGE = 3;
+	private static final int MATURE_GROWTH_STAGE = 5;
+	private static final int SEASON_WINTER = 3;
 
 	private final Set<GlobalPos> saplingPositions = new HashSet<>();
-
-	/** 返回所有已注册树苗位置的不可变快照。 */
-	public java.util.List<GlobalPos> getAllSaplingPositions() {
-		return new java.util.ArrayList<>(saplingPositions);
-	}
-	private final Map<GlobalPos, Integer> daysGrown = new ConcurrentHashMap<>();
+	private final Map<GlobalPos, Integer> growthStages = new ConcurrentHashMap<>();
+	private final Set<GlobalPos> fertilizedSaplings = ConcurrentHashMap.newKeySet();
 
 	private boolean isProcessing = false;
 	private final Set<GlobalPos> pendingAdds = new HashSet<>();
 	private final Set<GlobalPos> pendingRemoves = new HashSet<>();
 
+	/** 返回所有已注册树苗位置的不可变快照。 */
+	public java.util.List<GlobalPos> getAllSaplingPositions() {
+		return new java.util.ArrayList<>(saplingPositions);
+	}
+
 	public void addSapling(@Nonnull Level level, @Nonnull BlockPos pos) {
 		if (!(level instanceof ServerLevel)) {
 			return;
 		}
-		GlobalPos gp = GlobalPos.of(
-			Objects.requireNonNull(level.dimension(), "dimension"),
-			Objects.requireNonNull(pos.immutable(), "pos")
-		);
+		GlobalPos globalPos = toGlobalPos(level, pos);
+		int initialStage = initialGrowthStage(level, pos);
 		if (isProcessing) {
-			pendingAdds.add(gp);
-			pendingRemoves.remove(gp);
-			daysGrown.putIfAbsent(gp, 0);
+			pendingAdds.add(globalPos);
+			pendingRemoves.remove(globalPos);
+			growthStages.putIfAbsent(globalPos, initialStage);
 			setDirty();
 			return;
 		}
-		if (saplingPositions.add(gp)) {
-			daysGrown.putIfAbsent(gp, 0);
+		if (saplingPositions.add(globalPos)) {
+			growthStages.putIfAbsent(globalPos, initialStage);
 			setDirty();
 		}
 	}
@@ -69,19 +72,18 @@ public class TreeGrowthManager extends SavedData {
 		if (!(level instanceof ServerLevel)) {
 			return;
 		}
-		GlobalPos gp = GlobalPos.of(
-			Objects.requireNonNull(level.dimension(), "dimension"),
-			Objects.requireNonNull(pos.immutable(), "pos")
-		);
+		GlobalPos globalPos = toGlobalPos(level, pos);
 		if (isProcessing) {
-			pendingRemoves.add(gp);
-			pendingAdds.remove(gp);
-			daysGrown.remove(gp);
+			pendingRemoves.add(globalPos);
+			pendingAdds.remove(globalPos);
+			growthStages.remove(globalPos);
+			fertilizedSaplings.remove(globalPos);
 			setDirty();
 			return;
 		}
-		if (saplingPositions.remove(gp)) {
-			daysGrown.remove(gp);
+		if (saplingPositions.remove(globalPos)) {
+			growthStages.remove(globalPos);
+			fertilizedSaplings.remove(globalPos);
 			setDirty();
 		}
 	}
@@ -90,15 +92,16 @@ public class TreeGrowthManager extends SavedData {
 		boolean changed = false;
 		if (!pendingRemoves.isEmpty()) {
 			changed |= saplingPositions.removeAll(pendingRemoves);
-			for (GlobalPos p : pendingRemoves) {
-				daysGrown.remove(p);
+			for (GlobalPos pendingRemove : pendingRemoves) {
+				growthStages.remove(pendingRemove);
+				fertilizedSaplings.remove(pendingRemove);
 			}
 			pendingRemoves.clear();
 		}
 		if (!pendingAdds.isEmpty()) {
 			changed |= saplingPositions.addAll(pendingAdds);
-			for (GlobalPos p : pendingAdds) {
-				daysGrown.putIfAbsent(p, 0);
+			for (GlobalPos pendingAdd : pendingAdds) {
+				growthStages.putIfAbsent(pendingAdd, 0);
 			}
 			pendingAdds.clear();
 		}
@@ -111,13 +114,12 @@ public class TreeGrowthManager extends SavedData {
 		isProcessing = true;
 		try {
 			java.util.List<GlobalPos> snapshot = new java.util.ArrayList<>(saplingPositions);
-			for (GlobalPos gp : snapshot) {
-				if (gp.dimension() != level.dimension()) {
+			for (GlobalPos globalPos : snapshot) {
+				if (globalPos.dimension() != level.dimension()) {
 					continue;
 				}
-				BlockPos pos = Objects.requireNonNull(gp.pos(), "pos");
+				BlockPos pos = Objects.requireNonNull(globalPos.pos(), "pos");
 
-				// 多人农场优化：跳过离线玩家农场中的树苗
 				if (!com.stardew.craft.farm.FarmDailyProcessHelper.shouldProcessPosition(level, pos)) {
 					continue;
 				}
@@ -126,46 +128,7 @@ public class TreeGrowthManager extends SavedData {
 					continue;
 				}
 
-				BlockState state = level.getBlockState(pos);
-				Block block = state.getBlock();
-				if (!(block instanceof WildTreeSaplingBlock saplingBlock)) {
-					removeSapling(level, pos);
-					continue;
-				}
-
-				WildTrees.Def def = Objects.requireNonNull(saplingBlock.getDef(), "def");
-				int currentDay = daysGrown.getOrDefault(gp, 0);
-
-				// If already mature but previously blocked, keep trying whenever the space becomes available.
-				if (saplingBlock.getStage() == 1 && currentDay >= TOTAL_DAYS) {
-					if (canMature(level, pos, def) && placePresetOrFallbackTree(level, pos, def)) {
-						removeSapling(level, pos);
-					}
-					continue;
-				}
-
-				// Stardew-like: blocked saplings do not advance growth.
-				int nextDay = currentDay + 1;
-				if (!canAdvance(level, pos, def, saplingBlock.getStage(), nextDay)) {
-					continue;
-				}
-
-				daysGrown.put(gp, nextDay);
-				setDirty();
-
-				// Stage transition: 0 -> 1 at day 14 (1/2 of cycle)
-				if (saplingBlock.getStage() == 0 && nextDay >= STAGE1_DAY) {
-					BlockState nextState = Objects.requireNonNull(def.sapling1().get().defaultBlockState(), "sapling1");
-					level.setBlock(pos, nextState, 3);
-					continue;
-				}
-
-				// Mature: stage1 at day 28
-				if (saplingBlock.getStage() == 1 && nextDay >= TOTAL_DAYS) {
-					if (placePresetOrFallbackTree(level, pos, def)) {
-						removeSapling(level, pos);
-					}
-				}
+				processSaplingDay(level, pos, currentSeason());
 			}
 		} finally {
 			isProcessing = false;
@@ -173,235 +136,276 @@ public class TreeGrowthManager extends SavedData {
 		}
 	}
 
-	/**
-	 * Debug/utility: advance a single sapling by one day using the same rules as {@link #growDaily(ServerLevel)}.
-	 * Ensures the sapling is tracked in SavedData.
-	 */
+	/** Debug/utility: advance a single sapling by one day using the same growth rules as daily processing. */
 	public void growOneDay(@Nonnull ServerLevel level, @Nonnull BlockPos pos) {
-		GlobalPos gp = GlobalPos.of(
-			Objects.requireNonNull(level.dimension(), "dimension"),
-			Objects.requireNonNull(pos.immutable(), "pos")
-		);
 		addSapling(level, pos);
-
-		BlockState state = level.getBlockState(pos);
-		Block block = state.getBlock();
-		if (!(block instanceof WildTreeSaplingBlock saplingBlock)) {
-			removeSapling(level, pos);
-			return;
-		}
-
-		WildTrees.Def def = Objects.requireNonNull(saplingBlock.getDef(), "def");
-		int currentDay = daysGrown.getOrDefault(gp, 0);
-
-		// If already mature but previously blocked, keep trying whenever the space becomes available.
-		if (saplingBlock.getStage() == 1 && currentDay >= TOTAL_DAYS) {
-			if (canMature(level, pos, def) && placePresetOrFallbackTree(level, pos, def)) {
-				removeSapling(level, pos);
-			}
-			return;
-		}
-
-		int nextDay = currentDay + 1;
-		if (!canAdvance(level, pos, def, saplingBlock.getStage(), nextDay)) {
-			return;
-		}
-
-		daysGrown.put(gp, nextDay);
-		setDirty();
-
-		// Stage transition: 0 -> 1 at day 14 (1/2 of cycle)
-		if (saplingBlock.getStage() == 0 && nextDay >= STAGE1_DAY) {
-			BlockState nextState = Objects.requireNonNull(def.sapling1().get().defaultBlockState(), "sapling1");
-			level.setBlock(pos, nextState, 3);
-			return;
-		}
-
-		// Mature: stage1 at day 28
-		if (saplingBlock.getStage() == 1 && nextDay >= TOTAL_DAYS) {
-			if (placePresetOrFallbackTree(level, pos, def)) {
-				removeSapling(level, pos);
-			}
-		}
+		processSaplingDay(level, pos, currentSeason());
 	}
 
 	/**
-	 * 离线/批量补帧：一次推进 days 天。等价于循环 growOneDay(days) 但避免每天重复读
-	 * 方块状态、查 preset 缓存等开销。对 catch-up 性能至关重要：登录时单棵树需要补 400+
-	 * 天的场景下，原循环会把主线程冻死并触发 watchdog 关服。
+	 * 离线/批量补帧：按天回放野树概率生长。树苗成熟、被成熟树挡在 4 阶、或成熟放置被阻挡时会提前停止，
+	 * 避免长离线窗口里对已无变化的树重复 roll。
 	 */
 	public void growBy(@Nonnull ServerLevel level, @Nonnull BlockPos pos, int days) {
 		if (days <= 0) {
 			return;
 		}
-		GlobalPos gp = GlobalPos.of(
-			Objects.requireNonNull(level.dimension(), "dimension"),
-			Objects.requireNonNull(pos.immutable(), "pos")
-		);
 		addSapling(level, pos);
-
-		BlockState state = level.getBlockState(pos);
-		if (!(state.getBlock() instanceof WildTreeSaplingBlock saplingBlock)) {
-			removeSapling(level, pos);
-			return;
-		}
-		WildTrees.Def def = Objects.requireNonNull(saplingBlock.getDef(), "def");
-		int currentDay = daysGrown.getOrDefault(gp, 0);
-		int stage = saplingBlock.getStage();
-
-		// Stage 1 already mature: just retry placement.
-		if (stage == 1 && currentDay >= TOTAL_DAYS) {
-			if (canMature(level, pos, def) && placePresetOrFallbackTree(level, pos, def)) {
-				removeSapling(level, pos);
-			}
-			return;
-		}
-
-		int newDay = Math.min(currentDay + days, TOTAL_DAYS);
-
-		// Stage 0 → 1 transition at STAGE1_DAY. Use current 3x3 occupancy as proxy for
-		// "was clear during catch-up" — same approximation a per-day loop would make if
-		// nothing changed during the offline window.
-		if (stage == 0 && newDay >= STAGE1_DAY) {
-			if (!isSaplingAreaClear(level, pos)) {
-				int capped = Math.min(newDay, STAGE1_DAY - 1);
-				if (capped != currentDay) {
-					daysGrown.put(gp, capped);
-					setDirty();
-				}
+		int currentAbsoluteDay = currentAbsoluteDay();
+		for (int dayOffset = 0; dayOffset < days; dayOffset++) {
+			if (!level.isLoaded(pos)) {
 				return;
 			}
-			BlockState nextState = Objects.requireNonNull(def.sapling1().get().defaultBlockState(), "sapling1");
-			level.setBlock(pos, nextState, 3);
-			stage = 1;
-		}
-
-		daysGrown.put(gp, newDay);
-		setDirty();
-
-		if (stage == 1 && newDay >= TOTAL_DAYS) {
-			if (canMature(level, pos, def) && placePresetOrFallbackTree(level, pos, def)) {
+			BlockState state = level.getBlockState(pos);
+			if (!(state.getBlock() instanceof WildTreeSaplingBlock)) {
 				removeSapling(level, pos);
+				return;
+			}
+			GlobalPos globalPos = toGlobalPos(level, pos);
+			int growthStageBefore = growthStages.getOrDefault(globalPos, initialGrowthStage(level, pos));
+			int season = seasonOfAbsoluteDay(currentAbsoluteDay - days + dayOffset + 1);
+			processSaplingDay(level, pos, season);
+
+			if (!saplingPositions.contains(globalPos)) {
+				return;
+			}
+			int growthStageAfter = growthStages.getOrDefault(globalPos, growthStageBefore);
+			if (growthStageAfter == growthStageBefore && isPhysicallyBlockedNow(level, pos)) {
+				return;
 			}
 		}
 	}
 
 	/**
-	 * 树肥：立即推进到下一阶段（sapling0→sapling1，sapling1→成熟树）。
-	 * 返回 true 表示成功推进。
+	 * Tree Fertilizer：只设置 fertilized 标记。原版不会立即推进阶段。
+	 * 返回 true 表示本次成功施肥并应消耗物品。
 	 */
 	public boolean fertilize(@Nonnull ServerLevel level, @Nonnull BlockPos pos) {
-		GlobalPos gp = GlobalPos.of(
-			Objects.requireNonNull(level.dimension(), "dimension"),
-			Objects.requireNonNull(pos.immutable(), "pos")
-		);
 		addSapling(level, pos);
-
 		BlockState state = level.getBlockState(pos);
-		if (!(state.getBlock() instanceof WildTreeSaplingBlock saplingBlock)) {
+		if (!(state.getBlock() instanceof WildTreeSaplingBlock)) {
+			removeSapling(level, pos);
 			return false;
 		}
 
-		WildTrees.Def def = Objects.requireNonNull(saplingBlock.getDef(), "def");
-
-		if (saplingBlock.getStage() == 0) {
-			// sapling0 → sapling1
-			daysGrown.put(gp, STAGE1_DAY);
-			setDirty();
-			BlockState nextState = Objects.requireNonNull(def.sapling1().get().defaultBlockState(), "sapling1");
-			level.setBlock(pos, nextState, Block.UPDATE_ALL);
-			return true;
+		GlobalPos globalPos = toGlobalPos(level, pos);
+		int growthStage = growthStages.getOrDefault(globalPos, initialGrowthStage(level, pos));
+		if (growthStage >= MATURE_GROWTH_STAGE || fertilizedSaplings.contains(globalPos)) {
+			return false;
 		}
 
-		if (saplingBlock.getStage() == 1) {
-			// sapling1 → mature tree
-			daysGrown.put(gp, TOTAL_DAYS);
-			setDirty();
-			if (canMature(level, pos, def) && placePresetOrFallbackTree(level, pos, def)) {
-				removeSapling(level, pos);
-			}
-			// Even if placement is blocked, mark days so it matures once space is free.
-			return true;
-		}
+		fertilizedSaplings.add(globalPos);
+		setDirty();
+		return true;
+	}
 
-		return false;
+	public boolean isFertilized(@Nonnull ServerLevel level, @Nonnull BlockPos pos) {
+		return fertilizedSaplings.contains(toGlobalPos(level, pos));
 	}
 
 	public int getDaysGrown(@Nonnull ServerLevel level, @Nonnull BlockPos pos) {
-		GlobalPos gp = GlobalPos.of(
-			Objects.requireNonNull(level.dimension(), "dimension"),
-			Objects.requireNonNull(pos.immutable(), "pos")
-		);
-		return daysGrown.getOrDefault(gp, 0);
+		GlobalPos globalPos = toGlobalPos(level, pos);
+		int growthStage = growthStages.getOrDefault(globalPos, initialGrowthStage(level, pos));
+		return estimatedLegacyDays(growthStage);
+	}
+
+	public int getGrowthStage(@Nonnull ServerLevel level, @Nonnull BlockPos pos) {
+		GlobalPos globalPos = toGlobalPos(level, pos);
+		int growthStage = growthStages.getOrDefault(globalPos, initialGrowthStage(level, pos));
+		return Math.max(0, Math.min(growthStage, MATURE_GROWTH_STAGE));
+	}
+
+	public static int matureGrowthStage() {
+		return MATURE_GROWTH_STAGE;
 	}
 
 	public boolean isBlockedNow(@Nonnull ServerLevel level, @Nonnull BlockPos pos) {
 		BlockState state = level.getBlockState(pos);
-		Block block = state.getBlock();
-		if (!(block instanceof WildTreeSaplingBlock saplingBlock)) {
+		if (!(state.getBlock() instanceof WildTreeSaplingBlock saplingBlock)) {
 			return false;
 		}
 		WildTrees.Def def = Objects.requireNonNull(saplingBlock.getDef(), "def");
-		int day = getDaysGrown(level, pos);
-		if (saplingBlock.getStage() == 1 && day >= TOTAL_DAYS) {
+		GlobalPos globalPos = toGlobalPos(level, pos);
+		int growthStage = growthStages.getOrDefault(globalPos, initialGrowthStage(level, pos));
+		if (growthStage >= MATURE_GROWTH_STAGE) {
 			return !canMature(level, pos, def);
 		}
-		return !isSaplingAreaClear(level, pos);
-	}
-
-	private static boolean canAdvance(@Nonnull ServerLevel level, @Nonnull BlockPos pos, @Nonnull WildTrees.Def def, int stage, int nextDay) {
-		// Default daily obstruction: 3x3 around sapling at sapling-level must be clear.
-		// This is consistent with Stardew tree growth (blocked -> no progress).
-		if (stage == 1 && nextDay >= TOTAL_DAYS) {
-			return canMature(level, pos, def);
+		if (!canGrowInSeason(def, fertilizedSaplings.contains(globalPos), currentSeason())) {
+			return true;
 		}
-		return isSaplingAreaClear(level, pos);
+		return growthStage >= getMaxGrowthStageHere(level, pos);
 	}
 
-	private static boolean isSaplingAreaClear(@Nonnull ServerLevel level, @Nonnull BlockPos saplingPos) {
-		for (int dx = -1; dx <= 1; dx++) {
-			for (int dz = -1; dz <= 1; dz++) {
-				if (dx == 0 && dz == 0) {
+	private boolean isPhysicallyBlockedNow(@Nonnull ServerLevel level, @Nonnull BlockPos pos) {
+		BlockState state = level.getBlockState(pos);
+		if (!(state.getBlock() instanceof WildTreeSaplingBlock saplingBlock)) {
+			return false;
+		}
+		WildTrees.Def def = Objects.requireNonNull(saplingBlock.getDef(), "def");
+		GlobalPos globalPos = toGlobalPos(level, pos);
+		int growthStage = growthStages.getOrDefault(globalPos, initialGrowthStage(level, pos));
+		if (growthStage >= MATURE_GROWTH_STAGE) {
+			return !canMature(level, pos, def);
+		}
+		return growthStage >= getMaxGrowthStageHere(level, pos);
+	}
+
+	private void processSaplingDay(@Nonnull ServerLevel level, @Nonnull BlockPos pos, int season) {
+		GlobalPos globalPos = toGlobalPos(level, pos);
+		BlockState state = level.getBlockState(pos);
+		if (!(state.getBlock() instanceof WildTreeSaplingBlock saplingBlock)) {
+			removeSapling(level, pos);
+			return;
+		}
+
+		WildTrees.Def def = Objects.requireNonNull(saplingBlock.getDef(), "def");
+		int growthStage = growthStages.getOrDefault(globalPos, initialGrowthStage(level, pos));
+		boolean fertilized = fertilizedSaplings.contains(globalPos);
+
+		if (growthStage >= MATURE_GROWTH_STAGE) {
+			tryMature(level, pos, def);
+			return;
+		}
+
+		if (!canGrowInSeason(def, fertilized, season)) {
+			return;
+		}
+
+		int maxGrowthStage = getMaxGrowthStageHere(level, pos);
+		if (growthStage >= maxGrowthStage) {
+			return;
+		}
+
+		boolean grows = level.random.nextFloat() < def.growthChance();
+		if (!grows && fertilized) {
+			grows = level.random.nextFloat() < def.fertilizedGrowthChance();
+		}
+		if (!grows) {
+			return;
+		}
+
+		int nextGrowthStage = Math.min(growthStage + 1, maxGrowthStage);
+		growthStages.put(globalPos, nextGrowthStage);
+		setDirty();
+		updateVisualStage(level, pos, saplingBlock, def, nextGrowthStage);
+
+		if (nextGrowthStage >= MATURE_GROWTH_STAGE) {
+			tryMature(level, pos, def);
+		}
+	}
+
+	private void tryMature(@Nonnull ServerLevel level, @Nonnull BlockPos pos, @Nonnull WildTrees.Def def) {
+		if (canMature(level, pos, def) && placePresetOrFallbackTree(level, pos, def)) {
+			removeSapling(level, pos);
+		}
+	}
+
+	private static boolean canGrowInSeason(@Nonnull WildTrees.Def def, boolean fertilized, int season) {
+		return season != SEASON_WINTER || fertilized || def.growsInWinter();
+	}
+
+	private static int getMaxGrowthStageHere(@Nonnull ServerLevel level, @Nonnull BlockPos pos) {
+		return isGrowthBlockedByNearbyMatureTree(level, pos) ? MATURE_GROWTH_STAGE - 1 : MATURE_GROWTH_STAGE;
+	}
+
+	private static boolean isGrowthBlockedByNearbyMatureTree(@Nonnull ServerLevel level, @Nonnull BlockPos saplingPos) {
+		for (int xOffset = -1; xOffset <= 1; xOffset++) {
+			for (int zOffset = -1; zOffset <= 1; zOffset++) {
+				if (xOffset == 0 && zOffset == 0) {
 					continue;
 				}
-				BlockPos p = Objects.requireNonNull(saplingPos.offset(dx, 0, dz), "p");
-				if (!level.getBlockState(p).canBeReplaced()) {
-					return false;
+				BlockPos checkPos = saplingPos.offset(xOffset, 0, zOffset);
+				WildTrees.Def nearbyDef = WildTrees.findByTrunk0(level.getBlockState(checkPos));
+				if (nearbyDef != null && level.getBlockState(checkPos.above()).getBlock() == nearbyDef.trunk1().get()) {
+					return true;
 				}
 			}
 		}
-		return true;
+		return false;
+	}
+
+	private static void updateVisualStage(@Nonnull ServerLevel level, @Nonnull BlockPos pos, @Nonnull WildTreeSaplingBlock saplingBlock, @Nonnull WildTrees.Def def, int growthStage) {
+		int wantedBlockStage = growthStage >= SAPLING1_GROWTH_STAGE ? 1 : 0;
+		if (saplingBlock.getStage() == wantedBlockStage) {
+			return;
+		}
+		BlockState nextState = (wantedBlockStage == 1 ? def.sapling1().get() : def.sapling0().get()).defaultBlockState();
+		level.setBlock(pos, nextState, Block.UPDATE_ALL);
 	}
 
 	private static boolean canMature(@Nonnull ServerLevel level, @Nonnull BlockPos pos, @Nonnull WildTrees.Def def) {
-		// Maturity MUST be based on presets. If no preset exists, do not mature.
-		// This prevents the ugly placeholder fallback tree from ever being used.
 		return com.stardew.craft.tree.preset.TreePresetPlacer.canPlaceAnyFromConfig(level, pos, def);
 	}
 
 	private static boolean placePresetOrFallbackTree(@Nonnull ServerLevel level, @Nonnull BlockPos pos, @Nonnull WildTrees.Def def) {
-		// Only place preset(s). No fallback.
-		boolean ok = com.stardew.craft.tree.preset.TreePresetPlacer.placeFromConfigOrNull(level, pos, def);
-		if (ok) {
+		boolean placed = com.stardew.craft.tree.preset.TreePresetPlacer.placeFromConfigOrNull(level, pos, def);
+		if (placed) {
 			com.stardew.craft.manager.WildTreeSeedManager.get(level).trackTree(level, pos, def);
 		}
-		return ok;
+		return placed;
+	}
+
+	private static GlobalPos toGlobalPos(@Nonnull Level level, @Nonnull BlockPos pos) {
+		return GlobalPos.of(
+			Objects.requireNonNull(level.dimension(), "dimension"),
+			Objects.requireNonNull(pos.immutable(), "pos")
+		);
+	}
+
+	private static int initialGrowthStage(@Nonnull Level level, @Nonnull BlockPos pos) {
+		BlockState state = level.getBlockState(pos);
+		if (state.getBlock() instanceof WildTreeSaplingBlock saplingBlock && saplingBlock.getStage() >= 1) {
+			return SAPLING1_GROWTH_STAGE;
+		}
+		return 0;
+	}
+
+	private static int estimatedLegacyDays(int growthStage) {
+		int clampedStage = Math.max(0, Math.min(growthStage, MATURE_GROWTH_STAGE));
+		return Math.round((clampedStage / (float) MATURE_GROWTH_STAGE) * LEGACY_TOTAL_DAYS);
+	}
+
+	private static int legacyDaysToGrowthStage(int days) {
+		if (days >= LEGACY_TOTAL_DAYS) {
+			return MATURE_GROWTH_STAGE;
+		}
+		if (days >= LEGACY_STAGE1_DAY) {
+			int stage1Progress = Math.min(days - LEGACY_STAGE1_DAY, LEGACY_TOTAL_DAYS - LEGACY_STAGE1_DAY);
+			return SAPLING1_GROWTH_STAGE + stage1Progress / 7;
+		}
+		return Math.min(SAPLING1_GROWTH_STAGE - 1, days / 5);
+	}
+
+	private static int currentSeason() {
+		return StardewTimeManager.get().getCurrentSeason();
+	}
+
+	private static int currentAbsoluteDay() {
+		StardewTimeManager timeManager = StardewTimeManager.get();
+		return (timeManager.getCurrentYear() - 1) * 112 + timeManager.getCurrentSeason() * 28 + timeManager.getCurrentDay();
+	}
+
+	private static int seasonOfAbsoluteDay(int absoluteDay) {
+		return Math.floorMod((absoluteDay - 1) / 28, 4);
 	}
 
 	@Override
 	public @Nonnull CompoundTag save(@Nonnull CompoundTag tag, @Nonnull net.minecraft.core.HolderLookup.Provider provider) {
 		ListTag list = new ListTag();
-		for (GlobalPos gp : saplingPositions) {
-			CompoundTag t = new CompoundTag();
-			String dimId = Objects.requireNonNull(gp.dimension().location().toString(), "dimension");
+		for (GlobalPos globalPos : saplingPositions) {
+			CompoundTag entryTag = new CompoundTag();
+			String dimensionId = Objects.requireNonNull(globalPos.dimension().location().toString(), "dimension");
 			Tag posTag = Objects.requireNonNull(
-				NbtUtils.writeBlockPos(Objects.requireNonNull(gp.pos(), "pos")),
+				NbtUtils.writeBlockPos(Objects.requireNonNull(globalPos.pos(), "pos")),
 				"posTag"
 			);
-			t.putString("Dimension", dimId);
-			t.put("Pos", posTag);
-			t.putInt("Days", daysGrown.getOrDefault(gp, 0));
-			list.add(t);
+			int growthStage = growthStages.getOrDefault(globalPos, 0);
+			entryTag.putString("Dimension", dimensionId);
+			entryTag.put("Pos", posTag);
+			entryTag.putInt("Stage", growthStage);
+			entryTag.putInt("Days", estimatedLegacyDays(growthStage));
+			entryTag.putBoolean("Fertilized", fertilizedSaplings.contains(globalPos));
+			list.add(entryTag);
 		}
 		tag.put("Saplings", list);
 		return tag;
@@ -411,24 +415,30 @@ public class TreeGrowthManager extends SavedData {
 		TreeGrowthManager manager = new TreeGrowthManager();
 		if (tag.contains("Saplings", Tag.TAG_LIST)) {
 			ListTag list = tag.getList("Saplings", Tag.TAG_COMPOUND);
-			for (int i = 0; i < list.size(); i++) {
-				CompoundTag t = list.getCompound(i);
-				ResourceKey<Level> dim = ResourceKey.create(
+			for (int index = 0; index < list.size(); index++) {
+				CompoundTag entryTag = list.getCompound(index);
+				ResourceKey<Level> dimension = ResourceKey.create(
 					Objects.requireNonNull(net.minecraft.core.registries.Registries.DIMENSION, "DIMENSION"),
 					Objects.requireNonNull(
 						net.minecraft.resources.ResourceLocation.parse(
-							Objects.requireNonNull(t.getString("Dimension"), "dimension")
+							Objects.requireNonNull(entryTag.getString("Dimension"), "dimension")
 						),
 						"dimensionId"
 					)
 				);
-				BlockPos pos = NbtUtils.readBlockPos(t, "Pos").orElse(BlockPos.ZERO);
-				GlobalPos gp = GlobalPos.of(
-					Objects.requireNonNull(dim, "dim"),
+				BlockPos pos = NbtUtils.readBlockPos(entryTag, "Pos").orElse(BlockPos.ZERO);
+				GlobalPos globalPos = GlobalPos.of(
+					Objects.requireNonNull(dimension, "dimension"),
 					Objects.requireNonNull(pos, "pos")
 				);
-				manager.saplingPositions.add(gp);
-				manager.daysGrown.put(gp, t.getInt("Days"));
+				int growthStage = entryTag.contains("Stage", Tag.TAG_INT)
+					? entryTag.getInt("Stage")
+					: legacyDaysToGrowthStage(entryTag.getInt("Days"));
+				manager.saplingPositions.add(globalPos);
+				manager.growthStages.put(globalPos, Math.max(0, Math.min(growthStage, MATURE_GROWTH_STAGE)));
+				if (entryTag.getBoolean("Fertilized")) {
+					manager.fertilizedSaplings.add(globalPos);
+				}
 			}
 		}
 		return manager;
@@ -437,11 +447,11 @@ public class TreeGrowthManager extends SavedData {
 	public static TreeGrowthManager get(ServerLevel level) {
 		ServerLevel overworld = level.getServer().overworld();
 		return overworld.getDataStorage().computeIfAbsent(
-				new SavedData.Factory<>(
-						TreeGrowthManager::new,
-						TreeGrowthManager::load
-				),
-				DATA_NAME
+			new SavedData.Factory<>(
+				TreeGrowthManager::new,
+				TreeGrowthManager::load
+			),
+			DATA_NAME
 		);
 	}
 }

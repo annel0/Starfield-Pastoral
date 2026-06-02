@@ -1,5 +1,5 @@
 {
-    "parent":  "stardewcraft:block/utility/lightning_rod_runtime",
+    "parent":  "stardewcraft:block/utility/lightning_rod",
     "textures":  {
                      "particle":  "stardewcraft:block/utility/lightning_rod"
                  }

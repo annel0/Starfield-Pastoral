@@ -169,6 +169,10 @@ public record CutsceneServerActionPayload(String action, String value) implement
                     com.stardew.craft.festival.FlowerDanceService.onCutsceneStage(player, payload.value);
                     LOGGER.debug("Cutscene prepared Flower Dance {} stage for {}", payload.value, player.getName().getString());
                 }
+                case "moonlight_jellies_stage" -> {
+                    com.stardew.craft.festival.MoonlightJelliesFestivalService.onCutsceneStage(player, payload.value);
+                    LOGGER.debug("Cutscene prepared Moonlight Jellies {} stage for {}", payload.value, player.getName().getString());
+                }
                 default -> LOGGER.warn("Unknown cutscene server action: {}", payload.action);
             }
         });

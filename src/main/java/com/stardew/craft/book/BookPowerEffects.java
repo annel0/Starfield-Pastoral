@@ -1,6 +1,9 @@
 package com.stardew.craft.book;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.block.crop.StardewCropBlock;
+import com.stardew.craft.block.nature.PastureGrassBlock;
+import com.stardew.craft.block.nature.WildWeedsBlock;
 import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.item.artisan.PreserveType;
@@ -17,6 +20,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
@@ -49,10 +53,14 @@ public final class BookPowerEffects {
     private static final ResourceLocation PLAYER_SPEED_MODIFIER = ResourceLocation.fromNamespaceAndPath(
             StardewCraft.MODID, "book_speed"
     );
+    private static final ResourceLocation GRASS_PLAYER_SPEED_MODIFIER = ResourceLocation.fromNamespaceAndPath(
+            StardewCraft.MODID, "book_grass_speed"
+    );
     private static final ResourceLocation HORSE_SPEED_MODIFIER = ResourceLocation.fromNamespaceAndPath(
             StardewCraft.MODID, "book_horse_speed"
     );
     private static final double PLAYER_SPEED_STEP = 0.05D;
+    private static final double GRASS_PLAYER_SPEED_BONUS = 0.12D;
     private static final double HORSE_SPEED_BONUS = 0.052083333333333336D;
     private static final double GRASS_SPEED_FACTOR = 0.900D;
     private static final double GRASS_BOOK_SPEED_FACTOR = 1.030D;
@@ -171,6 +179,7 @@ public final class BookPowerEffects {
         Entity vehicle = player.getVehicle();
         if (vehicle instanceof AbstractHorse horse) {
             setModifier(player.getAttribute(Attributes.MOVEMENT_SPEED), PLAYER_SPEED_MODIFIER, 0.0D);
+            setModifier(player.getAttribute(Attributes.MOVEMENT_SPEED), GRASS_PLAYER_SPEED_MODIFIER, 0.0D);
             removePreviousHorseModifier(player, horse.getId());
             setModifier(horse.getAttribute(Attributes.MOVEMENT_SPEED), HORSE_SPEED_MODIFIER,
                     hasPower(data, BOOK_HORSE) ? HORSE_SPEED_BONUS : 0.0D);
@@ -187,6 +196,23 @@ public final class BookPowerEffects {
             speedBonus += PLAYER_SPEED_STEP;
         }
         setModifier(player.getAttribute(Attributes.MOVEMENT_SPEED), PLAYER_SPEED_MODIFIER, speedBonus);
+        setModifier(player.getAttribute(Attributes.MOVEMENT_SPEED), GRASS_PLAYER_SPEED_MODIFIER,
+                hasPower(data, BOOK_GRASS) && isInGrassSpeedBlock(player) ? GRASS_PLAYER_SPEED_BONUS : 0.0D);
+    }
+
+    private static boolean isInGrassSpeedBlock(ServerPlayer player) {
+        BlockState feet = player.level().getBlockState(player.blockPosition());
+        if (isGrassSpeedBlock(feet)) {
+            return true;
+        }
+        BlockState below = player.level().getBlockState(player.blockPosition().below());
+        return isGrassSpeedBlock(below);
+    }
+
+    private static boolean isGrassSpeedBlock(BlockState state) {
+        return state.getBlock() instanceof PastureGrassBlock
+                || state.getBlock() instanceof WildWeedsBlock
+                || state.getBlock() instanceof StardewCropBlock;
     }
 
     private static boolean hasPower(PlayerStardewData data, String statKey) {

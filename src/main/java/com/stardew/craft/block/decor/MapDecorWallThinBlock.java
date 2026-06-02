@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -65,7 +66,10 @@ public class MapDecorWallThinBlock extends Block {
                                      @Nonnull LevelAccessor level,
                                      @Nonnull BlockPos pos,
                                      @Nonnull BlockPos neighborPos) {
-        return state.canSurvive(level, pos) ? state : net.minecraft.world.level.block.Blocks.AIR.defaultBlockState();
+        Direction supportDir = state.getValue(FACING).getOpposite();
+        return direction == supportDir && !state.canSurvive(level, pos)
+                ? net.minecraft.world.level.block.Blocks.AIR.defaultBlockState()
+                : super.updateShape(state, direction, neighborState, level, pos, neighborPos);
     }
 
     @Override
@@ -99,6 +103,11 @@ public class MapDecorWallThinBlock extends Block {
     @Override
     public float getShadeBrightness(@Nonnull BlockState state, @Nonnull BlockGetter level, @Nonnull BlockPos pos) {
         return 1.0F;
+    }
+
+    @Override
+    protected boolean canBeReplaced(@Nonnull BlockState state, @Nonnull Fluid fluid) {
+        return false;
     }
 
     private VoxelShape resolveShape(BlockState state) {

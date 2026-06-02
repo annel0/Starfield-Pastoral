@@ -1,8 +1,6 @@
 package com.stardew.craft.manager;
 
 import com.stardew.craft.item.ModItems;
-import com.stardew.craft.player.PlayerStardewDataAPI;
-import com.stardew.craft.player.SkillType;
 import com.stardew.craft.time.StardewTimeManager;
 import com.stardew.craft.tree.WildTrees;
 import net.minecraft.core.BlockPos;
@@ -38,9 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class WildTreeSeedManager extends SavedData {
 	private static final String DATA_NAME = "stardew_wild_tree_seed_manager";
-
-	private static final float DEFAULT_SEED_ON_SHAKE_CHANCE = 0.20f;
-	private static final float DEFAULT_SEED_SPREAD_CHANCE = 0.15f;
+	private static final int SEASON_FALL = 2;
 
 	private static final class Entry {
 		final String treeId;
@@ -100,13 +96,13 @@ public class WildTreeSeedManager extends SavedData {
 		ensureRolledForDay(level, trunk0Pos, def, entry, absDay);
 
 		entry.lastShakenAbsDay = absDay;
-		// 采集等级门槛：>=1 才能拿到种子（对齐 SV ForagingLevel >= 1）
+		// 采集等级门槛：单人 >=1；多人允许 0 级拿到种子（对齐 SV 的 multiplayer 分支）。
 		int foragingLevel = com.stardew.craft.player.PlayerStardewDataAPI.getSkillLevel(player, com.stardew.craft.player.SkillType.FORAGING);
-		if (entry.hasSeed && foragingLevel >= 1) {
-			Item seed = getSeedItem(def);
-			if (seed != null) {
-				Block.popResource(level, trunk0Pos, new ItemStack(seed, 1));
-				PlayerStardewDataAPI.addExperience(player, SkillType.FORAGING, 7);
+		boolean canDropSeed = player.server.getPlayerList().getPlayerCount() > 1 || foragingLevel >= 1;
+		if (entry.hasSeed && canDropSeed) {
+			Item drop = getShakeDropItem(def);
+			if (drop != null) {
+				Block.popResource(level, trunk0Pos, new ItemStack(drop, 1));
 			}
 			entry.hasSeed = false;
 		}
@@ -225,11 +221,11 @@ public class WildTreeSeedManager extends SavedData {
 	}
 
 	private static float seedOnShakeChance(WildTrees.Def def) {
-		return DEFAULT_SEED_ON_SHAKE_CHANCE;
+		return def.seedOnShakeChance();
 	}
 
 	private static float seedSpreadChance(WildTrees.Def def) {
-		return DEFAULT_SEED_SPREAD_CHANCE;
+		return def.seedSpreadChance();
 	}
 
 	private static void ensureRolledForDay(ServerLevel level, BlockPos trunk0Pos, WildTrees.Def def, Entry entry, int absDay) {
@@ -250,6 +246,21 @@ public class WildTreeSeedManager extends SavedData {
 			case "mystic_tree" -> ModItems.MYSTIC_TREE_SEED.get();
 			default -> null;
 		};
+	}
+
+	private static Item getShakeDropItem(WildTrees.Def def) {
+		if (isLateFallMaple(def)) {
+			var hazelnut = ModItems.VANILLA_CATEGORY_ITEMS.get("hazelnut");
+			return hazelnut != null ? hazelnut.get() : null;
+		}
+		return getSeedItem(def);
+	}
+
+	private static boolean isLateFallMaple(WildTrees.Def def) {
+		StardewTimeManager time = StardewTimeManager.get();
+		return "maple".equals(def.id())
+				&& time.getCurrentSeason() == SEASON_FALL
+				&& time.getCurrentDay() >= 14;
 	}
 
 	private static WildTrees.Def findDefById(String id) {

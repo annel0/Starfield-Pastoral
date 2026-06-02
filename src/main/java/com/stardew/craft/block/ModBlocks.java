@@ -1,8 +1,12 @@
 package com.stardew.craft.block;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.block.cooking.CookingPlacedFoodBlock;
 import com.stardew.craft.block.mine.CalicoStatueBlock;
 import com.stardew.craft.fluid.ModFluids;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.SoundType;
@@ -39,6 +43,41 @@ public class ModBlocks {
                 @SuppressWarnings("null")
                 private static DeferredBlock<WallBlock> wall(String name, Block.Properties props) {
                 return BLOCKS.register(name, () -> new WallBlock(props));
+        }
+
+        private static final String[] PLACEABLE_COOKING_FOOD_IDS = {
+                "cheese_cauliflower",
+                "ice_cream",
+                "baked_fish",
+                "omelet",
+                "strange_bun",
+                "complete_breakfast",
+                "lucky_lunch",
+                "salad",
+                "fried_calamari",
+                "vegetable_medley",
+                "parsnip_soup"
+        };
+
+        private static Map<String, DeferredBlock<CookingPlacedFoodBlock>> registerPlacedCookingFoods() {
+                LinkedHashMap<String, DeferredBlock<CookingPlacedFoodBlock>> foods = new LinkedHashMap<>();
+                for (String itemId : PLACEABLE_COOKING_FOOD_IDS) {
+                        foods.put(itemId, BLOCKS.register("placed_food_" + itemId,
+                                        () -> new CookingPlacedFoodBlock(itemId, Block.Properties.of()
+                                                        .mapColor(net.minecraft.world.level.material.MapColor.COLOR_BROWN)
+                                                        .pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY)
+                                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                                        .noCollission()
+                                                        .noOcclusion()
+                                                        .instabreak())));
+                }
+                return Collections.unmodifiableMap(foods);
+        }
+
+        public static final Map<String, DeferredBlock<CookingPlacedFoodBlock>> PLACED_COOKING_FOODS = registerPlacedCookingFoods();
+
+        public static DeferredBlock<CookingPlacedFoodBlock> getPlacedCookingFoodBlock(String itemId) {
+                return PLACED_COOKING_FOODS.get(itemId);
         }
 
         // 自然/杂草
@@ -1580,6 +1619,17 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .noOcclusion()
                                         // 需求：徒手也能很快拆（类似羊毛/更快）
                                         .strength(0.2F, 1.0F)));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WATER_LANTERN = BLOCKS.register("water_lantern",
+                        () -> new com.stardew.craft.block.festival.WaterLanternBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.COLOR_CYAN)
+                                        .sound(net.minecraft.world.level.block.SoundType.LANTERN)
+                                        .lightLevel(state -> 15)
+                                        .noCollission()
+                                        .noOcclusion()
+                                        .strength(0.2F, 1.0F)
+                                        .pushReaction(net.minecraft.world.level.material.PushReaction.DESTROY)));
 
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> FISH_NET = BLOCKS.register("fish_net",

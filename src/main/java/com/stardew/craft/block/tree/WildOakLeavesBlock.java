@@ -1,11 +1,9 @@
 package com.stardew.craft.block.tree;
 
-import com.stardew.craft.item.ModItems;
 import com.stardew.craft.tree.WildTrees;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -18,7 +16,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class WildOakLeavesBlock extends Block {
 	public static final DirectionProperty FACING = BlockStateProperties.FACING;
-	private static final float SEED_DROP_CHANCE = 0.20f;
 
 	@SuppressWarnings("null")
 	public WildOakLeavesBlock(Properties properties) {
@@ -52,29 +49,12 @@ public class WildOakLeavesBlock extends Block {
 
 	/**
 	 * Unconditionally destroys this leaf block (called only from tree-chop scheduled tick).
-	 * May drop seeds.
 	 */
 	@SuppressWarnings("null")
 	private static void forceDecay(BlockState state, ServerLevel level, BlockPos pos, net.minecraft.util.RandomSource random) {
 		WildTrees.Def def = WildTrees.findByAnyPart(state);
 		if (def == null) {
 			return;
-		}
-
-		if (random.nextFloat() < SEED_DROP_CHANCE) {
-			@SuppressWarnings("null")
-			ItemStack seed = switch (def.id()) {
-				case "oak" -> new ItemStack(ModItems.ACORN.get());
-				case "maple" -> new ItemStack(ModItems.MAPLE_SEED.get());
-				case "pine" -> new ItemStack(ModItems.PINE_CONE.get());
-				case "mahogany" -> new ItemStack(ModItems.MAHOGANY_SEED.get());
-				case "mystic_tree" -> new ItemStack(ModItems.MYSTIC_TREE_SEED.get());
-				default -> ItemStack.EMPTY;
-			};
-			if (!seed.isEmpty()) {
-				seed.setCount(net.minecraft.util.Mth.nextInt(random, 1, 2));
-				Block.popResource(level, pos, seed);
-			}
 		}
 		level.removeBlock(pos, false);
 	}

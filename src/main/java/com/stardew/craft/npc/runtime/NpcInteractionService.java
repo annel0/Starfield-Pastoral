@@ -172,7 +172,7 @@ public final class NpcInteractionService {
 
         com.stardew.craft.festival.ActiveFestivalHandler activeFestival = com.stardew.craft.festival.ActiveFestivalHandlers.getParticipating(serverPlayer).orElse(null);
         if (activeFestival != null) {
-            if (npcId.equals("lewis") && activeFestival.tryStartMainEvent(serverPlayer)) {
+            if (isLewis(npcId) && activeFestival.tryStartMainEvent(serverPlayer)) {
                 return InteractionResult.SUCCESS;
             }
             if (activeFestival.blocksNpcInteractionDuringMainEvent()) {
@@ -198,6 +198,10 @@ public final class NpcInteractionService {
             }
             if ("summer11".equalsIgnoreCase(activeFestival.festivalId())
                 && tryHandleLuauDialogue(serverPlayer, npc, npcId, state, dayContext, friendshipManager)) {
+                return InteractionResult.SUCCESS;
+            }
+            if ("summer28".equalsIgnoreCase(activeFestival.festivalId())
+                && tryHandleMoonlightJelliesDialogue(serverPlayer, npc, npcId, state, dayContext, friendshipManager)) {
                 return InteractionResult.SUCCESS;
             }
             return InteractionResult.SUCCESS;
@@ -428,7 +432,7 @@ public final class NpcInteractionService {
         com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(player, npcId);
         int points = state.points();
         npc.facePlayerTemporarily(player, 60, () -> {
-            com.stardew.craft.festival.FlowerDanceService.markFestivalDialogueSeen(player, npcId);
+            markActiveFestivalDialogueSeen(player, npcId);
             sendDialoguePacket(player, npcId, dialogueText, points, false);
         });
         return true;
@@ -453,10 +457,44 @@ public final class NpcInteractionService {
         }
         syncFriendshipStatus(player, npcId, state, dayContext);
         com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(player, npcId);
-        com.stardew.craft.festival.LuauFestivalService.markFestivalDialogueSeen(player, npcId);
+        markActiveFestivalDialogueSeen(player, npcId);
         int points = state.points();
         npc.facePlayerTemporarily(player, 60, () -> sendDialoguePacket(player, npcId, dialogueText, points, false));
         return true;
+    }
+
+    private static boolean tryHandleMoonlightJelliesDialogue(ServerPlayer player,
+                                                             StardewNpcEntity npc,
+                                                             String npcId,
+                                                             NpcFriendshipDataManager.FriendshipState state,
+                                                             DayContext dayContext,
+                                                             NpcFriendshipDataManager friendshipManager) {
+        String dialogueText = com.stardew.craft.festival.MoonlightJelliesFestivalService.resolveDialogueKey(player, npcId);
+        if (dialogueText == null || dialogueText.isBlank()) {
+            return false;
+        }
+
+        boolean canGainFriendship = NpcSocialRules.canSocialize(npcId, player);
+        if (canGainFriendship && state.lastTalkDayKey() != dayContext.dayKey()) {
+            grantConversationFriendship(npcId, state, dayContext, dialogueText, player);
+            NpcFriendshipRewardService.applyEligibleRewards(player, npcId, state.points());
+            friendshipManager.setDirty();
+        }
+        syncFriendshipStatus(player, npcId, state, dayContext);
+        com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(player, npcId);
+        markActiveFestivalDialogueSeen(player, npcId);
+        int points = state.points();
+        npc.facePlayerTemporarily(player, 60, () -> sendDialoguePacket(player, npcId, dialogueText, points, false));
+        return true;
+    }
+
+    private static boolean isLewis(String npcId) {
+        return "lewis".equals(npcId == null ? "" : npcId.trim().toLowerCase(Locale.ROOT));
+    }
+
+    private static void markActiveFestivalDialogueSeen(ServerPlayer player, String npcId) {
+        com.stardew.craft.festival.ActiveFestivalHandlers.getParticipating(player)
+            .ifPresent(handler -> handler.onNpcDialogueSeen(player, npcId));
     }
 
     /**

@@ -41,6 +41,7 @@ public class StardewTimeManager extends SavedData {
         "summer_13_1",
         "summer_19_1",
         "summer_20_1",
+        "summer_28",
         "fall_1",
         "fall_2_1",
         "fall_6_1",

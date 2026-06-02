@@ -49,6 +49,7 @@ software/
 resourcepack-template/
 scripts/*
 !scripts/extract_ui_atlas_slices.sh
+!scripts/render_festival_actor_map.py
 tools/*
 !tools/ui_atlas_slices.csv
 ui_spec/

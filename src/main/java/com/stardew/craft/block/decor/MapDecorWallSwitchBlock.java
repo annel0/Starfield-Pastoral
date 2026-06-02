@@ -21,6 +21,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -73,7 +74,10 @@ public class MapDecorWallSwitchBlock extends Block {
                                      @Nonnull LevelAccessor level,
                                      @Nonnull BlockPos pos,
                                      @Nonnull BlockPos neighborPos) {
-        return state.canSurvive(level, pos) ? state : net.minecraft.world.level.block.Blocks.AIR.defaultBlockState();
+        Direction supportDir = state.getValue(FACING).getOpposite();
+        return direction == supportDir && !state.canSurvive(level, pos)
+                ? net.minecraft.world.level.block.Blocks.AIR.defaultBlockState()
+                : super.updateShape(state, direction, neighborState, level, pos, neighborPos);
     }
 
     @Override
@@ -82,6 +86,11 @@ public class MapDecorWallSwitchBlock extends Block {
         BlockPos supportPos = pos.relative(supportDir);
         BlockState support = level.getBlockState(supportPos);
         return support.isFaceSturdy(level, supportPos, state.getValue(FACING));
+    }
+
+    @Override
+    protected boolean canBeReplaced(@Nonnull BlockState state, @Nonnull Fluid fluid) {
+        return false;
     }
 
     @Override

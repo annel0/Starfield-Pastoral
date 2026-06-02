@@ -44,6 +44,9 @@ public interface ActiveFestivalHandler {
     default void onPlayerLogout(ServerPlayer player) {
     }
 
+    default void onNpcDialogueSeen(ServerPlayer player, String npcId) {
+    }
+
     default boolean tryOpenPierreFestivalShop(ServerPlayer player) {
         return false;
     }

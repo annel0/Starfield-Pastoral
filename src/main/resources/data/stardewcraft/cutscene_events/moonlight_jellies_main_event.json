@@ -1,0 +1,25 @@
+{
+  "id": "moonlight_jellies_main_event",
+  "skippable": false,
+  "trigger": { "type": "manual" },
+  "commands": [
+    { "cmd": "lock_player" },
+    { "cmd": "stop_music" },
+    { "cmd": "fade", "mode": "out", "ticks": 20 },
+    { "cmd": "camera", "x": 50.713, "y": 61.393, "z": 161.196, "yaw": -178.7, "pitch": 26.0, "relative": false },
+    { "cmd": "fade", "mode": "in", "ticks": 28 },
+    { "cmd": "pause", "ticks": 48 },
+    { "cmd": "moonlight_jellies_stage", "stage": "release", "ticks": 5 },
+    { "cmd": "pause", "ticks": 36 },
+    { "cmd": "music", "track": "MOONLIGHT_JELLIES" },
+    { "cmd": "camera", "x": 53.250, "y": 65.200, "z": 171.600, "yaw": -179.0, "pitch": 31.0, "relative": false, "ticks": 140 },
+    { "cmd": "pause", "ticks": 90 },
+    { "cmd": "camera", "x": 59.003, "y": 78.630, "z": 189.910, "yaw": -178.4, "pitch": 53.6, "relative": false, "ticks": 260 },
+    { "cmd": "pause", "ticks": 260 },
+    { "cmd": "message", "text": "event.moonlight_jellies.message.end" },
+    { "cmd": "pause", "ticks": 80 },
+    { "cmd": "fade", "mode": "out", "ticks": 40 },
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "end" }
+  ]
+}

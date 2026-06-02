@@ -1,0 +1,485 @@
+#!/usr/bin/env python3
+"""
+Render Stardew Valley festival actor placement maps.
+
+Examples:
+  python3 tools/render_festival_actor_map.py --preset moonlight_jellies --all
+  python3 tools/render_festival_actor_map.py --festival summer28 --profile y1 --phase main
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import math
+import re
+import textwrap
+import xml.etree.ElementTree as ET
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Iterable
+
+from PIL import Image, ImageDraw, ImageFont
+
+
+ROOT = Path(__file__).resolve().parents[1]
+CONTENT_DIR = ROOT / "源文件" / "Content"
+MAPS_DIR = CONTENT_DIR / "Maps"
+DATA_DIR = CONTENT_DIR / "Data"
+PORTRAITS_DIR = CONTENT_DIR / "Portraits"
+DEFAULT_OUTPUT_DIR = ROOT / "tools" / "generated" / "festival_actor_maps"
+
+TILE_SIZE = 16
+TILED_GID_MASK = 0x1FFFFFFF
+BACKGROUND_LAYERS = (
+    "Back",
+    "Back2",
+    "Buildings",
+    "Buildings2",
+    "Front",
+    "Paths",
+    "AlwaysFront",
+)
+FACING_LABELS = {
+    0: "N",
+    1: "E",
+    2: "S",
+    3: "W",
+}
+FACING_COLORS = {
+    0: (82, 148, 255, 255),
+    1: (255, 174, 66, 255),
+    2: (80, 208, 142, 255),
+    3: (226, 93, 103, 255),
+}
+FACING_VECTORS = {
+    0: (0, -1),
+    1: (1, 0),
+    2: (0, 1),
+    3: (-1, 0),
+}
+
+
+@dataclass(frozen=True)
+class Tileset:
+    first_gid: int
+    columns: int
+    image: Image.Image | None
+
+
+@dataclass
+class ActorMarker:
+    name: str
+    tile_x: int
+    tile_y: int
+    facing: int
+    anchor: tuple[float, float]
+    box: list[float]
+
+
+def load_font(size: int) -> ImageFont.ImageFont:
+    candidates = (
+        "/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
+        "/System/Library/Fonts/Supplemental/Arial.ttf",
+        "/Library/Fonts/Arial.ttf",
+    )
+    for candidate in candidates:
+        path = Path(candidate)
+        if path.exists():
+            return ImageFont.truetype(str(path), size=size)
+    return ImageFont.load_default()
+
+
+def parse_csv_layer(layer: ET.Element) -> list[list[int]]:
+    data = layer.find("data")
+    if data is None or data.get("encoding") != "csv" or not data.text:
+        return []
+    rows: list[list[int]] = []
+    for line in data.text.strip().splitlines():
+        line = line.strip().rstrip(",")
+        if line:
+            rows.append([int(value) for value in line.split(",")])
+    return rows
+
+
+def find_tileset_for_gid(gid: int, tilesets: Iterable[Tileset]) -> Tileset | None:
+    clean_gid = gid & TILED_GID_MASK
+    for tileset in tilesets:
+        if clean_gid >= tileset.first_gid:
+            return tileset
+    return None
+
+
+def load_tilesets(tmx_root: ET.Element, tmx_path: Path) -> list[Tileset]:
+    tilesets: list[Tileset] = []
+    for tileset in tmx_root.findall("tileset"):
+        first_gid = int(tileset.get("firstgid", "0"))
+        columns = int(tileset.get("columns", "0"))
+        image_node = tileset.find("image")
+        if image_node is None:
+            tilesets.append(Tileset(first_gid, columns, None))
+            continue
+
+        source = image_node.get("source", "")
+        image_path = Path(source)
+        if not image_path.suffix:
+            image_path = image_path.with_suffix(".png")
+        candidates = [tmx_path.parent / image_path, MAPS_DIR / image_path, CONTENT_DIR / "TileSheets" / image_path]
+        resolved = next((path for path in candidates if path.exists()), None)
+        image = Image.open(resolved).convert("RGBA") if resolved else None
+        tilesets.append(Tileset(first_gid, columns, image))
+    return sorted(tilesets, key=lambda item: item.first_gid, reverse=True)
+
+
+def tile_image(gid: int, tilesets: list[Tileset]) -> Image.Image | None:
+    clean_gid = gid & TILED_GID_MASK
+    if clean_gid == 0:
+        return None
+    tileset = find_tileset_for_gid(clean_gid, tilesets)
+    if tileset is None or tileset.image is None or tileset.columns <= 0:
+        return None
+    local_id = clean_gid - tileset.first_gid
+    sx = (local_id % tileset.columns) * TILE_SIZE
+    sy = (local_id // tileset.columns) * TILE_SIZE
+    if sx + TILE_SIZE > tileset.image.width or sy + TILE_SIZE > tileset.image.height:
+        return None
+    return tileset.image.crop((sx, sy, sx + TILE_SIZE, sy + TILE_SIZE))
+
+
+def render_tmx(tmx_path: Path, scale: int, layers: Iterable[str] = BACKGROUND_LAYERS) -> Image.Image:
+    root = ET.parse(tmx_path).getroot()
+    map_width = int(root.get("width", "0"))
+    map_height = int(root.get("height", "0"))
+    canvas = Image.new("RGBA", (map_width * TILE_SIZE, map_height * TILE_SIZE), (0, 0, 0, 255))
+    tilesets = load_tilesets(root, tmx_path)
+    layer_names = set(layers)
+
+    for layer in root.findall("layer"):
+        if layer.get("name") not in layer_names:
+            continue
+        for y, row in enumerate(parse_csv_layer(layer)):
+            for x, gid in enumerate(row):
+                img = tile_image(gid, tilesets)
+                if img is not None:
+                    canvas.alpha_composite(img, (x * TILE_SIZE, y * TILE_SIZE))
+
+    if scale != 1:
+        canvas = canvas.resize((canvas.width * scale, canvas.height * scale), Image.Resampling.NEAREST)
+    return canvas
+
+
+def load_actor_index() -> dict[int, str]:
+    characters = json.loads((DATA_DIR / "Characters.json").read_text(encoding="utf-8"))
+    result: dict[int, str] = {}
+    for name, data in characters.items():
+        index = data.get("FestivalVanillaActorIndex", -1)
+        if isinstance(index, int) and index >= 0 and index not in result:
+            result[index] = name
+    return result
+
+
+def extract_actors(tmx_path: Path, layer_name: str, scale: int) -> list[ActorMarker]:
+    root = ET.parse(tmx_path).getroot()
+    layer = next((item for item in root.findall("layer") if item.get("name") == layer_name), None)
+    if layer is None:
+        raise ValueError(f"Map {tmx_path.name} has no layer named {layer_name!r}.")
+
+    actor_names = load_actor_index()
+    rows = parse_csv_layer(layer)
+    markers: list[ActorMarker] = []
+    for y, row in enumerate(rows):
+        for x, gid in enumerate(row):
+            clean_gid = gid & TILED_GID_MASK
+            if clean_gid == 0:
+                continue
+            tile_index = clean_gid - 1
+            actor_index = tile_index // 4
+            facing = tile_index % 4
+            name = actor_names.get(actor_index)
+            if name is None:
+                continue
+            anchor = ((x + 0.5) * TILE_SIZE * scale, (y + 0.5) * TILE_SIZE * scale)
+            markers.append(ActorMarker(name, x, y, facing, anchor, [0.0, 0.0, 0.0, 0.0]))
+    return markers
+
+
+def parse_command_value(commands: str, command_name: str) -> str | None:
+    pattern = rf"(?:^|/){re.escape(command_name)}\s+([^/]+)"
+    match = re.search(pattern, commands)
+    if not match:
+        return None
+    return match.group(1).strip().split()[0]
+
+
+def festival_profile(festival_id: str, profile: str, phase: str) -> tuple[Path, str, str]:
+    festival_path = DATA_DIR / "Festivals" / f"{festival_id}.json"
+    if not festival_path.exists():
+        raise FileNotFoundError(f"Festival data not found: {festival_path}")
+    data = json.loads(festival_path.read_text(encoding="utf-8-sig"))
+
+    setup_key = "set-up" if profile == "y1" else "set-up_y2"
+    main_key = "mainEvent" if profile == "y1" else "mainEvent_y2"
+    setup_commands = data.get(setup_key) or data.get("set-up")
+    if not isinstance(setup_commands, str):
+        raise ValueError(f"Festival {festival_id} has no setup commands for profile {profile}.")
+    map_id = parse_command_value(setup_commands, "changeToTemporaryMap")
+    if not map_id:
+        raise ValueError(f"Festival {festival_id} setup has no changeToTemporaryMap command.")
+
+    if phase == "setup":
+        commands = setup_commands
+    else:
+        commands = data.get(main_key) or data.get("mainEvent")
+        if not isinstance(commands, str):
+            raise ValueError(f"Festival {festival_id} has no mainEvent commands for profile {profile}.")
+
+    layer_name = parse_command_value(commands, "loadActors")
+    if not layer_name:
+        raise ValueError(f"Festival {festival_id} {phase} commands have no loadActors command.")
+
+    tmx_path = MAPS_DIR / f"{map_id}.tmx"
+    if not tmx_path.exists():
+        raise FileNotFoundError(f"Map not found: {tmx_path}")
+    return tmx_path, layer_name, map_id
+
+
+def display_name(name: str) -> str:
+    return " ".join(part for part in re.split(r"[_\s]+", name) if part)
+
+
+def portrait_path(name: str) -> Path | None:
+    candidates = [
+        PORTRAITS_DIR / f"{name}.png",
+        PORTRAITS_DIR / f"{name}_Beach.png",
+        PORTRAITS_DIR / f"{name}_Winter.png",
+    ]
+    return next((path for path in candidates if path.exists()), None)
+
+
+def load_portrait(name: str, size: int) -> Image.Image:
+    path = portrait_path(name)
+    if path is None:
+        image = Image.new("RGBA", (size, size), (45, 52, 66, 255))
+        draw = ImageDraw.Draw(image)
+        font = load_font(max(12, size // 3))
+        initials = "".join(part[0].upper() for part in display_name(name).split()[:2]) or "?"
+        bbox = draw.textbbox((0, 0), initials, font=font)
+        draw.text(((size - (bbox[2] - bbox[0])) / 2, (size - (bbox[3] - bbox[1])) / 2), initials, fill=(255, 255, 255), font=font)
+        return image
+
+    sheet = Image.open(path).convert("RGBA")
+    crop = sheet.crop((0, 0, min(64, sheet.width), min(64, sheet.height)))
+    return crop.resize((size, size), Image.Resampling.NEAREST)
+
+
+def initial_boxes(markers: list[ActorMarker], canvas_size: tuple[int, int], portrait_size: int, label_height: int) -> None:
+    width, height = canvas_size
+    box_w = portrait_size + 18
+    box_h = portrait_size + label_height + 16
+    for marker in markers:
+        x, y = marker.anchor
+        left = x - box_w / 2
+        top = y - box_h - 20
+        if top < 6:
+            top = y + 20
+        left = min(max(left, 6), width - box_w - 6)
+        top = min(max(top, 6), height - box_h - 6)
+        marker.box = [left, top, left + box_w, top + box_h]
+
+
+def repel_boxes(markers: list[ActorMarker], canvas_size: tuple[int, int], padding: int = 6, iterations: int = 90) -> None:
+    width, height = canvas_size
+    for _ in range(iterations):
+        moved = False
+        for i in range(len(markers)):
+            a = markers[i].box
+            for j in range(i + 1, len(markers)):
+                b = markers[j].box
+                overlap_x = min(a[2], b[2]) - max(a[0], b[0]) + padding
+                overlap_y = min(a[3], b[3]) - max(a[1], b[1]) + padding
+                if overlap_x <= 0 or overlap_y <= 0:
+                    continue
+                acx = (a[0] + a[2]) / 2
+                acy = (a[1] + a[3]) / 2
+                bcx = (b[0] + b[2]) / 2
+                bcy = (b[1] + b[3]) / 2
+                if overlap_x < overlap_y:
+                    shift = overlap_x / 2
+                    direction = -1 if acx <= bcx else 1
+                    a[0] += direction * shift
+                    a[2] += direction * shift
+                    b[0] -= direction * shift
+                    b[2] -= direction * shift
+                else:
+                    shift = overlap_y / 2
+                    direction = -1 if acy <= bcy else 1
+                    a[1] += direction * shift
+                    a[3] += direction * shift
+                    b[1] -= direction * shift
+                    b[3] -= direction * shift
+                moved = True
+        for marker in markers:
+            box = marker.box
+            dx = 0.0
+            dy = 0.0
+            if box[0] < 6:
+                dx = 6 - box[0]
+            elif box[2] > width - 6:
+                dx = width - 6 - box[2]
+            if box[1] < 6:
+                dy = 6 - box[1]
+            elif box[3] > height - 6:
+                dy = height - 6 - box[3]
+            if dx or dy:
+                box[0] += dx
+                box[2] += dx
+                box[1] += dy
+                box[3] += dy
+                moved = True
+        if not moved:
+            break
+
+
+def rounded_rectangle(draw: ImageDraw.ImageDraw, box: Iterable[float], radius: int, fill, outline, width: int = 1) -> None:
+    draw.rounded_rectangle(tuple(round(value) for value in box), radius=radius, fill=fill, outline=outline, width=width)
+
+
+def draw_arrow(draw: ImageDraw.ImageDraw, x: float, y: float, facing: int, color: tuple[int, int, int, int], size: int) -> None:
+    dx, dy = FACING_VECTORS.get(facing, (0, 1))
+    tip = (x + dx * size, y + dy * size)
+    left_angle = math.atan2(dy, dx) + math.pi * 0.74
+    right_angle = math.atan2(dy, dx) - math.pi * 0.74
+    left = (x + math.cos(left_angle) * size * 0.65, y + math.sin(left_angle) * size * 0.65)
+    right = (x + math.cos(right_angle) * size * 0.65, y + math.sin(right_angle) * size * 0.65)
+    draw.polygon([tip, left, right], fill=color)
+
+
+def draw_title(draw: ImageDraw.ImageDraw, title: str, canvas_width: int) -> None:
+    font = load_font(28)
+    text = title
+    bbox = draw.textbbox((0, 0), text, font=font)
+    pad = 12
+    box = (12, 12, min(canvas_width - 12, bbox[2] + pad * 2 + 12), bbox[3] + pad * 2 + 12)
+    rounded_rectangle(draw, box, 6, (20, 24, 32, 216), (255, 255, 255, 110))
+    draw.text((box[0] + pad, box[1] + pad - 1), text, fill=(255, 255, 255, 255), font=font)
+
+
+def draw_legend(draw: ImageDraw.ImageDraw, canvas_size: tuple[int, int]) -> None:
+    font = load_font(16)
+    width, height = canvas_size
+    labels = [("N", "up"), ("E", "right"), ("S", "down"), ("W", "left")]
+    box_w = 190
+    box_h = 30 + len(labels) * 24
+    left = width - box_w - 12
+    top = height - box_h - 12
+    rounded_rectangle(draw, (left, top, left + box_w, top + box_h), 6, (20, 24, 32, 216), (255, 255, 255, 110))
+    draw.text((left + 12, top + 10), "Facing", fill=(255, 255, 255, 255), font=font)
+    y = top + 34
+    for idx, (label, meaning) in enumerate(labels):
+        color = FACING_COLORS[idx]
+        draw.ellipse((left + 14, y + 4, left + 30, y + 20), fill=color, outline=(255, 255, 255, 180))
+        draw.text((left + 38, y + 2), f"{label} = {meaning}", fill=(255, 255, 255, 235), font=font)
+        y += 24
+
+
+def annotate_map(base: Image.Image, markers: list[ActorMarker], title: str, portrait_size: int) -> Image.Image:
+    image = base.convert("RGBA")
+    overlay = Image.new("RGBA", image.size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(overlay)
+    label_font = load_font(15)
+    tiny_font = load_font(13)
+    label_height = 32
+    initial_boxes(markers, image.size, portrait_size, label_height)
+    repel_boxes(markers, image.size)
+
+    for marker in markers:
+        ax, ay = marker.anchor
+        bx0, by0, bx1, by1 = marker.box
+        cx = (bx0 + bx1) / 2
+        cy = (by0 + by1) / 2
+        color = FACING_COLORS.get(marker.facing, (255, 255, 255, 255))
+        draw.line((cx, cy, ax, ay), fill=(255, 255, 255, 120), width=2)
+        draw.ellipse((ax - 7, ay - 7, ax + 7, ay + 7), fill=(20, 24, 32, 230), outline=color, width=3)
+        draw_arrow(draw, ax, ay, marker.facing, color, 17)
+
+    for marker in markers:
+        bx0, by0, bx1, by1 = marker.box
+        color = FACING_COLORS.get(marker.facing, (255, 255, 255, 255))
+        rounded_rectangle(draw, marker.box, 8, (16, 20, 28, 226), color, width=3)
+        portrait = load_portrait(marker.name, portrait_size)
+        px = round(bx0 + 9)
+        py = round(by0 + 8)
+        overlay.alpha_composite(portrait, (px, py))
+        draw.rectangle((px, py, px + portrait_size, py + portrait_size), outline=(255, 255, 255, 170), width=1)
+
+        label = display_name(marker.name)
+        wrapped = textwrap.wrap(label, width=11)[:2]
+        ty = py + portrait_size + 3
+        for line in wrapped:
+            bbox = draw.textbbox((0, 0), line, font=label_font)
+            draw.text((bx0 + (bx1 - bx0 - (bbox[2] - bbox[0])) / 2, ty), line, fill=(255, 255, 255, 255), font=label_font)
+            ty += 15
+        badge = FACING_LABELS.get(marker.facing, "?")
+        draw.ellipse((bx1 - 25, by0 + 6, bx1 - 7, by0 + 24), fill=color, outline=(255, 255, 255, 190))
+        bbox = draw.textbbox((0, 0), badge, font=tiny_font)
+        draw.text((bx1 - 16 - (bbox[2] - bbox[0]) / 2, by0 + 7), badge, fill=(10, 12, 16, 255), font=tiny_font)
+
+    draw_title(draw, title, image.width)
+    draw_legend(draw, image.size)
+    return Image.alpha_composite(image, overlay)
+
+
+def output_name(festival_id: str, map_id: str, profile: str, phase: str) -> str:
+    safe_map = re.sub(r"[^A-Za-z0-9_.-]+", "_", map_id).lower()
+    return f"{festival_id}_{safe_map}_{profile}_{phase}_actors.png"
+
+
+def render_one(festival_id: str, profile: str, phase: str, output_dir: Path, scale: int, portrait_size: int) -> Path:
+    tmx_path, layer_name, map_id = festival_profile(festival_id, profile, phase)
+    base = render_tmx(tmx_path, scale=scale)
+    markers = extract_actors(tmx_path, layer_name, scale=scale)
+    title = f"{festival_id} / {map_id} / {profile} / {phase} / {layer_name} ({len(markers)} NPCs)"
+    annotated = annotate_map(base, markers, title, portrait_size=portrait_size)
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_path = output_dir / output_name(festival_id, map_id, profile, phase)
+    annotated.save(output_path)
+    return output_path
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Render Stardew Valley festival NPC actor maps.")
+    parser.add_argument("--preset", choices=("moonlight_jellies",), help="Convenience preset. moonlight_jellies maps to summer28.")
+    parser.add_argument("--festival", default=None, help="Festival data id, for example summer28.")
+    parser.add_argument("--profile", choices=("y1", "y2"), default="y1", help="Festival profile/year variant.")
+    parser.add_argument("--phase", choices=("setup", "main"), default="setup", help="Actor phase to render.")
+    parser.add_argument("--all", action="store_true", help="Render y1/y2 setup/main images.")
+    parser.add_argument("--scale", type=int, default=3, help="Pixel scale for the rendered TMX map.")
+    parser.add_argument("--portrait-size", type=int, default=44, help="Portrait chip size in output pixels.")
+    parser.add_argument("--out", type=Path, default=DEFAULT_OUTPUT_DIR, help="Output directory.")
+    return parser.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
+    festival_id = args.festival
+    if args.preset == "moonlight_jellies":
+        festival_id = "summer28"
+    if not festival_id:
+        raise SystemExit("Please pass --festival summer28 or --preset moonlight_jellies.")
+    if args.scale <= 0:
+        raise SystemExit("--scale must be positive.")
+    if args.portrait_size < 24:
+        raise SystemExit("--portrait-size must be at least 24.")
+
+    jobs = [(args.profile, args.phase)]
+    if args.all:
+        jobs = [(profile, phase) for profile in ("y1", "y2") for phase in ("setup", "main")]
+
+    for profile, phase in jobs:
+        output_path = render_one(festival_id, profile, phase, args.out, args.scale, args.portrait_size)
+        print(output_path.relative_to(ROOT))
+
+
+if __name__ == "__main__":
+    main()

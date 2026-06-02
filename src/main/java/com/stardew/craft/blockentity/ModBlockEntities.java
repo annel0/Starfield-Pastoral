@@ -115,6 +115,10 @@ public final class ModBlockEntities {
 			BLOCK_ENTITIES.register("crab_pot", () -> BlockEntityType.Builder.of(CrabPotBlockEntity::new, ModBlocks.CRAB_POT.get()).build(null));
 
 	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<WaterLanternBlockEntity>> WATER_LANTERN =
+			BLOCK_ENTITIES.register("water_lantern", () -> BlockEntityType.Builder.of(WaterLanternBlockEntity::new, ModBlocks.WATER_LANTERN.get()).build(null));
+
+	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MuseumExhibitStandBlockEntity>> MUSEUM_EXHIBIT_STAND =
 			BLOCK_ENTITIES.register("museum_exhibit_stand", () -> BlockEntityType.Builder.of(MuseumExhibitStandBlockEntity::new, ModBlocks.MUSEUM_EXHIBIT_STAND.get()).build(null));
 
@@ -258,6 +262,14 @@ public final class ModBlockEntities {
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TableDisplayBlockEntity>> TABLE_DISPLAY =
 			BLOCK_ENTITIES.register("table_display", () -> BlockEntityType.Builder.of(TableDisplayBlockEntity::new,
 				ModBlocks.OAK_TABLE.get(), ModBlocks.SPRUCE_TABLE.get(), ModBlocks.BIRCH_TABLE.get(), ModBlocks.SPRUCE_COUNTER.get(), ModBlocks.OAK_ROUND_TABLE.get(), ModBlocks.KITCHEN_COUNTER.get(), ModBlocks.HOSPITAL_COUNTER.get()).build(null));
+
+	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CookingPlacedFoodBlockEntity>> PLACED_COOKING_FOOD =
+			BLOCK_ENTITIES.register("placed_cooking_food", () -> BlockEntityType.Builder.of(
+					CookingPlacedFoodBlockEntity::new,
+					ModBlocks.PLACED_COOKING_FOODS.values().stream()
+							.map(net.neoforged.neoforge.registries.DeferredBlock::get)
+							.toArray(net.minecraft.world.level.block.Block[]::new)).build(null));
 
 	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<OfficeStoolBlockEntity>> OFFICE_STOOL =

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "stardewcraft:block/cooking/baked_fish"
+    },
+    "facing=east": {
+      "model": "stardewcraft:block/cooking/baked_fish",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "stardewcraft:block/cooking/baked_fish",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "stardewcraft:block/cooking/baked_fish",
+      "y": 270
+    }
+  }
+}

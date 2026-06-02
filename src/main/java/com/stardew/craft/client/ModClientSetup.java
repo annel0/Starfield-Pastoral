@@ -14,6 +14,7 @@ import com.stardew.craft.client.render.CrabPotBlockEntityRenderer;
 import com.stardew.craft.client.render.BookshelfGeoBlockEntityRenderer;
 import com.stardew.craft.client.render.CharcoalKilnBlockEntityRenderer;
 import com.stardew.craft.client.render.CheesePressBlockEntityRenderer;
+import com.stardew.craft.client.render.CookingPlacedFoodBlockEntityRenderer;
 import com.stardew.craft.client.render.FurnaceBlockEntityRenderer;
 import com.stardew.craft.client.render.FishSmokerBlockEntityRenderer;
 import com.stardew.craft.client.render.BaitMakerBlockEntityRenderer;
@@ -92,6 +93,7 @@ public final class ModClientSetup {
 		event.registerEntityRenderer(ModEntities.ELF_BLADE_LEAF.get(), ElfBladeLeafRenderer::new);
 		event.registerEntityRenderer(ModEntities.ICE_SPINE_EFFECT.get(), IceSpineEffectRenderer::new);
 		event.registerEntityRenderer(ModEntities.PRISMATIC_BUTTERFLY.get(), com.stardew.craft.client.renderer.entity.PrismaticButterflyRenderer::new);
+		event.registerEntityRenderer(ModEntities.MOONLIGHT_JELLY.get(), com.stardew.craft.client.renderer.entity.MoonlightJellyRenderer::new);
 		event.registerEntityRenderer(ModEntities.FAIRY_COMPANION.get(), com.stardew.craft.client.renderer.entity.FairyCompanionRenderer::new);
 		event.registerEntityRenderer(ModEntities.STARDEW_BOMB.get(), com.stardew.craft.client.renderer.entity.StardewBombEntityRenderer::new);
 		event.registerEntityRenderer(ModEntities.CROW.get(), com.stardew.craft.client.renderer.entity.CrowEntityRenderer::new);
@@ -131,6 +133,7 @@ public final class ModClientSetup {
 		event.registerBlockEntityRenderer(ModBlockEntities.LOOM.get(), LoomBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.BEE_HOUSE.get(), BeeHouseBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.CRAB_POT.get(), CrabPotBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(ModBlockEntities.WATER_LANTERN.get(), com.stardew.craft.client.render.WaterLanternBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.MUSEUM_EXHIBIT_STAND.get(), MuseumExhibitStandBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.FISH_SMOKER.get(), FishSmokerBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.RECYCLING_MACHINE.get(), RecyclingMachineBlockEntityRenderer::new);
@@ -171,6 +174,7 @@ public final class ModClientSetup {
 		event.registerBlockEntityRenderer(ModBlockEntities.FISH_POND_BUCKET.get(), FishPondBucketBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.GRANDFATHER_CLOCK.get(), com.stardew.craft.client.render.GrandfatherClockBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.TABLE_DISPLAY.get(), TableDisplayBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(ModBlockEntities.PLACED_COOKING_FOOD.get(), CookingPlacedFoodBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.OFFICE_STOOL.get(), OfficeStoolBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.TOTEM_POLE.get(), com.stardew.craft.client.render.TotemPoleBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.MAILBOX.get(), com.stardew.craft.client.render.MailboxBlockEntityRenderer::new);

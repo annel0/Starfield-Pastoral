@@ -121,6 +121,7 @@ import com.stardew.craft.item.fish.misc.*;
 import com.stardew.craft.item.fishing.trash.TrashItem;
 import com.stardew.craft.item.fishing.trash.JojaColaItem;
 import com.stardew.craft.item.tree.TreeSeedItem;
+import com.stardew.craft.item.block.WaterLanternItem;
 import com.stardew.craft.item.block.WildWeedsBlockItem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -619,6 +620,9 @@ public class ModItems {
 
         public static final DeferredItem<Item> CRAB_POT = ITEMS.register("crab_pot",
                         () -> new CrabPotItem(ModBlocks.CRAB_POT.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> WATER_LANTERN = ITEMS.register("water_lantern",
+                        () -> new WaterLanternItem(ModBlocks.WATER_LANTERN.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
 
         public static final DeferredItem<Item> FISH_NET = ITEMS.register("fish_net",
                         () -> new StardewBlockItem(ModBlocks.FISH_NET.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));
@@ -1195,13 +1199,13 @@ public class ModItems {
 
         // 鏍戞恫閲囬泦鍣ㄤ骇鐗╋紙瀵归綈鍘熺増 Stardew Valley锛?
         public static final DeferredItem<Item> MAPLE_SYRUP = ITEMS.register("maple_syrup",
-                        () -> new SimpleStardewItem("stardewcraft.type.artisan_goods", 200, new Item.Properties().stacksTo(999)));
+                        () -> new EdibleSimpleStardewItem("stardewcraft.type.artisan_goods", 200, 50, 22, true, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> PINE_TAR = ITEMS.register("pine_tar",
                         () -> new SimpleStardewItem("stardewcraft.type.artisan_goods", 100, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> SAP = ITEMS.register("sap",
-                        () -> new SimpleStardewItem("stardewcraft.type.resource", 2, new Item.Properties().stacksTo(999)));
+                        () -> new EdibleSimpleStardewItem("stardewcraft.type.resource", 2, -2, 0, false, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> MYSTIC_SYRUP = ITEMS.register("mystic_syrup",
-                        () -> new SimpleStardewItem("stardewcraft.type.artisan_goods", 1000, new Item.Properties().stacksTo(999)));
+                        () -> new EdibleSimpleStardewItem("stardewcraft.type.artisan_goods", 1000, 500, 225, true, new Item.Properties().stacksTo(999)));
 
         // Special item: permanently doubles produce for one farm animal (except pigs).
         public static final DeferredItem<Item> GOLDEN_ANIMAL_CRACKER = ITEMS.register("golden_animal_cracker",

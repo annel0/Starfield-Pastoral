@@ -91,6 +91,7 @@ public final class GuntherService {
         UUID playerId = player.getUUID();
         if (data.isDonationModeActive(playerId)) return;
         data.startDonationMode(playerId);
+        data.ensureManagedStandLayout(player.serverLevel(), playerId);
         syncDonations(data, player);
         // SDV parity: Gunther tells the player to come back when done
         PacketDistributor.sendToPlayer(player, new OpenNpcDialogueScreenPayload(
@@ -104,7 +105,6 @@ public final class GuntherService {
         MuseumDonationData data = MuseumDonationData.get(player.serverLevel());
         UUID playerId = player.getUUID();
         if (!data.isDonationModeActive(playerId)) return;
-        data.ensureManagedStandLayout(player.serverLevel(), playerId);
         MuseumDonationData.EndSessionResult result = data.endDonationMode(playerId);
         syncDonations(data, player);
 

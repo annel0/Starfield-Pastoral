@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "stardewcraft:block/cooking/vegetable_medley"
+    },
+    "facing=east": {
+      "model": "stardewcraft:block/cooking/vegetable_medley",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "stardewcraft:block/cooking/vegetable_medley",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "stardewcraft:block/cooking/vegetable_medley",
+      "y": 270
+    }
+  }
+}

@@ -1,0 +1,17 @@
+package com.stardew.craft.blockentity;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+
+public class WaterLanternBlockEntity extends BlockEntity {
+    public WaterLanternBlockEntity(BlockPos pos, BlockState state) {
+        super(ModBlockEntities.WATER_LANTERN.get(), pos, state);
+    }
+
+    @SuppressWarnings("null")
+    public AABB getRenderBoundingBox() {
+        return new AABB(worldPosition).inflate(1.0D);
+    }
+}

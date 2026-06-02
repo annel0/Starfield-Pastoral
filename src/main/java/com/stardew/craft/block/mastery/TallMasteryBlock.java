@@ -21,6 +21,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -69,6 +70,11 @@ public class TallMasteryBlock extends Block {
     protected List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
         if (state.getValue(PART) == Part.EXTENSION) return List.of();
         return List.of(new ItemStack(asItem()));
+    }
+
+    @Override
+    protected boolean canBeReplaced(BlockState state, Fluid fluid) {
+        return false;
     }
 
     @Override

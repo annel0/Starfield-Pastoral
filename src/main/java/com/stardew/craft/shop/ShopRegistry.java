@@ -607,20 +607,18 @@ public final class ShopRegistry {
                 entryTradeDay("stardewcraft:fiber",              "stardewcraft:stone",         5, 1),
                 // 9. Cloth ← 3× Aquamarine (Wednesday)
                 entryTradeDay("stardewcraft:cloth",              "stardewcraft:aquamarine",    3, 2),
-                // 10. Crab Cakes ← 3× Prismatic Shard (Thursday, per-player stock 1)
-                entryTradeDayStock("stardewcraft:crab_cakes",    "stardewcraft:prismatic_shard", 3, 3, 1),
-                // 11. Magic Rock Candy ← 3× Prismatic Shard (Thursday, per-player stock 1)
+                // 10. Magic Rock Candy ← 3× Prismatic Shard (Thursday, per-player stock 1)
                 entryTradeDayStock("stardewcraft:magic_rock_candy", "stardewcraft:prismatic_shard", 3, 3, 1),
-                // 12. Cheese ← 1× Emerald (Friday)
+                // 11. Cheese ← 1× Emerald (Friday)
                 entryTradeDay("stardewcraft:cheese",             "stardewcraft:emerald",       1, 4),
-                // 13-16. Seed-pack rotation (Saturday) — each pack trades for the next season's
+                // 12-15. Seed-pack rotation (Saturday) — each pack trades for the next season's
                 entryTradeDay("stardewcraft:spring_seeds",       "stardewcraft:summer_seeds",  2, 5),
                 entryTradeDay("stardewcraft:summer_seeds",       "stardewcraft:fall_seeds",    2, 5),
                 entryTradeDay("stardewcraft:fall_seeds",         "stardewcraft:winter_seeds",  2, 5),
                 entryTradeDay("stardewcraft:winter_seeds",       "stardewcraft:spring_seeds",  2, 5),
-                // 17. Staircase (SDV BC:71) → mine_ladder substitute ← 1× Jade (Sunday)
+                // 16. Staircase (SDV BC:71) → mine_ladder substitute ← 1× Jade (Sunday)
                 entryTradeDay("stardewcraft:mine_ladder",        "stardewcraft:jade",          1, 6),
-                // 18. Warp Totem Desert RECIPE ← 10× Iridium Bar
+                // 17. Warp Totem Desert RECIPE ← 10× Iridium Bar
                 entryTradeRecipe("stardewcraft:warp_totem_desert","stardewcraft:iridium_bar", 10)
                 // Skipped (user rule):
                 //   (O)808  Void Ghost Pendant / Krobus marriage item
@@ -840,6 +838,16 @@ public final class ShopRegistry {
                 entryAllSeasons("stardewcraft:luau_totem", 1000),
                 entryStock("stardewcraft:starfruit", 3000, 1),
                 entryAllSeasons("stardewcraft:luau_torch", 700)
+            ),
+            Set.of()
+        ));
+
+        REGISTRY.put("Festival_DanceOfTheMoonlightJellies_Pierre", new ShopDefinition(
+            "Festival_DanceOfTheMoonlightJellies_Pierre",
+            "Pierre",
+            "stardewcraft.shop.moonlight_jellies.dialogue",
+            List.of(
+                entryAllSeasons("stardewcraft:water_lantern", 800)
             ),
             Set.of()
         ));

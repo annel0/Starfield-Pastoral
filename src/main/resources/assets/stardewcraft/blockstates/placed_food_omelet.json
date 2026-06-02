@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "stardewcraft:block/cooking/omelet"
+    },
+    "facing=east": {
+      "model": "stardewcraft:block/cooking/omelet",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "stardewcraft:block/cooking/omelet",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "stardewcraft:block/cooking/omelet",
+      "y": 270
+    }
+  }
+}

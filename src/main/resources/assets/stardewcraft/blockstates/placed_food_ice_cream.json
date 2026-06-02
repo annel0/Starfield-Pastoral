@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "stardewcraft:block/cooking/ice_cream"
+    },
+    "facing=east": {
+      "model": "stardewcraft:block/cooking/ice_cream",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "stardewcraft:block/cooking/ice_cream",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "stardewcraft:block/cooking/ice_cream",
+      "y": 270
+    }
+  }
+}
