@@ -63,6 +63,7 @@ public final class ModSounds {
 	public static final DeferredHolder<SoundEvent, SoundEvent> DEBUFF_HIT = register("debuff_hit");
 	public static final DeferredHolder<SoundEvent, SoundEvent> DIALOGUE_CHARACTER = register("dialogue_character");
 	public static final DeferredHolder<SoundEvent, SoundEvent> DIALOGUE_CHARACTER_CLOSE = register("dialogue_character_close");
+	public static final DeferredHolder<SoundEvent, SoundEvent> DOG_BARK = register("dog_bark");
 	public static final DeferredHolder<SoundEvent, SoundEvent> SHADOW_DIE = register("shadow_die");
 	public static final DeferredHolder<SoundEvent, SoundEvent> CAVEDRIP = register("cavedrip");
 	public static final DeferredHolder<SoundEvent, SoundEvent> THUD_STEP = register("thud_step");

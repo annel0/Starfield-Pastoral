@@ -199,47 +199,37 @@ public class StardewCraft {
                 output.accept(ModItems.RUBY_ORE.get());
                 output.accept(ModItems.TOPAZ_ORE.get());
 
-                // 野生树（橡树原型）建筑组件
-                output.accept(ModBlocks.WILD_OAK_TRUNK0.get());
-                output.accept(ModBlocks.WILD_OAK_TRUNK1.get());
-                output.accept(ModBlocks.WILD_OAK_BRANCH1.get());
-                output.accept(ModBlocks.WILD_OAK_BRANCH2.get());
-                output.accept(ModBlocks.WILD_OAK_LEAVES.get());
+                // 新树系统建筑组件
+                output.accept(ModBlocks.OAK_ROOT.get());
+                output.accept(ModBlocks.OAK_LOG.get());
+                output.accept(ModBlocks.OAK_LEAVES.get());
+                output.accept(ModBlocks.OAK_BRANCH.get());
+                output.accept(ModBlocks.MAPLE_ROOT.get());
+                output.accept(ModBlocks.MAPLE_LOG.get());
+                output.accept(ModBlocks.MAPLE_LEAVES.get());
+                output.accept(ModBlocks.MAPLE_BRANCH.get());
+                output.accept(ModBlocks.PINE_ROOT.get());
+                output.accept(ModBlocks.PINE_LOG.get());
+                output.accept(ModBlocks.PINE_LEAVES.get());
+                output.accept(ModBlocks.PINE_BRANCH.get());
+                output.accept(ModBlocks.MAHOGANY_ROOT.get());
+                output.accept(ModBlocks.MAHOGANY_LOG.get());
+                output.accept(ModBlocks.MAHOGANY_LEAVES.get());
+                output.accept(ModBlocks.MAHOGANY_BRANCH.get());
+                output.accept(ModBlocks.MYSTIC_TREE_ROOT.get());
+	                output.accept(ModBlocks.MYSTIC_TREE_LOG.get());
+	                output.accept(ModBlocks.MYSTIC_TREE_LEAVES.get());
+	                output.accept(ModBlocks.MYSTIC_TREE_BRANCH.get());
+	                for (var item : ModItems.NEW_TREE_BUILDING_ITEMS.values()) {
+	                    output.accept(item.get());
+	                }
 
-                // 野生树（枫树）建筑组件
-                output.accept(ModBlocks.WILD_MAPLE_TRUNK0.get());
-                output.accept(ModBlocks.WILD_MAPLE_TRUNK1.get());
-                output.accept(ModBlocks.WILD_MAPLE_BRANCH1.get());
-                output.accept(ModBlocks.WILD_MAPLE_BRANCH2.get());
-                output.accept(ModBlocks.WILD_MAPLE_LEAVES.get());
-
-                // 野生树（松树）建筑组件
-                output.accept(ModBlocks.WILD_PINE_TRUNK0.get());
-                output.accept(ModBlocks.WILD_PINE_TRUNK1.get());
-                output.accept(ModBlocks.WILD_PINE_BRANCH1.get());
-                output.accept(ModBlocks.WILD_PINE_BRANCH2.get());
-                output.accept(ModBlocks.WILD_PINE_LEAVES.get());
-
-                // 野生树（桃花心木）建筑组件
-                output.accept(ModBlocks.WILD_MAHOGANY_TRUNK0.get());
-                output.accept(ModBlocks.WILD_MAHOGANY_TRUNK1.get());
-                output.accept(ModBlocks.WILD_MAHOGANY_BRANCH1.get());
-                output.accept(ModBlocks.WILD_MAHOGANY_BRANCH2.get());
-                output.accept(ModBlocks.WILD_MAHOGANY_LEAVES.get());
-
-                // 野生树（神秘树）建筑组件
-                output.accept(ModBlocks.WILD_MYSTIC_TREE_TRUNK0.get());
-                output.accept(ModBlocks.WILD_MYSTIC_TREE_TRUNK1.get());
-                output.accept(ModBlocks.WILD_MYSTIC_TREE_BRANCH1.get());
-                output.accept(ModBlocks.WILD_MYSTIC_TREE_BRANCH2.get());
-                output.accept(ModBlocks.WILD_MYSTIC_TREE_LEAVES.get());
-
-				// 树种子
-				output.accept(ModItems.ACORN.get());
-				output.accept(ModItems.MAPLE_SEED.get());
-				output.accept(ModItems.PINE_CONE.get());
-				output.accept(ModItems.MAHOGANY_SEED.get());
-				output.accept(ModItems.MYSTIC_TREE_SEED.get());
+	                // 树种子
+	                output.accept(ModItems.ACORN.get());
+                output.accept(ModItems.MAPLE_SEED.get());
+                output.accept(ModItems.PINE_CONE.get());
+                output.accept(ModItems.MAHOGANY_SEED.get());
+                output.accept(ModItems.MYSTIC_TREE_SEED.get());
 
                 // 水壶
                 output.accept(ModItems.WATERING_CAN.get());
@@ -252,6 +242,18 @@ public class StardewCraft {
                 output.accept(ModItems.SPRINKLER.get());
                 output.accept(ModItems.QUALITY_SPRINKLER.get());
                 output.accept(ModItems.IRIDIUM_SPRINKLER.get());
+
+                // 特殊任务系统资产
+                output.accept(ModItems.SPECIAL_ORDERS_BOARD.get());
+                output.accept(ModItems.ECTOPLASM.get());
+                output.accept(ModItems.PRISMATIC_JELLY.get());
+                output.accept(ModItems.MONSTER_MUSK.get());
+                output.accept(ModItems.FIBER_SEEDS.get());
+                output.accept(ModItems.GEODE_CRUSHER.get());
+                output.accept(ModItems.MINI_OBELISK.get());
+                output.accept(ModItems.FARM_COMPUTER.get());
+                output.accept(ModItems.BONE_MILL.get());
+                output.accept(ModItems.COFFEE_MAKER.get());
 
                 // 锄头
                 output.accept(ModItems.HOE.get());
@@ -364,6 +366,7 @@ public class StardewCraft {
                 output.accept(ModItems.DINING_CHAIR_IRON.get());
                 output.accept(ModItems.CUSHION.get());
                 output.accept(ModItems.STOOL.get());
+                output.accept(ModItems.IRON_STOOL.get());
                 output.accept(ModItems.OFFICE_STOOL.get());
                 output.accept(ModItems.OFFICE_CHAIR_2.get());
                 // 桌子 / 台面
@@ -1078,6 +1081,8 @@ public class StardewCraft {
                 com.stardew.craft.minecart.MinecartStationManager.get(stardewLevel).resetForMigration();
                 com.stardew.craft.manager.QuarrySpawnService.resetInitialSpawn(stardewLevel);
                 com.stardew.craft.mastery.MasterySiteInstaller.get(stardewLevel).resetForMigration();
+                com.stardew.craft.statue.UncertaintyStatueInstaller.get(stardewLevel).resetForMigration();
+                com.stardew.craft.specialorder.SpecialOrderBoardInstaller.get(stardewLevel).resetForMigration();
                 LOGGER.info("[VALLEY_INIT] Reset all manager SavedData versions — ensurePlaced will re-run on first player entry");
             } else {
                 LOGGER.info("[VALLEY_MAP] Stardew level not loaded at startup, will mark pre-generated on first travel.");

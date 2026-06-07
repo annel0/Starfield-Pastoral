@@ -23,7 +23,7 @@ public class SofaColorSelectionScreen extends Screen {
         super(Component.translatable("stardewcraft.furniture.color_picker"));
         this.targetPos = targetPos;
         int clamped = WoodenChestColorPalette.clampIndex(currentColor);
-        this.selectedColor = clamped < 0 ? 0 : clamped;
+        this.selectedColor = clamped < 0 ? WoodenChestColorPalette.defaultColorIndex() : clamped;
     }
 
     @Override

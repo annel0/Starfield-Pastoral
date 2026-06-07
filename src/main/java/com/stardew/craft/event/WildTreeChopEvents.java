@@ -15,14 +15,20 @@ import com.stardew.craft.player.ProfessionType;
 import com.stardew.craft.player.SkillType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -54,6 +60,9 @@ public final class WildTreeChopEvents {
 	// Tuning target: make non-Stardew axes and tier-0 axes feel ~5-6s on a typical tree.
 	private static final float OTHER_AXE_DAMAGE_MULTIPLIER = 0.55f;
 	private static final int STUMP_HEALTH = 45;
+	private static final int MODERN_LOG_HEALTH = 10;
+	private static final int MODERN_ROOT_HEALTH = 13;
+	private static final int MODERN_BRANCH_HEALTH = 12;
 	private static final double HEALTH_DENOM_BASE = 2.2;
 	private static final double HEALTH_DENOM_PER = 0.035;
 	// Approximate SV swing cadence (0.35s). Used for time->"swings" conversion when charging energy by time.
@@ -92,12 +101,15 @@ public final class WildTreeChopEvents {
 		}
 		Level level = player.level();
 		BlockState state = level.getBlockState(pos);
-		WildTrees.Def def = findByTrunk0(state);
+		WildTrees.Def def = findChoppableTreeDef(state);
 		if (def == null) {
 			return;
 		}
-		// If the tree uses stacked trunk0 blocks, always treat the lowest one as the pivot.
-		pos = findLowestTrunk0(level, pos, def);
+		BlockPos miningPos = pos;
+		BlockPos pivotPos = findChopPivot(level, pos, def);
+		if (pivotPos == null) {
+			return;
+		}
 
 		// Energy gate: only applies in Stardew Valley dimension.
 		if (!level.isClientSide
@@ -115,10 +127,10 @@ public final class WildTreeChopEvents {
 				return;
 			}
 		}
-		int health = computeTreeHealth(level, pos, def);
-		if (health <= 0) {
+		int health = isModernWood(def, state) ? computeModernBlockHealth(state, def) : computeTreeHealth(level, pivotPos, def);
+		if (!isModernWood(def, state) && health <= 0) {
 			// Stump stage (lonely trunk0) should still reflect tier differences.
-			if (isLonelyTrunk0(level, pos, def)) {
+			if (isLonelyTreeBase(level, pivotPos, def)) {
 				health = STUMP_HEALTH;
 			} else {
 				return;
@@ -130,8 +142,8 @@ public final class WildTreeChopEvents {
 			UUID id = player.getUUID();
 			long now = level.getGameTime();
 			MiningState prev = MINING.get(id);
-			if (prev == null || !prev.pos.equals(pos)) {
-				MINING.put(id, new MiningState(pos, now));
+			if (prev == null || !prev.pos.equals(miningPos)) {
+				MINING.put(id, new MiningState(miningPos, now));
 			}
 		}
 
@@ -139,7 +151,7 @@ public final class WildTreeChopEvents {
 		float damageMul = (float) getStardewAxeDamageMultiplier(tool);
 		double denom = HEALTH_DENOM_BASE + (double) health * HEALTH_DENOM_PER;
 		float normalized = (float) (BASE_TRUNK0_SPEED * damageMul / Math.max(0.001, denom));
-		event.setNewSpeed((float) Math.max(0.01, normalized));
+		event.setNewSpeed((float) Math.max(0.01, applyMiningSpeedModifiers(player, tool, normalized)));
 	}
 
 	private static double getStardewAxeDamageMultiplier(ItemStack tool) {
@@ -150,15 +162,12 @@ public final class WildTreeChopEvents {
 				tier = Math.min(4, tier + 2);
 			}
 			return switch (tier) {
-				case 0 -> 0.55;
+				case 0 -> OTHER_AXE_DAMAGE_MULTIPLIER;
 				case 1 -> 0.75;
 				case 2 -> 1.0;
 				case 3 -> 1.5;
 				default -> 5.0;
 			};
-		}
-		if (powerful) {
-			return 1.0;
 		}
 		// Any other axe acts like tier-0 when chopping our wild trees.
 		return OTHER_AXE_DAMAGE_MULTIPLIER;
@@ -169,6 +178,37 @@ public final class WildTreeChopEvents {
 			if (state.getBlock() == def.trunk0().get()) {
 				return def;
 			}
+		}
+		return null;
+	}
+
+	private static WildTrees.Def findChoppableTreeDef(BlockState state) {
+		WildTrees.Def def = findByTrunk0(state);
+		if (def != null) {
+			return def;
+		}
+		for (WildTrees.Def candidate : WildTrees.ALL) {
+			if (isModernWood(candidate, state)) {
+				return candidate;
+			}
+		}
+		return null;
+	}
+
+	private static BlockPos findChopPivot(Level level, BlockPos pos, WildTrees.Def def) {
+		BlockState state = level.getBlockState(pos);
+		if (def.isModernRoot(state)) {
+			return pos;
+		}
+		if (def.isModernLog(state)) {
+			BlockPos root = WildTrees.findModernRootFromLog(level, pos, def);
+			return root == null ? pos : root;
+		}
+		if (def.isModernBranch(state)) {
+			return pos;
+		}
+		if (def.isTrunk0(state)) {
+			return findLowestTrunk0(level, pos, def);
 		}
 		return null;
 	}
@@ -220,14 +260,39 @@ public final class WildTreeChopEvents {
 			return;
 		}
 
+		if (def.isModernPart(state)) {
+			if (!def.isModernLeaves(state)) {
+				ItemStack tool = player.getItemInHand(InteractionHand.MAIN_HAND);
+				if (!player.isCreative() && !isAxeLike(tool)) {
+					if (level.dimension() == ModDimensions.STARDEW_VALLEY) {
+						event.setCanceled(true);
+					}
+					return;
+				}
+				if (!player.isCreative() && level.dimension() == ModDimensions.STARDEW_VALLEY) {
+					if (PlayerStardewDataAPI.getEnergy(player) <= 0.0f) {
+						player.displayClientMessage(net.minecraft.network.chat.Component.translatable("stardewcraft.message.player.exhausted"), true);
+						event.setCanceled(true);
+						return;
+					}
+						consumeEnergyForModernTreeBlock(player);
+					}
+					scheduleNearbyModernLeafTicks(level, pos, def);
+				}
+			return;
+		}
+
 		// --- Creative mode: instant tree removal, no drops, no animation ---
 		if (player.isCreative()) {
-			if (def.isTrunk0(state)) {
-				BlockPos pivotPos = findLowestTrunk0(level, pos, def);
+			if (def.isTrunk0(state) || def.isModernLog(state)) {
+				BlockPos pivotPos = findChopPivot(level, pos, def);
+				if (pivotPos == null) {
+					return;
+				}
 				TreeSnapshot snapshot = analyzeTree(level, pivotPos, def);
 				if (snapshot != null) {
 					for (BlockPos p : snapshot.allPositions) {
-						if (p.equals(pos)) continue;
+						if (p.equals(snapshot.pivotTrunk0Pos)) continue;
 						level.removeBlock(p, false);
 					}
 					WildTreeSeedManager.get(level).untrackTree(level, pivotPos);
@@ -244,7 +309,7 @@ public final class WildTreeChopEvents {
 			TreeSnapshot snapshot = pivot == null ? null : analyzeTree(level, pivot, def);
 			if (snapshot != null) {
 				for (BlockPos p : snapshot.allPositions) {
-					if (p.equals(pos)) continue;
+					if (p.equals(snapshot.pivotTrunk0Pos)) continue;
 					level.removeBlock(p, false);
 				}
 				WildTreeSeedManager.get(level).untrackTree(level, pivot);
@@ -255,8 +320,9 @@ public final class WildTreeChopEvents {
 
 		// --- Survival mode ---
 		ItemStack tool = player.getItemInHand(InteractionHand.MAIN_HAND);
+		boolean choppableBase = def.isTrunk0(state);
 
-		// Protect non-leaf, non-trunk0 tree parts regardless of tool.
+		// Protect legacy non-leaf, non-trunk0 tree parts regardless of tool.
 		if (state.getBlock() != def.leaves().get() && !def.isTrunk0(state)) {
 			BlockPos pivot = findPivotTrunk0(level, pos, def);
 			TreeSnapshot snapshot = pivot == null ? null : analyzeTree(level, pivot, def);
@@ -273,9 +339,9 @@ public final class WildTreeChopEvents {
 			return;
 		}
 
-		// Trunk0 requires an axe.
+		// Chopping targets require an axe.
 		if (!isAxeLike(tool)) {
-			if (def.isTrunk0(state)) {
+			if (choppableBase) {
 				event.setCanceled(true);
 			}
 			return;
@@ -290,9 +356,12 @@ public final class WildTreeChopEvents {
 			}
 		}
 
-		// Main rule: only chopping trunk0 can fell the tree.
-		if (def.isTrunk0(state)) {
-			BlockPos pivotPos = findLowestTrunk0(level, pos, def);
+		// Main rule: only chopping trunk0/log can fell the tree.
+		if (choppableBase) {
+			BlockPos pivotPos = findChopPivot(level, pos, def);
+			if (pivotPos == null) {
+				return;
+			}
 			TreeSnapshot snapshot = analyzeTree(level, pivotPos, def);
 			if (snapshot != null) {
 				consumeEnergyForTreeChop(player, level, pos);
@@ -320,24 +389,42 @@ public final class WildTreeChopEvents {
 				return;
 			}
 
-			if (isLonelyTrunk0(level, pos, def)) {
+			if (isLonelyTreeBase(level, pivotPos, def)) {
 				consumeEnergyForTreeChop(player, level, pos);
-				level.removeBlock(pos, false);
-				playStumpEffects(level, pos, def);
+				level.removeBlock(pivotPos, false);
+				playStumpEffects(level, pivotPos, def);
 				int dropCount = getStumpWoodDropCount(level, def, player);
 				if (dropCount > 0) {
 					var woodItem = getWoodDropItem(def);
-					Block.popResource(level, pos, new ItemStack(woodItem, dropCount));
+					Block.popResource(level, pivotPos, new ItemStack(woodItem, dropCount));
 				}
 				int hardwoodBonus = getLumberjackBonusHardwood(level, def, player);
 				if (hardwoodBonus > 0) {
-					Block.popResource(level, pos, new ItemStack(ModItems.WOOD_HARD.get(), hardwoodBonus));
+					Block.popResource(level, pivotPos, new ItemStack(ModItems.WOOD_HARD.get(), hardwoodBonus));
 				}
 				PlayerStardewDataAPI.addExperience(player, SkillType.FORAGING, 5);
-				WildTreeSeedManager.get(level).untrackTree(level, pos);
+				WildTreeSeedManager.get(level).untrackTree(level, pivotPos);
 				event.setCanceled(true);
 				return;
 			}
+		}
+
+		if (def.isModernRoot(state) && isLonelyTreeBase(level, pos, def)) {
+			consumeEnergyForTreeChop(player, level, pos);
+			level.removeBlock(pos, false);
+			playStumpEffects(level, pos, def);
+			int dropCount = getStumpWoodDropCount(level, def, player);
+			if (dropCount > 0) {
+				var woodItem = getWoodDropItem(def);
+				Block.popResource(level, pos, new ItemStack(woodItem, dropCount));
+			}
+			int hardwoodBonus = getLumberjackBonusHardwood(level, def, player);
+			if (hardwoodBonus > 0) {
+				Block.popResource(level, pos, new ItemStack(ModItems.WOOD_HARD.get(), hardwoodBonus));
+			}
+			PlayerStardewDataAPI.addExperience(player, SkillType.FORAGING, 5);
+			WildTreeSeedManager.get(level).untrackTree(level, pos);
+			event.setCanceled(true);
 		}
 	}
 
@@ -393,6 +480,82 @@ public final class WildTreeChopEvents {
 		if (cost > 0.0f) {
 			PlayerStardewDataAPI.consumeEnergy(player, cost);
 		}
+	}
+
+	private static void consumeEnergyForModernTreeBlock(ServerPlayer player) {
+		MINING.remove(player.getUUID());
+		if (player.isCreative()) {
+			return;
+		}
+		if (StardewEnchantments.has(player.getMainHandItem(), StardewEnchantments.EFFICIENT)) {
+			return;
+		}
+		if (player.level().dimension() != ModDimensions.STARDEW_VALLEY) {
+			return;
+		}
+		int foraging = PlayerStardewDataAPI.getSkillLevel(player, SkillType.FORAGING);
+		float cost = Math.max(0.5F, 2.0F - foraging * 0.1F);
+		PlayerStardewDataAPI.consumeEnergy(player, cost);
+	}
+
+	private static boolean isModernWood(WildTrees.Def def, BlockState state) {
+		return def.isModernRoot(state) || def.isModernLog(state) || def.isModernBranch(state);
+	}
+
+	private static int computeModernBlockHealth(BlockState state, WildTrees.Def def) {
+		int health;
+		if (def.isModernRoot(state)) {
+			health = MODERN_ROOT_HEALTH;
+		} else if (def.isModernBranch(state)) {
+			health = MODERN_BRANCH_HEALTH;
+		} else {
+			health = MODERN_LOG_HEALTH;
+		}
+		return isHardwoodTree(def) ? Math.round(health * 1.2F) : health;
+	}
+
+	private static float applyMiningSpeedModifiers(Player player, ItemStack tool, float baseSpeed) {
+		float speed = baseSpeed;
+		int efficiency = getItemEnchantmentLevel(player, tool, Enchantments.EFFICIENCY);
+		if (efficiency > 0) {
+			speed += (float) (efficiency * efficiency + 1);
+		}
+
+		@SuppressWarnings("null")
+		MobEffectInstance haste = player.getEffect(MobEffects.DIG_SPEED);
+		if (haste != null) {
+			speed *= 1.0F + 0.2F * (haste.getAmplifier() + 1);
+		}
+
+		@SuppressWarnings("null")
+		MobEffectInstance fatigue = player.getEffect(MobEffects.DIG_SLOWDOWN);
+		if (fatigue != null) {
+			float mult = switch (fatigue.getAmplifier()) {
+				case 0 -> 0.3F;
+				case 1 -> 0.09F;
+				case 2 -> 0.0027F;
+				case 3 -> 8.1E-4F;
+				default -> 2.43E-4F;
+			};
+			speed *= mult;
+		}
+
+		if (player.isInWater()) {
+			speed /= 5.0F;
+		}
+		if (!player.onGround()) {
+			speed /= 5.0F;
+		}
+		return speed;
+	}
+
+	@SuppressWarnings({ "null", "deprecation" })
+	private static int getItemEnchantmentLevel(Player player, ItemStack stack, net.minecraft.resources.ResourceKey<Enchantment> enchantmentKey) {
+		@SuppressWarnings("null")
+		var lookup = player.level().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+		@SuppressWarnings("null")
+		var holder = lookup.getOrThrow(enchantmentKey);
+		return EnchantmentHelper.getItemEnchantmentLevel(holder, stack);
 	}
 
 	private static ItemStack rollSeedsOnChop(ServerLevel level, WildTrees.Def def, ServerPlayer player) {
@@ -491,7 +654,8 @@ public final class WildTreeChopEvents {
 	private static TreeParts collectTreeParts(Level level, BlockPos trunk0Pos, WildTrees.Def def) {
 		@SuppressWarnings("null")
 		BlockState base = level.getBlockState(trunk0Pos);
-		if (base.getBlock() != def.trunk0().get()) {
+		boolean modern = def.isModernRoot(base);
+		if (!modern && base.getBlock() != def.trunk0().get()) {
 			return null;
 		}
 
@@ -501,8 +665,12 @@ public final class WildTreeChopEvents {
 			BlockPos p = trunk0Pos.above(i);
 			@SuppressWarnings("null")
 			Block b = level.getBlockState(p).getBlock();
-			// Tolerate malformed trees that accidentally use trunk0 as a trunk segment.
-			if (b == def.trunk1().get() || b == def.trunk0().get()) {
+			if (modern && b == def.modernLog().get()) {
+				trunkColumn.add(p.immutable());
+				continue;
+			}
+			// Tolerate malformed legacy trees that accidentally use trunk0 as a trunk segment.
+			if (!modern && (b == def.trunk1().get() || b == def.trunk0().get())) {
 				trunkColumn.add(p.immutable());
 				continue;
 			}
@@ -516,14 +684,16 @@ public final class WildTreeChopEvents {
 				BlockPos bp = tp.relative(d);
 				@SuppressWarnings("null")
 				Block b = level.getBlockState(bp).getBlock();
-				if (b == def.branch1().get() || b == def.branch2().get()) {
+				if (modern && b == def.modernBranch().get()) {
+					branches.add(bp.immutable());
+				} else if (!modern && (b == def.branch1().get() || b == def.branch2().get())) {
 					branches.add(bp.immutable());
 				}
 			}
 		}
 
 		// Collect leaves that belong to this tree, without flood-filling through neighbor trunks.
-		Block leavesBlock = def.leaves().get();
+		Block leavesBlock = modern ? def.modernLeaves().get() : def.leaves().get();
 		Set<BlockPos> wood = new HashSet<>();
 		wood.addAll(trunkColumn);
 		wood.addAll(branches);
@@ -541,7 +711,7 @@ public final class WildTreeChopEvents {
 		}
 		while (!q.isEmpty() && leaves.size() < MAX_LEAF_BLOCKS) {
 			BlockPos lp = q.removeFirst();
-			if (isLeafClaimedByOtherWood(level, lp, wood, def)) {
+			if (isLeafClaimedByOtherWood(level, lp, wood, def, modern)) {
 				continue;
 			}
 			leaves.add(lp.immutable());
@@ -561,14 +731,14 @@ public final class WildTreeChopEvents {
 		if (trunkColumn.size() > MAX_CONNECTED_BLOCKS) {
 			return null;
 		}
-		return new TreeParts(trunk0Pos.immutable(), trunkColumn, branches, leaves);
+		return new TreeParts(trunk0Pos.immutable(), trunkColumn, branches, leaves, modern);
 	}
 
-	private static boolean isLeafClaimedByOtherWood(Level level, BlockPos leafPos, Set<BlockPos> wood, WildTrees.Def def) {
-		Block trunk0 = def.trunk0().get();
-		Block trunk1 = def.trunk1().get();
-		Block branch1 = def.branch1().get();
-		Block branch2 = def.branch2().get();
+	private static boolean isLeafClaimedByOtherWood(Level level, BlockPos leafPos, Set<BlockPos> wood, WildTrees.Def def, boolean modern) {
+		Block trunk0 = modern ? def.modernRoot().get() : def.trunk0().get();
+		Block trunk1 = modern ? def.modernLog().get() : def.trunk1().get();
+		Block branch1 = modern ? def.modernBranch().get() : def.branch1().get();
+		Block branch2 = modern ? def.modernBranch().get() : def.branch2().get();
 		for (Direction d : Direction.values()) {
 			@SuppressWarnings("null")
 			BlockPos np = leafPos.relative(d);
@@ -585,12 +755,12 @@ public final class WildTreeChopEvents {
 
 	private static void fellTree(ServerLevel level, TreeSnapshot snapshot, Direction direction, WildTrees.Def def, java.util.List<ItemStack> fallDrops) {
 		BlockPos pivot = snapshot.pivotTrunk0Pos;
-		// Remove the tree's parts (wood + leaves). Keep trunk0 as a stump.
+		// Remove the tree's parts (wood + leaves). Keep the pivot as a stump/root.
 		for (BlockPos pos : snapshot.allPositions) {
 			@SuppressWarnings("null")
 			BlockState state = level.getBlockState(pos);
 			Block b = state.getBlock();
-			if (!(b == def.trunk0().get() || b == def.trunk1().get() || b == def.branch1().get() || b == def.branch2().get() || b == def.leaves().get())) {
+			if (!isTreePartBlock(b, def, snapshot.modern)) {
 				continue;
 			}
 			if (pos.equals(pivot)) {
@@ -624,7 +794,10 @@ public final class WildTreeChopEvents {
 
 	@SuppressWarnings({ "null", "deprecation" })
 	private static void playStumpEffects(ServerLevel level, BlockPos pos, WildTrees.Def def) {
-		BlockState dustState = def.trunk1().get().defaultBlockState();
+		BlockState state = level.getBlockState(pos);
+		BlockState dustState = def.isModernRoot(state)
+				? def.modernLog().get().defaultBlockState()
+				: def.trunk1().get().defaultBlockState();
 		var breakSound = dustState.getSoundType().getBreakSound();
 		level.playSound(null, pos, breakSound, net.minecraft.sounds.SoundSource.BLOCKS, 0.8F, 1.1F);
 		level.sendParticles(
@@ -641,20 +814,28 @@ public final class WildTreeChopEvents {
 	}
 
 	@SuppressWarnings("null")
-	private static boolean isLonelyTrunk0(Level level, BlockPos pos, WildTrees.Def def) {
-		if (level.getBlockState(pos).getBlock() != def.trunk0().get()) {
+	private static boolean isLonelyTreeBase(Level level, BlockPos pos, WildTrees.Def def) {
+		BlockState state = level.getBlockState(pos);
+		boolean modern = def.isModernRoot(state);
+		if (!modern && state.getBlock() != def.trunk0().get()) {
 			return false;
 		}
-		// Stump stage: trunk0 only.
+		// Stump/root stage: base only.
 		@SuppressWarnings("null")
 		Block above = level.getBlockState(pos.above()).getBlock();
-		if (above == def.trunk1().get() || above == def.trunk0().get()) {
+		if (modern && above == def.modernLog().get()) {
+			return false;
+		}
+		if (!modern && (above == def.trunk1().get() || above == def.trunk0().get())) {
 			return false;
 		}
 		for (Direction d : Direction.Plane.HORIZONTAL) {
 			@SuppressWarnings("null")
 			Block b = level.getBlockState(pos.relative(d)).getBlock();
-			if (b == def.branch1().get() || b == def.branch2().get()) {
+			if (modern && b == def.modernBranch().get()) {
+				return false;
+			}
+			if (!modern && (b == def.branch1().get() || b == def.branch2().get())) {
 				return false;
 			}
 		}
@@ -691,8 +872,8 @@ public final class WildTreeChopEvents {
 			}
 			BlockState s = level.getBlockState(pos);
 			Block b = s.getBlock();
-			// Tolerate malformed trees that accidentally use trunk0 as trunk segments.
-			if (!(b == def.trunk0().get() || b == def.trunk1().get() || b == def.branch1().get() || b == def.branch2().get())) {
+			// Tolerate malformed legacy trees that accidentally use trunk0 as trunk segments.
+			if (!isTreeWoodBlock(b, def, parts.modern)) {
 				continue;
 			}
 			int dx = pos.getX() - trunk0Pos.getX();
@@ -713,12 +894,18 @@ public final class WildTreeChopEvents {
 			fallPieces.add(new FallenOakTreeEntity.Piece(dx, dy, dz, blockId, facing2d));
 		}
 
-		return new TreeSnapshot(trunk0Pos, all, fallPieces, health, woodDrop, parts.leaves.size());
+		return new TreeSnapshot(trunk0Pos, all, fallPieces, health, woodDrop, parts.leaves.size(), parts.modern);
 	}
 
 	private static BlockPos findPivotTrunk0(ServerLevel level, BlockPos pos, WildTrees.Def def) {
 		@SuppressWarnings("null")
 		BlockState s = level.getBlockState(pos);
+		if (def.isModernRoot(s)) {
+			return pos.immutable();
+		}
+		if (def.isModernLog(s)) {
+			return WildTrees.findModernRootFromLog(level, pos, def);
+		}
 		if (s.getBlock() == def.trunk0().get()) {
 			return findLowestTrunk0(level, pos, def);
 		}
@@ -743,7 +930,14 @@ public final class WildTreeChopEvents {
 			@SuppressWarnings("null")
 			BlockPos np = pos.relative(d);
 			@SuppressWarnings("null")
-			Block nb = level.getBlockState(np).getBlock();
+			BlockState ns = level.getBlockState(np);
+			Block nb = ns.getBlock();
+			if (def.isModernRoot(ns)) {
+				return np.immutable();
+			}
+			if (def.isModernLog(ns)) {
+				return WildTrees.findModernRootFromLog(level, np, def);
+			}
 			if (nb == def.trunk0().get()) {
 				return findLowestTrunk0(level, np, def);
 			}
@@ -770,11 +964,12 @@ public final class WildTreeChopEvents {
 
 	@SuppressWarnings("null")
 	private static void scheduleNearbyLeafDecay(ServerLevel level, BlockPos pivot, WildTrees.Def def) {
-		Block leaves = def.leaves().get();
-		Block trunk0 = def.trunk0().get();
-		Block trunk1 = def.trunk1().get();
-		Block branch1 = def.branch1().get();
-		Block branch2 = def.branch2().get();
+		boolean modern = def.isModernRoot(level.getBlockState(pivot));
+		Block leaves = modern ? def.modernLeaves().get() : def.leaves().get();
+		Block trunk0 = modern ? def.modernRoot().get() : def.trunk0().get();
+		Block trunk1 = modern ? def.modernLog().get() : def.trunk1().get();
+		Block branch1 = modern ? def.modernBranch().get() : def.branch1().get();
+		Block branch2 = modern ? def.modernBranch().get() : def.branch2().get();
 		int r = LEAF_DECAY_SCHEDULE_RADIUS;
 		for (int dx = -r; dx <= r; dx++) {
 			for (int dy = -r; dy <= r; dy++) {
@@ -795,6 +990,22 @@ public final class WildTreeChopEvents {
 	}
 
 	@SuppressWarnings("null")
+	private static void scheduleNearbyModernLeafTicks(ServerLevel level, BlockPos brokenWoodPos, WildTrees.Def def) {
+		Block leaves = def.modernLeaves().get();
+		int r = LEAF_DECAY_SCHEDULE_RADIUS;
+		for (int dx = -r; dx <= r; dx++) {
+			for (int dy = -r; dy <= r; dy++) {
+				for (int dz = -r; dz <= r; dz++) {
+					BlockPos p = brokenWoodPos.offset(dx, dy, dz);
+					if (level.getBlockState(p).getBlock() == leaves) {
+						level.scheduleTick(p, leaves, 2 + level.random.nextInt(8));
+					}
+				}
+			}
+		}
+	}
+
+	@SuppressWarnings("null")
 	private static boolean isAdjacentToWood(ServerLevel level, BlockPos leafPos,
 			Block trunk0, Block trunk1, Block branch1, Block branch2) {
 		for (Direction d : Direction.values()) {
@@ -806,7 +1017,33 @@ public final class WildTreeChopEvents {
 		return false;
 	}
 
-	private record TreeParts(BlockPos pivotTrunk0, Set<BlockPos> trunkColumn, Set<BlockPos> branches, Set<BlockPos> leaves) {
+	private static boolean isTreePartBlock(Block block, WildTrees.Def def, boolean modern) {
+		if (modern) {
+			return block == def.modernRoot().get()
+					|| block == def.modernLog().get()
+					|| block == def.modernBranch().get()
+					|| block == def.modernLeaves().get();
+		}
+		return block == def.trunk0().get()
+				|| block == def.trunk1().get()
+				|| block == def.branch1().get()
+				|| block == def.branch2().get()
+				|| block == def.leaves().get();
+	}
+
+	private static boolean isTreeWoodBlock(Block block, WildTrees.Def def, boolean modern) {
+		if (modern) {
+			return block == def.modernRoot().get()
+					|| block == def.modernLog().get()
+					|| block == def.modernBranch().get();
+		}
+		return block == def.trunk0().get()
+				|| block == def.trunk1().get()
+				|| block == def.branch1().get()
+				|| block == def.branch2().get();
+	}
+
+	private record TreeParts(BlockPos pivotTrunk0, Set<BlockPos> trunkColumn, Set<BlockPos> branches, Set<BlockPos> leaves, boolean modern) {
 	}
 
 	private static final class TreeSnapshot {
@@ -814,12 +1051,14 @@ public final class WildTreeChopEvents {
 		final Set<BlockPos> allPositions;
 		final java.util.List<FallenOakTreeEntity.Piece> fallPieces;
 		final int leavesCount;
+		final boolean modern;
 
-		TreeSnapshot(BlockPos pivotTrunk0Pos, Set<BlockPos> allPositions, java.util.List<FallenOakTreeEntity.Piece> fallPieces, int health, int woodDrop, int leavesCount) {
+		TreeSnapshot(BlockPos pivotTrunk0Pos, Set<BlockPos> allPositions, java.util.List<FallenOakTreeEntity.Piece> fallPieces, int health, int woodDrop, int leavesCount, boolean modern) {
 			this.pivotTrunk0Pos = pivotTrunk0Pos;
 			this.allPositions = allPositions;
 			this.fallPieces = fallPieces;
 			this.leavesCount = leavesCount;
+			this.modern = modern;
 		}
 	}
 

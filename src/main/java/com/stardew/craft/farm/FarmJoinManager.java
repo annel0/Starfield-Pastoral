@@ -1,6 +1,7 @@
 package com.stardew.craft.farm;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.core.ModGameRules;
 import com.stardew.craft.interior.CrossDimensionTeleporter;
 import com.stardew.craft.network.payload.OpenFarmJoinInvitePayload;
 import com.stardew.craft.network.payload.FarmJoinPendingStatePayload;
@@ -59,10 +60,11 @@ public final class FarmJoinManager {
         }
 
         // 农场已满
-        if (farm.getFarmerCount() >= FarmInstance.MAX_FARMERS) {
+        int maxFarmers = ModGameRules.getMaxFarmersPerFarm(server);
+        if (farm.getFarmerCount() >= maxFarmers) {
                         syncPendingState(requester, false);
             requester.sendSystemMessage(
-                    Component.translatable("stardewcraft.farm.join.farm_full"));
+                    Component.translatable("stardewcraft.farm.join.farm_full", maxFarmers));
             return false;
         }
 
@@ -148,8 +150,9 @@ public final class FarmJoinManager {
         }
 
         if (!registry.addMember(owner.getUUID(), requesterUUID)) {
+            int maxFarmers = ModGameRules.getMaxFarmersPerFarm(server);
             owner.sendSystemMessage(
-                    Component.translatable("stardewcraft.farm.join.farm_full"));
+                    Component.translatable("stardewcraft.farm.join.farm_full", maxFarmers));
             return false;
         }
 

@@ -19,6 +19,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -522,19 +523,34 @@ public abstract class StardewCropBlock extends Block {
     @SuppressWarnings("null")
     @Override
     protected InteractionResult useWithoutItem(@SuppressWarnings("null") BlockState state, @SuppressWarnings("null") Level level, @SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") Player player, @SuppressWarnings("null") BlockHitResult hitResult) {
+        return tryRightClickHarvest(state, level, pos, player);
+    }
+
+    @SuppressWarnings("null")
+    @Override
+    protected ItemInteractionResult useItemOn(@SuppressWarnings("null") ItemStack stack, @SuppressWarnings("null") BlockState state,
+                                              @SuppressWarnings("null") Level level, @SuppressWarnings("null") BlockPos pos,
+                                              @SuppressWarnings("null") Player player, @SuppressWarnings("null") InteractionHand hand,
+                                              @SuppressWarnings("null") BlockHitResult hitResult) {
+        InteractionResult result = tryRightClickHarvest(state, level, pos, player);
+        if (result == InteractionResult.PASS) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+        if (result == InteractionResult.FAIL) {
+            return ItemInteractionResult.FAIL;
+        }
+        return ItemInteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    private InteractionResult tryRightClickHarvest(BlockState state, Level level, BlockPos pos, Player player) {
         BlockPos interactionPos = resolveMultiBlockRootPos(level, pos, state);
         BlockState interactionState = level.getBlockState(interactionPos);
         if (interactionState.getBlock() != this) {
             return InteractionResult.PASS;
         }
 
-        // 只有空手才能尝试交互收割
-        if (!player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty()) {
-            return InteractionResult.PASS;
-        }
-
         if (getHarvestMethod() == HarvestMethod.SCYTHE) {
-            // 镰刀作物不允许徒手右键收割。
+            // 镰刀作物不允许右键收割。
             return level.isClientSide ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
         }
 

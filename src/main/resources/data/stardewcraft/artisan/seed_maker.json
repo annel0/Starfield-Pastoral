@@ -2,6 +2,81 @@
   "machine": "seed_maker",
   "recipes": [
     {
+      "input": "stardewcraft:wild_horseradish",
+      "minutes": 20,
+      "outputMode": "seedmaker"
+    },
+    {
+      "input": "stardewcraft:daffodil",
+      "minutes": 20,
+      "outputMode": "seedmaker"
+    },
+    {
+      "input": "stardewcraft:leek",
+      "minutes": 20,
+      "outputMode": "seedmaker"
+    },
+    {
+      "input": "stardewcraft:dandelion",
+      "minutes": 20,
+      "outputMode": "seedmaker"
+    },
+    {
+      "input": "stardewcraft:grape",
+      "minutes": 20,
+      "outputMode": "seedmaker"
+    },
+    {
+      "input": "stardewcraft:spice_berry",
+      "minutes": 20,
+      "outputMode": "seedmaker"
+    },
+    {
+      "input": "stardewcraft:sweet_pea",
+      "minutes": 20,
+      "outputMode": "seedmaker"
+    },
+    {
+      "input": "stardewcraft:wild_plum",
+      "minutes": 20,
+      "outputMode": "seedmaker"
+    },
+    {
+      "input": "stardewcraft:hazelnut",
+      "minutes": 20,
+      "outputMode": "seedmaker"
+    },
+    {
+      "input": "stardewcraft:blackberry",
+      "minutes": 20,
+      "outputMode": "seedmaker"
+    },
+    {
+      "input": "stardewcraft:common_mushroom",
+      "minutes": 20,
+      "outputMode": "seedmaker"
+    },
+    {
+      "input": "stardewcraft:winter_root",
+      "minutes": 20,
+      "outputMode": "seedmaker"
+    },
+    {
+      "input": "stardewcraft:crystal_fruit",
+      "minutes": 20,
+      "outputMode": "seedmaker"
+    },
+    {
+      "input": "stardewcraft:snow_yam",
+      "minutes": 20,
+      "outputMode": "seedmaker"
+    },
+    {
+      "input": "stardewcraft:crocus",
+      "minutes": 20,
+      "outputMode": "seedmaker"
+    },
+    {
       "inputMode": "crop_type",
       "minutes": 20,
       "outputMode": "seedmaker",

@@ -27,6 +27,9 @@ import software.bernie.geckolib.util.RenderUtil;
  */
 @SuppressWarnings("null")
 public class JunimoBundleLayer extends BlockAndItemGeoLayer<JunimoEntity> {
+    private static final float HELD_ITEM_TARGET_X = 0.0F;
+    private static final float HELD_ITEM_TARGET_Y = 12.0F;
+    private static final float HELD_ITEM_TARGET_Z = 0.0F;
 
     /**
      * Thread-local current bundle color for the ItemColor handler to read.
@@ -109,6 +112,10 @@ public class JunimoBundleLayer extends BlockAndItemGeoLayer<JunimoEntity> {
         poseStack.pushPose();
         // Apply only bone pivot translation, skip rotation so item stays upright
         RenderUtil.translateToPivotPoint(poseStack, bone);
+        poseStack.translate(
+                (HELD_ITEM_TARGET_X - bone.getPivotX()) / 16.0F,
+                (HELD_ITEM_TARGET_Y - bone.getPivotY()) / 16.0F,
+                (HELD_ITEM_TARGET_Z - bone.getPivotZ()) / 16.0F);
 
         // SDV parity: set the bundle color for the ItemColor handler to read
         if (animatable.getHoldingType() == JunimoEntity.HOLDING_BUNDLE) {

@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:decor/special_orders_board",
+  "textures": {
+    "particle": "stardewcraft:block/decor/special_orders_board"
+  }
+}

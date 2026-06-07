@@ -28,7 +28,7 @@ public class OfficeStoolBlock extends MapUtilityStaticBlock implements EntityBlo
         registerDefaultState(defaultBlockState()
             .setValue(PART, Part.MAIN)
             .setValue(FACING, Direction.NORTH)
-            .setValue(COLOR, 0));
+            .setValue(COLOR, WoodenChestColorPalette.defaultColorIndex()));
     }
 
     @Override

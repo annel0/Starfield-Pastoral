@@ -46,6 +46,7 @@ import com.stardew.craft.client.render.SolarPanelBlockEntityRenderer;
 import com.stardew.craft.client.render.TapperBlockEntityRenderer;
 import com.stardew.craft.client.render.LoomBlockEntityRenderer;
 import com.stardew.craft.client.render.WormBinBlockEntityRenderer;
+import com.stardew.craft.client.render.UncertaintyStatueBlockEntityRenderer;
 import com.stardew.craft.client.render.FeedTroughBlockEntityRenderer;
 import com.stardew.craft.client.render.FishNetBlockEntityRenderer;
 import com.stardew.craft.client.render.FishPondBucketBlockEntityRenderer;
@@ -178,6 +179,7 @@ public final class ModClientSetup {
 		event.registerBlockEntityRenderer(ModBlockEntities.OFFICE_STOOL.get(), OfficeStoolBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.TOTEM_POLE.get(), com.stardew.craft.client.render.TotemPoleBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.MAILBOX.get(), com.stardew.craft.client.render.MailboxBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(ModBlockEntities.UNCERTAINTY_STATUE.get(), UncertaintyStatueBlockEntityRenderer::new);
 			}
 
 	@SuppressWarnings({"null", "unchecked", "rawtypes"})

@@ -295,7 +295,7 @@ public class TreeGrowthManager extends SavedData {
 	}
 
 	private void tryMature(@Nonnull ServerLevel level, @Nonnull BlockPos pos, @Nonnull WildTrees.Def def) {
-		if (canMature(level, pos, def) && placePresetOrFallbackTree(level, pos, def)) {
+		if (canMature(level, pos, def) && placeGeneratedTree(level, pos, def)) {
 			removeSapling(level, pos);
 		}
 	}
@@ -316,12 +316,16 @@ public class TreeGrowthManager extends SavedData {
 				}
 				BlockPos checkPos = saplingPos.offset(xOffset, 0, zOffset);
 				WildTrees.Def nearbyDef = WildTrees.findByTrunk0(level.getBlockState(checkPos));
-				if (nearbyDef != null && level.getBlockState(checkPos.above()).getBlock() == nearbyDef.trunk1().get()) {
-					return true;
+					if (nearbyDef != null && level.getBlockState(checkPos.above()).getBlock() == nearbyDef.trunk1().get()) {
+						return true;
+					}
+					nearbyDef = WildTrees.findByModernRoot(level.getBlockState(checkPos));
+					if (nearbyDef != null && WildTrees.isModernCompleteTree(level, checkPos, nearbyDef)) {
+						return true;
+					}
 				}
 			}
-		}
-		return false;
+			return false;
 	}
 
 	private static void updateVisualStage(@Nonnull ServerLevel level, @Nonnull BlockPos pos, @Nonnull WildTreeSaplingBlock saplingBlock, @Nonnull WildTrees.Def def, int growthStage) {
@@ -334,11 +338,11 @@ public class TreeGrowthManager extends SavedData {
 	}
 
 	private static boolean canMature(@Nonnull ServerLevel level, @Nonnull BlockPos pos, @Nonnull WildTrees.Def def) {
-		return com.stardew.craft.tree.preset.TreePresetPlacer.canPlaceAnyFromConfig(level, pos, def);
+		return com.stardew.craft.tree.generation.StardewTreeGenerator.canGenerate(level, pos, def);
 	}
 
-	private static boolean placePresetOrFallbackTree(@Nonnull ServerLevel level, @Nonnull BlockPos pos, @Nonnull WildTrees.Def def) {
-		boolean placed = com.stardew.craft.tree.preset.TreePresetPlacer.placeFromConfigOrNull(level, pos, def);
+	private static boolean placeGeneratedTree(@Nonnull ServerLevel level, @Nonnull BlockPos pos, @Nonnull WildTrees.Def def) {
+		boolean placed = com.stardew.craft.tree.generation.StardewTreeGenerator.tryGenerate(level, pos, def, level.random);
 		if (placed) {
 			com.stardew.craft.manager.WildTreeSeedManager.get(level).trackTree(level, pos, def);
 		}

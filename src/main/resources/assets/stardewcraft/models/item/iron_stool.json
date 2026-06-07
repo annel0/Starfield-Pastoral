@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:block/utility/iron_stool_item",
+  "textures": {
+    "particle": "stardewcraft:block/decor/common/iron_stool_tint"
+  }
+}

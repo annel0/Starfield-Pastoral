@@ -548,6 +548,7 @@ public class ModClientEvents {
         com.stardew.craft.client.weapon.StarfallShockwavePostEffectClient.onRenderLevel(event);
         // com.stardew.craft.client.weapon.EvolvedAuraEffectClient.onRenderLevel(event); // 禁用：金色光环效果
         com.stardew.craft.client.render.PortalHintRenderer.onRenderLevel(event);
+        com.stardew.craft.client.render.SpecialOrderDropBoxHintRenderer.onRenderLevel(event);
         com.stardew.craft.client.render.JunimoNoteOutlineRenderer.onRenderLevel(event);
         com.stardew.craft.client.render.StarPlaqueRenderer.onRenderLevel(event);
         com.stardew.craft.client.render.BillboardQuestIndicatorRenderer.onRenderLevel(event);
@@ -1207,4 +1208,3 @@ public class ModClientEvents {
         com.stardew.craft.client.hud.StardewTimeHud.resetTimeSync();
     }
 }
-

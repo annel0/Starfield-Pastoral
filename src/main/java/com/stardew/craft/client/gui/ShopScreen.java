@@ -958,8 +958,7 @@ public class ShopScreen extends Screen {
         if (purchasePending) return;
 
         ShopItemEntry item = forSale.get(itemIdx);
-        boolean shift=hasShiftDown(), ctrl=hasControlDown();
-        int qty = (shift&&ctrl) ? 25 : shift ? 5 : 1;
+        int qty = purchaseQuantityForCurrentModifiers(item);
 
         // SDV parity: never buy more than this salable's max stack size.
         ItemStack salable = resolveStack(item.itemId());
@@ -994,6 +993,43 @@ public class ShopScreen extends Screen {
             playSound(ModSounds.PURCHASE_CLICK.get());
         }
         PacketDistributor.sendToServer(new ShopPurchasePayload(shopId, itemIdx, item.itemId(), qty));
+    }
+
+    private int purchaseQuantityForCurrentModifiers(ShopItemEntry item) {
+        if (!hasShiftDown()) {
+            return 1;
+        }
+        if (!hasControlDown()) {
+            return 5;
+        }
+        if (isBuyAllModifierDown()) {
+            int stock = item.stock() == Integer.MAX_VALUE ? Integer.MAX_VALUE : Math.max(1, item.stock());
+            int affordable = item.price() <= 0 ? Integer.MAX_VALUE : playerMoney / Math.max(1, item.price());
+            int tradeAvailable = maxTradePurchases(item);
+            return Math.max(1, Math.min(999, Math.min(stock, Math.min(affordable, tradeAvailable))));
+        }
+        return 25;
+    }
+
+    private boolean isBuyAllModifierDown() {
+        Minecraft mc = Minecraft.getInstance();
+        return mc.getWindow() != null
+                && InputConstants.isKeyDown(mc.getWindow().getWindow(), org.lwjgl.glfw.GLFW.GLFW_KEY_1);
+    }
+
+    private int maxTradePurchases(ShopItemEntry item) {
+        if (!item.requiresTrade()) {
+            return Integer.MAX_VALUE;
+        }
+        ItemStack req = resolveStack(item.tradeItemId());
+        if (req.isEmpty()) {
+            return 0;
+        }
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) {
+            return 0;
+        }
+        return mc.player.getInventory().countItem(req.getItem()) / Math.max(1, item.tradeItemCount());
     }
 
     // =========================================================================

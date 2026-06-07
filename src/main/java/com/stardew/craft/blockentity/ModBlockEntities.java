@@ -19,6 +19,15 @@ public final class ModBlockEntities {
 			BLOCK_ENTITIES.register("tapper", () -> BlockEntityType.Builder.of(TapperBlockEntity::new, ModBlocks.TAPPER.get()).build(null));
 
 	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<NewTreePartBlockEntity>> NEW_TREE_PART =
+			BLOCK_ENTITIES.register("new_tree_part", () -> BlockEntityType.Builder.of(NewTreePartBlockEntity::new,
+					ModBlocks.OAK_ROOT.get(), ModBlocks.OAK_BRANCH.get(),
+					ModBlocks.MAPLE_ROOT.get(), ModBlocks.MAPLE_BRANCH.get(),
+					ModBlocks.PINE_ROOT.get(), ModBlocks.PINE_BRANCH.get(),
+					ModBlocks.MAHOGANY_ROOT.get(), ModBlocks.MAHOGANY_BRANCH.get(),
+					ModBlocks.MYSTIC_TREE_ROOT.get(), ModBlocks.MYSTIC_TREE_BRANCH.get()).build(null));
+
+	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MushroomBoxBlockEntity>> MUSHROOM_BOX =
 			BLOCK_ENTITIES.register("mushroom_box", () -> BlockEntityType.Builder.of(MushroomBoxBlockEntity::new, ModBlocks.MUSHROOM_BOX.get()).build(null));
 
@@ -294,6 +303,11 @@ public final class ModBlockEntities {
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MasteryStatueBlockEntity>> MASTERY_STATUE =
 			BLOCK_ENTITIES.register("mastery_statue", () -> BlockEntityType.Builder.of(MasteryStatueBlockEntity::new,
 				ModBlocks.STATUE_OF_BLESSINGS.get(), ModBlocks.STATUE_OF_DWARF_KING.get()).build(null));
+
+	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<UncertaintyStatueBlockEntity>> UNCERTAINTY_STATUE =
+			BLOCK_ENTITIES.register("uncertainty_statue", () -> BlockEntityType.Builder.of(UncertaintyStatueBlockEntity::new,
+				ModBlocks.UNCERTAINTY_STATUE.get()).build(null));
 
 	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MineChestBlockEntity>> MINE_CHEST =

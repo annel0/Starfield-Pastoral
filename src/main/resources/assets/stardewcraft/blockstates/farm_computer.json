@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "stardewcraft:block/utility/farm_computer"
+    }
+  }
+}

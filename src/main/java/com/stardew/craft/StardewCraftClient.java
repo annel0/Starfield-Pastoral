@@ -35,6 +35,7 @@ import net.minecraft.world.level.FoliageColor;
 import net.minecraft.world.level.GrassColor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.item.Item;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -148,6 +149,16 @@ public class StardewCraftClient {
                 ModBlocks.WILD_MYSTIC_TREE_TRUNK1.get(),
                 ModBlocks.WILD_MYSTIC_TREE_BRANCH1.get(),
                 ModBlocks.WILD_MYSTIC_TREE_BRANCH2.get(),
+                ModBlocks.OAK_ROOT.get(),
+                ModBlocks.OAK_BRANCH.get(),
+                ModBlocks.MAPLE_ROOT.get(),
+                ModBlocks.MAPLE_BRANCH.get(),
+                ModBlocks.PINE_ROOT.get(),
+                ModBlocks.PINE_BRANCH.get(),
+                ModBlocks.MAHOGANY_ROOT.get(),
+                ModBlocks.MAHOGANY_BRANCH.get(),
+                ModBlocks.MYSTIC_TREE_ROOT.get(),
+                ModBlocks.MYSTIC_TREE_BRANCH.get(),
                 ModBlocks.QUARTZ.get(),
                 ModBlocks.EARTH_CRYSTAL.get(),
                 ModBlocks.FROZEN_TEAR.get(),
@@ -247,6 +258,7 @@ public class StardewCraftClient {
                 ModBlocks.BOOKSHELF_WALL.get(),
                 ModBlocks.SOFA.get(),
                 ModBlocks.STOOL.get(),
+                ModBlocks.IRON_STOOL.get(),
                 ModBlocks.DINING_CHAIR_WOOD.get(),
                 ModBlocks.DINING_CHAIR_IRON.get(),
                 ModBlocks.CHAIR_1.get(),
@@ -363,7 +375,12 @@ public class StardewCraftClient {
                 ModBlocks.WILD_MAPLE_LEAVES.get(),
                 ModBlocks.WILD_PINE_LEAVES.get(),
                 ModBlocks.WILD_MAHOGANY_LEAVES.get(),
-                ModBlocks.WILD_MYSTIC_TREE_LEAVES.get()
+                ModBlocks.WILD_MYSTIC_TREE_LEAVES.get(),
+                ModBlocks.OAK_LEAVES.get(),
+                ModBlocks.MAPLE_LEAVES.get(),
+                ModBlocks.PINE_LEAVES.get(),
+                ModBlocks.MAHOGANY_LEAVES.get(),
+                ModBlocks.MYSTIC_TREE_LEAVES.get()
             ));
 
             registerNegativeVolumeModels();
@@ -447,11 +464,16 @@ public class StardewCraftClient {
                 ModBlocks.WILD_MAPLE_LEAVES.get(),
                 ModBlocks.WILD_PINE_LEAVES.get(),
                 ModBlocks.WILD_MAHOGANY_LEAVES.get(),
+                ModBlocks.OAK_LEAVES.get(),
+                ModBlocks.MAPLE_LEAVES.get(),
+                ModBlocks.PINE_LEAVES.get(),
+                ModBlocks.MAHOGANY_LEAVES.get(),
                 ModBlocks.SMALL_BUSH.get(),
                 ModBlocks.BERRY_BUSH.get());
 
         event.register((state, level, pos, tintIndex) -> 0xFFFFFFFF,
-                ModBlocks.WILD_MYSTIC_TREE_LEAVES.get());
+                ModBlocks.WILD_MYSTIC_TREE_LEAVES.get(),
+                ModBlocks.MYSTIC_TREE_LEAVES.get());
 
         event.register((state, level, pos, tintIndex) -> {
             if (tintIndex != 0) {
@@ -503,12 +525,12 @@ public class StardewCraftClient {
                 index = 0;
             }
             return 0xFF000000 | (WoodenChestColorPalette.tintRgbAt(index, tintMaterial) & 0xFFFFFF);
-        }, ModBlocks.SOFA.get(), ModBlocks.CUSHION.get(), ModBlocks.OFFICE_STOOL.get(), ModBlocks.OFFICE_STOOL_TOP_RENDER.get(), ModBlocks.OFFICE_CHAIR_2.get(), ModBlocks.OFFICE_CHAIR_2_TOP_RENDER.get(), ModBlocks.STOOL.get(), ModBlocks.DINING_CHAIR_WOOD.get(), ModBlocks.DINING_CHAIR_IRON.get(), ModBlocks.OAK_TABLE.get(), ModBlocks.SPRUCE_TABLE.get(), ModBlocks.BIRCH_TABLE.get());
+        }, ModBlocks.SOFA.get(), ModBlocks.CUSHION.get(), ModBlocks.OFFICE_STOOL.get(), ModBlocks.OFFICE_STOOL_TOP_RENDER.get(), ModBlocks.OFFICE_CHAIR_2.get(), ModBlocks.OFFICE_CHAIR_2_TOP_RENDER.get(), ModBlocks.STOOL.get(), ModBlocks.IRON_STOOL.get(), ModBlocks.DINING_CHAIR_WOOD.get(), ModBlocks.DINING_CHAIR_IRON.get(), ModBlocks.OAK_TABLE.get(), ModBlocks.SPRUCE_TABLE.get(), ModBlocks.BIRCH_TABLE.get());
 
     }
 
     private static WoodenChestColorPalette.TintMaterial dyeableChairTintMaterial(BlockState state) {
-        if (state.is(ModBlocks.STOOL.get())) {
+        if (state.is(ModBlocks.STOOL.get()) || state.is(ModBlocks.IRON_STOOL.get())) {
             return WoodenChestColorPalette.TintMaterial.STOOL;
         }
         if (state.is(ModBlocks.DINING_CHAIR_WOOD.get()) || state.is(ModBlocks.DINING_CHAIR_IRON.get())) {
@@ -559,7 +581,9 @@ public class StardewCraftClient {
 
     private static int getVanillaLeafColor(BlockState state, BlockAndTintGetter level, BlockPos pos) {
         if (state != null) {
-            if (state.is(Blocks.SPRUCE_LEAVES) || state.is(ModBlocks.WILD_PINE_LEAVES.get())) {
+            if (state.is(Blocks.SPRUCE_LEAVES)
+                    || state.is(ModBlocks.WILD_PINE_LEAVES.get())
+                    || state.is(ModBlocks.PINE_LEAVES.get())) {
                 return FoliageColor.getEvergreenColor();
             }
             if (state.is(Blocks.BIRCH_LEAVES)) {
@@ -595,8 +619,10 @@ public class StardewCraftClient {
             if (tintIndex != 0) {
                 return 0xFFFFFFFF;
             }
-            return 0xFF000000 | (WoodenChestColorPalette.rgbAt(0) & 0xFFFFFF);
-        }, ModItems.SOFA.get(), ModItems.CUSHION.get(), ModItems.OFFICE_STOOL.get(), ModItems.OFFICE_CHAIR_2.get(), ModItems.STOOL.get(), ModItems.DINING_CHAIR_WOOD.get(), ModItems.DINING_CHAIR_IRON.get());
+            WoodenChestColorPalette.TintMaterial tintMaterial = furnitureItemTintMaterial(stack.getItem());
+            int rgb = WoodenChestColorPalette.tintRgbAt(WoodenChestColorPalette.defaultColorIndex(), tintMaterial);
+            return 0xFF000000 | (rgb & 0xFFFFFF);
+        }, ModItems.SOFA.get(), ModItems.CUSHION.get(), ModItems.OFFICE_STOOL.get(), ModItems.OFFICE_CHAIR_2.get(), ModItems.STOOL.get(), ModItems.IRON_STOOL.get(), ModItems.DINING_CHAIR_WOOD.get(), ModItems.DINING_CHAIR_IRON.get());
 
         event.register((stack, tintIndex) -> {
             if (tintIndex != 0) {
@@ -642,6 +668,25 @@ public class StardewCraftClient {
             int rgb = com.stardew.craft.client.renderer.entity.JunimoBundleLayer.currentRenderBundleColor;
             return 0xFF000000 | (rgb & 0xFFFFFF);
         }, ModItems.JUNIMO_BUNDLE.get());
+    }
+
+    private static WoodenChestColorPalette.TintMaterial furnitureItemTintMaterial(Item item) {
+        if (item == ModItems.SOFA.get()) {
+            return WoodenChestColorPalette.TintMaterial.SOFA;
+        }
+        if (item == ModItems.CUSHION.get()) {
+            return WoodenChestColorPalette.TintMaterial.CUSHION;
+        }
+        if (item == ModItems.OFFICE_STOOL.get() || item == ModItems.OFFICE_CHAIR_2.get()) {
+            return WoodenChestColorPalette.TintMaterial.OFFICE_SEATING;
+        }
+        if (item == ModItems.STOOL.get() || item == ModItems.IRON_STOOL.get()) {
+            return WoodenChestColorPalette.TintMaterial.STOOL;
+        }
+        if (item == ModItems.DINING_CHAIR_WOOD.get() || item == ModItems.DINING_CHAIR_IRON.get()) {
+            return WoodenChestColorPalette.TintMaterial.DINING_CHAIR;
+        }
+        return WoodenChestColorPalette.TintMaterial.DIRECT;
     }
 
     @SubscribeEvent

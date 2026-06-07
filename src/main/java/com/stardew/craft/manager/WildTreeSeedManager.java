@@ -136,7 +136,8 @@ public class WildTreeSeedManager extends SavedData {
 				changed = true;
 				continue;
 			}
-			if (level.getBlockState(pos).getBlock() != def.trunk0().get()) {
+			BlockState treeState = level.getBlockState(pos);
+			if (treeState.getBlock() != def.trunk0().get() && !def.isModernRoot(treeState)) {
 				it.remove();
 				changed = true;
 			}
@@ -186,8 +187,12 @@ public class WildTreeSeedManager extends SavedData {
 
 	private static boolean isFullTree(ServerLevel level, BlockPos trunk0Pos, WildTrees.Def def) {
 		@SuppressWarnings("null")
+		BlockState state = level.getBlockState(trunk0Pos);
+		if (def.isModernRoot(state)) {
+			return WildTrees.isModernCompleteTree(level, trunk0Pos, def);
+		}
 		BlockState above = level.getBlockState(trunk0Pos.above());
-		return above.getBlock() == def.trunk1().get();
+		return state.getBlock() == def.trunk0().get() && above.getBlock() == def.trunk1().get();
 	}
 
 	private static boolean tryPlaceSapling(ServerLevel level, BlockPos saplingPos, WildTrees.Def def) {
@@ -243,7 +248,7 @@ public class WildTreeSeedManager extends SavedData {
 			case "maple" -> ModItems.MAPLE_SEED.get();
 			case "pine" -> ModItems.PINE_CONE.get();
 			case "mahogany" -> ModItems.MAHOGANY_SEED.get();
-			case "mystic_tree" -> ModItems.MYSTIC_TREE_SEED.get();
+			case "mystic_tree" -> null;
 			default -> null;
 		};
 	}

@@ -9,13 +9,16 @@ import com.stardew.craft.tree.WildTrees;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TieredItem;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
@@ -35,15 +38,18 @@ import net.minecraft.util.RandomSource;
 import net.neoforged.neoforge.common.ItemAbilities;
 
 import javax.annotation.Nullable;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class TapperBlock extends Block implements EntityBlock {
 	/**
-	 * Facing means the direction of the supporting block (tree trunk0) relative to the tapper.
-	 * Example: FACING=NORTH -> the trunk0 is at pos.north().
+	 * Facing means the direction of the supporting tree block relative to the tapper.
+	 * Example: FACING=NORTH -> the supported log/trunk is at pos.north().
 	 */
 	public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
 	private static final VoxelShape[] SHAPES = ModelVoxelShapeCache.horizontalShapes("stardewcraft:block/utility/tapper", Direction.SOUTH);
+	private static final int MAX_TAPPERS_PER_TREE = 4;
 
 	@SuppressWarnings("null")
 	public TapperBlock(Properties properties) {
@@ -84,17 +90,18 @@ public class TapperBlock extends Block implements EntityBlock {
 
 		Level level = context.getLevel();
 		BlockPos placePos = context.getClickedPos();
-		@SuppressWarnings("null")
 		BlockPos trunkPos = placePos.relative(face.getOpposite());
-		if (!WildTrees.isAnyWildTreeTrunk0(level.getBlockState(trunkPos))) {
+		WildTrees.Def def = WildTrees.findTapperSupportDef(level, trunkPos);
+		if (def == null) {
+			return null;
+		}
+		BlockPos treeRoot = WildTrees.findTapperTreeRoot(level, trunkPos);
+		if (treeRoot == null) {
 			return null;
 		}
 
-		// One tapper per tree (per trunk0 pivot): deny if any existing tapper is adjacent to trunk0.
-		for (Direction d : Direction.Plane.HORIZONTAL) {
-			if (level.getBlockState(trunkPos.relative(d)).is(ModBlocks.TAPPER.get())) {
-				return null;
-			}
+		if (hasReachedTapperLimit(level, treeRoot, def)) {
+			return null;
 		}
 
 		// Place into the adjacent air block; FACING points back to the trunk.
@@ -108,7 +115,7 @@ public class TapperBlock extends Block implements EntityBlock {
 		Direction supportDir = state.getValue(FACING);
 		@SuppressWarnings("null")
 		BlockPos supportPos = pos.relative(supportDir);
-		return WildTrees.isAnyWildTreeTrunk0(level.getBlockState(supportPos));
+		return WildTrees.findTapperSupportDef(level, supportPos) != null;
 	}
 
 	@SuppressWarnings("null")
@@ -170,6 +177,22 @@ public class TapperBlock extends Block implements EntityBlock {
 	@SuppressWarnings("null")
 	@Override
 	public InteractionResult useWithoutItem(@SuppressWarnings("null") BlockState state, @SuppressWarnings("null") Level level, @SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") Player player, @SuppressWarnings("null") BlockHitResult hitResult) {
+		return interact(state, level, pos, player);
+	}
+
+	@SuppressWarnings("null")
+	@Override
+	protected ItemInteractionResult useItemOn(@SuppressWarnings("null") ItemStack stack, @SuppressWarnings("null") BlockState state,
+			@SuppressWarnings("null") Level level, @SuppressWarnings("null") BlockPos pos,
+			@SuppressWarnings("null") Player player, @SuppressWarnings("null") InteractionHand hand,
+			@SuppressWarnings("null") BlockHitResult hitResult) {
+		InteractionResult result = interact(state, level, pos, player);
+		return result.consumesAction()
+				? ItemInteractionResult.sidedSuccess(level.isClientSide)
+				: ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+	}
+
+	private InteractionResult interact(BlockState state, Level level, BlockPos pos, Player player) {
 		if (level.isClientSide) {
 			return InteractionResult.SUCCESS;
 		}
@@ -213,16 +236,67 @@ public class TapperBlock extends Block implements EntityBlock {
 		if (tapper.hasProduct()) {
 			return;
 		}
-		@SuppressWarnings("null")
-		Direction supportDir = state.getValue(FACING);
-		@SuppressWarnings("null")
-		BlockPos supportPos = pos.relative(supportDir);
-		@SuppressWarnings("null")
-		WildTrees.Def def = WildTrees.findByTrunk0(level.getBlockState(supportPos));
+		WildTrees.Def def = findValidProductionDef(level, pos, state);
 		if (def == null) {
 			return;
 		}
 		tapper.startCycleIfEmpty(def.id());
+	}
+
+	@Nullable
+	public static WildTrees.Def findValidProductionDef(LevelReader level, BlockPos pos, BlockState state) {
+		if (!state.is(ModBlocks.TAPPER.get()) || !state.hasProperty(FACING)) {
+			return null;
+		}
+		@SuppressWarnings("null")
+		Direction supportDir = state.getValue(FACING);
+		@SuppressWarnings("null")
+		BlockPos supportPos = pos.relative(supportDir);
+		WildTrees.Def def = WildTrees.findTapperSupportDef(level, supportPos);
+		if (def == null) {
+			return null;
+		}
+		BlockPos treeRoot = WildTrees.findTapperTreeRoot(level, supportPos);
+		if (treeRoot == null) {
+			return null;
+		}
+		int tappers = countTappersOnTree(level, treeRoot, def);
+		return tappers > 0 && tappers <= MAX_TAPPERS_PER_TREE ? def : null;
+	}
+
+	public static boolean isValidProductionSite(LevelReader level, BlockPos pos, BlockState state) {
+		return findValidProductionDef(level, pos, state) != null;
+	}
+
+	private static boolean hasReachedTapperLimit(LevelReader level, BlockPos treeRoot, WildTrees.Def def) {
+		return countTappersOnTree(level, treeRoot, def) >= MAX_TAPPERS_PER_TREE;
+	}
+
+	private static int countTappersOnTree(LevelReader level, BlockPos treeRoot, WildTrees.Def def) {
+		Set<BlockPos> tappers = new HashSet<>();
+		if (def.isModernRoot(level.getBlockState(treeRoot))) {
+			WildTrees.forEachModernLogInTree(level, treeRoot, def, logPos -> {
+				collectAdjacentTappers(level, logPos, tappers);
+			});
+			return tappers.size();
+		}
+		collectAdjacentTappers(level, treeRoot, tappers);
+		return tappers.size();
+	}
+
+	private static boolean hasAdjacentTapper(LevelReader level, BlockPos pos) {
+		Set<BlockPos> tappers = new HashSet<>();
+		collectAdjacentTappers(level, pos, tappers);
+		return !tappers.isEmpty();
+	}
+
+	private static void collectAdjacentTappers(LevelReader level, BlockPos pos, Set<BlockPos> tappers) {
+		for (Direction d : Direction.Plane.HORIZONTAL) {
+			BlockPos tapperPos = pos.relative(d);
+			if (level.getBlockState(tapperPos).is(ModBlocks.TAPPER.get())) {
+				tappers.add(tapperPos.immutable());
+			}
+		}
 	}
 
 	@SuppressWarnings("null")

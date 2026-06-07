@@ -1,5 +1,6 @@
 package com.stardew.craft.client.gui.menu;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.client.ClientPlayerDataCache;
 import com.stardew.craft.client.LeaderboardClientCache;
@@ -212,7 +213,7 @@ public class StardewGameMenuScreen extends Screen {
         "TALK_ICON", "TALK_BOX"
     };
 
-    private record RecipeRequirement(Ingredient ingredient, ItemStack icon, int need) {
+    private record RecipeRequirement(Ingredient ingredient, ItemStack icon, Component name, int need) {
     }
 
     private record RecipeCell(int recipeIndex, int x, int y, boolean bigCraftable) {
@@ -3877,6 +3878,10 @@ public class StardewGameMenuScreen extends Screen {
         PacketDistributor.sendToServer(new CraftingMenuInventoryActionPayload(CraftingMenuInventoryActionPayload.ACTION_CLICK_SLOT, slotIndex, rightClick));
     }
 
+    private void submitInventoryShiftRightClickRequest(int slotIndex) {
+        PacketDistributor.sendToServer(new CraftingMenuInventoryActionPayload(CraftingMenuInventoryActionPayload.ACTION_SHIFT_RIGHT_CLICK_SLOT, slotIndex, true));
+    }
+
     private void submitInventoryShiftClickRequest(int slotIndex) {
         PacketDistributor.sendToServer(new CraftingMenuInventoryActionPayload(CraftingMenuInventoryActionPayload.ACTION_SHIFT_CLICK_SLOT, slotIndex, false));
     }
@@ -3944,6 +3949,13 @@ public class StardewGameMenuScreen extends Screen {
 
         if (button == 0 && hasShiftDown()) {
             submitInventoryShiftClickRequest(slot);
+            rememberInventoryClick(slot, button);
+            playUiSound(ModSounds.SMALL_SELECT.get(), 1.0f, 1.0f);
+            return true;
+        }
+
+        if (button == 1 && hasShiftDown()) {
+            submitInventoryShiftRightClickRequest(slot);
             rememberInventoryClick(slot, button);
             playUiSound(ModSounds.SMALL_SELECT.get(), 1.0f, 1.0f);
             return true;
@@ -4032,19 +4044,33 @@ public class StardewGameMenuScreen extends Screen {
     }
 
     private List<RecipeRequirement> getRecipeRequirements(String recipePath) {
-        List<Ingredient> ingredients = getRecipeIngredients(recipePath);
-        if (ingredients.isEmpty()) {
+        List<StardewCraftingRecipeData.IngredientEntry> entries = StardewCraftingRecipeData.getIngredientEntries(recipePath,
+            ClientPlayerDataCache.hasProfession(ProfessionType.TRAPPER));
+        if (entries.isEmpty()) {
             return List.of();
         }
 
         Map<String, RecipeRequirement> grouped = new LinkedHashMap<>();
-        for (Ingredient ingredient : ingredients) {
+        for (StardewCraftingRecipeData.IngredientEntry entry : entries) {
+            Ingredient ingredient = StardewCraftingRecipeData.toIngredient(entry);
+            if (ingredient.isEmpty()) {
+                continue;
+            }
             String key = ingredientSignature(ingredient);
             RecipeRequirement existing = grouped.get(key);
+            ItemStack icon = StardewCraftingRecipeData.getDisplayStack(entry);
+            if (icon.isEmpty()) {
+                icon = resolveIngredientIcon(ingredient);
+            }
+            Component name = StardewCraftingRecipeData.getDisplayName(entry);
+            if (name.getString().isBlank()) {
+                name = icon.getHoverName().copy();
+            }
+            int need = Math.max(1, entry.count());
             if (existing == null) {
-                grouped.put(key, new RecipeRequirement(ingredient, resolveIngredientIcon(ingredient), 1));
+                grouped.put(key, new RecipeRequirement(ingredient, icon, name, need));
             } else {
-                grouped.put(key, new RecipeRequirement(existing.ingredient(), existing.icon(), existing.need() + 1));
+                grouped.put(key, new RecipeRequirement(existing.ingredient(), existing.icon(), existing.name(), existing.need() + need));
             }
         }
         return new ArrayList<>(grouped.values());
@@ -4169,7 +4195,7 @@ public class StardewGameMenuScreen extends Screen {
                 // "  " prefix = space for icon overlay (about 10px)
                 Component line = Component.literal("  ")
                         .append(Component.literal(" " + need + "× ").withStyle(color))
-                        .append(requirement.icon().getHoverName().copy().withStyle(color));
+                        .append(requirement.name().copy().withStyle(color));
                 lines.add(line);
             }
 
@@ -4691,7 +4717,7 @@ public class StardewGameMenuScreen extends Screen {
             }
         }
 
-        if (keyCode == 261 && currentTab == 4 && hasCarriedItem()) {
+        if (keyCode == InputConstants.KEY_DELETE && (currentTab == 0 || currentTab == 4) && hasCarriedItem()) {
             submitTrashCarriedRequest();
             playUiSound(ModSounds.THROW_DOWN_ITEM.get(), 1.0f, 1.0f);
             return true;

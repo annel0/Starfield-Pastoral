@@ -13,6 +13,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.BushBlock;
@@ -99,6 +101,18 @@ public class ForageBlock extends BushBlock {
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
                                                Player player, BlockHitResult hitResult) {
+        return pickForage(level, pos, player);
+    }
+
+    @SuppressWarnings("null")
+    @Override
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+                                              Player player, InteractionHand hand, BlockHitResult hitResult) {
+        pickForage(level, pos, player);
+        return ItemInteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    private InteractionResult pickForage(Level level, BlockPos pos, Player player) {
         if (!level.isClientSide && level instanceof ServerLevel serverLevel
                 && player instanceof ServerPlayer serverPlayer) {
             harvestForage(serverLevel, pos, serverPlayer);

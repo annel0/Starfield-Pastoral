@@ -35,6 +35,26 @@
     "stardewcraft:wild_mystic_tree_branch2",
     "stardewcraft:wild_mystic_tree_leaves",
     "stardewcraft:wild_mystic_tree_sapling0",
-    "stardewcraft:wild_mystic_tree_sapling1"
+    "stardewcraft:wild_mystic_tree_sapling1",
+    "stardewcraft:oak_root",
+    "stardewcraft:oak_log",
+    "stardewcraft:oak_leaves",
+    "stardewcraft:oak_branch",
+    "stardewcraft:maple_root",
+    "stardewcraft:maple_log",
+    "stardewcraft:maple_leaves",
+    "stardewcraft:maple_branch",
+    "stardewcraft:pine_root",
+    "stardewcraft:pine_log",
+    "stardewcraft:pine_leaves",
+    "stardewcraft:pine_branch",
+    "stardewcraft:mahogany_root",
+    "stardewcraft:mahogany_log",
+    "stardewcraft:mahogany_leaves",
+    "stardewcraft:mahogany_branch",
+    "stardewcraft:mystic_tree_root",
+    "stardewcraft:mystic_tree_log",
+    "stardewcraft:mystic_tree_leaves",
+    "stardewcraft:mystic_tree_branch"
   ]
 }

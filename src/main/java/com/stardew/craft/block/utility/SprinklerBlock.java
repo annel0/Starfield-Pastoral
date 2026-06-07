@@ -4,10 +4,6 @@ import com.stardew.craft.block.shape.ModelVoxelShapeCache;
 import com.stardew.craft.manager.SprinklerManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.BlockGetter;
@@ -15,7 +11,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootParams;
-import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.core.particles.ParticleTypes;
@@ -69,36 +64,6 @@ public class SprinklerBlock extends Block {
     protected List<ItemStack> getDrops(@SuppressWarnings("null") BlockState state,
                                        @SuppressWarnings("null") LootParams.Builder params) {
         return List.of(new ItemStack(this));
-    }
-
-    @SuppressWarnings("null")
-    @Override
-    protected ItemInteractionResult useItemOn(@SuppressWarnings("null") ItemStack stack, @SuppressWarnings("null") BlockState state,
-                                              @SuppressWarnings("null") Level level, @SuppressWarnings("null") BlockPos pos,
-                                              @SuppressWarnings("null") Player player, @SuppressWarnings("null") InteractionHand hand,
-                                              @SuppressWarnings("null") BlockHitResult hit) {
-        if (level.isClientSide) {
-            return ItemInteractionResult.sidedSuccess(true);
-        }
-        if (level instanceof ServerLevel serverLevel) {
-            waterNow(serverLevel, pos, tier);
-        }
-        return ItemInteractionResult.sidedSuccess(false);
-    }
-
-    @SuppressWarnings("null")
-    @Override
-    protected InteractionResult useWithoutItem(@SuppressWarnings("null") BlockState state, @SuppressWarnings("null") Level level,
-                                               @SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") Player player,
-                                               @SuppressWarnings("null") BlockHitResult hit) {
-        if (level.isClientSide) {
-            return InteractionResult.SUCCESS;
-        }
-        if (level instanceof ServerLevel serverLevel) {
-            waterNow(serverLevel, pos, tier);
-            return InteractionResult.CONSUME;
-        }
-        return InteractionResult.PASS;
     }
 
     @Override

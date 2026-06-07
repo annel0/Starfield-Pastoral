@@ -23,7 +23,7 @@ public class DyeableChairBlock extends MapUtilityStaticBlock {
         registerDefaultState(defaultBlockState()
             .setValue(PART, Part.MAIN)
             .setValue(FACING, net.minecraft.core.Direction.NORTH)
-            .setValue(COLOR, 0));
+            .setValue(COLOR, WoodenChestColorPalette.defaultColorIndex()));
     }
 
     @Override

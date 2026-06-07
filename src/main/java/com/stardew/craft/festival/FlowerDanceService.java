@@ -74,6 +74,7 @@ public final class FlowerDanceService {
 
     private static final ActiveFestivalConfirmState CONFIRM_STATE = new ActiveFestivalConfirmState();
     private static final Map<UUID, Vec3> LAST_OUTSIDE_ENTRY = new LinkedHashMap<>();
+    private static final Map<UUID, Vec3> LAST_INSIDE_ENTRY = new LinkedHashMap<>();
     private static final Map<UUID, PartnerSelection> DANCE_PARTNERS = new LinkedHashMap<>();
     private static final Map<UUID, Set<String>> FESTIVAL_DIALOGUE_SEEN = new LinkedHashMap<>();
     private static final Map<UUID, PendingPlayerInvite> PENDING_PLAYER_INVITES = new LinkedHashMap<>();
@@ -318,6 +319,7 @@ public final class FlowerDanceService {
         cancelPendingPlayerInvitesFor(playerId);
         CONFIRM_STATE.clearPlayerDialogs(playerId);
         LAST_OUTSIDE_ENTRY.remove(playerId);
+        LAST_INSIDE_ENTRY.remove(playerId);
     }
 
     public static void onPlayerLogin(ServerPlayer player) {
@@ -446,6 +448,7 @@ public final class FlowerDanceService {
         startTimeFreeze(level);
         CONFIRM_STATE.clearAll();
         LAST_OUTSIDE_ENTRY.clear();
+        LAST_INSIDE_ENTRY.clear();
         DANCE_PARTNERS.clear();
         FESTIVAL_DIALOGUE_SEEN.clear();
         PENDING_PLAYER_INVITES.clear();
@@ -492,7 +495,9 @@ public final class FlowerDanceService {
         startTimeFreeze(player.serverLevel());
         player.getPersistentData().putBoolean(TAG_PARTICIPATING, true);
         syncHud(player, true);
-        ModTeleport.to(player, player.serverLevel(), ENTRY_POS, WEST_YAW, 0.0F);
+        Vec3 target = safeInsideEntryTarget(player, Vec3.atBottomCenterOf(ENTRY_POS));
+        ModTeleport.to(player, player.serverLevel(), target.x, target.y, target.z, WEST_YAW, 0.0F);
+        LAST_INSIDE_ENTRY.put(player.getUUID(), target);
     }
 
     private static void tickPlayer(ServerLevel level, ServerPlayer player) {
@@ -500,19 +505,25 @@ public final class FlowerDanceService {
             return;
         }
         boolean insideEntry = ENTRY_TRIGGER_BOUNDS.contains(player.position());
-        if (!insideEntry) {
-            LAST_OUTSIDE_ENTRY.put(player.getUUID(), player.position());
-            if (!isParticipant(player)) {
-                syncHud(player, false);
+        if (isParticipant(player)) {
+            syncHud(player, true);
+            if (insideEntry) {
+                LAST_INSIDE_ENTRY.put(player.getUUID(), player.position());
+            } else if (mainEventPhase == MainEventPhase.FREE) {
+                LAST_OUTSIDE_ENTRY.put(player.getUUID(), player.position());
+                promptExit(player);
+                moveToLastInsideEntry(level, player);
             }
             return;
         }
 
-        if (isParticipant(player)) {
-            syncHud(player, true);
+        if (!insideEntry) {
+            LAST_OUTSIDE_ENTRY.put(player.getUUID(), player.position());
+            syncHud(player, false);
             return;
         }
 
+        LAST_INSIDE_ENTRY.put(player.getUUID(), player.position());
         syncHud(player, false);
         if (!FestivalService.isActiveFestivalEntryOpen(level, FESTIVAL_ID)) {
             player.displayClientMessage(blockedEntryMessage(level), true);
@@ -525,6 +536,10 @@ public final class FlowerDanceService {
 
     private static void promptEnter(ServerPlayer player) {
         CONFIRM_STATE.prompt(player, OpenFestivalConfirmPayload.Action.ENTER);
+    }
+
+    private static void promptExit(ServerPlayer player) {
+        CONFIRM_STATE.prompt(player, OpenFestivalConfirmPayload.Action.EXIT);
     }
 
     private static void promptStartDance(ServerPlayer player) {
@@ -615,30 +630,37 @@ public final class FlowerDanceService {
         if (target == null || ENTRY_TRIGGER_BOUNDS.contains(target)) {
             target = pushOutsideEntry(player.position());
         }
+        Vec3 safeTarget = FestivalBoundaryReturn.findSafeOutside(player, ENTRY_TRIGGER_BOUNDS, target);
+        if (safeTarget != null) {
+            target = safeTarget;
+        }
         ModTeleport.to(player, level, target.x, target.y, target.z, player.getYRot(), player.getXRot());
         player.setDeltaMovement(Vec3.ZERO);
         player.fallDistance = 0.0F;
     }
 
-    private static Vec3 pushOutsideEntry(Vec3 current) {
-        double x = current.x;
-        double y = current.y;
-        double z = current.z;
-        double left = Math.abs(x - ENTRY_TRIGGER_BOUNDS.minX);
-        double right = Math.abs(ENTRY_TRIGGER_BOUNDS.maxX - x);
-        double north = Math.abs(z - ENTRY_TRIGGER_BOUNDS.minZ);
-        double south = Math.abs(ENTRY_TRIGGER_BOUNDS.maxZ - z);
-        double min = Math.min(Math.min(left, right), Math.min(north, south));
-        if (min == left) {
-            x = ENTRY_TRIGGER_BOUNDS.minX - 0.25D;
-        } else if (min == right) {
-            x = ENTRY_TRIGGER_BOUNDS.maxX + 0.25D;
-        } else if (min == north) {
-            z = ENTRY_TRIGGER_BOUNDS.minZ - 0.25D;
-        } else {
-            z = ENTRY_TRIGGER_BOUNDS.maxZ + 0.25D;
+    private static void moveToLastInsideEntry(ServerLevel level, ServerPlayer player) {
+        Vec3 target = LAST_INSIDE_ENTRY.get(player.getUUID());
+        if (target == null || !ENTRY_TRIGGER_BOUNDS.contains(target)) {
+            target = Vec3.atBottomCenterOf(ENTRY_POS);
         }
-        return new Vec3(x, y, z);
+        target = safeInsideEntryTarget(player, target);
+        ModTeleport.to(player, level, target.x, target.y, target.z, player.getYRot(), player.getXRot());
+        player.setDeltaMovement(Vec3.ZERO);
+        player.fallDistance = 0.0F;
+        LAST_INSIDE_ENTRY.put(player.getUUID(), target);
+    }
+
+    private static Vec3 pushOutsideEntry(Vec3 current) {
+        return FestivalBoundaryReturn.pushOutside(ENTRY_TRIGGER_BOUNDS, current);
+    }
+
+    private static Vec3 safeInsideEntryTarget(ServerPlayer player, Vec3 preferred) {
+        Vec3 target = FestivalBoundaryReturn.findSafeInside(player, ENTRY_TRIGGER_BOUNDS, preferred, Vec3.atBottomCenterOf(ENTRY_POS));
+        if (target != null) {
+            return target;
+        }
+        return FestivalBoundaryReturn.pushInside(ENTRY_TRIGGER_BOUNDS, Vec3.atBottomCenterOf(ENTRY_POS));
     }
 
     private static Component blockedEntryMessage(ServerLevel level) {
@@ -1002,6 +1024,7 @@ public final class FlowerDanceService {
         }
         CONFIRM_STATE.clearAll();
         LAST_OUTSIDE_ENTRY.clear();
+        LAST_INSIDE_ENTRY.clear();
         DANCE_PARTNERS.clear();
         FESTIVAL_DIALOGUE_SEEN.clear();
         PENDING_PLAYER_INVITES.clear();

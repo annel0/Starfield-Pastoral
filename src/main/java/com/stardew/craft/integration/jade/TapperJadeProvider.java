@@ -27,6 +27,7 @@ public enum TapperJadeProvider implements IBlockComponentProvider, IServerDataPr
 	private static final String NBT_DAYS = "days";
 	private static final String NBT_HOURS = "hours";
 	private static final String NBT_MINUTES = "minutes";
+	private static final String NBT_INVALID_TREE = "invalid_tree";
 
 	@Override
 	public ResourceLocation getUid() {
@@ -40,10 +41,13 @@ public enum TapperJadeProvider implements IBlockComponentProvider, IServerDataPr
 			return;
 		}
 
-		ItemStack product = tapper.getProduct();
-		if (product.isEmpty()) {
-			return;
-		}
+			boolean invalidTree = !tapper.isProductionSiteValid();
+			tag.putBoolean(NBT_INVALID_TREE, invalidTree);
+
+			ItemStack product = tapper.getProduct();
+			if (product.isEmpty()) {
+				return;
+			}
 
 		@SuppressWarnings("null")
 		ResourceLocation id = BuiltInRegistries.ITEM.getKey(product.getItem());
@@ -59,10 +63,22 @@ public enum TapperJadeProvider implements IBlockComponentProvider, IServerDataPr
 	@SuppressWarnings("null")
 	@Override
 	public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
-		CompoundTag data = accessor.getServerData();
-		if (data == null || !data.contains(NBT_ITEM)) {
-			return;
-		}
+			CompoundTag data = accessor.getServerData();
+			if (data == null) {
+				return;
+			}
+
+			if (data.getBoolean(NBT_INVALID_TREE)) {
+				tooltip.add(Component.translatable("stardewcraft.tooltip.tapper.invalid_tree")
+					.withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
+				if (!data.contains(NBT_ITEM)) {
+					return;
+				}
+			}
+
+			if (!data.contains(NBT_ITEM)) {
+				return;
+			}
 
 		@SuppressWarnings("null")
 		ResourceLocation itemId = ResourceLocation.tryParse(data.getString(NBT_ITEM));

@@ -5,7 +5,6 @@ import com.stardew.craft.time.StardewTimeManager;
 import com.stardew.craft.block.utility.TapperBlock;
 import com.stardew.craft.tree.WildTrees;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -35,6 +34,14 @@ public class TapperBlockEntity extends TimedProductionBlockEntity {
 		if (level.isClientSide) {
 			return;
 		}
+		if (!be.isProductionSiteValid()) {
+			if (be.ready) {
+				be.ready = false;
+				be.setChanged();
+				be.syncToClient();
+			}
+			return;
+		}
 		boolean newReady = be.refreshReady();
 		if (newReady != be.ready) {
 			be.ready = newReady;
@@ -56,7 +63,12 @@ public class TapperBlockEntity extends TimedProductionBlockEntity {
 	}
 
 	public boolean canApplyFairyDust() {
-		return !product.isEmpty() && !ready && readyAtAbsMinute >= 0;
+		boolean base = !product.isEmpty() && !ready && readyAtAbsMinute >= 0;
+		return base && (level == null || level.isClientSide || isProductionSiteValid());
+	}
+
+	public boolean isProductionSiteValid() {
+		return currentValidSupportDef() != null;
 	}
 
 	@SuppressWarnings("null")
@@ -71,11 +83,7 @@ public class TapperBlockEntity extends TimedProductionBlockEntity {
 		if (!(state.getBlock() instanceof TapperBlock)) {
 			return;
 		}
-		@SuppressWarnings("null")
-		Direction supportDir = state.getValue(TapperBlock.FACING);
-		@SuppressWarnings("null")
-		BlockPos supportPos = worldPosition.relative(supportDir);
-		WildTrees.Def def = WildTrees.findByTrunk0(currentLevel.getBlockState(supportPos));
+		WildTrees.Def def = TapperBlock.findValidProductionDef(currentLevel, worldPosition, state);
 		if (def == null) {
 			return;
 		}
@@ -88,6 +96,9 @@ public class TapperBlockEntity extends TimedProductionBlockEntity {
 		}
 		Level currentLevel = level;
 		if (currentLevel == null || currentLevel.isClientSide) {
+			return false;
+		}
+		if (currentValidSupportDef() == null) {
 			return false;
 		}
 		readyAtAbsMinute = getCurrentAbsMinute();
@@ -117,13 +128,17 @@ public class TapperBlockEntity extends TimedProductionBlockEntity {
 		if (treeId == null || treeId.isBlank()) {
 			return;
 		}
+		WildTrees.Def supportDef = currentValidSupportDef();
+		if (supportDef == null) {
+			return;
+		}
 
-		Cycle cycle = getCycleForTreeId(treeId);
+		Cycle cycle = getCycleForTreeId(supportDef.id());
 		if (cycle == null) {
 			return;
 		}
 
-		this.treeId = treeId;
+		this.treeId = supportDef.id();
 		product = cycle.createProduct(level);
 		long dayIndex = getCurrentDayIndex();
 		// Tapper output in Stardew appears in the morning after N nights.
@@ -134,14 +149,15 @@ public class TapperBlockEntity extends TimedProductionBlockEntity {
 	}
 
 	public void startCycleIfEmpty() {
-		if (treeId == null || treeId.isBlank()) {
+		WildTrees.Def supportDef = currentValidSupportDef();
+		if (supportDef == null) {
 			return;
 		}
-		startCycleIfEmpty(treeId);
+		startCycleIfEmpty(supportDef.id());
 	}
 
 	public ItemStack harvestOne() {
-		if (!isReady()) {
+		if (!isReady() || currentValidSupportDef() == null) {
 			return ItemStack.EMPTY;
 		}
 		ItemStack out = product.copy();
@@ -162,7 +178,7 @@ public class TapperBlockEntity extends TimedProductionBlockEntity {
 
 	@Override
 	public ItemStack getAutomationOutput() {
-		return ready ? product : ItemStack.EMPTY;
+		return ready && currentValidSupportDef() != null ? product : ItemStack.EMPTY;
 	}
 
 	@Override
@@ -172,7 +188,7 @@ public class TapperBlockEntity extends TimedProductionBlockEntity {
 
 	@Override
 	public ItemStack extractAutomation(int amount, boolean simulate) {
-		if (!ready || product.isEmpty()) {
+		if (!ready || product.isEmpty() || currentValidSupportDef() == null) {
 			return ItemStack.EMPTY;
 		}
 		ItemStack out = AutomationStackHelper.extractUpTo(product, amount);
@@ -186,6 +202,18 @@ public class TapperBlockEntity extends TimedProductionBlockEntity {
 		setChanged();
 		syncToClient();
 		return out;
+	}
+
+	private WildTrees.Def currentValidSupportDef() {
+		Level currentLevel = level;
+		if (currentLevel == null || currentLevel.isClientSide) {
+			return null;
+		}
+		BlockState state = getBlockState();
+		if (!(state.getBlock() instanceof TapperBlock)) {
+			return null;
+		}
+		return TapperBlock.findValidProductionDef(currentLevel, worldPosition, state);
 	}
 
 	private record Cycle(String treeId, int daysUntilReady) {

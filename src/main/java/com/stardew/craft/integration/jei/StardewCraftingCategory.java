@@ -126,7 +126,7 @@ public class StardewCraftingCategory implements IRecipeCategory<StardewCraftingC
 
             List<ItemStack> inputs = new ArrayList<>();
             for (IngredientEntry ingr : StardewCraftingRecipeData.getIngredientEntries(entry.id())) {
-                ItemStack inStack = ArtisanRecipeCategory.getItemStack(ingr.item());
+                ItemStack inStack = StardewCraftingRecipeData.getDisplayStack(ingr);
                 if (inStack.isEmpty()) continue;
                 if (ingr.count() > 1) {
                     inStack.setCount(ingr.count());

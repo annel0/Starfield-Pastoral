@@ -366,6 +366,14 @@
       }
     ]
   },
+  "dog_bark": {
+    "sounds": [
+      {
+        "name": "stardewcraft:dog_bark",
+        "stream": false
+      }
+    ]
+  },
   "clank": {
     "sounds": [
       { "name": "stardewcraft:clank_000000ad", "stream": false },

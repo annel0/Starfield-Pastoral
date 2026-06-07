@@ -8,10 +8,14 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.FenceBlock;
+import net.minecraft.world.level.block.FenceGateBlock;
+import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.WallBlock;
+import net.minecraft.world.level.block.state.properties.WoodType;
 import net.minecraft.world.level.material.MapColor;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -41,8 +45,23 @@ public class ModBlocks {
         }
 
                 @SuppressWarnings("null")
+                private static DeferredBlock<StairBlock> stairsFromAnyBlock(String name, DeferredBlock<? extends Block> base, Block.Properties props) {
+                return BLOCKS.register(name, () -> new StairBlock(base.get().defaultBlockState(), props));
+        }
+
+                @SuppressWarnings("null")
                 private static DeferredBlock<WallBlock> wall(String name, Block.Properties props) {
                 return BLOCKS.register(name, () -> new WallBlock(props));
+        }
+
+                @SuppressWarnings("null")
+                private static DeferredBlock<FenceBlock> fence(String name, Block.Properties props) {
+                return BLOCKS.register(name, () -> new FenceBlock(props));
+        }
+
+                @SuppressWarnings("null")
+                private static DeferredBlock<FenceGateBlock> fenceGate(String name, Block.Properties props) {
+                return BLOCKS.register(name, () -> new FenceGateBlock(WoodType.OAK, props));
         }
 
         private static final String[] PLACEABLE_COOKING_FOOD_IDS = {
@@ -866,7 +885,7 @@ public class ModBlocks {
     public static final DeferredBlock<Block> WINTER_WILD_SEED_CROP = BLOCKS.register("winter_wild_seed_crop",
             () -> new com.stardew.craft.block.crop.WildSeedCropBlock(3, com.stardew.craft.item.ModItems.WINTER_SEEDS));
 
-    @SuppressWarnings("null")
+        @SuppressWarnings("null")
 public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop",
             () -> new com.stardew.craft.block.crop.DeadCropBlock(Block.Properties.of()
                     .mapColor(net.minecraft.world.level.material.MapColor.PLANT)
@@ -874,6 +893,118 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                     .sound(net.minecraft.world.level.block.SoundType.GRASS)
                     .noCollission()
                     .instabreak()));
+
+        @SuppressWarnings("null")
+        private static Block.Properties newTreeWoodProps() {
+                return Block.Properties.of()
+                                .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                .strength(2.0F, 3.0F);
+        }
+
+        @SuppressWarnings("null")
+        private static DeferredBlock<Block> newTreeRoot(String name) {
+                return BLOCKS.register(name + "_root",
+                                () -> new com.stardew.craft.block.tree.NewTreePartBlock(newTreeWoodProps().noOcclusion(), true));
+        }
+
+        @SuppressWarnings("null")
+        private static DeferredBlock<Block> newTreeLog(String name) {
+                return BLOCKS.register(name + "_log", () -> new RotatedPillarBlock(newTreeWoodProps()));
+        }
+
+        @SuppressWarnings("null")
+        private static DeferredBlock<Block> newTreeLeaves(String name) {
+                return BLOCKS.register(name + "_leaves",
+                                () -> new com.stardew.craft.block.tree.StardewLeavesBlock(Block.Properties.of()
+                                                .mapColor(net.minecraft.world.level.material.MapColor.PLANT)
+                                                .sound(net.minecraft.world.level.block.SoundType.GRASS)
+                                                .strength(0.2F)
+                                                .randomTicks()
+                                                .noOcclusion()));
+        }
+
+        @SuppressWarnings("null")
+        private static DeferredBlock<Block> newTreeBranch(String name) {
+                return BLOCKS.register(name + "_branch",
+                                () -> new com.stardew.craft.block.tree.NewTreePartBlock(newTreeWoodProps().noOcclusion(), true));
+        }
+
+        // 新树系统（与 wild_* 旧树系统并存）
+        public static final DeferredBlock<Block> OAK_ROOT = newTreeRoot("oak");
+        public static final DeferredBlock<Block> OAK_LOG = newTreeLog("oak");
+        public static final DeferredBlock<Block> OAK_LEAVES = newTreeLeaves("oak");
+        public static final DeferredBlock<Block> OAK_BRANCH = newTreeBranch("oak");
+
+        public static final DeferredBlock<Block> MAPLE_ROOT = newTreeRoot("maple");
+        public static final DeferredBlock<Block> MAPLE_LOG = newTreeLog("maple");
+        public static final DeferredBlock<Block> MAPLE_LEAVES = newTreeLeaves("maple");
+        public static final DeferredBlock<Block> MAPLE_BRANCH = newTreeBranch("maple");
+
+        public static final DeferredBlock<Block> PINE_ROOT = newTreeRoot("pine");
+        public static final DeferredBlock<Block> PINE_LOG = newTreeLog("pine");
+        public static final DeferredBlock<Block> PINE_LEAVES = newTreeLeaves("pine");
+        public static final DeferredBlock<Block> PINE_BRANCH = newTreeBranch("pine");
+
+        public static final DeferredBlock<Block> MAHOGANY_ROOT = newTreeRoot("mahogany");
+        public static final DeferredBlock<Block> MAHOGANY_LOG = newTreeLog("mahogany");
+        public static final DeferredBlock<Block> MAHOGANY_LEAVES = newTreeLeaves("mahogany");
+        public static final DeferredBlock<Block> MAHOGANY_BRANCH = newTreeBranch("mahogany");
+
+        public static final DeferredBlock<Block> MYSTIC_TREE_ROOT = newTreeRoot("mystic_tree");
+        public static final DeferredBlock<Block> MYSTIC_TREE_LOG = newTreeLog("mystic_tree");
+        public static final DeferredBlock<Block> MYSTIC_TREE_LEAVES = newTreeLeaves("mystic_tree");
+        public static final DeferredBlock<Block> MYSTIC_TREE_BRANCH = newTreeBranch("mystic_tree");
+
+        private static final String[] NEW_TREE_WOOD_SPECIES = {
+                "oak",
+                "maple",
+                "pine",
+                "mahogany",
+                "mystic_tree"
+        };
+
+        private static final String[] NEW_TREE_PLANK_PATTERNS = {
+                "",
+                "checkerboard_",
+                "fishscale_"
+        };
+
+        private static DeferredBlock<? extends Block> newTreeLogBlock(String species) {
+                return switch (species) {
+                        case "oak" -> OAK_LOG;
+                        case "maple" -> MAPLE_LOG;
+                        case "pine" -> PINE_LOG;
+                        case "mahogany" -> MAHOGANY_LOG;
+                        case "mystic_tree" -> MYSTIC_TREE_LOG;
+                        default -> throw new IllegalArgumentException("Unknown new tree species: " + species);
+                };
+        }
+
+        private static Map<String, DeferredBlock<? extends Block>> registerNewTreeBuildingBlocks() {
+                LinkedHashMap<String, DeferredBlock<? extends Block>> blocks = new LinkedHashMap<>();
+
+                for (String species : NEW_TREE_WOOD_SPECIES) {
+                        for (String pattern : NEW_TREE_PLANK_PATTERNS) {
+                                String baseName = species + "_" + pattern + "planks";
+                                DeferredBlock<Block> planks = BLOCKS.register(baseName, () -> new Block(newTreeWoodProps()));
+                                blocks.put(baseName, planks);
+                                blocks.put(baseName + "_stairs", stairsFromAnyBlock(baseName + "_stairs", planks, newTreeWoodProps()));
+                                blocks.put(baseName + "_slab", slab(baseName + "_slab", newTreeWoodProps()));
+                                blocks.put(baseName + "_fence", fence(baseName + "_fence", newTreeWoodProps()));
+                                blocks.put(baseName + "_fence_gate", fenceGate(baseName + "_fence_gate", newTreeWoodProps()));
+                        }
+
+                        String logBaseName = species + "_log";
+                        DeferredBlock<? extends Block> log = newTreeLogBlock(species);
+                        blocks.put(logBaseName + "_stairs", stairsFromAnyBlock(logBaseName + "_stairs", log, newTreeWoodProps()));
+                        blocks.put(logBaseName + "_slab", slab(logBaseName + "_slab", newTreeWoodProps()));
+                }
+
+                return Collections.unmodifiableMap(blocks);
+        }
+
+        public static final Map<String, DeferredBlock<? extends Block>> NEW_TREE_BUILDING_BLOCKS = registerNewTreeBuildingBlocks();
 
         // 野生树（原型：橡树）
         @SuppressWarnings("null")
@@ -1327,6 +1458,15 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                                                 .strength(2.0F, 6.0F)));
 
                 @SuppressWarnings("null")
+                public static final DeferredBlock<Block> UNCERTAINTY_STATUE = BLOCKS.register("uncertainty_statue",
+                                        () -> new com.stardew.craft.block.decor.UncertaintyStatueBlock(Block.Properties.of()
+                                                                .mapColor(net.minecraft.world.level.material.MapColor.STONE)
+                                                                .sound(net.minecraft.world.level.block.SoundType.STONE)
+                                                                .noOcclusion()
+                                                                .strength(-1.0F, 3600000.0F)
+                                                                .noLootTable()));
+
+                @SuppressWarnings("null")
                 public static final DeferredBlock<Block> ANVIL_MASTERY = BLOCKS.register("anvil_mastery",
                                         () -> new com.stardew.craft.block.mastery.AnvilBlock(Block.Properties.of()
                                                                 .mapColor(net.minecraft.world.level.material.MapColor.METAL)
@@ -1397,6 +1537,32 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                                                         .sound(net.minecraft.world.level.block.SoundType.METAL)
                                                                         .noOcclusion()
                                                                         .strength(1.5F, 3.0F)));
+
+                @SuppressWarnings("null")
+                private static DeferredBlock<Block> specialOrderUtilityBlock(String name, MapColor color, SoundType sound) {
+                                return BLOCKS.register(name, () -> new Block(Block.Properties.of()
+                                                .mapColor(color)
+                                                .sound(sound)
+                                                .noOcclusion()
+                                                .strength(1.5F, 3.0F)));
+                }
+
+                @SuppressWarnings("null")
+                public static final DeferredBlock<Block> SPECIAL_ORDERS_BOARD = BLOCKS.register("special_orders_board",
+                                                () -> new com.stardew.craft.block.decor.SpecialOrdersBoardBlock(Block.Properties.of()
+                                                                .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                                                .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                                                .pushReaction(net.minecraft.world.level.material.PushReaction.BLOCK)
+                                                                .strength(-1.0F, 3600000.0F)
+                                                                .noLootTable()
+                                                                .noOcclusion(),
+                                                                "stardewcraft:decor/special_orders_board"));
+
+                public static final DeferredBlock<Block> GEODE_CRUSHER = specialOrderUtilityBlock("geode_crusher", MapColor.METAL, SoundType.METAL);
+                public static final DeferredBlock<Block> MINI_OBELISK = specialOrderUtilityBlock("mini_obelisk", MapColor.COLOR_PURPLE, SoundType.STONE);
+                public static final DeferredBlock<Block> FARM_COMPUTER = specialOrderUtilityBlock("farm_computer", MapColor.METAL, SoundType.METAL);
+                public static final DeferredBlock<Block> BONE_MILL = specialOrderUtilityBlock("bone_mill", MapColor.TERRACOTTA_WHITE, SoundType.WOOD);
+                public static final DeferredBlock<Block> COFFEE_MAKER = specialOrderUtilityBlock("coffee_maker", MapColor.METAL, SoundType.METAL);
 
 
                 @SuppressWarnings("null")
@@ -1840,7 +2006,15 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
                                         .sound(net.minecraft.world.level.block.SoundType.WOOD)
                                         .noOcclusion()
-                                        .strength(0.2F), "stardewcraft:decor/common/stool", 6.0D / 16.0D));
+                                        .strength(0.2F), "stardewcraft:decor/common/stool", 9.0D / 16.0D));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> IRON_STOOL = BLOCKS.register("iron_stool",
+                        () -> new com.stardew.craft.block.utility.DyeableChairBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.METAL)
+                                        .sound(net.minecraft.world.level.block.SoundType.METAL)
+                                        .noOcclusion()
+                                        .strength(0.2F), "stardewcraft:decor/common/iron_stool", 9.0D / 16.0D));
 
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> DINING_CHAIR_WOOD = BLOCKS.register("dining_chair_wood",

@@ -3,7 +3,10 @@ package com.stardew.craft.player;
 import com.google.gson.Gson;
 import com.stardew.craft.StardewCraft;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -26,7 +29,7 @@ public final class StardewCraftingRecipeData {
     private static final Gson GSON = new Gson();
     private static final String DATA_PATH = "/data/stardewcraft/player/vanilla_crafting_recipes.json";
 
-    public record IngredientEntry(String item, int count) {
+    public record IngredientEntry(String item, String tag, String displayItem, String displayName, int count) {
     }
 
     public record OutputEntry(String item, int count) {
@@ -103,14 +106,14 @@ public final class StardewCraftingRecipeData {
         // SDV parity: Trapper profession reduces crab pot crafting cost
         if (hasTrapper && "crab_pot".equals(id)) {
             return List.of(
-                new IngredientEntry("stardewcraft:wood_normal", 25),
-                new IngredientEntry("stardewcraft:iron_bar", 2)
+                new IngredientEntry("stardewcraft:wood_normal", null, null, null, 25),
+                new IngredientEntry("stardewcraft:iron_bar", null, null, null, 2)
             );
         }
 
         List<IngredientEntry> list = new ArrayList<>();
         for (IngredientEntry entry : recipe.get().ingredients) {
-            if (entry == null || entry.item() == null || entry.item().isBlank() || entry.count() <= 0) {
+            if (entry == null || !hasIngredientTarget(entry) || entry.count() <= 0) {
                 continue;
             }
             list.add(entry);
@@ -132,21 +135,85 @@ public final class StardewCraftingRecipeData {
 
         List<Ingredient> expanded = new ArrayList<>();
         for (IngredientEntry entry : entries) {
-            ResourceLocation itemId = ResourceLocation.tryParse(entry.item());
-            if (itemId == null) {
+            Ingredient ingredient = toIngredient(entry);
+            if (ingredient.isEmpty()) {
                 continue;
             }
-            Item item = BuiltInRegistries.ITEM.get(itemId);
-            if (item == null || item == Items.AIR) {
-                continue;
-            }
-            Ingredient ingredient = Ingredient.of(new ItemStack(item));
             int count = Math.max(1, entry.count());
             for (int i = 0; i < count; i++) {
                 expanded.add(ingredient);
             }
         }
         return expanded;
+    }
+
+    @SuppressWarnings("null")
+    public static Ingredient toIngredient(IngredientEntry entry) {
+        if (entry == null) {
+            return Ingredient.EMPTY;
+        }
+
+        String tagValue = entry.tag() == null ? "" : entry.tag().trim();
+        if (!tagValue.isEmpty()) {
+            ResourceLocation tagId = ResourceLocation.tryParse(tagValue);
+            if (tagId == null) {
+                return Ingredient.EMPTY;
+            }
+            return Ingredient.of(TagKey.create(Registries.ITEM, tagId));
+        }
+
+        String itemValue = entry.item() == null ? "" : entry.item().trim();
+        ResourceLocation itemId = ResourceLocation.tryParse(itemValue);
+        if (itemId == null) {
+            return Ingredient.EMPTY;
+        }
+        Item item = BuiltInRegistries.ITEM.get(itemId);
+        if (item == null || item == Items.AIR) {
+            return Ingredient.EMPTY;
+        }
+        return Ingredient.of(new ItemStack(item));
+    }
+
+    @SuppressWarnings("null")
+    public static ItemStack getDisplayStack(IngredientEntry entry) {
+        if (entry == null) {
+            return ItemStack.EMPTY;
+        }
+        String displayItem = entry.displayItem() == null || entry.displayItem().isBlank()
+                ? entry.item()
+                : entry.displayItem();
+        if (displayItem == null || displayItem.isBlank()) {
+            return ItemStack.EMPTY;
+        }
+        ResourceLocation itemId = ResourceLocation.tryParse(displayItem);
+        if (itemId == null) {
+            return ItemStack.EMPTY;
+        }
+        Item item = BuiltInRegistries.ITEM.get(itemId);
+        if (item == null || item == Items.AIR) {
+            return ItemStack.EMPTY;
+        }
+        int count = Math.max(1, entry.count());
+        return new ItemStack(item, count);
+    }
+
+    public static Component getDisplayName(IngredientEntry entry) {
+        if (entry == null) {
+            return Component.empty();
+        }
+        if (entry.displayName() != null && !entry.displayName().isBlank()) {
+            return Component.translatable(entry.displayName().trim());
+        }
+        ItemStack displayStack = getDisplayStack(entry);
+        if (!displayStack.isEmpty()) {
+            return displayStack.getHoverName().copy();
+        }
+        return Component.empty();
+    }
+
+    private static boolean hasIngredientTarget(IngredientEntry entry) {
+        return (entry.item() != null && !entry.item().isBlank())
+                || (entry.tag() != null && !entry.tag().isBlank());
     }
 
     private static Map<String, RecipeEntry> loadRecipes() {

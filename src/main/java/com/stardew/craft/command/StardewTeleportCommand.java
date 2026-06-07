@@ -1,9 +1,7 @@
 package com.stardew.craft.command;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
-import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModMiningDimensions;
@@ -17,11 +15,8 @@ import com.stardew.craft.mining.MiningPlayerData;
 import com.stardew.craft.network.MiningFloorSyncPacket;
 import com.stardew.craft.network.TimeSyncPacket;
 import com.stardew.craft.time.StardewTimeManager;
-import com.stardew.craft.tree.WildTrees;
 import com.stardew.craft.warp.ModTeleport;
-import com.stardew.craft.tree.preset.TreePresetIO;
 import com.stardew.craft.weather.WeatherManager;
-import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
@@ -31,7 +26,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.neoforged.neoforge.network.PacketDistributor;
 
@@ -94,26 +88,6 @@ public class StardewTeleportCommand {
                         Commands.literal("tp_spawn"),
                         StardewTeleportCommand::teleportToInteriorSpawn))
                 )
-                // 树预制导出
-                .then(Commands.literal("tree")
-                        .requires(source -> source.hasPermission(2))
-                        .then(Commands.literal("preset")
-                                .then(Commands.literal("export")
-                            .then(Commands.argument("name", StringArgumentType.string())
-                                .then(Commands.argument("from", BlockPosArgument.blockPos())
-                                    .then(Commands.argument("to", BlockPosArgument.blockPos())
-                                        .then(Commands.argument("origin", BlockPosArgument.blockPos())
-                                            .executes(ctx -> exportTreePreset(ctx, false))
-                                            .then(Commands.argument("overwrite", BoolArgumentType.bool())
-                                                .executes(ctx -> exportTreePreset(ctx, BoolArgumentType.getBool(ctx, "overwrite")))
-                                            )
-                                        )
-                                    )
-                                )
-                            )
-                                )
-                        )
-                )
                 // 时间管理
                 .then(Commands.literal("time")
                     .requires(source -> source.hasPermission(2))
@@ -165,89 +139,6 @@ public class StardewTeleportCommand {
         );
     }
 
-    @SuppressWarnings("null")
-    private static int exportTreePreset(CommandContext<CommandSourceStack> context, boolean overwrite) {
-        ServerLevel level;
-        try {
-            level = context.getSource().getLevel();
-        } catch (Exception e) {
-            sendFailureMsg(context, "只能在服务器世界中使用该命令");
-            return 0;
-        }
-
-        String rawName = StringArgumentType.getString(context, "name");
-        String fileName = sanitizePresetName(rawName);
-        if (fileName.isBlank()) {
-            sendFailureMsg(context, "name 不能为空");
-            return 0;
-        }
-
-        BlockPos from = BlockPosArgument.getBlockPos(context, "from");
-        BlockPos to = BlockPosArgument.getBlockPos(context, "to");
-        BlockPos origin = BlockPosArgument.getBlockPos(context, "origin");
-
-        // 确保选区相关坐标已加载
-        if (!level.isLoaded(from) || !level.isLoaded(to) || !level.isLoaded(origin)) {
-            sendFailureMsg(context, "from/to/origin 所在区块必须已加载（请先靠近选区再执行）");
-            return 0;
-        }
-
-        @SuppressWarnings("null")
-        BlockState originState = level.getBlockState(origin);
-        WildTrees.Def def = WildTrees.findByTrunk0(originState);
-        if (def == null) {
-            sendFailureMsg(context, "origin 必须是任意野生树的 trunk0 方块（你给的 origin: " + origin + "）");
-            return 0;
-        }
-
-        int minX = Math.min(from.getX(), to.getX());
-        int minY = Math.min(from.getY(), to.getY());
-        int minZ = Math.min(from.getZ(), to.getZ());
-        int maxX = Math.max(from.getX(), to.getX());
-        int maxY = Math.max(from.getY(), to.getY());
-        int maxZ = Math.max(from.getZ(), to.getZ());
-
-        long volume = (long) (maxX - minX + 1) * (long) (maxY - minY + 1) * (long) (maxZ - minZ + 1);
-        if (volume > 200000) {
-            sendFailureMsg(context, "选区太大: " + volume + " 方块（上限 200000），请缩小 from/to");
-            return 0;
-        }
-
-        var preset = com.stardew.craft.tree.preset.TreePresetExporter.export(level, def, from, to, origin, fileName);
-        if (preset == null) {
-            sendFailureMsg(context, "导出失败：选区内没有任何属于该树种的方块");
-            return 0;
-        }
-
-        boolean ok = TreePresetIO.writePreset(fileName, preset, overwrite);
-        if (!ok && !overwrite) {
-            sendFailureMsg(context, "文件已存在，未覆盖：" + TreePresetIO.presetPathByName(fileName).toAbsolutePath() + "（加参数 overwrite=true 可覆盖）");
-            return 0;
-        }
-
-        context.getSource().sendSuccess(
-                () -> Component.literal(
-                        "已导出预制树: " + TreePresetIO.presetPathByName(fileName).toAbsolutePath()
-                                + " | tree=" + def.id() + " | origin=" + origin
-                ),
-                false
-        );
-        return 1;
-    }
-
-    private static String sanitizePresetName(String raw) {
-        if (raw == null) {
-            return "";
-        }
-        String s = raw.trim();
-        // 只允许文件名安全字符，其他全部替换为 _
-        s = s.replaceAll("[^a-zA-Z0-9._-]", "_");
-        if (s.endsWith(".json")) {
-            s = s.substring(0, s.length() - 5);
-        }
-        return s;
-    }
-    
     /**
      * 传送到星露谷维度
      */

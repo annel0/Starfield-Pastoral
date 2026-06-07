@@ -73,7 +73,7 @@ public final class WildTreeShakeEvents {
 		// No UI: just a small physical feedback so the player can tell it worked.
 		player.swing(event.getHand(), true);
 		level.playSound(null, trunk0Pos, SoundEvents.AZALEA_LEAVES_HIT, SoundSource.BLOCKS, 0.6F, 1.0F);
-		BlockState leafState = def.leaves().get().defaultBlockState();
+		BlockState leafState = def.isModernPart(state) ? def.modernLeaves().get().defaultBlockState() : def.leaves().get().defaultBlockState();
 		level.sendParticles(
 				new BlockParticleOption(ParticleTypes.BLOCK, leafState),
 				trunk0Pos.getX() + 0.5,
@@ -93,6 +93,12 @@ public final class WildTreeShakeEvents {
 	private static BlockPos findBaseTrunk0(ServerLevel level, BlockPos clickedPos, WildTrees.Def def) {
 		@SuppressWarnings("null")
 		BlockState state = level.getBlockState(clickedPos);
+		if (def.isModernRoot(state)) {
+			return clickedPos;
+		}
+		if (def.isModernLog(state)) {
+			return WildTrees.findModernRootFromLog(level, clickedPos, def);
+		}
 		if (state.getBlock() == def.trunk0().get()) {
 			return clickedPos;
 		}
@@ -113,7 +119,8 @@ public final class WildTreeShakeEvents {
 					if (!level.isLoaded(p)) {
 						continue;
 					}
-					if (level.getBlockState(p).getBlock() != def.trunk0().get()) {
+					BlockState nearbyState = level.getBlockState(p);
+					if (nearbyState.getBlock() != def.trunk0().get() && !def.isModernRoot(nearbyState)) {
 						continue;
 					}
 					int dist = Math.abs(dx) + Math.abs(dy) + Math.abs(dz);

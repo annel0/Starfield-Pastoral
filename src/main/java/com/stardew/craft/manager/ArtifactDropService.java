@@ -215,9 +215,7 @@ public final class ArtifactDropService {
                         drops.add(parseDropEntry(dropElement.getAsJsonObject()));
                     }
                 }
-                if (!"Default".equals(entry.getKey())) {
-                    LOCATION_DROPS.put(entry.getKey(), List.copyOf(drops));
-                }
+                LOCATION_DROPS.put(entry.getKey(), List.copyOf(drops));
             }
             buildMixedOutdoorDropTable();
         } catch (Exception exception) {
@@ -245,7 +243,6 @@ public final class ArtifactDropService {
         }
 
         List<DropEntry> mixedDrops = new ArrayList<>();
-        mixedDrops.add(SYNTHETIC_RANDOM_ARTIFACT_DROP);
         for (Map.Entry<String, DropEntry> entry : prototypes.entrySet()) {
             DropEntry prototype = entry.getValue();
             double averageChance = mergedChances.getOrDefault(entry.getKey(), 0.0)
@@ -504,8 +501,13 @@ public final class ArtifactDropService {
 
     private static List<DropEntry> dropsForGroup(String dropGroup) {
         List<DropEntry> drops = new ArrayList<>();
-        drops.add(SYNTHETIC_RANDOM_ARTIFACT_DROP);
-        List<DropEntry> locDrops = LOCATION_DROPS.get(dropGroup);
+        List<DropEntry> defaultDrops = LOCATION_DROPS.get(DEFAULT_LOCATION);
+        if (defaultDrops == null || defaultDrops.isEmpty()) {
+            drops.add(SYNTHETIC_RANDOM_ARTIFACT_DROP);
+        } else {
+            drops.addAll(defaultDrops);
+        }
+        List<DropEntry> locDrops = DEFAULT_LOCATION.equals(dropGroup) ? null : LOCATION_DROPS.get(dropGroup);
         if (locDrops != null) {
             for (DropEntry drop : locDrops) {
                 if (!"RANDOM_ARTIFACT_FOR_DIG_SPOT".equals(drop.id)) {

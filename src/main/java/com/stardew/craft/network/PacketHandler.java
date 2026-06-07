@@ -294,15 +294,33 @@ public class PacketHandler {
         );
 
         registrar.playToClient(
+            com.stardew.craft.network.payload.SpecialOrderDropBoxHintPayload.TYPE,
+            com.stardew.craft.network.payload.SpecialOrderDropBoxHintPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.SpecialOrderDropBoxHintPayload::handle
+        );
+
+        registrar.playToClient(
             com.stardew.craft.network.payload.OpenDwarfStatueChoicePayload.TYPE,
             com.stardew.craft.network.payload.OpenDwarfStatueChoicePayload.STREAM_CODEC,
             com.stardew.craft.network.payload.OpenDwarfStatueChoicePayload::handle
+        );
+
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenUncertaintyStatuePayload.TYPE,
+            com.stardew.craft.network.payload.OpenUncertaintyStatuePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenUncertaintyStatuePayload::handle
         );
 
         registrar.playToServer(
             com.stardew.craft.network.payload.ChooseDwarfStatueBuffPayload.TYPE,
             com.stardew.craft.network.payload.ChooseDwarfStatueBuffPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.ChooseDwarfStatueBuffPayload::handle
+        );
+
+        registrar.playToServer(
+            com.stardew.craft.network.payload.UncertaintyStatueResponsePayload.TYPE,
+            com.stardew.craft.network.payload.UncertaintyStatueResponsePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.UncertaintyStatueResponsePayload::handle
         );
 
 		registrar.playToClient(

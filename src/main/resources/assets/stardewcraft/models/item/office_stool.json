@@ -1,6 +1,6 @@
 {
     "parent":  "stardewcraft:block/utility/office_stool_item",
     "textures":  {
-                     "particle":  "stardewcraft:block/decor/common/office_stool_base"
+                     "particle":  "stardewcraft:block/decor/common/office_stool_tint"
                  }
 }

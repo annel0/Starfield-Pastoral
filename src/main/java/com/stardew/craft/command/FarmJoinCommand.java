@@ -2,6 +2,7 @@ package com.stardew.craft.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
+import com.stardew.craft.core.ModGameRules;
 import com.stardew.craft.farm.FarmInstance;
 import com.stardew.craft.farm.FarmInstanceRegistry;
 import com.stardew.craft.farm.FarmJoinManager;
@@ -129,8 +130,9 @@ public class FarmJoinCommand {
 
         // 也加入真实已有的农场（如果有的话）
         FarmInstanceRegistry registry = FarmInstanceRegistry.get();
+        int maxFarmers = ModGameRules.getMaxFarmersPerFarm(player.server);
         for (FarmInstance farm : registry.getAllFarms()) {
-            if (farm.isInitialized() && farm.getFarmerCount() < FarmInstance.MAX_FARMERS) {
+            if (farm.isInitialized() && farm.getFarmerCount() < maxFarmers) {
                 mockFarms.add(new FarmListSyncPayload.FarmEntry(
                         farm.getOwnerUUID(), farm.getOwnerName(), farm.getFarmName(),
                         farm.getFarmType().getId(), 0, false));
@@ -196,13 +198,15 @@ public class FarmJoinCommand {
 
         UUID fakeUUID = UUID.randomUUID();
         if (!registry.addMember(player.getUUID(), fakeUUID)) {
-            player.sendSystemMessage(Component.literal("§c[DEBUG] 添加失败（农场已满，最多4人）"));
+            int maxFarmers = ModGameRules.getMaxFarmersPerFarm(player.server);
+            player.sendSystemMessage(Component.literal("§c[DEBUG] 添加失败（农场已满，最多" + maxFarmers + "人）"));
             return 0;
         }
 
+        int maxFarmers = ModGameRules.getMaxFarmersPerFarm(player.server);
         player.sendSystemMessage(Component.literal(
                 "§a[DEBUG] 已添加假成员 " + fakeUUID.toString().substring(0, 8) + "... 当前 "
-                        + farm.getFarmerCount() + "/" + FarmInstance.MAX_FARMERS + " 人"));
+                        + farm.getFarmerCount() + "/" + maxFarmers + " 人"));
         return 1;
     }
 
@@ -217,8 +221,9 @@ public class FarmJoinCommand {
             return 0;
         }
 
+        int maxFarmers = ModGameRules.getMaxFarmersPerFarm(player.server);
         player.sendSystemMessage(Component.literal("§6═══ 农场成员 (" + farm.getFarmerCount()
-                + "/" + FarmInstance.MAX_FARMERS + ") ═══"));
+                + "/" + maxFarmers + ") ═══"));
         player.sendSystemMessage(Component.literal("§a★ 主人: " + farm.getOwnerName()
                 + " §7(" + farm.getOwnerUUID().toString().substring(0, 8) + "...)"));
         int i = 1;

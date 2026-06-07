@@ -28,7 +28,7 @@ public class OfficeChair2Block extends MapUtilityStaticBlock implements EntityBl
         registerDefaultState(defaultBlockState()
             .setValue(PART, Part.MAIN)
             .setValue(FACING, Direction.NORTH)
-            .setValue(COLOR, 0));
+            .setValue(COLOR, WoodenChestColorPalette.defaultColorIndex()));
     }
 
     @Override

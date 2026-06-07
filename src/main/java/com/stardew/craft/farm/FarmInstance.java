@@ -30,7 +30,7 @@ public class FarmInstance {
     private int graceDaysLeft;
     /** 洞穴类型选择（对齐 SDV Farmer.caveChoice） */
     private FarmCaveChoice caveChoice = FarmCaveChoice.NONE;
-    /** 农场成员 UUID 列表（不含 owner，最多 3 人，加上 owner 共 4 人） */
+    /** 农场成员 UUID 列表（不含 owner）。容量由 gamerule stardewMaxFarmersPerFarm 控制。 */
     private final List<UUID> members = new ArrayList<>();
 
     public FarmInstance(UUID ownerUUID, String ownerName, String farmName,
@@ -81,8 +81,6 @@ public class FarmInstance {
     /** 农场当前人数（owner + members） */
     public int getFarmerCount() { return 1 + members.size(); }
 
-    public static final int MAX_FARMERS = 4;
-
     // ── Setters (mutable fields) ──
 
     public void setFarmName(String farmName) { this.farmName = farmName; }
@@ -95,9 +93,9 @@ public class FarmInstance {
     public void setCaveChoice(FarmCaveChoice choice) { this.caveChoice = (choice == null ? FarmCaveChoice.NONE : choice); }
 
     /** 添加成员。返回 false 如果已满或已存在。 */
-    public boolean addMember(UUID uuid) {
+    public boolean addMember(UUID uuid, int maxFarmers) {
         if (isFarmer(uuid)) return false;
-        if (getFarmerCount() >= MAX_FARMERS) return false;
+        if (getFarmerCount() >= Math.max(1, maxFarmers)) return false;
         members.add(uuid);
         return true;
     }

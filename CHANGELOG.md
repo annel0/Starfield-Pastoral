@@ -1,5 +1,59 @@
 # Changelog
 
+## 0.4.6-fix1 - 2026-06-08
+
+### Update Log (English)
+
+#### Tree and Wood Update
+
+- Added the new Stardew tree block set for oak, maple, pine, mahogany, and mystic trees, including root, log, leaves, branch, item model, loot table, and tag resources.
+- Replaced the old static tree-preset data path with the new procedural Stardew tree generation flow, including improved footprint handling and legacy tree migration support.
+- Updated mystic tree wood textures with the selected muted gray-purple G2 treatment so mystic roots, logs, and branches no longer share the plain mahogany look.
+
+#### Wood Building Blocks
+
+- Added 15 plank variants across the five tree species: normal planks, checkerboard planks, and fish-scale planks.
+- Added stairs, slabs, fences, and fence gates for every plank variant, plus log-side stairs and slabs for each tree species.
+- Added the new wood building blocks to the Stardew creative tab and Minecraft-compatible plank, wooden stairs, wooden slabs, fence, fence gate, and axe-mining tags.
+- Fixed the generated stair blockstates to match vanilla stair rotation data, covering straight, inner, outer, top, and bottom stair shapes correctly.
+
+#### Crafting and Compatibility
+
+- Added vanilla crafting recipes so each new log crafts into four matching planks, and the new planks craft into their building variants.
+- Moved generic log-to-wood and stone-to-stone conversion into the Stardew crafting menu with “Any Log” and “Any Stone” ingredient display support.
+- Improved Stardew crafting data so tagged ingredients can be consumed correctly and shown with custom display names in the crafting UI and JEI.
+- Updated tree and leaf rendering compatibility so Stardew tree leaves use the intended cutout presentation.
+
+#### Changes
+
+- Updated the public mod version to `0.4.6-fix1`.
+
+### 更新日志（中文）
+
+#### 树木与木材更新
+
+- 加入新的星露谷树木方块套件，覆盖橡树、枫树、松树、桃花心木和神秘树的树根、原木、树叶、树枝、物品模型、掉落表和标签资源。
+- 将旧的静态树 preset 数据路径替换为新的程序化星露谷树木生成流程，并补上占地处理与旧树迁移支持。
+- 按已选的 G2 灰紫方案更新神秘树木质贴图，让神秘树树根、原木和树枝不再直接沿用桃花心木观感。
+
+#### 木制建筑方块
+
+- 加入五个树种共 15 种木板变体：普通木板、棋盘格木板和鱼鳞木板。
+- 为每种木板补齐楼梯、台阶、栅栏和栅栏门，并为每个树种加入使用原木侧面贴图的原木楼梯与原木台阶。
+- 将新木制建筑方块加入星露谷创造物品栏，并接入 Minecraft 兼容的木板、木楼梯、木台阶、栅栏、栅栏门和斧头挖掘标签。
+- 修复生成楼梯方块状态时的旋转表错误，现在直楼梯、内角、外角、上半砖和下半砖形态都对齐原版楼梯数据。
+
+#### 制作与兼容
+
+- 加入原版合成配方：每种新原木可以合成 4 个对应普通木板，新木板可以继续合成对应建筑变体。
+- 将通用原木转木材、石头转石头迁移到星露谷制作菜单，并支持“任意原木”和“任意石头”的材料显示。
+- 改进星露谷制作数据，让标签材料可以被正确消耗，并能在制作界面和 JEI 中显示自定义材料名称。
+- 更新树木和树叶渲染兼容处理，让星露谷树叶按预期使用 cutout 透明表现。
+
+#### 变更
+
+- 项目公开版本号更新为 `0.4.6-fix1`。
+
 ## 0.4.6 - 2026-06-02
 
 ### Update Log (English)

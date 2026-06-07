@@ -624,6 +624,15 @@ public class PlayerStardewDataAPI {
         return changed;
     }
 
+    public static boolean respecProfessionsForSkill(ServerPlayer player, SkillType skill) {
+        PlayerStardewData data = getData(player);
+        boolean changed = data.respecProfessionsForSkill(skill);
+        if (changed) {
+            PlayerDataEventHandler.syncPlayerData(player, data);
+        }
+        return changed;
+    }
+
     /**
      * 选择当前待处理职业
      */

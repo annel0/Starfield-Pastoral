@@ -6,6 +6,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -20,7 +21,7 @@ import javax.annotation.Nullable;
 import java.util.Objects;
 
 /**
- * 直接采集矿物节点：空手右键可拾取，左键可正常破坏。
+ * 直接采集矿物节点：右键可拾取，左键可正常破坏。
  */
 public class MineralNodeBlock extends Block {
     public static final BooleanProperty PLACED_BY_PLAYER = BooleanProperty.create("placed_by_player");
@@ -47,10 +48,22 @@ public class MineralNodeBlock extends Block {
                                                @Nonnull BlockPos pos,
                                                @Nonnull Player player,
                                                @Nonnull BlockHitResult hitResult) {
-        if (!player.getItemInHand(InteractionHand.MAIN_HAND).isEmpty()) {
-            return InteractionResult.PASS;
-        }
+        return pickNode(state, level, pos, player);
+    }
 
+    @Override
+    protected ItemInteractionResult useItemOn(@Nonnull ItemStack stack,
+                                              @Nonnull BlockState state,
+                                              @Nonnull Level level,
+                                              @Nonnull BlockPos pos,
+                                              @Nonnull Player player,
+                                              @Nonnull InteractionHand hand,
+                                              @Nonnull BlockHitResult hitResult) {
+        pickNode(state, level, pos, player);
+        return ItemInteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    private InteractionResult pickNode(BlockState state, Level level, BlockPos pos, Player player) {
         if (!level.isClientSide) {
             ItemStack stack = new ItemStack(Objects.requireNonNull(this.asItem()));
             if (!player.addItem(stack)) {

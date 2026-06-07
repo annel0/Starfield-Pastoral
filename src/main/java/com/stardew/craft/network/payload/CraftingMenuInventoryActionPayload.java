@@ -24,6 +24,7 @@ public record CraftingMenuInventoryActionPayload(int action, int slotIndex, bool
     public static final int ACTION_SHIFT_CLICK_SLOT = 3;
     public static final int ACTION_DRAG_DISTRIBUTE = 4;
     public static final int ACTION_DOUBLE_CLICK_COLLECT = 5;
+    public static final int ACTION_SHIFT_RIGHT_CLICK_SLOT = 6;
 
     public CraftingMenuInventoryActionPayload(int action, int slotIndex, boolean rightClick) {
         this(action, slotIndex, rightClick, new int[0]);
@@ -57,12 +58,13 @@ public record CraftingMenuInventoryActionPayload(int action, int slotIndex, bool
             }
 
             switch (payload.action) {
-                case ACTION_CLICK_SLOT -> handleClickSlot(player, payload.slotIndex, payload.rightClick);
+                case ACTION_CLICK_SLOT -> handleClickSlot(player, payload.slotIndex, payload.rightClick, false);
                 case ACTION_TRASH_CARRIED -> trashCarried(player);
                 case ACTION_DROP_CARRIED -> dropCarried(player);
                 case ACTION_SHIFT_CLICK_SLOT -> handleShiftClickSlot(player, payload.slotIndex);
                 case ACTION_DRAG_DISTRIBUTE -> handleDragDistribute(player, payload.slots, payload.rightClick);
                 case ACTION_DOUBLE_CLICK_COLLECT -> handleDoubleClickCollect(player, payload.slotIndex);
+                case ACTION_SHIFT_RIGHT_CLICK_SLOT -> handleClickSlot(player, payload.slotIndex, true, true);
                 default -> {
                 }
             }
@@ -89,7 +91,7 @@ public record CraftingMenuInventoryActionPayload(int action, int slotIndex, bool
         return result;
     }
 
-    private static void handleClickSlot(ServerPlayer player, int slotIndex, boolean rightClick) {
+    private static void handleClickSlot(ServerPlayer player, int slotIndex, boolean rightClick, boolean splitStack) {
         Inventory inv = player.getInventory();
         if (slotIndex < 0 || slotIndex >= inv.items.size()) {
             return;
@@ -140,7 +142,7 @@ public record CraftingMenuInventoryActionPayload(int action, int slotIndex, bool
                 if (slotStack.isEmpty()) {
                     return;
                 }
-                int take = (slotStack.getCount() + 1) / 2;
+                int take = splitStack ? (slotStack.getCount() + 1) / 2 : 1;
                 ItemStack picked = slotStack.copyWithCount(take);
                 slotStack.shrink(take);
                 inv.setItem(slotIndex, slotStack.isEmpty() ? ItemStack.EMPTY : slotStack);

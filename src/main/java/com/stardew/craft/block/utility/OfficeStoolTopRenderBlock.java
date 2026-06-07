@@ -11,7 +11,7 @@ public class OfficeStoolTopRenderBlock extends Block {
 
     public OfficeStoolTopRenderBlock(Properties properties) {
         super(properties);
-        registerDefaultState(defaultBlockState().setValue(COLOR, 0));
+        registerDefaultState(defaultBlockState().setValue(COLOR, WoodenChestColorPalette.defaultColorIndex()));
     }
 
     @Override

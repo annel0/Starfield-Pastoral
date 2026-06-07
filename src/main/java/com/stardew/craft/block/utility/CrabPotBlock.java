@@ -9,7 +9,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Containers;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -151,6 +153,18 @@ public class CrabPotBlock extends Block implements EntityBlock, SimpleWaterlogge
 			level.scheduleTick(pos, (Fluid) Fluids.WATER, Fluids.WATER.getTickDelay(level));
 		}
 		return super.updateShape(state, direction, neighborState, level, pos, neighborPos);
+	}
+
+	@SuppressWarnings("null")
+	@Override
+	protected ItemInteractionResult useItemOn(@SuppressWarnings("null") ItemStack stack, @SuppressWarnings("null") BlockState state,
+			@SuppressWarnings("null") Level level, @SuppressWarnings("null") BlockPos pos,
+			@SuppressWarnings("null") Player player, @SuppressWarnings("null") InteractionHand hand,
+			@SuppressWarnings("null") BlockHitResult hit) {
+		InteractionResult result = useWithoutItem(state, level, pos, player, hit);
+		return result.consumesAction()
+				? ItemInteractionResult.sidedSuccess(level.isClientSide)
+				: ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
 	}
 
 	@SuppressWarnings("null")

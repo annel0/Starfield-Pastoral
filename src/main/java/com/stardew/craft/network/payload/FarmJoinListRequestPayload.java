@@ -1,6 +1,7 @@
 package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.core.ModGameRules;
 import com.stardew.craft.farm.FarmInstance;
 import com.stardew.craft.farm.FarmInstanceRegistry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -48,10 +49,11 @@ public record FarmJoinListRequestPayload() implements CustomPacketPayload {
             }
 
             // 构建可加入农场列表（已初始化且未满的农场）
+            int maxFarmers = ModGameRules.getMaxFarmersPerFarm(player.server);
             List<FarmListSyncPayload.FarmEntry> entries = new ArrayList<>();
             for (FarmInstance farm : registry.getAllFarms()) {
                 if (!farm.isInitialized()) continue;
-                if (farm.getFarmerCount() >= FarmInstance.MAX_FARMERS) continue;
+                if (farm.getFarmerCount() >= maxFarmers) continue;
                 entries.add(new FarmListSyncPayload.FarmEntry(
                         farm.getOwnerUUID(),
                         farm.getOwnerName(),

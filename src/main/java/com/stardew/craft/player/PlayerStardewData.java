@@ -1303,6 +1303,35 @@ public class PlayerStardewData {
         return true;
     }
 
+    public boolean canRespecProfessions(SkillType skill) {
+        return skill != null
+            && getRawSkillLevel(skill) >= 5
+            && !hasPendingProfessionChoice(skill, 5)
+            && !hasPendingProfessionChoice(skill, 10);
+    }
+
+    public boolean respecProfessionsForSkill(SkillType skill) {
+        if (!canRespecProfessions(skill)) {
+            return false;
+        }
+
+        boolean changed = false;
+        List<Integer> copy = new ArrayList<>(professions);
+        for (int professionId : copy) {
+            ProfessionType profession = ProfessionType.fromId(professionId);
+            if (profession != null && profession.getSkillType() == skill
+                    && professions.remove(Integer.valueOf(professionId))) {
+                revertProfessionEffect(profession);
+                changed = true;
+            }
+        }
+
+        pendingProfessionChoices.removeIf(prompt -> prompt.skill() == skill);
+        pendingProfessionChoices.add(new ProfessionChoicePrompt(skill, 5));
+        markDirty();
+        return true;
+    }
+
     public List<ProfessionChoicePrompt> getPendingProfessionChoices() {
         return new ArrayList<>(pendingProfessionChoices);
     }

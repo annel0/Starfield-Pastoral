@@ -152,6 +152,10 @@ public class PlayerDataEventHandler {
                 // 精通山洞站点（门/讲台/蜡烛/展示实体/interaction）（老存档升级兼容）
                 com.stardew.craft.mastery.MasterySiteInstaller.get(player.serverLevel())
                         .ensurePlaced(player.serverLevel());
+                com.stardew.craft.statue.UncertaintyStatueInstaller.get(player.serverLevel())
+                        .ensurePlaced(player.serverLevel());
+                com.stardew.craft.specialorder.SpecialOrderBoardInstaller.get(player.serverLevel())
+                        .ensurePlaced(player.serverLevel());
             }
 
             // 多人农场：离线追赶——批量推进离线期间的作物/树苗生长

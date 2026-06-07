@@ -11,7 +11,7 @@ public class OfficeChair2TopRenderBlock extends Block {
 
     public OfficeChair2TopRenderBlock(Properties properties) {
         super(properties);
-        registerDefaultState(defaultBlockState().setValue(COLOR, 0));
+        registerDefaultState(defaultBlockState().setValue(COLOR, WoodenChestColorPalette.defaultColorIndex()));
     }
 
     @Override

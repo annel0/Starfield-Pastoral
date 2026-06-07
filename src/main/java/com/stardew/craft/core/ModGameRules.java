@@ -1,5 +1,6 @@
 package com.stardew.craft.core;
 
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.GameRules;
 
 /**
@@ -7,6 +8,7 @@ import net.minecraft.world.level.GameRules;
  * 用 /gamerule 命令设置，与原版 gamerule 体验一致。
  */
 public final class ModGameRules {
+    public static final int DEFAULT_MAX_FARMERS_PER_FARM = 4;
 
     /**
      * 星露谷维度中需要多少百分比的玩家睡觉才能过夜。
@@ -38,7 +40,23 @@ public final class ModGameRules {
                     GameRules.Category.PLAYER,
                     GameRules.IntegerValue.create(3));
 
+    /**
+     * 每个农场最多允许多少名玩家（owner + members）。
+     * 默认 4，对齐星露谷常规多人上限。小于 1 的设置会按 1 处理。
+     */
+    public static final GameRules.Key<GameRules.IntegerValue> RULE_STARDEW_MAX_FARMERS_PER_FARM =
+            GameRules.register("stardewMaxFarmersPerFarm",
+                    GameRules.Category.PLAYER,
+                    GameRules.IntegerValue.create(DEFAULT_MAX_FARMERS_PER_FARM));
+
     private ModGameRules() {}
+
+    public static int getMaxFarmersPerFarm(MinecraftServer server) {
+        if (server == null) {
+            return DEFAULT_MAX_FARMERS_PER_FARM;
+        }
+        return Math.max(1, server.getGameRules().getInt(RULE_STARDEW_MAX_FARMERS_PER_FARM));
+    }
 
     /** 在 mod 初始化时调用，触发静态字段注册 */
     public static void init() {

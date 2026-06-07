@@ -1,6 +1,7 @@
 package com.stardew.craft.farm;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.core.ModGameRules;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -111,7 +112,7 @@ public class FarmInstanceRegistry extends SavedData {
         FarmInstance farm = instances.get(ownerUUID);
         if (farm == null) return false;
         if (hasFarm(memberUUID)) return false; // 已有农场（拥有或加入）
-        if (!farm.addMember(memberUUID)) return false;
+        if (!farm.addMember(memberUUID, maxFarmersPerFarm())) return false;
         memberToOwner.put(memberUUID, ownerUUID);
         setDirty();
         StardewCraft.LOGGER.info("[FARM_REGISTRY] Added member {} to {}'s farm", memberUUID, ownerUUID);
@@ -238,14 +239,15 @@ public class FarmInstanceRegistry extends SavedData {
         transferred.setLastOnlineSeason(farm.getLastOnlineSeason());
 
         // 迁移成员列表（排除新 owner 如果之前是成员）
+        int maxFarmers = maxFarmersPerFarm();
         for (UUID member : farm.getMembers()) {
             if (!member.equals(toUUID)) {
-                transferred.addMember(member);
+                transferred.addMember(member, maxFarmers);
             }
         }
         // 旧 owner 成为成员（如果还有空位且不是被删除的情况）
-        if (!fromUUID.equals(toUUID) && transferred.getFarmerCount() < FarmInstance.MAX_FARMERS) {
-            transferred.addMember(fromUUID);
+        if (!fromUUID.equals(toUUID) && transferred.getFarmerCount() < maxFarmers) {
+            transferred.addMember(fromUUID, maxFarmers);
         }
 
         instances.put(toUUID, transferred);
@@ -352,5 +354,9 @@ public class FarmInstanceRegistry extends SavedData {
 
     public static SavedData.Factory<FarmInstanceRegistry> factory() {
         return new SavedData.Factory<>(FarmInstanceRegistry::new, FarmInstanceRegistry::load);
+    }
+
+    private static int maxFarmersPerFarm() {
+        return ModGameRules.getMaxFarmersPerFarm(ServerLifecycleHooks.getCurrentServer());
     }
 }

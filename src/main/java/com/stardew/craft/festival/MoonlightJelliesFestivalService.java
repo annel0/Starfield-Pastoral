@@ -70,6 +70,7 @@ public final class MoonlightJelliesFestivalService {
     private static final AABB ENTRY_EXIT_BOUNDS = inclusiveBox(new BlockPos(20, 68, 95), new BlockPos(157, 59, 172));
     private static final AABB PIERRE_SHOP_ZONE = inclusiveBox(new BlockPos(27, 63, 98), new BlockPos(33, 60, 102));
     private static final AABB JELLY_WATER_BOUNDS = inclusiveBox(new BlockPos(9, 59, 135), new BlockPos(151, 59, 217));
+    private static final Vec3 SAFE_ENTRY_RETURN = new Vec3(30.5D, 60.0D, 100.5D);
     private static final BlockPos BOAT_LANTERN_START = new BlockPos(49, 60, 156);
     private static final Vec3 BOAT_START = new Vec3(BOAT_LANTERN_START.getX() + 0.5D, BOAT_LANTERN_START.getY(), BOAT_LANTERN_START.getZ() + 0.5D);
     private static final Vec3 BOAT_END = new Vec3(BOAT_START.x, BOAT_START.y, BOAT_START.z + 8.0D);
@@ -459,6 +460,7 @@ public final class MoonlightJelliesFestivalService {
         if (!isInsideEntryBounds(target)) {
             target = pushInsideEntry(player.position());
         }
+        target = safeInsideEntryTarget(player, target);
         ModTeleport.to(player, player.serverLevel(), target.x, target.y, target.z, player.getYRot(), player.getXRot());
         player.setDeltaMovement(Vec3.ZERO);
         player.fallDistance = 0.0F;
@@ -506,11 +508,12 @@ public final class MoonlightJelliesFestivalService {
 
     private static void moveToLastOutsideEntry(ServerLevel level, ServerPlayer player) {
         Vec3 target = LAST_OUTSIDE_ENTRY.get(player.getUUID());
-        if (isInsideEntryBounds(target)) {
-            target = null;
-        }
-        if (target == null) {
+        if (isInsideEntryBounds(target) || target == null) {
             target = pushOutsideEntry(player.position());
+        }
+        Vec3 safeTarget = FestivalBoundaryReturn.findSafeOutside(player, ENTRY_EXIT_BOUNDS, target);
+        if (safeTarget != null) {
+            target = safeTarget;
         }
         ModTeleport.to(player, level, target.x, target.y, target.z, player.getYRot(), player.getXRot());
         player.setDeltaMovement(Vec3.ZERO);
@@ -523,6 +526,7 @@ public final class MoonlightJelliesFestivalService {
         if (!isInsideEntryBounds(target)) {
             target = pushInsideEntry(player.position());
         }
+        target = safeInsideEntryTarget(player, target);
         ModTeleport.to(player, level, target.x, target.y, target.z, player.getYRot(), player.getXRot());
         player.setDeltaMovement(Vec3.ZERO);
         player.fallDistance = 0.0F;
@@ -530,31 +534,19 @@ public final class MoonlightJelliesFestivalService {
     }
 
     private static Vec3 pushOutsideEntry(Vec3 current) {
-        double x = current.x;
-        double y = current.y;
-        double z = current.z;
-        double left = Math.abs(x - ENTRY_EXIT_BOUNDS.minX);
-        double right = Math.abs(ENTRY_EXIT_BOUNDS.maxX - x);
-        double north = Math.abs(z - ENTRY_EXIT_BOUNDS.minZ);
-        double south = Math.abs(ENTRY_EXIT_BOUNDS.maxZ - z);
-        double nearest = Math.min(Math.min(left, right), Math.min(north, south));
-        if (nearest == left) {
-            x = ENTRY_EXIT_BOUNDS.minX - 0.25D;
-        } else if (nearest == right) {
-            x = ENTRY_EXIT_BOUNDS.maxX + 0.25D;
-        } else if (nearest == north) {
-            z = ENTRY_EXIT_BOUNDS.minZ - 0.25D;
-        } else {
-            z = ENTRY_EXIT_BOUNDS.maxZ + 0.25D;
-        }
-        return new Vec3(x, y, z);
+        return FestivalBoundaryReturn.pushOutside(ENTRY_EXIT_BOUNDS, current);
     }
 
     private static Vec3 pushInsideEntry(Vec3 current) {
-        double x = clamp(current.x, ENTRY_EXIT_BOUNDS.minX + 0.25D, ENTRY_EXIT_BOUNDS.maxX - 0.25D);
-        double y = clamp(current.y, ENTRY_EXIT_BOUNDS.minY + 0.1D, ENTRY_EXIT_BOUNDS.maxY - 1.0D);
-        double z = clamp(current.z, ENTRY_EXIT_BOUNDS.minZ + 0.25D, ENTRY_EXIT_BOUNDS.maxZ - 0.25D);
-        return new Vec3(x, y, z);
+        return FestivalBoundaryReturn.pushInside(ENTRY_EXIT_BOUNDS, current);
+    }
+
+    private static Vec3 safeInsideEntryTarget(ServerPlayer player, Vec3 preferred) {
+        Vec3 target = FestivalBoundaryReturn.findSafeInside(player, ENTRY_EXIT_BOUNDS, preferred, SAFE_ENTRY_RETURN);
+        if (target != null) {
+            return target;
+        }
+        return pushInsideEntry(SAFE_ENTRY_RETURN);
     }
 
     private static boolean isInsideEntryBounds(Vec3 position) {

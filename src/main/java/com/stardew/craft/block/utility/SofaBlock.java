@@ -44,7 +44,7 @@ public class SofaBlock extends Block {
             .setValue(FACING, Direction.NORTH)
             .setValue(LEFT_CONNECTED, false)
             .setValue(RIGHT_CONNECTED, false)
-            .setValue(COLOR, 0));
+            .setValue(COLOR, WoodenChestColorPalette.defaultColorIndex()));
     }
 
     @Override
@@ -76,7 +76,7 @@ public class SofaBlock extends Block {
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         Direction facing = context.getHorizontalDirection().getOpposite();
-        int color = 0;
+        int color = WoodenChestColorPalette.defaultColorIndex();
         BlockState hitState = context.getLevel().getBlockState(context.getClickedPos());
         if (hitState.getBlock() instanceof SofaBlock) {
             color = hitState.getValue(COLOR);

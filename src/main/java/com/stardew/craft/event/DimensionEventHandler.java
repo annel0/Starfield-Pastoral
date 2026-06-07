@@ -314,6 +314,7 @@ public class DimensionEventHandler {
             com.stardew.craft.sewer.SewerAccessManager.get(stardewLevel).resetForMigration();
             com.stardew.craft.minecart.MinecartStationManager.get(stardewLevel).resetForMigration();
             com.stardew.craft.mastery.MasterySiteInstaller.get(stardewLevel).resetForMigration();
+            com.stardew.craft.statue.UncertaintyStatueInstaller.get(stardewLevel).resetForMigration();
             // 采石场初始石头也在 pregen region 范围内，覆盖后需重新铺
             com.stardew.craft.manager.QuarrySpawnService.resetInitialSpawn(stardewLevel);
 
@@ -749,9 +750,10 @@ public class DimensionEventHandler {
                 ServerLevel sdv = server.getLevel(ModDimensions.STARDEW_VALLEY);
                 if (sdv != null) {
                     com.stardew.craft.mastery.MasterySiteInstaller.get(sdv).ensurePlaced(sdv);
+                    com.stardew.craft.statue.UncertaintyStatueInstaller.get(sdv).ensurePlaced(sdv);
                 }
             } catch (Exception e) {
-                StardewCraft.LOGGER.error("[DEFERRED_INIT] MasterySite failed", e);
+                StardewCraft.LOGGER.error("[DEFERRED_INIT] MasterySite/UncertaintyStatue failed", e);
             }
         }));
 

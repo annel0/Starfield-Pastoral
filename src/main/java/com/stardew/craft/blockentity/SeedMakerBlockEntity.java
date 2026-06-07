@@ -139,16 +139,12 @@ public class SeedMakerBlockEntity extends TimedProductionBlockEntity implements 
         if (recipe.outputMode() != ArtisanRecipeDataManager.OutputMode.SEEDMAKER) {
             return ItemStack.EMPTY;
         }
-        Item item = stack.getItem();
-        ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
-        ResourceLocation seedId = ResourceLocation.fromNamespaceAndPath(id.getNamespace(), id.getPath() + "_seeds");
-        if (!BuiltInRegistries.ITEM.containsKey(seedId)) {
-            return ItemStack.EMPTY;
-        }
-        Item seedItem = BuiltInRegistries.ITEM.get(seedId);
-
         ArtisanRecipeDataManager.SeedMakerRule rule = recipe.seedMakerRule();
         if (rule == null) {
+            return ItemStack.EMPTY;
+        }
+        Item seedItem = resolveSeedMakerOutputItem(stack.getItem());
+        if (seedItem == null) {
             return ItemStack.EMPTY;
         }
         RandomSource random = createSeedMakerRandom(worldPosition);
@@ -164,6 +160,32 @@ public class SeedMakerBlockEntity extends TimedProductionBlockEntity implements 
         int range = Math.max(0, rule.seedMax() - rule.seedMin() + 1);
         int count = range == 0 ? rule.seedMin() : rule.seedMin() + random.nextInt(range);
         return new ItemStack(seedItem, count);
+    }
+
+    @Nullable
+    private static Item resolveSeedMakerOutputItem(Item item) {
+        ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
+        Item wildSeedItem = seasonalWildSeedFor(id.getPath());
+        if (wildSeedItem != null) {
+            return wildSeedItem;
+        }
+
+        ResourceLocation seedId = ResourceLocation.fromNamespaceAndPath(id.getNamespace(), id.getPath() + "_seeds");
+        if (!BuiltInRegistries.ITEM.containsKey(seedId)) {
+            return null;
+        }
+        return BuiltInRegistries.ITEM.get(seedId);
+    }
+
+    @Nullable
+    private static Item seasonalWildSeedFor(String itemPath) {
+        return switch (itemPath) {
+            case "wild_horseradish", "daffodil", "leek", "dandelion" -> ModItems.SPRING_SEEDS.get();
+            case "grape", "spice_berry", "sweet_pea" -> ModItems.SUMMER_SEEDS.get();
+            case "wild_plum", "hazelnut", "blackberry", "common_mushroom" -> ModItems.FALL_SEEDS.get();
+            case "winter_root", "crystal_fruit", "snow_yam", "crocus" -> ModItems.WINTER_SEEDS.get();
+            default -> null;
+        };
     }
 
     private void startWork(ItemStack inputStack, ItemStack output, int minutesUntilReady, Player player) {

@@ -5,9 +5,9 @@ public final class WoodenChestColorPalette {
         DIRECT(255),
         TABLECLOTH(205),
         SOFA(184),
-        CUSHION(159),
-        OFFICE_SEATING(168),
-        STOOL(184),
+        CUSHION(228),
+        OFFICE_SEATING(228),
+        STOOL(228),
         DINING_CHAIR(228);
 
         private final int whiteBase;
@@ -46,6 +46,10 @@ public final class WoodenChestColorPalette {
 
     public static int size() {
         return COLORS_RGB.length;
+    }
+
+    public static int defaultColorIndex() {
+        return COLORS_RGB.length - 1;
     }
 
     public static int clampIndex(int index) {

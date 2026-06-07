@@ -70,6 +70,7 @@ public final class LuauFestivalService {
     private static final AABB VENUE_BOUNDS = inclusiveBox(new BlockPos(27, 59, 88), new BlockPos(90, 63, 160));
     private static final AABB PIERRE_SHOP_ZONE = inclusiveBox(new BlockPos(72, 60, 95), new BlockPos(64, 62, 91));
     private static final AABB SOUP_CAULDRON_ZONE = inclusiveBox(new BlockPos(59, 60, 108), new BlockPos(63, 61, 110));
+    private static final Vec3 SAFE_ENTRY_RETURN = new Vec3(68.5D, 60.0D, 94.5D);
     private static final Map<String, ActorDefinition> ACTORS = createActors();
     private static final Set<String> ACTOR_IDS = Set.copyOf(ACTORS.keySet());
     private static final Map<String, ActorRuntime> RUNTIME = new LinkedHashMap<>();
@@ -468,6 +469,7 @@ public final class LuauFestivalService {
         if (!isInsideEntryBounds(target)) {
             target = pushInsideEntry(player.position());
         }
+        target = safeInsideEntryTarget(player, target);
         ModTeleport.to(player, player.serverLevel(), target.x, target.y, target.z, player.getYRot(), player.getXRot());
         player.setDeltaMovement(Vec3.ZERO);
         player.fallDistance = 0.0F;
@@ -515,11 +517,12 @@ public final class LuauFestivalService {
 
     private static void moveToLastOutsideEntry(ServerLevel level, ServerPlayer player) {
         Vec3 target = LAST_OUTSIDE_ENTRY.get(player.getUUID());
-        if (isInsideEntryBounds(target)) {
-            target = null;
-        }
-        if (target == null) {
+        if (isInsideEntryBounds(target) || target == null) {
             target = pushOutsideEntry(player.position());
+        }
+        Vec3 safeTarget = FestivalBoundaryReturn.findSafeOutside(player, ENTRY_EXIT_BOUNDS, target);
+        if (safeTarget != null) {
+            target = safeTarget;
         }
         ModTeleport.to(player, level, target.x, target.y, target.z, player.getYRot(), player.getXRot());
         player.setDeltaMovement(Vec3.ZERO);
@@ -532,6 +535,7 @@ public final class LuauFestivalService {
         if (!isInsideEntryBounds(target)) {
             target = pushInsideEntry(player.position());
         }
+        target = safeInsideEntryTarget(player, target);
         ModTeleport.to(player, level, target.x, target.y, target.z, player.getYRot(), player.getXRot());
         player.setDeltaMovement(Vec3.ZERO);
         player.fallDistance = 0.0F;
@@ -539,31 +543,19 @@ public final class LuauFestivalService {
     }
 
     private static Vec3 pushOutsideEntry(Vec3 current) {
-        double x = current.x;
-        double y = current.y;
-        double z = current.z;
-        double left = Math.abs(x - ENTRY_EXIT_BOUNDS.minX);
-        double right = Math.abs(ENTRY_EXIT_BOUNDS.maxX - x);
-        double north = Math.abs(z - ENTRY_EXIT_BOUNDS.minZ);
-        double south = Math.abs(ENTRY_EXIT_BOUNDS.maxZ - z);
-        double nearest = Math.min(Math.min(left, right), Math.min(north, south));
-        if (nearest == left) {
-            x = ENTRY_EXIT_BOUNDS.minX - 0.25D;
-        } else if (nearest == right) {
-            x = ENTRY_EXIT_BOUNDS.maxX + 0.25D;
-        } else if (nearest == north) {
-            z = ENTRY_EXIT_BOUNDS.minZ - 0.25D;
-        } else {
-            z = ENTRY_EXIT_BOUNDS.maxZ + 0.25D;
-        }
-        return new Vec3(x, y, z);
+        return FestivalBoundaryReturn.pushOutside(ENTRY_EXIT_BOUNDS, current);
     }
 
     private static Vec3 pushInsideEntry(Vec3 current) {
-        double x = clamp(current.x, ENTRY_EXIT_BOUNDS.minX + 0.25D, ENTRY_EXIT_BOUNDS.maxX - 0.25D);
-        double y = clamp(current.y, ENTRY_EXIT_BOUNDS.minY + 0.1D, ENTRY_EXIT_BOUNDS.maxY - 1.0D);
-        double z = clamp(current.z, ENTRY_EXIT_BOUNDS.minZ + 0.25D, ENTRY_EXIT_BOUNDS.maxZ - 0.25D);
-        return new Vec3(x, y, z);
+        return FestivalBoundaryReturn.pushInside(ENTRY_EXIT_BOUNDS, current);
+    }
+
+    private static Vec3 safeInsideEntryTarget(ServerPlayer player, Vec3 preferred) {
+        Vec3 target = FestivalBoundaryReturn.findSafeInside(player, ENTRY_EXIT_BOUNDS, preferred, SAFE_ENTRY_RETURN);
+        if (target != null) {
+            return target;
+        }
+        return pushInsideEntry(SAFE_ENTRY_RETURN);
     }
 
     private static boolean isInsideEntryBounds(Vec3 position) {
@@ -575,10 +567,6 @@ public final class LuauFestivalService {
             ? "message.stardewcraft.festival.ended"
             : "message.stardewcraft.festival.luau.setup";
         return Component.translatable(key);
-    }
-
-    private static double clamp(double value, double min, double max) {
-        return Math.max(min, Math.min(max, value));
     }
 
     public static String debugStatus(ServerLevel level) {

@@ -61,7 +61,7 @@ public record ApplySofaColorPayload(BlockPos targetPos, int colorIndex) implemen
             BlockState state = player.level().getBlockState(payload.targetPos());
             int clamped = WoodenChestColorPalette.clampIndex(payload.colorIndex());
             if (clamped < 0) {
-                clamped = 0;
+                clamped = WoodenChestColorPalette.defaultColorIndex();
             }
 
             if (state.getBlock() instanceof SofaBlock) {
