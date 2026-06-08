@@ -1,14 +1,20 @@
 package com.stardew.craft.item;
 
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.block.Block;
+
+import java.util.List;
 
 @SuppressWarnings("null")
 public class StardewBlockItem extends BlockItem implements IStardewItem {
 	private final String itemTypeKey;
 	private final int sellPrice;
+	private final String descriptionKey;
 
 	@SuppressWarnings("null")
 	public StardewBlockItem(Block block, String itemTypeKey, int sellPrice, Item.Properties properties) {
@@ -20,6 +26,15 @@ public class StardewBlockItem extends BlockItem implements IStardewItem {
 		super(block, properties);
 		this.itemTypeKey = itemTypeKey;
 		this.sellPrice = sellPrice;
+		this.descriptionKey = descriptionKey;
+	}
+
+	@Override
+	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+		super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
+		if (descriptionKey != null && !descriptionKey.isBlank()) {
+			tooltipComponents.add(Component.translatable(descriptionKey).withStyle(ChatFormatting.DARK_GRAY));
+		}
 	}
 
 	@Override

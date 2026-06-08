@@ -1,6 +1,7 @@
 package com.stardew.craft.tree.generation;
 
 import com.stardew.craft.block.tree.WildTreeSaplingBlock;
+import com.stardew.craft.blockentity.NewTreePartBlockEntity;
 import com.stardew.craft.tree.WildTrees;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -20,6 +21,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 public final class StardewTreeGenerator {
 	private static final int MAX_TREE_BLOCKS = 420;
@@ -488,8 +490,12 @@ public final class StardewTreeGenerator {
 	}
 
 	private static void place(ServerLevel level, TreePlan plan) {
+		UUID treeId = UUID.randomUUID();
 		for (Map.Entry<BlockPos, BlockState> entry : plan.wood.entrySet()) {
 			level.setBlock(entry.getKey(), entry.getValue(), 3);
+			if (level.getBlockEntity(entry.getKey()) instanceof NewTreePartBlockEntity treePart) {
+				treePart.markGeneratedTree(treeId, plan.def.id(), plan.root);
+			}
 		}
 		for (BlockPos pos : plan.leaves) {
 			if (plan.wood.containsKey(pos)) {

@@ -3870,7 +3870,14 @@ public class StardewGameMenuScreen extends Screen {
         if (selectedCraftingIndex < 0 || selectedCraftingIndex >= craftingRecipeIds.size()) {
             return;
         }
-        String recipeId = craftingRecipeIds.get(selectedCraftingIndex);
+        submitCraftRequestForIndex(selectedCraftingIndex, requestedCount);
+    }
+
+    private void submitCraftRequestForIndex(int recipeIndex, int requestedCount) {
+        if (recipeIndex < 0 || recipeIndex >= craftingRecipeIds.size()) {
+            return;
+        }
+        String recipeId = craftingRecipeIds.get(recipeIndex);
         PacketDistributor.sendToServer(new CraftingMenuCraftSubmitPayload(recipeId, requestedCount));
     }
 
@@ -4198,6 +4205,9 @@ public class StardewGameMenuScreen extends Screen {
                         .append(requirement.name().copy().withStyle(color));
                 lines.add(line);
             }
+            lines.add(Component.empty());
+            lines.add(Component.translatable("stardewcraft.game_menu.crafting.shortcut_stack")
+                    .withStyle(ChatFormatting.GRAY));
 
             // Render tooltip using MC's native method
             graphics.renderTooltip(this.font, lines, java.util.Optional.empty(), mouseX, mouseY);
@@ -4695,6 +4705,18 @@ public class StardewGameMenuScreen extends Screen {
                 int before = leaderboardScroll;
                 leaderboardScroll = Math.min(maxScroll, leaderboardScroll + 1);
                 if (before != leaderboardScroll) playUiSound(ModSounds.SHWIP.get(), 1.0f, 1.0f);
+                return true;
+            }
+        }
+        if (currentTab == 4
+                && hasControlDown()
+                && hasShiftDown()
+                && (keyCode == GLFW.GLFW_KEY_1 || keyCode == GLFW.GLFW_KEY_KP_1)) {
+            int recipeIndex = hoveredCraftingIndex >= 0 ? hoveredCraftingIndex : selectedCraftingIndex;
+            if (recipeIndex >= 0 && recipeIndex < craftingRecipeIds.size() && isCraftableClient(recipeIndex)) {
+                selectedCraftingIndex = recipeIndex;
+                submitCraftRequestForIndex(recipeIndex, -1);
+                playUiSound(ModSounds.COIN.get(), 1.0f, 1.0f);
                 return true;
             }
         }

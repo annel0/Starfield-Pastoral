@@ -1756,7 +1756,7 @@
       "id": "wood_from_any_log",
       "output": {
         "item": "stardewcraft:wood_normal",
-        "count": 5
+        "count": 4
       },
       "ingredients": [
         {
@@ -1764,6 +1764,54 @@
           "displayItem": "stardewcraft:oak_log",
           "displayName": "stardewcraft.ingredient.any_log",
           "count": 1
+        }
+      ],
+      "unlockCondition": "default"
+    },
+    {
+      "id": "wood_from_any_planks",
+      "output": {
+        "item": "stardewcraft:wood_normal",
+        "count": 1
+      },
+      "ingredients": [
+        {
+          "tag": "stardewcraft:crafting_planks",
+          "displayItem": "stardewcraft:oak_planks",
+          "displayName": "stardewcraft.ingredient.any_planks",
+          "count": 1
+        }
+      ],
+      "unlockCondition": "default"
+    },
+    {
+      "id": "hardwood_from_any_hardwood_log",
+      "output": {
+        "item": "stardewcraft:wood_hard",
+        "count": 2
+      },
+      "ingredients": [
+        {
+          "tag": "stardewcraft:crafting_hardwood_logs",
+          "displayItem": "stardewcraft:mahogany_log",
+          "displayName": "stardewcraft.ingredient.any_hardwood_log",
+          "count": 1
+        }
+      ],
+      "unlockCondition": "default"
+    },
+    {
+      "id": "hardwood_from_any_hardwood_planks",
+      "output": {
+        "item": "stardewcraft:wood_hard",
+        "count": 1
+      },
+      "ingredients": [
+        {
+          "tag": "stardewcraft:crafting_hardwood_planks",
+          "displayItem": "stardewcraft:mahogany_planks",
+          "displayName": "stardewcraft.ingredient.any_hardwood_planks",
+          "count": 2
         }
       ],
       "unlockCondition": "default"

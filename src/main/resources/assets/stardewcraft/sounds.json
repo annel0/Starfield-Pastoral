@@ -671,6 +671,38 @@
       }
     ]
   },
+  "drumkit4": {
+    "sounds": [
+      {
+        "name": "stardewcraft:utility/drumkit4",
+        "stream": false
+      }
+    ]
+  },
+  "steam": {
+    "sounds": [
+      {
+        "name": "stardewcraft:utility/steam",
+        "stream": false
+      }
+    ]
+  },
+  "skeleton_step": {
+    "sounds": [
+      {
+        "name": "stardewcraft:utility/skeleton_step",
+        "stream": false
+      }
+    ]
+  },
+  "skeleton_hit": {
+    "sounds": [
+      {
+        "name": "stardewcraft:utility/skeleton_hit",
+        "stream": false
+      }
+    ]
+  },
   "select": {
     "sounds": [
       {

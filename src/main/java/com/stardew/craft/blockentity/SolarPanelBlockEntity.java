@@ -16,7 +16,7 @@ import net.neoforged.neoforge.items.IItemHandler;
 
 import javax.annotation.Nullable;
 
-public class SolarPanelBlockEntity extends BlockEntity implements UtilityAutomationAccess {
+public class SolarPanelBlockEntity extends BlockEntity implements UtilityAutomationAccess, FairyDustAcceleratable, AdvanceableUtility {
     private static final int EFFECTIVE_MINUTES_PER_DAY = 1260;
     private static final int DAYS_TO_CHARGE = 1;
 
@@ -212,6 +212,7 @@ public class SolarPanelBlockEntity extends BlockEntity implements UtilityAutomat
         return true;
     }
 
+    @Override
     public void advanceDays(int days) {
         if (days <= 0) {
             return;

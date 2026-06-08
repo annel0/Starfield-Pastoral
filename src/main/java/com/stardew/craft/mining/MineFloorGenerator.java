@@ -7,6 +7,7 @@ import com.stardew.craft.block.mine.CalicoStatueBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.EntityType;
@@ -444,6 +445,9 @@ public class MineFloorGenerator {
         int baseCount = Math.max(6, area / (floorNumber > 120 ? 500 : 600)); // 骷髅矿怪物密度更高
         int maxCount = floorNumber > 120 ? 35 : 30; // 骷髅矿上限 35
         int totalCount = Math.min(baseCount + random.nextInt(baseCount / 2 + 1), maxCount);
+        if (hasMonsterMuskPlayer(level, floorNumber)) {
+            totalCount = Math.min(maxCount * 2, totalCount * 2);
+        }
         if (floorNumber > 120) {
             totalCount = com.stardew.craft.festival.desert.DesertFestivalMineService.adjustMonsterCountForCalicoStatues(level, totalCount);
         }
@@ -521,6 +525,16 @@ public class MineFloorGenerator {
             StardewCraft.LOGGER.warn("[MINE] FAILED to spawn any monsters on floor {} (target={}, attempts={})", 
                     floorNumber, totalCount, maxAttempts);
         }
+    }
+
+    private static boolean hasMonsterMuskPlayer(ServerLevel level, int floorNumber) {
+        for (ServerPlayer player : level.players()) {
+            if (com.stardew.craft.event.MineMonsterSpawnHandler.inferFloor(player) == floorNumber
+                    && player.hasEffect(com.stardew.craft.effect.ModMobEffects.MONSTER_MUSK)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

@@ -141,10 +141,13 @@ public final class NpcSystem {
         if (event.getLevel().isClientSide()) {
             return;
         }
+        if (isSneakingProtectedNpcInteraction(event.getTarget(), event.getEntity())) {
+            cancelProtectedNpcInteraction(event);
+            return;
+        }
         if (isProtectedNpcLikeEntity(event.getTarget())
                 && event.getEntity().getItemInHand(event.getHand()).is(Items.LEAD)) {
-            event.setCanceled(true);
-            event.setCancellationResult(InteractionResult.FAIL);
+            cancelProtectedNpcInteraction(event);
         }
     }
 
@@ -153,11 +156,28 @@ public final class NpcSystem {
         if (event.getLevel().isClientSide()) {
             return;
         }
+        if (isSneakingProtectedNpcInteraction(event.getTarget(), event.getEntity())) {
+            cancelProtectedNpcInteraction(event);
+            return;
+        }
         if (isProtectedNpcLikeEntity(event.getTarget())
                 && event.getEntity().getItemInHand(event.getHand()).is(Items.LEAD)) {
-            event.setCanceled(true);
-            event.setCancellationResult(InteractionResult.FAIL);
+            cancelProtectedNpcInteraction(event);
         }
+    }
+
+    private static boolean isSneakingProtectedNpcInteraction(Entity target, net.minecraft.world.entity.player.Player player) {
+        return player.isShiftKeyDown() && isProtectedNpcLikeEntity(target);
+    }
+
+    private static void cancelProtectedNpcInteraction(PlayerInteractEvent.EntityInteract event) {
+        event.setCanceled(true);
+        event.setCancellationResult(InteractionResult.FAIL);
+    }
+
+    private static void cancelProtectedNpcInteraction(PlayerInteractEvent.EntityInteractSpecific event) {
+        event.setCanceled(true);
+        event.setCancellationResult(InteractionResult.FAIL);
     }
 
     private static boolean isProtectedNpcLikeEntity(Entity entity) {

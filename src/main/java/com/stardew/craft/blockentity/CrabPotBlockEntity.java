@@ -34,7 +34,7 @@ import java.util.UUID;
  * 
  * 逻辑参考星露谷物语源代码 CrabPot.cs
  */
-public class CrabPotBlockEntity extends BlockEntity implements UtilityAutomationAccess {
+public class CrabPotBlockEntity extends BlockEntity implements UtilityAutomationAccess, AdvanceableUtility {
 	private static final String TAG_BAIT = "bait";
 	private static final String TAG_PRODUCT = "product";
 	private static final String TAG_READY = "ready";
@@ -360,6 +360,7 @@ public class CrabPotBlockEntity extends BlockEntity implements UtilityAutomation
 	 * Debug/utility: force daily update(s) to accelerate progress.
 	 */
 	@SuppressWarnings("null")
+	@Override
 	public void advanceDays(int days) {
 		if (days <= 0) {
 			return;

@@ -2,6 +2,7 @@ package com.stardew.craft.integration;
 
 import com.stardew.craft.block.crop.StardewCropBlock;
 import com.stardew.craft.block.animal.AnimalProduceSpotBlock;
+import com.stardew.craft.block.utility.AbstractTwoBlockUtilityBlock;
 import com.stardew.craft.block.utility.BeeHouseBlock;
 import com.stardew.craft.block.utility.BaitMakerBlock;
 import com.stardew.craft.block.utility.CaskBlock;
@@ -27,9 +28,6 @@ import com.stardew.craft.integration.jade.FarmlandFertilizerJadeProvider;
 import com.stardew.craft.integration.jade.AnimalProduceSpotJadeProvider;
 import com.stardew.craft.integration.jade.StardewCropFertilizerJadeProvider;
 import com.stardew.craft.manager.CropGrowthManager;
-import com.stardew.craft.block.tree.WildOakBranchBlock;
-import com.stardew.craft.block.tree.WildOakLeavesBlock;
-import com.stardew.craft.block.tree.WildOakTrunkBlock;
 import com.stardew.craft.block.tree.WildTreeSaplingBlock;
 import com.stardew.craft.manager.TreeGrowthManager;
 import com.stardew.craft.tree.WildTrees;
@@ -72,18 +70,13 @@ public class JadePlugin implements IWailaPlugin {
     private static final String NBT_TREE_FERTILIZED = "Stardew_TreeFertilized";
     private static final String NBT_TREE_GROWTH_CHANCE = "Stardew_TreeGrowthChance";
     private static final String NBT_TREE_FERTILIZED_CHANCE = "Stardew_TreeFertilizedChance";
-    private static final String NBT_TREE_SEED_SHAKE_CHANCE = "Stardew_TreeSeedShakeChance";
-    private static final String NBT_TREE_SEED_SPREAD_CHANCE = "Stardew_TreeSeedSpreadChance";
-    private static final String NBT_TREE_SEED_CHOP_CHANCE = "Stardew_TreeSeedChopChance";
+    private static final String NBT_TREE_CAN_MATURE_HERE = "Stardew_TreeCanMatureHere";
     private static final String NBT_DECORATIVE = "Stardew_Decorative";
 
     @Override
     public void register(IWailaCommonRegistration registration) {
         registration.registerBlockDataProvider(new CropComponentProvider(), StardewCropBlock.class);
 		registration.registerBlockDataProvider(new TreeSaplingComponentProvider(), WildTreeSaplingBlock.class);
-        registration.registerBlockDataProvider(new TreeSaplingComponentProvider(), WildOakTrunkBlock.class);
-        registration.registerBlockDataProvider(new TreeSaplingComponentProvider(), WildOakBranchBlock.class);
-        registration.registerBlockDataProvider(new TreeSaplingComponentProvider(), WildOakLeavesBlock.class);
         registration.registerBlockDataProvider(AnimalProduceSpotJadeProvider.INSTANCE, AnimalProduceSpotBlock.class);
         registration.registerBlockDataProvider(FarmlandFertilizerJadeProvider.INSTANCE, FarmBlock.class);
         registration.registerBlockDataProvider(CropFertilizerJadeProvider.INSTANCE, CropBlock.class);
@@ -94,9 +87,6 @@ public class JadePlugin implements IWailaPlugin {
     public void registerClient(IWailaClientRegistration registration) {
         registration.registerBlockComponent(new CropComponentProvider(), StardewCropBlock.class);
         registration.registerBlockComponent(new TreeSaplingComponentProvider(), WildTreeSaplingBlock.class);
-        registration.registerBlockComponent(new TreeSaplingComponentProvider(), WildOakTrunkBlock.class);
-        registration.registerBlockComponent(new TreeSaplingComponentProvider(), WildOakBranchBlock.class);
-        registration.registerBlockComponent(new TreeSaplingComponentProvider(), WildOakLeavesBlock.class);
         registration.registerBlockComponent(AnimalProduceSpotJadeProvider.INSTANCE, AnimalProduceSpotBlock.class);
         // 注册耕地肥料显示
         registration.registerBlockComponent(FarmlandFertilizerJadeProvider.INSTANCE, FarmBlock.class);
@@ -113,7 +103,8 @@ public class JadePlugin implements IWailaPlugin {
     }
 
     private static boolean shouldHideItemStorage(Block block) {
-        return block instanceof BeeHouseBlock
+        return block instanceof AbstractTwoBlockUtilityBlock
+            || block instanceof BeeHouseBlock
             || block instanceof CaskBlock
             || block instanceof CharcoalKilnBlock
             || block instanceof CheesePressBlock
@@ -136,22 +127,17 @@ public class JadePlugin implements IWailaPlugin {
     }
 
     public static class TreeSaplingComponentProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
-        private static final int TOTAL_DAYS = 28;
-
         @Override
         public void appendServerData(CompoundTag tag, BlockAccessor accessor) {
             if (!(accessor.getLevel() instanceof ServerLevel serverLevel)) {
                 return;
             }
             BlockState state = accessor.getBlockState();
-            WildTrees.Def def = WildTrees.findByAnyPart(state);
             boolean isSapling = state.getBlock() instanceof WildTreeSaplingBlock;
-            if (def == null && !isSapling) {
+            if (!isSapling) {
                 return;
             }
-            if (isSapling) {
-                def = ((WildTreeSaplingBlock) state.getBlock()).getDef();
-            }
+            WildTrees.Def def = ((WildTreeSaplingBlock) state.getBlock()).getDef();
             if (def == null) {
                 return;
             }
@@ -160,27 +146,18 @@ public class JadePlugin implements IWailaPlugin {
             BlockPos pos = Objects.requireNonNull(accessor.getPosition(), "position");
             tag.putFloat(NBT_TREE_GROWTH_CHANCE, def.growthChance());
             tag.putFloat(NBT_TREE_FERTILIZED_CHANCE, def.fertilizedGrowthChance());
-            tag.putFloat(NBT_TREE_SEED_SHAKE_CHANCE, def.seedOnShakeChance());
-            tag.putFloat(NBT_TREE_SEED_SPREAD_CHANCE, def.seedSpreadChance());
-            tag.putFloat(NBT_TREE_SEED_CHOP_CHANCE, def.seedOnChopChance());
-            if (isSapling) {
-                int grown = mgr.getDaysGrown(serverLevel, pos);
-                grown = Math.max(0, Math.min(grown, TOTAL_DAYS));
-                tag.putInt(NBT_TOTAL_DAYS, TOTAL_DAYS);
-                tag.putInt(NBT_DAYS_GROWN, grown);
-                tag.putInt(NBT_TREE_STAGE, mgr.getGrowthStage(serverLevel, pos));
-                tag.putInt(NBT_TREE_MAX_STAGE, TreeGrowthManager.matureGrowthStage());
-                tag.putBoolean(NBT_TREE_FERTILIZED, mgr.isFertilized(serverLevel, pos));
-                tag.putBoolean(NBT_BLOCKED, mgr.isBlockedNow(serverLevel, pos));
-            } else {
-                tag.putBoolean(NBT_MATURE, true);
-            }
+            tag.putInt(NBT_TREE_STAGE, mgr.getGrowthStage(serverLevel, pos));
+            tag.putInt(NBT_TREE_MAX_STAGE, TreeGrowthManager.matureGrowthStage());
+            tag.putBoolean(NBT_TREE_FERTILIZED, mgr.isFertilized(serverLevel, pos));
+            tag.putBoolean(NBT_BLOCKED, mgr.isBlockedNow(serverLevel, pos));
+            tag.putBoolean(NBT_TREE_CAN_MATURE_HERE,
+                    com.stardew.craft.tree.generation.StardewTreeGenerator.canGenerate(serverLevel, pos, def));
         }
 
         @Override
         public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
             BlockState state = accessor.getBlockState();
-            if (!(state.getBlock() instanceof WildTreeSaplingBlock) && WildTrees.findByAnyPart(state) == null) {
+            if (!(state.getBlock() instanceof WildTreeSaplingBlock)) {
                 return;
             }
 
@@ -198,15 +175,15 @@ public class JadePlugin implements IWailaPlugin {
                             formatChance(serverData.getFloat(NBT_TREE_FERTILIZED_CHANCE)))
                             .withStyle(net.minecraft.ChatFormatting.GREEN));
                 }
-                if (serverData.getBoolean(NBT_BLOCKED)) {
+                boolean canMatureHere = !serverData.contains(NBT_TREE_CAN_MATURE_HERE)
+                        || serverData.getBoolean(NBT_TREE_CAN_MATURE_HERE);
+                if (!canMatureHere) {
+                    tooltip.add(Component.translatable("stardewcraft.tooltip.tree_cannot_mature_here")
+                            .withStyle(net.minecraft.ChatFormatting.RED));
+                } else if (serverData.getBoolean(NBT_BLOCKED)) {
                     tooltip.add(Component.translatable("stardewcraft.tooltip.tree_blocked")
                             .withStyle(net.minecraft.ChatFormatting.RED));
                 }
-            } else if (serverData.getBoolean(NBT_MATURE)) {
-                tooltip.add(Component.translatable("stardewcraft.tooltip.tree_mature"));
-                tooltip.add(Component.translatable("stardewcraft.tooltip.tree_seed_shake_chance", formatChance(serverData.getFloat(NBT_TREE_SEED_SHAKE_CHANCE))));
-                tooltip.add(Component.translatable("stardewcraft.tooltip.tree_seed_spread_chance", formatChance(serverData.getFloat(NBT_TREE_SEED_SPREAD_CHANCE))));
-                tooltip.add(Component.translatable("stardewcraft.tooltip.tree_seed_chop_chance", formatChance(serverData.getFloat(NBT_TREE_SEED_CHOP_CHANCE))));
             }
         }
 

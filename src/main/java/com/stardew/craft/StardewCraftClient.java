@@ -217,6 +217,7 @@ public class StardewCraftClient {
                 ModBlocks.SUMMER_WILD_SEED_CROP.get(),
                 ModBlocks.FALL_WILD_SEED_CROP.get(),
                 ModBlocks.WINTER_WILD_SEED_CROP.get(),
+                ModBlocks.FIBER_CROP.get(),
                 ModBlocks.DEAD_CROP.get(),
                 ModBlocks.WALL_HANGING_SMALL_A.get(),
                 ModBlocks.WALL_NOTICE_BOARD_SMALL.get(),
@@ -362,15 +363,6 @@ public class StardewCraftClient {
             ));
 
             ModRenderLayers.registerCutoutMipped(List.of(
-                Blocks.OAK_LEAVES,
-                Blocks.SPRUCE_LEAVES,
-                Blocks.BIRCH_LEAVES,
-                Blocks.JUNGLE_LEAVES,
-                Blocks.ACACIA_LEAVES,
-                Blocks.DARK_OAK_LEAVES,
-                Blocks.MANGROVE_LEAVES,
-                Blocks.AZALEA_LEAVES,
-                Blocks.FLOWERING_AZALEA_LEAVES,
                 ModBlocks.WILD_OAK_LEAVES.get(),
                 ModBlocks.WILD_MAPLE_LEAVES.get(),
                 ModBlocks.WILD_PINE_LEAVES.get(),

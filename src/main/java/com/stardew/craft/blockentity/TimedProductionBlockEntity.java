@@ -9,7 +9,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.IItemHandler;
 
-public abstract class TimedProductionBlockEntity extends BlockEntity implements UtilityAutomationAccess {
+public abstract class TimedProductionBlockEntity extends BlockEntity implements UtilityAutomationAccess, FairyDustAcceleratable, AdvanceableUtility {
     protected static final int EFFECTIVE_MINUTES_PER_DAY = 1260;
 
     protected ItemStack input = ItemStack.EMPTY;
@@ -84,9 +84,20 @@ public abstract class TimedProductionBlockEntity extends BlockEntity implements 
         return automationItemHandler;
     }
 
+    @Override
+    public boolean canApplyFairyDust() {
+        return false;
+    }
+
+    @Override
+    public boolean applyFairyDust() {
+        return false;
+    }
+
     /**
      * Debug/utility: advance the current production timer by N days.
      */
+    @Override
     @SuppressWarnings("null")
     public void advanceDays(int days) {
         if (days <= 0) {

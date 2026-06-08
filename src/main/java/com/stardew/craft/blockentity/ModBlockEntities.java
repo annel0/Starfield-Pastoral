@@ -21,11 +21,11 @@ public final class ModBlockEntities {
 	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<NewTreePartBlockEntity>> NEW_TREE_PART =
 			BLOCK_ENTITIES.register("new_tree_part", () -> BlockEntityType.Builder.of(NewTreePartBlockEntity::new,
-					ModBlocks.OAK_ROOT.get(), ModBlocks.OAK_BRANCH.get(),
-					ModBlocks.MAPLE_ROOT.get(), ModBlocks.MAPLE_BRANCH.get(),
-					ModBlocks.PINE_ROOT.get(), ModBlocks.PINE_BRANCH.get(),
-					ModBlocks.MAHOGANY_ROOT.get(), ModBlocks.MAHOGANY_BRANCH.get(),
-					ModBlocks.MYSTIC_TREE_ROOT.get(), ModBlocks.MYSTIC_TREE_BRANCH.get()).build(null));
+					ModBlocks.OAK_ROOT.get(), ModBlocks.OAK_LOG.get(), ModBlocks.OAK_BRANCH.get(),
+					ModBlocks.MAPLE_ROOT.get(), ModBlocks.MAPLE_LOG.get(), ModBlocks.MAPLE_BRANCH.get(),
+					ModBlocks.PINE_ROOT.get(), ModBlocks.PINE_LOG.get(), ModBlocks.PINE_BRANCH.get(),
+					ModBlocks.MAHOGANY_ROOT.get(), ModBlocks.MAHOGANY_LOG.get(), ModBlocks.MAHOGANY_BRANCH.get(),
+					ModBlocks.MYSTIC_TREE_ROOT.get(), ModBlocks.MYSTIC_TREE_LOG.get(), ModBlocks.MYSTIC_TREE_BRANCH.get()).build(null));
 
 	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MushroomBoxBlockEntity>> MUSHROOM_BOX =
@@ -90,6 +90,18 @@ public final class ModBlockEntities {
 	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SolarPanelBlockEntity>> SOLAR_PANEL =
 			BLOCK_ENTITIES.register("solar_panel", () -> BlockEntityType.Builder.of(SolarPanelBlockEntity::new, ModBlocks.SOLAR_PANEL.get()).build(null));
+
+	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GeodeCrusherBlockEntity>> GEODE_CRUSHER =
+			BLOCK_ENTITIES.register("geode_crusher", () -> BlockEntityType.Builder.of(GeodeCrusherBlockEntity::new, ModBlocks.GEODE_CRUSHER.get()).build(null));
+
+	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CoffeeMakerBlockEntity>> COFFEE_MAKER =
+			BLOCK_ENTITIES.register("coffee_maker", () -> BlockEntityType.Builder.of(CoffeeMakerBlockEntity::new, ModBlocks.COFFEE_MAKER.get()).build(null));
+
+	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BoneMillBlockEntity>> BONE_MILL =
+			BLOCK_ENTITIES.register("bone_mill", () -> BlockEntityType.Builder.of(BoneMillBlockEntity::new, ModBlocks.BONE_MILL.get()).build(null));
 
 	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CaskBlockEntity>> CASK =

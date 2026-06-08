@@ -21,7 +21,7 @@ public class StoneConvertibleBlockItem extends BlockItem {
                                 @Nonnull List<Component> tooltipComponents,
                                 @Nonnull TooltipFlag tooltipFlag) {
         super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
-        tooltipComponents.add(Component.translatable("stardewcraft.tooltip.convertible_to_stone")
+        tooltipComponents.add(Component.translatable("stardewcraft.tooltip.convertible_to_stone_in_stardew_crafting")
                 .withStyle(ChatFormatting.YELLOW, ChatFormatting.BOLD));
     }
 }

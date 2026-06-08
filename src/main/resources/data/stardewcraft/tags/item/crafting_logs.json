@@ -3,8 +3,6 @@
   "values": [
     "stardewcraft:oak_log",
     "stardewcraft:maple_log",
-    "stardewcraft:pine_log",
-    "stardewcraft:mahogany_log",
-    "stardewcraft:mystic_tree_log"
+    "stardewcraft:pine_log"
   ]
 }

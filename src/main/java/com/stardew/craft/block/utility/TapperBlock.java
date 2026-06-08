@@ -275,7 +275,7 @@ public class TapperBlock extends Block implements EntityBlock {
 	private static int countTappersOnTree(LevelReader level, BlockPos treeRoot, WildTrees.Def def) {
 		Set<BlockPos> tappers = new HashSet<>();
 		if (def.isModernRoot(level.getBlockState(treeRoot))) {
-			WildTrees.forEachModernLogInTree(level, treeRoot, def, logPos -> {
+			WildTrees.forEachLiveGeneratedModernLogInTree(level, treeRoot, def, logPos -> {
 				collectAdjacentTappers(level, logPos, tappers);
 			});
 			return tappers.size();

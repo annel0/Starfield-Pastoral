@@ -178,6 +178,14 @@ public final class ModMobEffects {
         );
 
         /**
+         * 怪兽香水：提高矿井刷怪密度。
+         */
+        public static final DeferredHolder<MobEffect, MobEffect> MONSTER_MUSK = MOB_EFFECTS.register(
+            "monster_musk",
+            () -> new SimpleBeneficialEffect(0xA04FAF)
+        );
+
+        /**
          * 庇护：每级降低受到伤害 10%。
          */
         public static final DeferredHolder<MobEffect, MobEffect> SHELTER = MOB_EFFECTS.register(

@@ -79,6 +79,16 @@ public class WildTreeSeedManager extends SavedData {
 		}
 	}
 
+	public boolean tryMigrateGeneratedTreeMarker(ServerLevel level, BlockPos rootPos, WildTrees.Def def) {
+		@SuppressWarnings("null")
+		GlobalPos gp = GlobalPos.of(level.dimension(), rootPos.immutable());
+		Entry entry = entries.get(gp);
+		if (entry == null || !def.id().equals(entry.treeId)) {
+			return false;
+		}
+		return WildTrees.markGeneratedModernTree(level, rootPos, def);
+	}
+
 	/**
 	 * 右键摇树：返回 true 表示本次“摇树动作”有效（会消耗今天的摇树机会）。
 	 */
@@ -140,6 +150,8 @@ public class WildTreeSeedManager extends SavedData {
 			if (treeState.getBlock() != def.trunk0().get() && !def.isModernRoot(treeState)) {
 				it.remove();
 				changed = true;
+			} else if (def.isModernRoot(treeState)) {
+				tryMigrateGeneratedTreeMarker(level, pos, def);
 			}
 		}
 

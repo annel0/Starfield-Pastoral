@@ -4,6 +4,7 @@ import com.stardew.craft.blockentity.NewTreePartBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
@@ -42,6 +43,16 @@ public class NewTreePartBlock extends Block implements EntityBlock {
 	@Nullable
 	public BlockEntity newBlockEntity(@SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") BlockState state) {
 		return new NewTreePartBlockEntity(pos, state);
+	}
+
+	@SuppressWarnings("null")
+	@Override
+	protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+		if (!level.isClientSide && !isMoving && !state.equals(newState)
+				&& level.getBlockEntity(pos) instanceof NewTreePartBlockEntity treePart) {
+			treePart.invalidateGeneratedTreeMarker();
+		}
+		super.onRemove(state, level, pos, newState, isMoving);
 	}
 
 	@SuppressWarnings("null")

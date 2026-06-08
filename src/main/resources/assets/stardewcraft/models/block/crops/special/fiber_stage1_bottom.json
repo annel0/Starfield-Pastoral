@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "stardewcraft:block/crops/special/fiber_stage1_bottom",
+    "particle": "stardewcraft:block/crops/special/fiber_stage1_bottom"
+  }
+}

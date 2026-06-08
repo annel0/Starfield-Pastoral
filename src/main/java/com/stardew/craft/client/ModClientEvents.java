@@ -22,8 +22,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.util.Mth;
@@ -47,10 +50,19 @@ import java.util.Locale;
 public class ModClientEvents {
 
     private static final Pattern NEWLINE_SPLIT = Pattern.compile("(?:\\\\n|\\n)");
+    private static final TagKey<Item> STARDEW_CRAFTING_LOGS = TagKey.create(Registries.ITEM,
+        ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "crafting_logs"));
+    private static final TagKey<Item> STARDEW_CRAFTING_PLANKS = TagKey.create(Registries.ITEM,
+        ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "crafting_planks"));
+    private static final TagKey<Item> STARDEW_CRAFTING_HARDWOOD_LOGS = TagKey.create(Registries.ITEM,
+        ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "crafting_hardwood_logs"));
+    private static final TagKey<Item> STARDEW_CRAFTING_HARDWOOD_PLANKS = TagKey.create(Registries.ITEM,
+        ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "crafting_hardwood_planks"));
 
     @SubscribeEvent
     public static void onItemTooltip(ItemTooltipEvent event) {
         ItemStack stack = event.getItemStack();
+        appendStardewCraftingConversionTooltip(stack, event.getToolTip());
         if (stack.getItem() instanceof IStardewItem stardewItem) {
             if (stack.getItem() instanceof StardewBookItem) {
                 return;
@@ -366,6 +378,33 @@ public class ModClientEvents {
             // 批量插入到指定位�?
             tooltip.addAll(insertIdx, customLines);
         }
+    }
+
+    private static void appendStardewCraftingConversionTooltip(ItemStack stack, List<Component> tooltip) {
+        if (stack.isEmpty() || tooltip == null) {
+            return;
+        }
+
+        Component line = null;
+        if (stack.is(STARDEW_CRAFTING_HARDWOOD_LOGS)) {
+            line = Component.translatable("stardewcraft.tooltip.convertible_hardwood_log_to_hardwood_in_stardew_crafting")
+                .withStyle(ChatFormatting.YELLOW, ChatFormatting.BOLD);
+        } else if (stack.is(STARDEW_CRAFTING_HARDWOOD_PLANKS)) {
+            line = Component.translatable("stardewcraft.tooltip.convertible_hardwood_planks_to_hardwood_in_stardew_crafting")
+                .withStyle(ChatFormatting.YELLOW, ChatFormatting.BOLD);
+        } else if (stack.is(STARDEW_CRAFTING_LOGS)) {
+            line = Component.translatable("stardewcraft.tooltip.convertible_log_to_wood_in_stardew_crafting")
+                .withStyle(ChatFormatting.YELLOW, ChatFormatting.BOLD);
+        } else if (stack.is(STARDEW_CRAFTING_PLANKS)) {
+            line = Component.translatable("stardewcraft.tooltip.convertible_planks_to_wood_in_stardew_crafting")
+                .withStyle(ChatFormatting.YELLOW, ChatFormatting.BOLD);
+        }
+        if (line == null) {
+            return;
+        }
+
+        int insertIdx = tooltip.isEmpty() ? 0 : 1;
+        tooltip.add(insertIdx, line);
     }
 
     @SubscribeEvent

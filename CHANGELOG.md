@@ -1,5 +1,43 @@
 # Changelog
 
+## 0.4.6-fix2 - 2026-06-08
+
+### Update Log (English)
+
+#### Tree and Wood Fixes
+
+- Added Stardew-style stage 0 tree sapling recovery: breaking a newly planted wild sapling with an axe, hoe, or pickaxe now returns the matching tree seed.
+- Updated tree tapper validation so modern Stardew trees must keep their generated-tree marker on root, log, and branch parts; rebuilt fake trees no longer count as live generated trees.
+- Added migration support so old-save generated modern trees tracked by the wild tree manager can regain live-tree markers when the world advances or a tapper checks the tree.
+
+#### Rendering and Compatibility
+
+- Restored vanilla leaf render handling for Minecraft leaves by removing the global leaves render-type mixin and no longer forcing vanilla leaves into the Stardew cutout layer.
+- Kept Stardew tree leaves on their intended cutout presentation without overriding all `#minecraft:leaves` blocks.
+- Added missing Jade config localization for the generic utility machine provider, fixing the resource reload failure on game startup.
+
+#### Changes
+
+- Updated the public mod version to `0.4.6-fix2`.
+
+### 更新日志（中文）
+
+#### 树木与木材修复
+
+- 补上星露谷式第 0 阶段树苗回收：刚种下的野树苗被斧头、锄头或十字镐破坏时，会返还对应树种。
+- 调整树液采集器判定：现代星露谷树必须保留生成时写入树根、原木和树枝的活树标记；拆掉后再手动摆回的假树不再算作活树。
+- 加入旧存档迁移支持：旧存档中已被野树管理器记录的现代生成树，会在日期推进或树液采集器检查时补回活树标记。
+
+#### 渲染与兼容
+
+- 移除全局树叶渲染 mixin，并不再强制原版树叶进入 Stardew cutout 层，让 Minecraft 原版树叶回到原版/优化模组自己的渲染路径。
+- 保留 Stardew 自定义树叶所需的 cutout 表现，但不再覆盖所有 `#minecraft:leaves` 方块。
+- 补充通用生产设备 Jade provider 的配置翻译，修复进游戏时资源重载失败的问题。
+
+#### 变更
+
+- 项目公开版本号更新为 `0.4.6-fix2`。
+
 ## 0.4.6-fix1 - 2026-06-08
 
 ### Update Log (English)

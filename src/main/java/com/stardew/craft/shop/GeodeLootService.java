@@ -244,6 +244,22 @@ public class GeodeLootService {
         return getOreByType(geodeType, r, amount);
     }
 
+    public static boolean isGeodeCrusherInput(ItemStack stack) {
+        String geodeType = getGeodeType(stack);
+        return "geode".equals(geodeType)
+            || "frozen_geode".equals(geodeType)
+            || "magma_geode".equals(geodeType)
+            || "omni_geode".equals(geodeType);
+    }
+
+    public static ItemStack getTreasureForGeodeCrusher(ItemStack stack, ServerPlayer player) {
+        String geodeType = getGeodeType(stack);
+        if (!isGeodeCrusherInput(stack) || geodeType == null) {
+            return ItemStack.EMPTY;
+        }
+        return getTreasureFromGeode(geodeType, player);
+    }
+
     // ────────────────────────────────────────────────────────────────────
     //  Mystery Box loot — SDV Utility.getTreasureFromGeode() parity
     // ────────────────────────────────────────────────────────────────────

@@ -585,9 +585,9 @@ public class ModItems {
         public static final DeferredItem<Item> PRISMATIC_JELLY = ITEMS.register("prismatic_jelly",
                         () -> new SimpleStardewItem("stardewcraft.type.quest", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> MONSTER_MUSK = ITEMS.register("monster_musk",
-                        () -> new SimpleStardewItem("stardewcraft.type.monster_loot", -1, new Item.Properties().stacksTo(999)));
+                        () -> new MonsterMuskItem(new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> FIBER_SEEDS = ITEMS.register("fiber_seeds",
-                        () -> new SimpleStardewItem("stardewcraft.type.seed", -1, new Item.Properties().stacksTo(999)));
+                        () -> new com.stardew.craft.item.crop.special.FiberSeedsItem(new Item.Properties().stacksTo(999)));
 
         public static final DeferredItem<Item> SPRINKLER = ITEMS.register("sprinkler",
                         () -> new StardewBlockItem(ModBlocks.SPRINKLER.get(), "stardewcraft.type.utility", -1, new Item.Properties().stacksTo(999)));

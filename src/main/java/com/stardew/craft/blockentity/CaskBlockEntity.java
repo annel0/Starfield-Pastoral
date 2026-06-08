@@ -24,7 +24,7 @@ import java.util.Map;
  * Cask block entity.
  * Ages artisan goods to higher quality over time.
  */
-public class CaskBlockEntity extends BlockEntity implements UtilityAutomationAccess {
+public class CaskBlockEntity extends BlockEntity implements UtilityAutomationAccess, FairyDustAcceleratable, AdvanceableUtility {
     private static final int EFFECTIVE_MINUTES_PER_DAY = 1260;
     private static final float DAYS_NORMAL = 56f;
     private static final float DAYS_SILVER = 42f;
@@ -272,6 +272,7 @@ public class CaskBlockEntity extends BlockEntity implements UtilityAutomationAcc
      * Debug/utility: advance the current aging timer by N days.
      */
     @SuppressWarnings("null")
+    @Override
     public void advanceDays(int days) {
         if (days <= 0) {
             return;

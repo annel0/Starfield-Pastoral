@@ -1,27 +1,7 @@
 package com.stardew.craft.network;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.blockentity.BeeHouseBlockEntity;
-import com.stardew.craft.blockentity.CheesePressBlockEntity;
-import com.stardew.craft.blockentity.CrabPotBlockEntity;
-import com.stardew.craft.blockentity.CharcoalKilnBlockEntity;
-import com.stardew.craft.blockentity.CrystalariumBlockEntity;
-import com.stardew.craft.blockentity.DeluxeWormBinBlockEntity;
-import com.stardew.craft.blockentity.DehydratorBlockEntity;
-import com.stardew.craft.blockentity.BaitMakerBlockEntity;
-import com.stardew.craft.blockentity.FishSmokerBlockEntity;
-import com.stardew.craft.blockentity.FurnaceBlockEntity;
-import com.stardew.craft.blockentity.KegBlockEntity;
-import com.stardew.craft.blockentity.LightningRodBlockEntity;
-import com.stardew.craft.blockentity.RecyclingMachineBlockEntity;
-import com.stardew.craft.blockentity.MayonnaiseMachineBlockEntity;
-import com.stardew.craft.blockentity.OilMakerBlockEntity;
-import com.stardew.craft.blockentity.PreservesJarBlockEntity;
-import com.stardew.craft.blockentity.SeedMakerBlockEntity;
-import com.stardew.craft.blockentity.TapperBlockEntity;
-import com.stardew.craft.blockentity.LoomBlockEntity;
-import com.stardew.craft.blockentity.SolarPanelBlockEntity;
-import com.stardew.craft.blockentity.WormBinBlockEntity;
+import com.stardew.craft.blockentity.AdvanceableUtility;
 import com.stardew.craft.fishpond.service.FishPondDailyUpdateService;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.BlockPos;
@@ -68,48 +48,8 @@ public record AdvanceUtilitiesPayload() implements CustomPacketPayload {
 						}
 						@SuppressWarnings("null")
 						var be = serverLevel.getBlockEntity(pos);
-						if (be instanceof TapperBlockEntity tapper) {
-							tapper.advanceDays(1);
-						} else if (be instanceof KegBlockEntity keg) {
-							keg.advanceDays(1);
-						} else if (be instanceof PreservesJarBlockEntity preservesJar) {
-							preservesJar.advanceDays(1);
-						} else if (be instanceof CheesePressBlockEntity cheesePress) {
-							cheesePress.advanceDays(1);
-						} else if (be instanceof MayonnaiseMachineBlockEntity mayonnaiseMachine) {
-							mayonnaiseMachine.advanceDays(1);
-						} else if (be instanceof OilMakerBlockEntity oilMaker) {
-							oilMaker.advanceDays(1);
-						} else if (be instanceof BeeHouseBlockEntity beeHouse) {
-							beeHouse.advanceDays(1);
-						} else if (be instanceof LoomBlockEntity loom) {
-							loom.advanceDays(1);
-						} else if (be instanceof CrabPotBlockEntity crabPot) {
-							crabPot.advanceDays(1);
-						} else if (be instanceof CrystalariumBlockEntity crystalarium) {
-							crystalarium.advanceDays(1);
-						} else if (be instanceof DehydratorBlockEntity dehydrator) {
-							dehydrator.advanceDays(1);
-						} else if (be instanceof BaitMakerBlockEntity baitMaker) {
-							baitMaker.advanceDays(1);
-						} else if (be instanceof FishSmokerBlockEntity fishSmoker) {
-							fishSmoker.advanceDays(1);
-						} else if (be instanceof SeedMakerBlockEntity seedMaker) {
-							seedMaker.advanceDays(1);
-						} else if (be instanceof FurnaceBlockEntity furnace) {
-							furnace.advanceDays(1);
-						} else if (be instanceof CharcoalKilnBlockEntity kiln) {
-							kiln.advanceDays(1);
-						} else if (be instanceof LightningRodBlockEntity rod) {
-							rod.advanceDays(1);
-						} else if (be instanceof SolarPanelBlockEntity panel) {
-							panel.advanceDays(1);
-						} else if (be instanceof RecyclingMachineBlockEntity recyclingMachine) {
-							recyclingMachine.advanceDays(1);
-						} else if (be instanceof WormBinBlockEntity wormBin) {
-							wormBin.advanceDays(1);
-						} else if (be instanceof DeluxeWormBinBlockEntity wormBin) {
-							wormBin.advanceDays(1);
+						if (be instanceof AdvanceableUtility utility) {
+							utility.advanceDays(1);
 						}
 					}
 				}

@@ -1,0 +1,17 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:skeletal_hand",
+    "stardewcraft:skeletal_tail",
+    "stardewcraft:nautilus_fossil",
+    "stardewcraft:amphibian_fossil",
+    "stardewcraft:palm_fossil",
+    "stardewcraft:prehistoric_scapula",
+    "stardewcraft:prehistoric_tibia",
+    "stardewcraft:prehistoric_skull",
+    "stardewcraft:prehistoric_rib",
+    "stardewcraft:prehistoric_vertebra",
+    "stardewcraft:trilobite",
+    "stardewcraft:bone_fragment"
+  ]
+}

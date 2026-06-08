@@ -1,6 +1,7 @@
 package com.stardew.craft.capability;
 
 import com.stardew.craft.block.ModBlocks;
+import com.stardew.craft.block.utility.AbstractTwoBlockUtilityBlock;
 import com.stardew.craft.block.utility.AutoGrabberBlock;
 import com.stardew.craft.block.utility.BaitMakerBlock;
 import com.stardew.craft.block.utility.BeeHouseBlock;
@@ -88,6 +89,12 @@ public final class UtilityAutomationCapabilities {
             (be, ctx) -> be.getAutomationItemHandler());
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ModBlockEntities.FISH_POND_BUCKET.get(),
             (be, ctx) -> be.getAutomationItemHandler());
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ModBlockEntities.GEODE_CRUSHER.get(),
+            (be, ctx) -> be.getAutomationItemHandler());
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ModBlockEntities.COFFEE_MAKER.get(),
+            (be, ctx) -> be.getAutomationItemHandler());
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ModBlockEntities.BONE_MILL.get(),
+            (be, ctx) -> be.getAutomationItemHandler());
 
         event.registerBlock(Capabilities.ItemHandler.BLOCK, UtilityAutomationCapabilities::getAutomationFromMultiblock,
             ModBlocks.BEE_HOUSE.get(),
@@ -103,7 +110,9 @@ public final class UtilityAutomationCapabilities {
             ModBlocks.CRYSTALARIUM.get(),
             ModBlocks.AUTO_GRABBER.get(),
             ModBlocks.LIGHTNING_ROD.get(),
-            ModBlocks.SOLAR_PANEL.get());
+            ModBlocks.SOLAR_PANEL.get(),
+            ModBlocks.GEODE_CRUSHER.get(),
+            ModBlocks.COFFEE_MAKER.get());
     }
 
     @Nullable
@@ -118,6 +127,9 @@ public final class UtilityAutomationCapabilities {
     }
 
     private static BlockPos resolveMainPos(BlockPos pos, BlockState state) {
+        if (state.getBlock() instanceof AbstractTwoBlockUtilityBlock<?>) {
+            return AbstractTwoBlockUtilityBlock.getMainPos(pos, state);
+        }
         if (state.getBlock() instanceof BeeHouseBlock) {
             return BeeHouseBlock.getMainPos(pos, state);
         }

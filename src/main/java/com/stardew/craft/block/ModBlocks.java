@@ -875,6 +875,9 @@ public class ModBlocks {
     public static final DeferredBlock<Block> YAM_CROP = BLOCKS.register("yam_crop",
             () -> new com.stardew.craft.block.crop.YamCropBlock());
 
+    public static final DeferredBlock<Block> FIBER_CROP = BLOCKS.register("fiber_crop",
+            () -> new com.stardew.craft.block.crop.FiberCropBlock());
+
     // Wild Seed Crops (grow 7 days then transform into forage blocks)
     public static final DeferredBlock<Block> SPRING_WILD_SEED_CROP = BLOCKS.register("spring_wild_seed_crop",
             () -> new com.stardew.craft.block.crop.WildSeedCropBlock(0, com.stardew.craft.item.ModItems.SPRING_SEEDS));
@@ -910,7 +913,7 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
 
         @SuppressWarnings("null")
         private static DeferredBlock<Block> newTreeLog(String name) {
-                return BLOCKS.register(name + "_log", () -> new RotatedPillarBlock(newTreeWoodProps()));
+                return BLOCKS.register(name + "_log", () -> new com.stardew.craft.block.tree.NewTreeLogBlock(newTreeWoodProps()));
         }
 
         @SuppressWarnings("null")
@@ -1558,11 +1561,28 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                                                 .noOcclusion(),
                                                                 "stardewcraft:decor/special_orders_board"));
 
-                public static final DeferredBlock<Block> GEODE_CRUSHER = specialOrderUtilityBlock("geode_crusher", MapColor.METAL, SoundType.METAL);
+                @SuppressWarnings("null")
+                public static final DeferredBlock<Block> GEODE_CRUSHER = BLOCKS.register("geode_crusher",
+                                () -> new com.stardew.craft.block.utility.GeodeCrusherBlock(Block.Properties.of()
+                                                .mapColor(MapColor.METAL)
+                                                .sound(SoundType.METAL)
+                                                .noOcclusion()
+                                                .strength(1.5F, 3.0F)));
                 public static final DeferredBlock<Block> MINI_OBELISK = specialOrderUtilityBlock("mini_obelisk", MapColor.COLOR_PURPLE, SoundType.STONE);
                 public static final DeferredBlock<Block> FARM_COMPUTER = specialOrderUtilityBlock("farm_computer", MapColor.METAL, SoundType.METAL);
-                public static final DeferredBlock<Block> BONE_MILL = specialOrderUtilityBlock("bone_mill", MapColor.TERRACOTTA_WHITE, SoundType.WOOD);
-                public static final DeferredBlock<Block> COFFEE_MAKER = specialOrderUtilityBlock("coffee_maker", MapColor.METAL, SoundType.METAL);
+                public static final DeferredBlock<Block> BONE_MILL = BLOCKS.register("bone_mill",
+                                () -> new com.stardew.craft.block.utility.BoneMillBlock(Block.Properties.of()
+                                                .mapColor(MapColor.TERRACOTTA_WHITE)
+                                                .sound(SoundType.WOOD)
+                                                .noOcclusion()
+                                                .strength(1.5F, 3.0F)));
+                @SuppressWarnings("null")
+                public static final DeferredBlock<Block> COFFEE_MAKER = BLOCKS.register("coffee_maker",
+                                () -> new com.stardew.craft.block.utility.CoffeeMakerBlock(Block.Properties.of()
+                                                .mapColor(MapColor.METAL)
+                                                .sound(SoundType.METAL)
+                                                .noOcclusion()
+                                                .strength(1.5F, 3.0F)));
 
 
                 @SuppressWarnings("null")

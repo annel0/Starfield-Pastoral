@@ -1,8 +1,10 @@
 package com.stardew.craft.tree;
 
 import com.stardew.craft.block.ModBlocks;
+import com.stardew.craft.blockentity.NewTreePartBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -12,6 +14,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -268,8 +271,14 @@ public final class WildTrees {
 		BlockState state = level.getBlockState(supportPos);
 		Def modern = findByModernLog(state);
 		if (modern != null) {
-			BlockPos root = findModernRootFromLog(level, supportPos, modern);
-			return root != null && isModernCompleteTree(level, root, modern) ? modern : null;
+			if (!isLiveGeneratedModernTreePart(level, supportPos, modern) && level instanceof ServerLevel serverLevel) {
+				BlockPos root = findModernRootFromLog(level, supportPos, modern);
+				if (root != null) {
+					com.stardew.craft.manager.WildTreeSeedManager.get(serverLevel)
+							.tryMigrateGeneratedTreeMarker(serverLevel, root, modern);
+				}
+			}
+			return isLiveGeneratedModernTreePart(level, supportPos, modern) ? modern : null;
 		}
 		Def legacy = findByTrunk0(state);
 		if (legacy != null && isLegacyCompleteTree(level, supportPos, legacy)) {
@@ -282,7 +291,10 @@ public final class WildTrees {
 		BlockState state = level.getBlockState(supportPos);
 		Def modern = findByModernLog(state);
 		if (modern != null) {
-			return findModernRootFromLog(level, supportPos, modern);
+			NewTreePartBlockEntity marker = getGeneratedModernTreeMarker(level, supportPos, modern);
+			return marker != null && isLiveGeneratedModernTreePart(level, supportPos, modern)
+					? marker.getGeneratedTreeRoot()
+					: null;
 		}
 		Def legacy = findByTrunk0(state);
 		return legacy == null ? null : supportPos;
@@ -325,6 +337,64 @@ public final class WildTrees {
 				consumer.accept(pos);
 			}
 		}
+	}
+
+	public static void forEachLiveGeneratedModernLogInTree(LevelReader level, BlockPos rootPos, Def def, Consumer<BlockPos> consumer) {
+		NewTreePartBlockEntity rootMarker = getGeneratedModernTreeMarker(level, rootPos, def);
+		if (rootMarker == null || !rootPos.equals(rootMarker.getGeneratedTreeRoot())) {
+			return;
+		}
+		for (BlockPos pos : collectConnectedModernWood(level, rootPos, def)) {
+			BlockState state = level.getBlockState(pos);
+			if (!def.isModernLog(state)) {
+				continue;
+			}
+			NewTreePartBlockEntity partMarker = getGeneratedModernTreeMarker(level, pos, def);
+			if (partMarker != null && rootMarker.getGeneratedTreeId().equals(partMarker.getGeneratedTreeId())) {
+				consumer.accept(pos);
+			}
+		}
+	}
+
+	public static boolean markGeneratedModernTree(ServerLevel level, BlockPos rootPos, Def def) {
+		if (!isModernCompleteTree(level, rootPos, def)) {
+			return false;
+		}
+		UUID treeId = UUID.randomUUID();
+		for (BlockPos pos : collectConnectedModernWood(level, rootPos, def)) {
+			if (level.getBlockEntity(pos) instanceof NewTreePartBlockEntity treePart) {
+				treePart.markGeneratedTree(treeId, def.id(), rootPos);
+			}
+		}
+		return true;
+	}
+
+	private static boolean isLiveGeneratedModernTreePart(LevelReader level, BlockPos pos, Def def) {
+		NewTreePartBlockEntity marker = getGeneratedModernTreeMarker(level, pos, def);
+		if (marker == null) {
+			return false;
+		}
+		BlockPos root = marker.getGeneratedTreeRoot();
+		if (root == null || !def.isModernRoot(level.getBlockState(root))) {
+			return false;
+		}
+		NewTreePartBlockEntity rootMarker = getGeneratedModernTreeMarker(level, root, def);
+		return rootMarker != null
+				&& root.equals(rootMarker.getGeneratedTreeRoot())
+				&& marker.getGeneratedTreeId().equals(rootMarker.getGeneratedTreeId());
+	}
+
+	private static NewTreePartBlockEntity getGeneratedModernTreeMarker(LevelReader level, BlockPos pos, Def def) {
+		if (!isModernWood(level.getBlockState(pos), def)) {
+			return null;
+		}
+		if (!(level.getBlockEntity(pos) instanceof NewTreePartBlockEntity marker)) {
+			return null;
+		}
+		if (!marker.hasGeneratedTreeMarker()) {
+			return null;
+		}
+		return def.id().equals(marker.getGeneratedTreeSpecies()) ? marker : null;
 	}
 
 	private static BlockPos findModernRootFromWood(LevelReader level, BlockPos start, Def def) {

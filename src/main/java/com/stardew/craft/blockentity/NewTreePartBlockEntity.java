@@ -1,11 +1,110 @@
 package com.stardew.craft.blockentity;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.nbt.Tag;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
+import java.util.UUID;
+
 public class NewTreePartBlockEntity extends BlockEntity {
+	private static final int TREE_MARKER_SCAN_RADIUS = 8;
+	private static final int TREE_MARKER_SCAN_HEIGHT = 50;
+	private static final String TAG_TREE_ID = "StardewGeneratedTreeId";
+	private static final String TAG_TREE_SPECIES = "StardewGeneratedTreeSpecies";
+	private static final String TAG_TREE_ROOT = "StardewGeneratedTreeRoot";
+
+	private UUID generatedTreeId;
+	private String generatedTreeSpecies;
+	private BlockPos generatedTreeRoot;
+
 	public NewTreePartBlockEntity(BlockPos pos, BlockState state) {
 		super(ModBlockEntities.NEW_TREE_PART.get(), pos, state);
+	}
+
+	public boolean hasGeneratedTreeMarker() {
+		return generatedTreeId != null
+				&& generatedTreeSpecies != null
+				&& !generatedTreeSpecies.isBlank()
+				&& generatedTreeRoot != null;
+	}
+
+	public UUID getGeneratedTreeId() {
+		return generatedTreeId;
+	}
+
+	public String getGeneratedTreeSpecies() {
+		return generatedTreeSpecies;
+	}
+
+	public BlockPos getGeneratedTreeRoot() {
+		return generatedTreeRoot;
+	}
+
+	public void markGeneratedTree(UUID treeId, String species, BlockPos root) {
+		if (treeId == null || species == null || species.isBlank() || root == null) {
+			return;
+		}
+		this.generatedTreeId = treeId;
+		this.generatedTreeSpecies = species;
+		this.generatedTreeRoot = root.immutable();
+		setChanged();
+	}
+
+	public void clearGeneratedTreeMarker() {
+		if (!hasGeneratedTreeMarker()) {
+			return;
+		}
+		this.generatedTreeId = null;
+		this.generatedTreeSpecies = null;
+		this.generatedTreeRoot = null;
+		setChanged();
+	}
+
+	public void invalidateGeneratedTreeMarker() {
+		if (!hasGeneratedTreeMarker()) {
+			return;
+		}
+		Level currentLevel = level;
+		UUID treeId = generatedTreeId;
+		BlockPos root = generatedTreeRoot;
+		clearGeneratedTreeMarker();
+		if (currentLevel == null || treeId == null || root == null) {
+			return;
+		}
+		for (int dx = -TREE_MARKER_SCAN_RADIUS; dx <= TREE_MARKER_SCAN_RADIUS; dx++) {
+			for (int dy = 0; dy <= TREE_MARKER_SCAN_HEIGHT; dy++) {
+				for (int dz = -TREE_MARKER_SCAN_RADIUS; dz <= TREE_MARKER_SCAN_RADIUS; dz++) {
+					BlockPos pos = root.offset(dx, dy, dz);
+					if (currentLevel.getBlockEntity(pos) instanceof NewTreePartBlockEntity treePart
+							&& treeId.equals(treePart.generatedTreeId)) {
+						treePart.clearGeneratedTreeMarker();
+					}
+				}
+			}
+		}
+	}
+
+	@Override
+	protected void saveAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+		super.saveAdditional(tag, registries);
+		if (hasGeneratedTreeMarker()) {
+			tag.put(TAG_TREE_ID, NbtUtils.createUUID(generatedTreeId));
+			tag.putString(TAG_TREE_SPECIES, generatedTreeSpecies);
+			tag.put(TAG_TREE_ROOT, NbtUtils.writeBlockPos(generatedTreeRoot));
+		}
+	}
+
+	@Override
+	protected void loadAdditional(CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+		super.loadAdditional(tag, registries);
+		generatedTreeId = tag.contains(TAG_TREE_ID, Tag.TAG_INT_ARRAY) ? NbtUtils.loadUUID(tag.get(TAG_TREE_ID)) : null;
+		generatedTreeSpecies = tag.contains(TAG_TREE_SPECIES, Tag.TAG_STRING) ? tag.getString(TAG_TREE_SPECIES) : null;
+		generatedTreeRoot = tag.contains(TAG_TREE_ROOT, Tag.TAG_COMPOUND)
+				? NbtUtils.readBlockPos(tag, TAG_TREE_ROOT).orElse(null)
+				: null;
 	}
 }

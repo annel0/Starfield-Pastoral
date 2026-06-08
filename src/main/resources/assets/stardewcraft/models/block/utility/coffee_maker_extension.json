@@ -1,0 +1,8 @@
+{
+  "ambientocclusion": false,
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "stardewcraft:block/utility/coffee_maker"
+  },
+  "elements": []
+}

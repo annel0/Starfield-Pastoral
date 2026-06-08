@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "stardewcraft:stardew_npc",
+    "stardewcraft:event_actor",
+    "stardewcraft:event_player_actor",
+    "stardewcraft:bookseller",
+    "stardewcraft:camel_merchant",
+    "stardewcraft:traveling_cart"
+  ]
+}
