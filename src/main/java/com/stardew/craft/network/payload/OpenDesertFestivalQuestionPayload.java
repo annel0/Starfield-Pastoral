@@ -106,7 +106,7 @@ public record OpenDesertFestivalQuestionPayload(
             };
             StardewNpcDialogueScreen dialogue = new StardewNpcDialogueScreen(
                 speaker,
-                Component.translatable(payload.preDialogueKey()).getString(),
+                OpenNpcDialogueScreenPayload.rawTranslation(payload.preDialogueKey()),
                 0
             ).withAfterClose(openQuestion);
             mc.setScreen(dialogue);

@@ -61,6 +61,15 @@ public final class EventCommandFactory {
                     getBool(obj, "relative", true),
                     getString(obj, "anchor", null)
             );
+            case "navigate_actor" -> new NavigateActorCommand(
+                    obj.get("actor").getAsString(),
+                    getDouble(obj, "x", 0),
+                    getDouble(obj, "y", 0),
+                    getDouble(obj, "z", 0),
+                    getBool(obj, "relative", false),
+                    getDouble(obj, "speed", 0.11D),
+                    getString(obj, "anchor", null)
+            );
             case "face_actor"    -> new FaceActorCommand(
                     obj.get("actor").getAsString(),
                     obj.has("yaw") ? obj.get("yaw").getAsFloat() : null,
@@ -234,12 +243,38 @@ public final class EventCommandFactory {
                     getInt(obj, "ticks", 20),
                     getString(obj, "anchor", null)
             );
+            case "temporary_block" -> new TemporaryBlockCommand(
+                    getString(obj, "id", obj.get("block").getAsString() + "@" + getInt(obj, "x", 0) + "," + getInt(obj, "y", 0) + "," + getInt(obj, "z", 0)),
+                    obj.get("block").getAsString(),
+                    getInt(obj, "x", 0),
+                    getInt(obj, "y", 0),
+                    getInt(obj, "z", 0),
+                    net.minecraft.core.Direction.byName(getString(obj, "facing", "north"))
+            );
+            case "restore_temporary_block" -> new RestoreTemporaryBlockCommand(
+                    obj.get("id").getAsString()
+            );
 
             case "hold_item"     -> new HoldItemCommand(
                     obj.get("actor").getAsString(),
                     obj.get("item").getAsString(),
                     getInt(obj, "ticks", 60),
                     getFloat(obj, "offset_y", 0)
+            );
+            case "ground_item"    -> new GroundItemCommand(
+                    getString(obj, "id", obj.get("item").getAsString() + "@" + getDouble(obj, "x", 0) + "," + getDouble(obj, "z", 0)),
+                    obj.get("item").getAsString(),
+                    getDouble(obj, "x", 0),
+                    getDouble(obj, "y", 0),
+                    getDouble(obj, "z", 0),
+                    getFloat(obj, "scale", 0.98F),
+                    getFloat(obj, "yaw", 0.0F)
+            );
+            case "text_above_head", "textAboveHead" -> new TextAboveHeadCommand(
+                    obj.get("actor").getAsString(),
+                    obj.get("text").getAsString(),
+                    getInt(obj, "ticks", 40),
+                    getDouble(obj, "offset_y", 0.0)
             );
 
             case "teleport_cc"   -> new TeleportCCCommand();

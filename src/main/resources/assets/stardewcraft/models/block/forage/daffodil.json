@@ -3,5 +3,6 @@
   "textures": {
     "cross": "stardewcraft:item/forage/daffodil",
     "particle": "stardewcraft:item/forage/daffodil"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

@@ -183,7 +183,7 @@ public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
 
     @Override
     public void tick() {
-        if (this.isNoGravity()) {
+        if (this.isNoGravity() && !this.getTags().contains(com.stardew.craft.auction.AuctionService.AUCTION_HOST_TAG)) {
             this.setNoGravity(false);
         }
         if (!this.level().isClientSide) {
@@ -201,7 +201,9 @@ public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
                     return;
                 }
             } else {
-                if (this.tickCount >= 10 && !com.stardew.craft.npc.runtime.NpcSpawnManager.isOfficialInstance(this)) {
+                if (this.tickCount >= 10
+                    && !this.getTags().contains(com.stardew.craft.auction.AuctionService.AUCTION_HOST_TAG)
+                    && !com.stardew.craft.npc.runtime.NpcSpawnManager.isOfficialInstance(this)) {
                     StardewCraft.LOGGER.debug(
                         "Self-destructing strictly forbidden duplicate StardewNpcEntity id='{}' uuid={}",
                         getNpcId(),

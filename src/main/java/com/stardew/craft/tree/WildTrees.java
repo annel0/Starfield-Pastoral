@@ -311,6 +311,14 @@ public final class WildTrees {
 		if (!def.isModernRoot(level.getBlockState(rootPos))) {
 			return false;
 		}
+		// 预制树（结构树）木质不靠连通性，按登记表判定：登记在册且未砍倒即为「完整树」。
+		if (level instanceof ServerLevel serverLevel) {
+			com.stardew.craft.tree.prefab.PrefabTreeInstance prefab =
+					com.stardew.craft.tree.prefab.PrefabTreeRegistry.get(serverLevel).getByRoot(rootPos);
+			if (prefab != null) {
+				return !prefab.felled();
+			}
+		}
 		Set<BlockPos> wood = collectConnectedModernWood(level, rootPos, def);
 		boolean hasLog = false;
 		boolean hasBranch = false;
@@ -369,6 +377,63 @@ public final class WildTrees {
 		return true;
 	}
 
+	/**
+	 * 从任意现代树部位（树根/原木/树枝/树叶）找到这棵树的树根坐标。
+	 * 供预制树系统「收养」老存档算法生成树时定位树根用。
+	 */
+	public static BlockPos findGeneratedModernRoot(LevelReader level, BlockPos pos, Def def) {
+		BlockState state = level.getBlockState(pos);
+		if (def.isModernRoot(state)) {
+			return pos.immutable();
+		}
+		if (isModernWood(state, def)) {
+			return findModernRootFromWood(level, pos, def);
+		}
+		// 树叶或其它：在相邻找现代木质，再回溯到树根。
+		for (Direction direction : Direction.values()) {
+			BlockPos neighbor = pos.relative(direction);
+			if (isModernWood(level.getBlockState(neighbor), def)) {
+				BlockPos root = findModernRootFromWood(level, neighbor, def);
+				if (root != null) {
+					return root;
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * 收集一棵现代树的全部「构成方块」：连通的木质（树根/原木/树枝）+ 与木质相连的树叶。
+	 * 供预制树系统收养算法生成树时构建占地成员集。
+	 */
+	public static Set<BlockPos> collectGeneratedModernTreeMembers(LevelReader level, BlockPos rootPos, Def def) {
+		Set<BlockPos> members = new HashSet<>(collectConnectedModernWood(level, rootPos, def));
+		Block leavesBlock = def.modernLeaves().get();
+		int cap = MAX_CONNECTED_MODERN_WOOD * 4;
+		Set<BlockPos> visited = new HashSet<>(members);
+		ArrayDeque<BlockPos> queue = new ArrayDeque<>();
+		for (BlockPos wood : new HashSet<>(members)) {
+			for (Direction direction : Direction.values()) {
+				BlockPos leaf = wood.relative(direction);
+				if (level.getBlockState(leaf).getBlock() == leavesBlock && visited.add(leaf)) {
+					members.add(leaf.immutable());
+					queue.add(leaf);
+				}
+			}
+		}
+		while (!queue.isEmpty() && members.size() < cap) {
+			BlockPos leaf = queue.removeFirst();
+			for (Direction direction : Direction.values()) {
+				BlockPos next = leaf.relative(direction);
+				if (level.getBlockState(next).getBlock() == leavesBlock && visited.add(next)) {
+					members.add(next.immutable());
+					queue.add(next);
+				}
+			}
+		}
+		return members;
+	}
+
 	private static boolean isLiveGeneratedModernTreePart(LevelReader level, BlockPos pos, Def def) {
 		NewTreePartBlockEntity marker = getGeneratedModernTreeMarker(level, pos, def);
 		if (marker == null) {
@@ -407,6 +472,27 @@ public final class WildTrees {
 	}
 
 	private static Set<BlockPos> collectConnectedModernWood(LevelReader level, BlockPos start, Def def) {
+		// 预制树（结构树）木质用装饰块自由搭、并不 6-连通，按登记表返回全部木质成员（树根/原木/树枝），
+		// 让采集器计数、标记、完整性判定等不再受连通性限制。
+		if (level instanceof ServerLevel serverLevel) {
+			com.stardew.craft.tree.prefab.PrefabTreeInstance prefab =
+					com.stardew.craft.tree.prefab.PrefabTreeRegistry.get(serverLevel).getByMember(start);
+			if (prefab != null) {
+				Set<BlockPos> wood = new HashSet<>();
+				Block rootBlock = def.modernRoot().get();
+				Block logBlock = def.modernLog().get();
+				Block branchBlock = def.modernBranch().get();
+				for (BlockPos member : prefab.members()) {
+					Block b = level.getBlockState(member).getBlock();
+					if (b == rootBlock || b == logBlock || b == branchBlock) {
+						wood.add(member.immutable());
+					}
+				}
+				if (!wood.isEmpty()) {
+					return wood;
+				}
+			}
+		}
 		Set<BlockPos> visited = new HashSet<>();
 		ArrayDeque<BlockPos> queue = new ArrayDeque<>();
 		if (!isModernWood(level.getBlockState(start), def)) {

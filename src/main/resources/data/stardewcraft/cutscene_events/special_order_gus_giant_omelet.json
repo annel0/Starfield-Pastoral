@@ -1,0 +1,186 @@
+{
+  "id": "special_order_gus_giant_omelet",
+  "skippable": true,
+  "trigger": {
+    "type": "enter_area",
+    "location": "saloon",
+    "area_min": [15, 35, -2],
+    "area_max": [58, 40, 19]
+  },
+  "preconditions": [
+    { "type": "not_saw_event", "id": "special_order_gus_giant_omelet" },
+    { "type": "mail", "id": "gusGiantOmelet" }
+  ],
+  "commands": [
+    { "cmd": "comment", "text": "=== SDV Event 3206194: Gus giant omelet special order reward ===" },
+
+    { "cmd": "lock_player" },
+    { "cmd": "fade", "mode": "out", "ticks": 10 },
+
+    { "cmd": "hide_npc", "npc_id": "robin" },
+    { "cmd": "hide_npc", "npc_id": "pam" },
+    { "cmd": "hide_npc", "npc_id": "gus" },
+    { "cmd": "hide_npc", "npc_id": "willy" },
+    { "cmd": "hide_npc", "npc_id": "lewis" },
+    { "cmd": "hide_npc", "npc_id": "marnie" },
+
+    { "cmd": "spawn_actor", "actor": "robin", "npc_id": "robin",
+      "x": 23.5, "y": 36, "z": 13.5, "relative": false, "facing": 0 },
+    { "cmd": "spawn_actor", "actor": "pam", "npc_id": "pam",
+      "x": 26.5, "y": 36, "z": 13.5, "relative": false, "facing": 0 },
+    { "cmd": "spawn_actor", "actor": "gus", "npc_id": "gus",
+      "x": 24.5, "y": 36, "z": 14.5, "relative": false, "facing": 0 },
+    { "cmd": "spawn_actor", "actor": "willy", "npc_id": "willy",
+      "x": 29.5, "y": 36, "z": 15.5, "relative": false, "facing": 90 },
+    { "cmd": "spawn_actor", "actor": "lewis", "npc_id": "lewis",
+      "x": 21.5, "y": 36, "z": 16.5, "relative": false, "facing": -90 },
+    { "cmd": "spawn_actor", "actor": "marnie", "npc_id": "marnie",
+      "x": 22.5, "y": 36, "z": 17.5, "relative": false, "facing": 180 },
+
+    { "cmd": "temporary_block", "id": "gus_omelet_0",
+      "block": "stardewcraft:placed_food_omelet", "x": 26, "y": 37, "z": 15, "facing": "north" },
+    { "cmd": "temporary_block", "id": "gus_omelet_1",
+      "block": "stardewcraft:placed_food_omelet", "x": 27, "y": 37, "z": 15, "facing": "east" },
+    { "cmd": "temporary_block", "id": "gus_omelet_2",
+      "block": "stardewcraft:placed_food_omelet", "x": 26, "y": 37, "z": 16, "facing": "west" },
+    { "cmd": "temporary_block", "id": "gus_omelet_3",
+      "block": "stardewcraft:placed_food_omelet", "x": 27, "y": 37, "z": 16, "facing": "south" },
+
+    { "cmd": "camera", "x": 26.584, "y": 38.106, "z": 17.978,
+      "yaw": -178.5, "pitch": 53.8, "relative": false },
+    { "cmd": "music", "track": "distant_banjo" },
+    { "cmd": "fade", "mode": "in", "ticks": 20 },
+    { "cmd": "skippable" },
+    { "cmd": "pause", "ticks": 60 },
+
+    { "cmd": "speak", "npc_id": "gus", "text": "event.special_order.gus.folks" },
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "speak", "npc_id": "gus", "text": "event.special_order.gus.rare_visit" },
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "jump", "actor": "gus" },
+    { "cmd": "pause", "ticks": 8 },
+    { "cmd": "speak", "npc_id": "gus", "text": "event.special_order.gus.omelet" },
+
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "move_actor", "actor": "marnie", "x": 23.5, "y": 36, "z": 17.5, "ticks": 20, "relative": false },
+      { "cmd": "move_actor", "actor": "willy", "x": 28.5, "y": 36, "z": 15.5, "ticks": 20, "relative": false },
+      { "cmd": "move_actor", "actor": "lewis", "x": 22.5, "y": 36, "z": 16.5, "ticks": 20, "relative": false }
+    ] },
+    { "cmd": "play_sound", "sound": "stardewcraft:coin" },
+    { "cmd": "pause", "ticks": 12 },
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "shake_actor", "actor": "lewis", "ticks": 12, "amplitude": 0.05 },
+      { "cmd": "play_sound", "sound": "stardewcraft:eat" }
+    ] },
+    { "cmd": "pause", "ticks": 12 },
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "shake_actor", "actor": "pam", "ticks": 12, "amplitude": 0.05 },
+      { "cmd": "play_sound", "sound": "stardewcraft:eat" }
+    ] },
+    { "cmd": "pause", "ticks": 16 },
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "shake_actor", "actor": "robin", "ticks": 12, "amplitude": 0.05 },
+      { "cmd": "play_sound", "sound": "stardewcraft:eat" }
+    ] },
+    { "cmd": "pause", "ticks": 12 },
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "shake_actor", "actor": "pam", "ticks": 8, "amplitude": 0.05 },
+      { "cmd": "play_sound", "sound": "stardewcraft:eat" }
+    ] },
+    { "cmd": "pause", "ticks": 14 },
+
+    { "cmd": "face_actor", "actor": "gus", "yaw": -90 },
+    { "cmd": "speak", "npc_id": "gus", "text": "event.special_order.gus.willy_thought" },
+    { "cmd": "pause", "ticks": 8 },
+    { "cmd": "textAboveHead", "actor": "willy", "text": "event.special_order.gus.willy_hmm", "ticks": 40 },
+    { "cmd": "pause", "ticks": 14 },
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "shake_actor", "actor": "willy", "ticks": 8, "amplitude": 0.05 },
+      { "cmd": "play_sound", "sound": "stardewcraft:eat" }
+    ] },
+    { "cmd": "pause", "ticks": 12 },
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "shake_actor", "actor": "willy", "ticks": 8, "amplitude": 0.05 },
+      { "cmd": "play_sound", "sound": "stardewcraft:eat" }
+    ] },
+    { "cmd": "pause", "ticks": 12 },
+    { "cmd": "speak", "npc_id": "willy", "text": "event.special_order.gus.chewy" },
+    { "cmd": "pause", "ticks": 8 },
+    { "cmd": "speak", "npc_id": "gus", "text": "event.special_order.gus.good_thing" },
+    { "cmd": "pause", "ticks": 8 },
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "play_sound", "sound": "stardewcraft:eat" },
+      { "cmd": "shake_actor", "actor": "willy", "ticks": 8, "amplitude": 0.05 }
+    ] },
+    { "cmd": "pause", "ticks": 12 },
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "play_sound", "sound": "stardewcraft:eat" },
+      { "cmd": "shake_actor", "actor": "willy", "ticks": 8, "amplitude": 0.05 }
+    ] },
+    { "cmd": "pause", "ticks": 12 },
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "play_sound", "sound": "stardewcraft:eat" },
+      { "cmd": "shake_actor", "actor": "willy", "ticks": 8, "amplitude": 0.05 }
+    ] },
+    { "cmd": "pause", "ticks": 16 },
+    { "cmd": "play_sound", "sound": "stardewcraft:gulp" },
+    { "cmd": "pause", "ticks": 26 },
+    { "cmd": "textAboveHead", "actor": "willy", "text": "event.special_order.gus.aye_lad", "ticks": 40 },
+    { "cmd": "pause", "ticks": 6 },
+    { "cmd": "jump", "actor": "gus" },
+    { "cmd": "pause", "ticks": 8 },
+    { "cmd": "emote", "actor": "gus", "emote": "happy" },
+    { "cmd": "pause", "ticks": 20 },
+    { "cmd": "speak", "npc_id": "pam", "text": "event.special_order.gus.pam_house" },
+    { "cmd": "face_actor", "actor": "gus", "yaw": 0 },
+    { "cmd": "speak", "npc_id": "robin", "text": "event.special_order.gus.robin_eggs" },
+    { "cmd": "face_actor", "actor": "gus", "yaw": 90 },
+    { "cmd": "speak", "npc_id": "gus", "text": "event.special_order.gus.thank_farmer" },
+    { "cmd": "emote", "actor": "lewis", "emote": "heart" },
+    { "cmd": "emote", "actor": "marnie", "emote": "heart" },
+    { "cmd": "emote", "actor": "robin", "emote": "heart" },
+    { "cmd": "emote", "actor": "pam", "emote": "heart" },
+    { "cmd": "emote", "actor": "willy", "emote": "heart" },
+    { "cmd": "pause", "ticks": 20 },
+    { "cmd": "speak", "npc_id": "marnie", "text": "event.special_order.gus.marnie_eggs" },
+    { "cmd": "pause", "ticks": 4 },
+    { "cmd": "textAboveHead", "actor": "lewis", "text": "event.special_order.gus.lewis_mmph", "ticks": 40 },
+    { "cmd": "face_actor", "actor": "gus", "yaw": 0 },
+    { "cmd": "camera", "x": 27.584, "y": 38.106, "z": 17.978,
+      "yaw": -178.5, "pitch": 53.8, "relative": false, "ticks": 140 },
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "play_sound", "sound": "stardewcraft:eat" },
+      { "cmd": "shake_actor", "actor": "robin", "ticks": 8, "amplitude": 0.05 }
+    ] },
+    { "cmd": "pause", "ticks": 20 },
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "play_sound", "sound": "stardewcraft:eat" },
+      { "cmd": "shake_actor", "actor": "lewis", "ticks": 8, "amplitude": 0.05 }
+    ] },
+    { "cmd": "pause", "ticks": 20 },
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "play_sound", "sound": "stardewcraft:eat" },
+      { "cmd": "shake_actor", "actor": "marnie", "ticks": 8, "amplitude": 0.05 }
+    ] },
+    { "cmd": "pause", "ticks": 20 },
+
+    { "cmd": "fade", "mode": "out", "ticks": 20 },
+    { "cmd": "pause", "ticks": 20 },
+    { "cmd": "stop_music" },
+    { "cmd": "remove_actor", "actor": "robin" },
+    { "cmd": "remove_actor", "actor": "pam" },
+    { "cmd": "remove_actor", "actor": "gus" },
+    { "cmd": "remove_actor", "actor": "willy" },
+    { "cmd": "remove_actor", "actor": "lewis" },
+    { "cmd": "remove_actor", "actor": "marnie" },
+    { "cmd": "show_npc", "npc_id": "robin" },
+    { "cmd": "show_npc", "npc_id": "pam" },
+    { "cmd": "show_npc", "npc_id": "gus" },
+    { "cmd": "show_npc", "npc_id": "willy" },
+    { "cmd": "show_npc", "npc_id": "lewis" },
+    { "cmd": "show_npc", "npc_id": "marnie" },
+    { "cmd": "unlock_player" },
+    { "cmd": "end" }
+  ]
+}

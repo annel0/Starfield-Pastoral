@@ -135,9 +135,14 @@ public class LetterViewerScreen extends Screen {
                 text = translated;
             }
         }
-        // 将 literal "\n" 转化为真换行（JSON lang 文件中 \\n 会变成字面 \n）
+        // 将 SDV 邮件里的换行标记转成真实换行。
         if (text != null) {
-            text = text.replace("\\n", "\n");
+            if (minecraft != null && minecraft.player != null) {
+                text = text.replace("@", minecraft.player.getName().getString());
+            }
+            text = text.replace("\\n", "\n")
+                    .replace("^^", "\n\n")
+                    .replace("^", "\n");
         }
         if (text == null || text.isEmpty()) {
             pages.add("");

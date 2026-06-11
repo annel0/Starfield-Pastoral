@@ -1,0 +1,140 @@
+{
+  "id": "special_order_robin_deluxe_bed",
+  "skippable": true,
+  "trigger": {
+    "type": "enter_area",
+    "location": "sciencehouse",
+    "area_min": [20, 45, -132],
+    "area_max": [63, 61, -102]
+  },
+  "preconditions": [
+    { "type": "not_saw_event", "id": "special_order_robin_deluxe_bed" },
+    { "type": "mail", "id": "robinDeluxeBed" }
+  ],
+  "commands": [
+    { "cmd": "comment", "text": "=== SDV Event 1053978: Robin deluxe bed special order reward ===" },
+
+    { "cmd": "lock_player" },
+    { "cmd": "fade", "mode": "out", "ticks": 10 },
+
+    { "cmd": "hide_npc", "npc_id": "robin" },
+    { "cmd": "hide_npc", "npc_id": "demetrius" },
+    { "cmd": "hide_npc", "npc_id": "maru" },
+    { "cmd": "hide_npc", "npc_id": "sebastian" },
+
+    { "cmd": "temporary_block", "id": "robin_deluxe_bed_scene_bed",
+      "block": "stardewcraft:bed_2", "x": 26, "y": 51, "z": -122, "facing": "east" },
+
+    { "cmd": "spawn_actor", "actor": "robin", "npc_id": "robin",
+      "x": 29.5, "y": 51, "z": -119.5, "relative": false, "facing": 90 },
+    { "cmd": "spawn_actor", "actor": "demetrius", "npc_id": "demetrius",
+      "x": 31.5, "y": 51, "z": -119.5, "relative": false, "facing": 90 },
+    { "cmd": "spawn_actor", "actor": "maru", "npc_id": "maru",
+      "x": 32.5, "y": 51, "z": -121.5, "relative": false, "facing": 0 },
+    { "cmd": "spawn_actor", "actor": "sebastian", "npc_id": "sebastian",
+      "x": 28.5, "y": 51, "z": -117.5, "relative": false, "facing": 180 },
+
+    { "cmd": "camera", "x": 33.321, "y": 53.249, "z": -117.587,
+      "yaw": 128.7, "pitch": 40.2, "relative": false },
+    { "cmd": "music", "track": "MUSIC_DISTANT_BANJO" },
+    { "cmd": "fade", "mode": "in", "ticks": 20 },
+    { "cmd": "skippable" },
+    { "cmd": "pause", "ticks": 60 },
+
+    { "cmd": "speak", "npc_id": "robin", "text": "event.special_order.robin.voila" },
+    { "cmd": "pause", "ticks": 8 },
+    { "cmd": "emote", "actor": "demetrius", "emote": "question" },
+    { "cmd": "speak", "npc_id": "demetrius", "text": "event.special_order.robin.posts_question" },
+    { "cmd": "emote", "actor": "robin", "emote": "angry" },
+    { "cmd": "face_actor", "actor": "robin", "yaw": -90 },
+    { "cmd": "speak", "npc_id": "robin", "text": "event.special_order.robin.beauty" },
+    { "cmd": "emote", "actor": "demetrius", "emote": "question" },
+    { "cmd": "speak", "npc_id": "demetrius", "text": "event.special_order.robin.receptacle" },
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "jump", "actor": "robin", "strength": 0.5 },
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "speak", "npc_id": "robin", "text": "event.special_order.robin.obtuse" },
+    { "cmd": "pause", "ticks": 4 },
+    { "cmd": "shake_actor", "actor": "demetrius", "ticks": 50, "amplitude": 0.055 },
+    { "cmd": "emote", "actor": "maru", "emote": "sad" },
+    { "cmd": "emote", "actor": "sebastian", "emote": "angry" },
+    { "cmd": "jump", "actor": "demetrius", "strength": 0.5 },
+    { "cmd": "pause", "ticks": 30 },
+
+    { "cmd": "spawn_actor", "actor": "fake_player", "npc_id": "player",
+      "x": 30.5, "y": 51, "z": -116.5, "relative": false, "facing": 180 },
+    { "cmd": "move_actor", "actor": "fake_player",
+      "x": 30.5, "y": 51, "z": -117.5, "ticks": 20, "relative": false },
+    { "cmd": "play_sound", "sound": "minecraft:block.wooden_door.close" },
+    { "cmd": "face_actor", "actor": "robin", "yaw": 0 },
+    { "cmd": "face_actor", "actor": "demetrius", "yaw": 0 },
+    { "cmd": "face_actor", "actor": "sebastian", "yaw": -90 },
+    { "cmd": "speak", "npc_id": "robin", "text": "event.special_order.robin.come_in" },
+    { "cmd": "move_actor", "actor": "fake_player",
+      "x": 30.5, "y": 51, "z": -119.5, "ticks": 40, "relative": false },
+    { "cmd": "speak", "npc_id": "robin", "text": "event.special_order.robin.check_this_out" },
+
+    { "cmd": "face_actor", "actor": "fake_player", "yaw": 90 },
+    { "cmd": "face_actor", "actor": "robin", "yaw": 90 },
+    { "cmd": "face_actor", "actor": "demetrius", "yaw": 90 },
+    { "cmd": "pause", "ticks": 6 },
+    { "cmd": "speak", "npc_id": "robin", "text": "event.special_order.robin.what_do_you_think" },
+    {
+      "cmd": "question",
+      "text": "event.special_order.robin.question",
+      "choices": [
+        {
+          "text": "event.special_order.robin.choice.aesthetics",
+          "commands": [
+            { "cmd": "face_actor", "actor": "sebastian", "yaw": 180 },
+            { "cmd": "textAboveHead", "actor": "sebastian", "text": "event.special_order.robin.yea", "ticks": 40 },
+            { "cmd": "emote", "actor": "robin", "emote": "heart" },
+            { "cmd": "emote", "actor": "demetrius", "emote": "angry" },
+            { "cmd": "pause", "ticks": 40 },
+            { "cmd": "move_actor", "actor": "demetrius",
+              "x": 46.5, "y": 51, "z": -119.5, "ticks": 90, "relative": false },
+            { "cmd": "pause", "ticks": 10 },
+            { "cmd": "speak", "npc_id": "demetrius", "text": "event.special_order.robin.doghouse" },
+            { "cmd": "remove_actor", "actor": "demetrius" }
+          ]
+        },
+        {
+          "text": "event.special_order.robin.choice.inefficient",
+          "commands": [
+            { "cmd": "emote", "actor": "demetrius", "emote": "happy" },
+            { "cmd": "speak", "npc_id": "demetrius", "text": "event.special_order.robin.great_minds" },
+            { "cmd": "emote", "actor": "robin", "emote": "angry" },
+            { "cmd": "speak", "npc_id": "robin", "text": "event.special_order.robin.whatever" }
+          ]
+        }
+      ]
+    },
+
+    { "cmd": "pause", "ticks": 20 },
+    { "cmd": "speak", "npc_id": "robin", "text": "event.special_order.robin.prototype" },
+    { "cmd": "face_actor", "actor": "robin", "yaw": 0 },
+    { "cmd": "speak", "npc_id": "robin", "text": "event.special_order.robin.half_dozen" },
+    { "cmd": "face_actor", "actor": "fake_player", "yaw": 0 },
+    { "cmd": "shake_actor", "actor": "fake_player", "ticks": 18, "amplitude": 0.045 },
+    { "cmd": "jump", "actor": "fake_player", "strength": 0.45 },
+    { "cmd": "pause", "ticks": 4 },
+    { "cmd": "textAboveHead", "actor": "maru", "text": "event.special_order.robin.mom", "ticks": 40 },
+    { "cmd": "pause", "ticks": 20 },
+
+    { "cmd": "fade", "mode": "out", "ticks": 20 },
+    { "cmd": "pause", "ticks": 20 },
+    { "cmd": "restore_temporary_block", "id": "robin_deluxe_bed_scene_bed" },
+    { "cmd": "stop_music" },
+    { "cmd": "remove_actor", "actor": "robin" },
+    { "cmd": "remove_actor", "actor": "demetrius" },
+    { "cmd": "remove_actor", "actor": "maru" },
+    { "cmd": "remove_actor", "actor": "sebastian" },
+    { "cmd": "remove_actor", "actor": "fake_player" },
+    { "cmd": "show_npc", "npc_id": "robin" },
+    { "cmd": "show_npc", "npc_id": "demetrius" },
+    { "cmd": "show_npc", "npc_id": "maru" },
+    { "cmd": "show_npc", "npc_id": "sebastian" },
+    { "cmd": "unlock_player" },
+    { "cmd": "end" }
+  ]
+}

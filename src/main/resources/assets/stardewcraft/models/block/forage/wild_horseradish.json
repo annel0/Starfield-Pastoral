@@ -3,5 +3,6 @@
   "textures": {
     "cross": "stardewcraft:item/forage/wild_horseradish",
     "particle": "stardewcraft:item/forage/wild_horseradish"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

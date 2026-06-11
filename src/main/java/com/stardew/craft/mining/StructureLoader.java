@@ -3,11 +3,13 @@ package com.stardew.craft.mining;
 import com.stardew.craft.StardewCraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -166,6 +168,95 @@ public final class StructureLoader {
         } catch (Exception e) {
             StardewCraft.LOGGER.error("Failed to load/place schematic {}: {}", structurePath, e.getMessage(), e);
             return false;
+        }
+    }
+
+    /** 一个结构单元：相对原点的偏移 + 方块状态。 */
+    public record PositionedState(int dx, int dy, int dz, BlockState state) {}
+
+    /** 解析后的结构内容（仅含非空气方块）。 */
+    public record StructureBlocks(int width, int height, int length, java.util.List<PositionedState> states) {}
+
+    /**
+     * 只读取 vanilla NBT 结构（结构方块导出格式）的方块内容（不放置），用于预制树等需要先拿到
+     * 全部方块再自行摆放/登记的场景。返回的偏移以结构自身原点 (0,0,0) 为基准；过滤掉空气。
+     *
+     * @return 解析结果，失败返回 null
+     */
+    @SuppressWarnings("null")
+    public static StructureBlocks readStructureNbtBlocks(String structurePath) {
+        if (structurePath == null) {
+            return null;
+        }
+        try (InputStream stream = StructureLoader.class.getClassLoader().getResourceAsStream(structurePath)) {
+            if (stream == null) {
+                return null;
+            }
+            CompoundTag root = NbtIo.readCompressed(stream, NbtAccounter.unlimitedHeap());
+
+            // size: [x, y, z]
+            ListTag sizeTag = root.getList("size", Tag.TAG_INT);
+            int width = sizeTag.size() > 0 ? sizeTag.getInt(0) : 0;
+            int height = sizeTag.size() > 1 ? sizeTag.getInt(1) : 0;
+            int length = sizeTag.size() > 2 ? sizeTag.getInt(2) : 0;
+
+            // palette（单调色板）或 palettes（多调色板，取第一个）
+            ListTag paletteTag = root.getList("palette", Tag.TAG_COMPOUND);
+            if (paletteTag.isEmpty() && root.contains("palettes", Tag.TAG_LIST)) {
+                ListTag palettes = root.getList("palettes", Tag.TAG_LIST);
+                if (!palettes.isEmpty()) {
+                    paletteTag = palettes.getList(0);
+                }
+            }
+            if (paletteTag.isEmpty()) {
+                StardewCraft.LOGGER.error("Structure {} has empty palette", structurePath);
+                return null;
+            }
+
+            HolderGetter<Block> lookup = BuiltInRegistries.BLOCK.asLookup();
+            BlockState[] paletteStates = new BlockState[paletteTag.size()];
+            for (int i = 0; i < paletteTag.size(); i++) {
+                paletteStates[i] = NbtUtils.readBlockState(lookup, paletteTag.getCompound(i));
+            }
+
+            ListTag blocks = root.getList("blocks", Tag.TAG_COMPOUND);
+            java.util.List<PositionedState> states = new java.util.ArrayList<>(blocks.size());
+            int maxX = 0;
+            int maxY = 0;
+            int maxZ = 0;
+            for (int i = 0; i < blocks.size(); i++) {
+                CompoundTag b = blocks.getCompound(i);
+                int paletteIndex = b.getInt("state");
+                if (paletteIndex < 0 || paletteIndex >= paletteStates.length) {
+                    continue;
+                }
+                BlockState state = paletteStates[paletteIndex];
+                if (state == null || state.isAir()) {
+                    continue;
+                }
+                ListTag pos = b.getList("pos", Tag.TAG_INT);
+                if (pos.size() < 3) {
+                    continue;
+                }
+                int x = pos.getInt(0);
+                int y = pos.getInt(1);
+                int z = pos.getInt(2);
+                maxX = Math.max(maxX, x);
+                maxY = Math.max(maxY, y);
+                maxZ = Math.max(maxZ, z);
+                states.add(new PositionedState(x, y, z, state));
+            }
+            if (states.isEmpty()) {
+                StardewCraft.LOGGER.error("Structure {} has no non-air blocks", structurePath);
+                return null;
+            }
+            if (width <= 0) width = maxX + 1;
+            if (height <= 0) height = maxY + 1;
+            if (length <= 0) length = maxZ + 1;
+            return new StructureBlocks(width, height, length, states);
+        } catch (Exception e) {
+            StardewCraft.LOGGER.error("Failed to read structure blocks {}: {}", structurePath, e.getMessage(), e);
+            return null;
         }
     }
 

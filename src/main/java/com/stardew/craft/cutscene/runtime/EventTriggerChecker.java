@@ -44,13 +44,19 @@ public final class EventTriggerChecker {
     private static ResourceKey<Level> lastDimension = null;
 
     /** Maps event trigger location names to their dimension keys. */
-    private static final Map<String, ResourceKey<Level>> LOCATION_TO_DIMENSION = Map.of(
-            "beach", ModDimensions.STARDEW_VALLEY,
-            "town", ModDimensions.STARDEW_VALLEY,
-            "farm", ModDimensions.STARDEW_VALLEY,
-            "forest", ModDimensions.STARDEW_VALLEY,
-            "mountain", ModDimensions.STARDEW_VALLEY,
-            "mine", ModMiningDimensions.STARDEW_MINING
+    private static final Map<String, ResourceKey<Level>> LOCATION_TO_DIMENSION = Map.ofEntries(
+            Map.entry("beach", ModDimensions.STARDEW_VALLEY),
+            Map.entry("town", ModDimensions.STARDEW_VALLEY),
+            Map.entry("farm", ModDimensions.STARDEW_VALLEY),
+            Map.entry("forest", ModDimensions.STARDEW_VALLEY),
+            Map.entry("mountain", ModDimensions.STARDEW_VALLEY),
+            Map.entry("trailer", ModDimensions.STARDEW_VALLEY),
+            Map.entry("seedshop", ModDimensions.STARDEW_VALLEY),
+            Map.entry("saloon", ModDimensions.STARDEW_VALLEY),
+            Map.entry("sciencehouse", ModDimensions.STARDEW_VALLEY),
+            Map.entry("haleyhouse", ModDimensions.STARDEW_VALLEY),
+            Map.entry("joshhouse", ModDimensions.STARDEW_VALLEY),
+            Map.entry("mine", ModMiningDimensions.STARDEW_MINING)
     );
 
     /**

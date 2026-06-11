@@ -3,5 +3,6 @@
   "textures": {
     "cross": "stardewcraft:item/forage/leek",
     "particle": "stardewcraft:item/forage/leek"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

@@ -1,7 +1,7 @@
 {
   "variants": {
     "": {
-      "model": "stardewcraft:block/utility/mini_obelisk"
+      "model": "stardewcraft:block/utility/bone_mill"
     }
   }
 }

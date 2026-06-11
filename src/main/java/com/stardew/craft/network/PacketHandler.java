@@ -168,6 +168,12 @@ public class PacketHandler {
         );
 
         registrar.playToClient(
+            com.stardew.craft.network.payload.HudHintPayload.TYPE,
+            com.stardew.craft.network.payload.HudHintPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.HudHintPayload::handle
+        );
+
+        registrar.playToClient(
             com.stardew.craft.network.payload.PassOutPayload.TYPE,
             com.stardew.craft.network.payload.PassOutPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.PassOutPayload::handle
@@ -297,6 +303,26 @@ public class PacketHandler {
             com.stardew.craft.network.payload.SpecialOrderDropBoxHintPayload.TYPE,
             com.stardew.craft.network.payload.SpecialOrderDropBoxHintPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.SpecialOrderDropBoxHintPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenSpecialOrdersBoardPayload.TYPE,
+            com.stardew.craft.network.payload.OpenSpecialOrdersBoardPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenSpecialOrdersBoardPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.SpecialOrderStateSyncPayload.TYPE,
+            com.stardew.craft.network.payload.SpecialOrderStateSyncPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.SpecialOrderStateSyncPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.AcceptSpecialOrderPayload.TYPE,
+            com.stardew.craft.network.payload.AcceptSpecialOrderPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.AcceptSpecialOrderPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.SpecialOrderRewardClaimPayload.TYPE,
+            com.stardew.craft.network.payload.SpecialOrderRewardClaimPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.SpecialOrderRewardClaimPayload::handle
         );
 
         registrar.playToClient(
@@ -955,6 +981,12 @@ public class PacketHandler {
         );
 
         registrar.playToServer(
+            com.stardew.craft.network.payload.InventoryOrganizePayload.TYPE,
+            com.stardew.craft.network.payload.InventoryOrganizePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.InventoryOrganizePayload::handle
+        );
+
+        registrar.playToServer(
             com.stardew.craft.network.payload.RequestNpcFriendshipOverviewPayload.TYPE,
             com.stardew.craft.network.payload.RequestNpcFriendshipOverviewPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.RequestNpcFriendshipOverviewPayload::handle
@@ -988,6 +1020,12 @@ public class PacketHandler {
             com.stardew.craft.network.payload.OpenNpcDialogueScreenPayload.TYPE,
             com.stardew.craft.network.payload.OpenNpcDialogueScreenPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.OpenNpcDialogueScreenPayload::handle
+        );
+
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenObjectDialoguePayload.TYPE,
+            com.stardew.craft.network.payload.OpenObjectDialoguePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenObjectDialoguePayload::handle
         );
 
         // Blacksmith (Clint)
@@ -1386,6 +1424,93 @@ public class PacketHandler {
             com.stardew.craft.network.payload.MarnieMenuChoicePayload.TYPE,
             com.stardew.craft.network.payload.MarnieMenuChoicePayload.STREAM_CODEC,
             com.stardew.craft.network.payload.MarnieMenuChoicePayload::handle
+        );
+
+        // Lewis civic menu, money sharing, farm cancellation, and contract transfers
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenLewisMenuPayload.TYPE,
+            com.stardew.craft.network.payload.OpenLewisMenuPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenLewisMenuPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.LewisCivicActionPayload.TYPE,
+            com.stardew.craft.network.payload.LewisCivicActionPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.LewisCivicActionPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenLewisConfirmPayload.TYPE,
+            com.stardew.craft.network.payload.OpenLewisConfirmPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenLewisConfirmPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.LewisConfirmResponsePayload.TYPE,
+            com.stardew.craft.network.payload.LewisConfirmResponsePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.LewisConfirmResponsePayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenMoneyContractActionPayload.TYPE,
+            com.stardew.craft.network.payload.OpenMoneyContractActionPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenMoneyContractActionPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.MoneyContractActionPayload.TYPE,
+            com.stardew.craft.network.payload.MoneyContractActionPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.MoneyContractActionPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenMoneyContractTransferPayload.TYPE,
+            com.stardew.craft.network.payload.OpenMoneyContractTransferPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenMoneyContractTransferPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.MoneyContractTransferSubmitPayload.TYPE,
+            com.stardew.craft.network.payload.MoneyContractTransferSubmitPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.MoneyContractTransferSubmitPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenAuctionCreatePayload.TYPE,
+            com.stardew.craft.network.payload.OpenAuctionCreatePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenAuctionCreatePayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.AuctionCreateSubmitPayload.TYPE,
+            com.stardew.craft.network.payload.AuctionCreateSubmitPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.AuctionCreateSubmitPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenAuctionJoinListPayload.TYPE,
+            com.stardew.craft.network.payload.OpenAuctionJoinListPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenAuctionJoinListPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.AuctionJoinSubmitPayload.TYPE,
+            com.stardew.craft.network.payload.AuctionJoinSubmitPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.AuctionJoinSubmitPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenAuctionEntryChoicePayload.TYPE,
+            com.stardew.craft.network.payload.OpenAuctionEntryChoicePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenAuctionEntryChoicePayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.AuctionEntryChoicePayload.TYPE,
+            com.stardew.craft.network.payload.AuctionEntryChoicePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.AuctionEntryChoicePayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenAuctionBidPayload.TYPE,
+            com.stardew.craft.network.payload.OpenAuctionBidPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenAuctionBidPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.AuctionBidSubmitPayload.TYPE,
+            com.stardew.craft.network.payload.AuctionBidSubmitPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.AuctionBidSubmitPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.SyncAuctionBoardPayload.TYPE,
+            com.stardew.craft.network.payload.SyncAuctionBoardPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.SyncAuctionBoardPayload::handle
         );
 
         // Gunther museum dialog (S→C) and choice response (C→S)

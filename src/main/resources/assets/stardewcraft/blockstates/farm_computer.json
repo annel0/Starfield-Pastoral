@@ -1,7 +1,7 @@
 {
   "variants": {
     "": {
-      "model": "stardewcraft:block/utility/farm_computer"
+      "model": "stardewcraft:block/utility/bone_mill"
     }
   }
 }

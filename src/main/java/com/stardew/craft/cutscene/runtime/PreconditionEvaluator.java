@@ -48,6 +48,7 @@ public final class PreconditionEvaluator {
             case "day_of_week" -> checkDayOfWeek(p);
             case "day_of_month" -> checkDayOfMonth(p);
             case "days_played" -> checkDaysPlayed(p);
+            case "player_farm_age_days" -> checkPlayerFarmAgeDays(p);
             case "money" -> ClientPlayerDataCache.getMoney() >= p.getInt("min", 0);
             case "skill" -> checkSkill(p);
             case "mail" -> ClientPlayerDataCache.hasMailFlag(p.getString("id"));
@@ -149,6 +150,18 @@ public final class PreconditionEvaluator {
         int min = p.getInt("min", 0);
         int max = p.getInt("max", Integer.MAX_VALUE);
         return total >= min && total <= max;
+    }
+
+    private static boolean checkPlayerFarmAgeDays(EventPrecondition p) {
+        int firstJoinDay = ClientPlayerDataCache.getFirstJoinDay();
+        if (firstJoinDay < 0) {
+            return false;
+        }
+        int currentAbsoluteDay = StardewTimeHud.getClientTimeCache().getAbsoluteDay();
+        int age = currentAbsoluteDay - firstJoinDay;
+        int min = p.getInt("min", 0);
+        int max = p.getInt("max", Integer.MAX_VALUE);
+        return age >= min && age <= max;
     }
 
     private static boolean checkSkill(EventPrecondition p) {

@@ -6,15 +6,10 @@ import com.stardew.craft.block.decor.MapDecorStaticBlock;
 import com.stardew.craft.core.ModDimensions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.saveddata.SavedData;
-
-import javax.annotation.Nonnull;
 
 public final class DesertGalaxyPillarBootstrap {
 
@@ -23,7 +18,6 @@ public final class DesertGalaxyPillarBootstrap {
     public static final BlockPos WEST_PILLAR_POS = new BlockPos(-195, 64, -200);
     public static final BlockPos RITUAL_TRIGGER_POS = new BlockPos(-198, 64, -202);
 
-    private static final int PILLAR_LAYOUT_VERSION = 2;
     private static final int CHECK_INTERVAL_TICKS = 20;
     private static int tickCounter;
 
@@ -34,8 +28,7 @@ public final class DesertGalaxyPillarBootstrap {
             return;
         }
 
-        PillarSavedData data = PillarSavedData.get(level);
-        if (data.version == PILLAR_LAYOUT_VERSION && data.placed) {
+        if (pillarsPresent(level)) {
             return;
         }
         if (DesertMapBootstrap.isPlacementInProgress()) {
@@ -45,10 +38,6 @@ public final class DesertGalaxyPillarBootstrap {
         placePillar(level, NORTH_PILLAR_POS, Direction.SOUTH);
         placePillar(level, EAST_PILLAR_POS, Direction.WEST);
         placePillar(level, WEST_PILLAR_POS, Direction.EAST);
-
-        data.version = PILLAR_LAYOUT_VERSION;
-        data.placed = true;
-        data.setDirty();
 
         StardewCraft.LOGGER.info("[DESERT] Galaxy pillars placed. reason={}, trigger={}", reason, RITUAL_TRIGGER_POS);
     }
@@ -74,31 +63,25 @@ public final class DesertGalaxyPillarBootstrap {
         block.setPlacedBy(level, pos, state, null, ItemStack.EMPTY);
     }
 
-    static final class PillarSavedData extends SavedData {
-        private static final String DATA_NAME = "stardew_desert_galaxy_pillars";
+    private static boolean pillarsPresent(ServerLevel level) {
+        return pillarPresent(level, NORTH_PILLAR_POS, Direction.SOUTH)
+                && pillarPresent(level, EAST_PILLAR_POS, Direction.WEST)
+                && pillarPresent(level, WEST_PILLAR_POS, Direction.EAST);
+    }
 
-        int version;
-        boolean placed;
+    private static boolean pillarPresent(ServerLevel level, BlockPos mainPos, Direction facing) {
+        Block block = ModBlocks.GALAXY_PILLAR.get();
+        return isPillarPart(level, mainPos, block, MapDecorStaticBlock.Part.MAIN, facing)
+                && isPillarPart(level, mainPos.above(), block, MapDecorStaticBlock.Part.EXTENSION, facing)
+                && isPillarPart(level, mainPos.above(2), block, MapDecorStaticBlock.Part.EXTENSION, facing);
+    }
 
-        static PillarSavedData get(ServerLevel level) {
-            return level.getDataStorage().computeIfAbsent(
-                    new SavedData.Factory<>(PillarSavedData::new, PillarSavedData::load),
-                    DATA_NAME
-            );
-        }
-
-        static PillarSavedData load(CompoundTag tag, HolderLookup.Provider provider) {
-            PillarSavedData data = new PillarSavedData();
-            data.version = tag.getInt("version");
-            data.placed = tag.getBoolean("placed");
-            return data;
-        }
-
-        @Override
-        public @Nonnull CompoundTag save(@Nonnull CompoundTag tag, @Nonnull HolderLookup.Provider provider) {
-            tag.putInt("version", version);
-            tag.putBoolean("placed", placed);
-            return tag;
-        }
+    private static boolean isPillarPart(ServerLevel level, BlockPos pos, Block block, MapDecorStaticBlock.Part part, Direction facing) {
+        BlockState state = level.getBlockState(pos);
+        return state.is(block)
+                && state.hasProperty(MapDecorStaticBlock.PART)
+                && state.getValue(MapDecorStaticBlock.PART) == part
+                && state.hasProperty(MapDecorStaticBlock.FACING)
+                && state.getValue(MapDecorStaticBlock.FACING) == facing;
     }
 }

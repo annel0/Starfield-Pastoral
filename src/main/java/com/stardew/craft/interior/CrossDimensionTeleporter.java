@@ -6,6 +6,7 @@ import com.stardew.craft.blockentity.WoodenChestBlockEntity;
 import com.stardew.craft.network.payload.StarterChestHintPayload;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.item.ModItems;
+import com.stardew.craft.network.ObjectDialogueService;
 import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.PlayerStardewData;
 import com.stardew.craft.warp.ModTeleport;
@@ -179,7 +180,7 @@ public final class CrossDimensionTeleporter {
         com.stardew.craft.farm.FarmInstanceRegistry registry = com.stardew.craft.farm.FarmInstanceRegistry.get();
         com.stardew.craft.farm.FarmInstance farm = registry.getFarmForPlayer(player.getUUID());
         if (farm == null) {
-            player.displayClientMessage(Component.literal("请先创建自己的农场。"), true);
+            ObjectDialogueService.show(player, Component.literal("请先创建自己的农场。"));
             StardewCraft.LOGGER.warn("[WIZARD] Refused Stardew outdoor teleport for {}: no personal farm",
                 player.getName().getString());
             return;

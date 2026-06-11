@@ -60,6 +60,8 @@ public final class ModSounds {
 	public static final DeferredHolder<SoundEvent, SoundEvent> METAL_TAP = register("metal_tap");
 	public static final DeferredHolder<SoundEvent, SoundEvent> CLANK = register("clank");
 	public static final DeferredHolder<SoundEvent, SoundEvent> CRAFTING = register("crafting");
+	public static final DeferredHolder<SoundEvent, SoundEvent> SLIMEDEAD = register("slimedead");
+	public static final DeferredHolder<SoundEvent, SoundEvent> GLUG = register("glug");
 	public static final DeferredHolder<SoundEvent, SoundEvent> DEBUFF_HIT = register("debuff_hit");
 	public static final DeferredHolder<SoundEvent, SoundEvent> DIALOGUE_CHARACTER = register("dialogue_character");
 	public static final DeferredHolder<SoundEvent, SoundEvent> DIALOGUE_CHARACTER_CLOSE = register("dialogue_character_close");
@@ -73,6 +75,8 @@ public final class ModSounds {
 	public static final DeferredHolder<SoundEvent, SoundEvent> BUTTON1 = register("button1");
 	public static final DeferredHolder<SoundEvent, SoundEvent> HAMMER = register("hammer");
 	public static final DeferredHolder<SoundEvent, SoundEvent> COIN = register("coin");
+	public static final DeferredHolder<SoundEvent, SoundEvent> EAT = register("eat");
+	public static final DeferredHolder<SoundEvent, SoundEvent> GULP = register("gulp");
 	public static final DeferredHolder<SoundEvent, SoundEvent> WHISTLE = register("whistle");
 	public static final DeferredHolder<SoundEvent, SoundEvent> MONEY_DIAL = register("money_dial");
 	public static final DeferredHolder<SoundEvent, SoundEvent> TRASHCANLID = register("trashcanlid");
@@ -94,6 +98,7 @@ public final class ModSounds {
 	public static final DeferredHolder<SoundEvent, SoundEvent> SIP_TEA = register("siptea");
 	public static final DeferredHolder<SoundEvent, SoundEvent> YOBA = register("yoba");
 	public static final DeferredHolder<SoundEvent, SoundEvent> STATUE_OF_BLESSINGS = register("statue_of_blessings");
+	public static final DeferredHolder<SoundEvent, SoundEvent> TREASURE_TOTEM = register("treasure_totem");
 	public static final DeferredHolder<SoundEvent, SoundEvent> STONE_BUTTON = register("stone_button");
 	public static final DeferredHolder<SoundEvent, SoundEvent> MACHINE_BELL = register("machine_bell");
 	public static final DeferredHolder<SoundEvent, SoundEvent> BUTTON_PRESS = register("button_press");
@@ -113,6 +118,7 @@ public final class ModSounds {
 	public static final DeferredHolder<SoundEvent, SoundEvent> STEAM = register("steam");
 	public static final DeferredHolder<SoundEvent, SoundEvent> SKELETON_STEP = register("skeleton_step");
 	public static final DeferredHolder<SoundEvent, SoundEvent> SKELETON_HIT = register("skeleton_hit");
+	public static final DeferredHolder<SoundEvent, SoundEvent> DWARVISH_SENTRY = register("dwarvish_sentry");
 
 	// AnimalQueryMenu / FarmAnimal original cues
 	public static final DeferredHolder<SoundEvent, SoundEvent> SMALL_SELECT = register("small_select");
@@ -210,6 +216,7 @@ public final class ModSounds {
 	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_MOONLIGHT_JELLIES = register("music_moonlight_jellies");
 	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_SETTLINGIN = register("music_settlingin");
 	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_JAUNTY = register("music_jaunty");
+	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_PLAYFUL = register("music_playful");
     // Desert / Oasis
     public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_DESERT = register("music_desert");
     public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_OASIS = register("music_oasis");

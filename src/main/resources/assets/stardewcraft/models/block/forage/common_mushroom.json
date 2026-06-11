@@ -3,5 +3,6 @@
   "textures": {
     "cross": "stardewcraft:item/forage/common_mushroom",
     "particle": "stardewcraft:item/forage/common_mushroom"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

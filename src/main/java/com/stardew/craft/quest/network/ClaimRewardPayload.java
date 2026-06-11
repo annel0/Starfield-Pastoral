@@ -3,6 +3,7 @@ package com.stardew.craft.quest.network;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.PlayerStardewData;
+import com.stardew.craft.player.PlayerStardewDataAPI;
 import com.stardew.craft.quest.QuestManager;
 import com.stardew.craft.quest.StardewQuest;
 import io.netty.buffer.ByteBuf;
@@ -43,13 +44,11 @@ public record ClaimRewardPayload(String questId) implements CustomPacketPayload 
             QuestManager mgr = data.getQuestManager();
             StardewQuest quest = mgr.getQuest(payload.questId());
             if (quest != null && quest.isCompleted() && quest.hasMoneyReward()) {
-                data.addMoney(quest.getMoneyReward());
+                PlayerStardewDataAPI.addMoney(serverPlayer, quest.getMoneyReward());
                 // SDV: questComplete() already fired nextQuests; here we just mark destroy
                 // so cleanupDestroyed handles completedQuestIds + nextQuests + removal
                 quest.setDestroy(true);
                 mgr.cleanupDestroyed(serverPlayer);
-                // 同步金币到客户端 HUD（addMoney 仅 markDirty 不会触发网络同步）
-                com.stardew.craft.player.PlayerDataEventHandler.syncPlayerData(serverPlayer, data);
             }
         });
     }

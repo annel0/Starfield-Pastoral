@@ -3,5 +3,6 @@
   "textures": {
     "cross": "stardewcraft:item/forage/magma_cap",
     "particle": "stardewcraft:item/forage/magma_cap"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

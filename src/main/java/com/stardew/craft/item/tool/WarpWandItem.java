@@ -1,6 +1,7 @@
 package com.stardew.craft.item.tool;
 
 import com.stardew.craft.item.IStardewItem;
+import com.stardew.craft.network.ObjectDialogueService;
 import com.stardew.craft.network.payload.OpenWarpWheelPayload;
 import com.stardew.craft.player.PlayerDataEventHandler;
 import com.stardew.craft.player.PlayerDataManager;
@@ -50,7 +51,7 @@ public class WarpWandItem extends Item implements IStardewItem {
         if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
             PlayerStardewData data = PlayerDataManager.getPlayerData(serverPlayer);
             if (!data.hasMailFlag(SewerStoryFlags.RETURN_SCEPTER_PURCHASED)) {
-                serverPlayer.displayClientMessage(Component.translatable("stardewcraft.warp_wand.not_purchased"), true);
+                ObjectDialogueService.show(serverPlayer, "stardewcraft.warp_wand.not_purchased");
                 return InteractionResultHolder.fail(stack);
             }
             ensureSpecialItemBackfill(serverPlayer, data);

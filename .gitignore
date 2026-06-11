@@ -52,6 +52,7 @@ scripts/*
 !scripts/render_festival_actor_map.py
 tools/*
 !tools/ui_atlas_slices.csv
+!tools/audit_translations.py
 ui_spec/
 wiki/
 stardewcraft-template-1.21.1.sln

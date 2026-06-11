@@ -1,0 +1,197 @@
+package com.stardew.craft.block.utility;
+
+import com.stardew.craft.block.ModBlocks;
+import com.stardew.craft.block.shape.ModelVoxelShapeCache;
+import com.stardew.craft.core.FarmAreaResolver;
+import com.stardew.craft.farm.FarmInstance;
+import com.stardew.craft.farm.FarmInstanceRegistry;
+import com.stardew.craft.network.ObjectDialogueService;
+import com.stardew.craft.sound.ModSounds;
+import com.stardew.craft.warp.WarpEffects;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+public class MiniObeliskBlock extends Block {
+    private static final VoxelShape SHAPE =
+            ModelVoxelShapeCache.horizontalShapes("stardewcraft:block/utility/bone_mill", Direction.SOUTH)[0];
+
+    public MiniObeliskBlock(Properties properties) {
+        super(properties);
+    }
+
+    @Override
+    public RenderShape getRenderShape(BlockState state) {
+        return RenderShape.MODEL;
+    }
+
+    @Override
+    protected List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
+        return List.of(new ItemStack(ModBlocks.MINI_OBELISK.get()));
+    }
+
+    @Override
+    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return SHAPE;
+    }
+
+    @Override
+    public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return getShape(state, level, pos, context);
+    }
+
+    @Override
+    @Nullable
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        if (context.getLevel().isClientSide) {
+            return defaultBlockState();
+        }
+        Player player = context.getPlayer();
+        if (player == null) {
+            return defaultBlockState();
+        }
+        if (!FarmAreaResolver.isInPlayerFarm(player.getUUID(), context.getClickedPos())) {
+            if (player instanceof ServerPlayer serverPlayer) {
+                ObjectDialogueService.show(serverPlayer, "stardewcraft.mini_obelisk.own_farm_only");
+            }
+            return null;
+        }
+        if (context.getLevel() instanceof ServerLevel serverLevel) {
+            FarmInstance farm = FarmInstanceRegistry.get().getFarmForPlayer(player.getUUID());
+            if (farm != null && findObelisks(serverLevel, farm).size() >= 2) {
+                if (player instanceof ServerPlayer serverPlayer) {
+                    ObjectDialogueService.show(serverPlayer, "stardewcraft.mini_obelisk.only_two");
+                }
+                return null;
+            }
+        }
+        return defaultBlockState();
+    }
+
+    @Override
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+                                              Player player, InteractionHand hand, BlockHitResult hit) {
+        if (level.isClientSide) {
+            return ItemInteractionResult.sidedSuccess(true);
+        }
+        if (player instanceof ServerPlayer serverPlayer && level instanceof ServerLevel serverLevel) {
+            tryWarp(serverLevel, pos, serverPlayer);
+            return ItemInteractionResult.sidedSuccess(false);
+        }
+        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+    }
+
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+        if (level.isClientSide) {
+            return InteractionResult.SUCCESS;
+        }
+        if (player instanceof ServerPlayer serverPlayer && level instanceof ServerLevel serverLevel) {
+            tryWarp(serverLevel, pos, serverPlayer);
+            return InteractionResult.CONSUME;
+        }
+        return InteractionResult.PASS;
+    }
+
+    private void tryWarp(ServerLevel level, BlockPos pos, ServerPlayer player) {
+        FarmInstance farm = FarmInstanceRegistry.get().getFarmForPlayer(player.getUUID());
+        if (farm == null || !farm.contains(pos)) {
+            ObjectDialogueService.show(player, "stardewcraft.mini_obelisk.own_farm_only");
+            return;
+        }
+
+        List<BlockPos> obelisks = findObelisks(level, farm);
+        if (obelisks.size() < 2) {
+            ObjectDialogueService.show(player, "stardewcraft.mini_obelisk.needs_pair");
+            return;
+        }
+
+        BlockPos source = pos.immutable();
+        BlockPos target = obelisks.stream()
+                .filter(other -> !other.equals(source))
+                .max(Comparator.comparingDouble(other -> other.distSqr(player.blockPosition())))
+                .orElse(null);
+        if (target == null) {
+            ObjectDialogueService.show(player, "stardewcraft.mini_obelisk.needs_pair");
+            return;
+        }
+
+        BlockPos destination = firstOpenWarpTile(level, target);
+        if (destination == null) {
+            ObjectDialogueService.show(player, "stardewcraft.mini_obelisk.needs_space");
+            return;
+        }
+
+        WarpEffects.spawnWarpParticles(level, player.getX(), player.getY(), player.getZ());
+        level.playSound(null, player.blockPosition(), ModSounds.WAND.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
+        player.teleportTo(level, destination.getX() + 0.5D, destination.getY(), destination.getZ() + 0.5D,
+                player.getYRot(), player.getXRot());
+        player.setDeltaMovement(0.0D, 0.0D, 0.0D);
+        player.fallDistance = 0.0F;
+        player.hurtMarked = true;
+        WarpEffects.spawnWarpParticles(level, destination.getX() + 0.5D, destination.getY(), destination.getZ() + 0.5D);
+    }
+
+    private static List<BlockPos> findObelisks(ServerLevel level, FarmInstance farm) {
+        List<BlockPos> result = new ArrayList<>(2);
+        BlockPos min = farm.getFarmBoundsMin();
+        BlockPos max = farm.getFarmBoundsMax();
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+        for (int y = min.getY(); y <= max.getY(); y++) {
+            for (int x = min.getX(); x <= max.getX(); x++) {
+                for (int z = min.getZ(); z <= max.getZ(); z++) {
+                    cursor.set(x, y, z);
+                    if (level.hasChunkAt(cursor) && level.getBlockState(cursor).is(ModBlocks.MINI_OBELISK.get())) {
+                        result.add(cursor.immutable());
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    @Nullable
+    private static BlockPos firstOpenWarpTile(ServerLevel level, BlockPos target) {
+        BlockPos[] candidates = {
+                target.south(),
+                target.west(),
+                target.east(),
+                target.north()
+        };
+        for (BlockPos candidate : candidates) {
+            if (canStandAt(level, candidate)) {
+                return candidate;
+            }
+        }
+        return null;
+    }
+
+    private static boolean canStandAt(ServerLevel level, BlockPos pos) {
+        return level.getWorldBorder().isWithinBounds(pos)
+                && level.getBlockState(pos).getCollisionShape(level, pos).isEmpty()
+                && level.getBlockState(pos.above()).getCollisionShape(level, pos.above()).isEmpty()
+                && level.getBlockState(pos.below()).isFaceSturdy(level, pos.below(), Direction.UP);
+    }
+}

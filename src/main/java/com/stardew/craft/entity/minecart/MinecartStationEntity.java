@@ -2,6 +2,7 @@ package com.stardew.craft.entity.minecart;
 
 import com.stardew.craft.communitycenter.state.CCStoryFlags;
 import com.stardew.craft.entity.ModEntities;
+import com.stardew.craft.network.ObjectDialogueService;
 import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.PlayerStardewData;
 import net.minecraft.core.BlockPos;
@@ -122,9 +123,7 @@ public class MinecartStationEntity extends Entity {
 
         PlayerStardewData data = PlayerDataManager.getPlayerData(sp);
         if (!data.hasMailFlag(CCStoryFlags.CC_BOILER_ROOM)) {
-            // 未解锁：actionbar 提示
-            sp.displayClientMessage(
-                    Component.translatable("stardewcraft.minecart.not_unlocked"), true);
+            ObjectDialogueService.show(sp, "stardewcraft.minecart.not_unlocked");
             return InteractionResult.CONSUME;
         }
 

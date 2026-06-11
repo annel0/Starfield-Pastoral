@@ -112,7 +112,8 @@ public final class UtilityAutomationCapabilities {
             ModBlocks.LIGHTNING_ROD.get(),
             ModBlocks.SOLAR_PANEL.get(),
             ModBlocks.GEODE_CRUSHER.get(),
-            ModBlocks.COFFEE_MAKER.get());
+            ModBlocks.COFFEE_MAKER.get(),
+            ModBlocks.BONE_MILL.get());
     }
 
     @Nullable

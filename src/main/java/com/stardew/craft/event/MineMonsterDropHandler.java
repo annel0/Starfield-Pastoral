@@ -117,6 +117,18 @@ public class MineMonsterDropHandler {
         }
 
         if (event.getSource() != null && event.getSource().getEntity() instanceof ServerPlayer player) {
+            if (tags.contains("sd_mob_ghost")
+                && com.stardew.craft.specialorder.SpecialOrderManager.hasActiveIncompleteOrder(player, "Wizard")
+                && !com.stardew.craft.specialorder.SpecialOrderManager.hasSpecialDropFlag(player, "ectoplasmDrop")
+                && random.nextFloat() < 0.095F) {
+                addDrop(drops, entity, ModItems.ECTOPLASM.get(), 1);
+            }
+            if (tags.contains("sd_mob_prismatic_slime")
+                && com.stardew.craft.specialorder.SpecialOrderManager.hasActiveIncompleteOrder(player, "Wizard2")
+                && !com.stardew.craft.specialorder.SpecialOrderManager.hasSpecialDropFlag(player, "prismaticJellyDrop")) {
+                addDrop(drops, entity, ModItems.PRISMATIC_JELLY.get(), 1);
+                com.stardew.craft.specialorder.SpecialOrderManager.recordMonsterSlain(player, "Prismatic Slime");
+            }
             BookPowerEffects.applyVoidMonsterDropDuplicate(PlayerDataManager.getPlayerData(player), drops, entity, random);
             com.stardew.craft.book.BookAcquisitionService.recordMonsterKilledAndMaybeAddVoidBook(player, drops, entity, random);
             TrinketDropService.tryAddMonsterDrop(drops, entity, player, random);
@@ -135,6 +147,7 @@ public class MineMonsterDropHandler {
             for (String tag : tags) {
                 if (tag.startsWith("sd_mob_")) {
                     com.stardew.craft.quest.StardewQuestEvents.fireMonsterSlain(player, tag);
+                    com.stardew.craft.specialorder.SpecialOrderManager.recordMonsterSlain(player, tag);
                 }
             }
             com.stardew.craft.festival.desert.DesertFestivalMarlonChallengeService.recordMonsterSlain(player, tags);

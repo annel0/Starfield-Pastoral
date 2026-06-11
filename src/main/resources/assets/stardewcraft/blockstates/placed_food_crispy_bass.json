@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "stardewcraft:block/cooking/crispy_bass"
+    },
+    "facing=east": {
+      "model": "stardewcraft:block/cooking/crispy_bass",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "stardewcraft:block/cooking/crispy_bass",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "stardewcraft:block/cooking/crispy_bass",
+      "y": 270
+    }
+  }
+}

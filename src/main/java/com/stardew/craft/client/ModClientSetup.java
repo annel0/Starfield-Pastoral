@@ -204,6 +204,7 @@ public final class ModClientSetup {
 		event.register(ModMenuTypes.WOODEN_CHEST.get(), WoodenChestScreen::new);
 		event.register(ModMenuTypes.STONE_CHEST.get(), StoneChestScreen::new);
 		event.register(ModMenuTypes.SHIPPING_BIN.get(), ShippingBinScreen::new);
+		event.register(ModMenuTypes.SPECIAL_ORDER_DROPBOX.get(), com.stardew.craft.client.gui.specialorder.SpecialOrderDropBoxScreen::new);
 		event.register(ModMenuTypes.BUNDLE.get(), com.stardew.craft.communitycenter.client.BundleScreen::new);
 		event.register(ModMenuTypes.BUNDLE_REWARD.get(), com.stardew.craft.communitycenter.client.BundleRewardScreen::new);
 	}

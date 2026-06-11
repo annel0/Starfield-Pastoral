@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "stardewcraft:block/cooking/glazed_yams"
+    },
+    "facing=east": {
+      "model": "stardewcraft:block/cooking/glazed_yams",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "stardewcraft:block/cooking/glazed_yams",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "stardewcraft:block/cooking/glazed_yams",
+      "y": 270
+    }
+  }
+}

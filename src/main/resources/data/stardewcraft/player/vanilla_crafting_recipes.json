@@ -147,6 +147,156 @@
       ]
     },
     {
+      "id": "mini_obelisk",
+      "unlockCondition": "null",
+      "output": {
+        "item": "stardewcraft:mini_obelisk",
+        "count": 1
+      },
+      "ingredients": [
+        {
+          "item": "stardewcraft:wood_hard",
+          "count": 30
+        },
+        {
+          "item": "stardewcraft:solar_essence",
+          "count": 20
+        },
+        {
+          "item": "stardewcraft:gold_bar",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "id": "farm_computer",
+      "unlockCondition": "null",
+      "output": {
+        "item": "stardewcraft:farm_computer",
+        "count": 1
+      },
+      "ingredients": [
+        {
+          "item": "stardewcraft:ancient_drum",
+          "count": 1
+        },
+        {
+          "item": "stardewcraft:battery_pack",
+          "count": 1
+        },
+        {
+          "item": "stardewcraft:refined_quartz",
+          "count": 10
+        }
+      ]
+    },
+    {
+      "id": "quality_bobber",
+      "unlockCondition": "null",
+      "output": {
+        "item": "stardewcraft:quality_bobber",
+        "count": 1
+      },
+      "ingredients": [
+        {
+          "item": "stardewcraft:copper_bar",
+          "count": 1
+        },
+        {
+          "item": "stardewcraft:sap",
+          "count": 20
+        },
+        {
+          "item": "stardewcraft:solar_essence",
+          "count": 5
+        }
+      ]
+    },
+    {
+      "id": "geode_crusher",
+      "unlockCondition": "null",
+      "output": {
+        "item": "stardewcraft:geode_crusher",
+        "count": 1
+      },
+      "ingredients": [
+        {
+          "item": "stardewcraft:gold_bar",
+          "count": 2
+        },
+        {
+          "item": "stardewcraft:stone",
+          "count": 50
+        },
+        {
+          "item": "stardewcraft:diamond",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "monster_musk",
+      "unlockCondition": "null",
+      "output": {
+        "item": "stardewcraft:monster_musk",
+        "count": 1
+      },
+      "ingredients": [
+        {
+          "item": "stardewcraft:bat_wing",
+          "count": 30
+        },
+        {
+          "item": "stardewcraft:slime_item",
+          "count": 30
+        }
+      ]
+    },
+    {
+      "id": "fiber_seeds",
+      "unlockCondition": "null",
+      "output": {
+        "item": "stardewcraft:fiber_seeds",
+        "count": 4
+      },
+      "ingredients": [
+        {
+          "item": "stardewcraft:mixed_seeds",
+          "count": 1
+        },
+        {
+          "item": "stardewcraft:sap",
+          "count": 5
+        },
+        {
+          "item": "stardewcraft:clay",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "bone_mill",
+      "unlockCondition": "null",
+      "output": {
+        "item": "stardewcraft:bone_mill",
+        "count": 1
+      },
+      "ingredients": [
+        {
+          "item": "stardewcraft:bone_fragment",
+          "count": 10
+        },
+        {
+          "item": "stardewcraft:clay",
+          "count": 3
+        },
+        {
+          "item": "stardewcraft:stone",
+          "count": 20
+        }
+      ]
+    },
+    {
       "id": "wooden_chest",
       "unlockCondition": "default",
       "output": {

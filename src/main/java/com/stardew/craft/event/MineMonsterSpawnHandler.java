@@ -49,6 +49,7 @@ public class MineMonsterSpawnHandler {
 
     /** Per-floor mob count cache to avoid expensive AABB scans on every spawn. */
     private static final java.util.Map<Integer, Integer> floorMobCounts = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final java.util.Set<String> prismaticSlimeFloors = java.util.concurrent.ConcurrentHashMap.newKeySet();
     private static long lastCountRefreshTick = 0;
     private static final long COUNT_REFRESH_INTERVAL = 60; // refresh every 3 seconds
 
@@ -216,6 +217,31 @@ public class MineMonsterSpawnHandler {
             setStats(mob, 24 * s, 5 * s, 0, 0.25);
             setSDVName(mob, "Green Slime");
         }
+        tryMakePrismaticSlime(mob, floor);
+    }
+
+    private static void tryMakePrismaticSlime(Mob mob, int floor) {
+        if (!(mob.level() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+        String key = serverLevel.dimension().location() + ":" + com.stardew.craft.time.StardewTimeManager.get().getAbsoluteDay() + ":" + floor;
+        if (prismaticSlimeFloors.contains(key)) {
+            return;
+        }
+        boolean activeForFloor = serverLevel.getPlayers(player ->
+            getFloorFromPlayer(player) == floor
+                && com.stardew.craft.specialorder.SpecialOrderManager.hasActiveIncompleteOrder(player, "Wizard2")
+                && !com.stardew.craft.specialorder.SpecialOrderManager.hasSpecialDropFlag(player, "prismaticJellyDrop")
+        ).size() > 0;
+        if (!activeForFloor) {
+            return;
+        }
+        if (mob.getRandom().nextDouble() > 0.012D) {
+            return;
+        }
+        prismaticSlimeFloors.add(key);
+        mob.addTag("sd_mob_prismatic_slime");
+        setSDVName(mob, "Prismatic Slime");
     }
 
     private static void assignBat(Mob mob, int floor) {
@@ -637,6 +663,13 @@ public class MineMonsterSpawnHandler {
 
     private static int getFloorFromPos(Mob mob) {
         return Math.round(mob.blockPosition().getZ() / (float) MiningCoordinates.FLOOR_SPACING);
+    }
+
+    private static int getFloorFromPlayer(ServerPlayer player) {
+        if (player == null || !player.serverLevel().dimension().equals(ModMiningDimensions.STARDEW_MINING)) {
+            return 1;
+        }
+        return Math.max(1, Math.round(player.blockPosition().getZ() / (float) MiningCoordinates.FLOOR_SPACING));
     }
 
     // ═══════════ Mummy 复活机制 ═══════════

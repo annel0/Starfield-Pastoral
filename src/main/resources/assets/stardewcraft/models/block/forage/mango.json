@@ -3,5 +3,6 @@
   "textures": {
     "cross": "stardewcraft:item/fruit/mango",
     "particle": "stardewcraft:item/fruit/mango"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

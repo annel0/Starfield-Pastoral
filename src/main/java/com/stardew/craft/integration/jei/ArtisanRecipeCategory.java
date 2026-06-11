@@ -1,7 +1,6 @@
 package com.stardew.craft.integration.jei;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.item.artisan.ArtisanRecipeDataManager;
 import com.stardew.craft.item.artisan.ArtisanRecipeDataManager.InputMode;
@@ -10,6 +9,7 @@ import com.stardew.craft.item.artisan.PreserveType;
 import com.stardew.craft.item.artisan.PreservesCropTypeHelper;
 import com.stardew.craft.item.artisan.PreservesItem;
 import com.stardew.craft.item.artisan.SmokedFishItem;
+import com.stardew.craft.item.catalog.StardewItemCatalog;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -239,21 +239,7 @@ public class ArtisanRecipeCategory implements IRecipeCategory<ArtisanRecipeCateg
                                               String machineKey,
                                               ItemStack machineIcon,
                                               ArtisanRecipeDataManager.Recipe recipe) {
-        for (var holder : ModItems.ITEMS.getEntries()) {
-            Item item = holder.get();
-            if (!(item instanceof IStardewItem stardewItem)) continue;
-
-            String typeKey = stardewItem.getItemTypeKey();
-            boolean matches = switch (recipe.inputMode()) {
-                case CROP_TYPE -> "stardewcraft.type.crop".equals(typeKey);
-                case FISH_TYPE -> "stardewcraft.type.fish".equals(typeKey)
-                        || "stardewcraft.type.crabpot".equals(typeKey)
-                        || "stardewcraft.type.legendary_fish".equals(typeKey);
-                case MINERAL_TYPE -> "stardewcraft.type.mineral".equals(typeKey);
-                default -> false;
-            };
-            if (!matches) continue;
-
+        for (Item item : StardewItemCatalog.itemsForDynamicInput(recipe.inputMode())) {
             ItemStack input = new ItemStack(item);
             ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(item);
 

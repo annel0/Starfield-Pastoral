@@ -1,6 +1,7 @@
 package com.stardew.craft.mastery.effect;
 
 import com.stardew.craft.block.ModBlocks;
+import com.stardew.craft.sound.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
@@ -73,8 +74,7 @@ public final class TreasureTotemService {
             return;
         }
 
-        level.playSound(null, playerPos,
-            SoundEvents.AMETHYST_BLOCK_RESONATE, SoundSource.PLAYERS, 0.9f, 1.2f);
+        level.playSound(null, playerPos, ModSounds.TREASURE_TOTEM.get(), SoundSource.PLAYERS, 1.0f, 1.0f);
 
         int cx = playerPos.getX();
         int cz = playerPos.getZ();

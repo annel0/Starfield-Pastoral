@@ -19,6 +19,8 @@ import net.minecraft.world.entity.Mob;
  */
 public class HoldItemCommand implements EventCommand {
 
+    private static final double BASE_OFFSET_ABOVE_HEAD = 1.25;
+
     private final String actorTag;
     private final String itemId;
     private final int durationTicks;
@@ -56,8 +58,8 @@ public class HoldItemCommand implements EventCommand {
         }
 
         double ax = actor.getX();
-        // Position item well above the head (hands are raised ~2.2 blocks high)
-        double ay = actor.getY() + actor.getBbHeight() + 0.6 + offsetY;
+        // Position item above the raised hands; lower offsets clip into actor heads.
+        double ay = actor.getY() + actor.getBbHeight() + BASE_OFFSET_ABOVE_HEAD + offsetY;
         double az = actor.getZ();
 
         // Create client-side item display entity
@@ -87,7 +89,7 @@ public class HoldItemCommand implements EventCommand {
         if (displayEntity != null && !displayEntity.isRemoved()) {
             Mob actor = player.getActor(actorTag);
             if (actor != null) {
-                double baseY = actor.getY() + actor.getBbHeight() + 0.6 + offsetY;
+                double baseY = actor.getY() + actor.getBbHeight() + BASE_OFFSET_ABOVE_HEAD + offsetY;
                 double bob = Math.sin(elapsed * 0.15) * 0.05;
                 displayEntity.setPos(actor.getX(), baseY + bob, actor.getZ());
             }
@@ -97,6 +99,12 @@ public class HoldItemCommand implements EventCommand {
     @Override
     public boolean isComplete() {
         return elapsed >= durationTicks;
+    }
+
+    @Override
+    public void onSkip(EventPlayer player) {
+        cleanup(player);
+        elapsed = durationTicks;
     }
 
     private void cleanup(EventPlayer player) {

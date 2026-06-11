@@ -3,5 +3,6 @@
   "textures": {
     "cross": "stardewcraft:item/forage/spice_berry",
     "particle": "stardewcraft:item/forage/spice_berry"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

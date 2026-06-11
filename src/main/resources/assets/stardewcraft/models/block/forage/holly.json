@@ -3,5 +3,6 @@
   "textures": {
     "cross": "stardewcraft:item/forage/holly",
     "particle": "stardewcraft:item/forage/holly"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

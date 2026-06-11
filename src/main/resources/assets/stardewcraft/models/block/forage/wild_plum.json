@@ -3,5 +3,6 @@
   "textures": {
     "cross": "stardewcraft:item/forage/wild_plum",
     "particle": "stardewcraft:item/forage/wild_plum"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

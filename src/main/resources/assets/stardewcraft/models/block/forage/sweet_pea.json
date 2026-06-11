@@ -3,5 +3,6 @@
   "textures": {
     "cross": "stardewcraft:item/forage/sweet_pea",
     "particle": "stardewcraft:item/forage/sweet_pea"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

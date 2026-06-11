@@ -33,6 +33,18 @@ public final class SpecialConsumableClientFx {
     private static final int SHORTS_BG_TOP = 0xF01B0628;
     private static final int SHORTS_BG_BOTTOM = 0xF0070210;
 
+    private static final int CONTRACT_TOP = 0xFFFFF2B8;
+    private static final int CONTRACT_MID = 0xFFFFC857;
+    private static final int CONTRACT_BOTTOM = 0xFF7A4A17;
+    private static final int CONTRACT_BG_TOP = 0xF0211305;
+    private static final int CONTRACT_BG_BOTTOM = 0xF0090501;
+
+    private static final int PADDLE_TOP = 0xFFFFE3A0;
+    private static final int PADDLE_MID = 0xFFD08A39;
+    private static final int PADDLE_BOTTOM = 0xFF5B3218;
+    private static final int PADDLE_BG_TOP = 0xF0201208;
+    private static final int PADDLE_BG_BOTTOM = 0xF0080301;
+
     private SpecialConsumableClientFx() {}
 
     @SubscribeEvent
@@ -48,6 +60,10 @@ public final class SpecialConsumableClientFx {
             applyPalette(event, IRIDIUM_TOP, IRIDIUM_MID, IRIDIUM_BOTTOM, IRIDIUM_BG_TOP, IRIDIUM_BG_BOTTOM);
         } else if (stack.is(ModItems.LUCKY_PURPLE_SHORTS.get())) {
             applyPalette(event, SHORTS_TOP, SHORTS_MID, SHORTS_BOTTOM, SHORTS_BG_TOP, SHORTS_BG_BOTTOM);
+        } else if (stack.is(ModItems.MONEY_CONTRACT.get())) {
+            applyPalette(event, CONTRACT_TOP, CONTRACT_MID, CONTRACT_BOTTOM, CONTRACT_BG_TOP, CONTRACT_BG_BOTTOM);
+        } else if (stack.is(ModItems.AUCTION_PADDLE.get())) {
+            applyPalette(event, PADDLE_TOP, PADDLE_MID, PADDLE_BOTTOM, PADDLE_BG_TOP, PADDLE_BG_BOTTOM);
         }
     }
 
@@ -61,6 +77,14 @@ public final class SpecialConsumableClientFx {
 
     public static MutableComponent luckyPurpleShortsTypeLabel(String raw) {
         return flowingLabel(raw, 0x9C42FF, 0xFFE28A, 0.48F, 0.34F);
+    }
+
+    public static MutableComponent moneyContractTypeLabel(String raw) {
+        return flowingLabel(raw, 0xC88522, 0xFFF2A8, 0.38F, 0.32F);
+    }
+
+    public static MutableComponent auctionPaddleTypeLabel(String raw) {
+        return flowingLabel(raw, 0x8A5528, 0xFFE08A, 0.42F, 0.32F);
     }
 
     private static void applyPalette(RenderTooltipEvent.Color event, int top, int mid, int bottom, int bgTop, int bgBottom) {

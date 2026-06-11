@@ -5,8 +5,6 @@ import com.stardew.craft.cutscene.runtime.EventPlayerActorEntity;
 import com.stardew.craft.cutscene.runtime.EventPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.MoverType;
-import net.minecraft.world.phys.Vec3;
 
 /**
  * move_actor: smoothly moves an actor to a target position over a number of ticks.
@@ -22,10 +20,9 @@ public class MoveActorCommand implements EventCommand {
     private final String anchor;
 
     private Mob actor;
-    private double startX, startZ;
-    private double endX, endZ;
+    private double startX, startY, startZ;
+    private double endX, endY, endZ;
     private int ticksElapsed;
-    private double verticalVelocity;
     private boolean done;
 
     public MoveActorCommand(String actorTag, double x, double y, double z, int ticks, boolean relative) {
@@ -51,13 +48,16 @@ public class MoveActorCommand implements EventCommand {
         }
 
         startX = actor.getX();
+        startY = actor.getY();
         startZ = actor.getZ();
 
         if (relative) {
             endX = startX + dx;
+            endY = startY;
             endZ = startZ + dz;
         } else {
             endX = dx + com.stardew.craft.cutscene.runtime.CutsceneAnchorRegistry.offsetX(anchor);
+            endY = startY;
             endZ = dz + com.stardew.craft.cutscene.runtime.CutsceneAnchorRegistry.offsetZ(anchor);
         }
 
@@ -78,11 +78,7 @@ public class MoveActorCommand implements EventCommand {
             playerActor.setWalking(true);
         }
         ticksElapsed = 0;
-        verticalVelocity = 0;
         done = false;
-
-        // Push down to establish ground contact before movement begins
-        actor.move(MoverType.SELF, new Vec3(0, -0.5, 0));
     }
 
     @Override
@@ -100,22 +96,15 @@ public class MoveActorCommand implements EventCommand {
 
         // Compute desired XZ position via lerp
         double desiredX = Mth.lerp(t, startX, endX);
+        double desiredY = Mth.lerp(t, startY, endY);
         double desiredZ = Mth.lerp(t, startZ, endZ);
-        double moveX = desiredX - actor.getX();
-        double moveZ = desiredZ - actor.getZ();
 
-        // Apply gravity ourselves (entity has noGravity=true to prevent travel() conflict)
-        if (!actor.onGround()) {
-            verticalVelocity -= 0.08; // MC default gravity
-            verticalVelocity *= 0.98; // air drag
-        } else {
-            verticalVelocity = -0.04; // small downward to maintain ground contact
-        }
-
-        // Entity.move() handles collisions, step-up (STEP_HEIGHT=1.0), and sets onGround
-        actor.move(MoverType.SELF, new Vec3(moveX, verticalVelocity, moveZ));
+        // Cutscene actors use authored coordinates. Do not route through entity collision
+        // movement here, or interiors can snap actors into adjacent tiles.
+        actor.setPos(desiredX, desiredY, desiredZ);
 
         if (ticksElapsed >= totalTicks) {
+            actor.setPos(endX, endY, endZ);
             if (actor instanceof EventActorEntity npcActor) {
                 npcActor.setWalking(false);
             } else if (actor instanceof EventPlayerActorEntity playerActor) {

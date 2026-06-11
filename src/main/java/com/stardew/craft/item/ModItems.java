@@ -58,6 +58,7 @@ import com.stardew.craft.item.crop.winter.PowderMelonItem;
 import com.stardew.craft.item.crop.winter.PowderMelonSeedItem;
 import com.stardew.craft.item.crop.fall.PumpkinItem;
 import com.stardew.craft.item.crop.fall.PumpkinSeedItem;
+import com.stardew.craft.item.crop.fall.RareSeedItem;
 import com.stardew.craft.item.crop.summer.RadishItem;
 import com.stardew.craft.item.crop.summer.RadishSeedItem;
 import com.stardew.craft.item.crop.summer.RedCabbageItem;
@@ -68,6 +69,7 @@ import com.stardew.craft.item.crop.summer.StarfruitItem;
 import com.stardew.craft.item.crop.summer.StarfruitSeedItem;
 import com.stardew.craft.item.crop.spring.StrawberryItem;
 import com.stardew.craft.item.crop.spring.StrawberrySeedItem;
+import com.stardew.craft.item.crop.fall.SweetGemBerryItem;
 import com.stardew.craft.item.crop.summer.SummerSpangleItem;
 import com.stardew.craft.item.crop.summer.SummerSpangleSeedItem;
 import com.stardew.craft.item.crop.summer.SummerSquashItem;
@@ -94,6 +96,8 @@ import com.stardew.craft.item.misc.GalaxySoulItem;
 import com.stardew.craft.item.misc.IridiumMilkItem;
 import com.stardew.craft.item.misc.LuckyPurpleShortsItem;
 import com.stardew.craft.item.misc.LifeElixirItem;
+import com.stardew.craft.item.misc.AuctionPaddleItem;
+import com.stardew.craft.item.misc.MoneyContractItem;
 import com.stardew.craft.item.misc.StardropItem;
 import com.stardew.craft.item.misc.StardropTeaItem;
 import com.stardew.craft.item.tool.AutoFeedTroughUpgraderItem;
@@ -1287,6 +1291,10 @@ public class ModItems {
                         () -> new SimpleStardewItem("stardewcraft.type.misc", 0, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> STARDROP_TEA = ITEMS.register("stardrop_tea",
                         () -> new StardropTeaItem(new Item.Properties().stacksTo(999).fireResistant()));
+        public static final DeferredItem<Item> MONEY_CONTRACT = ITEMS.register("money_contract",
+                        () -> new MoneyContractItem(new Item.Properties().stacksTo(1).fireResistant()));
+        public static final DeferredItem<Item> AUCTION_PADDLE = ITEMS.register("auction_paddle",
+                        () -> new AuctionPaddleItem(new Item.Properties().stacksTo(1).fireResistant()));
         public static final DeferredItem<Item> STARDROP = ITEMS.register("stardrop",
                         () -> new StardropItem(new Item.Properties().stacksTo(999).fireResistant()));
         public static final DeferredItem<Item> IRIDIUM_MILK = ITEMS.register("iridium_milk",
@@ -1898,6 +1906,9 @@ public class ModItems {
     
     public static final DeferredItem<Item> RADISH_SEEDS = ITEMS.register("radish_seeds",
             () -> new RadishSeedItem(new Item.Properties().stacksTo(999)));
+
+    public static final DeferredItem<Item> RARE_SEED = ITEMS.register("rare_seed",
+            () -> new RareSeedItem(new Item.Properties().stacksTo(999)));
     
     public static final DeferredItem<Item> RED_CABBAGE_SEEDS = ITEMS.register("red_cabbage_seeds",
             () -> new RedCabbageSeedItem(new Item.Properties().stacksTo(999)));
@@ -2028,6 +2039,9 @@ public class ModItems {
     
     public static final DeferredItem<Item> STRAWBERRY = ITEMS.register("strawberry",
             () -> new StrawberryItem(new Item.Properties().stacksTo(999)));
+
+    public static final DeferredItem<Item> SWEET_GEM_BERRY = ITEMS.register("sweet_gem_berry",
+            () -> new SweetGemBerryItem(new Item.Properties().stacksTo(999)));
     
     public static final DeferredItem<Item> SUMMER_SPANGLE = ITEMS.register("summer_spangle",
             () -> new SummerSpangleItem(new Item.Properties().stacksTo(999)));

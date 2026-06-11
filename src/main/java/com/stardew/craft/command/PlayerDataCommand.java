@@ -481,7 +481,7 @@ public class PlayerDataCommand {
             data.isExhausted() ? "stardewcraft.command.energy.info_exhausted" : "stardewcraft.command.energy.info",
             String.format("%.1f", data.getEnergy()), data.getMaxEnergy()), false);
         context.getSource().sendSuccess(() -> Component.translatable(
-            "stardewcraft.command.money.info", data.getMoney()), false);
+            "stardewcraft.command.money.info", PlayerStardewDataAPI.getMoney(player)), false);
         
         context.getSource().sendSuccess(() -> Component.translatable("stardewcraft.command.skill.header"), false);
         for (SkillType skill : SkillType.values()) {

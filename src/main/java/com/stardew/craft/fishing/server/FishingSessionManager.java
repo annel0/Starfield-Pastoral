@@ -451,6 +451,7 @@ public final class FishingSessionManager {
 				PlayerStardewDataAPI.addFishCatchCount(player, itemId, finalNumCaught);
 				// Quest: fish caught
 				com.stardew.craft.quest.StardewQuestEvents.fireFishCaught(player, itemId, finalNumCaught);
+				com.stardew.craft.specialorder.SpecialOrderManager.recordFishCaught(player, fish, finalNumCaught);
 			}
 			boolean awardTroutDerbyTag = com.stardew.craft.festival.trout.TroutDerbyService.shouldAwardGoldenTag(
 					player, fish, finalNumCaught);

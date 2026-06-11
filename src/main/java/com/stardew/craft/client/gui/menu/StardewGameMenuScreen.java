@@ -25,6 +25,7 @@ import com.stardew.craft.network.payload.RequestNpcFriendshipOverviewPayload;
 import com.stardew.craft.network.payload.RequestLeaderboardPayload;
 import com.stardew.craft.network.payload.CraftingMenuCraftSubmitPayload;
 import com.stardew.craft.network.payload.CraftingMenuInventoryActionPayload;
+import com.stardew.craft.network.payload.InventoryOrganizePayload;
 import com.stardew.craft.player.RecipeCatalogData;
 import com.stardew.craft.player.StardewCraftingRecipeData;
 import com.stardew.craft.sound.ModSounds;
@@ -3909,6 +3910,10 @@ public class StardewGameMenuScreen extends Screen {
         PacketDistributor.sendToServer(new CraftingMenuInventoryActionPayload(CraftingMenuInventoryActionPayload.ACTION_DROP_CARRIED, -1, false));
     }
 
+    private void submitOrganizeInventoryRequest() {
+        PacketDistributor.sendToServer(new InventoryOrganizePayload(InventoryOrganizePayload.TARGET_PLAYER_INVENTORY));
+    }
+
     private ItemStack currentCarriedItem() {
         if (this.minecraft == null || this.minecraft.player == null || this.minecraft.player.containerMenu == null) {
             return ItemStack.EMPTY;
@@ -4438,6 +4443,7 @@ public class StardewGameMenuScreen extends Screen {
                 // Organize button
                 if (organizeButtonContains(mouseX, mouseY)) {
                     // SDV: ItemGrabMenu.organizeItemsInList
+                    submitOrganizeInventoryRequest();
                     playUiSound(ModSounds.SHIP.get(), 1.0f, 1.0f);
                     return true;
                 }

@@ -50,7 +50,7 @@ public class NewTreePartBlock extends Block implements EntityBlock {
 	protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
 		if (!level.isClientSide && !isMoving && !state.equals(newState)
 				&& level.getBlockEntity(pos) instanceof NewTreePartBlockEntity treePart) {
-			treePart.invalidateGeneratedTreeMarker();
+			treePart.clearGeneratedTreeMarker();
 		}
 		super.onRemove(state, level, pos, newState, isMoving);
 	}

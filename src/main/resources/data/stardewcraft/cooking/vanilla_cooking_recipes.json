@@ -109,6 +109,24 @@
                                "count":  1
                            }
                        ],
+    "fried_chicken_fries":  [
+                                {
+                                    "token":  "-5",
+                                    "count":  1
+                                },
+                                {
+                                    "token":  "192",
+                                    "count":  1
+                                },
+                                {
+                                    "token":  "246",
+                                    "count":  1
+                                },
+                                {
+                                    "token":  "247",
+                                    "count":  1
+                                }
+                            ],
     "strange_bun":  [
                         {
                             "token":  "246",
@@ -453,6 +471,16 @@
                           "count":  1
                       }
                   ],
+    "popsicle":  [
+                     {
+                         "token":  "258",
+                         "count":  1
+                     },
+                     {
+                         "token":  "245",
+                         "count":  1
+                     }
+                 ],
     "blueberry_tart":  [
                            {
                                "token":  "258",

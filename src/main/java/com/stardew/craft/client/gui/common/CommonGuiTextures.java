@@ -31,6 +31,8 @@ public final class CommonGuiTextures {
     private static final SdvTexture QUEST_DOT = SdvTexture.full(common("quest_dot"), 3, 8);
     private static final SdvTexture QUEST_TIMED = SdvTexture.full(common("quest_timed"), 9, 9);
     private static final SdvTexture QUEST_OBJECTIVE_ARROW = SdvTexture.full(common("quest_objective_arrow"), 5, 4);
+    private static final ResourceLocation QUEST_PROGRESS_BAR = common("quest_progress_bar");
+    private static final SdvTexture QUEST_PROGRESS_NOTCH = SdvTexture.full(common("quest_progress_notch"), 1, 12);
     private static final SdvTexture QUEST_HUD_BUTTON = SdvTexture.full(common("quest_hud_button"), 11, 14);
     private static final SdvTexture[] QUEST_HUD_PING = frames("quest_hud_ping_", 2, 16, 16);
     private static final ResourceLocation TEXTURE_BOX_18 = common("texture_box_18");
@@ -262,6 +264,19 @@ public final class CommonGuiTextures {
 
     public static void drawQuestObjectiveArrowAtCurrentPose(GuiGraphics graphics, int x, int y) {
         QUEST_OBJECTIVE_ARROW.drawAtCurrentPose(graphics, x, y);
+    }
+
+    public static void drawQuestProgressBarBackground(GuiGraphics graphics, int x, int y, int width, float scale) {
+        int height = Math.round(12 * scale);
+        int edge = Math.round(5 * scale);
+        int safeWidth = Math.max(Math.round(10 * scale), width);
+        graphics.blit(QUEST_PROGRESS_BAR, x, y, edge, height, 0, 0, 5, 12, 47, 12);
+        graphics.blit(QUEST_PROGRESS_BAR, x + edge, y, safeWidth - edge * 2, height, 5, 0, 37, 12, 47, 12);
+        graphics.blit(QUEST_PROGRESS_BAR, x + safeWidth - edge, y, edge, height, 42, 0, 5, 12, 47, 12);
+    }
+
+    public static void drawQuestProgressNotch(GuiGraphics graphics, int x, int y, float scale) {
+        QUEST_PROGRESS_NOTCH.drawPixelZoom(graphics, x, y, scale);
     }
 
     public static void drawQuestHudButton(GuiGraphics graphics, int x, int y, float scale) {

@@ -228,6 +228,15 @@ public final class NpcInteractionService {
         // **优先于** 店铺柜台 / 送礼流程。不符合则走下面的正常逻辑。
         // ═══════════════════════════════════════════════════════════════
         if (!held.isEmpty()) {
+            var specialOrderDelivery = com.stardew.craft.specialorder.SpecialOrderManager.recordNpcDelivery(serverPlayer, npcId, held);
+            if (specialOrderDelivery.delivered()) {
+                npc.facePlayerTemporarily(serverPlayer, 60, () -> {
+                    if (!specialOrderDelivery.messageKey().isBlank()) {
+                        sendDialoguePacket(serverPlayer, npcId, specialOrderDelivery.messageKey(), 0, false);
+                    }
+                });
+                return InteractionResult.SUCCESS;
+            }
             com.stardew.craft.quest.ItemDeliveryQuest matchingQuest =
                 findMatchingDeliveryQuest(serverPlayer, npcId, held);
             if (matchingQuest != null) {
@@ -355,6 +364,10 @@ public final class NpcInteractionService {
             // 当天已对话过不再加好感，但仍要触发任务事件
             // （SDV: 杀完怪/做完条件后回来找 NPC 复命的场景）
             com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(serverPlayer, npcId);
+            if (isLewis(npcId) && !hasGiftableHeld) {
+                npc.facePlayerTemporarily(serverPlayer, 60, () -> LewisCivicService.openMenu(serverPlayer));
+                return InteractionResult.SUCCESS;
+            }
             if (npcId.equals("krobus") && !hasGiftableHeld) {
                 return com.stardew.craft.shop.ShadowShopService.handleKrobusInteraction(serverPlayer, npc);
             }

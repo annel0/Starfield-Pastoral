@@ -72,10 +72,8 @@ public final class ServerPreconditionEvaluator {
             case "day_of_week" -> checkDayOfWeek(level, p);
             case "day_of_month" -> checkDayOfMonth(level, p);
             case "days_played" -> checkDaysPlayed(p);
-            case "money" -> {
-                PlayerStardewData data = PlayerDataManager.getPlayerData(player);
-                yield data.getMoney() >= p.getInt("min", 0);
-            }
+            case "player_farm_age_days" -> checkPlayerFarmAgeDays(player, p);
+            case "money" -> com.stardew.craft.player.PlayerStardewDataAPI.getMoney(player) >= p.getInt("min", 0);
             case "skill" -> checkSkill(player, p);
             case "mail", "flag" -> {
                 PlayerStardewData data = PlayerDataManager.getPlayerData(player);
@@ -162,6 +160,18 @@ public final class ServerPreconditionEvaluator {
         int min = p.getInt("min", 0);
         int max = p.getInt("max", Integer.MAX_VALUE);
         return total >= min && total <= max;
+    }
+
+    private static boolean checkPlayerFarmAgeDays(ServerPlayer player, EventPrecondition p) {
+        PlayerStardewData data = PlayerDataManager.getPlayerData(player);
+        int firstJoinDay = data.getFirstJoinDay();
+        if (firstJoinDay < 0) {
+            return false;
+        }
+        int age = StardewTimeManager.get().getAbsoluteDay() - firstJoinDay;
+        int min = p.getInt("min", 0);
+        int max = p.getInt("max", Integer.MAX_VALUE);
+        return age >= min && age <= max;
     }
 
     private static boolean checkSkill(ServerPlayer player, EventPrecondition p) {

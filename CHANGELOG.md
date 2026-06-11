@@ -1,5 +1,79 @@
 # Changelog
 
+## 0.4.7 - 2026-06-11
+
+### Update Log (English)
+
+#### UI, Dialogue, and Story Flow
+
+- Added a hold-to-skip cutscene control with a top-right HUD indicator, configurable key display, and smooth charge behavior.
+- Added a Stardew-style object dialogue/report panel and migrated lightweight prompts such as farm computer output and blocked interaction feedback away from abrupt actionbar-only messages.
+- Improved chest and inventory organization support so Stardew-style sorting actions can be wired into the existing menus.
+- Expanded special order board UI, quest presentation, related event/cutscene handling, and reward/turn-in flows.
+- Added Lewis civic interactions and money-contract flows for shared-money and transfer-style multiplayer utility.
+
+#### Content, Items, and Presentation
+
+- Reworked Stardew item catalog presentation with multi-tab creative inventory organization and shared display ordering for JEI-facing generated stacks.
+- Added Popsicle and Fried Chicken & Fries as new cooking dishes, including recipes, unlock paths, translations, item assets, and placeable food presentations.
+- Added placeable 3D cooked-food models for the new display pass, covering existing foods such as soups, fish dishes, breakfast foods, pizza, cake, burgers, coffee, and other prepared meals.
+- Added rare seed and sweet gem berry content, including crop block/resources, item models, translations, and tags.
+- Added treasure totem presentation updates, real icon/sound resources, and related utility sound registrations.
+
+#### Trees, World, and Gameplay Fixes
+
+- Added prefab Stardew tree support with structure resources, placement/registry handling, falling-tree presentation, debug tools, and natural-tree protection logic.
+- Restored chopping rewards for natural modern trees, including foraging experience and sap drop behavior while preventing player-placed logs from becoming repeatable XP or sap sources.
+- Updated desert galaxy pillar bootstrap behavior so missing pillars can be restored directly instead of relying on brittle version gates.
+- Improved forage block/Jade naming, crop model rendering, and Stardew leaf cutout handling while keeping vanilla leaves on the vanilla/optimization-mod path.
+
+#### Systems and Compatibility
+
+- Added auction service, auction UI screens, bidding/join/create payloads, and auction board client state.
+- Added farm computer report plumbing and reusable HUD/object dialogue messaging support.
+- Expanded packet registration, NPC/event runtime hooks, special-order unlock sync, and interior/portal interaction support.
+- Updated prebuilt Stardew Valley region resources and fixed several runtime integration points touched by the new systems.
+
+#### Changes
+
+- Updated the public mod version to `0.4.7`.
+
+### 更新日志（中文）
+
+#### UI、对话与剧情流程
+
+- 加入按住蓄力跳过剧情的控制方式，右上角显示蓄力 HUD，并支持按键显示与平滑蓄力/回退行为。
+- 加入接近星露谷风格的物体对话/报告框，并将农场电脑报告、好感门拒绝等轻提示从生硬 actionbar 迁移到可复用面板。
+- 改进箱子与背包整理入口，让星露谷式整理功能可以接入现有菜单。
+- 扩展特别订单板 UI、任务展示、相关事件/过场处理，以及奖励领取和投递流程。
+- 加入刘易斯市政交互与金钱契约流程，支持多人共享金币和金币转让类工具。
+
+#### 内容、物品与展示
+
+- 重做星露谷物品目录展示，加入多标签创造栏组织，并让 JEI 展示栈共用稳定排序逻辑。
+- 加入冰棍和炸鸡薯条两道新料理，包含配方、解锁路径、翻译、物品资源和可摆放展示。
+- 为本轮料理展示补充大量可摆放 3D 食物模型，覆盖汤、鱼料理、早餐、披萨、蛋糕、汉堡、咖啡等已有料理。
+- 加入稀有种子与宝石甜莓内容，包括作物方块/资源、物品模型、翻译和标签。
+- 更新宝藏图腾表现，接入真实图标、声音资源和相关工具音效注册。
+
+#### 树木、世界与玩法修复
+
+- 加入预制星露谷树支持，包含结构资源、放置/登记、倒树表现、调试工具和自然树保护逻辑。
+- 恢复自然生成现代树砍伐收益，包括采集经验与树液掉落，同时避免玩家放置的原木成为可重复刷经验或树液来源。
+- 调整沙漠银河剑柱子恢复逻辑：缺失时直接补放，不再依赖脆弱的版本号门槛。
+- 改进采集方块/Jade 命名、作物模型渲染和 Stardew 自定义树叶 cutout 处理，同时让原版树叶保持原版/优化模组路径。
+
+#### 系统与兼容
+
+- 加入竞拍服务、竞拍 UI、出价/加入/创建相关网络包，以及竞拍板客户端状态。
+- 加入农场电脑报告链路和可复用 HUD/物体对话提示支持。
+- 扩展网络包注册、NPC/事件运行时钩子、特别订单解锁同步和室内/传送门交互支持。
+- 更新预生成星露谷区域资源，并修复新系统触及的若干运行时集成点。
+
+#### 变更
+
+- 项目公开版本号更新为 `0.4.7`。
+
 ## 0.4.6-fix2 - 2026-06-08
 
 ### Update Log (English)

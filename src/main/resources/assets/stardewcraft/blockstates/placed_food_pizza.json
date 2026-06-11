@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "stardewcraft:block/cooking/pizza"
+    },
+    "facing=east": {
+      "model": "stardewcraft:block/cooking/pizza",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "stardewcraft:block/cooking/pizza",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "stardewcraft:block/cooking/pizza",
+      "y": 270
+    }
+  }
+}

@@ -1,6 +1,9 @@
 package com.stardew.craft.cutscene.runtime;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -127,6 +130,15 @@ public class EventActorEntity extends Mob implements GeoEntity {
             return Component.translatable("entity.stardewcraft.npc." + npcId);
         }
         return super.getName();
+    }
+
+    @Override
+    public InteractionResult mobInteract(@javax.annotation.Nonnull net.minecraft.world.entity.player.Player player,
+                                         @javax.annotation.Nonnull InteractionHand hand) {
+        if (this.level().isClientSide || hand != InteractionHand.MAIN_HAND) {
+            return InteractionResult.sidedSuccess(this.level().isClientSide);
+        }
+        return InteractionResult.PASS;
     }
 
     public static AttributeSupplier.Builder createAttributes() {

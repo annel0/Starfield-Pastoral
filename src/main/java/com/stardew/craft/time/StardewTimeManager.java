@@ -152,6 +152,7 @@ public class StardewTimeManager extends SavedData {
                 com.stardew.craft.weather.LightningStrikeScheduler
                     .performTenMinuteUpdate(server);
                 com.stardew.craft.festival.FestivalService.onTimeChanged(server);
+                com.stardew.craft.auction.AuctionService.onTimeChanged(server);
             }
         }
 
@@ -365,6 +366,7 @@ public class StardewTimeManager extends SavedData {
                 java.util.List<net.minecraft.server.level.ServerPlayer> stardewPlayers = server.getPlayerList().getPlayers().stream()
                     .filter(player -> player.level().dimension() == ModDimensions.STARDEW_VALLEY)
                     .toList();
+                com.stardew.craft.specialorder.SpecialOrderManager.onNewDay(stardewLevel, stardewPlayers);
                 com.stardew.craft.book.BooksellerSchedule.onNewDay(stardewLevel, stardewPlayers);
                 com.stardew.craft.shop.BooksellerEvents.forceCheckNow(stardewLevel);
             }

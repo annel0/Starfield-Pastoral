@@ -617,6 +617,9 @@ public final class NpcSpawnManager {
             if (entity.isRemoved() || !entity.isAlive()) {
                 continue;
             }
+            if (entity.getTags().contains(com.stardew.craft.auction.AuctionService.AUCTION_HOST_TAG)) {
+                continue;
+            }
             String id = entity.getNpcId();
             String canonicalId = canonicalNpcId(id);
             // Joja NPCs 完全由 JojaNpcEvents 管理 —— 不入这里的 byId 去重表也不加入 discard 列表。
@@ -651,6 +654,9 @@ public final class NpcSpawnManager {
 
         for (StardewNpcEntity entity : all) {
             if (entity.isRemoved() || !entity.isAlive()) {
+                continue;
+            }
+            if (entity.getTags().contains(com.stardew.craft.auction.AuctionService.AUCTION_HOST_TAG)) {
                 continue;
             }
             String id = canonicalNpcId(entity.getNpcId());
@@ -726,6 +732,9 @@ public final class NpcSpawnManager {
             if (entity.isRemoved() || !entity.isAlive()) {
                 continue;
             }
+            if (entity.getTags().contains(com.stardew.craft.auction.AuctionService.AUCTION_HOST_TAG)) {
+                continue;
+            }
             if (excludeUuid != null && excludeUuid.equals(entity.getUUID())) {
                 continue;
             }
@@ -754,6 +763,9 @@ public final class NpcSpawnManager {
 
         List<StardewNpcEntity> sameId = new ArrayList<>();
         for (StardewNpcEntity entity : getCachedAllNpcs(level)) {
+            if (entity.getTags().contains(com.stardew.craft.auction.AuctionService.AUCTION_HOST_TAG)) {
+                continue;
+            }
             if (!canonicalNpcId.equals(canonicalNpcId(entity.getNpcId()))) {
                 continue;
             }
@@ -1106,6 +1118,9 @@ public final class NpcSpawnManager {
     public static boolean isOfficialInstance(StardewNpcEntity npc) {
         if (npc == null || npc.isRemoved() || npc.level() == null || npc.level().isClientSide) {
             return false;
+        }
+        if (npc.getTags().contains(com.stardew.craft.auction.AuctionService.AUCTION_HOST_TAG)) {
+            return true;
         }
         String id = canonicalNpcId(npc.getNpcId());
         if (id == null || id.isBlank()) {

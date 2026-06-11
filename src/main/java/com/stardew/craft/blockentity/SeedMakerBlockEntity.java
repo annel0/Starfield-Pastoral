@@ -165,6 +165,10 @@ public class SeedMakerBlockEntity extends TimedProductionBlockEntity implements 
     @Nullable
     private static Item resolveSeedMakerOutputItem(Item item) {
         ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
+        if ("stardewcraft".equals(id.getNamespace()) && "sweet_gem_berry".equals(id.getPath())) {
+            return ModItems.RARE_SEED.get();
+        }
+
         Item wildSeedItem = seasonalWildSeedFor(id.getPath());
         if (wildSeedItem != null) {
             return wildSeedItem;

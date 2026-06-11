@@ -3,5 +3,6 @@
   "textures": {
     "cross": "stardewcraft:item/forage/morel",
     "particle": "stardewcraft:item/forage/morel"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

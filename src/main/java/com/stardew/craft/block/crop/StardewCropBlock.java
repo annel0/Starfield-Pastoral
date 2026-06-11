@@ -350,6 +350,10 @@ public abstract class StardewCropBlock extends Block {
         }
         return growthState.phase >= lastPhase;
     }
+
+    public boolean isReadyForFarmComputer(ServerLevel level, BlockPos pos, BlockState state) {
+        return isMature(level, pos, state);
+    }
     
     @Override
     protected void createBlockStateDefinition(@SuppressWarnings("null") StateDefinition.Builder<Block, BlockState> builder) {
@@ -734,6 +738,10 @@ public abstract class StardewCropBlock extends Block {
 
     protected HarvestMethod getHarvestMethod() {
         return HarvestMethod.GRAB;
+    }
+
+    public boolean requiresScytheHarvest() {
+        return getHarvestMethod() == HarvestMethod.SCYTHE;
     }
 
     /**

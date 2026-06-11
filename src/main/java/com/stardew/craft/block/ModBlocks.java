@@ -67,13 +67,30 @@ public class ModBlocks {
         private static final String[] PLACEABLE_COOKING_FOOD_IDS = {
                 "cheese_cauliflower",
                 "ice_cream",
+                "popsicle",
                 "baked_fish",
+                "carp_surprise",
+                "crispy_bass",
+                "fish_taco",
+                "salmon_dinner",
                 "omelet",
+                "fried_egg",
+                "fried_mushroom",
+                "hashbrowns",
+                "pancakes",
                 "strange_bun",
                 "complete_breakfast",
                 "lucky_lunch",
                 "salad",
                 "fried_calamari",
+                "fried_chicken_fries",
+                "pink_cake",
+                "pizza",
+                "survival_burger",
+                "algae_soup",
+                "bean_hotpot",
+                "glazed_yams",
+                "triple_shot_espresso",
                 "vegetable_medley",
                 "parsnip_soup"
         };
@@ -877,6 +894,8 @@ public class ModBlocks {
 
     public static final DeferredBlock<Block> FIBER_CROP = BLOCKS.register("fiber_crop",
             () -> new com.stardew.craft.block.crop.FiberCropBlock());
+    public static final DeferredBlock<Block> SWEET_GEM_BERRY_CROP = BLOCKS.register("sweet_gem_berry_crop",
+            () -> new com.stardew.craft.block.crop.SweetGemBerryCropBlock());
 
     // Wild Seed Crops (grow 7 days then transform into forage blocks)
     public static final DeferredBlock<Block> SPRING_WILD_SEED_CROP = BLOCKS.register("spring_wild_seed_crop",
@@ -1568,8 +1587,18 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                                 .sound(SoundType.METAL)
                                                 .noOcclusion()
                                                 .strength(1.5F, 3.0F)));
-                public static final DeferredBlock<Block> MINI_OBELISK = specialOrderUtilityBlock("mini_obelisk", MapColor.COLOR_PURPLE, SoundType.STONE);
-                public static final DeferredBlock<Block> FARM_COMPUTER = specialOrderUtilityBlock("farm_computer", MapColor.METAL, SoundType.METAL);
+                public static final DeferredBlock<Block> MINI_OBELISK = BLOCKS.register("mini_obelisk",
+                                () -> new com.stardew.craft.block.utility.MiniObeliskBlock(Block.Properties.of()
+                                                .mapColor(MapColor.COLOR_PURPLE)
+                                                .sound(SoundType.STONE)
+                                                .noOcclusion()
+                                                .strength(1.5F, 3.0F)));
+                public static final DeferredBlock<Block> FARM_COMPUTER = BLOCKS.register("farm_computer",
+                                () -> new com.stardew.craft.block.utility.FarmComputerBlock(Block.Properties.of()
+                                                .mapColor(MapColor.METAL)
+                                                .sound(SoundType.METAL)
+                                                .noOcclusion()
+                                                .strength(1.5F, 3.0F)));
                 public static final DeferredBlock<Block> BONE_MILL = BLOCKS.register("bone_mill",
                                 () -> new com.stardew.craft.block.utility.BoneMillBlock(Block.Properties.of()
                                                 .mapColor(MapColor.TERRACOTTA_WHITE)

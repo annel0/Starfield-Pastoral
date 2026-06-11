@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "stardewcraft:block/cooking/fish_taco"
+    },
+    "facing=east": {
+      "model": "stardewcraft:block/cooking/fish_taco",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "stardewcraft:block/cooking/fish_taco",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "stardewcraft:block/cooking/fish_taco",
+      "y": 270
+    }
+  }
+}

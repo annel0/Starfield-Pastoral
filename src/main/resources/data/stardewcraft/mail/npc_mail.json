@@ -297,6 +297,13 @@
     "recipeIsCooking": true
   },
   {
+    "id": "friendshipRecipeShaneFriedChickenFries",
+    "text": "@：\n\n炸鸡薯条不难，重点是油温和别把厨房弄得太糟。拿去吧，别到处说是我教你的。\n\n——谢恩",
+    "background": 0,
+    "learnedRecipe": "fried_chicken_fries",
+    "recipeIsCooking": true
+  },
+  {
     "id": "friendshipRecipeShaneStrangeBun",
     "text": "@：\n\n这是奇怪小面包的做法。名字是有点怪，但味道……你自己试试吧。\n\n——谢恩",
     "background": 0,

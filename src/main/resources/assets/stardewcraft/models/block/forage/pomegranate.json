@@ -3,5 +3,6 @@
   "textures": {
     "cross": "stardewcraft:item/fruit/pomegranate",
     "particle": "stardewcraft:item/fruit/pomegranate"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

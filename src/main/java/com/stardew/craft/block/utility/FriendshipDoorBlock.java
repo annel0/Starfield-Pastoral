@@ -3,6 +3,7 @@ package com.stardew.craft.block.utility;
 import com.mojang.serialization.MapCodec;
 import com.stardew.craft.blockentity.FriendshipDoorBlockEntity;
 import com.stardew.craft.entity.npc.StardewNpcEntity;
+import com.stardew.craft.network.ObjectDialogueService;
 import com.stardew.craft.npc.runtime.NpcFriendshipDataManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -51,7 +52,7 @@ public class FriendshipDoorBlock extends DoorBlock implements EntityBlock {
             if (!level.isClientSide) {
                 FriendshipDoorBlockEntity door = getDoorData(level, state, pos);
                 Component npcName = door == null ? Component.translatable("block.stardewcraft.friendship_door.unbound") : door.getNpcDisplayName();
-                player.displayClientMessage(Component.translatable("message.stardewcraft.friendship_door.locked", npcName), true);
+                ObjectDialogueService.show((ServerPlayer) player, "message.stardewcraft.friendship_door.locked", npcName);
             }
             return InteractionResult.SUCCESS;
         }

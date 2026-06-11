@@ -554,25 +554,21 @@ public class PlayerStardewDataAPI {
      * 获取金币
      */
     public static int getMoney(ServerPlayer player) {
-        return getData(player).getMoney();
+        return com.stardew.craft.money.SharedMoneyService.getMoney(player);
     }
     
     /**
      * 设置金币
      */
     public static void setMoney(ServerPlayer player, int money) {
-        PlayerStardewData data = getData(player);
-        data.setMoney(money);
-        PlayerDataEventHandler.syncPlayerData(player, data);
+        com.stardew.craft.money.SharedMoneyService.setMoney(player, money);
     }
     
     /**
      * 添加金币
      */
     public static void addMoney(ServerPlayer player, int amount) {
-        PlayerStardewData data = getData(player);
-        data.addMoney(amount);
-        PlayerDataEventHandler.syncPlayerData(player, data);
+        com.stardew.craft.money.SharedMoneyService.addMoney(player, amount);
     }
     
     /**
@@ -580,10 +576,7 @@ public class PlayerStardewDataAPI {
      * @return 是否成功(金币是否足够)
      */
     public static boolean removeMoney(ServerPlayer player, int amount) {
-        PlayerStardewData data = getData(player);
-        boolean success = data.removeMoney(amount);
-        PlayerDataEventHandler.syncPlayerData(player, data);
-        return success;
+        return com.stardew.craft.money.SharedMoneyService.removeMoney(player, amount);
     }
     
     // ============ 职业相关 ============
@@ -710,11 +703,12 @@ public class PlayerStardewDataAPI {
             if (data.recordShippedItem(itemId, shippedItem.stack().getCount())) {
                 changed = true;
             }
+            com.stardew.craft.specialorder.SpecialOrderManager.recordShipped(player, shippedItem.stack(), shippedItem.stack().getCount());
         }
 
         if (totalGold > 0) {
             data.addTotalShippingGold(totalGold);
-            data.addMoney(totalGold);
+            com.stardew.craft.money.SharedMoneyService.addMoney(player, totalGold);
             changed = true;
         }
 

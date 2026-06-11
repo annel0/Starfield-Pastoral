@@ -8,6 +8,7 @@ import com.stardew.craft.interior.CrossDimensionTeleporter;
 import com.stardew.craft.interior.InteriorPortalRegistry;
 import com.stardew.craft.interior.InteriorSubspaceManager;
 import com.stardew.craft.interior.PlayerInteriorAllocator;
+import com.stardew.craft.network.ObjectDialogueService;
 import com.stardew.craft.network.payload.DesertBusFadePayload;
 import com.stardew.craft.sound.ModSounds;
 import com.stardew.craft.mining.MineEntranceBootstrap;
@@ -288,6 +289,14 @@ public class InteriorPortalInteractionEvents {
             return;
         }
 
+        if ("mayor_house_enter".equals(targetId)) {
+            if (player.getPersistentData().getBoolean("stardewcraft_auction_enter_house_once")) {
+                player.getPersistentData().remove("stardewcraft_auction_enter_house_once");
+            } else if (com.stardew.craft.auction.AuctionService.tryOpenAuctionEntryChoice(player)) {
+                return;
+            }
+        }
+
         // ── 通用 Portal Registry 查找 ──
         Optional<InteriorPortalRegistry.PortalTarget> resolved = InteriorPortalRegistry.resolve(targetId);
         if (resolved.isEmpty()) return;
@@ -543,9 +552,7 @@ public class InteriorPortalInteractionEvents {
         com.stardew.craft.player.PlayerStardewData sdData =
                 com.stardew.craft.player.PlayerDataManager.getPlayerData(player);
         if (!sdData.hasMailFlag(com.stardew.craft.communitycenter.state.CCStoryFlags.HAS_SKULL_KEY)) {
-            player.displayClientMessage(
-                net.minecraft.network.chat.Component.translatable("message.stardewcraft.skull_door_locked"),
-                false);
+            ObjectDialogueService.show(player, "message.stardewcraft.skull_door_locked");
             player.playNotifySound(net.minecraft.sounds.SoundEvents.IRON_DOOR_OPEN,
                     net.minecraft.sounds.SoundSource.PLAYERS, 0.6f, 0.7f);
             player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
@@ -652,16 +659,12 @@ public class InteriorPortalInteractionEvents {
         // 本项目简化：Joja 会员视同"CC 已被 Joja 接管"，不可进入。
         // SDV 原版是进入后看到仓库外观；我们服务器共享地图不做两套装饰层，直接拦入口。
         if (data.hasMailFlag(com.stardew.craft.communitycenter.state.CCStoryFlags.JOJA_MEMBER)) {
-            player.displayClientMessage(
-                    net.minecraft.network.chat.Component.translatable("stardewcraft.portal.cc.joja_warehouse"),
-                    true);
+            ObjectDialogueService.show(player, "stardewcraft.portal.cc.joja_warehouse");
             return;
         }
         // SDV parity: CC door is locked until event 611439 (lewis_cc_tour) sets ccDoorUnlock
         if (!data.hasMailFlag(com.stardew.craft.communitycenter.state.CCStoryFlags.CC_DOOR_UNLOCKED)) {
-            player.displayClientMessage(
-                    net.minecraft.network.chat.Component.translatable("stardewcraft.portal.cc.locked"),
-                    true);
+            ObjectDialogueService.show(player, "stardewcraft.portal.cc.locked");
             return;
         }
         handleCCEntryCore(player);
@@ -818,9 +821,7 @@ public class InteriorPortalInteractionEvents {
         com.stardew.craft.player.PlayerStardewData data =
                 com.stardew.craft.player.PlayerDataManager.getPlayerData(player);
         if (!data.hasMailFlag(com.stardew.craft.communitycenter.state.CCStoryFlags.CC_CRAFTS_ROOM)) {
-            player.displayClientMessage(
-                    net.minecraft.network.chat.Component.translatable("stardewcraft.portal.quarry.blocked"),
-                    true);
+            ObjectDialogueService.show(player, "stardewcraft.portal.quarry.blocked");
             player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
             return;
         }
@@ -860,9 +861,7 @@ public class InteriorPortalInteractionEvents {
         com.stardew.craft.player.PlayerStardewData data =
                 com.stardew.craft.player.PlayerDataManager.getPlayerData(player);
         if (!com.stardew.craft.sewer.SewerService.hasRustyKey(data)) {
-            player.displayClientMessage(
-                    net.minecraft.network.chat.Component.translatable("stardewcraft.portal.sewer.locked"),
-                    true);
+            ObjectDialogueService.show(player, "stardewcraft.portal.sewer.locked");
             player.getPersistentData().putLong(PLAYER_LAST_PORTAL_TICK, now);
             return;
         }
@@ -905,7 +904,7 @@ public class InteriorPortalInteractionEvents {
 
         net.minecraft.core.BlockPos exitPos = com.stardew.craft.greenhouse.GreenhouseManager.getExitPosForPlayer(player);
         if (exitPos == null) {
-            player.displayClientMessage(net.minecraft.network.chat.Component.literal("请先创建自己的农场。"), true);
+            ObjectDialogueService.show(player, net.minecraft.network.chat.Component.literal("请先创建自己的农场。"));
             StardewCraft.LOGGER.warn("[GREENHOUSE] Refused greenhouse exit for {}: no personal farm",
                     player.getName().getString());
             return;

@@ -134,6 +134,17 @@ public final class ModEntities {
 					.build("fallen_oak_tree")
 	);
 
+	public static final DeferredHolder<EntityType<?>, EntityType<FallenPrefabTreeEntity>> FALLEN_PREFAB_TREE = ENTITY_TYPES.register(
+			"fallen_prefab_tree",
+			() -> EntityType.Builder.<FallenPrefabTreeEntity>of(FallenPrefabTreeEntity::new, MobCategory.MISC)
+					// Prefab trees can be up to 7x7 and tall; when they fall sideways the reach grows,
+					// so use a generous bounding size to keep frustum culling from hiding the tip.
+					.sized(16.0F, 16.0F)
+					.clientTrackingRange(64)
+					.updateInterval(1)
+					.build("fallen_prefab_tree")
+	);
+
 	public static final DeferredHolder<EntityType<?>, EntityType<DuckEntity>> DUCK = ENTITY_TYPES.register(
 			"duck",
 			() -> EntityType.Builder.<DuckEntity>of(DuckEntity::new, MobCategory.CREATURE)

@@ -1,11 +1,15 @@
 package com.stardew.craft.client.gui;
 
 import com.stardew.craft.block.utility.WoodenChestColorPalette;
+import com.stardew.craft.client.gui.common.CommonGuiTextures;
 import com.stardew.craft.client.gui.common.GuiText;
 import com.stardew.craft.menu.StoneChestMenu;
+import com.stardew.craft.network.payload.InventoryOrganizePayload;
 import com.stardew.craft.network.payload.StoneChestColorSelectPayload;
+import com.stardew.craft.sound.ModSounds;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
@@ -24,6 +28,8 @@ public class StoneChestScreen extends AbstractContainerScreen<StoneChestMenu> {
 
     private int colorButtonX;
     private int colorButtonY;
+    private int organizeButtonX;
+    private int organizeButtonY;
     private boolean paletteOpen;
 
     public StoneChestScreen(StoneChestMenu menu, Inventory playerInventory, Component title) {
@@ -37,6 +43,8 @@ public class StoneChestScreen extends AbstractContainerScreen<StoneChestMenu> {
         super.init();
         this.colorButtonX = this.leftPos + this.imageWidth + 6;
         this.colorButtonY = this.topPos + 16;
+        this.organizeButtonX = this.colorButtonX;
+        this.organizeButtonY = this.colorButtonY + 30;
     }
 
     @Override
@@ -63,6 +71,12 @@ public class StoneChestScreen extends AbstractContainerScreen<StoneChestMenu> {
             graphics.fill(colorButtonX + BUTTON_SIZE / 2 - indW / 2 - 1, colorButtonY + BUTTON_SIZE + 1,
                 colorButtonX + BUTTON_SIZE / 2 + indW / 2 + 1, colorButtonY + BUTTON_SIZE + 2, 0x40000000);
         }
+
+        boolean organizeHovered = isHoveringOrganizeButton(mouseX, mouseY);
+        if (organizeHovered) {
+            graphics.fill(organizeButtonX - 1, organizeButtonY - 1, organizeButtonX + BUTTON_SIZE + 1, organizeButtonY + BUTTON_SIZE + 1, 0x40FFFFFF);
+        }
+        CommonGuiTextures.drawGameMenuOrganize(graphics, organizeButtonX + 1, organizeButtonY + 1, 1.0F);
     }
 
     @Override
@@ -86,6 +100,9 @@ public class StoneChestScreen extends AbstractContainerScreen<StoneChestMenu> {
         if (isHoveringColorButton(mouseX, mouseY) && !this.paletteOpen) {
             graphics.renderTooltip(this.font, Component.translatable("stardewcraft.stone_chest.color_picker"), mouseX, mouseY);
         }
+        if (isHoveringOrganizeButton(mouseX, mouseY) && !this.paletteOpen) {
+            graphics.renderTooltip(this.font, Component.translatable("stardewcraft.game_menu.inventory.organize"), mouseX, mouseY);
+        }
     }
 
     @Override
@@ -100,6 +117,12 @@ public class StoneChestScreen extends AbstractContainerScreen<StoneChestMenu> {
                 this.paletteOpen = !this.paletteOpen;
                 return true;
             }
+        }
+
+        if (button == 0 && isHoveringOrganizeButton(mouseX, mouseY)) {
+            PacketDistributor.sendToServer(new InventoryOrganizePayload(InventoryOrganizePayload.TARGET_OPEN_CONTAINER));
+            playOrganizeSound();
+            return true;
         }
 
         if (this.paletteOpen) {
@@ -123,6 +146,17 @@ public class StoneChestScreen extends AbstractContainerScreen<StoneChestMenu> {
     private boolean isHoveringColorButton(double mouseX, double mouseY) {
         return mouseX >= colorButtonX && mouseX < colorButtonX + BUTTON_SIZE
             && mouseY >= colorButtonY && mouseY < colorButtonY + BUTTON_SIZE;
+    }
+
+    private boolean isHoveringOrganizeButton(double mouseX, double mouseY) {
+        return mouseX >= organizeButtonX && mouseX < organizeButtonX + BUTTON_SIZE
+            && mouseY >= organizeButtonY && mouseY < organizeButtonY + BUTTON_SIZE;
+    }
+
+    private void playOrganizeSound() {
+        if (this.minecraft != null) {
+            this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(ModSounds.SHIP.get(), 1.0F));
+        }
     }
 
     private void renderPalette(GuiGraphics graphics, int mouseX, int mouseY) {

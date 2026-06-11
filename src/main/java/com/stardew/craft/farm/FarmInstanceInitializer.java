@@ -7,7 +7,6 @@ import com.stardew.craft.block.nature.PastureGrassBlock;
 import com.stardew.craft.block.nature.WildWeedsBlock;
 import com.stardew.craft.time.StardewTimeManager;
 import com.stardew.craft.tree.WildTrees;
-import com.stardew.craft.tree.generation.StardewTreeGenerator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -252,7 +251,7 @@ public class FarmInstanceInitializer {
                         WildTrees.Def[] treeDefs = {WildTrees.OAK, WildTrees.MAPLE, WildTrees.PINE};
                         int[] weights = {3, 3, 4};
                         WildTrees.Def chosen = pickWeighted(random, treeDefs, weights);
-                        if (StardewTreeGenerator.tryGenerate(level, placePos, chosen, random)) {
+                        if (com.stardew.craft.tree.prefab.PrefabTreeManager.tryPlaceRandomVariant(level, placePos, chosen)) {
                             treeTrunks.add(placePos);
                             trees++;
                         }
@@ -265,7 +264,7 @@ public class FarmInstanceInitializer {
                     cumulative += MAHOGANY_PROB;
                     if (roll < cumulative) {
                         if (!tooCloseToAny(placePos, treeTrunks, TREE_MIN_DIST)) {
-                            if (StardewTreeGenerator.tryGenerate(level, placePos, WildTrees.MAHOGANY, random)) {
+                            if (com.stardew.craft.tree.prefab.PrefabTreeManager.tryPlaceRandomVariant(level, placePos, WildTrees.MAHOGANY)) {
                                 treeTrunks.add(placePos);
                                 mahogany++;
                             }

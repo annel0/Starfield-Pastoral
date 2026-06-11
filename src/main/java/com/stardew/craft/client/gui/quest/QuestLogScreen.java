@@ -3,7 +3,10 @@ package com.stardew.craft.client.gui.quest;
 import com.stardew.craft.client.gui.common.CommonGuiTextures;
 import com.stardew.craft.client.gui.common.GuiText;
 import com.stardew.craft.client.gui.common.StardewRenderMapping;
+import com.stardew.craft.client.gui.specialorder.ClientSpecialOrderBoardData;
+import com.stardew.craft.client.gui.specialorder.SpecialOrderQuestView;
 import com.stardew.craft.client.hud.QuestIconHud;
+import com.stardew.craft.network.payload.SpecialOrderRewardClaimPayload;
 import com.stardew.craft.quest.StardewQuest;
 import com.stardew.craft.quest.network.ClientQuestData;
 import com.stardew.craft.quest.network.CancelQuestPayload;
@@ -139,7 +142,9 @@ public class QuestLogScreen extends Screen {
 
     private void paginateQuests() {
         pages.clear();
-        List<StardewQuest> all = ClientQuestData.getQuestLog();
+        List<StardewQuest> all = new ArrayList<>();
+        all.addAll(ClientSpecialOrderBoardData.activeQuestLogEntries());
+        all.addAll(ClientQuestData.getQuestLog());
         int idx = 0;
         while (idx < all.size()) {
             List<StardewQuest> page = new ArrayList<>();
@@ -353,22 +358,31 @@ public class QuestLogScreen extends Screen {
                     int objTextWidth = descWidth - mapping.ui(64);
                     List<FormattedCharSequence> objLines = font.split(
                             objComp, objTextWidth);
+                    boolean specialComplete = shownQuest instanceof SpecialOrderQuestView specialOrder
+                            && specialOrder.isObjectiveComplete(j);
+                    int objectiveColor = specialComplete ? 0xFF7B6A58 : DARK_BLUE;
 
                     // SDV: arrow at (xPos+96+8*dialogueButtonScale/10, yPos) rotated PI/2
-                    // We skip the oscillation; draw rotated arrow
-                    int arrowX = winX + mapping.ui(96);
-                    g.pose().pushPose();
-                    g.pose().translate(arrowX, yPos + 2, 0);
-                    g.pose().mulPose(com.mojang.math.Axis.ZP.rotationDegrees(90));
-                    g.pose().scale(s4, s4, 1.0f);
-                        CommonGuiTextures.drawQuestObjectiveArrow(g, 0, 0, s4);
-                    g.pose().popPose();
+                    // We skip the oscillation; draw rotated arrow.
+                    if (!specialComplete) {
+                        int arrowX = winX + mapping.ui(96);
+                        g.pose().pushPose();
+                        g.pose().translate(arrowX, yPos + 2, 0);
+                        g.pose().mulPose(com.mojang.math.Axis.ZP.rotationDegrees(90));
+                        g.pose().scale(s4, s4, 1.0f);
+                        CommonGuiTextures.drawQuestObjectiveArrowAtCurrentPose(g, 0, 0);
+                        g.pose().popPose();
+                    }
 
                     // SDV: text at (xPos+128, yPos-8)
                     int objTextX = winX + mapping.ui(128);
                     for (FormattedCharSequence objLine : objLines) {
-                        g.drawString(font, objLine, objTextX, (int) yPos, DARK_BLUE, false);
+                        g.drawString(font, objLine, objTextX, (int) yPos, objectiveColor, false);
                         yPos += font.lineHeight + 1;
+                    }
+                    if (shownQuest instanceof SpecialOrderQuestView specialOrder
+                            && specialOrder.shouldShowProgress(j)) {
+                        yPos = drawSpecialOrderProgress(g, specialOrder, j, yPos);
                     }
                     yPos += mapping.ui(8);
                 }
@@ -377,7 +391,7 @@ public class QuestLogScreen extends Screen {
             // 进度计数
             int curCount = shownQuest.getCurrentObjectiveCount();
             int totalCount = shownQuest.getTotalObjectiveCount();
-            if (totalCount > 0 && curCount >= 0) {
+            if (!(shownQuest instanceof SpecialOrderQuestView) && totalCount > 0 && curCount >= 0) {
                 String countStr = curCount + "/" + totalCount;
                 int countX = winX + winW - mapping.ui(64) - font.width(countStr);
                 g.drawString(font, countStr, countX, (int) yPos, DARK_BLUE, false);
@@ -402,6 +416,55 @@ public class QuestLogScreen extends Screen {
                 }
             }
         }
+    }
+
+    private float drawSpecialOrderProgress(GuiGraphics g, SpecialOrderQuestView order, int objectiveIndex, float yPos) {
+        int current = order.objectiveProgress(objectiveIndex);
+        int max = Math.max(1, order.objectiveRequired(objectiveIndex));
+        String countText = current + "/" + max;
+        String maxText = max + "/" + max;
+        int inset = mapping.ui(64);
+        int countDrawWidth = mapping.ui(160);
+        int countWidth = font.width(countText);
+        int maxTextWidth = font.width(maxText);
+        int countX = winX + winW - inset - countWidth;
+        int maxTextX = winX + winW - inset - maxTextWidth;
+        g.drawString(font, countText, countX, (int) yPos, DARK_BLUE, false);
+
+        int barX = winX + inset;
+        int barY = (int) yPos;
+        int barW = winW - inset * 2 - countDrawWidth;
+        int barH = Math.round(12 * s4);
+        if (barX + barW > maxTextX - mapping.ui(16)) {
+            barW -= (barX + barW) - (maxTextX - mapping.ui(16));
+        }
+        barW = Math.max(mapping.ui(48), barW);
+        CommonGuiTextures.drawQuestProgressBarBackground(g, barX, barY, barW, s4);
+
+        int notches = Math.min(4, max);
+        for (int n = 1; n < notches; n++) {
+            int notchX = barX + Math.round(barW * (n / (float) notches));
+            CommonGuiTextures.drawQuestProgressNotch(g, notchX, barY, s4);
+        }
+
+        int paddingX = Math.round(3 * s4);
+        int paddingY = Math.round(3 * s4);
+        int innerX = barX + paddingX;
+        int innerY = barY + paddingY;
+        int innerW = Math.max(1, barW - paddingX * 2);
+        int innerH = Math.max(1, barH - paddingY * 2);
+        float progress = Math.max(0.0F, Math.min(1.0F, current / (float) max));
+        int fillW = Math.max(0, Math.round(innerW * progress) - mapping.ui(4));
+        int stripW = Math.min(mapping.ui(4), Math.max(0, innerW - fillW));
+        int barColor = current >= max ? 0xFF32CD32 : 0xFFFF0000;
+        int darkBarColor = current >= max ? 0xFF008000 : 0xFF8B0000;
+        if (fillW > 0) {
+            g.fill(innerX, innerY, innerX + fillW, innerY + innerH, barColor);
+        }
+        if (stripW > 0 && fillW > 0) {
+            g.fill(innerX + fillW, innerY, innerX + fillW + stripW, innerY + innerH, darkBarColor);
+        }
+        return yPos + Math.round((12 + 4) * s4);
     }
 
     private boolean needsScroll() {
@@ -432,9 +495,13 @@ public class QuestLogScreen extends Screen {
                     questPage = i;
                     shownQuest = pages.get(currentPage).get(i);
                     objectiveText = shownQuest.getObjectiveComponents();
-                    shownQuest.setShowNew(false);
-                    // 通知服务端清除 showNew 标记，避免下次同步覆盖
-                    PacketDistributor.sendToServer(new MarkQuestViewedPayload(shownQuest.getId()));
+                    if (shownQuest instanceof SpecialOrderQuestView) {
+                        ClientSpecialOrderBoardData.markViewed(shownQuest.getId());
+                    } else {
+                        shownQuest.setShowNew(false);
+                        // 通知服务端清除 showNew 标记，避免下次同步覆盖
+                        PacketDistributor.sendToServer(new MarkQuestViewedPayload(shownQuest.getId()));
+                    }
                     scrollAmount = 0;
                     return true;
                 }
@@ -467,14 +534,18 @@ public class QuestLogScreen extends Screen {
                 int rboxX = winX + winW / 2 - mapping.ui(80);
                 int rboxSz = mapping.ui(96);
                 if (isIn(mx, my, rboxX, lastRewardBoxY, rboxSz, rboxSz)) {
-                    playSound(ModSounds.PURCHASE);
-                    PacketDistributor.sendToServer(new ClaimRewardPayload(q.getId()));
-                    // SDV OnMoneyRewardClaimed: 客户端立即更新状态，不等服务端同步
-                    q.setMoneyReward(0);
-                    q.setDestroy(true);
+                    playSound(ModSounds.PURCHASE_REPEAT);
+                    if (q instanceof SpecialOrderQuestView) {
+                        PacketDistributor.sendToServer(new SpecialOrderRewardClaimPayload(q.getId()));
+                        q.setMoneyReward(0);
+                    } else {
+                        PacketDistributor.sendToServer(new ClaimRewardPayload(q.getId()));
+                        // SDV OnMoneyRewardClaimed: 客户端立即更新状态，不等服务端同步
+                        q.setMoneyReward(0);
+                        q.setDestroy(true);
+                    }
                     // SDV 不在此处 exitQuestPage，而是等玩家手动返回
                     // 但由于奖励已清零，UI 会自动不再显示奖励框
-                    exitQuestPage();
                     return true;
                 }
             }

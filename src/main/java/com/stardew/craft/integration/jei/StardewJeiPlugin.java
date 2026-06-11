@@ -13,6 +13,8 @@ import com.stardew.craft.item.artisan.DehydratorIngredientHelper;
 import com.stardew.craft.item.artisan.PreserveType;
 import com.stardew.craft.item.artisan.PreservesItem;
 import com.stardew.craft.item.artisan.SmokedFishItem;
+import com.stardew.craft.item.catalog.StardewItemCatalog;
+import com.stardew.craft.item.catalog.StardewItemComparator;
 import com.stardew.craft.item.quality.QualityHelper;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
@@ -112,10 +114,7 @@ public class StardewJeiPlugin implements IModPlugin {
     @Override
     @SuppressWarnings("null")
     public void registerExtraIngredients(@SuppressWarnings("null") IExtraIngredientRegistration registration) {
-        registration.addExtraItemStacks(buildCategoryDisplayVariants());
-        registration.addExtraItemStacks(buildPreserveVariants());
-        registration.addExtraItemStacks(buildSmokedFishVariants());
-        registration.addExtraItemStacks(buildSpecificBaitVariants());
+        registration.addExtraItemStacks(StardewItemCatalog.jeiExtraIngredientStacks());
     }
 
     @SuppressWarnings("null")
@@ -133,6 +132,7 @@ public class StardewJeiPlugin implements IModPlugin {
                 uniqueRules.add(rule);
             }
         }
+        uniqueRules.sort(StardewItemComparator.FISH_RULE);
         
         if (!uniqueRules.isEmpty()) {
             registration.addRecipes(FishingInfoCategory.RECIPE_TYPE, uniqueRules);

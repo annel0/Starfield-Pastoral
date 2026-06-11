@@ -35,7 +35,7 @@ public class SpeakCommand implements EventCommand {
         // Resolve translation key or use raw text
         String displayText;
         if (text.startsWith("stardewcraft.") || text.startsWith("event.")) {
-            displayText = net.minecraft.network.chat.Component.translatable(text).getString();
+            displayText = OpenNpcDialogueScreenPayload.rawTranslation(text);
         } else {
             displayText = text;
         }

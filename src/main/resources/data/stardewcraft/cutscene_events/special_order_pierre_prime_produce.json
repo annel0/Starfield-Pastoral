@@ -1,0 +1,152 @@
+{
+  "id": "special_order_pierre_prime_produce",
+  "skippable": true,
+  "trigger": {
+    "type": "enter_area",
+    "location": "seedshop",
+    "area_min": [16, 35, -44],
+    "area_max": [60, 40, -7]
+  },
+  "preconditions": [
+    { "type": "not_saw_event", "id": "special_order_pierre_prime_produce" },
+    { "type": "mail", "id": "pierreQualityCrops" }
+  ],
+  "commands": [
+    { "cmd": "comment", "text": "=== SDV Event 963113: Pierre prime produce special order reward ===" },
+
+    { "cmd": "lock_player" },
+    { "cmd": "fade", "mode": "out", "ticks": 10 },
+
+    { "cmd": "hide_npc", "npc_id": "pierre" },
+    { "cmd": "hide_npc", "npc_id": "gus" },
+    { "cmd": "hide_npc", "npc_id": "jodi" },
+    { "cmd": "hide_npc", "npc_id": "marnie" },
+    { "cmd": "hide_npc", "npc_id": "robin" },
+    { "cmd": "hide_npc", "npc_id": "evelyn" },
+
+    { "cmd": "spawn_actor", "actor": "fake_player", "npc_id": "player",
+      "x": 22, "y": 36, "z": -18, "relative": false, "facing": 180 },
+    { "cmd": "spawn_actor", "actor": "pierre", "npc_id": "pierre",
+      "x": 22, "y": 36, "z": -25, "relative": false, "facing": 0 },
+    { "cmd": "spawn_actor", "actor": "gus", "npc_id": "gus",
+      "x": 22, "y": 36, "z": -22, "relative": false, "facing": 180 },
+    { "cmd": "spawn_actor", "actor": "jodi", "npc_id": "jodi",
+      "x": 22, "y": 36, "z": -20, "relative": false, "facing": 180 },
+    { "cmd": "spawn_actor", "actor": "marnie", "npc_id": "marnie",
+      "x": 28, "y": 36, "z": -21, "relative": false, "facing": 180 },
+    { "cmd": "spawn_actor", "actor": "robin", "npc_id": "robin",
+      "x": 17, "y": 36, "z": -15, "relative": false, "facing": 90 },
+    { "cmd": "spawn_actor", "actor": "evelyn", "npc_id": "evelyn",
+      "x": 26, "y": 36, "z": -14, "relative": false, "facing": -90 },
+
+    { "cmd": "add_mail", "id": "MSB_Pierre" },
+    { "cmd": "camera", "x": 29.283, "y": 37.794, "z": -24.483,
+      "yaw": 34.2, "pitch": 19.1, "relative": false },
+    { "cmd": "music", "track": "MUSIC_DISTANT_BANJO" },
+    { "cmd": "fade", "mode": "in", "ticks": 20 },
+    { "cmd": "skippable" },
+    { "cmd": "pause", "ticks": 60 },
+
+    { "cmd": "speak", "npc_id": "pierre", "text": "event.special_order.pierre.gus_offer" },
+    { "cmd": "speak", "npc_id": "gus", "text": "event.special_order.pierre.gus_listening" },
+    { "cmd": "speak", "npc_id": "pierre", "text": "event.special_order.pierre.quality_pitch" },
+    { "cmd": "speak", "npc_id": "gus", "text": "event.special_order.pierre.price_question" },
+
+    { "cmd": "jump", "actor": "pierre", "strength": 0.5 },
+    { "cmd": "pause", "ticks": 16 },
+    { "cmd": "speak", "npc_id": "pierre", "text": "event.special_order.pierre.only_mumble" },
+    { "cmd": "emote", "actor": "gus", "emote": "question" },
+    { "cmd": "speak", "npc_id": "gus", "text": "event.special_order.pierre.gus_heard" },
+    { "cmd": "emote", "actor": "pierre", "emote": "pause" },
+    { "cmd": "speak", "npc_id": "pierre", "text": "event.special_order.pierre.bargain" },
+
+    { "cmd": "jump", "actor": "gus", "strength": 0.5 },
+    { "cmd": "shake_actor", "actor": "gus", "ticks": 20, "amplitude": 0.07 },
+    { "cmd": "pause", "ticks": 20 },
+    { "cmd": "speak", "npc_id": "gus", "text": "event.special_order.pierre.gus_refuses" },
+
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "move_actor", "actor": "gus",
+        "x": 25, "y": 36, "z": -22, "ticks": 55, "relative": false },
+      { "cmd": "move_actor", "actor": "jodi",
+        "x": 22, "y": 36, "z": -22, "ticks": 40, "relative": false },
+      { "cmd": "move_actor", "actor": "fake_player",
+        "x": 22, "y": 36, "z": -20, "ticks": 40, "relative": false }
+    ]},
+    { "cmd": "speak", "npc_id": "jodi", "text": "event.special_order.pierre.jodi_outrage" },
+    { "cmd": "move_actor", "actor": "jodi",
+      "x": 23, "y": 36, "z": -22, "ticks": 24, "relative": false },
+    { "cmd": "speak", "npc_id": "pierre", "text": "event.special_order.pierre.ten_thousand" },
+    { "cmd": "textAboveHead", "actor": "jodi", "text": "event.special_order.pierre.no_way", "ticks": 40 },
+    { "cmd": "move_actor", "actor": "jodi",
+      "x": 24, "y": 36, "z": -22, "ticks": 24, "relative": false },
+    { "cmd": "face_actor", "actor": "gus", "yaw": 90 },
+    { "cmd": "pause", "ticks": 20 },
+
+    { "cmd": "emote", "actor": "pierre", "emote": "sad" },
+    { "cmd": "pause", "ticks": 6 },
+    { "cmd": "move_actor", "actor": "fake_player",
+      "x": 22, "y": 36, "z": -21, "ticks": 24, "relative": false },
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "camera", "x": 20.724, "y": 36.006, "z": -21.582,
+      "yaw": -118.0, "pitch": 9.0, "relative": false },
+    { "cmd": "speak", "npc_id": "pierre", "text": "event.special_order.pierre.disaster" },
+    { "cmd": "pause", "ticks": 8 },
+
+    {
+      "cmd": "question",
+      "text": "event.special_order.pierre.question",
+      "choices": [
+        {
+          "text": "event.special_order.pierre.choice.risk",
+          "commands": [
+            { "cmd": "pause", "ticks": 6 },
+            { "cmd": "speak", "npc_id": "pierre", "text": "event.special_order.pierre.answer_risk" }
+          ]
+        },
+        {
+          "text": "event.special_order.pierre.choice.greedy",
+          "commands": [
+            { "cmd": "emote", "actor": "pierre", "emote": "angry" },
+            { "cmd": "speak", "npc_id": "pierre", "text": "event.special_order.pierre.answer_greedy_0" },
+            { "cmd": "pause", "ticks": 20 },
+            { "cmd": "speak", "npc_id": "pierre", "text": "event.special_order.pierre.answer_greedy_1" }
+          ]
+        },
+        {
+          "text": "event.special_order.pierre.choice.offended",
+          "commands": [
+            { "cmd": "face_actor", "actor": "jodi", "yaw": 90 },
+            { "cmd": "speak", "npc_id": "jodi", "text": "event.special_order.pierre.answer_offended" },
+            { "cmd": "face_actor", "actor": "jodi", "yaw": -90 },
+            { "cmd": "pause", "ticks": 20 }
+          ]
+        }
+      ]
+    },
+
+    { "cmd": "emote", "actor": "pierre", "emote": "pause" },
+    { "cmd": "speak", "npc_id": "pierre", "text": "event.special_order.pierre.buy_back" },
+    { "cmd": "emote", "actor": "fake_player", "emote": "angry" },
+    { "cmd": "pause", "ticks": 20 },
+
+    { "cmd": "fade", "mode": "out", "ticks": 20 },
+    { "cmd": "pause", "ticks": 20 },
+    { "cmd": "stop_music" },
+    { "cmd": "remove_actor", "actor": "pierre" },
+    { "cmd": "remove_actor", "actor": "gus" },
+    { "cmd": "remove_actor", "actor": "jodi" },
+    { "cmd": "remove_actor", "actor": "marnie" },
+    { "cmd": "remove_actor", "actor": "robin" },
+    { "cmd": "remove_actor", "actor": "evelyn" },
+    { "cmd": "remove_actor", "actor": "fake_player" },
+    { "cmd": "show_npc", "npc_id": "pierre" },
+    { "cmd": "show_npc", "npc_id": "gus" },
+    { "cmd": "show_npc", "npc_id": "jodi" },
+    { "cmd": "show_npc", "npc_id": "marnie" },
+    { "cmd": "show_npc", "npc_id": "robin" },
+    { "cmd": "show_npc", "npc_id": "evelyn" },
+    { "cmd": "unlock_player" },
+    { "cmd": "end" }
+  ]
+}

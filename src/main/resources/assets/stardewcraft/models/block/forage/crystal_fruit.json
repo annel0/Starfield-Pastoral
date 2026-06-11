@@ -3,5 +3,6 @@
   "textures": {
     "cross": "stardewcraft:item/forage/crystal_fruit",
     "particle": "stardewcraft:item/forage/crystal_fruit"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

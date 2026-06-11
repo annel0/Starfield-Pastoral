@@ -1,0 +1,112 @@
+[
+  {
+    "id": "georgeGifts",
+    "text": "stardewcraft.mail.georgeGifts",
+    "background": 0,
+    "attachedItems": [
+      {
+        "id": "stardewcraft:coffee_maker",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "id": "robinResource",
+    "text": "stardewcraft.mail.robinResource",
+    "background": 0,
+    "learnedRecipe": "stone_chest"
+  },
+  {
+    "id": "ClintReward",
+    "text": "stardewcraft.mail.ClintReward",
+    "background": 0,
+    "learnedRecipe": "geode_crusher"
+  },
+  {
+    "id": "ClintReward2",
+    "text": "stardewcraft.mail.ClintReward2",
+    "background": 0,
+    "attachedItems": [
+      {
+        "id": "stardewcraft:cherry_bomb",
+        "count": 10
+      },
+      {
+        "id": "stardewcraft:bomb_item",
+        "count": 5
+      },
+      {
+        "id": "stardewcraft:eggplant_parmesan",
+        "count": 3
+      }
+    ]
+  },
+  {
+    "id": "MSB_Lewis",
+    "text": "stardewcraft.mail.MSB_Lewis",
+    "background": 0,
+    "attachedItems": [
+      {
+        "id": "stardewcraft:shipping_bin",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "id": "MSB_Pierre",
+    "text": "stardewcraft.mail.MSB_Pierre",
+    "background": 0,
+    "attachedItems": [
+      {
+        "id": "stardewcraft:shipping_bin",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "id": "WizardReward",
+    "text": "stardewcraft.mail.WizardReward",
+    "background": 0,
+    "learnedRecipe": "monster_musk"
+  },
+  {
+    "id": "WizardReward2",
+    "text": "stardewcraft.mail.WizardReward2",
+    "background": 0,
+    "learnedRecipe": "mini_obelisk"
+  },
+  {
+    "id": "DemetriusReward",
+    "text": "stardewcraft.mail.DemetriusReward",
+    "background": 0,
+    "learnedRecipe": "farm_computer"
+  },
+  {
+    "id": "linusTrashCleanup",
+    "text": "stardewcraft.mail.linusTrashCleanup",
+    "background": 0,
+    "learnedRecipe": "fiber_seeds"
+  },
+  {
+    "id": "gusGiantOmelet",
+    "text": "stardewcraft.mail.gusGiantOmelet",
+    "background": 0,
+    "attachedItems": [
+      {
+        "id": "stardewcraft:fridge",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "id": "emilyStones",
+    "text": "stardewcraft.mail.emilyStones",
+    "background": 0
+  },
+  {
+    "id": "guntherBones",
+    "text": "stardewcraft.mail.guntherBones",
+    "background": 0,
+    "learnedRecipe": "bone_mill"
+  }
+]

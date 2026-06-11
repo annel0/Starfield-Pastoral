@@ -151,7 +151,7 @@ public class JadePlugin implements IWailaPlugin {
             tag.putBoolean(NBT_TREE_FERTILIZED, mgr.isFertilized(serverLevel, pos));
             tag.putBoolean(NBT_BLOCKED, mgr.isBlockedNow(serverLevel, pos));
             tag.putBoolean(NBT_TREE_CAN_MATURE_HERE,
-                    com.stardew.craft.tree.generation.StardewTreeGenerator.canGenerate(serverLevel, pos, def));
+                    com.stardew.craft.tree.prefab.PrefabTreeManager.canPlaceAnyVariant(serverLevel, pos, def));
         }
 
         @Override
@@ -378,7 +378,9 @@ public class JadePlugin implements IWailaPlugin {
                 }
 
                 if (mature) {
-                    tooltip.add(Component.translatable("stardewcraft.tooltip.mature"));
+                    tooltip.add(Component.translatable(cropBlock.requiresScytheHarvest()
+                            ? "stardewcraft.tooltip.mature_scythe"
+                            : "stardewcraft.tooltip.mature"));
                 }
             }
         }

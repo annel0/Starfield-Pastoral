@@ -177,6 +177,13 @@ public final class EventPlayer {
 
         LOGGER.info("Skipping event: {}", currentEvent.id());
 
+        if (commandIndex >= 0 && commandIndex < commands.size()) {
+            EventCommand active = commands.get(commandIndex);
+            if (!active.isStateCommand()) {
+                active.onSkip(this);
+            }
+        }
+
         // Execute all remaining state commands
         for (int i = commandIndex; i < commands.size(); i++) {
             EventCommand cmd = commands.get(i);
@@ -221,6 +228,9 @@ public final class EventPlayer {
 
         // Clear fade
         EventScreenFade.clear();
+        com.stardew.craft.cutscene.command.TemporaryBlockCommand.restoreAll();
+        com.stardew.craft.cutscene.command.GroundItemCommand.clearAll();
+        com.stardew.craft.client.render.CutsceneTextAboveHeadRenderer.clear();
 
         StardewMusicManager.releaseCutsceneOverride();
 
@@ -250,6 +260,10 @@ public final class EventPlayer {
 
     public boolean isRunning() {
         return running;
+    }
+
+    public boolean isSkippable() {
+        return running && skippable;
     }
 
     public EventData currentEvent() {
@@ -353,6 +367,9 @@ public final class EventPlayer {
             hiddenNpcs.clear();
             EventCameraController.release();
             EventScreenFade.clear();
+            com.stardew.craft.cutscene.command.TemporaryBlockCommand.restoreAll();
+            com.stardew.craft.cutscene.command.GroundItemCommand.clearAll();
+            com.stardew.craft.client.render.CutsceneTextAboveHeadRenderer.clear();
             StardewMusicManager.releaseCutsceneOverride();
         }
         currentEvent = null;

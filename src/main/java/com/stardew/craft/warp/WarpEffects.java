@@ -3,10 +3,10 @@ package com.stardew.craft.warp;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.farm.FarmInstance;
 import com.stardew.craft.farm.FarmInstanceRegistry;
+import com.stardew.craft.network.ObjectDialogueService;
 import com.stardew.craft.sound.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -37,7 +37,7 @@ public final class WarpEffects {
         if (dest.requiresPlayerFarm()) {
             targetFarm = FarmInstanceRegistry.get().getFarmForPlayer(player.getUUID());
             if (targetFarm == null) {
-                player.displayClientMessage(Component.translatable("stardewcraft.warp.farm.unavailable"), true);
+                ObjectDialogueService.show(player, "stardewcraft.warp.farm.unavailable");
                 StardewCraft.LOGGER.info("[WARP] Player {} tried to warp to farm without a farm",
                         player.getName().getString());
                 return;

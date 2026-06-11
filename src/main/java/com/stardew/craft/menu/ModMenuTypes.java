@@ -88,6 +88,11 @@ public class ModMenuTypes {
             () -> new MenuType<>(ShippingBinMenu::new, FeatureFlags.DEFAULT_FLAGS));
 
     @SuppressWarnings("null")
+    public static final DeferredHolder<MenuType<?>, MenuType<SpecialOrderDropBoxMenu>> SPECIAL_ORDER_DROPBOX =
+        MENU_TYPES.register("special_order_dropbox",
+            () -> new MenuType<>(SpecialOrderDropBoxMenu::new, FeatureFlags.DEFAULT_FLAGS));
+
+    @SuppressWarnings("null")
     public static final DeferredHolder<MenuType<?>, MenuType<com.stardew.craft.communitycenter.menu.BundleMenu>> BUNDLE =
         MENU_TYPES.register("bundle",
             () -> new MenuType<>(com.stardew.craft.communitycenter.menu.BundleMenu::new, FeatureFlags.DEFAULT_FLAGS));

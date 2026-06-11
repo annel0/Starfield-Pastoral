@@ -244,8 +244,7 @@ public class PrismaticButterflyEntity extends Entity {
         }
 
         int money = Math.max(100, Math.min(50000, (int) (data.getTotalMoneyEarned() * 0.005f)));
-        data.addMoney(money);
-        PlayerDataEventHandler.syncPlayerData(owner, data);
+        PlayerStardewDataAPI.addMoney(owner, money);
     }
 
     private ServerPlayer getOwnerPlayer() {

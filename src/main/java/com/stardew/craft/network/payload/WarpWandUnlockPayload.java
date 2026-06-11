@@ -2,6 +2,7 @@ package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.item.ModItems;
+import com.stardew.craft.network.ObjectDialogueService;
 import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.PlayerStardewDataAPI;
 import com.stardew.craft.sewer.SewerStoryFlags;
@@ -11,7 +12,6 @@ import com.stardew.craft.warp.WarpDestinations;
 import com.stardew.craft.warp.WarpWandSavedData;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -48,7 +48,7 @@ public record WarpWandUnlockPayload(String destinationId) implements CustomPacke
                 return;
             }
             if (!PlayerDataManager.getPlayerData(player).hasMailFlag(SewerStoryFlags.RETURN_SCEPTER_PURCHASED)) {
-                player.displayClientMessage(Component.translatable("stardewcraft.warp_wand.not_purchased"), true);
+                ObjectDialogueService.show(player, "stardewcraft.warp_wand.not_purchased");
                 return;
             }
 

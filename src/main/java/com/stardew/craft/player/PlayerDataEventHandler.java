@@ -128,6 +128,7 @@ public class PlayerDataEventHandler {
             net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,
                 com.stardew.craft.quest.network.QuestLogSyncPayload.fromQuests(
                     qm.getQuestLog(), qm.getBillboardQuestsDone(), qm.getDailyQuestCompletedDays()));
+            com.stardew.craft.specialorder.SpecialOrderManager.syncState(player);
 
             // 如果玩家登录时已在星露谷维度，确保农场初始化
             // （PlayerChangedDimensionEvent 在这种情况下不会触发）
@@ -364,9 +365,9 @@ public class PlayerDataEventHandler {
             PlayerStardewData data = PlayerDataManager.getPlayerData(player);
             
             // 星露谷死亡机制：损失10%金币（最多1000）
-            int moneyLoss = Math.min(data.getMoney() / 10, 1000);
+            int moneyLoss = Math.min(PlayerStardewDataAPI.getMoney(player) / 10, 1000);
             if (moneyLoss > 0) {
-                data.removeMoney(moneyLoss);
+                PlayerStardewDataAPI.removeMoney(player, moneyLoss);
             }
             
             // 重置生命值为满
@@ -861,6 +862,7 @@ public class PlayerDataEventHandler {
      */
     @SuppressWarnings("null")
     public static void syncPlayerData(ServerPlayer player, PlayerStardewData data) {
+        data.setMoney(com.stardew.craft.money.SharedMoneyService.getMoney(player));
         PlayerDataSyncPacket packet = PlayerDataSyncPacket.fromPlayerData(data);
         // Inject farm name into sync NBT so client can resolve %farm placeholder
         com.stardew.craft.farm.FarmInstanceRegistry farmRegistry = com.stardew.craft.farm.FarmInstanceRegistry.get();

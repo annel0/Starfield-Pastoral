@@ -91,6 +91,12 @@ public final class StardewHudMessageManager {
 		playCancelSound();
 	}
 
+	/** 错误/警告样式 messagebox（带取消音，和「好感度不够」等提示一致）。 */
+	public static void showError(Component message) {
+		addErrorMessage(message);
+		playCancelSound();
+	}
+
 	public static void showInfo(Component message) {
 		addMessage(new HudMessage(message, MessageKind.INFO));
 	}

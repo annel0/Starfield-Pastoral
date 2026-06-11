@@ -43,9 +43,19 @@ public record CutsceneServerActionPayload(String action, String value) implement
                     PlayerStardewData data = PlayerDataManager.getPlayerData(player);
                     data.addMailFlag(payload.value);
                     LOGGER.debug("Cutscene set flag '{}' for {}", payload.value, player.getName().getString());
+                    com.stardew.craft.player.PlayerDataEventHandler.syncPlayerData(player, data);
                     // canReadJunimoText 影响 bundle 界面渲染，需同步到客户端
                     if ("canReadJunimoText".equals(payload.value)) {
                         com.stardew.craft.communitycenter.network.BundleSyncPayload.sendFullSync(player);
+                    }
+                    if (com.stardew.craft.specialorder.SpecialOrderManager.BOARD_UNLOCK_FLAG.equals(payload.value)) {
+                        net.minecraft.server.level.ServerLevel stardewLevel =
+                            player.server.getLevel(com.stardew.craft.core.ModDimensions.STARDEW_VALLEY);
+                        if (stardewLevel != null) {
+                            com.stardew.craft.specialorder.SpecialOrderBoardInstaller.get(stardewLevel)
+                                .ensurePlaced(stardewLevel);
+                        }
+                        com.stardew.craft.specialorder.SpecialOrderManager.syncState(player);
                     }
                 }
                 case "grant_rusty_key" -> {

@@ -3,6 +3,8 @@ package com.stardew.craft.command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.stardew.craft.cutscene.data.EventData;
 import com.stardew.craft.cutscene.data.EventRegistry;
 import com.stardew.craft.cutscene.network.CutsceneAnchorPayload;
@@ -19,7 +21,9 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Debug commands for the cutscene/event system.
@@ -38,13 +42,8 @@ public final class CutsceneDebugCommand {
                 .requires(source -> source.hasPermission(2))
                 .then(Commands.literal("event")
                     .then(Commands.literal("play")
-                        .then(Commands.argument("eventId", StringArgumentType.string())
-                            .suggests((context, builder) -> SharedSuggestionProvider.suggest(
-                                    EventRegistry.all().stream()
-                                            .map(EventData::id)
-                                            .sorted(Comparator.naturalOrder())
-                                            .toList(),
-                                    builder))
+                        .then(Commands.argument("eventId", StringArgumentType.word())
+                            .suggests(CutsceneDebugCommand::suggestEventIds)
                             .executes(CutsceneDebugCommand::playEvent)
                         )
                     )
@@ -56,6 +55,24 @@ public final class CutsceneDebugCommand {
                     )
                 )
         );
+    }
+
+    private static CompletableFuture<Suggestions> suggestEventIds(CommandContext<CommandSourceStack> context,
+                                                                  SuggestionsBuilder builder) {
+        Collection<EventData> events = EventRegistry.all();
+        if (!events.isEmpty()) {
+            return SharedSuggestionProvider.suggest(
+                events.stream()
+                    .map(EventData::id)
+                    .sorted(Comparator.naturalOrder())
+                    .toList(),
+                builder);
+        }
+        return SharedSuggestionProvider.suggest(
+            EventRegistry.getRawJsonMap().keySet().stream()
+                .sorted(Comparator.naturalOrder())
+                .toList(),
+            builder);
     }
 
     private static int playEvent(CommandContext<CommandSourceStack> context) {

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "stardewcraft:block/cooking/triple_shot_espresso"
+    },
+    "facing=east": {
+      "model": "stardewcraft:block/cooking/triple_shot_espresso",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "stardewcraft:block/cooking/triple_shot_espresso",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "stardewcraft:block/cooking/triple_shot_espresso",
+      "y": 270
+    }
+  }
+}

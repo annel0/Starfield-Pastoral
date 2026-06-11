@@ -56,6 +56,7 @@ public class CommandEventHandler {
         com.stardew.craft.command.FishSplashDebugCommand.register(event.getDispatcher());
         com.stardew.craft.command.JojaDebugCommand.register(event.getDispatcher());
         com.stardew.craft.command.PrismaticButterflyDebugCommand.register(event.getDispatcher());
+        com.stardew.craft.command.PrefabTreeDebugCommand.register(event.getDispatcher());
         StardewCraft.LOGGER.info("Registered Stardew commands");
     }
 }

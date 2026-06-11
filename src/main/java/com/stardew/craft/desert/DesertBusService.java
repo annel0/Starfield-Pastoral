@@ -3,6 +3,7 @@ package com.stardew.craft.desert;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.communitycenter.state.CCStoryFlags;
 import com.stardew.craft.core.ModDimensions;
+import com.stardew.craft.network.ObjectDialogueService;
 import com.stardew.craft.network.payload.DesertBusFadePayload;
 import com.stardew.craft.network.payload.OpenDesertBusConfirmPayload;
 import com.stardew.craft.player.PlayerStardewData;
@@ -66,15 +67,13 @@ public final class DesertBusService {
         PlayerStardewData data = PlayerStardewDataAPI.getData(player);
 
         if (!data.hasMailFlag(CCStoryFlags.CC_VAULT)) {
-            player.displayClientMessage(
-                Component.translatable("message.stardewcraft.desert_bus.locked"), true);
+            ObjectDialogueService.show(player, "message.stardewcraft.desert_bus.locked");
             return;
         }
 
-        if (data.getMoney() < DesertConstants.BUS_TICKET_PRICE) {
-            player.displayClientMessage(
-                Component.translatable("message.stardewcraft.desert_bus.no_money",
-                    DesertConstants.BUS_TICKET_PRICE), true);
+        if (PlayerStardewDataAPI.getMoney(player) < DesertConstants.BUS_TICKET_PRICE) {
+            ObjectDialogueService.show(player, "message.stardewcraft.desert_bus.no_money",
+                    DesertConstants.BUS_TICKET_PRICE);
             return;
         }
 
@@ -103,14 +102,12 @@ public final class DesertBusService {
         if (direction == DIR_TO_DESERT) {
             PlayerStardewData data = PlayerStardewDataAPI.getData(player);
             if (!data.hasMailFlag(CCStoryFlags.CC_VAULT)) {
-                player.displayClientMessage(
-                    Component.translatable("message.stardewcraft.desert_bus.locked"), true);
+                ObjectDialogueService.show(player, "message.stardewcraft.desert_bus.locked");
                 return;
             }
-            if (data.getMoney() < DesertConstants.BUS_TICKET_PRICE) {
-                player.displayClientMessage(
-                    Component.translatable("message.stardewcraft.desert_bus.no_money",
-                        DesertConstants.BUS_TICKET_PRICE), true);
+            if (PlayerStardewDataAPI.getMoney(player) < DesertConstants.BUS_TICKET_PRICE) {
+                ObjectDialogueService.show(player, "message.stardewcraft.desert_bus.no_money",
+                        DesertConstants.BUS_TICKET_PRICE);
                 return;
             }
             PlayerStardewDataAPI.removeMoney(player, DesertConstants.BUS_TICKET_PRICE);

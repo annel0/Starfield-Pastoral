@@ -154,7 +154,7 @@ public final class PassOutService {
         // 1. 金币惩罚
         int moneyLost = calcCombatMoneyLoss(data, player, inMine);
         if (moneyLost > 0) {
-            data.removeMoney(moneyLost);
+            PlayerStardewDataAPI.removeMoney(player, moneyLost);
         }
 
         // 2. 物品丢失
@@ -210,9 +210,9 @@ public final class PassOutService {
         }
 
         // 金币惩罚
-        int moneyLost = Math.min(1000, data.getMoney() / 10);
+        int moneyLost = Math.min(1000, PlayerStardewDataAPI.getMoney(player) / 10);
         if (moneyLost > 0) {
-            data.removeMoney(moneyLost);
+            PlayerStardewDataAPI.removeMoney(player, moneyLost);
         }
 
         // 安排晕倒邮件
@@ -253,9 +253,9 @@ public final class PassOutService {
         }
 
         // 金币惩罚（同 2AM）
-        int moneyLost = Math.min(1000, data.getMoney() / 10);
+        int moneyLost = Math.min(1000, PlayerStardewDataAPI.getMoney(player) / 10);
         if (moneyLost > 0) {
-            data.removeMoney(moneyLost);
+            PlayerStardewDataAPI.removeMoney(player, moneyLost);
         }
 
         // 安排晕倒邮件
@@ -279,7 +279,7 @@ public final class PassOutService {
     // ──────────────────────────────────────
 
     private static int calcCombatMoneyLoss(PlayerStardewData data, ServerPlayer player, boolean inMine) {
-        int money = data.getMoney();
+        int money = PlayerStardewDataAPI.getMoney(player);
         if (money <= 0) return 0;
 
         int moneyToLose;

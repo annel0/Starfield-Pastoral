@@ -41,6 +41,7 @@ public final class CookingDishRegistrar {
         register(registry, "fish_stew", 175, 90, List.of(new CookingDishItem.DishBuff(CookingDishItem.BuffType.FISHING, 3, 20160)), result);
         register(registry, "fish_taco", 500, 66, List.of(new CookingDishItem.DishBuff(CookingDishItem.BuffType.FISHING, 2, 8400)), result);
         register(registry, "fried_calamari", 150, 32, List.of(), result);
+        register(registry, "fried_chicken_fries", 260, 70, List.of(new CookingDishItem.DishBuff(CookingDishItem.BuffType.ATTACK, 1, 5600)), result);
         register(registry, "fried_eel", 120, 30, List.of(new CookingDishItem.DishBuff(CookingDishItem.BuffType.LUCK, 1, 8400)), result);
         register(registry, "fried_egg", 35, 20, List.of(), result);
         register(registry, "fried_mushroom", 200, 54, List.of(new CookingDishItem.DishBuff(CookingDishItem.BuffType.ATTACK, 2, 8400)), result);
@@ -66,6 +67,7 @@ public final class CookingDishRegistrar {
         register(registry, "plum_pudding", 260, 70, List.of(), result);
         register(registry, "poi", 400, 30, List.of(), result);
         register(registry, "poppyseed_muffin", 250, 60, List.of(), result);
+        register(registry, "popsicle", 90, 28, List.of(), result);
         register(registry, "pumpkin_pie", 385, 90, List.of(), result);
         register(registry, "pumpkin_soup", 300, 80, List.of(new CookingDishItem.DishBuff(CookingDishItem.BuffType.LUCK, 2, 9240), new CookingDishItem.DishBuff(CookingDishItem.BuffType.DEFENSE, 2, 9240)), result);
         register(registry, "radish_salad", 300, 80, List.of(), result);

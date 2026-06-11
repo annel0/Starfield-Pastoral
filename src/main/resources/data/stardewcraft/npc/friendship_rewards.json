@@ -192,6 +192,12 @@
     "mailForTomorrow": "friendshipRecipeShanePepperPoppers"
   },
   {
+    "id": "shane_5_hearts_fried_chicken_fries",
+    "npc": "shane",
+    "hearts": 5,
+    "mailForTomorrow": "friendshipRecipeShaneFriedChickenFries"
+  },
+  {
     "id": "shane_7_hearts_strange_bun",
     "npc": "shane",
     "hearts": 7,

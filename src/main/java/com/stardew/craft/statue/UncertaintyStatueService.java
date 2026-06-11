@@ -70,7 +70,7 @@ public final class UncertaintyStatueService {
         }
 
         if (action == ACTION_CONFIRM) {
-            if (data.getMoney() < RESPEC_COST) {
+            if (PlayerStardewDataAPI.getMoney(player) < RESPEC_COST) {
                 showDialogue(player, "stardewcraft.uncertainty_statue.not_enough_money");
                 return;
             }

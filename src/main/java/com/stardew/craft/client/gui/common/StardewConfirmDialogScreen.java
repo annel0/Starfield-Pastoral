@@ -81,6 +81,48 @@ public class StardewConfirmDialogScreen extends Screen {
         }
     }
 
+    private boolean moneyContractSounds() {
+        return spec.soundTheme() == StardewQuestionDialogSpec.SoundTheme.MONEY_CONTRACT;
+    }
+
+    private void playOpeningSound() {
+        if (moneyContractSounds()) {
+            playUiSound(ModSounds.BOOK_READ.get(), 0.58f, 1.08f);
+        } else {
+            playUiSound(ModSounds.BREATHIN.get(), 1.0f, 1.0f);
+        }
+    }
+
+    private void playHoverSound() {
+        if (moneyContractSounds()) {
+            playUiSound(ModSounds.BUTTON_TAP.get(), 0.42f, 1.16f);
+        } else {
+            playUiSound(ModSounds.COWBOY_GUNSHOT.get(), 1.0f, 1.0f);
+        }
+    }
+
+    private void playSkipSound() {
+        if (moneyContractSounds()) {
+            playUiSound(ModSounds.BUTTON_TAP.get(), 0.48f, 1.10f);
+        } else {
+            playUiSound(ModSounds.SMALL_SELECT.get(), 1.0f, 1.0f);
+        }
+    }
+
+    private void playDecisionSound(int index) {
+        if (!moneyContractSounds()) {
+            playUiSound(ModSounds.SMALL_SELECT.get(), 1.0f, 1.0f);
+            playUiSound(ModSounds.BREATHOUT.get(), 1.0f, 1.0f);
+            return;
+        }
+        if (index == spec.responses().size() - 1) {
+            playUiSound(ModSounds.CANCEL.get(), 0.46f, 0.94f);
+        } else {
+            playUiSound(ModSounds.BOOK_READ.get(), 0.52f, 1.18f);
+            playUiSound(ModSounds.COIN.get(), 0.36f, 1.20f);
+        }
+    }
+
     private float guiScale() {
         return this.minecraft == null ? 1.0f : (float) this.minecraft.getWindow().getGuiScale();
     }
@@ -215,7 +257,7 @@ public class StardewConfirmDialogScreen extends Screen {
 
             if (!openingSoundPlayed && oldWidth == 0 && transitionWidth > 0) {
                 openingSoundPlayed = true;
-                playUiSound(ModSounds.BREATHIN.get(), 1.0f, 1.0f);
+                playOpeningSound();
             }
 
             if (transitionX == boxX && transitionY == boxDrawY) {
@@ -300,7 +342,7 @@ public class StardewConfirmDialogScreen extends Screen {
         int hoverIndex = showOptions ? optionAt(mouseX, mouseY) : -1;
         if (hoverIndex >= 0) {
             if (hoverIndex != selected) {
-                playUiSound(ModSounds.COWBOY_GUNSHOT.get(), 1.0f, 1.0f);
+                playHoverSound();
             }
             selected = hoverIndex;
         }
@@ -345,8 +387,7 @@ public class StardewConfirmDialogScreen extends Screen {
             return;
         }
         pendingAnswerIndex = index;
-        playUiSound(ModSounds.SMALL_SELECT.get(), 1.0f, 1.0f);
-        playUiSound(ModSounds.BREATHOUT.get(), 1.0f, 1.0f);
+        playDecisionSound(index);
         transitioning = true;
         transitioningBigger = false;
         transitionInitialized = false;
@@ -360,7 +401,7 @@ public class StardewConfirmDialogScreen extends Screen {
         if (button == 0) {
             if (characterIndexInDialogue < getCurrentString().length()) {
                 characterIndexInDialogue = getCurrentString().length();
-                playUiSound(ModSounds.SMALL_SELECT.get(), 1.0f, 1.0f);
+                playSkipSound();
                 return true;
             }
             if (safetyTimer > 0) {
@@ -382,7 +423,7 @@ public class StardewConfirmDialogScreen extends Screen {
         }
         if (characterIndexInDialogue < getCurrentString().length()) {
             characterIndexInDialogue = getCurrentString().length();
-            playUiSound(ModSounds.SMALL_SELECT.get(), 1.0f, 1.0f);
+            playSkipSound();
             return true;
         }
         if (safetyTimer > 0) {

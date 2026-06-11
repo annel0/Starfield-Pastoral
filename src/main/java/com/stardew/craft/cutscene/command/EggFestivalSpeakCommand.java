@@ -5,7 +5,6 @@ import com.stardew.craft.cutscene.runtime.EventPlayer;
 import com.stardew.craft.festival.client.EggFestivalCutsceneClientState;
 import com.stardew.craft.network.payload.OpenNpcDialogueScreenPayload;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.Component;
 
 public class EggFestivalSpeakCommand implements EventCommand {
     private static final String MODE_WINNER = "winner";
@@ -62,7 +61,7 @@ public class EggFestivalSpeakCommand implements EventCommand {
     }
 
     private static String resolveDisplayText(String input, String playerName) {
-        String displayText = isTranslationKey(input) ? Component.translatable(input).getString() : input;
+        String displayText = isTranslationKey(input) ? OpenNpcDialogueScreenPayload.rawTranslation(input) : input;
         displayText = displayText.replace("@", playerName);
         displayText = OpenNpcDialogueScreenPayload.resolveInlineGenderTokens(displayText, true);
         displayText = OpenNpcDialogueScreenPayload.resolveGenderSplit(displayText, true);

@@ -84,7 +84,7 @@ public record OpenNpcDialogueScreenPayload(
         }
 
         String trueKey = rawKey.substring(i);
-        String displayText = Component.translatable(trueKey).getString();
+        String displayText = rawTranslation(trueKey);
 
         String finalDisplayText = prefixBuilder.toString() + displayText;
 
@@ -480,57 +480,81 @@ public record OpenNpcDialogueScreenPayload(
         if (text == null || !text.contains("%")) return text;
 
         // %farm → farm name from client cache, fallback to player name
-        if (text.contains("%farm")) {
+        if (hasToken(text, "farm")) {
             String farmName = com.stardew.craft.client.ClientPlayerDataCache.getFarmName();
             if (farmName == null || farmName.isBlank()) farmName = playerName;
-            text = text.replace("%farm", farmName);
+            text = replaceToken(text, "farm", farmName);
         }
 
         // %firstnameletter → first half of player name (SDV parity)
-        if (text.contains("%firstnameletter")) {
+        if (hasToken(text, "firstnameletter")) {
             String half = playerName.length() > 1
                 ? playerName.substring(0, playerName.length() / 2) : playerName;
-            text = text.replace("%firstnameletter", half);
+            text = replaceToken(text, "firstnameletter", half);
         }
 
         // %season → derive from MC client level dayTime
-        if (text.contains("%season")) {
-            text = text.replace("%season", getClientSeason());
+        if (hasToken(text, "season")) {
+            text = replaceToken(text, "season", getClientSeason());
         }
 
         // %time → current game time
-        if (text.contains("%time")) {
-            text = text.replace("%time", getClientTime());
+        if (hasToken(text, "time")) {
+            text = replaceToken(text, "time", getClientTime());
         }
 
         // %year → game year
-        if (text.contains("%year")) {
+        if (hasToken(text, "year")) {
             net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
             int year = mc.level != null ? (int)(mc.level.getDayTime() / 24000 / 112) + 1 : 1;
-            text = text.replace("%year", String.valueOf(year));
+            text = replaceToken(text, "year", String.valueOf(year));
         }
 
         // Random word tokens (SDV Dialogue.cs parity)
-        if (text.contains("%adj"))   text = text.replace("%adj", randomFrom(ADJECTIVES));
-        if (text.contains("%noun"))  text = text.replace("%noun", randomFrom(NOUNS));
-        if (text.contains("%place")) text = text.replace("%place", randomFrom(PLACES));
-        if (text.contains("%name"))  text = text.replace("%name", randomFrom(RANDOM_NAMES));
+        if (hasToken(text, "adj"))   text = replaceToken(text, "adj", randomFrom(ADJECTIVES));
+        if (hasToken(text, "noun"))  text = replaceToken(text, "noun", randomFrom(NOUNS));
+        if (hasToken(text, "place")) text = replaceToken(text, "place", randomFrom(PLACES));
+        if (hasToken(text, "name"))  text = replaceToken(text, "name", randomFrom(RANDOM_NAMES));
 
         // Tokens without backing systems → generic fallback text
-        text = text.replace("%pet", "your pet");
-        text = text.replace("%spouse", "your partner");
-        text = text.replace("%kid1", "your child");
-        text = text.replace("%kid2", "your child");
-        text = text.replace("%favorite", "something special");
-        text = text.replace("%band", "The Stardew Band");
-        text = text.replace("%book", "Blue Tower");
+        text = replaceToken(text, "pet", "your pet");
+        text = replaceToken(text, "spouse", "your partner");
+        text = replaceToken(text, "kid1", "your child");
+        text = replaceToken(text, "kid2", "your child");
+        text = replaceToken(text, "favorite", "something special");
+        text = replaceToken(text, "band", "The Stardew Band");
+        text = replaceToken(text, "book", "Blue Tower");
 
         // Behaviour / event tokens → strip (no visible text)
-        text = text.replace("%noturn", "");
-        text = text.replace("%fork", "");
-        text = text.replaceAll("%revealtaste[:\\w]*", "");
+        text = replaceToken(text, "noturn", "");
+        text = replaceToken(text, "fork", "");
+        text = text.replaceAll("%(?:r|s)evealtaste[:\\w]*", "");
 
         return text;
+    }
+
+    private static boolean hasToken(String text, String token) {
+        return text.contains("%" + token) || text.contains(corruptedPercentToken(token));
+    }
+
+    private static String replaceToken(String text, String token, String replacement) {
+        String value = replacement == null ? "" : replacement;
+        return text.replace("%" + token, value)
+                .replace(corruptedPercentToken(token), value);
+    }
+
+    private static String corruptedPercentToken(String token) {
+        if (token == null || token.isEmpty()) {
+            return "%s";
+        }
+        return "%s" + token.substring(1);
+    }
+
+    public static String rawTranslation(String key) {
+        if (key == null || key.isBlank()) {
+            return "";
+        }
+        return net.minecraft.locale.Language.getInstance().getOrDefault(key);
     }
 
     private static String getClientSeason() {

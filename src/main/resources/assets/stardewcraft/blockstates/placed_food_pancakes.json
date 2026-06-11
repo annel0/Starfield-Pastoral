@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "stardewcraft:block/cooking/pancakes"
+    },
+    "facing=east": {
+      "model": "stardewcraft:block/cooking/pancakes",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "stardewcraft:block/cooking/pancakes",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "stardewcraft:block/cooking/pancakes",
+      "y": 270
+    }
+  }
+}

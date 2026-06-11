@@ -2,9 +2,11 @@ package com.stardew.craft.specialorder;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.core.ModDimensions;
+import com.stardew.craft.menu.SpecialOrderDropBoxMenu;
 import com.stardew.craft.network.payload.SpecialOrderDropBoxHintPayload;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.SimpleMenuProvider;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -24,6 +26,7 @@ public final class SpecialOrderDropBoxService {
     @SubscribeEvent
     public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
+            SpecialOrderManager.returnQueuedDonations(player);
             syncHints(player);
         }
     }
@@ -40,9 +43,9 @@ public final class SpecialOrderDropBoxService {
             if (!activeDropBoxIds(player).contains(anchor.dropBoxId())) {
                 return;
             }
-            player.displayClientMessage(Component.translatable(
-                "stardewcraft.special_orders.dropbox.placeholder",
-                Component.translatable(anchor.translationKey())), true);
+            player.openMenu(new SimpleMenuProvider(
+                (containerId, inventory, p) -> new SpecialOrderDropBoxMenu(containerId, inventory, anchor),
+                Component.translatable(anchor.translationKey())));
             event.setCanceled(true);
         });
     }
@@ -56,6 +59,6 @@ public final class SpecialOrderDropBoxService {
     }
 
     public static Set<String> activeDropBoxIds(ServerPlayer player) {
-        return Set.of();
+        return SpecialOrderManager.activeDropBoxIds(player);
     }
 }

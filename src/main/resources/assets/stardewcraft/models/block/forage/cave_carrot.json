@@ -3,5 +3,6 @@
   "textures": {
     "cross": "stardewcraft:item/forage/cave_carrot",
     "particle": "stardewcraft:item/forage/cave_carrot"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

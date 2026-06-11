@@ -100,6 +100,7 @@ public class StardewCraftClient {
                 ModBlocks.FORAGE_SPRING_ONION.get(),
                 ModBlocks.FORAGE_SPICE_BERRY.get(),
                 ModBlocks.FORAGE_SWEET_PEA.get(),
+                ModBlocks.FORAGE_GRAPE.get(),
                 ModBlocks.FORAGE_FIDDLEHEAD_FERN.get(),
                 ModBlocks.FORAGE_WILD_PLUM.get(),
                 ModBlocks.FORAGE_HAZELNUT.get(),
@@ -414,6 +415,8 @@ public class StardewCraftClient {
     @SubscribeEvent
     static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(ModEntities.FALLEN_OAK_TREE.get(), FallenOakTreeRenderer::new);
+        event.registerEntityRenderer(ModEntities.FALLEN_PREFAB_TREE.get(),
+                com.stardew.craft.client.render.FallenPrefabTreeRenderer::new);
         event.registerEntityRenderer(ModEntities.SOFA_SEAT.get(), SofaSeatEntityRenderer::new);
         event.registerEntityRenderer(ModEntities.MINECART_STATION.get(),
                 com.stardew.craft.client.render.MinecartStationRenderer::new);

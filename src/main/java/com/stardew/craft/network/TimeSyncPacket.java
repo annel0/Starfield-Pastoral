@@ -76,6 +76,7 @@ public record TimeSyncPacket(
             clientTime.setCurrentYear(packet.currentYear());
             
             com.stardew.craft.client.hud.StardewTimeHud.updateClientTime(clientTime);
+            com.stardew.craft.client.specialorder.ClientSpecialOrderUnlockState.refreshBoardRenderIfChanged();
             
             // 更新客户端天空时间（每 tick 会强制覆盖 ClientLevel.dayTime）
             com.stardew.craft.client.StardewClientTimeState.onServerTimeSync(packet.virtualDayTime(), packet.timeFrozen());

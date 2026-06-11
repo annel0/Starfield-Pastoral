@@ -3,5 +3,6 @@
   "textures": {
     "cross": "stardewcraft:item/forage/winter_root",
     "particle": "stardewcraft:item/forage/winter_root"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

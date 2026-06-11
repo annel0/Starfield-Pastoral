@@ -50,6 +50,13 @@ public final class ModKeyMappings {
             CATEGORY
     );
 
+    public static final KeyMapping CUTSCENE_SKIP = new KeyMapping(
+            "key.stardewcraft.cutscene_skip",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_C,
+            CATEGORY
+    );
+
     private ModKeyMappings() {}
 
     @SuppressWarnings("null")
@@ -60,5 +67,6 @@ public final class ModKeyMappings {
         event.register(EMOTE_WHEEL);
         event.register(GAME_MENU);
         event.register(QUEST_LOG);
+        event.register(CUTSCENE_SKIP);
     }
 }

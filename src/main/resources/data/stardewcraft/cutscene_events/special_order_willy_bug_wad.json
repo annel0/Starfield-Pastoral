@@ -1,0 +1,91 @@
+{
+  "id": "special_order_willy_bug_wad",
+  "skippable": true,
+  "trigger": {
+    "type": "enter_area",
+    "location": "beach",
+    "area_min": [-18, 54, 82],
+    "area_max": [173, 90, 185]
+  },
+  "preconditions": [
+    { "type": "not_saw_event", "id": "special_order_willy_bug_wad" },
+    { "type": "mail", "id": "willyBugWadCutscene" }
+  ],
+  "commands": [
+    { "cmd": "comment", "text": "=== SDV Event 3131209: Willy bug meat special order reward ===" },
+
+    { "cmd": "lock_player" },
+    { "cmd": "fade", "mode": "out", "ticks": 10 },
+
+    { "cmd": "hide_npc", "npc_id": "willy" },
+    { "cmd": "spawn_actor", "actor": "willy", "npc_id": "willy",
+      "x": 85.5, "y": 60, "z": 131.5, "relative": false, "facing": 0 },
+    { "cmd": "spawn_actor", "actor": "fake_player", "npc_id": "player",
+      "x": 82.5, "y": 60, "z": 126.5, "relative": false, "facing": 0 },
+
+    { "cmd": "camera", "x": 85.997, "y": 63.276, "z": 137.117,
+      "yaw": 162.2, "pitch": 29.9, "relative": false },
+    { "cmd": "music", "track": "MUSIC_OCEAN_AMBIENCE" },
+    { "cmd": "fade", "mode": "in", "ticks": 20 },
+    { "cmd": "pause", "ticks": 20 },
+
+    { "cmd": "animate", "actor": "willy", "anim": "fishing", "loop": true },
+    { "cmd": "pause", "ticks": 20 },
+    { "cmd": "speak", "npc_id": "willy", "text": "event.special_order.willy.love_it" },
+
+    { "cmd": "pause", "ticks": 20 },
+    { "cmd": "play_sound", "sound": "stardewcraft:water_slosh" },
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "play_sound", "sound": "stardewcraft:water_slosh" },
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "play_sound", "sound": "stardewcraft:water_slosh" },
+    { "cmd": "pause", "ticks": 20 },
+
+    { "cmd": "move_actor", "actor": "fake_player",
+      "x": 82.5, "y": 60, "z": 131.5, "ticks": 50, "relative": false },
+    { "cmd": "textAboveHead", "actor": "willy", "text": "event.special_order.willy.ahoy", "ticks": 40 },
+    { "cmd": "animate", "actor": "willy", "anim": "idle", "loop": false },
+    { "cmd": "face_actor", "actor": "willy", "face_actor": "fake_player" },
+    { "cmd": "face_actor", "actor": "fake_player", "face_actor": "willy" },
+    { "cmd": "pause", "ticks": 10 },
+
+    { "cmd": "speak", "npc_id": "willy", "text": "event.special_order.willy.thinking" },
+    { "cmd": "play_sound", "sound": "stardewcraft:slime_hit" },
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "play_sound", "sound": "stardewcraft:slime_hit" },
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "play_sound", "sound": "stardewcraft:slime_hit" },
+    { "cmd": "pause", "ticks": 20 },
+
+    { "cmd": "speak", "npc_id": "willy", "text": "event.special_order.willy.secret" },
+    { "cmd": "simultaneous", "commands": [
+      { "cmd": "play_sound", "sound": "stardewcraft:reward" },
+      { "cmd": "add_recipe", "recipe": "quality_bobber" },
+      { "cmd": "hold_item", "actor": "fake_player", "item": "stardewcraft:quality_bobber", "ticks": 60 }
+    ]},
+    { "cmd": "message", "text": "event.special_order.willy.learned" },
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "speak", "npc_id": "willy", "text": "event.special_order.willy.bobber" },
+
+    { "cmd": "pause", "ticks": 30 },
+    { "cmd": "face_actor", "actor": "willy", "yaw": 0 },
+    { "cmd": "animate", "actor": "willy", "anim": "fishing", "loop": true },
+    { "cmd": "play_sound", "sound": "stardewcraft:fish_bite" },
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "play_sound", "sound": "stardewcraft:fish_hit" },
+    { "cmd": "textAboveHead", "actor": "willy", "text": "event.special_order.willy.got_one", "ticks": 40 },
+    { "cmd": "shake_actor", "actor": "willy", "ticks": 80, "amplitude": 0.05 },
+    { "cmd": "play_sound", "sound": "stardewcraft:water_slosh" },
+    { "cmd": "pause", "ticks": 4 },
+    { "cmd": "play_sound", "sound": "stardewcraft:water_slosh" },
+    { "cmd": "pause", "ticks": 4 },
+    { "cmd": "play_sound", "sound": "stardewcraft:water_slosh" },
+
+    { "cmd": "fade", "mode": "out", "ticks": 20 },
+    { "cmd": "pause", "ticks": 20 },
+    { "cmd": "stop_music" },
+    { "cmd": "show_npc", "npc_id": "willy" },
+    { "cmd": "skippable" },
+    { "cmd": "end" }
+  ]
+}

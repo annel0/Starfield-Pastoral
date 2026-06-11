@@ -33,6 +33,7 @@ public class ClientPlayerDataCache {
     private static int ticketPrizesClaimed = 0;
     private static int specialOrderPrizeTickets = 0;
     private static int maxMineFloorReached = 0;
+    private static int firstJoinDay = -1;
 
     // 临时Buff（客户端显示/计算用）
     private static int tempFishingLevelBonus = 0;
@@ -84,6 +85,7 @@ public class ClientPlayerDataCache {
         maxMineFloorReached = nbt.contains("MaxMineFloorReached") ? Math.max(0, nbt.getInt("MaxMineFloorReached")) : 0;
         ticketPrizesClaimed = nbt.contains("TicketPrizesClaimed") ? Math.max(0, nbt.getInt("TicketPrizesClaimed")) : 0;
         specialOrderPrizeTickets = nbt.contains("SpecialOrderPrizeTickets") ? Math.max(0, nbt.getInt("SpecialOrderPrizeTickets")) : 0;
+        firstJoinDay = nbt.contains("FirstJoinDay") ? nbt.getInt("FirstJoinDay") : -1;
 
         tempFishingLevelBonus = nbt.contains("TempFishingLevelBonus") ? nbt.getInt("TempFishingLevelBonus") : 0;
         tempLuckBonus = nbt.contains("TempLuckBonus") ? nbt.getInt("TempLuckBonus") : 0;
@@ -211,6 +213,7 @@ public class ClientPlayerDataCache {
         }
 
         syncedFromServer = true;
+        com.stardew.craft.client.specialorder.ClientSpecialOrderUnlockState.refreshBoardRenderIfChanged();
     }
 
     // Getters
@@ -236,6 +239,10 @@ public class ClientPlayerDataCache {
 
     public static int getMaxMineFloorReached() {
         return maxMineFloorReached;
+    }
+
+    public static int getFirstJoinDay() {
+        return firstJoinDay;
     }
     
     public static int getMoney() {

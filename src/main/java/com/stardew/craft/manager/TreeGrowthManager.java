@@ -295,7 +295,9 @@ public class TreeGrowthManager extends SavedData {
 	}
 
 	private void tryMature(@Nonnull ServerLevel level, @Nonnull BlockPos pos, @Nonnull WildTrees.Def def) {
-		if (canMature(level, pos, def) && placeGeneratedTree(level, pos, def)) {
+		// 新生长只产「预制树」。绝不再生成旧的算法树——旧树仅为兼容旧存档而保留。
+		// 放不下（空间不足）时不强行生成，树苗保留、下次再试。
+		if (com.stardew.craft.tree.prefab.PrefabTreeManager.tryPlaceRandomVariant(level, pos, def)) {
 			removeSapling(level, pos);
 		}
 	}
@@ -338,15 +340,8 @@ public class TreeGrowthManager extends SavedData {
 	}
 
 	private static boolean canMature(@Nonnull ServerLevel level, @Nonnull BlockPos pos, @Nonnull WildTrees.Def def) {
-		return com.stardew.craft.tree.generation.StardewTreeGenerator.canGenerate(level, pos, def);
-	}
-
-	private static boolean placeGeneratedTree(@Nonnull ServerLevel level, @Nonnull BlockPos pos, @Nonnull WildTrees.Def def) {
-		boolean placed = com.stardew.craft.tree.generation.StardewTreeGenerator.tryGenerate(level, pos, def, level.random);
-		if (placed) {
-			com.stardew.craft.manager.WildTreeSeedManager.get(level).trackTree(level, pos, def);
-		}
-		return placed;
+		// 成熟门槛 = 是否至少有一个预制树变体放得下（不再用旧算法生成器判定）。
+		return com.stardew.craft.tree.prefab.PrefabTreeManager.canPlaceAnyVariant(level, pos, def);
 	}
 
 	private static GlobalPos toGlobalPos(@Nonnull Level level, @Nonnull BlockPos pos) {

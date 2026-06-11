@@ -143,8 +143,7 @@ public class MailService {
         // 处理金钱附件（服务端直接加钱 + 同步客户端）
         int money = entry.getMoney();
         if (money > 0) {
-            data.addMoney(money);
-            PlayerDataEventHandler.syncPlayerData(player, data);
+            com.stardew.craft.player.PlayerStardewDataAPI.addMoney(player, money);
         }
 
         // 配方学习

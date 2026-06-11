@@ -2,6 +2,7 @@ package com.stardew.craft.event;
 
 import com.stardew.craft.entity.FallenOakTreeEntity;
 import com.stardew.craft.book.BookPowerEffects;
+import com.stardew.craft.blockentity.NewTreePartBlockEntity;
 import com.stardew.craft.enchantment.StardewEnchantments;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.item.tool.StardewAxeItem;
@@ -65,17 +66,18 @@ public final class WildTreeChopEvents {
 	private static final int MODERN_BRANCH_HEALTH = 12;
 	private static final double HEALTH_DENOM_BASE = 2.2;
 	private static final double HEALTH_DENOM_PER = 0.035;
+	private static final int XP_FELL_TREE = 14;
+	private static final int XP_REMOVE_STUMP = 2;
+	private static final int XP_MODERN_NATURAL_WOOD_PART = 1;
 	// Approximate SV swing cadence (0.35s). Used for time->"swings" conversion when charging energy by time.
 	private static final int AXE_SWING_TICKS = 7;
 
 	private static final Map<UUID, MiningState> MINING = new ConcurrentHashMap<>();
 	private static final Map<UUID, Long> LAST_EXHAUST_WARN_TICK = new ConcurrentHashMap<>();
-	private static final Map<UUID, Long> LAST_TRUNK0_HINT_TICK = new ConcurrentHashMap<>();
 
 	public static void removePlayer(UUID playerId) {
 		MINING.remove(playerId);
 		LAST_EXHAUST_WARN_TICK.remove(playerId);
-		LAST_TRUNK0_HINT_TICK.remove(playerId);
 	}
 
 	private record MiningState(BlockPos pos, long startTick) {
@@ -241,15 +243,19 @@ public final class WildTreeChopEvents {
 		}
 		ServerLevel level = player.serverLevel();
 		BlockPos pos = event.getPos();
-		@SuppressWarnings("null")
 		BlockState state = level.getBlockState(pos);
+
+		// 预制树（schematic 树）有独立的占地登记与砍伐逻辑：凡落在其占地内的方块（含栏杆等
+		// 装饰）都交给它处理，旧版/算法树逻辑对其让路。
+		if (com.stardew.craft.tree.prefab.PrefabTreeChopHandler.onBlockBreak(player, level, pos, event)) {
+			return;
+		}
+
 		WildTrees.Def def = WildTrees.findByAnyPart(state);
 		if (def == null) {
 			return;
 		}
 
-		// Farm protection: in Stardew Valley, non-creative players may only chop trees where they
-		// have modify permission. Town/others' farms (without PERM_FULL) are off-limits.
 		if (level.dimension() == ModDimensions.STARDEW_VALLEY
 				&& !player.isCreative()
 				&& !CoalForestArea.containsColumn(pos)
@@ -260,31 +266,15 @@ public final class WildTreeChopEvents {
 			return;
 		}
 
-		if (def.isModernPart(state)) {
-			if (!def.isModernLeaves(state)) {
-				ItemStack tool = player.getItemInHand(InteractionHand.MAIN_HAND);
-				if (!player.isCreative() && !isAxeLike(tool)) {
-					if (level.dimension() == ModDimensions.STARDEW_VALLEY) {
-						event.setCanceled(true);
-					}
-					return;
-				}
-				if (!player.isCreative() && level.dimension() == ModDimensions.STARDEW_VALLEY) {
-					if (PlayerStardewDataAPI.getEnergy(player) <= 0.0f) {
-						player.displayClientMessage(net.minecraft.network.chat.Component.translatable("stardewcraft.message.player.exhausted"), true);
-						event.setCanceled(true);
-						return;
-					}
-						consumeEnergyForModernTreeBlock(player);
-					}
-					scheduleNearbyModernLeafTicks(level, pos, def);
-				}
+		// 现代树（预制树 + 老存档算法生成树）统一由预制树处理器在 onBlockBreak 顶部接管
+		// （算法树会被「收养」成预制实例）。能走到这里的只是不成树的零散现代方块，按普通方块处理。
+		if (def.isModernPart(state) && !player.isCreative()) {
 			return;
 		}
 
 		// --- Creative mode: instant tree removal, no drops, no animation ---
 		if (player.isCreative()) {
-			if (def.isTrunk0(state) || def.isModernLog(state)) {
+			if (def.isTrunk0(state) || def.isModernRoot(state) || def.isModernLog(state)) {
 				BlockPos pivotPos = findChopPivot(level, pos, def);
 				if (pivotPos == null) {
 					return;
@@ -292,24 +282,28 @@ public final class WildTreeChopEvents {
 				TreeSnapshot snapshot = analyzeTree(level, pivotPos, def);
 				if (snapshot != null) {
 					for (BlockPos p : snapshot.allPositions) {
-						if (p.equals(snapshot.pivotTrunk0Pos)) continue;
+						if (p.equals(snapshot.pivotTrunk0Pos)) {
+							continue;
+						}
 						level.removeBlock(p, false);
 					}
 					WildTreeSeedManager.get(level).untrackTree(level, pivotPos);
 					scheduleNearbyLeafDecay(level, pivotPos, def);
-					return;
+				} else {
+					WildTreeSeedManager.get(level).untrackTree(level, pos);
 				}
-				WildTreeSeedManager.get(level).untrackTree(level, pos);
 				return;
 			}
-			if (state.getBlock() == def.leaves().get()) {
+			if (state.getBlock() == def.leaves().get() || def.isModernLeaves(state)) {
 				return;
 			}
 			BlockPos pivot = findPivotTrunk0(level, pos, def);
 			TreeSnapshot snapshot = pivot == null ? null : analyzeTree(level, pivot, def);
 			if (snapshot != null) {
 				for (BlockPos p : snapshot.allPositions) {
-					if (p.equals(snapshot.pivotTrunk0Pos)) continue;
+					if (p.equals(snapshot.pivotTrunk0Pos)) {
+						continue;
+					}
 					level.removeBlock(p, false);
 				}
 				WildTreeSeedManager.get(level).untrackTree(level, pivot);
@@ -320,26 +314,18 @@ public final class WildTreeChopEvents {
 
 		// --- Survival mode ---
 		ItemStack tool = player.getItemInHand(InteractionHand.MAIN_HAND);
-		boolean choppableBase = def.isTrunk0(state);
+		boolean choppableBase = def.isTrunk0(state) || def.isModernRoot(state) || def.isModernLog(state);
 
-		// Protect legacy non-leaf, non-trunk0 tree parts regardless of tool.
-		if (state.getBlock() != def.leaves().get() && !def.isTrunk0(state)) {
+		if (state.getBlock() != def.leaves().get() && !choppableBase) {
 			BlockPos pivot = findPivotTrunk0(level, pos, def);
 			TreeSnapshot snapshot = pivot == null ? null : analyzeTree(level, pivot, def);
 			if (snapshot != null) {
-				long now = level.getGameTime();
-				long last = LAST_TRUNK0_HINT_TICK.getOrDefault(player.getUUID(), 0L);
-				if (now - last >= 40) {
-					player.displayClientMessage(net.minecraft.network.chat.Component.translatable("stardewcraft.message.tree.chop_stump"), true);
-					LAST_TRUNK0_HINT_TICK.put(player.getUUID(), now);
-				}
+				com.stardew.craft.network.payload.HudHintPayload.send(player, "stardewcraft.message.tree.chop_root");
 				event.setCanceled(true);
-				return;
 			}
 			return;
 		}
 
-		// Chopping targets require an axe.
 		if (!isAxeLike(tool)) {
 			if (choppableBase) {
 				event.setCanceled(true);
@@ -347,85 +333,131 @@ public final class WildTreeChopEvents {
 			return;
 		}
 
-		// Energy gate: only applies in Stardew Valley dimension.
-		if (player.level().dimension() == ModDimensions.STARDEW_VALLEY) {
-			if (PlayerStardewDataAPI.getEnergy(player) <= 0.0f) {
-				player.displayClientMessage(net.minecraft.network.chat.Component.translatable("stardewcraft.message.player.exhausted"), true);
-				event.setCanceled(true);
-				return;
-			}
+		if (level.dimension() == ModDimensions.STARDEW_VALLEY
+				&& PlayerStardewDataAPI.getEnergy(player) <= 0.0f) {
+			player.displayClientMessage(net.minecraft.network.chat.Component.translatable("stardewcraft.message.player.exhausted"), true);
+			event.setCanceled(true);
+			return;
 		}
 
-		// Main rule: only chopping trunk0/log can fell the tree.
-		if (choppableBase) {
-			BlockPos pivotPos = findChopPivot(level, pos, def);
-			if (pivotPos == null) {
-				return;
-			}
-			TreeSnapshot snapshot = analyzeTree(level, pivotPos, def);
-			if (snapshot != null) {
-				consumeEnergyForTreeChop(player, level, pos);
-				java.util.ArrayList<ItemStack> fallDrops = new java.util.ArrayList<>();
-				ItemStack seeds = rollSeedsOnChop(level, def, player);
-				if (!seeds.isEmpty()) {
-					fallDrops.add(seeds);
-				}
-				fallDrops.add(new ItemStack(ModItems.SAP.get(), 5));
-				int dropCount = getFelledWoodDropCount(level, def, player);
-				if (dropCount > 0) {
-					var woodItem = getWoodDropItem(def);
-					fallDrops.add(new ItemStack(woodItem, dropCount));
-				}
-				int hardwoodBonus = getLumberjackBonusHardwood(level, def, player);
-				if (hardwoodBonus > 0) {
-					fallDrops.add(new ItemStack(ModItems.WOOD_HARD.get(), hardwoodBonus));
-				}
-				com.stardew.craft.book.BookAcquisitionService.recordTreeChoppedAndMaybeAddBook(player, fallDrops, level.random);
-				WildTreeSeedManager.get(level).untrackTree(level, snapshot.pivotTrunk0Pos);
-				Direction dir = computeFallDirection(player, snapshot.pivotTrunk0Pos);
-				fellTree(level, snapshot, dir, def, fallDrops);
-				PlayerStardewDataAPI.addExperience(player, SkillType.FORAGING, 12);
-				event.setCanceled(true);
-				return;
-			}
-
-			if (isLonelyTreeBase(level, pivotPos, def)) {
-				consumeEnergyForTreeChop(player, level, pos);
-				level.removeBlock(pivotPos, false);
-				playStumpEffects(level, pivotPos, def);
-				int dropCount = getStumpWoodDropCount(level, def, player);
-				if (dropCount > 0) {
-					var woodItem = getWoodDropItem(def);
-					Block.popResource(level, pivotPos, new ItemStack(woodItem, dropCount));
-				}
-				int hardwoodBonus = getLumberjackBonusHardwood(level, def, player);
-				if (hardwoodBonus > 0) {
-					Block.popResource(level, pivotPos, new ItemStack(ModItems.WOOD_HARD.get(), hardwoodBonus));
-				}
-				PlayerStardewDataAPI.addExperience(player, SkillType.FORAGING, 5);
-				WildTreeSeedManager.get(level).untrackTree(level, pivotPos);
-				event.setCanceled(true);
-				return;
-			}
+		if (!choppableBase) {
+			return;
 		}
 
-		if (def.isModernRoot(state) && isLonelyTreeBase(level, pos, def)) {
+		BlockPos pivotPos = findChopPivot(level, pos, def);
+		if (pivotPos == null) {
+			return;
+		}
+		TreeSnapshot snapshot = analyzeTree(level, pivotPos, def);
+		if (snapshot != null) {
+			ModernTreeMarker marker = snapshot.modern ? generatedModernTreeMarkerForRoot(level, snapshot.pivotTrunk0Pos, def) : null;
+			if (snapshot.modern && marker == null) {
+				return;
+			}
+			int experience = snapshot.modern
+					? countGeneratedModernWoodParts(level, snapshot, def, marker) * XP_MODERN_NATURAL_WOOD_PART
+					: XP_FELL_TREE;
 			consumeEnergyForTreeChop(player, level, pos);
-			level.removeBlock(pos, false);
-			playStumpEffects(level, pos, def);
-			int dropCount = getStumpWoodDropCount(level, def, player);
+			java.util.ArrayList<ItemStack> fallDrops = new java.util.ArrayList<>();
+			ItemStack seeds = rollSeedsOnChop(level, def, player);
+			if (!seeds.isEmpty()) {
+				fallDrops.add(seeds);
+			}
+			fallDrops.add(new ItemStack(ModItems.SAP.get(), 5));
+			int dropCount = getFelledWoodDropCount(level, def, player);
 			if (dropCount > 0) {
 				var woodItem = getWoodDropItem(def);
-				Block.popResource(level, pos, new ItemStack(woodItem, dropCount));
+				fallDrops.add(new ItemStack(woodItem, dropCount));
 			}
 			int hardwoodBonus = getLumberjackBonusHardwood(level, def, player);
 			if (hardwoodBonus > 0) {
-				Block.popResource(level, pos, new ItemStack(ModItems.WOOD_HARD.get(), hardwoodBonus));
+				fallDrops.add(new ItemStack(ModItems.WOOD_HARD.get(), hardwoodBonus));
 			}
-			PlayerStardewDataAPI.addExperience(player, SkillType.FORAGING, 5);
-			WildTreeSeedManager.get(level).untrackTree(level, pos);
+			com.stardew.craft.book.BookAcquisitionService.recordTreeChoppedAndMaybeAddBook(player, fallDrops, level.random);
+			WildTreeSeedManager.get(level).untrackTree(level, snapshot.pivotTrunk0Pos);
+			Direction dir = computeFallDirection(player, snapshot.pivotTrunk0Pos);
+			fellTree(level, snapshot, dir, def, fallDrops);
+			restoreGeneratedModernStumpMarker(level, marker);
+			if (experience > 0) {
+				PlayerStardewDataAPI.addExperience(player, SkillType.FORAGING, experience);
+			}
+			event.setCanceled(true);
+			return;
+		}
+
+		if (isLonelyTreeBase(level, pivotPos, def)) {
+			boolean modernRoot = def.isModernRoot(level.getBlockState(pivotPos));
+			ModernTreeMarker marker = modernRoot ? generatedModernTreeMarkerForRoot(level, pivotPos, def) : null;
+			if (modernRoot && marker == null) {
+				return;
+			}
+			consumeEnergyForTreeChop(player, level, pos);
+			level.removeBlock(pivotPos, false);
+			playStumpEffects(level, pivotPos, def);
+			int dropCount = getStumpWoodDropCount(level, def, player);
+			if (dropCount > 0) {
+				var woodItem = getWoodDropItem(def);
+				Block.popResource(level, pivotPos, new ItemStack(woodItem, dropCount));
+			}
+			int hardwoodBonus = getLumberjackBonusHardwood(level, def, player);
+			if (hardwoodBonus > 0) {
+				Block.popResource(level, pivotPos, new ItemStack(ModItems.WOOD_HARD.get(), hardwoodBonus));
+			}
+			PlayerStardewDataAPI.addExperience(player, SkillType.FORAGING, modernRoot ? XP_MODERN_NATURAL_WOOD_PART : XP_REMOVE_STUMP);
+			WildTreeSeedManager.get(level).untrackTree(level, pivotPos);
 			event.setCanceled(true);
 		}
+	}
+
+	private static int countGeneratedModernWoodParts(ServerLevel level, TreeSnapshot snapshot, WildTrees.Def def, ModernTreeMarker marker) {
+		if (marker == null) {
+			return 0;
+		}
+		int count = 0;
+		for (BlockPos partPos : snapshot.allPositions) {
+			if (partPos.equals(snapshot.pivotTrunk0Pos) || !isModernWood(def, level.getBlockState(partPos))) {
+				continue;
+			}
+			ModernTreeMarker partMarker = generatedModernTreeMarkerForPart(level, partPos, def);
+			if (partMarker != null && marker.treeId().equals(partMarker.treeId())) {
+				count++;
+			}
+		}
+		return count;
+	}
+
+	private static ModernTreeMarker generatedModernTreeMarkerForPart(ServerLevel level, BlockPos pos, WildTrees.Def def) {
+		if (!(level.getBlockEntity(pos) instanceof NewTreePartBlockEntity part) || !part.hasGeneratedTreeMarker()) {
+			return null;
+		}
+		if (!def.id().equals(part.getGeneratedTreeSpecies())) {
+			return null;
+		}
+		ModernTreeMarker rootMarker = generatedModernTreeMarkerForRoot(level, part.getGeneratedTreeRoot(), def);
+		if (rootMarker == null || !rootMarker.treeId().equals(part.getGeneratedTreeId())) {
+			return null;
+		}
+		return rootMarker;
+	}
+
+	private static ModernTreeMarker generatedModernTreeMarkerForRoot(ServerLevel level, BlockPos root, WildTrees.Def def) {
+		if (root == null || !def.isModernRoot(level.getBlockState(root))) {
+			return null;
+		}
+		if (!(level.getBlockEntity(root) instanceof NewTreePartBlockEntity rootPart) || !rootPart.hasGeneratedTreeMarker()) {
+			return null;
+		}
+		if (!def.id().equals(rootPart.getGeneratedTreeSpecies()) || !root.equals(rootPart.getGeneratedTreeRoot())) {
+			return null;
+		}
+		return new ModernTreeMarker(rootPart.getGeneratedTreeId(), rootPart.getGeneratedTreeSpecies(), root.immutable());
+	}
+
+	private static void restoreGeneratedModernStumpMarker(ServerLevel level, ModernTreeMarker marker) {
+		if (marker == null || !(level.getBlockEntity(marker.root()) instanceof NewTreePartBlockEntity stump)) {
+			return;
+		}
+		stump.markGeneratedTree(marker.treeId(), marker.species(), marker.root());
 	}
 
 	private static boolean canChopAt(ServerPlayer player, ServerLevel level, BlockPos pos) {
@@ -480,22 +512,6 @@ public final class WildTreeChopEvents {
 		if (cost > 0.0f) {
 			PlayerStardewDataAPI.consumeEnergy(player, cost);
 		}
-	}
-
-	private static void consumeEnergyForModernTreeBlock(ServerPlayer player) {
-		MINING.remove(player.getUUID());
-		if (player.isCreative()) {
-			return;
-		}
-		if (StardewEnchantments.has(player.getMainHandItem(), StardewEnchantments.EFFICIENT)) {
-			return;
-		}
-		if (player.level().dimension() != ModDimensions.STARDEW_VALLEY) {
-			return;
-		}
-		int foraging = PlayerStardewDataAPI.getSkillLevel(player, SkillType.FORAGING);
-		float cost = Math.max(0.5F, 2.0F - foraging * 0.1F);
-		PlayerStardewDataAPI.consumeEnergy(player, cost);
 	}
 
 	private static boolean isModernWood(WildTrees.Def def, BlockState state) {
@@ -990,22 +1006,6 @@ public final class WildTreeChopEvents {
 	}
 
 	@SuppressWarnings("null")
-	private static void scheduleNearbyModernLeafTicks(ServerLevel level, BlockPos brokenWoodPos, WildTrees.Def def) {
-		Block leaves = def.modernLeaves().get();
-		int r = LEAF_DECAY_SCHEDULE_RADIUS;
-		for (int dx = -r; dx <= r; dx++) {
-			for (int dy = -r; dy <= r; dy++) {
-				for (int dz = -r; dz <= r; dz++) {
-					BlockPos p = brokenWoodPos.offset(dx, dy, dz);
-					if (level.getBlockState(p).getBlock() == leaves) {
-						level.scheduleTick(p, leaves, 2 + level.random.nextInt(8));
-					}
-				}
-			}
-		}
-	}
-
-	@SuppressWarnings("null")
 	private static boolean isAdjacentToWood(ServerLevel level, BlockPos leafPos,
 			Block trunk0, Block trunk1, Block branch1, Block branch2) {
 		for (Direction d : Direction.values()) {
@@ -1044,6 +1044,9 @@ public final class WildTreeChopEvents {
 	}
 
 	private record TreeParts(BlockPos pivotTrunk0, Set<BlockPos> trunkColumn, Set<BlockPos> branches, Set<BlockPos> leaves, boolean modern) {
+	}
+
+	private record ModernTreeMarker(UUID treeId, String species, BlockPos root) {
 	}
 
 	private static final class TreeSnapshot {

@@ -3,5 +3,6 @@
   "textures": {
     "cross": "stardewcraft:item/crops/fall/grape",
     "particle": "stardewcraft:item/crops/fall/grape"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

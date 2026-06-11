@@ -374,6 +374,7 @@ public final class ShopRegistry {
                 entryRecipe("stardewcraft:bread",            100),
                 entryRecipe("stardewcraft:tortilla",         100),
                 entryRecipe("stardewcraft:pizza",            150),
+                entryRecipe("stardewcraft:popsicle",         150),
                 entryRecipe("stardewcraft:maki_roll",        300),
                 entryRecipe("stardewcraft:cookie",           300),
                 entryRecipe("stardewcraft:triple_shot_espresso", 5000)
@@ -545,6 +546,7 @@ public final class ShopRegistry {
                 entryAllSeasons("stardewcraft:flooring_block",  2),
                 // Basic furniture
                 entryAllSeasons("stardewcraft:bed_1",         100),
+                entryMail("stardewcraft:bed_2",              6000, "robinDeluxeBed"),
                 entryAllSeasons("stardewcraft:chair_1",        50),
                 entryAllSeasons("stardewcraft:oak_table",     100),
                 entryAllSeasons("stardewcraft:light_1",        75),

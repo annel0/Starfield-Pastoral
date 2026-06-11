@@ -3,5 +3,6 @@
   "textures": {
     "cross": "stardewcraft:block/crops/special/fiber_stage2_bottom",
     "particle": "stardewcraft:block/crops/special/fiber_stage2_bottom"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

@@ -33,6 +33,7 @@ import net.minecraft.util.Mth;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
+import net.neoforged.neoforge.client.event.RenderLivingEvent;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -215,6 +216,16 @@ public class ModClientEvents {
                     customLines.add(Component.translatable("stardewcraft.tooltip.type_prefix")
                         .withStyle(ChatFormatting.WHITE)
                         .append(SpecialConsumableClientFx.luckyPurpleShortsTypeLabel(
+                            Component.translatable(typeKey).getString())));
+                } else if (stack.getItem() == ModItems.MONEY_CONTRACT.get()) {
+                    customLines.add(Component.translatable("stardewcraft.tooltip.type_prefix")
+                        .withStyle(ChatFormatting.WHITE)
+                        .append(SpecialConsumableClientFx.moneyContractTypeLabel(
+                            Component.translatable(typeKey).getString())));
+                } else if (stack.getItem() == ModItems.AUCTION_PADDLE.get()) {
+                    customLines.add(Component.translatable("stardewcraft.tooltip.type_prefix")
+                        .withStyle(ChatFormatting.WHITE)
+                        .append(SpecialConsumableClientFx.auctionPaddleTypeLabel(
                             Component.translatable(typeKey).getString())));
                 } else if (stack.getItem() == ModItems.GALAXY_SOUL.get()) {
                     customLines.add(Component.translatable("stardewcraft.tooltip.type_prefix")
@@ -562,9 +573,10 @@ public class ModClientEvents {
 
     @SubscribeEvent
     public static void onRenderLevel(RenderLevelStageEvent event) {
-                com.stardew.craft.client.combat.DamageNumberClient.onRenderLevel(event);
+        com.stardew.craft.client.combat.DamageNumberClient.onRenderLevel(event);
         com.stardew.craft.client.fishpond.ClientFishPondJumpEffects.onRenderLevel(event);
         com.stardew.craft.client.emote.EmoteBubbleWorldRenderer.onRenderLevel(event);
+        com.stardew.craft.client.render.CutsceneTextAboveHeadRenderer.onRenderLevel(event);
         com.stardew.craft.client.weapon.TideMarkRenderer.onRenderLevel(event);
         com.stardew.craft.client.weapon.OssifiedMarkRenderer.onRenderLevel(event);
         com.stardew.craft.client.weapon.TemplarMarkRenderer.onRenderLevel(event);
@@ -591,7 +603,29 @@ public class ModClientEvents {
         com.stardew.craft.client.render.JunimoNoteOutlineRenderer.onRenderLevel(event);
         com.stardew.craft.client.render.StarPlaqueRenderer.onRenderLevel(event);
         com.stardew.craft.client.render.BillboardQuestIndicatorRenderer.onRenderLevel(event);
+        com.stardew.craft.client.render.SpecialOrderBoardIndicatorRenderer.onRenderLevel(event);
         com.stardew.craft.client.render.PanPointRenderer.onRenderLevel(event);
+        com.stardew.craft.client.auction.AuctionTooltipBoardRenderer.onRenderLevel(event);
+    }
+
+    @SubscribeEvent
+    public static void onRenderLivingPre(RenderLivingEvent.Pre<?, ?> event) {
+        if (!event.getEntity().getTags().contains("sd_mob_prismatic_slime")) {
+            return;
+        }
+        float age = event.getEntity().tickCount + event.getPartialTick();
+        int rgb = Mth.hsvToRgb((age % 120.0F) / 120.0F, 0.85F, 1.0F);
+        float r = ((rgb >> 16) & 0xFF) / 255.0F;
+        float g = ((rgb >> 8) & 0xFF) / 255.0F;
+        float b = (rgb & 0xFF) / 255.0F;
+        RenderSystem.setShaderColor(r, g, b, 1.0F);
+    }
+
+    @SubscribeEvent
+    public static void onRenderLivingPost(RenderLivingEvent.Post<?, ?> event) {
+        if (event.getEntity().getTags().contains("sd_mob_prismatic_slime")) {
+            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        }
     }
 
     @SubscribeEvent

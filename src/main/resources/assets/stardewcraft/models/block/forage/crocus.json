@@ -3,5 +3,6 @@
   "textures": {
     "cross": "stardewcraft:item/forage/crocus",
     "particle": "stardewcraft:item/forage/crocus"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

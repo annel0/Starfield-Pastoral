@@ -104,6 +104,13 @@
       "ascent": 9,
       "height": 10,
       "chars": ["\uE01A"]
+    },
+    {
+      "type": "bitmap",
+      "file": "stardewcraft:mob_effect/monster_musk.png",
+      "ascent": 9,
+      "height": 10,
+      "chars": ["\uE01B"]
     }
   ]
 }

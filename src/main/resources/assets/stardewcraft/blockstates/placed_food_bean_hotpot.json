@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "stardewcraft:block/cooking/bean_hotpot"
+    },
+    "facing=east": {
+      "model": "stardewcraft:block/cooking/bean_hotpot",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "stardewcraft:block/cooking/bean_hotpot",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "stardewcraft:block/cooking/bean_hotpot",
+      "y": 270
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "id": "special_order_linus_trash_cleanup",
+  "skippable": true,
+  "trigger": {
+    "type": "enter_area",
+    "location": "mountain",
+    "area_min": [23, 68, -159],
+    "area_max": [163, 100, -63]
+  },
+  "preconditions": [
+    { "type": "not_saw_event", "id": "special_order_linus_trash_cleanup" },
+    { "type": "weather", "weather": "sunny" },
+    { "type": "time", "min": 600, "max": 1900 },
+    { "type": "mail", "id": "linusTrashCleanup" }
+  ],
+  "commands": [
+    { "cmd": "comment", "text": "=== SDV Event 8357109: Linus trash cleanup special order reward ===" },
+
+    { "cmd": "lock_player" },
+    { "cmd": "fade", "mode": "out", "ticks": 10 },
+
+    { "cmd": "hide_npc", "npc_id": "linus" },
+    { "cmd": "spawn_actor", "actor": "linus", "npc_id": "linus",
+      "x": 93.5, "y": 81, "z": -120.5, "relative": false, "facing": 0 },
+
+    { "cmd": "camera", "x": 93.744, "y": 83.549, "z": -112.711,
+      "yaw": -180.0, "pitch": 34.8, "relative": false },
+    { "cmd": "music", "track": "spring_day_ambient" },
+    { "cmd": "fade", "mode": "in", "ticks": 20 },
+    { "cmd": "skippable" },
+
+    { "cmd": "pause", "ticks": 100 },
+    { "cmd": "speak", "npc_id": "linus", "text": "event.special_order.linus.feels_good" },
+    { "cmd": "pause", "ticks": 20 },
+    { "cmd": "speak", "npc_id": "linus", "text": "event.special_order.linus.clean_water" },
+    { "cmd": "pause", "ticks": 40 },
+    { "cmd": "speak", "npc_id": "linus", "text": "event.special_order.linus.clean_me" },
+    { "cmd": "pause", "ticks": 60 },
+
+    { "cmd": "fade", "mode": "out", "ticks": 20 },
+    { "cmd": "pause", "ticks": 20 },
+    { "cmd": "stop_music" },
+    { "cmd": "remove_actor", "actor": "linus" },
+    { "cmd": "show_npc", "npc_id": "linus" },
+    { "cmd": "unlock_player" },
+    { "cmd": "end" }
+  ]
+}

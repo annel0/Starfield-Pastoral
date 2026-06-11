@@ -2,6 +2,7 @@ package com.stardew.craft.menu;
 
 import com.stardew.craft.block.utility.WoodenChestColorPalette;
 import com.stardew.craft.blockentity.WoodenChestBlockEntity;
+import com.stardew.craft.inventory.InventoryOrganizeService;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -99,6 +100,14 @@ public class WoodenChestMenu extends AbstractContainerMenu {
         } else if (colorHandler != null) {
             colorHandler.accept(selection);
         }
+    }
+
+    public void organizeContainer() {
+        InventoryOrganizeService.organizeContainer(container, CHEST_SIZE);
+        for (int i = 0; i < CHEST_SIZE; i++) {
+            this.slots.get(i).setChanged();
+        }
+        this.broadcastChanges();
     }
 
     @Override

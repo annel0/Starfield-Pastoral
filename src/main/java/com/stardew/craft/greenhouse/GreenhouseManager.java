@@ -169,6 +169,15 @@ public class GreenhouseManager extends SavedData {
         return Boolean.TRUE.equals(repairedByOwner.get(ownerUUID));
     }
 
+    public void clearForOwner(UUID ownerUUID) {
+        if (ownerUUID == null) {
+            return;
+        }
+        repairedByOwner.remove(ownerUUID);
+        ruinsPlacedByOwner.remove(ownerUUID);
+        setDirty();
+    }
+
     // ═══════════════════════════════════════════════════════════════
     //  修复温室（旧公共区域温室 — 保留向后兼容）
     // ═══════════════════════════════════════════════════════════════

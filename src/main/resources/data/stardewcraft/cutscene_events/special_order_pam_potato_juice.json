@@ -1,0 +1,67 @@
+{
+  "id": "special_order_pam_potato_juice",
+  "skippable": true,
+  "trigger": {
+    "type": "enter_area",
+    "location": "trailer",
+    "area_min": [64, 34, -2],
+    "area_max": [80, 40, 10]
+  },
+  "preconditions": [
+    { "type": "not_saw_event", "id": "special_order_pam_potato_juice" },
+    { "type": "mail", "id": "pamPotatoJuice" }
+  ],
+  "commands": [
+    { "cmd": "comment", "text": "=== SDV Event 963313: Pam potato juice special order reward ===" },
+
+    { "cmd": "lock_player" },
+    { "cmd": "fade", "mode": "out", "ticks": 10 },
+    { "cmd": "hide_npc", "npc_id": "pam" },
+    { "cmd": "spawn_actor", "actor": "pam", "npc_id": "pam",
+      "x": 70.5, "y": 35, "z": 2.5, "relative": false, "facing": 180 },
+    { "cmd": "add_mail", "id": "pamNewChannel" },
+
+    { "cmd": "camera", "x": 67.897, "y": 36.419, "z": 4.635,
+      "yaw": -130.0, "pitch": 32.2, "relative": false },
+    { "cmd": "music", "track": "MUSIC_PLAYFUL" },
+    { "cmd": "fade", "mode": "in", "ticks": 20 },
+    { "cmd": "pause", "ticks": 60 },
+
+    { "cmd": "speak", "npc_id": "pam", "text": "event.special_order.pam.delivery" },
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "speak", "npc_id": "pam", "text": "event.special_order.pam.taste" },
+    { "cmd": "pause", "ticks": 20 },
+
+    { "cmd": "play_sound", "sound": "stardewcraft:coin" },
+    { "cmd": "pause", "ticks": 40 },
+    { "cmd": "animate", "actor": "pam", "anim": "idle", "loop": true },
+    { "cmd": "play_sound", "sound": "stardewcraft:glug" },
+    { "cmd": "pause", "ticks": 16 },
+    { "cmd": "play_sound", "sound": "stardewcraft:glug" },
+    { "cmd": "pause", "ticks": 16 },
+    { "cmd": "play_sound", "sound": "stardewcraft:glug" },
+    { "cmd": "pause", "ticks": 16 },
+    { "cmd": "play_sound", "sound": "stardewcraft:glug" },
+    { "cmd": "pause", "ticks": 16 },
+
+    { "cmd": "animate", "actor": "pam", "anim": "idle", "loop": false },
+    { "cmd": "pause", "ticks": 8 },
+    { "cmd": "emote", "actor": "pam", "emote": "pause" },
+    { "cmd": "pause", "ticks": 16 },
+    { "cmd": "textAboveHead", "actor": "pam", "text": "event.special_order.pam.ptooey", "ticks": 40 },
+    { "cmd": "play_sound", "sound": "stardewcraft:slimedead" },
+    { "cmd": "shake_actor", "actor": "pam", "ticks": 40, "amplitude": 0.055 },
+    { "cmd": "pause", "ticks": 40 },
+
+    { "cmd": "animate", "actor": "pam", "anim": "idle", "loop": true },
+    { "cmd": "speak", "npc_id": "pam", "text": "event.special_order.pam.reaction" },
+    { "cmd": "pause", "ticks": 40 },
+
+    { "cmd": "fade", "mode": "out", "ticks": 20 },
+    { "cmd": "pause", "ticks": 20 },
+    { "cmd": "stop_music" },
+    { "cmd": "show_npc", "npc_id": "pam" },
+    { "cmd": "skippable" },
+    { "cmd": "end" }
+  ]
+}

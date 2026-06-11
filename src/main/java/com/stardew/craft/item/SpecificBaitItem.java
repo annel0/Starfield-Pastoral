@@ -1,6 +1,7 @@
 package com.stardew.craft.item;
 
 import com.stardew.craft.item.artisan.PreservesIngredientDataManager;
+import com.stardew.craft.item.catalog.StardewItemCatalog;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -148,14 +149,7 @@ public class SpecificBaitItem extends Item implements IStardewItem {
         }
 
         int index = 0;
-        for (var holder : ModItems.ITEMS.getEntries()) {
-            Item item = holder.get();
-            if (!(item instanceof IStardewItem stardewItem)) {
-                continue;
-            }
-            if (!isSpecificBaitTargetType(stardewItem.getItemTypeKey())) {
-                continue;
-            }
+        for (Item item : StardewItemCatalog.specificBaitTargetItems()) {
             if (index == variantIndex) {
                 ItemStack fishStack = new ItemStack(item);
                 return fishStack.isEmpty() ? ItemStack.EMPTY : fishStack;
@@ -172,14 +166,11 @@ public class SpecificBaitItem extends Item implements IStardewItem {
         }
 
         int total = 0;
-        for (var holder : ModItems.ITEMS.getEntries()) {
-            Item item = holder.get();
-            if (item instanceof IStardewItem stardewItem && isSpecificBaitTargetType(stardewItem.getItemTypeKey())) {
-                if (cmd.equals(new CustomModelData(CREATIVE_VARIANT_CMD_BASE + total))) {
-                    return total;
-                }
-                total++;
+        for (Item ignored : StardewItemCatalog.specificBaitTargetItems()) {
+            if (cmd.equals(new CustomModelData(CREATIVE_VARIANT_CMD_BASE + total))) {
+                return total;
             }
+            total++;
         }
         return -1;
     }

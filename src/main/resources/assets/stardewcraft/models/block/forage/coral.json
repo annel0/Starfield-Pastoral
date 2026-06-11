@@ -3,5 +3,6 @@
   "textures": {
     "cross": "stardewcraft:item/forage/coral",
     "particle": "stardewcraft:item/forage/coral"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

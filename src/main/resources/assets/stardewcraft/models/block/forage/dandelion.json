@@ -3,5 +3,6 @@
   "textures": {
     "cross": "stardewcraft:item/forage/dandelion",
     "particle": "stardewcraft:item/forage/dandelion"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

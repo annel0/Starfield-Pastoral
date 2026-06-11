@@ -1,6 +1,6 @@
 package com.stardew.craft.blockentity;
 
-import com.stardew.craft.block.utility.BoneMillBlock;
+import com.stardew.craft.block.utility.AbstractTwoBlockUtilityBlock;
 import com.stardew.craft.core.ModTags;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.sound.ModSounds;
@@ -264,9 +264,7 @@ public class BoneMillBlockEntity extends TimedProductionBlockEntity implements U
     }
 
     private void updateWorkingState(Level level, BlockPos pos, BlockState state) {
-        if (state.hasProperty(BoneMillBlock.WORKING) && state.getValue(BoneMillBlock.WORKING) != isWorking()) {
-            level.setBlock(pos, state.setValue(BoneMillBlock.WORKING, isWorking()), 3);
-        }
+        AbstractTwoBlockUtilityBlock.updateWorkingState(level, pos, state, isWorking());
     }
 
     @Nullable

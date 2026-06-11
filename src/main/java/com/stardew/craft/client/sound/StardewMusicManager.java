@@ -77,6 +77,7 @@ public final class StardewMusicManager {
         Map.entry("museum",           music(ModSounds.MUSIC_LIBRARY)),
         Map.entry("blacksmith",       music(null)),
         Map.entry("saloon",           music(ModSounds.MUSIC_SALOON, 1700)),
+        Map.entry("auction_hall",     music(ModSounds.MUSIC_JAUNTY)),
         Map.entry("mayor_house",      music(null)),
         Map.entry("clinic",           music(ModSounds.MUSIC_DISTANT_BANJO)),
         Map.entry("1_river_road",     music(null)),
@@ -90,7 +91,8 @@ public final class StardewMusicManager {
         Map.entry("elliott_cabin",    music(ModSounds.MUSIC_COMMUNITY_CENTER)),
         Map.entry("wizard_tower",     music(ModSounds.MUSIC_WIZARD_TOWER)),
         Map.entry("oasis",            music(ModSounds.MUSIC_OASIS)),
-        Map.entry("joja_mart",        music(ModSounds.MUSIC_HOSPITAL_AMBIENT))
+        Map.entry("joja_mart",        music(ModSounds.MUSIC_HOSPITAL_AMBIENT)),
+        Map.entry("trailer",          music(null))
     );
 
     private static int tickCounter = CHECK_INTERVAL - 1; // evaluate on first tick

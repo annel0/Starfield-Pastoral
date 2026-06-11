@@ -400,6 +400,22 @@
       }
     ]
   },
+  "slimedead": {
+    "sounds": [
+      {
+        "name": "stardewcraft:slime",
+        "stream": false
+      }
+    ]
+  },
+  "glug": {
+    "sounds": [
+      {
+        "name": "stardewcraft:utility/glug",
+        "stream": false
+      }
+    ]
+  },
   "shadowpeep": {
     "sounds": [
       {
@@ -468,6 +484,26 @@
     "sounds": [
       {
         "name": "stardewcraft:ui/money",
+        "stream": false
+      }
+    ]
+  },
+  "eat": {
+    "sounds": [
+      {
+        "name": "stardewcraft:eat",
+        "stream": false
+      }
+    ]
+  },
+  "gulp": {
+    "sounds": [
+      {
+        "name": "stardewcraft:gulp_0",
+        "stream": false
+      },
+      {
+        "name": "stardewcraft:gulp_1",
         "stream": false
       }
     ]
@@ -563,6 +599,14 @@
     "sounds": [
       {
         "name": "stardewcraft:utility/statue_of_blessings",
+        "stream": false
+      }
+    ]
+  },
+  "treasure_totem": {
+    "sounds": [
+      {
+        "name": "stardewcraft:utility/treasure_totem",
         "stream": false
       }
     ]
@@ -1387,6 +1431,14 @@
       }
     ]
   },
+  "music_playful": {
+    "sounds": [
+      {
+        "name": "stardewcraft:music/playful",
+        "stream": true
+      }
+    ]
+  },
   "music_desert": {
     "sounds": [
       {
@@ -1423,6 +1475,14 @@
     "sounds": [
       {
         "name": "stardewcraft:new_artifact",
+        "stream": false
+      }
+    ]
+  },
+  "dwarvish_sentry": {
+    "sounds": [
+      {
+        "name": "stardewcraft:utility/dwarvish_sentry",
         "stream": false
       }
     ]

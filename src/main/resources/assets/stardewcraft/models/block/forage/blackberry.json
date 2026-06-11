@@ -3,5 +3,6 @@
   "textures": {
     "cross": "stardewcraft:item/forage/blackberry",
     "particle": "stardewcraft:item/forage/blackberry"
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

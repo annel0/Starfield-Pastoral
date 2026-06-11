@@ -166,9 +166,7 @@ public final class TrinketEffectHandler {
             return;
         }
 
-        PlayerStardewData data = PlayerDataManager.getPlayerData(player);
-        data.addMoney(coins);
-        PlayerDataEventHandler.syncPlayerData(player, data);
+        com.stardew.craft.player.PlayerStardewDataAPI.addMoney(player, coins);
         player.level().playSound(null, player.getX(), player.getY(), player.getZ(), ModSounds.COIN.get(), SoundSource.PLAYERS, 0.65F, 1.1F);
     }
 
