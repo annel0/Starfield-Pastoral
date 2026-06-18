@@ -50,6 +50,10 @@ public class StardewTimeHud {
     @SuppressWarnings("null")
     private static final ResourceLocation CALICO_CURRENCY_BG_HOTBAR = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/desert_festival/calico_currency_bg_hotbar.png");
     @SuppressWarnings("null")
+    private static final ResourceLocation SPECIAL_CURRENCY_BG = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/cursors_1_6.png");
+    @SuppressWarnings("null")
+    private static final ResourceLocation VANILLA_CURSORS = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/cursors.png");
+    @SuppressWarnings("null")
     private static final ResourceLocation CALICO_RATING_ICON = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/desert_festival/calico_rating_icon.png");
     
     // UI尺寸
@@ -81,6 +85,7 @@ public class StardewTimeHud {
     private static volatile boolean timeSyncedFromServer = false;
     private static MoneyDial moneyDial = new MoneyDial(8, true);
     private static final MoneyDial calicoEggDial = new MoneyDial(4, false);
+    private static final MoneyDial starTokenDial = new MoneyDial(4, false);
     private static int moneyShakeTimer = 0;
     private static int desertFestivalMineRating = 0;
     private static int desertFestivalMineRatingShakeTimer = 0;
@@ -354,6 +359,7 @@ public class StardewTimeHud {
         moneyDial.draw(graphics, moneyX, moneyY, currentMoney);
 
         renderCalicoEggCurrency(graphics);
+        renderFairStarTokenCurrency(graphics);
         renderDesertFestivalMineRating(graphics);
     }
 
@@ -381,6 +387,32 @@ public class StardewTimeHud {
                 CALICO_CURRENCY_WIDTH, CALICO_CURRENCY_HEIGHT,
                 CALICO_CURRENCY_WIDTH, CALICO_CURRENCY_HEIGHT);
         calicoEggDial.draw(graphics, boxX + 7, boxY + 9, count);
+    }
+
+    private static void renderFairStarTokenCurrency(GuiGraphics graphics) {
+        Minecraft mc = Minecraft.getInstance();
+        var player = mc.player;
+        if (player == null || mc.level == null || mc.level.dimension() != ModDimensions.STARDEW_VALLEY) {
+            return;
+        }
+        boolean fairDay = clientTimeCache.getCurrentSeason() == 2 && clientTimeCache.getCurrentDay() == 16;
+        int count = ClientPlayerDataCache.getFairStarTokens();
+        if (!fairDay) {
+            return;
+        }
+
+        int screenWidth = mc.getWindow().getGuiScaledWidth();
+        int screenHeight = mc.getWindow().getGuiScaledHeight();
+        int hotbarX = (screenWidth - VANILLA_HOTBAR_WIDTH) / 2;
+        int boxX = Math.max(CALICO_SCREEN_MARGIN, hotbarX - CALICO_CURRENCY_WIDTH - CALICO_HOTBAR_GAP);
+        int boxY = screenHeight - CALICO_CURRENCY_HEIGHT - 1;
+        graphics.blit(SPECIAL_CURRENCY_BG, boxX, boxY, CALICO_CURRENCY_WIDTH, CALICO_CURRENCY_HEIGHT,
+                42, 0, CALICO_CURRENCY_WIDTH, CALICO_CURRENCY_HEIGHT,
+                256, 320);
+        graphics.blit(VANILLA_CURSORS, boxX + 4, boxY + 6, 8, 8,
+                338, 400, 8, 8,
+                704, 2256);
+        starTokenDial.draw(graphics, boxX + 27, boxY + 10, count);
     }
 
     private static void renderDesertFestivalMineRating(GuiGraphics graphics) {

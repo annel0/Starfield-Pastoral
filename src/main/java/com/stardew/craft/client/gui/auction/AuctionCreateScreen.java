@@ -20,6 +20,12 @@ public class AuctionCreateScreen extends Screen {
     private static final int DAY_END = 22 * 60;
     private static final int DAY_SPAN = DAY_END - DAY_START;
 
+    // Fixed design canvas. The whole screen is laid out at this size, then scaled uniformly to fit the
+    // real screen (like ShopScreen anchors to guiScale) so the layout is identical at every GUI scale
+    // and can never reflow into overlap. 720x540 is wide/tall enough for the comfortable two-column form.
+    private static final int DESIGN_W = 720;
+    private static final int DESIGN_H = 540;
+
     private final int currentDay;
     private final int currentMinute;
     private final int occupiedDayMask;
@@ -53,6 +59,9 @@ public class AuctionCreateScreen extends Screen {
     private EditBox nameField;
     private EditBox promoField;
     private EditBox priceField;
+    private float fitScale = 1.0f;
+    private int fitOriginX, fitOriginY;
+    private long lastSliderTickMs;
 
     public AuctionCreateScreen(int currentDay, int currentMinute, int occupiedDayMask) {
         super(Component.translatable("stardewcraft.auction.create.title"));
@@ -77,10 +86,16 @@ public class AuctionCreateScreen extends Screen {
 
     @Override
     protected void init() {
-        panelW = fitSize(width - 32, 380, 760);
-        panelH = fitSize(height - 28, 380, 560);
-        panelX = (width - panelW) / 2;
-        panelY = (height - panelH) / 2;
+        // Scale the fixed design canvas to fit the real screen, leaving a small margin, capped so it
+        // stays a sensible centered box on very large screens. Everything below lays out in design space.
+        fitScale = Math.min(1.5f, 0.94f * Math.min(width / (float) DESIGN_W, height / (float) DESIGN_H));
+        fitOriginX = Math.round((width - DESIGN_W * fitScale) / 2f);
+        fitOriginY = Math.round((height - DESIGN_H * fitScale) / 2f);
+
+        panelW = DESIGN_W;
+        panelH = DESIGN_H;
+        panelX = 0;
+        panelY = 0;
 
         int pad = Math.max(30, Math.min(50, panelW / 15));
         contentX = panelX + pad;
@@ -216,27 +231,39 @@ public class AuctionCreateScreen extends Screen {
 
     @Override
     public void render(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        renderTransparentBackground(g);
+        renderTransparentBackground(g); // full-screen dim stays in real coords
+        int mx = lmx(mouseX);
+        int my = lmy(mouseY);
+        g.pose().pushPose();
+        g.pose().translate(fitOriginX, fitOriginY, 0);
+        g.pose().scale(fitScale, fitScale, 1f);
         StardewGuiUtil.drawDialogueBoxFrame(g, panelX, panelY, panelW, panelH);
         AuctionUi.ribbon(g, font, Component.translatable("stardewcraft.auction.create.title"), ribbonCx, contentY);
         AuctionUi.drawCentered(g, font, Component.translatable("stardewcraft.auction.create.subtitle"),
             ribbonCx, contentY + 22, contentW - 12, AuctionUi.MUTED);
 
         if (singleColumn) {
-            drawStepTabs(g, mouseX, mouseY);
+            drawStepTabs(g, mx, my);
             switch (compactPage) {
-                case 0 -> drawItemBand(g, mouseX, mouseY);
-                case 1 -> drawLedgerBand(g, mouseX, mouseY);
-                default -> drawScheduleBand(g, mouseX, mouseY);
+                case 0 -> drawItemBand(g, mx, my);
+                case 1 -> drawLedgerBand(g, mx, my);
+                default -> drawScheduleBand(g, mx, my);
             }
         } else {
-            drawItemBand(g, mouseX, mouseY);
-            drawLedgerBand(g, mouseX, mouseY);
-            drawScheduleBand(g, mouseX, mouseY);
+            drawItemBand(g, mx, my);
+            drawLedgerBand(g, mx, my);
+            drawScheduleBand(g, mx, my);
         }
-        drawFooter(g, mouseX, mouseY);
-        renderFields(g, mouseX, mouseY, partialTick);
+        drawFooter(g, mx, my);
+        renderFields(g, mx, my, partialTick);
+        g.pose().popPose();
     }
+
+    // Real screen coords -> design-space coords (and back-scaled), so input matches the scaled render.
+    private int lmx(double mouseX) { return (int) Math.round((mouseX - fitOriginX) / fitScale); }
+    private int lmy(double mouseY) { return (int) Math.round((mouseY - fitOriginY) / fitScale); }
+    private double ldx(double mouseX) { return (mouseX - fitOriginX) / fitScale; }
+    private double ldy(double mouseY) { return (mouseY - fitOriginY) / fitScale; }
 
     private void drawStepTabs(GuiGraphics g, int mouseX, int mouseY) {
         drawStepTab(g, mouseX, mouseY, itemTabX, 0, Component.translatable("stardewcraft.auction.create.step.item"));
@@ -392,7 +419,9 @@ public class AuctionCreateScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(double rawX, double rawY, int button) {
+        double mouseX = ldx(rawX);
+        double mouseY = ldy(rawY);
         if (singleColumn && clickStepTab(mouseX, mouseY)) {
             return true;
         }
@@ -420,18 +449,18 @@ public class AuctionCreateScreen extends Screen {
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+    public boolean mouseDragged(double rawX, double rawY, int button, double dragX, double dragY) {
         if (draggingTime) {
-            setTimeFromMouse(mouseX);
+            setTimeFromMouse(ldx(rawX));
             return true;
         }
-        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+        return super.mouseDragged(ldx(rawX), ldy(rawY), button, dragX, dragY);
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+    public boolean mouseReleased(double rawX, double rawY, int button) {
         draggingTime = false;
-        return super.mouseReleased(mouseX, mouseY, button);
+        return super.mouseReleased(ldx(rawX), ldy(rawY), button);
     }
 
     private boolean clickStepTab(double mouseX, double mouseY) {
@@ -507,7 +536,20 @@ public class AuctionCreateScreen extends Screen {
         minute = Math.max(DAY_START, Math.min(DAY_END, minute));
         if (minute != startMinute) {
             startMinute = minute;
-            playSelect();
+            playSliderTick();
+        }
+    }
+
+    // A fast drag crosses many 10-minute steps per frame; without throttling that machine-guns the click
+    // sound. Rate-limit to one gentle tick per ~55ms so dragging stays crisp but never harsh.
+    private void playSliderTick() {
+        long now = System.currentTimeMillis();
+        if (now - lastSliderTickMs < 55) {
+            return;
+        }
+        lastSliderTickMs = now;
+        if (minecraft != null) {
+            minecraft.getSoundManager().play(SimpleSoundInstance.forUI(ModSounds.SMALL_SELECT.get(), 0.5f, 1.0f));
         }
     }
 
@@ -614,11 +656,6 @@ public class AuctionCreateScreen extends Screen {
         return String.format(java.util.Locale.ROOT, "%02d:%02d", minute / 60, minute % 60);
     }
 
-    private static int fitSize(int available, int min, int max) {
-        int usable = Math.max(180, available);
-        return Math.max(Math.min(min, usable), Math.min(max, usable));
-    }
-
     private static Component formatDate(int absoluteDay) {
         return Component.translatable("stardewcraft.auction.create.selected_day",
             seasonName(absoluteDay), dayOfSeason(absoluteDay));
@@ -640,7 +677,7 @@ public class AuctionCreateScreen extends Screen {
 
     private void playSelect() {
         if (minecraft != null) {
-            minecraft.getSoundManager().play(SimpleSoundInstance.forUI(ModSounds.BUTTON_PRESS.get(), 1.0f, 0.5f));
+            minecraft.getSoundManager().play(SimpleSoundInstance.forUI(ModSounds.SMALL_SELECT.get(), 0.7f, 1.05f));
         }
     }
 

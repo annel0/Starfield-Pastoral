@@ -51,6 +51,7 @@ import com.stardew.craft.client.render.LoomBlockEntityRenderer;
 import com.stardew.craft.client.render.WormBinBlockEntityRenderer;
 import com.stardew.craft.client.render.UncertaintyStatueBlockEntityRenderer;
 import com.stardew.craft.client.render.FeedTroughBlockEntityRenderer;
+import com.stardew.craft.client.render.FairStrengthTesterBlockEntityRenderer;
 import com.stardew.craft.client.render.FishNetBlockEntityRenderer;
 import com.stardew.craft.client.render.FishPondBucketBlockEntityRenderer;
 import com.stardew.craft.client.render.AutoFeedTroughBlockEntityRenderer;
@@ -173,6 +174,7 @@ public final class ModClientSetup {
 		event.registerBlockEntityRenderer(ModBlockEntities.JUNIMO_HUT_DECOR.get(), com.stardew.craft.client.render.JunimoHutDecorBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.FLOWER_DANCE_DECOR.get(), com.stardew.craft.client.render.FlowerDanceDecorBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.LUAU_FESTIVAL_DECOR.get(), LuauFestivalDecorBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(ModBlockEntities.FAIR_STRENGTH_TESTER.get(), FairStrengthTesterBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.GIANT_CROP.get(), com.stardew.craft.client.render.GiantCropBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.BOOKSHELF_GEO.get(), BookshelfGeoBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.PILLAR_GEO.get(), PillarGeoBlockEntityRenderer::new);

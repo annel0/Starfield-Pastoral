@@ -117,6 +117,39 @@ public class PlayerStardewDataAPI {
         return consumed;
     }
 
+    public static int getFairStarTokens(ServerPlayer player) {
+        return getData(player).getFairStarTokens();
+    }
+
+    public static boolean setFairStarTokens(ServerPlayer player, int value) {
+        PlayerStardewData data = getData(player);
+        int before = data.getFairStarTokens();
+        data.setFairStarTokens(value);
+        boolean changed = before != data.getFairStarTokens();
+        if (changed) {
+            PlayerDataEventHandler.syncPlayerData(player, data);
+        }
+        return changed;
+    }
+
+    public static int addFairStarTokens(ServerPlayer player, int amount) {
+        PlayerStardewData data = getData(player);
+        int next = data.addFairStarTokens(amount);
+        if (amount > 0) {
+            PlayerDataEventHandler.syncPlayerData(player, data);
+        }
+        return next;
+    }
+
+    public static boolean consumeFairStarTokens(ServerPlayer player, int amount) {
+        PlayerStardewData data = getData(player);
+        boolean consumed = data.consumeFairStarTokens(amount);
+        if (consumed && amount > 0) {
+            PlayerDataEventHandler.syncPlayerData(player, data);
+        }
+        return consumed;
+    }
+
     public static boolean hasBookPower(ServerPlayer player, String bookId) {
         return getStat(player, bookId) > 0;
     }

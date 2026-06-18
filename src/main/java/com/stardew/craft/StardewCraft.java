@@ -23,6 +23,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
@@ -116,6 +117,9 @@ public class StardewCraft {
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             NeoForge.EVENT_BUS.register(com.stardew.craft.client.ModClientEvents.class);
+            if (ModList.get().isLoaded("appleskin")) {
+                NeoForge.EVENT_BUS.register(com.stardew.craft.compat.AppleSkinCompat.class);
+            }
         }
 
         // Register our mod's ModConfigSpecs so that FML can create and load the config files for us

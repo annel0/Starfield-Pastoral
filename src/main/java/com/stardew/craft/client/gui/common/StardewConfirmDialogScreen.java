@@ -97,7 +97,8 @@ public class StardewConfirmDialogScreen extends Screen {
         if (moneyContractSounds()) {
             playUiSound(ModSounds.BUTTON_TAP.get(), 0.42f, 1.16f);
         } else {
-            playUiSound(ModSounds.COWBOY_GUNSHOT.get(), 1.0f, 1.0f);
+            // Match the rest of the UI: option hover uses the soft SDV "small select" tick, not the loud gunshot.
+            playUiSound(ModSounds.SMALL_SELECT.get(), 0.5f, 1.0f);
         }
     }
 

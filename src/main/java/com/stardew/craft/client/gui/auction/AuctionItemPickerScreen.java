@@ -17,6 +17,9 @@ import java.util.function.IntConsumer;
  */
 @SuppressWarnings("null")
 public class AuctionItemPickerScreen extends Screen {
+    // Fixed design canvas, scaled uniformly to fit the screen so the layout is identical at every GUI scale.
+    private static final int DESIGN_W = 620;
+    private static final int DESIGN_H = 460;
     private final Screen parent;
     private final IntConsumer onPick;
     private int panelX, panelY, panelW, panelH;
@@ -25,6 +28,8 @@ public class AuctionItemPickerScreen extends Screen {
     private int cancelX, cancelY, cancelW, cancelH;
     private int hoveredSlot = -1;
     private boolean opened;
+    private float fitScale = 1.0f;
+    private int fitOriginX, fitOriginY;
 
     public AuctionItemPickerScreen(Screen parent, IntConsumer onPick) {
         super(Component.translatable("stardewcraft.auction.picker.title"));
@@ -41,12 +46,14 @@ public class AuctionItemPickerScreen extends Screen {
         slotSize = 32;
         slotGap = 5;
         int gridW = 9 * slotSize + 8 * slotGap;
-        int gridH = 4 * slotSize + 3 * slotGap + 8; // extra gap before the hotbar row
 
-        panelW = fitSize(width - 32, gridW + 96, 620);
-        panelH = fitSize(height - 28, gridH + 150, 460);
-        panelX = (width - panelW) / 2;
-        panelY = (height - panelH) / 2;
+        fitScale = Math.min(1.5f, 0.94f * Math.min(width / (float) DESIGN_W, height / (float) DESIGN_H));
+        fitOriginX = Math.round((width - DESIGN_W * fitScale) / 2f);
+        fitOriginY = Math.round((height - DESIGN_H * fitScale) / 2f);
+        panelW = DESIGN_W;
+        panelH = DESIGN_H;
+        panelX = 0;
+        panelY = 0;
         int pad = Math.max(30, Math.min(48, panelW / 14));
         contentX = panelX + pad;
         contentY = panelY + pad;
@@ -70,8 +77,13 @@ public class AuctionItemPickerScreen extends Screen {
     }
 
     @Override
-    public void render(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+    public void render(@Nonnull GuiGraphics g, int rawMouseX, int rawMouseY, float partialTick) {
         renderTransparentBackground(g);
+        int mouseX = lmx(rawMouseX);
+        int mouseY = lmy(rawMouseY);
+        g.pose().pushPose();
+        g.pose().translate(fitOriginX, fitOriginY, 0);
+        g.pose().scale(fitScale, fitScale, 1f);
         StardewGuiUtil.drawDialogueBoxFrame(g, panelX, panelY, panelW, panelH);
         AuctionUi.ribbon(g, font, Component.translatable("stardewcraft.auction.picker.title"), contentX + contentW / 2, contentY);
         AuctionUi.drawCentered(g, font, Component.translatable("stardewcraft.auction.picker.hint"),
@@ -107,10 +119,18 @@ public class AuctionItemPickerScreen extends Screen {
         if (!hoveredStack.isEmpty()) {
             g.renderTooltip(font, hoveredStack, hx, hy);
         }
+        g.pose().popPose();
     }
 
+    private int lmx(double mouseX) { return (int) Math.round((mouseX - fitOriginX) / fitScale); }
+    private int lmy(double mouseY) { return (int) Math.round((mouseY - fitOriginY) / fitScale); }
+    private double ldx(double mouseX) { return (mouseX - fitOriginX) / fitScale; }
+    private double ldy(double mouseY) { return (mouseY - fitOriginY) / fitScale; }
+
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(double rawX, double rawY, int button) {
+        double mouseX = ldx(rawX);
+        double mouseY = ldy(rawY);
         if (AuctionUi.inside(mouseX, mouseY, cancelX, cancelY, cancelW, cancelH)) {
             onClose();
             return true;
@@ -142,10 +162,5 @@ public class AuctionItemPickerScreen extends Screen {
         if (minecraft != null) {
             minecraft.setScreen(parent);
         }
-    }
-
-    private static int fitSize(int available, int min, int max) {
-        int usable = Math.max(160, available);
-        return Math.max(Math.min(min, usable), Math.min(max, usable));
     }
 }

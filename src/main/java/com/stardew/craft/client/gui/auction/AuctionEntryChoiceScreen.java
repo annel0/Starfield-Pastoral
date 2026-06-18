@@ -17,6 +17,9 @@ import javax.annotation.Nonnull;
 
 @SuppressWarnings("null")
 public class AuctionEntryChoiceScreen extends Screen {
+    // Fixed design canvas, scaled uniformly to fit the screen so the layout is identical at every GUI scale.
+    private static final int DESIGN_W = 640;
+    private static final int DESIGN_H = 360;
     private int panelX, panelY, panelW, panelH;
     private int contentX, contentY, contentW, contentH;
     private int stageX, stageY, stageW, stageH;
@@ -24,6 +27,8 @@ public class AuctionEntryChoiceScreen extends Screen {
     private int houseX, houseY;
     private boolean selectedAuction = true;
     private boolean opened;
+    private float fitScale = 1.0f;
+    private int fitOriginX, fitOriginY;
 
     public AuctionEntryChoiceScreen() {
         super(Component.translatable("stardewcraft.auction.entry.title"));
@@ -31,10 +36,13 @@ public class AuctionEntryChoiceScreen extends Screen {
 
     @Override
     protected void init() {
-        panelW = fitSize(width - 48, 340, 640);
-        panelH = fitSize(height - 72, 248, 360);
-        panelX = (width - panelW) / 2;
-        panelY = (height - panelH) / 2;
+        fitScale = Math.min(1.5f, 0.94f * Math.min(width / (float) DESIGN_W, height / (float) DESIGN_H));
+        fitOriginX = Math.round((width - DESIGN_W * fitScale) / 2f);
+        fitOriginY = Math.round((height - DESIGN_H * fitScale) / 2f);
+        panelW = DESIGN_W;
+        panelH = DESIGN_H;
+        panelX = 0;
+        panelY = 0;
         int pad = Math.max(14, Math.min(24, panelW / 22));
         contentX = panelX + pad;
         contentY = panelY + pad;
@@ -77,14 +85,25 @@ public class AuctionEntryChoiceScreen extends Screen {
     @Override
     public void render(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         renderTransparentBackground(g);
+        int mx = lmx(mouseX);
+        int my = lmy(mouseY);
+        g.pose().pushPose();
+        g.pose().translate(fitOriginX, fitOriginY, 0);
+        g.pose().scale(fitScale, fitScale, 1f);
         StardewGuiUtil.drawDialogueBoxFrame(g, panelX, panelY, panelW, panelH);
         AuctionUi.ledgerPanel(g, contentX, contentY, contentW, contentH);
         AuctionUi.title(g, font, Component.translatable("stardewcraft.auction.entry.title"),
             Component.translatable("stardewcraft.auction.entry.question"), contentX + 8, contentY + 7, contentW - 16);
         drawStage(g);
-        drawChoice(g, mouseX, mouseY, auctionX, auctionY, true);
-        drawChoice(g, mouseX, mouseY, houseX, houseY, false);
+        drawChoice(g, mx, my, auctionX, auctionY, true);
+        drawChoice(g, mx, my, houseX, houseY, false);
+        g.pose().popPose();
     }
+
+    private int lmx(double mouseX) { return (int) Math.round((mouseX - fitOriginX) / fitScale); }
+    private int lmy(double mouseY) { return (int) Math.round((mouseY - fitOriginY) / fitScale); }
+    private double ldx(double mouseX) { return (mouseX - fitOriginX) / fitScale; }
+    private double ldy(double mouseY) { return (mouseY - fitOriginY) / fitScale; }
 
     private void drawStage(GuiGraphics g) {
         AuctionUi.card(g, stageX, stageY, stageW, stageH, false, false);
@@ -143,7 +162,9 @@ public class AuctionEntryChoiceScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(double rawX, double rawY, int button) {
+        double mouseX = ldx(rawX);
+        double mouseY = ldy(rawY);
         if (AuctionUi.inside(mouseX, mouseY, auctionX, auctionY, choiceW, choiceH)) {
             selectedAuction = true;
             choose(true);
@@ -166,7 +187,7 @@ public class AuctionEntryChoiceScreen extends Screen {
         if (keyCode == 263 || keyCode == 262) {
             selectedAuction = !selectedAuction;
             if (minecraft != null) {
-                minecraft.getSoundManager().play(SimpleSoundInstance.forUI(ModSounds.BUTTON_PRESS.get(), 0.74f, 0.56f));
+                minecraft.getSoundManager().play(SimpleSoundInstance.forUI(ModSounds.SMALL_SELECT.get(), 0.7f, 1.05f));
             }
             return true;
         }
@@ -185,10 +206,5 @@ public class AuctionEntryChoiceScreen extends Screen {
         if (minecraft != null) {
             minecraft.getSoundManager().play(SimpleSoundInstance.forUI(ModSounds.BOOK_READ.get(), 0.82f, 0.68f));
         }
-    }
-
-    private static int fitSize(int available, int min, int max) {
-        int usable = Math.max(160, available);
-        return Math.max(Math.min(min, usable), Math.min(max, usable));
     }
 }

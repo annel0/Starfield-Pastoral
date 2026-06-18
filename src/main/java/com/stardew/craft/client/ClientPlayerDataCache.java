@@ -32,6 +32,7 @@ public class ClientPlayerDataCache {
     private static final java.util.Map<String, Integer> stats = new java.util.HashMap<>();
     private static int ticketPrizesClaimed = 0;
     private static int specialOrderPrizeTickets = 0;
+    private static int fairStarTokens = 0;
     private static int maxMineFloorReached = 0;
     private static int firstJoinDay = -1;
 
@@ -85,6 +86,7 @@ public class ClientPlayerDataCache {
         maxMineFloorReached = nbt.contains("MaxMineFloorReached") ? Math.max(0, nbt.getInt("MaxMineFloorReached")) : 0;
         ticketPrizesClaimed = nbt.contains("TicketPrizesClaimed") ? Math.max(0, nbt.getInt("TicketPrizesClaimed")) : 0;
         specialOrderPrizeTickets = nbt.contains("SpecialOrderPrizeTickets") ? Math.max(0, nbt.getInt("SpecialOrderPrizeTickets")) : 0;
+        fairStarTokens = nbt.contains("FairStarTokens") ? Math.max(0, nbt.getInt("FairStarTokens")) : 0;
         firstJoinDay = nbt.contains("FirstJoinDay") ? nbt.getInt("FirstJoinDay") : -1;
 
         tempFishingLevelBonus = nbt.contains("TempFishingLevelBonus") ? nbt.getInt("TempFishingLevelBonus") : 0;
@@ -247,6 +249,10 @@ public class ClientPlayerDataCache {
     
     public static int getMoney() {
         return money;
+    }
+
+    public static int getFairStarTokens() {
+        return Math.max(0, fairStarTokens);
     }
 
     public static String getFarmName() {

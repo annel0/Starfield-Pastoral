@@ -98,7 +98,7 @@ public class StardewPlayerHud {
     /**
      * 检查是否应该渲染自定义HUD
      */
-    private static boolean shouldRenderCustomHUD(Player player) {
+    public static boolean shouldRenderCustomHUD(Player player) {
         // F1 隐藏 HUD
         if (Minecraft.getInstance().options.hideGui) {
             return false;

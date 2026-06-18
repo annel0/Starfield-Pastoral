@@ -14,7 +14,12 @@ import java.util.List;
 
 @SuppressWarnings("null")
 public class AuctionJoinListScreen extends Screen {
+    // Fixed design canvas, scaled uniformly to fit the screen so the layout is identical at every GUI scale.
+    private static final int DESIGN_W = 700;
+    private static final int DESIGN_H = 456;
     private final List<OpenAuctionJoinListPayload.AuctionSummary> auctions;
+    private float fitScale = 1.0f;
+    private int fitOriginX, fitOriginY;
     private int panelX, panelY, panelW, panelH;
     private int contentX, contentY, contentW, contentH;
     private int listX, listY, listW, listH;
@@ -34,10 +39,13 @@ public class AuctionJoinListScreen extends Screen {
 
     @Override
     protected void init() {
-        panelW = fitSize(width - 46, 360, 700);
-        panelH = fitSize(height - 52, 260, 456);
-        panelX = (width - panelW) / 2;
-        panelY = (height - panelH) / 2;
+        fitScale = Math.min(1.5f, 0.94f * Math.min(width / (float) DESIGN_W, height / (float) DESIGN_H));
+        fitOriginX = Math.round((width - DESIGN_W * fitScale) / 2f);
+        fitOriginY = Math.round((height - DESIGN_H * fitScale) / 2f);
+        panelW = DESIGN_W;
+        panelH = DESIGN_H;
+        panelX = 0;
+        panelY = 0;
         int pad = Math.max(14, Math.min(24, panelW / 24));
         contentX = panelX + pad;
         contentY = panelY + pad;
@@ -84,8 +92,13 @@ public class AuctionJoinListScreen extends Screen {
     }
 
     @Override
-    public void render(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+    public void render(@Nonnull GuiGraphics g, int rawMouseX, int rawMouseY, float partialTick) {
         renderTransparentBackground(g);
+        int mouseX = lmx(rawMouseX);
+        int mouseY = lmy(rawMouseY);
+        g.pose().pushPose();
+        g.pose().translate(fitOriginX, fitOriginY, 0);
+        g.pose().scale(fitScale, fitScale, 1f);
         StardewGuiUtil.drawDialogueBoxFrame(g, panelX, panelY, panelW, panelH);
         AuctionUi.ledgerPanel(g, contentX, contentY, contentW, contentH);
         AuctionUi.title(g, font, Component.translatable("stardewcraft.auction.join_list.title"),
@@ -93,11 +106,17 @@ public class AuctionJoinListScreen extends Screen {
             contentX + 8, contentY + 7, contentW - 16);
         if (auctions.isEmpty()) {
             drawEmpty(g);
-            return;
+        } else {
+            drawList(g, mouseX, mouseY);
+            drawDetail(g, mouseX, mouseY);
         }
-        drawList(g, mouseX, mouseY);
-        drawDetail(g, mouseX, mouseY);
+        g.pose().popPose();
     }
+
+    private int lmx(double mouseX) { return (int) Math.round((mouseX - fitOriginX) / fitScale); }
+    private int lmy(double mouseY) { return (int) Math.round((mouseY - fitOriginY) / fitScale); }
+    private double ldx(double mouseX) { return (mouseX - fitOriginX) / fitScale; }
+    private double ldy(double mouseY) { return (mouseY - fitOriginY) / fitScale; }
 
     private void drawEmpty(GuiGraphics g) {
         AuctionUi.card(g, listX, listY + 8, listW, Math.min(98, listH), false, false);
@@ -158,7 +177,9 @@ public class AuctionJoinListScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(double rawX, double rawY, int button) {
+        double mouseX = ldx(rawX);
+        double mouseY = ldy(rawY);
         for (int i = 0; i < Math.min(maxVisible, auctions.size() - scrollOffset); i++) {
             int y = listY + i * (rowH + 8);
             if (AuctionUi.inside(mouseX, mouseY, listX, y, listW, rowH)) {
@@ -199,9 +220,11 @@ public class AuctionJoinListScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+    public boolean mouseScrolled(double rawX, double rawY, double scrollX, double scrollY) {
+        double mouseX = ldx(rawX);
+        double mouseY = ldy(rawY);
         if (!AuctionUi.inside(mouseX, mouseY, listX, listY, listW, listH)) {
-            return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+            return super.mouseScrolled(rawX, rawY, scrollX, scrollY);
         }
         if (scrollY > 0 && scrollOffset > 0) {
             scrollOffset--;
@@ -241,11 +264,6 @@ public class AuctionJoinListScreen extends Screen {
         });
     }
 
-    private static int fitSize(int available, int min, int max) {
-        int usable = Math.max(180, available);
-        return Math.max(Math.min(min, usable), Math.min(max, usable));
-    }
-
     private void ensureVisible(int index) {
         if (index < scrollOffset) {
             scrollOffset = index;
@@ -263,7 +281,7 @@ public class AuctionJoinListScreen extends Screen {
 
     private void playSelect() {
         if (minecraft != null) {
-            minecraft.getSoundManager().play(SimpleSoundInstance.forUI(ModSounds.BUTTON_PRESS.get(), 0.72f, 0.58f));
+            minecraft.getSoundManager().play(SimpleSoundInstance.forUI(ModSounds.SMALL_SELECT.get(), 0.7f, 1.05f));
         }
     }
 

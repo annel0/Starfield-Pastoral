@@ -2188,6 +2188,15 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .strength(1.0F, 2.0F), "stardewcraft:decor/festival/luau_totem_proxy"));
 
         @SuppressWarnings("null")
+        public static final DeferredBlock<Block> FAIR_STRENGTH_TESTER = BLOCKS.register("fair_strength_tester",
+                        () -> new com.stardew.craft.block.decor.FairStrengthTesterBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.METAL)
+                                        .sound(net.minecraft.world.level.block.SoundType.METAL)
+                                        .noOcclusion()
+                                        .strength(-1.0F, 3600000.0F)
+                                        .noLootTable(), "stardewcraft:decor/festival/fair_strength_tester_proxy"));
+
+        @SuppressWarnings("null")
         public static final DeferredBlock<Block> PLUSH_BUNNY = BLOCKS.register("plush_bunny",
                         () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
                                         .mapColor(net.minecraft.world.level.material.MapColor.WOOL)

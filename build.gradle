@@ -35,6 +35,10 @@ repositories {
         name = "Curios"
         url = "https://maven.theillusivec4.top/"
     }
+    maven {
+        name = "AppleSkin"
+        url = "https://maven.ryanliptak.com/"
+    }
 }
 
 base {
@@ -165,6 +169,9 @@ dependencies {
     // Curios API (optional soft dependency — rings/boots can go in curios slots if present)
     compileOnly "top.theillusivec4.curios:curios-neoforge:9.2.2+1.21.1"
     localRuntime "top.theillusivec4.curios:curios-neoforge:9.2.2+1.21.1"
+
+    // AppleSkin API (optional soft dependency — hide its vanilla hunger overlays in Stardew HUD dimensions)
+    compileOnly "squeek.appleskin:appleskin-neoforge:mc1.21-3.0.9:api"
 
     // Example mod dependency using a mod jar from ./libs with a flat dir repository
     // This maps to ./libs/coolmod-${mc_version}-${coolmod_version}.jar

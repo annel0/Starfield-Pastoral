@@ -857,6 +857,16 @@ public class PacketHandler {
             com.stardew.craft.network.payload.OpenShopScreenPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.OpenShopScreenPayload::handle
         );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenFairStrengthGamePayload.TYPE,
+            com.stardew.craft.network.payload.OpenFairStrengthGamePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenFairStrengthGamePayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.FairStrengthGameResultPayload.TYPE,
+            com.stardew.craft.network.payload.FairStrengthGameResultPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FairStrengthGameResultPayload::handle
+        );
         registrar.playToServer(
             com.stardew.craft.network.payload.ShopPurchasePayload.TYPE,
             com.stardew.craft.network.payload.ShopPurchasePayload.STREAM_CODEC,

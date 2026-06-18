@@ -222,6 +222,11 @@ public final class ModBlockEntities {
 					ModBlocks.LUAU_SOUP_POT.get(), ModBlocks.LUAU_TOTEM.get()).build(null));
 
 	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FairStrengthTesterBlockEntity>> FAIR_STRENGTH_TESTER =
+			BLOCK_ENTITIES.register("fair_strength_tester", () -> BlockEntityType.Builder.of(FairStrengthTesterBlockEntity::new,
+					ModBlocks.FAIR_STRENGTH_TESTER.get()).build(null));
+
+	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DecorBlockEntity>> DECOR_BLOCK =
 			BLOCK_ENTITIES.register("decor_block", () -> BlockEntityType.Builder.of(DecorBlockEntity::new, ModBlocks.WALLPAPER_BLOCK.get(), ModBlocks.FLOORING_BLOCK.get()).build(null));
 

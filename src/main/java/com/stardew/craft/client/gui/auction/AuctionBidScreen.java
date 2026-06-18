@@ -19,8 +19,13 @@ import javax.annotation.Nonnull;
 
 @SuppressWarnings("null")
 public class AuctionBidScreen extends Screen {
+    // Fixed design canvas, scaled uniformly to fit the screen so the layout is identical at every GUI scale.
+    private static final int DESIGN_W = 720;
+    private static final int DESIGN_H = 470;
     /** Snapshot the screen was opened with; only seeds the first frames before live sync arrives. */
     private final OpenAuctionBidPayload seed;
+    private float fitScale = 1.0f;
+    private int fitOriginX, fitOriginY;
     private int panelX, panelY, panelW, panelH;
     private int contentX, contentY, contentW, contentH;
     private int ribbonCx, ribbonY, metaY, timerX, timerY, timerW;
@@ -93,10 +98,13 @@ public class AuctionBidScreen extends Screen {
 
     @Override
     protected void init() {
-        panelW = fitSize(width - 32, 380, 720);
-        panelH = fitSize(height - 28, 340, 470);
-        panelX = (width - panelW) / 2;
-        panelY = (height - panelH) / 2;
+        fitScale = Math.min(1.5f, 0.94f * Math.min(width / (float) DESIGN_W, height / (float) DESIGN_H));
+        fitOriginX = Math.round((width - DESIGN_W * fitScale) / 2f);
+        fitOriginY = Math.round((height - DESIGN_H * fitScale) / 2f);
+        panelW = DESIGN_W;
+        panelH = DESIGN_H;
+        panelX = 0;
+        panelY = 0;
         int pad = Math.max(30, Math.min(50, panelW / 15));
         contentX = panelX + pad;
         contentY = panelY + pad;
@@ -187,7 +195,7 @@ public class AuctionBidScreen extends Screen {
     }
 
     @Override
-    public void render(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+    public void render(@Nonnull GuiGraphics g, int rawMouseX, int rawMouseY, float partialTick) {
         // Auto-close once the auction we were following ends (the board stops syncing / goes inactive).
         if (live()) {
             wasLive = true;
@@ -202,6 +210,11 @@ public class AuctionBidScreen extends Screen {
         }
 
         renderTransparentBackground(g);
+        int mouseX = lmx(rawMouseX);
+        int mouseY = lmy(rawMouseY);
+        g.pose().pushPose();
+        g.pose().translate(fitOriginX, fitOriginY, 0);
+        g.pose().scale(fitScale, fitScale, 1f);
         StardewGuiUtil.drawDialogueBoxFrame(g, panelX, panelY, panelW, panelH);
         drawHeader(g);
         if (compact) {
@@ -212,7 +225,13 @@ public class AuctionBidScreen extends Screen {
             drawRail(g, mouseX, mouseY);
             bidField.render(g, mouseX, mouseY, partialTick);
         }
+        g.pose().popPose();
     }
+
+    private int lmx(double mouseX) { return (int) Math.round((mouseX - fitOriginX) / fitScale); }
+    private int lmy(double mouseY) { return (int) Math.round((mouseY - fitOriginY) / fitScale); }
+    private double ldx(double mouseX) { return (mouseX - fitOriginX) / fitScale; }
+    private double ldy(double mouseY) { return (mouseY - fitOriginY) / fitScale; }
 
     private void drawStageCompact(GuiGraphics g) {
         AuctionUi.band(g, stageX, stageY, stageW, stageH);
@@ -377,7 +396,9 @@ public class AuctionBidScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(double rawX, double rawY, int button) {
+        double mouseX = ldx(rawX);
+        double mouseY = ldy(rawY);
         if (clickQuick(mouseX, mouseY)) return true;
         if (AuctionUi.inside(mouseX, mouseY, fieldBoxX, fieldBoxY, fieldBoxW, fieldBoxH)) {
             bidField.setFocused(true);
@@ -474,7 +495,7 @@ public class AuctionBidScreen extends Screen {
 
     private void playSelect() {
         if (minecraft != null) {
-            minecraft.getSoundManager().play(SimpleSoundInstance.forUI(ModSounds.BUTTON_PRESS.get(), 1.0f, 0.5f));
+            minecraft.getSoundManager().play(SimpleSoundInstance.forUI(ModSounds.SMALL_SELECT.get(), 0.7f, 1.05f));
         }
     }
 
@@ -488,10 +509,5 @@ public class AuctionBidScreen extends Screen {
         if (minecraft != null) {
             minecraft.getSoundManager().play(SimpleSoundInstance.forUI(ModSounds.CANCEL.get(), 0.92f, 0.45f));
         }
-    }
-
-    private static int fitSize(int available, int min, int max) {
-        int usable = Math.max(180, available);
-        return Math.max(Math.min(min, usable), Math.min(max, usable));
     }
 }

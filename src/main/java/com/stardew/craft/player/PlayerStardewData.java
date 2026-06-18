@@ -49,6 +49,7 @@ public class PlayerStardewData {
     
     private int money;               // 金币数量
     private long totalMoneyEarned;    // SDV totalMoneyEarned：累计赚到的金币（不随花费减少）
+    private int fairStarTokens;       // SDV Farmer.festivalScore：Stardew Valley Fair 星星币
     
     // ============ 技能系统 ============
     // 技能等级（0-10级）
@@ -264,6 +265,7 @@ public class PlayerStardewData {
         this.stardropsConsumed = 0;
         this.exhausted = false;
         this.money = 500;  // 初始金币
+        this.fairStarTokens = 0;
         this.totalMoneyEarned = 500L;
         this.lastSyncTime = System.currentTimeMillis();
         this.dirty = false;
@@ -311,6 +313,7 @@ public class PlayerStardewData {
             : Math.max(0, Math.min(7, (data.maxEnergy - 270) / 34));
         data.exhausted = tag.getBoolean("Exhausted");
         data.money = tag.contains("Money") ? tag.getInt("Money") : 500;
+        data.fairStarTokens = tag.contains("FairStarTokens") ? Math.max(0, tag.getInt("FairStarTokens")) : 0;
         data.totalMoneyEarned = tag.contains("TotalMoneyEarned")
             ? Math.max(0L, tag.getLong("TotalMoneyEarned"))
             : Math.max(data.money, data.totalShippingGold);
@@ -741,6 +744,7 @@ public class PlayerStardewData {
         tag.putInt("StardropsConsumed", stardropsConsumed);
         tag.putBoolean("Exhausted", exhausted);
         tag.putInt("Money", money);
+        tag.putInt("FairStarTokens", fairStarTokens);
         tag.putLong("TotalMoneyEarned", totalMoneyEarned);
         tag.putString("LastKnownName", lastKnownName == null ? "" : lastKnownName);
 
@@ -1643,6 +1647,33 @@ public class PlayerStardewData {
     public void setMoney(int money) {
         this.money = Math.max(0, money);
         markDirty();
+    }
+
+    public int getFairStarTokens() { return fairStarTokens; }
+
+    public void setFairStarTokens(int value) {
+        this.fairStarTokens = Math.max(0, value);
+        markDirty();
+    }
+
+    public int addFairStarTokens(int amount) {
+        if (amount > 0) {
+            fairStarTokens = Math.max(0, fairStarTokens + amount);
+            markDirty();
+        }
+        return fairStarTokens;
+    }
+
+    public boolean consumeFairStarTokens(int amount) {
+        if (amount <= 0) {
+            return true;
+        }
+        if (fairStarTokens < amount) {
+            return false;
+        }
+        fairStarTokens -= amount;
+        markDirty();
+        return true;
     }
 
     public long getTotalMoneyEarned() { return totalMoneyEarned; }
