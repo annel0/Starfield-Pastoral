@@ -63,13 +63,25 @@ public class BerryBushBlock extends Block implements EntityBlock {
         }
     }
 
-    public enum BerryKind {
-        NONE,
-        SALMONBERRY,
-        BLACKBERRY
+    public enum BerryKind implements StringRepresentable {
+        NONE("none"),
+        SALMONBERRY("salmonberry"),
+        BLACKBERRY("blackberry");
+
+        private final String name;
+
+        BerryKind(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String getSerializedName() {
+            return name;
+        }
     }
 
     public static final EnumProperty<Part> PART = EnumProperty.create("part", Part.class);
+    public static final EnumProperty<BerryKind> BERRY = EnumProperty.create("berry", BerryKind.class);
     public static final List<int[]> CELL_OFFSETS;
     private static final double BERRY_BLOOM_CHANCE = 0.4D;
     private static final VoxelShape[] OUTLINE_SHAPES = new VoxelShape[18];
@@ -90,12 +102,12 @@ public class BerryBushBlock extends Block implements EntityBlock {
 
     public BerryBushBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(PART, Part.MAIN));
+        registerDefaultState(stateDefinition.any().setValue(PART, Part.MAIN).setValue(BERRY, BerryKind.NONE));
     }
 
     @Override
     protected void createBlockStateDefinition(@Nonnull StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(PART);
+        builder.add(PART, BERRY);
     }
 
     @Override

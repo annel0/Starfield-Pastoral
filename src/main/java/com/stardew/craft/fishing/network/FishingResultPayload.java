@@ -12,7 +12,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-public record FishingResultPayload(UUID sessionId, boolean success, float catchProgress, boolean treasureCaught, int numCaught) implements CustomPacketPayload {
+public record FishingResultPayload(UUID sessionId, boolean success, float catchProgress, boolean treasureCaught,
+								   int numCaught, boolean perfect, int caughtFishSize) implements CustomPacketPayload {
 	@SuppressWarnings("null")
 	public static final Type<FishingResultPayload> TYPE = new Type<>(
 			ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "fishing_result")
@@ -33,20 +34,38 @@ public record FishingResultPayload(UUID sessionId, boolean success, float catchP
 		}
 	};
 
-	@SuppressWarnings("null")
-	public static final StreamCodec<ByteBuf, FishingResultPayload> STREAM_CODEC = StreamCodec.composite(
-			UUID_STREAM_CODEC,
-			FishingResultPayload::sessionId,
-			ByteBufCodecs.BOOL,
-			FishingResultPayload::success,
-			ByteBufCodecs.FLOAT,
-			FishingResultPayload::catchProgress,
-			ByteBufCodecs.BOOL,
-			FishingResultPayload::treasureCaught,
-			ByteBufCodecs.VAR_INT,
-			FishingResultPayload::numCaught,
-			FishingResultPayload::new
-	);
+	public static final StreamCodec<ByteBuf, FishingResultPayload> STREAM_CODEC = new StreamCodec<>() {
+		@Override
+		public FishingResultPayload decode(@SuppressWarnings("null") ByteBuf buf) {
+			@SuppressWarnings("null")
+			UUID sessionId = UUID_STREAM_CODEC.decode(buf);
+			@SuppressWarnings("null")
+			boolean success = ByteBufCodecs.BOOL.decode(buf);
+			@SuppressWarnings("null")
+			float catchProgress = ByteBufCodecs.FLOAT.decode(buf);
+			@SuppressWarnings("null")
+			boolean treasureCaught = ByteBufCodecs.BOOL.decode(buf);
+			@SuppressWarnings("null")
+			int numCaught = ByteBufCodecs.VAR_INT.decode(buf);
+			@SuppressWarnings("null")
+			boolean perfect = ByteBufCodecs.BOOL.decode(buf);
+			@SuppressWarnings("null")
+			int caughtFishSize = ByteBufCodecs.VAR_INT.decode(buf);
+			return new FishingResultPayload(sessionId, success, catchProgress, treasureCaught,
+					numCaught, perfect, caughtFishSize);
+		}
+
+		@Override
+		public void encode(@SuppressWarnings("null") ByteBuf buf, @SuppressWarnings("null") FishingResultPayload value) {
+			UUID_STREAM_CODEC.encode(buf, value.sessionId());
+			ByteBufCodecs.BOOL.encode(buf, value.success());
+			ByteBufCodecs.FLOAT.encode(buf, value.catchProgress());
+			ByteBufCodecs.BOOL.encode(buf, value.treasureCaught());
+			ByteBufCodecs.VAR_INT.encode(buf, value.numCaught());
+			ByteBufCodecs.BOOL.encode(buf, value.perfect());
+			ByteBufCodecs.VAR_INT.encode(buf, value.caughtFishSize());
+		}
+	};
 
 	@Override
 	public @NotNull Type<? extends CustomPacketPayload> type() {
@@ -58,7 +77,9 @@ public record FishingResultPayload(UUID sessionId, boolean success, float catchP
 			if (!(context.player() instanceof net.minecraft.server.level.ServerPlayer sp)) {
 				return;
 			}
-			FishingSessionManager.get(sp.server).handleResult(sp, payload.sessionId(), payload.success(), payload.catchProgress(), payload.treasureCaught(), payload.numCaught());
+			FishingSessionManager.get(sp.server).handleResult(sp, payload.sessionId(), payload.success(),
+					payload.catchProgress(), payload.treasureCaught(), payload.numCaught(),
+					payload.perfect(), payload.caughtFishSize());
 		});
 	}
 }

@@ -287,7 +287,7 @@ public class FarmInstanceInitializer {
                 // ── 杂草（黄土+草方块） ──
                 cumulative += WEED_PROB;
                 if (roll < cumulative) {
-                    int variant = (season == 3) ? 0 : random.nextInt(3);
+                    int variant = random.nextInt(3);
                     BlockState state = ModBlocks.WILD_WEEDS.get().defaultBlockState()
                             .setValue(WildWeedsBlock.SEASON, Math.max(0, Math.min(3, season)))
                             .setValue(WildWeedsBlock.VARIANT, variant);

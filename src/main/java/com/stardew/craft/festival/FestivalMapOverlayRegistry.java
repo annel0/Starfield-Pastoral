@@ -27,6 +27,19 @@ public final class FestivalMapOverlayRegistry {
             true
         ));
         register(new FestivalMapOverlayDefinition(
+            "Town-Fair",
+            "Town",
+            new BlockPos(-41, 49, -47),
+            "",
+            "data/stardewcraft/structures/festivals/qiujizhanlanhui.schem",
+            new BlockPos(-41, 49, -47),
+            new BlockPos(80, 77, 57),
+            List.of(),
+            true,
+            true,
+            true
+        ));
+        register(new FestivalMapOverlayDefinition(
             "Forest-FlowerFestival",
             "Forest",
             new BlockPos(-250, 60, 101),

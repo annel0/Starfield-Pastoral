@@ -115,6 +115,30 @@ public final class ActiveFestivalHandlers {
             MoonlightJelliesFestivalService::applyTimeFreeze,
             "已启动 Moonlight Jellies 总调试: 当前日期按 summer28 处理，overlay 应用中，NPC 会在地图应用完成后进入节日点位"
         ));
+        register(new DelegateHandler(
+            FairFestivalService.FESTIVAL_ID,
+            "Stardew Valley Fair",
+            FairFestivalService::tick,
+            FairFestivalService::startDebugFestival,
+            FairFestivalService::restoreDebugFestival,
+            FairFestivalService::debugStatus,
+            FairFestivalService::onMapOverlayApplied,
+            FairFestivalService::requestDebugNpcs,
+            FairFestivalService::restoreNpcs,
+            FairFestivalService::debugNpcStatus,
+            FairFestivalService::controlsNpc,
+            FairFestivalService::isParticipant,
+            FairFestivalService::onPlayerLogin,
+            FairFestivalService::onPlayerLogout,
+            FairFestivalService::markFestivalDialogueSeen,
+            FairFestivalService::tryOpenPierreFestivalShop,
+            FairFestivalService::isMainEventActive,
+            FairFestivalService::tryStartMainEvent,
+            FairFestivalService::debugStatus,
+            FairFestivalService::isTimeFreezeActive,
+            FairFestivalService::applyTimeFreeze,
+            "已启动 Stardew Valley Fair 总调试: 当前日期按 fall16 处理，overlay 应用中，Lewis 会进入 1 64 -11 朝南，商店/小游戏交互点位会安装"
+        ));
     }
 
     private ActiveFestivalHandlers() {

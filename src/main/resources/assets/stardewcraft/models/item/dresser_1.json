@@ -1,7 +1,6 @@
 {
-  "parent": "stardewcraft:decor/common/dresser_3_1",
+  "parent": "stardewcraft:decor/common/birch_bedside_cabinet",
   "textures": {
-    "particle": "stardewcraft:block/deco/misc/common/dresser_3_1"
+    "particle": "stardewcraft:block/decor/common/birch_bedside_cabinet"
   }
 }
-

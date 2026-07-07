@@ -1,0 +1,138 @@
+{
+  "location": "fishingGame",
+  "fish": [
+    {
+      "id": "fair_fishing_green_algae",
+      "precedence": 0,
+      "item": "stardewcraft:green_algae",
+      "chance": 1.0,
+      "difficulty": 5,
+      "motionType": 4,
+      "minFishSize": 5,
+      "maxFishSize": 30,
+      "minFishingLevel": 0,
+      "minDistanceFromShore": 0,
+      "maxDistanceFromShore": -1,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any"
+    },
+    {
+      "id": "fair_fishing_sunfish",
+      "precedence": 0,
+      "item": "stardewcraft:sunfish",
+      "chance": 1.0,
+      "difficulty": 30,
+      "motionType": 0,
+      "minFishSize": 5,
+      "maxFishSize": 15,
+      "minFishingLevel": 0,
+      "minDistanceFromShore": 0,
+      "maxDistanceFromShore": -1,
+      "seasons": [
+        "spring",
+        "summer"
+      ],
+      "timeRanges": [
+        [
+          600,
+          1900
+        ]
+      ],
+      "weather": "sunny",
+      "isTutorialFish": true
+    },
+    {
+      "id": "fair_fishing_catfish",
+      "precedence": 0,
+      "item": "stardewcraft:catfish",
+      "chance": 1.0,
+      "difficulty": 75,
+      "motionType": 0,
+      "minFishSize": 12,
+      "maxFishSize": 72,
+      "minFishingLevel": 0,
+      "minDistanceFromShore": 0,
+      "maxDistanceFromShore": -1,
+      "ignoreFishDataRequirements": true
+    },
+    {
+      "id": "fair_fishing_smallmouth_bass",
+      "precedence": 0,
+      "item": "stardewcraft:smallmouth_bass",
+      "chance": 1.0,
+      "difficulty": 28,
+      "motionType": 0,
+      "minFishSize": 12,
+      "maxFishSize": 24,
+      "minFishingLevel": 0,
+      "minDistanceFromShore": 0,
+      "maxDistanceFromShore": -1,
+      "ignoreFishDataRequirements": true
+    },
+    {
+      "id": "fair_fishing_salmon",
+      "precedence": 0,
+      "item": "stardewcraft:salmon",
+      "chance": 1.0,
+      "difficulty": 50,
+      "motionType": 0,
+      "minFishSize": 24,
+      "maxFishSize": 65,
+      "minFishingLevel": 0,
+      "minDistanceFromShore": 0,
+      "maxDistanceFromShore": -1,
+      "ignoreFishDataRequirements": true
+    },
+    {
+      "id": "fair_fishing_shad",
+      "precedence": 0,
+      "item": "stardewcraft:shad",
+      "chance": 1.0,
+      "difficulty": 45,
+      "motionType": 2,
+      "minFishSize": 20,
+      "maxFishSize": 48,
+      "minFishingLevel": 0,
+      "minDistanceFromShore": 0,
+      "maxDistanceFromShore": -1,
+      "ignoreFishDataRequirements": true
+    },
+    {
+      "id": "fair_fishing_chub",
+      "precedence": 0,
+      "item": "stardewcraft:chub",
+      "chance": 1.0,
+      "difficulty": 35,
+      "motionType": 1,
+      "minFishSize": 12,
+      "maxFishSize": 24,
+      "minFishingLevel": 0,
+      "minDistanceFromShore": 0,
+      "maxDistanceFromShore": -1,
+      "seasons": [
+        "spring",
+        "summer",
+        "fall",
+        "winter"
+      ],
+      "timeRanges": [
+        [
+          600,
+          2600
+        ]
+      ],
+      "weather": "any"
+    }
+  ]
+}

@@ -1,0 +1,208 @@
+{
+  "variants": {
+    "part=main,half=lower,fill=empty,facing=north": {
+      "model": "stardewcraft:decor/common/redwood_wardrobe_empty"
+    },
+    "part=main,half=lower,fill=empty,facing=east": {
+      "model": "stardewcraft:decor/common/redwood_wardrobe_empty",
+      "y": 90
+    },
+    "part=main,half=lower,fill=empty,facing=south": {
+      "model": "stardewcraft:decor/common/redwood_wardrobe_empty",
+      "y": 180
+    },
+    "part=main,half=lower,fill=empty,facing=west": {
+      "model": "stardewcraft:decor/common/redwood_wardrobe_empty",
+      "y": 270
+    },
+    "part=main,half=lower,fill=low,facing=north": {
+      "model": "stardewcraft:decor/common/redwood_wardrobe_low"
+    },
+    "part=main,half=lower,fill=low,facing=east": {
+      "model": "stardewcraft:decor/common/redwood_wardrobe_low",
+      "y": 90
+    },
+    "part=main,half=lower,fill=low,facing=south": {
+      "model": "stardewcraft:decor/common/redwood_wardrobe_low",
+      "y": 180
+    },
+    "part=main,half=lower,fill=low,facing=west": {
+      "model": "stardewcraft:decor/common/redwood_wardrobe_low",
+      "y": 270
+    },
+    "part=main,half=lower,fill=medium,facing=north": {
+      "model": "stardewcraft:decor/common/redwood_wardrobe_medium"
+    },
+    "part=main,half=lower,fill=medium,facing=east": {
+      "model": "stardewcraft:decor/common/redwood_wardrobe_medium",
+      "y": 90
+    },
+    "part=main,half=lower,fill=medium,facing=south": {
+      "model": "stardewcraft:decor/common/redwood_wardrobe_medium",
+      "y": 180
+    },
+    "part=main,half=lower,fill=medium,facing=west": {
+      "model": "stardewcraft:decor/common/redwood_wardrobe_medium",
+      "y": 270
+    },
+    "part=main,half=lower,fill=full,facing=north": {
+      "model": "stardewcraft:decor/common/redwood_wardrobe_full"
+    },
+    "part=main,half=lower,fill=full,facing=east": {
+      "model": "stardewcraft:decor/common/redwood_wardrobe_full",
+      "y": 90
+    },
+    "part=main,half=lower,fill=full,facing=south": {
+      "model": "stardewcraft:decor/common/redwood_wardrobe_full",
+      "y": 180
+    },
+    "part=main,half=lower,fill=full,facing=west": {
+      "model": "stardewcraft:decor/common/redwood_wardrobe_full",
+      "y": 270
+    },
+    "part=main,half=upper,fill=empty,facing=north": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=main,half=upper,fill=empty,facing=east": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=main,half=upper,fill=empty,facing=south": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=main,half=upper,fill=empty,facing=west": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=main,half=upper,fill=low,facing=north": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=main,half=upper,fill=low,facing=east": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=main,half=upper,fill=low,facing=south": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=main,half=upper,fill=low,facing=west": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=main,half=upper,fill=medium,facing=north": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=main,half=upper,fill=medium,facing=east": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=main,half=upper,fill=medium,facing=south": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=main,half=upper,fill=medium,facing=west": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=main,half=upper,fill=full,facing=north": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=main,half=upper,fill=full,facing=east": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=main,half=upper,fill=full,facing=south": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=main,half=upper,fill=full,facing=west": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=lower,fill=empty,facing=north": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=lower,fill=empty,facing=east": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=lower,fill=empty,facing=south": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=lower,fill=empty,facing=west": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=lower,fill=low,facing=north": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=lower,fill=low,facing=east": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=lower,fill=low,facing=south": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=lower,fill=low,facing=west": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=lower,fill=medium,facing=north": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=lower,fill=medium,facing=east": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=lower,fill=medium,facing=south": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=lower,fill=medium,facing=west": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=lower,fill=full,facing=north": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=lower,fill=full,facing=east": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=lower,fill=full,facing=south": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=lower,fill=full,facing=west": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=upper,fill=empty,facing=north": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=upper,fill=empty,facing=east": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=upper,fill=empty,facing=south": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=upper,fill=empty,facing=west": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=upper,fill=low,facing=north": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=upper,fill=low,facing=east": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=upper,fill=low,facing=south": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=upper,fill=low,facing=west": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=upper,fill=medium,facing=north": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=upper,fill=medium,facing=east": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=upper,fill=medium,facing=south": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=upper,fill=medium,facing=west": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=upper,fill=full,facing=north": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=upper,fill=full,facing=east": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=upper,fill=full,facing=south": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=extension,half=upper,fill=full,facing=west": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    }
+  }
+}

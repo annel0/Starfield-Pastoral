@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:decor/common/redwood_dresser",
+  "textures": {
+    "particle": "stardewcraft:block/decor/common/redwood_dresser"
+  }
+}

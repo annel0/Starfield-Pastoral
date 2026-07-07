@@ -1,46 +1,103 @@
 package com.stardew.craft.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.stardew.craft.StardewCraftClient;
 import com.stardew.craft.block.nature.BerryBushBlock;
 import com.stardew.craft.blockentity.BushBlockEntity;
-import com.stardew.craft.client.model.block.BushGeoModel;
+import com.stardew.craft.client.hud.StardewTimeHud;
+import com.stardew.craft.time.StardewTimeManager;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
-import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib.util.Color;
+import net.neoforged.neoforge.client.RenderTypeHelper;
+import net.neoforged.neoforge.client.model.data.ModelData;
+
+import javax.annotation.Nonnull;
+
 @SuppressWarnings("null")
-public class BushBlockEntityRenderer extends StardewGeoBlockRenderer<BushBlockEntity> {
+public class BushBlockEntityRenderer implements BlockEntityRenderer<BushBlockEntity> {
+    private final BlockRenderDispatcher blockRenderer;
+
     public BushBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
-        super(new BushGeoModel());
+        this.blockRenderer = context.getBlockRenderDispatcher();
     }
 
     @Override
-    public void render(BushBlockEntity be, float partialTick, PoseStack poseStack,
-                       MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+    public void render(@Nonnull BushBlockEntity be, float partialTick, @Nonnull PoseStack poseStack,
+                       @Nonnull MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState state = be.getBlockState();
         if (state.hasProperty(BerryBushBlock.PART) && state.getValue(BerryBushBlock.PART) != BerryBushBlock.Part.MAIN) {
             return;
         }
-        super.render(be, partialTick, poseStack, bufferSource, packedLight, packedOverlay);
+
+        BlockState renderState = state;
+        if (state.hasProperty(BerryBushBlock.BERRY)) {
+            renderState = state.setValue(BerryBushBlock.BERRY, currentBerry(be));
+        }
+
+        renderBlockModel(be, renderState, poseStack, bufferSource, packedLight, packedOverlay);
     }
 
     @Override
-    public Color getRenderColor(BushBlockEntity animatable, float partialTick, int packedLight) {
-        int color = StardewCraftClient.resolveSeasonalLeafColor(
-                animatable.getBlockState(),
-                animatable.getLevel(),
-                animatable.getBlockPos());
-        return Color.ofARGB(255, (color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF);
+    public boolean shouldRenderOffScreen(@Nonnull BushBlockEntity blockEntity) {
+        return true;
     }
 
-    @Nullable
     @Override
-    public RenderType getRenderType(BushBlockEntity animatable, ResourceLocation texture,
-                                    @Nullable MultiBufferSource bufferSource, float partialTick) {
-        return RenderType.entityCutoutNoCull(texture);
+    public int getViewDistance() {
+        return 128;
+    }
+
+    private static BerryBushBlock.BerryKind currentBerry(BushBlockEntity be) {
+        BlockState state = be.getBlockState();
+        if (!(state.getBlock() instanceof BerryBushBlock)) {
+            return BerryBushBlock.BerryKind.NONE;
+        }
+        StardewTimeManager time = StardewTimeHud.getClientTimeCache();
+        if (be.getLastHarvestAbsoluteDay() == time.getAbsoluteDay()) {
+            return BerryBushBlock.BerryKind.NONE;
+        }
+        BerryBushBlock.BerryKind berry = BerryBushBlock.getBloomBerry(time.getCurrentSeason(), time.getCurrentDay());
+        if (berry == BerryBushBlock.BerryKind.NONE) {
+            return BerryBushBlock.BerryKind.NONE;
+        }
+        return BerryBushBlock.hasBerriesToday(be.getBlockPos(), berry, time.getAbsoluteDay())
+            ? berry
+            : BerryBushBlock.BerryKind.NONE;
+    }
+
+    private void renderBlockModel(BushBlockEntity be,
+                                  BlockState renderState,
+                                  PoseStack poseStack,
+                                  MultiBufferSource bufferSource,
+                                  int packedLight,
+                                  int packedOverlay) {
+        ModelData modelData = ModelData.EMPTY;
+        BakedModel model = blockRenderer.getBlockModel(renderState);
+        int color = Minecraft.getInstance().getBlockColors().getColor(renderState, be.getLevel(), be.getBlockPos(), 0);
+        float red = (float) (color >> 16 & 0xFF) / 255.0F;
+        float green = (float) (color >> 8 & 0xFF) / 255.0F;
+        float blue = (float) (color & 0xFF) / 255.0F;
+
+        for (RenderType renderType : model.getRenderTypes(renderState, RandomSource.create(42L), modelData)) {
+            blockRenderer.getModelRenderer().renderModel(
+                poseStack.last(),
+                bufferSource.getBuffer(RenderTypeHelper.getEntityRenderType(renderType, false)),
+                renderState,
+                model,
+                red,
+                green,
+                blue,
+                packedLight,
+                packedOverlay,
+                modelData,
+                renderType
+            );
+        }
     }
 }

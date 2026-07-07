@@ -130,7 +130,7 @@ public class DesertFestivalRaceScreen extends Screen implements DesertFestivalRa
         if (heightFade <= 0.0f) return;
         float centerX = mapX + (renderRacer.x(now) / 4.0f - CROP_X) * mapScale;
         float centerY = mapY + (renderRacer.y(now) / 4.0f - CROP_Y) * mapScale;
-        float shadowScale = 3.0f / 4.0f * mapScale;
+        float shadowScale = mapScale;
         int shadowW = Math.max(1, Math.round(SHADOW_W * shadowScale));
         int shadowH = Math.max(1, Math.round(SHADOW_H * shadowScale));
         int shadowX = Math.round(centerX - shadowW / 2.0f);

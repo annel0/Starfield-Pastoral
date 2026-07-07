@@ -131,7 +131,10 @@ public final class PrizeTicketRewardService {
     private static ItemStack getFixedReward(ServerPlayer player, int prizeLevel, Random random) {
         return switch (prizeLevel) {
             case 0 -> stack(currentRaccoonSeed(), 12);
-            case 1 -> ItemStack.EMPTY;
+            case 1 -> randomFrom(random, List.of(
+                stack(ModItems.PEACH_SAPLING, 1),
+                stack(ModItems.ORANGE_SAPLING, 1)
+            ));
             case 2 -> randomFrom(random, List.of(stack(ModItems.MIXED_SEEDS, 10)));
             case 3 -> stack(ModItems.MYSTERY_BOX, 3);
             case 4 -> stack(ModItems.STARDROP_TEA, 1);
@@ -140,7 +143,10 @@ public final class PrizeTicketRewardService {
                 stack(ModItems.QUALITY_SPRINKLER, 4),
                 stack(ModItems.PRESERVES_JAR, 4)
             ));
-            case 7 -> ItemStack.EMPTY;
+            case 7 -> randomFrom(random, List.of(
+                stack(ModItems.APPLE_SAPLING, 1),
+                stack(ModItems.POMEGRANATE_SAPLING, 1)
+            ));
             case 8 -> stack(ModItems.BOOK_FRIENDSHIP, 1);
             case 9 -> randomFrom(random, List.of(
                 stack(ModItems.CHERRY_BOMB, 20),

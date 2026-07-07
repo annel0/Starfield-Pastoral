@@ -57,8 +57,8 @@ public final class SkullCavernTreasurePool {
             case 5 -> stack(ModItems.WARP_TOTEM_DESERT, 5);
             // case 6: (O)681 Rain Totem ×1-3
             case 6 -> stack(ModItems.RAIN_TOTEM, 1 + random.nextInt(3));
-            // case 7: (O)628-633 fruit saplings (全部未移植)
-            case 7 -> omniGeodeFallback();
+            // case 7: (O)628-633 fruit saplings
+            case 7 -> randomFruitSapling(random);
             // case 8: (O)645 Iridium Sprinkler ×1-2
             case 8 -> stack(ModItems.IRIDIUM_SPRINKLER, 1 + random.nextInt(2));
             // case 9: (O)621 Quality Sprinkler ×4
@@ -134,6 +134,17 @@ public final class SkullCavernTreasurePool {
 
     private static ItemStack stack(Supplier<? extends ItemLike> supplier, int count) {
         return new ItemStack(supplier.get(), count);
+    }
+
+    private static ItemStack randomFruitSapling(RandomSource random) {
+        return switch (random.nextInt(6)) {
+            case 0 -> stack(ModItems.CHERRY_SAPLING, 1);
+            case 1 -> stack(ModItems.APRICOT_SAPLING, 1);
+            case 2 -> stack(ModItems.ORANGE_SAPLING, 1);
+            case 3 -> stack(ModItems.PEACH_SAPLING, 1);
+            case 4 -> stack(ModItems.POMEGRANATE_SAPLING, 1);
+            default -> stack(ModItems.APPLE_SAPLING, 1);
+        };
     }
 
     private static ItemStack omniGeodeFallback() {

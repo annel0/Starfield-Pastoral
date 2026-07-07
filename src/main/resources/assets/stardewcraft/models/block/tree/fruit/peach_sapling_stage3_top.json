@@ -1,0 +1,8 @@
+{
+  "render_type": "minecraft:cutout",
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "stardewcraft:block/tree/fruit/sapling/peach_sapling_stage3_top",
+    "particle": "stardewcraft:block/tree/fruit/sapling/peach_sapling_stage3_top"
+  }
+}

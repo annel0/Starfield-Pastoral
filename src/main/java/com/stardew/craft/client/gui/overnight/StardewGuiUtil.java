@@ -1,5 +1,6 @@
 package com.stardew.craft.client.gui.overnight;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.stardew.craft.StardewCraft;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -38,6 +39,8 @@ public class StardewGuiUtil {
     }
 
     public static void drawFromCursorsTint(GuiGraphics graphics, int x, int y, int u, int v, int width, int height, float scale, float red, float green, float blue, float alpha) {
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
         graphics.setColor(red, green, blue, alpha);
         graphics.pose().pushPose();
         graphics.pose().translate(x, y, 0);
@@ -52,6 +55,8 @@ public class StardewGuiUtil {
     }
 
     public static void drawFromCursors2(GuiGraphics graphics, int x, int y, int u, int v, int width, int height, float scale, float alpha) {
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
         graphics.setColor(1.0F, 1.0F, 1.0F, alpha);
         graphics.pose().pushPose();
         graphics.pose().translate(x, y, 0);
@@ -66,6 +71,8 @@ public class StardewGuiUtil {
     }
 
     public static void drawFromCursors16(GuiGraphics graphics, int x, int y, int u, int v, int width, int height, float scale, float alpha) {
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
         graphics.setColor(1.0F, 1.0F, 1.0F, alpha);
         graphics.pose().pushPose();
         graphics.pose().translate(x, y, 0);
@@ -204,6 +211,8 @@ public class StardewGuiUtil {
         int scaledCorner = Math.max(1, (int)(cornerSize * scale));
 
         if (drawShadow) {
+            RenderSystem.enableBlend();
+            RenderSystem.defaultBlendFunc();
             graphics.setColor(0.0F, 0.0F, 0.0F, 0.4F);
             drawRegion(graphics, texture, texWidth, texHeight, x + width - scaledCorner - 8, y + 8, scaledCorner, scaledCorner, srcX + cornerSize * 2, srcY, cornerSize, cornerSize);
             drawRegion(graphics, texture, texWidth, texHeight, x - 8, y + height - scaledCorner + 8, scaledCorner, scaledCorner, srcX, srcY + cornerSize * 2, cornerSize, cornerSize);

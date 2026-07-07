@@ -79,7 +79,12 @@ public record FishingStartPayload(UUID sessionId, int difficulty, int motionType
 				0,     // 默认bar size bonus (pixels)
 				0.003f, // 默认不在条内掉进度
 				0,     // 默认barbed hook count
-				0      // 默认lead bobber count
-		));
+				0,     // 默认lead bobber count
+				0,
+				0,
+				0,
+				0.3F,
+				true
+			));
 	}
 }

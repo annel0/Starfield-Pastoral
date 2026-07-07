@@ -1,5 +1,6 @@
 package com.stardew.craft.client.gui.common;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 
@@ -31,18 +32,24 @@ public final class SdvTexture {
     }
 
     public void drawAtCurrentPoseTint(GuiGraphics graphics, int x, int y, float red, float green, float blue, float alpha) {
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
         graphics.setColor(red, green, blue, alpha);
         drawAtCurrentPose(graphics, x, y);
         graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     public void drawStretchedTint(GuiGraphics graphics, int x, int y, int stretchedWidth, int stretchedHeight, float red, float green, float blue, float alpha) {
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
         graphics.setColor(red, green, blue, alpha);
         graphics.blit(texture, x, y, stretchedWidth, stretchedHeight, 0, 0, width, height, textureWidth, textureHeight);
         graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     public void drawPixelZoomTint(GuiGraphics graphics, int x, int y, float scale, float red, float green, float blue, float alpha) {
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
         graphics.setColor(red, green, blue, alpha);
         graphics.pose().pushPose();
         graphics.pose().translate(x, y, 0);

@@ -2,6 +2,7 @@ package com.stardew.craft.block.utility;
 
 import com.stardew.craft.block.shape.ModelVoxelShapeCache;
 import com.stardew.craft.blockentity.TableDisplayBlockEntity;
+import com.stardew.craft.festival.FairFestivalService;
 import com.stardew.craft.item.furniture.FloralTableclothItem;
 import com.stardew.craft.item.furniture.PinkTableclothItem;
 import com.stardew.craft.item.furniture.SkyBlueTableclothItem;
@@ -182,6 +183,11 @@ public class OakTableBlock extends Block implements EntityBlock {
 
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        ItemInteractionResult fairResult = FairFestivalService.handleFairSpruceTableUseItem(stack, state, level, pos, player);
+        if (fairResult != ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION) {
+            return fairResult;
+        }
+
         // Let dedicated tablecloth items handle right-click first.
         if (isTableclothItem(stack)) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
@@ -221,6 +227,11 @@ public class OakTableBlock extends Block implements EntityBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+        InteractionResult fairResult = FairFestivalService.handleFairSpruceTableUse(state, level, pos, player);
+        if (fairResult != InteractionResult.PASS) {
+            return fairResult;
+        }
+
         if (player.isShiftKeyDown()) {
             return InteractionResult.PASS;
         }

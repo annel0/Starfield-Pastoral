@@ -5,6 +5,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.client.gui.common.CommonGuiTextures;
 import com.stardew.craft.client.gui.common.GuiText;
+import com.stardew.craft.client.gui.overnight.StardewGuiUtil;
 import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.network.payload.OpenShopScreenPayload;
 import com.stardew.craft.network.payload.ShopPurchasePayload;
@@ -67,6 +68,7 @@ public class ShopScreen extends Screen {
     private static final long BUY_HOLD_REPEAT_MS = 95;
     private static final TagKey<Item> BLACKSMITH_ORES_TAG = itemTag("ores");
     private static final TagKey<Item> BLACKSMITH_BARS_TAG = itemTag("bars");
+    private static final String FAIR_STAR_TOKEN_SHOP_ID = "Festival_StardewValleyFair_StarTokens";
 
     // -------------------------------------------------------------------------
     // Runtime state
@@ -599,7 +601,13 @@ public class ShopScreen extends Screen {
                 canAfford ? 0x404040 : 0x992222, false);
 
             float coinA = canBuy ? 1.0f : 0.25f;
-            if (coinA < 1f) {
+            if (isFairStarTokenShop()) {
+                if (coinA < 1f) {
+                    CommonGuiTextures.drawFairStarTokenTint(g, rowX + rowWGui - ui(52), rowY + ui(36), s4, 1f, 1f, 1f, coinA);
+                } else {
+                    CommonGuiTextures.drawFairStarToken(g, rowX + rowWGui - ui(52), rowY + ui(36), s4);
+                }
+            } else if (coinA < 1f) {
                 CommonGuiTextures.drawShopCoinTint(g, rowX + rowWGui - ui(52), rowY + ui(36), s4, 1f, 1f, 1f, coinA);
             } else {
                 CommonGuiTextures.drawShopCoin(g, rowX + rowWGui - ui(52), rowY + ui(36), s4);
@@ -638,17 +646,46 @@ public class ShopScreen extends Screen {
         // Stock info is already shown in tooltip.
         if (item.stock() != Integer.MAX_VALUE && item.stock() > 0
                 && !"ClintUpgrade".equals(shopId) && !isRecipeItem) {
-            String sc = String.valueOf(item.stock());
             // SDV: Utility.drawTinyDigits at icon bottom-right (drawPos + (64-w+3, 47))
-            int iconSize = CommonGuiTextures.itemSize(s4);
-            int stockX = iconX + iconSize - (int)(font.width(sc) * 0.75f) + 1;
-            int stockY = iconY + iconSize - 4;
-            g.pose().pushPose();
-            g.pose().translate(stockX, stockY, 200);
-            g.pose().scale(0.75f, 0.75f, 1f);
-            g.drawString(font, sc, 0, 0, canBuy ? 0xFFFFFF : 0x888888, true);
-            g.pose().popPose();
+            int stockX = iconX + ui(64 - tinyDigitWidthSdv(item.stock(), 3.0f) + 3);
+            int stockY = iconY + ui(47);
+            drawTinyDigits(g, item.stock(), stockX, stockY, 3.0f, canBuy ? 1.0f : 0.25f);
         }
+    }
+
+    private void drawTinyDigits(GuiGraphics g, int value, int x, int y, float sdvScale, float alpha) {
+        int currentValue = Math.max(0, value);
+        int digitCount = 0;
+        int remaining = currentValue;
+        do {
+            digitCount++;
+        } while ((remaining /= 10) >= 1);
+
+        int digitStrip = (int)Math.pow(10.0, digitCount - 1);
+        boolean significant = false;
+        int xPosition = 0;
+        for (int i = 0; i < digitCount; i++) {
+            int currentDigit = currentValue / digitStrip % 10;
+            if (currentDigit > 0 || i == digitCount - 1) {
+                significant = true;
+            }
+            if (significant) {
+                StardewGuiUtil.drawFromCursorsTint(g, x + xPosition, y,
+                    368 + currentDigit * 5, 56, 5, 7,
+                    sdvScale / guiScale, 1.0f, 1.0f, 1.0f, alpha);
+            }
+            xPosition += ui((int)(5.0f * sdvScale) - 1);
+            digitStrip /= 10;
+        }
+    }
+
+    private int tinyDigitWidthSdv(int value, float sdvScale) {
+        int digitCount = 0;
+        int remaining = Math.max(0, value);
+        do {
+            digitCount++;
+        } while ((remaining /= 10) >= 1);
+        return (int)(digitCount * 5.0f * sdvScale);
     }
 
     /** SDV recipe overlay texture (objectSpriteSheet index 451 — the scroll/blueprint icon). */
@@ -749,7 +786,8 @@ public class ShopScreen extends Screen {
         lines.add(Component.empty());
         if (item.price() > 0) {
             boolean ok = playerMoney >= item.price();
-            lines.add(Component.literal("购入：" + item.price() + "g")
+            String currency = isFairStarTokenShop() ? " 星星币" : "g";
+            lines.add(Component.literal("购入：" + item.price() + currency)
                 .withStyle(ok ? ChatFormatting.GOLD : ChatFormatting.DARK_RED));
         } else {
             lines.add(Component.literal("免费").withStyle(ChatFormatting.GREEN));
@@ -1079,6 +1117,16 @@ public class ShopScreen extends Screen {
         purchasePending=false;
         playerMoney=r.newMoney();
         if (!r.success()) { playSound(ModSounds.CANCEL.get()); return; }
+        if (isFairStarTokenShop()
+                && r.itemId().isEmpty()
+                && r.quantity() == 0
+                && r.itemIndex() >= 0
+                && r.itemIndex() < forSale.size()
+                && "stardewcraft:stardrop".equals(forSale.get(r.itemIndex()).itemId())) {
+            playSound(ModSounds.PURCHASE_CLICK.get());
+            Minecraft.getInstance().setScreen(null);
+            return;
+        }
         // Update stock
         int idx=r.itemIndex();
         if (idx>=0&&idx<forSale.size()) {
@@ -1119,6 +1167,10 @@ public class ShopScreen extends Screen {
         if ("MarlonRecovery".equals(shopId) && r.success()) {
             this.onClose();
         }
+    }
+
+    private boolean isFairStarTokenShop() {
+        return FAIR_STAR_TOKEN_SHOP_ID.equals(shopId);
     }
 
     public void onSellResult(ShopSellResultPayload r) {

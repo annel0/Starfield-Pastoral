@@ -1,6 +1,10 @@
 {
   "variants": {
-    "part=main": { "model": "stardewcraft:block/bush/empty_berry" },
-    "part=extension": { "model": "stardewcraft:block/bush/empty_berry" }
+    "part=main,berry=none": { "model": "stardewcraft:block/bush/berry_bush" },
+    "part=main,berry=salmonberry": { "model": "stardewcraft:block/bush/berry_bush_salmonberry" },
+    "part=main,berry=blackberry": { "model": "stardewcraft:block/bush/berry_bush_blackberry" },
+    "part=extension,berry=none": { "model": "stardewcraft:block/bush/empty_berry" },
+    "part=extension,berry=salmonberry": { "model": "stardewcraft:block/bush/empty_berry" },
+    "part=extension,berry=blackberry": { "model": "stardewcraft:block/bush/empty_berry" }
   }
 }

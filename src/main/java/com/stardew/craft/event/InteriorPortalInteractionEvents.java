@@ -165,6 +165,31 @@ public class InteriorPortalInteractionEvents {
             return;
         }
 
+        if (com.stardew.craft.festival.fair.FairSlingshotGameService.TARGET_ID.equals(targetId)) {
+            com.stardew.craft.festival.fair.FairSlingshotGameService.open(player);
+            return;
+        }
+
+        if (com.stardew.craft.festival.fair.FairFishingGameService.TARGET_ID.equals(targetId)) {
+            com.stardew.craft.festival.fair.FairFishingGameService.open(player);
+            return;
+        }
+
+        if (com.stardew.craft.festival.FairFestivalService.STAR_TOKEN_SHOP_TARGET_ID.equals(targetId)) {
+            com.stardew.craft.festival.FairFestivalService.openStarTokenShop(player);
+            return;
+        }
+
+        if (com.stardew.craft.festival.FairFestivalService.STAR_TOKEN_PURCHASE_TARGET_ID.equals(targetId)) {
+            com.stardew.craft.festival.FairFestivalService.openStarTokenPurchase(player);
+            return;
+        }
+
+        if (com.stardew.craft.festival.FairFestivalService.FORTUNE_TELLER_TARGET_ID.equals(targetId)) {
+            com.stardew.craft.festival.FairFestivalService.openFortuneTeller(player);
+            return;
+        }
+
         // 骷髅矿入口（沙漠 → floor 121）
         if ("desert_mine_enter".equals(targetId)) {
             handleDesertMineEntrance(player);

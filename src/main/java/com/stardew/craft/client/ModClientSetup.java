@@ -45,6 +45,7 @@ import com.stardew.craft.client.render.ShippingBinBlockEntityRenderer;
 import com.stardew.craft.client.render.StoneChestBlockEntityRenderer;
 import com.stardew.craft.client.render.TrashBinBlockEntityRenderer;
 import com.stardew.craft.client.render.WoodenChestBlockEntityRenderer;
+import com.stardew.craft.client.render.WildWeedsBlockEntityRenderer;
 import com.stardew.craft.client.render.SolarPanelBlockEntityRenderer;
 import com.stardew.craft.client.render.TapperBlockEntityRenderer;
 import com.stardew.craft.client.render.LoomBlockEntityRenderer;
@@ -54,6 +55,7 @@ import com.stardew.craft.client.render.FeedTroughBlockEntityRenderer;
 import com.stardew.craft.client.render.FairStrengthTesterBlockEntityRenderer;
 import com.stardew.craft.client.render.FishNetBlockEntityRenderer;
 import com.stardew.craft.client.render.FishPondBucketBlockEntityRenderer;
+import com.stardew.craft.client.render.FruitTreeBlockEntityRenderer;
 import com.stardew.craft.client.render.AutoFeedTroughBlockEntityRenderer;
 import com.stardew.craft.client.render.AnimalProduceSpotBlockEntityRenderer;
 import com.stardew.craft.client.render.AnvilBlockEntityRenderer;
@@ -128,6 +130,7 @@ public final class ModClientSetup {
 		event.registerEntityRenderer(ModEntities.TRAVELING_CART.get(),
 				com.stardew.craft.client.renderer.entity.TravelingCartGeoRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.TAPPER.get(), TapperBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(ModBlockEntities.WILD_WEEDS.get(), WildWeedsBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.KEG.get(), KegBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.ANVIL.get(), AnvilBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.PRESERVES_JAR.get(), PreservesJarBlockEntityRenderer::new);
@@ -176,6 +179,7 @@ public final class ModClientSetup {
 		event.registerBlockEntityRenderer(ModBlockEntities.LUAU_FESTIVAL_DECOR.get(), LuauFestivalDecorBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.FAIR_STRENGTH_TESTER.get(), FairStrengthTesterBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.GIANT_CROP.get(), com.stardew.craft.client.render.GiantCropBlockEntityRenderer::new);
+		event.registerBlockEntityRenderer(ModBlockEntities.FRUIT_TREE.get(), FruitTreeBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.BOOKSHELF_GEO.get(), BookshelfGeoBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.PILLAR_GEO.get(), PillarGeoBlockEntityRenderer::new);
 		event.registerBlockEntityRenderer(ModBlockEntities.BUSH.get(), BushBlockEntityRenderer::new);
@@ -207,6 +211,7 @@ public final class ModClientSetup {
 		event.register(ModMenuTypes.STONE_CHEST.get(), StoneChestScreen::new);
 		event.register(ModMenuTypes.SHIPPING_BIN.get(), ShippingBinScreen::new);
 		event.register(ModMenuTypes.SPECIAL_ORDER_DROPBOX.get(), com.stardew.craft.client.gui.specialorder.SpecialOrderDropBoxScreen::new);
+		event.register(ModMenuTypes.FAIR_GRANGE_DISPLAY.get(), com.stardew.craft.client.gui.festival.FairGrangeDisplayScreen::new);
 		event.register(ModMenuTypes.BUNDLE.get(), com.stardew.craft.communitycenter.client.BundleScreen::new);
 		event.register(ModMenuTypes.BUNDLE_REWARD.get(), com.stardew.craft.communitycenter.client.BundleRewardScreen::new);
 	}

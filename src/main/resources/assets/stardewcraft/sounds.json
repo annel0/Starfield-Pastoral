@@ -162,6 +162,30 @@
       }
     ]
   },
+  "slingshot": {
+    "sounds": [
+      {
+        "name": "stardewcraft:slingshot",
+        "stream": false
+      }
+    ]
+  },
+  "breaking_glass": {
+    "sounds": [
+      {
+        "name": "stardewcraft:breaking_glass",
+        "stream": false
+      }
+    ]
+  },
+  "pottery_smash": {
+    "sounds": [
+      {
+        "name": "stardewcraft:pottery_smash",
+        "stream": false
+      }
+    ]
+  },
   "water_slosh": {
     "sounds": [
       {

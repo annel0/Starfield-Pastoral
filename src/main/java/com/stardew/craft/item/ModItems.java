@@ -107,6 +107,7 @@ import com.stardew.craft.item.tool.ScytheItem;
 import com.stardew.craft.item.tool.FishingRodItem;
 import com.stardew.craft.item.tool.StardewAxeItem;
 import com.stardew.craft.item.tool.StardewPickaxeItem;
+import com.stardew.craft.tree.fruit.FruitTreeType;
 // 楸肩被 - 娌虫祦
 import com.stardew.craft.item.fish.river.*;
 // 楸肩被 - 婀栨硦
@@ -809,6 +810,17 @@ public class ModItems {
         public static final DeferredItem<Item> LUAU_TOTEM = ITEMS.register("luau_totem",
                         () -> new StardewBlockItem(ModBlocks.LUAU_TOTEM.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
 
+        public static final DeferredItem<Item> FAIR_WHEEL = ITEMS.register("fair_wheel",
+                        () -> new StardewBlockItem(ModBlocks.FAIR_WHEEL.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> FAIR_GRAVE_STONE = ITEMS.register("fair_grave_stone",
+                        () -> new StardewBlockItem(ModBlocks.FAIR_GRAVE_STONE.get(), "stardewcraft.type.festival_decoration", -1,
+                                        "item.stardewcraft.fair_grave_stone.desc", new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> FAIR_GRILL = ITEMS.register("fair_grill",
+                        () -> new StardewBlockItem(ModBlocks.FAIR_GRILL.get(), "stardewcraft.type.festival_decoration", -1,
+                                        "item.stardewcraft.fair_grill.desc", new Item.Properties().stacksTo(999)));
+
         public static final DeferredItem<Item> PLUSH_BUNNY = ITEMS.register("plush_bunny",
                         () -> new StardewBlockItem(ModBlocks.PLUSH_BUNNY.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
 
@@ -999,6 +1011,24 @@ public class ModItems {
                         () -> new StardewBlockItem(ModBlocks.DRESSER_2.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> DRESSER_3 = ITEMS.register("dresser_3",
                         () -> new StardewBlockItem(ModBlocks.DRESSER_3.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> REDWOOD_WARDROBE = ITEMS.register("redwood_wardrobe",
+                        () -> new StardewBlockItem(ModBlocks.REDWOOD_WARDROBE.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> WALNUT_WARDROBE = ITEMS.register("walnut_wardrobe",
+                        () -> new StardewBlockItem(ModBlocks.WALNUT_WARDROBE.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> OAK_WARDROBE = ITEMS.register("oak_wardrobe",
+                        () -> new StardewBlockItem(ModBlocks.OAK_WARDROBE.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> OAK_BEDSIDE_CABINET = ITEMS.register("oak_bedside_cabinet",
+                        () -> new StardewBlockItem(ModBlocks.OAK_BEDSIDE_CABINET.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> OAK_DRESSER = ITEMS.register("oak_dresser",
+                        () -> new StardewBlockItem(ModBlocks.OAK_DRESSER.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> REDWOOD_BEDSIDE_CABINET = ITEMS.register("redwood_bedside_cabinet",
+                        () -> new StardewBlockItem(ModBlocks.REDWOOD_BEDSIDE_CABINET.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> REDWOOD_DRESSER = ITEMS.register("redwood_dresser",
+                        () -> new StardewBlockItem(ModBlocks.REDWOOD_DRESSER.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> WALNUT_BEDSIDE_CABINET = ITEMS.register("walnut_bedside_cabinet",
+                        () -> new StardewBlockItem(ModBlocks.WALNUT_BEDSIDE_CABINET.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> WALNUT_DRESSER = ITEMS.register("walnut_dresser",
+                        () -> new StardewBlockItem(ModBlocks.WALNUT_DRESSER.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> WOOD_BUNDLE = ITEMS.register("wood_bundle",
                         () -> new StardewBlockItem(ModBlocks.WOOD_BUNDLE.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> BARREL = ITEMS.register("barrel",
@@ -1781,6 +1811,27 @@ public class ModItems {
                         () -> new TreeSeedItem(ModBlocks.WILD_MAHOGANY_SAPLING0, 100, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> MYSTIC_TREE_SEED = ITEMS.register("mystic_tree_seed",
                         () -> new TreeSeedItem(ModBlocks.WILD_MYSTIC_TREE_SAPLING0, 100, new Item.Properties().stacksTo(999)));
+        private static java.util.Map<FruitTreeType, DeferredItem<Item>> registerFruitTreeSaplings() {
+                java.util.LinkedHashMap<FruitTreeType, DeferredItem<Item>> items = new java.util.LinkedHashMap<>();
+                for (FruitTreeType type : FruitTreeType.values()) {
+                        items.put(type, ITEMS.register(type.saplingItemId(),
+                                        () -> new com.stardew.craft.item.tree.fruit.FruitTreeSaplingItem(
+                                                        type,
+                                                        ModBlocks.FRUIT_TREE_SAPLINGS.get(type),
+                                                        new Item.Properties().stacksTo(999))));
+                }
+                return java.util.Collections.unmodifiableMap(items);
+        }
+
+        public static final java.util.Map<FruitTreeType, DeferredItem<Item>> FRUIT_TREE_SAPLINGS = registerFruitTreeSaplings();
+        public static final DeferredItem<Item> CHERRY_SAPLING = FRUIT_TREE_SAPLINGS.get(FruitTreeType.CHERRY);
+        public static final DeferredItem<Item> APRICOT_SAPLING = FRUIT_TREE_SAPLINGS.get(FruitTreeType.APRICOT);
+        public static final DeferredItem<Item> ORANGE_SAPLING = FRUIT_TREE_SAPLINGS.get(FruitTreeType.ORANGE);
+        public static final DeferredItem<Item> PEACH_SAPLING = FRUIT_TREE_SAPLINGS.get(FruitTreeType.PEACH);
+        public static final DeferredItem<Item> POMEGRANATE_SAPLING = FRUIT_TREE_SAPLINGS.get(FruitTreeType.POMEGRANATE);
+        public static final DeferredItem<Item> APPLE_SAPLING = FRUIT_TREE_SAPLINGS.get(FruitTreeType.APPLE);
+        public static final DeferredItem<Item> BANANA_SAPLING = FRUIT_TREE_SAPLINGS.get(FruitTreeType.BANANA);
+        public static final DeferredItem<Item> MANGO_SAPLING = FRUIT_TREE_SAPLINGS.get(FruitTreeType.MANGO);
 
     // 鑲ユ枡锛堝榻?Stardew Valley锛氬搧璐ㄧ被鑲ユ枡锛?
     public static final DeferredItem<Item> BASIC_FERTILIZER = ITEMS.register("basic_fertilizer",

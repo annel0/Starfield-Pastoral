@@ -8,6 +8,8 @@
       "chance": 0.1,
       "difficulty": 90,
       "motionType": 0,
+      "minFishSize": 32,
+      "maxFishSize": 32,
       "minFishingLevel": 7,
       "maxDepth": 2,
       "depthMultiplier": 0.1,

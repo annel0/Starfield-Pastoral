@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "stardewcraft:block/cooking/stuffing"
+    },
+    "facing=east": {
+      "model": "stardewcraft:block/cooking/stuffing",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "stardewcraft:block/cooking/stuffing",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "stardewcraft:block/cooking/stuffing",
+      "y": 270
+    }
+  }
+}

@@ -2321,7 +2321,11 @@ public class StardewGameMenuScreen extends Screen {
     }
 
     private void drawScaledSdvTextWithShadow(GuiGraphics graphics, String text, int x, int y, float scale, int color) {
-        drawScaledSdvText(graphics, text, x + ui(4), y + ui(4), scale, 0x59000000);
+        int horizontalShadowOffset = -Math.max(1, ui(2));
+        int verticalShadowOffset = Math.max(1, ui(2));
+        drawScaledSdvText(graphics, text, x + horizontalShadowOffset, y + verticalShadowOffset, scale, SDV_TEXT_SHADOW);
+        drawScaledSdvText(graphics, text, x + horizontalShadowOffset, y, scale, SDV_TEXT_SHADOW);
+        drawScaledSdvText(graphics, text, x, y + verticalShadowOffset, scale, SDV_TEXT_SHADOW);
         drawScaledSdvText(graphics, text, x, y, scale, color);
     }
 
@@ -2537,7 +2541,8 @@ public class StardewGameMenuScreen extends Screen {
 
     // SDV text color: new Color(86, 22, 12)
     private static final int SDV_TEXT_COLOR = 0xFF56160C;
-    private static final int SDV_TEXT_SHADOW = 0xFF2D0B06;
+    // SDV Utility.drawTextWithShadow: Game1.textShadowDarkerColor = new Color(221, 148, 84)
+    private static final int SDV_TEXT_SHADOW = 0xFFDD9454;
     private static final int SDV_TEXT_COLOR_DIM = 0xFF45120A; // textColor * 0.8
 
     // Day/night player backgrounds (extracted from SDV LooseSprites)

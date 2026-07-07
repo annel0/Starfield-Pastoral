@@ -50,6 +50,7 @@ public class PlayerStardewData {
     private int money;               // 金币数量
     private long totalMoneyEarned;    // SDV totalMoneyEarned：累计赚到的金币（不随花费减少）
     private int fairStarTokens;       // SDV Farmer.festivalScore：Stardew Valley Fair 星星币
+    private int lastFairGrillBurgerDateKey; // Fall 16 fair grill: one Survival Burger per player per day
     
     // ============ 技能系统 ============
     // 技能等级（0-10级）
@@ -266,6 +267,7 @@ public class PlayerStardewData {
         this.exhausted = false;
         this.money = 500;  // 初始金币
         this.fairStarTokens = 0;
+        this.lastFairGrillBurgerDateKey = -1;
         this.totalMoneyEarned = 500L;
         this.lastSyncTime = System.currentTimeMillis();
         this.dirty = false;
@@ -314,6 +316,7 @@ public class PlayerStardewData {
         data.exhausted = tag.getBoolean("Exhausted");
         data.money = tag.contains("Money") ? tag.getInt("Money") : 500;
         data.fairStarTokens = tag.contains("FairStarTokens") ? Math.max(0, tag.getInt("FairStarTokens")) : 0;
+        data.lastFairGrillBurgerDateKey = tag.contains("LastFairGrillBurgerDateKey") ? tag.getInt("LastFairGrillBurgerDateKey") : -1;
         data.totalMoneyEarned = tag.contains("TotalMoneyEarned")
             ? Math.max(0L, tag.getLong("TotalMoneyEarned"))
             : Math.max(data.money, data.totalShippingGold);
@@ -745,6 +748,7 @@ public class PlayerStardewData {
         tag.putBoolean("Exhausted", exhausted);
         tag.putInt("Money", money);
         tag.putInt("FairStarTokens", fairStarTokens);
+        tag.putInt("LastFairGrillBurgerDateKey", lastFairGrillBurgerDateKey);
         tag.putLong("TotalMoneyEarned", totalMoneyEarned);
         tag.putString("LastKnownName", lastKnownName == null ? "" : lastKnownName);
 
@@ -1310,6 +1314,8 @@ public class PlayerStardewData {
     public boolean canRespecProfessions(SkillType skill) {
         return skill != null
             && getRawSkillLevel(skill) >= 5
+            && !hasPendingNewLevel(skill, 5)
+            && !hasPendingNewLevel(skill, 10)
             && !hasPendingProfessionChoice(skill, 5)
             && !hasPendingProfessionChoice(skill, 10);
     }
@@ -1330,8 +1336,13 @@ public class PlayerStardewData {
             }
         }
 
-        pendingProfessionChoices.removeIf(prompt -> prompt.skill() == skill);
-        pendingProfessionChoices.add(new ProfessionChoicePrompt(skill, 5));
+        int rawLevel = getRawSkillLevel(skill);
+        if (rawLevel >= 5) {
+            addPendingNewLevel(skill, 5);
+        }
+        if (rawLevel >= 10) {
+            addPendingNewLevel(skill, 10);
+        }
         markDirty();
         return true;
     }
@@ -1427,6 +1438,21 @@ public class PlayerStardewData {
             }
         }
         return false;
+    }
+
+    private boolean hasPendingNewLevel(SkillType skill, int level) {
+        for (SkillLevelUp pendingLevel : pendingNewLevels) {
+            if (pendingLevel.skill() == skill && pendingLevel.newLevel() == level) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void addPendingNewLevel(SkillType skill, int level) {
+        if (!hasPendingNewLevel(skill, level)) {
+            pendingNewLevels.add(new SkillLevelUp(skill, level));
+        }
     }
 
     private boolean hasLevel5Profession(SkillType skill) {
@@ -1674,6 +1700,13 @@ public class PlayerStardewData {
         fairStarTokens -= amount;
         markDirty();
         return true;
+    }
+
+    public int getLastFairGrillBurgerDateKey() { return lastFairGrillBurgerDateKey; }
+
+    public void setLastFairGrillBurgerDateKey(int dateKey) {
+        this.lastFairGrillBurgerDateKey = dateKey;
+        markDirty();
     }
 
     public long getTotalMoneyEarned() { return totalMoneyEarned; }

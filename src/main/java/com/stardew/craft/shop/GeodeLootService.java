@@ -323,7 +323,7 @@ public class GeodeLootService {
 
     /** SDV mystery box medium-rare: switch(r.Next(15)), 跳过不存在的物品用替代 */
     private static ItemStack rollMysteryBoxMediumRare(Random r, ServerPlayer player) {
-        switch (r.nextInt(12)) { // 我们可用的有12项
+        switch (r.nextInt(13)) { // 我们可用的有13项
             case 0: // SDV case 0: Mega Bomb ×5
                 return new ItemStack(ModItems.MEGA_BOMB.get(), 5);
             case 1: // SDV case 2: fishing≥6 → Dressed Spinner / Cork Bobber
@@ -343,23 +343,36 @@ public class GeodeLootService {
                 return new ItemStack(ModItems.PUMPKIN_SEEDS.get(), 20);
             case 4: // SDV case 7: Warp Totem: Farm ×3
                 return new ItemStack(ModItems.WARP_TOTEM_FARM.get(), 3);
-            case 5: // SDV case 9: Random low-grade crop ×20 → mixed seeds
+            case 5: // SDV case 8: random (O)628-633 fruit sapling
+                return randomFruitSapling(r);
+            case 6: // SDV case 9: Random low-grade crop ×20 → mixed seeds
                 return new ItemStack(ModItems.MIXED_SEEDS.get(), 20);
-            case 6: // SDV case 10: Ossified Blade / Slingshot → Ossified Blade
+            case 7: // SDV case 10: Ossified Blade / Slingshot → Ossified Blade
                 return makeItem("stardewcraft:ossified_blade", 1);
-            case 7: // SDV case 11: Sprinkler
+            case 8: // SDV case 11: Sprinkler
                 return new ItemStack(ModItems.SPRINKLER.get());
-            case 8: // SDV case 12: MysteryBox ×3-5
+            case 9: // SDV case 12: MysteryBox ×3-5
                 return new ItemStack(ModItems.MYSTERY_BOX.get(), r.nextInt(3) + 3);
-            case 9: // Quality Sprinkler (替代 SkillBook)
+            case 10: // Quality Sprinkler (替代 SkillBook)
                 return new ItemStack(ModItems.QUALITY_SPRINKLER.get());
-            case 10: // Iridium Sprinkler (替代 raccoon seeds)
+            case 11: // Iridium Sprinkler (替代 raccoon seeds)
                 return new ItemStack(ModItems.IRIDIUM_SPRINKLER.get());
-            case 11: // Wild Bait ×10 (额外替代项)
+            case 12: // Wild Bait ×10 (额外替代项)
                 return new ItemStack(ModItems.WILD_BAIT.get(), 10);
             default:
                 return new ItemStack(ModItems.COAL.get(), 5);
         }
+    }
+
+    private static ItemStack randomFruitSapling(Random r) {
+        return switch (r.nextInt(6)) {
+            case 0 -> new ItemStack(ModItems.CHERRY_SAPLING.get());
+            case 1 -> new ItemStack(ModItems.APRICOT_SAPLING.get());
+            case 2 -> new ItemStack(ModItems.ORANGE_SAPLING.get());
+            case 3 -> new ItemStack(ModItems.PEACH_SAPLING.get());
+            case 4 -> new ItemStack(ModItems.POMEGRANATE_SAPLING.get());
+            default -> new ItemStack(ModItems.APPLE_SAPLING.get());
+        };
     }
 
     /** SDV mystery box common pool: switch(14), 跳过不存在的用替代 */

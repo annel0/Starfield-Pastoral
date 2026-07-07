@@ -4,8 +4,11 @@ import com.stardew.craft.blockentity.PortalTriggerBlockEntity;
 import com.stardew.craft.event.InteriorPortalInteractionEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -72,6 +75,18 @@ public class PortalTriggerBlock extends Block implements EntityBlock {
 
         InteriorPortalInteractionEvents.handlePortalInteraction(sp, targetId);
         return InteractionResult.SUCCESS;
+    }
+
+    @Override
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+                                              Player player, InteractionHand hand, BlockHitResult hitResult) {
+        InteractionResult result = useWithoutItem(state, level, pos, player, hitResult);
+        return switch (result) {
+            case SUCCESS -> ItemInteractionResult.sidedSuccess(level.isClientSide());
+            case CONSUME, CONSUME_PARTIAL -> ItemInteractionResult.CONSUME;
+            case FAIL -> ItemInteractionResult.FAIL;
+            default -> ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        };
     }
 
     @Nullable

@@ -212,17 +212,14 @@ public final class ShopRegistry {
                 entryAllSeasons("stardewcraft:rice",          200),
                 entryAllSeasons("stardewcraft:vinegar",       200),
 
-                // ---- Tree fruits (SDV: from fruit trees, sold at Pierre as shortcut) ----
-                entry("stardewcraft:cherry",               80,  SPRING),
-                entry("stardewcraft:apricot",              50,  SPRING),
-                entry("stardewcraft:peach",               140,  SUMMER),
-                entry("stardewcraft:orange",              100,  SUMMER),
-                entry("stardewcraft:banana",              150,  SUMMER),
-                entry("stardewcraft:mango",               130,  SUMMER),
-                entry("stardewcraft:apple",               100,  FALL),
-                entry("stardewcraft:pomegranate",         140,  FALL),
+                // ---- Fruit tree saplings (SDV SeedShop: (O)628-633, all seasons) ----
+                entryAllSeasons("stardewcraft:cherry_sapling",       1700),
+                entryAllSeasons("stardewcraft:apricot_sapling",      1000),
+                entryAllSeasons("stardewcraft:orange_sapling",       2000),
+                entryAllSeasons("stardewcraft:peach_sapling",        3000),
+                entryAllSeasons("stardewcraft:pomegranate_sapling",  3000),
+                entryAllSeasons("stardewcraft:apple_sapling",        2000),
                 entryAllSeasons("stardewcraft:pineapple",        300)
-                // TODO: implement proper fruit tree sapling system
             ),
             Set.of(
                 "stardewcraft.type.crop",
@@ -631,6 +628,23 @@ public final class ShopRegistry {
             Set.of() // DesertTrader doesn't buy items from player
         ));
 
+        // -------------------------------------------------------------------
+        // Island Trader – 姜岛商人
+        // SDV parity: Data/Shops.json → "IslandTrade" fruit-tree saplings.
+        // The full trader inventory is not implemented here yet; these are the
+        // two vanilla tropical fruit tree sapling trades.
+        // -------------------------------------------------------------------
+        REGISTRY.put("IslandTrade", new ShopDefinition(
+            "IslandTrade",
+            "",
+            "",
+            List.of(
+                entryTrade("stardewcraft:banana_sapling", "stardewcraft:dragon_tooth", 5),
+                entryTrade("stardewcraft:mango_sapling",  "stardewcraft:mussel",      75)
+            ),
+            Set.of()
+        ));
+
         REGISTRY.put("DesertFestival_EggShop", new ShopDefinition(
             "DesertFestival_EggShop",
             "",
@@ -644,6 +658,33 @@ public final class ShopRegistry {
                 entryTradeDayStock("stardewcraft:magic_rock_candy", "stardewcraft:calico_egg", 250, 2, 1),
                 entryTrade("random:desert_festival_food", "stardewcraft:calico_egg", 10),
                 entryTrade("stardewcraft:skill_book_2", "stardewcraft:calico_egg", 100)
+            ),
+            Set.of()
+        ));
+
+        // -------------------------------------------------------------------
+        // Stardew Valley Fair prize shop
+        // Source of truth: SDV 1.6 源文件/Content/Data/Shops.json →
+        // "Festival_StardewValleyFair_StarTokens" plus Event.cs starTokenShop.
+        //
+        // Vanilla shop metadata:
+        //   Currency=1 (Farmer.festivalScore / star tokens)
+        //   Owner portrait="" and no dialogue, so no portrait panel.
+        //   Each item has AvailableStock=1, AvailableStockLimit=Player.
+        //
+        // User scope: Fedora (H)19 and Dried Sunflowers (F)1307 are skipped
+        // until their corresponding project assets/items are in scope.
+        // Light Green Rug (F)2488 is mapped to the confirmed carpet_19 item.
+        // -------------------------------------------------------------------
+        REGISTRY.put(com.stardew.craft.festival.FairFestivalService.STAR_TOKEN_SHOP_ID, new ShopDefinition(
+            com.stardew.craft.festival.FairFestivalService.STAR_TOKEN_SHOP_ID,
+            "",
+            "",
+            List.of(
+                entryStock("stardewcraft:scarecrow_1", 800, 1),    // (BC)110 Rarecrow #1
+                entryStock("stardewcraft:stardrop", 2000, 1),      // (O)434, hidden once CF_Fair is set
+                entryStock("stardewcraft:prize_ticket", 1000, 1),  // (O)PrizeTicket
+                entryStock("stardewcraft:carpet_19", 500, 1)       // (F)2488 Light Green Rug substitute
             ),
             Set.of()
         ));
@@ -1109,6 +1150,11 @@ public final class ShopRegistry {
             if ("ShadowShop".equals(shopId)
                     && "stardewcraft:warp_wand".equals(e.itemId())
                     && data.hasMailFlag(com.stardew.craft.sewer.SewerStoryFlags.RETURN_SCEPTER_PURCHASED)) {
+                continue;
+            }
+            if (com.stardew.craft.festival.FairFestivalService.STAR_TOKEN_SHOP_ID.equals(shopId)
+                    && "stardewcraft:stardrop".equals(e.itemId())
+                    && data.hasMailFlag(com.stardew.craft.festival.FairFestivalService.FAIR_STARDROP_FLAG)) {
                 continue;
             }
             // SDV parity: mine-level and mail-flag conditions

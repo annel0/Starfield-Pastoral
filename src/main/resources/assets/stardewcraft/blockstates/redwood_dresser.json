@@ -1,0 +1,31 @@
+{
+  "variants": {
+    "part=main,facing=north": {
+      "model": "stardewcraft:decor/common/redwood_dresser"
+    },
+    "part=extension,facing=north": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=main,facing=east": {
+      "model": "stardewcraft:decor/common/redwood_dresser",
+      "y": 90
+    },
+    "part=extension,facing=east": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=main,facing=south": {
+      "model": "stardewcraft:decor/common/redwood_dresser",
+      "y": 180
+    },
+    "part=extension,facing=south": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "part=main,facing=west": {
+      "model": "stardewcraft:decor/common/redwood_dresser",
+      "y": 270
+    },
+    "part=extension,facing=west": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    }
+  }
+}

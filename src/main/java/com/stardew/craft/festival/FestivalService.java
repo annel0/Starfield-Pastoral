@@ -210,6 +210,7 @@ public final class FestivalService {
             case "spring24" -> "message.stardewcraft.festival.flower_dance.started";
             case "summer11" -> "message.stardewcraft.festival.luau.started";
             case "summer28" -> "message.stardewcraft.festival.moonlight_jellies.started";
+            case "fall16" -> "message.stardewcraft.festival.fair.started";
             default -> "";
         };
     }

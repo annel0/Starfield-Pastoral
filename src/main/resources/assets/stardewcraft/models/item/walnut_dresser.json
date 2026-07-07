@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:decor/common/walnut_dresser",
+  "textures": {
+    "particle": "stardewcraft:block/decor/common/walnut_dresser"
+  }
+}

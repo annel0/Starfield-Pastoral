@@ -1,6 +1,7 @@
 package com.stardew.craft.item.misc;
 
 import com.stardew.craft.item.IStardewItem;
+import com.stardew.craft.item.ModItems;
 import com.stardew.craft.player.PlayerDataEventHandler;
 import com.stardew.craft.player.PlayerStardewData;
 import com.stardew.craft.player.PlayerStardewDataAPI;
@@ -119,6 +120,22 @@ public class StardropItem extends Item implements IStardewItem {
 
     private static boolean canConsumeStardrop(ServerPlayer player) {
         return PlayerStardewDataAPI.getData(player).canConsumeStardrop(MAX_CONSUMES);
+    }
+
+    public static boolean consumeImmediately(ServerPlayer player) {
+        if (player == null) {
+            return false;
+        }
+        PlayerStardewData data = PlayerStardewDataAPI.getData(player);
+        if (!data.consumeStardrop(MAX_ENERGY_GAIN, MAX_CONSUMES)) {
+            sendLimitMessage(player);
+            return false;
+        }
+        PlayerDataEventHandler.syncPlayerData(player, data);
+        player.setHealth(player.getMaxHealth());
+        player.awardStat(Stats.ITEM_USED.get(ModItems.STARDROP.get()));
+        playStardropFeedback(player);
+        return true;
     }
 
     private static void sendLimitMessage(ServerPlayer player) {

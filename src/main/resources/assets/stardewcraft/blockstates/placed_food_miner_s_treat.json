@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "stardewcraft:block/cooking/miner_s_treat"
+    },
+    "facing=east": {
+      "model": "stardewcraft:block/cooking/miner_s_treat",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "stardewcraft:block/cooking/miner_s_treat",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "stardewcraft:block/cooking/miner_s_treat",
+      "y": 270
+    }
+  }
+}

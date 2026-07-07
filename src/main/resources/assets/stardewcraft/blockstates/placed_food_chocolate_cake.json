@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "stardewcraft:block/cooking/chocolate_cake"
+    },
+    "facing=east": {
+      "model": "stardewcraft:block/cooking/chocolate_cake",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "stardewcraft:block/cooking/chocolate_cake",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "stardewcraft:block/cooking/chocolate_cake",
+      "y": 270
+    }
+  }
+}

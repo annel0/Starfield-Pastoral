@@ -7,6 +7,7 @@ import com.stardew.craft.block.utility.KitchenCounterBlock;
 import com.stardew.craft.block.utility.OakRoundTableBlock;
 import com.stardew.craft.block.utility.SpruceCounterBlock;
 import com.stardew.craft.blockentity.TableDisplayBlockEntity;
+import com.stardew.craft.client.festival.FairGrangeDisplayClientCache;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -26,6 +27,12 @@ public class TableDisplayBlockEntityRenderer implements BlockEntityRenderer<Tabl
     @Override
     public void render(@Nonnull TableDisplayBlockEntity be, float partialTick, @Nonnull PoseStack poseStack, @Nonnull MultiBufferSource buffer, int packedLight, int packedOverlay) {
         ItemStack display = be.getDisplayItem();
+        float yawDegrees = be.getDisplayYawDegrees();
+        var fairOverride = FairGrangeDisplayClientCache.get(be.getBlockPos());
+        if (fairOverride.isPresent()) {
+            display = fairOverride.get().stack();
+            yawDegrees = fairOverride.get().yawDegrees();
+        }
         if (display.isEmpty()) {
             return;
         }
@@ -44,7 +51,7 @@ public class TableDisplayBlockEntityRenderer implements BlockEntityRenderer<Tabl
 
         poseStack.pushPose();
         poseStack.translate(0.5f, y, 0.5f);
-        poseStack.mulPose(Axis.YP.rotationDegrees(-be.getDisplayYawDegrees()));
+        poseStack.mulPose(Axis.YP.rotationDegrees(-yawDegrees));
         poseStack.mulPose(Axis.XP.rotationDegrees(90.0f));
         poseStack.scale(0.62f, 0.62f, 0.62f);
 

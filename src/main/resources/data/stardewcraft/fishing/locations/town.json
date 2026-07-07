@@ -7,7 +7,9 @@
       "item": "stardewcraft:sunfish",
       "chance": 1.0,
       "difficulty": 30,
-      "motionType": 2,
+      "motionType": 0,
+      "minFishSize": 5,
+      "maxFishSize": 15,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -36,6 +38,8 @@
       "chance": 1.0,
       "difficulty": 28,
       "motionType": 0,
+      "minFishSize": 12,
+      "maxFishSize": 24,
       "minFishingLevel": 0,
       "maxDepth": 1,
       "depthMultiplier": 0.1,
@@ -63,6 +67,8 @@
       "chance": 0.2,
       "difficulty": 85,
       "motionType": 2,
+      "minFishSize": 18,
+      "maxFishSize": 18,
       "minFishingLevel": 3,
       "seasons": [
         "fall"
@@ -93,6 +99,8 @@
       "chance": 0.2,
       "difficulty": 85,
       "motionType": 2,
+      "minFishSize": 18,
+      "maxFishSize": 18,
       "minFishingLevel": 3,
       "timeRanges": [
         [
@@ -126,6 +134,8 @@
       "chance": 1.0,
       "difficulty": 35,
       "motionType": 2,
+      "minFishSize": 12,
+      "maxFishSize": 30,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -155,6 +165,8 @@
       "chance": 1.0,
       "difficulty": 75,
       "motionType": 0,
+      "minFishSize": 12,
+      "maxFishSize": 72,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -184,6 +196,8 @@
       "chance": 1.0,
       "difficulty": 5,
       "motionType": 4,
+      "minFishSize": 5,
+      "maxFishSize": 30,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -213,6 +227,8 @@
       "chance": 1.0,
       "difficulty": 45,
       "motionType": 2,
+      "minFishSize": 20,
+      "maxFishSize": 48,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -242,6 +258,8 @@
       "chance": 1.0,
       "difficulty": 45,
       "motionType": 0,
+      "minFishSize": 10,
+      "maxFishSize": 25,
       "minFishingLevel": 0,
       "seasons": [
         "summer"
@@ -268,6 +286,8 @@
       "chance": 1.0,
       "difficulty": 60,
       "motionType": 1,
+      "minFishSize": 15,
+      "maxFishSize": 60,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -296,6 +316,8 @@
       "chance": 1.0,
       "difficulty": 50,
       "motionType": 0,
+      "minFishSize": 24,
+      "maxFishSize": 65,
       "minFishingLevel": 0,
       "seasons": [
         "fall"
@@ -322,6 +344,8 @@
       "chance": 1.0,
       "difficulty": 45,
       "motionType": 2,
+      "minFishSize": 10,
+      "maxFishSize": 40,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -350,6 +374,8 @@
       "chance": 1.0,
       "difficulty": 60,
       "motionType": 1,
+      "minFishSize": 10,
+      "maxFishSize": 20,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -380,6 +406,8 @@
       "chance": 1.0,
       "difficulty": 35,
       "motionType": 1,
+      "minFishSize": 10,
+      "maxFishSize": 24,
       "minFishingLevel": 0,
       "seasons": [
         "winter"
@@ -406,6 +434,8 @@
       "chance": 1.0,
       "difficulty": 85,
       "motionType": 0,
+      "minFishSize": 30,
+      "maxFishSize": 50,
       "minFishingLevel": 0,
       "seasons": [
         "winter"

@@ -4,6 +4,7 @@ import com.stardew.craft.StardewCraft;
 import com.stardew.craft.block.ModBlocks;
 import com.stardew.craft.core.FarmAreaResolver;
 import com.stardew.craft.core.ModDimensions;
+import com.stardew.craft.entity.animal.BaseCoopAnimalEntity;
 import com.stardew.craft.entity.monster.LuckyPurpleShortsMonsterEntity;
 import com.stardew.craft.entity.junimo.JunimoEntity;
 import com.stardew.craft.entity.npc.BooksellerEntity;
@@ -11,6 +12,7 @@ import com.stardew.craft.entity.npc.CamelMerchantEntity;
 import com.stardew.craft.entity.npc.StardewNpcEntity;
 import com.stardew.craft.entity.npc.TravelingCartEntity;
 import com.stardew.craft.farm.FarmInstance;
+import com.stardew.craft.festival.FairFestivalService;
 import com.stardew.craft.greenhouse.GreenhouseInteriorCache;
 import com.stardew.craft.interior.PlayerInteriorAllocator;
 import com.stardew.craft.manager.CoalForestArea;
@@ -348,6 +350,11 @@ public class FarmAreaProtectionEvents {
             return;
         }
         if (mob instanceof LuckyPurpleShortsMonsterEntity || mob.getTags().contains(LuckyPurpleShortsMonsterEntity.TAG_MARKER)) {
+            return;
+        }
+        if (mob instanceof BaseCoopAnimalEntity animal
+            && (animal.getTags().contains(FairFestivalService.FAIR_ANIMAL_MARKER_TAG)
+                || animal.getPersistentData().getBoolean(FairFestivalService.FAIR_ANIMAL_PERSISTENT_FLAG))) {
             return;
         }
         if (mob.getPersistentData().getBoolean("StardewTrinketParrot")) {

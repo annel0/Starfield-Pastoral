@@ -8,6 +8,8 @@
       "chance": 1.0,
       "difficulty": 80,
       "motionType": 0,
+      "minFishSize": 24,
+      "maxFishSize": 65,
       "minFishingLevel": 0,
       "maxDepth": 2,
       "depthMultiplier": 0.1,
@@ -60,6 +62,8 @@
       "chance": 1.0,
       "difficulty": 5,
       "motionType": 4,
+      "minFishSize": 5,
+      "maxFishSize": 30,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -88,6 +92,8 @@
       "chance": 1.0,
       "difficulty": 75,
       "motionType": 0,
+      "minFishSize": 12,
+      "maxFishSize": 72,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -115,6 +121,8 @@
       "chance": 1.0,
       "difficulty": 5,
       "motionType": 4,
+      "minFishSize": 5,
+      "maxFishSize": 30,
       "minFishingLevel": 0,
       "timeRanges": [
         [

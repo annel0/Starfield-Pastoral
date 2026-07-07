@@ -204,6 +204,10 @@ public final class NpcInteractionService {
                 && tryHandleMoonlightJelliesDialogue(serverPlayer, npc, npcId, state, dayContext, friendshipManager)) {
                 return InteractionResult.SUCCESS;
             }
+            if ("fall16".equalsIgnoreCase(activeFestival.festivalId())
+                && tryHandleFairDialogue(serverPlayer, npc, npcId, state, dayContext, friendshipManager)) {
+                return InteractionResult.SUCCESS;
+            }
             return InteractionResult.SUCCESS;
         }
 
@@ -483,6 +487,31 @@ public final class NpcInteractionService {
                                                              DayContext dayContext,
                                                              NpcFriendshipDataManager friendshipManager) {
         String dialogueText = com.stardew.craft.festival.MoonlightJelliesFestivalService.resolveDialogueKey(player, npcId);
+        if (dialogueText == null || dialogueText.isBlank()) {
+            return false;
+        }
+
+        boolean canGainFriendship = NpcSocialRules.canSocialize(npcId, player);
+        if (canGainFriendship && state.lastTalkDayKey() != dayContext.dayKey()) {
+            grantConversationFriendship(npcId, state, dayContext, dialogueText, player);
+            NpcFriendshipRewardService.applyEligibleRewards(player, npcId, state.points());
+            friendshipManager.setDirty();
+        }
+        syncFriendshipStatus(player, npcId, state, dayContext);
+        com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(player, npcId);
+        markActiveFestivalDialogueSeen(player, npcId);
+        int points = state.points();
+        npc.facePlayerTemporarily(player, 60, () -> sendDialoguePacket(player, npcId, dialogueText, points, false));
+        return true;
+    }
+
+    private static boolean tryHandleFairDialogue(ServerPlayer player,
+                                                 StardewNpcEntity npc,
+                                                 String npcId,
+                                                 NpcFriendshipDataManager.FriendshipState state,
+                                                 DayContext dayContext,
+                                                 NpcFriendshipDataManager friendshipManager) {
+        String dialogueText = com.stardew.craft.festival.FairFestivalService.resolveDialogueKey(player, npcId);
         if (dialogueText == null || dialogueText.isBlank()) {
             return false;
         }

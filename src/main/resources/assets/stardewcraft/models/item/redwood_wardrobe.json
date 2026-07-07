@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:decor/common/redwood_wardrobe_full",
+  "textures": {
+    "particle": "stardewcraft:block/decor/common/redwood_wardrobe_1"
+  }
+}

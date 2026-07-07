@@ -7,7 +7,9 @@
       "item": "stardewcraft:sunfish",
       "chance": 0.35,
       "difficulty": 30,
-      "motionType": 2,
+      "motionType": 0,
+      "minFishSize": 5,
+      "maxFishSize": 15,
       "minFishingLevel": 0,
       "seasons": [
         "spring",
@@ -35,7 +37,9 @@
       "item": "stardewcraft:chub",
       "chance": 0.4,
       "difficulty": 35,
-      "motionType": 0,
+      "motionType": 1,
+      "minFishSize": 12,
+      "maxFishSize": 24,
       "minFishingLevel": 0,
       "maxDepth": 1,
       "depthMultiplier": 0.1,
@@ -67,6 +71,8 @@
       "chance": 0.35,
       "difficulty": 35,
       "motionType": 2,
+      "minFishSize": 12,
+      "maxFishSize": 30,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -95,6 +101,8 @@
       "chance": 0.25,
       "difficulty": 28,
       "motionType": 0,
+      "minFishSize": 12,
+      "maxFishSize": 24,
       "minFishingLevel": 0,
       "seasons": [
         "spring",
@@ -122,6 +130,8 @@
       "chance": 0.3,
       "difficulty": 45,
       "motionType": 0,
+      "minFishSize": 10,
+      "maxFishSize": 25,
       "minFishingLevel": 0,
       "seasons": [
         "summer"
@@ -148,6 +158,8 @@
       "chance": 0.2,
       "difficulty": 75,
       "motionType": 0,
+      "minFishSize": 12,
+      "maxFishSize": 72,
       "minFishingLevel": 0,
       "seasons": [
         "fall",
@@ -175,7 +187,9 @@
       "item": "stardewcraft:shad",
       "chance": 0.3,
       "difficulty": 45,
-      "motionType": 1,
+      "motionType": 2,
+      "minFishSize": 20,
+      "maxFishSize": 48,
       "minFishingLevel": 0,
       "seasons": [
         "spring",
@@ -202,7 +216,9 @@
       "item": "stardewcraft:tiger_trout",
       "chance": 0.15,
       "difficulty": 60,
-      "motionType": 0,
+      "motionType": 1,
+      "minFishSize": 10,
+      "maxFishSize": 20,
       "minFishingLevel": 0,
       "seasons": [
         "fall",
@@ -231,6 +247,8 @@
       "chance": 0.25,
       "difficulty": 50,
       "motionType": 0,
+      "minFishSize": 24,
+      "maxFishSize": 65,
       "minFishingLevel": 0,
       "seasons": [
         "fall"
@@ -255,7 +273,9 @@
       "item": "stardewcraft:walleye",
       "chance": 0.25,
       "difficulty": 45,
-      "motionType": 1,
+      "motionType": 2,
+      "minFishSize": 10,
+      "maxFishSize": 40,
       "minFishingLevel": 0,
       "seasons": [
         "fall",
@@ -284,6 +304,8 @@
       "chance": 0.2,
       "difficulty": 60,
       "motionType": 1,
+      "minFishSize": 15,
+      "maxFishSize": 60,
       "minFishingLevel": 0,
       "seasons": [
         "summer",
@@ -311,6 +333,8 @@
       "chance": 0.25,
       "difficulty": 50,
       "motionType": 0,
+      "minFishSize": 11,
+      "maxFishSize": 30,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -339,6 +363,8 @@
       "chance": 0.4,
       "difficulty": 15,
       "motionType": 0,
+      "minFishSize": 15,
+      "maxFishSize": 50,
       "minFishingLevel": 0,
       "maxDepth": 1,
       "depthMultiplier": 0.1,
@@ -368,6 +394,8 @@
       "chance": 0.4,
       "difficulty": 46,
       "motionType": 2,
+      "minFishSize": 12,
+      "maxFishSize": 30,
       "minFishingLevel": 0,
       "maxDepth": 2,
       "depthMultiplier": 0.2,
@@ -396,6 +424,8 @@
       "chance": 0.1,
       "difficulty": 78,
       "motionType": 0,
+      "minFishSize": 12,
+      "maxFishSize": 60,
       "minFishingLevel": 0,
       "seasons": [
         "summer",
@@ -422,6 +452,8 @@
       "chance": 0.35,
       "difficulty": 35,
       "motionType": 1,
+      "minFishSize": 10,
+      "maxFishSize": 24,
       "minFishingLevel": 0,
       "seasons": [
         "winter"
@@ -449,6 +481,8 @@
       "chance": 0.2,
       "difficulty": 55,
       "motionType": 0,
+      "minFishSize": 12,
+      "maxFishSize": 52,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -475,7 +509,9 @@
       "item": "stardewcraft:woodskip",
       "chance": 0.15,
       "difficulty": 50,
-      "motionType": 2,
+      "motionType": 0,
+      "minFishSize": 11,
+      "maxFishSize": 30,
       "minFishingLevel": 0,
       "maxDepth": 3,
       "depthMultiplier": 0.1,
@@ -504,7 +540,9 @@
       "item": "stardewcraft:sardine",
       "chance": 0.4,
       "difficulty": 30,
-      "motionType": 2,
+      "motionType": 1,
+      "minFishSize": 1,
+      "maxFishSize": 12,
       "minFishingLevel": 0,
       "seasons": [
         "fall",
@@ -532,7 +570,9 @@
       "item": "stardewcraft:anchovy",
       "chance": 0.35,
       "difficulty": 30,
-      "motionType": 2,
+      "motionType": 1,
+      "minFishSize": 1,
+      "maxFishSize": 16,
       "minFishingLevel": 0,
       "seasons": [
         "spring",
@@ -559,6 +599,8 @@
       "chance": 0.3,
       "difficulty": 25,
       "motionType": 1,
+      "minFishSize": 8,
+      "maxFishSize": 20,
       "minFishingLevel": 0,
       "seasons": [
         "spring",
@@ -585,6 +627,8 @@
       "chance": 0.15,
       "difficulty": 40,
       "motionType": 0,
+      "minFishSize": 8,
+      "maxFishSize": 25,
       "minFishingLevel": 0,
       "seasons": [
         "fall",
@@ -611,7 +655,9 @@
       "item": "stardewcraft:red_mullet",
       "chance": 0.25,
       "difficulty": 55,
-      "motionType": 0,
+      "motionType": 2,
+      "minFishSize": 8,
+      "maxFishSize": 22,
       "minFishingLevel": 0,
       "seasons": [
         "summer",
@@ -638,6 +684,8 @@
       "chance": 0.2,
       "difficulty": 40,
       "motionType": 3,
+      "minFishSize": 3,
+      "maxFishSize": 20,
       "minFishingLevel": 0,
       "seasons": [
         "fall",
@@ -664,6 +712,8 @@
       "chance": 0.15,
       "difficulty": 80,
       "motionType": 3,
+      "minFishSize": 12,
+      "maxFishSize": 36,
       "minFishingLevel": 0,
       "seasons": [
         "summer",
@@ -690,6 +740,8 @@
       "chance": 0.2,
       "difficulty": 50,
       "motionType": 3,
+      "minFishSize": 4,
+      "maxFishSize": 16,
       "minFishingLevel": 0,
       "seasons": [
         "spring",
@@ -716,6 +768,8 @@
       "chance": 0.15,
       "difficulty": 50,
       "motionType": 3,
+      "minFishSize": 10,
+      "maxFishSize": 33,
       "minFishingLevel": 0,
       "seasons": [
         "spring",
@@ -747,6 +801,8 @@
       "chance": 0.2,
       "difficulty": 70,
       "motionType": 2,
+      "minFishSize": 12,
+      "maxFishSize": 80,
       "minFishingLevel": 0,
       "seasons": [
         "spring",
@@ -772,7 +828,9 @@
       "item": "stardewcraft:octopus",
       "chance": 0.1,
       "difficulty": 95,
-      "motionType": 1,
+      "motionType": 3,
+      "minFishSize": 12,
+      "maxFishSize": 48,
       "minFishingLevel": 0,
       "seasons": [
         "summer"
@@ -797,7 +855,9 @@
       "item": "stardewcraft:squid",
       "chance": 0.15,
       "difficulty": 75,
-      "motionType": 1,
+      "motionType": 3,
+      "minFishSize": 12,
+      "maxFishSize": 48,
       "minFishingLevel": 0,
       "seasons": [
         "winter"
@@ -823,6 +883,8 @@
       "chance": 0.15,
       "difficulty": 70,
       "motionType": 2,
+      "minFishSize": 12,
+      "maxFishSize": 60,
       "minFishingLevel": 0,
       "seasons": [
         "summer",
@@ -849,6 +911,8 @@
       "chance": 0.3,
       "difficulty": 50,
       "motionType": 0,
+      "minFishSize": 11,
+      "maxFishSize": 30,
       "minFishingLevel": 0,
       "seasons": [
         "summer",
@@ -875,6 +939,8 @@
       "chance": 0.1,
       "difficulty": 80,
       "motionType": 4,
+      "minFishSize": 1,
+      "maxFishSize": 36,
       "minFishingLevel": 0,
       "seasons": [
         "summer"
@@ -900,6 +966,8 @@
       "chance": 0.2,
       "difficulty": 60,
       "motionType": 0,
+      "minFishSize": 20,
+      "maxFishSize": 40,
       "minFishingLevel": 0,
       "seasons": [
         "fall",
@@ -929,7 +997,9 @@
       "item": "stardewcraft:lingcod",
       "chance": 0.15,
       "difficulty": 85,
-      "motionType": 2,
+      "motionType": 0,
+      "minFishSize": 30,
+      "maxFishSize": 50,
       "minFishingLevel": 0,
       "seasons": [
         "winter"
@@ -955,6 +1025,8 @@
       "chance": 0.2,
       "difficulty": 65,
       "motionType": 0,
+      "minFishSize": 8,
+      "maxFishSize": 24,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -983,6 +1055,8 @@
       "chance": 0.15,
       "difficulty": 90,
       "motionType": 1,
+      "minFishSize": 12,
+      "maxFishSize": 32,
       "minFishingLevel": 4,
       "timeRanges": [
         [
@@ -1011,6 +1085,8 @@
       "chance": 0.1,
       "difficulty": 78,
       "motionType": 0,
+      "minFishSize": 24,
+      "maxFishSize": 32,
       "minFishingLevel": 0,
       "seasons": [
         "summer"
@@ -1036,6 +1112,8 @@
       "chance": 0.25,
       "difficulty": 50,
       "motionType": 0,
+      "minFishSize": 10,
+      "maxFishSize": 35,
       "minFishingLevel": 0,
       "maxDepth": 2,
       "depthMultiplier": 0.3,
@@ -1064,6 +1142,8 @@
       "chance": 0.2,
       "difficulty": 65,
       "motionType": 3,
+      "minFishSize": 15,
+      "maxFishSize": 15,
       "minFishingLevel": 3,
       "maxDepth": 2,
       "depthMultiplier": 0.1,
@@ -1092,6 +1172,8 @@
       "chance": 0.2,
       "difficulty": 85,
       "motionType": 1,
+      "minFishSize": 8,
+      "maxFishSize": 8,
       "minFishingLevel": 5,
       "maxDepth": 2,
       "depthMultiplier": 0.1,
@@ -1120,6 +1202,8 @@
       "chance": 0.1,
       "difficulty": 90,
       "motionType": 0,
+      "minFishSize": 32,
+      "maxFishSize": 32,
       "minFishingLevel": 7,
       "maxDepth": 2,
       "depthMultiplier": 0.1,
@@ -1149,6 +1233,8 @@
       "chance": 0.15,
       "difficulty": 80,
       "motionType": 0,
+      "minFishSize": 24,
+      "maxFishSize": 65,
       "minFishingLevel": 0,
       "maxDepth": 2,
       "depthMultiplier": 0.1,
@@ -1176,7 +1262,9 @@
       "item": "stardewcraft:slimejack",
       "chance": 0.2,
       "difficulty": 55,
-      "motionType": 0,
+      "motionType": 1,
+      "minFishSize": 8,
+      "maxFishSize": 25,
       "minFishingLevel": 0,
       "maxDepth": 3,
       "depthMultiplier": 0.1,
@@ -1204,7 +1292,9 @@
       "item": "stardewcraft:midnight_squid",
       "chance": 0.15,
       "difficulty": 55,
-      "motionType": 1,
+      "motionType": 3,
+      "minFishSize": 8,
+      "maxFishSize": 25,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -1233,6 +1323,8 @@
       "chance": 0.15,
       "difficulty": 60,
       "motionType": 1,
+      "minFishSize": 8,
+      "maxFishSize": 25,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -1261,6 +1353,8 @@
       "chance": 0.1,
       "difficulty": 75,
       "motionType": 4,
+      "minFishSize": 8,
+      "maxFishSize": 25,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -1289,6 +1383,8 @@
       "chance": 0.1,
       "difficulty": 110,
       "motionType": 0,
+      "minFishSize": 50,
+      "maxFishSize": 50,
       "minFishingLevel": 10,
       "seasons": [
         "spring"
@@ -1317,6 +1413,8 @@
       "chance": 0.1,
       "difficulty": 95,
       "motionType": 0,
+      "minFishSize": 20,
+      "maxFishSize": 20,
       "minFishingLevel": 5,
       "seasons": [
         "summer"
@@ -1345,6 +1443,8 @@
       "chance": 0.1,
       "difficulty": 85,
       "motionType": 2,
+      "minFishSize": 18,
+      "maxFishSize": 18,
       "minFishingLevel": 3,
       "seasons": [
         "fall"
@@ -1373,6 +1473,8 @@
       "chance": 0.1,
       "difficulty": 100,
       "motionType": 0,
+      "minFishSize": 27,
+      "maxFishSize": 27,
       "minFishingLevel": 7,
       "seasons": [
         "winter"
@@ -1401,6 +1503,8 @@
       "chance": 0.1,
       "difficulty": 80,
       "motionType": 1,
+      "minFishSize": 36,
+      "maxFishSize": 36,
       "minFishingLevel": 0,
       "maxDepth": 5,
       "depthMultiplier": 0.02,
@@ -1432,6 +1536,8 @@
       "chance": 0.05,
       "difficulty": 110,
       "motionType": 0,
+      "minFishSize": 50,
+      "maxFishSize": 50,
       "minFishingLevel": 10,
       "seasons": [
         "spring"
@@ -1460,6 +1566,8 @@
       "chance": 0.05,
       "difficulty": 95,
       "motionType": 0,
+      "minFishSize": 20,
+      "maxFishSize": 20,
       "minFishingLevel": 5,
       "seasons": [
         "summer"
@@ -1488,6 +1596,8 @@
       "chance": 0.05,
       "difficulty": 85,
       "motionType": 2,
+      "minFishSize": 18,
+      "maxFishSize": 18,
       "minFishingLevel": 3,
       "seasons": [
         "fall"
@@ -1516,6 +1626,8 @@
       "chance": 0.05,
       "difficulty": 100,
       "motionType": 0,
+      "minFishSize": 27,
+      "maxFishSize": 27,
       "minFishingLevel": 7,
       "seasons": [
         "winter"
@@ -1544,6 +1656,8 @@
       "chance": 0.05,
       "difficulty": 80,
       "motionType": 1,
+      "minFishSize": 36,
+      "maxFishSize": 36,
       "minFishingLevel": 0,
       "maxDepth": 5,
       "depthMultiplier": 0.02,

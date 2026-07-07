@@ -115,6 +115,9 @@ public class FairStrengthTesterBlock extends MapDecorStaticBlock implements Enti
                                              @Nonnull BlockPos pos, @Nonnull Player player, @Nonnull InteractionHand hand,
                                              @Nonnull BlockHitResult hit) {
         BlockPos mainPos = mainPosForInteraction(level, pos, state);
+        if (mainPos == null && state.is(this)) {
+            mainPos = pos;
+        }
         if (mainPos == null) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
@@ -132,6 +135,9 @@ public class FairStrengthTesterBlock extends MapDecorStaticBlock implements Enti
     protected InteractionResult useWithoutItem(@Nonnull BlockState state, @Nonnull Level level, @Nonnull BlockPos pos,
                                                @Nonnull Player player, @Nonnull BlockHitResult hit) {
         BlockPos mainPos = mainPosForInteraction(level, pos, state);
+        if (mainPos == null && state.is(this)) {
+            mainPos = pos;
+        }
         if (mainPos == null) {
             return InteractionResult.PASS;
         }

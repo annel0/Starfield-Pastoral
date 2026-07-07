@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "stardewcraft:block/cooking/rhubarb_pie"
+    },
+    "facing=east": {
+      "model": "stardewcraft:block/cooking/rhubarb_pie",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "stardewcraft:block/cooking/rhubarb_pie",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "stardewcraft:block/cooking/rhubarb_pie",
+      "y": 270
+    }
+  }
+}

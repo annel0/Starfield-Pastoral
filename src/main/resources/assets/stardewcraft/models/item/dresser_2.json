@@ -1,7 +1,6 @@
 {
-  "parent": "stardewcraft:decor/common/dresser_3_2",
+  "parent": "stardewcraft:decor/common/birch_dresser",
   "textures": {
-    "particle": "stardewcraft:block/deco/misc/common/dresser_3_2"
+    "particle": "stardewcraft:block/decor/common/birch_dresser"
   }
 }
-

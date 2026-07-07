@@ -9,6 +9,7 @@ import com.stardew.craft.time.StardewTimeManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -50,8 +51,6 @@ public class StardewTimeHud {
     @SuppressWarnings("null")
     private static final ResourceLocation CALICO_CURRENCY_BG_HOTBAR = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/desert_festival/calico_currency_bg_hotbar.png");
     @SuppressWarnings("null")
-    private static final ResourceLocation SPECIAL_CURRENCY_BG = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/cursors_1_6.png");
-    @SuppressWarnings("null")
     private static final ResourceLocation VANILLA_CURSORS = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/cursors.png");
     @SuppressWarnings("null")
     private static final ResourceLocation CALICO_RATING_ICON = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/desert_festival/calico_rating_icon.png");
@@ -68,6 +67,8 @@ public class StardewTimeHud {
     private static final int CALICO_RATING_ICON_WIDTH = 19;
     private static final int CALICO_RATING_ICON_HEIGHT = 21;
     private static final int VANILLA_HOTBAR_WIDTH = 182;
+    private static final int OFFHAND_SLOT_WIDTH = 29;
+    private static final int OFFHAND_HUD_GAP = 7;
     private static final int CALICO_HOTBAR_GAP = 4;
     private static final int CALICO_SCREEN_MARGIN = 4;
     
@@ -85,10 +86,12 @@ public class StardewTimeHud {
     private static volatile boolean timeSyncedFromServer = false;
     private static MoneyDial moneyDial = new MoneyDial(8, true);
     private static final MoneyDial calicoEggDial = new MoneyDial(4, false);
-    private static final MoneyDial starTokenDial = new MoneyDial(4, false);
     private static int moneyShakeTimer = 0;
     private static int desertFestivalMineRating = 0;
     private static int desertFestivalMineRatingShakeTimer = 0;
+    private static boolean fairFishingHudActive = false;
+    private static int fairFishingRemainingMs = 0;
+    private static int fairFishingScore = 0;
     @SuppressWarnings("unused")
     private static boolean moneyInitialized = false;
     
@@ -363,6 +366,23 @@ public class StardewTimeHud {
         renderDesertFestivalMineRating(graphics);
     }
 
+    public static void setFairFishingHudState(boolean active, int remainingMs, int score) {
+        fairFishingHudActive = active;
+        fairFishingRemainingMs = Math.max(0, remainingMs);
+        fairFishingScore = Math.max(0, score);
+    }
+
+    private static void renderFairFishingHud(GuiGraphics graphics) {
+        Minecraft mc = Minecraft.getInstance();
+        if (!fairFishingHudActive || mc.player == null || mc.level == null || mc.level.dimension() != ModDimensions.STARDEW_VALLEY) {
+            return;
+        }
+        int seconds = Math.max(0, (int) Math.ceil(fairFishingRemainingMs / 1000.0D));
+        String time = String.format("%d:%02d", seconds / 60, seconds % 60);
+        drawBorderedText(graphics, mc.font, I18n.get("stardewcraft.fair.fishing.score", fairFishingScore), 16, 32, 0xFFFFFFFF, 0xFF000000);
+        drawBorderedText(graphics, mc.font, I18n.get("stardewcraft.fair.fishing.time", time), 16, 64, 0xFFFFFFFF, 0xFF000000);
+    }
+
     private static void renderCalicoEggCurrency(GuiGraphics graphics) {
         Minecraft mc = Minecraft.getInstance();
         var player = mc.player;
@@ -380,8 +400,7 @@ public class StardewTimeHud {
 
         int screenWidth = mc.getWindow().getGuiScaledWidth();
         int screenHeight = mc.getWindow().getGuiScaledHeight();
-        int hotbarX = (screenWidth - VANILLA_HOTBAR_WIDTH) / 2;
-        int boxX = Math.max(CALICO_SCREEN_MARGIN, hotbarX - CALICO_CURRENCY_WIDTH - CALICO_HOTBAR_GAP);
+        int boxX = leftOfOffhandBoxX(screenWidth, CALICO_CURRENCY_WIDTH);
         int boxY = screenHeight - CALICO_CURRENCY_HEIGHT - 1;
         graphics.blit(CALICO_CURRENCY_BG_HOTBAR, boxX, boxY, 0, 0,
                 CALICO_CURRENCY_WIDTH, CALICO_CURRENCY_HEIGHT,
@@ -395,24 +414,31 @@ public class StardewTimeHud {
         if (player == null || mc.level == null || mc.level.dimension() != ModDimensions.STARDEW_VALLEY) {
             return;
         }
-        boolean fairDay = clientTimeCache.getCurrentSeason() == 2 && clientTimeCache.getCurrentDay() == 16;
         int count = ClientPlayerDataCache.getFairStarTokens();
-        if (!fairDay) {
+        if (!ClientPlayerDataCache.isFairStarTokenHudActive()) {
             return;
         }
 
         int screenWidth = mc.getWindow().getGuiScaledWidth();
         int screenHeight = mc.getWindow().getGuiScaledHeight();
-        int hotbarX = (screenWidth - VANILLA_HOTBAR_WIDTH) / 2;
-        int boxX = Math.max(CALICO_SCREEN_MARGIN, hotbarX - CALICO_CURRENCY_WIDTH - CALICO_HOTBAR_GAP);
-        int boxY = screenHeight - CALICO_CURRENCY_HEIGHT - 1;
-        graphics.blit(SPECIAL_CURRENCY_BG, boxX, boxY, CALICO_CURRENCY_WIDTH, CALICO_CURRENCY_HEIGHT,
-                42, 0, CALICO_CURRENCY_WIDTH, CALICO_CURRENCY_HEIGHT,
-                256, 320);
-        graphics.blit(VANILLA_CURSORS, boxX + 4, boxY + 6, 8, 8,
+        String text = String.valueOf(count);
+        int boxWidth = Math.max(64, 52 + mc.font.width(text) + 8);
+        int boxHeight = 32;
+        int boxX = leftOfOffhandBoxX(screenWidth, boxWidth);
+        int boxY = screenHeight - boxHeight - 1;
+        graphics.fill(boxX, boxY, boxX + boxWidth, boxY + boxHeight, 0xBF000000);
+        graphics.blit(VANILLA_CURSORS, boxX + 8, boxY + 8, 16, 16,
                 338, 400, 8, 8,
                 704, 2256);
-        starTokenDial.draw(graphics, boxX + 27, boxY + 10, count);
+        drawBorderedText(graphics, mc.font, text, boxX + 36, boxY + 12, 0xFFFFFFFF, 0xFF000000);
+    }
+
+    private static void drawBorderedText(GuiGraphics graphics, Font font, String text, int x, int y, int color, int borderColor) {
+        graphics.drawString(font, text, x - 1, y, borderColor, false);
+        graphics.drawString(font, text, x + 1, y, borderColor, false);
+        graphics.drawString(font, text, x, y - 1, borderColor, false);
+        graphics.drawString(font, text, x, y + 1, borderColor, false);
+        graphics.drawString(font, text, x, y, color, false);
     }
 
     private static void renderDesertFestivalMineRating(GuiGraphics graphics) {
@@ -433,8 +459,7 @@ public class StardewTimeHud {
 
         int screenWidth = mc.getWindow().getGuiScaledWidth();
         int screenHeight = mc.getWindow().getGuiScaledHeight();
-        int hotbarX = (screenWidth - VANILLA_HOTBAR_WIDTH) / 2;
-        int calicoBoxX = Math.max(CALICO_SCREEN_MARGIN, hotbarX - CALICO_CURRENCY_WIDTH - CALICO_HOTBAR_GAP);
+        int calicoBoxX = leftOfOffhandBoxX(screenWidth, CALICO_CURRENCY_WIDTH);
         int calicoBoxY = screenHeight - CALICO_CURRENCY_HEIGHT - 1;
         int iconW = CALICO_RATING_ICON_WIDTH;
         int iconH = CALICO_RATING_ICON_HEIGHT;
@@ -450,6 +475,12 @@ public class StardewTimeHud {
             CALICO_RATING_ICON_WIDTH, CALICO_RATING_ICON_HEIGHT);
         String rating = String.valueOf(desertFestivalMineRating);
         drawCenteredScaledText(graphics, mc.font, rating, x + iconW / 2, y + iconH / 2 - 1, 0xFF3F2A13, 0.75F, true);
+    }
+
+    private static int leftOfOffhandBoxX(int screenWidth, int boxWidth) {
+        int hotbarX = (screenWidth - VANILLA_HOTBAR_WIDTH) / 2;
+        int offhandLeft = hotbarX - OFFHAND_SLOT_WIDTH;
+        return Math.max(CALICO_SCREEN_MARGIN, offhandLeft - boxWidth - OFFHAND_HUD_GAP);
     }
 
     private static void drawCenteredScaledText(GuiGraphics graphics, Font font, String text, int centerX, int centerY,

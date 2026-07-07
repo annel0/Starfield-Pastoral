@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "stardewcraft:block/cooking/red_plate"
+    },
+    "facing=east": {
+      "model": "stardewcraft:block/cooking/red_plate",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "stardewcraft:block/cooking/red_plate",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "stardewcraft:block/cooking/red_plate",
+      "y": 270
+    }
+  }
+}

@@ -244,6 +244,7 @@ public class StardewTimeManager extends SavedData {
                 try {
                 com.stardew.craft.manager.CropGrowthManager.get(stardewLevel).growDaily(stardewLevel);
 				com.stardew.craft.manager.TreeGrowthManager.get(stardewLevel).growDaily(stardewLevel);
+                com.stardew.craft.manager.FruitTreeGrowthManager.get(stardewLevel).growDaily(stardewLevel);
                 com.stardew.craft.manager.WildTreeSeedManager.get(stardewLevel).onNewDay(stardewLevel, absDay);
                 com.stardew.craft.manager.SprinklerManager.get(stardewLevel).waterDaily(stardewLevel);
                 com.stardew.craft.manager.PastureGrassGrowthManager.get(stardewLevel).growDaily(stardewLevel);

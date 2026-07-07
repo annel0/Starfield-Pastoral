@@ -34,6 +34,7 @@ public final class FestivalMapOverlayManager {
         FestivalWorldData data = FestivalWorldData.get(level);
         FestivalMapOverlayState state = data.getOrCreateOverlayState(definition.overlayId());
         if (state.phase() == FestivalMapOverlayPhase.APPLIED) {
+            ActiveFestivalHandlers.onMapOverlayApplied(level, state.overlayId());
             notifyPassiveOverlayApplied(level, state);
             return true;
         }
@@ -208,9 +209,14 @@ public final class FestivalMapOverlayManager {
             level.removeBlockEntity(pos);
             return;
         }
-        CompoundTag normalized = rawTag.copy();
+        CompoundTag normalized = rawTag.contains("Data", Tag.TAG_COMPOUND)
+            ? rawTag.getCompound("Data").copy()
+            : rawTag.copy();
         if (!normalized.contains("id", Tag.TAG_STRING) && normalized.contains("Id", Tag.TAG_STRING)) {
             normalized.putString("id", normalized.getString("Id"));
+        }
+        if (!normalized.contains("id", Tag.TAG_STRING) && rawTag.contains("Id", Tag.TAG_STRING)) {
+            normalized.putString("id", rawTag.getString("Id"));
         }
         normalized.putInt("x", pos.getX());
         normalized.putInt("y", pos.getY());
@@ -222,6 +228,9 @@ public final class FestivalMapOverlayManager {
         if (blockEntity != null) {
             level.setBlockEntity(blockEntity);
             blockEntity.setChanged();
+            BlockState state = level.getBlockState(pos);
+            level.sendBlockUpdated(pos, state, state, Block.UPDATE_CLIENTS);
+            level.getChunkSource().blockChanged(pos);
         }
     }
 

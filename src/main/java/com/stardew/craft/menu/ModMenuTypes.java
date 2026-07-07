@@ -93,6 +93,11 @@ public class ModMenuTypes {
             () -> new MenuType<>(SpecialOrderDropBoxMenu::new, FeatureFlags.DEFAULT_FLAGS));
 
     @SuppressWarnings("null")
+    public static final DeferredHolder<MenuType<?>, MenuType<FairGrangeDisplayMenu>> FAIR_GRANGE_DISPLAY =
+        MENU_TYPES.register("fair_grange_display",
+            () -> new MenuType<>(FairGrangeDisplayMenu::new, FeatureFlags.DEFAULT_FLAGS));
+
+    @SuppressWarnings("null")
     public static final DeferredHolder<MenuType<?>, MenuType<com.stardew.craft.communitycenter.menu.BundleMenu>> BUNDLE =
         MENU_TYPES.register("bundle",
             () -> new MenuType<>(com.stardew.craft.communitycenter.menu.BundleMenu::new, FeatureFlags.DEFAULT_FLAGS));

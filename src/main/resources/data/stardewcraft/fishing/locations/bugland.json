@@ -7,7 +7,9 @@
       "item": "stardewcraft:slimejack",
       "chance": 1.0,
       "difficulty": 55,
-      "motionType": 0,
+      "motionType": 1,
+      "minFishSize": 8,
+      "maxFishSize": 25,
       "minFishingLevel": 0,
       "maxDepth": 3,
       "depthMultiplier": 0.1,
@@ -36,6 +38,8 @@
       "chance": 1.0,
       "difficulty": 15,
       "motionType": 0,
+      "minFishSize": 15,
+      "maxFishSize": 50,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -63,6 +67,8 @@
       "chance": 1.0,
       "difficulty": 5,
       "motionType": 4,
+      "minFishSize": 5,
+      "maxFishSize": 30,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -91,6 +97,8 @@
       "chance": 1.0,
       "difficulty": 5,
       "motionType": 4,
+      "minFishSize": 5,
+      "maxFishSize": 30,
       "minFishingLevel": 0,
       "timeRanges": [
         [

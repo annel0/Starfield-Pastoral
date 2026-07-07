@@ -31,6 +31,8 @@ public record FestivalConfirmPayload(OpenFestivalConfirmPayload.Action action, b
             if (context.player() instanceof ServerPlayer player) {
                 if (com.stardew.craft.festival.MoonlightJelliesFestivalService.handlesConfirmation(player, payload.action())) {
                     com.stardew.craft.festival.MoonlightJelliesFestivalService.onPlayerConfirmed(player, payload.action(), payload.confirmed());
+                } else if (com.stardew.craft.festival.FairFestivalService.handlesConfirmation(player, payload.action())) {
+                    com.stardew.craft.festival.FairFestivalService.onPlayerConfirmed(player, payload.action(), payload.confirmed());
                 } else if (com.stardew.craft.festival.LuauFestivalService.handlesConfirmation(player, payload.action())) {
                     com.stardew.craft.festival.LuauFestivalService.onPlayerConfirmed(player, payload.action(), payload.confirmed());
                 } else if (com.stardew.craft.festival.FlowerDanceService.handlesConfirmation(player, payload.action())) {

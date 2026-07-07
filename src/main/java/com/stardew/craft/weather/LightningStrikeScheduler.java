@@ -3,6 +3,7 @@ package com.stardew.craft.weather;
 import com.stardew.craft.blockentity.LightningRodBlockEntity;
 import com.stardew.craft.blockentity.registry.LightningRodRegistry;
 import com.stardew.craft.core.ModDimensions;
+import com.stardew.craft.manager.FruitTreeGrowthManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -29,6 +30,8 @@ public final class LightningStrikeScheduler {
 
     /** SDV: 0.125 + luck. We drop the luck term (no per-player context at global tick). */
     private static final double STRIKE_CHANCE = 0.125;
+    /** SDV fallback terrain-feature hit chance: 0.25 - luck. */
+    private static final double TERRAIN_STRIKE_CHANCE = 0.25;
 
     private LightningStrikeScheduler() {}
 
@@ -46,21 +49,26 @@ public final class LightningStrikeScheduler {
     }
 
     private static void tick(ServerLevel level) {
-        LightningRodRegistry registry = LightningRodRegistry.get(level);
-        if (registry.size() == 0) return;
         if (level.random.nextDouble() >= STRIKE_CHANCE) return;
 
+        LightningRodRegistry registry = LightningRodRegistry.get(level);
         // SDV picks up to 2 rods per successful roll; the FIRST empty rod
         // gets the battery and the loop returns.
-        List<BlockPos> snapshot = new ArrayList<>(registry.positions());
-        int attempts = Math.min(2, snapshot.size());
-        for (int i = 0; i < attempts; i++) {
-            // Fisher-Yates partial pick using RandomSource.
-            int swap = i + level.random.nextInt(snapshot.size() - i);
-            BlockPos pos = snapshot.get(swap);
-            snapshot.set(swap, snapshot.get(i));
-            snapshot.set(i, pos);
-            if (tryStrike(level, registry, pos)) return;
+        if (registry.size() > 0) {
+            List<BlockPos> snapshot = new ArrayList<>(registry.positions());
+            int attempts = Math.min(2, snapshot.size());
+            for (int i = 0; i < attempts; i++) {
+                // Fisher-Yates partial pick using RandomSource.
+                int swap = i + level.random.nextInt(snapshot.size() - i);
+                BlockPos pos = snapshot.get(swap);
+                snapshot.set(swap, snapshot.get(i));
+                snapshot.set(i, pos);
+                if (tryStrike(level, registry, pos)) return;
+            }
+        }
+
+        if (level.random.nextDouble() < TERRAIN_STRIKE_CHANCE) {
+            FruitTreeGrowthManager.get(level).strikeRandomMatureTree(level, level.random);
         }
     }
 

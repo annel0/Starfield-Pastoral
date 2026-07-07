@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:decor/festival/fair_grave_stone",
+  "textures": {
+    "particle": "stardewcraft:block/festival/fair_grave_stone"
+  }
+}

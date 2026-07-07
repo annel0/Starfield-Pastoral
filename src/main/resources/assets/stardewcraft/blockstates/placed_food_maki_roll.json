@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "stardewcraft:block/cooking/maki_roll"
+    },
+    "facing=east": {
+      "model": "stardewcraft:block/cooking/maki_roll",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "stardewcraft:block/cooking/maki_roll",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "stardewcraft:block/cooking/maki_roll",
+      "y": 270
+    }
+  }
+}

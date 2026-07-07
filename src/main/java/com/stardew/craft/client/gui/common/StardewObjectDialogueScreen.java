@@ -235,9 +235,13 @@ public class StardewObjectDialogueScreen extends Screen {
     }
 
     private String normalize(String text) {
-        return (text == null ? "..." : text)
+        String normalized = text == null ? "..." : text;
+        return normalized
                 .replace("\r", "")
-                .replace("^", "\n");
+                .replace("^", "\n")
+                .replaceAll("#\\$[bBeE]#", "#")
+                .replaceAll("\\$[hHsSuUaAlL0-9]+", "")
+                .replaceAll("\\$[bBeE]", "#");
     }
 
     private void recomputeLayout() {

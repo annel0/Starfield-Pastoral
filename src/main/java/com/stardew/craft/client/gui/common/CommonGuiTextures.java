@@ -20,6 +20,7 @@ public final class CommonGuiTextures {
     private static final SdvTexture SCROLL_ARROW_DOWN = SdvTexture.full(common("scroll_arrow_down"), 11, 12);
     private static final SdvTexture SCROLL_BAR_THUMB = SdvTexture.full(common("scroll_bar_thumb"), 6, 10);
     private static final SdvTexture SHOP_COIN = SdvTexture.full(common("shop_coin"), 9, 10);
+    private static final SdvTexture FAIR_STAR_TOKEN = SdvTexture.full(fairTargetGame("star_token"), 8, 8);
     private static final SdvTexture SHOP_PORTRAIT_FRAME = SdvTexture.full(common("shop_portrait_frame"), 74, 74);
     private static final SdvTexture MONEY_BOX = SdvTexture.full(common("money_box"), 65, 17);
     private static final SdvTexture[] MONEY_DIGITS = frames("money_digit_", 10, 5, 8);
@@ -66,6 +67,14 @@ public final class CommonGuiTextures {
         SdvTexture.full(common("catalogue_tab_wallpaper"), 16, 16),
         SdvTexture.full(common("catalogue_tab_flooring"), 16, 16),
         CATALOGUE_STAR
+    };
+    private static final SdvTexture[] WARDROBE_TAB_ICONS = new SdvTexture[] {
+        SdvTexture.full(common("wardrobe_tab_all"), 16, 16),
+        SdvTexture.full(common("wardrobe_tab_hats"), 16, 16),
+        SdvTexture.full(common("wardrobe_tab_shirts"), 16, 16),
+        SdvTexture.full(common("wardrobe_tab_pants"), 16, 16),
+        SdvTexture.full(common("wardrobe_tab_shoes"), 16, 16),
+        SdvTexture.full(common("wardrobe_tab_rings"), 16, 16)
     };
     private static final SdvTexture[] DIALOGUE_NEXT_PAGE = frames("dialogue_next_page_", 6, 9, 9);
     private static final SdvTexture[] DIALOGUE_END = frames("dialogue_end_", 11, 11, 12);
@@ -212,6 +221,14 @@ public final class CommonGuiTextures {
 
     public static void drawShopCoinTint(GuiGraphics graphics, int x, int y, float scale, float red, float green, float blue, float alpha) {
         SHOP_COIN.drawPixelZoomTint(graphics, x, y, scale, red, green, blue, alpha);
+    }
+
+    public static void drawFairStarToken(GuiGraphics graphics, int x, int y, float scale) {
+        FAIR_STAR_TOKEN.drawPixelZoom(graphics, x, y, scale);
+    }
+
+    public static void drawFairStarTokenTint(GuiGraphics graphics, int x, int y, float scale, float red, float green, float blue, float alpha) {
+        FAIR_STAR_TOKEN.drawPixelZoomTint(graphics, x, y, scale, red, green, blue, alpha);
     }
 
     public static void drawShopPortraitFrame(GuiGraphics graphics, int x, int y, float scale) {
@@ -370,6 +387,10 @@ public final class CommonGuiTextures {
 
     public static void drawCatalogueTabIconTint(GuiGraphics graphics, int x, int y, int tabIndex, float scale, float red, float green, float blue, float alpha) {
         CATALOGUE_TAB_ICONS[clampFrame(tabIndex, CATALOGUE_TAB_ICONS.length)].drawPixelZoomTint(graphics, x, y, scale, red, green, blue, alpha);
+    }
+
+    public static void drawWardrobeTabIconTint(GuiGraphics graphics, int x, int y, int tabIndex, float scale, float red, float green, float blue, float alpha) {
+        WARDROBE_TAB_ICONS[clampFrame(tabIndex, WARDROBE_TAB_ICONS.length)].drawPixelZoomTint(graphics, x, y, scale, red, green, blue, alpha);
     }
 
     public static void drawCategoryFrame(GuiGraphics graphics, int x, int y, boolean left, float scale, float alpha) {
@@ -637,5 +658,9 @@ public final class CommonGuiTextures {
 
     private static ResourceLocation animalQuery(String name) {
         return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/animal_query/" + name + ".png");
+    }
+
+    private static ResourceLocation fairTargetGame(String name) {
+        return ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/fair/target_game/" + name + ".png");
     }
 }

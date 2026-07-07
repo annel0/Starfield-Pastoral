@@ -7,7 +7,9 @@
       "item": "stardewcraft:midnight_squid",
       "chance": 0.15,
       "difficulty": 55,
-      "motionType": 1,
+      "motionType": 3,
+      "minFishSize": 8,
+      "maxFishSize": 25,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -36,6 +38,8 @@
       "chance": 0.15,
       "difficulty": 60,
       "motionType": 1,
+      "minFishSize": 8,
+      "maxFishSize": 25,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -64,6 +68,8 @@
       "chance": 0.1,
       "difficulty": 75,
       "motionType": 4,
+      "minFishSize": 8,
+      "maxFishSize": 25,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -92,6 +98,8 @@
       "chance": 0.18,
       "difficulty": 95,
       "motionType": 0,
+      "minFishSize": 20,
+      "maxFishSize": 20,
       "minFishingLevel": 5,
       "timeRanges": [
         [

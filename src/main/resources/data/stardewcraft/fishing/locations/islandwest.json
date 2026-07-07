@@ -8,6 +8,8 @@
       "chance": 1.0,
       "difficulty": 95,
       "motionType": 3,
+      "minFishSize": 12,
+      "maxFishSize": 48,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -35,6 +37,8 @@
       "chance": 1.0,
       "difficulty": 80,
       "motionType": 3,
+      "minFishSize": 12,
+      "maxFishSize": 36,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -63,6 +67,8 @@
       "chance": 1.0,
       "difficulty": 70,
       "motionType": 2,
+      "minFishSize": 12,
+      "maxFishSize": 60,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -91,6 +97,8 @@
       "chance": 1.0,
       "difficulty": 80,
       "motionType": 4,
+      "minFishSize": 1,
+      "maxFishSize": 36,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -118,6 +126,8 @@
       "chance": 1.0,
       "difficulty": 50,
       "motionType": 3,
+      "minFishSize": 4,
+      "maxFishSize": 16,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -146,6 +156,8 @@
       "chance": 1.0,
       "difficulty": 50,
       "motionType": 0,
+      "minFishSize": 11,
+      "maxFishSize": 30,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -174,6 +186,8 @@
       "chance": 1.0,
       "difficulty": 55,
       "motionType": 0,
+      "minFishSize": 12,
+      "maxFishSize": 52,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -250,6 +264,8 @@
       "chance": 1.0,
       "difficulty": 50,
       "motionType": 2,
+      "minFishSize": 3,
+      "maxFishSize": 12,
       "minFishingLevel": 0,
       "timeRanges": [
         [
@@ -280,6 +296,8 @@
       "chance": 1.0,
       "difficulty": 60,
       "motionType": 1,
+      "minFishSize": 2,
+      "maxFishSize": 9,
       "minFishingLevel": 0,
       "timeRanges": [
         [

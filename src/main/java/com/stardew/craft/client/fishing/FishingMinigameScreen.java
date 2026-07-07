@@ -66,6 +66,8 @@ public final class FishingMinigameScreen extends Screen {
 	private final float escapeLossPerTick;    // Trap Bobber（不在条内时掉进度）
 	private final int barbedHookCount;        // Barbed Hook（吸附/重力）
 	private final int leadBobberCount;        // Lead Bobber（底部反弹衰减）
+	private final int minFishSize;
+	private final int maxFishSize;
 	private final boolean hasSonarBobber;
 	private final String sonarFishItemId;
 	private net.minecraft.world.item.ItemStack sonarFishStack;
@@ -106,9 +108,12 @@ public final class FishingMinigameScreen extends Screen {
 	private boolean buttonPressed;
 	private boolean mouseHeld;
 	private boolean perfect;
+	private final float initialCatchProgress;
+	private final boolean loseProgressOutsideBar;
 	private float distanceFromCatching;
 
-	// Fish size shrink (we keep it for fidelity even if we don't use it elsewhere yet)
+	// Fish size shrink: BobberBar reduces fishSize by 1 every 800ms while outside the bar.
+	private int currentFishSize;
 	private int fishSizeReductionTimerMs;
 
 	// Treasure (宝箱)
@@ -128,7 +133,9 @@ public final class FishingMinigameScreen extends Screen {
 	public FishingMinigameScreen(UUID sessionId, int difficulty, int motionTypeId, boolean legendaryFish, int durationTicks,
 	                             boolean hasTreasure, boolean goldenTreasure,
 	                             boolean hasSonarBobber, String sonarFishItemId,
-	                             int barSizeBonus, float escapeLossPerTick, int barbedHookCount, int leadBobberCount) {
+	                             int barSizeBonus, float escapeLossPerTick, int barbedHookCount, int leadBobberCount,
+	                             int minFishSize, int maxFishSize, int currentFishSize,
+	                             float initialCatchProgress, boolean loseProgressOutsideBar) {
 		// Title should not render in the UI; keep screen title empty.
 		super(Component.empty());
 		this.sessionId = sessionId;
@@ -150,6 +157,11 @@ public final class FishingMinigameScreen extends Screen {
 		this.escapeLossPerTick = escapeLossPerTick;
 		this.barbedHookCount = Math.max(0, barbedHookCount);
 		this.leadBobberCount = Math.max(0, leadBobberCount);
+		this.minFishSize = Math.max(0, minFishSize);
+		this.maxFishSize = Math.max(this.minFishSize, maxFishSize);
+		this.currentFishSize = Mth.clamp(currentFishSize, this.minFishSize, Math.max(this.maxFishSize + 1, currentFishSize));
+		this.initialCatchProgress = Mth.clamp(initialCatchProgress, 0.0F, 1.0F);
+		this.loseProgressOutsideBar = loseProgressOutsideBar;
 		this.sonarFishStack = net.minecraft.world.item.ItemStack.EMPTY;
 	}
 
@@ -188,7 +200,7 @@ public final class FishingMinigameScreen extends Screen {
 		this.bobberInBar = false;
 		this.buttonPressed = false;
 		this.perfect = true;
-		this.distanceFromCatching = 0.3f;
+		this.distanceFromCatching = initialCatchProgress;
 
 		this.fishSizeReductionTimerMs = TIME_PER_FISH_SIZE_REDUCTION_MS;
 
@@ -611,10 +623,13 @@ public final class FishingMinigameScreen extends Screen {
 			}
 			fishSizeReductionTimerMs -= elapsedMs;
 			if (fishSizeReductionTimerMs <= 0) {
+				currentFishSize = Math.max(minFishSize, currentFishSize - 1);
 				fishSizeReductionTimerMs = TIME_PER_FISH_SIZE_REDUCTION_MS;
 			}
 			// Trap Bobber effect (SV): reduce how fast the catch meter drops.
-			distanceFromCatching -= escapeLossPerTick;
+			if (loseProgressOutsideBar) {
+				distanceFromCatching -= escapeLossPerTick;
+			}
 			float distanceAway = Math.abs(bobberPosition - (bobberBarPos + (float) (bobberBarHeight / 2)));
 			reelRotation -= (float) Math.PI / Math.max(10f, 200f - distanceAway);
 			if (!sentResult) {
@@ -639,6 +654,9 @@ public final class FishingMinigameScreen extends Screen {
 			finish(false);
 			return;
 		} else if (distanceFromCatching >= 1f) {
+			if (!perfect && currentFishSize == maxFishSize) {
+				currentFishSize--;
+			}
 			playLocal(ModSounds.JINGLE1.get(), 1.0f, 1.0f);
 			// Stardew does a fish-to-player animation whose endSound is tinyWhip.
 			// We don't simulate that animation yet, but we can at least play the cue.
@@ -664,7 +682,8 @@ public final class FishingMinigameScreen extends Screen {
 		if (hasChallengeBait && challengeBaitFishes > 0) {
 			numCaught = challengeBaitFishes;
 		}
-		PacketDistributor.sendToServer(new FishingResultPayload(sessionId, success, distanceFromCatching, treasureCaught, numCaught));
+		PacketDistributor.sendToServer(new FishingResultPayload(sessionId, success, distanceFromCatching,
+				treasureCaught, numCaught, perfect, currentFishSize));
 		Minecraft.getInstance().setScreen(null);
 	}
 

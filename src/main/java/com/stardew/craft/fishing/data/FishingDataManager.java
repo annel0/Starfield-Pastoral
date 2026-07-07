@@ -37,16 +37,14 @@ public final class FishingDataManager {
 	private static final String LEGACY_COMPAT_POOL_KEY = "stardewcraft:stardew_valley";
 
 	/**
-	 * Items that are technically caught while fishing but are NOT fish — algae,
-	 * jelly, seaweed, junk/trash, etc. SDV never plays the bobber-bar minigame for
-	 * these (FishingRod.cs: only TypeObject + has minigame motion triggers it).
+	 * Items that are technically caught while fishing but are not backed by
+	 * Data/Fish entries, so SDV pulls them from the water without BobberBar.
+	 * Algae and seaweed are intentionally excluded: vanilla Data/Fish gives them
+	 * difficulty/motion/size fields, so they do use BobberBar.
 	 * The JSON {@code skipMinigame} flag is honored when true; this set is an
 	 * additional safety-net so a missing flag never accidentally forces a minigame.
 	 */
 	private static final Set<String> NON_FISH_CATCHABLE_IDS = Set.of(
-			"stardewcraft:green_algae",
-			"stardewcraft:white_algae",
-			"stardewcraft:seaweed",
 			"stardewcraft:sea_jelly",
 			"stardewcraft:river_jelly",
 			"stardewcraft:cave_jelly",
@@ -163,7 +161,7 @@ public final class FishingDataManager {
 	public Optional<FishSelection> selectFish(ServerPlayer player, ServerLevel level, BlockPos bobberPos, int waterDepth, boolean inSplash, RandomSource random) {
 		int effectiveDepth = waterDepth + (inSplash ? 1 : 0);
 		if (!isStardewFishingDimension(level)) {
-			return Optional.of(new FishSelection(getRandomJunk(random), 0, 0, true));
+			return Optional.of(new FishSelection(getRandomJunk(random), 0, 0, 0, 0, true));
 		}
 
 		int fishingLevel = PlayerStardewDataAPI.getSkillLevel(player, SkillType.FISHING);
@@ -179,18 +177,11 @@ public final class FishingDataManager {
 				&& fri.getTier() == com.stardew.craft.item.tool.FishingRodItem.RodTier.TRAINING_ROD;
 		boolean usingGoodBait = isUsingGoodBait(rodStack);
 		String baitTargetFishId = getTargetedBaitFishId(rodStack);
-		// SDV: who.fishCaught.Length == 0 → only tutorial fish allowed; Carp fallback otherwise.
-		// MC adaptation: if no candidate in this location is flagged tutorial (e.g. Desert),
-		// suppress the gate entirely — otherwise the player would always get Carp from
-		// outside Pelican Town, which contradicts the location's biome rules.
-		boolean hasTutorialFishHere = false;
-		{
-			List<String> probeKeys = resolveVanillaAlignedLocationKeys(level, level.getBiome(bobberPos));
-			for (CandidateRule cr : collectCandidatesByKeys(probeKeys)) {
-				if (cr.rule().isTutorialFish()) { hasTutorialFishHere = true; break; }
-			}
-		}
-		boolean isTutorialCatch = hasTutorialFishHere && playerData.getDistinctFishCaughtCount() == 0;
+		boolean fairFishingGame = com.stardew.craft.festival.fair.FairFishingGameService.isFishingGameActive(player);
+		List<String> lookupKeys = fairFishingGame
+				? List.of("fishingGame")
+				: resolveVanillaAlignedLocationKeys(level, level.getBiome(bobberPos));
+		boolean poolOnly = fairFishingGame || useDesertFestivalPoolOnly(level.getBiome(bobberPos));
 
 		// 获取浮漂位置的群系
 		@SuppressWarnings("null")
@@ -206,17 +197,28 @@ public final class FishingDataManager {
 		int stardewTime = currentStardewTime();
 		String currentSeason = getCurrentSeason(level);
 
-		List<String> lookupKeys = resolveVanillaAlignedLocationKeys(level, biomeHolder);
-		String fishAreaId = resolveVanillaFishAreaId(biomeHolder);
-
-		List<CandidateRule> candidates = collectCandidatesByKeys(lookupKeys, useDesertFestivalPoolOnly(biomeHolder));
+		String fishAreaId = fairFishingGame ? null : resolveVanillaFishAreaId(biomeHolder);
+		List<CandidateRule> candidates = collectCandidatesByKeys(lookupKeys, poolOnly);
 
 		if (candidates.isEmpty()) {
 			// 如果没有任何候选鱼（数据未加载或配置错误），直接返回垃圾
 			StardewCraft.LOGGER.debug("No fish candidates found for keys {} at biome {}. Check if fishing data loaded correctly!",
 					lookupKeys, biomeId);
-			return Optional.of(new FishSelection(getRandomJunk(random), 0, 0, true));
+			return Optional.of(new FishSelection(getRandomJunk(random), 0, 0, 0, 0, true));
 		}
+
+		// SDV: who.fishCaught.Length == 0 → only tutorial fish allowed; Sunfish fallback otherwise.
+		// MC adaptation: if no candidate in this location is flagged tutorial (e.g. Desert),
+		// suppress the gate entirely — otherwise the player would always get Sunfish from
+		// outside Pelican Town, which contradicts the location's biome rules.
+		boolean hasTutorialFishHere = false;
+		for (CandidateRule cr : candidates) {
+			if (cr.rule().isTutorialFish()) {
+				hasTutorialFishHere = true;
+				break;
+			}
+		}
+		boolean isTutorialCatch = hasTutorialFishHere && playerData.getDistinctFishCaughtCount() == 0;
 
 		// 按优先级排序，同优先级内随机
 		// 模组数据约定："高 precedence = 高优先级"（与 SDV 源数据语义相反，SDV 用 -1000..2000 + OrderByAsc）
@@ -258,7 +260,7 @@ public final class FishingDataManager {
 				if (!rule.matchesBiome(biomeHolder)) {
 					continue;
 				}
-				if (!usingMagicBait) {
+				if (!usingMagicBait && !rule.ignoreFishDataRequirements()) {
 					if (!rule.matchesSeason(currentSeason) || !rule.matchesWeather(isRaining) || !rule.matchesStardewTime(stardewTime)) {
 						continue;
 					}
@@ -317,6 +319,10 @@ public final class FishingDataManager {
 				if (isTutorialCatch && !rule.isTutorialFish()) {
 					continue;
 				}
+				if (rule.ignoreFishDataRequirements()) {
+					chosen = rule;
+					break;
+				}
 				float dropOff = rule.depthMultiplier() * rule.spawnRate();
 				float c = rule.spawnRate();
 				c -= Math.max(0, rule.maxDepth() - effectiveDepth) * dropOff;
@@ -373,14 +379,14 @@ public final class FishingDataManager {
 		}
 
 		if (chosen == null) {
-			// SDV: tutorial first-catch always falls back to Carp ((O)145).
+			// SDV: tutorial first-catch always falls back to Sunfish ((O)145).
 			if (isTutorialCatch) {
-				Item carp = BuiltInRegistries.ITEM.get(ResourceLocation.parse("stardewcraft:carp"));
-				if (carp != null && carp != Items.AIR) {
-					return Optional.of(new FishSelection(new ItemStack(carp), 15, 0, false));
+				Item sunfish = BuiltInRegistries.ITEM.get(ResourceLocation.parse("stardewcraft:sunfish"));
+				if (sunfish != null && sunfish != Items.AIR) {
+					return Optional.of(new FishSelection(new ItemStack(sunfish), 30, 0, 5, 15, false));
 				}
 			}
-			return Optional.of(new FishSelection(getRandomJunk(random), 0, 0, true));
+			return Optional.of(new FishSelection(getRandomJunk(random), 0, 0, 0, 0, true));
 		}
 		Item item;
 		try {
@@ -395,7 +401,8 @@ public final class FishingDataManager {
 		@SuppressWarnings("null")
 		ItemStack stack = new ItemStack(item);
 		boolean skip = chosen.skipMinigame() || isNonFishCatchable(chosen.itemId());
-		return Optional.of(new FishSelection(stack, chosen.difficulty(), chosen.motionTypeId(), skip));
+		return Optional.of(new FishSelection(stack, chosen.difficulty(), chosen.motionTypeId(),
+				chosen.minFishSize(), chosen.maxFishSize(), skip));
 	}
 
 	private List<CandidateRule> collectCandidatesByKeys(List<String> lookupKeys) {
@@ -567,6 +574,17 @@ public final class FishingDataManager {
 
 	private static ItemStack getRodFromPlayer(ServerPlayer player) {
 		if (player == null) return ItemStack.EMPTY;
+		if (com.stardew.craft.festival.fair.FairFishingGameService.isFishingGameActive(player)) {
+			ItemStack main = player.getMainHandItem();
+			if (com.stardew.craft.festival.fair.FairFishingGameService.isUsableFishingGameRod(player, main)) {
+				return main;
+			}
+			ItemStack off = player.getOffhandItem();
+			if (com.stardew.craft.festival.fair.FairFishingGameService.isUsableFishingGameRod(player, off)) {
+				return off;
+			}
+			return ItemStack.EMPTY;
+		}
 		return com.stardew.craft.item.tool.FishingRodItem.findRod(player);
 	}
 
@@ -857,8 +875,8 @@ public final class FishingDataManager {
 	public ItemStack getRandomJunk(RandomSource random) {
 		// SDV 原版回退：6 件垃圾均匀随机
 		String[] ids = new String[] {
-			"stardewcraft:trash",
 			"stardewcraft:joja_cola",
+			"stardewcraft:trash",
 			"stardewcraft:driftwood",
 			"stardewcraft:broken_glasses",
 			"stardewcraft:broken_cd",
@@ -895,7 +913,8 @@ public final class FishingDataManager {
 		return result;
 	}
 
-	public record FishSelection(ItemStack stack, int difficulty, int motionTypeId, boolean skipMinigame) {
+	public record FishSelection(ItemStack stack, int difficulty, int motionTypeId,
+								int minFishSize, int maxFishSize, boolean skipMinigame) {
 	}
 
 	@FunctionalInterface
@@ -945,6 +964,8 @@ public final class FishingDataManager {
 		o.addProperty("chance", r.chance());
 		o.addProperty("difficulty", r.difficulty());
 		o.addProperty("motionType", r.motionTypeId());
+		o.addProperty("minFishSize", r.minFishSize());
+		o.addProperty("maxFishSize", r.maxFishSize());
 		o.addProperty("minFishingLevel", r.minFishingLevel());
 		o.addProperty("minDistanceFromShore", r.minDistanceFromShore());
 		o.addProperty("maxDistanceFromShore", r.maxDistanceFromShore());
@@ -956,6 +977,7 @@ public final class FishingDataManager {
 		if (r.condition() != null) o.addProperty("condition", r.condition());
 		o.addProperty("weather", r.weather());
 		if (r.isTutorialFish()) o.addProperty("isTutorialFish", true);
+		if (r.ignoreFishDataRequirements()) o.addProperty("ignoreFishDataRequirements", true);
 		if (r.useFishCaughtSeededRandom()) o.addProperty("useFishCaughtSeededRandom", true);
 		if (r.chanceModifiers() != null && !r.chanceModifiers().isEmpty()) {
 			com.google.gson.JsonArray arr = new com.google.gson.JsonArray();

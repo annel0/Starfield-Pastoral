@@ -11,11 +11,14 @@ import com.stardew.craft.blockentity.PortalTriggerBlockEntity;
 import com.stardew.craft.client.render.ClientStarterChestState;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModMiningDimensions;
+import com.stardew.craft.festival.FairFestivalService;
 import com.stardew.craft.festival.desert.DesertFestivalCookService;
 import com.stardew.craft.festival.desert.DesertFestivalRaceService;
 import com.stardew.craft.festival.desert.DesertFestivalService;
 import com.stardew.craft.festival.desert.DesertFestivalSpecialInteractionService;
 import com.stardew.craft.festival.desert.DesertFestivalWillyFishingService;
+import com.stardew.craft.festival.fair.FairFishingGameService;
+import com.stardew.craft.festival.fair.FairSlingshotGameService;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.GameRenderer;
@@ -118,6 +121,10 @@ public final class PortalHintRenderer {
     private static final String SHADY_KEY = "stardewcraft.portal.hint.shady_guy";
     private static final String WILLY_CHALLENGE_KEY = "stardewcraft.portal.hint.willy_challenge";
     private static final String COOK_KEY = "stardewcraft.portal.hint.desert_festival_cook";
+    private static final String FAIR_SLINGSHOT_KEY = "stardewcraft.portal.hint.fair_slingshot";
+    private static final String FAIR_FISHING_KEY = "stardewcraft.portal.hint.fair_fishing";
+    private static final String FAIR_TOKEN_PURCHASE_KEY = "stardewcraft.portal.hint.fair_token_purchase";
+    private static final String FAIR_FORTUNE_KEY = "stardewcraft.portal.hint.fair_fortune";
 
     private static final String BUY_TICKET_KEY = "stardewcraft.portal.hint.buy_ticket";
 
@@ -335,6 +342,21 @@ public final class PortalHintRenderer {
         if (DesertFestivalCookService.TARGET_ID.equals(targetId)) {
             return HintStyle.COOK;
         }
+        if (FairSlingshotGameService.TARGET_ID.equals(targetId)) {
+            return HintStyle.INTERACT;
+        }
+        if (FairFishingGameService.TARGET_ID.equals(targetId)) {
+            return HintStyle.INTERACT;
+        }
+        if (FairFestivalService.STAR_TOKEN_SHOP_TARGET_ID.equals(targetId)) {
+            return HintStyle.SHOP;
+        }
+        if (FairFestivalService.STAR_TOKEN_PURCHASE_TARGET_ID.equals(targetId)) {
+            return HintStyle.SHOP;
+        }
+        if (FairFestivalService.FORTUNE_TELLER_TARGET_ID.equals(targetId)) {
+            return HintStyle.INTERACT;
+        }
         if (targetId.contains("return_overworld") || "skull_cavern_exit".equals(targetId)) {
             return HintStyle.RETURN_OVERWORLD;
         }
@@ -351,6 +373,11 @@ public final class PortalHintRenderer {
             case DesertFestivalSpecialInteractionService.SCHOLAR_TARGET_ID -> "desert_festival_scholar";
             case DesertFestivalWillyFishingService.TARGET_ID -> "desert_festival_willy_challenge";
             case DesertFestivalCookService.TARGET_ID -> "desert_festival_cook";
+            case FairSlingshotGameService.TARGET_ID -> "fair_slingshot_game";
+            case FairFishingGameService.TARGET_ID -> "fair_fishing_game";
+            case FairFestivalService.STAR_TOKEN_SHOP_TARGET_ID -> "fair_star_token_shop";
+            case FairFestivalService.STAR_TOKEN_PURCHASE_TARGET_ID -> "fair_star_token_purchase";
+            case FairFestivalService.FORTUNE_TELLER_TARGET_ID -> "fair_fortune_teller";
             case "quarry_entrance", "quarry_exit" -> "quarry";
             case "sewer_enter" -> "sewer";
             case "sewer_exit" -> "pelican_town";
@@ -523,6 +550,14 @@ public final class PortalHintRenderer {
             hintKey = WILLY_CHALLENGE_KEY;
         } else if (DesertFestivalCookService.TARGET_ID.equals(hint.targetId)) {
             hintKey = COOK_KEY;
+        } else if (FairSlingshotGameService.TARGET_ID.equals(hint.targetId)) {
+            hintKey = FAIR_SLINGSHOT_KEY;
+        } else if (FairFishingGameService.TARGET_ID.equals(hint.targetId)) {
+            hintKey = FAIR_FISHING_KEY;
+        } else if (FairFestivalService.STAR_TOKEN_PURCHASE_TARGET_ID.equals(hint.targetId)) {
+            hintKey = FAIR_TOKEN_PURCHASE_KEY;
+        } else if (FairFestivalService.FORTUNE_TELLER_TARGET_ID.equals(hint.targetId)) {
+            hintKey = FAIR_FORTUNE_KEY;
         } else if (hint.hintStyle == HintStyle.INTERACT) {
             hintKey = INTERACT_KEY;
         } else if ("desert_bus".equals(hint.targetId)) {
@@ -665,7 +700,11 @@ public final class PortalHintRenderer {
 
     private static boolean isSingleLineHint(String targetId) {
         return DesertFestivalWillyFishingService.TARGET_ID.equals(targetId)
-            || DesertFestivalCookService.TARGET_ID.equals(targetId);
+            || DesertFestivalCookService.TARGET_ID.equals(targetId)
+            || FairSlingshotGameService.TARGET_ID.equals(targetId)
+            || FairFishingGameService.TARGET_ID.equals(targetId)
+            || FairFestivalService.STAR_TOKEN_PURCHASE_TARGET_ID.equals(targetId)
+            || FairFestivalService.FORTUNE_TELLER_TARGET_ID.equals(targetId);
     }
 
     // ======================== geometry helpers ========================

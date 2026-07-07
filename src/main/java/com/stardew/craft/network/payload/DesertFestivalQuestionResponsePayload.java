@@ -43,6 +43,18 @@ public record DesertFestivalQuestionResponsePayload(
                     DesertFestivalWillyFishingService.handleQuestionResponse(player, payload.context(), payload.choiceId());
                     return;
                 }
+                if (com.stardew.craft.festival.fair.FairFishingGameService.QUESTION_CONTEXT.equals(payload.context())) {
+                    com.stardew.craft.festival.fair.FairFishingGameService.handleQuestionResponse(player, payload.choiceId());
+                    return;
+                }
+                if (com.stardew.craft.festival.FairFestivalService.QUESTION_CONTEXT_STAR_TOKEN_PURCHASE.equals(payload.context())
+                    || com.stardew.craft.festival.FairFestivalService.QUESTION_CONTEXT_STAR_TOKEN_PURCHASE_AMOUNT.equals(payload.context())
+                    || com.stardew.craft.festival.FairFestivalService.QUESTION_CONTEXT_FORTUNE_TELLER.equals(payload.context())
+                    || com.stardew.craft.festival.FairFestivalService.QUESTION_CONTEXT_GRANGE_JUDGE.equals(payload.context())) {
+                    com.stardew.craft.festival.FairFestivalService.handleQuestionResponse(
+                        player, payload.context(), payload.choiceId());
+                    return;
+                }
                 if ("trout_derby_booth".equals(payload.context())) {
                     TroutDerbyService.handleQuestionResponse(player, payload.choiceId());
                     return;

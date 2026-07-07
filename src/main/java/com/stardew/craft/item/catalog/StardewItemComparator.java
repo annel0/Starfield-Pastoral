@@ -7,8 +7,24 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.Comparator;
+import java.util.Map;
 
 public final class StardewItemComparator {
+    private static final Map<String, String> PATH_SORT_OVERRIDES = Map.ofEntries(
+            Map.entry("dresser_1", "dresser_1_00_birch_bedside_cabinet"),
+            Map.entry("redwood_bedside_cabinet", "dresser_1_01_redwood_bedside_cabinet"),
+            Map.entry("walnut_bedside_cabinet", "dresser_1_02_walnut_bedside_cabinet"),
+            Map.entry("oak_bedside_cabinet", "dresser_1_03_oak_bedside_cabinet"),
+            Map.entry("dresser_2", "dresser_1_10_birch_dresser"),
+            Map.entry("redwood_dresser", "dresser_1_11_redwood_dresser"),
+            Map.entry("walnut_dresser", "dresser_1_12_walnut_dresser"),
+            Map.entry("oak_dresser", "dresser_1_13_oak_dresser"),
+            Map.entry("dresser_3", "dresser_1_20_birch_wardrobe"),
+            Map.entry("redwood_wardrobe", "dresser_1_21_redwood_wardrobe"),
+            Map.entry("walnut_wardrobe", "dresser_1_22_walnut_wardrobe"),
+            Map.entry("oak_wardrobe", "dresser_1_23_oak_wardrobe")
+    );
+
     private StardewItemComparator() {
     }
 
@@ -34,7 +50,7 @@ public final class StardewItemComparator {
             return sectionCompare;
         }
 
-        return path(left).compareTo(path(right));
+        return sortPath(left).compareTo(sortPath(right));
     }
 
     public static int compareStacks(ItemStack left, ItemStack right) {
@@ -58,6 +74,11 @@ public final class StardewItemComparator {
     public static String path(Item item) {
         ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
         return id == null ? "" : id.getPath();
+    }
+
+    private static String sortPath(Item item) {
+        String path = path(item);
+        return PATH_SORT_OVERRIDES.getOrDefault(path, path);
     }
 
     private static Item itemFromId(String rawId) {

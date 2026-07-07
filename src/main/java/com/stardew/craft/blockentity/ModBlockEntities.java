@@ -19,6 +19,22 @@ public final class ModBlockEntities {
 			BLOCK_ENTITIES.register("tapper", () -> BlockEntityType.Builder.of(TapperBlockEntity::new, ModBlocks.TAPPER.get()).build(null));
 
 	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<WildWeedsBlockEntity>> WILD_WEEDS =
+			BLOCK_ENTITIES.register("wild_weeds", () -> BlockEntityType.Builder.of(WildWeedsBlockEntity::new, ModBlocks.WILD_WEEDS.get()).build(null));
+
+	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FruitTreeBlockEntity>> FRUIT_TREE =
+			BLOCK_ENTITIES.register("fruit_tree", () -> BlockEntityType.Builder.of(FruitTreeBlockEntity::new,
+					ModBlocks.CHERRY_TREE.get(),
+					ModBlocks.APRICOT_TREE.get(),
+					ModBlocks.ORANGE_TREE.get(),
+					ModBlocks.PEACH_TREE.get(),
+					ModBlocks.POMEGRANATE_TREE.get(),
+					ModBlocks.APPLE_TREE.get(),
+					ModBlocks.BANANA_TREE.get(),
+					ModBlocks.MANGO_TREE.get()).build(null));
+
+	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<NewTreePartBlockEntity>> NEW_TREE_PART =
 			BLOCK_ENTITIES.register("new_tree_part", () -> BlockEntityType.Builder.of(NewTreePartBlockEntity::new,
 					ModBlocks.OAK_ROOT.get(), ModBlocks.OAK_LOG.get(), ModBlocks.OAK_BRANCH.get(),
@@ -174,6 +190,26 @@ public final class ModBlockEntities {
 	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FridgeBlockEntity>> FRIDGE =
 			BLOCK_ENTITIES.register("fridge", () -> BlockEntityType.Builder.of(FridgeBlockEntity::new, ModBlocks.FRIDGE.get()).build(null));
+
+	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FurnitureStorageBlockEntity>> FURNITURE_STORAGE =
+			BLOCK_ENTITIES.register("furniture_storage", () -> BlockEntityType.Builder.of(FurnitureStorageBlockEntity::new,
+					ModBlocks.DRESSER_1.get(),
+					ModBlocks.DRESSER_2.get(),
+					ModBlocks.OAK_BEDSIDE_CABINET.get(),
+					ModBlocks.OAK_DRESSER.get(),
+					ModBlocks.REDWOOD_BEDSIDE_CABINET.get(),
+					ModBlocks.REDWOOD_DRESSER.get(),
+					ModBlocks.WALNUT_BEDSIDE_CABINET.get(),
+					ModBlocks.WALNUT_DRESSER.get()).build(null));
+
+	@SuppressWarnings("null")
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<WardrobeBlockEntity>> WARDROBE =
+			BLOCK_ENTITIES.register("wardrobe", () -> BlockEntityType.Builder.of(WardrobeBlockEntity::new,
+					ModBlocks.DRESSER_3.get(),
+					ModBlocks.REDWOOD_WARDROBE.get(),
+					ModBlocks.WALNUT_WARDROBE.get(),
+					ModBlocks.OAK_WARDROBE.get()).build(null));
 
 	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ShippingBinBlockEntity>> SHIPPING_BIN =

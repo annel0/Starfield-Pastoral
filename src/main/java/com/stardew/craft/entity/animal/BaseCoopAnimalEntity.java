@@ -161,6 +161,9 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 
 	@Override
 	public @Nonnull InteractionResult mobInteract(@Nonnull Player player, @Nonnull InteractionHand hand) {
+		if (isFairTemporaryDecorAnimal()) {
+			return InteractionResult.sidedSuccess(this.level().isClientSide);
+		}
 		if (hand != InteractionHand.MAIN_HAND) {
 			return super.mobInteract(player, hand);
 		}
@@ -210,6 +213,11 @@ public abstract class BaseCoopAnimalEntity extends Animal implements GeoEntity {
 			player.sendSystemMessage(Component.translatable("stardewcraft.animal.interact.already_pet"));
 		}
 		return InteractionResult.SUCCESS;
+	}
+
+	private boolean isFairTemporaryDecorAnimal() {
+		return this.getTags().contains(com.stardew.craft.festival.FairFestivalService.FAIR_ANIMAL_MARKER_TAG)
+			|| this.getPersistentData().getBoolean(com.stardew.craft.festival.FairFestivalService.FAIR_ANIMAL_PERSISTENT_FLAG);
 	}
 
 	private boolean tryFeedGoldenAnimalCracker(Player player, AnimalWorldData data, FarmAnimalRecord record) {

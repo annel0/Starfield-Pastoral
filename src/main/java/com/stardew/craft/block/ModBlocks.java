@@ -4,6 +4,7 @@ import com.stardew.craft.StardewCraft;
 import com.stardew.craft.block.cooking.CookingPlacedFoodBlock;
 import com.stardew.craft.block.mine.CalicoStatueBlock;
 import com.stardew.craft.fluid.ModFluids;
+import com.stardew.craft.tree.fruit.FruitTreeType;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -67,12 +68,23 @@ public class ModBlocks {
         private static final String[] PLACEABLE_COOKING_FOOD_IDS = {
                 "cheese_cauliflower",
                 "ice_cream",
+                "pumpkin_soup",
+                "tortilla",
+                "rice_pudding",
+                "eggplant_parmesan",
+                "maki_roll",
+                "sashimi",
+                "autumn_s_bounty",
+                "red_plate",
+                "blueberry_tart",
                 "popsicle",
                 "baked_fish",
                 "carp_surprise",
                 "crispy_bass",
                 "fish_taco",
                 "salmon_dinner",
+                "dish_o_the_sea",
+                "seafoam_pudding",
                 "omelet",
                 "fried_egg",
                 "fried_mushroom",
@@ -80,6 +92,7 @@ public class ModBlocks {
                 "pancakes",
                 "strange_bun",
                 "complete_breakfast",
+                "farmer_s_lunch",
                 "lucky_lunch",
                 "salad",
                 "fried_calamari",
@@ -90,9 +103,24 @@ public class ModBlocks {
                 "algae_soup",
                 "bean_hotpot",
                 "glazed_yams",
+                "cranberry_sauce",
                 "triple_shot_espresso",
                 "vegetable_medley",
-                "parsnip_soup"
+                "stuffing",
+                "super_meal",
+                "miner_s_treat",
+                "roots_platter",
+                "parsnip_soup",
+                "rhubarb_pie",
+                "chocolate_cake",
+                "spaghetti",
+                "tom_kha_soup",
+                "fried_eel",
+                "pepper_poppers",
+                "bread",
+                "cookie",
+                "spicy_eel",
+                "trout_soup"
         };
 
         private static Map<String, DeferredBlock<CookingPlacedFoodBlock>> registerPlacedCookingFoods() {
@@ -1068,6 +1096,83 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .sound(net.minecraft.world.level.block.SoundType.GRASS)
                                         .strength(0.2F)
                                         .noOcclusion()));
+
+        @SuppressWarnings("null")
+        private static Block.Properties fruitSaplingProps() {
+                return Block.Properties.of()
+                                .mapColor(net.minecraft.world.level.material.MapColor.PLANT)
+                                .sound(net.minecraft.world.level.block.SoundType.GRASS)
+                                .noCollission()
+                                .noOcclusion()
+                                .instabreak();
+        }
+
+        @SuppressWarnings("null")
+        private static Block.Properties fruitTreeProps() {
+                return Block.Properties.of()
+                                .mapColor(net.minecraft.world.level.material.MapColor.PLANT)
+                                .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                .noOcclusion()
+                                .strength(2.0F, 3.0F);
+        }
+
+        private static Map<FruitTreeType, DeferredBlock<Block>> registerFruitTreeSaplings() {
+                LinkedHashMap<FruitTreeType, DeferredBlock<Block>> blocks = new LinkedHashMap<>();
+                for (FruitTreeType type : FruitTreeType.values()) {
+                        blocks.put(type, BLOCKS.register(type.saplingBlockId(),
+                                        () -> new com.stardew.craft.block.tree.fruit.FruitTreeSaplingBlock(type, fruitSaplingProps())));
+                }
+                return Collections.unmodifiableMap(blocks);
+        }
+
+        private static Map<FruitTreeType, DeferredBlock<Block>> registerFruitTrees() {
+                LinkedHashMap<FruitTreeType, DeferredBlock<Block>> blocks = new LinkedHashMap<>();
+                for (FruitTreeType type : FruitTreeType.values()) {
+                        blocks.put(type, BLOCKS.register(type.matureBlockId(),
+                                        () -> new com.stardew.craft.block.tree.fruit.FruitTreeBlock(type, fruitTreeProps())));
+                }
+                return Collections.unmodifiableMap(blocks);
+        }
+
+        private static Map<FruitTreeType, DeferredBlock<Block>> registerFruitTreeExtensions() {
+                LinkedHashMap<FruitTreeType, DeferredBlock<Block>> blocks = new LinkedHashMap<>();
+                for (FruitTreeType type : FruitTreeType.values()) {
+                        blocks.put(type, BLOCKS.register(type.extensionBlockId(),
+                                        () -> new com.stardew.craft.block.tree.fruit.FruitTreeExtensionBlock(type, fruitTreeProps())));
+                }
+                return Collections.unmodifiableMap(blocks);
+        }
+
+        public static final Map<FruitTreeType, DeferredBlock<Block>> FRUIT_TREE_SAPLINGS = registerFruitTreeSaplings();
+        public static final Map<FruitTreeType, DeferredBlock<Block>> FRUIT_TREES = registerFruitTrees();
+        public static final Map<FruitTreeType, DeferredBlock<Block>> FRUIT_TREE_EXTENSIONS = registerFruitTreeExtensions();
+
+        public static final DeferredBlock<Block> CHERRY_SAPLING = FRUIT_TREE_SAPLINGS.get(FruitTreeType.CHERRY);
+        public static final DeferredBlock<Block> APRICOT_SAPLING = FRUIT_TREE_SAPLINGS.get(FruitTreeType.APRICOT);
+        public static final DeferredBlock<Block> ORANGE_SAPLING = FRUIT_TREE_SAPLINGS.get(FruitTreeType.ORANGE);
+        public static final DeferredBlock<Block> PEACH_SAPLING = FRUIT_TREE_SAPLINGS.get(FruitTreeType.PEACH);
+        public static final DeferredBlock<Block> POMEGRANATE_SAPLING = FRUIT_TREE_SAPLINGS.get(FruitTreeType.POMEGRANATE);
+        public static final DeferredBlock<Block> APPLE_SAPLING = FRUIT_TREE_SAPLINGS.get(FruitTreeType.APPLE);
+        public static final DeferredBlock<Block> BANANA_SAPLING = FRUIT_TREE_SAPLINGS.get(FruitTreeType.BANANA);
+        public static final DeferredBlock<Block> MANGO_SAPLING = FRUIT_TREE_SAPLINGS.get(FruitTreeType.MANGO);
+
+        public static final DeferredBlock<Block> CHERRY_TREE = FRUIT_TREES.get(FruitTreeType.CHERRY);
+        public static final DeferredBlock<Block> APRICOT_TREE = FRUIT_TREES.get(FruitTreeType.APRICOT);
+        public static final DeferredBlock<Block> ORANGE_TREE = FRUIT_TREES.get(FruitTreeType.ORANGE);
+        public static final DeferredBlock<Block> PEACH_TREE = FRUIT_TREES.get(FruitTreeType.PEACH);
+        public static final DeferredBlock<Block> POMEGRANATE_TREE = FRUIT_TREES.get(FruitTreeType.POMEGRANATE);
+        public static final DeferredBlock<Block> APPLE_TREE = FRUIT_TREES.get(FruitTreeType.APPLE);
+        public static final DeferredBlock<Block> BANANA_TREE = FRUIT_TREES.get(FruitTreeType.BANANA);
+        public static final DeferredBlock<Block> MANGO_TREE = FRUIT_TREES.get(FruitTreeType.MANGO);
+
+        public static final DeferredBlock<Block> CHERRY_TREE_EXTENSION = FRUIT_TREE_EXTENSIONS.get(FruitTreeType.CHERRY);
+        public static final DeferredBlock<Block> APRICOT_TREE_EXTENSION = FRUIT_TREE_EXTENSIONS.get(FruitTreeType.APRICOT);
+        public static final DeferredBlock<Block> ORANGE_TREE_EXTENSION = FRUIT_TREE_EXTENSIONS.get(FruitTreeType.ORANGE);
+        public static final DeferredBlock<Block> PEACH_TREE_EXTENSION = FRUIT_TREE_EXTENSIONS.get(FruitTreeType.PEACH);
+        public static final DeferredBlock<Block> POMEGRANATE_TREE_EXTENSION = FRUIT_TREE_EXTENSIONS.get(FruitTreeType.POMEGRANATE);
+        public static final DeferredBlock<Block> APPLE_TREE_EXTENSION = FRUIT_TREE_EXTENSIONS.get(FruitTreeType.APPLE);
+        public static final DeferredBlock<Block> BANANA_TREE_EXTENSION = FRUIT_TREE_EXTENSIONS.get(FruitTreeType.BANANA);
+        public static final DeferredBlock<Block> MANGO_TREE_EXTENSION = FRUIT_TREE_EXTENSIONS.get(FruitTreeType.MANGO);
 
         // 野生树苗（2阶段，28天成熟）
         @SuppressWarnings("null")
@@ -2197,6 +2302,31 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .noLootTable(), "stardewcraft:decor/festival/fair_strength_tester_proxy"));
 
         @SuppressWarnings("null")
+        public static final DeferredBlock<Block> FAIR_WHEEL = BLOCKS.register("fair_wheel",
+                        () -> new com.stardew.craft.block.decor.FairWheelBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(-1.0F, 3600000.0F)
+                                        .noLootTable(), "stardewcraft:decor/festival/fair_wheel"));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> FAIR_GRAVE_STONE = BLOCKS.register("fair_grave_stone",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.STONE)
+                                        .sound(net.minecraft.world.level.block.SoundType.STONE)
+                                        .noOcclusion()
+                                        .strength(0.8F, 1.0F), "stardewcraft:decor/festival/fair_grave_stone", true));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> FAIR_GRILL = BLOCKS.register("fair_grill",
+                        () -> new com.stardew.craft.block.decor.FairGrillBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.METAL)
+                                        .sound(net.minecraft.world.level.block.SoundType.METAL)
+                                        .noOcclusion()
+                                        .strength(0.8F, 1.0F), "stardewcraft:decor/festival/fair_grill"));
+
+        @SuppressWarnings("null")
         public static final DeferredBlock<Block> PLUSH_BUNNY = BLOCKS.register("plush_bunny",
                         () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
                                         .mapColor(net.minecraft.world.level.material.MapColor.WOOL)
@@ -2646,28 +2776,90 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .sound(net.minecraft.world.level.block.SoundType.WOOD)
                                         .noOcclusion()
                                         .strength(0.6F, 1.2F), "stardewcraft:decor/common/sailboat_2"));
-        // TODO: Dresser variants will later gain hat/ring/equipment storage behavior.
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> DRESSER_1 = BLOCKS.register("dresser_1",
-                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                        () -> new com.stardew.craft.block.utility.FurnitureStorageBlock(Block.Properties.of()
                                         .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
                                         .sound(net.minecraft.world.level.block.SoundType.WOOD)
                                         .noOcclusion()
-                                        .strength(1.0F, 2.0F), "stardewcraft:decor/common/dresser_3_1"));
+                                        .strength(1.0F, 2.0F), 1, 3));
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> DRESSER_2 = BLOCKS.register("dresser_2",
-                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                        () -> new com.stardew.craft.block.utility.FurnitureStorageBlock(Block.Properties.of()
                                         .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
                                         .sound(net.minecraft.world.level.block.SoundType.WOOD)
                                         .noOcclusion()
-                                        .strength(1.0F, 2.0F), "stardewcraft:decor/common/dresser_3_2"));
+                                        .strength(1.0F, 2.0F), 2, 6));
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> DRESSER_3 = BLOCKS.register("dresser_3",
-                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                        () -> new com.stardew.craft.block.utility.WardrobeBlock(Block.Properties.of()
                                         .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
                                         .sound(net.minecraft.world.level.block.SoundType.WOOD)
                                         .noOcclusion()
-                                        .strength(1.0F, 2.0F), "stardewcraft:decor/common/dresser_3_3"));
+                                        .strength(1.0F, 2.0F)));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> REDWOOD_WARDROBE = BLOCKS.register("redwood_wardrobe",
+                        () -> new com.stardew.craft.block.utility.WardrobeBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(1.0F, 2.0F)));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WALNUT_WARDROBE = BLOCKS.register("walnut_wardrobe",
+                        () -> new com.stardew.craft.block.utility.WardrobeBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(1.0F, 2.0F)));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> OAK_WARDROBE = BLOCKS.register("oak_wardrobe",
+                        () -> new com.stardew.craft.block.utility.WardrobeBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(1.0F, 2.0F)));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> OAK_BEDSIDE_CABINET = BLOCKS.register("oak_bedside_cabinet",
+                        () -> new com.stardew.craft.block.utility.FurnitureStorageBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(1.0F, 2.0F), 1, 3));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> OAK_DRESSER = BLOCKS.register("oak_dresser",
+                        () -> new com.stardew.craft.block.utility.FurnitureStorageBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(1.0F, 2.0F), 2, 6));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> REDWOOD_BEDSIDE_CABINET = BLOCKS.register("redwood_bedside_cabinet",
+                        () -> new com.stardew.craft.block.utility.FurnitureStorageBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(1.0F, 2.0F), 1, 3));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> REDWOOD_DRESSER = BLOCKS.register("redwood_dresser",
+                        () -> new com.stardew.craft.block.utility.FurnitureStorageBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(1.0F, 2.0F), 2, 6));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WALNUT_BEDSIDE_CABINET = BLOCKS.register("walnut_bedside_cabinet",
+                        () -> new com.stardew.craft.block.utility.FurnitureStorageBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(1.0F, 2.0F), 1, 3));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WALNUT_DRESSER = BLOCKS.register("walnut_dresser",
+                        () -> new com.stardew.craft.block.utility.FurnitureStorageBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(1.0F, 2.0F), 2, 6));
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> WOOD_BUNDLE = BLOCKS.register("wood_bundle",
                         () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()

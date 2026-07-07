@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "stardewcraft:block/tree/fruit/banana_tree",
+    "particle": "stardewcraft:block/tree/fruit/banana_tree"
+  }
+}

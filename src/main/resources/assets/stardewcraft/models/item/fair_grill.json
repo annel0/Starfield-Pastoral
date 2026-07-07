@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:decor/festival/fair_grill",
+  "textures": {
+    "particle": "stardewcraft:block/festival/fair_grill"
+  }
+}

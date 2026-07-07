@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "stardewcraft:block/cooking/dish_o_the_sea"
+    },
+    "facing=east": {
+      "model": "stardewcraft:block/cooking/dish_o_the_sea",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "stardewcraft:block/cooking/dish_o_the_sea",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "stardewcraft:block/cooking/dish_o_the_sea",
+      "y": 270
+    }
+  }
+}

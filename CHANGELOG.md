@@ -1,5 +1,61 @@
 # Changelog
 
+## 0.4.8 - 2026-07-07
+
+### Update Log (English)
+
+#### Stardew Valley Fair
+
+- Added the Fall 16 Stardew Valley Fair as a full active festival in Town, including festival entry/exit flow, time freeze behavior, music/HUD sync, overlay placement, interaction blocking, and debug-friendly setup hooks.
+- Added fairground interaction points for the star token shop, star token purchase stand, fortune teller, fishing game, slingshot game, strength tester, wheel of chance, grill, and grange display judging.
+- Added Stardew-style star token handling as festival-only player currency with HUD presentation, purchase flow, shop spending, game rewards, and grange display rewards.
+- Added the player grange display flow with a 3x3 display container, per-player displayed items on the fair tables, item eligibility/scoring, Minecraft item scoring extensions, purple shorts handling, Lewis judging flow, and reward/result dialogue.
+- Added Lewis' grange judging route across the four display stands, including source-matched stall timing and the return-to-Lewis result handoff.
+- Added fair NPC placement/routes and temporary fair animals for the Town venue, with per-festival actor dialogue state for judging and post-judging results.
+- Added the fair shop, grill Survival Burger claim behavior, fortune teller dialogue flow, star token purchase flow, and initial fair minigame integrations for fishing, slingshot, strength testing, and wheel betting.
+
+#### Models, Blocks, Items, and Visual Resources
+
+- Added and registered new fair blocks and assets such as the strength tester, wheel of chance, grave stone, grill, and fair overlay structure resources.
+- Added new model/resource coverage for furniture, wardrobes, dressers, bedside cabinets, sofas, bushes, weeds, fruit trees, saplings, and additional placed-food displays.
+- Expanded cooking and placed-food presentation with more item textures, block models, loot tables, translations, and catalog entries.
+- Added fair GUI and HUD assets for star tokens, fair minigames, grange display interaction, fishing results, and Stardew-style object dialogue cleanup.
+
+#### Gameplay, Systems, and Integration
+
+- Added fruit tree runtime support, rendering resources, sapling items, Jade integration, growth management, and related loot/resource data.
+- Improved table display rendering and fair table interaction rules so player display tables remain usable while NPC display tables stay protected during the festival.
+- Expanded fishing location data and fair fishing session support, including temporary rod handling, actionbar timer/score feedback, and festival-only restrictions.
+- Added or updated packet payloads, menu types, client caches, HUD sync, shop flow, dialogue handling, sound registrations, and active festival service hooks needed by the fair.
+- Updated the public mod version to `0.4.8`.
+
+### 更新日志（中文）
+
+#### 星露谷展览会
+
+- 加入秋 16 星露谷展览会作为完整主动节日，覆盖小镇入场/退场、时间冻结、音乐/HUD 同步、会场 overlay 放置、交互保护和调试布置流程。
+- 加入展览会场交互点：星星币商店、金币购买星星币摊位、占卜、钓鱼游戏、弹弓游戏、测力计、幸运转盘、烤架，以及农庄展览评审。
+- 加入展览会限定星星币经济，支持节日期间 HUD 显示、金币购买、商店消费、小游戏奖励和农庄展览奖励。
+- 加入玩家农庄展览流程：3x3 展示容器、每个玩家独立的桌面展示物、展示物合法性/算分、Minecraft 物品扩展算分、紫色短裤分支、刘易斯评审流程和奖励/结果对话。
+- 加入刘易斯评审四个展示台的移动路线，包含接近原版的停顿时间和回到刘易斯后领取结果的流程。
+- 加入展览会 NPC 落点/路线和临时会场动物，并支持评审中与评审后的节日 NPC 对话状态。
+- 加入展览会商店、烤架领取救生汉堡、占卜对话、购买星星币，以及钓鱼、弹弓、测力、转盘等初版小游戏接入。
+
+#### 模型、方块、物品与视觉资源
+
+- 加入并注册测力计、幸运转盘、墓石、烤架和展览会会场结构等新节日方块与资源。
+- 补充家具、衣柜、梳妆柜、床头柜、沙发、灌木、杂草、果树、树苗和更多可摆放食物的模型/资源覆盖。
+- 扩展料理与可摆放食物表现，加入更多物品贴图、方块模型、掉落表、翻译和目录入口。
+- 加入星星币、展览会小游戏、农庄展览交互、钓鱼结果和星露谷式物体对话清理相关的 GUI/HUD 资源。
+
+#### 玩法、系统与集成
+
+- 加入果树运行时支持、渲染资源、树苗物品、Jade 集成、生长管理和相关掉落/资源数据。
+- 改进桌面展示渲染和展览会桌子交互规则，保证玩家展台可用，同时节日期间保护 NPC 展台不被拿取。
+- 扩展钓鱼地点数据和展览会钓鱼会话，支持临时钓竿、actionbar 时间/得分反馈和节日限定使用规则。
+- 补充或更新展览会所需的网络包、菜单类型、客户端缓存、HUD 同步、商店流程、对话处理、音效注册和主动节日服务钩子。
+- 项目公开版本号更新为 `0.4.8`。
+
 ## 0.4.7 - 2026-06-11
 
 ### Update Log (English)

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "stardewcraft:block/cooking/pumpkin_soup"
+    },
+    "facing=east": {
+      "model": "stardewcraft:block/cooking/pumpkin_soup",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "stardewcraft:block/cooking/pumpkin_soup",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "stardewcraft:block/cooking/pumpkin_soup",
+      "y": 270
+    }
+  }
+}

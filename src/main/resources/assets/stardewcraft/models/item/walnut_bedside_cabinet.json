@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:decor/common/walnut_bedside_cabinet",
+  "textures": {
+    "particle": "stardewcraft:block/decor/common/walnut_bedside_cabinet"
+  }
+}

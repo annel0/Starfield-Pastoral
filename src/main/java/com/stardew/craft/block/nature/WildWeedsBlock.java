@@ -1,6 +1,7 @@
 package com.stardew.craft.block.nature;
 
 import com.stardew.craft.book.BookPowerEffects;
+import com.stardew.craft.blockentity.WildWeedsBlockEntity;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.item.ModItems;
 import com.stardew.craft.player.PlayerDataManager;
@@ -16,6 +17,8 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
@@ -35,10 +38,10 @@ import java.util.Set;
  * - 有季节外观（春/夏/秋/冬）。
  * - 破坏掉落：有概率掉 Fiber，少量概率掉 Mixed Seeds。
  */
-public class WildWeedsBlock extends Block {
+public class WildWeedsBlock extends Block implements EntityBlock {
 	public static final IntegerProperty SEASON = IntegerProperty.create("season", 0, 3);
 	public static final IntegerProperty VARIANT = IntegerProperty.create("variant", 0, 2);
-	private static final VoxelShape SHAPE = Block.box(2.0, 0.0, 2.0, 14.0, 12.0, 14.0);
+	private static final VoxelShape SHAPE = Block.box(0.0, 0.0, 0.0, 16.0, 3.0, 16.0);
 
 	@SuppressWarnings("null")
 	public WildWeedsBlock(Properties properties) {
@@ -55,6 +58,11 @@ public class WildWeedsBlock extends Block {
 	@Override
 	public VoxelShape getShape(@SuppressWarnings("null") BlockState state, @SuppressWarnings("null") BlockGetter level, @SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") CollisionContext context) {
 		return SHAPE;
+	}
+
+	@Override
+	public @Nullable BlockEntity newBlockEntity(@SuppressWarnings("null") BlockPos pos, @SuppressWarnings("null") BlockState state) {
+		return new WildWeedsBlockEntity(pos, state);
 	}
 
 	@SuppressWarnings("null")
@@ -95,8 +103,7 @@ public class WildWeedsBlock extends Block {
 		}
 		int expectedSeason = clampSeason(StardewTimeManager.get().getCurrentSeason());
 		if (state.getValue(SEASON) != expectedSeason) {
-			int variant = pickVariantForSeason(expectedSeason, random);
-			level.setBlock(pos, state.setValue(SEASON, expectedSeason).setValue(VARIANT, variant), 3);
+			level.setBlock(pos, state.setValue(SEASON, expectedSeason), 3);
 		}
 	}
 
@@ -148,10 +155,7 @@ public class WildWeedsBlock extends Block {
 	private static int pickVariantForSeason(int season, RandomSource random) {
 		// 原版 GameLocation.getWeedForSeason:
 		// - 春/夏/秋：各 3 种 weeds
-		// - 冬：默认只用 (O)674（这里固定为变体 0）
-		if (season == 3) {
-			return 0;
-		}
+		// - 冬：外观仍映射到同一个模型，但保留 variant 以便下个季节继续分化。
 		return random.nextInt(3);
 	}
 
@@ -201,8 +205,7 @@ public class WildWeedsBlock extends Block {
 									continue;
 								}
 
-								int variant = pickVariantForSeason(normalizedSeason, level.getRandom());
-								level.setBlock(pos, state.setValue(SEASON, normalizedSeason).setValue(VARIANT, variant), 3);
+								level.setBlock(pos, state.setValue(SEASON, normalizedSeason), 3);
 							}
 						}
 					}

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "stardewcraft:block/cooking/farmer_s_lunch"
+    },
+    "facing=east": {
+      "model": "stardewcraft:block/cooking/farmer_s_lunch",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "stardewcraft:block/cooking/farmer_s_lunch",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "stardewcraft:block/cooking/farmer_s_lunch",
+      "y": 270
+    }
+  }
+}

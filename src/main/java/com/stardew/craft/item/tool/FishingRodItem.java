@@ -44,6 +44,8 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 	private static final String TAG_PRESERVING = "Preserving";
 	private static final String TAG_DAMAGE = "damage";
 	private static final String TAG_CUSTOM_DATA = "custom_data";
+	private static final String TAG_FAIR_TEMPORARY = "FairTemporaryRod";
+	private static final String TAG_FAIR_ATTACHMENT_SLOTS = "FairAttachmentSlots";
 
 	public enum RodTier {
 		BAMBOO_POLE(false, 0),
@@ -90,8 +92,19 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 		return tier.canUseBait();
 	}
 
+	private boolean canUseBait(ItemStack rodStack) {
+		return canUseBait() || isFairTemporaryRod(rodStack);
+	}
+
 	public int getTackleSlots() {
 		return tier.tackleSlots();
+	}
+
+	private int getTackleSlots(ItemStack rodStack) {
+		if (isFairTemporaryRod(rodStack)) {
+			return Math.max(getTackleSlots(), Math.max(0, fairAttachmentSlots(rodStack) - 1));
+		}
+		return getTackleSlots();
 	}
 
 	@Override
@@ -122,6 +135,38 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 
 	public Attachments getAttachmentsForTooltip(ItemStack rodStack) {
 		return new Attachments(getBait(rodStack), getTackle1(rodStack), getTackle2(rodStack));
+	}
+
+	public static void configureFairTemporaryRod(ItemStack rodStack, ItemStack attachment0, ItemStack attachment1) {
+		if (rodStack == null || !(rodStack.getItem() instanceof FishingRodItem)) {
+			return;
+		}
+		CompoundTag tag = getCustomDataCopy(rodStack);
+		CompoundTag root;
+		if (tag.contains(TAG_ROOT, CompoundTag.TAG_COMPOUND)) {
+			root = tag.getCompound(TAG_ROOT);
+		} else {
+			root = new CompoundTag();
+			tag.put(TAG_ROOT, root);
+		}
+		root.putBoolean(TAG_FAIR_TEMPORARY, true);
+		root.putInt(TAG_FAIR_ATTACHMENT_SLOTS, 2);
+		setCustomData(rodStack, tag);
+		writeStack(rodStack, TAG_BAIT, attachment0);
+		writeStack(rodStack, TAG_TACKLE_1, attachment1);
+	}
+
+	public static boolean isFairTemporaryRod(ItemStack rodStack) {
+		CompoundTag root = getRootOrNull(rodStack);
+		return root != null && root.getBoolean(TAG_FAIR_TEMPORARY);
+	}
+
+	private static int fairAttachmentSlots(ItemStack rodStack) {
+		CompoundTag root = getRootOrNull(rodStack);
+		if (root == null || !root.contains(TAG_FAIR_ATTACHMENT_SLOTS, CompoundTag.TAG_INT)) {
+			return 0;
+		}
+		return Math.max(0, root.getInt(TAG_FAIR_ATTACHMENT_SLOTS));
 	}
 
 	/**
@@ -656,21 +701,21 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 	}
 
 	private ItemStack getBait(ItemStack rodStack) {
-		if (!canUseBait()) {
+		if (!canUseBait(rodStack)) {
 			return ItemStack.EMPTY;
 		}
 		return readStack(rodStack, TAG_BAIT);
 	}
 
 	private ItemStack getTackle1(ItemStack rodStack) {
-		if (getTackleSlots() < 1) {
+		if (getTackleSlots(rodStack) < 1) {
 			return ItemStack.EMPTY;
 		}
 		return readStack(rodStack, TAG_TACKLE_1);
 	}
 
 	private ItemStack getTackle2(ItemStack rodStack) {
-		if (getTackleSlots() < 2) {
+		if (getTackleSlots(rodStack) < 2) {
 			return ItemStack.EMPTY;
 		}
 		return readStack(rodStack, TAG_TACKLE_2);
@@ -736,7 +781,7 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 
 	@SuppressWarnings("null")
 	private boolean tryInsertBait(ItemStack rodStack, ItemStack incoming, Consumer<ItemStack> replaceIncoming) {
-		if (!canUseBait()) {
+		if (!canUseBait(rodStack)) {
 			return false;
 		}
 		if (incoming.isEmpty()) {
@@ -774,7 +819,8 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 
 	@SuppressWarnings("null")
 	private boolean tryInsertTackle(ItemStack rodStack, ItemStack incoming, Consumer<ItemStack> replaceIncoming) {
-		if (getTackleSlots() <= 0) {
+		int tackleSlots = getTackleSlots(rodStack);
+		if (tackleSlots <= 0) {
 			return false;
 		}
 		if (incoming.isEmpty()) {
@@ -784,7 +830,7 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 		ItemStack one = incoming.copy();
 		one.setCount(1);
 
-		if (getTackleSlots() >= 1 && getTackle1(rodStack).isEmpty()) {
+		if (tackleSlots >= 1 && getTackle1(rodStack).isEmpty()) {
 			writeStack(rodStack, TAG_TACKLE_1, one);
 			incoming.shrink(1);
 			if (incoming.isEmpty()) {
@@ -792,7 +838,7 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 			}
 			return true;
 		}
-		if (getTackleSlots() >= 2 && getTackle2(rodStack).isEmpty()) {
+		if (tackleSlots >= 2 && getTackle2(rodStack).isEmpty()) {
 			writeStack(rodStack, TAG_TACKLE_2, one);
 			incoming.shrink(1);
 			if (incoming.isEmpty()) {
@@ -819,21 +865,22 @@ public class FishingRodItem extends net.minecraft.world.item.FishingRodItem impl
 
 	public ItemStack popOneAttachment(ItemStack rodStack) {
 		// Pop order: tackle2 -> tackle1 -> bait
-		if (getTackleSlots() >= 2) {
+		int tackleSlots = getTackleSlots(rodStack);
+		if (tackleSlots >= 2) {
 			ItemStack t2 = getTackle2(rodStack);
 			if (!t2.isEmpty()) {
 				writeStack(rodStack, TAG_TACKLE_2, ItemStack.EMPTY);
 				return t2;
 			}
 		}
-		if (getTackleSlots() >= 1) {
+		if (tackleSlots >= 1) {
 			ItemStack t1 = getTackle1(rodStack);
 			if (!t1.isEmpty()) {
 				writeStack(rodStack, TAG_TACKLE_1, ItemStack.EMPTY);
 				return t1;
 			}
 		}
-		if (canUseBait()) {
+		if (canUseBait(rodStack)) {
 			ItemStack bait = getBait(rodStack);
 			if (!bait.isEmpty()) {
 				writeStack(rodStack, TAG_BAIT, ItemStack.EMPTY);

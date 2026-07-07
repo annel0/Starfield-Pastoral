@@ -22,6 +22,8 @@ import java.util.List;
  * @param chance 基础出现概率
  * @param difficulty 钓鱼难度 (0-100)
  * @param motionTypeId 鱼的移动模式 (0=mixed, 1=dart, 2=smooth, 3=sinker, 4=floater)
+ * @param minFishSize 原版 Data/Fish 最小鱼长
+ * @param maxFishSize 原版 Data/Fish 最大鱼长
  * @param minFishingLevel 最低钓鱼等级要求
  * @param minDistanceFromShore 最小离岸距离
  * @param maxDistanceFromShore 最大离岸距离 (-1 表示无限制)
@@ -44,6 +46,8 @@ public record SpawnFishRule(
 		float chance,
 		int difficulty,
 		int motionTypeId,
+		int minFishSize,
+		int maxFishSize,
 		int minFishingLevel,
 		int minDistanceFromShore,
 		int maxDistanceFromShore,
@@ -67,6 +71,8 @@ public record SpawnFishRule(
 		boolean isBossFish,
 		/** SDV Data/Fish field 13: marks easy fish allowed during the player's tutorial first-catch. */
 		boolean isTutorialFish,
+		/** SDV SpawnFishData.IgnoreFishDataRequirements: skip Data/Fish time/season/weather/depth roll checks. */
+		boolean ignoreFishDataRequirements,
 		/** SDV {@code SpawnFishData.ChanceModifiers}: list of QuantityModifier applied to first-roll chance. */
 		List<QuantityModifier.Entry> chanceModifiers,
 		/** SDV {@code SpawnFishData.ChanceModifierMode}: how multiple modifiers combine (Stack/Min/Max). */
@@ -208,6 +214,8 @@ public record SpawnFishRule(
 		float chance = obj.has("chance") ? obj.get("chance").getAsFloat() : 1.0f;
 		int difficulty = obj.has("difficulty") ? obj.get("difficulty").getAsInt() : 20;
 		int motion = obj.has("motionType") ? obj.get("motionType").getAsInt() : 0;
+		int minFishSize = obj.has("minFishSize") ? obj.get("minFishSize").getAsInt() : 0;
+		int maxFishSize = obj.has("maxFishSize") ? obj.get("maxFishSize").getAsInt() : 0;
 		int minLevel = obj.has("minFishingLevel") ? obj.get("minFishingLevel").getAsInt() : 0;
 		int minDepth = obj.has("minDistanceFromShore") ? obj.get("minDistanceFromShore").getAsInt() : 0;
 		int maxDepth = obj.has("maxDistanceFromShore") ? obj.get("maxDistanceFromShore").getAsInt() : -1;
@@ -240,15 +248,17 @@ public record SpawnFishRule(
 		float curiosityLureBuff = obj.has("curiosityLureBuff") ? obj.get("curiosityLureBuff").getAsFloat() : -1.0f;
 		boolean isBossFish = obj.has("isBossFish") && obj.get("isBossFish").getAsBoolean();
 		boolean isTutorialFish = obj.has("isTutorialFish") && obj.get("isTutorialFish").getAsBoolean();
+		boolean ignoreFishDataRequirements = obj.has("ignoreFishDataRequirements")
+				&& obj.get("ignoreFishDataRequirements").getAsBoolean();
 		List<QuantityModifier.Entry> chanceModifiers = QuantityModifier.parseList(obj, "chanceModifiers");
 		QuantityModifier.Mode chanceModifierMode = QuantityModifier.parseMode(obj, "chanceModifierMode");
 		boolean useFishCaughtSeededRandom = obj.has("useFishCaughtSeededRandom") && obj.get("useFishCaughtSeededRandom").getAsBoolean();
 
-		return new SpawnFishRule(id, precedence, item, chance, difficulty, motion, minLevel, minDepth, maxDepth,
+		return new SpawnFishRule(id, precedence, item, chance, difficulty, motion, minFishSize, maxFishSize, minLevel, minDepth, maxDepth,
 				biomes, biomeTags, seasons, weather, timeRanges, skipMinigame,
 				fishAreaId, canBeInherited, requireMagicBait, catchLimit, condition,
 				spawnRate, maxFishDepth, depthMultiplier, applyDailyLuck, curiosityLureBuff, isBossFish,
-				isTutorialFish, chanceModifiers, chanceModifierMode, useFishCaughtSeededRandom);
+				isTutorialFish, ignoreFishDataRequirements, chanceModifiers, chanceModifierMode, useFishCaughtSeededRandom);
 	}
 
 	private static List<String> parseStringList(JsonObject obj, String key) {

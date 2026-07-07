@@ -27,7 +27,12 @@ public record StartMinigamePayload(
 		int barSizeBonus,           // Cork Bobber: +24 pixels per tackle; Deluxe Bait: +12 pixels
 		float escapeLossPerTick,    // Trap Bobber: distanceFromCatching decrease when fish is NOT in bar
 		int barbedHookCount,        // Barbed Hook: affects bar gravity + auto-tracking
-		int leadBobberCount         // Lead Bobber: damps bounce at bottom
+		int leadBobberCount,        // Lead Bobber: damps bounce at bottom
+		int minFishSize,
+		int maxFishSize,
+		int currentFishSize,
+		float initialCatchProgress,
+		boolean loseProgressOutsideBar
 ) implements CustomPacketPayload {
 
 	@SuppressWarnings("null")
@@ -79,9 +84,20 @@ public record StartMinigamePayload(
 			int barbedHookCount = ByteBufCodecs.VAR_INT.decode(buf);
 			@SuppressWarnings("null")
 			int leadBobberCount = ByteBufCodecs.VAR_INT.decode(buf);
+			@SuppressWarnings("null")
+			int minFishSize = ByteBufCodecs.VAR_INT.decode(buf);
+			@SuppressWarnings("null")
+			int maxFishSize = ByteBufCodecs.VAR_INT.decode(buf);
+			@SuppressWarnings("null")
+			int currentFishSize = ByteBufCodecs.VAR_INT.decode(buf);
+			@SuppressWarnings("null")
+			float initialCatchProgress = ByteBufCodecs.FLOAT.decode(buf);
+			@SuppressWarnings("null")
+			boolean loseProgressOutsideBar = ByteBufCodecs.BOOL.decode(buf);
 			return new StartMinigamePayload(sessionId, difficulty, motionTypeId, legendaryFish, durationTicks,
 					hasTreasure, goldenTreasure, hasSonarBobber, sonarFishItemId,
-					barSizeBonus, escapeLossPerTick, barbedHookCount, leadBobberCount);
+					barSizeBonus, escapeLossPerTick, barbedHookCount, leadBobberCount,
+					minFishSize, maxFishSize, currentFishSize, initialCatchProgress, loseProgressOutsideBar);
 		}
 
 		@SuppressWarnings("null")
@@ -100,6 +116,11 @@ public record StartMinigamePayload(
 			ByteBufCodecs.FLOAT.encode(buf, value.escapeLossPerTick());
 			ByteBufCodecs.VAR_INT.encode(buf, value.barbedHookCount());
 			ByteBufCodecs.VAR_INT.encode(buf, value.leadBobberCount());
+			ByteBufCodecs.VAR_INT.encode(buf, value.minFishSize());
+			ByteBufCodecs.VAR_INT.encode(buf, value.maxFishSize());
+			ByteBufCodecs.VAR_INT.encode(buf, value.currentFishSize());
+			ByteBufCodecs.FLOAT.encode(buf, value.initialCatchProgress());
+			ByteBufCodecs.BOOL.encode(buf, value.loseProgressOutsideBar());
 		}
 	};
 
@@ -129,7 +150,12 @@ public record StartMinigamePayload(
 					payload.barSizeBonus(),
 					payload.escapeLossPerTick(),
 					payload.barbedHookCount(),
-					payload.leadBobberCount()
+					payload.leadBobberCount(),
+					payload.minFishSize(),
+					payload.maxFishSize(),
+					payload.currentFishSize(),
+					payload.initialCatchProgress(),
+					payload.loseProgressOutsideBar()
 			));
 		}
 	}

@@ -111,6 +111,11 @@ public record ShopPurchasePayload(
 
             int cost = entry.price() * qty;
 
+            if (isFairStarTokenShop(payload.shopId())) {
+                handleFairStarTokenPurchase(player, payload, entry, qty, cost);
+                return;
+            }
+
             // Decoration unlock purchases (SDV Joja RANDOM_ITEMS (WP)/(FL)): wallpaper:{id} / flooring:{id}
             if (entry.itemId().startsWith("wallpaper:") || entry.itemId().startsWith("flooring:")) {
                 boolean isWp = entry.itemId().startsWith("wallpaper:");
@@ -288,6 +293,74 @@ public record ShopPurchasePayload(
     private static void sendResult(ServerPlayer player, boolean ok, int money, String itemId, int qty, int idx) {
         net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,
             new com.stardew.craft.network.payload.ShopPurchaseResultPayload(ok, money, itemId, qty, idx));
+    }
+
+    private static boolean isFairStarTokenShop(String shopId) {
+        return com.stardew.craft.festival.FairFestivalService.STAR_TOKEN_SHOP_ID.equals(shopId);
+    }
+
+    private static void handleFairStarTokenPurchase(ServerPlayer player, ShopPurchasePayload payload,
+                                                    ShopItemEntry entry, int qty, int cost) {
+        int currentTokens = com.stardew.craft.player.PlayerStardewDataAPI.getFairStarTokens(player);
+        if (qty != 1 || cost <= 0 || currentTokens < cost || entry.requiresTrade()
+                || entry.itemId().startsWith("recipe:")
+                || entry.itemId().startsWith("wallpaper:")
+                || entry.itemId().startsWith("flooring:")) {
+            sendResult(player, false, currentTokens, "", 0, payload.itemIndex());
+            return;
+        }
+
+        if ("stardewcraft:stardrop".equals(entry.itemId())) {
+            com.stardew.craft.player.PlayerStardewData data =
+                com.stardew.craft.player.PlayerDataManager.getPlayerData(player);
+            if (data.hasMailFlag(com.stardew.craft.festival.FairFestivalService.FAIR_STARDROP_FLAG)) {
+                sendResult(player, false, currentTokens, "", 0, payload.itemIndex());
+                return;
+            }
+            if (!com.stardew.craft.item.misc.StardropItem.consumeImmediately(player)) {
+                sendResult(player, false, currentTokens, "", 0, payload.itemIndex());
+                return;
+            }
+            if (!com.stardew.craft.player.PlayerStardewDataAPI.consumeFairStarTokens(player, cost)) {
+                sendResult(player, false, currentTokens, "", 0, payload.itemIndex());
+                return;
+            }
+            data = com.stardew.craft.player.PlayerDataManager.getPlayerData(player);
+            data.addMailFlag(com.stardew.craft.festival.FairFestivalService.FAIR_STARDROP_FLAG);
+            com.stardew.craft.player.PlayerDataManager.get().savePlayerData(player.getUUID(), data);
+            com.stardew.craft.player.PlayerDataEventHandler.syncPlayerData(player, data);
+            if (entry.stock() != Integer.MAX_VALUE) {
+                ShopStockTracker.recordPurchase(player.getUUID(), payload.shopId(), entry.itemId(), qty);
+            }
+            sendResult(player, true,
+                com.stardew.craft.player.PlayerStardewDataAPI.getFairStarTokens(player),
+                "", 0, payload.itemIndex());
+            return;
+        }
+
+        try {
+            ResourceLocation rl = ResourceLocation.parse(entry.itemId());
+            net.minecraft.world.item.Item mcItem =
+                net.minecraft.core.registries.BuiltInRegistries.ITEM.get(rl);
+            if (mcItem == null || mcItem == net.minecraft.world.item.Items.AIR) {
+                sendResult(player, false, currentTokens, "", 0, payload.itemIndex());
+                return;
+            }
+        } catch (Exception e) {
+            sendResult(player, false, currentTokens, "", 0, payload.itemIndex());
+            return;
+        }
+
+        if (!com.stardew.craft.player.PlayerStardewDataAPI.consumeFairStarTokens(player, cost)) {
+            sendResult(player, false, currentTokens, "", 0, payload.itemIndex());
+            return;
+        }
+        if (entry.stock() != Integer.MAX_VALUE) {
+            ShopStockTracker.recordPurchase(player.getUUID(), payload.shopId(), entry.itemId(), qty);
+        }
+        sendResult(player, true,
+            com.stardew.craft.player.PlayerStardewDataAPI.getFairStarTokens(player),
+            entry.itemId(), qty * Math.max(1, entry.purchaseStack()), payload.itemIndex());
     }
 
     /**

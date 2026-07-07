@@ -32,6 +32,9 @@ public final class ModSounds {
 	public static final DeferredHolder<SoundEvent, SoundEvent> JINGLE1 = register("jingle1");
 	public static final DeferredHolder<SoundEvent, SoundEvent> FISH_ESCAPE = register("fish_escape");
 	public static final DeferredHolder<SoundEvent, SoundEvent> TINY_WHIP = register("tiny_whip");
+	public static final DeferredHolder<SoundEvent, SoundEvent> SLINGSHOT = register("slingshot");
+	public static final DeferredHolder<SoundEvent, SoundEvent> BREAKING_GLASS = register("breaking_glass");
+	public static final DeferredHolder<SoundEvent, SoundEvent> POTTERY_SMASH = register("pottery_smash");
 	public static final DeferredHolder<SoundEvent, SoundEvent> WATER_SLOSH = register("water_slosh");
 	public static final DeferredHolder<SoundEvent, SoundEvent> DWOP = register("dwop");
 	public static final DeferredHolder<SoundEvent, SoundEvent> PULL_ITEM_FROM_WATER = register("pull_item_from_water");

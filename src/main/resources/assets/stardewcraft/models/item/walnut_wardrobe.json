@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:decor/common/walnut_wardrobe_full",
+  "textures": {
+    "particle": "stardewcraft:block/decor/common/walnut_wardrobe"
+  }
+}

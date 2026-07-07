@@ -33,6 +33,7 @@ public class ClientPlayerDataCache {
     private static int ticketPrizesClaimed = 0;
     private static int specialOrderPrizeTickets = 0;
     private static int fairStarTokens = 0;
+    private static boolean fairStarTokenHudActive = false;
     private static int maxMineFloorReached = 0;
     private static int firstJoinDay = -1;
 
@@ -255,6 +256,14 @@ public class ClientPlayerDataCache {
         return Math.max(0, fairStarTokens);
     }
 
+    public static boolean isFairStarTokenHudActive() {
+        return fairStarTokenHudActive;
+    }
+
+    public static void setFairStarTokenHudActive(boolean active) {
+        fairStarTokenHudActive = active;
+    }
+
     public static String getFarmName() {
         return farmName;
     }
@@ -425,6 +434,8 @@ public class ClientPlayerDataCache {
         stats.clear();
         ticketPrizesClaimed = 0;
         specialOrderPrizeTickets = 0;
+        fairStarTokens = 0;
+        fairStarTokenHudActive = false;
         maxMineFloorReached = 0;
         hasFarm = false;
         farmName = "";

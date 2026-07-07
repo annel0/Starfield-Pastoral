@@ -160,6 +160,12 @@ public class PacketHandler {
             com.stardew.craft.network.payload.RequestClaimMasteryRewardPayload::handle
         );
 
+        registrar.playToServer(
+            com.stardew.craft.network.payload.WardrobeActionPayload.TYPE,
+            com.stardew.craft.network.payload.WardrobeActionPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.WardrobeActionPayload::handle
+        );
+
         // 服务端 -> 客户端
         registrar.playToClient(
             PlayerDataSyncPacket.TYPE,
@@ -183,6 +189,12 @@ public class PacketHandler {
             TableClothColorSyncPayload.TYPE,
             TableClothColorSyncPayload.STREAM_CODEC,
             TableClothColorSyncPayload::handle
+        );
+
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenWardrobePayload.TYPE,
+            com.stardew.craft.network.payload.OpenWardrobePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenWardrobePayload::handle
         );
         
         registrar.playToClient(
@@ -862,10 +874,60 @@ public class PacketHandler {
             com.stardew.craft.network.payload.OpenFairStrengthGamePayload.STREAM_CODEC,
             com.stardew.craft.network.payload.OpenFairStrengthGamePayload::handle
         );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenFairWheelGamePayload.TYPE,
+            com.stardew.craft.network.payload.OpenFairWheelGamePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenFairWheelGamePayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenFairSlingshotGamePayload.TYPE,
+            com.stardew.craft.network.payload.OpenFairSlingshotGamePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenFairSlingshotGamePayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenFairStarTokenNumberSelectionPayload.TYPE,
+            com.stardew.craft.network.payload.OpenFairStarTokenNumberSelectionPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenFairStarTokenNumberSelectionPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.FairStarTokenPurchaseResultPayload.TYPE,
+            com.stardew.craft.network.payload.FairStarTokenPurchaseResultPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FairStarTokenPurchaseResultPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenFairFortunePayload.TYPE,
+            com.stardew.craft.network.payload.OpenFairFortunePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenFairFortunePayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.FairGrangeDisplaySyncPayload.TYPE,
+            com.stardew.craft.network.payload.FairGrangeDisplaySyncPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FairGrangeDisplaySyncPayload::handle
+        );
         registrar.playToServer(
             com.stardew.craft.network.payload.FairStrengthGameResultPayload.TYPE,
             com.stardew.craft.network.payload.FairStrengthGameResultPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.FairStrengthGameResultPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.FairWheelGameResultPayload.TYPE,
+            com.stardew.craft.network.payload.FairWheelGameResultPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FairWheelGameResultPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.FairSlingshotGameActionPayload.TYPE,
+            com.stardew.craft.network.payload.FairSlingshotGameActionPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FairSlingshotGameActionPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.FairStarTokenPurchaseSubmitPayload.TYPE,
+            com.stardew.craft.network.payload.FairStarTokenPurchaseSubmitPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FairStarTokenPurchaseSubmitPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.FairFishingResultAdvancePayload.TYPE,
+            com.stardew.craft.network.payload.FairFishingResultAdvancePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FairFishingResultAdvancePayload::handle
         );
         registrar.playToServer(
             com.stardew.craft.network.payload.ShopPurchasePayload.TYPE,
@@ -1388,6 +1450,21 @@ public class PacketHandler {
             com.stardew.craft.network.payload.FestivalHudStatePayload.TYPE,
             com.stardew.craft.network.payload.FestivalHudStatePayload.STREAM_CODEC,
             com.stardew.craft.network.payload.FestivalHudStatePayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.FairStarTokenHudStatePayload.TYPE,
+            com.stardew.craft.network.payload.FairStarTokenHudStatePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FairStarTokenHudStatePayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenFairFishingResultPayload.TYPE,
+            com.stardew.craft.network.payload.OpenFairFishingResultPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenFairFishingResultPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.FairFishingHudStatePayload.TYPE,
+            com.stardew.craft.network.payload.FairFishingHudStatePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.FairFishingHudStatePayload::handle
         );
         registrar.playToClient(
             com.stardew.craft.network.payload.FestivalMusicStatePayload.TYPE,

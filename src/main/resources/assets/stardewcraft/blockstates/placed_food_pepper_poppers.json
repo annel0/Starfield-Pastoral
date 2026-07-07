@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "stardewcraft:block/cooking/pepper_poppers"
+    },
+    "facing=east": {
+      "model": "stardewcraft:block/cooking/pepper_poppers",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "stardewcraft:block/cooking/pepper_poppers",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "stardewcraft:block/cooking/pepper_poppers",
+      "y": 270
+    }
+  }
+}

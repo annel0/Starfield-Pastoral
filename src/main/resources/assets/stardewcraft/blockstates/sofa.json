@@ -1,39 +1,176 @@
 {
   "multipart": [
-    { "when": { "facing": "north", "left_connected": "false", "right_connected": "false" }, "apply": { "model": "stardewcraft:block/utility/sofa_base_forbidden" } },
-    { "when": { "facing": "north", "left_connected": "false", "right_connected": "false" }, "apply": { "model": "stardewcraft:block/utility/sofa_base_tint" } },
-    { "when": { "facing": "north", "left_connected": "true", "right_connected": "false" }, "apply": { "model": "stardewcraft:block/utility/sofa_left_forbidden" } },
-    { "when": { "facing": "north", "left_connected": "true", "right_connected": "false" }, "apply": { "model": "stardewcraft:block/utility/sofa_left_tint" } },
-    { "when": { "facing": "north", "left_connected": "false", "right_connected": "true" }, "apply": { "model": "stardewcraft:block/utility/sofa_right_forbidden" } },
-    { "when": { "facing": "north", "left_connected": "false", "right_connected": "true" }, "apply": { "model": "stardewcraft:block/utility/sofa_right_tint" } },
-    { "when": { "facing": "north", "left_connected": "true", "right_connected": "true" }, "apply": { "model": "stardewcraft:block/utility/sofa_mid_forbidden" } },
-    { "when": { "facing": "north", "left_connected": "true", "right_connected": "true" }, "apply": { "model": "stardewcraft:block/utility/sofa_mid_tint" } },
-
-    { "when": { "facing": "east", "left_connected": "false", "right_connected": "false" }, "apply": { "model": "stardewcraft:block/utility/sofa_base_forbidden", "y": 90 } },
-    { "when": { "facing": "east", "left_connected": "false", "right_connected": "false" }, "apply": { "model": "stardewcraft:block/utility/sofa_base_tint", "y": 90 } },
-    { "when": { "facing": "east", "left_connected": "true", "right_connected": "false" }, "apply": { "model": "stardewcraft:block/utility/sofa_left_forbidden", "y": 90 } },
-    { "when": { "facing": "east", "left_connected": "true", "right_connected": "false" }, "apply": { "model": "stardewcraft:block/utility/sofa_left_tint", "y": 90 } },
-    { "when": { "facing": "east", "left_connected": "false", "right_connected": "true" }, "apply": { "model": "stardewcraft:block/utility/sofa_right_forbidden", "y": 90 } },
-    { "when": { "facing": "east", "left_connected": "false", "right_connected": "true" }, "apply": { "model": "stardewcraft:block/utility/sofa_right_tint", "y": 90 } },
-    { "when": { "facing": "east", "left_connected": "true", "right_connected": "true" }, "apply": { "model": "stardewcraft:block/utility/sofa_mid_forbidden", "y": 90 } },
-    { "when": { "facing": "east", "left_connected": "true", "right_connected": "true" }, "apply": { "model": "stardewcraft:block/utility/sofa_mid_tint", "y": 90 } },
-
-    { "when": { "facing": "south", "left_connected": "false", "right_connected": "false" }, "apply": { "model": "stardewcraft:block/utility/sofa_base_forbidden", "y": 180 } },
-    { "when": { "facing": "south", "left_connected": "false", "right_connected": "false" }, "apply": { "model": "stardewcraft:block/utility/sofa_base_tint", "y": 180 } },
-    { "when": { "facing": "south", "left_connected": "true", "right_connected": "false" }, "apply": { "model": "stardewcraft:block/utility/sofa_left_forbidden", "y": 180 } },
-    { "when": { "facing": "south", "left_connected": "true", "right_connected": "false" }, "apply": { "model": "stardewcraft:block/utility/sofa_left_tint", "y": 180 } },
-    { "when": { "facing": "south", "left_connected": "false", "right_connected": "true" }, "apply": { "model": "stardewcraft:block/utility/sofa_right_forbidden", "y": 180 } },
-    { "when": { "facing": "south", "left_connected": "false", "right_connected": "true" }, "apply": { "model": "stardewcraft:block/utility/sofa_right_tint", "y": 180 } },
-    { "when": { "facing": "south", "left_connected": "true", "right_connected": "true" }, "apply": { "model": "stardewcraft:block/utility/sofa_mid_forbidden", "y": 180 } },
-    { "when": { "facing": "south", "left_connected": "true", "right_connected": "true" }, "apply": { "model": "stardewcraft:block/utility/sofa_mid_tint", "y": 180 } },
-
-    { "when": { "facing": "west", "left_connected": "false", "right_connected": "false" }, "apply": { "model": "stardewcraft:block/utility/sofa_base_forbidden", "y": 270 } },
-    { "when": { "facing": "west", "left_connected": "false", "right_connected": "false" }, "apply": { "model": "stardewcraft:block/utility/sofa_base_tint", "y": 270 } },
-    { "when": { "facing": "west", "left_connected": "true", "right_connected": "false" }, "apply": { "model": "stardewcraft:block/utility/sofa_left_forbidden", "y": 270 } },
-    { "when": { "facing": "west", "left_connected": "true", "right_connected": "false" }, "apply": { "model": "stardewcraft:block/utility/sofa_left_tint", "y": 270 } },
-    { "when": { "facing": "west", "left_connected": "false", "right_connected": "true" }, "apply": { "model": "stardewcraft:block/utility/sofa_right_forbidden", "y": 270 } },
-    { "when": { "facing": "west", "left_connected": "false", "right_connected": "true" }, "apply": { "model": "stardewcraft:block/utility/sofa_right_tint", "y": 270 } },
-    { "when": { "facing": "west", "left_connected": "true", "right_connected": "true" }, "apply": { "model": "stardewcraft:block/utility/sofa_mid_forbidden", "y": 270 } },
-    { "when": { "facing": "west", "left_connected": "true", "right_connected": "true" }, "apply": { "model": "stardewcraft:block/utility/sofa_mid_tint", "y": 270 } }
+    {
+      "when": {
+        "facing": "north",
+        "left_connected": "false",
+        "right_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/sofa_base_tint"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "left_connected": "true",
+        "right_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/sofa_left_tint"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "left_connected": "false",
+        "right_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/sofa_right_tint"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "left_connected": "true",
+        "right_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/sofa_mid_tint"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "left_connected": "false",
+        "right_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/sofa_base_tint",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "left_connected": "true",
+        "right_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/sofa_left_tint",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "left_connected": "false",
+        "right_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/sofa_right_tint",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "left_connected": "true",
+        "right_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/sofa_mid_tint",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "left_connected": "false",
+        "right_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/sofa_base_tint",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "left_connected": "true",
+        "right_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/sofa_left_tint",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "left_connected": "false",
+        "right_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/sofa_right_tint",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "left_connected": "true",
+        "right_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/sofa_mid_tint",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "left_connected": "false",
+        "right_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/sofa_base_tint",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "left_connected": "true",
+        "right_connected": "false"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/sofa_left_tint",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "left_connected": "false",
+        "right_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/sofa_right_tint",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "left_connected": "true",
+        "right_connected": "true"
+      },
+      "apply": {
+        "model": "stardewcraft:block/utility/sofa_mid_tint",
+        "y": 270
+      }
+    }
   ]
 }
