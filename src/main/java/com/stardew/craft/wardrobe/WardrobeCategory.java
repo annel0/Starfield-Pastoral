@@ -1,6 +1,8 @@
 package com.stardew.craft.wardrobe;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.item.cosmetic.StardewCosmeticItem;
+import com.stardew.craft.item.cosmetic.StardewCosmeticSlot;
 import com.stardew.craft.item.equipment.CombinedRingItem;
 import com.stardew.craft.item.equipment.StardewBootsItem;
 import com.stardew.craft.item.equipment.StardewRingItem;
@@ -51,6 +53,14 @@ public enum WardrobeCategory {
             return null;
         }
         Item item = stack.getItem();
+        if (item instanceof StardewCosmeticItem cosmetic) {
+            StardewCosmeticSlot slot = cosmetic.getCosmeticSlot();
+            return switch (slot) {
+                case HAT -> WardrobeCategory.HATS;
+                case SHIRT -> WardrobeCategory.SHIRTS;
+                case PANTS -> WardrobeCategory.PANTS;
+            };
+        }
         if (item instanceof StardewRingItem || item instanceof CombinedRingItem || stack.is(CURIOS_RING)) {
             return RINGS;
         }

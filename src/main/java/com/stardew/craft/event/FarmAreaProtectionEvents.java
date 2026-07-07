@@ -357,6 +357,10 @@ public class FarmAreaProtectionEvents {
                 || animal.getPersistentData().getBoolean(FairFestivalService.FAIR_ANIMAL_PERSISTENT_FLAG))) {
             return;
         }
+        if (mob.getTags().contains("stardewcraft_spirit_eve_monster")
+            || mob.getPersistentData().getBoolean("stardewcraft_spirit_eve_monster")) {
+            return;
+        }
         if (mob.getPersistentData().getBoolean("StardewTrinketParrot")) {
             return;
         }

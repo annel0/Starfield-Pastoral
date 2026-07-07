@@ -93,16 +93,20 @@ import com.stardew.craft.item.cooking.CookingDishItem;
 import com.stardew.craft.item.cooking.CookingDishRegistrar;
 import com.stardew.craft.item.cooking.DesertFestivalCookDishRegistrar;
 import com.stardew.craft.item.misc.GalaxySoulItem;
+import com.stardew.craft.item.misc.GoldenPumpkinItem;
 import com.stardew.craft.item.misc.IridiumMilkItem;
 import com.stardew.craft.item.misc.LuckyPurpleShortsItem;
 import com.stardew.craft.item.misc.LifeElixirItem;
+import com.stardew.craft.item.misc.MagicRockCandyItem;
 import com.stardew.craft.item.misc.AuctionPaddleItem;
 import com.stardew.craft.item.misc.MoneyContractItem;
+import com.stardew.craft.item.RouteGuidanceConsumableItem;
 import com.stardew.craft.item.misc.StardropItem;
 import com.stardew.craft.item.misc.StardropTeaItem;
 import com.stardew.craft.item.tool.AutoFeedTroughUpgraderItem;
 import com.stardew.craft.item.tool.HoeItem;
 import com.stardew.craft.item.tool.PaintbrushItem;
+import com.stardew.craft.item.tool.RouteEditorWandItem;
 import com.stardew.craft.item.tool.ScytheItem;
 import com.stardew.craft.item.tool.FishingRodItem;
 import com.stardew.craft.item.tool.StardewAxeItem;
@@ -494,6 +498,7 @@ public class ModItems {
         public static final DeferredItem<Item> OAK_ROOT = blockItem("oak_root", ModBlocks.OAK_ROOT);
         public static final DeferredItem<Item> OAK_LOG = blockItem("oak_log", ModBlocks.OAK_LOG);
         public static final DeferredItem<Item> OAK_LEAVES = blockItem("oak_leaves", ModBlocks.OAK_LEAVES);
+        public static final DeferredItem<Item> OAK_LEAVES_QUESTION = blockItem("oak_leaves_question", ModBlocks.OAK_LEAVES_QUESTION);
         public static final DeferredItem<Item> OAK_BRANCH = blockItem("oak_branch", ModBlocks.OAK_BRANCH);
 
         public static final DeferredItem<Item> MAPLE_ROOT = blockItem("maple_root", ModBlocks.MAPLE_ROOT);
@@ -815,11 +820,19 @@ public class ModItems {
 
         public static final DeferredItem<Item> FAIR_GRAVE_STONE = ITEMS.register("fair_grave_stone",
                         () -> new StardewBlockItem(ModBlocks.FAIR_GRAVE_STONE.get(), "stardewcraft.type.festival_decoration", -1,
-                                        "item.stardewcraft.fair_grave_stone.desc", new Item.Properties().stacksTo(999)));
+                                        new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> SPIRIT_EVE_SPIDER_STATUE = ITEMS.register("spirit_eve_spider_statue",
+                        () -> new StardewBlockItem(ModBlocks.SPIRIT_EVE_SPIDER_STATUE.get(), "stardewcraft.type.festival_decoration", -1,
+                                        new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> SPIRIT_EVE_JACK_O_LANTERN = ITEMS.register("spirit_eve_jack_o_lantern",
+                        () -> new StardewBlockItem(ModBlocks.SPIRIT_EVE_JACK_O_LANTERN.get(), "stardewcraft.type.festival_decoration", -1,
+                                        new Item.Properties().stacksTo(999)));
 
         public static final DeferredItem<Item> FAIR_GRILL = ITEMS.register("fair_grill",
                         () -> new StardewBlockItem(ModBlocks.FAIR_GRILL.get(), "stardewcraft.type.festival_decoration", -1,
-                                        "item.stardewcraft.fair_grill.desc", new Item.Properties().stacksTo(999)));
+                                        new Item.Properties().stacksTo(999)));
 
         public static final DeferredItem<Item> PLUSH_BUNNY = ITEMS.register("plush_bunny",
                         () -> new StardewBlockItem(ModBlocks.PLUSH_BUNNY.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
@@ -1112,6 +1125,9 @@ public class ModItems {
     public static final DeferredItem<Item> PAINTBRUSH = ITEMS.register("paintbrush",
             () -> new PaintbrushItem(new Item.Properties().stacksTo(1)));
 
+    public static final DeferredItem<Item> ROUTE_EDITOR_WAND = ITEMS.register("route_editor_wand",
+            () -> new RouteEditorWandItem(new Item.Properties().stacksTo(1)));
+
     public static final DeferredItem<Item> MINE_TOTEM = ITEMS.register("mine_totem",
             () -> new com.stardew.craft.item.tool.MineTotemItem(new Item.Properties().stacksTo(1)));
 
@@ -1331,15 +1347,19 @@ public class ModItems {
                         () -> new IridiumMilkItem(new Item.Properties().stacksTo(999).fireResistant()));
         public static final DeferredItem<Item> GALAXY_SOUL = ITEMS.register("galaxy_soul",
                         () -> new GalaxySoulItem(new Item.Properties().stacksTo(999).fireResistant()));
+        public static final DeferredItem<Item> GOLDEN_PUMPKIN = ITEMS.register("golden_pumpkin",
+                        () -> new GoldenPumpkinItem(new Item.Properties().stacksTo(999).fireResistant()));
         public static final DeferredItem<Item> FIELD_SNACK = ITEMS.register("field_snack",
                         () -> new StardewQualityItem("stardewcraft.type.cooking", 20, 18, false, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> MAGIC_ROCK_CANDY = ITEMS.register("magic_rock_candy",
-                        () -> new CookingDishItem(5000, 200, java.util.List.of(
-                                        new CookingDishItem.DishBuff(CookingDishItem.BuffType.MINING, 2, 720 * 20),
-                                        new CookingDishItem.DishBuff(CookingDishItem.BuffType.LUCK, 5, 720 * 20),
-                                        new CookingDishItem.DishBuff(CookingDishItem.BuffType.SPEED, 1, 720 * 20),
-                                        new CookingDishItem.DishBuff(CookingDishItem.BuffType.DEFENSE, 5, 720 * 20),
-                                        new CookingDishItem.DishBuff(CookingDishItem.BuffType.ATTACK, 5, 720 * 20)),
+                        () -> new MagicRockCandyItem(new Item.Properties().stacksTo(999).fireResistant()));
+        public static final DeferredItem<Item> WISP_TRAIL_ELIXIR = ITEMS.register("wisp_trail_elixir",
+                        () -> new RouteGuidanceConsumableItem(
+                                        com.stardew.craft.route.RouteGuidanceRegistry.SPIRIT_EVE_MAZE_EXIT,
+                                        120 * 20,
+                                        100,
+                                        com.stardew.craft.festival.SpiritEveFestivalService.FESTIVAL_ID,
+                                        "stardewcraft.route_guidance.spirit_eve_only",
                                         new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> GREEN_TEA = ITEMS.register("green_tea",
                         () -> new CookingDishItem(100, 5, java.util.List.of(
@@ -2951,6 +2971,20 @@ public class ModItems {
 
     public static final DeferredItem<Item> COMBINED_RING = ITEMS.register("combined_ring",
             () -> new com.stardew.craft.item.equipment.CombinedRingItem(new Item.Properties()));
+
+    // ============ 装饰物品：帽子 (Cosmetic Hats) ============
+    public static final DeferredItem<Item> STRAW_HAT = ITEMS.register("straw_hat",
+            () -> new com.stardew.craft.item.cosmetic.StardewHatItem("4", -1,
+                    net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "models/entity/hat/straw_hat.json"),
+                    new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<Item> EARMUFFS = ITEMS.register("earmuffs",
+            () -> new com.stardew.craft.item.cosmetic.StardewHatItem("11", -1,
+                    net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "models/entity/hat/earmuffs.json"),
+                    new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<Item> TOP_HAT = ITEMS.register("top_hat",
+            () -> new com.stardew.craft.item.cosmetic.StardewHatItem("2", -1,
+                    net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "models/entity/hat/top_hat.json"),
+                    new Item.Properties().stacksTo(1)));
 
     // ============ 靴子 (Boots) ============
     public static final DeferredItem<Item> SNEAKERS = ITEMS.register("sneakers",

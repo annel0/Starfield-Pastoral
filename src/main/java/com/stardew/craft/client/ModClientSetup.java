@@ -62,6 +62,7 @@ import com.stardew.craft.client.render.AnvilBlockEntityRenderer;
 import com.stardew.craft.client.render.MuseumExhibitStandBlockEntityRenderer;
 import com.stardew.craft.client.render.TableDisplayBlockEntityRenderer;
 import com.stardew.craft.client.render.OfficeStoolBlockEntityRenderer;
+import com.stardew.craft.client.render.StardewHatLayer;
 import com.stardew.craft.menu.ModMenuTypes;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -227,6 +228,7 @@ public final class ModClientSetup {
 		for (net.minecraft.client.resources.PlayerSkin.Model skin : event.getSkins()) {
 			net.minecraft.client.renderer.entity.EntityRenderer<? extends net.minecraft.world.entity.player.Player> renderer = event.getSkin(skin);
 			addFreezeLayer(renderer);
+			addHatLayer(renderer);
 		}
 	}
 
@@ -234,6 +236,13 @@ public final class ModClientSetup {
 	private static void addFreezeLayer(net.minecraft.client.renderer.entity.EntityRenderer<?> renderer) {
 		if (renderer instanceof net.minecraft.client.renderer.entity.LivingEntityRenderer<?, ?> livingRenderer) {
 			livingRenderer.addLayer(new YetiFreezeLayer((net.minecraft.client.renderer.entity.LivingEntityRenderer) livingRenderer));
+		}
+	}
+
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	private static void addHatLayer(net.minecraft.client.renderer.entity.EntityRenderer<?> renderer) {
+		if (renderer instanceof net.minecraft.client.renderer.entity.player.PlayerRenderer playerRenderer) {
+			playerRenderer.addLayer(new StardewHatLayer(playerRenderer));
 		}
 	}
 }

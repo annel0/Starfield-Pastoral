@@ -23,7 +23,9 @@ final class FestivalBoundaryReturn {
         if (isSafeOutside(player, bounds, preferred, DEFAULT_MARGIN)) {
             return preferred;
         }
-        return findSafeOutside(player, bounds, pushOutside(bounds, preferred == null ? player.position() : preferred, DEFAULT_MARGIN), DEFAULT_MARGIN);
+        Vec3 outside = pushOutside(bounds, preferred == null ? player.position() : preferred, DEFAULT_MARGIN);
+        Vec3 safe = findSafeOutside(player, bounds, outside, DEFAULT_MARGIN);
+        return safe != null && !bounds.contains(safe) ? safe : outside;
     }
 
     static Vec3 pushInside(AABB bounds, Vec3 current) {
@@ -94,6 +96,7 @@ final class FestivalBoundaryReturn {
         return player != null
             && bounds != null
             && target != null
+            && !bounds.contains(target)
             && isOutsideSafeMargin(bounds, target, margin)
             && canStandAt(player, target);
     }

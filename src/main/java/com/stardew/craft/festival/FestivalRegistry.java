@@ -44,7 +44,7 @@ public final class FestivalRegistry {
         register(new FestivalDefinition(
             "fall27", FestivalType.ACTIVE, "Spirit's Eve", "Spirit's Eve", "",
             FALL, 27, 27, 2200, 2350, true, false, "",
-            "Town", "Town-Halloween", Map.of(), List.of("Festival_SpiritsEve"), "spirit_eve"
+            "Town", "Town-Halloween", Map.of(), List.of("Festival_SpiritsEve_Pierre"), "spirit_eve"
         ));
         register(new FestivalDefinition(
             "winter8", FestivalType.ACTIVE, "Festival of Ice", "Festival of Ice", "",

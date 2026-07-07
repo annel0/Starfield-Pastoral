@@ -235,7 +235,8 @@ public class RiceCropBlock extends StardewCropBlock implements SimpleWaterlogged
             BlockPos above = pos.above();
             BlockState aboveState = level.getBlockState(above);
             if (aboveState.isAir() || !(aboveState.getBlock() == this && aboveState.getValue(HALF) == DoubleBlockHalf.UPPER)) {
-                level.setBlock(above, state.setValue(HALF, DoubleBlockHalf.UPPER).setValue(WATERLOGGED, false), 3);
+                boolean upperWaterlogged = level.getFluidState(above).is(FluidTags.WATER);
+                level.setBlock(above, state.setValue(HALF, DoubleBlockHalf.UPPER).setValue(WATERLOGGED, upperWaterlogged), 3);
             }
         }
         super.onPlace(state, level, pos, oldState, isMoving);
@@ -253,7 +254,7 @@ public class RiceCropBlock extends StardewCropBlock implements SimpleWaterlogged
             BlockPos above = pos.above();
             BlockState aboveState = level.getBlockState(above);
             if (aboveState.getBlock() == this && aboveState.getValue(HALF) == DoubleBlockHalf.UPPER) {
-                level.setBlock(above, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), 3);
+                level.setBlock(above, getRemovalReplacement(aboveState), 3);
             }
         } else {
             BlockPos below = pos.below();
@@ -291,7 +292,8 @@ public class RiceCropBlock extends StardewCropBlock implements SimpleWaterlogged
         }
         BlockPos above = pos.above();
         BlockState upper = level.getBlockState(above);
-        BlockState expectedUpper = lower.setValue(HALF, DoubleBlockHalf.UPPER).setValue(WATERLOGGED, false);
+        BlockState expectedUpper = lower.setValue(HALF, DoubleBlockHalf.UPPER)
+                .setValue(WATERLOGGED, level.getFluidState(above).is(FluidTags.WATER));
         if (upper.getBlock() != this || upper.getValue(HALF) != DoubleBlockHalf.UPPER) {
             level.setBlock(above, expectedUpper, 3);
         } else if (!upper.equals(expectedUpper)) {

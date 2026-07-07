@@ -868,7 +868,8 @@ public final class ShopRegistry {
                 entryAllSeasons("stardewcraft:seasonal_decor", 350),
                 entryAllSeasons("stardewcraft:flower_cluster", 250),
                 entryStock("stardewcraft:daffodil", 50, 10),
-                entryStock("stardewcraft:dandelion", 50, 10)
+                entryStock("stardewcraft:dandelion", 50, 10),
+                entryStock("stardewcraft:scarecrow_5", 2500, 1)
             ),
             Set.of()
         ));
@@ -891,6 +892,24 @@ public final class ShopRegistry {
             "stardewcraft.shop.moonlight_jellies.dialogue",
             List.of(
                 entryAllSeasons("stardewcraft:water_lantern", 800)
+            ),
+            Set.of()
+        ));
+
+        REGISTRY.put("Festival_SpiritsEve_Pierre", new ShopDefinition(
+            "Festival_SpiritsEve_Pierre",
+            "Pierre",
+            "stardewcraft.shop.spirit_eve.dialogue",
+            List.of(
+                // SDV Data/Shops.json Festival_SpiritsEve_Pierre:
+                // (BC)113 @ 5000 stock 1, (O)746 @ 750 stock 5,
+                // (O)746 Recipe @ 2000, (BC)47 @ 350, (F)2870 @ 4000.
+                entryStock("stardewcraft:scarecrow_2", 5000, 1),
+                entryStock("stardewcraft:spirit_eve_jack_o_lantern", 750, 5),
+                entryRecipe("stardewcraft:spirit_eve_jack_o_lantern", 2000),
+                entryAllSeasons("stardewcraft:fair_grave_stone", 350),
+                entryAllSeasons("stardewcraft:carpet_20", 4000),
+                entryTrade("stardewcraft:wisp_trail_elixir", "stardewcraft:prismatic_shard", 1)
             ),
             Set.of()
         ));

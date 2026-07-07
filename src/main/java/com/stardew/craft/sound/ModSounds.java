@@ -65,12 +65,15 @@ public final class ModSounds {
 	public static final DeferredHolder<SoundEvent, SoundEvent> CRAFTING = register("crafting");
 	public static final DeferredHolder<SoundEvent, SoundEvent> SLIMEDEAD = register("slimedead");
 	public static final DeferredHolder<SoundEvent, SoundEvent> GLUG = register("glug");
+	public static final DeferredHolder<SoundEvent, SoundEvent> GHOST = register("ghost");
+	public static final DeferredHolder<SoundEvent, SoundEvent> SECRET1 = register("secret1");
 	public static final DeferredHolder<SoundEvent, SoundEvent> DEBUFF_HIT = register("debuff_hit");
 	public static final DeferredHolder<SoundEvent, SoundEvent> DIALOGUE_CHARACTER = register("dialogue_character");
 	public static final DeferredHolder<SoundEvent, SoundEvent> DIALOGUE_CHARACTER_CLOSE = register("dialogue_character_close");
 	public static final DeferredHolder<SoundEvent, SoundEvent> DOG_BARK = register("dog_bark");
 	public static final DeferredHolder<SoundEvent, SoundEvent> SHADOW_DIE = register("shadow_die");
 	public static final DeferredHolder<SoundEvent, SoundEvent> CAVEDRIP = register("cavedrip");
+	public static final DeferredHolder<SoundEvent, SoundEvent> CACKLING_WITCH = register("cackling_witch");
 	public static final DeferredHolder<SoundEvent, SoundEvent> THUD_STEP = register("thud_step");
 	public static final DeferredHolder<SoundEvent, SoundEvent> STONE_STEP = register("stone_step");
 	public static final DeferredHolder<SoundEvent, SoundEvent> HARVEST = register("harvest");
@@ -121,6 +124,7 @@ public final class ModSounds {
 	public static final DeferredHolder<SoundEvent, SoundEvent> STEAM = register("steam");
 	public static final DeferredHolder<SoundEvent, SoundEvent> SKELETON_STEP = register("skeleton_step");
 	public static final DeferredHolder<SoundEvent, SoundEvent> SKELETON_HIT = register("skeleton_hit");
+	public static final DeferredHolder<SoundEvent, SoundEvent> SKELETON_DIE = register("skeleton_die");
 	public static final DeferredHolder<SoundEvent, SoundEvent> DWARVISH_SENTRY = register("dwarvish_sentry");
 
 	// AnimalQueryMenu / FarmAnimal original cues
@@ -217,6 +221,7 @@ public final class ModSounds {
 	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_FALL_FEST = register("music_fall_fest");
 	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_FLOWER_DANCE = register("music_flower_dance");
 	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_MOONLIGHT_JELLIES = register("music_moonlight_jellies");
+	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_SPIRITS_EVE = register("music_spirits_eve");
 	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_SETTLINGIN = register("music_settlingin");
 	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_JAUNTY = register("music_jaunty");
 	public static final DeferredHolder<SoundEvent, SoundEvent> MUSIC_PLAYFUL = register("music_playful");

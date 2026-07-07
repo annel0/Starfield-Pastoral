@@ -93,6 +93,7 @@ public class ModClientEvents {
             if (stardewItem.getItemTypeKey() != null) {
                 String typeKey = stardewItem.getItemTypeKey();
                 net.minecraft.ChatFormatting typeColor = net.minecraft.ChatFormatting.GREEN;
+                Integer typeRgbColor = null;
                 
                 // 种子的种类颜色改成深绿色
                 if (typeKey.contains("seed")) {
@@ -169,6 +170,13 @@ public class ModClientEvents {
                 } else if ("stardewcraft.type.boots".equals(typeKey)) {
                     // 靴子：深绿色
                     typeColor = net.minecraft.ChatFormatting.DARK_GREEN;
+                } else if ("stardewcraft.type.hat".equals(typeKey)) {
+                    // 帽子：单独的装饰品颜色
+                    typeRgbColor = 0x4CB6B8;
+                } else if ("stardewcraft.type.shirt".equals(typeKey)) {
+                    typeRgbColor = 0x78C86A;
+                } else if ("stardewcraft.type.pants".equals(typeKey)) {
+                    typeRgbColor = 0x4F7FE8;
                 } else if ("stardewcraft.type.trinket".equals(typeKey)) {
                     typeColor = net.minecraft.ChatFormatting.LIGHT_PURPLE;
                 } else if ("stardewcraft.type.magic".equals(typeKey)) {
@@ -227,7 +235,13 @@ public class ModClientEvents {
                         .withStyle(ChatFormatting.WHITE)
                         .append(SpecialConsumableClientFx.auctionPaddleTypeLabel(
                             Component.translatable(typeKey).getString())));
-                } else if (stack.getItem() == ModItems.GALAXY_SOUL.get()) {
+                } else if (stack.getItem() == ModItems.GOLDEN_PUMPKIN.get()) {
+                    customLines.add(Component.translatable("stardewcraft.tooltip.type_prefix")
+                        .withStyle(ChatFormatting.WHITE)
+                        .append(SpecialConsumableClientFx.goldenPumpkinTypeLabel(
+                            Component.translatable(typeKey).getString())));
+                } else if (stack.getItem() == ModItems.GALAXY_SOUL.get()
+                        || stack.getItem() == ModItems.MAGIC_ROCK_CANDY.get()) {
                     customLines.add(Component.translatable("stardewcraft.tooltip.type_prefix")
                         .withStyle(ChatFormatting.WHITE)
                         .append(GalaxySoulClientFx.prismaticTypeLabel(
@@ -238,10 +252,18 @@ public class ModClientEvents {
                         .append(TrinketClientFx.trinketTypeLabel(
                             Component.translatable(typeKey).getString())));
                 } else {
+                    MutableComponent typeLabel = Component.translatable(typeKey);
+                    if (typeRgbColor != null) {
+                        int rgb = typeRgbColor;
+                        typeLabel.withStyle(style -> style
+                                .withColor(net.minecraft.network.chat.TextColor.fromRgb(rgb))
+                                .withBold(true));
+                    } else {
+                        typeLabel.withStyle(typeColor, ChatFormatting.BOLD);
+                    }
                     customLines.add(Component.translatable("stardewcraft.tooltip.type_prefix") // Type label in white, non-bold.
                             .withStyle(ChatFormatting.WHITE)
-                            .append(Component.translatable(typeKey)
-                            .withStyle(typeColor, ChatFormatting.BOLD)));
+                            .append(typeLabel));
                 }
             }
 
@@ -320,7 +342,8 @@ public class ModClientEvents {
                             customLines.add(Component.empty());
                             continue;
                         }
-                        if (stack.getItem() == ModItems.GALAXY_SOUL.get()) {
+                        if (stack.getItem() == ModItems.GALAXY_SOUL.get()
+                                || stack.getItem() == ModItems.MAGIC_ROCK_CANDY.get()) {
                             customLines.add(GalaxySoulClientFx.prismaticDescriptionLine(line, i * 0.18F));
                         } else {
                             customLines.add(Component.literal(line).withStyle(i == 0 ? ChatFormatting.GRAY : ChatFormatting.DARK_GRAY));

@@ -1,11 +1,14 @@
 package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
+import com.stardew.craft.item.cosmetic.StardewCosmeticItem;
+import com.stardew.craft.item.cosmetic.StardewCosmeticSlot;
 import com.stardew.craft.item.equipment.CombinedRingData;
 import com.stardew.craft.item.equipment.CombinedRingItem;
 import com.stardew.craft.item.equipment.StardewBootsItem;
 import com.stardew.craft.item.equipment.StardewRingItem;
 import com.stardew.craft.item.trinket.StardewTrinketItem;
+import com.stardew.craft.player.CosmeticAppearanceSync;
 import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.PlayerStardewData;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -21,7 +24,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
  * Client -> Server: player clicks an equipment slot in the inventory page.
- * slotType: 0=left ring, 1=right ring, 2=boots, 3=trinket
+ * slotType: 0=left ring, 1=right ring, 2=boots, 3=trinket, 4=hat, 5=shirt, 6=pants
  */
 @SuppressWarnings("null")
 public record EquipmentActionPayload(int slotType) implements CustomPacketPayload {
@@ -30,6 +33,9 @@ public record EquipmentActionPayload(int slotType) implements CustomPacketPayloa
     public static final int SLOT_RIGHT_RING = 1;
     public static final int SLOT_BOOTS = 2;
     public static final int SLOT_TRINKET = 3;
+    public static final int SLOT_HAT = 4;
+    public static final int SLOT_SHIRT = 5;
+    public static final int SLOT_PANTS = 6;
 
     public static final Type<EquipmentActionPayload> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "equipment_action"));
@@ -56,6 +62,9 @@ public record EquipmentActionPayload(int slotType) implements CustomPacketPayloa
                 case SLOT_RIGHT_RING -> handleRingSlot(player, data, carried, false);
                 case SLOT_BOOTS -> handleBootsSlot(player, data, carried);
                 case SLOT_TRINKET -> handleTrinketSlot(player, data, carried);
+                case SLOT_HAT -> handleCosmeticSlot(player, data, carried, StardewCosmeticSlot.HAT);
+                case SLOT_SHIRT -> handleCosmeticSlot(player, data, carried, StardewCosmeticSlot.SHIRT);
+                case SLOT_PANTS -> handleCosmeticSlot(player, data, carried, StardewCosmeticSlot.PANTS);
             }
 
             // sync back to client
@@ -63,8 +72,12 @@ public record EquipmentActionPayload(int slotType) implements CustomPacketPayloa
                     data.getEquippedLeftRing(),
                     data.getEquippedRightRing(),
                     data.getEquippedBoots(),
-                    data.getEquippedTrinket()
+                    data.getEquippedTrinket(),
+                    data.getEquippedHat(),
+                    data.getEquippedShirt(),
+                    data.getEquippedPants()
             ));
+            CosmeticAppearanceSync.broadcast(player, data);
         });
     }
 
@@ -140,6 +153,48 @@ public record EquipmentActionPayload(int slotType) implements CustomPacketPayloa
                 player.containerMenu.setCarried(carried.isEmpty() ? ItemStack.EMPTY : carried);
             }
             data.setEquippedTrinket(newTrinket);
+        }
+    }
+
+    private static void handleCosmeticSlot(ServerPlayer player, PlayerStardewData data, ItemStack carried,
+                                           StardewCosmeticSlot slot) {
+        String currentId = getEquippedCosmetic(data, slot);
+
+        if (carried.isEmpty()) {
+            if (!currentId.isEmpty()) {
+                player.containerMenu.setCarried(idToStack(currentId));
+                setEquippedCosmetic(data, slot, "");
+            }
+            return;
+        }
+
+        if (!(carried.getItem() instanceof StardewCosmeticItem cosmetic) || cosmetic.getCosmeticSlot() != slot) {
+            return;
+        }
+
+        String newId = BuiltInRegistries.ITEM.getKey(carried.getItem()).toString();
+        if (!currentId.isEmpty()) {
+            player.containerMenu.setCarried(idToStack(currentId));
+        } else {
+            carried.shrink(1);
+            player.containerMenu.setCarried(carried.isEmpty() ? ItemStack.EMPTY : carried);
+        }
+        setEquippedCosmetic(data, slot, newId);
+    }
+
+    private static String getEquippedCosmetic(PlayerStardewData data, StardewCosmeticSlot slot) {
+        return switch (slot) {
+            case HAT -> data.getEquippedHat();
+            case SHIRT -> data.getEquippedShirt();
+            case PANTS -> data.getEquippedPants();
+        };
+    }
+
+    private static void setEquippedCosmetic(PlayerStardewData data, StardewCosmeticSlot slot, String itemId) {
+        switch (slot) {
+            case HAT -> data.setEquippedHat(itemId);
+            case SHIRT -> data.setEquippedShirt(itemId);
+            case PANTS -> data.setEquippedPants(itemId);
         }
     }
 

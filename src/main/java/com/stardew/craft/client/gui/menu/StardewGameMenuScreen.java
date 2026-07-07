@@ -2397,6 +2397,13 @@ public class StardewGameMenuScreen extends Screen {
         return new ItemStack(item);
     }
 
+    private ItemStack stackFromEquipmentId(String itemId) {
+        if (CombinedRingData.isEncodedEquipmentSlot(itemId)) {
+            return CombinedRingData.stackFromEquipmentSlot(itemId);
+        }
+        return powerTooltipStack(itemId);
+    }
+
     private boolean isPowerUnlocked(PowerEntry entry) {
         return switch (entry.unlockKind()) {
             case MAIL_FLAG -> ClientPlayerDataCache.hasMailFlag(entry.mailFlag());
@@ -2518,6 +2525,7 @@ public class StardewGameMenuScreen extends Screen {
     private static final int INV_PAGE_EQUIP_Y0 = 356;    // Left Ring
     private static final int INV_PAGE_EQUIP_Y1 = 420;    // Right Ring
     private static final int INV_PAGE_EQUIP_Y2 = 484;    // Boots
+    private static final int INV_PAGE_COSMETIC_X = 312;
     private static final int INV_PAGE_TRINKET_X = 248;
     private static final int INV_PAGE_TRINKET_Y = 484;
 
@@ -2578,9 +2586,15 @@ public class StardewGameMenuScreen extends Screen {
         String leftRingId = ClientPlayerDataCache.getEquippedLeftRing();
         String rightRingId = ClientPlayerDataCache.getEquippedRightRing();
         String bootsId = ClientPlayerDataCache.getEquippedBoots();
+        String hatId = ClientPlayerDataCache.getEquippedHat();
+        String shirtId = ClientPlayerDataCache.getEquippedShirt();
+        String pantsId = ClientPlayerDataCache.getEquippedPants();
         drawInvEquipSlot(graphics, 0, leftRingId, mouseX, mouseY);
         drawInvEquipSlot(graphics, 1, rightRingId, mouseX, mouseY);
         drawInvEquipSlot(graphics, 2, bootsId, mouseX, mouseY);
+        drawInvCosmeticSlot(graphics, 4, hatId, mouseX, mouseY);
+        drawInvCosmeticSlot(graphics, 5, shirtId, mouseX, mouseY);
+        drawInvCosmeticSlot(graphics, 6, pantsId, mouseX, mouseY);
         if (ClientPlayerDataCache.getUnlockedTrinketSlots() > 0) {
             drawInvTrinketSlot(graphics, ClientPlayerDataCache.getEquippedTrinket(), mouseX, mouseY);
         }
@@ -2798,6 +2812,33 @@ public class StardewGameMenuScreen extends Screen {
         }
     }
 
+    private void drawInvCosmeticSlot(GuiGraphics graphics, int slotType, String itemId,
+                                     int mouseX, int mouseY) {
+        int x = menuX + ui(INV_PAGE_COSMETIC_X);
+        int y = invEquipSlotY(slotType - 4);
+        int size = ui(INV_PAGE_EQUIP_SIZE);
+        boolean hasItem = !itemId.isEmpty();
+        boolean hovered = mouseX >= x && mouseX < x + size
+                && mouseY >= y && mouseY < y + size;
+
+        if (hasItem) {
+            CommonGuiTextures.drawMenuTile(graphics, x, y, size, size, 10);
+            ItemStack stack = stackFromEquipmentId(itemId);
+            if (!stack.isEmpty()) {
+                CommonGuiTextures.drawItemCenteredInBox(graphics, stack, x, y, size, size, mapping.s4());
+            }
+        } else {
+            CommonGuiTextures.drawMenuTile(graphics, x, y, size, size, EMPTY_TRINKET_TILE);
+        }
+
+        if (hovered) {
+            graphics.pose().pushPose();
+            graphics.pose().translate(0, 0, 100);
+            graphics.fill(x, y, x + size, y + size, 0x35FFFFFF);
+            graphics.pose().popPose();
+        }
+    }
+
     private int invPageHoveredEquip(double mouseX, double mouseY) {
         int size = ui(INV_PAGE_EQUIP_SIZE);
         int x = menuX + ui(INV_PAGE_EQUIP_X);
@@ -2812,6 +2853,13 @@ public class StardewGameMenuScreen extends Screen {
             int trinketY = invTrinketSlotY();
             if (mouseX >= trinketX && mouseX < trinketX + size && mouseY >= trinketY && mouseY < trinketY + size) {
                 return 3;
+            }
+        }
+        int cosmeticX = menuX + ui(INV_PAGE_COSMETIC_X);
+        for (int i = 0; i < 3; i++) {
+            int y = invEquipSlotY(i);
+            if (mouseX >= cosmeticX && mouseX < cosmeticX + size && mouseY >= y && mouseY < y + size) {
+                return 4 + i;
             }
         }
         return -1;
@@ -2984,10 +3032,13 @@ public class StardewGameMenuScreen extends Screen {
                 case 0 -> ClientPlayerDataCache.getEquippedLeftRing();
                 case 1 -> ClientPlayerDataCache.getEquippedRightRing();
                 case 2 -> ClientPlayerDataCache.getEquippedBoots();
+                case 4 -> ClientPlayerDataCache.getEquippedHat();
+                case 5 -> ClientPlayerDataCache.getEquippedShirt();
+                case 6 -> ClientPlayerDataCache.getEquippedPants();
                 default -> "";
             };
             if (!itemId.isEmpty()) {
-                ItemStack stack = CombinedRingData.stackFromEquipmentSlot(itemId);
+                ItemStack stack = stackFromEquipmentId(itemId);
                 if (!stack.isEmpty()) {
                     graphics.renderTooltip(this.font, stack, mouseX, mouseY);
                     return;
@@ -2997,6 +3048,9 @@ public class StardewGameMenuScreen extends Screen {
                 case 0 -> Component.translatable("stardewcraft.equipment.slot.left_ring");
                 case 1 -> Component.translatable("stardewcraft.equipment.slot.right_ring");
                 case 2 -> Component.translatable("stardewcraft.equipment.slot.boots");
+                case 4 -> Component.translatable("stardewcraft.equipment.slot.hat");
+                case 5 -> Component.translatable("stardewcraft.equipment.slot.shirt");
+                case 6 -> Component.translatable("stardewcraft.equipment.slot.pants");
                 default -> Component.empty();
             };
             graphics.renderTooltip(this.font, label, mouseX, mouseY);

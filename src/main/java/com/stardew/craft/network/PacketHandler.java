@@ -161,6 +161,12 @@ public class PacketHandler {
         );
 
         registrar.playToServer(
+            com.stardew.craft.network.payload.RouteEditorActionPayload.TYPE,
+            com.stardew.craft.network.payload.RouteEditorActionPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.RouteEditorActionPayload::handle
+        );
+
+        registrar.playToServer(
             com.stardew.craft.network.payload.WardrobeActionPayload.TYPE,
             com.stardew.craft.network.payload.WardrobeActionPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.WardrobeActionPayload::handle
@@ -195,6 +201,18 @@ public class PacketHandler {
             com.stardew.craft.network.payload.OpenWardrobePayload.TYPE,
             com.stardew.craft.network.payload.OpenWardrobePayload.STREAM_CODEC,
             com.stardew.craft.network.payload.OpenWardrobePayload::handle
+        );
+
+        registrar.playToClient(
+            com.stardew.craft.network.payload.RouteEditorSyncPayload.TYPE,
+            com.stardew.craft.network.payload.RouteEditorSyncPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.RouteEditorSyncPayload::handle
+        );
+
+        registrar.playToClient(
+            com.stardew.craft.network.payload.RouteGuidanceStartPayload.TYPE,
+            com.stardew.craft.network.payload.RouteGuidanceStartPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.RouteGuidanceStartPayload::handle
         );
         
         registrar.playToClient(
@@ -1696,6 +1714,11 @@ public class PacketHandler {
             com.stardew.craft.network.payload.EquipmentSyncPayload.TYPE,
             com.stardew.craft.network.payload.EquipmentSyncPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.EquipmentSyncPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.CosmeticAppearanceSyncPayload.TYPE,
+            com.stardew.craft.network.payload.CosmeticAppearanceSyncPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.CosmeticAppearanceSyncPayload::handle
         );
 
         // Furniture Catalogue

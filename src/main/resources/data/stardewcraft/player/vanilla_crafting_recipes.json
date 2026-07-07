@@ -329,6 +329,24 @@
       ]
     },
     {
+      "id": "spirit_eve_jack_o_lantern",
+      "unlockCondition": "Festival_SpiritsEve_Pierre",
+      "output": {
+        "item": "stardewcraft:spirit_eve_jack_o_lantern",
+        "count": 1
+      },
+      "ingredients": [
+        {
+          "item": "stardewcraft:pumpkin",
+          "count": 1
+        },
+        {
+          "item": "minecraft:torch",
+          "count": 1
+        }
+      ]
+    },
+    {
       "id": "worm_bin",
       "unlockCondition": "s Fishing 4",
       "output": {

@@ -45,6 +45,12 @@ public final class SpecialConsumableClientFx {
     private static final int PADDLE_BG_TOP = 0xF0201208;
     private static final int PADDLE_BG_BOTTOM = 0xF0080301;
 
+    private static final int GOLDEN_PUMPKIN_TOP = 0xFFFFF2A8;
+    private static final int GOLDEN_PUMPKIN_MID = 0xFFFFB83D;
+    private static final int GOLDEN_PUMPKIN_BOTTOM = 0xFF7A4B11;
+    private static final int GOLDEN_PUMPKIN_BG_TOP = 0xF0221404;
+    private static final int GOLDEN_PUMPKIN_BG_BOTTOM = 0xF00A0501;
+
     private SpecialConsumableClientFx() {}
 
     @SubscribeEvent
@@ -64,6 +70,9 @@ public final class SpecialConsumableClientFx {
             applyPalette(event, CONTRACT_TOP, CONTRACT_MID, CONTRACT_BOTTOM, CONTRACT_BG_TOP, CONTRACT_BG_BOTTOM);
         } else if (stack.is(ModItems.AUCTION_PADDLE.get())) {
             applyPalette(event, PADDLE_TOP, PADDLE_MID, PADDLE_BOTTOM, PADDLE_BG_TOP, PADDLE_BG_BOTTOM);
+        } else if (stack.is(ModItems.GOLDEN_PUMPKIN.get())) {
+            applyPalette(event, GOLDEN_PUMPKIN_TOP, GOLDEN_PUMPKIN_MID, GOLDEN_PUMPKIN_BOTTOM,
+                GOLDEN_PUMPKIN_BG_TOP, GOLDEN_PUMPKIN_BG_BOTTOM);
         }
     }
 
@@ -85,6 +94,10 @@ public final class SpecialConsumableClientFx {
 
     public static MutableComponent auctionPaddleTypeLabel(String raw) {
         return flowingLabel(raw, 0x8A5528, 0xFFE08A, 0.42F, 0.32F);
+    }
+
+    public static MutableComponent goldenPumpkinTypeLabel(String raw) {
+        return flowingLabel(raw, 0xD68A18, 0xFFF2A8, 0.36F, 0.32F);
     }
 
     private static void applyPalette(RenderTooltipEvent.Color event, int top, int mid, int bottom, int bgTop, int bgBottom) {

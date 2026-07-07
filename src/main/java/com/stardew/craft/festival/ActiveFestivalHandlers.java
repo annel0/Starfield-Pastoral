@@ -1,8 +1,11 @@
 package com.stardew.craft.festival;
 
 import com.stardew.craft.time.StardewTimeManager;
+import com.stardew.craft.network.payload.FestivalHudStatePayload;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -17,6 +20,8 @@ import java.util.function.Predicate;
 
 public final class ActiveFestivalHandlers {
     private static final Map<String, ActiveFestivalHandler> HANDLERS = new LinkedHashMap<>();
+    private static final String TAG_FESTIVAL_HUD_KNOWN = "stardewcraft_active_festival_hud_known";
+    private static final String TAG_FESTIVAL_HUD_HIDDEN = "stardewcraft_active_festival_hud_hidden";
 
     static {
         register(new DelegateHandler(
@@ -139,6 +144,30 @@ public final class ActiveFestivalHandlers {
             FairFestivalService::applyTimeFreeze,
             "已启动 Stardew Valley Fair 总调试: 当前日期按 fall16 处理，overlay 应用中，Lewis 会进入 1 64 -11 朝南，商店/小游戏交互点位会安装"
         ));
+        register(new DelegateHandler(
+            SpiritEveFestivalService.FESTIVAL_ID,
+            "Spirit's Eve",
+            SpiritEveFestivalService::tick,
+            SpiritEveFestivalService::startDebugFestival,
+            SpiritEveFestivalService::restoreDebugFestival,
+            SpiritEveFestivalService::debugStatus,
+            SpiritEveFestivalService::onMapOverlayApplied,
+            SpiritEveFestivalService::requestDebugNpcs,
+            SpiritEveFestivalService::restoreNpcs,
+            SpiritEveFestivalService::debugNpcStatus,
+            SpiritEveFestivalService::controlsNpc,
+            SpiritEveFestivalService::isParticipant,
+            SpiritEveFestivalService::onPlayerLogin,
+            SpiritEveFestivalService::onPlayerLogout,
+            SpiritEveFestivalService::markFestivalDialogueSeen,
+            SpiritEveFestivalService::tryOpenPierreFestivalShop,
+            SpiritEveFestivalService::isMainEventActive,
+            null,
+            SpiritEveFestivalService::debugStatus,
+            SpiritEveFestivalService::isTimeFreezeActive,
+            SpiritEveFestivalService::applyTimeFreeze,
+            "已启动 Spirit's Eve 总调试: 当前日期按 fall27 处理，overlay 应用中，NPC/临时怪物会进入确认点位，Pierre 商店可在摊位 AABB 内交互"
+        ));
     }
 
     private ActiveFestivalHandlers() {
@@ -181,6 +210,7 @@ public final class ActiveFestivalHandlers {
         for (ActiveFestivalHandler handler : HANDLERS.values()) {
             handler.tick(level);
         }
+        syncFestivalHud(level);
     }
 
     public static boolean controlsNpc(String npcId) {
@@ -205,11 +235,17 @@ public final class ActiveFestivalHandlers {
         for (ActiveFestivalHandler handler : HANDLERS.values()) {
             handler.onPlayerLogin(player);
         }
+        syncFestivalHud(player, true);
     }
 
     public static void onPlayerLogout(ServerPlayer player) {
         for (ActiveFestivalHandler handler : HANDLERS.values()) {
             handler.onPlayerLogout(player);
+        }
+        if (player != null) {
+            CompoundTag data = player.getPersistentData();
+            data.remove(TAG_FESTIVAL_HUD_KNOWN);
+            data.remove(TAG_FESTIVAL_HUD_HIDDEN);
         }
     }
 
@@ -275,6 +311,31 @@ public final class ActiveFestivalHandlers {
     private static Optional<ActiveFestivalHandler> currentActiveHandler() {
         return FestivalService.getActiveFestivalToday()
             .flatMap(definition -> get(definition.id()));
+    }
+
+    private static void syncFestivalHud(ServerLevel level) {
+        if (level == null) {
+            return;
+        }
+        for (ServerPlayer player : level.players()) {
+            syncFestivalHud(player, false);
+        }
+    }
+
+    private static void syncFestivalHud(ServerPlayer player, boolean force) {
+        if (player == null) {
+            return;
+        }
+        boolean hidden = getParticipating(player).isPresent();
+        CompoundTag data = player.getPersistentData();
+        boolean known = data.getBoolean(TAG_FESTIVAL_HUD_KNOWN);
+        boolean previous = data.getBoolean(TAG_FESTIVAL_HUD_HIDDEN);
+        if (!force && known && previous == hidden) {
+            return;
+        }
+        PacketDistributor.sendToPlayer(player, new FestivalHudStatePayload(hidden));
+        data.putBoolean(TAG_FESTIVAL_HUD_KNOWN, true);
+        data.putBoolean(TAG_FESTIVAL_HUD_HIDDEN, hidden);
     }
 
     private static void noop(ServerLevel level) {

@@ -1,0 +1,55 @@
+package com.stardew.craft.festival;
+
+import com.stardew.craft.StardewCraft;
+import com.stardew.craft.entity.minecart.MinecartStationEntity;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.common.util.TriState;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+
+@EventBusSubscriber(modid = StardewCraft.MODID)
+public final class SpiritEveFestivalInteractionEvents {
+    private SpiritEveFestivalInteractionEvents() {
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
+    public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
+        if (!(event.getEntity() instanceof ServerPlayer player) || event.getHand() != InteractionHand.MAIN_HAND) {
+            return;
+        }
+        if (SpiritEveFestivalService.tryOpenGoldenPumpkinChest(player, event.getPos())) {
+            event.setUseBlock(TriState.FALSE);
+            event.setUseItem(TriState.FALSE);
+            event.setCanceled(true);
+            event.setCancellationResult(InteractionResult.SUCCESS);
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
+    public static void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
+        if (!(event.getEntity() instanceof ServerPlayer player) || event.getHand() != InteractionHand.MAIN_HAND) {
+            return;
+        }
+        if (event.getTarget() instanceof MinecartStationEntity minecart
+            && SpiritEveFestivalService.tryUseShortcutMinecart(player, minecart)) {
+            event.setCanceled(true);
+            event.setCancellationResult(InteractionResult.SUCCESS);
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
+    public static void onEntityInteractSpecific(PlayerInteractEvent.EntityInteractSpecific event) {
+        if (!(event.getEntity() instanceof ServerPlayer player) || event.getHand() != InteractionHand.MAIN_HAND) {
+            return;
+        }
+        if (event.getTarget() instanceof MinecartStationEntity minecart
+            && SpiritEveFestivalService.tryUseShortcutMinecart(player, minecart)) {
+            event.setCanceled(true);
+            event.setCancellationResult(InteractionResult.SUCCESS);
+        }
+    }
+}

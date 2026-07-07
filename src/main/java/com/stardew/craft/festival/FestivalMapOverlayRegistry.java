@@ -40,6 +40,19 @@ public final class FestivalMapOverlayRegistry {
             true
         ));
         register(new FestivalMapOverlayDefinition(
+            "Town-Halloween",
+            "Town",
+            new BlockPos(-36, 63, -77),
+            "",
+            "data/stardewcraft/structures/festivals/wanlingjie.schem",
+            new BlockPos(-36, 63, -77),
+            new BlockPos(74, 71, 22),
+            List.of(),
+            true,
+            true,
+            true
+        ));
+        register(new FestivalMapOverlayDefinition(
             "Forest-FlowerFestival",
             "Forest",
             new BlockPos(-250, 60, 101),

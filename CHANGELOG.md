@@ -1,5 +1,53 @@
 # Changelog
 
+## 0.4.9 - 2026-07-07
+
+### Update Log (English)
+
+#### Spirit's Eve
+
+- Added Fall 27 Spirit's Eve as an active Town festival, including festival entry/exit flow, time freeze behavior, map overlay placement, boundary return handling, festival music, HUD hiding support, and debug setup hooks.
+- Added the Spirit's Eve venue layout, Pierre festival shop, NPC placements/routes, festival dialogue access, temporary festival monsters, and festival-only protection/interactions for the maze area.
+- Added Spirit's Eve maze reward support with an independent per-player chest claim, Golden Pumpkin reward handling, reward messaging, and a minecart shortcut back from the maze exit.
+- Added Spirit's Eve decorations and resources, including the spider statue, jack-o-lantern, passable oak leaves marker block, overlay structure, music, and related sound assets.
+
+#### Items, Cosmetics, and Route Guidance
+
+- Added Golden Pumpkin and Magic Rock Candy as special items with Stardew-style tooltip presentation and vanilla gift taste data.
+- Added the Wisp Trail Elixir as a Spirit's Eve-only route guidance consumable that reveals the maze path for a short time, clears near the maze exit, and is sold by Pierre for one Prismatic Shard.
+- Added reusable route guidance runtime/client rendering infrastructure and a temporary route editor tool for authoring guided paths.
+- Added initial cosmetic hat infrastructure, appearance sync payloads, and starter hat assets for straw hat, earmuffs, and top hat.
+
+#### Fixes and Integration
+
+- Fixed duplicated festival decoration descriptions by relying on the shared Stardew tooltip description handling instead of item-local duplicate desc injection.
+- Improved active festival client/HUD behavior so active festival flows can consistently hide the top-right game menu UI.
+- Tightened festival boundary return logic so cancelled exit prompts return players to an in-bounds safe point instead of leaving them outside the festival volume.
+- Updated the public mod version to `0.4.9`.
+
+### 更新日志（中文）
+
+#### 万灵节
+
+- 加入秋 27 万灵节作为小镇主动节日，覆盖入场/退场、时间冻结、地图 overlay 放置、边界返回、节日音乐、HUD 隐藏支持和调试布置流程。
+- 加入万灵节会场布局、皮埃尔节日商店、NPC 落点/路线、节日对话、临时节日怪物，以及迷宫区域的节日限定保护与交互。
+- 加入万灵节迷宫奖励流程：每位玩家独立领取宝箱、黄金南瓜奖励、领取提示，以及迷宫终点矿车捷径返回。
+- 加入万灵节蜘蛛雕像、南瓜灯、可穿过的橡树树叶？、会场结构、音乐和相关音效资源。
+
+#### 物品、装扮与路径指引
+
+- 加入黄金南瓜和魔法糖冰棍作为特殊物品，包含星露谷式特殊 tooltip 表现和原版礼物喜好数据。
+- 加入幽径药水：仅万灵节期间可饮用，可短暂显现万灵节迷宫路径，到达终点附近后自动消失，并在皮埃尔处用 1 个五彩碎片换购。
+- 加入可复用的路径指引运行时/客户端渲染基础设施，以及用于绘制路线的临时路径编辑工具。
+- 加入初版装扮帽子基础设施、外观同步网络包，以及草帽、护耳、大礼帽等起始帽子资源。
+
+#### 修复与集成
+
+- 修复节日装饰 tooltip 重复描述问题，改为统一依赖通用星露谷描述处理，不再由物品本地重复注入 desc。
+- 改进主动节日客户端/HUD 行为，让主动节日流程可以一致隐藏右上角游戏菜单 UI。
+- 收紧节日边界返回逻辑，取消离场提示时会把玩家送回包围盒内安全落点，避免停留在节日区域外反复触发提示。
+- 项目公开版本号更新为 `0.4.9`。
+
 ## 0.4.8 - 2026-07-07
 
 ### Update Log (English)

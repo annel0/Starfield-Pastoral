@@ -59,6 +59,11 @@ public record DesertFestivalQuestionResponsePayload(
                     TroutDerbyService.handleQuestionResponse(player, payload.choiceId());
                     return;
                 }
+                if ("spirit_eve_shortcut".equals(payload.context())) {
+                    com.stardew.craft.festival.SpiritEveFestivalService.handleQuestionResponse(
+                        player, payload.context(), payload.choiceId());
+                    return;
+                }
                 if (payload.context().startsWith("cook_")) {
                     DesertFestivalCookService.handleQuestionResponse(
                         player, payload.context(), payload.questionIndex(), payload.choiceId());

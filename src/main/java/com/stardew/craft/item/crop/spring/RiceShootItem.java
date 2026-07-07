@@ -40,27 +40,23 @@ public class RiceShootItem extends Item implements IStardewItem {
         BlockPos farmPos = clickedPos;
         BlockState farmState = level.getBlockState(farmPos);
         if (!isFarmland(farmState)) {
-            if (!level.getFluidState(clickedPos).is(FluidTags.WATER)) {
-                return InteractionResult.PASS;
-            }
-            BlockPos belowWater = clickedPos.below();
-            BlockState belowWaterState = level.getBlockState(belowWater);
-            if (!isFarmland(belowWaterState)) {
-                return InteractionResult.PASS;
-            }
-            farmPos = belowWater;
-            farmState = belowWaterState;
+            return InteractionResult.PASS;
         }
 
         BlockPos cropPos = farmPos.above();
         BlockState cropSpace = level.getBlockState(cropPos);
-        if (!level.getFluidState(cropPos).is(FluidTags.WATER) || !cropSpace.getCollisionShape(level, cropPos).isEmpty()) {
+        if (!level.getFluidState(cropPos).is(FluidTags.WATER)
+                || !level.getFluidState(cropPos).isSource()
+                || !cropSpace.getCollisionShape(level, cropPos).isEmpty()) {
             return InteractionResult.PASS;
         }
 
         BlockPos upperPos = cropPos.above();
         BlockState upperSpace = level.getBlockState(upperPos);
-        if (!upperSpace.isAir()) {
+        if (!upperSpace.isAir() && !level.getFluidState(upperPos).is(FluidTags.WATER)) {
+            return InteractionResult.PASS;
+        }
+        if (!upperSpace.getCollisionShape(level, upperPos).isEmpty()) {
             return InteractionResult.PASS;
         }
 

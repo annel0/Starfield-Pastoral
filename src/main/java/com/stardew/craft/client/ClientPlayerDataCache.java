@@ -8,7 +8,10 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * 客户端玩家数据缓存
@@ -55,6 +58,10 @@ public class ClientPlayerDataCache {
     private static String equippedRightRing = "";
     private static String equippedBoots = "";
     private static ItemStack equippedTrinket = ItemStack.EMPTY;
+    private static String equippedHat = "";
+    private static String equippedShirt = "";
+    private static String equippedPants = "";
+    private static final Map<UUID, CosmeticAppearance> cosmeticAppearances = new HashMap<>();
 
     /**
      * True after the server has sent at least one PlayerDataSyncPacket for this session.
@@ -407,11 +414,39 @@ public class ClientPlayerDataCache {
     public static String getEquippedRightRing() { return equippedRightRing; }
     public static String getEquippedBoots() { return equippedBoots; }
     public static ItemStack getEquippedTrinket() { return equippedTrinket.copy(); }
+    public static String getEquippedHat() { return equippedHat; }
+    public static String getEquippedShirt() { return equippedShirt; }
+    public static String getEquippedPants() { return equippedPants; }
+    public static String getEquippedHat(UUID playerId) {
+        if (playerId == null) {
+            return "";
+        }
+        CosmeticAppearance appearance = cosmeticAppearances.get(playerId);
+        return appearance == null ? "" : appearance.hat();
+    }
     public static void setEquippedLeftRing(String id) { equippedLeftRing = id == null ? "" : id; }
     public static void setEquippedRightRing(String id) { equippedRightRing = id == null ? "" : id; }
     public static void setEquippedBoots(String id) { equippedBoots = id == null ? "" : id; }
     public static void setEquippedTrinket(ItemStack stack) {
         equippedTrinket = stack == null ? ItemStack.EMPTY : stack.copy();
+    }
+    public static void setEquippedHat(String id) { equippedHat = id == null ? "" : id; }
+    public static void setEquippedShirt(String id) { equippedShirt = id == null ? "" : id; }
+    public static void setEquippedPants(String id) { equippedPants = id == null ? "" : id; }
+    public static void setCosmeticAppearance(UUID playerId, String hat, String shirt, String pants) {
+        if (playerId == null) {
+            return;
+        }
+        String safeHat = hat == null ? "" : hat;
+        String safeShirt = shirt == null ? "" : shirt;
+        String safePants = pants == null ? "" : pants;
+        cosmeticAppearances.put(playerId, new CosmeticAppearance(safeHat, safeShirt, safePants));
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+        if (mc.player != null && playerId.equals(mc.player.getUUID())) {
+            equippedHat = safeHat;
+            equippedShirt = safeShirt;
+            equippedPants = safePants;
+        }
     }
 
     /**
@@ -449,6 +484,11 @@ public class ClientPlayerDataCache {
         equippedLeftRing = "";
         equippedRightRing = "";
         equippedBoots = "";
+        equippedTrinket = ItemStack.EMPTY;
+        equippedHat = "";
+        equippedShirt = "";
+        equippedPants = "";
+        cosmeticAppearances.clear();
         syncedFromServer = false;
         NpcFriendshipClientCache.reset();
     }
@@ -468,5 +508,8 @@ public class ClientPlayerDataCache {
             }
         }
         return 10;
+    }
+
+    private record CosmeticAppearance(String hat, String shirt, String pants) {
     }
 }

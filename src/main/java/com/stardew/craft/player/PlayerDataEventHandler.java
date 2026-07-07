@@ -63,6 +63,8 @@ public class PlayerDataEventHandler {
             
             // 同步数据到客户端
             syncPlayerData(player, data);
+            CosmeticAppearanceSync.syncAllTo(player);
+            CosmeticAppearanceSync.broadcast(player, data);
 
             // 同步星露谷时间到客户端。原本 TimeSyncPacket 只在切维度/睡觉时发，
             // 如果玩家上次下线时就在星露谷维度，不会触发 PlayerChangedDimensionEvent，
@@ -886,8 +888,11 @@ public class PlayerDataEventHandler {
         PacketDistributor.sendToPlayer(player, new com.stardew.craft.network.payload.EquipmentSyncPayload(
                 data.getEquippedLeftRing(),
                 data.getEquippedRightRing(),
-            data.getEquippedBoots(),
-            data.getEquippedTrinket()
+                data.getEquippedBoots(),
+                data.getEquippedTrinket(),
+                data.getEquippedHat(),
+                data.getEquippedShirt(),
+                data.getEquippedPants()
         ));
     }
 

@@ -1,0 +1,31 @@
+{
+  "variants": {
+    "facing=north,part=main": {
+      "model": "stardewcraft:decor/festival/spirit_eve_spider_statue"
+    },
+    "facing=north,part=extension": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "facing=east,part=main": {
+      "model": "stardewcraft:decor/festival/spirit_eve_spider_statue",
+      "y": 90
+    },
+    "facing=east,part=extension": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "facing=south,part=main": {
+      "model": "stardewcraft:decor/festival/spirit_eve_spider_statue",
+      "y": 180
+    },
+    "facing=south,part=extension": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    },
+    "facing=west,part=main": {
+      "model": "stardewcraft:decor/festival/spirit_eve_spider_statue",
+      "y": 270
+    },
+    "facing=west,part=extension": {
+      "model": "stardewcraft:block/decor/extensions/furniture_extension_empty"
+    }
+  }
+}

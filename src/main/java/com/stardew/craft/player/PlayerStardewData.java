@@ -218,13 +218,16 @@ public class PlayerStardewData {
     @Nullable
     private ResourceKey<Level> wizardSourceDimension;  // 进入巫师塔内部时的来源维度
 
-    // ============ 装备系统（戒指 + 靴子） ============
-    // SDV parity: Farmer.leftRing + Farmer.rightRing + Farmer.boots
+    // ============ 装备系统（戒指 + 靴子 + 外观装饰） ============
+    // SDV parity: Farmer.leftRing + Farmer.rightRing + Farmer.boots + appearance slots
     // 存储物品注册ID，如 "stardewcraft:vampire_ring"，空字符串表示未装备
     private String equippedLeftRing = "";
     private String equippedRightRing = "";
     private String equippedBoots = "";
     private net.minecraft.world.item.ItemStack equippedTrinket = net.minecraft.world.item.ItemStack.EMPTY;
+    private String equippedHat = "";
+    private String equippedShirt = "";
+    private String equippedPants = "";
     private long lastPhoenixReviveDay = -1;  // 凤凰戒指：上次复活的游戏日（每天只能复活一次）
 
     // ============ 工具升级（铁匠铺） ============
@@ -637,6 +640,9 @@ public class PlayerStardewData {
         data.equippedTrinket = tag.contains("EquippedTrinket", Tag.TAG_COMPOUND)
             ? com.stardew.craft.item.trinket.StardewTrinketItem.loadStackFromTag(tag.getCompound("EquippedTrinket"))
             : net.minecraft.world.item.ItemStack.EMPTY;
+        data.equippedHat = tag.contains("EquippedHat") ? tag.getString("EquippedHat") : "";
+        data.equippedShirt = tag.contains("EquippedShirt") ? tag.getString("EquippedShirt") : "";
+        data.equippedPants = tag.contains("EquippedPants") ? tag.getString("EquippedPants") : "";
         data.lastPhoenixReviveDay = tag.contains("LastPhoenixReviveDay") ? tag.getLong("LastPhoenixReviveDay") : -1;
 
         data.toolBeingUpgraded = tag.contains("ToolBeingUpgraded") ? tag.getString("ToolBeingUpgraded") : "";
@@ -1017,6 +1023,9 @@ public class PlayerStardewData {
         if (!equippedRightRing.isEmpty()) tag.putString("EquippedRightRing", equippedRightRing);
         if (!equippedBoots.isEmpty()) tag.putString("EquippedBoots", equippedBoots);
         if (!equippedTrinket.isEmpty()) tag.put("EquippedTrinket", com.stardew.craft.item.trinket.StardewTrinketItem.saveStackToTag(equippedTrinket));
+        if (!equippedHat.isEmpty()) tag.putString("EquippedHat", equippedHat);
+        if (!equippedShirt.isEmpty()) tag.putString("EquippedShirt", equippedShirt);
+        if (!equippedPants.isEmpty()) tag.putString("EquippedPants", equippedPants);
         if (lastPhoenixReviveDay >= 0) tag.putLong("LastPhoenixReviveDay", lastPhoenixReviveDay);
 
         // 工具升级
@@ -2357,7 +2366,7 @@ public class PlayerStardewData {
     public boolean hasSpecialItem(String itemId) { return specialItems.contains(itemId); }
     public void addSpecialItem(String itemId) { if (specialItems.add(itemId)) markDirty(); }
 
-    // ──── Equipment (Rings + Boots) ────
+    // ──── Equipment (Rings + Boots + Cosmetics) ────
     public String getEquippedLeftRing() { return equippedLeftRing; }
     public void setEquippedLeftRing(String id) { this.equippedLeftRing = id != null ? id : ""; markDirty(); }
     public String getEquippedRightRing() { return equippedRightRing; }
@@ -2369,6 +2378,12 @@ public class PlayerStardewData {
         this.equippedTrinket = stack == null ? net.minecraft.world.item.ItemStack.EMPTY : stack.copyWithCount(1);
         markDirty();
     }
+    public String getEquippedHat() { return equippedHat; }
+    public void setEquippedHat(String id) { this.equippedHat = id != null ? id : ""; markDirty(); }
+    public String getEquippedShirt() { return equippedShirt; }
+    public void setEquippedShirt(String id) { this.equippedShirt = id != null ? id : ""; markDirty(); }
+    public String getEquippedPants() { return equippedPants; }
+    public void setEquippedPants(String id) { this.equippedPants = id != null ? id : ""; markDirty(); }
     public long getLastPhoenixReviveDay() { return lastPhoenixReviveDay; }
     public void setLastPhoenixReviveDay(long day) { this.lastPhoenixReviveDay = day; markDirty(); }
 

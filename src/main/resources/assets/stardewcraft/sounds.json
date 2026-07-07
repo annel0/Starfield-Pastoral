@@ -33,6 +33,14 @@
       }
     ]
   },
+  "cackling_witch": {
+    "sounds": [
+      {
+        "name": "stardewcraft:ambient/cackling_witch",
+        "stream": false
+      }
+    ]
+  },
   "money_dial": {
     "subtitle": "subtitles.stardewcraft.money_dial",
     "sounds": [
@@ -440,6 +448,22 @@
       }
     ]
   },
+  "ghost": {
+    "sounds": [
+      {
+        "name": "stardewcraft:ghost",
+        "stream": false
+      }
+    ]
+  },
+  "secret1": {
+    "sounds": [
+      {
+        "name": "stardewcraft:secret1",
+        "stream": false
+      }
+    ]
+  },
   "shadowpeep": {
     "sounds": [
       {
@@ -767,6 +791,14 @@
     "sounds": [
       {
         "name": "stardewcraft:utility/skeleton_hit",
+        "stream": false
+      }
+    ]
+  },
+  "skeleton_die": {
+    "sounds": [
+      {
+        "name": "stardewcraft:utility/skeleton_die",
         "stream": false
       }
     ]
@@ -1435,6 +1467,14 @@
     "sounds": [
       {
         "name": "stardewcraft:music/moonlight_jellies",
+        "stream": true
+      }
+    ]
+  },
+  "music_spirits_eve": {
+    "sounds": [
+      {
+        "name": "stardewcraft:music/spirits_eve",
         "stream": true
       }
     ]

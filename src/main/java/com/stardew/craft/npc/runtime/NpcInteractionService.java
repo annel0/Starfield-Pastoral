@@ -53,6 +53,8 @@ public final class NpcInteractionService {
 
     private static final String[] WEEKDAY_SHORT = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
     private static final String STARDROP_TEA_ID = "stardewcraft:stardrop_tea";
+    private static final String GOLDEN_PUMPKIN_ID = "stardewcraft:golden_pumpkin";
+    private static final String MAGIC_ROCK_CANDY_ID = "stardewcraft:magic_rock_candy";
     private static final String VANILLA_OBJECTS_RESOURCE = "data/stardewcraft/npc/vanilla/data/Objects.json";
     private static final Set<String> NON_GIFTABLE_TYPE_KEYS = Set.of(
         "stardewcraft.type.tool",
@@ -206,6 +208,10 @@ public final class NpcInteractionService {
             }
             if ("fall16".equalsIgnoreCase(activeFestival.festivalId())
                 && tryHandleFairDialogue(serverPlayer, npc, npcId, state, dayContext, friendshipManager)) {
+                return InteractionResult.SUCCESS;
+            }
+            if ("fall27".equalsIgnoreCase(activeFestival.festivalId())
+                && tryHandleSpiritEveDialogue(serverPlayer, npc, npcId, state, dayContext, friendshipManager)) {
                 return InteractionResult.SUCCESS;
             }
             return InteractionResult.SUCCESS;
@@ -530,6 +536,31 @@ public final class NpcInteractionService {
         return true;
     }
 
+    private static boolean tryHandleSpiritEveDialogue(ServerPlayer player,
+                                                      StardewNpcEntity npc,
+                                                      String npcId,
+                                                      NpcFriendshipDataManager.FriendshipState state,
+                                                      DayContext dayContext,
+                                                      NpcFriendshipDataManager friendshipManager) {
+        String dialogueText = com.stardew.craft.festival.SpiritEveFestivalService.resolveDialogueKey(player, npcId);
+        if (dialogueText == null || dialogueText.isBlank()) {
+            return false;
+        }
+
+        boolean canGainFriendship = NpcSocialRules.canSocialize(npcId, player);
+        if (canGainFriendship && state.lastTalkDayKey() != dayContext.dayKey()) {
+            grantConversationFriendship(npcId, state, dayContext, dialogueText, player);
+            NpcFriendshipRewardService.applyEligibleRewards(player, npcId, state.points());
+            friendshipManager.setDirty();
+        }
+        syncFriendshipStatus(player, npcId, state, dayContext);
+        com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(player, npcId);
+        markActiveFestivalDialogueSeen(player, npcId);
+        int points = state.points();
+        npc.facePlayerTemporarily(player, 60, () -> sendDialoguePacket(player, npcId, dialogueText, points, false));
+        return true;
+    }
+
     private static boolean isLewis(String npcId) {
         return "lewis".equals(npcId == null ? "" : npcId.trim().toLowerCase(Locale.ROOT));
     }
@@ -756,11 +787,18 @@ public final class NpcInteractionService {
         return STARDROP_TEA_ID.equals(normalizeItemId(held));
     }
 
+    private static boolean isAlwaysGiftableSpecial(ItemStack held) {
+        String id = normalizeItemId(held);
+        return STARDROP_TEA_ID.equals(id)
+            || GOLDEN_PUMPKIN_ID.equals(id)
+            || MAGIC_ROCK_CANDY_ID.equals(id);
+    }
+
     private static boolean canBeGivenAsGift(ItemStack held) {
         if (held.isEmpty()) {
             return false;
         }
-        if (isStardropTea(held)) {
+        if (isAlwaysGiftableSpecial(held)) {
             return true;
         }
 
@@ -964,7 +1002,22 @@ public final class NpcInteractionService {
             }
         }
 
+        VanillaGiftTasteResolver.Result vanillaResult = VanillaGiftTasteResolver.resolve(held, npcId);
+        if (vanillaResult != null) {
+            return new GiftTasteResult(fromVanillaTaste(vanillaResult.taste()), vanillaResult.source());
+        }
+
         return new GiftTasteResult(GiftTaste.NEUTRAL, "fallback-neutral");
+    }
+
+    private static GiftTaste fromVanillaTaste(VanillaGiftTasteResolver.Taste taste) {
+        return switch (taste) {
+            case LOVED -> GiftTaste.LOVED;
+            case LIKED -> GiftTaste.LIKED;
+            case NEUTRAL -> GiftTaste.NEUTRAL;
+            case DISLIKED -> GiftTaste.DISLIKED;
+            case HATED -> GiftTaste.HATED;
+        };
     }
 
     private static GiftTaste findTasteInTable(JsonObject tastes, String key) {
@@ -1488,21 +1541,7 @@ public final class NpcInteractionService {
     }
 
     private static String stardewObjectToken(ItemStack held) {
-        String itemId = normalizeItemId(held);
-        int colon = itemId.indexOf(':');
-        String path = colon >= 0 ? itemId.substring(colon + 1) : itemId;
-        String[] parts = path.split("_");
-        StringBuilder sb = new StringBuilder();
-        for (String part : parts) {
-            if (part == null || part.isBlank()) {
-                continue;
-            }
-            sb.append(Character.toUpperCase(part.charAt(0)));
-            if (part.length() > 1) {
-                sb.append(part.substring(1));
-            }
-        }
-        return sb.isEmpty() ? path : sb.toString();
+        return VanillaGiftTasteResolver.objectToken(held);
     }
 
     private static DayContext currentDayContext(ServerLevel level) {

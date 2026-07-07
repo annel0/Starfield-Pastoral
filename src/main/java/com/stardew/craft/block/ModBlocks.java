@@ -984,6 +984,13 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
         public static final DeferredBlock<Block> OAK_ROOT = newTreeRoot("oak");
         public static final DeferredBlock<Block> OAK_LOG = newTreeLog("oak");
         public static final DeferredBlock<Block> OAK_LEAVES = newTreeLeaves("oak");
+        public static final DeferredBlock<Block> OAK_LEAVES_QUESTION = BLOCKS.register("oak_leaves_question",
+                        () -> new Block(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.PLANT)
+                                        .sound(net.minecraft.world.level.block.SoundType.GRASS)
+                                        .strength(0.2F)
+                                        .noCollission()
+                                        .noOcclusion()));
         public static final DeferredBlock<Block> OAK_BRANCH = newTreeBranch("oak");
 
         public static final DeferredBlock<Block> MAPLE_ROOT = newTreeRoot("maple");
@@ -2317,6 +2324,24 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .sound(net.minecraft.world.level.block.SoundType.STONE)
                                         .noOcclusion()
                                         .strength(0.8F, 1.0F), "stardewcraft:decor/festival/fair_grave_stone", true));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> SPIRIT_EVE_SPIDER_STATUE = BLOCKS.register("spirit_eve_spider_statue",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.STONE)
+                                        .sound(net.minecraft.world.level.block.SoundType.STONE)
+                                        .noOcclusion()
+                                        .strength(0.8F, 1.0F), "stardewcraft:decor/festival/spirit_eve_spider_statue",
+                                        0.0D, 0.0D, 0.0D, 16.0D, 6.5D, 16.0D));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> SPIRIT_EVE_JACK_O_LANTERN = BLOCKS.register("spirit_eve_jack_o_lantern",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.COLOR_ORANGE)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .lightLevel(state -> 15)
+                                        .noOcclusion()
+                                        .strength(0.6F, 1.0F), "stardewcraft:decor/festival/spirit_eve_jack_o_lantern"));
 
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> FAIR_GRILL = BLOCKS.register("fair_grill",

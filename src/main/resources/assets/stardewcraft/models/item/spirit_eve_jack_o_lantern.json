@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:decor/festival/spirit_eve_jack_o_lantern",
+  "textures": {
+    "particle": "stardewcraft:block/festival/spirit_eve_jack_o_lantern_1"
+  }
+}

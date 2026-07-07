@@ -18,7 +18,8 @@ public final class GalaxySoulClientFx {
     @SubscribeEvent
     public static void onTooltipColor(RenderTooltipEvent.Color event) {
         ItemStack stack = event.getItemStack();
-        if (stack.isEmpty() || !stack.is(ModItems.GALAXY_SOUL.get())) {
+        if (stack.isEmpty()
+            || (!stack.is(ModItems.GALAXY_SOUL.get()) && !stack.is(ModItems.MAGIC_ROCK_CANDY.get()))) {
             return;
         }
 

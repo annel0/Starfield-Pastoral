@@ -1,0 +1,6 @@
+{
+  "parent": "stardewcraft:decor/festival/spirit_eve_spider_statue",
+  "textures": {
+    "particle": "stardewcraft:block/festival/spirit_eve_spider_statue"
+  }
+}

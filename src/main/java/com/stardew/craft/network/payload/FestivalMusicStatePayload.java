@@ -18,6 +18,7 @@ public record FestivalMusicStatePayload(String track) implements CustomPacketPay
     public static final String TICK_TOCK = "tick_tock";
     public static final String FLOWER_DANCE = "flower_dance";
     public static final String MOONLIGHT_JELLIES = "moonlight_jellies";
+    public static final String SPIRITS_EVE = "spirits_eve";
     public static final String OCEAN_AMBIENCE = "ocean_ambience";
 
     public static final Type<FestivalMusicStatePayload> TYPE =
@@ -46,6 +47,7 @@ public record FestivalMusicStatePayload(String track) implements CustomPacketPay
             case TICK_TOCK -> com.stardew.craft.client.sound.StardewMusicManager.playForCutscene(ModSounds.MUSIC_TICK_TOCK.get());
             case FLOWER_DANCE -> com.stardew.craft.client.sound.StardewMusicManager.playForCutscene(ModSounds.MUSIC_FLOWER_DANCE.get());
             case MOONLIGHT_JELLIES -> com.stardew.craft.client.sound.StardewMusicManager.playForCutscene(ModSounds.MUSIC_MOONLIGHT_JELLIES.get());
+            case SPIRITS_EVE -> com.stardew.craft.client.sound.StardewMusicManager.playForCutscene(ModSounds.MUSIC_SPIRITS_EVE.get());
             case OCEAN_AMBIENCE -> com.stardew.craft.client.sound.StardewMusicManager.playForCutscene(ModSounds.MUSIC_OCEAN_AMBIENCE.get());
             case NONE -> com.stardew.craft.client.sound.StardewMusicManager.stopForCutsceneSilence();
             default -> com.stardew.craft.client.sound.StardewMusicManager.releaseCutsceneOverride();

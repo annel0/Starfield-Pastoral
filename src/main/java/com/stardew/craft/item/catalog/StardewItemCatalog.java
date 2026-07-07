@@ -70,6 +70,9 @@ public final class StardewItemCatalog {
             "stardewcraft.type.weapon.slingshot",
             "stardewcraft.type.ring",
             "stardewcraft.type.boots",
+            "stardewcraft.type.hat",
+            "stardewcraft.type.shirt",
+            "stardewcraft.type.pants",
             "stardewcraft.type.trinket",
             "stardewcraft.type.monster_loot"
     );
