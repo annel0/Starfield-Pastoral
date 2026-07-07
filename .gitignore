@@ -27,9 +27,16 @@ run-dev-server
 
 # temp/debug artifacts
 _tmp*
+.tmp/
+tmp_models/
 *.log
 *.zip
 /*.jar
+cmd_list.txt
+command_cases.txt
+precond_list.txt
+precondition_cases.txt
+validation_output.txt
 docs/
 wiki/
 ui_spec/
@@ -44,6 +51,8 @@ software/
 .claude/settings.local.json
 .vscode/
 .codex/
+.claude/skills/
+.github/skills/
 视频制作/
 参考/
 resourcepack-template/
@@ -58,6 +67,18 @@ wiki/
 stardewcraft-template-1.21.1.sln
 AGENTS.md
 CLAUDE.md
+
+# local planning ledgers and implementation notes
+/*_IMPLEMENTATION_PLAN.md
+/*_REGISTRATION_PLAN.md
+/*_REQUIREMENTS.md
+/*_SOURCE_LEDGER.md
+/*_SYSTEM_PLAN.md
+/*_POINT_TABLE.md
+/*_GAP_REPORT.md
+/*_MIGRATION_LEDGER.md
+/*_NORMALIZATION_STANDARD.md
+/*_RACE_EXCELLENCE_PLAN.md
 
 # macOS
 .DS_Store
