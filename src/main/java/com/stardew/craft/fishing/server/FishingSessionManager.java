@@ -502,6 +502,7 @@ public final class FishingSessionManager {
 					com.stardew.craft.festival.FestivalOfIceService.onFishingCatch(player, true);
 				} else {
 					PlayerStardewDataAPI.addFishCatchCount(player, itemId, finalNumCaught);
+					com.stardew.craft.festival.squid.SquidFestService.onFishCaught(player, fish, finalNumCaught);
 					// Quest: fish caught
 					com.stardew.craft.quest.StardewQuestEvents.fireFishCaught(player, itemId, finalNumCaught);
 					com.stardew.craft.specialorder.SpecialOrderManager.recordFishCaught(player, fish, finalNumCaught);

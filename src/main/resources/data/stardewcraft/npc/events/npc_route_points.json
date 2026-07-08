@@ -2064,6 +2064,13 @@
       "note": "鳟鱼大赛 Willy 功能交互站位，朝南",
       "indoor": false
     },
+    "squid_fest_willy": {
+      "x": 32,
+      "y": 60,
+      "z": 99,
+      "note": "鱿鱼节 Willy 功能交互站位，朝南",
+      "indoor": false
+    },
     "willy_town_bench": {
       "x": -2,
       "y": 66,

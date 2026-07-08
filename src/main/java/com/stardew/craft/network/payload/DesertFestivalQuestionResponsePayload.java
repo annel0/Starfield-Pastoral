@@ -4,6 +4,7 @@ import com.stardew.craft.StardewCraft;
 import com.stardew.craft.festival.desert.DesertFestivalCookService;
 import com.stardew.craft.festival.desert.DesertFestivalSpecialInteractionService;
 import com.stardew.craft.festival.desert.DesertFestivalWillyFishingService;
+import com.stardew.craft.festival.squid.SquidFestService;
 import com.stardew.craft.festival.trout.TroutDerbyService;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -57,6 +58,10 @@ public record DesertFestivalQuestionResponsePayload(
                 }
                 if ("trout_derby_booth".equals(payload.context())) {
                     TroutDerbyService.handleQuestionResponse(player, payload.choiceId());
+                    return;
+                }
+                if ("squid_fest_booth".equals(payload.context())) {
+                    SquidFestService.handleQuestionResponse(player, payload.choiceId());
                     return;
                 }
                 if ("spirit_eve_shortcut".equals(payload.context())) {

@@ -55,6 +55,8 @@
     "stardewcraft:luau_torch",
     "stardewcraft:luau_speaker",
     "stardewcraft:luau_totem",
+    "stardewcraft:squid_fest_promo_poster",
+    "stardewcraft:squid_fest_requirement_poster",
     "stardewcraft:spirit_eve_spider_statue",
     "stardewcraft:spirit_eve_jack_o_lantern",
     "stardewcraft:bear_figurine",
@@ -86,6 +88,7 @@
     "stardewcraft:train_photo",
     "stardewcraft:wall_photo_1",
     "stardewcraft:paper_checklist",
-    "stardewcraft:sine_wave_poster"
+    "stardewcraft:sine_wave_poster",
+    "stardewcraft:squid_kid_painting"
   ]
 }

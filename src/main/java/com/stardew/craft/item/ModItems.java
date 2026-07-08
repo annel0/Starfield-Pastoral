@@ -819,6 +819,12 @@ public class ModItems {
         public static final DeferredItem<Item> WINTER_STAR_TREE = ITEMS.register("winter_star_tree",
                         () -> new StardewBlockItem(ModBlocks.WINTER_STAR_TREE.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
 
+        public static final DeferredItem<Item> SQUID_FEST_PROMO_POSTER = ITEMS.register("squid_fest_promo_poster",
+                        () -> new StardewBlockItem(ModBlocks.SQUID_FEST_PROMO_POSTER.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> SQUID_FEST_REQUIREMENT_POSTER = ITEMS.register("squid_fest_requirement_poster",
+                        () -> new StardewBlockItem(ModBlocks.SQUID_FEST_REQUIREMENT_POSTER.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
+
         public static final DeferredItem<Item> FAIR_WHEEL = ITEMS.register("fair_wheel",
                         () -> new StardewBlockItem(ModBlocks.FAIR_WHEEL.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
 
@@ -1000,6 +1006,8 @@ public class ModItems {
                         () -> new StardewBlockItem(ModBlocks.WALL_BLACKSMITH_SIGN.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> WALL_BLACKSMITH_HAMMERS = ITEMS.register("wall_blacksmith_hammers",
                         () -> new StardewBlockItem(ModBlocks.WALL_BLACKSMITH_HAMMERS.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
+        public static final DeferredItem<Item> SQUID_KID_PAINTING = ITEMS.register("squid_kid_painting",
+                        () -> new StardewBlockItem(ModBlocks.SQUID_KID_PAINTING.get(), "stardewcraft.type.furniture_painting", 500, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> SHOP_WINDOW_1 = ITEMS.register("shop_window_1",
                         () -> new StardewBlockItem(ModBlocks.SHOP_WINDOW_1.get(), "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
         public static final DeferredItem<Item> SHOP_WINDOW_2 = ITEMS.register("shop_window_2",

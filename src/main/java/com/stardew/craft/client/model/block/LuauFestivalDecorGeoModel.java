@@ -3,6 +3,8 @@ package com.stardew.craft.client.model.block;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.block.ModBlocks;
 import com.stardew.craft.blockentity.LuauFestivalDecorBlockEntity;
+import com.stardew.craft.client.hud.StardewTimeHud;
+import com.stardew.craft.time.StardewTimeManager;
 import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib.model.GeoModel;
 
@@ -13,6 +15,11 @@ public class LuauFestivalDecorGeoModel extends GeoModel<LuauFestivalDecorBlockEn
     private static final ResourceLocation TOTEM_TEXTURE = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/block/festival/luau_totem.png");
     private static final ResourceLocation WINTER_STAR_TREE_MODEL = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "geo/block/festival/winter_star_tree.geo.json");
     private static final ResourceLocation WINTER_STAR_TREE_TEXTURE = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/block/festival/winter_star_tree.png");
+    private static final ResourceLocation SQUID_FEST_PROMO_POSTER_MODEL = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "geo/block/festival/squid_fest_promo_poster.geo.json");
+    private static final ResourceLocation SQUID_FEST_PROMO_POSTER_TEXTURE = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/block/festival/squid_fest_promo_poster.png");
+    private static final ResourceLocation SQUID_FEST_REQUIREMENT_POSTER_MODEL = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "geo/block/festival/squid_fest_requirement_poster.geo.json");
+    private static final ResourceLocation SQUID_FEST_REQUIREMENT_POSTER_TEXTURE_12 = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/block/festival/squid_fest_requirement_poster_12.png");
+    private static final ResourceLocation SQUID_FEST_REQUIREMENT_POSTER_TEXTURE_13 = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/block/festival/squid_fest_requirement_poster_13.png");
 
     @Override
     public ResourceLocation getModelResource(LuauFestivalDecorBlockEntity animatable) {
@@ -21,6 +28,12 @@ public class LuauFestivalDecorGeoModel extends GeoModel<LuauFestivalDecorBlockEn
         }
         if (animatable.getBlockState().is(ModBlocks.LUAU_TOTEM.get())) {
             return TOTEM_MODEL;
+        }
+        if (animatable.getBlockState().is(ModBlocks.SQUID_FEST_PROMO_POSTER.get())) {
+            return SQUID_FEST_PROMO_POSTER_MODEL;
+        }
+        if (animatable.getBlockState().is(ModBlocks.SQUID_FEST_REQUIREMENT_POSTER.get())) {
+            return SQUID_FEST_REQUIREMENT_POSTER_MODEL;
         }
         return SOUP_POT_MODEL;
     }
@@ -33,11 +46,22 @@ public class LuauFestivalDecorGeoModel extends GeoModel<LuauFestivalDecorBlockEn
         if (animatable.getBlockState().is(ModBlocks.LUAU_TOTEM.get())) {
             return TOTEM_TEXTURE;
         }
+        if (animatable.getBlockState().is(ModBlocks.SQUID_FEST_PROMO_POSTER.get())) {
+            return SQUID_FEST_PROMO_POSTER_TEXTURE;
+        }
+        if (animatable.getBlockState().is(ModBlocks.SQUID_FEST_REQUIREMENT_POSTER.get())) {
+            return isWinter13() ? SQUID_FEST_REQUIREMENT_POSTER_TEXTURE_13 : SQUID_FEST_REQUIREMENT_POSTER_TEXTURE_12;
+        }
         return SOUP_POT_TEXTURE;
     }
 
     @Override
     public ResourceLocation getAnimationResource(LuauFestivalDecorBlockEntity animatable) {
         return null;
+    }
+
+    private boolean isWinter13() {
+        StardewTimeManager time = StardewTimeHud.getClientTimeCache();
+        return time != null && time.getCurrentSeason() == 3 && time.getCurrentDay() == 13;
     }
 }

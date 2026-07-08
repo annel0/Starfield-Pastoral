@@ -118,6 +118,19 @@ public final class FestivalMapOverlayRegistry {
             true
         ));
         register(new FestivalMapOverlayDefinition(
+            "Beach-SquidFest",
+            "Beach",
+            new BlockPos(26, 59, 96),
+            "",
+            "data/stardewcraft/structures/festivals/squid_fest_beach.schem",
+            new BlockPos(26, 59, 96),
+            new BlockPos(43, 64, 101),
+            List.of(),
+            true,
+            true,
+            true
+        ));
+        register(new FestivalMapOverlayDefinition(
             "Forest-IceFestival",
             "Forest",
             new BlockPos(-192, 63, -2),

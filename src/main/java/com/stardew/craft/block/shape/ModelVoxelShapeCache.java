@@ -188,6 +188,12 @@ public final class ModelVoxelShapeCache {
 
     @SuppressWarnings("null")
     private static VoxelShape loadShapeFromModelId(String modelId) {
+        if (isGeoAabbShapeModelId(modelId)) {
+            VoxelShape geoAabbShape = loadAabbShapeFromGeoModelId(modelId);
+            if (!geoAabbShape.isEmpty()) {
+                return geoAabbShape.optimize();
+            }
+        }
         if (isGeoShapeModelId(modelId)) {
             VoxelShape geoShape = loadShapeFromGeoModelId(modelId);
             if (!geoShape.isEmpty()) {
@@ -276,20 +282,39 @@ public final class ModelVoxelShapeCache {
     }
 
     private static boolean isGeoShapeModelId(String modelId) {
-        return modelId != null && modelId.endsWith(".geo.json");
+        return modelId != null && stripGeoShapeVariant(modelId).endsWith(".geo.json");
+    }
+
+    private static boolean isGeoAabbShapeModelId(String modelId) {
+        return modelId != null && modelId.endsWith(".geo.json#aabb");
+    }
+
+    private static String stripGeoShapeVariant(String modelId) {
+        return modelId != null && modelId.endsWith("#aabb") ? modelId.substring(0, modelId.length() - "#aabb".length()) : modelId;
     }
 
     public static GeoBounds geoBoundsFromModelId(String modelId) {
         if (!isGeoShapeModelId(modelId)) {
             return null;
         }
-        GeoModelData data = GEO_MODEL_CACHE.computeIfAbsent(modelId, ModelVoxelShapeCache::loadGeoModelDataFromModelId);
+        GeoModelData data = GEO_MODEL_CACHE.computeIfAbsent(stripGeoShapeVariant(modelId), ModelVoxelShapeCache::loadGeoModelDataFromModelId);
         return data == null ? null : data.bounds();
     }
 
     @SuppressWarnings("null")
+    private static VoxelShape loadAabbShapeFromGeoModelId(String modelId) {
+        GeoModelData data = GEO_MODEL_CACHE.computeIfAbsent(stripGeoShapeVariant(modelId), ModelVoxelShapeCache::loadGeoModelDataFromModelId);
+        if (data == null || data.bounds().isEmpty()) {
+            return Shapes.empty();
+        }
+        GeoBounds bounds = data.bounds();
+        return Block.box(bounds.minX() + 8.0D, bounds.minY(), bounds.minZ() + 8.0D,
+            bounds.maxX() + 8.0D, bounds.maxY(), bounds.maxZ() + 8.0D);
+    }
+
+    @SuppressWarnings("null")
     private static VoxelShape loadShapeFromGeoModelId(String modelId) {
-        GeoModelData data = GEO_MODEL_CACHE.computeIfAbsent(modelId, ModelVoxelShapeCache::loadGeoModelDataFromModelId);
+        GeoModelData data = GEO_MODEL_CACHE.computeIfAbsent(stripGeoShapeVariant(modelId), ModelVoxelShapeCache::loadGeoModelDataFromModelId);
         if (data == null || data.shape().isEmpty()) {
             return Shapes.empty();
         }
@@ -332,6 +357,13 @@ public final class ModelVoxelShapeCache {
 
         Map<String, double[][]> worldTransformCache = new ConcurrentHashMap<>();
 
+        boolean hasCube = false;
+        double minX = Double.POSITIVE_INFINITY;
+        double minY = Double.POSITIVE_INFINITY;
+        double minZ = Double.POSITIVE_INFINITY;
+        double maxX = Double.NEGATIVE_INFINITY;
+        double maxY = Double.NEGATIVE_INFINITY;
+        double maxZ = Double.NEGATIVE_INFINITY;
         Set<Long> occupiedVoxels = new HashSet<>();
 
         for (JsonObject bone : bones.values()) {
@@ -390,6 +422,14 @@ public final class ModelVoxelShapeCache {
                     cubeMaxZ = Math.max(cubeMaxZ, world[2]);
                 }
 
+                hasCube = true;
+                minX = Math.min(minX, cubeMinX);
+                minY = Math.min(minY, cubeMinY);
+                minZ = Math.min(minZ, cubeMinZ);
+                maxX = Math.max(maxX, cubeMaxX);
+                maxY = Math.max(maxY, cubeMaxY);
+                maxZ = Math.max(maxZ, cubeMaxZ);
+
                 int minVX = (int) Math.floor(cubeMinX + 1.0E-6);
                 int minVY = (int) Math.floor(cubeMinY + 1.0E-6);
                 int minVZ = (int) Math.floor(cubeMinZ + 1.0E-6);
@@ -412,31 +452,27 @@ public final class ModelVoxelShapeCache {
             }
         }
 
-        if (occupiedVoxels.isEmpty()) {
+        if (!hasCube || occupiedVoxels.isEmpty()) {
             return GeoModelData.empty();
         }
 
-        int minX = Integer.MAX_VALUE;
-        int minY = Integer.MAX_VALUE;
-        int minZ = Integer.MAX_VALUE;
-        int maxX = Integer.MIN_VALUE;
-        int maxY = Integer.MIN_VALUE;
-        int maxZ = Integer.MIN_VALUE;
+        if (maxX <= minX) {
+            maxX = minX + 0.0625D;
+        }
+        if (maxY <= minY) {
+            maxY = minY + 0.0625D;
+        }
+        if (maxZ <= minZ) {
+            maxZ = minZ + 0.0625D;
+        }
 
         VoxelShape shape = Shapes.empty();
         for (long packed : occupiedVoxels) {
             int vx = unpackVoxelX(packed);
             int vy = unpackVoxelY(packed);
             int vz = unpackVoxelZ(packed);
-            minX = Math.min(minX, vx);
-            minY = Math.min(minY, vy);
-            minZ = Math.min(minZ, vz);
-            maxX = Math.max(maxX, vx + 1);
-            maxY = Math.max(maxY, vy + 1);
-            maxZ = Math.max(maxZ, vz + 1);
             shape = Shapes.or(shape, Block.box(vx, vy, vz, vx + 1, vy + 1, vz + 1));
         }
-
         GeoBounds bounds = new GeoBounds(minX, minY, minZ, maxX, maxY, maxZ);
         return new GeoModelData(shape.optimize(), bounds);
     }

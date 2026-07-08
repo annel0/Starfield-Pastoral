@@ -17,6 +17,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * 信件阅读界面，像素级对齐 SDV LetterViewerMenu。
@@ -35,6 +37,13 @@ public class LetterViewerScreen extends Screen {
             StardewCraft.MODID, "textures/gui/letter_bg.png");
     private static final int LETTER_BG_WIDTH = 1280;
     private static final int LETTER_BG_HEIGHT = 512;
+    private static final Map<String, CustomLetterBackground> CUSTOM_LETTER_BACKGROUNDS = Map.of(
+            "LooseSprites/squidFestLetterBG", new CustomLetterBackground(
+                    ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/squid_fest_letter_bg.png"),
+                    320,
+                    204
+            )
+    );
 
     // SDV 信纸原始尺寸
     private static final int SDV_LETTER_W = 1280;  // 320×4
@@ -59,6 +68,11 @@ public class LetterViewerScreen extends Screen {
     private final OpenMailPayload payload;
     private final List<String> pages = new ArrayList<>();
     private int currentPage;
+    private ResourceLocation activeLetterTexture = LETTER_BG;
+    private int activeLetterTextureWidth = LETTER_BG_WIDTH;
+    private int activeLetterTextureHeight = LETTER_BG_HEIGHT;
+    private int activeBackground;
+    private String activeTextColorName = "";
 
     // ── 布局（MC GUI 坐标） ──
     private StardewRenderMapping mapping;
@@ -70,6 +84,8 @@ public class LetterViewerScreen extends Screen {
 
     // ── 打开动画 ──
     private float scale;
+
+    private record CustomLetterBackground(ResourceLocation texture, int width, int height) {}
 
     public LetterViewerScreen(OpenMailPayload payload) {
         super(Component.empty());
@@ -127,6 +143,7 @@ public class LetterViewerScreen extends Screen {
      */
     private void paginateText() {
         pages.clear();
+        resetLetterFormatting();
         String text = payload.text();
         // 如果文本看起来是翻译键（不含空格但含点号），在客户端翻译
         if (text != null && !text.contains(" ") && text.contains(".")) {
@@ -137,6 +154,7 @@ public class LetterViewerScreen extends Screen {
         }
         // 将 SDV 邮件里的换行标记转成真实换行。
         if (text != null) {
+            text = applyLetterFormatting(text);
             if (minecraft != null && minecraft.player != null) {
                 text = text.replace("@", minecraft.player.getName().getString());
             }
@@ -178,6 +196,75 @@ public class LetterViewerScreen extends Screen {
             pages.add("");
         }
         currentPage = 0;
+    }
+
+    private void resetLetterFormatting() {
+        activeLetterTexture = LETTER_BG;
+        activeLetterTextureWidth = LETTER_BG_WIDTH;
+        activeLetterTextureHeight = LETTER_BG_HEIGHT;
+        activeBackground = payload.background();
+        activeTextColorName = payload.textColorName() == null ? "" : payload.textColorName();
+    }
+
+    private String applyLetterFormatting(String text) {
+        String remaining = text;
+        while (remaining.startsWith("[")) {
+            int end = remaining.indexOf(']');
+            if (end <= 0) {
+                break;
+            }
+            if (!applyLetterFormattingCommand(remaining.substring(1, end).trim())) {
+                break;
+            }
+            remaining = remaining.substring(end + 1);
+        }
+        return remaining;
+    }
+
+    private boolean applyLetterFormattingCommand(String command) {
+        if (command.isEmpty()) {
+            return false;
+        }
+        String[] parts = command.split("\\s+");
+        String type = parts[0].toLowerCase(Locale.ROOT);
+        if ("textcolor".equals(type)) {
+            if (parts.length >= 2) {
+                activeTextColorName = parts[1];
+            }
+            return true;
+        }
+        if ("letterbg".equals(type)) {
+            if (parts.length == 2) {
+                activeBackground = parseBackgroundIndex(parts[1], activeBackground);
+            } else if (parts.length >= 3) {
+                String contentPath = normalizeContentPath(parts[1]);
+                CustomLetterBackground customBackground = CUSTOM_LETTER_BACKGROUNDS.get(contentPath);
+                if (customBackground != null) {
+                    activeLetterTexture = customBackground.texture();
+                    activeLetterTextureWidth = customBackground.width();
+                    activeLetterTextureHeight = customBackground.height();
+                }
+                activeBackground = parseBackgroundIndex(parts[2], activeBackground);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private static String normalizeContentPath(String path) {
+        String normalized = path.replace('\\', '/');
+        while (normalized.contains("//")) {
+            normalized = normalized.replace("//", "/");
+        }
+        return normalized;
+    }
+
+    private static int parseBackgroundIndex(String value, int fallback) {
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException ignored) {
+            return fallback;
+        }
     }
 
     private List<String> wrapText(String text, int maxWidth) {
@@ -236,7 +323,7 @@ public class LetterViewerScreen extends Screen {
     }
 
     private void drawLetterBackground(GuiGraphics graphics) {
-        int bg = payload.background();
+        int bg = activeBackground;
         // letterBG.png 布局: 每个背景 320×180
         // whichBG % 4 * 320 = U, (whichBG >= 4) ? (204 + (whichBG/4-1)*180) : 0 = V
         int srcU = (bg % 4) * SDV_BG_TILE_W;
@@ -250,11 +337,11 @@ public class LetterViewerScreen extends Screen {
         int cy = letterY + letterH / 2;
         graphics.pose().translate(cx, cy, 0);
         graphics.pose().scale(drawScale, drawScale, 1f);
-        graphics.blit(LETTER_BG,
+        graphics.blit(activeLetterTexture,
                 -SDV_BG_TILE_W / 2, -SDV_BG_TILE_H / 2,
                 srcU, srcV,
                 SDV_BG_TILE_W, SDV_BG_TILE_H,
-                LETTER_BG_WIDTH, LETTER_BG_HEIGHT);
+                activeLetterTextureWidth, activeLetterTextureHeight);
         graphics.pose().popPose();
     }
 
@@ -271,10 +358,10 @@ public class LetterViewerScreen extends Screen {
     }
 
     private int getTextColor() {
-        String colorName = payload.textColorName();
+        String colorName = activeTextColorName;
         if (colorName == null || colorName.isEmpty()) {
             // 根据背景选择默认颜色（SDV parity）
-            return switch (payload.background()) {
+            return switch (activeBackground) {
                 case 1 -> 0xFF808080;  // gray (lined paper)
                 case 2 -> 0xFF00FFFF;  // cyan (wizard)
                 case 3 -> 0xFFFFFFFF;  // white (Krobus)
@@ -349,12 +436,13 @@ public class LetterViewerScreen extends Screen {
                 int slotX = startX + i * (slotSize + gap);
 
                 // 物品背景框
-                int bgU = payload.background() * 24;
+                int bgU = activeBackground * 24;
                 int bgV = 180;
                 graphics.pose().pushPose();
                 graphics.pose().translate(slotX, slotY, 0);
                 graphics.pose().scale(bgScale, bgScale, 1f);
-                graphics.blit(LETTER_BG, 0, 0, bgU, bgV, 24, 24, LETTER_BG_WIDTH, LETTER_BG_HEIGHT);
+                graphics.blit(activeLetterTexture, 0, 0, bgU, bgV, 24, 24,
+                        activeLetterTextureWidth, activeLetterTextureHeight);
                 graphics.pose().popPose();
 
                 // 物品图标

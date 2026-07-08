@@ -66,6 +66,7 @@ public final class NpcInteractionService {
         "stardewcraft.type.ring",
         "stardewcraft.type.boots",
         "stardewcraft.type.furniture",
+        "stardewcraft.type.furniture_painting",
         "stardewcraft.type.utility",
         "stardewcraft.type.scarecrow",
         "stardewcraft.type.special"
@@ -228,6 +229,11 @@ public final class NpcInteractionService {
 
         if (com.stardew.craft.festival.desert.DesertFestivalWillyFishingService.tryCompleteFishingReport(serverPlayer, npc, npcId)) {
             return InteractionResult.SUCCESS;
+        }
+
+        if (npcId.equals("willy") && com.stardew.craft.festival.squid.SquidFestService.isPlayerAtBooth(serverPlayer)) {
+            com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(serverPlayer, npcId);
+            return com.stardew.craft.festival.squid.SquidFestService.handleWillyInteraction(serverPlayer, npc);
         }
 
         if (npcId.equals("willy") && com.stardew.craft.festival.trout.TroutDerbyService.isPlayerAtBooth(serverPlayer)) {

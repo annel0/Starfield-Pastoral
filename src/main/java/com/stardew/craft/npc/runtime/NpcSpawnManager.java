@@ -419,6 +419,7 @@ public final class NpcSpawnManager {
             double spawnZ = z;
             boolean desertFestivalMarlon = NpcScheduleRuntimeService.isDesertFestivalMarlonOverride(npcId);
             boolean troutDerbyWilly = NpcScheduleRuntimeService.isTroutDerbyWillyOverride(npcId);
+            boolean squidFestWilly = NpcScheduleRuntimeService.isSquidFestWillyOverride(npcId);
             if (desertFestivalMarlon) {
                 NpcScheduleRuntimeService.TargetPoint target = NpcScheduleRuntimeService.resolveDesertFestivalMarlonTarget();
                 spawnX = target.position().x;
@@ -431,6 +432,12 @@ public final class NpcSpawnManager {
                 spawnY = target.y;
                 spawnZ = target.z;
                 yaw = yawFromSdvFacing(com.stardew.craft.festival.trout.TroutDerbyService.WILLY_FACING);
+            } else if (squidFestWilly) {
+                Vec3 target = com.stardew.craft.festival.squid.SquidFestService.willyPosition();
+                spawnX = target.x;
+                spawnY = target.y;
+                spawnZ = target.z;
+                yaw = yawFromSdvFacing(com.stardew.craft.festival.squid.SquidFestService.WILLY_FACING);
             }
 
             // Chunk forcing is fully managed by NpcChunkForceManager now.
@@ -450,6 +457,9 @@ public final class NpcSpawnManager {
                 if (troutDerbyWilly) {
                     enforceTroutDerbyWillyPosition(level, getTrackedNpc(level, npcId));
                 }
+                if (squidFestWilly) {
+                    enforceSquidFestWillyPosition(level, getTrackedNpc(level, npcId));
+                }
                 if (isKrobus(npcId)) {
                     enforceKrobusFixedPosition(getTrackedNpc(level, npcId));
                 }
@@ -464,6 +474,9 @@ public final class NpcSpawnManager {
                 }
                 if (troutDerbyWilly) {
                     enforceTroutDerbyWillyPosition(level, existing);
+                }
+                if (squidFestWilly) {
+                    enforceSquidFestWillyPosition(level, existing);
                 }
                 if (isKrobus(npcId)) {
                     enforceKrobusFixedPosition(existing);
@@ -480,6 +493,11 @@ public final class NpcSpawnManager {
                 forced = true;
             }
             if (troutDerbyWilly) {
+                TRACKED_NPC_UUIDS.remove(npcId);
+                TRACKED_MISS_COUNTS.remove(npcId);
+                forced = true;
+            }
+            if (squidFestWilly) {
                 TRACKED_NPC_UUIDS.remove(npcId);
                 TRACKED_MISS_COUNTS.remove(npcId);
                 forced = true;
@@ -1018,6 +1036,23 @@ public final class NpcSpawnManager {
         npc.hasImpulse = false;
         npc.setWalking(false);
         NpcCentralMovementService.resetMovementPlan(com.stardew.craft.festival.trout.TroutDerbyService.WILLY_NPC_ID);
+    }
+
+    private static void enforceSquidFestWillyPosition(ServerLevel level, StardewNpcEntity npc) {
+        if (level == null || npc == null || npc.isRemoved() || !npc.isAlive()) {
+            return;
+        }
+        Vec3 pos = com.stardew.craft.festival.squid.SquidFestService.willyPosition();
+        float yaw = yawFromSdvFacing(com.stardew.craft.festival.squid.SquidFestService.WILLY_FACING);
+        npc.getNavigation().stop();
+        npc.moveTo(pos.x, pos.y, pos.z, yaw, 0.0F);
+        npc.setYRot(yaw);
+        npc.setYHeadRot(yaw);
+        npc.setYBodyRot(yaw);
+        npc.setDeltaMovement(Vec3.ZERO);
+        npc.hasImpulse = false;
+        npc.setWalking(false);
+        NpcCentralMovementService.resetMovementPlan(com.stardew.craft.festival.squid.SquidFestService.WILLY_NPC_ID);
     }
 
     private static float yawFromSdvFacing(int facing) {

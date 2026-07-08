@@ -81,7 +81,7 @@ public final class FestivalRegistry {
             "SquidFest", FestivalType.PASSIVE, "SquidFest", "", "",
             WINTER, 12, 13, 610, 2600, false, true, "[LocalizedText Strings\\1_6_Strings:SquidFest_NowOpen]",
             "message.stardewcraft.festival.passive.squid_fest.started", "",
-            "Beach", "", Map.of(), List.of(), "squid_fest"
+            "Beach", "Beach-SquidFest", Map.of(), List.of(), "squid_fest"
         ));
         register(new FestivalDefinition(
             "NightMarket", FestivalType.PASSIVE, "Night Market", "[LocalizedText Strings\\UI:Billboard_NightMarket]", "",

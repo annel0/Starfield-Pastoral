@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.4.11 - 2026-07-08
+
+### Update Log (English)
+
+#### SquidFest
+
+- Added Winter 12-13 SquidFest as a passive Beach festival, including date registration, passive start messaging, debug apply support, Beach overlay placement, and Willy's festival schedule override.
+- Added SquidFest squid tracking on normal fishing catches, with per-player daily score stats, action-bar progress feedback, reward query flow, and day-specific target thresholds for Winter 12 and Winter 13.
+- Added SquidFest reward claiming through Willy's booth, including vanilla-aligned day-specific reward tables, Crabbing Book fallback behavior, per-player daily claim flags, hold-up/item pickup feedback, and multiplayer-safe player state handling.
+- Added SquidFest Beach fishing data so normal fishing remains available while festival catches can count toward SquidFest goals.
+
+#### Decorations and Integration
+
+- Added SquidFest promotional poster, SquidFest requirement poster, and Squid Kid painting resources, items, blocks, tags, localization, and catalog integration.
+- Added reusable Geo festival decoration block support based on model-derived collision bounds and extension placement, while preserving the Luau totem pole behavior on the shared path.
+- Added SquidFest letter background asset support and letter markup parsing for custom letter backgrounds and text color directives.
+- Updated the public mod version to `0.4.11`.
+
+### 更新日志（中文）
+
+#### 鱿鱼节
+
+- 加入冬 12-13 鱿鱼节作为沙滩被动节日，覆盖日期注册、被动节日开始提示、调试 apply 支持、沙滩 overlay 放置，以及 Willy 的节日日程覆盖。
+- 加入普通钓鱼中的鱿鱼节鱿鱼计数，包含玩家独立的每日分数、action-bar 进度反馈、奖励查询流程，以及冬 12 / 冬 13 不同的每日目标。
+- 加入通过 Willy 摊位领取鱿鱼节奖励的流程，包含按原版拆分的两日奖励表、螃蟹秘籍 fallback、玩家独立每日领取 flag、举起物品/拾取提示反馈，以及多人状态隔离。
+- 加入鱿鱼节沙滩钓鱼数据，让普通钓鱼保持可用，同时节日期间额外计入鱿鱼节目标。
+
+#### 装饰与集成
+
+- 加入鱿鱼节宣传海报、鱿鱼节需求海报和鱿鱼娃画作资源，接入物品、方块、标签、本地化和目录。
+- 加入可复用的 Geo 节日装饰方块支持，基于模型尺寸计算碰撞箱与 extension 放置，同时保留夏威夷宴会图腾柱在共享路径上的行为。
+- 加入鱿鱼节信纸背景资源支持，以及自定义信纸背景与文字颜色指令的 letter markup 解析。
+- 项目公开版本号更新为 `0.4.11`。
+
 ## 0.4.10 - 2026-07-08
 
 ### Update Log (English)

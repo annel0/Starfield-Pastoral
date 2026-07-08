@@ -26,6 +26,6 @@ public class LuauFestivalDecorBlockEntity extends net.minecraft.world.level.bloc
 
     @SuppressWarnings("null")
     public AABB getRenderBoundingBox() {
-        return new AABB(worldPosition).inflate(3.0);
+        return new AABB(worldPosition).inflate(5.0);
     }
 }

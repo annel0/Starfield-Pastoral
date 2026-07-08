@@ -355,12 +355,21 @@ public class MapDecorStaticBlock extends Block {
                 shape = ModelVoxelShapeCache.shapeFromModelId(modelId);
             }
             shape.forAllBoxes((minX, minY, minZ, maxX, maxY, maxZ) -> {
-                int minCX = (int) Math.floor(minX + EPS);
-                int minCY = (int) Math.floor(minY + EPS);
-                int minCZ = (int) Math.floor(minZ + EPS);
-                int maxCX = (int) Math.ceil(maxX - EPS) - 1;
-                int maxCY = (int) Math.ceil(maxY - EPS) - 1;
-                int maxCZ = (int) Math.ceil(maxZ - EPS) - 1;
+                int minCX = minOccupiedCell(minX);
+                int minCY = minOccupiedCell(minY);
+                int minCZ = minOccupiedCell(minZ);
+                int maxCX = maxOccupiedCell(maxX);
+                int maxCY = maxOccupiedCell(maxY);
+                int maxCZ = maxOccupiedCell(maxZ);
+                if (maxCX < minCX) {
+                    minCX = maxCX = centerOccupiedCell(minX, maxX);
+                }
+                if (maxCY < minCY) {
+                    minCY = maxCY = centerOccupiedCell(minY, maxY);
+                }
+                if (maxCZ < minCZ) {
+                    minCZ = maxCZ = centerOccupiedCell(minZ, maxZ);
+                }
                 for (int x = minCX; x <= maxCX; x++) {
                     for (int y = minCY; y <= maxCY; y++) {
                         for (int z = minCZ; z <= maxCZ; z++) {
@@ -376,6 +385,18 @@ public class MapDecorStaticBlock extends Block {
             localOccupiedOffsets = discovered;
             return discovered;
         }
+    }
+
+    private static int minOccupiedCell(double min) {
+        return (int) Math.floor(min + EPS);
+    }
+
+    private static int maxOccupiedCell(double max) {
+        return (int) Math.ceil(max - EPS) - 1;
+    }
+
+    private static int centerOccupiedCell(double min, double max) {
+        return (int) Math.floor((min + max) * 0.5D);
     }
 
     protected Set<CellOffset> occupiedOffsets(Direction facing) {

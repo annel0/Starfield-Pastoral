@@ -6,9 +6,12 @@ import com.stardew.craft.block.decor.MapDecorStaticBlock;
 import com.stardew.craft.blockentity.LuauFestivalDecorBlockEntity;
 import com.stardew.craft.client.model.block.LuauFestivalDecorGeoModel;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
 
@@ -16,6 +19,13 @@ import javax.annotation.Nonnull;
 public class LuauFestivalDecorBlockEntityRenderer extends StardewGeoBlockRenderer<LuauFestivalDecorBlockEntity> {
     public LuauFestivalDecorBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
         super(new LuauFestivalDecorGeoModel());
+    }
+
+    @Nullable
+    @Override
+    public RenderType getRenderType(LuauFestivalDecorBlockEntity animatable, ResourceLocation texture,
+                                    @Nullable MultiBufferSource bufferSource, float partialTick) {
+        return RenderType.entityCutoutNoCull(texture);
     }
 
     @Override

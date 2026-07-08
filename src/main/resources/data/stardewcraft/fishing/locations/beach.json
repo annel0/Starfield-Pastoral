@@ -320,6 +320,46 @@
       "id": "squid",
       "precedence": 0,
       "item": "stardewcraft:squid",
+      "chance": 0.35,
+      "difficulty": 75,
+      "motionType": 3,
+      "minFishSize": 12,
+      "maxFishSize": 48,
+      "minFishingLevel": 0,
+      "timeRanges": [
+        [
+          600,
+          1800
+        ]
+      ],
+      "biomeTags": [
+        "#stardewcraft:is_ocean"
+      ],
+      "weather": "any",
+      "ignoreFishDataRequirements": true,
+      "condition": "IS_PASSIVE_FESTIVAL_OPEN SquidFest TIME 600 1800"
+    },
+    {
+      "id": "squid",
+      "precedence": 0,
+      "item": "stardewcraft:squid",
+      "chance": 0.5,
+      "difficulty": 75,
+      "motionType": 3,
+      "minFishSize": 12,
+      "maxFishSize": 48,
+      "minFishingLevel": 0,
+      "biomeTags": [
+        "#stardewcraft:is_ocean"
+      ],
+      "weather": "any",
+      "ignoreFishDataRequirements": true,
+      "condition": "IS_PASSIVE_FESTIVAL_OPEN SquidFest"
+    },
+    {
+      "id": "squid",
+      "precedence": 0,
+      "item": "stardewcraft:squid",
       "chance": 1.0,
       "difficulty": 75,
       "motionType": 3,

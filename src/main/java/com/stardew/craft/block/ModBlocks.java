@@ -2308,6 +2308,23 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .strength(1.0F, 2.0F), "stardewcraft:decor/festival/winter_star_tree_proxy"));
 
         @SuppressWarnings("null")
+        public static final DeferredBlock<Block> SQUID_FEST_PROMO_POSTER = BLOCKS.register("squid_fest_promo_poster",
+                        () -> new com.stardew.craft.block.decor.GeoFestivalDecorBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.COLOR_BLUE)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.6F, 1.0F), "stardewcraft:geo/block/festival/squid_fest_promo_poster.geo.json"));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> SQUID_FEST_REQUIREMENT_POSTER = BLOCKS.register("squid_fest_requirement_poster",
+                        () -> new com.stardew.craft.block.decor.GeoFestivalDecorBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.COLOR_BLUE)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.6F, 1.0F), "stardewcraft:geo/block/festival/squid_fest_requirement_poster.geo.json",
+                                        "stardewcraft.squid_fest.sign"));
+
+        @SuppressWarnings("null")
         public static final DeferredBlock<Block> FAIR_STRENGTH_TESTER = BLOCKS.register("fair_strength_tester",
                         () -> new com.stardew.craft.block.decor.FairStrengthTesterBlock(Block.Properties.of()
                                         .mapColor(net.minecraft.world.level.material.MapColor.METAL)
@@ -2726,6 +2743,13 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .sound(net.minecraft.world.level.block.SoundType.WOOD)
                                         .noOcclusion()
                                         .strength(0.6F, 1.0F), "stardewcraft:decor/wall_decor/common/wall_blacksmith_hammers"));
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> SQUID_KID_PAINTING = BLOCKS.register("squid_kid_painting",
+                        () -> new com.stardew.craft.block.decor.MapDecorWallStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.COLOR_BLUE)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.6F, 1.0F), "stardewcraft:decor/wall_decor/common/squid_kid_painting"));
 
         @SuppressWarnings("null")
         public static final DeferredBlock<Block> SHOP_WINDOW_1 = BLOCKS.register("shop_window_1",

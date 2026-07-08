@@ -1,6 +1,7 @@
 package com.stardew.craft.festival;
 
 import com.stardew.craft.festival.desert.DesertFestivalHandler;
+import com.stardew.craft.festival.squid.SquidFestHandler;
 import com.stardew.craft.festival.trout.TroutDerbyHandler;
 import net.minecraft.server.level.ServerLevel;
 
@@ -15,6 +16,7 @@ public final class PassiveFestivalHandlers {
     static {
         register(new DesertFestivalHandler());
         register(new TroutDerbyHandler());
+        register(new SquidFestHandler());
     }
 
     private PassiveFestivalHandlers() {
