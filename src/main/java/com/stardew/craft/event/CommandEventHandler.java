@@ -17,6 +17,7 @@ import com.stardew.craft.command.StardewPayCommand;
 import com.stardew.craft.command.StardewTeleportCommand;
 import com.stardew.craft.command.OvernightDebugCommand;
 import com.stardew.craft.command.NpcDebugCommand;
+import com.stardew.craft.command.PointPlanDebugCommand;
 import com.stardew.craft.command.RouteEditorDebugCommand;
 import com.stardew.craft.command.ShopDebugCommand;
 import com.stardew.craft.command.StructureDebugCommand;
@@ -50,6 +51,7 @@ public class CommandEventHandler {
         FestivalDebugCommand.register(event.getDispatcher());
         FriendshipDoorCommand.register(event.getDispatcher());
         RouteEditorDebugCommand.register(event.getDispatcher());
+        PointPlanDebugCommand.register(event.getDispatcher());
         com.stardew.craft.command.FarmCaveCommand.register(event.getDispatcher());
         StructureDebugCommand.register(event.getDispatcher());
         BilibiliClaimCommand.register(event.getDispatcher());

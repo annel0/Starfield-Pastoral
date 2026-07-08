@@ -167,6 +167,12 @@ public class PacketHandler {
         );
 
         registrar.playToServer(
+            com.stardew.craft.network.payload.PointPlanActionPayload.TYPE,
+            com.stardew.craft.network.payload.PointPlanActionPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.PointPlanActionPayload::handle
+        );
+
+        registrar.playToServer(
             com.stardew.craft.network.payload.WardrobeActionPayload.TYPE,
             com.stardew.craft.network.payload.WardrobeActionPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.WardrobeActionPayload::handle
@@ -207,6 +213,12 @@ public class PacketHandler {
             com.stardew.craft.network.payload.RouteEditorSyncPayload.TYPE,
             com.stardew.craft.network.payload.RouteEditorSyncPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.RouteEditorSyncPayload::handle
+        );
+
+        registrar.playToClient(
+            com.stardew.craft.network.payload.PointPlanSyncPayload.TYPE,
+            com.stardew.craft.network.payload.PointPlanSyncPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.PointPlanSyncPayload::handle
         );
 
         registrar.playToClient(
@@ -1485,6 +1497,11 @@ public class PacketHandler {
             com.stardew.craft.network.payload.FairFishingHudStatePayload::handle
         );
         registrar.playToClient(
+            com.stardew.craft.network.payload.IceFishingHudStatePayload.TYPE,
+            com.stardew.craft.network.payload.IceFishingHudStatePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.IceFishingHudStatePayload::handle
+        );
+        registrar.playToClient(
             com.stardew.craft.network.payload.FestivalMusicStatePayload.TYPE,
             com.stardew.craft.network.payload.FestivalMusicStatePayload.STREAM_CODEC,
             com.stardew.craft.network.payload.FestivalMusicStatePayload::handle
@@ -1493,6 +1510,11 @@ public class PacketHandler {
             com.stardew.craft.network.payload.EggFestivalCutsceneStatePayload.TYPE,
             com.stardew.craft.network.payload.EggFestivalCutsceneStatePayload.STREAM_CODEC,
             com.stardew.craft.network.payload.EggFestivalCutsceneStatePayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.IceFishingCutsceneStatePayload.TYPE,
+            com.stardew.craft.network.payload.IceFishingCutsceneStatePayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.IceFishingCutsceneStatePayload::handle
         );
 
         // Quest delivery confirm dialog (S→C) and confirmation (C→S)

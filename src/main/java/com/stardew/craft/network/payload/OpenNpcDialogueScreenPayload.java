@@ -31,6 +31,7 @@ public record OpenNpcDialogueScreenPayload(
         String afterCloseItemId,
         boolean garbleDwarvish
 ) implements CustomPacketPayload {
+    public static final String DIRECT_DIALOGUE_PREFIX = "__direct_dialogue::";
 
     /** Convenience: no afterClose action, no garble. */
     public OpenNpcDialogueScreenPayload(String npcId, String translateKey, int friendshipPoints) {
@@ -436,7 +437,7 @@ public record OpenNpcDialogueScreenPayload(
 
     /**
      * Resolves {@code $y 'question_opt1_reply1_opt2_reply2'} tokens.
-     * Shows the question text and the first reply as two pages.
+     * Converts SDV quick questions into the existing $q/$r question flow.
      */
     private static String resolveQuickResponse(String text) {
         if (text == null || !text.contains("$y ")) return text;
@@ -450,12 +451,26 @@ public record OpenNpcDialogueScreenPayload(
         String content = text.substring(start + 4, end);
 
         String[] parts = content.split("_");
+        if (parts.length < 3) {
+            return text;
+        }
         StringBuilder sb = new StringBuilder();
         sb.append(before);
-        if (parts.length >= 1) sb.append(parts[0]); // question text
-        if (parts.length >= 3) sb.append("$b").append(parts[2]); // first reply
+        sb.append("$q 0 null #").append(parts[0]);
+        for (int i = 1; i + 1 < parts.length; i += 2) {
+            sb.append("#$r 0 0 ")
+                .append(DIRECT_DIALOGUE_PREFIX)
+                .append(encodeDirectDialogue(parts[i + 1]))
+                .append("#")
+                .append(parts[i]);
+        }
         sb.append(after);
         return sb.toString();
+    }
+
+    private static String encodeDirectDialogue(String text) {
+        return java.util.Base64.getUrlEncoder().withoutPadding()
+            .encodeToString((text == null ? "" : text).getBytes(java.nio.charset.StandardCharsets.UTF_8));
     }
 
     /**

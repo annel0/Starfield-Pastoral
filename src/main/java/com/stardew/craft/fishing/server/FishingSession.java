@@ -154,26 +154,33 @@ public final class FishingSession {
 			if (e != null) {
 				BlockPos hookPos = e.blockPosition();
 				this.bobberPos = hookPos;
+				boolean iceFishingContest = com.stardew.craft.festival.FestivalOfIceService.isFishingContestActive(player);
 				boolean inWater = level.getFluidState(hookPos).is(net.minecraft.tags.FluidTags.WATER)
-					|| level.getFluidState(hookPos).is(net.minecraft.tags.FluidTags.LAVA);
+					|| level.getFluidState(hookPos).is(net.minecraft.tags.FluidTags.LAVA)
+					|| iceFishingContest;
 				if (inWater && !hookInWater) {
 					hookInWater = true;
-					// SDV uses tile coords with practical max ~5 (legendary maxDepth). Cap to 5 to match.
-					this.waterDepth = com.stardew.craft.fishing.server.FishingSessionManager.estimateWaterDepth(level, hookPos, 5);
-					// SDV: bobber within fishSplashPoint rect → timeUntilFishingBite /= 4 + later +0.4 chance + +1 depth.
-					try {
-						com.stardew.craft.fishing.splash.FishSplashState fs =
-								com.stardew.craft.fishing.splash.FishSplashState.getStardewState(level);
-						if (fs != null) {
-							net.minecraft.core.Holder<net.minecraft.world.level.biome.Biome> bh = level.getBiome(hookPos);
-							java.util.List<String> keys = com.stardew.craft.fishing.data.FishingDataManager
-									.resolveVanillaAlignedLocationKeysStatic(level, bh);
-							if (fs.findIntersecting(keys, hookPos) != null) {
-								this.inSplash = true;
-								this.ticksUntilBite = Math.max(1, this.ticksUntilBite / 4);
+					if (iceFishingContest) {
+						this.waterDepth = 5;
+						this.inSplash = false;
+					} else {
+						// SDV uses tile coords with practical max ~5 (legendary maxDepth). Cap to 5 to match.
+						this.waterDepth = com.stardew.craft.fishing.server.FishingSessionManager.estimateWaterDepth(level, hookPos, 5);
+						// SDV: bobber within fishSplashPoint rect → timeUntilFishingBite /= 4 + later +0.4 chance + +1 depth.
+						try {
+							com.stardew.craft.fishing.splash.FishSplashState fs =
+									com.stardew.craft.fishing.splash.FishSplashState.getStardewState(level);
+							if (fs != null) {
+								net.minecraft.core.Holder<net.minecraft.world.level.biome.Biome> bh = level.getBiome(hookPos);
+								java.util.List<String> keys = com.stardew.craft.fishing.data.FishingDataManager
+										.resolveVanillaAlignedLocationKeysStatic(level, bh);
+								if (fs.findIntersecting(keys, hookPos) != null) {
+									this.inSplash = true;
+									this.ticksUntilBite = Math.max(1, this.ticksUntilBite / 4);
+								}
 							}
-						}
-					} catch (Exception ignored) {}
+						} catch (Exception ignored) {}
+					}
 				}
 
 				// If the hook fails to land in water soon, treat it as a cancelled/invalid cast (vanilla would reel back).
@@ -377,7 +384,8 @@ public final class FishingSession {
 	 * chance = base + LuckLevel*0.005 + dailyLuck/2 + (profession_pirate ? base : 0) + (bait_magnet ? base : 0) + extraTackle
 	 */
 	private void decideTreasure(ServerPlayer player, ItemStack rod, RandomSource random) {
-		if (com.stardew.craft.festival.fair.FairFishingGameService.isFishingGameActive(player)) {
+		if (com.stardew.craft.festival.fair.FairFishingGameService.isFishingGameActive(player)
+				|| com.stardew.craft.festival.FestivalOfIceService.isFishingContestActive(player)) {
 			hasTreasure = false;
 			goldenTreasure = false;
 			treasureLoot = List.of();

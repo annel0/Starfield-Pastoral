@@ -1,0 +1,24 @@
+{
+  "id": "festival_of_ice_main_event",
+  "skippable": false,
+  "trigger": { "type": "manual" },
+  "commands": [
+    { "cmd": "lock_player" },
+    { "cmd": "stop_music" },
+    { "cmd": "fade", "mode": "out", "ticks": 20 },
+    { "cmd": "spawn_actor", "actor": "fake_player", "npc_id": "player", "x": -109.5, "y": 64, "z": 57.5, "relative": false, "facing": 0 },
+    { "cmd": "camera", "x": -112.001, "y": 69.538, "z": 67.065, "yaw": -179.9, "pitch": 43.1, "relative": false },
+    { "cmd": "fade", "mode": "in", "ticks": 20 },
+    { "cmd": "pause", "ticks": 40 },
+    { "cmd": "speak", "npc_id": "lewis", "text": "event.festival_of_ice.main.intro_1" },
+    { "cmd": "pause", "ticks": 20 },
+    { "cmd": "speak", "npc_id": "lewis", "text": "event.festival_of_ice.main.intro_2" },
+    { "cmd": "pause", "ticks": 20 },
+    { "cmd": "speak", "npc_id": "lewis", "text": "event.festival_of_ice.main.ready" },
+    { "cmd": "pause", "ticks": 30 },
+    { "cmd": "speak", "npc_id": "lewis", "text": "event.festival_of_ice.main.begin" },
+    { "cmd": "pause", "ticks": 10 },
+    { "cmd": "remove_actor", "actor": "fake_player" },
+    { "cmd": "end" }
+  ]
+}

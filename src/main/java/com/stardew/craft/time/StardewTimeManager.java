@@ -41,7 +41,6 @@ public class StardewTimeManager extends SavedData {
         "summer_13_1",
         "summer_19_1",
         "summer_20_1",
-        "summer_28",
         "fall_1",
         "fall_2_1",
         "fall_6_1",
@@ -444,10 +443,15 @@ public class StardewTimeManager extends SavedData {
             default -> "";
         };
 
-        // season_day 只投递当前已落地的日期信；节日通知与未实现内容先不进入邮箱。
+        // season_day 只投递当前已落地的非节日日期信；节日通知信由 FestivalRegistry 元数据统一控制。
         String keyNoYear = seasonName + "_" + day;
         if (shouldDeliverDateTriggeredMail(keyNoYear)) {
             com.stardew.craft.mail.MailService.addMail(player, keyNoYear);
+        }
+        for (String festivalMailId : com.stardew.craft.festival.FestivalService.activeFestivalAnnouncementMailIdsForDate(season, day)) {
+            if (com.stardew.craft.mail.MailRegistry.contains(festivalMailId)) {
+                com.stardew.craft.mail.MailService.addMail(player, festivalMailId);
+            }
         }
     }
 

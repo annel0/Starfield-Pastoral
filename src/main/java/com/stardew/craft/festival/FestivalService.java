@@ -178,7 +178,7 @@ public final class FestivalService {
         if (isDebugActiveFestival(definition.id())) {
             return;
         }
-        String translationKey = activeStartMessageKey(definition.id());
+        String translationKey = definition.startMessageKey();
         if (translationKey.isBlank()) {
             return;
         }
@@ -201,21 +201,6 @@ public final class FestivalService {
         }
     }
 
-    private static String activeStartMessageKey(String festivalId) {
-        if (festivalId == null) {
-            return "";
-        }
-        return switch (festivalId.toLowerCase(Locale.ROOT)) {
-            case "spring13" -> "message.stardewcraft.festival.egg.started";
-            case "spring24" -> "message.stardewcraft.festival.flower_dance.started";
-            case "summer11" -> "message.stardewcraft.festival.luau.started";
-            case "summer28" -> "message.stardewcraft.festival.moonlight_jellies.started";
-            case "fall16" -> "message.stardewcraft.festival.fair.started";
-            case "fall27" -> "message.stardewcraft.festival.spirit_eve.started";
-            default -> "";
-        };
-    }
-
     private static void broadcastPassiveFestivalStartIfDue(MinecraftServer server, FestivalDefinition definition, FestivalSessionState session) {
         if (server == null || definition == null || session == null || definition.type() != FestivalType.PASSIVE) {
             return;
@@ -224,7 +209,7 @@ public final class FestivalService {
             && definition.dayOfFestival(session.season(), session.day()) != 1) {
             return;
         }
-        String translationKey = passiveStartMessageKey(definition.id());
+        String translationKey = definition.startMessageKey();
         if (translationKey.isBlank()) {
             return;
         }
@@ -238,17 +223,26 @@ public final class FestivalService {
         }
     }
 
-    private static String passiveStartMessageKey(String festivalId) {
-        if (festivalId == null) {
-            return "";
+    public static List<String> activeFestivalAnnouncementMailIdsForDate(int season, int day) {
+        String mailId = calendarMailId(season, day);
+        if (mailId.isBlank()) {
+            return List.of();
         }
-        return switch (festivalId.toLowerCase(Locale.ROOT)) {
-            case "desertfestival" -> "message.stardewcraft.festival.passive.desert.started";
-            case "troutderby" -> "message.stardewcraft.festival.passive.trout_derby.started";
-            case "squidfest" -> "message.stardewcraft.festival.passive.squid_fest.started";
-            case "nightmarket" -> "message.stardewcraft.festival.passive.night_market.started";
+        return FestivalRegistry.activeFestivals().stream()
+            .map(FestivalDefinition::announcementMailId)
+            .filter(id -> !id.isBlank() && id.equals(mailId))
+            .toList();
+    }
+
+    private static String calendarMailId(int season, int day) {
+        String seasonName = switch (season) {
+            case FestivalRegistry.SPRING -> "spring";
+            case FestivalRegistry.SUMMER -> "summer";
+            case FestivalRegistry.FALL -> "fall";
+            case FestivalRegistry.WINTER -> "winter";
             default -> "";
         };
+        return seasonName.isBlank() || day < 1 || day > 28 ? "" : seasonName + "_" + day;
     }
 
     public static boolean isActiveFestivalEntryOpen(String festivalId) {

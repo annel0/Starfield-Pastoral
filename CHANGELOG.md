@@ -1,5 +1,41 @@
 # Changelog
 
+## 0.4.10 - 2026-07-08
+
+### Update Log (English)
+
+#### Festival of Ice
+
+- Added Winter 8 Festival of Ice as an active Cindersap Forest festival, including entry/exit flow, time freeze behavior, forest overlay placement, boundary return handling, festival music, and debug setup hooks.
+- Added Festival of Ice NPC placements and dialogue flow, with the shared active-festival NPC actor runtime reused across existing stable festivals.
+- Added the Festival of Ice traveling merchant shop, including the available stock supported by current StardewCraft items, decorations, wallpaper, lights, food, and rarecrow resources.
+- Added the ice fishing contest flow with Lewis sign-up dialogue, intro/result cutscenes, temporary festival fishing rod handling, fish-only contest catches, HUD timer/fish count, multiplayer scoreboard display, winner handling, repeat-year reward behavior, and cleanup on contest end.
+- Added Festival of Ice music/audio wiring, overlay structure resources, and the Winter Star Tree decoration model/item/block integration.
+
+#### Debugging, Cosmetics, and Integration
+
+- Added an in-game point-plan debugging tool for festival placement work, including shift-right-click GUI editing, point capture from player block position/facing, NPC name autocomplete, export/copy, deletion, and unified debug command routing.
+- Expanded hat/cosmetic resources and registered Sailor's Cap through the existing hat system for the Festival of Ice fishing reward path.
+- Improved active-festival map overlay handling around festival bounds, nearby tree cleanup/restoration, interaction locking, HUD/music state sync, and fishing session compatibility for festival minigames.
+- Renamed festival schematic resources to stable English asset names and updated the public mod version to `0.4.10`.
+
+### 更新日志（中文）
+
+#### 冰雪节
+
+- 加入冬 8 冰雪节作为煤矿森林主动节日，覆盖入场/退场、时间冻结、森林 overlay 放置、边界返回、节日音乐和调试布置流程。
+- 加入冰雪节 NPC 落点与对话流程，并把现有稳定主动节日统一到共享的节日 NPC actor runtime。
+- 加入冰雪节旅行商店，接入当前 StardewCraft 已支持的商品、装饰、墙纸、壁灯、食物和珍奇乌鸦资源。
+- 加入冰钓比赛流程：刘易斯报名对话、开场/结算 cutscene、临时节日钓竿、只计数不入包的鱼类捕获、HUD 倒计时/鱼数量、多人 scoreboard、胜负判定、重复年度奖励和赛后清理。
+- 加入冰雪节音乐/音效、会场结构资源，以及冬日星树装饰模型/物品/方块接入。
+
+#### 调试、装扮与集成
+
+- 加入用于节日点位制作的游戏内点位方案调试工具，支持 Shift+右键 GUI 编辑、读取玩家整数格坐标和朝向、NPC 名称自动补全、复制导出、删除，并归并到统一调试命令入口。
+- 扩展帽子/装扮资源，并通过现有帽子系统注册水手帽，用于冰钓比赛奖励路径。
+- 改进主动节日 overlay 边界附近树木清理/复原、交互锁、HUD/音乐同步，以及节日小游戏对钓鱼 session 的兼容。
+- 将节日 schematic 资源重命名为稳定英文资源名，并将项目公开版本号更新为 `0.4.10`。
+
 ## 0.4.9 - 2026-07-07
 
 ### Update Log (English)

@@ -106,6 +106,7 @@ import com.stardew.craft.item.misc.StardropTeaItem;
 import com.stardew.craft.item.tool.AutoFeedTroughUpgraderItem;
 import com.stardew.craft.item.tool.HoeItem;
 import com.stardew.craft.item.tool.PaintbrushItem;
+import com.stardew.craft.item.tool.PointPlanWandItem;
 import com.stardew.craft.item.tool.RouteEditorWandItem;
 import com.stardew.craft.item.tool.ScytheItem;
 import com.stardew.craft.item.tool.FishingRodItem;
@@ -815,6 +816,9 @@ public class ModItems {
         public static final DeferredItem<Item> LUAU_TOTEM = ITEMS.register("luau_totem",
                         () -> new StardewBlockItem(ModBlocks.LUAU_TOTEM.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
 
+        public static final DeferredItem<Item> WINTER_STAR_TREE = ITEMS.register("winter_star_tree",
+                        () -> new StardewBlockItem(ModBlocks.WINTER_STAR_TREE.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
+
         public static final DeferredItem<Item> FAIR_WHEEL = ITEMS.register("fair_wheel",
                         () -> new StardewBlockItem(ModBlocks.FAIR_WHEEL.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
 
@@ -1127,6 +1131,9 @@ public class ModItems {
 
     public static final DeferredItem<Item> ROUTE_EDITOR_WAND = ITEMS.register("route_editor_wand",
             () -> new RouteEditorWandItem(new Item.Properties().stacksTo(1)));
+
+    public static final DeferredItem<Item> POINT_PLAN_WAND = ITEMS.register("point_plan_wand",
+            () -> new PointPlanWandItem(new Item.Properties().stacksTo(1)));
 
     public static final DeferredItem<Item> MINE_TOTEM = ITEMS.register("mine_totem",
             () -> new com.stardew.craft.item.tool.MineTotemItem(new Item.Properties().stacksTo(1)));
@@ -2973,18 +2980,11 @@ public class ModItems {
             () -> new com.stardew.craft.item.equipment.CombinedRingItem(new Item.Properties()));
 
     // ============ 装饰物品：帽子 (Cosmetic Hats) ============
-    public static final DeferredItem<Item> STRAW_HAT = ITEMS.register("straw_hat",
-            () -> new com.stardew.craft.item.cosmetic.StardewHatItem("4", -1,
-                    net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "models/entity/hat/straw_hat.json"),
-                    new Item.Properties().stacksTo(1)));
-    public static final DeferredItem<Item> EARMUFFS = ITEMS.register("earmuffs",
-            () -> new com.stardew.craft.item.cosmetic.StardewHatItem("11", -1,
-                    net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "models/entity/hat/earmuffs.json"),
-                    new Item.Properties().stacksTo(1)));
-    public static final DeferredItem<Item> TOP_HAT = ITEMS.register("top_hat",
-            () -> new com.stardew.craft.item.cosmetic.StardewHatItem("2", -1,
-                    net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "models/entity/hat/top_hat.json"),
-                    new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<Item> BLUE_BONNET = registerHat("blue_bonnet", "6");
+    public static final DeferredItem<Item> STRAW_HAT = registerHat("straw_hat", "4");
+    public static final DeferredItem<Item> SAILORS_CAP = registerHat("sailors_cap", "17");
+    public static final DeferredItem<Item> EARMUFFS = registerHat("earmuffs", "11");
+    public static final DeferredItem<Item> TOP_HAT = registerHat("top_hat", "2");
 
     // ============ 靴子 (Boots) ============
     public static final DeferredItem<Item> SNEAKERS = ITEMS.register("sneakers",
@@ -3091,4 +3091,11 @@ public class ModItems {
             () -> new StardewBlockItem(com.stardew.craft.block.ModBlocks.LONG_POTTED_PLANT.get(),
                     "stardewcraft.type.furniture", -1, new Item.Properties().stacksTo(999)));
 
+    private static DeferredItem<Item> registerHat(String itemId, String vanillaId) {
+        return ITEMS.register(itemId,
+                () -> new com.stardew.craft.item.cosmetic.StardewHatItem(vanillaId, -1,
+                        net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(
+                                StardewCraft.MODID, "models/entity/hat/" + itemId + ".json"),
+                        new Item.Properties().stacksTo(1)));
+    }
 }

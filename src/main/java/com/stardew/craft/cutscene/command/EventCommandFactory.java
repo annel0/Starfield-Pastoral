@@ -116,6 +116,14 @@ public final class EventCommandFactory {
                     getString(obj, "npc_text", "")
             );
 
+            case "ice_fishing_speak" -> new IceFishingSpeakCommand(
+                    getString(obj, "npc_id", "lewis"),
+                    getString(obj, "mode", "winner"),
+                    getString(obj, "text", ""),
+                    getString(obj, "player_text", ""),
+                    getString(obj, "npc_text", "")
+            );
+
             case "egg_festival_stage" -> new EggFestivalStageCommand(
                     getString(obj, "stage", "main"),
                     getInt(obj, "ticks", 10)

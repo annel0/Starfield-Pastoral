@@ -914,6 +914,26 @@ public final class ShopRegistry {
             Set.of()
         ));
 
+        REGISTRY.put("Festival_FestivalOfIce_TravelingMerchant", new ShopDefinition(
+            "Festival_FestivalOfIce_TravelingMerchant",
+            "",
+            "",
+            List.of(
+                // SDV Data/Shops.json Festival_FestivalOfIce_TravelingMerchant:
+                // (BC)136, (F)1440, (WP)MoreWalls:19, (F)800, (O)238, (O)239, (O)236.
+                // Ice Dreams, Ice Rug, Winter Dining Table, Ice Banner, and Winter End Table
+                // are intentionally skipped until their project assets exist. Wallpaper is injected
+                // in getFilteredItemsForPlayer using the same decoration unlock path as JojaMart.
+                entryStock("stardewcraft:scarecrow_4", 5000, 1),
+                entryAllSeasons("stardewcraft:winter_star_tree", 5000),
+                entryAllSeasons("stardewcraft:light_6", 3000),
+                entryStock("stardewcraft:cranberry_sauce", 200, 1),
+                entryStock("stardewcraft:stuffing", 200, 1),
+                entryStock("stardewcraft:pumpkin_soup", 250, 1)
+            ),
+            Set.of()
+        ));
+
         // -------------------------------------------------------------------
         // Joja Mart — SDV source: 源文件/Content/Data/Shops.json "Joja" section.
         //
@@ -1209,6 +1229,17 @@ public final class ShopRegistry {
         }
         if ("BooksellerTrade".equals(shopId)) {
             appendBooksellerTradeStock(result, player, time);
+        }
+
+        if ("Festival_FestivalOfIce_TravelingMerchant".equals(shopId)
+                && !data.isDecorationUnlocked(com.stardew.craft.deco.DecorationType.WALLPAPER, "MoreWalls:19")) {
+            String wpItemId = "wallpaper:MoreWalls:19";
+            int wpRemaining = ShopStockTracker.getRemaining(playerId, shopId, wpItemId, 1);
+            if (wpRemaining > 0) {
+                ShopItemEntry wallpaperEntry = new ShopItemEntry(wpItemId, "", "", 500, wpRemaining,
+                    null, 0, Set.of(), 1, 0, null, -1, 0, 1);
+                result.add(Math.min(2, result.size()), wallpaperEntry);
+            }
         }
 
         // SDV parity: Joja 每日 RANDOM 壁纸/地板 — (WP) 0..111 / (FL) 0..39 @ 250g

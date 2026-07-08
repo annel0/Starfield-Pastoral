@@ -276,6 +276,8 @@ public class MapDecorStaticBlock extends Block {
             shape = Block.box(-25.66D, 0.0D, -5.26D, 41.66D, 20.1D, 21.26D);
         } else if (modelId.contains("luau_totem_proxy")) {
             shape = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 40.0D, 16.0D);
+        } else if (modelId.contains("winter_star_tree_proxy")) {
+            shape = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 52.0D, 16.0D);
         } else if (modelId.endsWith("/fair_grave_stone")) {
             shape = Block.box(2.0D, 0.0D, 2.0D, 14.0D, 16.0D, 14.0D);
         } else if (modelId.contains("uncertainty_statue_proxy")) {

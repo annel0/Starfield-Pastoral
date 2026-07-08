@@ -31,7 +31,6 @@ import com.stardew.craft.npc.data.NpcDataRegistry;
 import com.stardew.craft.npc.runtime.NpcCentralMovementService;
 import com.stardew.craft.npc.runtime.NpcFriendshipDataManager;
 import com.stardew.craft.npc.runtime.NpcInteractionService;
-import com.stardew.craft.npc.runtime.NpcSpawnManager;
 import com.stardew.craft.player.PlayerDataEventHandler;
 import com.stardew.craft.player.PlayerStardewData;
 import com.stardew.craft.player.PlayerStardewDataAPI;
@@ -74,7 +73,6 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -83,6 +81,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
+
+import static com.stardew.craft.festival.FestivalNpcActorRuntime.actor;
+import static com.stardew.craft.festival.FestivalNpcActorRuntime.actorMap;
+import static com.stardew.craft.festival.FestivalNpcActorRuntime.canonical;
+import static com.stardew.craft.festival.FestivalNpcActorRuntime.point;
+import static com.stardew.craft.festival.FestivalNpcActorRuntime.route;
 
 public final class FairFestivalService {
     public static final String FESTIVAL_ID = "fall16";
@@ -136,7 +140,7 @@ public final class FairFestivalService {
     private static final int ROUTE_WAIT_TICKS = 30;
     private static final int GRANGE_JUDGING_STALL_WAIT_TICKS = 60;
     private static final int GRANGE_JUDGING_RETURN_WAIT_TICKS = 20;
-    private static final List<Waypoint> GRANGE_JUDGING_ROUTE = List.of(
+    private static final List<FestivalNpcActorRuntime.Waypoint> GRANGE_JUDGING_ROUTE = List.of(
         point(1, 64, -2, 'N'),
         point(8, 64, -2, 'N'),
         point(12, 64, -2, 'N'),
@@ -144,10 +148,33 @@ public final class FairFestivalService {
         point(20, 64, -2, 'N'),
         point(1, 64, -11, 'S')
     );
-    private static final List<Vec3> GRANGE_JUDGING_ROUTE_TARGETS = GRANGE_JUDGING_ROUTE.stream().map(Waypoint::position).toList();
-    private static final Map<String, ActorDefinition> ACTORS = createActors();
-    private static final Set<String> ACTOR_IDS = Set.copyOf(ACTORS.keySet());
-    private static final Map<String, ActorRuntime> RUNTIME = new LinkedHashMap<>();
+    private static final List<Vec3> GRANGE_JUDGING_ROUTE_TARGETS = GRANGE_JUDGING_ROUTE.stream().map(FestivalNpcActorRuntime.Waypoint::position).toList();
+    private static final Map<String, FestivalNpcActorRuntime.ActorDefinition> ACTORS = createActors();
+    private static final FestivalNpcActorRuntime NPC_ACTORS = new FestivalNpcActorRuntime(new FestivalNpcActorRuntime.Config(
+        "Stardew Valley Fair",
+        MOVEMENT_OWNER,
+        ACTOR_TAG,
+        "fair_",
+        ENTRY_EXIT_BOUNDS,
+        STATIC_VERIFY_TICKS,
+        SPAWN_RETRY_TICKS,
+        FestivalNpcActorRuntime.DEFAULT_ROTATE_TICKS,
+        false,
+        ACTORS
+    ), new FestivalNpcActorRuntime.Hooks() {
+        @Override
+        public boolean beforeMovement(ServerLevel level,
+                                      FestivalNpcActorRuntime.ActorDefinition definition,
+                                      StardewNpcEntity npc,
+                                      FestivalNpcActorRuntime.ActorRuntime actorRuntime,
+                                      long now) {
+            if ("lewis".equals(definition.npcId()) && grangeJudgingRoutePlayer != null) {
+                tickLewisGrangeJudgingRoute(level, npc, now);
+                return true;
+            }
+            return false;
+        }
+    });
     private static final ActiveFestivalConfirmState CONFIRM_STATE = new ActiveFestivalConfirmState();
     private static final Set<UUID> EXIT_VOTES = CONFIRM_STATE.votes(OpenFestivalConfirmPayload.Action.EXIT);
     private static final Set<UUID> EXIT_VOTE_PARTICIPANTS = CONFIRM_STATE.voteParticipants(OpenFestivalConfirmPayload.Action.EXIT);
@@ -163,41 +190,7 @@ public final class FairFestivalService {
     private static boolean grangeJudgingReturned;
     private static Integer frozenMinute;
     private static Long frozenOverworldDayTime;
-    private static boolean actorsActive;
-    private static boolean debugRequested;
-
-    private record ActorDefinition(String npcId, List<Waypoint> points, List<Waypoint> routePoints, List<Vec3> routeTargets, int waitTicks) {
-        private static ActorDefinition create(String npcId, List<Waypoint> points, int waitTicks) {
-            List<Waypoint> routePoints = points.size() <= 1 ? List.of() : routePoints(points);
-            List<Vec3> routeTargets = routePoints.stream().map(Waypoint::position).toList();
-            return new ActorDefinition(npcId, points, routePoints, routeTargets, waitTicks);
-        }
-
-        private static List<Waypoint> routePoints(List<Waypoint> points) {
-            List<Waypoint> route = new ArrayList<>();
-            for (int i = 1; i < points.size(); i++) {
-                route.add(points.get(i));
-            }
-            route.add(points.get(0));
-            return List.copyOf(route);
-        }
-
-        private boolean hasRoute() {
-            return !routeTargets.isEmpty();
-        }
-    }
-
-    private record Waypoint(Vec3 position, float yaw) {
-    }
-
     private record GrangeScoreProfile(int quality, int price, int category) {
-    }
-
-    private static final class ActorRuntime {
-        private int boundEntityId = -1;
-        private long lastStaticVerifyTick = Long.MIN_VALUE / 4L;
-        private long lastSpawnRequestTick = Long.MIN_VALUE / 4L;
-        private long waitUntilTick;
     }
 
     private record FairAnimalSpawn(Supplier<? extends EntityType<? extends Animal>> type, String managedType, BlockPos pos, float yaw) {
@@ -250,7 +243,7 @@ public final class FairFestivalService {
             return;
         }
         boolean activeDay = isActiveFairDay();
-        boolean debugActive = debugRequested && FestivalMapOverlayManager.isApplied(level, OVERLAY_ID);
+        boolean debugActive = NPC_ACTORS.isDebugRequested() && FestivalMapOverlayManager.isApplied(level, OVERLAY_ID);
         boolean venueActive = activeDay
             && FestivalMapOverlayManager.isApplied(level, OVERLAY_ID)
             && (FestivalService.isActiveFestivalEntryOpen(level, FESTIVAL_ID) || hasCurrentSessionParticipant(level));
@@ -292,65 +285,27 @@ public final class FairFestivalService {
     }
 
     public static void requestDebugNpcs(ServerLevel level) {
-        debugRequested = true;
-        actorsActive = false;
-        RUNTIME.clear();
-        for (String npcId : ACTORS.keySet()) {
-            NpcSpawnManager.resumeNpcSpawn(npcId);
-            NpcSpawnManager.forceSpawnNpc(npcId);
-        }
-        if (level != null) {
-            NpcSpawnManager.tick(level);
-        }
+        NPC_ACTORS.requestDebugStart(level);
         if (level != null && FestivalMapOverlayManager.isApplied(level, OVERLAY_ID)) {
             tickActors(level, true);
         }
     }
 
     public static void restoreNpcs(ServerLevel level) {
-        if (!actorsActive && !debugRequested && RUNTIME.isEmpty()) {
-            return;
-        }
-        debugRequested = false;
-        actorsActive = false;
-        for (String npcId : ACTORS.keySet()) {
-            NpcSpawnManager.resumeNpcSpawn(npcId);
-        }
-        if (level == null) {
-            RUNTIME.clear();
-            return;
-        }
-        NpcSpawnManager.tick(level);
-        for (String npcId : ACTORS.keySet()) {
-            StardewNpcEntity npc = findActorEntity(level, npcId);
-            if (npc == null) {
-                continue;
-            }
-            npc.setInvisible(false);
-            npc.removeTag(ACTOR_TAG);
-            npc.getNavigation().stop();
-            npc.setNoAi(false);
-            npc.setInvulnerable(true);
-            npc.setDeltaMovement(Vec3.ZERO);
-            npc.hasImpulse = false;
-            NpcCentralMovementService.resetMovementPlan(npcId);
-            NpcCentralMovementService.resetAuthoredMovementPlan(npcId, MOVEMENT_OWNER);
-            NpcSpawnManager.snapNpcToCurrentSchedule(level, npcId);
-        }
-        RUNTIME.clear();
+        NPC_ACTORS.restore(level);
     }
 
     public static String debugNpcStatus(ServerLevel level) {
-        StardewNpcEntity lewis = level == null ? null : findActorEntity(level, "lewis");
+        StardewNpcEntity lewis = level == null ? null : NPC_ACTORS.findActorEntity(level, "lewis");
         String lewisPos = lewis == null ? "missing" : fmt(lewis.position());
-        return "Stardew Valley Fair NPC actors: active=" + actorsActive
-            + ", debugRequested=" + debugRequested
+        return "Stardew Valley Fair NPC actors: active=" + NPC_ACTORS.isActorsActive()
+            + ", debugRequested=" + NPC_ACTORS.isDebugRequested()
             + ", Lewis target=(1.5,64.0,-10.5) yaw=0(S)"
             + ", Lewis actual=" + lewisPos;
     }
 
     public static boolean controlsNpc(String npcId) {
-        return actorsActive && ACTOR_IDS.contains(canonical(npcId));
+        return NPC_ACTORS.controlsNpc(npcId);
     }
 
     public static boolean isParticipant(ServerPlayer player) {
@@ -2148,110 +2103,7 @@ public final class FairFestivalService {
     }
 
     private static void tickActors(ServerLevel level, boolean activeRequested) {
-        if (!activeRequested) {
-            if (actorsActive) {
-                restoreNpcs(level);
-            }
-            return;
-        }
-        actorsActive = true;
-        long now = level.getGameTime();
-        for (ActorDefinition definition : ACTORS.values()) {
-            tickActor(level, definition, now);
-        }
-    }
-
-    private static void tickActor(ServerLevel level, ActorDefinition definition, long now) {
-        ActorRuntime runtime = RUNTIME.computeIfAbsent(definition.npcId(), ignored -> new ActorRuntime());
-        StardewNpcEntity npc = findActorEntity(level, definition.npcId());
-        if (npc == null) {
-            if (now - runtime.lastSpawnRequestTick >= SPAWN_RETRY_TICKS) {
-                runtime.lastSpawnRequestTick = now;
-                NpcSpawnManager.forceSpawnNpc(definition.npcId());
-                NpcSpawnManager.tick(level);
-                npc = findActorEntity(level, definition.npcId());
-            }
-            if (npc == null) {
-                return;
-            }
-        }
-
-        if (!npc.getTags().contains(ACTOR_TAG) || runtime.boundEntityId != npc.getId()) {
-            runtime.boundEntityId = npc.getId();
-            NpcCentralMovementService.resetAuthoredMovementPlan(definition.npcId(), MOVEMENT_OWNER);
-            placeAt(level, npc, definition.points().get(0));
-            runtime.lastStaticVerifyTick = now;
-            runtime.waitUntilTick = now + definition.waitTicks();
-        }
-
-        npc.addTag(ACTOR_TAG);
-        npc.setInvisible(false);
-        npc.setNoAi(false);
-        npc.setInvulnerable(true);
-        npc.setPersistenceRequired();
-
-        if ("lewis".equals(definition.npcId()) && grangeJudgingRoutePlayer != null) {
-            tickLewisGrangeJudgingRoute(level, npc, now);
-            return;
-        }
-        if (NpcInteractionService.isDialogueMovementLocked(definition.npcId()) || npc.isFacingOverrideActive()) {
-            NpcCentralMovementService.stopAuthoredMovement(npc);
-            return;
-        }
-        if (definition.hasRoute()) {
-            tickRoute(level, npc, definition, runtime, now);
-        } else {
-            keepAtPoint(level, npc, definition.points().get(0), runtime, now);
-        }
-    }
-
-    private static StardewNpcEntity findActorEntity(ServerLevel level, String npcId) {
-        StardewNpcEntity tracked = NpcSpawnManager.getTrackedNpc(level, npcId);
-        if (tracked != null) {
-            return tracked;
-        }
-        String canonicalId = canonical(npcId);
-        return level.getEntitiesOfClass(StardewNpcEntity.class, ENTRY_EXIT_BOUNDS.inflate(16.0D), npc ->
-                npc.isAlive() && !npc.isRemoved() && canonicalId.equals(canonical(npc.getNpcId())))
-            .stream()
-            .min(Comparator.comparingInt(Entity::getId))
-            .orElse(null);
-    }
-
-    private static void keepAtPoint(ServerLevel level, StardewNpcEntity npc, Waypoint point, ActorRuntime runtime, long now) {
-        if (now - runtime.lastStaticVerifyTick < STATIC_VERIFY_TICKS) {
-            return;
-        }
-        runtime.lastStaticVerifyTick = now;
-        if (npc.position().distanceToSqr(point.position()) > 0.64D) {
-            placeAt(level, npc, point);
-        } else {
-            applyYaw(npc, point.yaw());
-            NpcCentralMovementService.stopAuthoredMovement(npc);
-            npc.setWalking(false);
-        }
-    }
-
-    private static void tickRoute(ServerLevel level, StardewNpcEntity npc, ActorDefinition definition, ActorRuntime runtime, long now) {
-        if (now < runtime.waitUntilTick) {
-            NpcCentralMovementService.stopAuthoredMovement(npc);
-            npc.setWalking(false);
-            return;
-        }
-        int reachedRouteIndex = NpcCentralMovementService.tickAuthoredWalkRoute(
-            level,
-            npc,
-            MOVEMENT_OWNER,
-            "fair_" + definition.npcId(),
-            definition.routeTargets(),
-            true
-        );
-        if (reachedRouteIndex >= 0 && reachedRouteIndex < definition.routePoints().size()) {
-            Waypoint reached = definition.routePoints().get(reachedRouteIndex);
-            applyYaw(npc, reached.yaw());
-            npc.setWalking(false);
-            runtime.waitUntilTick = now + definition.waitTicks();
-        }
+        NPC_ACTORS.tick(level, activeRequested);
     }
 
     private static void tickLewisGrangeJudgingRoute(ServerLevel level, StardewNpcEntity npc, long now) {
@@ -2279,7 +2131,7 @@ public final class FairFestivalService {
         if (reachedRouteIndex < 0 || reachedRouteIndex >= GRANGE_JUDGING_ROUTE.size()) {
             return;
         }
-        Waypoint reached = GRANGE_JUDGING_ROUTE.get(reachedRouteIndex);
+        FestivalNpcActorRuntime.Waypoint reached = GRANGE_JUDGING_ROUTE.get(reachedRouteIndex);
         applyYaw(npc, reached.yaw());
         npc.setWalking(false);
         if (reachedRouteIndex == GRANGE_JUDGING_ROUTE.size() - 1) {
@@ -2315,21 +2167,11 @@ public final class FairFestivalService {
         grangeJudgingReturned = false;
         NpcCentralMovementService.resetAuthoredMovementPlan("lewis", MOVEMENT_OWNER);
         if (level != null) {
-            StardewNpcEntity lewis = findActorEntity(level, "lewis");
+            StardewNpcEntity lewis = NPC_ACTORS.findActorEntity(level, "lewis");
             if (lewis != null) {
                 NpcCentralMovementService.stopAuthoredMovement(lewis);
             }
         }
-    }
-
-    private static void placeAt(ServerLevel level, StardewNpcEntity npc, Waypoint point) {
-        npc.getNavigation().stop();
-        npc.moveTo(point.position().x, point.position().y, point.position().z, point.yaw(), 0.0F);
-        NpcCentralMovementService.snapToSurface(level, npc);
-        npc.setDeltaMovement(Vec3.ZERO);
-        npc.hasImpulse = false;
-        applyYaw(npc, point.yaw());
-        npc.setWalking(false);
     }
 
     private static void applyYaw(StardewNpcEntity npc, float yaw) {
@@ -2379,28 +2221,6 @@ public final class FairFestivalService {
         ).forEach(BaseCoopAnimalEntity::discard);
     }
 
-    private static ActorDefinition actor(String npcId, Waypoint point) {
-        return ActorDefinition.create(canonical(npcId), List.of(point), 0);
-    }
-
-    private static ActorDefinition route(String npcId, Waypoint... points) {
-        return ActorDefinition.create(canonical(npcId), List.of(points), ROUTE_WAIT_TICKS);
-    }
-
-    private static Waypoint point(double x, double y, double z, char facing) {
-        return new Waypoint(new Vec3(x + 0.5D, y, z + 0.5D), yaw(facing));
-    }
-
-    private static float yaw(char facing) {
-        return switch (Character.toUpperCase(facing)) {
-            case 'N' -> 180.0F;
-            case 'E' -> -90.0F;
-            case 'W' -> 90.0F;
-            case 'S' -> 0.0F;
-            default -> 0.0F;
-        };
-    }
-
     private static String canonical(String npcId) {
         return npcId == null ? "" : npcId.trim().toLowerCase(Locale.ROOT);
     }
@@ -2422,8 +2242,12 @@ public final class FairFestivalService {
         return new AABB(minX, minY, minZ, maxX + 1.0D, maxY + 1.0D, maxZ + 1.0D);
     }
 
-    private static Map<String, ActorDefinition> createActors() {
-        List<ActorDefinition> definitions = new ArrayList<>();
+    private static FestivalNpcActorRuntime.ActorDefinition route(String npcId, FestivalNpcActorRuntime.Waypoint... points) {
+        return FestivalNpcActorRuntime.route(npcId, true, ROUTE_WAIT_TICKS, points);
+    }
+
+    private static Map<String, FestivalNpcActorRuntime.ActorDefinition> createActors() {
+        List<FestivalNpcActorRuntime.ActorDefinition> definitions = new ArrayList<>();
         definitions.add(actor("lewis", point(1, 64, -11, 'S')));
         definitions.add(actor("caroline", point(5, 64, -5, 'W')));
         definitions.add(actor("pierre", point(6, 64, -4, 'S')));
@@ -2454,10 +2278,6 @@ public final class FairFestivalService {
         definitions.add(actor("harvey", point(49, 64, 5, 'E')));
         definitions.add(actor("linus", point(63, 64, 12, 'W')));
 
-        Map<String, ActorDefinition> result = new LinkedHashMap<>();
-        for (ActorDefinition definition : definitions) {
-            result.put(definition.npcId(), definition);
-        }
-        return java.util.Collections.unmodifiableMap(result);
+        return actorMap(definitions);
     }
 }

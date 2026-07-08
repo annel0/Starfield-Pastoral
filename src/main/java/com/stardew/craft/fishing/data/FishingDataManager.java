@@ -35,6 +35,10 @@ public final class FishingDataManager {
 	private static final Gson GSON = new Gson();
 	private static final Set<String> INHERITED_POOL_KEYS = Set.of("Default");
 	private static final String LEGACY_COMPAT_POOL_KEY = "stardewcraft:stardew_valley";
+	private static final TagKey<Item> FISHES_TAG = TagKey.create(
+			Registries.ITEM,
+			ResourceLocation.fromNamespaceAndPath("stardewcraft", "fishes")
+	);
 
 	/**
 	 * Items that are technically caught while fishing but are not backed by
@@ -178,10 +182,12 @@ public final class FishingDataManager {
 		boolean usingGoodBait = isUsingGoodBait(rodStack);
 		String baitTargetFishId = getTargetedBaitFishId(rodStack);
 		boolean fairFishingGame = com.stardew.craft.festival.fair.FairFishingGameService.isFishingGameActive(player);
-		List<String> lookupKeys = fairFishingGame
+		boolean iceFishingContest = com.stardew.craft.festival.FestivalOfIceService.isFishingContestActive(player);
+		boolean festivalFishingGame = fairFishingGame || iceFishingContest;
+		List<String> lookupKeys = festivalFishingGame
 				? List.of("fishingGame")
 				: resolveVanillaAlignedLocationKeys(level, level.getBiome(bobberPos));
-		boolean poolOnly = fairFishingGame || useDesertFestivalPoolOnly(level.getBiome(bobberPos));
+		boolean poolOnly = festivalFishingGame || useDesertFestivalPoolOnly(level.getBiome(bobberPos));
 
 		// 获取浮漂位置的群系
 		@SuppressWarnings("null")
@@ -197,8 +203,13 @@ public final class FishingDataManager {
 		int stardewTime = currentStardewTime();
 		String currentSeason = getCurrentSeason(level);
 
-		String fishAreaId = fairFishingGame ? null : resolveVanillaFishAreaId(biomeHolder);
+		String fishAreaId = festivalFishingGame ? null : resolveVanillaFishAreaId(biomeHolder);
 		List<CandidateRule> candidates = collectCandidatesByKeys(lookupKeys, poolOnly);
+		if (iceFishingContest) {
+			candidates = new ArrayList<>(candidates.stream()
+					.filter(candidate -> isFishRule(candidate.rule()))
+					.toList());
+		}
 
 		if (candidates.isEmpty()) {
 			// 如果没有任何候选鱼（数据未加载或配置错误），直接返回垃圾
@@ -403,6 +414,18 @@ public final class FishingDataManager {
 		boolean skip = chosen.skipMinigame() || isNonFishCatchable(chosen.itemId());
 		return Optional.of(new FishSelection(stack, chosen.difficulty(), chosen.motionTypeId(),
 				chosen.minFishSize(), chosen.maxFishSize(), skip));
+	}
+
+	private static boolean isFishRule(SpawnFishRule rule) {
+		if (rule == null || rule.itemId() == null || rule.itemId().isBlank()) {
+			return false;
+		}
+		ResourceLocation id = ResourceLocation.tryParse(rule.itemId());
+		if (id == null) {
+			return false;
+		}
+		Item item = BuiltInRegistries.ITEM.get(id);
+		return item != null && item != Items.AIR && item.builtInRegistryHolder().is(FISHES_TAG);
 	}
 
 	private List<CandidateRule> collectCandidatesByKeys(List<String> lookupKeys) {

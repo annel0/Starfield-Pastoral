@@ -1447,6 +1447,14 @@
       }
     ]
   },
+  "music_christmas_theme": {
+    "sounds": [
+      {
+        "name": "stardewcraft:music/christmas_theme",
+        "stream": true
+      }
+    ]
+  },
   "music_fall_fest": {
     "sounds": [
       {

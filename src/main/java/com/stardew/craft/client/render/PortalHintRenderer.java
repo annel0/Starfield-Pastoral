@@ -12,6 +12,7 @@ import com.stardew.craft.client.render.ClientStarterChestState;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModMiningDimensions;
 import com.stardew.craft.festival.FairFestivalService;
+import com.stardew.craft.festival.FestivalOfIceService;
 import com.stardew.craft.festival.desert.DesertFestivalCookService;
 import com.stardew.craft.festival.desert.DesertFestivalRaceService;
 import com.stardew.craft.festival.desert.DesertFestivalService;
@@ -351,6 +352,9 @@ public final class PortalHintRenderer {
         if (FairFestivalService.STAR_TOKEN_SHOP_TARGET_ID.equals(targetId)) {
             return HintStyle.SHOP;
         }
+        if (FestivalOfIceService.TRAVELING_MERCHANT_TARGET_ID.equals(targetId)) {
+            return HintStyle.SHOP;
+        }
         if (FairFestivalService.STAR_TOKEN_PURCHASE_TARGET_ID.equals(targetId)) {
             return HintStyle.SHOP;
         }
@@ -376,6 +380,7 @@ public final class PortalHintRenderer {
             case FairSlingshotGameService.TARGET_ID -> "fair_slingshot_game";
             case FairFishingGameService.TARGET_ID -> "fair_fishing_game";
             case FairFestivalService.STAR_TOKEN_SHOP_TARGET_ID -> "fair_star_token_shop";
+            case FestivalOfIceService.TRAVELING_MERCHANT_TARGET_ID -> "festival_of_ice_traveling_merchant";
             case FairFestivalService.STAR_TOKEN_PURCHASE_TARGET_ID -> "fair_star_token_purchase";
             case FairFestivalService.FORTUNE_TELLER_TARGET_ID -> "fair_fortune_teller";
             case "quarry_entrance", "quarry_exit" -> "quarry";

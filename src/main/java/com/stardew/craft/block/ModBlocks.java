@@ -2300,6 +2300,14 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .strength(1.0F, 2.0F), "stardewcraft:decor/festival/luau_totem_proxy"));
 
         @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WINTER_STAR_TREE = BLOCKS.register("winter_star_tree",
+                        () -> new com.stardew.craft.block.decor.LuauGeoFestivalDecorBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.WOOD)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(1.0F, 2.0F), "stardewcraft:decor/festival/winter_star_tree_proxy"));
+
+        @SuppressWarnings("null")
         public static final DeferredBlock<Block> FAIR_STRENGTH_TESTER = BLOCKS.register("fair_strength_tester",
                         () -> new com.stardew.craft.block.decor.FairStrengthTesterBlock(Block.Properties.of()
                                         .mapColor(net.minecraft.world.level.material.MapColor.METAL)

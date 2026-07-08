@@ -278,7 +278,8 @@ public final class FishingSessionManager {
 			minigameDifficulty = 50;
 		}
 		boolean loseProgressOutsideBar = !firstCatch
-				|| com.stardew.craft.festival.fair.FairFishingGameService.isFishingGameActive(player);
+				|| com.stardew.craft.festival.fair.FairFishingGameService.isFishingGameActive(player)
+				|| com.stardew.craft.festival.FestivalOfIceService.isFishingContestActive(player);
 
 		PacketDistributor.sendToPlayer(player, new com.stardew.craft.fishing.network.StartMinigamePayload(
 				session.id(),
@@ -308,12 +309,14 @@ public final class FishingSessionManager {
 		// Mirror the "caught" branch but without minigame, treasure, or tackle durability consumption.
 		ItemStack rod = getRodFromPlayer(player);
 		boolean fairFishingGame = com.stardew.craft.festival.fair.FairFishingGameService.isFishingGameActive(player);
+		boolean iceFishingContest = com.stardew.craft.festival.FestivalOfIceService.isFishingContestActive(player);
+		boolean festivalFishingGame = fairFishingGame || iceFishingContest;
 		ItemStack caughtStack = session.plannedCatch();
 		if (caughtStack == null || caughtStack.isEmpty()) {
 			caughtStack = new ItemStack(com.stardew.craft.item.ModItems.TRASH.get());
 		}
 
-		if (!fairFishingGame) {
+		if (!festivalFishingGame) {
 			@SuppressWarnings("null")
 			boolean added = player.getInventory().add(caughtStack.copy());
 			if (!added) {
@@ -330,13 +333,15 @@ public final class FishingSessionManager {
 
 		if (fairFishingGame) {
 			com.stardew.craft.festival.fair.FairFishingGameService.onFishingCatch(player, false, 0, false);
+		} else if (iceFishingContest) {
+			com.stardew.craft.festival.FestivalOfIceService.onFishingCatch(player, false);
 		} else {
 			spawnVanillaExperienceOrb(player, vanillaInstantCatchExperience(session.difficulty()));
 			// SV: non-fish items grant 3 fishing XP.
 			PlayerStardewDataAPI.addExperience(player, SkillType.FISHING, 3);
 		}
 
-		if (!fairFishingGame) {
+		if (!festivalFishingGame) {
 			// Consume bait on success, but do NOT consume tackle durability for junk/catchables.
 			com.stardew.craft.item.tool.FishingRodItem.consumeBait(player, rod);
 		}
@@ -423,6 +428,8 @@ public final class FishingSessionManager {
 		// 获取鱼竿（用于消耗鱼饵和渔具）
 		ItemStack rod = getRodFromPlayer(player);
 		boolean fairFishingGame = com.stardew.craft.festival.fair.FairFishingGameService.isFishingGameActive(player);
+		boolean iceFishingContest = com.stardew.craft.festival.FestivalOfIceService.isFishingContestActive(player);
+		boolean festivalFishingGame = fairFishingGame || iceFishingContest;
 		boolean hasWildBait = rod != null && !rod.isEmpty() && com.stardew.craft.item.tool.FishingRodItem.hasBait(rod, "stardewcraft:wild_bait");
 		boolean hasChallengeBait = rod != null && !rod.isEmpty() && com.stardew.craft.item.tool.FishingRodItem.hasBait(rod, "stardewcraft:challenge_bait");
 		
@@ -491,6 +498,8 @@ public final class FishingSessionManager {
 						fairFishingScoreSize(session),
 						perfect
 					);
+				} else if (iceFishingContest) {
+					com.stardew.craft.festival.FestivalOfIceService.onFishingCatch(player, true);
 				} else {
 					PlayerStardewDataAPI.addFishCatchCount(player, itemId, finalNumCaught);
 					// Quest: fish caught
@@ -498,11 +507,11 @@ public final class FishingSessionManager {
 					com.stardew.craft.specialorder.SpecialOrderManager.recordFishCaught(player, fish, finalNumCaught);
 				}
 			}
-			boolean awardTroutDerbyTag = !fairFishingGame && com.stardew.craft.festival.trout.TroutDerbyService.shouldAwardGoldenTag(
+			boolean awardTroutDerbyTag = !festivalFishingGame && com.stardew.craft.festival.trout.TroutDerbyService.shouldAwardGoldenTag(
 					player, fish, finalNumCaught);
 			
 			// Give multiple fish if applicable.
-			if (!fairFishingGame) {
+			if (!festivalFishingGame) {
 				if (finalNumCaught <= 1) {
 					@SuppressWarnings("null")
 					boolean added = player.getInventory().add(fish.copy());
@@ -526,7 +535,7 @@ public final class FishingSessionManager {
 			}
 
 			// 处理宝箱战利品（在鱼动画之前发送，让客户端知道有宝箱）
-			if (!fairFishingGame && session.hasTreasure() && treasureCaught) {
+			if (!festivalFishingGame && session.hasTreasure() && treasureCaught) {
 				generateAndGiveTreasure(player, session, awardTroutDerbyTag);
 			} else if (awardTroutDerbyTag) {
 				com.stardew.craft.festival.trout.TroutDerbyService.awardGoldenTagWithoutTreasure(player);
@@ -543,13 +552,13 @@ public final class FishingSessionManager {
 			var id = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(fish.getItem());
 			PacketDistributor.sendToPlayer(player, new FishingCatchVisualPayload(id, fish.getCount()));
 			
-			if (!fairFishingGame) {
+			if (!festivalFishingGame) {
 				int baseExp = 10 + session.difficulty();
 				spawnVanillaExperienceOrb(player, vanillaFishingExperience(session.difficulty(), treasureCaught));
 				PlayerStardewDataAPI.addExperience(player, SkillType.FISHING, baseExp);
 			}
 
-				if (!fairFishingGame) {
+				if (!festivalFishingGame) {
 					// 消耗鱼饵（成功时消耗 1；若有 Preserving 则 50% 概率不消耗）
 					com.stardew.craft.item.tool.FishingRodItem.consumeBait(player, rod);
 
@@ -559,13 +568,13 @@ public final class FishingSessionManager {
 				}
 			}
 		} else {
-			if (!fairFishingGame) {
+			if (!festivalFishingGame) {
 				PlayerStardewDataAPI.addExperience(player, SkillType.FISHING, 2);
 			}
 			// Client-side failure feedback (short visual).
 			PacketDistributor.sendToPlayer(player, new FishingFailVisualPayload());
 
-			if (!fairFishingGame) {
+			if (!festivalFishingGame) {
 				// 失败时也消耗鱼饵（SV：若有 Preserving 则 50% 概率保留；Deluxe Bait 不影响消耗）
 				com.stardew.craft.item.tool.FishingRodItem.consumeBait(player, rod);
 			}

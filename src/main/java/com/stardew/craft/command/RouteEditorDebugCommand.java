@@ -16,9 +16,11 @@ public final class RouteEditorDebugCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("stardew")
             .requires(source -> source.hasPermission(2))
-            .then(Commands.literal("route_editor")
-                .then(Commands.literal("give")
-                    .executes(RouteEditorDebugCommand::give))));
+            .then(Commands.literal("debug")
+                .then(Commands.literal("tools")
+                    .then(Commands.literal("route_editor")
+                        .then(Commands.literal("give")
+                            .executes(RouteEditorDebugCommand::give))))));
     }
 
     private static int give(CommandContext<CommandSourceStack> context) {

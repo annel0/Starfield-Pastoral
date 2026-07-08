@@ -255,7 +255,7 @@ public final class ModBlockEntities {
 	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<LuauFestivalDecorBlockEntity>> LUAU_FESTIVAL_DECOR =
 			BLOCK_ENTITIES.register("luau_festival_decor", () -> BlockEntityType.Builder.of(LuauFestivalDecorBlockEntity::new,
-					ModBlocks.LUAU_SOUP_POT.get(), ModBlocks.LUAU_TOTEM.get()).build(null));
+					ModBlocks.LUAU_SOUP_POT.get(), ModBlocks.LUAU_TOTEM.get(), ModBlocks.WINTER_STAR_TREE.get()).build(null));
 
 	@SuppressWarnings("null")
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FairStrengthTesterBlockEntity>> FAIR_STRENGTH_TESTER =

@@ -17,6 +17,8 @@ public record FestivalDefinition(
     boolean showOnCalendar,
     boolean onlyShowStartMessageOnFirstDay,
     String startMessageToken,
+    String startMessageKey,
+    String announcementMailId,
     String locationKey,
     String mapOverlayId,
     Map<String, String> mapReplacements,
@@ -40,6 +42,8 @@ public record FestivalDefinition(
         sourceDisplayToken = sourceDisplayToken == null ? "" : sourceDisplayToken;
         sourceCondition = sourceCondition == null ? "" : sourceCondition;
         startMessageToken = startMessageToken == null ? "" : startMessageToken;
+        startMessageKey = startMessageKey == null ? "" : startMessageKey;
+        announcementMailId = announcementMailId == null ? "" : announcementMailId;
         locationKey = locationKey == null ? "" : locationKey;
         mapOverlayId = mapOverlayId == null ? "" : mapOverlayId;
         mapReplacements = mapReplacements == null ? Map.of() : Map.copyOf(mapReplacements);

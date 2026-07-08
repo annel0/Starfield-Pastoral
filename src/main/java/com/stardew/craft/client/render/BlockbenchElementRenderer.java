@@ -50,6 +50,7 @@ final class BlockbenchElementRenderer {
         poseStack.translate(0.0F, -0.25F, 0.0F);
         poseStack.scale(0.625F, -0.625F, -0.625F);
         model.headDisplay().apply(poseStack);
+        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
         poseStack.translate(-0.5F, -0.5F, -0.5F);
         renderLoaded(model, poseStack, buffer, packedLight, packedOverlay, false);
         poseStack.popPose();

@@ -31,7 +31,7 @@ public final class FestivalMapOverlayRegistry {
             "Town",
             new BlockPos(-41, 49, -47),
             "",
-            "data/stardewcraft/structures/festivals/qiujizhanlanhui.schem",
+            "data/stardewcraft/structures/festivals/stardew_valley_fair_town.schem",
             new BlockPos(-41, 49, -47),
             new BlockPos(80, 77, 57),
             List.of(),
@@ -44,7 +44,7 @@ public final class FestivalMapOverlayRegistry {
             "Town",
             new BlockPos(-36, 63, -77),
             "",
-            "data/stardewcraft/structures/festivals/wanlingjie.schem",
+            "data/stardewcraft/structures/festivals/spirit_eve_town.schem",
             new BlockPos(-36, 63, -77),
             new BlockPos(74, 71, 22),
             List.of(),
@@ -116,6 +116,20 @@ public final class FestivalMapOverlayRegistry {
             true,
             true,
             true
+        ));
+        register(new FestivalMapOverlayDefinition(
+            "Forest-IceFestival",
+            "Forest",
+            new BlockPos(-192, 63, -2),
+            "",
+            "data/stardewcraft/structures/festivals/festival_of_ice_forest.schem",
+            new BlockPos(-192, 63, -2),
+            new BlockPos(-32, 73, 83),
+            List.of(),
+            true,
+            true,
+            true,
+            new FestivalMapOverlayDefinition.TreeClearance(8, 48, 0)
         ));
     }
 

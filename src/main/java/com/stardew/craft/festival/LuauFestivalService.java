@@ -18,7 +18,6 @@ import com.stardew.craft.npc.runtime.NpcCentralMovementService;
 import com.stardew.craft.npc.runtime.NpcFriendshipDataManager;
 import com.stardew.craft.npc.runtime.NpcFriendshipRewardService;
 import com.stardew.craft.npc.runtime.NpcInteractionService;
-import com.stardew.craft.npc.runtime.NpcSpawnManager;
 import com.stardew.craft.player.PlayerStardewDataAPI;
 import com.stardew.craft.shop.ShopItemEntry;
 import com.stardew.craft.shop.ShopRegistry;
@@ -41,7 +40,6 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -51,6 +49,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+
+import static com.stardew.craft.festival.FestivalNpcActorRuntime.actor;
+import static com.stardew.craft.festival.FestivalNpcActorRuntime.actorMap;
+import static com.stardew.craft.festival.FestivalNpcActorRuntime.canonical;
+import static com.stardew.craft.festival.FestivalNpcActorRuntime.point;
+import static com.stardew.craft.festival.FestivalNpcActorRuntime.route;
 
 public final class LuauFestivalService {
     public static final String FESTIVAL_ID = "summer11";
@@ -71,9 +75,48 @@ public final class LuauFestivalService {
     private static final AABB PIERRE_SHOP_ZONE = inclusiveBox(new BlockPos(72, 60, 95), new BlockPos(64, 62, 91));
     private static final AABB SOUP_CAULDRON_ZONE = inclusiveBox(new BlockPos(59, 60, 108), new BlockPos(63, 61, 110));
     private static final Vec3 SAFE_ENTRY_RETURN = new Vec3(68.5D, 60.0D, 94.5D);
-    private static final Map<String, ActorDefinition> ACTORS = createActors();
-    private static final Set<String> ACTOR_IDS = Set.copyOf(ACTORS.keySet());
-    private static final Map<String, ActorRuntime> RUNTIME = new LinkedHashMap<>();
+    private static final Map<String, FestivalNpcActorRuntime.ActorDefinition> ACTORS = createActors();
+    private static final FestivalNpcActorRuntime NPC_ACTORS = new FestivalNpcActorRuntime(new FestivalNpcActorRuntime.Config(
+        "Luau",
+        MOVEMENT_OWNER,
+        ACTOR_TAG,
+        "luau_",
+        VENUE_BOUNDS,
+        STATIC_VERIFY_TICKS,
+        SPAWN_RETRY_TICKS,
+        FestivalNpcActorRuntime.DEFAULT_ROTATE_TICKS,
+        false,
+        ACTORS
+    ), new FestivalNpcActorRuntime.Hooks() {
+        @Override
+        public boolean shouldResumeNpcSpawn(String npcId) {
+            return !"governor".equals(npcId);
+        }
+
+        @Override
+        public boolean shouldForceSpawnNpc(String npcId) {
+            return !"governor".equals(npcId);
+        }
+
+        @Override
+        public StardewNpcEntity createMissingActor(ServerLevel level,
+                                                   FestivalNpcActorRuntime.ActorDefinition definition,
+                                                   FestivalNpcActorRuntime.ActorRuntime actorRuntime) {
+            if (!"governor".equals(definition.npcId())) {
+                return null;
+            }
+            return spawnGovernor(level, definition.points().get(0));
+        }
+
+        @Override
+        public void onRestoreNpc(ServerLevel level, String npcId, StardewNpcEntity npc) {
+            if ("governor".equals(npcId)) {
+                npc.discard();
+            } else {
+                FestivalNpcActorRuntime.Hooks.super.onRestoreNpc(level, npcId, npc);
+            }
+        }
+    });
     private static final Map<UUID, Vec3> LAST_OUTSIDE_ENTRY = new LinkedHashMap<>();
     private static final Map<UUID, Vec3> LAST_INSIDE_ENTRY = new LinkedHashMap<>();
     private static final Map<UUID, ItemStack> LUAU_INGREDIENTS = new LinkedHashMap<>();
@@ -86,8 +129,6 @@ public final class LuauFestivalService {
     private static final Set<UUID> START_VOTE_PARTICIPANTS = CONFIRM_STATE.voteParticipants(OpenFestivalConfirmPayload.Action.LUAU_START);
     private static final Set<UUID> MAIN_EVENT_CUTSCENE_PARTICIPANTS = new HashSet<>();
     private static final Set<UUID> MAIN_EVENT_CUTSCENE_DONE = new HashSet<>();
-    private static boolean actorsActive;
-    private static boolean debugRequested;
     private static boolean mainEventActive;
     private static int mainEventReaction = 2;
     private static Integer frozenMinute;
@@ -120,7 +161,7 @@ public final class LuauFestivalService {
             return;
         }
         boolean activeDay = isActiveLuauDay();
-        boolean debugActive = debugRequested && FestivalMapOverlayManager.isApplied(level, OVERLAY_ID);
+        boolean debugActive = NPC_ACTORS.isDebugRequested() && FestivalMapOverlayManager.isApplied(level, OVERLAY_ID);
         boolean venueActive = activeDay
             && FestivalMapOverlayManager.isApplied(level, OVERLAY_ID)
             && (FestivalService.isActiveFestivalEntryOpen(level, FESTIVAL_ID) || hasCurrentSessionParticipant(level));
@@ -154,64 +195,18 @@ public final class LuauFestivalService {
     }
 
     public static void requestDebugNpcs(ServerLevel level) {
-        debugRequested = true;
-        actorsActive = false;
-        RUNTIME.clear();
-        for (String npcId : ACTORS.keySet()) {
-            if (!"governor".equals(npcId)) {
-                NpcSpawnManager.resumeNpcSpawn(npcId);
-                NpcSpawnManager.forceSpawnNpc(npcId);
-            }
-        }
-        if (level != null) {
-            NpcSpawnManager.tick(level);
-        }
+        NPC_ACTORS.requestDebugStart(level);
         if (level != null && FestivalMapOverlayManager.isApplied(level, OVERLAY_ID)) {
             tickActors(level, true);
         }
     }
 
     public static void restoreNpcs(ServerLevel level) {
-        if (!actorsActive && !debugRequested && RUNTIME.isEmpty()) {
-            return;
-        }
-        debugRequested = false;
-        actorsActive = false;
-        for (String npcId : ACTORS.keySet()) {
-            if (!"governor".equals(npcId)) {
-                NpcSpawnManager.resumeNpcSpawn(npcId);
-            }
-        }
-        if (level == null) {
-            RUNTIME.clear();
-            return;
-        }
-        NpcSpawnManager.tick(level);
-        for (String npcId : ACTORS.keySet()) {
-            StardewNpcEntity npc = findActorEntity(level, npcId);
-            if (npc == null) {
-                continue;
-            }
-            npc.setInvisible(false);
-            npc.removeTag(ACTOR_TAG);
-            npc.getNavigation().stop();
-            npc.setNoAi(false);
-            npc.setInvulnerable(true);
-            npc.setDeltaMovement(Vec3.ZERO);
-            npc.hasImpulse = false;
-            NpcCentralMovementService.resetMovementPlan(npcId);
-            NpcCentralMovementService.resetAuthoredMovementPlan(npcId, MOVEMENT_OWNER);
-            if ("governor".equals(npcId)) {
-                npc.discard();
-            } else {
-                NpcSpawnManager.snapNpcToCurrentSchedule(level, npcId);
-            }
-        }
-        RUNTIME.clear();
+        NPC_ACTORS.restore(level);
     }
 
     public static boolean controlsNpc(String npcId) {
-        return actorsActive && ACTOR_IDS.contains(canonical(npcId));
+        return NPC_ACTORS.controlsNpc(npcId);
     }
 
     public static boolean isParticipant(ServerPlayer player) {
@@ -442,7 +437,7 @@ public final class LuauFestivalService {
             return null;
         }
         String canonicalId = canonical(npcId);
-        if (!ACTOR_IDS.contains(canonicalId)) {
+        if (!NPC_ACTORS.actorIds().contains(canonicalId)) {
             return null;
         }
         return FestivalDialogueService.resolveDialogueKey(FESTIVAL_ID, canonicalId);
@@ -571,14 +566,14 @@ public final class LuauFestivalService {
 
     public static String debugStatus(ServerLevel level) {
         StringBuilder message = new StringBuilder("Luau NPC actors: ")
-            .append(actorsActive ? "ACTIVE" : "INACTIVE")
-            .append(", debugRequested=").append(debugRequested)
-            .append(", tracked=").append(RUNTIME.size()).append('/').append(ACTORS.size());
+            .append(NPC_ACTORS.isActorsActive() ? "ACTIVE" : "INACTIVE")
+            .append(", debugRequested=").append(NPC_ACTORS.isDebugRequested())
+            .append(", tracked=").append(NPC_ACTORS.runtimes().size()).append('/').append(ACTORS.size());
         if (level == null) {
             return message.toString();
         }
-        for (ActorDefinition definition : ACTORS.values()) {
-            StardewNpcEntity npc = findActorEntity(level, definition.npcId());
+        for (FestivalNpcActorRuntime.ActorDefinition definition : ACTORS.values()) {
+            StardewNpcEntity npc = NPC_ACTORS.findActorEntity(level, definition.npcId());
             message.append('\n').append(definition.npcId())
                 .append(" pos=").append(npc == null ? "<missing>" : fmt(npc.position()))
                 .append(" route=").append(definition.routeTargets().size());
@@ -965,75 +960,10 @@ public final class LuauFestivalService {
     }
 
     private static void tickActors(ServerLevel level, boolean activeRequested) {
-        if (!activeRequested) {
-            if (actorsActive) {
-                restoreNpcs(level);
-            }
-            return;
-        }
-        actorsActive = true;
-        long now = level.getGameTime();
-        for (ActorDefinition definition : ACTORS.values()) {
-            tickActor(level, definition, now);
-        }
+        NPC_ACTORS.tick(level, activeRequested);
     }
 
-    private static void tickActor(ServerLevel level, ActorDefinition definition, long now) {
-        ActorRuntime runtime = RUNTIME.computeIfAbsent(definition.npcId(), id -> new ActorRuntime());
-        StardewNpcEntity npc = findActorEntity(level, definition.npcId());
-        if (npc == null) {
-            if ("governor".equals(definition.npcId())) {
-                npc = spawnGovernor(level, definition.points().get(0));
-            } else if (now - runtime.lastSpawnRequestTick >= SPAWN_RETRY_TICKS) {
-                runtime.lastSpawnRequestTick = now;
-                NpcSpawnManager.forceSpawnNpc(definition.npcId());
-                NpcSpawnManager.tick(level);
-                npc = findActorEntity(level, definition.npcId());
-            }
-            if (npc == null) {
-                return;
-            }
-        }
-
-        if (!npc.getTags().contains(ACTOR_TAG) || runtime.boundEntityId != npc.getId()) {
-            runtime.boundEntityId = npc.getId();
-            NpcCentralMovementService.resetAuthoredMovementPlan(definition.npcId(), MOVEMENT_OWNER);
-            placeAt(level, npc, definition.points().get(0));
-            runtime.waitUntilTick = now;
-        }
-
-        npc.addTag(ACTOR_TAG);
-        npc.setInvisible(false);
-        npc.setNoAi(false);
-        npc.setInvulnerable(true);
-        npc.setPersistenceRequired();
-
-        if (NpcInteractionService.isDialogueMovementLocked(definition.npcId()) || npc.isFacingOverrideActive()) {
-            NpcCentralMovementService.stopAuthoredMovement(npc);
-            return;
-        }
-        if (definition.points().size() <= 1) {
-            keepAtPoint(level, npc, definition.points().get(0), runtime, now);
-            return;
-        }
-        tickRoute(level, npc, definition, runtime, now);
-    }
-
-    private static StardewNpcEntity findActorEntity(ServerLevel level, String npcId) {
-        StardewNpcEntity tracked = NpcSpawnManager.getTrackedNpc(level, npcId);
-        if (tracked != null) {
-            return tracked;
-        }
-        String canonicalId = canonical(npcId);
-        AABB searchBounds = VENUE_BOUNDS.inflate(16.0D);
-        return level.getEntitiesOfClass(StardewNpcEntity.class, searchBounds, npc ->
-                npc.isAlive() && !npc.isRemoved() && canonicalId.equals(canonical(npc.getNpcId())))
-            .stream()
-            .min(Comparator.comparingInt(Entity::getId))
-            .orElse(null);
-    }
-
-    private static StardewNpcEntity spawnGovernor(ServerLevel level, Waypoint point) {
+    private static StardewNpcEntity spawnGovernor(ServerLevel level, FestivalNpcActorRuntime.Waypoint point) {
         StardewNpcEntity npc = ModEntities.STARDEW_NPC.get().create(level);
         if (npc == null) {
             return null;
@@ -1046,57 +976,6 @@ public final class LuauFestivalService {
             return null;
         }
         return npc;
-    }
-
-    private static void keepAtPoint(ServerLevel level, StardewNpcEntity npc, Waypoint point, ActorRuntime runtime, long now) {
-        if (now - runtime.lastStaticVerifyTick < STATIC_VERIFY_TICKS) {
-            return;
-        }
-        runtime.lastStaticVerifyTick = now;
-        if (npc.position().distanceToSqr(point.position()) > 0.64D) {
-            placeAt(level, npc, point);
-        } else {
-            applyYaw(npc, point.yaw());
-            NpcCentralMovementService.stopAuthoredMovement(npc);
-            npc.setWalking(false);
-        }
-    }
-
-    private static void tickRoute(ServerLevel level, StardewNpcEntity npc, ActorDefinition definition, ActorRuntime runtime, long now) {
-        if (now < runtime.waitUntilTick) {
-            NpcCentralMovementService.stopAuthoredMovement(npc);
-            return;
-        }
-        int reachedRouteIndex = NpcCentralMovementService.tickAuthoredWalkRoute(
-            level,
-            npc,
-            MOVEMENT_OWNER,
-            "luau_" + definition.npcId(),
-            definition.routeTargets(),
-            true
-        );
-        if (reachedRouteIndex >= 0 && reachedRouteIndex < definition.routePoints().size()) {
-            Waypoint reached = definition.routePoints().get(reachedRouteIndex);
-            applyYaw(npc, reached.yaw());
-            npc.setWalking(false);
-            runtime.waitUntilTick = now + definition.waitTicks();
-        }
-    }
-
-    private static void placeAt(ServerLevel level, StardewNpcEntity npc, Waypoint point) {
-        npc.getNavigation().stop();
-        npc.moveTo(point.position().x, point.position().y, point.position().z, point.yaw(), 0.0F);
-        NpcCentralMovementService.snapToSurface(level, npc);
-        npc.setDeltaMovement(Vec3.ZERO);
-        npc.hasImpulse = false;
-        applyYaw(npc, point.yaw());
-        npc.setWalking(false);
-    }
-
-    private static void applyYaw(StardewNpcEntity npc, float yaw) {
-        npc.setYRot(yaw);
-        npc.setYHeadRot(yaw);
-        npc.setYBodyRot(yaw);
     }
 
     private static boolean isActiveLuauDay() {
@@ -1166,28 +1045,6 @@ public final class LuauFestivalService {
         return new AABB(minX, minY, minZ, maxX + 1.0D, maxY + 1.0D, maxZ + 1.0D);
     }
 
-    private static ActorDefinition actor(String npcId, Waypoint point) {
-        return ActorDefinition.create(canonical(npcId), List.of(point), true, 0);
-    }
-
-    private static ActorDefinition route(String npcId, Waypoint... points) {
-        return ActorDefinition.create(canonical(npcId), List.of(points), true, 0);
-    }
-
-    private static Waypoint point(double x, double y, double z, char facing) {
-        return new Waypoint(new Vec3(x + 0.5D, y, z + 0.5D), yaw(facing));
-    }
-
-    private static float yaw(char facing) {
-        return switch (Character.toUpperCase(facing)) {
-            case 'N' -> 180.0F;
-            case 'E' -> -90.0F;
-            case 'W' -> 90.0F;
-            case 'S' -> 0.0F;
-            default -> 0.0F;
-        };
-    }
-
     private static String canonical(String npcId) {
         return npcId == null ? "" : npcId.trim().toLowerCase(Locale.ROOT);
     }
@@ -1199,8 +1056,8 @@ public final class LuauFestivalService {
         return String.format(Locale.ROOT, "(%.1f,%.1f,%.1f)", position.x, position.y, position.z);
     }
 
-    private static Map<String, ActorDefinition> createActors() {
-        List<ActorDefinition> definitions = new ArrayList<>();
+    private static Map<String, FestivalNpcActorRuntime.ActorDefinition> createActors() {
+        List<FestivalNpcActorRuntime.ActorDefinition> definitions = new ArrayList<>();
         definitions.add(actor("pierre", point(69, 60, 90, 'S')));
         definitions.add(actor("governor", point(48, 60, 94, 'S')));
         definitions.add(actor("lewis", point(49, 60, 94, 'S')));
@@ -1233,38 +1090,6 @@ public final class LuauFestivalService {
         definitions.add(actor("willy", point(75, 60, 155, 'S')));
         definitions.add(actor("wizard", point(36, 60, 160, 'S')));
 
-        Map<String, ActorDefinition> result = new LinkedHashMap<>();
-        for (ActorDefinition definition : definitions) {
-            result.put(definition.npcId(), definition);
-        }
-        return result;
-    }
-
-    private record ActorDefinition(String npcId, List<Waypoint> points, List<Waypoint> routePoints,
-                                   List<Vec3> routeTargets, boolean loop, int waitTicks) {
-        private static ActorDefinition create(String npcId, List<Waypoint> points, boolean loop, int waitTicks) {
-            List<Waypoint> routePoints = points.size() <= 1 ? List.of() : routePoints(points);
-            List<Vec3> routeTargets = routePoints.stream().map(Waypoint::position).toList();
-            return new ActorDefinition(npcId, points, routePoints, routeTargets, loop, waitTicks);
-        }
-
-        private static List<Waypoint> routePoints(List<Waypoint> points) {
-            List<Waypoint> route = new ArrayList<>();
-            for (int i = 1; i < points.size(); i++) {
-                route.add(points.get(i));
-            }
-            route.add(points.get(0));
-            return List.copyOf(route);
-        }
-    }
-
-    private record Waypoint(Vec3 position, float yaw) {
-    }
-
-    private static final class ActorRuntime {
-        private int boundEntityId = -1;
-        private long waitUntilTick = 0L;
-        private long lastSpawnRequestTick = -SPAWN_RETRY_TICKS;
-        private long lastStaticVerifyTick = -STATIC_VERIFY_TICKS;
+        return actorMap(definitions);
     }
 }

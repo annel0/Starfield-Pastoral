@@ -4,7 +4,6 @@ import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.core.ModMiningDimensions;
 import com.stardew.craft.cutscene.server.ServerCutsceneTracker;
 import com.stardew.craft.entity.festival.MoonlightJellyEntity;
-import com.stardew.craft.entity.npc.StardewNpcEntity;
 import com.stardew.craft.farm.FarmInstance;
 import com.stardew.craft.farm.FarmInstanceRegistry;
 import com.stardew.craft.item.ModItems;
@@ -12,9 +11,6 @@ import com.stardew.craft.network.TimeSyncPacket;
 import com.stardew.craft.network.payload.FestivalMusicStatePayload;
 import com.stardew.craft.network.payload.OpenFestivalConfirmPayload;
 import com.stardew.craft.network.payload.OpenShopScreenPayload;
-import com.stardew.craft.npc.runtime.NpcCentralMovementService;
-import com.stardew.craft.npc.runtime.NpcInteractionService;
-import com.stardew.craft.npc.runtime.NpcSpawnManager;
 import com.stardew.craft.player.PlayerStardewDataAPI;
 import com.stardew.craft.shop.ShopItemEntry;
 import com.stardew.craft.shop.ShopRegistry;
@@ -38,7 +34,6 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -47,6 +42,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+
+import static com.stardew.craft.festival.FestivalNpcActorRuntime.actorMap;
+import static com.stardew.craft.festival.FestivalNpcActorRuntime.canonical;
+import static com.stardew.craft.festival.FestivalNpcActorRuntime.point;
 
 public final class MoonlightJelliesFestivalService {
     public static final String FESTIVAL_ID = "summer28";
@@ -75,9 +74,19 @@ public final class MoonlightJelliesFestivalService {
     private static final Vec3 BOAT_START = new Vec3(BOAT_LANTERN_START.getX() + 0.5D, BOAT_LANTERN_START.getY(), BOAT_LANTERN_START.getZ() + 0.5D);
     private static final Vec3 BOAT_END = new Vec3(BOAT_START.x, BOAT_START.y, BOAT_START.z + 8.0D);
     private static final List<JellySpec> JELLY_SPECS = createJellySpecs();
-    private static final Map<String, ActorDefinition> ACTORS = createActors();
-    private static final Set<String> ACTOR_IDS = Set.copyOf(ACTORS.keySet());
-    private static final Map<String, ActorRuntime> RUNTIME = new LinkedHashMap<>();
+    private static final Map<String, FestivalNpcActorRuntime.ActorDefinition> ACTORS = createActors();
+    private static final FestivalNpcActorRuntime NPC_ACTORS = new FestivalNpcActorRuntime(new FestivalNpcActorRuntime.Config(
+        "Moonlight Jellies",
+        MOVEMENT_OWNER,
+        ACTOR_TAG,
+        "moonlight_jellies_",
+        ENTRY_EXIT_BOUNDS,
+        STATIC_VERIFY_TICKS,
+        SPAWN_RETRY_TICKS,
+        FestivalNpcActorRuntime.DEFAULT_ROTATE_TICKS,
+        false,
+        ACTORS
+    ));
     private static final Map<UUID, Vec3> LAST_OUTSIDE_ENTRY = new LinkedHashMap<>();
     private static final Map<UUID, Vec3> LAST_INSIDE_ENTRY = new LinkedHashMap<>();
     private static final ActiveFestivalConfirmState CONFIRM_STATE = new ActiveFestivalConfirmState();
@@ -89,8 +98,6 @@ public final class MoonlightJelliesFestivalService {
     private static final Set<UUID> MAIN_EVENT_CUTSCENE_DONE = new LinkedHashSet<>();
     private static final Map<Integer, UUID> JELLY_ENTITIES = new LinkedHashMap<>();
     private static final Set<BlockPos> EVENT_LIGHT_POSITIONS = new LinkedHashSet<>();
-    private static boolean actorsActive;
-    private static boolean debugRequested;
     private static Integer frozenMinute;
     private static Long frozenOverworldDayTime;
     private static MainEventPhase mainEventPhase = MainEventPhase.FREE;
@@ -125,7 +132,7 @@ public final class MoonlightJelliesFestivalService {
             return;
         }
         boolean activeDay = isActiveMoonlightJelliesDay();
-        boolean debugActive = debugRequested && FestivalMapOverlayManager.isApplied(level, OVERLAY_ID);
+        boolean debugActive = NPC_ACTORS.isDebugRequested() && FestivalMapOverlayManager.isApplied(level, OVERLAY_ID);
         boolean venueActive = activeDay
             && FestivalMapOverlayManager.isApplied(level, OVERLAY_ID)
             && (FestivalService.isActiveFestivalEntryOpen(level, FESTIVAL_ID) || hasCurrentSessionParticipant(level));
@@ -163,59 +170,22 @@ public final class MoonlightJelliesFestivalService {
     }
 
     public static void requestDebugNpcs(ServerLevel level) {
-        debugRequested = true;
-        actorsActive = false;
-        RUNTIME.clear();
-        for (String npcId : ACTORS.keySet()) {
-            NpcSpawnManager.resumeNpcSpawn(npcId);
-            NpcSpawnManager.forceSpawnNpc(npcId);
-        }
-        if (level != null) {
-            NpcSpawnManager.tick(level);
-        }
+        NPC_ACTORS.requestDebugStart(level);
         if (level != null && FestivalMapOverlayManager.isApplied(level, OVERLAY_ID)) {
             tickActors(level, true);
         }
     }
 
     public static void restoreNpcs(ServerLevel level) {
-        if (!actorsActive && !debugRequested && RUNTIME.isEmpty()) {
-            return;
-        }
-        debugRequested = false;
-        actorsActive = false;
-        for (String npcId : ACTORS.keySet()) {
-            NpcSpawnManager.resumeNpcSpawn(npcId);
-        }
-        if (level == null) {
-            RUNTIME.clear();
-            return;
-        }
-        if (mainEventPhase == MainEventPhase.FREE) {
+        boolean cleanupMainEvent = level != null && mainEventPhase == MainEventPhase.FREE;
+        NPC_ACTORS.restore(level);
+        if (cleanupMainEvent) {
             cleanupMainEventEntities(level);
         }
-        NpcSpawnManager.tick(level);
-        for (String npcId : ACTORS.keySet()) {
-            StardewNpcEntity npc = findActorEntity(level, npcId);
-            if (npc == null) {
-                continue;
-            }
-            npc.setInvisible(false);
-            npc.removeTag(ACTOR_TAG);
-            npc.getNavigation().stop();
-            npc.setNoAi(false);
-            npc.setInvulnerable(true);
-            npc.setDeltaMovement(Vec3.ZERO);
-            npc.hasImpulse = false;
-            NpcCentralMovementService.resetMovementPlan(npcId);
-            NpcCentralMovementService.resetAuthoredMovementPlan(npcId, MOVEMENT_OWNER);
-            NpcSpawnManager.snapNpcToCurrentSchedule(level, npcId);
-        }
-        RUNTIME.clear();
     }
 
     public static boolean controlsNpc(String npcId) {
-        return actorsActive && ACTOR_IDS.contains(canonical(npcId));
+        return NPC_ACTORS.controlsNpc(npcId);
     }
 
     public static boolean isParticipant(ServerPlayer player) {
@@ -372,7 +342,7 @@ public final class MoonlightJelliesFestivalService {
             return null;
         }
         String canonicalId = canonical(npcId);
-        if (!ACTOR_IDS.contains(canonicalId)) {
+        if (!NPC_ACTORS.actorIds().contains(canonicalId)) {
             return null;
         }
         return FestivalDialogueService.resolveDialogueKey(FESTIVAL_ID, canonicalId);
@@ -417,9 +387,9 @@ public final class MoonlightJelliesFestivalService {
 
     public static String debugStatus(ServerLevel level) {
         StringBuilder message = new StringBuilder("Moonlight Jellies actors: ")
-            .append(actorsActive ? "ACTIVE" : "INACTIVE")
-            .append(", debugRequested=").append(debugRequested)
-            .append(", tracked=").append(RUNTIME.size()).append('/').append(ACTORS.size())
+            .append(NPC_ACTORS.isActorsActive() ? "ACTIVE" : "INACTIVE")
+            .append(", debugRequested=").append(NPC_ACTORS.isDebugRequested())
+            .append(", tracked=").append(NPC_ACTORS.runtimes().size()).append('/').append(ACTORS.size())
             .append(", boatLanternStart=").append(BOAT_LANTERN_START.toShortString())
             .append(", boatEnd=").append(fmt(BOAT_END))
             .append(", mainEvent=").append(mainEventPhase).append('@').append(mainEventTick)
@@ -429,8 +399,8 @@ public final class MoonlightJelliesFestivalService {
         if (level == null) {
             return message.toString();
         }
-        for (ActorDefinition definition : ACTORS.values()) {
-            StardewNpcEntity npc = findActorEntity(level, definition.npcId());
+        for (FestivalNpcActorRuntime.ActorDefinition definition : ACTORS.values()) {
+            var npc = NPC_ACTORS.findActorEntity(level, definition.npcId());
             message.append('\n').append(definition.npcId())
                 .append(" pos=").append(npc == null ? "<missing>" : fmt(npc.position()))
                 .append(" target=").append(fmt(definition.point().position()));
@@ -944,99 +914,10 @@ public final class MoonlightJelliesFestivalService {
     }
 
     private static void tickActors(ServerLevel level, boolean activeRequested) {
-        if (!activeRequested) {
-            if (actorsActive) {
-                restoreNpcs(level);
-            }
-            return;
-        }
-        actorsActive = true;
-        if (mainEventPhase == MainEventPhase.FREE || mainEventPhase == MainEventPhase.READY) {
+        if (activeRequested && (mainEventPhase == MainEventPhase.FREE || mainEventPhase == MainEventPhase.READY)) {
             ensureLanternBoatAt(level, BOAT_START);
         }
-        long now = level.getGameTime();
-        for (ActorDefinition definition : ACTORS.values()) {
-            tickActor(level, definition, now);
-        }
-    }
-
-    private static void tickActor(ServerLevel level, ActorDefinition definition, long now) {
-        ActorRuntime runtime = RUNTIME.computeIfAbsent(definition.npcId(), id -> new ActorRuntime());
-        StardewNpcEntity npc = findActorEntity(level, definition.npcId());
-        if (npc == null) {
-            if (now - runtime.lastSpawnRequestTick >= SPAWN_RETRY_TICKS) {
-                runtime.lastSpawnRequestTick = now;
-                NpcSpawnManager.forceSpawnNpc(definition.npcId());
-                NpcSpawnManager.tick(level);
-                npc = findActorEntity(level, definition.npcId());
-            }
-            if (npc == null) {
-                return;
-            }
-        }
-
-        if (!npc.getTags().contains(ACTOR_TAG) || runtime.boundEntityId != npc.getId()) {
-            runtime.boundEntityId = npc.getId();
-            NpcCentralMovementService.resetAuthoredMovementPlan(definition.npcId(), MOVEMENT_OWNER);
-            placeAt(level, npc, definition.point());
-            runtime.lastStaticVerifyTick = now;
-        }
-
-        npc.addTag(ACTOR_TAG);
-        npc.setInvisible(false);
-        npc.setNoAi(false);
-        npc.setInvulnerable(true);
-        npc.setPersistenceRequired();
-
-        if (NpcInteractionService.isDialogueMovementLocked(definition.npcId()) || npc.isFacingOverrideActive()) {
-            NpcCentralMovementService.stopAuthoredMovement(npc);
-            return;
-        }
-        keepAtPoint(level, npc, definition.point(), runtime, now);
-    }
-
-    private static StardewNpcEntity findActorEntity(ServerLevel level, String npcId) {
-        StardewNpcEntity tracked = NpcSpawnManager.getTrackedNpc(level, npcId);
-        if (tracked != null) {
-            return tracked;
-        }
-        String canonicalId = canonical(npcId);
-        AABB searchBounds = ENTRY_EXIT_BOUNDS.inflate(16.0D);
-        return level.getEntitiesOfClass(StardewNpcEntity.class, searchBounds, npc ->
-                npc.isAlive() && !npc.isRemoved() && canonicalId.equals(canonical(npc.getNpcId())))
-            .stream()
-            .min(Comparator.comparingInt(Entity::getId))
-            .orElse(null);
-    }
-
-    private static void keepAtPoint(ServerLevel level, StardewNpcEntity npc, Waypoint point, ActorRuntime runtime, long now) {
-        if (now - runtime.lastStaticVerifyTick < STATIC_VERIFY_TICKS) {
-            return;
-        }
-        runtime.lastStaticVerifyTick = now;
-        if (npc.position().distanceToSqr(point.position()) > 0.64D) {
-            placeAt(level, npc, point);
-        } else {
-            applyYaw(npc, point.yaw());
-            NpcCentralMovementService.stopAuthoredMovement(npc);
-            npc.setWalking(false);
-        }
-    }
-
-    private static void placeAt(ServerLevel level, StardewNpcEntity npc, Waypoint point) {
-        npc.getNavigation().stop();
-        npc.moveTo(point.position().x, point.position().y, point.position().z, point.yaw(), 0.0F);
-        NpcCentralMovementService.snapToSurface(level, npc);
-        npc.setDeltaMovement(Vec3.ZERO);
-        npc.hasImpulse = false;
-        applyYaw(npc, point.yaw());
-        npc.setWalking(false);
-    }
-
-    private static void applyYaw(StardewNpcEntity npc, float yaw) {
-        npc.setYRot(yaw);
-        npc.setYHeadRot(yaw);
-        npc.setYBodyRot(yaw);
+        NPC_ACTORS.tick(level, activeRequested);
     }
 
     private static boolean isActiveMoonlightJelliesDay() {
@@ -1195,12 +1076,8 @@ public final class MoonlightJelliesFestivalService {
         return clamped * clamped * (3.0D - 2.0D * clamped);
     }
 
-    private static ActorDefinition actor(String npcId, Waypoint point) {
-        return new ActorDefinition(canonical(npcId), point);
-    }
-
-    private static Waypoint point(double x, double y, double z, char facing) {
-        return new Waypoint(new Vec3(x + 0.5D, y, z + 0.5D), yaw(facing));
+    private static FestivalNpcActorRuntime.ActorDefinition actor(String npcId, FestivalNpcActorRuntime.Waypoint point) {
+        return FestivalNpcActorRuntime.actor(npcId, point);
     }
 
     private static float yaw(char facing) {
@@ -1224,8 +1101,8 @@ public final class MoonlightJelliesFestivalService {
         return String.format(Locale.ROOT, "(%.1f,%.1f,%.1f)", position.x, position.y, position.z);
     }
 
-    private static Map<String, ActorDefinition> createActors() {
-        List<ActorDefinition> definitions = new ArrayList<>();
+    private static Map<String, FestivalNpcActorRuntime.ActorDefinition> createActors() {
+        List<FestivalNpcActorRuntime.ActorDefinition> definitions = new ArrayList<>();
         definitions.add(actor("pierre", point(31, 60, 96, 'S')));
         definitions.add(actor("pam", point(27, 60, 103, 'W')));
         definitions.add(actor("gus", point(28, 60, 107, 'W')));
@@ -1255,11 +1132,7 @@ public final class MoonlightJelliesFestivalService {
         definitions.add(actor("leah", point(129, 60, 131, 'S')));
         definitions.add(actor("wizard", point(118, 60, 96, 'S')));
 
-        Map<String, ActorDefinition> result = new LinkedHashMap<>();
-        for (ActorDefinition definition : definitions) {
-            result.put(definition.npcId(), definition);
-        }
-        return result;
+        return actorMap(definitions);
     }
 
     private static List<JellySpec> createJellySpecs() {
@@ -1301,12 +1174,6 @@ public final class MoonlightJelliesFestivalService {
         return List.copyOf(specs);
     }
 
-    private record ActorDefinition(String npcId, Waypoint point) {
-    }
-
-    private record Waypoint(Vec3 position, float yaw) {
-    }
-
     private record JellySpec(int index, double x, double startZ, double stopZ, int delayTicks, double xRange, double yRange, double zRange, int loopTicks, int phaseTicks) {
     }
 
@@ -1317,9 +1184,4 @@ public final class MoonlightJelliesFestivalService {
         ENDING
     }
 
-    private static final class ActorRuntime {
-        private int boundEntityId = -1;
-        private long lastSpawnRequestTick = -SPAWN_RETRY_TICKS;
-        private long lastStaticVerifyTick = -STATIC_VERIFY_TICKS;
-    }
 }

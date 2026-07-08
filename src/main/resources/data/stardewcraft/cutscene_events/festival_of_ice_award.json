@@ -1,0 +1,31 @@
+{
+  "id": "festival_of_ice_award",
+  "skippable": false,
+  "trigger": { "type": "manual" },
+  "commands": [
+    { "cmd": "lock_player" },
+    { "cmd": "fade", "mode": "out", "ticks": 20 },
+    { "cmd": "spawn_actor", "actor": "fake_player", "npc_id": "player", "x": -109.5, "y": 64, "z": 57.5, "relative": false, "facing": 0 },
+    { "cmd": "camera", "x": -112.001, "y": 69.538, "z": 67.065, "yaw": -179.9, "pitch": 43.1, "relative": false },
+    { "cmd": "music", "track": "EVENT1" },
+    { "cmd": "fade", "mode": "in", "ticks": 20 },
+    { "cmd": "pause", "ticks": 40 },
+    { "cmd": "speak", "npc_id": "lewis", "text": "event.festival_of_ice.award.fish" },
+    { "cmd": "pause", "ticks": 16 },
+    { "cmd": "speak", "npc_id": "lewis", "text": "event.festival_of_ice.award.smell" },
+    { "cmd": "pause", "ticks": 20 },
+    { "cmd": "speak", "npc_id": "lewis", "text": "event.festival_of_ice.award.winner_intro" },
+    { "cmd": "pause", "ticks": 60 },
+    { "cmd": "ice_fishing_speak", "npc_id": "lewis", "mode": "winner" },
+    { "cmd": "pause", "ticks": 20 },
+    { "cmd": "ice_fishing_speak", "npc_id": "lewis", "mode": "branch", "player_text": "event.festival_of_ice.award.prize_player", "npc_text": "event.festival_of_ice.award.prize_willy" },
+    { "cmd": "play_sound", "sound": "stardewcraft:coin" },
+    { "cmd": "pause", "ticks": 20 },
+    { "cmd": "speak", "npc_id": "lewis", "text": "event.festival_of_ice.award.end" },
+    { "cmd": "pause", "ticks": 60 },
+    { "cmd": "fade", "mode": "out", "ticks": 20 },
+    { "cmd": "remove_actor", "actor": "fake_player" },
+    { "cmd": "stop_music" },
+    { "cmd": "end" }
+  ]
+}

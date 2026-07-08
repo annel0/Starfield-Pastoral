@@ -92,6 +92,9 @@ public class StardewTimeHud {
     private static boolean fairFishingHudActive = false;
     private static int fairFishingRemainingMs = 0;
     private static int fairFishingScore = 0;
+    private static boolean iceFishingHudActive = false;
+    private static int iceFishingRemainingMs = 0;
+    private static int iceFishingFishCaught = 0;
     @SuppressWarnings("unused")
     private static boolean moneyInitialized = false;
     
@@ -194,9 +197,6 @@ public class StardewTimeHud {
         if (mc.options.hideGui || spectator) {
             return;
         }
-        if (com.stardew.craft.client.hud.FestivalHudState.hidden()) {
-            return;
-        }
         
         @SuppressWarnings("null")
         boolean isStardewDimension = mc.level.dimension() == ModDimensions.STARDEW_VALLEY 
@@ -204,8 +204,16 @@ public class StardewTimeHud {
         if (!isStardewDimension) {
             return;
         }
+
+        if (com.stardew.craft.client.hud.FestivalHudState.hidden()) {
+            renderFairFishingHud(event.getGuiGraphics());
+            renderIceFishingHud(event.getGuiGraphics());
+            return;
+        }
         
         renderStardewHUD(event.getGuiGraphics());
+        renderFairFishingHud(event.getGuiGraphics());
+        renderIceFishingHud(event.getGuiGraphics());
     }
     
     @SuppressWarnings("null")
@@ -372,6 +380,12 @@ public class StardewTimeHud {
         fairFishingScore = Math.max(0, score);
     }
 
+    public static void setIceFishingHudState(boolean active, int remainingMs, int fishCaught) {
+        iceFishingHudActive = active;
+        iceFishingRemainingMs = Math.max(0, remainingMs);
+        iceFishingFishCaught = Math.max(0, fishCaught);
+    }
+
     private static void renderFairFishingHud(GuiGraphics graphics) {
         Minecraft mc = Minecraft.getInstance();
         if (!fairFishingHudActive || mc.player == null || mc.level == null || mc.level.dimension() != ModDimensions.STARDEW_VALLEY) {
@@ -381,6 +395,17 @@ public class StardewTimeHud {
         String time = String.format("%d:%02d", seconds / 60, seconds % 60);
         drawBorderedText(graphics, mc.font, I18n.get("stardewcraft.fair.fishing.score", fairFishingScore), 16, 32, 0xFFFFFFFF, 0xFF000000);
         drawBorderedText(graphics, mc.font, I18n.get("stardewcraft.fair.fishing.time", time), 16, 64, 0xFFFFFFFF, 0xFF000000);
+    }
+
+    private static void renderIceFishingHud(GuiGraphics graphics) {
+        Minecraft mc = Minecraft.getInstance();
+        if (!iceFishingHudActive || mc.player == null || mc.level == null || mc.level.dimension() != ModDimensions.STARDEW_VALLEY) {
+            return;
+        }
+        int seconds = Math.max(0, (int) Math.ceil(iceFishingRemainingMs / 1000.0D));
+        String time = String.format("%d:%02d", seconds / 60, seconds % 60);
+        drawBorderedText(graphics, mc.font, I18n.get("stardewcraft.festival.ice_fishing.fish_count", iceFishingFishCaught), 16, 32, 0xFFFFFFFF, 0xFF000000);
+        drawBorderedText(graphics, mc.font, I18n.get("stardewcraft.festival.ice_fishing.time", time), 16, 64, 0xFFFFFFFF, 0xFF000000);
     }
 
     private static void renderCalicoEggCurrency(GuiGraphics graphics) {

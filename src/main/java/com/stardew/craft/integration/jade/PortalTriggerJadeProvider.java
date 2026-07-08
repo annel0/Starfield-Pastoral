@@ -2,6 +2,7 @@ package com.stardew.craft.integration.jade;
 
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.blockentity.PortalTriggerBlockEntity;
+import com.stardew.craft.festival.FestivalOfIceService;
 import com.stardew.craft.festival.desert.DesertFestivalRaceService;
 import com.stardew.craft.festival.desert.DesertFestivalService;
 import com.stardew.craft.festival.desert.DesertFestivalSpecialInteractionService;
@@ -69,6 +70,12 @@ public enum PortalTriggerJadeProvider implements IBlockComponentProvider, IServe
         if (DesertFestivalWillyFishingService.TARGET_ID.equals(targetId)) {
             tooltip.remove(JadeIds.CORE_OBJECT_NAME);
             tooltip.add(Component.translatable("stardewcraft.portal.hint.willy_challenge")
+                .withStyle(ChatFormatting.GRAY));
+        }
+        if (FestivalOfIceService.TRAVELING_MERCHANT_TARGET_ID.equals(targetId)) {
+            tooltip.add(Component.translatable("stardewcraft.location.festival_of_ice_traveling_merchant")
+                .withStyle(ChatFormatting.LIGHT_PURPLE));
+            tooltip.add(Component.translatable("stardewcraft.portal.hint.open")
                 .withStyle(ChatFormatting.GRAY));
         }
     }

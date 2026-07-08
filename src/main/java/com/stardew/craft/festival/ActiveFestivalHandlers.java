@@ -168,6 +168,30 @@ public final class ActiveFestivalHandlers {
             SpiritEveFestivalService::applyTimeFreeze,
             "已启动 Spirit's Eve 总调试: 当前日期按 fall27 处理，overlay 应用中，NPC/临时怪物会进入确认点位，Pierre 商店可在摊位 AABB 内交互"
         ));
+        register(new DelegateHandler(
+            FestivalOfIceService.FESTIVAL_ID,
+            "Festival of Ice",
+            FestivalOfIceService::tick,
+            FestivalOfIceService::startDebugFestival,
+            FestivalOfIceService::restoreDebugFestival,
+            FestivalOfIceService::debugStatus,
+            FestivalOfIceService::onMapOverlayApplied,
+            FestivalOfIceService::requestDebugNpcs,
+            FestivalOfIceService::restoreNpcs,
+            FestivalOfIceService::debugNpcStatus,
+            FestivalOfIceService::controlsNpc,
+            FestivalOfIceService::isParticipant,
+            FestivalOfIceService::onPlayerLogin,
+            FestivalOfIceService::onPlayerLogout,
+            FestivalOfIceService::markFestivalDialogueSeen,
+            FestivalOfIceService::tryOpenPierreFestivalShop,
+            FestivalOfIceService::isMainEventActive,
+            FestivalOfIceService::tryStartMainEvent,
+            FestivalOfIceService::debugStatus,
+            FestivalOfIceService::isTimeFreezeActive,
+            FestivalOfIceService::applyTimeFreeze,
+            "已启动 Festival of Ice 总调试: 当前日期按 winter8 处理，overlay 应用中；NPC、商店、冰钓与入口/退场点位仍等待确认"
+        ));
     }
 
     private ActiveFestivalHandlers() {

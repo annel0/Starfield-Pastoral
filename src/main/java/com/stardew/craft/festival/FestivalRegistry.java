@@ -19,62 +19,74 @@ public final class FestivalRegistry {
         register(new FestivalDefinition(
             "spring13", FestivalType.ACTIVE, "Egg Festival", "Egg Festival", "",
             SPRING, 13, 13, 900, 1400, true, false, "",
+            "message.stardewcraft.festival.egg.started", "spring_12",
             "Town", "Town-EggFestival", Map.of(), List.of("Festival_EggFestival_Pierre"), "egg_hunt"
         ));
         register(new FestivalDefinition(
             "spring24", FestivalType.ACTIVE, "Flower Dance", "Flower Dance", "",
             SPRING, 24, 24, 900, 1400, true, false, "",
+            "message.stardewcraft.festival.flower_dance.started", "spring_23",
             "Forest", "Forest-FlowerFestival", Map.of(), List.of("Festival_FlowerDance_Pierre"), "flower_dance"
         ));
         register(new FestivalDefinition(
             "summer11", FestivalType.ACTIVE, "Luau", "Luau", "",
             SUMMER, 11, 11, 900, 1400, true, false, "",
+            "message.stardewcraft.festival.luau.started", "summer_10",
             "Beach", "Beach-Luau", Map.of(), List.of(), "luau_soup"
         ));
         register(new FestivalDefinition(
             "summer28", FestivalType.ACTIVE, "Dance of the Moonlight Jellies", "Dance of the Moonlight Jellies", "",
             SUMMER, 28, 28, 2200, 2400, true, false, "",
+            "message.stardewcraft.festival.moonlight_jellies.started", "summer_28",
             "Beach", "Beach-Jellies", Map.of(), List.of(), "moonlight_jellies"
         ));
         register(new FestivalDefinition(
             "fall16", FestivalType.ACTIVE, "Stardew Valley Fair", "Stardew Valley Fair", "",
             FALL, 16, 16, 900, 1500, true, false, "",
+            "message.stardewcraft.festival.fair.started", "fall_15",
             "Town", "Town-Fair", Map.of(), List.of("Festival_Fair_StarTokenShop"), "stardew_valley_fair"
         ));
         register(new FestivalDefinition(
             "fall27", FestivalType.ACTIVE, "Spirit's Eve", "Spirit's Eve", "",
             FALL, 27, 27, 2200, 2350, true, false, "",
+            "message.stardewcraft.festival.spirit_eve.started", "fall_26",
             "Town", "Town-Halloween", Map.of(), List.of("Festival_SpiritsEve_Pierre"), "spirit_eve"
         ));
         register(new FestivalDefinition(
             "winter8", FestivalType.ACTIVE, "Festival of Ice", "Festival of Ice", "",
             WINTER, 8, 8, 900, 1400, true, false, "",
+            "message.stardewcraft.festival.ice.started", "winter_7",
             "Forest", "Forest-IceFestival", Map.of(), List.of(), "ice_fishing_contest"
         ));
         register(new FestivalDefinition(
             "winter25", FestivalType.ACTIVE, "Feast of the Winter Star", "Feast of the Winter Star", "",
             WINTER, 25, 25, 900, 1400, true, false, "",
+            "message.stardewcraft.festival.winter_star.started", "winter_24",
             "Town", "Town-Christmas", Map.of(), List.of(), "winter_star_gift"
         ));
 
         register(new FestivalDefinition(
             "DesertFestival", FestivalType.PASSIVE, "Desert Festival", "[LocalizedText Strings\\1_6_Strings:DesertFestival]", "LOCATION_ACCESSIBLE Desert",
             SPRING, 15, 17, 1000, 2600, true, false, "[LocalizedText Strings\\1_6_Strings:DesertFestival_NowOpen]",
+            "message.stardewcraft.festival.passive.desert.started", "",
             "Desert", "DesertFestival", Map.of("Desert", "DesertFestival"), List.of(), "desert_festival"
         ));
         register(new FestivalDefinition(
             "TroutDerby", FestivalType.PASSIVE, "Trout Derby", "", "",
             SUMMER, 20, 21, 610, 2600, false, true, "[LocalizedText Strings\\1_6_Strings:TroutDerby_NowOpen]",
+            "message.stardewcraft.festival.passive.trout_derby.started", "",
             "Forest", "Forest-TroutDerby", Map.of(), List.of(), "trout_derby"
         ));
         register(new FestivalDefinition(
             "SquidFest", FestivalType.PASSIVE, "SquidFest", "", "",
             WINTER, 12, 13, 610, 2600, false, true, "[LocalizedText Strings\\1_6_Strings:SquidFest_NowOpen]",
+            "message.stardewcraft.festival.passive.squid_fest.started", "",
             "Beach", "", Map.of(), List.of(), "squid_fest"
         ));
         register(new FestivalDefinition(
             "NightMarket", FestivalType.PASSIVE, "Night Market", "[LocalizedText Strings\\UI:Billboard_NightMarket]", "",
             WINTER, 15, 17, 1700, 2600, true, false, "[LocalizedText Strings\\Events:BeachNightMarket_NowOpen]",
+            "message.stardewcraft.festival.passive.night_market.started", "",
             "Beach", "BeachNightMarket", Map.of("Beach", "BeachNightMarket"), List.of(), "night_market"
         ));
     }

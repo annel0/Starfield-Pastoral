@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "stardewcraft:item/winter_star_tree",
+    "particle": "stardewcraft:item/winter_star_tree"
+  }
+}

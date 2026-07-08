@@ -214,6 +214,10 @@ public final class NpcInteractionService {
                 && tryHandleSpiritEveDialogue(serverPlayer, npc, npcId, state, dayContext, friendshipManager)) {
                 return InteractionResult.SUCCESS;
             }
+            if ("winter8".equalsIgnoreCase(activeFestival.festivalId())
+                && tryHandleFestivalOfIceDialogue(serverPlayer, npc, npcId, state, dayContext, friendshipManager)) {
+                return InteractionResult.SUCCESS;
+            }
             return InteractionResult.SUCCESS;
         }
 
@@ -543,6 +547,31 @@ public final class NpcInteractionService {
                                                       DayContext dayContext,
                                                       NpcFriendshipDataManager friendshipManager) {
         String dialogueText = com.stardew.craft.festival.SpiritEveFestivalService.resolveDialogueKey(player, npcId);
+        if (dialogueText == null || dialogueText.isBlank()) {
+            return false;
+        }
+
+        boolean canGainFriendship = NpcSocialRules.canSocialize(npcId, player);
+        if (canGainFriendship && state.lastTalkDayKey() != dayContext.dayKey()) {
+            grantConversationFriendship(npcId, state, dayContext, dialogueText, player);
+            NpcFriendshipRewardService.applyEligibleRewards(player, npcId, state.points());
+            friendshipManager.setDirty();
+        }
+        syncFriendshipStatus(player, npcId, state, dayContext);
+        com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(player, npcId);
+        markActiveFestivalDialogueSeen(player, npcId);
+        int points = state.points();
+        npc.facePlayerTemporarily(player, 60, () -> sendDialoguePacket(player, npcId, dialogueText, points, false));
+        return true;
+    }
+
+    private static boolean tryHandleFestivalOfIceDialogue(ServerPlayer player,
+                                                          StardewNpcEntity npc,
+                                                          String npcId,
+                                                          NpcFriendshipDataManager.FriendshipState state,
+                                                          DayContext dayContext,
+                                                          NpcFriendshipDataManager friendshipManager) {
+        String dialogueText = com.stardew.craft.festival.FestivalOfIceService.resolveDialogueKey(player, npcId);
         if (dialogueText == null || dialogueText.isBlank()) {
             return false;
         }
@@ -1479,6 +1508,15 @@ public final class NpcInteractionService {
             syncFriendshipStatus(player, npcId, state, dayContext);
         }
 
+        if (nextDialogueNode != null
+            && nextDialogueNode.startsWith(OpenNpcDialogueScreenPayload.DIRECT_DIALOGUE_PREFIX)) {
+            String text = decodeDirectDialogue(nextDialogueNode.substring(OpenNpcDialogueScreenPayload.DIRECT_DIALOGUE_PREFIX.length()));
+            if (!text.isBlank()) {
+                sendDialoguePacket(player, npcId, text, state.points());
+                return;
+            }
+        }
+
         if (nextDialogueNode != null && !nextDialogueNode.isBlank() && !nextDialogueNode.equals("null")) {
             JsonObject dialogueRoot = NpcDataRegistry.dialogues().get(npcId);
             String text = resolveDialogueTextByKey(dialogueRoot, nextDialogueNode, currentDayKey());
@@ -1489,6 +1527,18 @@ public final class NpcInteractionService {
         }
 
         endDialogueSession(player.getUUID(), npcId);
+    }
+
+    private static String decodeDirectDialogue(String encoded) {
+        if (encoded == null || encoded.isBlank()) {
+            return "";
+        }
+        try {
+            byte[] bytes = java.util.Base64.getUrlDecoder().decode(encoded);
+            return new String(bytes, StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException ignored) {
+            return "";
+        }
     }
 
     private static String findKeyCaseInsensitive(JsonObject obj, String candidate) {

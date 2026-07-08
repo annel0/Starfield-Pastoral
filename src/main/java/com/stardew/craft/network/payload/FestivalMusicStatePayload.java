@@ -12,6 +12,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 public record FestivalMusicStatePayload(String track) implements CustomPacketPayload {
     public static final String RELEASE = "release";
     public static final String NONE = "none";
+    public static final String CHRISTMAS_THEME = "christmas_theme";
     public static final String FALL_FEST = "fall_fest";
     public static final String EVENT1 = "event1";
     public static final String EVENT2 = "event2";
@@ -41,6 +42,7 @@ public record FestivalMusicStatePayload(String track) implements CustomPacketPay
     @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
     private static void handleClient(FestivalMusicStatePayload payload) {
         switch (payload.track()) {
+            case CHRISTMAS_THEME -> com.stardew.craft.client.sound.StardewMusicManager.playForCutscene(ModSounds.MUSIC_CHRISTMAS_THEME.get());
             case FALL_FEST -> com.stardew.craft.client.sound.StardewMusicManager.playForCutscene(ModSounds.MUSIC_FALL_FEST.get());
             case EVENT1 -> com.stardew.craft.client.sound.StardewMusicManager.playForCutscene(ModSounds.MUSIC_EVENT1.get());
             case EVENT2 -> com.stardew.craft.client.sound.StardewMusicManager.playForCutscene(ModSounds.MUSIC_EVENT2.get());

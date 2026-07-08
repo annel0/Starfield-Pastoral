@@ -190,6 +190,11 @@ public class InteriorPortalInteractionEvents {
             return;
         }
 
+        if (com.stardew.craft.festival.FestivalOfIceService.TRAVELING_MERCHANT_TARGET_ID.equals(targetId)) {
+            com.stardew.craft.festival.FestivalOfIceService.openTravelingMerchantShop(player);
+            return;
+        }
+
         // 骷髅矿入口（沙漠 → floor 121）
         if ("desert_mine_enter".equals(targetId)) {
             handleDesertMineEntrance(player);

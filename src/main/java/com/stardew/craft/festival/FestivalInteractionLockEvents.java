@@ -31,6 +31,9 @@ public final class FestivalInteractionLockEvents {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
+        if (isFestivalFishingRodUse(event.getEntity(), event.getItemStack())) {
+            return;
+        }
         if (locked(event.getEntity())) {
             event.setCanceled(true);
         }
@@ -38,6 +41,9 @@ public final class FestivalInteractionLockEvents {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onRightClickItem(PlayerInteractEvent.RightClickItem event) {
+        if (isFestivalFishingRodUse(event.getEntity(), event.getItemStack())) {
+            return;
+        }
         if (locked(event.getEntity())) {
             event.setCanceled(true);
         }
@@ -76,5 +82,12 @@ public final class FestivalInteractionLockEvents {
         if (event.getPlayer() instanceof Player player && locked(player)) {
             event.setCanceled(true);
         }
+    }
+
+    private static boolean isFestivalFishingRodUse(Player player, net.minecraft.world.item.ItemStack stack) {
+        return player instanceof ServerPlayer serverPlayer
+            && FestivalOfIceService.isFishingContestActive(serverPlayer)
+            && stack != null
+            && stack.getItem() instanceof com.stardew.craft.item.tool.FishingRodItem;
     }
 }

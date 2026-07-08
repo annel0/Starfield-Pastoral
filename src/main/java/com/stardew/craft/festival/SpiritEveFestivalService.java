@@ -16,9 +16,6 @@ import com.stardew.craft.network.payload.FestivalMusicStatePayload;
 import com.stardew.craft.network.payload.OpenDesertFestivalQuestionPayload;
 import com.stardew.craft.network.payload.OpenFestivalConfirmPayload;
 import com.stardew.craft.network.payload.OpenShopScreenPayload;
-import com.stardew.craft.npc.runtime.NpcCentralMovementService;
-import com.stardew.craft.npc.runtime.NpcInteractionService;
-import com.stardew.craft.npc.runtime.NpcSpawnManager;
 import com.stardew.craft.player.PlayerStardewDataAPI;
 import com.stardew.craft.shop.ShopItemEntry;
 import com.stardew.craft.shop.ShopRegistry;
@@ -60,6 +57,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import static com.stardew.craft.festival.FestivalNpcActorRuntime.actor;
+import static com.stardew.craft.festival.FestivalNpcActorRuntime.actorMap;
+import static com.stardew.craft.festival.FestivalNpcActorRuntime.canonical;
+import static com.stardew.craft.festival.FestivalNpcActorRuntime.point;
+import static com.stardew.craft.festival.FestivalNpcActorRuntime.yaw;
+
 public final class SpiritEveFestivalService {
     public static final String FESTIVAL_ID = "fall27";
     private static final String SHOP_ID = "Festival_SpiritsEve_Pierre";
@@ -87,14 +90,24 @@ public final class SpiritEveFestivalService {
     private static final BlockPos SHORTCUT_MINECART_POS = new BlockPos(68, 66, -60);
     private static final BlockPos RETURN_MINECART_POS = new BlockPos(3, 64, -5);
     private static final Vec3 SHORTCUT_RETURN_TARGET = new Vec3(3.5D, 64.0D, -2.5D);
-    private static final Map<String, ActorDefinition> ACTORS = createActors();
-    private static final Set<String> ACTOR_IDS = Set.copyOf(ACTORS.keySet());
+    private static final Map<String, FestivalNpcActorRuntime.ActorDefinition> ACTORS = createActors();
+    private static final FestivalNpcActorRuntime NPC_ACTORS = new FestivalNpcActorRuntime(new FestivalNpcActorRuntime.Config(
+        "Spirit's Eve",
+        MOVEMENT_OWNER,
+        ACTOR_TAG,
+        "spirit_eve_",
+        VENUE_BOUNDS,
+        STATIC_VERIFY_TICKS,
+        SPAWN_RETRY_TICKS,
+        FestivalNpcActorRuntime.DEFAULT_ROTATE_TICKS,
+        true,
+        ACTORS
+    ));
     private static final List<MonsterSpawn> MONSTERS = List.of(
         new MonsterSpawn(EntityType.ENDERMAN, point(-14, 64, -1, 'S')),
         new MonsterSpawn(EntityType.SKELETON, point(-22, 64, -1, 'S')),
         new MonsterSpawn(EntityType.SKELETON, point(-22, 64, 1, 'S'))
     );
-    private static final Map<String, ActorRuntime> RUNTIME = new LinkedHashMap<>();
     private static final Map<UUID, Vec3> LAST_OUTSIDE_ENTRY = new LinkedHashMap<>();
     private static final Map<UUID, Vec3> LAST_INSIDE_ENTRY = new LinkedHashMap<>();
     private static final ActiveFestivalConfirmState CONFIRM_STATE = new ActiveFestivalConfirmState();
@@ -103,8 +116,6 @@ public final class SpiritEveFestivalService {
 
     private static Integer frozenMinute;
     private static Long frozenOverworldDayTime;
-    private static boolean actorsActive;
-    private static boolean debugRequested;
 
     private SpiritEveFestivalService() {
     }
@@ -185,50 +196,27 @@ public final class SpiritEveFestivalService {
         if (level == null) {
             return;
         }
-        debugRequested = true;
-        actorsActive = true;
+        NPC_ACTORS.requestDebugStart(level);
         tickActors(level, true);
         ensureFestivalMonsters(level);
     }
 
     public static void restoreNpcs(ServerLevel level) {
-        debugRequested = false;
-        actorsActive = false;
-        if (level != null) {
-            NpcSpawnManager.tick(level);
-        }
-        for (String npcId : ACTORS.keySet()) {
-            if (level != null) {
-                StardewNpcEntity npc = findActorEntity(level, npcId);
-                if (npc != null) {
-                    npc.setInvisible(false);
-                    npc.removeTag(ACTOR_TAG);
-                    npc.getNavigation().stop();
-                    npc.setNoAi(false);
-                    npc.setInvulnerable(true);
-                    npc.setDeltaMovement(Vec3.ZERO);
-                    npc.hasImpulse = false;
-                    NpcCentralMovementService.resetMovementPlan(npcId);
-                    NpcSpawnManager.snapNpcToCurrentSchedule(level, npcId);
-                }
-            }
-            NpcCentralMovementService.resetAuthoredMovementPlan(npcId, MOVEMENT_OWNER);
-        }
-        RUNTIME.clear();
+        NPC_ACTORS.restore(level);
         removeFestivalMonsters(level);
     }
 
     public static String debugNpcStatus(ServerLevel level) {
         StringBuilder message = new StringBuilder("Spirit's Eve NPC actors: ")
-            .append(actorsActive ? "ACTIVE" : "INACTIVE")
+            .append(NPC_ACTORS.isActorsActive() ? "ACTIVE" : "INACTIVE")
             .append(", definitions=").append(ACTORS.size());
         if (level == null) {
             return message.append(", level=null").toString();
         }
         int monsterCount = level.getEntitiesOfClass(LivingEntity.class, VENUE_BOUNDS.inflate(8.0D), SpiritEveFestivalService::isFestivalMonster).size();
         message.append(", monsters=").append(monsterCount);
-        for (ActorDefinition definition : ACTORS.values()) {
-            StardewNpcEntity npc = findActorEntity(level, definition.npcId());
+        for (FestivalNpcActorRuntime.ActorDefinition definition : ACTORS.values()) {
+            StardewNpcEntity npc = NPC_ACTORS.findActorEntity(level, definition.npcId());
             message.append("\n - ").append(definition.npcId())
                 .append(": ").append(npc == null ? "missing" : fmt(npc.position()));
         }
@@ -236,7 +224,7 @@ public final class SpiritEveFestivalService {
     }
 
     public static boolean controlsNpc(String npcId) {
-        return ACTORS.containsKey(canonical(npcId));
+        return NPC_ACTORS.controlsNpc(npcId);
     }
 
     public static boolean isParticipant(ServerPlayer player) {
@@ -329,7 +317,7 @@ public final class SpiritEveFestivalService {
             return null;
         }
         String canonicalId = canonical(npcId);
-        if (!ACTOR_IDS.contains(canonicalId)) {
+        if (!NPC_ACTORS.actorIds().contains(canonicalId)) {
             return null;
         }
         return FestivalDialogueService.resolveDialogueKey(FESTIVAL_ID, canonicalId, 2);
@@ -447,7 +435,7 @@ public final class SpiritEveFestivalService {
         boolean overlayApplied = level != null && FestivalMapOverlayManager.isApplied(level, OVERLAY_ID);
         return "Spirit's Eve: participants=" + participants
             + ", musicSynced=" + musicSynced
-            + ", npcActors=" + (actorsActive ? "active" : "inactive")
+            + ", npcActors=" + (NPC_ACTORS.isActorsActive() ? "active" : "inactive")
             + ", overlayApplied=" + overlayApplied
             + ", timeFreeze=" + isTimeFreezeActive()
             + ", overlayBounds=(-36,63,-77)..(74,71,22)"
@@ -539,122 +527,7 @@ public final class SpiritEveFestivalService {
     }
 
     private static void tickActors(ServerLevel level, boolean activeRequested) {
-        if (!activeRequested) {
-            if (actorsActive) {
-                restoreNpcs(level);
-            }
-            return;
-        }
-        actorsActive = true;
-        long now = level.getGameTime();
-        for (ActorDefinition definition : ACTORS.values()) {
-            tickActor(level, definition, now);
-        }
-    }
-
-    private static void tickActor(ServerLevel level, ActorDefinition definition, long now) {
-        ActorRuntime runtime = RUNTIME.computeIfAbsent(definition.npcId(), id -> new ActorRuntime());
-        StardewNpcEntity npc = findActorEntity(level, definition.npcId());
-        if (npc == null) {
-            if (now - runtime.lastSpawnRequestTick >= SPAWN_RETRY_TICKS) {
-                runtime.lastSpawnRequestTick = now;
-                NpcSpawnManager.forceSpawnNpc(definition.npcId());
-                NpcSpawnManager.tick(level);
-                npc = findActorEntity(level, definition.npcId());
-            }
-            if (npc == null) {
-                return;
-            }
-        }
-
-        if (!npc.getTags().contains(ACTOR_TAG) || runtime.boundEntityId != npc.getId()) {
-            runtime.boundEntityId = npc.getId();
-            NpcCentralMovementService.resetAuthoredMovementPlan(definition.npcId(), MOVEMENT_OWNER);
-            placeAt(level, npc, definition.points().get(0));
-            runtime.lastStaticVerifyTick = now;
-            runtime.waitUntilTick = now + definition.waitTicks();
-        }
-
-        npc.addTag(ACTOR_TAG);
-        npc.setInvisible(false);
-        npc.setNoAi(false);
-        npc.setInvulnerable(true);
-        npc.setPersistenceRequired();
-
-        if (NpcInteractionService.isDialogueMovementLocked(definition.npcId()) || npc.isFacingOverrideActive()) {
-            NpcCentralMovementService.stopAuthoredMovement(npc);
-            return;
-        }
-        if (definition.hasRoute()) {
-            tickRoute(level, npc, definition, runtime, now);
-        } else {
-            keepAtPoint(level, npc, definition.points().get(0), runtime, now);
-        }
-    }
-
-    private static StardewNpcEntity findActorEntity(ServerLevel level, String npcId) {
-        StardewNpcEntity tracked = NpcSpawnManager.getTrackedNpc(level, npcId);
-        if (tracked != null) {
-            return tracked;
-        }
-        String canonicalId = canonical(npcId);
-        return level.getEntitiesOfClass(StardewNpcEntity.class, VENUE_BOUNDS.inflate(16.0D), npc ->
-                npc.isAlive() && !npc.isRemoved() && canonicalId.equals(canonical(npc.getNpcId())))
-            .stream()
-            .min(Comparator.comparingInt(Entity::getId))
-            .orElse(null);
-    }
-
-    private static void keepAtPoint(ServerLevel level, StardewNpcEntity npc, Waypoint point, ActorRuntime runtime, long now) {
-        if (now - runtime.lastStaticVerifyTick < STATIC_VERIFY_TICKS) {
-            return;
-        }
-        runtime.lastStaticVerifyTick = now;
-        if (npc.position().distanceToSqr(point.position()) > 0.64D) {
-            placeAt(level, npc, point);
-        } else {
-            applyYaw(npc, point.yaw());
-            NpcCentralMovementService.stopAuthoredMovement(npc);
-            npc.setWalking(false);
-        }
-    }
-
-    private static void tickRoute(ServerLevel level, StardewNpcEntity npc, ActorDefinition definition, ActorRuntime runtime, long now) {
-        if (now < runtime.waitUntilTick) {
-            NpcCentralMovementService.stopAuthoredMovement(npc);
-            npc.setWalking(false);
-            return;
-        }
-        int reachedRouteIndex = NpcCentralMovementService.tickAuthoredWalkRoute(
-            level,
-            npc,
-            MOVEMENT_OWNER,
-            "spirit_eve_" + definition.npcId(),
-            definition.routeTargets(),
-            true
-        );
-        if (reachedRouteIndex >= 0 && reachedRouteIndex < definition.routePoints().size()) {
-            Waypoint reached = definition.routePoints().get(reachedRouteIndex);
-            applyYaw(npc, reached.yaw());
-            npc.setWalking(false);
-            runtime.waitUntilTick = now + definition.waitTicks();
-        }
-    }
-
-    private static void placeAt(ServerLevel level, StardewNpcEntity npc, Waypoint point) {
-        npc.getNavigation().stop();
-        npc.moveTo(point.position().x, point.position().y, point.position().z, point.yaw(), 0.0F);
-        NpcCentralMovementService.snapToSurface(level, npc);
-        npc.setDeltaMovement(Vec3.ZERO);
-        npc.hasImpulse = false;
-        applyYaw(npc, point.yaw());
-        npc.setWalking(false);
-    }
-
-    private static void applyYaw(StardewNpcEntity npc, float yaw) {
-        npc.setYRot(yaw);
-        npc.setYHeadRot(yaw);
-        npc.setYBodyRot(yaw);
+        NPC_ACTORS.tick(level, activeRequested);
     }
 
     private static void ensureFestivalMonsters(ServerLevel level) {
@@ -663,7 +536,7 @@ public final class SpiritEveFestivalService {
         }
         boolean activeRequested = (isActiveSpiritEveDay() && hasCurrentSessionParticipant(level))
             || FestivalService.isDebugActiveFestival(FESTIVAL_ID)
-            || debugRequested;
+            || NPC_ACTORS.isDebugRequested();
         if (!activeRequested) {
             removeFestivalMonsters(level);
             return;
@@ -695,7 +568,7 @@ public final class SpiritEveFestivalService {
     }
 
     private static void configureFestivalMonster(Mob mob, MonsterSpawn spawn, int index) {
-        Waypoint point = spawn.point();
+        FestivalNpcActorRuntime.Waypoint point = spawn.point();
         mob.addTag(MONSTER_TAG);
         mob.addTag(ACTOR_TAG);
         mob.addTag(monsterSpawnTag(index));
@@ -741,7 +614,7 @@ public final class SpiritEveFestivalService {
         }
         boolean activeRequested = (isActiveSpiritEveDay() && hasCurrentSessionParticipant(level))
             || FestivalService.isDebugActiveFestival(FESTIVAL_ID)
-            || debugRequested;
+            || NPC_ACTORS.isDebugRequested();
         if (!activeRequested) {
             removeShortcutMinecarts(level);
             return;
@@ -1066,29 +939,7 @@ public final class SpiritEveFestivalService {
         LAST_INSIDE_ENTRY.clear();
         CONFIRM_STATE.clearAll();
         stopTimeFreeze();
-        debugRequested = false;
-    }
-
-    private static ActorDefinition actor(String npcId, Waypoint point) {
-        return ActorDefinition.create(canonical(npcId), List.of(point), 0);
-    }
-
-    private static ActorDefinition route(String npcId, Waypoint... points) {
-        return ActorDefinition.create(canonical(npcId), List.of(points), ROUTE_WAIT_TICKS);
-    }
-
-    private static Waypoint point(double x, double y, double z, char facing) {
-        return new Waypoint(new Vec3(x + 0.5D, y, z + 0.5D), yaw(facing));
-    }
-
-    private static float yaw(char facing) {
-        return switch (Character.toUpperCase(facing)) {
-            case 'N' -> 180.0F;
-            case 'E' -> -90.0F;
-            case 'W' -> 90.0F;
-            case 'S' -> 0.0F;
-            default -> 0.0F;
-        };
+        NPC_ACTORS.setDebugRequested(false);
     }
 
     private static String canonical(String npcId) {
@@ -1112,8 +963,12 @@ public final class SpiritEveFestivalService {
         return new AABB(minX, minY, minZ, maxX + 1.0D, maxY + 1.0D, maxZ + 1.0D);
     }
 
-    private static Map<String, ActorDefinition> createActors() {
-        List<ActorDefinition> definitions = new ArrayList<>();
+    private static FestivalNpcActorRuntime.ActorDefinition route(String npcId, FestivalNpcActorRuntime.Waypoint... points) {
+        return FestivalNpcActorRuntime.route(npcId, true, ROUTE_WAIT_TICKS, points);
+    }
+
+    private static Map<String, FestivalNpcActorRuntime.ActorDefinition> createActors() {
+        List<FestivalNpcActorRuntime.ActorDefinition> definitions = new ArrayList<>();
         definitions.add(actor("pierre", point(1, 64, -21, 'S')));
         definitions.add(actor("lewis", point(-3, 64, -15, 'S')));
         definitions.add(actor("marnie", point(-2, 64, -13, 'W')));
@@ -1141,39 +996,10 @@ public final class SpiritEveFestivalService {
         definitions.add(actor("vincent", point(22, 66, -35, 'S')));
         definitions.add(actor("sam", point(26, 66, -35, 'N')));
 
-        Map<String, ActorDefinition> result = new LinkedHashMap<>();
-        for (ActorDefinition definition : definitions) {
-            result.put(definition.npcId(), definition);
-        }
-        return java.util.Collections.unmodifiableMap(result);
+        return actorMap(definitions);
     }
 
-    private record ActorDefinition(String npcId, List<Waypoint> points, List<Waypoint> routePoints,
-                                   List<Vec3> routeTargets, int waitTicks) {
-        private static ActorDefinition create(String npcId, List<Waypoint> points, int waitTicks) {
-            List<Waypoint> routePoints = points.size() <= 1 ? List.of() : routePoints(points);
-            List<Vec3> routeTargets = routePoints.stream().map(Waypoint::position).toList();
-            return new ActorDefinition(npcId, points, routePoints, routeTargets, waitTicks);
-        }
-
-        private static List<Waypoint> routePoints(List<Waypoint> points) {
-            List<Waypoint> route = new ArrayList<>();
-            for (int i = 1; i < points.size(); i++) {
-                route.add(points.get(i));
-            }
-            route.add(points.get(0));
-            return List.copyOf(route);
-        }
-
-        private boolean hasRoute() {
-            return !routeTargets.isEmpty();
-        }
-    }
-
-    private record Waypoint(Vec3 position, float yaw) {
-    }
-
-    private record MonsterSpawn(EntityType<? extends Mob> type, Waypoint point) {
+    private record MonsterSpawn(EntityType<? extends Mob> type, FestivalNpcActorRuntime.Waypoint point) {
     }
 
     private static final class RewardChestContainer extends SimpleContainer {
@@ -1241,10 +1067,4 @@ public final class SpiritEveFestivalService {
         }
     }
 
-    private static final class ActorRuntime {
-        private int boundEntityId = -1;
-        private long waitUntilTick = 0L;
-        private long lastSpawnRequestTick = -SPAWN_RETRY_TICKS;
-        private long lastStaticVerifyTick = -STATIC_VERIFY_TICKS;
-    }
 }
