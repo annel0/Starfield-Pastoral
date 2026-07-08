@@ -1,0 +1,63 @@
+title: "[Feedback]: "
+labels: ["feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Share anything that feels confusing, awkward, missing, unbalanced, or worth improving.
+
+        欢迎反馈任何你觉得不顺手、不好懂、不像星露谷、缺内容、想优化的地方。这里适合开放讨论；确认要做的内容之后会整理成 Issue。
+
+  - type: textarea
+    id: impression
+    attributes:
+      label: What did you notice? / 你注意到了什么
+      description: Describe your feeling, problem, idea, or moment in play.
+      placeholder: "Example: Fishing feels..., The festival is..., I wish..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area / 相关方向
+      multiple: true
+      options:
+        - Festival / 节日
+        - Fishing / 钓鱼
+        - Farming / 农业
+        - NPC / 对话与日程
+        - UI / 界面
+        - Items and blocks / 物品与方块
+        - Map and world / 地图与世界
+        - Multiplayer / 多人
+        - Performance / 性能
+        - Translation / 翻译
+        - Other / 其他
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Play context / 游玩上下文
+      description: Version, season/day, singleplayer/server, what you were doing, or anything that helps explain the feedback.
+      placeholder: "Version, date, location, multiplayer, related mods..."
+    validations:
+      required: false
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: What would feel better? / 你希望怎么改
+      description: Concrete ideas are welcome, but rough feelings are also useful.
+    validations:
+      required: false
+
+  - type: textarea
+    id: media
+    attributes:
+      label: Screenshots, video, or references / 截图、视频或参考
+      description: Drag images or videos here if they help.
+    validations:
+      required: false

@@ -1,0 +1,76 @@
+name: Optimization Request / 优化建议
+description: Suggest a concrete improvement that is ready to triage as work.
+title: "[Suggestion]: "
+labels: ["enhancement", "feedback", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form when the suggestion is specific enough to become a task.
+
+        如果只是泛泛聊感受，请优先发到 Discussions 的 Feedback 分类。
+
+  - type: checkboxes
+    id: existing
+    attributes:
+      label: Existing reports / 是否已搜索
+      options:
+        - label: I have searched existing issues and discussions.
+          required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area / 优化方向
+      multiple: true
+      options:
+        - Festival / 节日
+        - Fishing / 钓鱼
+        - Farming / 农业
+        - NPC / 对话与日程
+        - UI / 界面
+        - Items and blocks / 物品与方块
+        - Map and world / 地图与世界
+        - Multiplayer / 多人
+        - Performance / 性能
+        - Translation / 翻译
+        - Other / 其他
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Current pain point / 现在哪里不舒服
+      description: What feels confusing, slow, repetitive, awkward, ugly, unbalanced, or unlike Stardew Valley?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Suggested improvement / 希望怎么优化
+      description: Describe the change you want. Concrete examples are very helpful.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: impact
+    attributes:
+      label: Impact / 影响程度
+      options:
+        - Blocks normal play / 明显影响游玩
+        - Frequently annoying / 经常别扭
+        - Nice polish / 体验打磨
+        - Personal preference / 个人偏好
+    validations:
+      required: true
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References / 参考材料
+      description: Screenshots, videos, Stardew Valley behavior, or similar mod examples.
+    validations:
+      required: false
+

@@ -1,0 +1,78 @@
+name: Player Feedback Triage / 玩家反馈整理
+description: Convert a player discussion or external comment into a trackable issue.
+title: "[Feedback]: "
+labels: ["feedback", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Maintainers can use this to turn player comments from Discussions, Discord, Bilibili, QQ, or playtests into a trackable GitHub issue.
+
+        这个模板适合把玩家讨论、群聊、视频评论、测试反馈整理成可追踪任务。
+
+  - type: input
+    id: source
+    attributes:
+      label: Source / 来源
+      description: Link to the original discussion, comment, video, chat note, or playtest record.
+      placeholder: "Discussion URL, Bilibili comment, Discord message, playtest note..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area / 所属系统
+      multiple: true
+      options:
+        - Festival / 节日
+        - Fishing / 钓鱼
+        - Farming / 农业
+        - NPC / 对话与日程
+        - UI / 界面
+        - Items and blocks / 物品与方块
+        - Map and world / 地图与世界
+        - Multiplayer / 多人
+        - Performance / 性能
+        - Translation / 翻译
+        - Other / 其他
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Player feedback summary / 玩家反馈摘要
+      description: Summarize the player need in one or two paragraphs.
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence / 证据或原话
+      description: Paste short quotes, screenshots, reproduction notes, or repeated reports.
+    validations:
+      required: false
+
+  - type: textarea
+    id: possible-actions
+    attributes:
+      label: Possible action / 可能处理方式
+      description: Keep this tentative if more design or source research is needed.
+      placeholder: "Investigate..., adjust..., compare with vanilla..., collect more reports..."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: triage
+    attributes:
+      label: Initial triage / 初步处理
+      options:
+        - Needs review / 待确认
+        - Ready to plan / 可进入计划
+        - Needs more reports / 需要更多反馈
+        - Probably won't do / 可能不做
+    validations:
+      required: true
+
