@@ -53,6 +53,19 @@ public final class FestivalMapOverlayRegistry {
             true
         ));
         register(new FestivalMapOverlayDefinition(
+            "Town-Christmas",
+            "Town",
+            new BlockPos(-31, 64, -26),
+            "",
+            "data/stardewcraft/structures/festivals/winter_star_town.schem",
+            new BlockPos(-31, 64, -26),
+            new BlockPos(41, 78, 25),
+            List.of(),
+            true,
+            true,
+            true
+        ));
+        register(new FestivalMapOverlayDefinition(
             "Forest-FlowerFestival",
             "Forest",
             new BlockPos(-250, 60, 101),

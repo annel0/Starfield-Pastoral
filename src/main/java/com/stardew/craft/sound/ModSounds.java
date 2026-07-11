@@ -76,6 +76,7 @@ public final class ModSounds {
 	public static final DeferredHolder<SoundEvent, SoundEvent> CACKLING_WITCH = register("cackling_witch");
 	public static final DeferredHolder<SoundEvent, SoundEvent> THUD_STEP = register("thud_step");
 	public static final DeferredHolder<SoundEvent, SoundEvent> STONE_STEP = register("stone_step");
+	public static final DeferredHolder<SoundEvent, SoundEvent> CUT = register("cut");
 	public static final DeferredHolder<SoundEvent, SoundEvent> HARVEST = register("harvest");
 	public static final DeferredHolder<SoundEvent, SoundEvent> LEAFRUSTLE = register("leafrustle");
 	public static final DeferredHolder<SoundEvent, SoundEvent> BUTTON1 = register("button1");

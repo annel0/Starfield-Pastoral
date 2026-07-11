@@ -217,7 +217,6 @@ public final class FairFestivalService {
             if (overlayApplied) {
                 installFairInteractionBlocks(level);
                 ensureFairAnimals(level);
-                tickNpcActors(level);
             } else {
                 clearRuntimeState(level);
             }
@@ -230,7 +229,6 @@ public final class FairFestivalService {
             installFairInteractionBlocks(level);
             ensureFairAnimals(level);
         }
-        tickNpcActors(level);
         tickGrangeJudging(level);
         syncParticipantClientState(level);
         for (ServerPlayer player : level.players()) {
@@ -281,7 +279,6 @@ public final class FairFestivalService {
     public static void onMapOverlayApplied(ServerLevel level) {
         installFairInteractionBlocks(level);
         ensureFairAnimals(level);
-        tickNpcActors(level);
     }
 
     public static void requestDebugNpcs(ServerLevel level) {

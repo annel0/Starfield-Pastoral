@@ -10,6 +10,7 @@ import com.stardew.craft.interior.InteriorSubspaceManager;
 import com.stardew.craft.interior.PlayerInteriorAllocator;
 import com.stardew.craft.network.ObjectDialogueService;
 import com.stardew.craft.network.payload.DesertBusFadePayload;
+import com.stardew.craft.shop.ShopHoursService;
 import com.stardew.craft.sound.ModSounds;
 import com.stardew.craft.mining.MineEntranceBootstrap;
 import com.stardew.craft.warp.ModTeleport;
@@ -325,6 +326,10 @@ public class InteriorPortalInteractionEvents {
             } else if (com.stardew.craft.auction.AuctionService.tryOpenAuctionEntryChoice(player)) {
                 return;
             }
+        }
+
+        if (ShopHoursService.blockClosedPortal(player, targetId)) {
+            return;
         }
 
         // ── 通用 Portal Registry 查找 ──

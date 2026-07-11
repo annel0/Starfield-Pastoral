@@ -1410,6 +1410,41 @@ public class PacketHandler {
             com.stardew.craft.network.payload.ConfirmGiftPayload.STREAM_CODEC,
             com.stardew.craft.network.payload.ConfirmGiftPayload::handle
         );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenWinterStarGiftPromptPayload.TYPE,
+            com.stardew.craft.network.payload.OpenWinterStarGiftPromptPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenWinterStarGiftPromptPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.WinterStarGiftSelectionPayload.TYPE,
+            com.stardew.craft.network.payload.WinterStarGiftSelectionPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.WinterStarGiftSelectionPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenWinterStarRecipientThanksPayload.TYPE,
+            com.stardew.craft.network.payload.OpenWinterStarRecipientThanksPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenWinterStarRecipientThanksPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.WinterStarRecipientThanksClosedPayload.TYPE,
+            com.stardew.craft.network.payload.WinterStarRecipientThanksClosedPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.WinterStarRecipientThanksClosedPayload::handle
+        );
+        registrar.playToServer(
+            com.stardew.craft.network.payload.WinterStarClaimReturnGiftPayload.TYPE,
+            com.stardew.craft.network.payload.WinterStarClaimReturnGiftPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.WinterStarClaimReturnGiftPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenWinterStarReturnGiftPayload.TYPE,
+            com.stardew.craft.network.payload.OpenWinterStarReturnGiftPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenWinterStarReturnGiftPayload::handle
+        );
+        registrar.playToClient(
+            com.stardew.craft.network.payload.OpenWinterStarOverflowGiftPayload.TYPE,
+            com.stardew.craft.network.payload.OpenWinterStarOverflowGiftPayload.STREAM_CODEC,
+            com.stardew.craft.network.payload.OpenWinterStarOverflowGiftPayload::handle
+        );
 
         // Flower Dance NPC dance invitation (S→C) and response (C→S)
         registrar.playToClient(

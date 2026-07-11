@@ -4,6 +4,7 @@ import com.stardew.craft.block.shape.ModelVoxelShapeCache;
 import com.stardew.craft.book.BookPowerEffects;
 import com.stardew.craft.core.ModDimensions;
 import com.stardew.craft.farming.SeasonLocationRules;
+import com.stardew.craft.item.tool.WateringCanItem;
 import com.stardew.craft.item.quality.QualityHelper;
 import com.stardew.craft.manager.FertilizerManager;
 import com.stardew.craft.player.PlayerStardewDataAPI;
@@ -536,6 +537,10 @@ public abstract class StardewCropBlock extends Block {
                                               @SuppressWarnings("null") Level level, @SuppressWarnings("null") BlockPos pos,
                                               @SuppressWarnings("null") Player player, @SuppressWarnings("null") InteractionHand hand,
                                               @SuppressWarnings("null") BlockHitResult hitResult) {
+        if (stack.getItem() instanceof WateringCanItem) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+
         InteractionResult result = tryRightClickHarvest(state, level, pos, player);
         if (result == InteractionResult.PASS) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;

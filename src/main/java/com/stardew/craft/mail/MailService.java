@@ -41,6 +41,21 @@ public class MailService {
         }
     }
 
+    /** Annual calendar mail: the vanilla ID repeats, while read history remains recorded. */
+    public static void addRecurringMail(ServerPlayer player, String mailId) {
+        if (!canQueueReadableMail(player, mailId, "recurringMailbox")) return;
+        PlayerStardewData data = PlayerDataManager.getPlayerData(player);
+        String deliveryFlag = "__recurring_mail_" + mailId + "_year_"
+            + com.stardew.craft.time.StardewTimeManager.get().getCurrentYear();
+        if (data.hasMailFlag(deliveryFlag)) return;
+        int before = data.getMailbox().size();
+        data.addToMailbox(mailId);
+        data.addMailFlag(deliveryFlag);
+        if (data.getMailbox().size() != before || data.hasMailFlag(deliveryFlag)) {
+            PlayerDataEventHandler.syncPlayerData(player, data);
+        }
+    }
+
     /**
      * 安排邮件于次日投递。如果已收过或已安排，则忽略。
      */
@@ -113,6 +128,10 @@ public class MailService {
 
         // 标记为已读
         data.addMailFlag(mailId);
+        if ("winter_18".equals(mailId)) {
+            // Vanilla LetterViewerMenu records this only when the actual letter is opened.
+            data.addMailFlag("sawSecretSanta" + com.stardew.craft.time.StardewTimeManager.get().getCurrentYear());
+        }
 
         // 特殊信件打开时触发附加效果（SDV parity: LetterViewerMenu 内联逻辑）
         if (com.stardew.craft.communitycenter.reward.BulletinReward.isBulletinThankYouMail(mailId)) {
@@ -124,6 +143,10 @@ public class MailService {
         // 处理文本替换
         String text = entry.getText();
         text = text.replace("@", player.getName().getString());
+        if (text.contains("%secretsanta")) {
+            text = text.replace("%secretsanta",
+                com.stardew.craft.festival.WinterStarFestivalService.getSecretFriendDisplayName(player).getString());
+        }
 
         // 构建附件列表 & 发放物品到玩家背包
         List<OpenMailPayload.ItemAttachment> items = new ArrayList<>();

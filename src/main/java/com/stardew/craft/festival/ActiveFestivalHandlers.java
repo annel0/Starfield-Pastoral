@@ -31,6 +31,7 @@ public final class ActiveFestivalHandlers {
             EggFestivalService::startDebugFestival,
             EggFestivalService::restoreDebugFestival,
             level -> EggFestivalService.debugMainEventStatus(level) + "\n" + EggFestivalNpcService.debugStatus(level),
+            ActiveFestivalHandlers::noop,
             EggFestivalService::tickNpcActors,
             EggFestivalNpcService::requestDebugStart,
             EggFestivalNpcService::restore,
@@ -56,6 +57,7 @@ public final class ActiveFestivalHandlers {
             FlowerDanceService::restoreDebugFestival,
             FlowerDanceService::debugStatus,
             ActiveFestivalHandlers::noop,
+            FlowerDanceService::tickNpcActors,
             FlowerDanceNpcService::requestDebugStart,
             FlowerDanceNpcService::restore,
             FlowerDanceNpcService::debugStatus,
@@ -79,6 +81,7 @@ public final class ActiveFestivalHandlers {
             LuauFestivalService::startDebugFestival,
             LuauFestivalService::restoreDebugFestival,
             LuauFestivalService::debugStatus,
+            ActiveFestivalHandlers::noop,
             LuauFestivalService::tickNpcActors,
             LuauFestivalService::requestDebugNpcs,
             LuauFestivalService::restoreNpcs,
@@ -103,6 +106,7 @@ public final class ActiveFestivalHandlers {
             MoonlightJelliesFestivalService::startDebugFestival,
             MoonlightJelliesFestivalService::restoreDebugFestival,
             MoonlightJelliesFestivalService::debugStatus,
+            ActiveFestivalHandlers::noop,
             MoonlightJelliesFestivalService::tickNpcActors,
             MoonlightJelliesFestivalService::requestDebugNpcs,
             MoonlightJelliesFestivalService::restoreNpcs,
@@ -128,6 +132,7 @@ public final class ActiveFestivalHandlers {
             FairFestivalService::restoreDebugFestival,
             FairFestivalService::debugStatus,
             FairFestivalService::onMapOverlayApplied,
+            FairFestivalService::tickNpcActors,
             FairFestivalService::requestDebugNpcs,
             FairFestivalService::restoreNpcs,
             FairFestivalService::debugNpcStatus,
@@ -152,6 +157,7 @@ public final class ActiveFestivalHandlers {
             SpiritEveFestivalService::restoreDebugFestival,
             SpiritEveFestivalService::debugStatus,
             SpiritEveFestivalService::onMapOverlayApplied,
+            SpiritEveFestivalService::tickNpcActors,
             SpiritEveFestivalService::requestDebugNpcs,
             SpiritEveFestivalService::restoreNpcs,
             SpiritEveFestivalService::debugNpcStatus,
@@ -176,6 +182,7 @@ public final class ActiveFestivalHandlers {
             FestivalOfIceService::restoreDebugFestival,
             FestivalOfIceService::debugStatus,
             FestivalOfIceService::onMapOverlayApplied,
+            FestivalOfIceService::tickNpcActors,
             FestivalOfIceService::requestDebugNpcs,
             FestivalOfIceService::restoreNpcs,
             FestivalOfIceService::debugNpcStatus,
@@ -191,6 +198,31 @@ public final class ActiveFestivalHandlers {
             FestivalOfIceService::isTimeFreezeActive,
             FestivalOfIceService::applyTimeFreeze,
             "已启动 Festival of Ice 总调试: 当前日期按 winter8 处理，overlay 应用中；NPC、商店、冰钓与入口/退场点位仍等待确认"
+        ));
+        register(new DelegateHandler(
+            WinterStarFestivalService.FESTIVAL_ID,
+            "Feast of the Winter Star",
+            WinterStarFestivalService::tick,
+            WinterStarFestivalService::startDebugFestival,
+            WinterStarFestivalService::restoreDebugFestival,
+            WinterStarFestivalService::debugStatus,
+            WinterStarFestivalService::onMapOverlayApplied,
+            WinterStarFestivalService::tickNpcActors,
+            WinterStarFestivalService::requestDebugNpcs,
+            WinterStarFestivalService::restoreNpcs,
+            WinterStarFestivalService::debugStatus,
+            WinterStarFestivalService::controlsNpc,
+            WinterStarFestivalService::isParticipant,
+            WinterStarFestivalService::onPlayerLogin,
+            WinterStarFestivalService::onPlayerLogout,
+            WinterStarFestivalService::markFestivalDialogueSeen,
+            WinterStarFestivalService::tryOpenPierreFestivalShop,
+            WinterStarFestivalService::isMainEventActive,
+            null,
+            WinterStarFestivalService::debugStatus,
+            () -> false,
+            WinterStarFestivalService::applyTimeFreeze,
+            "已启动 Feast of the Winter Star 总调试: 当前日期按 winter25 处理，Town-Christmas overlay 应用中，Year 1 NPC 会进入已确认点位"
         ));
     }
 
@@ -237,10 +269,14 @@ public final class ActiveFestivalHandlers {
         syncFestivalHud(level);
     }
 
+    public static void tickNpcActors(ServerLevel level) {
+        for (ActiveFestivalHandler handler : HANDLERS.values()) {
+            handler.tickNpcActors(level);
+        }
+    }
+
     public static boolean controlsNpc(String npcId) {
-        return currentActiveHandler()
-            .map(handler -> handler.controlsNpc(npcId))
-            .orElse(false);
+        return HANDLERS.values().stream().anyMatch(handler -> handler.controlsNpc(npcId));
     }
 
     public static boolean isParticipant(ServerPlayer player) {
@@ -379,6 +415,7 @@ public final class ActiveFestivalHandlers {
         Consumer<ServerLevel> restoreDebugAction,
         Function<ServerLevel, String> debugStatusAction,
         Consumer<ServerLevel> overlayAppliedAction,
+        Consumer<ServerLevel> tickNpcActorsAction,
         Consumer<ServerLevel> requestDebugNpcsAction,
         Consumer<ServerLevel> restoreDebugNpcsAction,
         Function<ServerLevel, String> debugNpcStatusAction,
@@ -418,6 +455,11 @@ public final class ActiveFestivalHandlers {
         @Override
         public void onMapOverlayApplied(ServerLevel level) {
             overlayAppliedAction.accept(level);
+        }
+
+        @Override
+        public void tickNpcActors(ServerLevel level) {
+            tickNpcActorsAction.accept(level);
         }
 
         @Override

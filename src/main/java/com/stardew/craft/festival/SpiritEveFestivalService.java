@@ -100,7 +100,7 @@ public final class SpiritEveFestivalService {
         STATIC_VERIFY_TICKS,
         SPAWN_RETRY_TICKS,
         FestivalNpcActorRuntime.DEFAULT_ROTATE_TICKS,
-        true,
+        false,
         ACTORS
     ));
     private static final List<MonsterSpawn> MONSTERS = List.of(
@@ -132,7 +132,6 @@ public final class SpiritEveFestivalService {
             stopTimeFreeze();
         }
         syncParticipantMusic(level);
-        tickNpcActors(level);
         ensureFestivalMonsters(level);
         ensureRewardProps(level);
         for (ServerPlayer player : level.players()) {
@@ -154,7 +153,6 @@ public final class SpiritEveFestivalService {
             syncFestivalMusic(player, FestivalMusicStatePayload.SPIRITS_EVE);
             player.getPersistentData().putBoolean(TAG_MUSIC_SYNCED, true);
         }
-        tickNpcActors(level);
         ensureFestivalMonsters(level);
         ensureRewardProps(level);
     }
@@ -175,7 +173,6 @@ public final class SpiritEveFestivalService {
     }
 
     public static void onMapOverlayApplied(ServerLevel level) {
-        tickNpcActors(level);
         ensureFestivalMonsters(level);
         ensureRewardProps(level);
     }

@@ -7,11 +7,16 @@ import com.stardew.craft.economy.sell.SellSource;
 import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.menu.ShippingBinMenu;
 import com.stardew.craft.network.overnight.OvernightSettlementTracker;
+import com.stardew.craft.player.PlayerDataManager;
+import com.stardew.craft.player.PlayerStardewData;
 import com.stardew.craft.sound.ModSounds;
+import com.stardew.craft.time.StardewTimeManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -44,6 +49,7 @@ import java.util.UUID;
 @SuppressWarnings("null")
 public class ShippingBinBlockEntity extends net.minecraft.world.level.block.entity.BlockEntity implements Container, MenuProvider, GeoBlockEntity {
     private static final String TAG_ITEMS = "items";
+    private static final String TAG_BUFFER_DAY = "bufferDay";
     private static final int SLOT_COUNT = 1;
     private static final int PROXIMITY_CHECK_INTERVAL = 10;
 
@@ -61,6 +67,7 @@ public class ShippingBinBlockEntity extends net.minecraft.world.level.block.enti
     private boolean lastAnimatedOpen;
     private int pendingCloseStepTicks;
     private int pendingShipSoundTicks;
+    private int bufferAbsoluteDay = -1;
     @Nullable
     private UUID lastInteractorId;
 
@@ -79,6 +86,8 @@ public class ShippingBinBlockEntity extends net.minecraft.world.level.block.enti
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, ShippingBinBlockEntity be) {
+        be.flushExpiredBufferIfNeeded();
+
         if (be.pendingCloseStepTicks > 0) {
             be.pendingCloseStepTicks--;
             if (be.pendingCloseStepTicks == 0 && !be.nearbyOpen && be.openCount <= 0) {
@@ -147,17 +156,12 @@ public class ShippingBinBlockEntity extends net.minecraft.world.level.block.enti
         ItemStack oldStack = items.get(0);
         if (!oldStack.isEmpty()) {
             // SDV parity: 不立即结算，只记录到夜间结算追踪器
-            ServerPlayer payer = resolvePayoutPlayer();
-            if (payer != null) {
-                SellQuote quote = ProfessionSellPriceService.quoteItem(payer, oldStack, SellSource.SHIPPING_BIN);
-                if (quote.sellable() && quote.finalUnitPrice() > 0) {
-                    OvernightSettlementTracker.recordShipping(payer, oldStack, quote.finalUnitPrice());
-                }
-            } else {
+            if (!recordShippingForOwner(oldStack, availableDayForCurrentBuffer())) {
                 Containers.dropItemStack(level, worldPosition.getX(), worldPosition.getY() + 1, worldPosition.getZ(), oldStack);
             }
         }
         items.set(0, newStack);
+        bufferAbsoluteDay = newStack.isEmpty() ? -1 : currentAbsoluteDay();
         setChanged();
         syncToClient();
     }
@@ -177,16 +181,12 @@ public class ShippingBinBlockEntity extends net.minecraft.world.level.block.enti
         if (level == null || level.isClientSide) return;
         ItemStack remaining = items.get(0);
         if (remaining.isEmpty()) return;
-        ServerPlayer payer = resolvePayoutPlayer();
-        if (payer != null) {
-            SellQuote quote = ProfessionSellPriceService.quoteItem(payer, remaining, SellSource.SHIPPING_BIN);
-            if (quote.sellable() && quote.finalUnitPrice() > 0) {
-                OvernightSettlementTracker.recordShipping(payer, remaining, quote.finalUnitPrice());
-            }
+        if (recordShippingForOwner(remaining, Math.max(currentAbsoluteDay(), availableDayForCurrentBuffer()))) {
+            items.set(0, ItemStack.EMPTY);
+            bufferAbsoluteDay = -1;
+            setChanged();
+            syncToClient();
         }
-        items.set(0, ItemStack.EMPTY);
-        setChanged();
-        syncToClient();
     }
 
     public void dropAllContents(Level level, BlockPos pos) {
@@ -203,6 +203,7 @@ public class ShippingBinBlockEntity extends net.minecraft.world.level.block.enti
             return false;
         }
 
+        flushExpiredBufferIfNeeded();
         ItemStack incoming = stack.copy();
         if (player instanceof ServerPlayer serverPlayer) {
             lastInteractorId = serverPlayer.getUUID();
@@ -286,6 +287,7 @@ public class ShippingBinBlockEntity extends net.minecraft.world.level.block.enti
 
         if (removed >= stack.getCount()) {
             items.set(0, ItemStack.EMPTY);
+            bufferAbsoluteDay = -1;
         } else {
             stack.shrink(removed);
         }
@@ -302,6 +304,7 @@ public class ShippingBinBlockEntity extends net.minecraft.world.level.block.enti
         }
         ItemStack out = items.get(0);
         items.set(0, ItemStack.EMPTY);
+        bufferAbsoluteDay = -1;
         setChanged();
         syncToClient();
         return out;
@@ -319,8 +322,89 @@ public class ShippingBinBlockEntity extends net.minecraft.world.level.block.enti
         }
 
         items.set(0, sanitized);
+        bufferAbsoluteDay = sanitized.isEmpty() ? -1 : currentAbsoluteDay();
         setChanged();
         syncToClient();
+    }
+
+    private void flushExpiredBufferIfNeeded() {
+        if (level == null || level.isClientSide) return;
+        ItemStack remaining = items.get(0);
+        if (remaining.isEmpty()) {
+            if (bufferAbsoluteDay != -1) {
+                bufferAbsoluteDay = -1;
+                setChanged();
+            }
+            return;
+        }
+
+        int today = currentAbsoluteDay();
+        if (bufferAbsoluteDay < 0) {
+            bufferAbsoluteDay = today;
+            setChanged();
+            return;
+        }
+        if (today <= bufferAbsoluteDay) {
+            return;
+        }
+
+        if (recordShippingForOwner(remaining, Math.max(today, bufferAbsoluteDay + 1))) {
+            items.set(0, ItemStack.EMPTY);
+            bufferAbsoluteDay = -1;
+            setChanged();
+            syncToClient();
+            settleAvailableShippingForOnlineOwner();
+        }
+    }
+
+    private boolean recordShippingForOwner(ItemStack stack, int availableDay) {
+        if (!(level instanceof ServerLevel serverLevel) || stack.isEmpty()) {
+            return false;
+        }
+
+        ServerPlayer payer = resolvePayoutPlayer();
+        UUID payerId = payer != null ? payer.getUUID() : lastInteractorId;
+        if (payerId == null) {
+            return false;
+        }
+        lastInteractorId = payerId;
+
+        SellQuote quote;
+        if (payer != null) {
+            quote = ProfessionSellPriceService.quoteItem(payer, stack, SellSource.SHIPPING_BIN);
+        } else {
+            PlayerStardewData data = PlayerDataManager.getPlayerData(payerId);
+            quote = ProfessionSellPriceService.quoteItem(data, stack, SellSource.SHIPPING_BIN);
+        }
+        if (!quote.sellable() || quote.finalUnitPrice() <= 0) {
+            return false;
+        }
+
+        MinecraftServer server = serverLevel.getServer();
+        OvernightSettlementTracker.recordShipping(server, payerId, stack, quote.finalUnitPrice(), availableDay);
+        return true;
+    }
+
+    private void settleAvailableShippingForOnlineOwner() {
+        if (!(level instanceof ServerLevel serverLevel) || lastInteractorId == null) {
+            return;
+        }
+        ServerPlayer player = serverLevel.getServer().getPlayerList().getPlayer(lastInteractorId);
+        if (player == null) {
+            return;
+        }
+        com.stardew.craft.network.overnight.OvernightSettlementPayload payload =
+            OvernightSettlementTracker.consumePayload(player);
+        com.stardew.craft.player.PlayerStardewDataAPI.recordOvernightShippedItems(player, payload.shippedItems());
+    }
+
+    private int availableDayForCurrentBuffer() {
+        return bufferAbsoluteDay >= 0 ? bufferAbsoluteDay + 1 : currentAbsoluteDay() + 1;
+    }
+
+    private static int currentAbsoluteDay() {
+        StardewTimeManager time = StardewTimeManager.get();
+        return time == null ? 1 : time.getAbsoluteDay();
     }
 
     @Nullable
@@ -395,6 +479,9 @@ public class ShippingBinBlockEntity extends net.minecraft.world.level.block.enti
             list.add(entry);
         }
         tag.put(TAG_ITEMS, list);
+        if (bufferAbsoluteDay >= 0) {
+            tag.putInt(TAG_BUFFER_DAY, bufferAbsoluteDay);
+        }
         if (lastInteractorId != null) {
             tag.putUUID("lastInteractorId", lastInteractorId);
         }
@@ -415,6 +502,7 @@ public class ShippingBinBlockEntity extends net.minecraft.world.level.block.enti
                 }
             }
         }
+        bufferAbsoluteDay = tag.contains(TAG_BUFFER_DAY, Tag.TAG_INT) ? tag.getInt(TAG_BUFFER_DAY) : -1;
 
         if (tag.hasUUID("lastInteractorId")) {
             lastInteractorId = tag.getUUID("lastInteractorId");

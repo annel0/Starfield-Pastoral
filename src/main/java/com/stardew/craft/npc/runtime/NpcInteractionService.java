@@ -219,6 +219,10 @@ public final class NpcInteractionService {
                 && tryHandleFestivalOfIceDialogue(serverPlayer, npc, npcId, state, dayContext, friendshipManager)) {
                 return InteractionResult.SUCCESS;
             }
+            if ("winter25".equalsIgnoreCase(activeFestival.festivalId())
+                && tryHandleWinterStarDialogue(serverPlayer, npc, npcId, state, dayContext, friendshipManager)) {
+                return InteractionResult.SUCCESS;
+            }
             return InteractionResult.SUCCESS;
         }
 
@@ -596,6 +600,44 @@ public final class NpcInteractionService {
         return true;
     }
 
+    private static boolean tryHandleWinterStarDialogue(ServerPlayer player,
+                                                        StardewNpcEntity npc,
+                                                        String npcId,
+                                                        NpcFriendshipDataManager.FriendshipState state,
+                                                        DayContext dayContext,
+                                                        NpcFriendshipDataManager friendshipManager) {
+        String dialogueText = com.stardew.craft.festival.WinterStarFestivalService.resolveDialogueKey(player, npcId);
+        boolean formalFestivalDay = com.stardew.craft.festival.WinterStarFestivalService.isFormalFestivalDay();
+        if (com.stardew.craft.festival.WinterStarFestivalService.tryPromptSecretGift(player, npc, npcId)) {
+            if (formalFestivalDay && NpcSocialRules.canSocialize(npcId, player)
+                && state.lastTalkDayKey() != dayContext.dayKey()) {
+                grantConversationFriendship(npcId, state, dayContext,
+                    dialogueText == null || dialogueText.isBlank() ? "winter_star_secret_gift" : dialogueText, player);
+                NpcFriendshipRewardService.applyEligibleRewards(player, npcId, state.points());
+                friendshipManager.setDirty();
+                syncFriendshipStatus(player, npcId, state, dayContext);
+                com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(player, npcId);
+            }
+            return true;
+        }
+        if (dialogueText == null || dialogueText.isBlank()) {
+            return false;
+        }
+
+        boolean canGainFriendship = formalFestivalDay && NpcSocialRules.canSocialize(npcId, player);
+        if (canGainFriendship && state.lastTalkDayKey() != dayContext.dayKey()) {
+            grantConversationFriendship(npcId, state, dayContext, dialogueText, player);
+            NpcFriendshipRewardService.applyEligibleRewards(player, npcId, state.points());
+            friendshipManager.setDirty();
+        }
+        syncFriendshipStatus(player, npcId, state, dayContext);
+        com.stardew.craft.quest.StardewQuestEvents.fireNpcSocialized(player, npcId);
+        markActiveFestivalDialogueSeen(player, npcId);
+        int points = state.points();
+        npc.facePlayerTemporarily(player, 60, () -> sendDialoguePacket(player, npcId, dialogueText, points, false));
+        return true;
+    }
+
     private static boolean isLewis(String npcId) {
         return "lewis".equals(npcId == null ? "" : npcId.trim().toLowerCase(Locale.ROOT));
     }
@@ -726,6 +768,46 @@ public final class NpcInteractionService {
         sendDialoguePacket(player, npcId, resultText, state.points(), garbleGift);
     }
 
+    /**
+     * Vanilla recipient.receiveGift(... updateGiftLimitInfo:false,
+     * friendshipChangeMultiplier:5, showResponse:false).
+     */
+    public static boolean applyWinterStarSecretGift(ServerPlayer player, StardewNpcEntity npcEntity,
+                                                     String npcId, ItemStack gift) {
+        if (player == null || npcEntity == null || gift == null || gift.isEmpty() || !canBeGivenAsGift(gift)) {
+            return false;
+        }
+        ServerLevel level = player.serverLevel();
+        DayContext dayContext = currentDayContext(level);
+        NpcFriendshipDataManager friendshipManager = NpcFriendshipDataManager.get(level);
+        NpcFriendshipDataManager.FriendshipState state = friendshipManager.getOrCreate(player.getUUID(), npcId);
+        GiftTaste taste = getGiftTasteForThisItem(gift, npcId).taste();
+
+        int delta;
+        if (isStardropTea(gift)) {
+            delta = 750;
+        } else {
+            int base = friendshipDeltaFromTaste(taste);
+            delta = base > 0
+                ? (int) (base * 5.0F * qualityMultiplier(gift))
+                : (int) (base * 5.0F);
+        }
+        delta = BookPowerEffects.applyFriendshipGain(PlayerDataManager.getPlayerData(player), delta);
+        state.addPoints(delta, getMaxFriendshipPointsFor(npcId));
+        PlayerStardewDataAPI.recordGiftGiven(player);
+        if (!player.getAbilities().instabuild) {
+            gift.shrink(1);
+        }
+        level.playSound(null, player.blockPosition(),
+            com.stardew.craft.sound.ModSounds.GIVE_GIFT.get(),
+            net.minecraft.sounds.SoundSource.PLAYERS, 1.0F, 1.0F);
+        broadcastGiftEmote(npcEntity, taste);
+        NpcFriendshipRewardService.applyEligibleRewards(player, npcId, state.points());
+        friendshipManager.setDirty();
+        syncFriendshipStatus(player, npcId, state, dayContext);
+        return true;
+    }
+
     public static void handleFlowerDanceNpcInviteResponse(ServerPlayer player, String npcId, boolean confirmed) {
         if (!confirmed || player == null || !(player.level() instanceof ServerLevel serverLevel)) {
             return;
@@ -829,7 +911,7 @@ public final class NpcInteractionService {
             || MAGIC_ROCK_CANDY_ID.equals(id);
     }
 
-    private static boolean canBeGivenAsGift(ItemStack held) {
+    public static boolean canBeGivenAsGift(ItemStack held) {
         if (held.isEmpty()) {
             return false;
         }

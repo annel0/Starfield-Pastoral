@@ -441,7 +441,16 @@ public class StardewCraftClient {
             ModBlocks.REDWOOD_DRESSER.get(),
             ModBlocks.WALNUT_BEDSIDE_CABINET.get(),
             ModBlocks.WALNUT_DRESSER.get(),
-            ModBlocks.LIGHTNING_ROD.get()
+            ModBlocks.LIGHTNING_ROD.get(),
+            ModBlocks.WINTER_STAR_LARGE_RED_CANDY_CANE.get(),
+            ModBlocks.WINTER_STAR_LARGE_GREEN_CANDY_CANE.get(),
+            ModBlocks.WINTER_STAR_MIXED_CANDY_CANES.get(),
+            ModBlocks.WINTER_STAR_RED_CANDY_CANES.get(),
+            ModBlocks.WINTER_STAR_GREEN_CANDY_CANES.get(),
+            ModBlocks.WINTER_STAR_PURPLE_GIFT_BOX.get(),
+            ModBlocks.WINTER_STAR_RED_GIFT_BOX.get(),
+            ModBlocks.WINTER_STAR_GREEN_GIFT_BOX.get(),
+            ModBlocks.WINTER_STAR_BLUE_GIFT_BOX.get()
         ));
         ModBlocks.PLACED_COOKING_FOODS.values().forEach(block -> blocks.add(block.get()));
         blocks.forEach(block -> net.minecraft.client.renderer.ItemBlockRenderTypes.setRenderLayer(

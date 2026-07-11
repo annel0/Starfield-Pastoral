@@ -2,6 +2,7 @@ package com.stardew.craft.festival;
 
 import com.stardew.craft.entity.npc.StardewNpcEntity;
 import com.stardew.craft.npc.runtime.NpcCentralMovementService;
+import com.stardew.craft.npc.runtime.NpcChunkForceManager;
 import com.stardew.craft.npc.runtime.NpcInteractionService;
 import com.stardew.craft.npc.runtime.NpcSpawnManager;
 import net.minecraft.server.level.ServerLevel;
@@ -68,9 +69,6 @@ public final class FestivalNpcActorRuntime {
                 NpcSpawnManager.forceSpawnNpc(npcId);
             }
         }
-        if (level != null) {
-            NpcSpawnManager.tick(level);
-        }
     }
 
     public void restore(ServerLevel level) {
@@ -79,16 +77,23 @@ public final class FestivalNpcActorRuntime {
         }
         debugRequested = false;
         actorsActive = false;
+        NpcSpawnManager.releaseFestivalSpawnTargets(config.movementOwner());
         for (String npcId : config.actors().keySet()) {
+            if (level != null) {
+                NpcChunkForceManager.releaseNpcForcedChunks(level, npcId);
+            }
             if (hooks.shouldResumeNpcSpawn(npcId)) {
                 NpcSpawnManager.resumeNpcSpawn(npcId);
+            }
+            if (hooks.shouldForceSpawnNpc(npcId)) {
+                NpcSpawnManager.forceSpawnNpc(npcId);
             }
         }
         if (level == null) {
             runtime.clear();
             return;
         }
-        NpcSpawnManager.tick(level);
+        NpcSpawnManager.prepareCurrentScheduleTargets(level);
         for (String npcId : config.actors().keySet()) {
             StardewNpcEntity npc = findActorEntity(level, npcId);
             if (npc == null) {
@@ -236,6 +241,10 @@ public final class FestivalNpcActorRuntime {
 
     private void tickActor(ServerLevel level, ActorDefinition definition, long now) {
         ActorRuntime actorRuntime = runtime.computeIfAbsent(definition.npcId(), ignored -> new ActorRuntime(config));
+        Waypoint spawnPoint = definition.points().get(0);
+        NpcSpawnManager.claimFestivalSpawnTarget(
+            config.movementOwner(), definition.npcId(), spawnPoint.position(), spawnPoint.yaw());
+        NpcChunkForceManager.ensureRouteTargetChunkForced(level, definition.npcId(), spawnPoint.position());
         if (hooks.beforeTickActor(level, definition, actorRuntime, now)) {
             return;
         }
@@ -246,8 +255,6 @@ public final class FestivalNpcActorRuntime {
                 && hooks.shouldForceSpawnNpc(definition.npcId())) {
                 actorRuntime.setLastSpawnRequestTick(now);
                 NpcSpawnManager.forceSpawnNpc(definition.npcId());
-                NpcSpawnManager.tick(level);
-                npc = findActorEntity(level, definition.npcId());
             }
             if (npc == null) {
                 return;
@@ -262,6 +269,10 @@ public final class FestivalNpcActorRuntime {
             actorRuntime.setWaitUntilTick(now + definition.waitTicks());
             hooks.onActorBound(level, definition, npc, actorRuntime);
         }
+
+        NpcSpawnManager.claimFestivalSpawnTarget(
+            config.movementOwner(), definition.npcId(), npc.position(), npc.getYRot());
+        NpcChunkForceManager.ensureRouteTargetChunkForced(level, definition.npcId(), npc.position());
 
         npc.addTag(config.actorTag());
         npc.setInvisible(false);

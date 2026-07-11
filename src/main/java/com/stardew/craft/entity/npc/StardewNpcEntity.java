@@ -54,10 +54,6 @@ public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
     private static final float TURN_SPEED = 40f;
     /** 转到位后的保持时间（tick）。单人 GUI 期间 tick 暂停，所以实际保持到对话关闭后 */
     private int facingHoldTicks;
-    /** 转到位后执行的回调（发送对话包等） */
-    @javax.annotation.Nullable
-    private Runnable pendingFaceAction;
-
     /** 空闲时自动看向玩家 */
     private static final double LOOK_AT_PLAYER_RANGE = 2.0;
     private static final float IDLE_TURN_SPEED = 15f;
@@ -260,13 +256,7 @@ public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
             case TURNING_TO: {
                 // 平滑转向目标角度
                 if (smoothRotateToward(facingTargetYaw)) {
-                    // 到位了，执行回调（发送对话包等）
                     facingState = FacingState.HOLDING;
-                    if (pendingFaceAction != null) {
-                        Runnable action = pendingFaceAction;
-                        pendingFaceAction = null;
-                        action.run();
-                    }
                 }
                 break;
             }
@@ -369,14 +359,6 @@ public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
     }
 
     /**
-     * 让 NPC 平滑转向玩家，转到位后执行 onComplete 回调。
-     * 对话结束（GUI 关闭、tick 恢复）后 NPC 会平滑转回原始朝向。
-     *
-     * @param target     要面对的玩家
-     * @param holdTicks  转到位后保持的 tick 数（单人 GUI 期间 tick 冻结，不消耗）
-     * @param onComplete 转到位后立即执行的回调（用于发送对话/礼物确认包），可为 null
-     */
-    /**
      * Whether the NPC is currently in a facing override state (turning to player,
      * holding, or turning back). External systems (e.g. NpcCentralMovementService)
      * must NOT overwrite yaw while this returns true.
@@ -390,6 +372,14 @@ public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
         return lookingAtPlayer;
     }
 
+    /**
+     * 让 NPC 平滑转向玩家，并立即执行 onComplete 回调。
+     * 对话结束（GUI 关闭、tick 恢复）后 NPC 会平滑转回原始朝向。
+     *
+     * @param target     要面对的玩家
+     * @param holdTicks  转到位后保持的 tick 数（单人 GUI 期间 tick 冻结，不消耗）
+     * @param onComplete 不等待转身完成的回调（用于发送对话/礼物确认包），可为 null
+     */
     public void facePlayerTemporarily(Player target, int holdTicks, @javax.annotation.Nullable Runnable onComplete) {
         if (this.level().isClientSide) return;
         // If currently idle-looking, save the original schedule yaw (not the
@@ -404,8 +394,10 @@ public class StardewNpcEntity extends PathfinderMob implements GeoEntity {
         double dz = target.getZ() - this.getZ();
         this.facingTargetYaw = (float) (Math.atan2(-dx, dz) * (180.0 / Math.PI));
         this.facingHoldTicks = holdTicks;
-        this.pendingFaceAction = onComplete;
         this.facingState = FacingState.TURNING_TO;
+        if (onComplete != null) {
+            onComplete.run();
+        }
     }
 
     public boolean isPathingEnabled() {

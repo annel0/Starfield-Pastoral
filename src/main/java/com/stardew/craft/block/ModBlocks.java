@@ -2308,6 +2308,78 @@ public static final DeferredBlock<Block> DEAD_CROP = BLOCKS.register("dead_crop"
                                         .strength(1.0F, 2.0F), "stardewcraft:decor/festival/winter_star_tree_proxy"));
 
         @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WINTER_STAR_LARGE_RED_CANDY_CANE = BLOCKS.register("winter_star_large_red_candy_cane",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.COLOR_RED)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.4F, 0.8F), "stardewcraft:decor/festival/winter_star_large_red_candy_cane"));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WINTER_STAR_LARGE_GREEN_CANDY_CANE = BLOCKS.register("winter_star_large_green_candy_cane",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.COLOR_GREEN)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.4F, 0.8F), "stardewcraft:decor/festival/winter_star_large_green_candy_cane"));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WINTER_STAR_MIXED_CANDY_CANES = BLOCKS.register("winter_star_mixed_candy_canes",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.COLOR_RED)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.4F, 0.8F), "stardewcraft:decor/festival/winter_star_mixed_candy_canes"));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WINTER_STAR_RED_CANDY_CANES = BLOCKS.register("winter_star_red_candy_canes",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.COLOR_RED)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.4F, 0.8F), "stardewcraft:decor/festival/winter_star_red_candy_canes"));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WINTER_STAR_GREEN_CANDY_CANES = BLOCKS.register("winter_star_green_candy_canes",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.COLOR_GREEN)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOD)
+                                        .noOcclusion()
+                                        .strength(0.4F, 0.8F), "stardewcraft:decor/festival/winter_star_green_candy_canes"));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WINTER_STAR_PURPLE_GIFT_BOX = BLOCKS.register("winter_star_purple_gift_box",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.COLOR_PURPLE)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOL)
+                                        .noOcclusion()
+                                        .strength(0.3F, 0.6F), "stardewcraft:decor/festival/winter_star_purple_gift_box"));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WINTER_STAR_RED_GIFT_BOX = BLOCKS.register("winter_star_red_gift_box",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.COLOR_RED)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOL)
+                                        .noOcclusion()
+                                        .strength(0.3F, 0.6F), "stardewcraft:decor/festival/winter_star_red_gift_box"));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WINTER_STAR_GREEN_GIFT_BOX = BLOCKS.register("winter_star_green_gift_box",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.COLOR_GREEN)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOL)
+                                        .noOcclusion()
+                                        .strength(0.3F, 0.6F), "stardewcraft:decor/festival/winter_star_green_gift_box"));
+
+        @SuppressWarnings("null")
+        public static final DeferredBlock<Block> WINTER_STAR_BLUE_GIFT_BOX = BLOCKS.register("winter_star_blue_gift_box",
+                        () -> new com.stardew.craft.block.decor.MapDecorStaticBlock(Block.Properties.of()
+                                        .mapColor(net.minecraft.world.level.material.MapColor.COLOR_BLUE)
+                                        .sound(net.minecraft.world.level.block.SoundType.WOOL)
+                                        .noOcclusion()
+                                        .strength(0.3F, 0.6F), "stardewcraft:decor/festival/winter_star_blue_gift_box"));
+
+        @SuppressWarnings("null")
         public static final DeferredBlock<Block> SQUID_FEST_PROMO_POSTER = BLOCKS.register("squid_fest_promo_poster",
                         () -> new com.stardew.craft.block.decor.GeoFestivalDecorBlock(Block.Properties.of()
                                         .mapColor(net.minecraft.world.level.material.MapColor.COLOR_BLUE)

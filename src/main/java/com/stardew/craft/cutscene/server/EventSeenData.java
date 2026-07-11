@@ -34,6 +34,10 @@ public class EventSeenData extends SavedData {
         return seen != null && seen.contains(eventId);
     }
 
+    public boolean hasAnyPlayerSeen(String eventId) {
+        return playerEvents.values().stream().anyMatch(events -> events.contains(eventId));
+    }
+
     public void markSeen(UUID playerId, String eventId) {
         playerEvents.computeIfAbsent(playerId, k -> new HashSet<>()).add(eventId);
         setDirty();

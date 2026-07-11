@@ -1,0 +1,12 @@
+{
+  "variants": {
+    "facing=north,part=main": { "model": "stardewcraft:decor/festival/winter_star_purple_gift_box" },
+    "facing=east,part=main": { "model": "stardewcraft:decor/festival/winter_star_purple_gift_box", "y": 90 },
+    "facing=south,part=main": { "model": "stardewcraft:decor/festival/winter_star_purple_gift_box", "y": 180 },
+    "facing=west,part=main": { "model": "stardewcraft:decor/festival/winter_star_purple_gift_box", "y": 270 },
+    "facing=north,part=extension": { "model": "stardewcraft:block/decor/extensions/furniture_extension_empty" },
+    "facing=east,part=extension": { "model": "stardewcraft:block/decor/extensions/furniture_extension_empty" },
+    "facing=south,part=extension": { "model": "stardewcraft:block/decor/extensions/furniture_extension_empty" },
+    "facing=west,part=extension": { "model": "stardewcraft:block/decor/extensions/furniture_extension_empty" }
+  }
+}

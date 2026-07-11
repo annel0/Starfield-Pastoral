@@ -161,8 +161,6 @@ public final class EggFestivalNpcService {
             StardewNpcEntity npc = NpcSpawnManager.getTrackedNpc(level, definition.npcId());
             if (npc == null) {
                 NpcSpawnManager.forceSpawnNpc(definition.npcId());
-                NpcSpawnManager.tick(level);
-                npc = NpcSpawnManager.getTrackedNpc(level, definition.npcId());
             }
             if (npc != null) {
                 FestivalNpcActorRuntime.Waypoint point = mainEventPoint(definition.npcId());
@@ -372,8 +370,6 @@ public final class EggFestivalNpcService {
             StardewNpcEntity npc = NpcSpawnManager.getTrackedNpc(level, definition.npcId());
             if (npc == null) {
                 NpcSpawnManager.forceSpawnNpc(definition.npcId());
-                NpcSpawnManager.tick(level);
-                npc = NpcSpawnManager.getTrackedNpc(level, definition.npcId());
             }
             FestivalNpcActorRuntime.Waypoint point = mainEventPoint(definition.npcId());
             if (npc != null && point != null) {

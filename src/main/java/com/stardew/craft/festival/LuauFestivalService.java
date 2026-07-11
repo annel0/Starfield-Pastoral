@@ -143,14 +143,12 @@ public final class LuauFestivalService {
         }
         if (!isActiveLuauDay() && !FestivalService.isDebugActiveFestival(FESTIVAL_ID)) {
             clearRuntimeState(level);
-            tickNpcActors(level);
             return;
         }
         if (!hasCurrentSessionParticipant(level) && !FestivalService.isDebugActiveFestival(FESTIVAL_ID)) {
             stopTimeFreeze();
         }
         syncParticipantMusic(level);
-        tickNpcActors(level);
         for (ServerPlayer player : level.players()) {
             tickPlayer(level, player);
         }

@@ -25,7 +25,8 @@ public class MiningFloorHud {
     );
     private static final int SLOT_SIZE = 32;
     private static final int VANILLA_HOTBAR_WIDTH = 182;
-    private static final int HOTBAR_GAP = 4;
+    private static final int OFFHAND_SLOT_WIDTH = 29;
+    private static final int OFFHAND_HUD_GAP = 7;
     private static final int SCREEN_MARGIN = 4;
     
     // 客户端缓存的当前层数（由网络包同步）
@@ -71,7 +72,8 @@ public class MiningFloorHud {
         int screenWidth = mc.getWindow().getGuiScaledWidth();
         int screenHeight = mc.getWindow().getGuiScaledHeight();
         int hotbarX = (screenWidth - VANILLA_HOTBAR_WIDTH) / 2;
-        int x = Math.max(SCREEN_MARGIN, hotbarX - SLOT_SIZE - HOTBAR_GAP);
+        int offhandLeft = hotbarX - OFFHAND_SLOT_WIDTH;
+        int x = Math.max(SCREEN_MARGIN, offhandLeft - SLOT_SIZE - OFFHAND_HUD_GAP);
         int y = screenHeight - SLOT_SIZE - 1;
         
         // 绘制 empty_slot 背景，放大2倍（32x32）

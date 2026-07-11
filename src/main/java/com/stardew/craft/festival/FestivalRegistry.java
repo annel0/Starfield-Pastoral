@@ -62,7 +62,7 @@ public final class FestivalRegistry {
             "winter25", FestivalType.ACTIVE, "Feast of the Winter Star", "Feast of the Winter Star", "",
             WINTER, 25, 25, 900, 1400, true, false, "",
             "message.stardewcraft.festival.winter_star.started", "winter_24",
-            "Town", "Town-Christmas", Map.of(), List.of(), "winter_star_gift"
+            "Town", "Town-Christmas", Map.of(), List.of("Festival_FeastOfTheWinterStar_Pierre"), "winter_star_gift"
         ));
 
         register(new FestivalDefinition(

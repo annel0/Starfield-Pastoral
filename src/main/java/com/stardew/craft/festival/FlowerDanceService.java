@@ -706,6 +706,7 @@ public final class FlowerDanceService {
         mainEventStagePrepared = false;
         mainEventPhase = MainEventPhase.FREE;
         stopTimeFreeze();
+        FlowerDanceNpcService.restore(level);
         FestivalService.endFestival(level, FESTIVAL_ID);
     }
 

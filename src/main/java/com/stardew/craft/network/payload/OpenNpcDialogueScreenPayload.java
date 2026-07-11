@@ -569,6 +569,14 @@ public record OpenNpcDialogueScreenPayload(
         if (key == null || key.isBlank()) {
             return "";
         }
+        if (key.startsWith(DIRECT_DIALOGUE_PREFIX)) {
+            try {
+                byte[] decoded = java.util.Base64.getUrlDecoder().decode(key.substring(DIRECT_DIALOGUE_PREFIX.length()));
+                return new String(decoded, java.nio.charset.StandardCharsets.UTF_8);
+            } catch (IllegalArgumentException ignored) {
+                return "";
+            }
+        }
         return net.minecraft.locale.Language.getInstance().getOrDefault(key);
     }
 

@@ -39,6 +39,7 @@ public class ClientPlayerDataCache {
     private static boolean fairStarTokenHudActive = false;
     private static int maxMineFloorReached = 0;
     private static int firstJoinDay = -1;
+    private static String winterStarRecipient = "";
 
     // 临时Buff（客户端显示/计算用）
     private static int tempFishingLevelBonus = 0;
@@ -96,6 +97,7 @@ public class ClientPlayerDataCache {
         specialOrderPrizeTickets = nbt.contains("SpecialOrderPrizeTickets") ? Math.max(0, nbt.getInt("SpecialOrderPrizeTickets")) : 0;
         fairStarTokens = nbt.contains("FairStarTokens") ? Math.max(0, nbt.getInt("FairStarTokens")) : 0;
         firstJoinDay = nbt.contains("FirstJoinDay") ? nbt.getInt("FirstJoinDay") : -1;
+        winterStarRecipient = nbt.contains("WinterStarRecipient") ? nbt.getString("WinterStarRecipient") : "";
 
         tempFishingLevelBonus = nbt.contains("TempFishingLevelBonus") ? nbt.getInt("TempFishingLevelBonus") : 0;
         tempLuckBonus = nbt.contains("TempLuckBonus") ? nbt.getInt("TempLuckBonus") : 0;
@@ -380,6 +382,10 @@ public class ClientPlayerDataCache {
 
     public static java.util.Set<String> getMailFlags() {
         return new java.util.HashSet<>(mailFlags);
+    }
+
+    public static String getWinterStarRecipient() {
+        return winterStarRecipient;
     }
 
     public static boolean hasSpecialItem(String itemId) {

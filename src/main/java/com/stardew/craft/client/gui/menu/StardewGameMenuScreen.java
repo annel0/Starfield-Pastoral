@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.stardew.craft.StardewCraft;
 import com.stardew.craft.client.ClientPlayerDataCache;
 import com.stardew.craft.client.LeaderboardClientCache;
+import com.stardew.craft.client.ModKeyMappings;
 import com.stardew.craft.client.NpcDisplayNames;
 import com.stardew.craft.client.NpcFriendshipClientCache;
 import com.stardew.craft.client.gui.common.CommonGuiTextures;
@@ -2206,9 +2207,37 @@ public class StardewGameMenuScreen extends Screen {
                 int stardropColor = stardropsFound >= 7 ? 0xFFA01EEB : SDV_TEXT_COLOR;
                 drawScaledSdvTextWithShadow(graphics, "x " + stardropsFound, x + ui(88), y + ui(8), sdvTextScale(), stardropColor);
             }
+
+            drawWinterStarSecretFriendReminder(graphics, x, y);
         } finally {
             graphics.disableScissor();
         }
+    }
+
+    /** StardewValley.Menus/SkillsPage.cs secret-friend portrait + gift marker. */
+    private void drawWinterStarSecretFriendReminder(GuiGraphics graphics, int x, int y) {
+        com.stardew.craft.time.StardewTimeManager time =
+            com.stardew.craft.client.hud.StardewTimeHud.getClientTimeCache();
+        int year = time.getCurrentYear();
+        int day = time.getCurrentDay();
+        int minute = time.getCurrentTime();
+        boolean visibleDate = (day >= 18 && day < 25) || (day == 25 && minute < 15 * 60);
+        String recipient = ClientPlayerDataCache.getWinterStarRecipient();
+        if (time.getCurrentSeason() != 3
+            || !visibleDate
+            || !ClientPlayerDataCache.hasMailFlag("sawSecretSanta" + year)
+            || recipient == null
+            || recipient.isBlank()) {
+            return;
+        }
+
+        PortraitResource portrait = resolveSocialMugshot(recipient);
+        // Vanilla getMugShotSourceRect() is 16x24, then trims five source pixels.
+        graphics.blit(portrait.texture(), x + ui(180), y, ui(64), ui(76),
+            0, 0, 16, 19, portrait.sheetWidth(), portrait.sheetHeight());
+        ResourceLocation cursors = ResourceLocation.fromNamespaceAndPath(StardewCraft.MODID, "textures/gui/cursors.png");
+        graphics.blit(cursors, x + ui(244), y + ui(40), ui(40), ui(44),
+            147, 412, 10, 11, 704, 2256);
     }
 
     private boolean areaComplete(BundleClientData bundleData, int areaId, String vanillaMailFlag) {
@@ -4725,7 +4754,7 @@ public class StardewGameMenuScreen extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (keyCode == 256) {
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE || ModKeyMappings.GAME_MENU.matches(keyCode, scanCode)) {
             closeWithSound();
             return true;
         }

@@ -121,7 +121,6 @@ public final class MoonlightJelliesFestivalService {
         }
         syncParticipantMusic(level);
         tickMainEvent(level);
-        tickNpcActors(level);
         for (ServerPlayer player : level.players()) {
             tickPlayer(level, player);
         }

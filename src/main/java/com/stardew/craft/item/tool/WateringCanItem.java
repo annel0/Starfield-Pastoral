@@ -1,6 +1,8 @@
 package com.stardew.craft.item.tool;
 
 import com.stardew.craft.item.IStardewItem;
+import com.stardew.craft.block.crop.DeadCropBlock;
+import com.stardew.craft.block.crop.StardewCropBlock;
 import com.stardew.craft.enchantment.StardewEnchantments;
 import com.stardew.craft.player.PlayerStardewDataAPI;
 import com.stardew.craft.player.SkillType;
@@ -234,14 +236,7 @@ public class WateringCanItem extends Item implements IStardewItem {
         BlockHitResult hitResult = getPlayerPOVHitResult(level, player, ClipContext.Fluid.NONE);
         if (hitResult.getType() == HitResult.Type.BLOCK) {
             @Nonnull BlockPos hitPos = hitResult.getBlockPos();
-            @Nonnull BlockState hitState = level.getBlockState(hitPos);
-
-            // 智能定位：如果指的是作物或者非耕地，尝试寻找下方的耕地
-            if (!(hitState.getBlock() instanceof FarmBlock)) {
-                if (level.getBlockState(hitPos.below()).getBlock() instanceof FarmBlock) {
-                    hitPos = hitPos.below();
-                }
-            }
+            hitPos = resolveWateringTarget(level, hitPos);
 
             List<BlockPos> targetPositions = getAffectedBlocks(level, hitPos, player, chargeLevel);
 
@@ -434,13 +429,7 @@ public class WateringCanItem extends Item implements IStardewItem {
     @SuppressWarnings("null")
     public List<BlockPos> getAffectedBlocks(@Nonnull Level level, @Nonnull BlockPos startPos,
                                             @Nonnull Player player, int chargeLevel) {
-        // 智能目标修正：如果当前指向的不是耕地，但下方是耕地（例如指向了作物），则修正为下方的耕地
-        if (!(level.getBlockState(startPos).getBlock() instanceof FarmBlock)) {
-            BlockPos below = startPos.below();
-            if (level.getBlockState(below).getBlock() instanceof FarmBlock) {
-                startPos = below;
-            }
-        }
+        startPos = resolveWateringTarget(level, startPos);
 
         List<BlockPos> list = new ArrayList<>();
         Direction facing = player.getDirection();
@@ -513,6 +502,35 @@ public class WateringCanItem extends Item implements IStardewItem {
         });
 
         return list;
+    }
+
+    private static BlockPos resolveWateringTarget(Level level, BlockPos pos) {
+        if (level.getBlockState(pos).getBlock() instanceof FarmBlock) {
+            return pos;
+        }
+
+        BlockPos below = pos.below();
+        if (level.getBlockState(below).getBlock() instanceof FarmBlock) {
+            return below;
+        }
+
+        BlockState state = level.getBlockState(pos);
+        if (state.getBlock() instanceof StardewCropBlock || state.getBlock() instanceof DeadCropBlock) {
+            BlockPos cursor = below;
+            for (int i = 0; i < 3; i++) {
+                BlockState cursorState = level.getBlockState(cursor);
+                if (cursorState.getBlock() instanceof FarmBlock) {
+                    return cursor;
+                }
+                if (!(cursorState.getBlock() instanceof StardewCropBlock)
+                        && !(cursorState.getBlock() instanceof DeadCropBlock)) {
+                    break;
+                }
+                cursor = cursor.below();
+            }
+        }
+
+        return pos;
     }
 
     // ================= 水量/耐久显示 =================
@@ -602,4 +620,3 @@ public class WateringCanItem extends Item implements IStardewItem {
         stack.set(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.of(current));
     }
 }
-

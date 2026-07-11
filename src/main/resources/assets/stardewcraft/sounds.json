@@ -496,6 +496,14 @@
       }
     ]
   },
+  "cut": {
+    "sounds": [
+      {
+        "name": "stardewcraft:cut",
+        "stream": false
+      }
+    ]
+  },
   "harvest": {
     "sounds": [
       {

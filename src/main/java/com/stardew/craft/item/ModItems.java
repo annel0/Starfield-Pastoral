@@ -819,6 +819,33 @@ public class ModItems {
         public static final DeferredItem<Item> WINTER_STAR_TREE = ITEMS.register("winter_star_tree",
                         () -> new StardewBlockItem(ModBlocks.WINTER_STAR_TREE.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
 
+        public static final DeferredItem<Item> WINTER_STAR_LARGE_RED_CANDY_CANE = ITEMS.register("winter_star_large_red_candy_cane",
+                        () -> new StardewBlockItem(ModBlocks.WINTER_STAR_LARGE_RED_CANDY_CANE.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> WINTER_STAR_LARGE_GREEN_CANDY_CANE = ITEMS.register("winter_star_large_green_candy_cane",
+                        () -> new StardewBlockItem(ModBlocks.WINTER_STAR_LARGE_GREEN_CANDY_CANE.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> WINTER_STAR_MIXED_CANDY_CANES = ITEMS.register("winter_star_mixed_candy_canes",
+                        () -> new StardewBlockItem(ModBlocks.WINTER_STAR_MIXED_CANDY_CANES.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> WINTER_STAR_RED_CANDY_CANES = ITEMS.register("winter_star_red_candy_canes",
+                        () -> new StardewBlockItem(ModBlocks.WINTER_STAR_RED_CANDY_CANES.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> WINTER_STAR_GREEN_CANDY_CANES = ITEMS.register("winter_star_green_candy_canes",
+                        () -> new StardewBlockItem(ModBlocks.WINTER_STAR_GREEN_CANDY_CANES.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> WINTER_STAR_PURPLE_GIFT_BOX = ITEMS.register("winter_star_purple_gift_box",
+                        () -> new StardewBlockItem(ModBlocks.WINTER_STAR_PURPLE_GIFT_BOX.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> WINTER_STAR_RED_GIFT_BOX = ITEMS.register("winter_star_red_gift_box",
+                        () -> new StardewBlockItem(ModBlocks.WINTER_STAR_RED_GIFT_BOX.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> WINTER_STAR_GREEN_GIFT_BOX = ITEMS.register("winter_star_green_gift_box",
+                        () -> new StardewBlockItem(ModBlocks.WINTER_STAR_GREEN_GIFT_BOX.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
+
+        public static final DeferredItem<Item> WINTER_STAR_BLUE_GIFT_BOX = ITEMS.register("winter_star_blue_gift_box",
+                        () -> new StardewBlockItem(ModBlocks.WINTER_STAR_BLUE_GIFT_BOX.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
+
         public static final DeferredItem<Item> SQUID_FEST_PROMO_POSTER = ITEMS.register("squid_fest_promo_poster",
                         () -> new StardewBlockItem(ModBlocks.SQUID_FEST_PROMO_POSTER.get(), "stardewcraft.type.festival_decoration", -1, new Item.Properties().stacksTo(999)));
 
@@ -1319,6 +1346,13 @@ public class ModItems {
 	// 纭湪锛堝榻?Stardew Valley锛氳祫婧愶級
 	public static final DeferredItem<Item> WOOD_HARD = ITEMS.register("wood_hard",
 			() -> new SimpleStardewItem("stardewcraft.type.resource", 15, new Item.Properties().stacksTo(999)));
+
+    // Vanilla object 348/341. Winter Star's generic return-gift pool requires
+    // these exact base objects (not a fruit-specific wine or furniture block).
+    public static final DeferredItem<Item> WINE = ITEMS.register("wine",
+            () -> new ArtisanDrinkItem(400, 50, 22, -1, 30 * 20, true, new Item.Properties().stacksTo(999)));
+    public static final DeferredItem<Item> TEA_SET = ITEMS.register("tea_set",
+            () -> new SimpleStardewItem("stardewcraft.type.misc", 200, new Item.Properties().stacksTo(999)));
 
     public static final DeferredItem<Item> OAK_RESIN = ITEMS.register("oak_resin",
             () -> new SimpleStardewItem("stardewcraft.type.artisan_goods", 150, new Item.Properties().stacksTo(999)));

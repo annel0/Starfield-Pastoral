@@ -45,9 +45,13 @@ public class SpawnActorCommand implements EventCommand {
         ClientLevel level = mc.level;
         if (level == null || mc.player == null) return;
 
+        String resolvedNpcId = "$winter_star_giver".equals(npcId)
+            ? com.stardew.craft.client.festival.WinterStarCutsceneContext.giverId()
+            : npcId;
+
         // Choose entity type based on npc_id
         Mob actor;
-        if ("player".equals(npcId)) {
+        if ("player".equals(resolvedNpcId)) {
             EventPlayerActorEntity playerActor = new EventPlayerActorEntity(ModEntities.EVENT_PLAYER_ACTOR.get(), level);
             playerActor.setSkinSourcePlayerId(mc.player.getUUID());
             playerActor.setSlimSkinModel(EventPlayerActorRenderer.isSlimSkin(mc.player.getUUID()));
@@ -58,7 +62,7 @@ public class SpawnActorCommand implements EventCommand {
             actor = playerActor;
         } else {
             EventActorEntity npcActor = new EventActorEntity(ModEntities.EVENT_ACTOR.get(), level);
-            npcActor.setNpcId(npcId);
+            npcActor.setNpcId(resolvedNpcId);
             actor = npcActor;
         }
 

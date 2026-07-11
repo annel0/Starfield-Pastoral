@@ -48,6 +48,7 @@ public final class NpcSystem {
         if (level == null) {
             return;
         }
+        NpcSpawnManager.prepareServerContext(level);
 
         boolean anyPlayerInStardew = false;
         boolean anyPlayerInMining = false;
@@ -86,10 +87,9 @@ public final class NpcSystem {
         }
 
         NpcScheduleRuntimeService.tick(level);
+        com.stardew.craft.festival.ActiveFestivalHandlers.tickNpcActors(level);
         NpcSpawnManager.tick(level);
         NpcCentralMovementService.tick(level);
-        com.stardew.craft.festival.EggFestivalService.tickNpcActors(level);
-        com.stardew.craft.festival.FlowerDanceService.tickNpcActors(level);
 
         // Tick mining-dimension NPCs (e.g. Dwarf) when any player is in the mine
         if (anyPlayerInMining) {

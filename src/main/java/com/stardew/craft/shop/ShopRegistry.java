@@ -934,6 +934,21 @@ public final class ShopRegistry {
             Set.of()
         ));
 
+        REGISTRY.put("Festival_FeastOfTheWinterStar_Pierre", new ShopDefinition(
+            "Festival_FeastOfTheWinterStar_Pierre",
+            "",
+            "stardewcraft.festival.winter25.dialogue.pierre",
+            List.of(
+                // SDV Data/Shops.json Festival_FeastOfTheWinterStar_Pierre:
+                // (F)2798 Large Red Rug @ 1000, (F)1440 Tree of the Winter Star @ 5000,
+                // and (WP)MoreWalls:19 @ 500. The three RANDOM_ITEMS groups are appended
+                // per day below using vanilla CreateDaySaveRandom ordering.
+                entryAllSeasons("stardewcraft:carpet_17", 1000),
+                entryAllSeasons("stardewcraft:winter_star_tree", 5000)
+            ),
+            Set.of()
+        ));
+
         // -------------------------------------------------------------------
         // Joja Mart — SDV source: 源文件/Content/Data/Shops.json "Joja" section.
         //
@@ -1230,15 +1245,22 @@ public final class ShopRegistry {
         if ("BooksellerTrade".equals(shopId)) {
             appendBooksellerTradeStock(result, player, time);
         }
+        if ("Festival_FeastOfTheWinterStar_Pierre".equals(shopId)) {
+            appendWinterStarRandomStock(result, player, time);
+        }
 
-        if ("Festival_FestivalOfIce_TravelingMerchant".equals(shopId)
+        if (("Festival_FestivalOfIce_TravelingMerchant".equals(shopId)
+                || "Festival_FeastOfTheWinterStar_Pierre".equals(shopId))
                 && !data.isDecorationUnlocked(com.stardew.craft.deco.DecorationType.WALLPAPER, "MoreWalls:19")) {
             String wpItemId = "wallpaper:MoreWalls:19";
             int wpRemaining = ShopStockTracker.getRemaining(playerId, shopId, wpItemId, 1);
             if (wpRemaining > 0) {
                 ShopItemEntry wallpaperEntry = new ShopItemEntry(wpItemId, "", "", 500, wpRemaining,
                     null, 0, Set.of(), 1, 0, null, -1, 0, 1);
-                result.add(Math.min(2, result.size()), wallpaperEntry);
+                int insertAt = "Festival_FeastOfTheWinterStar_Pierre".equals(shopId)
+                    ? result.size()
+                    : Math.min(2, result.size());
+                result.add(insertAt, wallpaperEntry);
             }
         }
 
@@ -1692,6 +1714,35 @@ public final class ShopRegistry {
         long worldSeed = player.server.overworld() != null ? player.server.overworld().getSeed() : 0L;
         long seed = (worldSeed >>> 2) ^ (absoluteDay * 7046029254386353131L) ^ salt.hashCode();
         return new java.util.Random(seed);
+    }
+
+    private static void appendWinterStarRandomStock(
+            List<ShopItemEntry> result,
+            net.minecraft.server.level.ServerPlayer player,
+            com.stardew.craft.time.StardewTimeManager time) {
+        long saveId = player.server.overworld() != null ? player.server.overworld().getSeed() : 0L;
+        com.stardew.craft.util.StardewDeterministicRandom random =
+            com.stardew.craft.util.StardewDeterministicRandom.create(time.getAbsoluteDay(), saveId / 2L, 0L);
+        List<List<String>> groups = List.of(
+            List.of("stardewcraft:triple_shot_espresso", "stardewcraft:powder_melon", "stardewcraft:garlic", "stardewcraft:fire_quartz"),
+            List.of("stardewcraft:frozen_tear", "stardewcraft:fried_mushroom", "stardewcraft:duck_egg", "stardewcraft:bread"),
+            List.of("stardewcraft:cave_carrot", "stardewcraft:perch", "stardewcraft:clam", "stardewcraft:winter_root")
+        );
+        int[] prices = {2500, 2500, 500};
+        List<ShopItemEntry> randomStock = new ArrayList<>(groups.size());
+        for (int i = 0; i < groups.size(); i++) {
+            String itemId = groups.get(i).get(random.nextInt(groups.get(i).size()));
+            if (!shopItemExists(itemId)) {
+                continue;
+            }
+            int remaining = ShopStockTracker.getRemaining(
+                player.getUUID(), "Festival_FeastOfTheWinterStar_Pierre", itemId, 1);
+            if (remaining > 0) {
+                randomStock.add(new ShopItemEntry(itemId, "", "", prices[i], remaining,
+                    null, 0, Set.of(), 1, 0, null, -1, 0, 1));
+            }
+        }
+        result.addAll(0, randomStock);
     }
 
     private static boolean rollBooksellerChance(

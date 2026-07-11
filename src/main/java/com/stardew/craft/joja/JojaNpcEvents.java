@@ -112,7 +112,7 @@ public final class JojaNpcEvents {
         if (managed == null) {
             managed = spawnNewEntity(level, s);
             if (managed == null) return;
-            com.stardew.craft.StardewCraft.LOGGER.info(
+            com.stardew.craft.StardewCraft.LOGGER.debug(
                 "[JOJA NPC] Fresh-spawned {} at ({},{},{})", s.id, s.x, s.y, s.z);
         }
 

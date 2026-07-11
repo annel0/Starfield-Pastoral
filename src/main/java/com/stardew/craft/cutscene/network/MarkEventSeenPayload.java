@@ -37,7 +37,11 @@ public record MarkEventSeenPayload(String eventId) implements CustomPacketPayloa
             com.stardew.craft.festival.MoonlightJelliesFestivalService.onCutsceneCompleted(player, payload.eventId);
             com.stardew.craft.festival.FestivalOfIceService.onCutsceneCompleted(player, payload.eventId);
             EventSeenData data = EventSeenData.get(player.serverLevel());
-            data.markSeen(player.getUUID(), payload.eventId);
+            boolean winterStarRuntimeEvent = com.stardew.craft.festival.WinterStarFestivalService
+                    .onCutsceneCompleted(player, payload.eventId);
+            if (!winterStarRuntimeEvent) {
+                data.markSeen(player.getUUID(), payload.eventId);
+            }
 
             // Sync back full list to confirm
             var seen = data.getSeenEvents(player.getUUID());

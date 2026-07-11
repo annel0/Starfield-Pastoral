@@ -1,5 +1,67 @@
 # Changelog
 
+## 0.4.12 - 2026-07-11
+
+### Update Log (English)
+
+#### Feast of the Winter Star
+
+- Added Winter 25 Feast of the Winter Star as a Year 1 active Town festival, including the confirmed Town overlay, entry/exit boundary flow, time handling, Christmas theme music, debug setup, and restoration of the normal map and NPC schedules.
+- Added the Year 1 festival NPC lineup and dialogue routing, Pierre's portrait-free festival shop zone, the supported decoration stock, MoreWalls 19 wallpaper, Carpet 17, and the three vanilla-style daily random stock groups.
+- Added deterministic per-player secret-friend and gift-giver assignment, the Winter 18 invitation and Winter 24 reminder letters, year-specific letter-open flags, and the Skills page secret-friend portrait reminder.
+- Added the full secret gift exchange flow: direct inventory gift selection, vanilla-aligned gift eligibility, five-times friendship effects without consuming normal weekly gift limits, recipient dialogue, per-giver return gift pools, full-inventory recovery, and multiplayer-isolated state.
+- Added the return-gift cutscene using the confirmed player, gift, giver route, and camera points, including source-aligned facing changes, pauses, reactions, gift-box timing, `stoneStep` and `cut` cues, gift reveal, and immediate server-side reward delivery.
+- Persisted each player's year-specific gift-given and return-gift-received states through the existing player data system, preventing duplicate gifts/rewards and allowing interrupted exchanges to recover after disconnects or server restarts.
+
+#### Winter Star Resources
+
+- Added the Winter Star Town schematic and registered the Winter Star gift boxes and candy-cane decorations with their blockstates, item models, textures, collision/render counterparts, furniture tags, localization, and creative inventory entries.
+- Added the supported Wine and Tea Set reward items and assets, and connected the verified `christmasTheme` and `cut` Wavebank audio resources to the formal sound registry.
+- Extended the festival actor-map renderer with a source-map Winter Star Secret Santa point sheet for placement verification.
+
+#### Gameplay and Runtime Fixes
+
+- Added source-aligned shop-door hours, Wednesday closure handling, festival closures, Town Key bypasses, Green Rain exceptions, and extended-hour conditions for the supported Town, Desert, and Joja interiors.
+- Made shipping-bin pending contents and overnight settlement ledgers persistent, preserving shipped stacks, profession/book-adjusted prices, availability dates, and offline settlement delivery across logout and server restart.
+- Added vanilla-style nearby-NPC reactions to searching trash cans, including dialogue, emotes, chat feedback, friendship loss, and Linus' positive exception.
+- Fixed watering-can targeting through crop blocks and multi-block crops, and prevented right-click crop harvesting from consuming watering-can interactions.
+- Adjusted the mining-floor HUD around the vanilla offhand slot and reduced routine Joja NPC spawn logging noise.
+- Hardened shared active-festival NPC control, overlay restoration, interaction routing, player login/logout handling, and cutscene completion behavior used by the Winter Star integration.
+
+#### Release
+
+- Updated the public mod version to `0.4.12`.
+
+### 更新日志（中文）
+
+#### 冬日星盛宴
+
+- 加入冬 25 日第一年冬日星盛宴主动节日，包含已确认的小镇 overlay、进出包围盒流程、时间处理、圣诞主题音乐、debug 布置，以及节日结束后的地图与 NPC 日程恢复。
+- 加入第一年节日 NPC 阵容与对话路由、无头像的皮埃尔节日商店区域、已支持的装饰商品、MoreWalls 19 壁纸、17 号地毯，以及三组接近原版的每日随机商品。
+- 加入每名玩家独立且可确定重现的神秘朋友/回礼 NPC 分配，包含冬 18 日邀请信、冬 24 日提醒信、按年份记录的读信 flag，以及技能页右下角的神秘朋友头像提醒。
+- 加入完整的神秘礼物交换流程：直接从背包选择礼物、接近原版的礼物合法性、5 倍友谊变化且不占普通每周送礼次数、收礼对话、按回礼 NPC 区分的奖励池、满背包恢复界面，以及多人状态隔离。
+- 使用已确认的玩家、礼盒、NPC 路线和摄像机点位加入回礼剧情，包含对照源码的转向、停顿、玩家反应、礼盒出现时机、`stoneStep` / `cut` 音效、礼物揭示，以及同一拍的服务端奖励发放。
+- 将每名玩家按年份区分的已送礼/已领取回礼状态写入现有玩家持久化体系，防止重复送礼或重复领奖，并支持断线或服务器重启后继续被中断的交换流程。
+
+#### 冬日星资源
+
+- 加入冬日星小镇 schematic，并注册冬日星礼盒与糖果杖装饰的 blockstate、物品模型、贴图、碰撞/渲染对应模型、家具标签、本地化与创造模式物品栏入口。
+- 加入回礼池需要的葡萄酒与茶具物品/资源，并将已核对 Wavebank 的 `christmasTheme` 与 `cut` 音频接入正式声音注册。
+- 扩展节日 NPC 点位图生成器，加入基于原版地图的冬日星神秘礼物剧情点位图。
+
+#### 玩法与运行时修复
+
+- 加入对照原版的商店门营业时间、周三休息、节日闭店、小镇钥匙通行、绿雨例外与延长营业时间条件，覆盖已支持的小镇、沙漠和 Joja 室内入口。
+- 将出货箱待结算物品与过夜结算账本改为持久化保存，保留出货物品、职业/书籍加成后的价格、可结算日期，并支持退出或服务器重启后补发离线结算。
+- 加入搜索垃圾桶时附近 NPC 的原版风格反应，包含对话、表情、聊天反馈、友谊扣除，以及莱纳斯的正向例外。
+- 修复水壶透过作物与多格作物时的目标定位，并防止右键作物收获抢占水壶交互。
+- 调整矿井楼层 HUD 与原版副手栏的间距，并降低 Joja NPC 常规生成日志噪音。
+- 改进冬日星接入使用的共享主动节日 NPC 控制、overlay 恢复、交互路由、玩家登录/退出处理与 cutscene 完成逻辑。
+
+#### 发布
+
+- 项目公开版本号更新为 `0.4.12`。
+
 ## 0.4.11 - 2026-07-08
 
 ### Update Log (English)

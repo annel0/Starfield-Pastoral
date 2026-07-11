@@ -66,6 +66,14 @@ public class PlayerDataEventHandler {
             CosmeticAppearanceSync.syncAllTo(player);
             CosmeticAppearanceSync.broadcast(player, data);
 
+            try {
+                com.stardew.craft.network.overnight.OvernightSettlementPayload pendingShipping =
+                    com.stardew.craft.network.overnight.OvernightSettlementTracker.consumePayload(player);
+                com.stardew.craft.player.PlayerStardewDataAPI.recordOvernightShippedItems(player, pendingShipping.shippedItems());
+            } catch (Exception ex) {
+                StardewCraft.LOGGER.warn("Failed to settle pending offline shipping on login: {}", ex.getMessage());
+            }
+
             // 同步星露谷时间到客户端。原本 TimeSyncPacket 只在切维度/睡觉时发，
             // 如果玩家上次下线时就在星露谷维度，不会触发 PlayerChangedDimensionEvent，
             // 客户端时间缓存会停留在默认 day1/spring/year1，导致 days_played / season
@@ -883,6 +891,8 @@ public class PlayerDataEventHandler {
         }
         com.stardew.craft.mining.MiningPlayerData miningData = com.stardew.craft.mining.MiningDataManager.getPlayerData(player);
         packet.data().putInt("MaxMineFloorReached", miningData != null ? miningData.getMaxFloorReached() : 0);
+        packet.data().putString("WinterStarRecipient",
+            com.stardew.craft.festival.WinterStarFestivalService.getSecretFriendId(player));
         PacketDistributor.sendToPlayer(player, packet);
         // sync equipment slots
         PacketDistributor.sendToPlayer(player, new com.stardew.craft.network.payload.EquipmentSyncPayload(

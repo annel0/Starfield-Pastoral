@@ -576,6 +576,8 @@ final class VanillaGiftTasteResolver {
             Map.entry("book_animal_catalogue", "Book_AnimalCatalogue"),
             Map.entry("book_speed2", "Book_Speed2"),
             Map.entry("grape_wine", "348"),
+            Map.entry("wine", "348"),
+            Map.entry("tea_set", "341"),
             Map.entry("pina_colada", "873"),
             Map.entry("large_goat_milk", "438"),
             Map.entry("rabbits_foot", "446"),

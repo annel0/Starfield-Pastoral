@@ -50,6 +50,7 @@ public class StardewTimeManager extends SavedData {
         "winter_2_1",
         "winter_12_1",
         "winter_14_1",
+        "winter_18",
         "winter_27_1",
         "spring_1_2",
         "summer_1_2",
@@ -446,11 +447,19 @@ public class StardewTimeManager extends SavedData {
         // season_day 只投递当前已落地的非节日日期信；节日通知信由 FestivalRegistry 元数据统一控制。
         String keyNoYear = seasonName + "_" + day;
         if (shouldDeliverDateTriggeredMail(keyNoYear)) {
-            com.stardew.craft.mail.MailService.addMail(player, keyNoYear);
+            if ("winter_18".equals(keyNoYear)) {
+                com.stardew.craft.mail.MailService.addRecurringMail(player, keyNoYear);
+            } else {
+                com.stardew.craft.mail.MailService.addMail(player, keyNoYear);
+            }
         }
         for (String festivalMailId : com.stardew.craft.festival.FestivalService.activeFestivalAnnouncementMailIdsForDate(season, day)) {
             if (com.stardew.craft.mail.MailRegistry.contains(festivalMailId)) {
-                com.stardew.craft.mail.MailService.addMail(player, festivalMailId);
+                if ("winter_24".equals(festivalMailId)) {
+                    com.stardew.craft.mail.MailService.addRecurringMail(player, festivalMailId);
+                } else {
+                    com.stardew.craft.mail.MailService.addMail(player, festivalMailId);
+                }
             }
         }
     }

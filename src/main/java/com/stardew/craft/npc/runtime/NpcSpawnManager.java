@@ -62,6 +62,7 @@ public final class NpcSpawnManager {
     private static final Map<String, UUID> TRACKED_NPC_UUIDS = new LinkedHashMap<>();
     private static final Map<String, Integer> TRACKED_MISS_COUNTS = new LinkedHashMap<>();
     private static final Map<String, Long> LAST_SPAWN_GAME_TIME = new LinkedHashMap<>();
+    private static final Map<String, FestivalSpawnTarget> FESTIVAL_SPAWN_TARGETS = new LinkedHashMap<>();
 
     // ── Tick-scoped caches to avoid redundant world entity scans ──
     private static long cachedScanGameTime = Long.MIN_VALUE;
@@ -70,6 +71,28 @@ public final class NpcSpawnManager {
     private static Map<String, NpcCapabilityProfile> cachedImplementedCapabilities = Map.of();
 
     private NpcSpawnManager() {
+    }
+
+    public static void prepareServerContext(ServerLevel level) {
+        if (level != null) {
+            ensureServerContext(level);
+        }
+    }
+
+    public static void claimFestivalSpawnTarget(String owner, String npcId, Vec3 position, float yaw) {
+        String canonicalId = canonicalNpcId(npcId);
+        if (owner == null || owner.isBlank() || canonicalId == null || canonicalId.isBlank() || position == null) {
+            return;
+        }
+        FESTIVAL_SPAWN_TARGETS.put(canonicalId, new FestivalSpawnTarget(owner.trim().toLowerCase(java.util.Locale.ROOT), position, yaw));
+    }
+
+    public static void releaseFestivalSpawnTargets(String owner) {
+        if (owner == null || owner.isBlank()) {
+            return;
+        }
+        String canonicalOwner = owner.trim().toLowerCase(java.util.Locale.ROOT);
+        FESTIVAL_SPAWN_TARGETS.entrySet().removeIf(entry -> entry.getValue().owner().equals(canonicalOwner));
     }
 
     /**
@@ -145,7 +168,6 @@ public final class NpcSpawnManager {
             return;
         }
         SUPPRESSED_SPAWN_IDS.remove(canonicalId);
-        forceSpawnNpc(canonicalId);
     }
 
     /**
@@ -439,6 +461,13 @@ public final class NpcSpawnManager {
                 spawnZ = target.z;
                 yaw = yawFromSdvFacing(com.stardew.craft.festival.squid.SquidFestService.WILLY_FACING);
             }
+            FestivalSpawnTarget festivalTarget = FESTIVAL_SPAWN_TARGETS.get(npcId);
+            if (festivalTarget != null) {
+                spawnX = festivalTarget.position().x;
+                spawnY = festivalTarget.position().y;
+                spawnZ = festivalTarget.position().z;
+                yaw = festivalTarget.yaw();
+            }
 
             // Chunk forcing is fully managed by NpcChunkForceManager now.
             // SpawnManager only tracks UUID→entity mapping.
@@ -451,6 +480,7 @@ public final class NpcSpawnManager {
                 new Vec3(spawnX, spawnY, spawnZ));
 
             if (hasTrackedNpc(level, npcId)) {
+                FORCE_SPAWN_IDS.remove(npcId);
                 if (desertFestivalMarlon) {
                     enforceDesertFestivalMarlonPosition(level, getTrackedNpc(level, npcId));
                 }
@@ -469,6 +499,7 @@ public final class NpcSpawnManager {
 
             StardewNpcEntity existing = loadedByNpcId.get(npcId);
             if (existing != null) {
+                FORCE_SPAWN_IDS.remove(npcId);
                 if (desertFestivalMarlon) {
                     enforceDesertFestivalMarlonPosition(level, existing);
                 }
@@ -862,8 +893,6 @@ public final class NpcSpawnManager {
         if (npc == null) {
             return false;
         }
-        NpcScheduleRuntimeService.invalidateCache();
-        NpcScheduleRuntimeService.tick(level);
         NpcRuntimeState state = NpcRuntimeDataManager.get(level).states().get(canonicalId);
         if (state == null) {
             return false;
@@ -879,6 +908,14 @@ public final class NpcSpawnManager {
         TRACKED_MISS_COUNTS.put(canonicalId, 0);
         NpcCentralMovementService.resetMovementPlan(canonicalId);
         return true;
+    }
+
+    public static void prepareCurrentScheduleTargets(ServerLevel level) {
+        if (level == null || !ModDimensions.STARDEW_VALLEY.equals(level.dimension())) {
+            return;
+        }
+        NpcScheduleRuntimeService.invalidateCache();
+        NpcScheduleRuntimeService.tick(level);
     }
 
     public static boolean forceNpcToCurrentSchedule(ServerLevel level, String npcId) {
@@ -1136,9 +1173,14 @@ public final class NpcSpawnManager {
         TRACKED_MISS_COUNTS.clear();
         LAST_SPAWN_GAME_TIME.clear();
         SUPPRESSED_SPAWN_IDS.clear();
+        FORCE_SPAWN_IDS.clear();
+        FESTIVAL_SPAWN_TARGETS.clear();
         cachedScanGameTime = Long.MIN_VALUE;
         cachedAllNpcs = List.of();
         cachedImplementedCapabilities = Map.of();
+    }
+
+    private record FestivalSpawnTarget(String owner, Vec3 position, float yaw) {
     }
 
     private static void discardWithReason(StardewNpcEntity npc, String reason) {

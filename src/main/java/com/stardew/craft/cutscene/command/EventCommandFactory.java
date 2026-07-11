@@ -150,6 +150,10 @@ public final class EventCommandFactory {
                     getInt(obj, "reaction", 2)
             );
 
+            case "winter_star_stage" -> new WinterStarStageCommand(
+                    getString(obj, "action", "")
+            );
+
             case "fade"          -> new FadeCommand(
                     "out".equals(getString(obj, "mode", "out")),
                     getInt(obj, "ticks", 20)

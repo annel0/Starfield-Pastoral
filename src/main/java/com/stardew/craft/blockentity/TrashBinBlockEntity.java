@@ -5,6 +5,7 @@ import com.stardew.craft.block.utility.TrashBinBlock;
 import com.stardew.craft.desert.DesertConstants;
 import com.stardew.craft.festival.desert.DesertFestivalService;
 import com.stardew.craft.item.ModItems;
+import com.stardew.craft.npc.runtime.TrashCanNpcReactionService;
 import com.stardew.craft.player.PlayerDataEventHandler;
 import com.stardew.craft.player.PlayerDataManager;
 import com.stardew.craft.player.PlayerStardewData;
@@ -91,6 +92,8 @@ public class TrashBinBlockEntity extends net.minecraft.world.level.block.entity.
         // 递增统计
         data.incrementTrashCansChecked();
         PlayerDataEventHandler.syncPlayerData(player, data);
+
+        TrashCanNpcReactionService.reactToSearch(player, worldPosition);
 
         // 掉落物品
         if (result != null && !result.item().isEmpty()) {

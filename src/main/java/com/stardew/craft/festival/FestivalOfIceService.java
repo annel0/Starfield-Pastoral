@@ -113,7 +113,6 @@ public final class FestivalOfIceService {
         syncFestivalInteractions(level);
         tickIceFishingContest(level);
         syncParticipantMusic(level);
-        tickNpcActors(level);
         for (ServerPlayer player : level.players()) {
             tickPlayer(level, player);
         }
@@ -153,7 +152,6 @@ public final class FestivalOfIceService {
 
     public static void onMapOverlayApplied(ServerLevel level) {
         syncFestivalInteractions(level);
-        tickNpcActors(level);
     }
 
     public static void requestDebugNpcs(ServerLevel level) {

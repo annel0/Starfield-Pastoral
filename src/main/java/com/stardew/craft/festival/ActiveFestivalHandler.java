@@ -20,6 +20,9 @@ public interface ActiveFestivalHandler {
     default void onMapOverlayApplied(ServerLevel level) {
     }
 
+    default void tickNpcActors(ServerLevel level) {
+    }
+
     default void requestDebugNpcs(ServerLevel level) {
     }
 

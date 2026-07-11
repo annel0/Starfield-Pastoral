@@ -3,6 +3,7 @@ package com.stardew.craft.economy.sell;
 import com.stardew.craft.book.BookPowerEffects;
 import com.stardew.craft.item.IStardewItem;
 import com.stardew.craft.item.artisan.SmokedFishItem;
+import com.stardew.craft.player.PlayerStardewData;
 import com.stardew.craft.player.PlayerStardewDataAPI;
 import com.stardew.craft.player.ProfessionType;
 import net.minecraft.core.registries.Registries;
@@ -59,6 +60,10 @@ public final class ProfessionSellPriceService {
         return quoteItemWithChecker(player, stack, source, profession -> hasProfession(player, profession));
     }
 
+    public static SellQuote quoteItem(PlayerStardewData data, ItemStack stack, SellSource source) {
+        return quoteItemWithData(data, stack, source, profession -> hasProfession(data, profession));
+    }
+
     public static SellQuote quoteItemForProfessionNames(Set<String> professionNames, ItemStack stack, SellSource source) {
         Set<String> normalizedNames = new HashSet<>();
         for (String name : professionNames) {
@@ -81,6 +86,19 @@ public final class ProfessionSellPriceService {
         if (player != null) {
             baseUnitPrice = BookPowerEffects.applyArtifactSellPrice(
                     PlayerStardewDataAPI.getData(player), context.itemTypeKey(), baseUnitPrice);
+        }
+        return quote(baseUnitPrice, stack.getCount(), context, stack, checker);
+    }
+
+    private static SellQuote quoteItemWithData(PlayerStardewData data, ItemStack stack, SellSource source, ProfessionChecker checker) {
+        if (!(stack.getItem() instanceof IStardewItem stardewItem)) {
+            return SellQuote.unsellable(SellContext.forItem(source, ""), stack.getCount());
+        }
+
+        SellContext context = SellContext.forItem(source, stardewItem.getItemTypeKey());
+        int baseUnitPrice = stardewItem.getSellPrice(stack);
+        if (data != null) {
+            baseUnitPrice = BookPowerEffects.applyArtifactSellPrice(data, context.itemTypeKey(), baseUnitPrice);
         }
         return quote(baseUnitPrice, stack.getCount(), context, stack, checker);
     }
@@ -179,6 +197,10 @@ public final class ProfessionSellPriceService {
 
     private static boolean hasProfession(ServerPlayer player, ProfessionType profession) {
         return PlayerStardewDataAPI.hasProfession(player, profession);
+    }
+
+    private static boolean hasProfession(PlayerStardewData data, ProfessionType profession) {
+        return data != null && data.hasProfession(profession);
     }
 
     @SuppressWarnings("null")

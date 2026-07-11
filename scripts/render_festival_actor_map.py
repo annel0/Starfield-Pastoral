@@ -75,6 +75,8 @@ class ActorMarker:
     facing: int
     anchor: tuple[float, float]
     box: list[float]
+    label: str | None = None
+    portrait_name: str | None = None
 
 
 def load_font(size: int) -> ImageFont.ImageFont:
@@ -406,13 +408,13 @@ def annotate_map(base: Image.Image, markers: list[ActorMarker], title: str, port
         bx0, by0, bx1, by1 = marker.box
         color = FACING_COLORS.get(marker.facing, (255, 255, 255, 255))
         rounded_rectangle(draw, marker.box, 8, (16, 20, 28, 226), color, width=3)
-        portrait = load_portrait(marker.name, portrait_size)
+        portrait = load_portrait(marker.portrait_name or marker.name, portrait_size)
         px = round(bx0 + 9)
         py = round(by0 + 8)
         overlay.alpha_composite(portrait, (px, py))
         draw.rectangle((px, py, px + portrait_size, py + portrait_size), outline=(255, 255, 255, 170), width=1)
 
-        label = display_name(marker.name)
+        label = marker.label or display_name(marker.name)
         wrapped = textwrap.wrap(label, width=11)[:2]
         ty = py + portrait_size + 3
         for line in wrapped:
@@ -447,6 +449,69 @@ def render_one(festival_id: str, profile: str, phase: str, output_dir: Path, sca
     return output_path
 
 
+def draw_tile_grid(image: Image.Image, scale: int, origin_x: int, origin_y: int) -> Image.Image:
+    overlay = Image.new("RGBA", image.size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(overlay)
+    font = load_font(13)
+    step = TILE_SIZE * scale
+    for pixel_x in range(0, image.width + 1, step):
+        tile_x = origin_x + pixel_x // step
+        draw.line((pixel_x, 0, pixel_x, image.height), fill=(255, 255, 255, 105), width=1)
+        if tile_x % 2 == 0:
+            draw.text((pixel_x + 3, 2), str(tile_x), fill=(255, 255, 255, 235), font=font,
+                      stroke_width=2, stroke_fill=(0, 0, 0, 210))
+    for pixel_y in range(0, image.height + 1, step):
+        tile_y = origin_y + pixel_y // step
+        draw.line((0, pixel_y, image.width, pixel_y), fill=(255, 255, 255, 105), width=1)
+        if tile_y % 2 == 0:
+            draw.text((3, pixel_y + 2), str(tile_y), fill=(255, 255, 255, 235), font=font,
+                      stroke_width=2, stroke_fill=(0, 0, 0, 210))
+    return Image.alpha_composite(image.convert("RGBA"), overlay)
+
+
+def render_winter_star_secret_santa_map(output_dir: Path, scale: int, portrait_size: int) -> Path:
+    map_id = "Town-Christmas"
+    tmx_path = MAPS_DIR / f"{map_id}.tmx"
+    full = render_tmx(tmx_path, scale=scale)
+    crop_x0, crop_y0, crop_x1, crop_y1 = 14, 54, 42, 80
+    step = TILE_SIZE * scale
+    base = full.crop((crop_x0 * step, crop_y0 * step, crop_x1 * step, crop_y1 * step))
+    base = draw_tile_grid(base, scale, crop_x0, crop_y0)
+
+    def marker(name: str, x: int, y: int, facing: int, label: str, portrait: str | None = None) -> ActorMarker:
+        return ActorMarker(name, x, y, facing,
+                           ((x - crop_x0 + 0.5) * step, (y - crop_y0 + 0.5) * step),
+                           [0.0, 0.0, 0.0, 0.0], label, portrait)
+
+    markers = [
+        marker("farmer", 30, 69, 0, "P1 Farmer start/final"),
+        marker("gift_giver", 29, 75, 0, "P2 Giver entry"),
+        marker("gift_giver", 29, 71, 0, "P3 Approach stop"),
+        marker("gift_giver", 30, 71, 1, "P4 Present gift"),
+        marker("gift_giver", 29, 69, 1, "P5 Handoff/dialogue"),
+        marker("gift_box", 30, 70, 0, "P6 Gift visual anchor"),
+        marker("Emily", 37, 59, 2, "P7 Emily temporary", "Emily"),
+        marker("Haley", 35, 74, 2, "P8 Haley temporary", "Haley"),
+        marker("Emily", 29, 72, 2, "Emily restore", "Emily"),
+        marker("Haley", 30, 72, 2, "Haley restore", "Haley"),
+        marker("viewport", 30, 67, 2, "Vanilla viewport anchor"),
+    ]
+
+    route_layer = Image.new("RGBA", base.size, (0, 0, 0, 0))
+    route_draw = ImageDraw.Draw(route_layer)
+    route_points = [(29, 75), (29, 71), (30, 71), (29, 71), (29, 69)]
+    pixel_points = [((x - crop_x0 + 0.5) * step, (y - crop_y0 + 0.5) * step) for x, y in route_points]
+    route_draw.line(pixel_points, fill=(255, 220, 55, 230), width=max(4, scale * 2), joint="curve")
+    base = Image.alpha_composite(base, route_layer)
+
+    title = "Winter Star Y1 / Secret Santa / vanilla event points + route"
+    annotated = annotate_map(base, markers, title, portrait_size=portrait_size)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_path = output_dir / "winter25_town-christmas_y1_secret_santa_event_points.png"
+    annotated.save(output_path)
+    return output_path
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Render Stardew Valley festival NPC actor maps.")
     parser.add_argument("--preset", choices=("moonlight_jellies",), help="Convenience preset. moonlight_jellies maps to summer28.")
@@ -457,11 +522,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--scale", type=int, default=3, help="Pixel scale for the rendered TMX map.")
     parser.add_argument("--portrait-size", type=int, default=44, help="Portrait chip size in output pixels.")
     parser.add_argument("--out", type=Path, default=DEFAULT_OUTPUT_DIR, help="Output directory.")
+    parser.add_argument("--winter-star-secret-santa", action="store_true",
+                        help="Render the vanilla Y1 Secret Santa event-point map.")
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
+    if args.winter_star_secret_santa:
+        output_path = render_winter_star_secret_santa_map(args.out, args.scale, args.portrait_size)
+        print(output_path.relative_to(ROOT))
+        return
     festival_id = args.festival
     if args.preset == "moonlight_jellies":
         festival_id = "summer28"
