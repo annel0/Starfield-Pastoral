@@ -1,7 +1,6 @@
 package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.gui.festival.WinterStarOverflowGiftScreen;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -18,7 +17,12 @@ public record OpenWinterStarOverflowGiftPayload(String itemId, int count) implem
         buf -> new OpenWinterStarOverflowGiftPayload(buf.readUtf(256), buf.readVarInt()));
     @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
     public static void handle(OpenWinterStarOverflowGiftPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> net.minecraft.client.Minecraft.getInstance().setScreen(
-            new WinterStarOverflowGiftScreen(payload.itemId(), payload.count())));
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(OpenWinterStarOverflowGiftPayload payload) {
+        net.minecraft.client.Minecraft.getInstance().setScreen(
+            new com.stardew.craft.client.gui.festival.WinterStarOverflowGiftScreen(payload.itemId(), payload.count()));
     }
 }

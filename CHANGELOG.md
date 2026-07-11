@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.12fix1 - 2026-07-11
+
+### Update Log (English)
+
+- Fixed a dedicated-server startup crash caused by Feast of the Winter Star client UI payloads loading client-only screen classes during network registration.
+
+### 更新日志（中文）
+
+- 修复冬日星盛宴客户端 UI 网络包在注册阶段加载客户端专属界面类，导致专用服务器无法启动的问题。
+
 ## 0.4.12 - 2026-07-11
 
 ### Update Log (English)

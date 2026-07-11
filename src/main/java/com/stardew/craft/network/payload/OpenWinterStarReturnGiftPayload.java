@@ -22,9 +22,12 @@ public record OpenWinterStarReturnGiftPayload(String giverId, String beforeKey, 
     @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
 
     public static void handle(OpenWinterStarReturnGiftPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            com.stardew.craft.client.festival.WinterStarCutsceneContext.configure(
-                payload.giverId(), payload.beforeKey(), payload.afterKey(), payload.itemId());
-        });
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(OpenWinterStarReturnGiftPayload payload) {
+        com.stardew.craft.client.festival.WinterStarCutsceneContext.configure(
+            payload.giverId(), payload.beforeKey(), payload.afterKey(), payload.itemId());
     }
 }

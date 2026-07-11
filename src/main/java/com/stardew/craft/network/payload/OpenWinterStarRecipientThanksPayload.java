@@ -1,7 +1,6 @@
 package com.stardew.craft.network.payload;
 
 import com.stardew.craft.StardewCraft;
-import com.stardew.craft.client.gui.common.StardewNpcDialogueScreen;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
@@ -22,13 +21,17 @@ public record OpenWinterStarRecipientThanksPayload(String npcId, String itemName
     @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
 
     public static void handle(OpenWinterStarRecipientThanksPayload payload, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
-            if (mc.player == null) return;
-            String text = Component.translatable("stardewcraft.festival.winter_star.recipient_thanks", payload.itemName()).getString();
-            StardewNpcDialogueScreen screen = new StardewNpcDialogueScreen(payload.npcId(), text, 0)
+        context.enqueueWork(() -> handleClient(payload));
+    }
+
+    @net.neoforged.api.distmarker.OnlyIn(net.neoforged.api.distmarker.Dist.CLIENT)
+    private static void handleClient(OpenWinterStarRecipientThanksPayload payload) {
+        net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
+        if (mc.player == null) return;
+        String text = Component.translatable("stardewcraft.festival.winter_star.recipient_thanks", payload.itemName()).getString();
+        com.stardew.craft.client.gui.common.StardewNpcDialogueScreen screen =
+            new com.stardew.craft.client.gui.common.StardewNpcDialogueScreen(payload.npcId(), text, 0)
                 .withAfterClose(() -> PacketDistributor.sendToServer(new WinterStarRecipientThanksClosedPayload()));
-            mc.setScreen(screen);
-        });
+        mc.setScreen(screen);
     }
 }
