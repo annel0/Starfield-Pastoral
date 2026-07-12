@@ -1,0 +1,190 @@
+name: Upstream sync
+
+# Periodically checks ChangQingElysium/Starfield-Pastoral for new commits.
+# If found, a Codex agent (job "codex") attempts to merge them and adapt the
+# result to this fork's Russian localization, on an isolated read-only
+# checkout with no push access. Its output is bundled as a build artifact
+# (never pushed directly). A separate job ("open-pr") with write access,
+# and no access to the OpenAI key, takes that artifact and opens a PR for
+# a human to review and merge. Nothing is ever pushed to main automatically.
+#
+# See AGENTS.md for the rules the agent follows when adapting upstream
+# changes, and .github/codex/upstream-sync.md for its exact task prompt.
+
+on:
+  schedule:
+    # Every 6 hours, off the top of the hour (GitHub warns scheduled jobs
+    # queued at :00 can be delayed under load).
+    - cron: "17 */6 * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: upstream-sync
+  cancel-in-progress: false
+
+env:
+  UPSTREAM_REPO: https://github.com/ChangQingElysium/Starfield-Pastoral.git
+  UPSTREAM_BRANCH: main
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      needs_sync: ${{ steps.check.outputs.needs_sync }}
+      upstream_sha: ${{ steps.check.outputs.upstream_sha }}
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream "$UPSTREAM_REPO"
+          git fetch upstream "$UPSTREAM_BRANCH"
+
+      - name: Check whether upstream has unseen commits
+        id: check
+        run: |
+          if git merge-base --is-ancestor upstream/"$UPSTREAM_BRANCH" HEAD; then
+            echo "Upstream is already fully merged, nothing to do."
+            echo "needs_sync=false" >> "$GITHUB_OUTPUT"
+          else
+            sha="$(git rev-parse --short upstream/"$UPSTREAM_BRANCH")"
+            echo "Upstream has new commits, tip: $sha"
+            echo "needs_sync=true" >> "$GITHUB_OUTPUT"
+            echo "upstream_sha=$sha" >> "$GITHUB_OUTPUT"
+          fi
+
+  codex:
+    needs: detect
+    if: needs.detect.outputs.needs_sync == 'true'
+    runs-on: ubuntu-latest
+    # Intentionally read-only: this job runs an AI agent over untrusted
+    # upstream content, so it must not be able to push anywhere or touch
+    # repo secrets other than the OpenAI key it needs to do its job.
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Fetch upstream and start merge
+        run: |
+          git config user.name "starfield-pastoral-ru-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git remote add upstream "$UPSTREAM_REPO"
+          git fetch upstream "$UPSTREAM_BRANCH"
+          git switch -c "codex/upstream-sync-${{ needs.detect.outputs.upstream_sha }}"
+          # Non-zero exit here is expected input for Codex, not a failure.
+          git merge --no-commit --no-ff upstream/"$UPSTREAM_BRANCH" || true
+
+      # Verify current action inputs against https://developers.openai.com/codex/github-action
+      # before relying on this in production — the interface may have
+      # changed since this workflow was written.
+      - name: Adapt upstream changes with Codex
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          prompt-file: .github/codex/upstream-sync.md
+          sandbox: workspace-write
+
+      - name: Remove any leftover conflict markers check
+        run: |
+          if grep -rIlE '^(<{7}|={7}|>{7})( |$)' --exclude-dir=.git .; then
+            echo "::warning::Conflict markers still present after Codex ran; PR will need manual cleanup."
+          fi
+
+      - name: Build
+        id: build
+        continue-on-error: true
+        run: chmod +x ./gradlew && ./gradlew build
+
+      - name: Record build status
+        run: |
+          echo "${{ steps.build.outcome }}" > /tmp/build_status.txt
+          echo "${{ needs.detect.outputs.upstream_sha }}" > /tmp/upstream_sha.txt
+
+      - name: Commit adapted result
+        run: |
+          git add -A
+          git commit -m "Merge upstream ${{ needs.detect.outputs.upstream_sha }} (Codex-adapted)
+
+          Build status: ${{ steps.build.outcome }}"
+
+      - name: Bundle branch for handoff (no push from this job)
+        run: |
+          git bundle create /tmp/sync.bundle HEAD
+
+      - name: Upload sync bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: upstream-sync-bundle
+          path: |
+            /tmp/sync.bundle
+            /tmp/build_status.txt
+            /tmp/upstream_sha.txt
+          retention-days: 7
+
+  open-pr:
+    needs: [detect, codex]
+    if: needs.detect.outputs.needs_sync == 'true'
+    runs-on: ubuntu-latest
+    # This job can push and open PRs, but never sees the OpenAI key.
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download sync bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: upstream-sync-bundle
+          path: /tmp/artifact
+
+      - name: Push adapted branch
+        id: push
+        run: |
+          sha="$(cat /tmp/artifact/upstream_sha.txt)"
+          branch="codex/upstream-sync-${sha}"
+          echo "branch=${branch}" >> "$GITHUB_OUTPUT"
+          echo "build_status=$(cat /tmp/artifact/build_status.txt)" >> "$GITHUB_OUTPUT"
+          git bundle verify /tmp/artifact/sync.bundle
+          git fetch /tmp/artifact/sync.bundle "HEAD:${branch}"
+          git push origin "${branch}"
+
+      - name: Open pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          extra_flag=""
+          body="Automated upstream sync from ChangQingElysium/Starfield-Pastoral, adapted by Codex per AGENTS.md."
+          if [ "${{ steps.push.outputs.build_status }}" != "success" ]; then
+            extra_flag="--draft"
+            body="${body}
+
+          ⚠️ \`./gradlew build\` did not pass after Codex's adaptation. Opened as a draft — needs manual fixes before merge."
+          fi
+          gh pr create \
+            --base main \
+            --head "${{ steps.push.outputs.branch }}" \
+            --title "Upstream sync: $(cat /tmp/artifact/upstream_sha.txt)" \
+            --body "$body" \
+            $extra_flag
