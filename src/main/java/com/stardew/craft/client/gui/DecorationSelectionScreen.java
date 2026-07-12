@@ -44,8 +44,8 @@ public class DecorationSelectionScreen extends Screen {
 
     // Segment override for wallpaper blocks (-1 = auto, 0/1/2 = bottom/middle/top)
     private int selectedSegment;
-    private static final String[] SEGMENT_LABELS = {"下", "中", "上"};
-    private static final String SEGMENT_AUTO_LABEL = "自动";
+    private static final String[] SEGMENT_LABELS = {"Низ", "Середина", "Верх"};
+    private static final String SEGMENT_AUTO_LABEL = "Авто";
 
     // derived constants
     private static final int COLS = 10;
@@ -372,7 +372,7 @@ public class DecorationSelectionScreen extends Screen {
             }
         } else if (option.styleId().equals(payload.currentStyleId())) {
             // Display currently equipped text brightly
-            String eqText = "当前正在使用";
+            String eqText = "Используется сейчас";
             int eqWidth = this.font.width(eqText);
             int dx = px + (width - eqWidth) / 2;
             int descY = areaY + areaH + 24;
@@ -382,7 +382,7 @@ public class DecorationSelectionScreen extends Screen {
 
     private void drawSegmentButtons(GuiGraphics g, int px, int py, int areaW) {
         // 4 buttons: Auto, Bottom(0), Middle(1), Top(2)
-        String label = "位置:";
+        String label = "Позиция:";
         g.drawString(this.font, label, px, py + 4, 0xFFAAAAAA, true);
         int btnX = px + this.font.width(label) + 4;
         int btnW = 24;
@@ -416,7 +416,7 @@ public class DecorationSelectionScreen extends Screen {
     private int checkSegmentButtonClick(double mouseX, double mouseY) {
         int px = getPanelX() + 10;
         int py = getPanelY() + UI_HEIGHT - 28;
-        String label = "位置:";
+        String label = "Позиция:";
         int btnX = px + this.font.width(label) + 4;
         int btnW = 24;
         int btnH = 14;

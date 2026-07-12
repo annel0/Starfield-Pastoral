@@ -43,9 +43,9 @@ public class SystemTotemManager {
         if (!level.dimension().equals(ModDimensions.STARDEW_VALLEY)) return;
 
         removeOldFarmSystemPole(level);
-        ensureSystemPole(level, POS_MOUNTAIN, TotemType.MOUNTAIN, ModBlocks.TOTEM_POLE_MOUNTAIN, SYSTEM_ID_MOUNTAIN, "山区", Direction.NORTH);
-        ensureSystemPole(level, POS_BEACH, TotemType.BEACH, ModBlocks.TOTEM_POLE_BEACH, SYSTEM_ID_BEACH, "海滩", Direction.NORTH);
-        ensureSystemPole(level, POS_DESERT, TotemType.DESERT, ModBlocks.TOTEM_POLE_DESERT, SYSTEM_ID_DESERT, "沙漠", Direction.SOUTH);
+        ensureSystemPole(level, POS_MOUNTAIN, TotemType.MOUNTAIN, ModBlocks.TOTEM_POLE_MOUNTAIN, SYSTEM_ID_MOUNTAIN, "Горы", Direction.NORTH);
+        ensureSystemPole(level, POS_BEACH, TotemType.BEACH, ModBlocks.TOTEM_POLE_BEACH, SYSTEM_ID_BEACH, "Пляж", Direction.NORTH);
+        ensureSystemPole(level, POS_DESERT, TotemType.DESERT, ModBlocks.TOTEM_POLE_DESERT, SYSTEM_ID_DESERT, "Пустыня", Direction.SOUTH);
     }
 
     private static void removeOldFarmSystemPole(ServerLevel level) {

@@ -74,9 +74,9 @@ public record FarmAdminPayload(
                     if (farm != null) {
                         FarmPermissionManager.get().clearAllForOwner(payload.targetUUID);
                         player.displayClientMessage(
-                                Component.literal("§a已删除 " + farm.getOwnerName() + " 的农场"), false);
+                                Component.literal("§aФерма игрока " + farm.getOwnerName() + " удалена"), false);
                     } else {
-                        player.displayClientMessage(Component.literal("§c农场不存在"), false);
+                        player.displayClientMessage(Component.literal("§cФерма не существует"), false);
                     }
                     // 刷新列表
                     PacketDistributor.sendToPlayer(player, FarmAdminSyncPayload.fromRegistry(registry));
@@ -85,9 +85,9 @@ public record FarmAdminPayload(
                     boolean ok = registry.renameFarm(payload.targetUUID, payload.extraString);
                     if (ok) {
                         player.displayClientMessage(
-                                Component.literal("§a已重命名为: " + payload.extraString), false);
+                                Component.literal("§aПереименовано в: " + payload.extraString), false);
                     } else {
-                        player.displayClientMessage(Component.literal("§c农场不存在"), false);
+                        player.displayClientMessage(Component.literal("§cФерма не существует"), false);
                     }
                     PacketDistributor.sendToPlayer(player, FarmAdminSyncPayload.fromRegistry(registry));
                 }
@@ -100,30 +100,30 @@ public record FarmAdminPayload(
                                 tp.getX() + 0.5, tp.getY(), tp.getZ() + 0.5,
                                 0, 0);
                         player.displayClientMessage(
-                                Component.literal("§a已传送到 " + farm.getOwnerName() + " 的农场"), true);
+                                Component.literal("§aТелепортация на ферму игрока " + farm.getOwnerName()), true);
                     } else {
-                        player.displayClientMessage(Component.literal("§c农场不存在"), false);
+                        player.displayClientMessage(Component.literal("§cФерма не существует"), false);
                     }
                 }
                 case 4 -> { // 转移农场
                     String targetName = payload.extraString.trim();
                     if (targetName.isEmpty()) {
-                        player.displayClientMessage(Component.literal("§c请输入目标玩家名"), false);
+                        player.displayClientMessage(Component.literal("§cВведите имя целевого игрока"), false);
                         return;
                     }
                     ServerPlayer targetPlayer = player.getServer().getPlayerList().getPlayerByName(targetName);
                     if (targetPlayer == null) {
-                        player.displayClientMessage(Component.literal("§c玩家 " + targetName + " 不在线"), false);
+                        player.displayClientMessage(Component.literal("§cИгрок " + targetName + " не в сети"), false);
                         return;
                     }
                     boolean ok = registry.transferFarm(payload.targetUUID, targetPlayer.getUUID(), targetName);
                     if (ok) {
                         FarmPermissionManager.get().transferPermissions(payload.targetUUID, targetPlayer.getUUID());
                         player.displayClientMessage(
-                                Component.literal("§a已转移给 " + targetName), false);
+                                Component.literal("§aПередано игроку " + targetName), false);
                     } else {
                         player.displayClientMessage(
-                                Component.literal("§c转移失败：源农场不存在或目标玩家已有农场"), false);
+                                Component.literal("§cОшибка передачи: исходная ферма не существует или у целевого игрока уже есть ферма"), false);
                     }
                     PacketDistributor.sendToPlayer(player, FarmAdminSyncPayload.fromRegistry(registry));
                 }

@@ -1,49 +1,48 @@
 package com.stardew.craft.player;
 
 /**
- * 职业类型枚举
- * 对应星露谷物语的职业系统（5级和10级选择）
+ * Enum of professions, mirroring Stardew Valley's profession system (level 5 and level 10 choices).
  */
 public enum ProfessionType {
-    // 农业职业 (Farming)
-    RANCHER(0, "rancher", "牧场主", SkillType.FARMING, 5),
-    TILLER(1, "tiller", "耕种者", SkillType.FARMING, 5),
-    COOPMASTER(2, "coopmaster", "养鸡达人", SkillType.FARMING, 10),
-    SHEPHERD(3, "shepherd", "牧羊人", SkillType.FARMING, 10),
-    ARTISAN(4, "artisan", "工匠", SkillType.FARMING, 10),
-    AGRICULTURIST(5, "agriculturist", "农业学家", SkillType.FARMING, 10),
-    
-    // 钓鱼职业 (Fishing)
-    FISHER(6, "fisher", "渔夫", SkillType.FISHING, 5),
-    TRAPPER(7, "trapper", "捕手", SkillType.FISHING, 5),
-    ANGLER(8, "angler", "垂钓者", SkillType.FISHING, 10),
-    PIRATE(9, "pirate", "海盗", SkillType.FISHING, 10),
-    MARINER(10, "mariner", "水手", SkillType.FISHING, 10),
-    LUREMASTER(11, "luremaster", "诱饵大师", SkillType.FISHING, 10),
-    
-    // 觅食职业 (Foraging)
-    FORESTER(12, "forester", "护林人", SkillType.FORAGING, 5),
-    GATHERER(13, "gatherer", "采集者", SkillType.FORAGING, 5),
-    LUMBERJACK(14, "lumberjack", "伐木工", SkillType.FORAGING, 10),
-    TAPPER(15, "tapper", "树液采集者", SkillType.FORAGING, 10),
-    BOTANIST(16, "botanist", "植物学家", SkillType.FORAGING, 10),
-    TRACKER(17, "tracker", "追踪者", SkillType.FORAGING, 10),
-    
-    // 采矿职业 (Mining)
-    MINER(18, "miner", "矿工", SkillType.MINING, 5),
-    GEOLOGIST(19, "geologist", "地质学家", SkillType.MINING, 5),
-    BLACKSMITH(20, "blacksmith", "铁匠", SkillType.MINING, 10),
-    PROSPECTOR(21, "prospector", "勘探者", SkillType.MINING, 10),
-    EXCAVATOR(22, "excavator", "挖掘专家", SkillType.MINING, 10),
-    GEMOLOGIST(23, "gemologist", "宝石专家", SkillType.MINING, 10),
-    
-    // 战斗职业 (Combat)
-    FIGHTER(24, "fighter", "战士", SkillType.COMBAT, 5),
-    SCOUT(25, "scout", "侦察兵", SkillType.COMBAT, 5),
-    BRUTE(26, "brute", "野蛮人", SkillType.COMBAT, 10),
-    DEFENDER(27, "defender", "防御者", SkillType.COMBAT, 10),
-    ACROBAT(28, "acrobat", "杂技演员", SkillType.COMBAT, 10),
-    DESPERADO(29, "desperado", "亡命徒", SkillType.COMBAT, 10);
+    // Farming
+    RANCHER(0, "rancher", "Скотовод", SkillType.FARMING, 5),
+    TILLER(1, "tiller", "Земледелец", SkillType.FARMING, 5),
+    COOPMASTER(2, "coopmaster", "Птицевод", SkillType.FARMING, 10),
+    SHEPHERD(3, "shepherd", "Пастух", SkillType.FARMING, 10),
+    ARTISAN(4, "artisan", "Ремесленник", SkillType.FARMING, 10),
+    AGRICULTURIST(5, "agriculturist", "Агроном", SkillType.FARMING, 10),
+
+    // Fishing
+    FISHER(6, "fisher", "Рыбак", SkillType.FISHING, 5),
+    TRAPPER(7, "trapper", "Ловец", SkillType.FISHING, 5),
+    ANGLER(8, "angler", "Удильщик", SkillType.FISHING, 10),
+    PIRATE(9, "pirate", "Пират", SkillType.FISHING, 10),
+    MARINER(10, "mariner", "Мореход", SkillType.FISHING, 10),
+    LUREMASTER(11, "luremaster", "Мастер приманки", SkillType.FISHING, 10),
+
+    // Foraging
+    FORESTER(12, "forester", "Лесник", SkillType.FORAGING, 5),
+    GATHERER(13, "gatherer", "Собиратель", SkillType.FORAGING, 5),
+    LUMBERJACK(14, "lumberjack", "Лесоруб", SkillType.FORAGING, 10),
+    TAPPER(15, "tapper", "Смолокур", SkillType.FORAGING, 10),
+    BOTANIST(16, "botanist", "Ботаник", SkillType.FORAGING, 10),
+    TRACKER(17, "tracker", "Следопыт", SkillType.FORAGING, 10),
+
+    // Mining
+    MINER(18, "miner", "Шахтёр", SkillType.MINING, 5),
+    GEOLOGIST(19, "geologist", "Геолог", SkillType.MINING, 5),
+    BLACKSMITH(20, "blacksmith", "Кузнец", SkillType.MINING, 10),
+    PROSPECTOR(21, "prospector", "Старатель", SkillType.MINING, 10),
+    EXCAVATOR(22, "excavator", "Землекоп", SkillType.MINING, 10),
+    GEMOLOGIST(23, "gemologist", "Геммолог", SkillType.MINING, 10),
+
+    // Combat
+    FIGHTER(24, "fighter", "Боец", SkillType.COMBAT, 5),
+    SCOUT(25, "scout", "Разведчик", SkillType.COMBAT, 5),
+    BRUTE(26, "brute", "Громила", SkillType.COMBAT, 10),
+    DEFENDER(27, "defender", "Защитник", SkillType.COMBAT, 10),
+    ACROBAT(28, "acrobat", "Акробат", SkillType.COMBAT, 10),
+    DESPERADO(29, "desperado", "Головорез", SkillType.COMBAT, 10);
     
     private final int id;
     private final String name;

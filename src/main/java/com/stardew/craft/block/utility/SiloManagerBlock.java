@@ -171,7 +171,7 @@ public class SiloManagerBlock extends Block {
         if (!validation.success()) {
             refundRelocationItem(stack, serverLevel, pos, serverPlayer);
             serverLevel.removeBlock(pos, false);
-            serverPlayer.sendSystemMessage(Component.literal("[筒仓管理器] 搬迁失败：" + validation.message()));
+            serverPlayer.sendSystemMessage(Component.literal("[Менеджер силоса] Перенос не удался: " + validation.message()));
             return;
         }
 
@@ -228,13 +228,13 @@ public class SiloManagerBlock extends Block {
         );
 
         if (existingOpt.isPresent()) {
-            player.sendSystemMessage(Component.literal("[筒仓管理器] 筒仓已建成。"));
+            player.sendSystemMessage(Component.literal("[Менеджер силоса] Силос уже построен."));
             return false;
         }
 
         SiloManagerValidationService.ValidationResult validation = SiloManagerValidationService.validate(level, managerPos);
         if (!validation.success()) {
-            player.sendSystemMessage(Component.literal("[筒仓管理器] 建造失败：" + validation.message()));
+            player.sendSystemMessage(Component.literal("[Менеджер силоса] Не удалось построить: " + validation.message()));
             level.playSound(null, managerPos, SoundEvents.VILLAGER_NO, SoundSource.BLOCKS, 0.8f, 1.0f);
             return false;
         }
@@ -256,7 +256,7 @@ public class SiloManagerBlock extends Block {
             Collections.emptySet()
         );
 
-        player.sendSystemMessage(Component.literal("[筒仓管理器] 筒仓已建成（ID: " + buildingId + "）"));
+        player.sendSystemMessage(Component.literal("[Менеджер силоса] Силос построен (ID: " + buildingId + ")"));
         level.playSound(null, managerPos, SoundEvents.ANVIL_USE, SoundSource.BLOCKS, 0.6f, 1.1f);
 
         // 通知任务系统：建筑已建造

@@ -312,7 +312,7 @@ public class CookingPotScreen extends AbstractContainerScreen<CookingPotMenu> {
         g.pose().popPose();
 
         if (!unlocked) {
-            String unlockTxt = "解锁方法：" + I18n.get("recipe.stardewcraft." + recipeId.getPath() + ".unlock_condition");
+            String unlockTxt = "Способ разблокировки: " + I18n.get("recipe.stardewcraft." + recipeId.getPath() + ".unlock_condition");
             List<FormattedCharSequence> lines = this.font.split(Component.literal(unlockTxt), width - 6);
             int yPos = py + 110;
             for (FormattedCharSequence line : lines) {

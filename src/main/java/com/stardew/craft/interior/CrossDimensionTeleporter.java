@@ -180,7 +180,7 @@ public final class CrossDimensionTeleporter {
         com.stardew.craft.farm.FarmInstanceRegistry registry = com.stardew.craft.farm.FarmInstanceRegistry.get();
         com.stardew.craft.farm.FarmInstance farm = registry.getFarmForPlayer(player.getUUID());
         if (farm == null) {
-            ObjectDialogueService.show(player, Component.literal("请先创建自己的农场。"));
+            ObjectDialogueService.show(player, Component.literal("Сначала создайте собственную ферму."));
             StardewCraft.LOGGER.warn("[WIZARD] Refused Stardew outdoor teleport for {}: no personal farm",
                 player.getName().getString());
             return;
@@ -328,12 +328,12 @@ public final class CrossDimensionTeleporter {
         player.sendSystemMessage(Component.literal(""));
         player.sendSystemMessage(Component.literal("§6§l═══════════ §e§lStardewCraft §6§l═══════════"));
         player.sendSystemMessage(Component.literal(""));
-        player.sendSystemMessage(Component.literal("§c§l⚠ §f本模组尚在内测，有很多未完成的地方，不代表最终品质。"));
+        player.sendSystemMessage(Component.literal("§c§l⚠ §fМод всё ещё в закрытом тестировании, многое не доработано и не отражает финальное качество."));
         player.sendSystemMessage(Component.literal(""));
-        player.sendSystemMessage(Component.literal("§b§l✉ §f如果你遇到 Bug 或想提建议，欢迎私信作者 B 站账号反馈！"));
+        player.sendSystemMessage(Component.literal("§b§l✉ §fЕсли столкнулись с багом или есть идея — напишите автору в личные сообщения на Bilibili!"));
         player.sendSystemMessage(Component.literal(""));
-        player.sendSystemMessage(Component.literal("§a§l📖 §f模组目前没有教程，主界面按 §e§lV §f键（可在按键设置中更改）打开。"));
-        player.sendSystemMessage(Component.literal("§7   可以根据游玩星露谷物语的直觉来游玩本模组。"));
+        player.sendSystemMessage(Component.literal("§a§l📖 §fУ мода пока нет обучения. На главном экране нажмите §e§lV §f(можно изменить в настройках управления), чтобы открыть его."));
+        player.sendSystemMessage(Component.literal("§7   Ориентируйтесь на свою интуицию из Stardew Valley — этого достаточно, чтобы играть."));
         player.sendSystemMessage(Component.literal(""));
         player.sendSystemMessage(Component.literal("§6§l═══════════════════════════════════"));
         player.sendSystemMessage(Component.literal(""));
@@ -346,16 +346,16 @@ public final class CrossDimensionTeleporter {
         PlayerStardewData data = PlayerDataManager.getPlayerData(player);
         if (data.isBilibiliRewardClaimed()) return;
 
-        MutableComponent clickMsg = Component.literal("§b§l§n[点击关注作者B站主页]")
+        MutableComponent clickMsg = Component.literal("§b§l§n[Нажмите, чтобы подписаться на автора на Bilibili]")
             .setStyle(Style.EMPTY
                 .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/stardew bilibili_claim"))
                 .withUnderlined(true)
                 .withColor(ChatFormatting.AQUA));
-        MutableComponent hint = Component.literal(" §e§l← 点击获取神秘礼物！");
+        MutableComponent hint = Component.literal(" §e§l← нажмите, чтобы получить таинственный подарок!");
 
-        player.sendSystemMessage(Component.literal("§d§l✦ §e§l关注作者 §d§l✦"));
+        player.sendSystemMessage(Component.literal("§d§l✦ §e§lПодпишитесь на автора §d§l✦"));
         player.sendSystemMessage(Component.literal(""));
-        player.sendSystemMessage(Component.literal("§f  欢迎关注作者 B 站账号，获取最新开发动态："));
+        player.sendSystemMessage(Component.literal("§f  Подпишитесь на автора на Bilibili, чтобы следить за новостями разработки:"));
         player.sendSystemMessage(Component.literal("  ").append(clickMsg).append(hint));
         player.sendSystemMessage(Component.literal(""));
         player.sendSystemMessage(Component.literal("§6§l═══════════════════════════════════"));
@@ -367,19 +367,19 @@ public final class CrossDimensionTeleporter {
      */
     private static void sendRuneAnnouncement(ServerPlayer player) {
         player.sendSystemMessage(Component.literal(""));
-        player.sendSystemMessage(Component.literal("§a§l🌿 §a═══════ §e§l祝尼魔的馈赠 §a═══════"));
+        player.sendSystemMessage(Component.literal("§a§l🌿 §a═══════ §e§lДар джунимо §a═══════"));
         player.sendSystemMessage(Component.literal(""));
-        player.sendSystemMessage(Component.literal("§f  你感受到了一股温暖而神秘的魔力……"));
+        player.sendSystemMessage(Component.literal("§f  Вы почувствовали тёплую и таинственную магию…"));
         player.sendSystemMessage(Component.literal(""));
-        player.sendSystemMessage(Component.literal("§f  森林深处的§a祝尼魔§f们感应到了你在寒冬中的到来。"));
-        player.sendSystemMessage(Component.literal("§f  它们不忍看你的第一个冬天颗粒无收，"));
-        player.sendSystemMessage(Component.literal("§f  悄悄在你的木箱中放入了一枚§e温室符文§f。"));
+        player.sendSystemMessage(Component.literal("§f  §aДжунимо§f из чащи леса почувствовали ваше прибытие в разгар суровой зимы."));
+        player.sendSystemMessage(Component.literal("§f  Не желая, чтобы ваша первая зима прошла без урожая,"));
+        player.sendSystemMessage(Component.literal("§f  они незаметно положили в ваш деревянный сундук §eруну теплицы§f."));
         player.sendSystemMessage(Component.literal(""));
-        player.sendSystemMessage(Component.literal("§7  将符文放置在农田中央，7×7 范围内的作物"));
-        player.sendSystemMessage(Component.literal("§7  将不受季节限制，安然生长整个冬天。"));
-        player.sendSystemMessage(Component.literal("§7  符文的魔力会在下个季节来临时自然消散。"));
+        player.sendSystemMessage(Component.literal("§7  Поместите руну в центр фермы, и урожай в радиусе 7×7"));
+        player.sendSystemMessage(Component.literal("§7  сможет расти всю зиму, невзирая на сезон."));
+        player.sendSystemMessage(Component.literal("§7  Магия руны естественным образом рассеется с приходом следующего сезона."));
         player.sendSystemMessage(Component.literal(""));
-        player.sendSystemMessage(Component.literal("§a  ——愿星之果实庇佑你度过这个隆冬 §e❄"));
+        player.sendSystemMessage(Component.literal("§a  —— пусть звёздный плод хранит вас в эту суровую зиму §e❄"));
         player.sendSystemMessage(Component.literal(""));
         player.sendSystemMessage(Component.literal("§a═══════════════════════════════════"));
         player.sendSystemMessage(Component.literal(""));

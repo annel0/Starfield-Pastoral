@@ -130,8 +130,8 @@ public class FishPondManagerBlock extends Block {
         player.displayClientMessage(
             Component.literal(
                 existingOwn.isPresent()
-                    ? "鱼塘结构已更新（ID: " + pondId + "）"
-                    : "鱼塘已创建（ID: " + pondId + "）"
+                    ? "Структура пруда обновлена (ID: " + pondId + ")"
+                    : "Пруд создан (ID: " + pondId + ")"
             ),
             true
         );

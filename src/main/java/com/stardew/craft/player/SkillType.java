@@ -5,11 +5,11 @@ package com.stardew.craft.player;
  * 对应星露谷物语的5种技能
  */
 public enum SkillType {
-    FARMING(0, "farming", "农业"),
-    FISHING(1, "fishing", "钓鱼"),
-    FORAGING(2, "foraging", "觅食"),
-    MINING(3, "mining", "采矿"),
-    COMBAT(4, "combat", "战斗");
+    FARMING(0, "farming", "Земледелие"),
+    FISHING(1, "fishing", "Рыбалка"),
+    FORAGING(2, "foraging", "Собирательство"),
+    MINING(3, "mining", "Горное дело"),
+    COMBAT(4, "combat", "Бой");
     
     private final int id;
     private final String name;

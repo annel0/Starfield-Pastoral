@@ -110,7 +110,7 @@ public class ElevatorBlock extends Block {
                                                @SuppressWarnings("null")    Player player, @SuppressWarnings("null")    BlockHitResult hitResult) {
         if (level.dimension() != com.stardew.craft.core.ModMiningDimensions.STARDEW_MINING) {
             player.sendSystemMessage(net.minecraft.network.chat.Component.literal(
-                "电梯只能在矿井维度使用！"
+                "Лифт можно использовать только в измерении шахты!"
             ));
             return InteractionResult.FAIL;
         }

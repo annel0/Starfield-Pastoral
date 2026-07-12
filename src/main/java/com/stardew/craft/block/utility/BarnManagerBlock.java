@@ -165,7 +165,7 @@ public class BarnManagerBlock extends Block {
 
         int currentTier = existingOpt.map(record -> record.buildingType().tier()).orElse(0);
         if (currentTier >= 3) {
-            player.sendSystemMessage(Component.literal("[畜棚管理器] 已达到最高等级（3级）。"));
+            player.sendSystemMessage(Component.literal("[Менеджер амбара] Уже достигнут максимальный уровень (3)."));
             maybeSendDevHints(player, currentTier, null);
             return false;
         }
@@ -173,7 +173,7 @@ public class BarnManagerBlock extends Block {
         int targetTier = currentTier + 1;
         BarnManagerValidationService.ValidationResult validation = BarnManagerValidationService.validateForTier(level, managerPos, targetTier);
         if (!validation.success()) {
-            player.sendSystemMessage(Component.literal("[畜棚管理器] 触发失败：" + validation.message()));
+            player.sendSystemMessage(Component.literal("[Менеджер амбара] Не удалось выполнить: " + validation.message()));
             maybeSendDevHints(player, targetTier, validation);
             level.playSound(null, managerPos, SoundEvents.VILLAGER_NO, SoundSource.BLOCKS, 0.8f, 1.0f);
             return false;
@@ -198,9 +198,9 @@ public class BarnManagerBlock extends Block {
         );
 
         if (currentTier == 0) {
-            player.sendSystemMessage(Component.literal("[畜棚管理器] 畜棚已创建为 1级（ID: " + buildingId + "）"));
+            player.sendSystemMessage(Component.literal("[Менеджер амбара] Амбар создан на уровне 1 (ID: " + buildingId + ")"));
         } else {
-            player.sendSystemMessage(Component.literal("[畜棚管理器] 畜棚已升级到 " + targetTier + "级（ID: " + buildingId + "）"));
+            player.sendSystemMessage(Component.literal("[Менеджер амбара] Амбар улучшен до уровня " + targetTier + " (ID: " + buildingId + ")"));
         }
 
         maybeSendDevHints(player, targetTier, validation);

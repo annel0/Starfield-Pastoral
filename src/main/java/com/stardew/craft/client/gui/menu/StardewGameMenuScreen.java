@@ -4285,7 +4285,7 @@ public class StardewGameMenuScreen extends Screen {
             }
             // Separator + Ingredients section
             lines.add(Component.empty());
-            lines.add(Component.literal("原料:").withStyle(ChatFormatting.GOLD));
+            lines.add(Component.literal("Ингредиенты:").withStyle(ChatFormatting.GOLD));
             int ingredientStartLine = lines.size();
             for (RecipeRequirement requirement : requirements) {
                 int have = countMatchingClient(requirement.ingredient());

@@ -41,7 +41,7 @@ public final class SiloManagerValidationService {
             }
         }
 
-        return new ValidationResult(false, "需要 2×2×10 的红砖柱（管理器需替换其中一个红砖位置）", 0, 0, 0, 0, 0, 0);
+        return new ValidationResult(false, "Требуется столб из кирпича 2×2×10 (менеджер должен заменить один из кирпичных блоков)", 0, 0, 0, 0, 0, 0);
     }
 
     private static ValidationResult checkColumn(ServerLevel level, BlockPos managerPos,
@@ -81,7 +81,7 @@ public final class SiloManagerValidationService {
 
         return new ValidationResult(
             true,
-            "校验通过",
+            "Проверка пройдена",
             baseX, baseY, baseZ,
             baseX + SILO_WIDTH - 1,
             baseY + SILO_HEIGHT - 1,

@@ -464,7 +464,7 @@ public class AnimalPurchaseScreen extends Screen {
         // 增加质感顶条，而非原本空洞的背景
         graphics.fillGradient(fx(-778), fy(-470), fx(346), fy(-350), alphaColor(0x2A3D3627, alpha), alphaColor(0x00000000, alpha));
         
-        drawScaledBoldText(graphics, "玛尼的动物商店", titleX, titleY, fs(48), alphaColor(0xFFFFF6D5, alpha));
+        drawScaledBoldText(graphics, "Зоомагазин Марни", titleX, titleY, fs(48), alphaColor(0xFFFFF6D5, alpha));
         // 玛尼商店横线（明亮分割线）
         graphics.fill(fx(-635), fy(-356), fx(279), fy(-354), alphaColor(0xFFEADB8C, alpha));
 

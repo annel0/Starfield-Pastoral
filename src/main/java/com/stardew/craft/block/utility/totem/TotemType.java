@@ -9,10 +9,10 @@ import javax.annotation.Nonnull;
  */
 @SuppressWarnings("null")
 public enum TotemType implements StringRepresentable {
-    FARM("farm", 0xFF55FF55, "农场"),
-    MOUNTAIN("mountain", 0xFFFF5555, "山区"),
-    BEACH("beach", 0xFF5555FF, "海滩"),
-    DESERT("desert", 0xFFFFD355, "沙漠");
+    FARM("farm", 0xFF55FF55, "Ферма"),
+    MOUNTAIN("mountain", 0xFFFF5555, "Горы"),
+    BEACH("beach", 0xFF5555FF, "Пляж"),
+    DESERT("desert", 0xFFFFD355, "Пустыня");
 
     private final String id;
     private final int textColor;

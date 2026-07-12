@@ -1,71 +1,88 @@
 
-# StarfieldPastoral | 星野牧歌
+# StarfieldPastoral | 星野牧歌 (Русская локализация)
 
-StarfieldPastoral（星野牧歌） is a non-commercial fan project that recreates the feel and core progression of Stardew Valley inside Minecraft on NeoForge.
+Это **неофициальный русский перевод** мода StarfieldPastoral (星野牧歌) — форк оригинального проекта, адаптированный командой переводчиков.
 
-## Current Status
+> **Оригинальный автор и проект:** [ChangQingElysium](https://github.com/ChangQingElysium) — [github.com/ChangQingElysium/Starfield-Pastoral](https://github.com/ChangQingElysium/Starfield-Pastoral)
+>
+> Весь исходный код, игровой дизайн и оригинальные ассеты принадлежат автору оригинального проекта и его участникам. Этот репозиторий — некоммерческий фанатский перевод, не отменяющий и не заменяющий права правообладателя. См. раздел «Лицензия и уведомление об ассетах» ниже.
 
-The project is in active alpha development. It already contains a broad playable foundation, but it is not yet a full 1:1 parity implementation.
+StarfieldPastoral (星野牧歌) — некоммерческий фанатский проект, воссоздающий атмосферу и основную игровую прогрессию Stardew Valley внутри Minecraft на NeoForge.
 
-Current development focus is on expanding feature coverage while tightening Stardew Valley behavioral parity across existing systems.
+## Текущий статус
 
-## Platform
+Проект находится в активной альфа-разработке. Уже реализована широкая играбельная основа, но это ещё не полная 1:1 копия оригинала.
 
-- Project name: StarfieldPastoral | 星野牧歌
+Текущий фокус разработки — расширение охвата функций при одновременном уточнении соответствия поведению Stardew Valley в уже существующих системах.
+
+## Платформа
+
+- Название проекта: StarfieldPastoral | 星野牧歌
 - Minecraft 1.21.1
 - NeoForge 21.1.217
 - Java 21
-- Mod version: 0.4.12fix1
+- Версия мода: 0.4.12fix1
 - Mod id: stardewcraft
 
-## Implemented or In-Progress Systems
+## Реализованные или разрабатываемые системы
 
-- core farm flow, farmland, crops, growth management, and related item content;
-- animal systems including barns, coops, feed troughs, hay flow, pasture grass eating, and animal interaction UI;
-- fishing data, fish location rules, treasure tables, and fishing session runtime;
-- NPC runtime systems including schedules, dialogue, mail, event triggers, and friendship-related content;
-- cutscenes, overnight settlement flow, time management, pass-out handling, and player data systems;
-- interior and subspace systems for farm buildings and special locations;
-- artisan and utility blocks such as kegs, casks, looms, furnaces, smokers, worm bins, and similar facilities;
-- community center, shop, minecart, warp, weather, mining, and desert-related content foundations.
+- базовый фермерский цикл, обрабатываемая земля, культуры, управление ростом и связанный с этим контент предметов;
+- системы животных: амбары, курятники, кормушки, обращение с сеном, поедание травы на пастбище, интерфейс взаимодействия с животными;
+- данные рыбалки, правила расположения рыбы, таблицы сокровищ и логика рыболовных сессий;
+- системы NPC в реальном времени: расписания, диалоги, почта, триггеры событий и контент, связанный с дружбой;
+- катсцены, ночное подведение итогов дня, управление временем, обработка потери сознания и системы данных игрока;
+- внутренние помещения и подпространственные системы для фермерских построек и особых локаций;
+- ремесленные и хозяйственные блоки: бочки, кеги, ткацкие станки, печи, коптильни, черве́ фермы и подобные сооружения;
+- основы общественного центра, магазинов, вагонеток, телепортации, погоды, добычи и пустынного контента.
 
-## Repository Scope
+## Границы репозитория
 
-This repository is intended to keep the actual mod project itself:
+Этот репозиторий предназначен для хранения самого проекта мода:
 
-- source code and gameplay resources under src;
-- Gradle build files and wrapper files;
-- required local dependency jars under libs;
-- essential repository metadata such as README, license, and workflow files.
+- исходный код и игровые ресурсы в папке src;
+- файлы сборки Gradle и файлы wrapper;
+- необходимые локальные jar-зависимости в папке libs;
+- основные метаданные репозитория: README, лицензия и файлы workflow.
 
-Local planning notes, reverse-engineering reference material, scratch assets, and temporary working files are intentionally kept out of version control.
+Локальные заметки по планированию, справочные материалы для реверс-инжиниринга, черновые ассеты и временные рабочие файлы намеренно не включены в систему контроля версий.
 
-## Development
+## Разработка
 
-Common local validation commands:
+Основные команды для локальной проверки:
 
 - ./gradlew classes
 - ./gradlew build
 
-If local dependency resolution gets out of sync, refresh Gradle dependencies and reload the project in your IDE.
+Если локальное разрешение зависимостей рассинхронизировалось, обновите зависимости Gradle и перезагрузите проект в вашей IDE.
 
-## Pregen World Data
+## Предзагруженные данные мира
 
-The Stardew Valley dimension relies on prebuilt region data instead of runtime chunk-by-chunk generation.
+Измерение Stardew Valley опирается на заранее подготовленные данные региона вместо генерации по частям (chunk) во время игры.
 
-Expected resource locations include:
+Ожидаемые расположения ресурсов:
 
 - src/main/resources/data/stardewcraft/structures/stardew_valley/main.schem
 - src/main/resources/data/stardewcraft/structures/mine/main.schem
 - src/main/resources/pregen/stardew_valley/region_manifest.txt
 - src/main/resources/pregen/stardew_valley/region/*.mca
 
-If the required pregen data is missing or invalid, travel into the Stardew Valley world space is blocked.
+Если необходимые предзагруженные данные отсутствуют или повреждены, перемещение в мир Stardew Valley блокируется.
 
-## License and Asset Notice
+## О русском переводе
 
-This repository is distributed as a non-commercial fan project.
+В этом форке переведены на русский язык:
 
-Source code and project-original content belong to the StarfieldPastoral project team and contributors. Any included third-party or original-game-derived assets remain subject to their original rightsholders and are not relicensed by this repository.
+- игровой текстовый файл локализации (lang/ru_ru.json) — более 9500 строк: предметы, блоки, диалоги NPC, интерфейс;
+- игровая почта и тексты квестов (data/stardewcraft/mail, quests.json);
+- захардкоженные в исходном коде строки интерфейса, которые не считывались из lang-файлов (сообщения магазина, построек, статусов и т.п.);
+- текстуры доски объявлений (календарь, «Требуется помощь», рекламный плакат семян).
 
-See LICENSE.md for the current project license terms.
+Перевод выполнен независимо от оригинальной команды разработки и может отставать от последующих обновлений апстрима.
+
+## Лицензия и уведомление об ассетах
+
+Этот репозиторий распространяется как некоммерческий фанатский проект.
+
+Исходный код и оригинальный контент проекта принадлежат команде и участникам проекта StarfieldPastoral. Любые включённые сторонние ассеты или ассеты, производные от оригинальной игры, остаются собственностью их правообладателей и не перелицензируются этим репозиторием.
+
+Актуальные условия лицензии проекта — в файле LICENSE.md.

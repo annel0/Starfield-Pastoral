@@ -36,22 +36,22 @@ public final class FishPondManagerValidationService {
         FishPondWorldData worldData = FishPondWorldData.get(level);
 
         if (scan.waterCells().isEmpty()) {
-            reasons.add("未检测到与管理器关联的连通水域");
+            reasons.add("Не обнаружен связный водоём рядом с менеджером");
         } else {
             if (scan.waterCells().size() < MIN_WATER_CELLS) {
-                reasons.add("连通水域过小：至少需要 " + MIN_WATER_CELLS + " 格连通水域，当前 " + scan.waterCells().size());
+                reasons.add("Связный водоём слишком мал: требуется минимум " + MIN_WATER_CELLS + " клеток воды, сейчас " + scan.waterCells().size());
             }
             if (scan.width() < MIN_WATER_WIDTH || scan.length() < MIN_WATER_LENGTH) {
-                reasons.add("连通水域横向尺寸过小：至少需要 " + MIN_WATER_WIDTH + "x" + MIN_WATER_LENGTH + "，当前 " + scan.width() + "x" + scan.length());
+                reasons.add("Размеры связного водоёма слишком малы: требуется минимум " + MIN_WATER_WIDTH + "x" + MIN_WATER_LENGTH + ", сейчас " + scan.width() + "x" + scan.length());
             }
         }
         if (scan.netPositions().isEmpty()) {
-            reasons.add("缺少渔网");
+            reasons.add("Отсутствует рыболовная сеть");
         }
         if (scan.bucketPositions().isEmpty()) {
-            reasons.add("缺少渔桶");
+            reasons.add("Отсутствует рыболовное ведро");
         } else if (scan.bucketPositions().size() > 1) {
-            reasons.add("渔桶数量不合法：当前阶段每个鱼塘必须且只能绑定 1 个渔桶，当前 " + scan.bucketPositions().size() + " 个");
+            reasons.add("Недопустимое количество вёдер: на текущем этапе к каждому пруду должно быть привязано ровно 1 ведро, сейчас " + scan.bucketPositions().size());
         }
 
         if (!scan.waterCells().isEmpty()) {
@@ -63,11 +63,11 @@ public final class FishPondManagerValidationService {
                     continue;
                 }
                 if (existing.containsPosInEnvelope(managerPos)) {
-                    reasons.add("鱼塘管理器位于其他鱼塘的判定区域内：" + existing.pondId());
+                    reasons.add("Менеджер пруда находится в зоне другого пруда: " + existing.pondId());
                     break;
                 }
                 if (scan.intersectsEnvelope(existing)) {
-                    reasons.add("连通水域与现有鱼塘判定区域重叠：" + existing.pondId());
+                    reasons.add("Связный водоём пересекается с зоной существующего пруда: " + existing.pondId());
                     break;
                 }
             }
@@ -81,19 +81,19 @@ public final class FishPondManagerValidationService {
                 continue;
             }
             if (scan.bucketPositions().contains(existing.bucketPos())) {
-                reasons.add("渔桶已被其他鱼塘占用：" + existing.pondId());
+                reasons.add("Ведро уже занято другим прудом: " + existing.pondId());
                 break;
             }
             if (!Collections.disjoint(scan.netPositions(), existing.netPositions())) {
-                reasons.add("渔网已被其他鱼塘占用：" + existing.pondId());
+                reasons.add("Сеть уже занята другим прудом: " + existing.pondId());
                 break;
             }
         }
 
         boolean ok = reasons.isEmpty();
         String message = ok
-            ? "鱼塘校验通过"
-            : String.join("；", reasons);
+            ? "Проверка пруда пройдена"
+            : String.join("; ", reasons);
         return new ValidationResult(ok, scan, message);
     }
 

@@ -335,8 +335,8 @@ public class AnimalMoveHomeSelectScreen extends Screen {
 
         String occupancy = option.animalCount() + "/" + option.capacity();
         String status = option.selectable()
-            ? "可用"
-            : (option.buildingId().equals(payload.currentBuildingId()) ? "当前" : "已满");
+            ? "Доступно"
+            : (option.buildingId().equals(payload.currentBuildingId()) ? "Текущее" : "Занято");
         int statusColor = option.selectable() ? 0xFF92E472 : (option.buildingId().equals(payload.currentBuildingId()) ? 0xFFB6A58A : 0xFFCF6E62);
 
         float titleScale = (selected ? 0.92f : 0.78f) * scale;

@@ -393,10 +393,10 @@ public class AnimalQueryScreen extends AbstractContainerScreen<AnimalQueryMenu> 
         int textX = infoX;
         float lineScale = (FIG_INFO_FONT_SIZE / 9.0f) * UI_SCALE;
 
-        String ageLine = "年龄：" + Math.max(1, this.menu.getAgeDays() / 7 + 1);
-        String stageLine = "阶段：（" + (this.menu.isBaby() ? "幼年" : "成年") + "）";
-        String petLine = "今日抚摸：" + (this.menu.wasPetToday() ? "✅" : "❌");
-        String feedLine = "今日喂食：" + (this.menu.wasFedToday() ? "✅" : "❌");
+        String ageLine = "Возраст: " + Math.max(1, this.menu.getAgeDays() / 7 + 1);
+        String stageLine = "Стадия: (" + (this.menu.isBaby() ? "детёныш" : "взрослый") + ")";
+        String petLine = "Поглажен сегодня: " + (this.menu.wasPetToday() ? "✅" : "❌");
+        String feedLine = "Покормлен сегодня: " + (this.menu.wasFedToday() ? "✅" : "❌");
 
         drawSingleLineScaled(graphics, Component.literal(ageLine), textX, infoY, COLOR_TEXT_SUB, infoW, lineScale);
         drawSingleLineScaled(graphics, Component.literal(stageLine), textX, infoY + si(32), COLOR_TEXT_SUB, infoW, lineScale);
@@ -404,7 +404,7 @@ public class AnimalQueryScreen extends AbstractContainerScreen<AnimalQueryMenu> 
         drawSingleLineScaled(graphics, Component.literal(feedLine), textX, infoY + si(96), COLOR_TEXT_SUB, infoW, lineScale);
 
         // Keep mood text above the bottom action row at the current global UI scale.
-        drawSingleLineScaled(graphics, Component.literal("心情："), textX, infoY + si(132), COLOR_TEXT_MAIN, infoW, lineScale);
+        drawSingleLineScaled(graphics, Component.literal("Настроение:"), textX, infoY + si(132), COLOR_TEXT_MAIN, infoW, lineScale);
         drawSingleLineScaled(graphics, Component.translatable(this.menu.getMoodTranslationKey()), textX, infoY + si(160), COLOR_TEXT_HINT, infoW, lineScale);
 
         String price = String.valueOf(this.menu.getEstimatedSellPrice());

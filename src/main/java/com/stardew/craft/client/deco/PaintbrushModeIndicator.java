@@ -52,10 +52,10 @@ public final class PaintbrushModeIndicator {
         String modeText;
         int modeColor;
         if (mgr.getMode() == Mode.FLOOD_FILL) {
-            modeText = "刷漆模式：整面填充";
+            modeText = "Режим покраски: заливка всей поверхности";
             modeColor = 0x88DDFF; // cool blue
         } else {
-            modeText = "刷漆模式：区域选择";
+            modeText = "Режим покраски: выбор области";
             modeColor = 0xFFD050; // warm gold
         }
 
@@ -63,11 +63,11 @@ public final class PaintbrushModeIndicator {
         String statusText = null;
         if (mgr.getMode() == Mode.REGION_SELECT) {
             if (!mgr.hasFirstPos()) {
-                statusText = "右键选择第一个角";
+                statusText = "ПКМ — выбрать первый угол";
             } else if (!mgr.hasCompleteSelection()) {
-                statusText = "右键选择第二个角";
+                statusText = "ПКМ — выбрать второй угол";
             } else {
-                statusText = "选区已完成 - 右键应用";
+                statusText = "Область выбрана — ПКМ для применения";
             }
         }
 
@@ -92,7 +92,7 @@ public final class PaintbrushModeIndicator {
         }
 
         // Hint text
-        String hint = "Shift+滚轮切换模式";
+        String hint = "Shift+колёсико — сменить режим";
         int hintW = font.width(hint);
         int hintX = (screenW - hintW) / 2;
         int hintAlpha = (int)(displayAlpha * 100);

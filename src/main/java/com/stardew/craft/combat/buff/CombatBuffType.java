@@ -7,26 +7,26 @@ package com.stardew.craft.combat.buff;
  * 应该在对应的系统中定义
  */
 public enum CombatBuffType {
-    // 攻击相关
-    ATTACK("攻击", true),         // 增加攻击力
-    CRITICAL("暴击", true),       // 增加暴击率
-    
-    // 防御相关
-    DEFENSE("防御", true),        // 增加防御力
-    IMMUNITY("免疫", true),       // 增加免疫值
-    
-    // 移动相关
-    SPEED("速度", true),          // 增加移动速度
-    
-    // 战士技能buff
-    WARRIOR_ENERGY("战士活力", true),     // 战士技能 - 攻击时恢复体力
-    
-    // 侦察技能buff
-    ACROBAT_COOLDOWN("杂技师", true),     // 特殊移动技能冷却减少
-    
-    // 特殊食物buff
-    ROCK_CANDY("岩石糖果", true),          // +250最大体力
-    MONSTER_MUSK("怪物麝香", false);        // 增加怪物遭遇率
+    // Attack-related
+    ATTACK("Атака", true),         // increases attack power
+    CRITICAL("Крит. удар", true),       // increases critical hit chance
+
+    // Defense-related
+    DEFENSE("Защита", true),        // increases defense
+    IMMUNITY("Иммунитет", true),       // increases immunity value
+
+    // Movement-related
+    SPEED("Скорость", true),          // increases movement speed
+
+    // Warrior skill buff
+    WARRIOR_ENERGY("Энергия воина", true),     // Warrior skill - restores stamina on attack
+
+    // Scout skill buff
+    ACROBAT_COOLDOWN("Акробат", true),     // reduces special movement skill cooldown
+
+    // Special food buffs
+    ROCK_CANDY("Леденец", true),          // +250 max stamina
+    MONSTER_MUSK("Мускус монстра", false);        // increases monster encounter rate
     
     private final String displayName;
     private final boolean isBeneficial;  // 是否有益buff

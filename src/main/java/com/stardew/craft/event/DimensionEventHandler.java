@@ -323,7 +323,7 @@ public class DimensionEventHandler {
 
         if (!prebuiltReady) {
             event.setCanceled(true);
-            player.displayClientMessage(net.minecraft.network.chat.Component.literal("§c星露谷地图未预加载完成，已禁止进入。请先打包并接入 pregen region。"), false);
+            player.displayClientMessage(net.minecraft.network.chat.Component.literal("§cКарта Stardew Valley не предзагружена, вход запрещён. Сначала подготовьте и подключите pregen-регион."), false);
             StardewCraft.LOGGER.error("[VALLEY_MAP] Denied travel to Stardew Valley: prebuilt region not installed for this save (installResult={})", result);
         }
     }

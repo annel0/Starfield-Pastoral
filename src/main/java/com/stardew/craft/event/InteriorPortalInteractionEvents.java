@@ -939,7 +939,7 @@ public class InteriorPortalInteractionEvents {
 
         net.minecraft.core.BlockPos exitPos = com.stardew.craft.greenhouse.GreenhouseManager.getExitPosForPlayer(player);
         if (exitPos == null) {
-            ObjectDialogueService.show(player, net.minecraft.network.chat.Component.literal("请先创建自己的农场。"));
+            ObjectDialogueService.show(player, net.minecraft.network.chat.Component.literal("Сначала создайте собственную ферму."));
             StardewCraft.LOGGER.warn("[GREENHOUSE] Refused greenhouse exit for {}: no personal farm",
                     player.getName().getString());
             return;

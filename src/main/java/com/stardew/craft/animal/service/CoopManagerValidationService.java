@@ -34,39 +34,39 @@ public final class CoopManagerValidationService {
         List<String> reasons = new ArrayList<>();
 
         if (!scan.hasInteriorSpace()) {
-            reasons.add("未检测到鸡舍内部空间（请确保管理器附近有可站立空气空间）");
+            reasons.add("Не обнаружено внутреннее пространство курятника (убедитесь, что рядом с менеджером есть свободное пространство для стояния)");
         }
 
         if (scan.feedTroughCount() < requirement.feedTroughCount()) {
-            reasons.add("普通喂食槽不足：需要 " + requirement.feedTroughCount() + "，当前 " + scan.feedTroughCount());
+            reasons.add("Недостаточно обычных кормушек: требуется " + requirement.feedTroughCount() + ", сейчас " + scan.feedTroughCount());
         }
 
         if (scan.autoFeedTroughCount() < requirement.autoFeedTroughCount()) {
-            reasons.add("自动喂食槽不足：需要 " + requirement.autoFeedTroughCount() + "，当前 " + scan.autoFeedTroughCount());
+            reasons.add("Недостаточно автокормушек: требуется " + requirement.autoFeedTroughCount() + ", сейчас " + scan.autoFeedTroughCount());
         }
 
         if (scan.hayHopperCount() < requirement.hayHopperCount()) {
-            reasons.add("喂料斗不足：需要 " + requirement.hayHopperCount() + "，当前 " + scan.hayHopperCount());
+            reasons.add("Недостаточно сенных бункеров: требуется " + requirement.hayHopperCount() + ", сейчас " + scan.hayHopperCount());
         }
 
         if (scan.incubatorCount() < requirement.incubatorCount()) {
-            reasons.add("孵化器不足：需要 " + requirement.incubatorCount() + "，当前 " + scan.incubatorCount());
+            reasons.add("Недостаточно инкубаторов: требуется " + requirement.incubatorCount() + ", сейчас " + scan.incubatorCount());
         }
 
         if (scan.interiorAirCount() < requirement.minInteriorBlocks()) {
-            reasons.add("鸡舍内部空间不足：至少 " + requirement.minInteriorBlocks() + " 格，当前 " + scan.interiorAirCount() + " 格");
+            reasons.add("Недостаточно внутреннего пространства курятника: требуется минимум " + requirement.minInteriorBlocks() + " клеток, сейчас " + scan.interiorAirCount() + " клеток");
         }
 
         if (Config.COOP_REQUIRE_ENCLOSED.get() && !scan.enclosed()) {
-            reasons.add("鸡舍未封闭（检测到内部空间与扫描边界连通）");
+            reasons.add("Курятник не закрыт (обнаружена связь внутреннего пространства с границей сканирования)");
         }
 
         if (Config.COOP_REQUIRE_DOOR.get() && scan.doorCount() < Config.COOP_MIN_DOOR_COUNT.get()) {
-            reasons.add("门/栅栏门不足：需要 " + Config.COOP_MIN_DOOR_COUNT.get() + "，当前 " + scan.doorCount());
+            reasons.add("Недостаточно дверей/ворот: требуется " + Config.COOP_MIN_DOOR_COUNT.get() + ", сейчас " + scan.doorCount());
         }
 
         boolean ok = reasons.isEmpty();
-        String message = ok ? "校验通过" : String.join("；", reasons);
+        String message = ok ? "Проверка пройдена" : String.join("; ", reasons);
         return new ValidationResult(ok, targetTier, requirement, scan, message);
     }
 

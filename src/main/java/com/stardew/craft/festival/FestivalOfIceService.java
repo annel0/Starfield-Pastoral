@@ -888,7 +888,7 @@ public final class FestivalOfIceService {
 
     private static void startIceFishingScoreboard(ServerLevel level) {
         runServerCommand(level, "scoreboard objectives remove " + ICE_FISHING_SCOREBOARD_OBJECTIVE);
-        runServerCommand(level, "scoreboard objectives add " + ICE_FISHING_SCOREBOARD_OBJECTIVE + " dummy {\"text\":\"冰钓\"}");
+        runServerCommand(level, "scoreboard objectives add " + ICE_FISHING_SCOREBOARD_OBJECTIVE + " dummy {\"text\":\"Подлёдный лов\"}");
         runServerCommand(level, "scoreboard objectives setdisplay sidebar " + ICE_FISHING_SCOREBOARD_OBJECTIVE);
         updateIceFishingScoreboard(level);
     }

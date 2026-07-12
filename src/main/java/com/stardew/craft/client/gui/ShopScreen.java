@@ -786,27 +786,27 @@ public class ShopScreen extends Screen {
         lines.add(Component.empty());
         if (item.price() > 0) {
             boolean ok = playerMoney >= item.price();
-            String currency = isFairStarTokenShop() ? " 星星币" : "g";
-            lines.add(Component.literal("购入：" + item.price() + currency)
+            String currency = isFairStarTokenShop() ? " звёздных жетонов" : "g";
+            lines.add(Component.literal("Цена: " + item.price() + currency)
                 .withStyle(ok ? ChatFormatting.GOLD : ChatFormatting.DARK_RED));
         } else {
-            lines.add(Component.literal("免费").withStyle(ChatFormatting.GREEN));
+            lines.add(Component.literal("Бесплатно").withStyle(ChatFormatting.GREEN));
         }
         lines.add(Component.literal("[Shift]×5  [Ctrl+Shift]×25").withStyle(ChatFormatting.DARK_GRAY));
         if (item.stock() != Integer.MAX_VALUE)
-            lines.add(Component.literal("剩余库存：" + item.stock()).withStyle(ChatFormatting.AQUA));
+            lines.add(Component.literal("Остаток: " + item.stock()).withStyle(ChatFormatting.AQUA));
         if (item.requiresTrade()) {
             ItemStack trade = resolveStack(item.tradeItemId());
             String tradeName = trade.isEmpty() ? item.tradeItemId() : trade.getHoverName().getString();
             int reqCount = Math.max(1, item.tradeItemCount());
             boolean enough = hasTradeItem(item, 1);
-            lines.add(Component.literal("交易需求：" + tradeName + " x" + reqCount)
+            lines.add(Component.literal("Требуется для обмена: " + tradeName + " x" + reqCount)
                 .withStyle(enough ? ChatFormatting.GRAY : ChatFormatting.DARK_RED));
         }
         if (!stack.isEmpty() && stack.getItem() instanceof IStardewItem si) {
             int sell = si.getSellPrice(stack);
             if (sell > 0)
-                lines.add(Component.literal("基础出售价：" + sell + "g").withStyle(ChatFormatting.GRAY));
+                lines.add(Component.literal("Базовая цена продажи: " + sell + "g").withStyle(ChatFormatting.GRAY));
         }
         g.renderTooltip(font, lines, java.util.Optional.empty(), mx, my);
     }
@@ -835,13 +835,13 @@ public class ShopScreen extends Screen {
                 }
             } catch (Throwable ignored) { /* 客户端缓存不可用时退化到基础价 */ }
             if (sellUnit > 0) {
-                lines.add(Component.literal("出售：" + (sellUnit * stack.getCount()) + "g")
+                lines.add(Component.literal("Продажа: " + (sellUnit * stack.getCount()) + "g")
                     .withStyle(ChatFormatting.GOLD));
-                lines.add(Component.literal("[Click]全部出售  [Right-Click]出售1个")
+                lines.add(Component.literal("[Click] продать всё  [ПКМ] продать 1 шт.")
                     .withStyle(ChatFormatting.DARK_GRAY));
             }
         } else if (!sellable && !stack.isEmpty()) {
-            lines.add(Component.literal("此商店不收购此物品").withStyle(ChatFormatting.DARK_GRAY));
+            lines.add(Component.literal("Этот магазин не покупает этот предмет").withStyle(ChatFormatting.DARK_GRAY));
         }
         g.renderTooltip(font, lines, java.util.Optional.empty(), mx, my);
     }

@@ -9,11 +9,11 @@ import net.minecraft.network.chat.MutableComponent;
  * 决定武器名称颜色和tooltip边框
  */
 public enum WeaponRarity {
-    COMMON(1, 4, ChatFormatting.WHITE, "普通"),
-    UNCOMMON(5, 8, ChatFormatting.GREEN, "精良"),
-    RARE(9, 12, ChatFormatting.BLUE, "稀有"),
-    EPIC(13, 16, ChatFormatting.DARK_PURPLE, "史诗"),
-    LEGENDARY(17, Integer.MAX_VALUE, ChatFormatting.GOLD, "传说");
+    COMMON(1, 4, ChatFormatting.WHITE, "Обычное"),
+    UNCOMMON(5, 8, ChatFormatting.GREEN, "Хорошее"),
+    RARE(9, 12, ChatFormatting.BLUE, "Редкое"),
+    EPIC(13, 16, ChatFormatting.DARK_PURPLE, "Эпическое"),
+    LEGENDARY(17, Integer.MAX_VALUE, ChatFormatting.GOLD, "Легендарное");
     
     private final int minLevel;
     private final int maxLevel;

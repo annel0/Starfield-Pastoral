@@ -5,15 +5,15 @@ package com.stardew.craft.combat.debuff;
  * 参考星露谷物语中怪物可以施加的负面效果
  */
 public enum DebuffType {
-    // 减益效果
-    SLIMED("粘液", 4000, true),              // 史莱姆粘液 - 减速
-    JINXED("诅咒", 8000, true),              // 诅咒 - 降低防御
-    WEAKNESS("虚弱", 8000, true),            // 虚弱 - 降低攻击
-    DARKNESS("黑暗", 6000, true),            // 黑暗 - 降低命中
-    FROZEN("冻结", 2000, false),             // 冻结 - 无法移动
-    BURNING("燃烧", 6000, true),             // 燃烧 - 持续伤害
-    NAUSEATED("恶心", 5000, true),           // 恶心 - 无法恢复体力
-    STUNNED("眩晕", 1500, false);            // 眩晕 - 无法行动
+    // Negative effects
+    SLIMED("Слизь", 4000, true),              // slime residue - slows movement
+    JINXED("Проклятие", 8000, true),              // curse - lowers defense
+    WEAKNESS("Слабость", 8000, true),            // weakness - lowers attack
+    DARKNESS("Тьма", 6000, true),            // darkness - lowers accuracy
+    FROZEN("Заморозка", 2000, false),             // frozen - unable to move
+    BURNING("Горение", 6000, true),             // burning - damage over time
+    NAUSEATED("Тошнота", 5000, true),           // nausea - unable to restore stamina
+    STUNNED("Оглушение", 1500, false);            // stunned - unable to act
     
     private final String displayName;
     private final int defaultDuration;  // 默认持续时间（毫秒）

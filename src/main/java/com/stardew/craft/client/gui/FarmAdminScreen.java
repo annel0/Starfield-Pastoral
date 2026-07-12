@@ -117,7 +117,7 @@ public class FarmAdminScreen extends Screen {
             int inputX = panelX + PANEL_PAD + 100;
             int inputY = listBottom + (BOTTOM_BAR_H - 20) / 2;
             inputBox = new EditBox(this.font, inputX, inputY, inputW, 18,
-                    Component.literal(currentAction == Action.RENAME ? "新农场名" : "目标玩家名"));
+                    Component.literal(currentAction == Action.RENAME ? "Новое название фермы" : "Имя целевого игрока"));
             inputBox.setMaxLength(48);
             if (currentAction == Action.RENAME) {
                 inputBox.setValue(actionTarget.farmName());
@@ -152,20 +152,20 @@ public class FarmAdminScreen extends Screen {
         // ── 表头 ──
         g.fill(panelX, panelY, panelX + panelW, panelY + HEADER_H, HEADER_BG);
         // 标题
-        g.drawString(font, "§l农场管理", panelX + PANEL_PAD, panelY + 6, COL_TITLE, false);
+        g.drawString(font, "§lУправление фермами", panelX + PANEL_PAD, panelY + 6, COL_TITLE, false);
         // 农场数
-        String countStr = farms.size() + " 个农场";
+        String countStr = farms.size() + " ферм(ы)";
         g.drawString(font, countStr, panelX + panelW - PANEL_PAD - font.width(countStr),
                 panelY + 6, COL_DETAIL, false);
 
         // 列标题
         int colY = panelY + 22;
         int col0 = panelX + PANEL_PAD;
-        g.drawString(font, "状态", col0, colY, COL_LABEL, false);
-        g.drawString(font, "玩家", col0 + 30, colY, COL_LABEL, false);
-        g.drawString(font, "农场名", col0 + 150, colY, COL_LABEL, false);
-        g.drawString(font, "类型", col0 + 300, colY, COL_LABEL, false);
-        g.drawString(font, "操作", panelX + panelW - PANEL_PAD - 160, colY, COL_LABEL, false);
+        g.drawString(font, "Статус", col0, colY, COL_LABEL, false);
+        g.drawString(font, "Игрок", col0 + 30, colY, COL_LABEL, false);
+        g.drawString(font, "Ферма", col0 + 150, colY, COL_LABEL, false);
+        g.drawString(font, "Тип", col0 + 300, colY, COL_LABEL, false);
+        g.drawString(font, "Действия", panelX + panelW - PANEL_PAD - 160, colY, COL_LABEL, false);
 
         // 表头下分隔线
         g.fill(panelX + 4, listTop - 1, panelX + panelW - 4, listTop, 0xFF333333);
@@ -208,8 +208,8 @@ public class FarmAdminScreen extends Screen {
             g.drawString(font, farm.farmType(), textX + 300, lineY1, COL_TYPE, false);
 
             // 详情行
-            String memberStr = farm.memberCount() > 1 ? "  成员: " + farm.memberCount() + "/4" : "";
-            String detailStr = String.format("#%d  UUID: %s  在线: 第%d天/季%d  %s%s",
+            String memberStr = farm.memberCount() > 1 ? "  Участники: " + farm.memberCount() + "/4" : "";
+            String detailStr = String.format("#%d  UUID: %s  Онлайн: день %d/сезон %d  %s%s",
                     farm.slotIndex(),
                     farm.ownerUUID().toString().substring(0, 8),
                     farm.lastOnlineDay(),
@@ -224,11 +224,11 @@ public class FarmAdminScreen extends Screen {
 
             drawButton(g, "TP", btnAreaX, btnY, BTN_W_SM, mouseX, mouseY, false);
             btnAreaX += BTN_W_SM + BTN_GAP;
-            drawButton(g, "改名", btnAreaX, btnY, BTN_W_MD, mouseX, mouseY, false);
+            drawButton(g, "Переим.", btnAreaX, btnY, BTN_W_MD, mouseX, mouseY, false);
             btnAreaX += BTN_W_MD + BTN_GAP;
-            drawButton(g, "转移", btnAreaX, btnY, BTN_W_MD, mouseX, mouseY, false);
+            drawButton(g, "Передать", btnAreaX, btnY, BTN_W_MD, mouseX, mouseY, false);
             btnAreaX += BTN_W_MD + BTN_GAP;
-            drawButton(g, "删除", btnAreaX, btnY, BTN_W_MD, mouseX, mouseY, true);
+            drawButton(g, "Удалить", btnAreaX, btnY, BTN_W_MD, mouseX, mouseY, true);
         }
         g.disableScissor();
 
@@ -249,16 +249,16 @@ public class FarmAdminScreen extends Screen {
             g.fill(panelX + 4, barY, panelX + panelW - 4, barY + 1, 0xFF333333);
 
             String label = currentAction == Action.RENAME
-                    ? "重命名: " + actionTarget.ownerName()
-                    : "转移: " + actionTarget.ownerName() + " →";
+                    ? "Переименовать: " + actionTarget.ownerName()
+                    : "Передать: " + actionTarget.ownerName() + " →";
             g.drawString(font, label, panelX + PANEL_PAD, barY + (BOTTOM_BAR_H - 8) / 2, COL_FARM_NAME, false);
 
             // 确认 / 取消按钮
             int confirmX = inputBox != null ? inputBox.getX() + inputBox.getWidth() + 8 : panelX + panelW - 120;
             int cancelX = confirmX + 50;
             int btnBY = barY + (BOTTOM_BAR_H - BTN_H) / 2;
-            drawButton(g, "确认", confirmX, btnBY, 44, mouseX, mouseY, false);
-            drawButton(g, "取消", cancelX, btnBY, 44, mouseX, mouseY, false);
+            drawButton(g, "OK", confirmX, btnBY, 44, mouseX, mouseY, false);
+            drawButton(g, "Отмена", cancelX, btnBY, 44, mouseX, mouseY, false);
         }
 
         // ── 渲染 widgets（EditBox 等）——直接渲染，不调用 super.render() ──
