@@ -11,7 +11,7 @@
 > С тех пор оригинальный проект значительно продвинулся вперёд и получил полноценную поддержку локализаций, включая русский язык. Необходимости поддерживать отдельный форк больше нет.
 >
 > **Для актуальных версий используйте официальный проект:**
-> [ChangQingElysium/Starfield-Pastoral](/ChangQingElysium/Starfield-Pastoral)
+> [ChangQingElysium/Starfield-Pastoral](https://github.com/ChangQingElysium/Starfield-Pastoral)
 
 ---
 
@@ -45,7 +45,7 @@
 
 Обсуждение интеграции русской локализации и разрешения на её дальнейшее использование:
 
-[StarfieldPastoral Discussion #6](/ChangQingElysium/Starfield-Pastoral/discussions/6)
+[StarfieldPastoral Discussion #6](https://github.com/ChangQingElysium/Starfield-Pastoral/discussions/6)
 
 ---
 
@@ -66,7 +66,7 @@
 >
 > For current releases and continued development, please use:
 >
-> [ChangQingElysium/Starfield-Pastoral](/ChangQingElysium/Starfield-Pastoral)
+> [ChangQingElysium/Starfield-Pastoral](https://github.com/ChangQingElysium/Starfield-Pastoral)
 
 ---
 
